@@ -4,12 +4,17 @@ on:
   pull_request:
      
 jobs:
+  vars:
+    runs-on: ubuntu-22.04
+    outputs:
+      MEDIATOR_DID: {{ vars.MEDIATOR_DID }}
+      MEDIATOR_DID_ALTERNATIVE: {{ vars.MEDIATOR_DID_ALTERNATIVE }}
+      CONTROL_PLANE_URL: {{ vars.CONTROL_PLANE_URL }}
+    steps:
+      - run: echo "Exposing env vars"
   dart-pipeline:
+    needs: vars
     uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
     secrets: inherit
     with:
       flutter-version: '3.35.3'
-    env: 
-      MEDIATOR_DID: {{ vars.MEDIATOR_DID }}
-      MEDIATOR_DID_ALTERNATIVE: {{ vars.MEDIATOR_DID_ALTERNATIVE }}
-      CONTROL_PLANE_URL: {{ vars.CONTROL_PLANE_URL }}

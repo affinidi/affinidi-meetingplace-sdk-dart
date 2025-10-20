@@ -2,7 +2,6 @@ export 'chat_protocol.dart';
 export 'message/chat_activity.dart';
 export 'message/chat_alias_profile_hash.dart';
 export 'message/chat_alias_profile_request.dart';
-export 'message/chat_attachments_verifiable_presentation.dart';
 export 'message/chat_contact_details_update.dart';
 export 'message/chat_delivered.dart';
 export 'message/chat_effect.dart';

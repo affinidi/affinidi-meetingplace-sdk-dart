@@ -42,7 +42,7 @@ melos:
 
     test:
       run: |
-        melos run test-dart
+        melos run test-dart &&
         melos run coverage-report
 
     test-dart:

@@ -1,0 +1,11 @@
+name: Pull Request Checks
+
+on: 
+  pull_request:
+     
+jobs:
+  dart-pipeline:
+    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
+    secrets: inherit
+    with:
+      flutter-version: '3.35.3'

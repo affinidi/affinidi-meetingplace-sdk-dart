@@ -25,9 +25,7 @@ class ChatActivityEventHandler extends BaseEventHandler {
     try {
       final channel = await findChannelByDid(channelActivity.did);
       final didManager = await findDidManager(channel);
-
-      var mesageSyncMarker =
-          channel.messageSyncMarker ?? DateTime.now().toUtc();
+      var messageSyncMarker = channel.messageSyncMarker;
 
       // Do not delete from mediator as SDK fetches messages only to update
       // batch count. Another consumer (e.g. ChatSDK) is going to fetch
@@ -36,7 +34,7 @@ class ChatActivityEventHandler extends BaseEventHandler {
         didManager: didManager,
         mediatorDid: channel.mediatorDid,
         options: FetchMessagesOptions(
-            startFrom: mesageSyncMarker,
+            startFrom: messageSyncMarker,
             batchSize: 25,
             deleteOnRetrieve: false,
             // TODO: fix interdependency - make configurable via SDK options
@@ -53,12 +51,13 @@ class ChatActivityEventHandler extends BaseEventHandler {
 
         final createdTime = message.plainTextMessage.createdTime?.toUtc();
         if (createdTime != null &&
-            createdTime.compareTo(mesageSyncMarker) > 0) {
-          mesageSyncMarker = createdTime;
+            (messageSyncMarker == null ||
+                createdTime.compareTo(messageSyncMarker) > 0)) {
+          messageSyncMarker = createdTime;
         }
       }
 
-      channel.messageSyncMarker = mesageSyncMarker;
+      channel.messageSyncMarker = messageSyncMarker;
       await channelRepository.updateChannel(channel);
 
       logger.info(

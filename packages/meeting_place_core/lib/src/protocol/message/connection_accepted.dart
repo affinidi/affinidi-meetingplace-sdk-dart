@@ -15,6 +15,7 @@ class ConnectionAccepted extends PlainTextMessage {
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.connectionAccepted.value),
           body: {'channel_did': permanentChannelDid},
+          createdTime: DateTime.now().toUtc(),
           attachments: vCard is VCard
               ? [
                   VCardAttachment.create(

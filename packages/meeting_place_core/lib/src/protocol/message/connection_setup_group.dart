@@ -19,6 +19,7 @@ class ConnectionSetupGroup extends PlainTextMessage {
             'channel_did': permanentChannelDid,
             'public_key': memberPublicKey,
           },
+          createdTime: DateTime.now().toUtc(),
           attachments: vCard is VCard
               ? [
                   VCardAttachment.create(

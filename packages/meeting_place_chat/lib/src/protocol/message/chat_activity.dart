@@ -25,6 +25,7 @@ class ChatActivity extends PlainTextMessage {
       : super(
           type: Uri.parse(ChatProtocol.chatActivity.value),
           body: {'timestamp': DateTime.now().toUtc().toIso8601String()},
+          createdTime: DateTime.now().toUtc(),
         );
 
   /// Factory constructor to create a new outgoing [ChatActivity].

@@ -27,6 +27,7 @@ class ChatEffect extends PlainTextMessage {
   }) : super(
           type: Uri.parse(ChatProtocol.chatEffect.value),
           body: {'effect': effect},
+          createdTime: DateTime.now().toUtc(),
         );
 
   /// Factory constructor to conveniently create a new outgoing [ChatEffect].

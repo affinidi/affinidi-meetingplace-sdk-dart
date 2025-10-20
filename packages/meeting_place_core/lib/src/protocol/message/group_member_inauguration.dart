@@ -57,6 +57,7 @@ class GroupMemberInauguration extends PlainTextMessage {
                 )
                 .toList(),
           },
+          createdTime: DateTime.now().toUtc(),
           attachments: [
             Attachment(
               id: const Uuid().v4(),

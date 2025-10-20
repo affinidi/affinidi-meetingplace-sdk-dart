@@ -12,6 +12,7 @@ class ChatContactDetailsUpdate extends PlainTextMessage {
   }) : super(
           type: Uri.parse(ChatProtocol.chatContactDetailsUpdate.value),
           body: profileDetails,
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory ChatContactDetailsUpdate.create({

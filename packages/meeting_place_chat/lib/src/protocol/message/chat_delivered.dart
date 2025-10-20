@@ -12,6 +12,7 @@ class ChatDelivered extends PlainTextMessage {
   }) : super(
           type: Uri.parse(ChatProtocol.chatDelivered.value),
           body: {'messages': messages},
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory ChatDelivered.create({

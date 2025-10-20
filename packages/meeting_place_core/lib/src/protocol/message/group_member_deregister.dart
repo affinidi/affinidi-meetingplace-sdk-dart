@@ -9,6 +9,7 @@ class GroupMemberDeregistered extends PlainTextMessage {
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.groupMemberDeregistered.value),
           body: {'groupId': groupId, 'memberDid': memberDid},
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory GroupMemberDeregistered.create({

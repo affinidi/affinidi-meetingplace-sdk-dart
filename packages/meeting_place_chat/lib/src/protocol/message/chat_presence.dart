@@ -10,6 +10,7 @@ class ChatPresence extends PlainTextMessage {
           body: {
             'timestamp': DateTime.now().toUtc().toIso8601String(),
           },
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory ChatPresence.create({

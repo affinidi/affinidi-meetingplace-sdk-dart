@@ -14,6 +14,7 @@ class OutreachInvitation extends PlainTextMessage {
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.outreachInvitation.value),
           body: {'mnemonic': mnemonic, 'message': message},
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory OutreachInvitation.create({

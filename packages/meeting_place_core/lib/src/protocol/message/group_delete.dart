@@ -6,6 +6,7 @@ class GroupDelete extends PlainTextMessage {
       : super(
           type: Uri.parse(MeetingPlaceProtocol.groupDeleted.value),
           body: {'groupId': groupId},
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory GroupDelete.create({required String groupId}) {

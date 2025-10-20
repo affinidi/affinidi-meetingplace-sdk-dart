@@ -54,6 +54,7 @@ class ChatGroupDetailsUpdate extends PlainTextMessage {
             'groupKeyPair': groupKeyPair,
             'groupPublicKey': groupPublicKey,
           },
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory ChatGroupDetailsUpdate.create({

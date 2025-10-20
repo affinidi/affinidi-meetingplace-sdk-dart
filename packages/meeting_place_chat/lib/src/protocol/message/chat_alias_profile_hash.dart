@@ -12,6 +12,7 @@ class ChatAliasProfileHash extends PlainTextMessage {
   }) : super(
           type: Uri.parse(ChatProtocol.chatAliasProfileHash.value),
           body: {'profileHash': profileHash},
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory ChatAliasProfileHash.create({

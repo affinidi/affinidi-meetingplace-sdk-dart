@@ -22,6 +22,7 @@ class GroupMessage extends PlainTextMessage {
             'fromDid': fromDid,
             'seqNo': seqNo,
           },
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory GroupMessage.create({

@@ -26,6 +26,7 @@ class ChatReaction extends PlainTextMessage {
   }) : super(
           type: Uri.parse(ChatProtocol.chatReaction.value),
           body: {'reactions': reactions, 'messageId': messageId},
+          createdTime: DateTime.now().toUtc(),
         );
 
   /// Factory constructor to create a new outgoing [ChatReaction].

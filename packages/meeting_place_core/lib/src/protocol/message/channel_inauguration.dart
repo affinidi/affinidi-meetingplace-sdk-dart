@@ -14,6 +14,7 @@ class ChannelInauguration extends PlainTextMessage {
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.channelInauguration.value),
           body: {'notificationToken': notificationToken, did: did},
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory ChannelInauguration.create({

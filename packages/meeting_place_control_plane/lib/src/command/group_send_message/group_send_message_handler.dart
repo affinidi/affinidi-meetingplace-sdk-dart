@@ -22,17 +22,17 @@ class GroupSendMessageHandler
   /// Returns an instance of [GroupSendMessageHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   GroupSendMessageHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'GroupSendMessageHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -80,7 +80,7 @@ class GroupSendMessageHandler
         ' group: ${command.groupDid.topAndTail()}',
         name: methodName,
       );
-      await _discoveryApiClient.client.groupSendMessage(
+      await _apiClient.client.groupSendMessage(
         groupSendMessage: builder.build(),
       );
 

@@ -25,21 +25,21 @@ class CreateOobHandler
   /// Returns an instance of [CreateOobHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   /// - [mediatorDid] - The mediator did string.
   /// - [didResolver] - The did resolver object.
   CreateOobHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     required this.mediatorDid,
     required this.didResolver,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'CreateOobHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final String mediatorDid;
   final DidResolver didResolver;
   final ControlPlaneSDKLogger _logger;
@@ -89,7 +89,7 @@ class CreateOobHandler
         name: methodName,
       );
 
-      final response = await _discoveryApiClient.client.createOOB(
+      final response = await _apiClient.client.createOOB(
         createOobInput: builder.build(),
       );
 

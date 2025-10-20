@@ -85,7 +85,7 @@ class ControlPlaneSDK {
 
   final ControlPlaneSDKLogger _logger;
 
-  late final ControlPlaneApiClient discoveryApiClient;
+  late final ControlPlaneApiClient controlPlaneApiClient;
   late final CommandDispatcher _dispatcher;
 
   Device? _device;
@@ -133,7 +133,7 @@ class ControlPlaneSDK {
   /// Private method that initialises the DiscoveryApiClient.
   /// This is invoked by a public method within the [DiscoverSDK].
   Future<void> _init() async {
-    discoveryApiClient = await ControlPlaneApiClient.init(
+    controlPlaneApiClient = await ControlPlaneApiClient.init(
       // TODO: pass custom options from SDK initialization
       options: ControlPlaneApiClientOptions(controlPlaneDid: controlPlaneDid),
       didResolver: didResolver,
@@ -144,7 +144,7 @@ class ControlPlaneSDK {
     _dispatcher = CommandDispatcher();
     _dispatcher.registerHandler(
       AuthenticateHandler(
-        mpxClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         didManager: didManager,
         didResolver: didResolver,
         logger: _logger,
@@ -156,12 +156,12 @@ class ControlPlaneSDK {
      * dependency injection
      */
     _dispatcher.registerHandler(
-      RegisterDeviceHandler(mpxClient: discoveryApiClient, logger: _logger),
+      RegisterDeviceHandler(mpxClient: controlPlaneApiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
       RegisterOfferHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         mediatorDid: mediatorDid,
         sdkConfig: controlPlaneSDKConfig,
         didResolver: didResolver,
@@ -171,7 +171,7 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       RegisterOfferGroupHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         mediatorDid: mediatorDid,
         sdkConfig: controlPlaneSDKConfig,
         didResolver: didResolver,
@@ -180,11 +180,11 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      DeregisterOfferHandler(mpxClient: discoveryApiClient, logger: _logger),
+      DeregisterOfferHandler(apiClient: controlPlaneApiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
       ValidateOfferPhraseHandler(
-        mpxClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         dispatcher: _dispatcher,
         logger: _logger,
       ),
@@ -192,99 +192,101 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       AcceptOfferHandler(
-        apiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
     _dispatcher.registerHandler(
-      AcceptOfferGroupHandler(mpxClient: discoveryApiClient, logger: _logger),
+      AcceptOfferGroupHandler(
+          apiClient: controlPlaneApiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
       NotifyAcceptanceHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
     _dispatcher.registerHandler(
       NotifyAcceptanceGroupHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
     _dispatcher.registerHandler(
       QueryOfferHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         dispatcher: _dispatcher,
         logger: _logger,
       ),
     );
     _dispatcher.registerHandler(
-      FinaliseAcceptanceHandler(mpxClient: discoveryApiClient, logger: _logger),
+      FinaliseAcceptanceHandler(
+          apiClient: controlPlaneApiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
       RegisterNotificationHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
     _dispatcher.registerHandler(
       GetPendingNotificationsHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
       NotifyChannelHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
       DeletePendingNotificationsHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
       GroupAddMemberHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
     _dispatcher.registerHandler(
       GroupSendMessageHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
       GroupDeregisterMemberHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
       GroupDeleteHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
       DeregisterNotificationHandler(
-        mpxClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
       CreateOobHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         mediatorDid: mediatorDid,
         didResolver: didResolver,
         logger: _logger,
@@ -293,7 +295,7 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       GetOobHandler(
-        discoveryApiClient: discoveryApiClient,
+        apiClient: controlPlaneApiClient,
         mediatorDid: mediatorDid,
         didResolver: didResolver,
         logger: _logger,
@@ -301,7 +303,7 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      NotifyOutreachHandler(discoveryApiClient: discoveryApiClient),
+      NotifyOutreachHandler(apiClient: controlPlaneApiClient),
     );
 
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(

@@ -10,16 +10,16 @@ class NotifyOutreachHandler
     implements
         CommandHandler<NotifyOutreachCommand, NotifyOutreachCommandOutput> {
   NotifyOutreachHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
 
   static const String _className = 'NotifyChannelHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   @override
@@ -32,7 +32,7 @@ class NotifyOutreachHandler
 
     try {
       _logger.info('[MPX API] calling /notify-outreach');
-      await _discoveryApiClient.client.notifyOutreach(
+      await _apiClient.client.notifyOutreach(
         notifyOutreachInput: builder.build(),
       );
       return NotifyOutreachCommandOutput(success: true);

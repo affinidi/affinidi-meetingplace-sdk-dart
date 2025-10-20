@@ -23,20 +23,20 @@ class ValidateOfferPhraseHandler
   /// Returns an instance of [ValidateOfferPhraseHandler].
   ///
   /// **Parameters:**
-  /// - [mpxClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   /// - [dispatcher] - The command dispather object.
   /// - [logger] - An instance of logger object.
   ValidateOfferPhraseHandler({
-    required ControlPlaneApiClient mpxClient,
+    required ControlPlaneApiClient apiClient,
     required CommandDispatcher dispatcher,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = mpxClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'ValidateOfferPhraseHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -72,7 +72,7 @@ class ValidateOfferPhraseHandler
         '[MPX API] Calling /check-offer-phrase for phrase: ${command.phrase}',
         name: methodName,
       );
-      final response = await _discoveryApiClient.client.checkOfferPhrase(
+      final response = await _apiClient.client.checkOfferPhrase(
         checkOfferPhraseInput: builder.build(),
       );
 

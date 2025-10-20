@@ -27,12 +27,12 @@ class RegisterOfferHandler
   /// Returns an instance of [RegisterOfferHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   /// - [mediatorDid] - The mediator did string.
   /// - [sdkConfig] - An instance of discovery sdk config object.
   /// - [didResolver] - An instance of did resolver object.
   RegisterOfferHandler({
-    required this.discoveryApiClient,
+    required this.apiClient,
     required this.mediatorDid,
     required this.sdkConfig,
     required this.didResolver,
@@ -42,7 +42,7 @@ class RegisterOfferHandler
                 className: _className, sdkName: sdkName);
   static const String _className = 'RegisterOfferHandler';
 
-  final ControlPlaneApiClient discoveryApiClient;
+  final ControlPlaneApiClient apiClient;
   final String mediatorDid;
   final ControlPlaneSDKConfig sdkConfig;
   final DidResolver didResolver;
@@ -111,7 +111,7 @@ class RegisterOfferHandler
         '[MPX API] Sending request to /register-offer with offerName: ${builder.offerName}',
         name: methodName,
       );
-      final response = await discoveryApiClient.client.registerOfferToConnect(
+      final response = await apiClient.client.registerOfferToConnect(
         registerOfferInput: builder.build(),
       );
 

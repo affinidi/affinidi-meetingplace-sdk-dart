@@ -33,17 +33,17 @@ class GetPendingNotificationsHandler
   /// Returns an instance of [FinaliseAcceptanceHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   GetPendingNotificationsHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'GetPendingNotificationsHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -81,11 +81,10 @@ class GetPendingNotificationsHandler
         '${command.device.platformType.value}',
         name: methodName,
       );
-      final response =
-          (await _discoveryApiClient.client.getPendingNotifications(
+      final response = (await _apiClient.client.getPendingNotifications(
         getPendingNotificationsInput: builder.build(),
       ))
-              .data;
+          .data;
 
       final events = response!.notifications!.map(_parseNotification).toList();
       final processableEvents = _filterProcessableEvents(events);

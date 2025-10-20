@@ -17,8 +17,6 @@ linter:
     - unawaited_futures
 analyzer:
   exclude:
-    # - Exclude MPX client directory because it contains auto-generated code
-    # - Exclude DIDComm dart package as it will be removed from this repository after main development work is done
     [lib/**.g.dart]
 
   errors:

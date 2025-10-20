@@ -25,17 +25,17 @@ class GroupDeregisterMemberHandler
   /// Returns an instance of [GroupDeregisterMemberHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   GroupDeregisterMemberHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'GroupDeregisterMemberHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -71,7 +71,7 @@ class GroupDeregisterMemberHandler
         '[MPX API] Calling /group-deregister-member for member: ${command.memberId} from group: ${command.groupId}',
         name: methodName,
       );
-      await _discoveryApiClient.client.groupMemberDeregister(
+      await _apiClient.client.groupMemberDeregister(
         groupDeregisterMemberInput: builder.build(),
       );
 

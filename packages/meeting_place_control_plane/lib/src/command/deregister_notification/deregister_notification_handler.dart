@@ -25,17 +25,17 @@ class DeregisterNotificationHandler
   /// Returns an instance of [DeregisterNotificationHandler].
   ///
   /// **Parameters:**
-  /// - [mpxClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   DeregisterNotificationHandler({
-    required ControlPlaneApiClient mpxClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = mpxClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'DeregisterNotificationHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -69,7 +69,7 @@ class DeregisterNotificationHandler
         '[MPX API] Calling /deregister-notification',
         name: methodName,
       );
-      await _discoveryApiClient.client.deregisterNotification(
+      await _apiClient.client.deregisterNotification(
         deregisterNotificationInput: builder.build(),
       );
 

@@ -22,17 +22,17 @@ class AcceptOfferGroupHandler
   /// Returns an instance of [AcceptOfferGroupHandler].
   ///
   /// **Parameters:**
-  /// - [mpxClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   AcceptOfferGroupHandler({
-    required ControlPlaneApiClient mpxClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = mpxClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'AcceptOfferGroupHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -74,7 +74,7 @@ class AcceptOfferGroupHandler
         '[MPX API] Calling /accept-offer with mnemonic: ${command.mnemonic}',
         name: methodName,
       );
-      response = await _discoveryApiClient.client.acceptOfferToConnectGroup(
+      response = await _apiClient.client.acceptOfferToConnectGroup(
         acceptOfferGroupInput: builder.build(),
       );
 

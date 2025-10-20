@@ -22,17 +22,17 @@ class NotifyChannelHandler
   /// Returns an instance of [NotifyChannelHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   NotifyChannelHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'NotifyChannelHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -68,7 +68,7 @@ class NotifyChannelHandler
         '[MPX API] Calling /notify-channel for did: ${command.did.topAndTail()}, type: ${command.type}',
         name: methodName,
       );
-      await _discoveryApiClient.client.notifyChannel(
+      await _apiClient.client.notifyChannel(
         notifyChannelInput: builder.build(),
       );
 

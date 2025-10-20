@@ -23,19 +23,19 @@ class RegisterNotificationHandler
   /// Returns an instance of [RegisterNotificationHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   /// - [retryConfig] - An instance of retry config object.
   RegisterNotificationHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     RetryConfig retryConfig = const RetryConfig(),
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'RegisterNotificationHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -76,7 +76,7 @@ class RegisterNotificationHandler
         ' platform type: ${command.device.platformType.value}',
         name: methodName,
       );
-      final response = await _discoveryApiClient.client.registerNotification(
+      final response = await _apiClient.client.registerNotification(
         registerNotificationInput: deviceTokenMappingBuilder.build(),
       );
 

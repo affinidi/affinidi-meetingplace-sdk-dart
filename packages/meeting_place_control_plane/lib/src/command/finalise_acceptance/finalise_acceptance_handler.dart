@@ -18,17 +18,17 @@ class FinaliseAcceptanceHandler
   /// Returns an instance of [FinaliseAcceptanceHandler].
   ///
   /// **Parameters:**
-  /// - [mpxClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   FinaliseAcceptanceHandler({
-    required ControlPlaneApiClient mpxClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = mpxClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'FinaliseAcceptanceHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -69,7 +69,7 @@ class FinaliseAcceptanceHandler
         '[MPX API] Calling /finalise-acceptance for mnemonic: ${command.mnemonic}',
         name: methodName,
       );
-      await _discoveryApiClient.client.finaliseOfferAcceptance(
+      await _apiClient.client.finaliseOfferAcceptance(
         finaliseOfferInput: builder.build(),
       );
 

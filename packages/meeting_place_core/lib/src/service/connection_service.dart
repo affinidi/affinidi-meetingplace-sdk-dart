@@ -634,7 +634,7 @@ class ConnectionService {
       );
       return Future.value(connectionOffer);
     }
-    await _deregisterOfferFromMpxDiscovery(connectionOffer);
+    await _deregisterOfferFromControlPlane(connectionOffer);
 
     final deletedConnectionOffer = connectionOffer.markAsDeleted();
     await _connectionOfferRepository.updateConnectionOffer(
@@ -665,7 +665,7 @@ class ConnectionService {
       throw ConnectionOfferException.offerDoesNotExistError();
     }
 
-    await _deregisterOfferFromMpxDiscovery(connectionOffer);
+    await _deregisterOfferFromControlPlane(connectionOffer);
     _logger.info(
       'Connection offer deleted: ${connectionOffer.offerName}',
       name: methodName,
@@ -673,12 +673,12 @@ class ConnectionService {
     return _connectionOfferRepository.deleteConnectionOffer(connectionOffer);
   }
 
-  Future<void> _deregisterOfferFromMpxDiscovery(
+  Future<void> _deregisterOfferFromControlPlane(
     ConnectionOffer connectionOffer,
   ) async {
-    final methodName = '_deregisterOfferFromMpxDiscovery';
+    final methodName = '_deregisterOfferFromControlPlane';
     _logger.info(
-      'Deregistering offer from MPX Discovery: ${connectionOffer.offerName}',
+      'Deregistering offer from control plane API: ${connectionOffer.offerName}',
       name: methodName,
     );
 
@@ -699,7 +699,7 @@ class ConnectionService {
 
     // TODO: update ACLs to remove public access from offer published DID?
     _logger.info(
-      'Offer deregistered from MPX Discovery: ${connectionOffer.offerName}',
+      'Offer deregistered from control plane API: ${connectionOffer.offerName}',
       name: methodName,
     );
   }

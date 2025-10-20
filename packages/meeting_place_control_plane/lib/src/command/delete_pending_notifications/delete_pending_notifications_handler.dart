@@ -25,17 +25,17 @@ class DeletePendingNotificationsHandler
   /// Returns an instance of [DeletePendingNotificationsHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   DeletePendingNotificationsHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'DeletePendingNotificationsHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -119,8 +119,7 @@ class DeletePendingNotificationsHandler
         name: methodName,
       );
 
-      final response =
-          await _discoveryApiClient.client.deletePendingNotifications(
+      final response = await _apiClient.client.deletePendingNotifications(
         deletePendingNotificationsInput: builder.build(),
       );
 

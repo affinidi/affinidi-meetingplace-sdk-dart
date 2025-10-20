@@ -25,19 +25,19 @@ class QueryOfferHandler
   /// Returns an instance of [QueryOfferHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   /// - [dispatcher] - An instance of command dispatcher object.
   QueryOfferHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     required this.dispatcher,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'QueryOfferHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final CommandDispatcher dispatcher;
   final ControlPlaneSDKLogger _logger;
 
@@ -69,7 +69,7 @@ class QueryOfferHandler
         '[MPX API] Calling /query-offer for mnemonic: ${command.mnemonic}',
         name: methodName,
       );
-      final response = (await _discoveryApiClient.client.queryOffer(
+      final response = (await _apiClient.client.queryOffer(
         queryOfferInput: builder.build(),
       ))
           .data;

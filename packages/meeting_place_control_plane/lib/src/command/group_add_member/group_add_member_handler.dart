@@ -23,17 +23,17 @@ class GroupAddMemberHandler
   /// Returns an instance of [FinaliseAcceGroupAddMemberHandlerptanceHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   GroupAddMemberHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'GroupAddMemberHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -72,7 +72,7 @@ class GroupAddMemberHandler
         '[MPX API] Calling /group-add-member for groupId: ${command.groupId}, memberDid: ${command.memberDid.topAndTail()}',
         name: methodName,
       );
-      await _discoveryApiClient.client.groupAddMember(
+      await _apiClient.client.groupAddMember(
         groupAddMemberInput: builder.build(),
       );
 

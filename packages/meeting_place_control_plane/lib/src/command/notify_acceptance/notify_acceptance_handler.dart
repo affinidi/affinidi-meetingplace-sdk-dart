@@ -22,17 +22,17 @@ class NotifyAcceptanceHandler
   /// Returns an instance of [NotifyAcceptanceHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   NotifyAcceptanceHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'NotifyAcceptanceHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -69,7 +69,7 @@ class NotifyAcceptanceHandler
         '[Discovery API] Calling /notify-acceptance with mnemonic: ${command.mnemonic}',
         name: methodName,
       );
-      await _discoveryApiClient.client.notifyAcceptance(
+      await _apiClient.client.notifyAcceptance(
         notifyAcceptOfferInput: builder.build(),
       );
 

@@ -23,17 +23,17 @@ class NotifyAcceptanceGroupHandler
   /// Returns an instance of [NotifyAcceptanceGroupHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   NotifyAcceptanceGroupHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'NotifyAcceptanceGroupHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -70,7 +70,7 @@ class NotifyAcceptanceGroupHandler
         '[MPX API] Calling /notify-acceptance-group with mnemonic: ${command.mnemonic}',
         name: methodName,
       );
-      await _discoveryApiClient.client.notifyAcceptanceGroup(
+      await _apiClient.client.notifyAcceptanceGroup(
         notifyAcceptOfferGroupInput: builder.build(),
       );
 

@@ -23,17 +23,17 @@ class GroupDeleteHandler
   /// Returns an instance of [GroupDeleteHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [apiClient] - An instance of discovery api client object.
   GroupDeleteHandler({
-    required ControlPlaneApiClient discoveryApiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = discoveryApiClient,
+  })  : _apiClient = apiClient,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
                 className: _className, sdkName: sdkName);
   static const String _className = 'GroupDeleteHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -64,7 +64,7 @@ class GroupDeleteHandler
         '[MPX API] Calling /group-delete for groupId: ${command.groupId}',
         name: methodName,
       );
-      await _discoveryApiClient.client.groupDelete(
+      await _apiClient.client.groupDelete(
         groupDeleteInput: builder.build(),
       );
 

@@ -33,12 +33,12 @@ class AuthenticateHandler
   /// - [didResolver]: The did resolver object.
   /// - [retryConfig]: The retry config object.
   AuthenticateHandler({
-    required ControlPlaneApiClient mpxClient,
+    required ControlPlaneApiClient apiClient,
     required DidManager didManager,
     required DidResolver didResolver,
     RetryConfig retryConfig = const RetryConfig(),
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = mpxClient,
+  })  : _apiClient = apiClient,
         _didManager = didManager,
         _didResolver = didResolver,
         _retryConfig = retryConfig,
@@ -47,7 +47,7 @@ class AuthenticateHandler
                 className: _className, sdkName: sdkName);
   static const String _className = 'AuthenticateHandler';
 
-  final ControlPlaneApiClient _discoveryApiClient;
+  final ControlPlaneApiClient _apiClient;
   final DidManager _didManager;
   final DidResolver _didResolver;
 
@@ -71,7 +71,7 @@ class AuthenticateHandler
     final senderDidDocument = await _didManager.getDidDocument();
     final challengeBuilder = DidChallengeBuilder()..did = senderDidDocument.id;
 
-    final challengeResponse = await _discoveryApiClient.client.didChallenge(
+    final challengeResponse = await _apiClient.client.didChallenge(
       didChallenge: challengeBuilder.build(),
     );
 
@@ -111,7 +111,7 @@ class AuthenticateHandler
       '[MPX API] Sending authentication request to /did-authenticate for DID: ${senderDidDocument.id.topAndTail()}',
       name: methodName,
     );
-    final response = await _discoveryApiClient.client.didAuthenticate(
+    final response = await _apiClient.client.didAuthenticate(
       didAuthenticate: didAuthenticateBuilder.build(),
     );
 
@@ -210,7 +210,7 @@ class AuthenticateHandler
           authServiceDidDocument: meetingplaceDidDoc,
         );
 
-        _discoveryApiClient.setApiKey(authCredentials.accessToken);
+        _apiClient.setApiKey(authCredentials.accessToken);
         _logger.info(
           'Completed authentication for service DID: ${command.controlPlaneDid.topAndTail()}',
           name: methodName,

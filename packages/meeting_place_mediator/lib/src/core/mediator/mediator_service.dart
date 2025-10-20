@@ -484,39 +484,54 @@ class MediatorService {
     }
   }
 
+  // TODO: improve performance by using streams
   Future<List<FetchMessageResult>> fetch({
     required DidManager didManager,
     required String mediatorDid,
+    List<FetchMessageResult>? messages,
     bool deleteOnRetrieve = false,
     DateTime? startFrom,
     int? fetchMessagesBatchSize,
     int? maxResults,
   }) async {
     final methodName = 'fetch';
-    _logger.info('Started fetching messages', name: methodName);
+    _logger.info('Fetch messages', name: methodName);
 
     final session = await authenticateWithDid(
       didManager: didManager,
       mediatorDid: mediatorDid,
     );
 
-    // TODO: improve performance by using streams
+    final useBatchSize = fetchMessagesBatchSize ?? 25;
+    var useStartFrom = startFrom;
+
+    final messagesList = messages ?? [];
     final mediatorMessages = await _fetchMediatorMessages(
       session: session,
       messages: [],
       deleteOnRetrieve: deleteOnRetrieve,
-      startFrom: startFrom,
-      fetchMessagesBatchSize: fetchMessagesBatchSize,
+      startFrom: useStartFrom,
+      fetchMessagesBatchSize: useBatchSize,
       maxResults: maxResults,
     );
 
-    return Future.wait(
+    final decryptedMessages = await Future.wait(
       mediatorMessages.map((mediatorMessage) async {
         try {
           final result = await FetchMessageResult.fromMessage(
             mediatorMessage,
             didManager: didManager,
           );
+
+          final messageCreatedTime = result.message?.createdTime;
+
+          if (messageCreatedTime != null) {
+            startFrom = startFrom == null
+                ? messageCreatedTime.toUtc()
+                : (messageCreatedTime.toUtc().isAfter(startFrom!.toUtc())
+                    ? messageCreatedTime.toUtc()
+                    : startFrom);
+          }
 
           _logger.info(
             '''Process message of type ${result.message?.type.toString()} for ${session.id.topAndTail()} from ${session.client.mediatorDidDocument.id.topAndTail()}''',
@@ -526,7 +541,7 @@ class MediatorService {
           return result;
         } on UnpackMessageException catch (e, stackTrace) {
           _logger.error(
-            'Failed to fetch message for ${session.id.topAndTail()} via ${session.client.mediatorDidDocument.id.topAndTail()}',
+            'Failed to unpack message for ${session.id.topAndTail()} via ${session.client.mediatorDidDocument.id.topAndTail()}',
             error: e,
             stackTrace: stackTrace,
             name: methodName,
@@ -548,41 +563,39 @@ class MediatorService {
         }
       }),
     );
+
+    messagesList.addAll(decryptedMessages);
+
+    if (mediatorMessages.length < useBatchSize ||
+        (maxResults != null && mediatorMessages.length >= maxResults)) {
+      return messagesList;
+    }
+
+    return fetch(
+      didManager: didManager,
+      mediatorDid: mediatorDid,
+      messages: messagesList,
+      deleteOnRetrieve: deleteOnRetrieve,
+      fetchMessagesBatchSize: fetchMessagesBatchSize,
+      maxResults: maxResults,
+      startFrom: startFrom,
+    );
   }
 
   Future<List<Map<String, dynamic>>> _fetchMediatorMessages({
     required MediatorSessionClient session,
     required List<Map<String, dynamic>> messages,
+    required int fetchMessagesBatchSize,
     bool deleteOnRetrieve = false,
     DateTime? startFrom,
-    int? fetchMessagesBatchSize,
     int? maxResults,
   }) async {
-    final useBatchSize = fetchMessagesBatchSize ?? 25;
-    final result = await session.client.fetchMessagesStartingFrom(
+    return await session.client.fetchMessagesStartingFrom(
       accessToken: session.accessToken,
       deleteOnMediator: deleteOnRetrieve,
-      batchSize: useBatchSize,
+      batchSize: fetchMessagesBatchSize,
       startFrom: startFrom,
     );
-
-    messages.addAll(result);
-    return messages;
-
-    // TODO: pagination
-    // if (result.length < useBatchSize ||
-    //     (maxResults != null && messages.length >= maxResults)) {
-    //   return messages;
-    // }
-
-    // return _fetchMediatorMessages(
-    //   session: session,
-    //   messages: messages,
-    //   deleteOnRetrieve: deleteOnRetrieve,
-    //   fetchMessagesBatchSize: fetchMessagesBatchSize,
-    //   maxResults: maxResults,
-    //   startId: messages.last.receiveId,
-    // );
   }
 
   Future<void> delete({

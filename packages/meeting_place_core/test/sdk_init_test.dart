@@ -12,6 +12,7 @@ import 'utils/storage/in_memory_storage.dart';
 
 void main() async {
   final aliceSDK = await initSDKInstance();
+  final bobSDK = await initSDKInstance();
 
   test(
     '''Verify that an exception is thrown when using the SDK without registering the device.''',
@@ -52,7 +53,7 @@ void main() async {
     },
   );
 
-  test('multiple authenticate calls possible', () async {
+  test('multiple authentication calls possible', () async {
     await aliceSDK.discovery.execute(
       AuthenticateCommand(controlPlaneDid: getControlPlaneDid()),
     );
@@ -89,5 +90,19 @@ void main() async {
       ),
       throwsA(isA<UnimplementedError>()),
     );
+  });
+
+  test('SDK can generate multiple unique DIDs', () async {
+    final did1 = await aliceSDK.generateDid();
+    final did2 = await aliceSDK.generateDid();
+    final did3 = await bobSDK.generateDid();
+
+    final didDoc1 = await did1.getDidDocument();
+    final didDoc2 = await did2.getDidDocument();
+    final didDoc3 = await did3.getDidDocument();
+
+    expect(didDoc1.id, isNot(equals(didDoc2.id)));
+    expect(didDoc1.id, isNot(equals(didDoc3.id)));
+    expect(didDoc2.id, isNot(equals(didDoc3.id)));
   });
 }

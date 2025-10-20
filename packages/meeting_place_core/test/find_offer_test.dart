@@ -88,5 +88,18 @@ void main() async {
     );
   });
 
-  test('query limit exceeded', () {}, skip: 'API has default of 100 queries');
+  test('find offer throws not found exception', () async {
+    expect(
+      () => aliceSDK.findOffer(mnemonic: 'does-not-exist'),
+      throwsA(
+        predicate((e) {
+          return e is MeetingPlaceCoreSDKException &&
+              (e.innerException as ConnectionOfferException).errorCode ==
+                  ConnectionOfferExceptionCodes.offerNotFoundError.code &&
+              (e.innerException as ConnectionOfferException).message ==
+                  'Offer not found.';
+        }),
+      ),
+    );
+  });
 }

@@ -62,6 +62,24 @@ void main() async {
     );
   });
 
+  test('connection offer contains vCard of accepter after accepting', () async {
+    final actual = (await aliceSDK.publishOffer(
+      offerName: 'Sample',
+      vCard: VCardFixture.alicePrimaryVCard,
+      type: SDKConnectionOfferType.invitation,
+    ));
+
+    final acceptOfferResult = await bobSDK.acceptOffer(
+      connectionOffer: actual.connectionOffer,
+      vCard: VCardFixture.bobPrimaryVCard,
+    );
+
+    expect(
+      acceptOfferResult.connectionOffer.vCard.values,
+      equals(VCardFixture.bobPrimaryVCard.values),
+    );
+  });
+
   test('claim limit exceeded', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',

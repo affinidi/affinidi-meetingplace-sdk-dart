@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
-import 'fixtures/v_card.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -16,7 +14,7 @@ void main() async {
     bobSDK = await initSDKInstance();
   });
 
-  test('sample test', () async {
+  test('listener receives messages', () async {
     // --- Create OOBs ---
     final didManagerA = await aliceSDK.generateDid();
     final didDocA = await didManagerA.getDidDocument();
@@ -212,21 +210,6 @@ void main() async {
     await channel.dispose();
   });
 
-  // test('mediator session returns same stream if already created', () async {
-  //   final didManager = await aliceSDK.generateDid();
-
-  //   final channel = await aliceSDK.mediator.subscribeToMessages(didManager);
-
-  //   final existingChannel = await aliceSDK.mediator.subscribeToMessages(
-  //     didManager,
-  //   );
-
-  //   expect(channel, equals(existingChannel));
-
-  //   await channel.dispose();
-  //   await existingChannel.dispose();
-  // });
-
   test('different stream for each mediator session', () async {
     final didManager = await aliceSDK.generateDid();
     final didManager2 = await aliceSDK.generateDid();
@@ -240,36 +223,6 @@ void main() async {
     expect(channel, isNot(equals(differentChannel)));
     await channel.dispose();
     await differentChannel.dispose();
-  });
-
-  // test('message subscription handles errors gracefully', () async {
-  //   final didManager = await aliceSDK.generateDid();
-
-  //   final channel = await aliceSDK.mediator.subscribeToMessages(
-  //     didManager,
-  //     onMessage: (message) {
-  //       throw Exception('Processing error');
-  //     },
-  //   );
-
-  //   // The stream should still be active even if message processing fails
-  //   expect(channel, isNotNull);
-
-  //   channel.dispose();
-  // });
-
-  test('SDK can generate multiple unique DIDs', () async {
-    final did1 = await aliceSDK.generateDid();
-    final did2 = await aliceSDK.generateDid();
-    final did3 = await bobSDK.generateDid();
-
-    final didDoc1 = await did1.getDidDocument();
-    final didDoc2 = await did2.getDidDocument();
-    final didDoc3 = await did3.getDidDocument();
-
-    expect(didDoc1.id, isNot(equals(didDoc2.id)));
-    expect(didDoc1.id, isNot(equals(didDoc3.id)));
-    expect(didDoc2.id, isNot(equals(didDoc3.id)));
   });
 
   test('failed message processing keeps messages on mediator', () async {
@@ -335,87 +288,4 @@ void main() async {
       'persistent': 'message',
     });
   }, skip: 'check');
-
-  test(
-    'connection offer contains vCard of publisher after publishing',
-    () async {
-      final vCard = VCard(
-        values: {
-          'n': {'given': 'Alice'},
-        },
-      );
-
-      final actual = (await aliceSDK.publishOffer(
-        offerName: 'Sample',
-        vCard: vCard,
-        type: SDKConnectionOfferType.invitation,
-      ));
-
-      expect(
-        actual.connectionOffer.vCard.values,
-        equals({
-          'n': {'given': 'Alice'},
-        }),
-      );
-    },
-  );
-
-  test('connection offer contains vCard of accepter after accepting', () async {
-    final actual = (await aliceSDK.publishOffer(
-      offerName: 'Sample',
-      vCard: VCardFixture.alicePrimaryVCard,
-      type: SDKConnectionOfferType.invitation,
-    ));
-
-    final acceptOfferResult = await bobSDK.acceptOffer(
-      connectionOffer: actual.connectionOffer,
-      vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    expect(
-      acceptOfferResult.connectionOffer.vCard.values,
-      equals(VCardFixture.bobPrimaryVCard.values),
-    );
-  });
-
-  test('find offer', () async {
-    final offerName = 'Sample';
-    final vCardAlice = VCard(
-      values: {
-        'n': {'given': 'Alice'},
-      },
-    );
-
-    final actual = (await aliceSDK.publishOffer(
-      offerName: offerName,
-      vCard: vCardAlice,
-      type: SDKConnectionOfferType.invitation,
-    ));
-
-    final result = await bobSDK.findOffer(
-      mnemonic: actual.connectionOffer.mnemonic,
-    );
-
-    expect(
-      result.connectionOffer!.offerLink,
-      equals(actual.connectionOffer.offerLink),
-    );
-    expect(result.connectionOffer!.offerName, equals(offerName));
-    expect(result.connectionOffer!.vCard.values, equals(vCardAlice.values));
-  });
-
-  test('find offer throws not found exception', () async {
-    expect(
-      () => aliceSDK.findOffer(mnemonic: 'does-not-exist'),
-      throwsA(
-        predicate((e) {
-          return e is MeetingPlaceCoreSDKException &&
-              (e.innerException as ConnectionOfferException).errorCode ==
-                  ConnectionOfferExceptionCodes.offerNotFoundError.code &&
-              (e.innerException as ConnectionOfferException).message ==
-                  'Offer not found.';
-        }),
-      ),
-    );
-  });
 }

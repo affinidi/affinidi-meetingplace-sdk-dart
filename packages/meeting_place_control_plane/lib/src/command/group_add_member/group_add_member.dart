@@ -1,5 +1,5 @@
 import '../../core/command/command.dart';
-import '../../protocol/v_card/v_card.dart';
+import '../../core/protocol/v_card/v_card.dart';
 import 'group_add_member_output.dart';
 
 /// Model that represents the request sent for the [GroupAddMemberCommand]

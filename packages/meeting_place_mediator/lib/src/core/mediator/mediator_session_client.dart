@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import '../../../meeting_place_mediator.dart';
+import '../../constants/sdk_constants.dart';
 import '../../utils/string.dart';
 import 'didcomm_types.dart';
 import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 import '../message/message_queue.dart';
+import 'mediator_exception.dart';
 import 'mediator_session.dart';
 
 typedef OnMessageCallback = Future<bool> Function(PlainTextMessage message);
@@ -21,7 +23,11 @@ class MediatorSessionClient {
     required this.mediatorDid,
     MediatorSdkLogger? logger,
   }) : _logger = logger ??
-            DefaultMediatorSdkLogger(className: _className, sdkName: sdkName);
+            DefaultMediatorSdkLogger(
+              className: _className,
+              sdkName: sdkName,
+            );
+
   static int processQueueDelayInSeconds = 3;
   static const String _className = 'MediatorSessionClient';
 

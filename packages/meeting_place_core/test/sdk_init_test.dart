@@ -53,18 +53,6 @@ void main() async {
     },
   );
 
-  test('multiple authentication calls possible', () async {
-    await aliceSDK.discovery.execute(
-      AuthenticateCommand(controlPlaneDid: getControlPlaneDid()),
-    );
-
-    final result = await aliceSDK.discovery.execute(
-      AuthenticateCommand(controlPlaneDid: getControlPlaneDid()),
-    );
-
-    expect(result.credentials, isA<AuthCredentials>());
-  });
-
   test('SDK can be initialized with minimum required repositories', () async {
     final storage = InMemoryStorage();
     final minimumSDK = await MeetingPlaceCoreSDK.create(

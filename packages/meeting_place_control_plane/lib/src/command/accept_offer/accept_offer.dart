@@ -1,6 +1,6 @@
 import '../../core/command/command.dart';
 import '../../core/device/device.dart';
-import '../../protocol/v_card/v_card.dart';
+import '../../core/protocol/v_card/v_card.dart';
 import 'accept_offer_output.dart';
 
 typedef SuccessCallback = void Function();

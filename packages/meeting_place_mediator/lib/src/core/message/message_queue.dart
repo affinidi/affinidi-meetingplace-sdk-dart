@@ -4,13 +4,18 @@ import 'dart:collection';
 import 'package:mutex/mutex.dart';
 
 import '../../../meeting_place_mediator.dart';
+import '../mediator/mediator_exception.dart';
 
 typedef MessageId = String;
 
 class MessageQueue {
   MessageQueue({MediatorSdkLogger? logger})
       : _logger = logger ??
-            DefaultMediatorSdkLogger(className: _className, sdkName: sdkName);
+            DefaultMediatorSdkLogger(
+              className: _className,
+              sdkName: MediatorSDK.className,
+            );
+
   static final deleteMessageBatchSize = 25;
   static const String _className = 'MessageQueue';
 

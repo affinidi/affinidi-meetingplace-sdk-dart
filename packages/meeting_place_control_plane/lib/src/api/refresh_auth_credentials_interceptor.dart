@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 
 import '../../meeting_place_control_plane.dart';
+import '../constants/sdk_constants.dart';
+import 'auth_credentials.dart';
 
 /// A [Dio] interceptor class that intercepts and modifies the HTTP requests
 /// before sending it to the API server.
@@ -14,7 +16,10 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
     ControlPlaneSDKLogger? logger,
   }) : _logger = logger ??
             DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+              className: _className,
+              sdkName: sdkName,
+            );
+
   static const String _className = 'RefreshAuthCredentialsInterceptor';
 
   final Dio dio;

@@ -3,6 +3,7 @@ library;
 // external exports
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, PlainTextMessage;
+
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         Device,
@@ -14,6 +15,7 @@ export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
         ControlPlaneSDKException,
         MissingDeviceException,
         AcceptOfferExceptionCodes;
+
 export 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         AccessListAdd,
@@ -21,6 +23,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AclSet,
         MediatorChannel,
         MediatorSdkException;
+
 export 'package:ssi/ssi.dart' show DidManager;
 export 'src/entity/channel.dart';
 export 'src/entity/connection_offer.dart';
@@ -29,9 +32,9 @@ export 'src/event_handler/control_plane_event_handler_manager.dart';
 export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
 export 'src/meeting_place_core_sdk.dart';
+export 'src/meeting_place_core_sdk_options.dart';
 export 'src/repository/group_repository.dart';
 export 'src/sdk/meeting_place_core_sdk_exception.dart';
-export 'src/sdk/meeting_place_core_sdk_options.dart';
 export 'src/sdk/results/results.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/connection_offer/offer_already_claimed_exception.dart';

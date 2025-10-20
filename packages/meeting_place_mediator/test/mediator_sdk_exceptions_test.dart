@@ -1,5 +1,6 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:meeting_place_mediator/src/core/mediator/mediator_exception.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';

@@ -1,6 +1,6 @@
 import '../../core/offer_type.dart';
-import '../../protocol/message/oob_invitation_message.dart';
-import '../../protocol/v_card/v_card.dart';
+import '../../core/protocol/message/oob_invitation_message.dart';
+import '../../core/protocol/v_card/v_card.dart';
 
 abstract class QueryOfferCommandOutput {}
 

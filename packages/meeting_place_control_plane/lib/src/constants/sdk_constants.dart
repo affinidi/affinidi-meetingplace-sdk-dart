@@ -1,1 +1,1 @@
-const String sdkName = 'DISC_SDK';
+const String sdkName = 'CPLANE_SDK';

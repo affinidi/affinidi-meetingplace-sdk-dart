@@ -1,3 +1,0 @@
-class ControlPlaneSDKConfig {
-  const ControlPlaneSDKConfig();
-}

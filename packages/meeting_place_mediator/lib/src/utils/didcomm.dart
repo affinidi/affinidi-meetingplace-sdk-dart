@@ -2,7 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../meeting_place_mediator.dart';
+import '../core/mediator/mediator_exception.dart';
 
 /// Utility function to sign and encrypt a message for a specific recipient.
 ///

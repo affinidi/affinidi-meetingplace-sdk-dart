@@ -1,18 +1,11 @@
-/// [ControlPlaneApiClientOptions] is a class that defines options when initialising
-/// the [DiscoveryApiClient].
-class ControlPlaneApiClientOptions {
-  /// Create an instance of the [ControlPlaneApiClientOptions] class.
-  ControlPlaneApiClientOptions({
-    required this.controlPlaneDid,
+/// Control Plane SDK configuration settings.
+class ControlPlaneSDKOptions {
+  const ControlPlaneSDKOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
   });
-
-  /// Specifies the DID of the control plane that the SDK should communicate
-  /// with.
-  final String controlPlaneDid;
 
   /// The number of retry attempts for a request when a network issue occurs.
   /// If a request fails due to a network error, it will be retried up to this
@@ -34,14 +27,4 @@ class ControlPlaneApiClientOptions {
   /// If no data is received within this time frame, the request will be
   /// aborted and a timeout error will be triggered.
   final Duration receiveTimeout;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'controlPlaneDid': controlPlaneDid,
-      'connectTimeout': connectTimeout,
-      'receiveTimeout': receiveTimeout,
-      'maxRetries': maxRetries,
-      'maxRetriesDelay': maxRetriesDelay,
-    };
-  }
 }

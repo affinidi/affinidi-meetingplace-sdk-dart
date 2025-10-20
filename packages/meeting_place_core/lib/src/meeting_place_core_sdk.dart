@@ -12,7 +12,7 @@ import 'loggers/mpx_sdk_logger.dart';
 import 'messages/utils.dart';
 import 'protocol/protocol.dart';
 import 'sdk/connection_offer_type.dart';
-import 'sdk/meeting_place_core_sdk_options.dart';
+import 'meeting_place_core_sdk_options.dart';
 import 'sdk/results/accept_oob_flow_result.dart';
 import 'sdk/results/create_oob_flow_result.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
@@ -161,7 +161,7 @@ class MeetingPlaceCoreSDK {
 
   String _mediatorDid;
 
-  static const String _className = 'CoreSDK';
+  static const String _className = 'MeetingPlaceCoreSDK';
 
   /// A static method that creates an instance of [MeetingPlaceCoreSDK].
   ///
@@ -174,7 +174,6 @@ class MeetingPlaceCoreSDK {
   /// - [controlPlaneDid]: The control plane DID.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
   ///
-  ///
   /// **Returns:**
   /// - [MeetingPlaceCoreSDK] instance with all the required instance parameters.
   static Future<MeetingPlaceCoreSDK> create({
@@ -186,30 +185,24 @@ class MeetingPlaceCoreSDK {
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
     final methodName = 'create';
-
     final mpxLogger = LoggerAdapter(
       className: _className,
       sdkName: coreSDKName,
       logger: logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className),
     );
+
     mpxLogger.info('Starting Core SDK initialization', name: methodName);
-    final discoveryLogger = LoggerAdapter(
+
+    final controlPlaneLogger = LoggerAdapter(
       className: ControlPlaneSDK.className,
       sdkName: controlPlaneSDKName,
-      logger: logger ??
-          DefaultControlPlaneSDKLogger(
-            className: ControlPlaneSDK.className,
-            sdkName: controlPlaneSDKName,
-          ),
+      logger: logger,
     );
+
     final mediatorLogger = LoggerAdapter(
       className: MediatorSDK.className,
       sdkName: mediatorSDKName,
-      logger: logger ??
-          DefaultMediatorSdkLogger(
-            className: MediatorSDK.className,
-            sdkName: mediatorSDKName,
-          ),
+      logger: logger,
     );
 
     final didResolver = CachedDidResolver(
@@ -232,8 +225,13 @@ class MeetingPlaceCoreSDK {
       controlPlaneDid: controlPlaneDid,
       mediatorDid: mediatorDid,
       didResolver: didResolver,
-      controlPlaneSDKConfig: ControlPlaneSDKConfig(),
-      logger: discoveryLogger,
+      controlPlaneSDKConfig: ControlPlaneSDKOptions(
+        maxRetries: options.maxRetries,
+        maxRetriesDelay: options.maxRetriesDelay,
+        connectTimeout: options.connectTimeout,
+        receiveTimeout: options.receiveTimeout,
+      ),
+      logger: controlPlaneLogger,
     );
 
     final mediatorSDK = MediatorSDK(

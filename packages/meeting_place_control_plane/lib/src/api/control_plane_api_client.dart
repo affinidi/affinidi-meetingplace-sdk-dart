@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
+import '../constants/sdk_constants.dart';
 import 'api_client.dart' as api_client;
 import 'package:ssi/ssi.dart';
 
@@ -54,6 +55,7 @@ class ControlPlaneApiClient {
     final methodName = 'init';
     final effectiveLogger = logger ??
         DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
+
     effectiveLogger.info(
       'Started initializing DiscoveryApiClient with options: ${options.toJson()}',
       name: methodName,
@@ -67,8 +69,8 @@ class ControlPlaneApiClient {
     final dio = Dio(
       BaseOptions(
         baseUrl: basePath,
-        connectTimeout: Duration(milliseconds: options.connectTimeout),
-        receiveTimeout: Duration(milliseconds: options.receiveTimeout),
+        connectTimeout: options.connectTimeout,
+        receiveTimeout: options.receiveTimeout,
       ),
     );
 
@@ -76,7 +78,7 @@ class ControlPlaneApiClient {
       RetryInterceptor(
         dio: dio,
         maxRetries: options.maxRetries,
-        retryDelay: Duration(milliseconds: options.maxRetriesDelay),
+        retryDelay: options.maxRetriesDelay,
       ),
     );
 

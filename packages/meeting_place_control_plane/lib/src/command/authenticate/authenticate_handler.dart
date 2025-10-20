@@ -11,7 +11,7 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
-import '../../protocol/message/auth_challenge.dart';
+import '../../core/protocol/message/auth_challenge.dart';
 import '../../utils/didcomm.dart';
 import '../../utils/string.dart';
 import 'authenticate.dart';
@@ -44,7 +44,10 @@ class AuthenticateHandler
         _retryConfig = retryConfig,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+              className: _className,
+              sdkName: sdkName,
+            );
+
   static const String _className = 'AuthenticateHandler';
 
   final ControlPlaneApiClient _apiClient;

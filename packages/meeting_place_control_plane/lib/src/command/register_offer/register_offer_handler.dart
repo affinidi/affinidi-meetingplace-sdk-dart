@@ -6,7 +6,7 @@ import 'package:ssi/ssi.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../core/config/discovery_sdk_config.dart';
+import '../../control_plane_sdk_options.dart';
 import '../../core/offer_type.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
@@ -44,7 +44,7 @@ class RegisterOfferHandler
 
   final ControlPlaneApiClient apiClient;
   final String mediatorDid;
-  final ControlPlaneSDKConfig sdkConfig;
+  final ControlPlaneSDKOptions sdkConfig;
   final DidResolver didResolver;
   final ControlPlaneSDKLogger _logger;
 

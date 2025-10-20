@@ -2,7 +2,7 @@ import 'package:didcomm/didcomm.dart';
 
 import '../../core/command/command.dart';
 import '../../core/device/device.dart';
-import '../../protocol/v_card/v_card.dart';
+import '../../core/protocol/v_card/v_card.dart';
 import 'register_offer_group_output.dart';
 
 /// Model that represents the request sent for the [RegisterOfferGroupCommand]

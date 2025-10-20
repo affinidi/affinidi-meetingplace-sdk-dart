@@ -18,11 +18,6 @@ class LoggerAdapter<T>
   final String sdkName;
   final T _logger;
 
-  String _formatName(String? methodName) {
-    final method = methodName?.isNotEmpty == true ? '[$methodName]' : '';
-    return '[$sdkName][$className]$method';
-  }
-
   @override
   void info(String message, {String name = ''}) {
     if (_logger is MeetingPlaceCoreSDKLogger) {
@@ -90,5 +85,10 @@ class LoggerAdapter<T>
     } else if (_logger is MediatorSdkLogger) {
       (_logger as MediatorSdkLogger).debug(message, name: _formatName(name));
     }
+  }
+
+  String _formatName(String? methodName) {
+    final method = methodName?.isNotEmpty == true ? '[$methodName]' : '';
+    return '[$sdkName][$className]$method';
   }
 }

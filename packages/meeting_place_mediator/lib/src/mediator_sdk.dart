@@ -247,6 +247,8 @@ class MediatorSDK {
         recipientDidDocument: recipientDidDocument,
         mediatorDid: mediatorDid ?? _mediatorDid,
         next: next ?? recipientDidDocument.id,
+        ephemeral: ephemeral ?? false,
+        forwardExpiryInSeconds: forwardExpiryInSeconds,
       ),
     );
   }

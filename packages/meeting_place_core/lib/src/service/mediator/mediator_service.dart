@@ -124,7 +124,7 @@ class MediatorService {
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
       next: next,
-      ephemeral: ephemeral,
+      ephemeral: ephemeral ?? false,
       forwardExpiryInSeconds: forwardExpiryInSeconds,
     );
   }

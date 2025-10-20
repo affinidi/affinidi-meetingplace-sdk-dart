@@ -10,6 +10,6 @@ jobs:
     with:
       flutter-version: '3.35.3'
       env_vars: |
-        MEDIATOR_DID={{ vars.MEDIATOR_DID }}
-        MEDIATOR_DID_ALTERNATIVE={{ vars.MEDIATOR_DID_ALTERNATIVE }}
-        CONTROL_PLANE_URL={{ vars.CONTROL_PLANE_URL }}
+        MEDIATOR_DID=${{ vars.MEDIATOR_DID }}
+        MEDIATOR_DID_ALTERNATIVE=${{ vars.MEDIATOR_DID_ALTERNATIVE }}
+        CONTROL_PLANE_URL=${{ vars.CONTROL_PLANE_URL }}

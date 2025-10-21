@@ -5,7 +5,12 @@ export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, PlainTextMessage;
 
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    show Device, PlatformType, ControlPlaneEventType, MissingDeviceException;
+    show
+        Device,
+        PlatformType,
+        ControlPlaneEventType,
+        ControlPlaneSDKException,
+        MissingDeviceException;
 
 export 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
@@ -30,3 +35,4 @@ export 'src/service/mediator/mediator_message.dart';
 export 'src/loggers/default_mpx_sdk_logger.dart';
 export 'src/loggers/mpx_sdk_logger.dart';
 export 'src/service/oob/oob_stream.dart';
+export 'src/constants/sdk_constants.dart';

@@ -1,6 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import '../core/chat_history_service.dart';
-import '../service/chat_stream_manager.dart';
+import '../service/chat_stream.dart';
 
 class ChatGroupDetailsUpdateHandler {
   ChatGroupDetailsUpdateHandler({

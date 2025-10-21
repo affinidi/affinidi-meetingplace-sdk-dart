@@ -2,6 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
+import '../constants/sdk_constants.dart';
 import '../loggers/default_chat_sdk_logger.dart';
 
 class ChatHistoryService {

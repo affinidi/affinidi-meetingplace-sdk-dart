@@ -5,6 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
+import '../constants/sdk_constants.dart';
 import '../core/chat_history_service.dart';
 import '../entity/message.dart' as entity_chat_message;
 import '../group/chat_group_details_update_handler.dart';

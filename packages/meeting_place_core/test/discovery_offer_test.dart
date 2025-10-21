@@ -33,7 +33,7 @@ void main() async {
           predicate(
             (e) =>
                 e is MeetingPlaceCoreSDKException &&
-                (e.innerException as ConnectionOfferException).errorCode ==
+                (e.innerException as ConnectionOfferException).code ==
                     ConnectionOfferExceptionCodes
                         .connectionOfferOwnedByClaimingParty.code &&
                 (e.innerException as ConnectionOfferException).message ==
@@ -69,7 +69,7 @@ void main() async {
         predicate(
           (e) =>
               e is MeetingPlaceCoreSDKException &&
-              (e.innerException as ConnectionOfferException).errorCode ==
+              (e.innerException as ConnectionOfferException).code ==
                   ConnectionOfferExceptionCodes
                       .connectionOfferAlreadyClaimedByClaimingParty.code &&
               (e.innerException as ConnectionOfferException).message ==

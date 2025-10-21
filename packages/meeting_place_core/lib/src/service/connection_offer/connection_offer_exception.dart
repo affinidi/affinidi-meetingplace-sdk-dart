@@ -1,4 +1,4 @@
-import '../../exception/mpx_exception.dart';
+import '../../exception/sdk_exception.dart';
 
 enum ConnectionOfferExceptionCodes {
   connectionOfferOwnedByClaimingParty(
@@ -19,7 +19,7 @@ enum ConnectionOfferExceptionCodes {
   final String code;
 }
 
-class ConnectionOfferException implements MpxException {
+class ConnectionOfferException implements SDKException {
   ConnectionOfferException({
     required this.message,
     required this.code,
@@ -31,7 +31,8 @@ class ConnectionOfferException implements MpxException {
   }) {
     return ConnectionOfferException(
       message: 'Failed to claim offer because claiming party is the owner.',
-      code: ConnectionOfferExceptionCodes.connectionOfferOwnedByClaimingParty,
+      code: ConnectionOfferExceptionCodes
+          .connectionOfferOwnedByClaimingParty.name,
       innerException: innerException,
     );
   }
@@ -42,7 +43,7 @@ class ConnectionOfferException implements MpxException {
     return ConnectionOfferException(
       message: 'Offer already claimed by claiming party.',
       code: ConnectionOfferExceptionCodes
-          .connectionOfferAlreadyClaimedByClaimingParty,
+          .connectionOfferAlreadyClaimedByClaimingParty.name,
       innerException: innerException,
     );
   }
@@ -52,7 +53,7 @@ class ConnectionOfferException implements MpxException {
   }) {
     return ConnectionOfferException(
       message: 'Offer not found.',
-      code: ConnectionOfferExceptionCodes.offerNotFoundError,
+      code: ConnectionOfferExceptionCodes.offerNotFoundError.name,
       innerException: innerException,
     );
   }
@@ -60,7 +61,7 @@ class ConnectionOfferException implements MpxException {
   factory ConnectionOfferException.publishOfferError({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Publishing offer failed: ${innerException.toString()}',
-      code: ConnectionOfferExceptionCodes.publishOfferError,
+      code: ConnectionOfferExceptionCodes.publishOfferError.name,
       innerException: innerException,
     );
   }
@@ -70,7 +71,7 @@ class ConnectionOfferException implements MpxException {
   }) {
     return ConnectionOfferException(
       message: 'Permanent channel did is expected to be present',
-      code: ConnectionOfferExceptionCodes.permanentChannelDidError,
+      code: ConnectionOfferExceptionCodes.permanentChannelDidError.name,
       innerException: innerException,
     );
   }
@@ -78,7 +79,7 @@ class ConnectionOfferException implements MpxException {
   factory ConnectionOfferException.notAcceptedError({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Connection offer must be accepted',
-      code: ConnectionOfferExceptionCodes.notAcceptedError,
+      code: ConnectionOfferExceptionCodes.notAcceptedError.name,
       innerException: innerException,
     );
   }
@@ -86,7 +87,7 @@ class ConnectionOfferException implements MpxException {
   factory ConnectionOfferException.alreadyFinalised({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Connection offer is already finalised',
-      code: ConnectionOfferExceptionCodes.alreadyFinalised,
+      code: ConnectionOfferExceptionCodes.alreadyFinalised.name,
       innerException: innerException,
     );
   }
@@ -96,18 +97,15 @@ class ConnectionOfferException implements MpxException {
   }) {
     return ConnectionOfferException(
       message: 'Offer does not exist.',
-      code: ConnectionOfferExceptionCodes.offerDoesNotExistError,
+      code: ConnectionOfferExceptionCodes.offerDoesNotExistError.name,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final ConnectionOfferExceptionCodes code;
+  final String code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

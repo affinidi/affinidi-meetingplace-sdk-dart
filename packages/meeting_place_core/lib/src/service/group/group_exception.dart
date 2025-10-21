@@ -1,4 +1,4 @@
-import '../../exception/mpx_exception.dart';
+import '../../exception/sdk_exception.dart';
 
 enum GroupExceptionCodes {
   notFoundError('group_not_found_error'),
@@ -14,7 +14,7 @@ enum GroupExceptionCodes {
   final String code;
 }
 
-class GroupException implements MpxException {
+class GroupException implements SDKException {
   GroupException({
     required this.message,
     required this.code,
@@ -24,7 +24,7 @@ class GroupException implements MpxException {
   factory GroupException.notFoundError({Object? innerException}) {
     return GroupException(
       message: 'Group exception: group not found.',
-      code: GroupExceptionCodes.notFoundError,
+      code: GroupExceptionCodes.notFoundError.name,
       innerException: innerException,
     );
   }
@@ -34,7 +34,7 @@ class GroupException implements MpxException {
   }) {
     return GroupException(
       message: 'Group exception: member does not belong to group.',
-      code: GroupExceptionCodes.memberDoesNotBelongToGroupError,
+      code: GroupExceptionCodes.memberDoesNotBelongToGroupError.name,
       innerException: innerException,
     );
   }
@@ -42,7 +42,7 @@ class GroupException implements MpxException {
   factory GroupException.offerDoesNotExistError({Object? innerException}) {
     return GroupException(
       message: 'Group exception: offer does not exist.',
-      code: GroupExceptionCodes.offerDoesNotExistError,
+      code: GroupExceptionCodes.offerDoesNotExistError.name,
       innerException: innerException,
     );
   }
@@ -50,7 +50,7 @@ class GroupException implements MpxException {
   factory GroupException.memberDidIsNull({Object? innerException}) {
     return GroupException(
       message: 'Group exception: member did is null.',
-      code: GroupExceptionCodes.memberDidIsNull,
+      code: GroupExceptionCodes.memberDidIsNull.name,
       innerException: innerException,
     );
   }
@@ -58,18 +58,15 @@ class GroupException implements MpxException {
   factory GroupException.channelDoesNotExistError({Object? innerException}) {
     return GroupException(
       message: 'Group exception: channel does not exist.',
-      code: GroupExceptionCodes.channelDoesNotExistError,
+      code: GroupExceptionCodes.channelDoesNotExistError.name,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final GroupExceptionCodes code;
+  final String code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

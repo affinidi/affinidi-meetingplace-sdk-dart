@@ -136,7 +136,7 @@ void main() async {
         predicate((e) {
           return e is MeetingPlaceCoreSDKException &&
               e.innerException is ConnectionOfferException &&
-              (e.innerException as ConnectionOfferException).errorCode ==
+              (e.innerException as ConnectionOfferException).code ==
                   ConnectionOfferExceptionCodes
                       .connectionOfferAlreadyClaimedByClaimingParty.code &&
               (e.innerException as ConnectionOfferException).message ==

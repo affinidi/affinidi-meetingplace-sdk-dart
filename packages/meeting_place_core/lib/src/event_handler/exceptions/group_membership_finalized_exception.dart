@@ -1,4 +1,4 @@
-import '../../exception/mpx_exception.dart';
+import '../../exception/sdk_exception.dart';
 
 enum GroupMembershipFinalizedExceptionCodes {
   connectionOfferGroupNotFound(
@@ -17,7 +17,7 @@ enum GroupMembershipFinalizedExceptionCodes {
   final String code;
 }
 
-class GroupMembershipFinalizedException implements MpxException {
+class GroupMembershipFinalizedException implements SDKException {
   GroupMembershipFinalizedException({
     required this.message,
     required this.code,
@@ -31,7 +31,8 @@ class GroupMembershipFinalizedException implements MpxException {
     return GroupMembershipFinalizedException(
       message:
           '''GroupMembershipFinalized exception: ConnectionOfferAlreadyFinalizedException: Connection offer $offerLink already finalized''',
-      code: GroupMembershipFinalizedExceptionCodes.connectionOfferGroupNotFound,
+      code: GroupMembershipFinalizedExceptionCodes
+          .connectionOfferGroupNotFound.name,
       innerException: innerException,
     );
   }
@@ -43,7 +44,7 @@ class GroupMembershipFinalizedException implements MpxException {
     return GroupMembershipFinalizedException(
       message:
           '''GroupMembershipFinalized exception: channel not found for offer link $offerLink''',
-      code: GroupMembershipFinalizedExceptionCodes.channelNotFound,
+      code: GroupMembershipFinalizedExceptionCodes.channelNotFound.name,
       innerException: innerException,
     );
   }
@@ -55,18 +56,17 @@ class GroupMembershipFinalizedException implements MpxException {
     return GroupMembershipFinalizedException(
       message:
           '''GroupMembershipFinalized exception: connection offer for offer link $offerLink is not of type group''',
-      code: GroupMembershipFinalizedExceptionCodes.groupConnectionOfferRequired,
+      code: GroupMembershipFinalizedExceptionCodes
+          .groupConnectionOfferRequired.name,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final GroupMembershipFinalizedExceptionCodes code;
+  @override
+  final String code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

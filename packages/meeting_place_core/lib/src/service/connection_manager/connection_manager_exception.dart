@@ -1,4 +1,4 @@
-import '../../exception/mpx_exception.dart';
+import '../../exception/sdk_exception.dart';
 import '../../utils/string.dart';
 
 enum ConnectionManagerExceptionCodes {
@@ -9,7 +9,7 @@ enum ConnectionManagerExceptionCodes {
   final String code;
 }
 
-class ConnectionManagerException implements MpxException {
+class ConnectionManagerException implements SDKException {
   ConnectionManagerException({
     required this.message,
     required this.code,
@@ -23,18 +23,15 @@ class ConnectionManagerException implements MpxException {
     return ConnectionManagerException(
       message:
           'Connection manager exception: DidManager could not be created for ${did.topAndTail()}',
-      code: ConnectionManagerExceptionCodes.keyPairNotFoundError,
+      code: ConnectionManagerExceptionCodes.keyPairNotFoundError.name,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final ConnectionManagerExceptionCodes code;
+  final String code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

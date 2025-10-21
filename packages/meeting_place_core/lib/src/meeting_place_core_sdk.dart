@@ -1401,14 +1401,14 @@ class MeetingPlaceCoreSDK {
       Error.throwWithStackTrace(
         MeetingPlaceCoreSDKException(
           message: e.message,
-          code: e.errorCode,
+          code: e.code,
           innerException: e.innerException ?? e,
         ),
         stackTrace,
       );
     } on ControlPlaneSDKException catch (e, stackTrace) {
       _logger.error(
-        'Failed to execute Discovery SDK operation:',
+        'Failed to execute ControlPlane SDK operation:',
         error: e,
         stackTrace: stackTrace,
         name: methodName,

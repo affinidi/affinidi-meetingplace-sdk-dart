@@ -75,7 +75,7 @@ void main() async {
     expect(actual, isNull);
   });
 
-  test('deregister offer from MPX discovery', () async {
+  test('deregister offer from control plane', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
@@ -90,7 +90,7 @@ void main() async {
       throwsA(
         predicate((e) {
           return e is MeetingPlaceCoreSDKException &&
-              (e.innerException as ConnectionOfferException).errorCode ==
+              (e.innerException as ConnectionOfferException).code ==
                   ConnectionOfferExceptionCodes.offerNotFoundError.code &&
               (e.innerException as ConnectionOfferException).message ==
                   'Offer not found.';

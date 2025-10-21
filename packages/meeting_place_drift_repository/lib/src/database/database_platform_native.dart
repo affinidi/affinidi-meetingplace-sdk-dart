@@ -7,10 +7,17 @@ import 'package:sqlite3/sqlite3.dart';
 
 /// Class with implementations specific to native platforms
 class DatabasePlatform {
-  /// Creates a database for native platform using SQLite
+  /// Creates a database for native platform using SQLite and SQLCipher.
   ///
-  /// [databaseName] - The database name
-  /// it is required on native
+  /// **Parameters:**
+  /// - [databaseName]: The name of the database file.
+  /// - [passphrase]: The passphrase used to encrypt the database.
+  /// - [directory]: The directory where the database file is stored.
+  /// - [logStatements]: A boolean indicating whether to log SQL statements
+  /// (default is false).
+  ///
+  /// **Returns:**
+  /// - A [QueryExecutor] instance connected to the encrypted database.
   static Future<QueryExecutor> createDatabase({
     required String databaseName,
     required String passphrase,
@@ -32,7 +39,17 @@ class DatabasePlatform {
     return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
   }
 
-  /// Creates an in-memory database for native platform using SQLite
+  /// Creates an in-memory database for native platform using SQLite and
+  /// SQLCipher.
+  ///
+  /// **Parameters:**
+  /// - [passphrase]: The passphrase used to encrypt the database.
+  /// - [logStatements]: A boolean indicating whether to log SQL statements
+  /// (default is false).
+  ///
+  /// **Returns:**
+  /// - A [QueryExecutor] instance connected to the encrypted in-memory
+  /// database.
   static Future<QueryExecutor> createInMemoryDatabase({
     required String passphrase,
     bool logStatements = false,
@@ -43,7 +60,10 @@ class DatabasePlatform {
     return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
   }
 
-  /// Gets the current platform info
+  /// Information about the database platform.
+  ///
+  /// **Returns:**
+  /// - A map containing platform and database type.
   static Map<String, String> get info {
     return {'platform': 'native', 'database': 'SQLite'};
   }

@@ -12,7 +12,9 @@ enum _VCardPaths {
   final List<String> paths;
 }
 
-/// Extension on [VCard] to get and set common VCard fields.
+/// Extension on VCard to get and set common fields.
+/// Fields include first name, last name, email, mobile number, profile picture,
+/// and MeetingPlace identity card color.
 extension VCardFieldsKeys on VCard {
   String _getVcardPathValue(
     Map<dynamic, dynamic> values,

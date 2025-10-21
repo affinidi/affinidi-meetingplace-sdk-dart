@@ -29,6 +29,14 @@ import 'connection_offer_database.dart' as db;
 /// - database: The Drift [db.ConnectionOfferDatabase] instance to use.
 class ConnectionOfferRepositoryDrift
     implements model.ConnectionOfferRepository {
+  /// Constructs a [ConnectionOfferRepositoryDrift] with the provided
+  /// [db.ConnectionOfferDatabase] instance.
+  ///
+  /// **Parameters:**
+  /// - [database]: The Drift database instance for connection offers.
+  ///
+  /// **Returns:**
+  /// - An instance of [ConnectionOfferRepositoryDrift].
   ConnectionOfferRepositoryDrift({required db.ConnectionOfferDatabase database})
       : _database = database;
 

@@ -31,6 +31,17 @@ part 'chat_items_database.g.dart';
 /// - directory: File location for storing the database.
 /// - logStatements: Whether to log executed SQL (default: `false`).
 class ChatItemsDatabase extends _$ChatItemsDatabase {
+  /// Constructs a [ChatItemsDatabase] instance.
+  ///
+  /// **Parameters:**
+  /// - [databaseName]: The name of the database file.
+  /// - [passphrase]: The passphrase used to encrypt the database.
+  /// - [directory]: The directory where the database file is stored.
+  /// - [logStatements]: A boolean indicating whether to log SQL statements
+  /// (default is false).
+  ///
+  /// **Returns:**
+  /// - An instance of [ChatItemsDatabase].
   ChatItemsDatabase({
     required String databaseName,
     required String passphrase,
@@ -61,21 +72,43 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
 /// Primary key: [messageId].
 @DataClassName('ChatItem')
 class ChatItems extends Table {
+  /// The chat ID this item belongs to.
   TextColumn get chatId => text()();
+
+  /// Unique identifier for the chat item.
   TextColumn get messageId => text()();
+
+  /// The main content of the chat item.
   TextColumn get value => text().nullable()();
+
+  /// Indicates if the item was sent by the local user.
   BoolColumn get isFromMe => boolean().withDefault(const Constant(false))();
+
+  /// Timestamp when the item was created.
   DateTimeColumn get dateCreated => dateTime().clientDefault(clock.now)();
+
+  /// Status of the chat item.
   IntColumn get status => integer().map(const _ChatItemStatusConverter())();
+
+  /// Type of the chat item.
   IntColumn get type => integer().map(const _ChatItemTypeConverter())();
+
+  /// Event message type, if applicable.
   IntColumn get eventType =>
       integer().nullable().map(const _EventMessageTypeConverter())();
+
+  /// Concierge message type, if applicable.
   IntColumn get conciergeType =>
       integer().nullable().map(const _ConciergeMessageTypeConverter())();
+
+  /// Additional data for concierge messages.
   TextColumn get data =>
       text().nullable().map(const _ConciergeDataConverter())();
+
+  /// DID of the sender.
   TextColumn get senderDid => text()();
 
+  /// Table primary key definition.
   @override
   Set<Column> get primaryKey => {messageId};
 }
@@ -83,39 +116,69 @@ class ChatItems extends Table {
 /// Stores reactions (emoji, likes, etc.) linked to a [ChatItem].
 @DataClassName('Reaction')
 class Reactions extends Table {
+  /// The message ID this reaction is associated with.
   TextColumn get messageId => text().customConstraint(
         'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL',
       )();
+
+  /// The reaction value (e.g., emoji).
   TextColumn get value => text()();
 }
 
 /// Stores file or media attachments tied to a [ChatItem].
 @DataClassName('Attachment')
 class Attachments extends Table {
+  /// The message ID this attachment is associated with.
   TextColumn get messageId => text().customConstraint(
         'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL',
       )();
 
+  /// Auto-incrementing unique identifier for the attachment.
   IntColumn get attachmentId => integer().autoIncrement()();
+
+  /// Unique identifier for the attachment.
   TextColumn get id => text().nullable()();
+
+  /// Description of the attachment.
   TextColumn get description => text().nullable()();
+
+  /// Filename of the attachment.
   TextColumn get filename => text().nullable()();
+
+  /// MIME type of the attachment.
   TextColumn get mediaType => text().nullable()();
+
+  /// Format of the attachment.
   TextColumn get format => text().nullable()();
+
+  /// Last modified time of the attachment.
   DateTimeColumn get lastModifiedTime => dateTime().nullable()();
+
+  /// jws of the attachment.
   TextColumn get jws => text().nullable()();
+
+  /// Size in bytes of the attachment.
   IntColumn get byteCount => integer().nullable()();
+
+  /// Hash of the attachment.
   TextColumn get hash => text().nullable()();
+
+  /// Base64 representation of the attachment.
   TextColumn get base64 => text().nullable()();
+
+  /// JSON metadata of the attachment.
   TextColumn get json => text().nullable()();
 }
 
 /// Stores external links tied to an [Attachment].
 @DataClassName('AttachmentLink')
 class AttachmentsLinks extends Table {
+  /// The attachment ID this link is associated with.
   IntColumn get attachmentId => integer().customConstraint(
         'REFERENCES attachments(attachment_id) ON DELETE CASCADE NOT NULL',
       )();
+
+  /// The URL of the attachment link.
   TextColumn get url => text().map(const _UriConverter())();
 }
 

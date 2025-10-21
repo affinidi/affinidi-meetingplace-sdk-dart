@@ -21,6 +21,17 @@ part 'groups_database.g.dart';
 /// - logStatement: Enables SQL query logging when `true` (default: `false`).
 @DriftDatabase(tables: [MpxGroups, GroupMembers])
 class GroupsDatabase extends _$GroupsDatabase {
+  /// Constructs a [GroupsDatabase] instance.
+  ///
+  /// **Parameters:**
+  /// - [databaseName]: The name of the database file.
+  /// - [passphrase]: The passphrase used to encrypt the database.
+  /// - [directory]: The directory where the database file is stored.
+  /// - [logStatements]: A boolean indicating whether to log SQL statements
+  /// (default is false).
+  ///
+  /// **Returns:**
+  /// - An instance of [GroupsDatabase].
   GroupsDatabase({
     required String databaseName,
     required String passphrase,
@@ -49,14 +60,28 @@ class GroupsDatabase extends _$GroupsDatabase {
 /// Table representing groups in the database.
 @DataClassName('MpxGroup')
 class MpxGroups extends Table {
+  /// The unique identifier for the group.
   TextColumn get id => text()();
+
+  /// The DID of the group.
   TextColumn get did => text()();
+
+  /// The offer link associated with the group.
   TextColumn get offerLink => text()();
+
+  /// The status of the group.
   IntColumn get status => integer().map(const _GroupStatusConverter())();
+
+  /// The date and time when the group was created.
   DateTimeColumn get created => dateTime()();
 
+  /// The key pair associated with the group.
   TextColumn get groupKeyPair => text().nullable()();
+
+  /// The public key of the group.
   TextColumn get publicKey => text().nullable()();
+
+  /// The DID of the owner of the group.
   TextColumn get ownerDid => text().nullable()();
 
   @override
@@ -66,26 +91,58 @@ class MpxGroups extends Table {
 /// Table representing members of groups in the database.
 @DataClassName('GroupMember')
 class GroupMembers extends Table {
+  /// The group id of the member.
   TextColumn get groupId => text().customConstraint(
         'REFERENCES mpx_groups(id) ON DELETE CASCADE NOT NULL',
       )();
+
+  /// The DID of the group member.
   TextColumn get memberDid => text()();
+
+  /// The DID of the group owner.
   TextColumn get groupOwnerDid => text().nullable()();
+
+  /// The DID of the group.
   TextColumn get groupDid => text().nullable()();
+
+  /// Additional metadata for the group member.
   TextColumn get metadata => text().nullable()();
 
+  /// The accept offer as DID of the group member.
   TextColumn get acceptOfferAsDid => text().nullable()();
+
+  /// The date and time when the member was added to the group.
   DateTimeColumn get dateAdded => dateTime().clientDefault(clock.now)();
+
+  /// The public key of the group member.
   TextColumn get publicKey => text()();
+
+  /// The membership type of the group member.
   IntColumn get membershipType =>
       integer().map(const _GroupMembershipTypeConverter())();
+
+  /// The profile hash of the group member.
   TextColumn get peerProfileHash => text().nullable()();
+
+  /// The status of the group member.
   IntColumn get status => integer().map(const _GroupMemberStatusConverter())();
+
+  /// The first name of the group member.
   TextColumn get firstName => text()();
+
+  /// The last name of the group member.
   TextColumn get lastName => text()();
+
+  /// The email of the group member.
   TextColumn get email => text()();
+
+  /// The mobile number of the group member.
   TextColumn get mobile => text()();
+
+  /// The profile picture of the group member.
   TextColumn get profilePic => text()();
+
+  /// The MeetingPlace identity card color of the group member.
   TextColumn get meetingplaceIdentityCardColor => text()();
 }
 

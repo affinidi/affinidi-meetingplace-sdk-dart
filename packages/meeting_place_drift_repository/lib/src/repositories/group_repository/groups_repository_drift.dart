@@ -14,22 +14,29 @@ import 'groups_database.dart' as db;
 /// member data remain consistent by wrapping operations in
 /// database transactions when needed.
 class GroupsRepositoryDrift implements model.GroupRepository {
-  /// Creates a new repository with the provided [database].
+  /// Constructs a [GroupsRepositoryDrift] with the provided
+  /// [db.GroupsDatabase] instance.
   ///
-  /// - [database]: The [db.GroupsDatabase] instance that provides
-  ///   access to the underlying Drift tables for groups and members.
+  /// **Parameters:**
+  /// - [database]: The Drift database instance for group data.
+  ///
+  /// **Returns:**
+  /// - An instance of [GroupsRepositoryDrift].
   GroupsRepositoryDrift({required db.GroupsDatabase database})
       : _database = database;
 
   final db.GroupsDatabase _database;
 
-  /// Inserts a new [model.Group] and all of its members into the database.
+  /// Creates a new [model.Group] in the database along with its members.
   ///
-  /// - [group]: The domain [model.Group] object containing metadata,
-  ///   keys, and member information.
+  /// **Parameters:**
+  /// - [group]: The [model.Group] to be created.
   ///
-  /// Throws [MpxRepositoryException] if the group cannot be retrieved
-  /// after insertion.
+  /// **Returns:**
+  /// - A [Future] that completes when the group has been created.
+  ///
+  /// **Throws:**
+  /// - [MpxRepositoryException] if the group could not be created.
   @override
   Future<void> createGroup(model.Group group) async {
     await _database.transaction(() async {

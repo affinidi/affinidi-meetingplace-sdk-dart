@@ -26,7 +26,10 @@ class ChannelDatabase extends _$ChannelDatabase {
   /// - [passphrase]: The passphrase used to encrypt the database.
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
-  ///  (default is false).
+  /// (default is false).
+  ///
+  /// **Returns:**
+  /// - An instance of [ChannelDatabase].
   ChannelDatabase({
     required String databaseName,
     required String passphrase,
@@ -58,54 +61,108 @@ class ChannelDatabase extends _$ChannelDatabase {
 @DataClassName('Channel')
 @TableIndex(name: 'offer_link', columns: {#offerLink})
 class Channels extends Table {
+  /// Unique identifier for the channel.
   TextColumn get id => text().clientDefault(const Uuid().v4)();
+
+  /// DID of the channel creator used when publishing the offer.
   TextColumn get publishOfferDid => text()();
+
+  /// DID of the mediator.
   TextColumn get mediatorDid => text()();
+
+  /// Link to the offer.
   TextColumn get offerLink => text()();
+
+  /// Status of the channel.
   IntColumn get status => integer().map(const _ChannelStatusConverter())();
+
+  /// Type of the channel.
   IntColumn get type => integer().map(const _ChannelTypeConverter())();
+
+  /// ID of the outbound message.
   TextColumn get outboundMessageId => text().nullable()();
+
+  /// DID of the accepted offer.
   TextColumn get acceptOfferDid => text().nullable()();
+
+  /// Permanent DID of the channel.
   TextColumn get permanentChannelDid => text().nullable()();
+
+  /// Permanent DID of the other party in the channel.
   TextColumn get otherPartyPermanentChannelDid => text().nullable()();
+
+  /// Notification token for the channel.
   TextColumn get notificationToken => text().nullable()();
+
+  /// Notification token for the other party in the channel.
   TextColumn get otherPartyNotificationToken => text().nullable()();
+
+  /// External reference for the channel.
   TextColumn get externalRef => text().nullable()();
+
+  /// Sequence number for the channel that is used to order messages within the
+  /// channel.
   IntColumn get seqNo => integer()();
+
+  /// Message sync marker for the channel.
   DateTimeColumn get messageSyncMarker => dateTime().nullable()();
 
+  /// Primary key for the channels table.
   @override
   Set<Column> get primaryKey => {id};
 }
 
-/// Table representing contact cards associated with chat channels.
+/// Table representing contact cards associated with channels.
 @DataClassName('ChannelContactCard')
 class ChannelContactCards extends Table {
+  /// Auto-incrementing ID for the contact card.
   IntColumn get id => integer().autoIncrement()();
+
+  /// ID of the associated channel.
   TextColumn get channelId => text().customConstraint(
         'REFERENCES channels(id) ON DELETE CASCADE NOT NULL',
       )();
+
+  /// First name of the contact.
   TextColumn get firstName => text()();
+
+  /// Last name of the contact.
   TextColumn get lastName => text()();
+
+  /// Email address of the contact.
   TextColumn get email => text()();
+
+  /// Mobile number of the contact.
   TextColumn get mobile => text()();
+
+  /// Profile picture of the contact.
   TextColumn get profilePic => text()();
+
+  /// Identity card color of the contact.
   TextColumn get meetingplaceIdentityCardColor => text()();
+
+  /// Type of the contact card.
   IntColumn get cardType => integer().map(const _VCardTypeConverter())();
 
+  /// Unique keys for the contact cards table.
   @override
   List<Set<Column>> get uniqueKeys => [
         {channelId, cardType},
       ];
 }
 
-/// Enum representing the type of VCard.
+/// Enumeration representing the type of VCard.
 enum VCardType {
+  /// Personal VCard type.
   mine(1),
+
+  /// Other VCard type.
   other(2);
 
+  /// Constructor for [VCardType].
   const VCardType(this.value);
 
+  /// Integer value associated with the VCard type.
   final int value;
 }
 

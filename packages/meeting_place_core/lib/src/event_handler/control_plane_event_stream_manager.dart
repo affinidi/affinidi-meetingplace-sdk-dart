@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import '../loggers/default_mpx_sdk_logger.dart';
-import '../loggers/mpx_sdk_logger.dart';
+import '../loggers/default_meeting_place_core_sdk_logger.dart';
+import '../loggers/meeting_place_core_sdk_logger.dart';
 import 'control_plane_stream_event.dart';
 
 class ControlPlaneEventStreamManager {

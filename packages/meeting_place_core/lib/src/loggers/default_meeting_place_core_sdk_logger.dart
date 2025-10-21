@@ -1,7 +1,7 @@
 import 'dart:developer' as developer;
 
 import '../constants/sdk_constants.dart' as constants;
-import 'mpx_sdk_logger.dart';
+import 'meeting_place_core_sdk_logger.dart';
 
 /// Default console logger implementation using `dart:developer`.
 ///

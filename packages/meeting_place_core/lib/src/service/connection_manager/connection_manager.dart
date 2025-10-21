@@ -1,7 +1,7 @@
 import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
-import '../../loggers/default_mpx_sdk_logger.dart';
-import '../../loggers/mpx_sdk_logger.dart';
+import '../../loggers/default_meeting_place_core_sdk_logger.dart';
+import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../utils/string.dart';
 import 'connection_manager_exception.dart';
 import '../../repository/key_repository.dart';

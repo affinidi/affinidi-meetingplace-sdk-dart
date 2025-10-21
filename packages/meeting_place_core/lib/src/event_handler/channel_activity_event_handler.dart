@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
-import '../loggers/mpx_sdk_logger.dart';
+import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../service/mediator/mediator_service.dart';
 import 'chat_activity_event_handler.dart';
 import '../service/connection_manager/connection_manager.dart';

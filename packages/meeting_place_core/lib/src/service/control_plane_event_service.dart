@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:uuid/uuid.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../event_handler/control_plane_event_handler_manager.dart';
-import '../loggers/default_mpx_sdk_logger.dart';
-import '../loggers/mpx_sdk_logger.dart';
+import '../loggers/default_meeting_place_core_sdk_logger.dart';
+import '../loggers/meeting_place_core_sdk_logger.dart';
 
 class ControlPlaneEventService {
   ControlPlaneEventService({

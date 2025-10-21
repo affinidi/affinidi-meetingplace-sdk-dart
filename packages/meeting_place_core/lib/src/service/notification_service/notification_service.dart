@@ -2,8 +2,8 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
-import '../../loggers/default_mpx_sdk_logger.dart';
-import '../../loggers/mpx_sdk_logger.dart';
+import '../../loggers/default_meeting_place_core_sdk_logger.dart';
+import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../sdk/results/register_for_didcomm_notifications_result.dart';
 import '../connection_manager/connection_manager.dart';
 

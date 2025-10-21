@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '../../loggers/mpx_sdk_logger.dart';
+import '../../loggers/meeting_place_core_sdk_logger.dart';
 import 'oob_stream_data.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();

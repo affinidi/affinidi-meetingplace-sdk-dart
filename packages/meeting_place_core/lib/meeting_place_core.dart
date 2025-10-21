@@ -35,6 +35,6 @@ export 'src/meeting_place_core_sdk_exception.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/mediator/mediator_stream.dart';
 export 'src/service/mediator/mediator_message.dart';
-export 'src/loggers/default_mpx_sdk_logger.dart';
-export 'src/loggers/mpx_sdk_logger.dart';
+export 'src/loggers/default_meeting_place_core_sdk_logger.dart';
+export 'src/loggers/meeting_place_core_sdk_logger.dart';
 export 'src/service/oob/oob_stream.dart';

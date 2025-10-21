@@ -3,7 +3,7 @@ import 'package:ssi/ssi.dart';
 
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
-import '../loggers/mpx_sdk_logger.dart';
+import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../repository/channel_repository.dart';
 import '../repository/connection_offer_repository.dart';
 import '../service/connection_manager/connection_manager.dart';

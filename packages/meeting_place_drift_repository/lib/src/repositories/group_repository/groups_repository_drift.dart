@@ -81,7 +81,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
       if (newGroup == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Group not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
         );
       }
     });
@@ -159,7 +159,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
       if (results == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Trying to update a group that does not exists',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
         );
       }
 

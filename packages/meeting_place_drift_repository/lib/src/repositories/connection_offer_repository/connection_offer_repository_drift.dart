@@ -235,7 +235,7 @@ class ConnectionOfferRepositoryDrift
       if (results == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Trying to update a connection that does not exists',
-          type: MeetingPlaceCoreRepositoryExceptionType
+          code: MeetingPlaceCoreRepositoryExceptionType
               .missingConnectionOffer.name,
         );
       }

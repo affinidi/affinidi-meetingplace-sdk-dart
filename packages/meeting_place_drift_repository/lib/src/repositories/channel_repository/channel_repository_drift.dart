@@ -125,7 +125,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
       if (results == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Trying to update a channel that does not exists',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingChannel.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingChannel.name,
         );
       }
 

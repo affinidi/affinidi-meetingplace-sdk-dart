@@ -55,7 +55,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       if (newMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -104,7 +104,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       if (addedMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -141,7 +141,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       if (newMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -177,7 +177,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       if (newMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -207,7 +207,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
 
     throw MeetingPlaceCoreRepositoryException(
       'Unsupported message type',
-      type: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
+      code: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
     );
   }
 
@@ -367,7 +367,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       if (updatedMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -412,7 +412,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       if (updatedMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -460,7 +460,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       if (updatedMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
+          code: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -494,7 +494,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
 
     throw MeetingPlaceCoreRepositoryException(
       'Unsupported message type',
-      type: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
+      code: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
     );
   }
 
@@ -614,7 +614,7 @@ class _ChatItemMapper {
 
     throw MeetingPlaceCoreRepositoryException(
       'Unsupported message type',
-      type: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
+      code: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
     );
   }
 }

@@ -46,6 +46,7 @@ class GroupsDatabase extends _$GroupsDatabase {
       );
 }
 
+/// Table representing groups in the database.
 @DataClassName('MpxGroup')
 class MpxGroups extends Table {
   TextColumn get id => text()();
@@ -62,6 +63,7 @@ class MpxGroups extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Table representing members of groups in the database.
 @DataClassName('GroupMember')
 class GroupMembers extends Table {
   TextColumn get groupId => text().customConstraint(

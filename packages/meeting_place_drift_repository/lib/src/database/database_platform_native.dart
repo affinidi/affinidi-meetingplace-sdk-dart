@@ -49,6 +49,17 @@ class DatabasePlatform {
   }
 }
 
+/// Opens a connection to the database using native platform implementation.
+///
+/// **Parameters:**
+/// - [databaseName]: The name of the database file.
+/// - [passphrase]: The passphrase used to encrypt the database.
+/// - [directory]: The directory where the database file is stored.
+/// - [logStatements]: A boolean indicating whether to log SQL statements
+/// (default is false).
+///
+/// **Returns:**
+/// - A [LazyDatabase] instance that opens the database connection when needed.
 LazyDatabase openConnection({
   required String databaseName,
   required String passphrase,

@@ -58,6 +58,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
       );
 }
 
+/// Table representing connection offers.
 @DataClassName('ConnectionOffer')
 class ConnectionOffers extends Table {
   TextColumn get id => text().clientDefault(const Uuid().v4)();
@@ -88,6 +89,7 @@ class ConnectionOffers extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Table representing group connection offers.
 @DataClassName('GroupConnectionOffer')
 class GroupConnectionOffers extends Table {
   TextColumn get connectionOfferId => text().customConstraint(
@@ -100,6 +102,7 @@ class GroupConnectionOffers extends Table {
   TextColumn get metadata => text().nullable()();
 }
 
+/// Table representing contact cards associated with connection offers.
 @DataClassName('ConnectionContactCard')
 class ConnectionContactCards extends Table {
   IntColumn get id => integer().autoIncrement()();

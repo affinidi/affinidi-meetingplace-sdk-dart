@@ -19,6 +19,14 @@ part 'channel_database.g.dart';
 /// and ensures referential integrity by enforcing SQLite foreign keys.
 @DriftDatabase(tables: [Channels, ChannelContactCards])
 class ChannelDatabase extends _$ChannelDatabase {
+  /// Constructs a [ChannelDatabase] instance.
+  ///
+  /// **Parameters:**
+  /// - [databaseName]: The name of the database file.
+  /// - [passphrase]: The passphrase used to encrypt the database.
+  /// - [directory]: The directory where the database file is stored.
+  /// - [logStatements]: A boolean indicating whether to log SQL statements
+  ///  (default is false).
   ChannelDatabase({
     required String databaseName,
     required String passphrase,
@@ -33,9 +41,11 @@ class ChannelDatabase extends _$ChannelDatabase {
           ),
         );
 
+  /// The current schema version of the database.
   @override
   int get schemaVersion => 1;
 
+  /// Migration strategy to handle database version upgrades.
   @override
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
@@ -44,6 +54,7 @@ class ChannelDatabase extends _$ChannelDatabase {
       );
 }
 
+/// Table representing chat channels.
 @DataClassName('Channel')
 @TableIndex(name: 'offer_link', columns: {#offerLink})
 class Channels extends Table {
@@ -67,6 +78,7 @@ class Channels extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Table representing contact cards associated with chat channels.
 @DataClassName('ChannelContactCard')
 class ChannelContactCards extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -87,6 +99,7 @@ class ChannelContactCards extends Table {
       ];
 }
 
+/// Enum representing the type of VCard.
 enum VCardType {
   mine(1),
   other(2);

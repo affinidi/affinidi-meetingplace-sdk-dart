@@ -1,6 +1,6 @@
-# Affinidi Meeting Place (MPX) SDK - Repositories Drift
+# Affinidi Meeting Place - Drift Repository SDK for Dart
 
-The MXP SDK Repositories Drift package implements the [Drift database](https://pub.dev/packages/drift) to persist and manage channels, connection offers, groups, and chat history in the device's local storage.
+The Affinidi Meeting Place - Drift Repository SDK is a package that implements the [Drift database](https://pub.dev/packages/drift) to persist and manage channels, connection offers, groups, and chat history in the device's local storage.
 
 ## Key Features
 

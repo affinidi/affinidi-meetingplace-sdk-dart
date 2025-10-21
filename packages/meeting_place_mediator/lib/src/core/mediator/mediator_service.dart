@@ -19,7 +19,7 @@ import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../acl/acl_management.dart';
+import '../acl/acl_management.dart';
 import '../acl/acl_body.dart';
 import '../message/send_message_queue.dart';
 import 'fetch_message_result.dart';

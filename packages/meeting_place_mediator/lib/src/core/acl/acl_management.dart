@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../core/acl/acl_body.dart';
+import 'acl_body.dart';
 import 'acl_time_utils.dart';
 
 /// [AclManagement] used for menaging ACLs by controlling permissions and access rights.

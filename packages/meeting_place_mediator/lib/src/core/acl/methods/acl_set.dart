@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../core/acl/acl_body.dart';
+import '../acl_body.dart';
 import '../acl_hashing_utils.dart';
 
 part 'acl_set.g.dart';

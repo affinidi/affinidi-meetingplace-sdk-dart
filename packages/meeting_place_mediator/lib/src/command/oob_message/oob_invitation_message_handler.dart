@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:ssi/ssi.dart';
 
-import '../../acl/methods/acl_set.dart';
+import '../../core/acl/methods/acl_set.dart';
 import '../../core/command/command_handler.dart';
 import '../../core/mediator/mediator_service.dart';
 import '../../utils/mediator_utils.dart';

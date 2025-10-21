@@ -1,5 +1,5 @@
 /// Enumeration representing different types of repository exceptions
-/// that can occur in the Meeting Place SDK.
+/// that can occur in the Meeting Place Core SDK.
 ///
 /// Values:
 /// - [missingChannel]: Indicates that a required channel is missing.
@@ -9,7 +9,7 @@
 /// - [missingMessage]: Indicates that a required message is missing.
 /// - [unsupportedMessageType]: Indicates that the message type is unsupported.
 /// - [unsupportedMessageType]: Indicates that the message type is unsupported.
-enum MpxRepositoryExceptionType {
+enum MeetingPlaceCoreRepositoryExceptionType {
   /// Missing channel exception type.
   missingChannel,
 

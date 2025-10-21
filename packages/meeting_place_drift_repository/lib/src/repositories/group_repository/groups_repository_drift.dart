@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
-import '../../exceptions/mpx_repository_exception.dart';
-import '../../exceptions/mpx_repository_exception_type.dart';
+import '../../exceptions/meeting_place_core_repository_exception.dart';
+import '../../exceptions/meeting_place_core_repository_exception_type.dart';
 import '../../extensions/vcard_extensions.dart';
 import 'groups_database.dart' as db;
 
@@ -36,12 +36,12 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   /// - A [Future] that completes when the group has been created.
   ///
   /// **Throws:**
-  /// - [MpxRepositoryException] if the group could not be created.
+  /// - [MeetingPlaceCoreRepositoryException] if the group could not be created.
   @override
   Future<void> createGroup(model.Group group) async {
     await _database.transaction(() async {
-      await _database.into(_database.mpxGroups).insert(
-            db.MpxGroupsCompanion(
+      await _database.into(_database.meetingPlaceGroups).insert(
+            db.MeetingPlaceGroupsCompanion(
               id: Value(group.id),
               did: Value(group.did),
               offerLink: Value(group.offerLink),
@@ -75,13 +75,13 @@ class GroupsRepositoryDrift implements model.GroupRepository {
       });
 
       final newGroup = await (_database.select(
-        _database.mpxGroups,
+        _database.meetingPlaceGroups,
       )..where((filter) => filter.id.equals(group.id)))
           .getSingleOrNull();
       if (newGroup == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Group not found',
-          type: MpxRepositoryExceptionType.missingGroup.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
         );
       }
     });
@@ -97,7 +97,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   Future<model.Group?> getGroupById(String groupId) async {
     final results = await Future.wait([
       (_database.select(
-        _database.mpxGroups,
+        _database.meetingPlaceGroups,
       )..where((g) => g.id.equals(groupId)))
           .getSingleOrNull(),
       (_database.select(
@@ -106,12 +106,12 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           .get(),
     ]);
 
-    final group = results[0] as db.MpxGroup?;
+    final group = results[0] as db.MeetingPlaceGroup?;
     if (group == null) return null;
 
     final groupMembers = results[1] as List<db.GroupMember>;
 
-    return _GroupsMapper.fromDatabaseRecords(group, groupMembers);
+    return _GroupMapper.fromDatabaseRecords(group, groupMembers);
   }
 
   /// Retrieves a [model.Group] by its invitation [offerLink].
@@ -123,7 +123,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   @override
   Future<model.Group?> getGroupByOfferLink(String offerLink) async {
     final group = await (_database.select(
-      _database.mpxGroups,
+      _database.meetingPlaceGroups,
     )..where((g) => g.offerLink.equals(offerLink)))
         .getSingleOrNull();
     if (group == null) return null;
@@ -138,7 +138,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   @override
   Future<void> removeGroup(model.Group group) async {
     await (_database.delete(
-      _database.mpxGroups,
+      _database.meetingPlaceGroups,
     )..where((filter) => filter.id.equals(group.id)))
         .go();
   }
@@ -148,27 +148,27 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   /// - [group]: The [model.Group] object with updated metadata and
   ///   member information.
   ///
-  /// Throws [MpxRepositoryException] if the group does not exist
+  /// Throws [MeetingPlaceCoreRepositoryException] if the group does not exist
   /// in the database.
   @override
   Future<void> updateGroup(model.Group group) async {
     await _database.transaction(() async {
-      final query = _database.select(_database.mpxGroups)
-        ..where((c) => _database.mpxGroups.id.equals(group.id));
+      final query = _database.select(_database.meetingPlaceGroups)
+        ..where((c) => _database.meetingPlaceGroups.id.equals(group.id));
       final results = await query.getSingleOrNull();
       if (results == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Trying to update a group that does not exists',
-          type: MpxRepositoryExceptionType.missingGroup.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
         );
       }
 
       final groupId = results.id;
       await (_database.update(
-        _database.mpxGroups,
+        _database.meetingPlaceGroups,
       )..where((c) => c.id.equals(groupId)))
           .write(
-        db.MpxGroupsCompanion(
+        db.MeetingPlaceGroupsCompanion(
           id: Value(group.id),
           did: Value(group.did),
           status: Value(group.status),
@@ -209,9 +209,9 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   }
 }
 
-class _GroupsMapper {
+class _GroupMapper {
   static model.Group fromDatabaseRecords(
-    db.MpxGroup group,
+    db.MeetingPlaceGroup group,
     List<db.GroupMember> groupMembers,
   ) {
     return model.Group(

@@ -19,7 +19,7 @@ part 'groups_database.g.dart';
 /// - passphrase: Encryption passphrase for secure storage.
 /// - directory: Directory where the database file is stored.
 /// - logStatement: Enables SQL query logging when `true` (default: `false`).
-@DriftDatabase(tables: [MpxGroups, GroupMembers])
+@DriftDatabase(tables: [MeetingPlaceGroups, GroupMembers])
 class GroupsDatabase extends _$GroupsDatabase {
   /// Constructs a [GroupsDatabase] instance.
   ///
@@ -58,8 +58,8 @@ class GroupsDatabase extends _$GroupsDatabase {
 }
 
 /// Table representing groups in the database.
-@DataClassName('MpxGroup')
-class MpxGroups extends Table {
+@DataClassName('MeetingPlaceGroup')
+class MeetingPlaceGroups extends Table {
   /// The unique identifier for the group.
   TextColumn get id => text()();
 
@@ -93,7 +93,7 @@ class MpxGroups extends Table {
 class GroupMembers extends Table {
   /// The group id of the member.
   TextColumn get groupId => text().customConstraint(
-        'REFERENCES mpx_groups(id) ON DELETE CASCADE NOT NULL',
+        'REFERENCES meeting_place_groups(id) ON DELETE CASCADE NOT NULL',
       )();
 
   /// The DID of the group member.

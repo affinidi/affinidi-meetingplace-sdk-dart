@@ -43,14 +43,14 @@ The Affinidi Meeting Place - Drift Repository SDK is a package that implements t
 Run:
 
 ```bash
-dart pub add affinidi_mpx_sdk_repositories_drift
+dart pub add meeting_place_drift_repository
 ```
 
 or manually add the package to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  affinidi_mpx_sdk_repositories_drift: ^<version_number>
+  meeting_place_drift_repository: ^<version_number>
 ```
 
 and then run the command below to install the package:

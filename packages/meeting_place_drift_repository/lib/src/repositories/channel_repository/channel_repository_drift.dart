@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
-import '../../exceptions/mpx_repository_exception.dart';
-import '../../exceptions/mpx_repository_exception_type.dart';
+import '../../exceptions/meeting_place_core_repository_exception.dart';
+import '../../exceptions/meeting_place_core_repository_exception_type.dart';
 import '../../extensions/vcard_extensions.dart';
 import 'channel_database.dart' as db;
 
@@ -114,7 +114,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   ///
   /// - [channel]: The updated channel domain model.
   ///
-  /// Throws [MpxRepositoryException] if the channel does not exist.
+  /// Throws [MeetingPlaceCoreRepositoryException] if the channel does not exist.
   /// Updates run inside a transaction to maintain consistency.
   @override
   Future<void> updateChannel(model.Channel channel) async {
@@ -123,9 +123,9 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
         ..where((c) => _database.channels.id.equals(channel.id));
       final results = await query.getSingleOrNull();
       if (results == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Trying to update a channel that does not exists',
-          type: MpxRepositoryExceptionType.missingChannel.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingChannel.name,
         );
       }
 

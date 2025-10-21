@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart' as model;
 
 import '../../../meeting_place_drift_repository.dart';
-import '../../exceptions/mpx_repository_exception_type.dart';
+import '../../exceptions/meeting_place_core_repository_exception_type.dart';
 import 'chat_items_database.dart' as db;
 
 /// [ChatItemsRepositoryDrift] is a Drift (SQLite)–backed implementation
@@ -53,9 +53,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             ..where((filter) => filter.messageId.equals(message.messageId)))
           .getSingleOrNull();
       if (newMessage == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MpxRepositoryExceptionType.missingMessage.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -102,9 +102,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         messageId: message.messageId,
       );
       if (addedMessage == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MpxRepositoryExceptionType.missingMessage.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -139,9 +139,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             ..where((filter) => filter.messageId.equals(message.messageId)))
           .getSingleOrNull();
       if (newMessage == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MpxRepositoryExceptionType.missingMessage.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -175,9 +175,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             ..where((filter) => filter.messageId.equals(message.messageId)))
           .getSingleOrNull();
       if (newMessage == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MpxRepositoryExceptionType.missingMessage.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -190,7 +190,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// Creates a new chat item in the database.
   ///
   /// Supports both [model.Message] and [model.ConciergeMessage].
-  /// Throws [MpxRepositoryException] if the type is unsupported.
+  /// Throws [MeetingPlaceCoreRepositoryException] if the type is unsupported.
   @override
   Future<model.ChatItem> createMessage(model.ChatItem message) async {
     if (message is model.Message) {
@@ -205,9 +205,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       return _createEventMessage(message);
     }
 
-    throw MpxRepositoryException(
+    throw MeetingPlaceCoreRepositoryException(
       'Unsupported message type',
-      type: MpxRepositoryExceptionType.unsupportedMessageType.name,
+      type: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
     );
   }
 
@@ -365,9 +365,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       );
 
       if (updatedMessage == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MpxRepositoryExceptionType.missingMessage.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -410,9 +410,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
           .getSingleOrNull();
 
       if (updatedMessage == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MpxRepositoryExceptionType.missingMessage.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -458,9 +458,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
           .getSingleOrNull();
 
       if (updatedMessage == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Message not found',
-          type: MpxRepositoryExceptionType.missingMessage.name,
+          type: MeetingPlaceCoreRepositoryExceptionType.missingMessage.name,
         );
       }
 
@@ -477,7 +477,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// Updates an existing chat item.
   ///
   /// Supports both [model.Message] and [model.ConciergeMessage].
-  /// Throws [MpxRepositoryException] if the type is unsupported.
+  /// Throws [MeetingPlaceCoreRepositoryException] if the type is unsupported.
   @override
   Future<model.ChatItem> updateMesssage(model.ChatItem message) async {
     if (message is model.Message) {
@@ -492,9 +492,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       return _updateEventMessage(message);
     }
 
-    throw MpxRepositoryException(
+    throw MeetingPlaceCoreRepositoryException(
       'Unsupported message type',
-      type: MpxRepositoryExceptionType.unsupportedMessageType.name,
+      type: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
     );
   }
 
@@ -612,9 +612,9 @@ class _ChatItemMapper {
       );
     }
 
-    throw MpxRepositoryException(
+    throw MeetingPlaceCoreRepositoryException(
       'Unsupported message type',
-      type: MpxRepositoryExceptionType.unsupportedMessageType.name,
+      type: MeetingPlaceCoreRepositoryExceptionType.unsupportedMessageType.name,
     );
   }
 }

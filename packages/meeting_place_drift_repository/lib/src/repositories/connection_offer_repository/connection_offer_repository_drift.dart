@@ -2,8 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart' as model;
 import 'package:uuid/uuid.dart';
 
-import '../../exceptions/mpx_repository_exception.dart';
-import '../../exceptions/mpx_repository_exception_type.dart';
+import '../../exceptions/meeting_place_core_repository_exception.dart';
+import '../../exceptions/meeting_place_core_repository_exception_type.dart';
 import '../../extensions/vcard_extensions.dart';
 import 'connection_offer_database.dart' as db;
 
@@ -217,7 +217,7 @@ class ConnectionOfferRepositoryDrift
 
   /// Updates an existing [model.ConnectionOffer].
   ///
-  /// - Throws [MpxRepositoryException] if the record does not exist.
+  /// - Throws [MeetingPlaceCoreRepositoryException] if the record does not exist.
   /// - Updates main offer, group data (if applicable),
   ///   and associated [model.VCard] contact card.
   @override
@@ -233,9 +233,10 @@ class ConnectionOfferRepositoryDrift
         );
       final results = await query.getSingleOrNull();
       if (results == null) {
-        throw MpxRepositoryException(
+        throw MeetingPlaceCoreRepositoryException(
           'Trying to update a connection that does not exists',
-          type: MpxRepositoryExceptionType.missingConnectionOffer.name,
+          type: MeetingPlaceCoreRepositoryExceptionType
+              .missingConnectionOffer.name,
         );
       }
 

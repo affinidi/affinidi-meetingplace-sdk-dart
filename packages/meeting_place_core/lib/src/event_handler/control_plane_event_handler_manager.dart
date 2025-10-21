@@ -12,17 +12,12 @@ import '../service/connection_service.dart';
 import '../service/mediator/mediator_service.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_stream_manager.dart';
+import 'control_plane_stream_event.dart';
 import 'group_membership_finalised_event_handler.dart';
 import 'invitation_accepted_event_handler.dart';
 import 'invitation_accepted_group_event_handler.dart';
 import 'offer_finalised_event_handler.dart';
 import 'outreach_invitation_event_handler.dart';
-
-class ControlPlaneStreamEvent {
-  ControlPlaneStreamEvent({required this.channel, required this.type});
-  final Channel channel;
-  final ControlPlaneEventType type;
-}
 
 class ControlPlaneEventManager {
   ControlPlaneEventManager({

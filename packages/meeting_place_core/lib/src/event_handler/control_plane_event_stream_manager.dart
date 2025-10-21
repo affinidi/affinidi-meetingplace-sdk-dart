@@ -2,7 +2,7 @@ import 'dart:async';
 
 import '../loggers/default_mpx_sdk_logger.dart';
 import '../loggers/mpx_sdk_logger.dart';
-import 'control_plane_event_handler_manager.dart';
+import 'control_plane_stream_event.dart';
 
 class ControlPlaneEventStreamManager {
   ControlPlaneEventStreamManager({MeetingPlaceCoreSDKLogger? logger})

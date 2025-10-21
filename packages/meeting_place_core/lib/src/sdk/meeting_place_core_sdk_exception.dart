@@ -1,3 +1,5 @@
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+
 import '../../meeting_place_core.dart';
 
 /// The exception that is thrown when an error occurs in the

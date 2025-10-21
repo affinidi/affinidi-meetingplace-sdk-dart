@@ -1,5 +1,4 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import '../entity/channel.dart';
 import '../entity/entity.dart';
 import '../protocol/protocol.dart';
 import '../repository/group_repository.dart';

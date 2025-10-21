@@ -6,6 +6,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'constants/sdk_constants.dart';
 import 'entity/channel.dart';
 import 'entity/group_connection_offer.dart';
+import 'event_handler/control_plane_stream_event.dart';
 import 'loggers/default_mpx_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
 import 'loggers/mpx_sdk_logger.dart';

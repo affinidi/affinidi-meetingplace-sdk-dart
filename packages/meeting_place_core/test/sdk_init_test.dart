@@ -1,4 +1,3 @@
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';

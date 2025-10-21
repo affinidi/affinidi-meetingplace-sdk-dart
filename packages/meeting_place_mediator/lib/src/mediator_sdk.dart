@@ -195,35 +195,6 @@ class MediatorSDK {
     );
   }
 
-  /// Subscribes to incoming messages from the mediator and executes registered
-  /// listeners based on message type. To subscribe to all possible messages
-  /// use [subscribeToMessages].
-  ///
-  /// - [didManager]: DID manager for mediator authentication.
-  /// Uses this manager's DID document to establish a mediator session.
-  ///
-  /// - [mediatorDid]: Optional mediator DID to authenticate against.
-  ///   If not provided, the SDK instance’s default mediator DID will be used.
-  ///
-  /// - [deleteOnMediator]: Indicates whether received messages should be
-  ///   deleted from the mediator instance. If set to false, messages will
-  ///   remain stored in the mediator.
-  ///
-  /// Returns [MediatorChannel]
-  Future<MediatorChannel> listenForMessages(
-    DidManager didManager, {
-    String? mediatorDid,
-    bool deleteOnMediator = true,
-  }) {
-    return _withSdkExceptionHandling(
-      () => _mediatorService.subscribe(
-        didManager: didManager,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        deleteOnMediator: deleteOnMediator,
-      ),
-    );
-  }
-
   /// Encrypts and signs the message using the sender’ s DID, then sends it to [recipientDidDocument] via DIDComm.
   ///
   /// - [recipientDidDocument]: DID document that contains the recipient agent’s public keys,

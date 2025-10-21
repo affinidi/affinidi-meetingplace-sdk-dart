@@ -442,7 +442,7 @@ class MeetingPlaceCoreSDK {
       CreateOobCommand(oobInvitationMessage: oobMessage),
     );
 
-    final mediatorChannel = await _mediatorSDK.listenForMessages(
+    final mediatorChannel = await _mediatorSDK.subscribeToMessages(
       didManager,
       mediatorDid: result.mediatorDid,
     );
@@ -594,7 +594,7 @@ class MeetingPlaceCoreSDK {
       externalRef: externalRef,
     );
 
-    final mediatorChannel = await _mediatorSDK.listenForMessages(
+    final mediatorChannel = await _mediatorSDK.subscribeToMessages(
       acceptOfferDid,
       mediatorDid: actualMediatorDid,
     );

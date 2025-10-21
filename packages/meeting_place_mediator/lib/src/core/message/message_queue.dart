@@ -13,7 +13,7 @@ class MessageQueue {
       : _logger = logger ??
             DefaultMediatorSdkLogger(
               className: _className,
-              sdkName: MediatorSDK.className,
+              sdkName: MeetingPlaceMediatorSDK.className,
             );
 
   static final deleteMessageBatchSize = 25;

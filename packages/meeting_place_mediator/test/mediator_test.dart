@@ -1,20 +1,20 @@
 import 'dart:io';
 
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
-import 'package:meeting_place_mediator/src/sdk/mediator_sdk_options.dart';
+import 'package:meeting_place_mediator/src/meeting_place_mediator_sdk_options.dart';
 import 'package:test/test.dart';
 import 'package:ssi/ssi.dart';
 
 import 'fixture/sdk_fixture.dart';
 
 void main() {
-  late MediatorSDK sdk;
+  late MeetingPlaceMediatorSDK sdk;
   late DidManager didManagerA;
   late DidManager didManagerB;
 
   setUp(() async {
     final aliceWallet = PersistentWallet(InMemoryKeyStore());
-    sdk = MediatorSDK(
+    sdk = MeetingPlaceMediatorSDK(
       mediatorDid: getMediatorDid(),
       didResolver: UniversalDIDResolver(),
     );
@@ -63,10 +63,11 @@ void main() {
   });
 
   test('Reauthenticates if access token is about to expire', () async {
-    final mySDK = MediatorSDK(
+    final mySDK = MeetingPlaceMediatorSDK(
       mediatorDid: getMediatorDid(),
       didResolver: UniversalDIDResolver(),
-      options: MediatorSDKOptions(secondsBeforeExpiryReauthenticate: 15 * 60),
+      options: MeetingPlaceMediatorSDKOptions(
+          secondsBeforeExpiryReauthenticate: 15 * 60),
     );
 
     final sessionA = await mySDK.authenticateWithDid(didManagerA);

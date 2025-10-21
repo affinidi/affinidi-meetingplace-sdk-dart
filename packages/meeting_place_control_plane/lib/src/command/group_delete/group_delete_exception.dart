@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// GroupDeleteExceptionCodes enum definitions.
-enum GroupDeleteExceptionCodes {
-  generic('discovery_group_delete_generic');
-
-  const GroupDeleteExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Group Delete command/operation.
@@ -27,18 +20,16 @@ class GroupDeleteException implements ControlPlaneException {
   factory GroupDeleteException.generic({Object? innerException}) {
     return GroupDeleteException._(
       message: 'Group delete exception: ${innerException.toString()}.',
-      code: GroupDeleteExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.groupDeleteGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final GroupDeleteExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

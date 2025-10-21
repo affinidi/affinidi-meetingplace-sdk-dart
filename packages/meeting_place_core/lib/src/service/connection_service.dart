@@ -35,7 +35,7 @@ class ConnectionService {
     required ConnectionOfferRepository connectionOfferRepository,
     required ChannelRepository channelRepository,
     required ControlPlaneSDK controlPlaneSDK,
-    required MediatorSDK mediatorSDK,
+    required MeetingPlaceMediatorSDK mediatorSDK,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
@@ -55,7 +55,7 @@ class ConnectionService {
   final ConnectionOfferRepository _connectionOfferRepository;
   final ConnectionOfferService _connectionOfferService;
   final ChannelRepository _channelRepository;
-  final MediatorSDK _mediatorSDK;
+  final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -662,7 +662,7 @@ class ConnectionService {
         'Connection offer does not exist: ${connectionOffer.offerName}',
         name: methodName,
       );
-      throw ConnectionOfferException.offerDoesNotExistError();
+      throw ConnectionOfferException.offerNotFoundError();
     }
 
     await _deregisterOfferFromControlPlane(connectionOffer);

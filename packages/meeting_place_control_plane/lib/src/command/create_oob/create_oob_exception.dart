@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// CreateOobExceptionCodes enum definitions.
-enum CreateOobExceptionCodes {
-  generic('discovery_create_oob_generic');
-
-  const CreateOobExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Create Out-Of-Band command/operation.
@@ -27,18 +20,16 @@ class CreateOobException implements ControlPlaneException {
   factory CreateOobException.generic({Object? innerException}) {
     return CreateOobException._(
       message: 'Create oob exception: ${innerException.toString()}.',
-      code: CreateOobExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.createOobGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final CreateOobExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

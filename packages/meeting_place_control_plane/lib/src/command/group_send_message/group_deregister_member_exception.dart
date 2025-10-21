@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// GroupSendMessageExceptionCodes enum definitions.
-enum GroupSendMessageExceptionCodes {
-  generic('discovery_group_send_message_generic');
-
-  const GroupSendMessageExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Group Send Member command/operation.
@@ -27,18 +20,16 @@ class GroupSendMessageException implements ControlPlaneException {
   factory GroupSendMessageException.generic({Object? innerException}) {
     return GroupSendMessageException._(
       message: 'Group send message exception: ${innerException.toString()}.',
-      code: GroupSendMessageExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.groupSendMessageGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final GroupSendMessageExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

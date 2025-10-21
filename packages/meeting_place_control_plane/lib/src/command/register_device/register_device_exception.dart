@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// RegisterDeviceExceptionCodes enum definitions.
-enum RegisterDeviceExceptionCodes {
-  generic('discovery_register_device_generic');
-
-  const RegisterDeviceExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Register Device command/operation.
@@ -27,18 +20,16 @@ class RegisterDeviceException implements ControlPlaneException {
   factory RegisterDeviceException.generic({Object? innerException}) {
     return RegisterDeviceException._(
       message: 'Register device exception: ${innerException.toString()}.',
-      code: RegisterDeviceExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.registerDeviceGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final RegisterDeviceExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

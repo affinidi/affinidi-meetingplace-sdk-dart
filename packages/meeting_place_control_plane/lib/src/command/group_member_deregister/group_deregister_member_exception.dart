@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// GroupDeregisterExceptionCodes enum definitions.
-enum GroupDeregisterExceptionCodes {
-  generic('discovery_group_deregister_member_generic');
-
-  const GroupDeregisterExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Group Deregistration Member command/operation.
@@ -28,18 +21,16 @@ class GroupDeregisterException implements ControlPlaneException {
     return GroupDeregisterException._(
       message:
           'Group deregister member exception: ${innerException.toString()}.',
-      code: GroupDeregisterExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.groupDeregisterMemberGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final GroupDeregisterExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

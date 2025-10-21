@@ -1,5 +1,3 @@
-enum ControlPlaneSDKExceptionErrorCodes { generic }
-
 /// Represents a control plane SDK exception.
 class ControlPlaneSDKException implements Exception {
   /// Creates a [MpxSdkException] instance.

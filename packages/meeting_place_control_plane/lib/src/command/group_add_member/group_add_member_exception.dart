@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// GroupAddMemberExceptionCodes enum definitions.
-enum GroupAddMemberExceptionCodes {
-  generic('discovery_group_add_member_generic');
-
-  const GroupAddMemberExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Group Add Member command/operation.
@@ -27,18 +20,16 @@ class GroupAddMemberException implements ControlPlaneException {
   factory GroupAddMemberException.generic({Object? innerException}) {
     return GroupAddMemberException._(
       message: 'Group add member exception: ${innerException.toString()}.',
-      code: GroupAddMemberExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.groupAddMemberGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final GroupAddMemberExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

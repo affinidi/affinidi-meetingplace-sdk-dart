@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// QueryOfferExceptionCodes enum definitions.
-enum QueryOfferExceptionCodes {
-  generic('discovery_query_offer_generic');
-
-  const QueryOfferExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Query Offer command/operation.
@@ -27,18 +20,16 @@ class QueryOfferException implements ControlPlaneException {
   factory QueryOfferException.generic({Object? innerException}) {
     return QueryOfferException._(
       message: 'Query offer exception: ${innerException.toString()}.',
-      code: QueryOfferExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.queryOfferOfferGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final QueryOfferExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

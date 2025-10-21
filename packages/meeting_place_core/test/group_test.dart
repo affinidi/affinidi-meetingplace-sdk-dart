@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
@@ -648,7 +647,9 @@ void main() async {
         throwsA(
           predicate((e) =>
               e is MeetingPlaceCoreSDKException &&
-              e.code == ConnectionOfferExceptionCodes.offerNotFoundError.code),
+              e.code ==
+                  MeetingPlaceCoreSDKErrorCode
+                      .connectionOfferNotFoundError.value),
         ));
 
     // Verify group and channel entities have been deleted

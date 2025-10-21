@@ -10,6 +10,7 @@ export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
         PlatformType,
         ControlPlaneEventType,
         ControlPlaneSDKException,
+        ControlPlaneSDKErrorCode,
         MissingDeviceException;
 
 export 'package:meeting_place_mediator/meeting_place_mediator.dart'
@@ -18,7 +19,8 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AccessListRemove,
         AclSet,
         MediatorChannel,
-        MediatorSdkException;
+        MeetingPlaceMediatorSDKErrorCode,
+        MeetingPlaceMediatorSDKException;
 
 export 'package:ssi/ssi.dart' show DidManager;
 
@@ -28,7 +30,8 @@ export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
 export 'src/meeting_place_core_sdk.dart';
 export 'src/meeting_place_core_sdk_options.dart';
-export 'src/sdk/meeting_place_core_sdk_exception.dart';
+export 'src/meeting_place_core_sdk_error_code.dart';
+export 'src/meeting_place_core_sdk_exception.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/mediator/mediator_stream.dart';
 export 'src/service/mediator/mediator_message.dart';

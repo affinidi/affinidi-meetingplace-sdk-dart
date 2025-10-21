@@ -35,7 +35,8 @@ import 'core/command/command_dispatcher.dart';
 import 'control_plane_sdk_options.dart';
 import 'core/device/device.dart';
 import 'core/exception/control_plane_exception.dart';
-import 'core/exception/control_plane_sdk_exception.dart';
+import 'control_plane_sdk_error_code.dart';
+import 'control_plane_sdk_exception.dart';
 import 'loggers/default_control_plane_sdk_logger.dart';
 import 'loggers/control_plane_sdk_logger.dart';
 import 'utils/string.dart';
@@ -372,7 +373,7 @@ class ControlPlaneSDK {
       Error.throwWithStackTrace(
         ControlPlaneSDKException(
           message: e.message,
-          code: e.errorCode,
+          code: e.code.value,
           innerException: e.innerException ?? e,
         ),
         stackTrace,
@@ -387,7 +388,7 @@ class ControlPlaneSDK {
       Error.throwWithStackTrace(
         ControlPlaneSDKException(
           message: e.toString(),
-          code: ControlPlaneSDKExceptionErrorCodes.generic.name,
+          code: ControlPlaneSDKErrorCode.generic.value,
           innerException: e,
         ),
         stackTrace,

@@ -7,6 +7,7 @@ import 'constants/sdk_constants.dart';
 import 'entity/channel.dart';
 import 'entity/group_connection_offer.dart';
 import 'event_handler/control_plane_stream_event.dart';
+import 'exception/sdk_exception.dart';
 import 'loggers/default_mpx_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
 import 'loggers/mpx_sdk_logger.dart';
@@ -19,7 +20,6 @@ import 'sdk/results/create_oob_flow_result.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
 import 'service/connection_manager/connection_manager.dart';
 import 'repository/repository_config.dart';
-import 'service/connection_offer/connection_offer_exception.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_message.dart';
@@ -37,7 +37,7 @@ import 'entity/connection_offer.dart';
 import 'entity/group.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
-import 'sdk/meeting_place_core_sdk_exception.dart';
+import 'meeting_place_core_sdk_exception.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
@@ -112,7 +112,7 @@ class MeetingPlaceCoreSDK {
     required this.wallet,
     required RepositoryConfig repositoryConfig,
     required String controlPlaneDid,
-    required MediatorSDK mediatorSDK,
+    required MeetingPlaceMediatorSDK mediatorSDK,
     required ControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
     required ConnectionService connectionService,
@@ -146,7 +146,7 @@ class MeetingPlaceCoreSDK {
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
   final String _controlPlaneDid;
-  final MediatorSDK _mediatorSDK;
+  final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;
   final ConnectionManager _connectionManager;
   final ConnectionService _connectionService;
@@ -201,7 +201,7 @@ class MeetingPlaceCoreSDK {
     );
 
     final mediatorLogger = LoggerAdapter(
-      className: MediatorSDK.className,
+      className: MeetingPlaceMediatorSDK.className,
       sdkName: mediatorSDKName,
       logger: logger,
     );
@@ -235,7 +235,7 @@ class MeetingPlaceCoreSDK {
       logger: controlPlaneLogger,
     );
 
-    final mediatorSDK = MediatorSDK(
+    final mediatorSDK = MeetingPlaceMediatorSDK(
       mediatorDid: mediatorDid,
       didResolver: didResolver,
       logger: mediatorLogger,
@@ -335,8 +335,8 @@ class MeetingPlaceCoreSDK {
     );
   }
 
-  /// Returns instance of used low level [MediatorSDK].
-  MediatorSDK get mediator => _mediatorSDK;
+  /// Returns instance of used low level [MeetingPlaceMediatorSDK].
+  MeetingPlaceMediatorSDK get mediator => _mediatorSDK;
 
   /// Returns instance of used low level [ControlPlaneSDK].
   ControlPlaneSDK get discovery => _controlPlaneSDK;
@@ -357,7 +357,7 @@ class MeetingPlaceCoreSDK {
   /// when no mediator DID is provided explicitly.
   ///
   /// The updated mediator DID is also propagated to the lower-level
-  /// [ControlPlaneSDK] and [MediatorSDK].
+  /// [ControlPlaneSDK] and [MeetingPlaceMediatorSDK].
   ///
   /// **Parameters:**
   /// - [mediatorDid] — The new mediator DID to set as the default.
@@ -1397,11 +1397,11 @@ class MeetingPlaceCoreSDK {
 
     try {
       return await operation();
-    } on ConnectionOfferException catch (e, stackTrace) {
+    } on SDKException catch (e, stackTrace) {
       Error.throwWithStackTrace(
         MeetingPlaceCoreSDKException(
           message: e.message,
-          code: e.code,
+          code: e.code.value,
           innerException: e.innerException ?? e,
         ),
         stackTrace,
@@ -1421,7 +1421,7 @@ class MeetingPlaceCoreSDK {
         ),
         stackTrace,
       );
-    } on MediatorSdkException catch (e, stackTrace) {
+    } on MeetingPlaceMediatorSDKException catch (e, stackTrace) {
       Error.throwWithStackTrace(
         MeetingPlaceCoreSDKException(
           message: 'Failure on MeetingPlaceCore SDK operation',

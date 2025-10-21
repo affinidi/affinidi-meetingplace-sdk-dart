@@ -1,18 +1,5 @@
 import '../../exception/sdk_exception.dart';
-
-enum GroupExceptionCodes {
-  notFoundError('group_not_found_error'),
-  memberDidIsNull('member_did_is_null'),
-  memberDoesNotBelongToGroupError(
-    'group_member_does_not_belong_to_group_error',
-  ),
-  offerDoesNotExistError('group_offer_does_not_exist_error'),
-  channelDoesNotExistError('group_offer_channel_does_not_exist_error');
-
-  const GroupExceptionCodes(this.code);
-
-  final String code;
-}
+import '../../meeting_place_core_sdk_error_code.dart';
 
 class GroupException implements SDKException {
   GroupException({
@@ -24,7 +11,7 @@ class GroupException implements SDKException {
   factory GroupException.notFoundError({Object? innerException}) {
     return GroupException(
       message: 'Group exception: group not found.',
-      code: GroupExceptionCodes.notFoundError.name,
+      code: MeetingPlaceCoreSDKErrorCode.groupNotFoundError,
       innerException: innerException,
     );
   }
@@ -34,7 +21,7 @@ class GroupException implements SDKException {
   }) {
     return GroupException(
       message: 'Group exception: member does not belong to group.',
-      code: GroupExceptionCodes.memberDoesNotBelongToGroupError.name,
+      code: MeetingPlaceCoreSDKErrorCode.groupMemberDoesNotBelongToGroupError,
       innerException: innerException,
     );
   }
@@ -42,7 +29,7 @@ class GroupException implements SDKException {
   factory GroupException.offerDoesNotExistError({Object? innerException}) {
     return GroupException(
       message: 'Group exception: offer does not exist.',
-      code: GroupExceptionCodes.offerDoesNotExistError.name,
+      code: MeetingPlaceCoreSDKErrorCode.groupOfferDoesNotExistError,
       innerException: innerException,
     );
   }
@@ -50,7 +37,7 @@ class GroupException implements SDKException {
   factory GroupException.memberDidIsNull({Object? innerException}) {
     return GroupException(
       message: 'Group exception: member did is null.',
-      code: GroupExceptionCodes.memberDidIsNull.name,
+      code: MeetingPlaceCoreSDKErrorCode.groupMemberDidIsNull,
       innerException: innerException,
     );
   }
@@ -58,14 +45,15 @@ class GroupException implements SDKException {
   factory GroupException.channelDoesNotExistError({Object? innerException}) {
     return GroupException(
       message: 'Group exception: channel does not exist.',
-      code: GroupExceptionCodes.channelDoesNotExistError.name,
+      code: MeetingPlaceCoreSDKErrorCode.groupChannelDoesNotExistError,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final String code;
+  @override
+  final MeetingPlaceCoreSDKErrorCode code;
 
   @override
   final Object? innerException;

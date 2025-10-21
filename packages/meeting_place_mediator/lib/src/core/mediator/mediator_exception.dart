@@ -1,23 +1,8 @@
 import 'dart:convert';
 
+import '../../meeting_place_mediator_sdk_error_code.dart';
 import '../acl/acl_body.dart';
 import '../exception/i_mediator_exception.dart';
-
-enum MediatorExceptionCodes {
-  updateAclError('mediator_update_acl_error'),
-  subscribeToWebsocketError('mediator_subscribe_to_websocket_error'),
-  sendMessageError('mediator_send_message_error'),
-  queueMessageError('mediator_queue_message_error'),
-  authenticationError('mediator_authentication_error'),
-  deleteMessagesError('mediator_delete_messages_error'),
-  websocketError('mediator_websocket_error'),
-  getMediatorDidError('mediator_get_did_error'),
-  keyAgreementMismatch('mediator_key_agreement_mismatch');
-
-  const MediatorExceptionCodes(this.code);
-
-  final String code;
-}
 
 /// Encapsulate an error message, a specific error code from MediatorExceptionCodes,
 /// and the original exeption object that caused this error.
@@ -45,7 +30,7 @@ class MediatorException implements IMediatorException {
     return MediatorException(
       message:
           '''Mediator Error: Failed to update ACL with body ${jsonEncode(acl.toJson())}.''',
-      code: MediatorExceptionCodes.updateAclError,
+      code: MeetingPlaceMediatorSDKErrorCode.updateAclError,
       innerException: innerException,
     );
   }
@@ -59,7 +44,7 @@ class MediatorException implements IMediatorException {
   }) {
     return MediatorException(
       message: 'Mediator Error: Failed to subscribe to websocket.',
-      code: MediatorExceptionCodes.subscribeToWebsocketError,
+      code: MeetingPlaceMediatorSDKErrorCode.subscribeToWebsocketError,
       innerException: innerException,
     );
   }
@@ -71,7 +56,7 @@ class MediatorException implements IMediatorException {
   factory MediatorException.sendMessageError({Object? innerException}) {
     return MediatorException(
       message: 'Mediator Error: Failed to send message to mediator.',
-      code: MediatorExceptionCodes.sendMessageError,
+      code: MeetingPlaceMediatorSDKErrorCode.sendMessageError,
       innerException: innerException,
     );
   }
@@ -83,7 +68,7 @@ class MediatorException implements IMediatorException {
   factory MediatorException.queueMessageError({Object? innerException}) {
     return MediatorException(
       message: 'Mediator Error: Failed to queue message.',
-      code: MediatorExceptionCodes.queueMessageError,
+      code: MeetingPlaceMediatorSDKErrorCode.queueMessageError,
       innerException: innerException,
     );
   }
@@ -95,7 +80,7 @@ class MediatorException implements IMediatorException {
   factory MediatorException.authenticationError({Object? innerException}) {
     return MediatorException(
       message: 'Mediator Error: Authentication failed.',
-      code: MediatorExceptionCodes.authenticationError,
+      code: MeetingPlaceMediatorSDKErrorCode.authenticationError,
       innerException: innerException,
     );
   }
@@ -113,7 +98,7 @@ class MediatorException implements IMediatorException {
     return MediatorException(
       message:
           '''Mediator Error: Failed to delete at least one message: ${errors.join(',')}''',
-      code: MediatorExceptionCodes.deleteMessagesError,
+      code: MeetingPlaceMediatorSDKErrorCode.deleteMessagesError,
       innerException: innerException,
     );
   }
@@ -130,7 +115,7 @@ class MediatorException implements IMediatorException {
     return MediatorException(
       message:
           'Mediator Error: Failed to fetch DID from $mediatorEndpoint/.well-known/did.',
-      code: MediatorExceptionCodes.getMediatorDidError,
+      code: MeetingPlaceMediatorSDKErrorCode.getMediatorDidError,
       innerException: innerException,
     );
   }
@@ -142,7 +127,7 @@ class MediatorException implements IMediatorException {
   factory MediatorException.websocketError({Object? innerException}) {
     return MediatorException(
       message: 'Mediator Error: error on websocket connection',
-      code: MediatorExceptionCodes.websocketError,
+      code: MeetingPlaceMediatorSDKErrorCode.websocketError,
       innerException: innerException,
     );
   }
@@ -154,20 +139,18 @@ class MediatorException implements IMediatorException {
   factory MediatorException.keyAgreementMismatch({Object? innerException}) {
     return MediatorException(
       message: 'Mediator Error: key agreement match not found',
-      code: MediatorExceptionCodes.keyAgreementMismatch,
+      code: MeetingPlaceMediatorSDKErrorCode.keyAgreementMismatch,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final MediatorExceptionCodes code;
+  @override
+  final MeetingPlaceMediatorSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 
   @override
   String toString() => '$message (code: $code)';

@@ -1,14 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// AcceptOfferExceptionCodes enum definitions.
-enum AcceptOfferExceptionCodes {
-  limitExceeded('discovery_accept_offer_limit_exceeded'),
-  alreadyAccepted('discovery_accept_offer_already_accepted'),
-  generic('discovery_accept_offer_generic');
-
-  const AcceptOfferExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to AcceptOffer command/operation.
@@ -30,7 +21,7 @@ class AcceptOfferException implements ControlPlaneException {
     return AcceptOfferException._(
       message:
           '''Offer acceptance failed: the maximum number of allowed offer usages has been reached.''',
-      code: AcceptOfferExceptionCodes.limitExceeded,
+      code: ControlPlaneSDKErrorCode.acceptOfferLimitExceeded,
       innerException: innerException,
     );
   }
@@ -45,7 +36,7 @@ class AcceptOfferException implements ControlPlaneException {
   factory AcceptOfferException.alreadyAcceptedError({Object? innerException}) {
     return AcceptOfferException._(
       message: 'Offer acceptance failed: offer has already been accepted.',
-      code: AcceptOfferExceptionCodes.alreadyAccepted,
+      code: ControlPlaneSDKErrorCode.acceptOfferAlreadyAccepted,
       innerException: innerException,
     );
   }
@@ -60,18 +51,16 @@ class AcceptOfferException implements ControlPlaneException {
   factory AcceptOfferException.generic({Object? innerException}) {
     return AcceptOfferException._(
       message: 'Offer acceptance failed: ${innerException.toString()}.',
-      code: AcceptOfferExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.acceptOfferGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final AcceptOfferExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

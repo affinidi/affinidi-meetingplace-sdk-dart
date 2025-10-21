@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// DeregisterNotificationsExceptionCodes enum definitions.
-enum DeregisterNotificationsExceptionCodes {
-  generic('discovery_deregister_notification_generic');
-
-  const DeregisterNotificationsExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to deregister notifications command/operation.
@@ -27,18 +20,16 @@ class DeregisterNotificationsException implements ControlPlaneException {
   factory DeregisterNotificationsException.generic({Object? innerException}) {
     return DeregisterNotificationsException._(
       message: 'Deregister notification failed: ${innerException.toString()}.',
-      code: DeregisterNotificationsExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.deregisterNotificationGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final DeregisterNotificationsExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

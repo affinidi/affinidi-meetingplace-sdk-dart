@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// RegisterNotificationExceptionCodes enum definitions.
-enum RegisterNotificationExceptionCodes {
-  generic('discovery_register_notification_generic');
-
-  const RegisterNotificationExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Register Notification command/operation.
@@ -27,18 +20,16 @@ class RegisterNotificationException implements ControlPlaneException {
   factory RegisterNotificationException.generic({Object? innerException}) {
     return RegisterNotificationException._(
       message: 'Register notification exception: ${innerException.toString()}.',
-      code: RegisterNotificationExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.registerNotificationGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final RegisterNotificationExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

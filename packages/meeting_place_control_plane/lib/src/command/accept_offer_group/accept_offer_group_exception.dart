@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// AcceptOfferGroupExceptionCodes enum definitions.
-enum AcceptOfferGroupExceptionCodes {
-  generic('discovery_accept_offer_group_generic');
-
-  const AcceptOfferGroupExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to AcceptOfferGroup command/operation.
@@ -27,18 +20,16 @@ class AcceptOfferGroupException implements ControlPlaneException {
   factory AcceptOfferGroupException.generic({Object? innerException}) {
     return AcceptOfferGroupException._(
       message: 'Offer acceptance group failed: ${innerException.toString()}.',
-      code: AcceptOfferGroupExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.acceptOfferGroupGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final AcceptOfferGroupExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

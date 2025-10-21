@@ -1,6 +1,4 @@
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-
-import '../../meeting_place_core.dart';
+import '../meeting_place_core.dart';
 
 /// The exception that is thrown when an error occurs in the
 /// MeetingPlaceCoreSDKException.
@@ -41,7 +39,7 @@ class MeetingPlaceCoreSDKException implements Exception {
     Object? current = innerException;
 
     while (current != null) {
-      if (current is! MediatorSdkException &&
+      if (current is! MeetingPlaceMediatorSDKException &&
           current is! ControlPlaneSDKException) {
         buffer.writeln('- Caused by: ${current.toString()}');
       }

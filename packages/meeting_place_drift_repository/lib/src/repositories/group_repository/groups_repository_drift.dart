@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../exceptions/meeting_place_core_repository_exception_type.dart';
+import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../extensions/vcard_extensions.dart';
 import 'groups_database.dart' as db;
 
@@ -81,7 +81,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
       if (newGroup == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Group not found',
-          code: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
+          code: MeetingPlaceCoreRepositoryErrorCode.missingGroup,
         );
       }
     });
@@ -159,7 +159,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
       if (results == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Trying to update a group that does not exists',
-          code: MeetingPlaceCoreRepositoryExceptionType.missingGroup.name,
+          code: MeetingPlaceCoreRepositoryErrorCode.missingGroup,
         );
       }
 

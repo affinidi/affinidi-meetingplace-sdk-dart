@@ -8,14 +8,14 @@ import 'fetch_messages_options.dart';
 
 class MediatorService {
   MediatorService({
-    required MediatorSDK mediatorSDK,
+    required MeetingPlaceMediatorSDK mediatorSDK,
     required KeyRepository keyRepository,
     required MeetingPlaceCoreSDKLogger logger,
   })  : _mediatorSDK = mediatorSDK,
         _keyRepository = keyRepository,
         _logger = logger;
 
-  final MediatorSDK _mediatorSDK;
+  final MeetingPlaceMediatorSDK _mediatorSDK;
   final KeyRepository _keyRepository;
   final MeetingPlaceCoreSDKLogger _logger;
 

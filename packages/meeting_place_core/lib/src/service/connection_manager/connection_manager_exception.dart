@@ -1,13 +1,6 @@
 import '../../exception/sdk_exception.dart';
+import '../../meeting_place_core_sdk_error_code.dart';
 import '../../utils/string.dart';
-
-enum ConnectionManagerExceptionCodes {
-  keyPairNotFoundError('connection_manager_key_pair_not_found');
-
-  const ConnectionManagerExceptionCodes(this.code);
-
-  final String code;
-}
 
 class ConnectionManagerException implements SDKException {
   ConnectionManagerException({
@@ -23,14 +16,15 @@ class ConnectionManagerException implements SDKException {
     return ConnectionManagerException(
       message:
           'Connection manager exception: DidManager could not be created for ${did.topAndTail()}',
-      code: ConnectionManagerExceptionCodes.keyPairNotFoundError.name,
+      code: MeetingPlaceCoreSDKErrorCode.keyPairNotFoundError,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final String code;
+  @override
+  final MeetingPlaceCoreSDKErrorCode code;
 
   @override
   final Object? innerException;

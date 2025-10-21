@@ -1,3 +1,5 @@
+import '../../meeting_place_mediator_sdk_error_code.dart';
+
 /// Abstract interface class implemented by MediatorException class.
 ///
 /// **Parameters:**
@@ -6,6 +8,6 @@
 /// - [innerException]: Holds the original exception or error object.
 abstract interface class IMediatorException {
   String get message;
-  String get errorCode;
+  MeetingPlaceMediatorSDKErrorCode get code;
   Object? get innerException;
 }

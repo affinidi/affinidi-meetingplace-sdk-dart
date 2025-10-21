@@ -1,15 +1,6 @@
 import '../../core/exception/control_plane_exception.dart';
+import '../../control_plane_sdk_error_code.dart';
 import '../../utils/string.dart';
-
-/// AuthenticateExceptionCodes enum definitions.
-enum AuthenticateExceptionCodes {
-  generic('discovery_authenticate_generic'),
-  emptyChallengeReturned('discovery_authenticate_empty_challenge_returned'),
-  invalidResponseData('discovery_invalid_response_data');
-
-  const AuthenticateExceptionCodes(this.code);
-  final String code;
-}
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Authenticate command/operation.
@@ -34,7 +25,7 @@ class AuthenticateException implements ControlPlaneException {
     return AuthenticateException._(
       message:
           'Authentication returned empty challenge for ${did.topAndTail()}',
-      code: AuthenticateExceptionCodes.emptyChallengeReturned,
+      code: ControlPlaneSDKErrorCode.authenticateEmptyChallengeReturned,
       innerException: innerException,
     );
   }
@@ -49,7 +40,7 @@ class AuthenticateException implements ControlPlaneException {
   factory AuthenticateException.generic({Object? innerException}) {
     return AuthenticateException._(
       message: 'Authentication failed: ${innerException.toString()}.',
-      code: AuthenticateExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.authenticateGeneric,
       innerException: innerException,
     );
   }
@@ -67,18 +58,16 @@ class AuthenticateException implements ControlPlaneException {
   }) {
     return AuthenticateException._(
       message: 'Authentication failed: $message.',
-      code: AuthenticateExceptionCodes.invalidResponseData,
+      code: ControlPlaneSDKErrorCode.authenticateInvalidResponseData,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final AuthenticateExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

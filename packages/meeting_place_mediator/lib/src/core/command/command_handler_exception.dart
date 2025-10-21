@@ -1,5 +1,3 @@
-import '../exception/i_mediator_exception.dart';
-
 enum CommandDispatcherExceptionCodes {
   missingHandlerError('command_handler_missing_handler_error');
 
@@ -8,7 +6,7 @@ enum CommandDispatcherExceptionCodes {
   final String code;
 }
 
-class CommandDispatcherException implements IMediatorException {
+class CommandDispatcherException {
   CommandDispatcherException({
     required this.message,
     required this.code,
@@ -24,14 +22,10 @@ class CommandDispatcherException implements IMediatorException {
       innerException: innerException,
     );
   }
-  @override
+
   final String message;
 
   final CommandDispatcherExceptionCodes code;
 
-  @override
   final Exception? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

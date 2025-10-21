@@ -36,7 +36,7 @@ class GroupService {
     required ConnectionOfferService offerService,
     required ConnectionService connectionService,
     required ControlPlaneSDK controlPlaneSDK,
-    required MediatorSDK mediatorSDK,
+    required MeetingPlaceMediatorSDK mediatorSDK,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
   })  : _wallet = wallet,
@@ -67,7 +67,7 @@ class GroupService {
   final MeetingPlaceCoreSDKLogger _logger;
 
   final ControlPlaneSDK _controlPlaneSDK;
-  final MediatorSDK _mediatorSDK;
+  final MeetingPlaceMediatorSDK _mediatorSDK;
 
   final _recrypt = recrypt.Recrypt();
 

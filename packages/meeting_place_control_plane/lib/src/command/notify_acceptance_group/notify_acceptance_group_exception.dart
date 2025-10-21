@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// NotifyAcceptanceGroupExceptionCodes enum definitions.
-enum NotifyAcceptanceGroupExceptionCodes {
-  generic('discovery_notify_acceptance_group_generic');
-
-  const NotifyAcceptanceGroupExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Notify Acceptance group command/operation.
@@ -28,18 +21,16 @@ class NotifyAcceptanceGroupException implements ControlPlaneException {
     return NotifyAcceptanceGroupException._(
       message:
           'Notify acceptance group exception: ${innerException.toString()}.',
-      code: NotifyAcceptanceGroupExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.notifyAcceptanceGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final NotifyAcceptanceGroupExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

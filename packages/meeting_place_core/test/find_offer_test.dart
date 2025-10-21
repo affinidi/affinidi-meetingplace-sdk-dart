@@ -79,8 +79,8 @@ void main() async {
           (e) =>
               e is MeetingPlaceCoreSDKException &&
               (e.innerException as ConnectionOfferException).code ==
-                  ConnectionOfferExceptionCodes
-                      .connectionOfferOwnedByClaimingParty.code &&
+                  MeetingPlaceCoreSDKErrorCode
+                      .connectionOfferOwnedByClaimingParty &&
               (e.innerException as ConnectionOfferException).message ==
                   'Failed to claim offer because claiming party is the owner.',
         ),
@@ -95,7 +95,7 @@ void main() async {
         predicate((e) {
           return e is MeetingPlaceCoreSDKException &&
               (e.innerException as ConnectionOfferException).code ==
-                  ConnectionOfferExceptionCodes.offerNotFoundError.code &&
+                  MeetingPlaceCoreSDKErrorCode.connectionOfferNotFoundError &&
               (e.innerException as ConnectionOfferException).message ==
                   'Offer not found.';
         }),

@@ -40,7 +40,7 @@ class NotifyOutreachHandler
     } catch (e, stackTrace) {
       _logger.warning('Notify outreach failed -> ${e.toString()}');
       Error.throwWithStackTrace(
-        NotifyChannelException.generic(innerException: e),
+        NotifyOutreachException.generic(innerException: e),
         stackTrace,
       );
     }

@@ -1,9 +1,9 @@
 enum MediatorSdkExceptionErrorCodes { generic }
 
-/// Represents an mediator SDK exception.
-class MediatorSdkException implements Exception {
-  /// Creates a [MediatorSdkException] instance.
-  MediatorSdkException({
+/// Represents an Meeting Place Mediator SDK exception.
+class MeetingPlaceMediatorSDKException implements Exception {
+  /// Creates a [MeetingPlaceMediatorSDKException] instance.
+  MeetingPlaceMediatorSDKException({
     required this.message,
     required this.code,
     required this.innerException,

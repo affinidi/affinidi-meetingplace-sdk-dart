@@ -5,7 +5,7 @@ import '../entity/group_connection_offer.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
-import 'exceptions/group_membership_finalized_exception.dart';
+import 'exceptions/group_membership_finalised_exception.dart';
 import '../protocol/message/group_member_inauguration.dart';
 import '../protocol/mpx_protocol.dart';
 import '../repository/repository.dart';
@@ -53,13 +53,13 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
           'Connection offer is not a GroupConnectionOffer for offer link: ${event.offerLink}',
           name: methodName,
         );
-        throw GroupMembershipFinalizedException.groupConnectionOfferRequired(
+        throw GroupMembershipFinalisedException.groupConnectionOfferRequired(
           offerLink: event.offerLink,
         );
       }
 
       if (connection.isFinalised()) {
-        throw GroupMembershipFinalizedException
+        throw GroupMembershipFinalisedException
             .connectionOfferAlreadyFinalizedException(
           offerLink: event.offerLink,
         );

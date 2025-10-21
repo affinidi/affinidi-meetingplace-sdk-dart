@@ -1,23 +1,5 @@
 import '../../exception/sdk_exception.dart';
-
-enum ConnectionOfferExceptionCodes {
-  connectionOfferOwnedByClaimingParty(
-    'connection_offer_owned_by_claiming_party',
-  ),
-  connectionOfferAlreadyClaimedByClaimingParty(
-    'connection_offer_already_claimed_by_claiming_party',
-  ),
-  publishOfferError('connection_offer_publish_offer_error'),
-  offerNotFoundError('connection_offer_not_found_error'),
-  permanentChannelDidError('connection_offer_permanent_channel_did_error'),
-  notAcceptedError('connection_offer_not_accepted_error'),
-  alreadyFinalised('connection_offer_already_finalised'),
-  offerDoesNotExistError('connection_offer_does_not_exist');
-
-  const ConnectionOfferExceptionCodes(this.code);
-
-  final String code;
-}
+import '../../meeting_place_core_sdk_error_code.dart';
 
 class ConnectionOfferException implements SDKException {
   ConnectionOfferException({
@@ -31,8 +13,7 @@ class ConnectionOfferException implements SDKException {
   }) {
     return ConnectionOfferException(
       message: 'Failed to claim offer because claiming party is the owner.',
-      code: ConnectionOfferExceptionCodes
-          .connectionOfferOwnedByClaimingParty.name,
+      code: MeetingPlaceCoreSDKErrorCode.connectionOfferOwnedByClaimingParty,
       innerException: innerException,
     );
   }
@@ -42,8 +23,8 @@ class ConnectionOfferException implements SDKException {
   }) {
     return ConnectionOfferException(
       message: 'Offer already claimed by claiming party.',
-      code: ConnectionOfferExceptionCodes
-          .connectionOfferAlreadyClaimedByClaimingParty.name,
+      code: MeetingPlaceCoreSDKErrorCode
+          .connectionOfferAlreadyClaimedByClaimingParty,
       innerException: innerException,
     );
   }
@@ -53,7 +34,7 @@ class ConnectionOfferException implements SDKException {
   }) {
     return ConnectionOfferException(
       message: 'Offer not found.',
-      code: ConnectionOfferExceptionCodes.offerNotFoundError.name,
+      code: MeetingPlaceCoreSDKErrorCode.connectionOfferNotFoundError,
       innerException: innerException,
     );
   }
@@ -61,7 +42,7 @@ class ConnectionOfferException implements SDKException {
   factory ConnectionOfferException.publishOfferError({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Publishing offer failed: ${innerException.toString()}',
-      code: ConnectionOfferExceptionCodes.publishOfferError.name,
+      code: MeetingPlaceCoreSDKErrorCode.connectionOfferPublishError,
       innerException: innerException,
     );
   }
@@ -71,7 +52,8 @@ class ConnectionOfferException implements SDKException {
   }) {
     return ConnectionOfferException(
       message: 'Permanent channel did is expected to be present',
-      code: ConnectionOfferExceptionCodes.permanentChannelDidError.name,
+      code:
+          MeetingPlaceCoreSDKErrorCode.connectionOfferPermanentChannelDidError,
       innerException: innerException,
     );
   }
@@ -79,7 +61,7 @@ class ConnectionOfferException implements SDKException {
   factory ConnectionOfferException.notAcceptedError({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Connection offer must be accepted',
-      code: ConnectionOfferExceptionCodes.notAcceptedError.name,
+      code: MeetingPlaceCoreSDKErrorCode.connectionOfferNotAcceptedError,
       innerException: innerException,
     );
   }
@@ -87,24 +69,16 @@ class ConnectionOfferException implements SDKException {
   factory ConnectionOfferException.alreadyFinalised({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Connection offer is already finalised',
-      code: ConnectionOfferExceptionCodes.alreadyFinalised.name,
+      code: MeetingPlaceCoreSDKErrorCode.connectionOfferAlreadyFinalised,
       innerException: innerException,
     );
   }
 
-  factory ConnectionOfferException.offerDoesNotExistError({
-    Object? innerException,
-  }) {
-    return ConnectionOfferException(
-      message: 'Offer does not exist.',
-      code: ConnectionOfferExceptionCodes.offerDoesNotExistError.name,
-      innerException: innerException,
-    );
-  }
   @override
   final String message;
 
-  final String code;
+  @override
+  final MeetingPlaceCoreSDKErrorCode code;
 
   @override
   final Object? innerException;

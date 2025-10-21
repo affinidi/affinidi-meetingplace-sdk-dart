@@ -8,7 +8,7 @@ import '../../constants/sdk_constants.dart';
 import '../../loggers/default_mediator_sdk_logger.dart';
 import '../../loggers/mediator_sdk_logger.dart';
 import '../../protocol/message/oob_invitation_message.dart';
-import '../../sdk/mediator_sdk_options.dart';
+import '../../meeting_place_mediator_sdk_options.dart';
 import '../../utils/base64.dart';
 import '../../utils/didcomm.dart';
 import '../../utils/string.dart';
@@ -30,7 +30,7 @@ import 'unpack_message_exception.dart';
 class MediatorService {
   MediatorService({
     required this.didResolver,
-    required MediatorSDKOptions options,
+    required MeetingPlaceMediatorSDKOptions options,
     MediatorSdkLogger? logger,
   })  : _options = options,
         _logger = logger ??
@@ -39,7 +39,7 @@ class MediatorService {
 
   final SendMessageQueue sendMessageQueue = SendMessageQueue();
   final DidResolver didResolver;
-  final MediatorSDKOptions _options;
+  final MeetingPlaceMediatorSDKOptions _options;
   final Map<String, MediatorSessionClient> _sessions = {};
   final MediatorSdkLogger _logger;
 

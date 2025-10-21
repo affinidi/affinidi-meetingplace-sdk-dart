@@ -10,7 +10,7 @@ import 'fixture/sdk_fixture.dart';
 void main() async {
   final aliceWallet = PersistentWallet(InMemoryKeyStore());
 
-  final mediatorSDK = MediatorSDK(
+  final mediatorSDK = MeetingPlaceMediatorSDK(
     mediatorDid: getMediatorDid(),
     didResolver: UniversalDIDResolver.defaultResolver,
   );
@@ -35,7 +35,7 @@ void main() async {
       throwsA(
         predicate(
           (e) =>
-              e is MediatorSdkException &&
+              e is MeetingPlaceMediatorSDKException &&
               e.toString().contains('An error while calling mediator'),
         ),
       ),
@@ -59,8 +59,10 @@ void main() async {
       throwsA(
         predicate(
           (e) =>
-              e is MediatorSdkException &&
-              e.code == MediatorExceptionCodes.subscribeToWebsocketError.code,
+              e is MeetingPlaceMediatorSDKException &&
+              e.code ==
+                  MeetingPlaceMediatorSDKErrorCode
+                      .subscribeToWebsocketError.value,
         ),
       ),
     );
@@ -97,7 +99,7 @@ void main() async {
       throwsA(
         predicate(
           (e) =>
-              e is MediatorSdkException &&
+              e is MeetingPlaceMediatorSDKException &&
               e.innerException is MediatorException &&
               (e.innerException as MediatorException).message ==
                   'Mediator Error: key agreement match not found',

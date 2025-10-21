@@ -1,5 +1,5 @@
-class MediatorSDKOptions {
-  const MediatorSDKOptions({
+class MeetingPlaceMediatorSDKOptions {
+  const MeetingPlaceMediatorSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
     this.websocketPingInterval = 30,
     this.maxRetryAttempts = 3,

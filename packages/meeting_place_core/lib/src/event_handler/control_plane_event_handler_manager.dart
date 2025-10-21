@@ -22,7 +22,7 @@ import 'outreach_invitation_event_handler.dart';
 class ControlPlaneEventManager {
   ControlPlaneEventManager({
     required Wallet wallet,
-    required MediatorSDK mediatorSDK,
+    required MeetingPlaceMediatorSDK mediatorSDK,
     required MediatorService mediatorService,
     required ControlPlaneSDK controlPlaneSDK,
     required ConnectionService connectionService,

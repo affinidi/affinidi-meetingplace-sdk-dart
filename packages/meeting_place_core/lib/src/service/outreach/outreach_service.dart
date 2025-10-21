@@ -10,7 +10,7 @@ import '../connection_manager/connection_manager.dart';
 
 class OutreachService {
   OutreachService({
-    required MediatorSDK mediatorSDK,
+    required MeetingPlaceMediatorSDK mediatorSDK,
     required ControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
     required DidResolver didResolver,
@@ -19,7 +19,7 @@ class OutreachService {
         _connectionManager = connectionManager,
         _didResolver = didResolver;
 
-  final MediatorSDK _mediatorSDK;
+  final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;
   final ConnectionManager _connectionManager;
   final DidResolver _didResolver;

@@ -1,15 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// DeletePendingNotificationsExceptionCodes enum definitions.
-enum DeletePendingNotificationsExceptionCodes {
-  generic('discovery_delete_pending_notifications_generic'),
-  deletionFailedError(
-    'discovery_delete_pending_notifications_deletion_failed_error',
-  );
-
-  const DeletePendingNotificationsExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Delete Pending Notifications command/operation.
@@ -34,7 +24,8 @@ class DeletePendingNotificationsException implements ControlPlaneException {
     return DeletePendingNotificationsException._(
       message:
           '''Delete pending notifications failed: ${innerException.toString()}, deleted notification ids: ${deletedNotificationIds.join(',')}''',
-      code: DeletePendingNotificationsExceptionCodes.deletionFailedError,
+      code: ControlPlaneSDKErrorCode
+          .deletePendingNotificationsDeletionFailedError,
       innerException: innerException,
     );
   }
@@ -51,18 +42,16 @@ class DeletePendingNotificationsException implements ControlPlaneException {
   }) {
     return DeletePendingNotificationsException._(
       message: 'Authentication failed: ${innerException.toString()}.',
-      code: DeletePendingNotificationsExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.deletePendingNotificationsGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final DeletePendingNotificationsExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

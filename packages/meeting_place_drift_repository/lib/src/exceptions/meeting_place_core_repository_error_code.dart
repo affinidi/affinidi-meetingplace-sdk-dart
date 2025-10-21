@@ -9,19 +9,22 @@
 /// - [missingMessage]: Indicates that a required message is missing.
 /// - [unsupportedMessageType]: Indicates that the message type is unsupported.
 /// - [unsupportedMessageType]: Indicates that the message type is unsupported.
-enum MeetingPlaceCoreRepositoryExceptionType {
+enum MeetingPlaceCoreRepositoryErrorCode {
   /// Missing channel exception type.
-  missingChannel,
+  missingChannel('missing_channel'),
 
   /// Missing connection offer exception type.
-  missingConnectionOffer,
+  missingConnectionOffer('missing_connection_offer'),
 
   /// Missing group exception type.
-  missingGroup,
+  missingGroup('missing_group'),
 
   /// Missing message exception type.
-  missingMessage,
+  missingMessage('missing_message'),
 
   /// Unsupported message type exception.
-  unsupportedMessageType,
+  unsupportedMessageType('unsupported_message_type');
+
+  const MeetingPlaceCoreRepositoryErrorCode(this.value);
+  final String value;
 }

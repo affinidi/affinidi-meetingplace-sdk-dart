@@ -1,13 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// DeregisterOfferExceptionCodes enum definitions.
-enum DeregisterOfferExceptionCodes {
-  generic('discovery_deregister_offer_generic'),
-  deregisterFailedError('discovery_deregister_failed_error');
-
-  const DeregisterOfferExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to deregister offer command/operation.
@@ -33,7 +25,7 @@ class DeregisterOfferException implements ControlPlaneException {
     return DeregisterOfferException._(
       message:
           '''Deregister offer failed: ${innerException.toString()}, status code: $statusCode, data: $data''',
-      code: DeregisterOfferExceptionCodes.deregisterFailedError,
+      code: ControlPlaneSDKErrorCode.deregisterOfferFailedError,
       innerException: innerException,
     );
   }
@@ -48,18 +40,16 @@ class DeregisterOfferException implements ControlPlaneException {
   factory DeregisterOfferException.generic({Object? innerException}) {
     return DeregisterOfferException._(
       message: 'Deregister offer failed: ${innerException.toString()}.',
-      code: DeregisterOfferExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.deregisterOfferGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final DeregisterOfferExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

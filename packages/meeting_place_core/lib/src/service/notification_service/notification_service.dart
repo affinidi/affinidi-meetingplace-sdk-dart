@@ -10,7 +10,7 @@ import '../connection_manager/connection_manager.dart';
 class NotificationService {
   NotificationService({
     required ControlPlaneSDK controlPlaneSDK,
-    required MediatorSDK mediatorSDK,
+    required MeetingPlaceMediatorSDK mediatorSDK,
     required ConnectionManager connectionManager,
     MeetingPlaceCoreSDKLogger? logger,
   })  : _controlPlaneSDK = controlPlaneSDK,
@@ -22,7 +22,7 @@ class NotificationService {
   static const String _className = 'NotificationService';
 
   final ControlPlaneSDK _controlPlaneSDK;
-  final MediatorSDK _mediatorSDK;
+  final MeetingPlaceMediatorSDK _mediatorSDK;
   final ConnectionManager _connectionManager;
   final MeetingPlaceCoreSDKLogger _logger;
 

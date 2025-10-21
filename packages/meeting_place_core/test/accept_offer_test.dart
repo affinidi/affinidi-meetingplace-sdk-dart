@@ -137,11 +137,75 @@ void main() async {
           return e is MeetingPlaceCoreSDKException &&
               e.innerException is ConnectionOfferException &&
               (e.innerException as ConnectionOfferException).code ==
-                  ConnectionOfferExceptionCodes
-                      .connectionOfferAlreadyClaimedByClaimingParty.code &&
+                  MeetingPlaceCoreSDKErrorCode
+                      .connectionOfferAlreadyClaimedByClaimingParty &&
               (e.innerException as ConnectionOfferException).message ==
                   'Offer already claimed by claiming party.';
         }),
+      ),
+    );
+  });
+
+  test(
+    'party who registered the offer should not be able to claim it',
+    () async {
+      final publishedOfferResult = await aliceSDK.publishOffer(
+        offerName: 'Test Offer',
+        vCard: VCardFixture.alicePrimaryVCard,
+        type: SDKConnectionOfferType.invitation,
+      );
+
+      expect(
+        () => aliceSDK.acceptOffer(
+          connectionOffer: publishedOfferResult.connectionOffer,
+          vCard: VCardFixture.bobPrimaryVCard,
+        ),
+        throwsA(
+          predicate(
+            (e) =>
+                e is MeetingPlaceCoreSDKException &&
+                (e.innerException as ConnectionOfferException).code ==
+                    MeetingPlaceCoreSDKErrorCode
+                        .connectionOfferOwnedByClaimingParty &&
+                (e.innerException as ConnectionOfferException).message ==
+                    'Failed to claim offer because claiming party is the owner.',
+          ),
+        ),
+      );
+    },
+  );
+
+  test('throws error if offer claiming is in progress', () async {
+    final publishedOfferResult = await aliceSDK.publishOffer(
+      offerName: 'Test Offer',
+      vCard: VCardFixture.alicePrimaryVCard,
+      type: SDKConnectionOfferType.invitation,
+    );
+
+    final findOfferResult = await bobSDK.findOffer(
+      mnemonic: publishedOfferResult.connectionOffer.mnemonic,
+    );
+
+    await bobSDK.acceptOffer(
+      connectionOffer: findOfferResult.connectionOffer!,
+      vCard: VCardFixture.bobPrimaryVCard,
+    );
+
+    expect(
+      () => bobSDK.acceptOffer(
+        connectionOffer: findOfferResult.connectionOffer!,
+        vCard: VCardFixture.bobPrimaryVCard,
+      ),
+      throwsA(
+        predicate(
+          (e) =>
+              e is MeetingPlaceCoreSDKException &&
+              (e.innerException as ConnectionOfferException).code ==
+                  MeetingPlaceCoreSDKErrorCode
+                      .connectionOfferAlreadyClaimedByClaimingParty &&
+              (e.innerException as ConnectionOfferException).message ==
+                  'Offer already claimed by claiming party.',
+        ),
       ),
     );
   });

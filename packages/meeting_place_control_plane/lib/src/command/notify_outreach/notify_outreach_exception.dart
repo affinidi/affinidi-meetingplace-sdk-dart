@@ -1,34 +1,26 @@
 import '../../core/exception/control_plane_exception.dart';
+import '../../control_plane_sdk_error_code.dart';
 
-enum NotifyChannelExceptionCodes {
-  generic('discovery_notify_channel_generic');
-
-  const NotifyChannelExceptionCodes(this.code);
-  final String code;
-}
-
-class NotifyChannelException implements ControlPlaneException {
-  NotifyChannelException({
+class NotifyOutreachException implements ControlPlaneException {
+  NotifyOutreachException({
     required this.message,
     required this.code,
     this.innerException,
   });
 
-  factory NotifyChannelException.generic({Object? innerException}) {
-    return NotifyChannelException(
+  factory NotifyOutreachException.generic({Object? innerException}) {
+    return NotifyOutreachException(
       message: 'Notify outreach exception: ${innerException.toString()}.',
-      code: NotifyChannelExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.notifyOutreachGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final NotifyChannelExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

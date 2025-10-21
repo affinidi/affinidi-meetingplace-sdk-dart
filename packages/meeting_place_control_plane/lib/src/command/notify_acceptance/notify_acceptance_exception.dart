@@ -1,12 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// NotifyAcceptanceExceptionCodes enum definitions.
-enum NotifyAcceptanceExceptionCodes {
-  generic('discovery_notify_acceptance_generic');
-
-  const NotifyAcceptanceExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Notify Acceptance command/operation.
@@ -27,18 +20,16 @@ class NotifyAcceptanceException implements ControlPlaneException {
   factory NotifyAcceptanceException.generic({Object? innerException}) {
     return NotifyAcceptanceException._(
       message: 'Notify acceptance exception: ${innerException.toString()}.',
-      code: NotifyAcceptanceExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.notifyAcceptanceGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final NotifyAcceptanceExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

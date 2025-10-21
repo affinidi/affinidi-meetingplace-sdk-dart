@@ -43,11 +43,11 @@ Future<MeetingPlaceCoreSDK> initSDKInstance({
 
 String getControlPlaneDid() =>
     Platform.environment['CONTROL_PLANE_DID'] ??
-    (throw Exception('CONTROL_PLANE_DID not set in environment'));
+    'did:web:075ad930-deb9-496d-bd7a-b250c2a8b473.mpx.dev.affinidi.io';
 
 String getMediatorDid() =>
     Platform.environment['MEDIATOR_DID'] ??
-    (throw Exception('MEDIATOR_DID not set in environment'));
+    'did:web:euw1.mediator.affinidi.io:.well-known';
 
 ChannelRepository initChannelRepository() {
   return ChannelRepositoryImpl(storage: InMemoryStorage());

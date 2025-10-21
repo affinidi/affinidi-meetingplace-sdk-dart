@@ -1,5 +1,7 @@
+import '../../control_plane_sdk_error_code.dart';
+
 abstract interface class ControlPlaneException {
   String get message;
-  String get errorCode;
+  ControlPlaneSDKErrorCode get code;
   Object? get innerException;
 }

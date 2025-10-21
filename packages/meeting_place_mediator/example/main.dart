@@ -1,10 +1,10 @@
-import 'package:meeting_place_mediator/src/mediator_sdk.dart';
+import 'package:meeting_place_mediator/src/meeting_place_mediator_sdk.dart';
 import 'package:ssi/ssi.dart';
 
 void main() {
   final mediatorDid = '';
 
-  final mediatorSDK = MediatorSDK(
+  final mediatorSDK = MeetingPlaceMediatorSDK(
     mediatorDid: mediatorDid,
     didResolver: UniversalDIDResolver(),
   );

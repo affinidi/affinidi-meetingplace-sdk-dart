@@ -1,13 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// RegisterOfferGroupExceptionCodes enum definitions.
-enum RegisterOfferGroupExceptionCodes {
-  generic('discovery_register_offer_group_generic'),
-  mediatorNotSet('discovery_register_offer_group_mediator_not_set');
-
-  const RegisterOfferGroupExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Register Offer Group command/operation.
@@ -28,7 +20,7 @@ class RegisterOfferGroupException implements ControlPlaneException {
   factory RegisterOfferGroupException.generic({Object? innerException}) {
     return RegisterOfferGroupException._(
       message: 'Register offer group exception: ${innerException.toString()}.',
-      code: RegisterOfferGroupExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.registerOfferGroupGeneric,
       innerException: innerException,
     );
   }
@@ -43,17 +35,15 @@ class RegisterOfferGroupException implements ControlPlaneException {
   factory RegisterOfferGroupException.mediatorNotSet() {
     return RegisterOfferGroupException._(
       message: 'Register offer group exception: mediator not set.',
-      code: RegisterOfferGroupExceptionCodes.mediatorNotSet,
+      code: ControlPlaneSDKErrorCode.registerOfferGroupMediatorNotSet,
     );
   }
   @override
   final String message;
 
-  final RegisterOfferGroupExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

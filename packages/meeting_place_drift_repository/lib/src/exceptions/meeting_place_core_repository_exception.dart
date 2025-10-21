@@ -1,6 +1,9 @@
+import 'meeting_place_core_repository_error_code.dart';
+
 /// A custom exception class for Meeting Place Core SDK repository errors.
 class MeetingPlaceCoreRepositoryException implements Exception {
-  /// Constructs a [MeetingPlaceCoreRepositoryException] with a message and type.
+  /// Constructs a [MeetingPlaceCoreRepositoryException] with a message and
+  /// type.
   ///
   /// **Parameters:**
   /// - [message]: A descriptive message for the exception.
@@ -11,5 +14,5 @@ class MeetingPlaceCoreRepositoryException implements Exception {
   final String message;
 
   /// The code of the exception as a string.
-  final String code;
+  final MeetingPlaceCoreRepositoryErrorCode code;
 }

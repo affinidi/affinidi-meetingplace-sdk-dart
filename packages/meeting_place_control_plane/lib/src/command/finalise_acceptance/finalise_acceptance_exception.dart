@@ -1,13 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// FinaliseAcceptanceExceptionCodes enum definitions.
-enum FinaliseAcceptanceExceptionCodes {
-  generic('discovery_finalise_acceptande_generic'),
-  finaliseAcceptanceError('discovery_finalise_acceptance_error');
-
-  const FinaliseAcceptanceExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to finalise acceptance command/operation.
@@ -32,7 +24,7 @@ class FinaliseAcceptanceException implements ControlPlaneException {
   }) {
     return FinaliseAcceptanceException._(
       message: 'Finalise acceptance failed: ${innerException.toString()}.',
-      code: FinaliseAcceptanceExceptionCodes.finaliseAcceptanceError,
+      code: ControlPlaneSDKErrorCode.finaliseAcceptanceError,
       innerException: innerException,
     );
   }
@@ -47,18 +39,16 @@ class FinaliseAcceptanceException implements ControlPlaneException {
   factory FinaliseAcceptanceException.generic({Object? innerException}) {
     return FinaliseAcceptanceException._(
       message: 'Finalise acceptance failed: ${innerException.toString()}.',
-      code: FinaliseAcceptanceExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.finaliseAcceptanceGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final FinaliseAcceptanceExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

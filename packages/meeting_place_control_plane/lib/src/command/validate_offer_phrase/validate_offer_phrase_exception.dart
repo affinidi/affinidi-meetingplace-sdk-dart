@@ -1,15 +1,5 @@
 import '../../core/exception/control_plane_exception.dart';
-
-/// ValidateOfferPhraseExceptionCodes enum definitions.
-enum ValidateOfferPhraseExceptionCodes {
-  authentication('validate_offer_phrase_authentication'),
-  rateLimit('validate_offer_phrase_rate_limit'),
-  timeout('validate_offer_phrase_timeout'),
-  generic('validate_offer_phrase_generic');
-
-  const ValidateOfferPhraseExceptionCodes(this.code);
-  final String code;
-}
+import '../../control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for throwing
 /// specific exceptions related to Validate Offer Phrase command/operation.
@@ -32,7 +22,7 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   }) {
     return ValidateOfferPhraseExceptions._(
       message: 'Register offer group exception: ${innerException.toString()}.',
-      code: ValidateOfferPhraseExceptionCodes.authentication,
+      code: ControlPlaneSDKErrorCode.validateOfferPhraseAuthentication,
       innerException: innerException,
     );
   }
@@ -47,7 +37,7 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   factory ValidateOfferPhraseExceptions.rateLimit({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Rate limit exceeded for phrase validation',
-      code: ValidateOfferPhraseExceptionCodes.rateLimit,
+      code: ControlPlaneSDKErrorCode.validateOfferPhraseRateLimit,
       innerException: innerException,
     );
   }
@@ -62,7 +52,7 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   factory ValidateOfferPhraseExceptions.timeout({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Request timeout during phrase validation',
-      code: ValidateOfferPhraseExceptionCodes.timeout,
+      code: ControlPlaneSDKErrorCode.validateOfferPhraseTimeout,
       innerException: innerException,
     );
   }
@@ -77,18 +67,16 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   factory ValidateOfferPhraseExceptions.generic({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Unexpected error occurred',
-      code: ValidateOfferPhraseExceptionCodes.generic,
+      code: ControlPlaneSDKErrorCode.validateOfferPhraseGeneric,
       innerException: innerException,
     );
   }
   @override
   final String message;
 
-  final ValidateOfferPhraseExceptionCodes code;
+  @override
+  final ControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;
-
-  @override
-  String get errorCode => code.code;
 }

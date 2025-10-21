@@ -18,13 +18,14 @@ import 'core/mediator/mediator_resolver.dart';
 import 'core/mediator/mediator_service.dart';
 import 'core/mediator/mediator_session_client.dart';
 import 'protocol/message/oob_invitation_message.dart';
-import 'sdk/mediator_sdk_options.dart';
+import 'meeting_place_mediator_sdk_options.dart';
 
-class MediatorSDK {
-  MediatorSDK({
+class MeetingPlaceMediatorSDK {
+  MeetingPlaceMediatorSDK({
     required String mediatorDid,
     required DidResolver didResolver,
-    MediatorSDKOptions options = const MediatorSDKOptions(),
+    MeetingPlaceMediatorSDKOptions options =
+        const MeetingPlaceMediatorSDKOptions(),
     MediatorResolver? mediatorResolver,
     MediatorSdkLogger? logger,
   })  : _mediatorDid = mediatorDid,
@@ -56,7 +57,7 @@ class MediatorSDK {
   late final MediatorResolver _mediatorResolver;
   late final MediatorService _mediatorService;
   late final CommandDispatcher _dispatcher;
-  final MediatorSDKOptions _options;
+  final MeetingPlaceMediatorSDKOptions _options;
   final MediatorSdkLogger _logger;
 
   String _mediatorDid;
@@ -349,16 +350,16 @@ class MediatorSDK {
       return await operation();
     } on IMediatorException catch (e, stackTrace) {
       Error.throwWithStackTrace(
-        MediatorSdkException(
-          message: 'Failure on Mediator SDK exception',
-          code: e.errorCode,
+        MeetingPlaceMediatorSDKException(
+          message: 'Meeting Place Mediator SDK exception',
+          code: e.code.value,
           innerException: e.innerException ?? e,
         ),
         stackTrace,
       );
     } catch (e, stackTrace) {
       Error.throwWithStackTrace(
-        MediatorSdkException(
+        MeetingPlaceMediatorSDKException(
           message: 'Failure on Mediator SDK exception',
           code: MediatorSdkExceptionErrorCodes.generic.name,
           innerException: e,

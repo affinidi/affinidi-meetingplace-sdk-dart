@@ -3,7 +3,6 @@ export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, PlainTextMessage;
 
 export 'src/chat_sdk.dart';
-export 'src/constants/sdk_constants.dart';
 export 'src/effect.dart';
 export 'src/entity/entity.dart';
 export 'src/loggers/chat_sdk_logger.dart';

@@ -66,7 +66,7 @@ class MediatorService {
   Future<MediatorStream> subscribeToMessages({
     required DidManager didManager,
     required String mediatorDid,
-    bool deleteOnMediator = false,
+    bool deleteOnMediator = true,
   }) async {
     final mediatorChannel = await _mediatorSDK.subscribeToMessages(
       didManager,

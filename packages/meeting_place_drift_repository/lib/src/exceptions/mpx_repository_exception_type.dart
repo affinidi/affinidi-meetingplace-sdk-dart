@@ -8,6 +8,7 @@
 /// - [missingGroup]: Indicates that a required group is missing.
 /// - [missingMessage]: Indicates that a required message is missing.
 /// - [unsupportedMessageType]: Indicates that the message type is unsupported.
+/// - [unsupportedMessageType]: Indicates that the message type is unsupported.
 enum MpxRepositoryExceptionType {
   /// Missing channel exception type.
   missingChannel,

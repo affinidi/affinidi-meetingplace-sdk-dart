@@ -11,8 +11,8 @@ void main() async {
   final oobUrlBytes = File('./oob-url.txt').readAsBytesSync();
 
   final oobUri = Uri.parse(utf8.decode(oobUrlBytes));
+  prettyPrintYellow('OOB uri: ${oobUri.toString()}');
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
-
   final bobWaitFor = Completer<Channel>();
 
   // Bob accepts OOB

@@ -1,6 +1,6 @@
 import '../entity/channel.dart';
 import '../protocol/message/channel_inauguration.dart';
-import '../protocol/mpx_protocol.dart';
+import '../protocol/meeting_place_protocol.dart';
 import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';

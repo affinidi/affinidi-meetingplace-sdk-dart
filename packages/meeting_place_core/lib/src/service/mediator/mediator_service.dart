@@ -1,10 +1,12 @@
+import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
-import '../../../meeting_place_core.dart' hide GroupMessage;
-import '../group/group_message.dart';
-import '../../protocol/message/plaintext_message_extension.dart';
+import '../../loggers/meeting_place_core_sdk_logger.dart';
+import '../../repository/key_repository.dart';
+import 'mediator_message.dart';
 import 'fetch_messages_options.dart';
+import 'mediator_stream_subscription_wrapper.dart';
 
 class MediatorService {
   MediatorService({
@@ -35,19 +37,9 @@ class MediatorService {
 
     final mediatorMessages = await Future.wait(
       results.map((result) async {
-        final message = result.message!;
-        if (message.isOfType(MeetingPlaceProtocol.groupMessage)) {
-          final decryptedMessage = await _handleGroupMessage(message);
-          return MediatorMessage(
-            plainTextMessage: decryptedMessage,
-            messageHash: result.messageHash,
-            seqNo: message.body!['seqNo'],
-            fromDid: message.body!['fromDid'],
-          );
-        }
-
-        return MediatorMessage(
-          plainTextMessage: message,
+        return MediatorMessage.fromPlainTextMessage(
+          result.message!,
+          keyRepository: _keyRepository,
           messageHash: result.messageHash,
         );
       }).toList(),
@@ -63,37 +55,18 @@ class MediatorService {
         .toList();
   }
 
-  Future<MediatorStream> subscribeToMessages({
+  Future<MediatorStreamSubscriptionWrapper> subscribe({
     required DidManager didManager,
     required String mediatorDid,
-    bool deleteOnMediator = true,
   }) async {
-    final mediatorChannel = await _mediatorSDK.subscribeToMessages(
-      didManager,
-      mediatorDid: mediatorDid,
-      deleteOnMediator: deleteOnMediator,
-    );
+    final streamSubscription = await _mediatorSDK
+        .subscribeToMessages(didManager, mediatorDid: mediatorDid);
 
-    final mpxStream = MediatorStream(
-      mediatorChannel: mediatorChannel,
+    return MediatorStreamSubscriptionWrapper(
+      baseSubscription: streamSubscription,
+      keyRepository: _keyRepository,
       logger: _logger,
     );
-    mediatorChannel.listen((message) async {
-      if (message.isOfType(MeetingPlaceProtocol.groupMessage)) {
-        final decrypted = await _handleGroupMessage(message);
-        return mpxStream.pushData(
-          MediatorMessage(
-            plainTextMessage: decrypted,
-            seqNo: message.body!['seqNo'],
-            fromDid: message.body!['fromDid'],
-          ),
-        );
-      }
-
-      mpxStream.pushData(MediatorMessage(plainTextMessage: message));
-    });
-
-    return mpxStream;
   }
 
   Future<void> deletedMessages({
@@ -138,14 +111,6 @@ class MediatorService {
       ownerDidManager: ownerDidManager,
       acl: acl,
       mediatorDid: mediatorDid,
-    );
-  }
-
-  Future<PlainTextMessage> _handleGroupMessage(PlainTextMessage message) async {
-    final keyPair = await _keyRepository.getKeyPair(message.to!.first);
-    return GroupMessage.decrypt(
-      message,
-      privateKeyBytes: keyPair!.privateKeyBytes,
     );
   }
 }

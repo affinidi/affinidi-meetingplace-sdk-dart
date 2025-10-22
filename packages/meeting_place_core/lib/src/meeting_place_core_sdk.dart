@@ -2,42 +2,45 @@ import 'dart:async';
 
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:meeting_place_mediator/meeting_place_mediator.dart'
+    show
+        AccessListAdd,
+        AclSet,
+        MeetingPlaceMediatorSDK,
+        MeetingPlaceMediatorSDKException,
+        MeetingPlaceMediatorSDKOptions;
 import 'constants/sdk_constants.dart';
-import 'entity/channel.dart';
-import 'entity/group_connection_offer.dart';
+import 'entity/entity.dart';
 import 'event_handler/control_plane_stream_event.dart';
 import 'exception/sdk_exception.dart';
 import 'loggers/default_meeting_place_core_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
 import 'loggers/meeting_place_core_sdk_logger.dart';
+import 'meeting_place_core_sdk_exception.dart';
+import 'meeting_place_core_sdk_options.dart';
 import 'messages/utils.dart';
 import 'protocol/protocol.dart';
+import 'repository/repository.dart';
 import 'sdk/connection_offer_type.dart';
-import 'meeting_place_core_sdk_options.dart';
 import 'sdk/results/accept_oob_flow_result.dart';
 import 'sdk/results/create_oob_flow_result.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
 import 'service/connection_manager/connection_manager.dart';
-import 'repository/repository_config.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_message.dart';
 import 'service/mediator/mediator_service.dart';
+import 'service/mediator/mediator_stream_subscription.dart';
 import 'service/notification_service/notification_service.dart';
-import 'service/outreach/outreach_service.dart';
-import 'service/mediator/mediator_stream.dart';
 import 'service/oob/oob_stream.dart';
+import 'service/outreach/outreach_service.dart';
 import 'service/oob/oob_stream_data.dart';
 import 'utils/cached_did_resolver.dart';
 import 'package:ssi/ssi.dart';
 
 import 'service/connection_service.dart';
-import 'entity/connection_offer.dart';
-import 'entity/group.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
-import 'meeting_place_core_sdk_exception.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
@@ -239,6 +242,11 @@ class MeetingPlaceCoreSDK {
       mediatorDid: mediatorDid,
       didResolver: didResolver,
       logger: mediatorLogger,
+      options: MeetingPlaceMediatorSDKOptions(
+        maxRetries: options.maxRetries,
+        maxRetriesDelay: options.maxRetriesDelay,
+        signatureScheme: options.signatureScheme,
+      ),
     );
 
     final connectionService = ConnectionService(
@@ -1239,22 +1247,16 @@ class MeetingPlaceCoreSDK {
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   ///   If not provided, the SDK instance’s default mediator DID will be used.
   ///
-  /// - [deleteOnMediator]: Indicates whether received messages should be
-  ///   deleted from the mediator instance. If set to false, messages will
-  ///   remain stored in the mediator.
-  ///
-  /// **Returns:**
-  Future<MediatorStream> subscribeToMediator(
+  /// **Returns: [MediatorStreamSubscription]**
+  Future<MediatorStreamSubscription> subscribeToMediator(
     String did, {
     String? mediatorDid,
-    bool deleteOnMediator = true,
   }) async {
     return _withSdkExceptionHandling(() async {
       final didManager = await _getDidManager(did);
-      return _mediatorService.subscribeToMessages(
+      return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
-        deleteOnMediator: deleteOnMediator,
       );
     });
   }

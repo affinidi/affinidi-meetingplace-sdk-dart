@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
-import 'package:uuid/uuid.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 
 import '../utils/print.dart';
@@ -14,7 +13,13 @@ import '../utils/storage.dart';
 void main() async {
   // Alice publishes offer
   final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
-  await aliceSDK.registerForPushNotifications(const Uuid().v4());
+
+  // Alice registers for DIDComm notifications
+  prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
+  final notification = await aliceSDK.registerForDIDCommNotifications();
+  final notificationDidDocument =
+      await notification.recipientDid.getDidDocument();
+  prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
   final publishOfferResult = await aliceSDK.publishOffer(
@@ -35,12 +40,13 @@ void main() async {
     publishOfferResult.connectionOffer.toJson(),
   );
 
-  // Listen on discovery events stream to receive updates about published offer
+  // Listen on control plane events stream to receive updates about
+  // published offer
   prettyPrintYellow('Listen on new events...');
   final waitForInvitationAccept = Completer<ControlPlaneStreamEvent>();
   final waitForChannelActivity = Completer<ControlPlaneStreamEvent>();
 
-  prettyPrintGreen('>>> Calling SDK.discoveryEventsStream.listen');
+  prettyPrintGreen('>>> Calling SDK.controlPlaneEventsStream.listen');
   aliceSDK.controlPlaneEventsStream.listen((event) {
     if (event.type == ControlPlaneEventType.InvitationAccept) {
       waitForInvitationAccept.complete(event);
@@ -53,16 +59,30 @@ void main() async {
     }
   });
 
-  final publishOfferMediatorChannel = await aliceSDK.subscribeToMediator(
-    publishOfferResult.connectionOffer.publishOfferDid,
-    deleteOnMediator: false,
-  );
+  // Alice listens to mediator stream using notification DID
+  prettyPrintGreen('>>> Calling SDK.subscribeToMediator');
+  final notificationStream =
+      await aliceSDK.subscribeToMediator(notificationDidDocument.id);
 
-  publishOfferMediatorChannel.stream.listen((data) async {
-    if (data.plainTextMessage.type.toString() ==
-        MeetingPlaceProtocol.connectionSetup.value) {
-      await aliceSDK.processControlPlaneEvents();
-    }
+  prettyPrintYellow('>>> Listen on stream for invitation acccept messages');
+  notificationStream.stream
+      .where((data) => data.plainTextMessage.isOfType(
+            '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.invitationAccept.value}',
+          ))
+      .listen((data) async {
+    prettyPrintYellow('Received invitation accept notification');
+    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+    await aliceSDK.processControlPlaneEvents();
+  });
+
+  notificationStream.stream
+      .where((data) => data.plainTextMessage.isOfType(
+            '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.channelActivity.value}',
+          ))
+      .listen((data) async {
+    prettyPrintYellow('Received invitation channel activity notification');
+    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+    await aliceSDK.processControlPlaneEvents();
   });
 
   prettyPrintYellow('=== Waiting for Bob to accept connection offer...');
@@ -78,18 +98,6 @@ void main() async {
     channel: receivedEvent.channel,
   );
 
-  final permanentChannelDidMediatorChannel = await aliceSDK.subscribeToMediator(
-    channel.permanentChannelDid!,
-    deleteOnMediator: false,
-  );
-
-  permanentChannelDidMediatorChannel.stream.listen((data) async {
-    if (data.plainTextMessage.type.toString() ==
-        MeetingPlaceProtocol.channelInauguration.value) {
-      await aliceSDK.processControlPlaneEvents();
-    }
-  });
-
   prettyPrintYellow(
     '=== Waiting for Bob to send channel inauguration message...',
   );
@@ -97,7 +105,7 @@ void main() async {
   prettyPrintYellow('Event type: ${receivedChannelActivityEvent.type.name}');
   prettyJsonPrintYellow('Channel:', receivedChannelActivityEvent.channel);
 
-  await publishOfferMediatorChannel.dispose();
+  await notificationStream.dispose();
 
   prettyPrintYellow('Initializing chat...');
   final aliceChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
@@ -110,7 +118,7 @@ void main() async {
 
   await aliceChatSDK.startChatSession();
   await aliceChatSDK.chatStreamSubscription.then((stream) {
-    stream!.listen((data) {
+    stream?.listen((data) {
       if (data.plainTextMessage != null) {
         prettyJsonPrintYellow(
           'Received message on chat stream',

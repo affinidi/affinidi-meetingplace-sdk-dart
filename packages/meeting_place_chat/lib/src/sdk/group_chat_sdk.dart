@@ -423,18 +423,18 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [MediatorStream] subscription stream for group messages.
   @override
-  Future<MediatorStream> subscribeToMediator() async {
+  Future<MediatorStreamSubscription> subscribeToMediator() async {
     final methodName = 'subscribeToChannel';
     logger.info('Started subscribing to mediator channel', name: methodName);
 
-    final channel = await super.subscribeToMediator();
+    final subscription = await super.subscribeToMediator();
     logger.info('Completed subscribing to group channel', name: methodName);
 
-    channel.stream.listen((data) async {
+    subscription.stream.listen((data) async {
       await _handleMessage(data.plainTextMessage);
     });
 
-    return channel;
+    return subscription;
   }
 
   /// Checks if the current user is the group owner.

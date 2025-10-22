@@ -1,6 +1,6 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
-import '../protocol/mpx_protocol.dart';
+import '../protocol/meeting_place_protocol.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';

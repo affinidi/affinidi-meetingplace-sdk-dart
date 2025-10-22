@@ -1,5 +1,3 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
-
 import '../../meeting_place_chat.dart';
 import 'chat.dart';
 
@@ -22,8 +20,6 @@ abstract interface class ChatSDK {
   Future<void> sendChatDeliveredMessage(PlainTextMessage message);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
   Future<void> reactOnMessage(Message message, {required String reaction});
-
-  Future<MediatorStream> subscribeToMediator();
 
   Future<void> approveConnectionRequest(ConciergeMessage message);
   Future<void> rejectConnectionRequest(ConciergeMessage message);

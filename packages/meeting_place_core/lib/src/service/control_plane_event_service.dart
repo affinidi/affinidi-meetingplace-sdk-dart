@@ -107,7 +107,7 @@ class ControlPlaneEventService {
       _queue.remove(processId);
     }
 
-    _logger.info('Completed processing discovery events', name: methodName);
+    _logger.info('Completed processing control plane events', name: methodName);
   }
 
   Future<List<String>> deleteAll() async {

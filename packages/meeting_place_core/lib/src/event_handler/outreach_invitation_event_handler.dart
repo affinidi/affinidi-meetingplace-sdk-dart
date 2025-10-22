@@ -64,6 +64,12 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
           vCard: connection.vCard,
         );
 
+        await _connectionService.notifyAcceptance(
+          connectionOffer: acceptance.connectionOffer,
+          // TODO: add actual value
+          senderInfo: 'Somebody',
+        );
+
         logger.info(
           'Completed processing Outreach invitation event',
           name: methodName,

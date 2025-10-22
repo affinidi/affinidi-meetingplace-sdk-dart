@@ -1,6 +1,6 @@
 import 'package:didcomm/didcomm.dart';
 import '../attachment/v_card_attachment.dart';
-import '../mpx_protocol.dart';
+import '../meeting_place_protocol.dart';
 import '../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
 

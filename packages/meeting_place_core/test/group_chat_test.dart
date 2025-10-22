@@ -130,13 +130,13 @@ void main() async {
     final bobReceivedMessageCompleter = Completer<PlainTextMessage>();
     final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
 
-    bobStream.listen((data) {
+    bobStream.stream.listen((data) {
       if (data.plainTextMessage.type == messageType) {
         bobReceivedMessageCompleter.complete(data.plainTextMessage);
       }
     });
 
-    charlieStream.listen((data) {
+    charlieStream.stream.listen((data) {
       if (data.plainTextMessage.type == messageType) {
         charlieReceivedMessageCompleter.complete(data.plainTextMessage);
       }
@@ -180,13 +180,13 @@ void main() async {
     final aliceReceivedMessageCompleter = Completer<PlainTextMessage>();
     final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
 
-    aliceStream.listen((data) {
+    aliceStream.stream.listen((data) {
       if (data.plainTextMessage.type == messageType) {
         aliceReceivedMessageCompleter.complete(data.plainTextMessage);
       }
     });
 
-    charlieStream.listen((data) {
+    charlieStream.stream.listen((data) {
       if (data.plainTextMessage.type == messageType) {
         charlieReceivedMessageCompleter.complete(data.plainTextMessage);
       }

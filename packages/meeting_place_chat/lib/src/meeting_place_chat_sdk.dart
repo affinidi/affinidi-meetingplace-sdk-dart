@@ -191,13 +191,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
   Future<void> sendChatDeliveredMessage(PlainTextMessage message) =>
       _sdk.sendChatDeliveredMessage(message);
 
-  /// Subscribes to the channel for real-time events.
-  ///
-  /// **Returns:**
-  /// - A [MediatorStream] subscription.
-  @override
-  Future<MediatorStream> subscribeToMediator() => _sdk.subscribeToMediator();
-
   /// Approves an incoming connection request.
   ///
   /// **Parameters:**

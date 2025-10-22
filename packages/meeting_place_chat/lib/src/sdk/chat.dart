@@ -1,6 +1,5 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
-
-import '../../meeting_place_chat.dart';
+import '../entity/entity.dart';
+import '../service/chat_stream.dart';
 
 /// [Chat] represents an active or historical chat session.
 ///
@@ -12,16 +11,15 @@ class Chat {
   ///
   /// **Parameters:**
   /// - [id]: The unique identifier for this chat (usually derived from DIDs).
-  /// - [stream]: An optional [MediatorChannel] used for live subscriptions.
+  /// - [stream]: An optional [ChatStream] used for live subscriptions.
   /// - [messages]: The list of [ChatItem]s (messages) that belong to this chat.
   Chat({required this.id, required this.stream, required this.messages});
 
   /// Unique identifier for this chat.
   final String id;
 
-  /// Optional live mediator stream used to subscribe
-  /// to new incoming messages in real time.
-  MediatorStream? stream;
+  /// Subscription for receiving events on current chat instance.
+  ChatStream? stream;
 
   /// The collection of chat messages that belong to this chat.
   final List<ChatItem> messages;

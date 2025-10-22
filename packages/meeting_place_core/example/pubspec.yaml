@@ -8,8 +8,6 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
-  meeting_place_chat:
-    path: ../../../packages/meeting_place_chat
   meeting_place_core:
     path: ../../../packages/meeting_place_core
   pretty_json: ^2.0.0

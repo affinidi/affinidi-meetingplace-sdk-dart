@@ -3,15 +3,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
-import 'package:uuid/uuid.dart';
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
-  // Bob publishes offer
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
-  await bobSDK.registerForPushNotifications(const Uuid().v4());
+
+  // Bob registers for DIDComm notifications
+  prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
+  final notification = await bobSDK.registerForDIDCommNotifications();
+  final notificationDidDocument =
+      await notification.recipientDid.getDidDocument();
+  prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
   final publishOfferResult = await bobSDK.publishOffer(
@@ -24,37 +28,36 @@ void main() async {
 
   final file = File('./storage.txt');
   file.writeAsBytesSync(
-    utf8.encode(publishOfferResult.connectionOffer.mnemonic),
-  );
+      utf8.encode(publishOfferResult.connectionOffer.mnemonic));
 
   prettyJsonPrintYellow(
-    'Connection offer',
-    publishOfferResult.connectionOffer.toJson(),
-  );
+      'Connection offer', publishOfferResult.connectionOffer.toJson());
 
-  // Listen on discovery events stream to wait for outreach invitation
+  // Listen on control plane events stream to wait for outreach invitation
   prettyPrintYellow('Listen on new events...');
   final waitForOutreachInvitation = Completer<ControlPlaneStreamEvent>();
 
-  prettyPrintGreen('>>> Calling SDK.discoveryEventsStream.listen');
+  prettyPrintGreen('>>> Calling SDK.controlPlaneEventsStream.listen');
   bobSDK.controlPlaneEventsStream.listen((event) {
     if (event.type == ControlPlaneEventType.InvitationOutreach) {
       waitForOutreachInvitation.complete(event);
     }
   });
 
-  final publishOfferMediatorChannel = await bobSDK.subscribeToMediator(
-    publishOfferResult.connectionOffer.publishOfferDid,
-    deleteOnMediator: false,
-  );
+  // Listen to mediator stream using notification DID
+  prettyPrintGreen('>>> Calling SDK.subscribeToMediator.listen');
+  final notificationStream =
+      await bobSDK.subscribeToMediator(notificationDidDocument.id);
 
-  publishOfferMediatorChannel.stream.listen((data) async {
-    if (data.plainTextMessage.type.toString() ==
-        MeetingPlaceProtocol.outreachInvitation.value) {
-      prettyPrintYellow('Received outreach invitation message');
-      prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
-      await bobSDK.processControlPlaneEvents();
-    }
+  prettyPrintYellow('>>> Listen on stream for invitation outreach messages');
+  notificationStream.stream.where((data) {
+    return data.plainTextMessage.isOfType(
+      '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.invitationOutreach.value}',
+    );
+  }).listen((data) async {
+    prettyPrintYellow('Received outreach invitation message');
+    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+    await bobSDK.processControlPlaneEvents();
   });
 
   prettyPrintYellow('=== Waiting for Alice to send outrach invitation');
@@ -62,4 +65,6 @@ void main() async {
   final receivedEvent = await waitForOutreachInvitation.future;
   prettyPrintYellow('Received invitation outreach event');
   prettyJsonPrintYellow('Event channel', receivedEvent.channel.toJson());
+
+  await notificationStream.dispose();
 }

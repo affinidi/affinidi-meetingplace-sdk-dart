@@ -1,3 +1,5 @@
+import 'package:ssi/ssi.dart';
+
 class MeetingPlaceCoreSDKOptions {
   const MeetingPlaceCoreSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
@@ -7,6 +9,7 @@ class MeetingPlaceCoreSDKOptions {
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
+    this.signatureScheme = SignatureScheme.ecdsa_p256_sha256,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -41,4 +44,7 @@ class MeetingPlaceCoreSDKOptions {
   /// If no data is received within this time frame, the request will be
   /// aborted and a timeout error will be triggered.
   final Duration receiveTimeout;
+
+  /// The signature scheme to be used for signing messages.
+  final SignatureScheme signatureScheme;
 }

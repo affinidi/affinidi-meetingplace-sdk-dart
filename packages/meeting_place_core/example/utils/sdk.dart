@@ -28,9 +28,9 @@ getRepositoryConfig() {
 
 Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
   return MeetingPlaceCoreSDK.create(
-    wallet: wallet,
-    repositoryConfig: getRepositoryConfig(),
-    mediatorDid: getMediatorDid(),
-    controlPlaneDid: getControlPlaneDid(), // Control Plane API DID
-  );
+      wallet: wallet,
+      repositoryConfig: getRepositoryConfig(),
+      mediatorDid: getMediatorDid(),
+      controlPlaneDid: getControlPlaneDid(),
+      logger: DefaultMeetingPlaceCoreSDKLogger());
 }

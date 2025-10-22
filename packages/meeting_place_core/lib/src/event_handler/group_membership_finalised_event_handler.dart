@@ -7,7 +7,7 @@ import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/group_membership_finalised_exception.dart';
 import '../protocol/message/group_member_inauguration.dart';
-import '../protocol/mpx_protocol.dart';
+import '../protocol/meeting_place_protocol.dart';
 import '../repository/repository.dart';
 import '../service/group/group_exception.dart';
 import 'package:ssi/ssi.dart';

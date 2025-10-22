@@ -18,7 +18,6 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AccessListAdd,
         AccessListRemove,
         AclSet,
-        MediatorChannel,
         MeetingPlaceMediatorSDKErrorCode,
         MeetingPlaceMediatorSDKException;
 
@@ -26,15 +25,17 @@ export 'package:ssi/ssi.dart' show DidManager;
 
 export 'src/entity/entity.dart';
 export 'src/event_handler/control_plane_stream_event.dart';
-export 'src/protocol/protocol.dart';
-export 'src/repository/repository.dart';
+export 'src/loggers/default_meeting_place_core_sdk_logger.dart';
+export 'src/loggers/meeting_place_core_sdk_logger.dart';
 export 'src/meeting_place_core_sdk.dart';
 export 'src/meeting_place_core_sdk_options.dart';
 export 'src/meeting_place_core_sdk_error_code.dart';
 export 'src/meeting_place_core_sdk_exception.dart';
+export 'src/protocol/protocol.dart';
+export 'src/protocol/message/plaintext_message_extension.dart';
+export 'src/repository/repository.dart';
 export 'src/sdk/sdk.dart';
-export 'src/service/mediator/mediator_stream.dart';
 export 'src/service/mediator/mediator_message.dart';
-export 'src/loggers/default_meeting_place_core_sdk_logger.dart';
-export 'src/loggers/meeting_place_core_sdk_logger.dart';
+export 'src/service/mediator/mediator_stream_subscription.dart';
+export 'src/service/mediator/mediator_stream_subscription_wrapper.dart';
 export 'src/service/oob/oob_stream.dart';

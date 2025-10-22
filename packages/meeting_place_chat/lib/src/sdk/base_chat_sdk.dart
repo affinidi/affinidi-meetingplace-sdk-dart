@@ -55,8 +55,8 @@ abstract class BaseChatSDK {
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
-  MediatorStream? mediatorStream;
-  Future<MediatorStream>? mediatorStreamFuture;
+  MediatorStreamSubscription? _mediatorStreamSubscription;
+  Future<MediatorStreamSubscription>? mediatorStreamFuture;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
@@ -105,16 +105,14 @@ abstract class BaseChatSDK {
     unawaited(fetchNewMessages());
 
     final messages = await messagesFuture;
-    final chat = Chat(id: chatId, stream: null, messages: messages);
+    final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
-      mediatorStreamFuture!.then((stream) {
-        stream.listen((data) async {
-          await handleMessage(data, []);
+      mediatorStreamFuture!.then((subscription) {
+        _mediatorStreamSubscription = subscription;
+        subscription.stream.listen((data) {
+          handleMessage(data, []);
         });
-
-        chat.stream = stream;
-        mediatorStream = stream;
       }),
     );
 
@@ -126,7 +124,7 @@ abstract class BaseChatSDK {
   /// Waits until the mediator channel subscription is ready. Stream of live
   /// chat events ([StreamData]) for this session.
   ///
-  /// **Returns:**
+  /// **Returns:**mediatorStreamFuture
   /// - A [ChatStream] or `null` if the chat session has not yet started
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
@@ -432,7 +430,8 @@ abstract class BaseChatSDK {
   ///
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
-  Future<MediatorStream> subscribeToMediator() {
+  @internal
+  Future<MediatorStreamSubscription> subscribeToMediator() {
     return coreSDK.subscribeToMediator(did, mediatorDid: mediatorDid);
   }
 
@@ -747,14 +746,9 @@ abstract class BaseChatSDK {
 
   /// Ends the chat session, disposing of the channel and stream manager.
   void end() async {
-    final methodName = 'end';
-    _logger.info('Started ending chat session', name: methodName);
-
-    await mediatorStream?.dispose();
-    mediatorStream = null;
-
+    await _mediatorStreamSubscription?.dispose();
+    _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;
     chatStream.dispose();
-    _logger.info('Completed ending chat session', name: methodName);
   }
 }

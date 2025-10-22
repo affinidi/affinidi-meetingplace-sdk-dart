@@ -14,15 +14,22 @@ Check the sample code to learn how to use MPX_SDK package to discover, connect, 
 
 ### Running the Examples
 
-Execute the example Dart script from the packages/mpx_sdk/examples folder:
+Execute the example Dart script from the packages/meeting_place_core/examples folder:
 
 ```
-dart run chat/alice.dart
-dart run chat/bob.dart
-dart run group_chat/alice.dart
-dart run group_chat/bob.dart
-dart run group_chat/charlie.dart
+# Offer example
 dart run offer/alice.dart
 dart run offer/bob.dart
+```
 
+```
+# OOB example
+dart run oob/alice.dart
+dart run oob/bob.dart
+```
+
+```
+# Outreach example
+dart run outreach/bob.dart
+dart run outreach/bob.dart
 ```

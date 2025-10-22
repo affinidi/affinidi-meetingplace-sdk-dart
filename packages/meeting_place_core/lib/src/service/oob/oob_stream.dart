@@ -1,17 +1,17 @@
 import 'dart:async';
 
+import '../../../meeting_place_core.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
 import 'oob_stream_data.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();
 
 class OobStream {
-  OobStream(
-      {OnDisposeCallback? onDispose, required MeetingPlaceCoreSDKLogger logger})
-      : _onDispose = onDispose,
-        _logger = logger {
-    _streamController = _controller;
-  }
+  OobStream({
+    OnDisposeCallback? onDispose,
+    required MeetingPlaceCoreSDKLogger logger,
+  })  : _onDispose = onDispose,
+        _logger = logger;
 
   final OnDisposeCallback? _onDispose;
   final List<OobStreamData> _eventBuffer = <OobStreamData>[];
@@ -71,6 +71,10 @@ class OobStream {
   }
 
   OobStream timeout(Duration timeLimit, void Function()? fn) {
+    if (_timeoutTimer != null) {
+      throw StateError('Timeout already set on OobStream');
+    }
+
     if (fn != null) {
       _timeoutTimer = Timer(timeLimit, () async {
         fn();
@@ -81,6 +85,8 @@ class OobStream {
   }
 
   FutureOr<void> dispose() async {
+    _timeoutTimer?.cancel();
+
     if (_controller.isClosed) {
       _logger.info('Stream already closed');
       return;

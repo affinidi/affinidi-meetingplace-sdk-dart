@@ -405,7 +405,7 @@ class MeetingPlaceCoreSDK {
   ///   offer. This helps others know whom they are connecting with and provides
   ///   necessary contact details.
   ///
-  /// - [permanentChannelDid] - If specified, this DID is used as the permanent
+  /// - [did] - If specified, this DID is used as the permanent
   ///   channel DID within the channel entity. If omitted, a new DID will be
   ///   generated automatically.
   ///
@@ -420,22 +420,16 @@ class MeetingPlaceCoreSDK {
   /// Returns [CreateOobFlowResult]
   Future<CreateOobFlowResult> createOobFlow({
     required VCard vCard,
-    String? permanentChannelDid,
+    String? did,
     String? mediatorDid,
     String? externalRef,
   }) async {
     final methodName = 'createOobFlow';
     _logger.info('Started creating OOB invitation', name: methodName);
 
-    DidManager didManager;
-    if (permanentChannelDid != null) {
-      didManager = await _connectionManager.getDidManagerForDid(
-        wallet,
-        permanentChannelDid,
-      );
-    } else {
-      didManager = await generateDid();
-    }
+    final didManager = did != null
+        ? await _connectionManager.getDidManagerForDid(wallet, did)
+        : await generateDid();
 
     final didManagerDidDoc = await didManager.getDidDocument();
 
@@ -445,35 +439,38 @@ class MeetingPlaceCoreSDK {
     );
 
     final oobMessage = OobInvitationMessage.create(from: didManagerDidDoc.id);
-
     final result = await _controlPlaneSDK.execute(
       CreateOobCommand(oobInvitationMessage: oobMessage),
     );
 
-    final mediatorChannel = await _mediatorSDK.subscribeToMessages(
-      didManager,
+    final streamSubscription = await _mediatorService.subscribe(
+      didManager: didManager,
       mediatorDid: result.mediatorDid,
     );
 
-    final oobStream =
-        OobStream(onDispose: () => mediatorChannel.dispose(), logger: _logger);
+    final oobStream = OobStream(
+        onDispose: () => streamSubscription.dispose(), logger: _logger);
     _logger.info(
       'Listening for messages on mediator channel',
       name: methodName,
     );
 
-    mediatorChannel.listen((message) async {
-      if (message.type.toString() ==
+    streamSubscription.stream.listen((message) async {
+      final plainTextMessage = message.plainTextMessage;
+
+      if (plainTextMessage.type.toString() ==
           MeetingPlaceProtocol.connectionSetup.value) {
         final otherPartyVcard = getVCardDataOrEmptyFromAttachments(
-          message.attachments,
+          plainTextMessage.attachments,
         );
 
-        final otherPartyPermanentChannelDid = message.body!['channel_did'];
-        final permanentChannelDidManager = permanentChannelDid != null
+        final otherPartyPermanentChannelDid =
+            plainTextMessage.body!['channel_did'];
+
+        final permanentChannelDidManager = did != null
             ? await _connectionManager.getDidManagerForDid(
                 wallet,
-                permanentChannelDid,
+                did,
               )
             : await generateDid();
         final permanentChannelDidDoc =
@@ -483,7 +480,7 @@ class MeetingPlaceCoreSDK {
           offerPublishedDid: didManager,
           permanentChannelDid: permanentChannelDidManager,
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          otherPartyAcceptOfferDid: message.from!,
+          otherPartyAcceptOfferDid: plainTextMessage.from!,
           outboundMessageId: oobMessage.id,
           vCard: vCard,
           mediatorDid: result.mediatorDid,
@@ -494,7 +491,7 @@ class MeetingPlaceCoreSDK {
           publishOfferDid: didManagerDidDoc.id,
           mediatorDid: result.mediatorDid,
           outboundMessageId: oobMessage.id,
-          acceptOfferDid: message.from!,
+          acceptOfferDid: plainTextMessage.from!,
           permanentChannelDid: permanentChannelDidDoc.id,
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           status: ChannelStatus.inaugaurated,
@@ -521,7 +518,7 @@ class MeetingPlaceCoreSDK {
         oobStream.pushEvent(
           OobStreamData(
             eventType: EventType.connectionSetup,
-            message: message,
+            message: plainTextMessage,
             channel: channel,
           ),
         );
@@ -602,23 +599,29 @@ class MeetingPlaceCoreSDK {
       externalRef: externalRef,
     );
 
-    final mediatorChannel = await _mediatorSDK.subscribeToMessages(
-      acceptOfferDid,
+    final streamSubscription = await _mediatorService.subscribe(
+      didManager: acceptOfferDid,
       mediatorDid: actualMediatorDid,
     );
 
-    final oobStream =
-        OobStream(onDispose: () => mediatorChannel.dispose(), logger: _logger);
+    final oobStream = OobStream(
+      onDispose: () => streamSubscription.dispose(),
+      logger: _logger,
+    );
 
     _logger.info(
       'Listening for messages on mediator channel',
       name: methodName,
     );
-    mediatorChannel.listen((message) async {
-      if (message.type.toString() ==
+
+    streamSubscription.stream.listen((message) async {
+      final plainTextMessage = message.plainTextMessage;
+
+      if (plainTextMessage.type.toString() ==
               MeetingPlaceProtocol.connectionAccepted.value &&
-          message.parentThreadId == invitationMessage.id) {
-        final otherPartyPermanentChannelDid = message.body!['channel_did'];
+          plainTextMessage.parentThreadId == invitationMessage.id) {
+        final otherPartyPermanentChannelDid =
+            plainTextMessage.body!['channel_did'];
 
         await _mediatorSDK.updateAcl(
           ownerDidManager: permanentChannelDid,
@@ -629,7 +632,7 @@ class MeetingPlaceCoreSDK {
         );
 
         final otherPartyVCard = getVCardDataOrEmptyFromAttachments(
-          message.attachments,
+          plainTextMessage.attachments,
         );
 
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
@@ -648,7 +651,7 @@ class MeetingPlaceCoreSDK {
         oobStream.pushEvent(
           OobStreamData(
             eventType: EventType.connectionAccepted,
-            message: message,
+            message: plainTextMessage,
             channel: channel,
           ),
         );
@@ -703,7 +706,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - A [Device] instance used for subsequent SDK calls.
-
   Future<Device> registerForPushNotifications(String deviceToken) async {
     return _withSdkExceptionHandling(() async {
       final device = await _notificationService.registerForPushNotifications(
@@ -734,7 +736,6 @@ class MeetingPlaceCoreSDK {
   /// - A [RegisterForDidcommNotificationsResult] containing the Device used
   /// for subsequent SDK calls and the generated DidManager for the recipient
   /// DID.
-
   Future<RegisterForDidcommNotificationsResult>
       registerForDIDCommNotifications({
     String? mediatorDid,
@@ -802,7 +803,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// For group offers, it also includes the owner DID manager and the group
   /// DID manager.
-
   Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>({
     required String offerName,
     required sdk.SDKConnectionOfferType type,
@@ -866,7 +866,6 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - [sdk.FindOfferResult] containing the details of the matched offer,
   /// or information indicating that no matching offer was found.
-
   Future<sdk.FindOfferResult> findOffer({required String mnemonic}) async {
     return _withSdkExceptionHandling(() async {
       final (connectionOffer, errorCode) = await _connectionService.findOffer(
@@ -896,7 +895,6 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - A [sdk.AcceptOfferResult] object that provides the [connectionOffer],
   /// [acceptOfferDid] and [permanentChannelDid]
-
   Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
     required T connectionOffer,
     required VCard vCard,
@@ -997,7 +995,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// - [channel] - Specifies the channel of the entity to reject.
-
   Future<Group> rejectConnectionRequest({required Channel channel}) async {
     return _withSdkExceptionHandling(() async {
       if (channel.type == ChannelType.group) {
@@ -1013,7 +1010,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// - [channel] - Specifies the channel representing the connection.
-  ///
   Future<void> leaveChannel(Channel channel) async {
     return _withSdkExceptionHandling(() async {
       if (channel.isGroup) return _groupService.leaveGroup(channel);
@@ -1032,7 +1028,6 @@ class MeetingPlaceCoreSDK {
   /// - [notifyChannelType] - The notify channel type (currently its only chat_activity)
   /// - [ephemeral] - boolean value that indicates if the message is short live only.
   /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
-
   Future<void> sendMessage(
     PlainTextMessage message, {
     required String senderDid,
@@ -1081,7 +1076,6 @@ class MeetingPlaceCoreSDK {
   /// - [mediatorDid] - the Mediator DID
   /// - [ephemeral] - boolean value that indicates if the message is short live only.
   /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
-
   Future<void> queueMessage(
     PlainTextMessage message, {
     required String senderDid,
@@ -1118,7 +1112,6 @@ class MeetingPlaceCoreSDK {
   /// the group members. Always set to `true` by default.
   /// - [ephemeral] - boolean value that indicates if the message is short live only.
   /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
-
   Future<void> sendGroupMessage(
     PlainTextMessage message, {
     required String senderDid,
@@ -1177,7 +1170,6 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [debounceDiscoveryEventsInSeconds] - Seconds to wait before fetching
   /// discovery events from discovery API.
-
   Future<void> processControlPlaneEvents({Function? onDone}) {
     return _withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
@@ -1188,15 +1180,13 @@ class MeetingPlaceCoreSDK {
   }
 
   /// A method that closes active discovery events stream. This result in not pushing
-  /// events to the stream when calling [deleteDiscoveryEvents].
-  ///
-  void disposeDiscoveryEventsStream() {
+  /// events to the stream when calling [deleteControlPlaneEvents].
+  void disposeControlPlaneEventsStream() {
     _controlPlaneEventStreamManager.dispose();
   }
 
   /// A method that deletes all pending discovery events.
-
-  Future<List<String>> deleteDiscoveryEvents() {
+  Future<List<String>> deleteControlPlaneEvents() {
     return _controlPlaneEventService.deleteAll();
   }
 
@@ -1219,7 +1209,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - A [FetchMessageResult] object.
-
   Future<List<MediatorMessage>> fetchMessages({
     required String did,
     String? mediatorDid,
@@ -1268,7 +1257,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - [ConnectionOffer] or `null`
-
   Future<ConnectionOffer?> getConnectionOffer(String offerLink) {
     return _repositoryConfig.connectionOfferRepository
         .getConnectionOfferByOfferLink(offerLink);
@@ -1283,7 +1271,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - [ConnectionOffer] object with the attribute isDeleted = true
-
   Future<ConnectionOffer> markConnectionOfferAsDeleted(
     ConnectionOffer connectionOffer,
   ) {
@@ -1294,7 +1281,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// - [connectionOffer] - [ConnectionOffer] instance.
-
   Future<void> deleteConnectionOffer(ConnectionOffer connectionOffer) {
     return _connectionService.deleteConnectionOffer(connectionOffer);
   }
@@ -1306,7 +1292,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - [Group] or `null`
-
   Future<Group?> getGroupByOfferLink(String offerLink) {
     return _groupService.getGroupByOfferLink(offerLink);
   }
@@ -1318,7 +1303,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - [Group] or `null`
-
   Future<Group?> getGroupById(String groupId) {
     return _groupService.getGroupById(groupId);
   }
@@ -1328,7 +1312,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// [group] - Specifies the channel entity to update.
-
   Future<void> updateGroup(Group group) async {
     await _repositoryConfig.groupRepository.updateGroup(group);
   }
@@ -1338,7 +1321,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - list of objects with type [ConnectionOffer].
-
   Future<List<ConnectionOffer>> listConnectionOffers() {
     return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
   }
@@ -1356,7 +1338,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
-
   Future<Channel?> getChannelByDid(String did) {
     return _repositoryConfig.channelRepository.findChannelByDid(did);
   }
@@ -1369,7 +1350,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
-
   Future<Channel?> getChannelByOtherPartyPermanentDid(String did) {
     return _repositoryConfig.channelRepository
         .findChannelByOtherPartyPermanentChannelDid(did);
@@ -1379,7 +1359,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// [channel] - Specifies the channel entity to update.
-
   Future<void> updateChannel(Channel channel) {
     return _repositoryConfig.channelRepository.updateChannel(channel);
   }
@@ -1388,7 +1367,6 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// [channel] - Specifies the channel entity to update.
-
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
   }

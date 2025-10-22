@@ -248,7 +248,7 @@ void main() async {
 
     final createOobFlowResult = await aliceSDK.createOobFlow(
       vCard: VCardFixture.alicePrimaryVCard,
-      permanentChannelDid: didDoc.id,
+      did: didDoc.id,
     );
 
     await bobSDK.acceptOobFlow(

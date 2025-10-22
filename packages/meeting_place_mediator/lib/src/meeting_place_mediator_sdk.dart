@@ -16,7 +16,6 @@ import 'core/exception/i_mediator_exception.dart';
 import 'core/mediator/fetch_message_result.dart';
 import 'core/mediator/mediator_resolver.dart';
 import 'core/mediator/mediator_service.dart';
-import 'core/mediator/mediator_session_client.dart';
 import 'protocol/message/oob_invitation_message.dart';
 
 class MeetingPlaceMediatorSDK {
@@ -52,7 +51,7 @@ class MeetingPlaceMediatorSDK {
       GetOobHandler(mediatorService: _mediatorService),
     );
   }
-  static const String className = 'MediatorSDK';
+  static const String className = 'MeetingPlaceMediatorSDK';
 
   late final MediatorResolver _mediatorResolver;
   late final MediatorService _mediatorService;
@@ -88,7 +87,7 @@ class MeetingPlaceMediatorSDK {
   ///
   /// Returns a session client that holds authentication details for mediator
   /// interactions.
-  Future<MediatorSessionClient> authenticateWithDid(
+  Future<MediatorClient> authenticateWithDid(
     DidManager didManager, {
     String? mediatorDid,
   }) {
@@ -177,21 +176,15 @@ class MeetingPlaceMediatorSDK {
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   ///   If not provided, the SDK instance’s default mediator DID will be used.
   ///
-  /// - [deleteOnMediator]: Indicates whether received messages should be
-  ///   deleted from the mediator instance. If set to false, messages will
-  ///   remain stored in the mediator.
-  ///
-  /// Returns [MediatorChannel]
-  Future<MediatorChannel> subscribeToMessages(
+  /// Returns [MediatorStreamSubscription]
+  Future<MediatorStreamSubscription> subscribeToMessages(
     DidManager didManager, {
     String? mediatorDid,
-    bool deleteOnMediator = true,
   }) {
     return _withSdkExceptionHandling(
-      () => _mediatorService.subscribe(
+      () => _mediatorService.createStreamSubscription(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
-        deleteOnMediator: deleteOnMediator,
       ),
     );
   }

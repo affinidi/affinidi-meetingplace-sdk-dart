@@ -1,9 +1,12 @@
+import 'package:ssi/ssi.dart';
+
 class MeetingPlaceMediatorSDKOptions {
   const MeetingPlaceMediatorSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
     this.websocketPingInterval = 30,
-    this.maxRetryAttempts = 3,
-    this.delayFactor = const Duration(milliseconds: 500),
+    this.maxRetries = 3,
+    this.maxRetriesDelay = const Duration(milliseconds: 2000),
+    this.signatureScheme = SignatureScheme.ecdsa_p256_sha256,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -16,9 +19,12 @@ class MeetingPlaceMediatorSDKOptions {
 
   /// Defines the maximum number of retry attempts when establishing a
   /// connection to the mediator.
-  final int maxRetryAttempts;
+  final int maxRetries;
 
-  /// Defines the multiplier used to calculate the delay between consecutive
-  /// retry attempts.
-  final Duration delayFactor;
+  /// The maximum delay between retry attempts when a network issue occurs.
+  /// This value sets the upper bound for the delay between retries.
+  final Duration maxRetriesDelay;
+
+  // Signature scheme to use for signing messages sent to the mediator.
+  final SignatureScheme signatureScheme;
 }

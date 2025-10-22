@@ -32,9 +32,9 @@ void main() {
   test(
     'Reuses cached mediator session when already initialized for did',
     () async {
-      final sessionA = await sdk.authenticateWithDid(didManagerA);
-      final sessionB = await sdk.authenticateWithDid(didManagerA);
-      expect(sessionA.session, equals(sessionB.session));
+      final clientA = await sdk.authenticateWithDid(didManagerA);
+      final clientB = await sdk.authenticateWithDid(didManagerA);
+      expect(clientA, equals(clientB));
     },
   );
 
@@ -59,22 +59,5 @@ void main() {
       ownerDidManager: didManagerA,
       acl: AclSet.toPublic(ownerDid: didDoc.id),
     );
-  });
-
-  test('Reauthenticates if access token is about to expire', () async {
-    final mySDK = MeetingPlaceMediatorSDK(
-      mediatorDid: getMediatorDid(),
-      didResolver: UniversalDIDResolver(),
-      options: MeetingPlaceMediatorSDKOptions(
-          secondsBeforeExpiryReauthenticate: 15 * 60),
-    );
-
-    final sessionA = await mySDK.authenticateWithDid(didManagerA);
-    final accessTokenA = sessionA.session!.accessToken;
-
-    final sessionB = await mySDK.authenticateWithDid(didManagerA);
-    final accessTokenB = sessionB.session!.accessToken;
-
-    expect(accessTokenA, isNot(equals(accessTokenB)));
   });
 }

@@ -78,12 +78,14 @@ class MediatorService {
         final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
             otherDidDocuments: [mediatorDidDocument]).first;
 
+        final connectionPool = ConnectionPool();
         final client = MediatorClient(
           mediatorDidDocument: mediatorDidDocument,
+          // didManager: didManager,
           keyPair: await didManager.getKeyPairByDidKeyId(keyAgreementKeyId),
           didKeyId: keyAgreementKeyId,
           signer: await didManager.getSigner(authenticationKeyId),
-          connectionPool: ConnectionPool(),
+          connectionPool: connectionPool,
           forwardMessageOptions: const ForwardMessageOptions(
             shouldSign: true,
             shouldEncrypt: true,
@@ -110,11 +112,10 @@ class MediatorService {
         );
 
         _clients[cacheKey] = client;
-
         _logger.info('Connected to mediator: ${mediatorDid.topAndTail()}',
             name: methodName);
 
-        return Future.value(client);
+        return client;
       },
       retryIf: (e) {
         _logger.warning('Retrying due to error: $e', name: methodName);

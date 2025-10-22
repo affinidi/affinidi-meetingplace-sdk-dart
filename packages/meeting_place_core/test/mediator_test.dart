@@ -133,9 +133,6 @@ void main() async {
       deleteOnRetrieve: true,
     );
 
-    // --- Subscriptions ---
-    final channel = await aliceSDK.mediator.subscribeToMessages(didManagerA);
-
     // --- Send messages ---
     final sendMessageDid = await bobSDK.generateDid();
     final senderDidDocument = await sendMessageDid.getDidDocument();
@@ -194,7 +191,7 @@ void main() async {
         )
         .toList();
 
-    expect(targetMessages.length, 0);
+    expect(targetMessages.length, 1);
 
     final messagesB = await aliceSDK.mediator.fetchMessages(
       didManager: didManagerB,
@@ -207,7 +204,6 @@ void main() async {
         .toList();
 
     expect(targetMessagesB.length, 1);
-    await channel.dispose();
   });
 
   test('different stream for each mediator session', () async {

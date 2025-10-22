@@ -45,13 +45,21 @@ class MediatorStreamSubscription {
       throw Exception('Cannot initialize a closed subscription');
     }
 
-    _client.listenForIncomingMessages(
-      _onIncomingMessage,
-      onDone: _onDone,
-    );
+    try {
+      // Improve as soon as connection pools are available for joining the
+      // pool later
+      _client.listenForIncomingMessages(
+        _onIncomingMessage,
+        onDone: _onDone,
+      );
+    } on StateError catch (e, stackTrace) {
+      _logger.error('Mediator client already connected.',
+          name: methodName, error: e, stackTrace: stackTrace);
+    } catch (e) {
+      rethrow;
+    }
 
     _logger.info('Mediator stream subscription initialized', name: methodName);
-    await ConnectionPool.instance.startConnections();
   }
 
   void pushMessage(PlainTextMessage message) {

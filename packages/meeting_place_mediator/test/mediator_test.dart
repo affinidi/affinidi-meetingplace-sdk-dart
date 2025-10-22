@@ -30,7 +30,17 @@ void main() {
   });
 
   test(
-    'Reuses cached mediator session when already initialized for did',
+    'handles multiple subscriptions to mediator gracefully returning a new instance',
+    () async {
+      final subscriptionA = await sdk.subscribeToMessages(didManagerA);
+      final subscriptionB = await sdk.subscribeToMessages(didManagerA);
+
+      expect(subscriptionA, isNot(equals(subscriptionB)));
+    },
+  );
+
+  test(
+    'Multiple subscriptions to mediator with the same did',
     () async {
       final clientA = await sdk.authenticateWithDid(didManagerA);
       final clientB = await sdk.authenticateWithDid(didManagerA);

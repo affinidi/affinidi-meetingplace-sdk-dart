@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
 import 'fixtures/v_card.dart';
-import 'utils/contrpl_plane_test_utils.dart';
+import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -62,7 +62,7 @@ void main() async {
 
   test('alice receives notification about acceptance for group', () async {
     var receivedEvent = false;
-    await aliceSDK.deleteDiscoveryEvents();
+    await aliceSDK.deleteControlPlaneEvents();
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
@@ -98,7 +98,7 @@ void main() async {
   test(
     '''alice updates group on edge device to have one admin (=alice) and a member(=bob)''',
     () async {
-      await aliceSDK.deleteDiscoveryEvents();
+      await aliceSDK.deleteControlPlaneEvents();
 
       final aliceVCard = VCardFixture.alicePrimaryVCard;
       final bobVCard = VCardFixture.bobPrimaryVCard;
@@ -169,7 +169,7 @@ void main() async {
       );
       expect(bobMember.vCard.values, equals(bobVCard.values));
 
-      aliceSDK.disposeDiscoveryEventsStream();
+      aliceSDK.disposeControlPlaneEventsStream();
     },
   );
 

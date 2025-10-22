@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
 import 'fixtures/v_card.dart';
-import 'utils/contrpl_plane_test_utils.dart';
+import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -116,8 +116,9 @@ void main() async {
   });
 
   test('group admin sends group message', () async {
+    final messageId = const Uuid().v4();
     final chatMessage = PlainTextMessage(
-      id: const Uuid().v4(),
+      id: messageId,
       type: messageType,
       from: aliceDid,
       to: [groupDid],
@@ -131,13 +132,15 @@ void main() async {
     final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
 
     bobStream.stream.listen((data) {
-      if (data.plainTextMessage.type == messageType) {
+      if (data.plainTextMessage.type == messageType &&
+          data.plainTextMessage.id == messageId) {
         bobReceivedMessageCompleter.complete(data.plainTextMessage);
       }
     });
 
     charlieStream.stream.listen((data) {
-      if (data.plainTextMessage.type == messageType) {
+      if (data.plainTextMessage.type == messageType &&
+          data.plainTextMessage.id == messageId) {
         charlieReceivedMessageCompleter.complete(data.plainTextMessage);
       }
     });

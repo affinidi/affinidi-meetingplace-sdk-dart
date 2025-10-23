@@ -55,7 +55,7 @@ void main() async {
         vCard: VCardFixture.alicePrimaryVCard,
       );
 
-      createOobFlowResult.stream.listen((data) {
+      createOobFlowResult.streamSubscription.listen((data) {
         aliceChannel = data.channel;
         aliceOnDoneCompleter.complete();
       });
@@ -65,7 +65,7 @@ void main() async {
         vCard: VCardFixture.bobPrimaryVCard,
       );
 
-      acceptOobFlowResult.stream.listen((data) {
+      acceptOobFlowResult.streamSubscription.listen((data) {
         bobChannel = data.channel;
         bobOnDoneCompleter.complete();
       });
@@ -177,7 +177,7 @@ void main() async {
       );
 
       final bobCompleter = Completer<Channel>();
-      acceptOobFlowResult.stream.listen((data) {
+      acceptOobFlowResult.streamSubscription.listen((data) {
         bobCompleter.complete(data.channel);
       });
 
@@ -221,7 +221,8 @@ void main() async {
       vCard: VCardFixture.alicePrimaryVCard,
     );
 
-    expect(resultA.stream, isNot(equals(resultB.stream)));
+    expect(
+        resultA.streamSubscription, isNot(equals(resultB.streamSubscription)));
   });
 
   test('uses separate stream for each acceptOobFlow call', () async {
@@ -239,7 +240,8 @@ void main() async {
       vCard: VCardFixture.bobPrimaryVCard,
     );
 
-    expect(resultA.stream, isNot(equals(resultB.stream)));
+    expect(
+        resultA.streamSubscription, isNot(equals(resultB.streamSubscription)));
   });
 
   test('uses given did as publish offer did for OOB flow', () async {
@@ -257,7 +259,7 @@ void main() async {
     );
 
     final aliceCompleter = Completer<Channel>();
-    createOobFlowResult.stream.listen((data) {
+    createOobFlowResult.streamSubscription.listen((data) {
       aliceCompleter.complete(data.channel);
     });
 
@@ -274,8 +276,8 @@ void main() async {
 
     final aliceCompleter = Completer<String>();
 
-    createOobFlowResult.stream.listen((data) => data);
-    createOobFlowResult.stream.timeout(
+    createOobFlowResult.streamSubscription.listen((data) => data);
+    createOobFlowResult.streamSubscription.timeout(
       const Duration(milliseconds: 200),
       () => aliceCompleter.complete('timeout'),
     );
@@ -293,8 +295,8 @@ void main() async {
       vCard: VCardFixture.bobPrimaryVCard,
     );
 
-    createOobFlowResult.stream.listen((data) => data);
-    createOobFlowResult.stream
+    createOobFlowResult.streamSubscription.listen((data) => data);
+    createOobFlowResult.streamSubscription
         .timeout(const Duration(seconds: 1), () => fail('timeout executed'));
 
     await Future.delayed(const Duration(seconds: 2));

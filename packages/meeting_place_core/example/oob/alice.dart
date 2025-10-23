@@ -22,7 +22,7 @@ void main() async {
 
   // Alice listens on acceptance
   prettyPrintYellow('Listening on OOB stream...');
-  oob.stream.listen((data) {
+  oob.streamSubscription.listen((data) {
     prettyPrintYellow('Received event type: ${data.eventType.name}');
     prettyJsonPrintYellow('Received message:', data.message.toJson());
     prettyJsonPrintYellow('Received channel:', data.channel.toJson());
@@ -33,5 +33,5 @@ void main() async {
 
   // Close stream
   prettyPrint('Disposing OOB stream...');
-  await oob.stream.dispose();
+  await oob.streamSubscription.dispose();
 }

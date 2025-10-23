@@ -19,7 +19,7 @@ void main() async {
   );
 
   // Alice listens on acceptance
-  oob.stream.listen((data) {
+  oob.streamSubscription.listen((data) {
     prettyPrint('Alice received: ${data.eventType.name}');
     aliceWaitFor.complete();
   });
@@ -29,7 +29,7 @@ void main() async {
       vCard: VCard(values: {'firstName': 'Bob'}));
 
   // Bob listens for approval
-  acceptance.stream.listen((data) {
+  acceptance.streamSubscription.listen((data) {
     prettyPrint('Bob received: ${data.eventType.name}');
     bobWaitFor.complete();
   });
@@ -37,6 +37,6 @@ void main() async {
   await Future.wait([aliceWaitFor.future, bobWaitFor.future]);
 
   // Close stream
-  await oob.stream.dispose();
-  await acceptance.stream.dispose();
+  await oob.streamSubscription.dispose();
+  await acceptance.streamSubscription.dispose();
 }

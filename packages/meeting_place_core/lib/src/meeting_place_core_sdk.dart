@@ -526,7 +526,7 @@ class MeetingPlaceCoreSDK {
     });
 
     return CreateOobFlowResult(
-      stream: oobStream,
+      streamSubscription: oobStream,
       oobUrl: Uri.parse(result.oobUrl),
     );
   }
@@ -672,7 +672,7 @@ class MeetingPlaceCoreSDK {
     );
 
     await _repositoryConfig.channelRepository.createChannel(channel);
-    return AcceptOobFlowResult(stream: oobStream, channel: channel);
+    return AcceptOobFlowResult(streamSubscription: oobStream, channel: channel);
   }
 
   /// Validates whether a given offer phrase is already in use within the system.

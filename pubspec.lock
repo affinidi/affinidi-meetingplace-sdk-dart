@@ -301,10 +301,10 @@ packages:
     dependency: transitive
     description:
       name: didcomm
-      sha256: e9806191399aa7ccaf48c3af94a4917d45e88637686b4a9e1a933a7940310f1a
+      sha256: "2792faebbb6274370d3518f4eed7aa000c1fdb20dcc2fe905775e38a6ef71664"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.2"
   dio:
     dependency: transitive
     description:
@@ -897,6 +897,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  synchronized:
+    dependency: transitive
+    description:
+      name: synchronized
+      sha256: c254ade258ec8282947a0acbbc90b9575b4f19673533ee46f2f6e9b3aeefd7c0
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.0"
   term_glyph:
     dependency: transitive
     description:

@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   collection: ^1.19.1
-  didcomm: ^2.0.0
+  didcomm: ^2.0.2
   json_annotation: ^4.9.0
   meeting_place_core: ^0.0.1-dev0
   meta: ^1.17.0

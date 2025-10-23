@@ -124,7 +124,7 @@ abstract class BaseChatSDK {
   /// Waits until the mediator channel subscription is ready. Stream of live
   /// chat events ([StreamData]) for this session.
   ///
-  /// **Returns:**mediatorStreamFuture
+  /// **Returns:**
   /// - A [ChatStream] or `null` if the chat session has not yet started
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {

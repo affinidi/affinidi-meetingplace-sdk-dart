@@ -30,7 +30,7 @@ import 'service/connection_offer/connection_offer_service.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_message.dart';
 import 'service/mediator/mediator_service.dart';
-import 'service/mediator/mediator_stream_subscription.dart';
+import 'service/core_sdk_stream_subscription.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_stream.dart';
 import 'service/outreach/outreach_service.dart';
@@ -45,7 +45,7 @@ import 'sdk/sdk.dart' as sdk;
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 
-/// # Core SDK
+/// # Meeting Place Core SDK
 /// The Affinidi Meeting Place - Core SDK provides a high-level interface for coordinating connection setup using the discovery control plane API and mediator. This SDK acts as an orchestrator, applying business logic on top of underlying APIs to simplify integration.
 /// ## Discovery Event Stream
 /// The DiscoveryEventStream exposes a stream that can be listened to, pushing each event after applying business logic within the SDK. The processEventStream method triggers this process, using a debounce mechanism to call the API at most once every second. This ensures efficient processing and keeps the main isolate available for background tasks.
@@ -1236,8 +1236,8 @@ class MeetingPlaceCoreSDK {
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   ///   If not provided, the SDK instance’s default mediator DID will be used.
   ///
-  /// **Returns: [MediatorStreamSubscription]**
-  Future<MediatorStreamSubscription> subscribeToMediator(
+  /// **Returns: [CoreSDKStreamSubscription]**
+  Future<CoreSDKStreamSubscription> subscribeToMediator(
     String did, {
     String? mediatorDid,
   }) async {

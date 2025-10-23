@@ -5,7 +5,7 @@ import 'oob_stream_data.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();
 
-class OobStream implements MediatorStreamSubscription<OobStreamData> {
+class OobStream implements CoreSDKStreamSubscription<OobStreamData> {
   OobStream({
     OnDisposeCallback? onDispose,
     required MeetingPlaceCoreSDKLogger logger,

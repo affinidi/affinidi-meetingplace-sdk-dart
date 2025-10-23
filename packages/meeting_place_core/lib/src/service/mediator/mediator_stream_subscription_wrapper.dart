@@ -5,12 +5,12 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
 import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../repository/key_repository.dart';
 import 'mediator_message.dart';
-import 'mediator_stream_subscription.dart';
+import '../core_sdk_stream_subscription.dart';
 
 /// Wrapper around MediatorStreamSubscription that provides transformed
 /// mediator messages like decrypting group messages.
 class MediatorStreamSubscriptionWrapper
-    implements MediatorStreamSubscription<MediatorMessage> {
+    implements CoreSDKStreamSubscription<MediatorMessage> {
   MediatorStreamSubscriptionWrapper({
     required mediator_sdk.MediatorStreamSubscription baseSubscription,
     required KeyRepository keyRepository,

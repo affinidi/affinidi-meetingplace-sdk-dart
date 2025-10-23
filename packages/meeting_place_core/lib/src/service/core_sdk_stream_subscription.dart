@@ -3,7 +3,7 @@ import 'dart:async';
 /// Interface for mediator stream subscriptions.
 ///
 /// Provides a stream of [T]s and lifecycle management.
-abstract class MediatorStreamSubscription<T> {
+abstract class CoreSDKStreamSubscription<T> {
   /// Stream of transformed mediator messages.
   ///
   /// Messages are automatically decrypted and transformed based on their type.

@@ -73,7 +73,7 @@ class ChannelActivityEventHandler {
 
   bool hasBeenProcessed(
     ChannelActivity channelActivity,
-    List<DiscoveryEvent<ChannelActivity>> processedEvents,
+    List<DiscoveryEvent<dynamic>> processedEvents,
   ) {
     return processedEvents.firstWhereOrNull(
           (event) => event.data.did == channelActivity.did,

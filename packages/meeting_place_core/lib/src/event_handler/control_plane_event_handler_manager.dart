@@ -159,7 +159,7 @@ class ControlPlaneEventManager {
         );
       case ControlPlaneEventType.ChannelActivity:
         final processedChannelActivities = processedEvents
-            .whereType<DiscoveryEvent<ChannelActivity>>()
+            .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
             .toList();
 
         if (_channelActivityEventHandler.hasBeenProcessed(

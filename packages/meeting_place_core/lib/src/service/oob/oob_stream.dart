@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import '../../../meeting_place_core.dart';
-import 'oob_stream_data.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();
 

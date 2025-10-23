@@ -1,10 +1,10 @@
 enum MeetingPlaceNotificationTypeSuffix {
-  invitationAccept('/mpx-discovery/invitation-accept'),
-  invitationGroupAccept('/mpx-discovery/invitation-accept-group'),
-  invitationOutreach('/mpx-discovery/invitation-outreach'),
-  offerFinalised('/mpx-discovery/offer-finalised'),
-  channelActivity('/mpx-discovery/channel-activity'),
-  groupMembershipFinalised('/mpx-discovery/group-membership-finalised');
+  invitationAccept('/mpx/control-plane/invitation-accept'),
+  invitationGroupAccept('/mpx/control-plane/invitation-accept-group'),
+  invitationOutreach('/mpx/control-plane/invitation-outreach'),
+  offerFinalised('/mpx/control-plane/offer-finalised'),
+  channelActivity('/mpx/control-plane/channel-activity'),
+  groupMembershipFinalised('/mpx/control-plane/group-membership-finalised');
 
   const MeetingPlaceNotificationTypeSuffix(this.value);
 

@@ -3,21 +3,20 @@ import 'dart:async';
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../../meeting_place_mediator.dart';
 import '../../constants/sdk_constants.dart';
-import '../../loggers/default_mediator_sdk_logger.dart';
-import '../../loggers/mediator_sdk_logger.dart';
 
 class MediatorStreamSubscription {
   MediatorStreamSubscription({
     required MediatorClient client,
     required DidManager didManager,
     required List<MessageWrappingType> messageWrappingTypes,
-    MediatorSdkLogger? logger,
+    MeetingPlaceMediatorSDKLogger? logger,
   })  : _client = client,
         _didManager = didManager,
         _messageWrappingTypes = messageWrappingTypes,
         _logger = logger ??
-            DefaultMediatorSdkLogger(
+            DefaultMeetingPlaceMediatorSDKLogger(
               className: _className,
               sdkName: sdkName,
             );
@@ -28,7 +27,7 @@ class MediatorStreamSubscription {
   final DidManager _didManager;
   final List<MessageWrappingType> _messageWrappingTypes;
   final List<PlainTextMessage> _eventBuffer = <PlainTextMessage>[];
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
 
   StreamController<PlainTextMessage>? _streamController;
 

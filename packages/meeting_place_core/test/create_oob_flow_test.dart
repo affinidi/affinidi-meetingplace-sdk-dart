@@ -273,10 +273,12 @@ void main() async {
     );
 
     final aliceCompleter = Completer<String>();
-    createOobFlowResult.stream.listen((data) => data).timeout(
-          const Duration(milliseconds: 200),
-          () => aliceCompleter.complete('timeout'),
-        );
+
+    createOobFlowResult.stream.listen((data) => data);
+    createOobFlowResult.stream.timeout(
+      const Duration(milliseconds: 200),
+      () => aliceCompleter.complete('timeout'),
+    );
 
     expect(await aliceCompleter.future, equals('timeout'));
   });
@@ -291,8 +293,8 @@ void main() async {
       vCard: VCardFixture.bobPrimaryVCard,
     );
 
+    createOobFlowResult.stream.listen((data) => data);
     createOobFlowResult.stream
-        .listen((data) => data)
         .timeout(const Duration(seconds: 1), () => fail('timeout executed'));
 
     await Future.delayed(const Duration(seconds: 2));

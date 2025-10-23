@@ -35,7 +35,7 @@ void main() async {
     final recipientDidDoc = await recipientDid.getDidDocument();
 
     final result = await sdk.registerForDIDCommNotifications(
-      mediatorDid: 'did:web:euw1.mediator.affinidi.io:.well-known',
+      mediatorDid: 'did:web:other-mediator',
       recipientDid: recipientDidDoc.id,
     );
 

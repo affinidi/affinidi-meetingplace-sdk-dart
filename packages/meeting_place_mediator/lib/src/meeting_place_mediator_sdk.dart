@@ -18,7 +18,6 @@ import 'core/mediator/mediator_resolver.dart';
 import 'core/mediator/mediator_service.dart';
 import 'core/mediator/mediator_session_client.dart';
 import 'protocol/message/oob_invitation_message.dart';
-import 'meeting_place_mediator_sdk_options.dart';
 
 class MeetingPlaceMediatorSDK {
   MeetingPlaceMediatorSDK({

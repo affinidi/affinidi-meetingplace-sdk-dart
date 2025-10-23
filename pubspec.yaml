@@ -4,6 +4,7 @@ publish_to: "none"
 
 workspace:
   - packages/meeting_place_chat
+  - packages/meeting_place_chat/example
   - packages/meeting_place_control_plane
   - packages/meeting_place_core
   - packages/meeting_place_core/example

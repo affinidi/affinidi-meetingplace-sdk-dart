@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
-import 'package:meeting_place_mediator/src/meeting_place_mediator_sdk_options.dart';
 import 'package:test/test.dart';
 import 'package:ssi/ssi.dart';
 

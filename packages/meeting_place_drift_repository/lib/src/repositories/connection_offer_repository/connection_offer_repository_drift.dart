@@ -2,8 +2,8 @@ import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart' as model;
 import 'package:uuid/uuid.dart';
 
-import '../../exceptions/meeting_place_core_repository_exception.dart';
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
+import '../../exceptions/meeting_place_core_repository_exception.dart';
 import '../../extensions/vcard_extensions.dart';
 import 'connection_offer_database.dart' as db;
 

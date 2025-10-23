@@ -657,11 +657,13 @@ void main() async {
       ),
     );
 
-    await bobChatSDK.startChatSession();
     var receivedMessages = 0;
+    await bobChatSDK.startChatSession();
 
     // Consume chat presence messages
+    final waitForSubscription = Completer<void>();
     await bobChatSDK.chatStreamSubscription.then((stream) {
+      waitForSubscription.complete();
       stream!.listen((data) {
         if (MessageUtils.isType(
           data.plainTextMessage!,
@@ -674,6 +676,8 @@ void main() async {
 
     // Start SDK to send presence messages in interval
     await chatSDKWithReducedInterval.startChatSession();
+
+    await waitForSubscription.future;
     await Future<void>.delayed(const Duration(seconds: 3));
 
     expect(receivedMessages, greaterThan(1));

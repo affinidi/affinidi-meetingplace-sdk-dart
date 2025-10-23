@@ -4,8 +4,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../constants/sdk_constants.dart';
 import '../entity/chat_item.dart';
-import '../loggers/chat_sdk_logger.dart';
-import '../loggers/default_chat_sdk_logger.dart';
+import '../loggers/meeting_place_chat_sdk_logger.dart';
+import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 
 class StreamData {
   StreamData({this.plainTextMessage, this.chatItem});
@@ -15,13 +15,14 @@ class StreamData {
 }
 
 class ChatStream {
-  ChatStream({ChatSDKLogger? logger})
+  ChatStream({MeetingPlaceChatSDKLogger? logger})
       : _logger = logger ??
-            DefaultChatSdkLogger(className: _className, sdkName: sdkName);
+            DefaultMeetingPlaceChatSDKLogger(
+                className: _className, sdkName: sdkName);
 
   static const String _className = 'ChatStream';
   final List<StreamData> _eventBuffer = <StreamData>[];
-  final ChatSDKLogger _logger;
+  final MeetingPlaceChatSDKLogger _logger;
 
   StreamController<StreamData>? _streamController;
   StreamController<StreamData> get _controller {

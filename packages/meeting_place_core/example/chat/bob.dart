@@ -79,7 +79,7 @@ void main() async {
   prettyJsonPrintYellow('Channel:', offerFinalisedEvent.channel);
 
   prettyPrintYellow('Initializing chat...');
-  final bobChatSDK = await ChatSDK.initialiseFromChannel(
+  final bobChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
     offerFinalisedEvent.channel,
     coreSDK: bobSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),

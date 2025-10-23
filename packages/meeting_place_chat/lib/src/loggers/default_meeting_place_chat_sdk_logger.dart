@@ -1,19 +1,19 @@
 import 'dart:developer' as developer;
 
 import '../constants/sdk_constants.dart' as constants;
-import 'chat_sdk_logger.dart';
+import 'meeting_place_chat_sdk_logger.dart';
 
 /// Default console logger implementation using `dart:developer`.
 ///
 /// This logger outputs logs to the console with a consistent format.
-class DefaultChatSdkLogger implements ChatSDKLogger {
+class DefaultMeetingPlaceChatSDKLogger implements MeetingPlaceChatSDKLogger {
   /// Creates a logger with an optional [className] identifying the logging
   ///   source.
   ///
   /// [className] defaults to 'DefaultChatSdkLogger'.
   /// [sdkName] is used as the log name in `dart:developer` and defaults to
   ///   'CHAT_SDK'.
-  DefaultChatSdkLogger({
+  DefaultMeetingPlaceChatSDKLogger({
     this.className = 'DefaultChatSdkLogger',
     this.sdkName = constants.sdkName,
   });

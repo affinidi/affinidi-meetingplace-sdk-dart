@@ -1,18 +1,19 @@
 import '../constants/sdk_constants.dart' as constants;
-import 'chat_sdk_logger.dart';
-import 'default_chat_sdk_logger.dart';
+import 'meeting_place_chat_sdk_logger.dart';
+import 'default_meeting_place_chat_sdk_logger.dart';
 
 /// Enhanced logger that automatically formats messages with SDK/class/method context
-class LoggerFormatter implements ChatSDKLogger {
+class LoggerFormatter implements MeetingPlaceChatSDKLogger {
   LoggerFormatter({
     required this.className,
-    ChatSDKLogger? baseLogger,
+    MeetingPlaceChatSDKLogger? baseLogger,
     this.sdkName = constants.sdkName,
-  }) : _baseLogger = baseLogger ?? DefaultChatSdkLogger(className: className);
+  }) : _baseLogger = baseLogger ??
+            DefaultMeetingPlaceChatSDKLogger(className: className);
 
   final String className;
   final String sdkName;
-  final ChatSDKLogger _baseLogger;
+  final MeetingPlaceChatSDKLogger _baseLogger;
 
   String _formatName(String? methodName) {
     final method = methodName?.isNotEmpty == true ? '[$methodName]' : '';

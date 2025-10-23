@@ -3,7 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import '../../meeting_place_chat.dart';
 import 'chat.dart';
 
-abstract interface class SDK {
+abstract interface class ChatSDK {
   Future<List<ChatItem>> get messages;
   Future<ChatStream?> get chatStreamSubscription;
 

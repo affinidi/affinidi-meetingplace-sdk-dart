@@ -2,9 +2,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
 import 'sdk/chat.dart';
-import 'sdk/sdk.dart';
+import 'sdk/chat_sdk.dart';
 
-///  [ChatSDK] is built on top of the core Meeting Place SDK.
+///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
 ///
 /// It utilises:
 /// - **Decentralised Identifiers (DID)** for a globally unique
@@ -15,11 +15,11 @@ import 'sdk/sdk.dart';
 ///  This class wraps either [GroupChatSDK] or [IndividualChatSDK]
 ///  depending on the channel type, and delegates all SDK calls
 ///  to the underlying implementation.
-class ChatSDK implements SDK {
-  /// Creates a new [ChatSDK] instance with the given [SDK] implementation.
-  ChatSDK({required SDK sdk}) : _sdk = sdk;
+class MeetingPlaceChatSDK implements ChatSDK {
+  /// Creates a new [MeetingPlaceChatSDK] instance with the given [ChatSDK] implementation.
+  MeetingPlaceChatSDK({required ChatSDK sdk}) : _sdk = sdk;
 
-  /// A constructor that initializes a [ChatSDK] from a [Channel].
+  /// A constructor that initializes a [MeetingPlaceChatSDK] from a [Channel].
   ///
   /// **Parameters:**
   /// - [channel]: The [Channel] entity representing the chat.
@@ -31,22 +31,22 @@ class ChatSDK implements SDK {
   ///   If not provided, uses DefaultChatSdkLogger.
   ///
   /// **Returns:**
-  /// - A [ChatSDK] that wraps either a [GroupChatSDK] (if `channel.type` is
+  /// - A [MeetingPlaceChatSDK] that wraps either a [GroupChatSDK] (if `channel.type` is
   /// `group`)
   ///   or an [IndividualChatSDK].
-  static Future<ChatSDK> initialiseFromChannel(
+  static Future<MeetingPlaceChatSDK> initialiseFromChannel(
     Channel channel, {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
     required ChatSDKOptions options,
     VCard? vCard,
-    ChatSDKLogger? logger,
+    MeetingPlaceChatSDKLogger? logger,
   }) async {
     if (channel.type == ChannelType.group) {
       final group = await coreSDK.getGroupByOfferLink(channel.offerLink) ??
           (throw Exception('Group not found'));
 
-      return ChatSDK(
+      return MeetingPlaceChatSDK(
         sdk: GroupChatSDK(
           coreSDK: coreSDK,
           group: group,
@@ -61,7 +61,7 @@ class ChatSDK implements SDK {
         ),
       );
     } else {
-      return ChatSDK(
+      return MeetingPlaceChatSDK(
         sdk: IndividualChatSDK(
           coreSDK: coreSDK,
           did: channel.permanentChannelDid!,
@@ -77,7 +77,7 @@ class ChatSDK implements SDK {
     }
   }
 
-  final SDK _sdk;
+  final ChatSDK _sdk;
 
   /// Retrieves the list of existing messages in the channel.
   ///

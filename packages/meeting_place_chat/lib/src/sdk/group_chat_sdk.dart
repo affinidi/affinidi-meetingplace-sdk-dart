@@ -10,13 +10,13 @@ import '../core/chat_history_service.dart';
 import '../entity/message.dart' as entity_chat_message;
 import '../group/chat_group_details_update_handler.dart';
 import '../group/chat_group_member_deregistered_message_handler.dart';
-import '../loggers/default_chat_sdk_logger.dart';
+import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
-import 'sdk.dart';
+import 'chat_sdk.dart';
 
-/// [GroupChatSDK] is a specialized implementation of [ChatSDK] for handling
+/// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for handling
 /// **group chat functionality** in the Meeting Place SDK.
 ///
 /// Built on top of [BaseChatSDK], it leverages:
@@ -30,7 +30,7 @@ import 'sdk.dart';
 /// - Handling concierge messages for join requests or profile updates.
 /// - Subscribing to group discovery events.
 /// - Sending group messages, activities, and profile updates.
-class GroupChatSDK extends BaseChatSDK implements SDK {
+class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   GroupChatSDK({
     required super.coreSDK,
     required super.did,
@@ -41,15 +41,17 @@ class GroupChatSDK extends BaseChatSDK implements SDK {
     required super.options,
     required this.group,
     super.vCard,
-    ChatSDKLogger? logger,
+    MeetingPlaceChatSDKLogger? logger,
   })  : _chatHistoryService = ChatHistoryService(
           chatRepository: chatRepository,
           logger: logger ??
-              DefaultChatSdkLogger(className: _className, sdkName: sdkName),
+              DefaultMeetingPlaceChatSDKLogger(
+                  className: _className, sdkName: sdkName),
         ),
         super(
           logger: logger ??
-              DefaultChatSdkLogger(className: _className, sdkName: sdkName),
+              DefaultMeetingPlaceChatSDKLogger(
+                  className: _className, sdkName: sdkName),
         );
 
   static const String _className = 'GroupChatSDK';

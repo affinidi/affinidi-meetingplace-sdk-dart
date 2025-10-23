@@ -2,12 +2,12 @@ import 'dart:async';
 
 import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
-import '../loggers/default_chat_sdk_logger.dart';
+import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
-import 'sdk.dart';
+import 'chat_sdk.dart';
 
-/// [IndividualChatSDK] is a specialized implementation of [SDK] for handling
+/// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for handling
 /// **one-to-one (individual) chat sessions** in the Meeting Place SDK.
 ///
 /// Built on top of [BaseChatSDK], it leverages:
@@ -20,7 +20,7 @@ import 'sdk.dart';
 /// - Starting/resuming an individual chat.
 /// - Sending direct messages, activities, and presence signals.
 /// - Maintaining periodic presence updates while the chat is active.
-class IndividualChatSDK extends BaseChatSDK implements SDK {
+class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   IndividualChatSDK({
     required super.coreSDK,
     required super.did,
@@ -30,10 +30,11 @@ class IndividualChatSDK extends BaseChatSDK implements SDK {
     required super.channelEntity,
     required super.options,
     super.vCard,
-    ChatSDKLogger? logger,
+    MeetingPlaceChatSDKLogger? logger,
   }) : super(
           logger: logger ??
-              DefaultChatSdkLogger(className: _className, sdkName: sdkName),
+              DefaultMeetingPlaceChatSDKLogger(
+                  className: _className, sdkName: sdkName),
         );
 
   static const String _className = 'IndividualChatSDK';

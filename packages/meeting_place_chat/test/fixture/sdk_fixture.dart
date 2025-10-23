@@ -8,7 +8,7 @@ import 'storage/in_memory_storage.dart';
 import 'storage/storage_interface.dart';
 
 class SDKFixture {
-  static Future<ChatSDK> initIndividualChatSDK({
+  static Future<MeetingPlaceChatSDK> initIndividualChatSDK({
     required MeetingPlaceCoreSDK coreSDK,
     required String did,
     required String otherPartyDid,
@@ -34,7 +34,7 @@ class SDKFixture {
 
     await channelRepository.createChannel(channel);
 
-    return ChatSDK(
+    return MeetingPlaceChatSDK(
       sdk: IndividualChatSDK(
         coreSDK: coreSDK,
         did: did,
@@ -50,7 +50,7 @@ class SDKFixture {
     );
   }
 
-  static Future<ChatSDK> initGroupChatSDK({
+  static Future<MeetingPlaceChatSDK> initGroupChatSDK({
     required MeetingPlaceCoreSDK coreSDK,
     required String did,
     required String otherPartyDid,
@@ -73,7 +73,7 @@ class SDKFixture {
 
     await channelRepository.createChannel(channel);
 
-    return ChatSDK(
+    return MeetingPlaceChatSDK(
       sdk: GroupChatSDK(
         coreSDK: coreSDK,
         group: group,

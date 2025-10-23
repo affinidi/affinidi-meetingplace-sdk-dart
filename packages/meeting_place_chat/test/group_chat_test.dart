@@ -16,9 +16,9 @@ void main() async {
   late final MeetingPlaceCoreSDK bobSDK;
   late final MeetingPlaceCoreSDK charlieSDK;
 
-  late final ChatSDK aliceChatSDK;
-  late final ChatSDK bobChatSDK;
-  late final ChatSDK charlieChatSDK;
+  late final MeetingPlaceChatSDK aliceChatSDK;
+  late final MeetingPlaceChatSDK bobChatSDK;
+  late final MeetingPlaceChatSDK charlieChatSDK;
 
   late final ChannelRepository aliceChannelRepository;
   late final ChannelRepository bobChannelRepository;

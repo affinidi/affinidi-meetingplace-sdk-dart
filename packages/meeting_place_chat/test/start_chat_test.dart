@@ -22,8 +22,8 @@ void main() async {
   late DidDocument bobDidDocument;
   late DidDocument charlieDidDocument;
 
-  late ChatSDK aliceChatSDK;
-  late ChatSDK bobChatSDK;
+  late MeetingPlaceChatSDK aliceChatSDK;
+  late MeetingPlaceChatSDK bobChatSDK;
 
   late ChannelRepository aliceChannelRepository;
   late ChannelRepository bobChannelRepository;

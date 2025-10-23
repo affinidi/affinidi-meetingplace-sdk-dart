@@ -36,7 +36,7 @@ abstract class BaseChatSDK {
     required this.chatRepository,
     required this.options,
     this.vCard,
-    ChatSDKLogger? logger,
+    MeetingPlaceChatSDKLogger? logger,
   })  : _logger = LoggerFormatter(className: _className, baseLogger: logger),
         chatStream = ChatStream();
 
@@ -50,9 +50,9 @@ abstract class BaseChatSDK {
   final ChatRepository chatRepository;
   final ChatSDKOptions options;
   final VCard? vCard;
-  final ChatSDKLogger _logger;
+  final MeetingPlaceChatSDKLogger _logger;
 
-  ChatSDKLogger get logger => _logger;
+  MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
   MediatorStream? mediatorStream;

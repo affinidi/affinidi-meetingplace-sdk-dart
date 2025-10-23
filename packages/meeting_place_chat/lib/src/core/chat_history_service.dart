@@ -3,20 +3,21 @@ import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
-import '../loggers/default_chat_sdk_logger.dart';
+import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 
 class ChatHistoryService {
   ChatHistoryService({
     required ChatRepository chatRepository,
-    ChatSDKLogger? logger,
+    MeetingPlaceChatSDKLogger? logger,
   })  : _chatRepository = chatRepository,
         _logger = logger ??
-            DefaultChatSdkLogger(className: _className, sdkName: sdkName);
+            DefaultMeetingPlaceChatSDKLogger(
+                className: _className, sdkName: sdkName);
 
   static const String _className = 'ChatHistoryService';
 
   final ChatRepository _chatRepository;
-  final ChatSDKLogger _logger;
+  final MeetingPlaceChatSDKLogger _logger;
 
   Future<ChatItem> createGroupMemberJoinedGroupEventMessage({
     required String chatId,

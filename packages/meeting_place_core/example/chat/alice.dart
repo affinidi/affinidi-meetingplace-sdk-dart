@@ -100,7 +100,7 @@ void main() async {
   await publishOfferMediatorChannel.dispose();
 
   prettyPrintYellow('Initializing chat...');
-  final aliceChatSDK = await ChatSDK.initialiseFromChannel(
+  final aliceChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
     channel,
     coreSDK: aliceSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),

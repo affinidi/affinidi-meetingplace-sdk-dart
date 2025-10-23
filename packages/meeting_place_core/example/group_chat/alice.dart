@@ -86,7 +86,7 @@ void main() async {
   final groupChannel = await aliceSDK.getChannelByDid(
     publishOfferResult.connectionOffer.groupOwnerDid!,
   );
-  final aliceChatSDK = await ChatSDK.initialiseFromChannel(
+  final aliceChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
     groupChannel!,
     coreSDK: aliceSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),

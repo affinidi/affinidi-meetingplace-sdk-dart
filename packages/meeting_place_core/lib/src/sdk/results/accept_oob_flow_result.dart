@@ -1,4 +1,5 @@
-import '../../../meeting_place_core.dart';
+import '../../entity/channel.dart';
+import '../../service/oob/oob_stream.dart';
 
 class AcceptOobFlowResult {
   AcceptOobFlowResult({

@@ -440,15 +440,14 @@ class MediatorService {
       mediatorDid: mediatorDid,
     );
 
-    final useBatchSize = fetchMessagesBatchSize ?? 25;
-    var useStartFrom = startFrom;
+    final useBatchSize = fetchMessagesBatchSize ?? 100;
 
     final messagesList = messages ?? [];
     final mediatorMessages = await _fetchMediatorMessages(
       client: client,
       messages: [],
       deleteOnRetrieve: deleteOnRetrieve,
-      startFrom: useStartFrom,
+      startFrom: startFrom,
       fetchMessagesBatchSize: useBatchSize,
       maxResults: maxResults,
     );
@@ -516,8 +515,35 @@ class MediatorService {
       deleteOnRetrieve: deleteOnRetrieve,
       fetchMessagesBatchSize: fetchMessagesBatchSize,
       maxResults: maxResults,
-      startFrom: startFrom,
+      startFrom: _findLatestTimestamp(decryptedMessages, startFrom),
     );
+  }
+
+  DateTime? _findLatestTimestamp(
+    List<FetchMessageResult> messages,
+    DateTime? startFrom,
+  ) {
+    DateTime? nextStartFrom = startFrom;
+
+    for (final result in messages) {
+      final messageCreatedTime = result.message?.createdTime;
+
+      if (messageCreatedTime != null) {
+        final utcTime = messageCreatedTime.toUtc();
+
+        if (nextStartFrom == null) {
+          nextStartFrom = utcTime;
+        } else if (utcTime.isAfter(nextStartFrom)) {
+          nextStartFrom = utcTime;
+        }
+      }
+    }
+
+    if (nextStartFrom != null) {
+      nextStartFrom = nextStartFrom.add(const Duration(microseconds: 1));
+    }
+
+    return nextStartFrom;
   }
 
   Future<List<Map<String, dynamic>>> _fetchMediatorMessages({

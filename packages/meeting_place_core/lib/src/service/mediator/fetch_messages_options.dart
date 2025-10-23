@@ -1,7 +1,7 @@
 /// Options for fetching messages from the mediator.
 class FetchMessagesOptions {
   const FetchMessagesOptions({
-    this.batchSize = 25,
+    this.batchSize = 100,
     this.deleteOnRetrieve = false,
     this.deleteFailedMessages = false,
     this.startFrom,

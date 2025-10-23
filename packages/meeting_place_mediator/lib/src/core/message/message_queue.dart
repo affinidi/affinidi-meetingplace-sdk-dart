@@ -16,7 +16,7 @@ class MessageQueue {
               sdkName: MeetingPlaceMediatorSDK.className,
             );
 
-  static final deleteMessageBatchSize = 25;
+  static final deleteMessageBatchSize = 100;
   static const String _className = 'MessageQueue';
 
   final Queue<String> _queue = Queue<String>();

@@ -35,7 +35,7 @@ class ChatActivityEventHandler extends BaseEventHandler {
         mediatorDid: channel.mediatorDid,
         options: FetchMessagesOptions(
             startFrom: messageSyncMarker,
-            batchSize: 25,
+            batchSize: 100,
             deleteOnRetrieve: false,
             // TODO: fix interdependency - make configurable via SDK options
             filterByMessageTypes: ['https://affinidi.io/mpx/chat-sdk/message']),

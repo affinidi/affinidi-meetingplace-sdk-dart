@@ -154,7 +154,7 @@ class MediatorStreamSubscription {
       onDone: _onDone,
     );
 
-    await ConnectionPool.instance.startConnections();
+    await _client.connectionPool.startConnections();
     _logger.info('Re-subscribed to incoming messages', name: methodName);
   }
 }

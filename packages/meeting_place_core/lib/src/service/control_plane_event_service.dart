@@ -26,7 +26,7 @@ class ControlPlaneEventService {
   bool _queued = false;
 
   Future<void> processEvents({
-    required int debounceDiscoveryEventsInMilliseconds,
+    required Duration debounceEvents,
     Function? onDone,
   }) async {
     final methodName = 'processEvents';
@@ -39,9 +39,7 @@ class ControlPlaneEventService {
       try {
         _queued = true;
         _logger.info('Debounce...');
-        await Future.delayed(
-          Duration(milliseconds: debounceDiscoveryEventsInMilliseconds),
-        );
+        await Future.delayed(debounceEvents);
         _logger.info('Start processing discovery events..');
         await _process(processId: processId, onDone: onDone);
         _logger.info('Processing discovery events done..');

@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
 import 'fixtures/v_card.dart';
-import 'utils/discovery_test_utils.dart';
+import 'utils/contrpl_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -57,7 +57,7 @@ void main() async {
       senderInfo: 'Charlie',
     );
 
-    final aliceSDKCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       eventType: ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 2,
@@ -91,7 +91,7 @@ void main() async {
     );
 
     // Run event handlers in background for Bob and Charlie -> ready to chat
-    final bobCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
       eventType: ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
@@ -100,7 +100,7 @@ void main() async {
     await bobSDK.processControlPlaneEvents();
     await bobCompleter.future;
 
-    final charlieCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       charlieSDK,
       eventType: ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,

@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
 import 'fixtures/v_card.dart';
-import 'utils/discovery_test_utils.dart';
+import 'utils/contrpl_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -120,7 +120,7 @@ void main() async {
         senderInfo: 'Bob',
       );
 
-      final aliceCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+      final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         aliceSDK,
         eventType: ControlPlaneEventType.InvitationGroupAccept,
         expectedNumberOfEvents: 1,
@@ -242,7 +242,7 @@ void main() async {
           throwsA(isA<MeetingPlaceCoreSDKException>()));
       // --- [OK] ACLs not set
 
-      final aliceCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+      final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         aliceSDK,
         eventType: ControlPlaneEventType.InvitationGroupAccept,
         expectedNumberOfEvents: 2,
@@ -261,7 +261,7 @@ void main() async {
         channel: charlieChannel!,
       );
 
-      final charlieCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+      final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         charlieSDK,
         eventType: ControlPlaneEventType.GroupMembershipFinalised,
         expectedNumberOfEvents: 1,
@@ -374,7 +374,7 @@ void main() async {
       senderInfo: 'Bob',
     );
 
-    final aliceCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       eventType: ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,
@@ -420,7 +420,7 @@ void main() async {
     expect(actual.plainTextMessage.body?['groupDid'], group!.did);
     expect(actual.plainTextMessage.body?['groupPublicKey'], group.publicKey);
 
-    final bobCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
       eventType: ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
@@ -466,7 +466,7 @@ void main() async {
       senderInfo: 'Bob',
     );
 
-    final aliceCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       eventType: ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,
@@ -524,7 +524,7 @@ void main() async {
     final acceptConnectionOffer =
         acceptResult.connectionOffer as GroupConnectionOffer;
 
-    final aliceCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       eventType: ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,
@@ -542,7 +542,7 @@ void main() async {
       channel: channel!,
     );
 
-    final bobCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
       eventType: ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
@@ -603,7 +603,7 @@ void main() async {
       senderInfo: 'Bob',
     );
 
-    final aliceCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       eventType: ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,

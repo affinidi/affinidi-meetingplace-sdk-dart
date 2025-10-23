@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 import 'fixture/sdk_fixture.dart';
 import 'fixture/v_card.dart';
-import 'utils/discovery_test_utils.dart';
+import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -105,7 +105,7 @@ void main() async {
     charlieMemberDid =
         (charlieAcceptance.connectionOffer as GroupConnectionOffer).memberDid!;
 
-    final aliceSDKCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       eventType: ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 2,
@@ -130,7 +130,7 @@ void main() async {
       channel: charlieChannel!,
     );
 
-    final bobCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
       eventType: ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
@@ -139,7 +139,7 @@ void main() async {
     await bobSDK.processControlPlaneEvents();
     await bobCompleter.future;
 
-    final charlieCompleter = DiscoveryTestUtils.waitForDiscoveryEvent(
+    final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       charlieSDK,
       eventType: ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,

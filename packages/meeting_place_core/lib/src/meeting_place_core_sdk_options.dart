@@ -1,7 +1,7 @@
 class MeetingPlaceCoreSDKOptions {
   const MeetingPlaceCoreSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
-    this.debounceDiscoveryEventsInMilliseconds = 200,
+    this.debounceControlPlaneEvents = const Duration(milliseconds: 200),
     this.didResolverAddress,
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
@@ -16,7 +16,7 @@ class MeetingPlaceCoreSDKOptions {
   /// Number of miliseconds to wait before processing discovery events.
   /// This debounce mechanism is used to let multiple events settle and process
   /// them at once.
-  final int debounceDiscoveryEventsInMilliseconds;
+  final Duration debounceControlPlaneEvents;
 
   /// Specifies the custom address utilized by the DID resolver service.
   final String? didResolverAddress;

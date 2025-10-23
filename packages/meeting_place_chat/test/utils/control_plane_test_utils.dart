@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-class DiscoveryTestUtils {
-  static Completer waitForDiscoveryEvent(
+class ControlPlaneTestUtils {
+  static Completer waitForControlPlaneEvent(
     MeetingPlaceCoreSDK sdk, {
     required ControlPlaneEventType eventType,
     required int expectedNumberOfEvents,

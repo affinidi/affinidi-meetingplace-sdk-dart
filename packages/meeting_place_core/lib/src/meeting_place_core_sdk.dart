@@ -1173,8 +1173,7 @@ class MeetingPlaceCoreSDK {
   Future<void> processControlPlaneEvents({Function? onDone}) {
     return _withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
-        debounceDiscoveryEventsInMilliseconds:
-            _options.debounceDiscoveryEventsInMilliseconds,
+        debounceEvents: _options.debounceControlPlaneEvents,
         onDone: onDone,
       ),
     );

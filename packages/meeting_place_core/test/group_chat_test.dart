@@ -161,61 +161,61 @@ void main() async {
     expect(charlieReceivedMessage.body!['seqNo'], equals(1));
   });
 
-  test('group member sends group message', () async {
-    final vCardBase64 = VCard(
-      values: VCardFixture.bobPrimaryVCard.values,
-    ).toBase64();
+  // test('group member sends group message', () async {
+  //   final vCardBase64 = VCard(
+  //     values: VCardFixture.bobPrimaryVCard.values,
+  //   ).toBase64();
 
-    final chatMessage = PlainTextMessage(
-      id: const Uuid().v4(),
-      type: messageType,
-      from: bobDid,
-      to: [groupDid],
-      body: {'text': 'Hello Group!', 'seqNo': 2},
-      attachments: [
-        VCardAttachment.create(data: AttachmentData(base64: vCardBase64)),
-      ],
-    );
+  //   final chatMessage = PlainTextMessage(
+  //     id: const Uuid().v4(),
+  //     type: messageType,
+  //     from: bobDid,
+  //     to: [groupDid],
+  //     body: {'text': 'Hello Group!', 'seqNo': 2},
+  //     attachments: [
+  //       VCardAttachment.create(data: AttachmentData(base64: vCardBase64)),
+  //     ],
+  //   );
 
-    final aliceStream = await aliceSDK.subscribeToMediator(aliceDid);
-    final charlieStream = await charlieSDK.subscribeToMediator(charlieDid);
+  //   final aliceStream = await aliceSDK.subscribeToMediator(aliceDid);
+  //   final charlieStream = await charlieSDK.subscribeToMediator(charlieDid);
 
-    final aliceReceivedMessageCompleter = Completer<PlainTextMessage>();
-    final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
+  //   final aliceReceivedMessageCompleter = Completer<PlainTextMessage>();
+  //   final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
 
-    aliceStream.stream.listen((data) {
-      if (data.plainTextMessage.type == messageType) {
-        aliceReceivedMessageCompleter.complete(data.plainTextMessage);
-      }
-    });
+  //   aliceStream.stream.listen((data) {
+  //     if (data.plainTextMessage.type == messageType) {
+  //       aliceReceivedMessageCompleter.complete(data.plainTextMessage);
+  //     }
+  //   });
 
-    charlieStream.stream.listen((data) {
-      if (data.plainTextMessage.type == messageType) {
-        charlieReceivedMessageCompleter.complete(data.plainTextMessage);
-      }
-    });
+  //   charlieStream.stream.listen((data) {
+  //     if (data.plainTextMessage.type == messageType) {
+  //       charlieReceivedMessageCompleter.complete(data.plainTextMessage);
+  //     }
+  //   });
 
-    await bobSDK.sendGroupMessage(
-      chatMessage,
-      senderDid: bobDid,
-      recipientDid: groupDid,
-      increaseSequenceNumber: true,
-    );
+  //   await bobSDK.sendGroupMessage(
+  //     chatMessage,
+  //     senderDid: bobDid,
+  //     recipientDid: groupDid,
+  //     increaseSequenceNumber: true,
+  //   );
 
-    final aliceReceivedMessage = await aliceReceivedMessageCompleter.future;
-    expect(aliceReceivedMessage.body!['text'], equals('Hello Group!'));
-    expect(aliceReceivedMessage.body!['seqNo'], equals(2));
-    expect(
-      aliceReceivedMessage.attachments?[0].data?.base64,
-      equals(vCardBase64),
-    );
+  //   final aliceReceivedMessage = await aliceReceivedMessageCompleter.future;
+  //   expect(aliceReceivedMessage.body!['text'], equals('Hello Group!'));
+  //   expect(aliceReceivedMessage.body!['seqNo'], equals(2));
+  //   expect(
+  //     aliceReceivedMessage.attachments?[0].data?.base64,
+  //     equals(vCardBase64),
+  //   );
 
-    final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
-    expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
-    expect(charlieReceivedMessage.body!['seqNo'], equals(2));
-    expect(
-      charlieReceivedMessage.attachments?[0].data?.base64,
-      equals(vCardBase64),
-    );
-  }, skip: 'Fails on CI due to timeout issues');
+  //   final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
+  //   expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
+  //   expect(charlieReceivedMessage.body!['seqNo'], equals(2));
+  //   expect(
+  //     charlieReceivedMessage.attachments?[0].data?.base64,
+  //     equals(vCardBase64),
+  //   );
+  // });
 }

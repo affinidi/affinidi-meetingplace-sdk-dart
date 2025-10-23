@@ -9,9 +9,9 @@ import '../mediator/mediator_exception.dart';
 typedef MessageId = String;
 
 class MessageQueue {
-  MessageQueue({MediatorSdkLogger? logger})
+  MessageQueue({MeetingPlaceMediatorSDKLogger? logger})
       : _logger = logger ??
-            DefaultMediatorSdkLogger(
+            DefaultMeetingPlaceMediatorSDKLogger(
               className: _className,
               sdkName: MeetingPlaceMediatorSDK.className,
             );
@@ -21,7 +21,7 @@ class MessageQueue {
 
   final Queue<String> _queue = Queue<String>();
   final Mutex _messageDeleteMutex = Mutex();
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
 
   Timer? _scheduledTimer;
 

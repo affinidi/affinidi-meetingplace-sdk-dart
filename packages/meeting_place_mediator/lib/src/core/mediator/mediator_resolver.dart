@@ -2,17 +2,18 @@ import 'package:dio/dio.dart';
 
 import '../../api/retry_interceptor.dart';
 import '../../constants/sdk_constants.dart';
-import '../../loggers/default_mediator_sdk_logger.dart';
-import '../../loggers/mediator_sdk_logger.dart';
+import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
+import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 import 'mediator_exception.dart';
 
 /// The [MediatorResolver] is responsible for turning external
 /// references (such as URLs) into usable mediator identifiers
 /// or metadata.
 class MediatorResolver {
-  MediatorResolver({MediatorSdkLogger? logger, Dio? dio})
+  MediatorResolver({MeetingPlaceMediatorSDKLogger? logger, Dio? dio})
       : _logger = logger ??
-            DefaultMediatorSdkLogger(className: _className, sdkName: sdkName),
+            DefaultMeetingPlaceMediatorSDKLogger(
+                className: _className, sdkName: sdkName),
         _dio = dio ??
             (() {
               final baseDio = Dio(
@@ -26,7 +27,7 @@ class MediatorResolver {
             }());
   static const String _className = 'MediatorResolver';
 
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
   final Dio _dio;
 
   /// Resolves the mediator DID from a given [mediatorEndpoint].

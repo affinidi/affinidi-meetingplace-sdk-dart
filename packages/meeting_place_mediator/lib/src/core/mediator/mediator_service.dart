@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:didcomm/didcomm.dart' hide ForwardMessage;
 import 'package:dio/dio.dart';
 import '../../constants/sdk_constants.dart';
-import '../../loggers/default_mediator_sdk_logger.dart';
-import '../../loggers/mediator_sdk_logger.dart';
+import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
+import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 import '../../protocol/message/oob_invitation_message.dart';
 import '../../meeting_place_mediator_sdk_options.dart';
 import '../../utils/base64.dart';
@@ -31,17 +31,18 @@ class MediatorService {
   MediatorService({
     required this.didResolver,
     required MeetingPlaceMediatorSDKOptions options,
-    MediatorSdkLogger? logger,
+    MeetingPlaceMediatorSDKLogger? logger,
   })  : _options = options,
         _logger = logger ??
-            DefaultMediatorSdkLogger(className: _className, sdkName: sdkName);
+            DefaultMeetingPlaceMediatorSDKLogger(
+                className: _className, sdkName: sdkName);
   static const String _className = 'MediatorService';
 
   final SendMessageQueue sendMessageQueue = SendMessageQueue();
   final DidResolver didResolver;
   final MeetingPlaceMediatorSDKOptions _options;
   final Map<String, MediatorSessionClient> _sessions = {};
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
 
   MediatorSessionClient? _activeSession;
   MediatorChannel? stream;

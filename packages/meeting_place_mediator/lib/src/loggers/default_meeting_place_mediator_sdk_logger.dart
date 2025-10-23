@@ -1,17 +1,18 @@
 import 'dart:developer' as developer;
 
 import '../constants/sdk_constants.dart' as constants;
-import 'mediator_sdk_logger.dart';
+import 'meeting_place_mediator_sdk_logger.dart';
 
 /// Default console logger implementation using `dart:developer`.
 ///
 /// This logger outputs logs to the console with a consistent format.
-class DefaultMediatorSdkLogger implements MediatorSdkLogger {
+class DefaultMeetingPlaceMediatorSDKLogger
+    implements MeetingPlaceMediatorSDKLogger {
   /// Creates a logger with an optional [className] identifying the logging source.
   ///
   /// [className] defaults to 'DefaultMediatorSdkLogger'.
   /// [sdkName] is used as the log name in `dart:developer` and defaults to 'MED_SDK'.
-  DefaultMediatorSdkLogger({
+  DefaultMeetingPlaceMediatorSDKLogger({
     this.className = 'DefaultMediatorSdkLogger',
     this.sdkName = constants.sdkName,
   });

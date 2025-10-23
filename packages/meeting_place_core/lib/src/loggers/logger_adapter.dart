@@ -7,7 +7,7 @@ class LoggerAdapter<T>
     implements
         MeetingPlaceCoreSDKLogger,
         ControlPlaneSDKLogger,
-        MediatorSdkLogger {
+        MeetingPlaceMediatorSDKLogger {
   LoggerAdapter({
     required this.className,
     required this.sdkName,
@@ -25,8 +25,9 @@ class LoggerAdapter<T>
           .info(message, name: _formatName(name));
     } else if (_logger is ControlPlaneSDKLogger) {
       (_logger as ControlPlaneSDKLogger).info(message, name: _formatName(name));
-    } else if (_logger is MediatorSdkLogger) {
-      (_logger as MediatorSdkLogger).info(message, name: _formatName(name));
+    } else if (_logger is MeetingPlaceMediatorSDKLogger) {
+      (_logger as MeetingPlaceMediatorSDKLogger)
+          .info(message, name: _formatName(name));
     }
   }
 
@@ -38,8 +39,9 @@ class LoggerAdapter<T>
     } else if (_logger is ControlPlaneSDKLogger) {
       (_logger as ControlPlaneSDKLogger)
           .warning(message, name: _formatName(name));
-    } else if (_logger is MediatorSdkLogger) {
-      (_logger as MediatorSdkLogger).warning(message, name: _formatName(name));
+    } else if (_logger is MeetingPlaceMediatorSDKLogger) {
+      (_logger as MeetingPlaceMediatorSDKLogger)
+          .warning(message, name: _formatName(name));
     }
   }
 
@@ -64,8 +66,8 @@ class LoggerAdapter<T>
         stackTrace: stackTrace,
         name: _formatName(name),
       );
-    } else if (_logger is MediatorSdkLogger) {
-      (_logger as MediatorSdkLogger).error(
+    } else if (_logger is MeetingPlaceMediatorSDKLogger) {
+      (_logger as MeetingPlaceMediatorSDKLogger).error(
         message,
         error: error,
         stackTrace: stackTrace,
@@ -82,8 +84,9 @@ class LoggerAdapter<T>
     } else if (_logger is ControlPlaneSDKLogger) {
       (_logger as ControlPlaneSDKLogger)
           .debug(message, name: _formatName(name));
-    } else if (_logger is MediatorSdkLogger) {
-      (_logger as MediatorSdkLogger).debug(message, name: _formatName(name));
+    } else if (_logger is MeetingPlaceMediatorSDKLogger) {
+      (_logger as MeetingPlaceMediatorSDKLogger)
+          .debug(message, name: _formatName(name));
     }
   }
 

@@ -27,11 +27,12 @@ class MeetingPlaceMediatorSDK {
     MeetingPlaceMediatorSDKOptions options =
         const MeetingPlaceMediatorSDKOptions(),
     MediatorResolver? mediatorResolver,
-    MediatorSdkLogger? logger,
+    MeetingPlaceMediatorSDKLogger? logger,
   })  : _mediatorDid = mediatorDid,
         _options = options,
         _logger = logger ??
-            DefaultMediatorSdkLogger(className: className, sdkName: sdkName) {
+            DefaultMeetingPlaceMediatorSDKLogger(
+                className: className, sdkName: sdkName) {
     _mediatorService = MediatorService(
       didResolver: didResolver,
       options: _options,
@@ -58,7 +59,7 @@ class MeetingPlaceMediatorSDK {
   late final MediatorService _mediatorService;
   late final CommandDispatcher _dispatcher;
   final MeetingPlaceMediatorSDKOptions _options;
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
 
   String _mediatorDid;
 

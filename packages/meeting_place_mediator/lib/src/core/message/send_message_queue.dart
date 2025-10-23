@@ -7,8 +7,8 @@ import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../constants/sdk_constants.dart';
-import '../../loggers/default_mediator_sdk_logger.dart';
-import '../../loggers/mediator_sdk_logger.dart';
+import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
+import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 import '../mediator/mediator_exception.dart';
 
 /// Represents a message item within a queue.
@@ -38,14 +38,15 @@ class QueueItem {
 }
 
 class SendMessageQueue {
-  SendMessageQueue({MediatorSdkLogger? logger})
+  SendMessageQueue({MeetingPlaceMediatorSDKLogger? logger})
       : _logger = logger ??
-            DefaultMediatorSdkLogger(className: _className, sdkName: sdkName);
+            DefaultMeetingPlaceMediatorSDKLogger(
+                className: _className, sdkName: sdkName);
   static const String _className = 'SendMessageQueue';
 
   final Queue<QueueItem> _queue = Queue<QueueItem>();
   final Mutex _messageDeleteMutex = Mutex();
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
 
   Timer? _scheduledTimer;
 

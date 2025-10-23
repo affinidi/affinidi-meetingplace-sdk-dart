@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:didcomm/didcomm.dart';
 
 import '../../constants/sdk_constants.dart';
-import '../../loggers/default_mediator_sdk_logger.dart';
-import '../../loggers/mediator_sdk_logger.dart';
+import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
+import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 import 'mediator_session_client.dart';
 
 typedef OnDataCallback = void Function(PlainTextMessage);
@@ -12,14 +12,15 @@ typedef OnDataCallback = void Function(PlainTextMessage);
 class MediatorChannel {
   MediatorChannel({
     required MediatorSessionClient sessionClient,
-    MediatorSdkLogger? logger,
+    MeetingPlaceMediatorSDKLogger? logger,
   })  : _sessionClient = sessionClient,
         _logger = logger ??
-            DefaultMediatorSdkLogger(className: _className, sdkName: sdkName);
+            DefaultMeetingPlaceMediatorSDKLogger(
+                className: _className, sdkName: sdkName);
   static const String _className = 'MediatorChannel';
 
   final MediatorSessionClient _sessionClient;
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
 
   StreamController<PlainTextMessage>? _streamController;
 

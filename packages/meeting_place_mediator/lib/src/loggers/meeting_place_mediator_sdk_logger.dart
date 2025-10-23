@@ -2,7 +2,7 @@
 ///
 /// This interface allows consumers to provide their own logging implementation
 /// to capture and handle SDK logs according to their needs.
-abstract class MediatorSdkLogger {
+abstract class MeetingPlaceMediatorSDKLogger {
   /// Logs an informational message.
   ///
   /// [message] is the log content.

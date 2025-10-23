@@ -21,9 +21,9 @@ class MediatorSessionClient {
     required this.client,
     required this.didManager,
     required this.mediatorDid,
-    MediatorSdkLogger? logger,
+    MeetingPlaceMediatorSDKLogger? logger,
   }) : _logger = logger ??
-            DefaultMediatorSdkLogger(
+            DefaultMeetingPlaceMediatorSDKLogger(
               className: _className,
               sdkName: sdkName,
             );
@@ -31,7 +31,7 @@ class MediatorSessionClient {
   static int processQueueDelayInSeconds = 3;
   static const String _className = 'MediatorSessionClient';
 
-  final MediatorSdkLogger _logger;
+  final MeetingPlaceMediatorSDKLogger _logger;
 
   final String id;
   final MediatorClient client;

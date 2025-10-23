@@ -27,10 +27,7 @@ void main() async {
     prettyJsonPrintYellow('Received message:', data.message.toJson());
     prettyJsonPrintYellow('Received channel:', data.channel.toJson());
     aliceWaitFor.complete();
-  }).timeout(
-    const Duration(seconds: 300),
-    () => prettyPrint('OOB stream timeout'),
-  );
+  });
 
   await aliceWaitFor.future;
 

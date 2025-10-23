@@ -1,18 +1,28 @@
 import 'dart:async';
-import 'mediator_message.dart';
 
 /// Interface for mediator stream subscriptions.
 ///
-/// Provides a stream of [MediatorMessage]s and lifecycle management.
-abstract class MediatorStreamSubscription {
+/// Provides a stream of [T]s and lifecycle management.
+abstract class MediatorStreamSubscription<T> {
   /// Stream of transformed mediator messages.
   ///
   /// Messages are automatically decrypted and transformed based on their type.
   /// Group messages are decrypted using keys from the key repository.
-  Stream<MediatorMessage> get stream;
+  Stream<T> get stream;
 
   /// Check if the underlying subscription is closed.
   bool get isClosed;
+
+  /// Listen to the stream of messages.
+  StreamSubscription<T> listen(
+    void Function(T) onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  });
+
+  /// Apply a timeout to the stream subscription.
+  StreamSubscription<T> timeout(Duration timeLimit, void Function()? onTimeout);
 
   /// Dispose the subscription and close the connection.
   ///

@@ -27,10 +27,10 @@ class MediatorStreamSubscription {
   final MediatorClient _client;
   final DidManager _didManager;
   final List<MessageWrappingType> _messageWrappingTypes;
+  final List<PlainTextMessage> _eventBuffer = <PlainTextMessage>[];
   final MediatorSdkLogger _logger;
 
   StreamController<PlainTextMessage>? _streamController;
-  final List<PlainTextMessage> _eventBuffer = <PlainTextMessage>[];
 
   Stream<PlainTextMessage> get stream => _controller.stream;
   bool get isClosed => _controller.isClosed;
@@ -41,25 +41,26 @@ class MediatorStreamSubscription {
     const methodName = 'initialize';
 
     if (isClosed) {
-      // TODO: StreamSubscriptionException
-      throw Exception('Cannot initialize a closed subscription');
+      throw StateError('Cannot initialize a closed subscription');
     }
 
     try {
       // Improve as soon as connection pools are available for joining the
       // pool later
+      _logger.info('Mediator stream subscription initialized',
+          name: methodName);
+
       _client.listenForIncomingMessages(
         _onIncomingMessage,
         onDone: _onDone,
       );
+      await _client.connectionPool.startConnections();
     } on StateError catch (e, stackTrace) {
       _logger.error('Mediator client already connected.',
           name: methodName, error: e, stackTrace: stackTrace);
     } catch (e) {
       rethrow;
     }
-
-    _logger.info('Mediator stream subscription initialized', name: methodName);
   }
 
   void pushMessage(PlainTextMessage message) {
@@ -80,13 +81,13 @@ class MediatorStreamSubscription {
     _logger.info('Message pushed to stream - ${message.id}', name: methodName);
   }
 
-  Future<StreamSubscription<PlainTextMessage>> listen(
+  MediatorStreamSubscription listen(
     void Function(PlainTextMessage) onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
-  }) async {
-    final subscription = _controller.stream.listen(
+  }) {
+    _controller.stream.listen(
       onData,
       onError: onError,
       onDone: onDone,
@@ -100,7 +101,7 @@ class MediatorStreamSubscription {
     }
     _eventBuffer.clear();
 
-    return subscription;
+    return this;
   }
 
   Future<void> dispose() async {

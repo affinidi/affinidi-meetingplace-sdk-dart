@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import '../../../meeting_place_core.dart';
-import '../../loggers/meeting_place_core_sdk_logger.dart';
 import 'oob_stream_data.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();
 
-class OobStream {
+class OobStream implements MediatorStreamSubscription<OobStreamData> {
   OobStream({
     OnDisposeCallback? onDispose,
     required MeetingPlaceCoreSDKLogger logger,
@@ -20,21 +19,23 @@ class OobStream {
   StreamController<OobStreamData>? _streamController;
   Timer? _timeoutTimer;
 
-  Stream<OobStreamData> get stream {
-    return _controller.stream;
-  }
+  @override
+  Stream<OobStreamData> get stream => _controller.stream;
 
-  StreamController<OobStreamData> get _controller {
-    return _streamController ??= StreamController<OobStreamData>.broadcast();
-  }
+  @override
+  bool get isClosed => _controller.isClosed;
 
-  OobStream listen(
+  StreamController<OobStreamData> get _controller =>
+      _streamController ??= StreamController<OobStreamData>.broadcast();
+
+  @override
+  StreamSubscription<OobStreamData> listen(
     void Function(OobStreamData) onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) {
-    _controller.stream.listen(
+    final streamSubscription = _controller.stream.listen(
       (event) {
         _timeoutTimer?.cancel();
         onData(event);
@@ -51,7 +52,7 @@ class OobStream {
     }
     _eventBuffer.clear();
 
-    return this;
+    return streamSubscription;
   }
 
   void pushEvent(OobStreamData data) {
@@ -70,21 +71,33 @@ class OobStream {
     _controller.add(data);
   }
 
-  OobStream timeout(Duration timeLimit, void Function()? fn) {
-    if (_timeoutTimer != null) {
-      throw StateError('Timeout already set on OobStream');
-    }
-
-    if (fn != null) {
-      _timeoutTimer = Timer(timeLimit, () async {
-        fn();
-        await dispose();
-      });
-    }
-    return this;
+  @override
+  StreamSubscription<OobStreamData> timeout(
+    Duration timeLimit,
+    void Function()? onTimeout,
+  ) {
+    return stream
+        .timeout(
+          timeLimit,
+          onTimeout: onTimeout != null
+              ? (EventSink sink) {
+                  try {
+                    onTimeout();
+                  } catch (e, stackTrace) {
+                    _logger.error(
+                      'Error in timeout callback',
+                      error: e,
+                      stackTrace: stackTrace,
+                    );
+                  }
+                }
+              : null,
+        )
+        .listen(null);
   }
 
-  FutureOr<void> dispose() async {
+  @override
+  Future<void> dispose() async {
     _timeoutTimer?.cancel();
 
     if (_controller.isClosed) {

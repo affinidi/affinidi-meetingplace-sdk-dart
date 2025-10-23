@@ -28,7 +28,9 @@ void main() async {
     prettyJsonPrintYellow('Received message', data.message.toJson());
     prettyJsonPrintYellow('Received channel:', data.channel.toJson());
     bobWaitFor.complete(data.channel);
-  }).timeout(
+  });
+
+  acceptance.stream.timeout(
     const Duration(seconds: 300),
     () => prettyPrint('OOB stream timeout'),
   );

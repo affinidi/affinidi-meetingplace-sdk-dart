@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import '../storage/storage_interface.dart';
+import '../storage/storage.dart';
 
 /// Implementation of [ChatRepository] that persists chat messages
 /// using the provided [IStorage] backend.
@@ -10,11 +10,11 @@ import '../storage/storage_interface.dart';
 /// `chat_<chatId>_<messageId>`.
 class ChatRepositoryImpl implements ChatRepository {
   /// Creates a new [ChatRepositoryImpl] with the given [IStorage].
-  ChatRepositoryImpl({required IStorage storage}) : _storage = storage;
+  ChatRepositoryImpl({required Storage storage}) : _storage = storage;
 
   /// Prefix used for message keys in storage.
   static final String prefix = 'chat_';
-  final IStorage _storage;
+  final Storage _storage;
 
   /// Persists a new chat message into storage.
   ///

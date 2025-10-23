@@ -6,8 +6,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'fixture/sdk_fixture.dart';
-import 'fixture/v_card.dart';
+import 'utils/v_card.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -36,7 +35,7 @@ void main() async {
 
   Future<(MeetingPlaceCoreSDK, AcceptOfferResult)>
       anotherMemberJoinsGroup() async {
-    final sdk = await initSDKInstance();
+    final sdk = await initCoreSDKInstance();
 
     final acceptance = await sdk.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
@@ -56,9 +55,9 @@ void main() async {
     charlieChannelRepository = initChannelRepository();
 
     // Setup wallets and SDK instances of group members
-    aliceSDK = await initSDKInstance();
-    bobSDK = await initSDKInstance();
-    charlieSDK = await initSDKInstance();
+    aliceSDK = await initCoreSDKInstance();
+    bobSDK = await initCoreSDKInstance();
+    charlieSDK = await initCoreSDKInstance();
 
     // Publish group offer / create group
     publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
@@ -153,7 +152,7 @@ void main() async {
     ))!;
 
     // Initialize chat SDKs for group members
-    aliceChatSDK = await SDKFixture.initGroupChatSDK(
+    aliceChatSDK = await initGroupChatSDK(
       coreSDK: aliceSDK,
       did: groupOwnerDidDocument.id,
       otherPartyDid: publishOfferResult.connectionOffer.groupDid!,
@@ -165,7 +164,7 @@ void main() async {
       publishOfferResult.connectionOffer.offerLink,
     ))!;
 
-    bobChatSDK = await SDKFixture.initGroupChatSDK(
+    bobChatSDK = await initGroupChatSDK(
       coreSDK: bobSDK,
       did: bobMemberDid,
       otherPartyDid: publishOfferResult.connectionOffer.groupDid!,
@@ -177,7 +176,7 @@ void main() async {
       publishOfferResult.connectionOffer.offerLink,
     ))!;
 
-    charlieChatSDK = await SDKFixture.initGroupChatSDK(
+    charlieChatSDK = await initGroupChatSDK(
       coreSDK: charlieSDK,
       did: charlieMemberDid,
       otherPartyDid: publishOfferResult.connectionOffer.groupDid!,
@@ -268,7 +267,7 @@ void main() async {
     await completer.future;
 
     final newGroup = await aliceSDK.getGroupById(aliceGroup.id);
-    final newAliceChatSDK = await SDKFixture.initGroupChatSDK(
+    final newAliceChatSDK = await initGroupChatSDK(
       coreSDK: aliceSDK,
       did: groupOwnerDidDocument.id,
       otherPartyDid: publishOfferResult.connectionOffer.groupDid!,
@@ -301,7 +300,7 @@ void main() async {
     await completer.future;
 
     final newGroup = await aliceSDK.getGroupById(aliceGroup.id);
-    final newAliceChatSDK = await SDKFixture.initGroupChatSDK(
+    final newAliceChatSDK = await initGroupChatSDK(
       coreSDK: aliceSDK,
       did: groupOwnerDidDocument.id,
       otherPartyDid: publishOfferResult.connectionOffer.groupDid!,

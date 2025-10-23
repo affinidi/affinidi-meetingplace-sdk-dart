@@ -8,9 +8,8 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixture/sdk_fixture.dart';
-import 'fixture/storage/in_memory_storage.dart';
-import 'fixture/v_card.dart';
+import 'utils/storage/in_memory_storage.dart';
+import 'utils/v_card.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -34,11 +33,12 @@ void main() async {
     bobChannelRepository = initChannelRepository();
     charlieChannelRepository = initChannelRepository();
 
-    aliceSDK = await initSDKInstance(channelRepository: aliceChannelRepository);
+    aliceSDK =
+        await initCoreSDKInstance(channelRepository: aliceChannelRepository);
 
-    bobSDK = await initSDKInstance(channelRepository: bobChannelRepository);
+    bobSDK = await initCoreSDKInstance(channelRepository: bobChannelRepository);
 
-    charlieSDK = await initSDKInstance(
+    charlieSDK = await initCoreSDKInstance(
       channelRepository: charlieChannelRepository,
     );
 
@@ -79,7 +79,7 @@ void main() async {
     final bobVCard = VCard(values: VCardFixture.bobPrimaryVCard.values);
     final charlieVCard = VCard(values: VCardFixture.charliePrimaryVCard.values);
 
-    aliceChatSDK = await SDKFixture.initIndividualChatSDK(
+    aliceChatSDK = await initIndividualChatSDK(
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: bobDidDocument.id,
@@ -89,7 +89,7 @@ void main() async {
       otherPartyVCard: bobVCard,
     );
 
-    bobChatSDK = await SDKFixture.initIndividualChatSDK(
+    bobChatSDK = await initIndividualChatSDK(
       coreSDK: bobSDK,
       did: bobDidDocument.id,
       otherPartyDid: aliceDidDocument.id,
@@ -218,7 +218,7 @@ void main() async {
 
     // If alice creates chat instance for different chat, chat history is
     // returned accordingly
-    final aliceChatWithCharlie = await SDKFixture.initIndividualChatSDK(
+    final aliceChatWithCharlie = await initIndividualChatSDK(
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: charlieDidDocument.id,
@@ -264,7 +264,7 @@ void main() async {
     'keeps message history if new chat SDK instance is initialized',
     () async {
       final storage = InMemoryStorage();
-      final chatSDK = await SDKFixture.initIndividualChatSDK(
+      final chatSDK = await initIndividualChatSDK(
         coreSDK: aliceSDK,
         did: aliceDidDocument.id,
         otherPartyDid: bobDidDocument.id,
@@ -277,7 +277,7 @@ void main() async {
       expect((await chatSDK.messages).length, equals(1));
       chatSDK.endChatSession();
 
-      final chatSDKNewInstance = await SDKFixture.initIndividualChatSDK(
+      final chatSDKNewInstance = await initIndividualChatSDK(
         coreSDK: aliceSDK,
         did: aliceDidDocument.id,
         otherPartyDid: bobDidDocument.id,
@@ -467,7 +467,7 @@ void main() async {
 
       await aliceOpenedChat.future;
 
-      final newBobChatSDK = await SDKFixture.initIndividualChatSDK(
+      final newBobChatSDK = await initIndividualChatSDK(
         coreSDK: bobSDK,
         did: bobDidDocument.id,
         otherPartyDid: aliceDidDocument.id,
@@ -541,7 +541,7 @@ void main() async {
 
     await aliceOpenedChat.future;
 
-    final newBobChatSDK = await SDKFixture.initIndividualChatSDK(
+    final newBobChatSDK = await initIndividualChatSDK(
       coreSDK: bobSDK,
       did: bobDidDocument.id,
       otherPartyDid: aliceDidDocument.id,
@@ -647,7 +647,7 @@ void main() async {
   });
 
   test('sends chat presence message in configured interval', () async {
-    final chatSDKWithReducedInterval = await SDKFixture.initIndividualChatSDK(
+    final chatSDKWithReducedInterval = await initIndividualChatSDK(
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: bobDidDocument.id,

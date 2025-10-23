@@ -90,7 +90,8 @@ void main() async {
     groupChannel!,
     coreSDK: aliceSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-    options: ChatSDKOptions(chatPresenceSendInterval: 60),
+    options:
+        ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 60)),
   );
 
   await Future.delayed(Duration(seconds: 5));

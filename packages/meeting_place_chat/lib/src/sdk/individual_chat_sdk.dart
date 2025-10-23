@@ -50,7 +50,8 @@ class IndividualChatSDK extends BaseChatSDK implements SDK {
   @override
   Future<Chat> startChatSession() async {
     final chat = await super.startChatSession();
-    unawaited(startChatPresenceInInterval(options.chatPresenceSendInterval));
+    unawaited(startChatPresenceInInterval(
+        options.chatPresenceSendInterval.inSeconds));
     return chat;
   }
 

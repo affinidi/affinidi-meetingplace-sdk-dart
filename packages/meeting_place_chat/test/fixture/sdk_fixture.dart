@@ -42,7 +42,9 @@ class SDKFixture {
         vCard: vCard,
         mediatorDid: getMediatorDid(),
         chatRepository: ChatRepositoryImpl(storage: storage),
-        options: options ?? ChatSDKOptions(chatPresenceSendInterval: 3),
+        options: options ??
+            ChatSDKOptions(
+                chatPresenceSendInterval: const Duration(seconds: 3)),
         channelEntity: channel,
       ),
     );
@@ -80,7 +82,8 @@ class SDKFixture {
         mediatorDid: getMediatorDid(),
         vCard: vCard,
         chatRepository: ChatRepositoryImpl(storage: storage),
-        options: ChatSDKOptions(chatPresenceSendInterval: 3),
+        options: ChatSDKOptions(
+            chatPresenceSendInterval: const Duration(seconds: 3)),
         channelEntity: channel,
       ),
     );

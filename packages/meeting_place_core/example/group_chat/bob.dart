@@ -85,7 +85,8 @@ void main() async {
     groupMembershipFinalised.channel,
     coreSDK: bobSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-    options: ChatSDKOptions(chatPresenceSendInterval: 60),
+    options:
+        ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 60)),
   );
 
   await Future.delayed(const Duration(seconds: 5));

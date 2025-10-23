@@ -652,7 +652,9 @@ void main() async {
       did: aliceDidDocument.id,
       otherPartyDid: bobDidDocument.id,
       channelRepository: aliceChannelRepository,
-      options: ChatSDKOptions(chatPresenceSendInterval: 1),
+      options: ChatSDKOptions(
+        chatPresenceSendInterval: const Duration(seconds: 1),
+      ),
     );
 
     await bobChatSDK.startChatSession();

@@ -529,7 +529,7 @@ abstract class BaseChatSDK {
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
       ephemeral: true,
-      forwardExpiryInSeconds: options.chatPresenceSendInterval,
+      forwardExpiryInSeconds: options.chatPresenceExpiry.inSeconds,
     );
   }
 
@@ -740,7 +740,7 @@ abstract class BaseChatSDK {
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
       ephemeral: true,
-      forwardExpiryInSeconds: options.chatActivityExpiresInSeconds,
+      forwardExpiryInSeconds: options.chatActivityExpiry.inSeconds,
     );
     _logger.info('Completed sending chat activity', name: methodName);
   }

@@ -170,7 +170,7 @@ class GroupChatSDK extends BaseChatSDK implements SDK {
       notify: false,
       ephemeral: true,
       increaseSequenceNumber: false,
-      forwardExpiryInSeconds: options.chatActivityExpiresInSeconds,
+      forwardExpiryInSeconds: options.chatActivityExpiry.inSeconds,
     );
   }
 

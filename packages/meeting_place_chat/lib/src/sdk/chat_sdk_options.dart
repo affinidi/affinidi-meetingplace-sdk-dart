@@ -19,8 +19,9 @@ class ChatSDKOptions {
   /// - [memberJoinedIndicator]: List of [ChatProtocol] message types
   ///   that indicate that new group member opened chat screen the first time.
   ChatSDKOptions({
-    this.chatPresenceSendInterval = 10,
-    this.chatActivityExpiresInSeconds = 3,
+    this.chatPresenceSendInterval = const Duration(seconds: 10),
+    this.chatPresenceExpiry = const Duration(seconds: 15),
+    this.chatActivityExpiry = const Duration(seconds: 3),
     this.requiresAcknowledgement = const [ChatProtocol.chatMessage],
     this.memberJoinedIndicator = const [
       ChatProtocol.chatPresence,
@@ -44,13 +45,19 @@ class ChatSDKOptions {
   /// (e.g., "online") are sent to the other party.
   ///
   /// Defaults to `10` seconds.
-  final int chatPresenceSendInterval;
+  final Duration chatPresenceSendInterval;
+
+  /// The interval (in seconds) at which presence signals
+  /// (e.g., "online") are sent to the other party.
+  ///
+  /// Defaults to `10` seconds.
+  final Duration chatPresenceExpiry;
 
   /// The expiry duration (in seconds) for activity messages
   /// such as typing indicators.
   ///
   /// Defaults to `3` seconds.
-  final int chatActivityExpiresInSeconds;
+  final Duration chatActivityExpiry;
 
   /// List of ChatProtocol message types used to determine whether a member
   /// has opened the chat screen for the first time after joining the group.

@@ -87,7 +87,8 @@ void main() async {
     groupMembershipFinalised.channel,
     coreSDK: charlieSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-    options: ChatSDKOptions(chatPresenceSendInterval: 60),
+    options:
+        ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 60)),
   );
 
   await Future.delayed(const Duration(seconds: 2));

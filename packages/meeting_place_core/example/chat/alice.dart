@@ -104,7 +104,8 @@ void main() async {
     channel,
     coreSDK: aliceSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-    options: ChatSDKOptions(chatPresenceSendInterval: 60),
+    options:
+        ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 60)),
   );
 
   await aliceChatSDK.startChatSession();

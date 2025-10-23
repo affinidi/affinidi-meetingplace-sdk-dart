@@ -15,6 +15,7 @@ class OobInvitationMessage extends OutOfBandMessage {
             'goal': 'Start relationship',
             'accept': ['didcomm/v2'],
           },
+          createdTime: DateTime.now().toUtc(),
         );
 
   factory OobInvitationMessage.fromJson(Map<String, dynamic> json) {

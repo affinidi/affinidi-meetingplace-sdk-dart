@@ -7,8 +7,7 @@ part of 'chat_group_details_update.dart';
 // **************************************************************************
 
 ChatGroupDetailsUpdateBodyMember _$ChatGroupDetailsUpdateBodyMemberFromJson(
-  Map<String, dynamic> json,
-) =>
+        Map<String, dynamic> json) =>
     ChatGroupDetailsUpdateBodyMember(
       did: json['did'] as String,
       vCard: VCard.fromJson(json['vCard'] as Map<String, dynamic>),
@@ -19,8 +18,7 @@ ChatGroupDetailsUpdateBodyMember _$ChatGroupDetailsUpdateBodyMemberFromJson(
     );
 
 Map<String, dynamic> _$ChatGroupDetailsUpdateBodyMemberToJson(
-  ChatGroupDetailsUpdateBodyMember instance,
-) =>
+        ChatGroupDetailsUpdateBodyMember instance) =>
     <String, dynamic>{
       'did': instance.did,
       'vCard': instance.vCard.toJson(),

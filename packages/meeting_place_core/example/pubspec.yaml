@@ -1,6 +1,6 @@
 name: meeting_place_core_example
 description: Meeting place core SDK examples.
-version: 0.0.1-dev0
+version: 0.0.1-dev.0
 publish_to: "none"
 resolution: workspace
 

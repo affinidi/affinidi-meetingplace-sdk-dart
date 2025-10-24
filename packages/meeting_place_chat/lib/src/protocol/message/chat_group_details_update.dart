@@ -6,7 +6,8 @@ import '../chat_protocol.dart';
 
 part 'chat_group_details_update.g.dart';
 
-@JsonSerializable(explicitToJson: true, includeIfNull: false)
+@JsonSerializable(
+    explicitToJson: true, includeIfNull: false, createFactory: false)
 class ChatGroupDetailsUpdateBodyMember {
   ChatGroupDetailsUpdateBodyMember({
     required this.did,

@@ -15,10 +15,8 @@ ConciergeMessage _$ConciergeMessageFromJson(Map<String, dynamic> json) =>
       dateCreated: DateTime.parse(json['dateCreated'] as String),
       status: $enumDecode(_$ChatItemStatusEnumMap, json['status']),
       data: json['data'] as Map<String, dynamic>,
-      conciergeType: $enumDecode(
-        _$ConciergeMessageTypeEnumMap,
-        json['conciergeType'],
-      ),
+      conciergeType:
+          $enumDecode(_$ConciergeMessageTypeEnumMap, json['conciergeType']),
       type: $enumDecodeNullable(_$ChatItemTypeEnumMap, json['type']) ??
           ChatItemType.conciergeMessage,
     );

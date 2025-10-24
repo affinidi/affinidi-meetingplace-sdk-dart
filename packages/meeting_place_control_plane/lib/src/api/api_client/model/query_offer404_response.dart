@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+// ignore_for_file: unused_import
 import '../model/invalid_acceptance_error.dart';
 import '../model/expired_acceptance_error.dart';
 import 'package:built_collection/built_collection.dart';
@@ -57,6 +58,7 @@ class _$QueryOffer404ResponseSerializer
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
     QueryOffer404Response object, {
+    // ignore: unused_element_parameter
     FullType specifiedType = FullType.unspecified,
   }) sync* {}
 

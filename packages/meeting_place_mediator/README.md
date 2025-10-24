@@ -54,7 +54,7 @@ Visit the pub.dev install page of the Dart package for more information.
 ## Usage
 
 ```dart
-import 'package:meeting_place_mediator/mediator_sdk.dart';
+import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 import 'package:didcomm/didcomm.dart';
 
@@ -66,7 +66,7 @@ void main() async {
    final DidDocument recipientDidDocument = /* recipient DID Document */;
 
    // Initialize SDK
-   final sdk = MediatorSDK(
+   final sdk = MeetingPlaceMediatorSDK(
       mediatorDid: 'did:example:mediator',
       didResolver: didResolver,
    );
@@ -108,7 +108,7 @@ void main() async {
 }
 ```
 
-For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/example).
+For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_mediator/example).
 
 ## Support & feedback
 

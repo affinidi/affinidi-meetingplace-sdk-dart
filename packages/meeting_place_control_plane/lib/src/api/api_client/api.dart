@@ -49,6 +49,7 @@ class ControlPlaneApi {
             final token = await authTokenHook();
             options.headers['Authorization'] = 'Bearer $token';
           } catch (e) {
+            // ignore: avoid_print
             print("Error retrieving auth token: $e");
           }
           // Continue with the request

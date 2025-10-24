@@ -43,7 +43,8 @@ enum ChatItemStatus {
 ///
 /// It represents both standard chat messages and concierge messages,
 /// and contains metadata such as sender, creation date, and status.
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
+@JsonSerializable(
+    includeIfNull: false, explicitToJson: true, createFactory: false)
 class ChatItem {
   /// Creates a new [ChatItem].
   ///

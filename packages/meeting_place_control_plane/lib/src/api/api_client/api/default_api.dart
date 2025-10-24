@@ -2,6 +2,8 @@
 // AUTO-GENERATED FILE, DO NOT MODIFY!
 //
 
+// ignore_for_file: unused_import
+
 import 'dart:async';
 
 import 'package:built_value/json_object.dart';
@@ -62,7 +64,6 @@ import '../model/register_offer_group_input.dart';
 import '../model/register_offer_group_ok.dart';
 import '../model/register_offer_input.dart';
 import '../model/register_offer_ok.dart';
-import 'package:built_value/json_object.dart';
 
 class DefaultApi {
   final Dio _dio;

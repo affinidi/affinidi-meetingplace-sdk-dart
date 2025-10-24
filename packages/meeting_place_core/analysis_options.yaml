@@ -16,11 +16,6 @@ linter:
     - sort_pub_dependencies
     - unawaited_futures
 analyzer:
-  exclude:
-    # - Exclude MPX client directory because it contains auto-generated code
-    # - Exclude DIDComm dart package as it will be removed from this repository after main development work is done
-    [lib/**.g.dart]
-
   errors:
     avoid_print: error
     deprecated_member_use_from_same_package: ignore

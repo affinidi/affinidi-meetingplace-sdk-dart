@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+// ignore_for_file: unused_import
 import '../model/invalid_acceptance_error.dart';
 import 'package:built_collection/built_collection.dart';
 import '../model/not_found_error_details_inner.dart';
@@ -58,6 +59,7 @@ class _$AcceptOfferToConnect404ResponseSerializer
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
     AcceptOfferToConnect404Response object, {
+    // ignore: unused_element_parameter
     FullType specifiedType = FullType.unspecified,
   }) sync* {}
 

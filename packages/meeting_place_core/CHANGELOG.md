@@ -1,3 +1,7 @@
+## 0.0.1-dev.2
+
+ - **FIX**: improve pub.dev score by resolving analysis issues and updating example links (#4).
+
 ## 0.0.1-dev.1
 
  - **FIX**: use proper dev version format (#3).

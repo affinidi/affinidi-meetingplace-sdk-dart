@@ -1,0 +1,76 @@
+name: affinidi_mpx_sdk
+description: A Dart toolkit to build a messaging app for a safe and secure method to discover, connect, and communicate with others (individuals, businesses, and AI agents).
+publish_to: "none"
+
+workspace:
+  - packages/meeting_place_chat
+  - packages/meeting_place_chat/example
+  - packages/meeting_place_control_plane
+  - packages/meeting_place_core
+  - packages/meeting_place_core/example
+  - packages/meeting_place_mediator
+  - packages/meeting_place_drift_repository
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+dev_dependencies:
+  coverage: ^1.11.1
+  dart_flutter_team_lints: ^3.2.1
+  melos: ^7.1.0
+  test: ^1.24.0
+
+melos:
+  scripts:
+    pubget:
+      exec: dart pub get
+      packageFilters:
+        fileExists:
+          - pubspec.yaml
+
+    analyze:
+      exec: dart analyze .
+      concurrency: 4
+      failFast: true
+      packageFilters:
+        flutter: false
+        fileExists:
+          - analysis_options.yaml
+        ignore:
+          - "api_client"
+        includePrivatePackages: false
+        #diff: 'origin/main'
+
+    test:
+      run: |
+        melos run test-dart &&
+        melos run coverage-report
+
+    test-dart:
+      description: Run tests in each dart package
+      exec: dart run coverage:test_with_coverage
+      dirExists: test
+      concurrency: 4
+      failFast: true
+      noSelect: true
+      packageFilters:
+        dirExists: test
+        flutter: false
+        #private: false
+        ignore:
+          - "*_example*"
+
+    coverage-report:
+      run: >
+        mkdir -p coverage
+
+        find ./packages -name "lcov.info" -path "*/coverage/lcov.info" -exec cat
+        {} + > coverage/lcov.info
+
+    build-runner:
+      exec: dart run build_runner clean && dart run build_runner build -d
+      packageFilters:
+        dependsOn: build_runner
+        ignore:
+          - "affinidi_tdk_mpx_client"
+          - "didcomm"

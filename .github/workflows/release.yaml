@@ -1,0 +1,11 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+jobs:
+  dart-pipeline:
+    uses: affinidi/pipeline-dart/.github/workflows/release.yaml@main
+    secrets: inherit
+    with:
+      flutter-version: '3.35.3'

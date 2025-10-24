@@ -1,0 +1,1 @@
+enum DeregisterNotificationErrorCode { notFound }

@@ -3,7 +3,6 @@ description: The core Meeting Place package implementing Control Plane API and M
 version: 0.0.1-dev0
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
-publish_to: none
 
 environment:
   sdk: ^3.6.0

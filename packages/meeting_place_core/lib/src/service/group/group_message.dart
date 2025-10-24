@@ -101,7 +101,7 @@ class GroupMessage {
   }
 
   static ck.EncryptionResult _encryptMessage(
-    message, {
+    PlainTextMessage message, {
     required Uint8List symmetricKeyBytes,
   }) {
     final encrypter = _createEncrypter(symmetricKeyBytes);

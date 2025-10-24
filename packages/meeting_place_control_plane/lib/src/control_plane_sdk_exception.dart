@@ -1,6 +1,6 @@
 /// Represents a control plane SDK exception.
 class ControlPlaneSDKException implements Exception {
-  /// Creates a [MpxSdkException] instance.
+  /// Creates a [ControlPlaneSDKException] instance.
   ControlPlaneSDKException({
     required this.message,
     required this.code,

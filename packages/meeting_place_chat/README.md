@@ -113,7 +113,7 @@ void main() async {
 }
 ```
 
-For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/example).
+For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_chat/example).
 
 ## Support & feedback
 

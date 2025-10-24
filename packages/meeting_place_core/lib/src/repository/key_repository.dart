@@ -3,7 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'key_repository.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(createToJson: false)
 class KeyPair {
   factory KeyPair.fromJson(Map<String, dynamic> json) =>
       _$KeyPairFromJson(json);

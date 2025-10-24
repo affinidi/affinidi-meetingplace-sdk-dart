@@ -6,21 +6,16 @@
 # invoked from the command line by running `flutter analyze`.
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
-include: package:lints/recommended.yaml
+include: package:lints/core.yaml
 
 linter:
   rules:
     - avoid_print
     - prefer_relative_imports
-    - sort_constructors_first
     - sort_pub_dependencies
     - unawaited_futures
-analyzer:
-  exclude:
-    # - Exclude MPX client directory because it contains auto-generated code
-    # - Exclude DIDComm dart package as it will be removed from this repository after main development work is done
-    - "lib/src/api/api_client/**" # ignore auto generated files
 
+analyzer:
   errors:
     avoid_print: error
     deprecated_member_use_from_same_package: ignore

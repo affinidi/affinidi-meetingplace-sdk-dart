@@ -16,9 +16,6 @@ linter:
     - sort_pub_dependencies
     - unawaited_futures
 analyzer:
-  exclude:
-    [lib/**.g.dart]
-
   errors:
     avoid_print: error
     deprecated_member_use_from_same_package: ignore

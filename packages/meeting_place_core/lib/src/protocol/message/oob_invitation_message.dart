@@ -1,12 +1,8 @@
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-part 'oob_invitation_message.g.dart';
-
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class OobInvitationMessage extends OutOfBandMessage {
   OobInvitationMessage({required super.id, required super.from})
       : super(

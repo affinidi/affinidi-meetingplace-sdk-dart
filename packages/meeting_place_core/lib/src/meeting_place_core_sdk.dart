@@ -1237,7 +1237,7 @@ class MeetingPlaceCoreSDK {
   ///   If not provided, the SDK instance’s default mediator DID will be used.
   ///
   /// **Returns: [CoreSDKStreamSubscription]**
-  Future<CoreSDKStreamSubscription> subscribeToMediator(
+  Future<CoreSDKStreamSubscription<MediatorMessage>> subscribeToMediator(
     String did, {
     String? mediatorDid,
   }) async {

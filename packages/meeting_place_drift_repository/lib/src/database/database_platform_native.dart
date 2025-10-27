@@ -85,7 +85,18 @@ LazyDatabase openConnection({
   required String passphrase,
   required Directory directory,
   bool logStatements = false,
+  bool inMemory = false,
 }) {
+  if (inMemory) {
+    return LazyDatabase(() async {
+      final database = await DatabasePlatform.createInMemoryDatabase(
+        passphrase: passphrase,
+        logStatements: logStatements,
+      );
+      return database;
+    });
+  }
+
   return LazyDatabase(() async {
     final database = await DatabasePlatform.createDatabase(
       databaseName: databaseName,

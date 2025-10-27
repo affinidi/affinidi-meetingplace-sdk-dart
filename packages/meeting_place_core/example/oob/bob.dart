@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
@@ -41,4 +42,16 @@ void main() async {
   // Close stream
   prettyPrint('Disposing OOB stream...');
   await acceptance.streamSubscription.dispose();
+
+  await bobSDK.sendMessage(
+      PlainTextMessage(
+          id: Uuid().v4(),
+          type: Uri.parse('https://affinidi.io/meeting-place-core/example/oob'),
+          from: channel.permanentChannelDid,
+          to: [channel.otherPartyPermanentChannelDid!],
+          body: {'hello': 'world'}),
+      senderDid: channel.permanentChannelDid!,
+      recipientDid: channel.otherPartyPermanentChannelDid!);
+
+  prettyPrint('Message sent to Alice');
 }

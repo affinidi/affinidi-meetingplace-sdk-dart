@@ -244,7 +244,7 @@ void main() async {
         resultA.streamSubscription, isNot(equals(resultB.streamSubscription)));
   });
 
-  test('uses given did as publish offer did for OOB flow', () async {
+  test('uses given did as permanent channel did for OOB flow', () async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
@@ -266,6 +266,31 @@ void main() async {
     expect(
       (await aliceCompleter.future).permanentChannelDid,
       equals(didDoc.id),
+    );
+  });
+
+  test('generates OOB even if did is given', () async {
+    final did = await aliceSDK.generateDid();
+    final didDoc = await did.getDidDocument();
+
+    final createOobFlowResult = await aliceSDK.createOobFlow(
+      vCard: VCardFixture.alicePrimaryVCard,
+      did: didDoc.id,
+    );
+
+    await bobSDK.acceptOobFlow(
+      createOobFlowResult.oobUrl,
+      vCard: VCardFixture.bobPrimaryVCard,
+    );
+
+    final aliceCompleter = Completer<Channel>();
+    createOobFlowResult.streamSubscription.listen((data) {
+      aliceCompleter.complete(data.channel);
+    });
+
+    expect(
+      (await aliceCompleter.future).publishOfferDid,
+      isNot(equals(didDoc.id)),
     );
   });
 

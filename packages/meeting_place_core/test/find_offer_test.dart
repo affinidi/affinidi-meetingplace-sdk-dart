@@ -16,6 +16,7 @@ void main() async {
 
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer',
+      offerDescription: 'Sample offer description',
       maximumUsage: 5,
       vCard: VCard(values: {}),
       type: SDKConnectionOfferType.invitation,
@@ -49,6 +50,7 @@ void main() async {
   test('returns offer group connection', () async {
     final result = await aliceSDK.publishOffer(
       offerName: 'Sample Offer',
+      offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,
       vCard: VCard(values: {}),
     );
@@ -68,6 +70,7 @@ void main() async {
   test('return offer with error code because is owner', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer',
+      offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.invitation,
       vCard: VCard(values: {}),
     );

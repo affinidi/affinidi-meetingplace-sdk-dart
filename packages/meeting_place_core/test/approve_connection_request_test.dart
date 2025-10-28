@@ -18,6 +18,7 @@ void main() async {
   test('handle finalised offer event', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,
     );

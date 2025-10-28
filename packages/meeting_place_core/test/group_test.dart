@@ -30,6 +30,7 @@ void main() async {
     final metadata = 'foobar';
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.groupInvitation,
       metadata: metadata,
@@ -45,6 +46,7 @@ void main() async {
   test('accept offer for group', () async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.groupInvitation,
       metadata: 'foobar',
@@ -66,6 +68,7 @@ void main() async {
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.groupInvitation,
       metadata: 'foobar',
@@ -105,6 +108,7 @@ void main() async {
 
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
         offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
         vCard: aliceVCard,
         type: SDKConnectionOfferType.groupInvitation,
         metadata: 'foobar',
@@ -190,6 +194,7 @@ void main() async {
 
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
         offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
         vCard: aliceVCard,
         type: SDKConnectionOfferType.groupInvitation,
       );
@@ -339,6 +344,7 @@ void main() async {
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: aliceVCard,
       type: SDKConnectionOfferType.groupInvitation,
     );
@@ -452,6 +458,7 @@ void main() async {
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,
       vCard: aliceVCard,
     );
@@ -502,6 +509,7 @@ void main() async {
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: aliceVCard,
       validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       type: SDKConnectionOfferType.groupInvitation,
@@ -589,6 +597,7 @@ void main() async {
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: aliceVCard,
       type: SDKConnectionOfferType.groupInvitation,
     );

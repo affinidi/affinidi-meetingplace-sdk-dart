@@ -21,16 +21,22 @@ void main() async {
         values: expValues,
       );
 
+      final offerName = 'Sample Offer';
+      final offerDescription = 'Sample offer description';
+      final type = SDKConnectionOfferType.invitation;
+
       final actual = await aliceSDK.publishOffer(
-        offerName: 'Sample',
+        offerName: offerName,
+        offerDescription: offerDescription,
         vCard: vCard,
-        type: SDKConnectionOfferType.invitation,
+        type: type,
       );
 
-      expect(
-        actual.connectionOffer.vCard.values,
-        equals(expValues),
-      );
+      expect(actual.connectionOffer.offerName, equals(offerName));
+      expect(actual.connectionOffer.offerDescription, equals(offerDescription));
+      expect(actual.connectionOffer.vCard.values, equals(expValues));
+      expect(actual.connectionOffer.type,
+          equals(ConnectionOfferType.meetingPlaceInvitation));
     },
   );
 }

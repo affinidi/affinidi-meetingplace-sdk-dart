@@ -804,7 +804,7 @@ class MeetingPlaceCoreSDK {
     required String offerName,
     required sdk.SDKConnectionOfferType type,
     required VCard vCard,
-    String? offerDescription,
+    required String offerDescription,
     String? customPhrase,
     DateTime? validUntil,
     int? maximumUsage,

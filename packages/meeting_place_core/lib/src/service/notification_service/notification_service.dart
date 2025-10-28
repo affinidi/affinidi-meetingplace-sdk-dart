@@ -48,7 +48,7 @@ class NotificationService {
     final deviceToken = '$mediatorDid::${didDoc.id}';
 
     await Future.wait([
-      _registerDeviceOnDiscoveryAPI(deviceToken),
+      _registerDeviceOnControlPlaneAPI(deviceToken, PlatformType.didcomm),
       _allowServiceToSendMessages(
         didManager: didManager,
         didDoc: didDoc,
@@ -88,26 +88,17 @@ class NotificationService {
         return device;
       }
 
-      _logger.warning('Device not found', name: methodName);
-      throw MissingDeviceException();
+      await _registerDeviceOnControlPlaneAPI(deviceToken, platformType);
     } on MissingDeviceException {
-      await _controlPlaneSDK.execute(
-        RegisterDeviceCommand(
-          deviceToken: deviceToken,
-          platformType: platformType,
-        ),
-      );
-
-      _logger.info(
-        'Finished registering for push notifications',
-        name: methodName,
-      );
-
-      return Device(
-        deviceToken: deviceToken,
-        platformType: PlatformType.pushNotification,
-      );
+      await _registerDeviceOnControlPlaneAPI(deviceToken, platformType);
     }
+
+    _logger.info(
+      'Finished registering for push notifications',
+      name: methodName,
+    );
+
+    return Device(deviceToken: deviceToken, platformType: platformType);
   }
 
   Future<DidManager> _getRecipientDidManagerOrCreate({
@@ -119,11 +110,14 @@ class NotificationService {
         : _connectionManager.generateDid(wallet);
   }
 
-  Future<void> _registerDeviceOnDiscoveryAPI(String deviceToken) {
+  Future<void> _registerDeviceOnControlPlaneAPI(
+    String deviceToken,
+    PlatformType platformType,
+  ) {
     return _controlPlaneSDK.execute(
       RegisterDeviceCommand(
         deviceToken: deviceToken,
-        platformType: PlatformType.didcomm,
+        platformType: platformType,
       ),
     );
   }

@@ -62,6 +62,7 @@ void main() async {
     // Publish group offer / create group
     publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.groupInvitation,
     );

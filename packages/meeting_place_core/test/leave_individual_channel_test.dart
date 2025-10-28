@@ -32,6 +32,7 @@ void main() async {
 
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
+      offerDescription: 'Sample offer description',
       maximumUsage: 1,
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,

@@ -33,6 +33,7 @@ void main() async {
     final publishOfferResult =
         await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
       vCard: aliceVCard,
       type: SDKConnectionOfferType.groupInvitation,
     );

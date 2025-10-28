@@ -21,6 +21,7 @@ void main() async {
       expect(
         () => sdkWithoutDevice.publishOffer(
           offerName: 'Test offer',
+          offerDescription: 'Sample offer description',
           vCard: VCard(values: {}),
           type: SDKConnectionOfferType.invitation,
         ),
@@ -46,6 +47,7 @@ void main() async {
       await aliceSDK.registerForPushNotifications(Uuid().v4());
       await aliceSDK.publishOffer(
         offerName: 'Test offer',
+        offerDescription: 'Sample offer description',
         vCard: VCard(values: {}),
         type: SDKConnectionOfferType.invitation,
       );
@@ -72,6 +74,7 @@ void main() async {
     expect(
       () => minimumSDK.publishOffer(
         offerName: 'Test offer',
+        offerDescription: 'Sample offer description',
         vCard: VCard(values: {}),
         type: SDKConnectionOfferType.groupInvitation,
       ),

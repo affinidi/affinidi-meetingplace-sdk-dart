@@ -20,6 +20,7 @@ void main() async {
   test('accept offer uses correct vcard', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
+      offerDescription: 'Sample offer description',
       maximumUsage: 1,
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,
@@ -65,6 +66,7 @@ void main() async {
   test('connection offer contains vCard of accepter after accepting', () async {
     final actual = (await aliceSDK.publishOffer(
       offerName: 'Sample',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,
     ));
@@ -83,6 +85,7 @@ void main() async {
   test('claim limit exceeded', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
+      offerDescription: 'Sample offer description',
       maximumUsage: 1,
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,
@@ -114,6 +117,7 @@ void main() async {
   test('throws exception if user attempts to accept offer twice', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,
     );
@@ -151,6 +155,7 @@ void main() async {
     () async {
       final publishedOfferResult = await aliceSDK.publishOffer(
         offerName: 'Test Offer',
+        offerDescription: 'Sample offer description',
         vCard: VCardFixture.alicePrimaryVCard,
         type: SDKConnectionOfferType.invitation,
       );
@@ -178,6 +183,7 @@ void main() async {
   test('throws error if offer claiming is in progress', () async {
     final publishedOfferResult = await aliceSDK.publishOffer(
       offerName: 'Test Offer',
+      offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,
     );

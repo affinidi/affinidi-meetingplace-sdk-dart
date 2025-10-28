@@ -91,7 +91,7 @@ class RegisterOfferGroupHandler
 
     final builder = RegisterOfferGroupInputBuilder()
       ..offerName = command.offerName
-      ..offerDescription = command.offerDescription ?? ''
+      ..offerDescription = command.offerDescription
       ..didcommMessage = toBase64(command.oobInvitationMessage.toJson())
       ..vcard = command.vCard.toBase64()
       ..validUntil = command.validUntil?.toIso8601String()

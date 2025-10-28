@@ -427,24 +427,21 @@ class MeetingPlaceCoreSDK {
     final methodName = 'createOobFlow';
     _logger.info('Started creating OOB invitation', name: methodName);
 
-    final didManager = did != null
-        ? await _connectionManager.getDidManagerForDid(wallet, did)
-        : await generateDid();
-
-    final didManagerDidDoc = await didManager.getDidDocument();
+    final oobDidManager = await generateDid();
+    final oobDidDoc = await oobDidManager.getDidDocument();
 
     await _mediatorSDK.updateAcl(
-      ownerDidManager: didManager,
-      acl: AclSet.toPublic(ownerDid: didManagerDidDoc.id),
+      ownerDidManager: oobDidManager,
+      acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
-    final oobMessage = OobInvitationMessage.create(from: didManagerDidDoc.id);
+    final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
     final result = await _controlPlaneSDK.execute(
       CreateOobCommand(oobInvitationMessage: oobMessage),
     );
 
     final streamSubscription = await _mediatorService.subscribe(
-      didManager: didManager,
+      didManager: oobDidManager,
       mediatorDid: result.mediatorDid,
     );
 
@@ -477,7 +474,7 @@ class MeetingPlaceCoreSDK {
             await permanentChannelDidManager.getDidDocument();
 
         await _connectionService.sendConnectionRequestApprovalToMediator(
-          offerPublishedDid: didManager,
+          offerPublishedDid: oobDidManager,
           permanentChannelDid: permanentChannelDidManager,
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           otherPartyAcceptOfferDid: plainTextMessage.from!,
@@ -488,7 +485,7 @@ class MeetingPlaceCoreSDK {
 
         final channel = Channel(
           offerLink: oobMessage.id,
-          publishOfferDid: didManagerDidDoc.id,
+          publishOfferDid: oobDidDoc.id,
           mediatorDid: result.mediatorDid,
           outboundMessageId: oobMessage.id,
           acceptOfferDid: plainTextMessage.from!,

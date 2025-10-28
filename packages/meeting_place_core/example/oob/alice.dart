@@ -9,7 +9,7 @@ import '../utils/sdk.dart';
 
 void main() async {
   final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
-  final aliceWaitFor = Completer<void>();
+  final aliceWaitFor = Completer<Channel>();
 
   // Alice creates OOB
   prettyPrintGreen('>>> Calling SDK.createOobFlow');
@@ -26,12 +26,32 @@ void main() async {
     prettyPrintYellow('Received event type: ${data.eventType.name}');
     prettyJsonPrintYellow('Received message:', data.message.toJson());
     prettyJsonPrintYellow('Received channel:', data.channel.toJson());
-    aliceWaitFor.complete();
+    aliceWaitFor.complete(data.channel);
   });
 
-  await aliceWaitFor.future;
+  final channel = await aliceWaitFor.future;
 
   // Close stream
   prettyPrint('Disposing OOB stream...');
   await oob.streamSubscription.dispose();
+
+  final messageSubscription = await aliceSDK.subscribeToMediator(
+    channel.permanentChannelDid!,
+  );
+
+  final waitForBobsMessage = Completer<PlainTextMessage>();
+  messageSubscription.stream.listen((message) {
+    if (message.plainTextMessage
+        .isOfType('https://affinidi.io/meeting-place-core/example/oob')) {
+      waitForBobsMessage.complete(message.plainTextMessage);
+    }
+  });
+
+  prettyPrintYellow('Waiting for Bob\'s message...');
+  prettyJsonPrintYellow(
+      'Received Bob\'s message', (await waitForBobsMessage.future).toJson());
+
+  // Close stream
+  prettyPrint('Disposing message stream...');
+  await messageSubscription.dispose();
 }

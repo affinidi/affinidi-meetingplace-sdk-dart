@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.4`](#meeting_place_drift_repository---v001-dev4)
+
+---
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.4`
+
+ - **FIX**: expose drift in memory databases (#6).
+
+
+## 2025-10-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_core` - `v0.0.1-dev.3`](#meeting_place_core---v001-dev3)
  - [`meeting_place_chat` - `v0.0.1-dev.3`](#meeting_place_chat---v001-dev3)
  - [`meeting_place_drift_repository` - `v0.0.1-dev.3`](#meeting_place_drift_repository---v001-dev3)

@@ -1,3 +1,7 @@
+## 0.0.1-dev.4
+
+ - **FIX**: expose drift in memory databases (#6).
+
 ## 0.0.1-dev.3
 
  - Update a dependency to the latest release.

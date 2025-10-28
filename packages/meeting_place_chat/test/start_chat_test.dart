@@ -588,7 +588,6 @@ void main() async {
   });
 
   test('chat message attachments', () async {
-    final bobWaitForAttachments = Completer<void>();
     await bobChatSDK.startChatSession();
 
     final attachments = [
@@ -607,25 +606,25 @@ void main() async {
       ),
     ];
 
-    var receivedAttachments = <Attachment>[];
-    await bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          // ignore: avoid_print
-          receivedAttachments = data.plainTextMessage?.attachments ?? [];
-          bobWaitForAttachments.complete();
-        }
-      });
-    });
-
     await aliceChatSDK.startChatSession();
-    await aliceChatSDK.sendTextMessage(
+    final message = await aliceChatSDK.sendTextMessage(
       'Hello World!',
       attachments: attachments,
     );
 
-    await bobWaitForAttachments.future;
+    final bobWaitForAttachments = Completer<List<Attachment>>();
+    await bobChatSDK.chatStreamSubscription.then((stream) {
+      stream!.listen((data) {
+        if (data.plainTextMessage?.type.toString() ==
+                ChatProtocol.chatMessage.value &&
+            message.messageId == data.plainTextMessage?.id) {
+          bobWaitForAttachments
+              .complete(data.plainTextMessage?.attachments ?? []);
+        }
+      });
+    });
+
+    final receivedAttachments = await bobWaitForAttachments.future;
 
     // Received message has attachments
     expect(receivedAttachments.first.toJson(), attachments.first.toJson());

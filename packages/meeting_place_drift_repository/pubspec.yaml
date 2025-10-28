@@ -1,7 +1,7 @@
 name: meeting_place_drift_repository
 description: The Meeting Place Drift Repository is a package that uses Drift to persist and manage channels, connection offers, groups, anc chat history in local device storage.
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
-version: 0.0.1-dev.3
+version: 0.0.1-dev.4
 resolution: workspace
 
 environment:

@@ -89,6 +89,10 @@ void main() async {
           equals(bobOfferFinalisedChannel.permanentChannelDid));
     });
 
+    test('channel has been updated with notification token', () async {
+      expect(aliceApprovedChannel.notificationToken, isNotNull);
+    });
+
     test('channel status has been updated to approved', () async {
       expect(aliceApprovedChannel.status, equals(ChannelStatus.approved));
     });

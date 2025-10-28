@@ -318,7 +318,7 @@ void main() async {
       stream!.listen((message) {
         if (message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatMessage.value) {
-          bobChatCompleted.complete();
+          if (!bobChatCompleted.isCompleted) bobChatCompleted.complete();
         }
       });
     });
@@ -371,22 +371,21 @@ void main() async {
     'alice receives profile hash message from Bob when Bob starts chat',
     () async {
       await aliceChatSDK.startChatSession();
-      final aliceCompleter = Completer<void>();
 
-      var receivedProfileHashMessage = false;
-
+      final waitForProfileHashMessage = Completer<bool>();
       await aliceChatSDK.chatStreamSubscription.then((stream) {
         stream!.listen((message) {
           if (message.plainTextMessage?.type.toString() ==
               ChatProtocol.chatAliasProfileHash.value) {
-            receivedProfileHashMessage = true;
-            aliceCompleter.complete();
+            if (!waitForProfileHashMessage.isCompleted) {
+              waitForProfileHashMessage.complete(true);
+            }
           }
         });
       });
 
       await bobChatSDK.startChatSession();
-      await aliceCompleter.future;
+      final receivedProfileHashMessage = await waitForProfileHashMessage.future;
       expect(receivedProfileHashMessage, isTrue);
     },
   );
@@ -399,7 +398,7 @@ void main() async {
       stream!.listen((message) {
         if (message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatAliasProfileHash.value) {
-          aliceCompleter.complete();
+          if (!aliceCompleter.isCompleted) aliceCompleter.complete();
         }
       });
     });

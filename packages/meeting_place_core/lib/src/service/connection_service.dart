@@ -160,10 +160,10 @@ class ConnectionService {
 
   Future<(ConnectionOffer, DidManager)> publishOffer({
     required String offerName,
+    required String offerDescription,
     required VCard vCard,
     required Wallet wallet,
     required ConnectionOfferType type,
-    String? offerDescription,
     String? customPhrase,
     DateTime? validUntil,
     int? maximumUsage,

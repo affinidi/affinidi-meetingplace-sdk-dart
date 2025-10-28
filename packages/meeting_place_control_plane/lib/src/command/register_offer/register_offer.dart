@@ -13,23 +13,24 @@ class RegisterOfferCommand
   /// Creates a new instance of [RegisterOfferCommand].
   RegisterOfferCommand({
     required this.offerName,
+    required this.offerDescription,
     required this.vCard,
     required this.device,
     required this.type,
     required this.oobInvitationMessage,
-    this.offerDescription,
     this.validUntil,
     this.maximumUsage,
     this.customPhrase,
     this.mediatorDid,
   });
+
   final String offerName;
+  final String offerDescription;
   final VCard vCard;
   final Device device;
   final OfferType type;
   final PlainTextMessage oobInvitationMessage;
 
-  final String? offerDescription;
   final DateTime? validUntil;
   final int? maximumUsage;
   final String? customPhrase;

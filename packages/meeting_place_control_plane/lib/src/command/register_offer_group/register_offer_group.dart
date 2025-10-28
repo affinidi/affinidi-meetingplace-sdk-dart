@@ -12,13 +12,13 @@ class RegisterOfferGroupCommand
   /// Creates a new instance of [RegisterOfferGroupCommand].
   RegisterOfferGroupCommand({
     required this.offerName,
+    required this.offerDescription,
     required this.vCard,
     required this.device,
     required this.oobInvitationMessage,
     required this.adminDid,
     required this.adminPublicKey,
     required this.adminReencryptionKey,
-    this.offerDescription,
     this.validUntil,
     this.maximumUsage,
     this.customPhrase,
@@ -28,11 +28,11 @@ class RegisterOfferGroupCommand
     this.metadata,
   });
   final String offerName;
+  final String offerDescription;
   final VCard vCard;
   final Device device;
   final PlainTextMessage oobInvitationMessage;
 
-  final String? offerDescription;
   final DateTime? validUntil;
   final int? maximumUsage;
   final String? customPhrase;

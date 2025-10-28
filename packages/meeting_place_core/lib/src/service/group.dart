@@ -78,9 +78,9 @@ class GroupService {
         DidManager ownerDid,
       )> createGroup({
     required String offerName,
+    required String offerDescription,
     required VCard vCard,
     String? mediatorDid,
-    String? offerDescription,
     String? customPhrase,
     DateTime? validUntil,
     int? maximumUsage,
@@ -118,9 +118,12 @@ class GroupService {
     final result = await _controlPlaneSDK.execute(
       RegisterOfferGroupCommand(
         offerName: offerName,
+        offerDescription: offerDescription,
         vCard: VCardImpl(values: vCard.values),
         device: _controlPlaneSDK.device,
         oobInvitationMessage: oobMessage,
+        validUntil: validUntil,
+        maximumUsage: maximumUsage,
         customPhrase: customPhrase,
         adminDid: ownerDidDocument.id,
         adminPublicKey: recryptKeyPair.publicKeyToBase64(),

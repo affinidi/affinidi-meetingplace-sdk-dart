@@ -1,3 +1,7 @@
+## 0.0.1-dev.4
+
+ - **FIX**: ensure offer description is passed and required; clean up misleading log (#7).
+
 ## 0.0.1-dev.3
 
  - **FIX**: generate DID for OOB flow even when DID is provided during creation  (#5).

@@ -1,3 +1,7 @@
+## 0.0.1-dev.3
+
+ - **FIX**: ensure offer description is passed and required; clean up misleading log (#7).
+
 ## 0.0.1-dev.2
 
  - **FIX**: improve pub.dev score by resolving analysis issues and updating example links (#4).

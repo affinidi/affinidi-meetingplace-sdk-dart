@@ -1,3 +1,7 @@
+## 0.0.1-dev.3
+
+ - **FIX**: generate DID for OOB flow even when DID is provided during creation  (#5).
+
 ## 0.0.1-dev.2
 
  - **FIX**: improve pub.dev score by resolving analysis issues and updating example links (#4).

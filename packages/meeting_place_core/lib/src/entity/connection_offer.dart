@@ -129,9 +129,9 @@ class ConnectionOffer {
       acceptOfferDid: acceptOfferDid ?? this.acceptOfferDid,
       maximumUsage: maximumUsage ?? this.maximumUsage,
       status: status ?? this.status,
-      notificationToken: this.notificationToken,
+      notificationToken: notificationToken ?? this.notificationToken,
       otherPartyNotificationToken:
-          notificationToken ?? this.otherPartyNotificationToken,
+          otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef ?? this.externalRef,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,

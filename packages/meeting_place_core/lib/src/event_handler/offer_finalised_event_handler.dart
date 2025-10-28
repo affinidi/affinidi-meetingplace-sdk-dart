@@ -132,9 +132,9 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       await channelRepository.updateChannel(channel);
 
       final approvedConnection = connection.finalised(
-        notificationToken: notificationToken,
         outboundMessageId: message.id,
         otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+        notificationToken: notificationToken,
         otherPartyNotificationToken: event.notificationToken,
       );
 

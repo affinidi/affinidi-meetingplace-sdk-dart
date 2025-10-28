@@ -10,12 +10,14 @@ void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
   late MeetingPlaceCoreSDK bobSDK;
 
-  setUp(() async {
+  late Channel aliceInvitationAcceptChannel;
+  late Channel aliceApprovedChannel;
+  late Channel bobOfferFinalisedChannel;
+
+  setUpAll(() async {
     aliceSDK = await initSDKInstance();
     bobSDK = await initSDKInstance();
-  });
 
-  test('handle finalised offer event', () async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
@@ -37,38 +39,127 @@ void main() async {
       senderInfo: 'Bob',
     );
 
-    final completer = Completer<void>();
-    late Channel channel;
-    aliceSDK.controlPlaneEventsStream.listen((event) {
-      if (event.type == ControlPlaneEventType.InvitationAccept) {
-        channel = event.channel;
-        completer.complete();
-      }
-    }).onError((err) => fail(err.toString()));
+    final waitForInvitationAccept = Completer<Channel>();
+    aliceSDK.controlPlaneEventsStream
+        .where((event) =>
+            event.matchesType(ControlPlaneEventType.InvitationAccept))
+        .listen((event) => waitForInvitationAccept.complete(event.channel));
+
+    final waitForOfferFinalised = Completer<Channel>();
+    bobSDK.controlPlaneEventsStream
+        .where(
+            (event) => event.matchesType(ControlPlaneEventType.OfferFinalised))
+        .listen((event) => waitForOfferFinalised.complete(event.channel));
 
     await aliceSDK.processControlPlaneEvents();
-    await completer.future;
+    aliceInvitationAcceptChannel = await waitForInvitationAccept.future;
 
     final connectionOffer = await aliceSDK.getConnectionOffer(
       findOfferResult.connectionOffer!.offerLink,
     );
 
-    await aliceSDK.approveConnectionRequest(
+    aliceApprovedChannel = await aliceSDK.approveConnectionRequest(
       connectionOffer: connectionOffer!,
-      channel: channel,
+      channel: aliceInvitationAcceptChannel,
     );
 
-    // final waitForBobOfferFinalised = DiscoveryTestUtils.waitForDiscoveryEvent(
-    //   bobSDK,
-    //   eventType: DiscoveryEventType.OfferFinalised,
-    //   expectedNumberOfEvents: 1,
-    // );
-    // await bobSDK.processControlPlaneEvents();
-    // await waitForBobOfferFinalised.future;
+    await bobSDK.processControlPlaneEvents();
+    bobOfferFinalisedChannel = await waitForOfferFinalised.future;
+  });
 
-    // final actual =
-    //     await bobSDK.getConnectionOffer(acceptResult.connectionOffer.offerLink);
+  group('verify updates for connection offer owning party (Alice)', () {
+    late ConnectionOffer connectionOffer;
 
-    // expect(actual!.status, equals(ConnectionOfferStatus.finalised));
+    setUp(() async {
+      connectionOffer = await aliceSDK.getConnectionOffer(
+            aliceApprovedChannel.offerLink,
+          ) ??
+          fail('Connection offer does not exist');
+    });
+
+    test('existing channel has been updated', () async {
+      expect(aliceApprovedChannel, equals(aliceInvitationAcceptChannel));
+    });
+
+    test('channel has been updated with permanent channel DIDs', () async {
+      expect(aliceApprovedChannel.permanentChannelDid,
+          equals(bobOfferFinalisedChannel.otherPartyPermanentChannelDid));
+
+      expect(aliceApprovedChannel.otherPartyPermanentChannelDid,
+          equals(bobOfferFinalisedChannel.permanentChannelDid));
+    });
+
+    test('channel status has been updated to approved', () async {
+      expect(aliceApprovedChannel.status, equals(ChannelStatus.approved));
+    });
+
+    test('connection offer has been updated with permanent channel DIDs',
+        () async {
+      expect(connectionOffer.permanentChannelDid,
+          equals(aliceApprovedChannel.permanentChannelDid));
+
+      expect(connectionOffer.otherPartyPermanentChannelDid,
+          equals(bobOfferFinalisedChannel.permanentChannelDid));
+    });
+
+    test('connection offer stays in status published', () async {
+      expect(connectionOffer.status, equals(ConnectionOfferStatus.published));
+    });
+  });
+
+  group('verify updates for connection offer accepting party (Bob)', () {
+    late ConnectionOffer connectionOffer;
+
+    setUp(() async {
+      connectionOffer = await bobSDK.getConnectionOffer(
+            bobOfferFinalisedChannel.offerLink,
+          ) ??
+          fail('Connection offer does not exist');
+    });
+
+    test('channel has been updated with notification tokens', () {
+      expect(bobOfferFinalisedChannel.notificationToken, isNotNull);
+      expect(bobOfferFinalisedChannel.otherPartyNotificationToken, isNotNull);
+    });
+
+    test('channel has been updated with other party permanent channel DIDs',
+        () {
+      expect(bobOfferFinalisedChannel.otherPartyPermanentChannelDid,
+          equals(aliceApprovedChannel.permanentChannelDid));
+    });
+
+    test('channel outbound message id has been updated with message id', () {
+      expect(bobOfferFinalisedChannel.outboundMessageId, isNotNull);
+    });
+
+    test('channel status has been updated to inaugaurated', () {
+      expect(
+          bobOfferFinalisedChannel.status, equals(ChannelStatus.inaugaurated));
+    });
+
+    test('connection offer status has been updated to finalised', () {
+      expect(connectionOffer.status, equals(ConnectionOfferStatus.finalised));
+    });
+
+    test(
+        'connection offer outbound message id has been updated with message id',
+        () {
+      expect(connectionOffer.outboundMessageId,
+          equals(bobOfferFinalisedChannel.outboundMessageId));
+    });
+
+    test(
+        'connection offer has been updated with other party permanent channel did',
+        () {
+      expect(connectionOffer.otherPartyPermanentChannelDid,
+          equals(aliceApprovedChannel.permanentChannelDid));
+    });
+
+    test('connection offer has been updated with notification tokens', () {
+      expect(connectionOffer.notificationToken,
+          equals(bobOfferFinalisedChannel.notificationToken));
+
+      expect(connectionOffer.otherPartyNotificationToken, isNotNull);
+    });
   });
 }

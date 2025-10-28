@@ -546,21 +546,6 @@ class GroupService {
       member: member,
     );
 
-    await _controlPlaneSDK.execute(
-      GroupAddMemberCommand(
-        mnemonic: connectionOffer.mnemonic,
-        groupId: group.id,
-        memberDid: member.did,
-        acceptOfferDid: channel.acceptOfferDid!,
-        offerLink: connectionOffer.offerLink,
-        vCard: channel.otherPartyVCard != null
-            ? VCardImpl(values: channel.otherPartyVCard!.values)
-            : null,
-        publicKey: member.publicKey,
-        reencryptionKey: reencryptionKey.toBase64(),
-      ),
-    );
-
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
       to: [memberDid],
@@ -593,6 +578,21 @@ class GroupService {
       senderDidManager: senderDid,
       recipientDidDocument: memberDidDocument,
       mediatorDid: channel.mediatorDid,
+    );
+
+    await _controlPlaneSDK.execute(
+      GroupAddMemberCommand(
+        mnemonic: connectionOffer.mnemonic,
+        groupId: group.id,
+        memberDid: member.did,
+        acceptOfferDid: channel.acceptOfferDid!,
+        offerLink: connectionOffer.offerLink,
+        vCard: channel.otherPartyVCard != null
+            ? VCardImpl(values: channel.otherPartyVCard!.values)
+            : null,
+        publicKey: member.publicKey,
+        reencryptionKey: reencryptionKey.toBase64(),
+      ),
     );
 
     group.approveMember(member);

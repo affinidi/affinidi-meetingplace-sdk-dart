@@ -35,12 +35,14 @@ class ChannelDatabase extends _$ChannelDatabase {
     required String passphrase,
     required Directory directory,
     bool logStatements = false,
+    bool inMemory = false,
   }) : super(
           openConnection(
             databaseName: databaseName,
             passphrase: passphrase,
             directory: directory,
             logStatements: logStatements,
+            inMemory: inMemory,
           ),
         );
 

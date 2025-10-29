@@ -498,7 +498,7 @@ class ConnectionService {
       vCard: channel.vCard,
     );
 
-    await _controlPlaneSDK.execute(
+    final finaliseAcceptanceOutput = await _controlPlaneSDK.execute(
       FinaliseAcceptanceCommand(
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
@@ -520,6 +520,7 @@ class ConnectionService {
 
     channel.permanentChannelDid = permanentChannelDidDocument.id;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.notificationToken = finaliseAcceptanceOutput.notificationToken;
     channel.status = ChannelStatus.approved;
     await _channelRepository.updateChannel(channel);
 

@@ -69,12 +69,16 @@ class FinaliseAcceptanceHandler
         '[MPX API] Calling /finalise-acceptance for mnemonic: ${command.mnemonic}',
         name: methodName,
       );
-      await _apiClient.client.finaliseOfferAcceptance(
+
+      final response = await _apiClient.client.finaliseOfferAcceptance(
         finaliseOfferInput: builder.build(),
       );
 
       _logger.info('Completed finalising acceptance', name: methodName);
-      return FinaliseAcceptanceOutput(success: true);
+      return FinaliseAcceptanceOutput(
+        success: true,
+        notificationToken: response.data!.notificationToken,
+      );
     } catch (e, stackTrace) {
       _logger.error(
         'Error finalising acceptance',

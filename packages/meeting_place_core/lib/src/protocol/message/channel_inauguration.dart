@@ -13,7 +13,7 @@ class ChannelInauguration extends PlainTextMessage {
     VCard? vCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.channelInauguration.value),
-          body: {'notificationToken': notificationToken, did: did},
+          body: {'notificationToken': notificationToken, 'did': did},
           createdTime: DateTime.now().toUtc(),
         );
 

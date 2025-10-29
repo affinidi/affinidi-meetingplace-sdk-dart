@@ -1051,15 +1051,20 @@ class MeetingPlaceCoreSDK {
         final channel = await _repositoryConfig.channelRepository
             .findChannelByDid(recipientDid);
 
-        if (channel?.otherPartyNotificationToken != null) {
-          await _controlPlaneSDK.execute(
-            NotifyChannelCommand(
-              notificationToken: channel!.otherPartyNotificationToken!,
-              did: recipientDid,
-              type: notifyChannelType, // TODO: make enum
-            ),
-          );
+        final otherPartyNotificationToken =
+            channel?.otherPartyNotificationToken;
+
+        if (otherPartyNotificationToken == null) {
+          return;
         }
+
+        await _controlPlaneSDK.execute(
+          NotifyChannelCommand(
+            notificationToken: channel!.otherPartyNotificationToken!,
+            did: recipientDid,
+            type: notifyChannelType,
+          ),
+        );
       }
     });
   }

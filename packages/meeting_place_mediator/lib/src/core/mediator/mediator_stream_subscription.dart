@@ -53,7 +53,7 @@ class MediatorStreamSubscription {
         _onIncomingMessage,
         onDone: _onDone,
       );
-      await _client.connectionPool.startConnections();
+      await ConnectionPool.instance.startConnections();
     } on StateError catch (e, stackTrace) {
       _logger.error('Mediator client already connected.',
           name: methodName, error: e, stackTrace: stackTrace);
@@ -154,7 +154,7 @@ class MediatorStreamSubscription {
       onDone: _onDone,
     );
 
-    await _client.connectionPool.startConnections();
+    await ConnectionPool.instance.startConnections();
     _logger.info('Re-subscribed to incoming messages', name: methodName);
   }
 }

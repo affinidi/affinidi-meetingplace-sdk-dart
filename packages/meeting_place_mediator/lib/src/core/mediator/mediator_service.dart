@@ -78,14 +78,12 @@ class MediatorService {
         final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
             otherDidDocuments: [mediatorDidDocument]).first;
 
-        final connectionPool = ConnectionPool();
         final client = MediatorClient(
           mediatorDidDocument: mediatorDidDocument,
           // didManager: didManager,
           keyPair: await didManager.getKeyPairByDidKeyId(keyAgreementKeyId),
           didKeyId: keyAgreementKeyId,
           signer: await didManager.getSigner(authenticationKeyId),
-          connectionPool: connectionPool,
           forwardMessageOptions: const ForwardMessageOptions(
             shouldSign: true,
             shouldEncrypt: true,

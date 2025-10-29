@@ -47,18 +47,17 @@ class OutreachService {
       inviteToConnectionOffer.publishOfferDid,
     );
 
-    await Future.wait([
-      _mediatorSDK.sendMessage(
-        outreachInvitation,
-        senderDidManager: senderDidManager,
-        recipientDidDocument: await _didResolver.resolveDid(message.from!),
+    await _mediatorSDK.sendMessage(
+      outreachInvitation,
+      senderDidManager: senderDidManager,
+      recipientDidDocument: await _didResolver.resolveDid(message.from!),
+    );
+
+    await _controlPlaneSDK.execute(
+      NotifyOutreachCommand(
+        mnemonic: outreachConnectionOffer.mnemonic,
+        senderInfo: senderInfo,
       ),
-      _controlPlaneSDK.execute(
-        NotifyOutreachCommand(
-          mnemonic: outreachConnectionOffer.mnemonic,
-          senderInfo: senderInfo,
-        ),
-      ),
-    ]);
+    );
   }
 }

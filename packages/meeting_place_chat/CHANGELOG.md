@@ -1,3 +1,7 @@
+## 0.0.1-dev.5
+
+ - **FIX**: connection flow issues and add matchesType for event type checkin (#8).
+
 ## 0.0.1-dev.4
 
  - **FIX**: ensure offer description is passed and required; clean up misleading log (#7).

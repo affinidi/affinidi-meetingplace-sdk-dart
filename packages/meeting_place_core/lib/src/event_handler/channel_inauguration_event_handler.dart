@@ -1,9 +1,9 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
 import '../protocol/meeting_place_protocol.dart';
-import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
+import 'exceptions/empty_message_list_exception.dart';
 
 class ChannelInaugurationEventHandler extends BaseEventHandler {
   ChannelInaugurationEventHandler({
@@ -13,6 +13,7 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
+    required super.options,
   });
 
   static final String _logKey = 'ChannelInaugurationEventHandler';
@@ -27,19 +28,13 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
       final channel = await findChannelByDid(channelActivity.did);
       final didManager = await findDidManager(channel);
 
-      final messages = await mediatorService.fetchMessages(
+      final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: didManager,
         mediatorDid: channel.mediatorDid,
-        options: FetchMessagesOptions(
-          filterByMessageTypes: [
-            MeetingPlaceProtocol.channelInauguration.value
-          ],
-        ),
+        messageType: MeetingPlaceProtocol.channelInauguration,
       );
 
       logger.info('Found ${messages.length} in inbox', name: _logKey);
-      if (messages.isEmpty) return null;
-
       for (final message in messages) {
         final plainTextMessage = message.plainTextMessage;
 
@@ -60,6 +55,12 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
         name: _logKey,
       );
       return channel;
+    } on EmptyMessageListException {
+      logger.error(
+        'No messages found to process for event of type ${ControlPlaneEventType.ChannelActivity}',
+        name: _logKey,
+      );
+      return null;
     } catch (e, stackTrace) {
       logger.error(
         '''Failed to process event of type ${ControlPlaneEventType.ChannelActivity} -> ${e.toString()}''',

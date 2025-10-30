@@ -1,3 +1,7 @@
+## 0.0.1-dev.6
+
+ - **FEAT**: add retry logic to control plane event handlers to prevent race conditions (#9).
+
 ## 0.0.1-dev.5
 
  - **FIX**: connection flow issues and add matchesType for event type checkin (#8).

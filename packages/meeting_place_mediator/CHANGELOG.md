@@ -1,3 +1,7 @@
+## 0.0.1-dev.3
+
+ - **FEAT**: add retry logic to control plane event handlers to prevent race conditions (#9).
+
 ## 0.0.1-dev.2
 
  - **FIX**: improve pub.dev score by resolving analysis issues and updating example links (#4).

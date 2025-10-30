@@ -5,8 +5,8 @@ import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
 import '../messages/utils.dart';
-import '../service/mediator/fetch_messages_options.dart';
 import 'base_event_handler.dart';
+import 'exceptions/empty_message_list_exception.dart';
 
 class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
   InvitationGroupAcceptedEventHandler({
@@ -16,6 +16,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
+    required super.options,
     required GroupRepository groupRepository,
   }) : _groupRepository = groupRepository;
 
@@ -25,109 +26,123 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
   // new member accepted the group offer.
   Future<Channel?> process(InvitationGroupAccept event) async {
     final methodName = 'process';
-    logger.info(
-      'Started processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
-      name: methodName,
-    );
-
-    final connection = await findConnectionByOfferLink(event.offerLink);
-    if (connection.permanentChannelDid != null) {
+    try {
       logger.info(
-        'InvitationGroupAccept event ignored: connection is already associated with a permanent channel DID',
-        name: methodName,
-      );
-      return null;
-    }
-
-    if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
-      logger.info(
-        'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
-        name: methodName,
-      );
-      return null;
-    }
-
-    final group = await _findGroupByOfferLink(event.offerLink);
-
-    final groupChannel = await channelRepository
-            .findChannelByOtherPartyPermanentChannelDid(group.did) ??
-        (throw Exception('Channel not found for group: ${group.did}'));
-
-    final publishedOfferDidManager = await connectionManager
-        .getDidManagerForDid(wallet, connection.publishOfferDid);
-
-    final messages = await mediatorService.fetchMessages(
-      didManager: publishedOfferDidManager,
-      mediatorDid: connection.mediatorDid,
-      options: FetchMessagesOptions(
-        filterByMessageTypes: [MeetingPlaceProtocol.connectionSetupGroup.value],
-      ),
-    );
-
-    // TODO: ensure duplicate requests are handled correctly
-    for (final result in messages) {
-      final message = result.plainTextMessage;
-
-      final publicKey = message.body!['public_key'] as String;
-      final otherPartyPermanentChannelDid =
-          message.body!['channel_did'] as String;
-
-      logger.info(
-        'Acceptor\'s permanent did is $otherPartyPermanentChannelDid',
+        'Started processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
         name: methodName,
       );
 
-      final otherPartyVCard = getVCardDataOrEmptyFromAttachments(
-        message.attachments,
-      );
+      final connection = await findConnectionByOfferLink(event.offerLink);
+      if (connection.permanentChannelDid != null) {
+        logger.info(
+          'InvitationGroupAccept event ignored: connection is already associated with a permanent channel DID',
+          name: methodName,
+        );
+        return null;
+      }
 
-      final acceptOfferDid = message.from!;
-      group.members.add(
-        GroupMember(
-          did: otherPartyPermanentChannelDid,
-          dateAdded: DateTime.now().toUtc(),
-          publicKey: publicKey,
-          status: GroupMemberStatus.pendingApproval,
-          membershipType: GroupMembershipType.member,
-          vCard: otherPartyVCard ?? VCard.empty(),
-        ),
-      );
+      if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
+        logger.info(
+          'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
+          name: methodName,
+        );
+        return null;
+      }
 
-      await _groupRepository.updateGroup(group);
+      final group = await _findGroupByOfferLink(event.offerLink);
 
-      final channel = Channel(
-        offerLink: connection.offerLink,
-        publishOfferDid: connection.publishOfferDid,
-        acceptOfferDid: acceptOfferDid,
-        mediatorDid: connection.mediatorDid,
-        permanentChannelDid: group.did,
-        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-        status: ChannelStatus.waitingForApproval,
-        type: ChannelType.group,
-        vCard: connection.vCard,
-        otherPartyVCard: otherPartyVCard,
-        externalRef: connection.externalRef,
-      );
+      final groupChannel = await channelRepository
+              .findChannelByOtherPartyPermanentChannelDid(group.did) ??
+          (throw Exception('Channel not found for group: ${group.did}'));
 
-      await channelRepository.createChannel(channel);
-      await mediatorService.deletedMessages(
+      final publishedOfferDidManager = await connectionManager
+          .getDidManagerForDid(wallet, connection.publishOfferDid);
+
+      final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: publishedOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageHashes: [result.messageHash!],
+        messageType: MeetingPlaceProtocol.connectionSetupGroup,
       );
 
-      logger.info(
-        'Completed processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
+      // TODO: ensure duplicate requests are handled correctly
+      for (final result in messages) {
+        final message = result.plainTextMessage;
+
+        final publicKey = message.body!['public_key'] as String;
+        final otherPartyPermanentChannelDid =
+            message.body!['channel_did'] as String;
+
+        logger.info(
+          'Acceptor\'s permanent did is $otherPartyPermanentChannelDid',
+          name: methodName,
+        );
+
+        final otherPartyVCard = getVCardDataOrEmptyFromAttachments(
+          message.attachments,
+        );
+
+        final acceptOfferDid = message.from!;
+        group.members.add(
+          GroupMember(
+            did: otherPartyPermanentChannelDid,
+            dateAdded: DateTime.now().toUtc(),
+            publicKey: publicKey,
+            status: GroupMemberStatus.pendingApproval,
+            membershipType: GroupMembershipType.member,
+            vCard: otherPartyVCard ?? VCard.empty(),
+          ),
+        );
+
+        await _groupRepository.updateGroup(group);
+
+        final channel = Channel(
+          offerLink: connection.offerLink,
+          publishOfferDid: connection.publishOfferDid,
+          acceptOfferDid: acceptOfferDid,
+          mediatorDid: connection.mediatorDid,
+          permanentChannelDid: group.did,
+          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+          status: ChannelStatus.waitingForApproval,
+          type: ChannelType.group,
+          vCard: connection.vCard,
+          otherPartyVCard: otherPartyVCard,
+          externalRef: connection.externalRef,
+        );
+
+        await channelRepository.createChannel(channel);
+        await mediatorService.deletedMessages(
+          didManager: publishedOfferDidManager,
+          mediatorDid: connection.mediatorDid,
+          messageHashes: [result.messageHash!],
+        );
+
+        logger.info(
+          'Completed processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
+          name: methodName,
+        );
+        return groupChannel;
+      }
+
+      logger.warning(
+        'No valid ConnectionSetupGroup message found for offerLink: ${event.offerLink}',
         name: methodName,
       );
-      return groupChannel;
+      return null;
+    } on EmptyMessageListException {
+      logger.error(
+        'No messages found to process for event of type ${ControlPlaneEventType.InvitationGroupAccept}',
+        name: methodName,
+      );
+      return null;
+    } catch (e, stackTrace) {
+      logger.error(
+        'Failed to process event of type ${ControlPlaneEventType.InvitationGroupAccept}',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      rethrow;
     }
-
-    logger.warning(
-      'No valid ConnectionSetupGroup message found for offerLink: ${event.offerLink}',
-      name: methodName,
-    );
-    return null;
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {

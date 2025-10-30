@@ -8,6 +8,7 @@ import '../service/connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
 import 'package:ssi/ssi.dart';
 import 'channel_inauguration_event_handler.dart';
+import 'control_plane_event_handler_manager_options.dart';
 
 class ChannelActivityEventHandler {
   ChannelActivityEventHandler({
@@ -16,12 +17,14 @@ class ChannelActivityEventHandler {
     required ConnectionManager connectionManager,
     required ChannelRepository channelRepository,
     required ConnectionOfferRepository connectionOfferRepository,
+    required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
   })  : _wallet = wallet,
         _connectionManager = connectionManager,
         _channelRepository = channelRepository,
         _connectionOfferRepository = connectionOfferRepository,
         _mediatorService = mediatorService,
+        _options = options,
         _logger = logger;
 
   final Wallet _wallet;
@@ -29,6 +32,7 @@ class ChannelActivityEventHandler {
   final ConnectionOfferRepository _connectionOfferRepository;
   final ChannelRepository _channelRepository;
   final ConnectionManager _connectionManager;
+  final ControlPlaneEventHandlerManagerOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
 
   static final String _logKey = 'ChannelActivityEventHandler';
@@ -47,6 +51,7 @@ class ChannelActivityEventHandler {
         connectionOfferRepository: _connectionOfferRepository,
         channelRepository: _channelRepository,
         connectionManager: _connectionManager,
+        options: _options,
         logger: _logger,
       ).process(channelActivity);
     }

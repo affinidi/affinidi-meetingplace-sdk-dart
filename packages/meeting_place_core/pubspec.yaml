@@ -18,6 +18,7 @@ dependencies:
   meta: ^1.17.0
   mutex: ^3.1.0
   proxy_recrypt: ^1.1.3
+  retry: ^3.1.2
   ssi: ^2.12.4
   uuid: ^4.5.1
 
@@ -26,4 +27,5 @@ dev_dependencies:
   dio: ^5.9.0
   flutter_lints: ^5.0.0
   json_serializable: ^6.9.5
+  mocktail: ^1.0.4
   test: ^1.26.2

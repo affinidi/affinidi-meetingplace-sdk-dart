@@ -246,7 +246,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         'Handling message for group member deregistered',
         name: methodName,
       );
-      await ChatGroupMemberDeregisteredMessageHandler(
+      group = await ChatGroupMemberDeregisteredMessageHandler(
         coreSDK: coreSDK,
         chatHistoryService: _chatHistoryService,
         streamManager: chatStream,
@@ -259,7 +259,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         'Handling message for group details update',
         name: methodName,
       );
-      await ChatGroupDetailsUpdateHandler(
+      group = await ChatGroupDetailsUpdateHandler(
         coreSDK: coreSDK,
         chatHistoryService: _chatHistoryService,
         streamManager: chatStream,
@@ -458,7 +458,9 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     Chat chat,
   ) async {
     final methodName = '_createConciergeMessagesForPendingApprovals';
-    logger.info('Started creating concierge messages', name: methodName);
+    logger.info('Looking up group members with pending approval status.',
+        name: methodName);
+
     final pendingApprovals = group.getGroupMembersWaitingForApproval();
     final conciergeMessages = <ConciergeMessage>[];
 
@@ -675,7 +677,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       throw Exception(message);
     }
 
-    await coreSDK.rejectConnectionRequest(channel: channel);
+    group = await coreSDK.rejectConnectionRequest(channel: channel);
     await sendChatGroupDetailsUpdate();
 
     message.status = ChatItemStatus.confirmed;

@@ -121,7 +121,6 @@ void main() async {
     final aliceCompleter = Completer<void>();
     final bobCompleter = Completer<void>();
 
-    var numberOfDeliveredMessagesReceived = 0;
     var numberOfMessagesReceived = 0;
 
     await bobChatSDK.chatStreamSubscription.then((stream) {
@@ -136,22 +135,21 @@ void main() async {
       });
     });
 
+    final messageIds = <String>[];
+    messageIds.add((await aliceChatSDK.sendTextMessage('Message#1')).messageId);
+    messageIds.add((await aliceChatSDK.sendTextMessage('Message#2')).messageId);
+
     await aliceChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
         if (message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatDelivered.value) {
-          numberOfDeliveredMessagesReceived++;
-          if (numberOfDeliveredMessagesReceived == 2) {
+          messageIds.remove(message.plainTextMessage?.body!['messages'][0]);
+          if (messageIds.isEmpty) {
             aliceCompleter.complete();
           }
         }
       });
     });
-
-    await Future.wait([
-      aliceChatSDK.sendTextMessage('Message#1'),
-      aliceChatSDK.sendTextMessage('Message#2'),
-    ]);
 
     await bobCompleter.future;
     await aliceCompleter.future;

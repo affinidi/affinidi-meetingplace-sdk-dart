@@ -11,6 +11,7 @@ import 'package:ssi/ssi.dart';
 import '../service/connection_service.dart';
 import '../service/mediator/mediator_service.dart';
 import 'channel_activity_event_handler.dart';
+import 'control_plane_event_handler_manager_options.dart';
 import 'control_plane_event_stream_manager.dart';
 import 'control_plane_stream_event.dart';
 import 'group_membership_finalised_event_handler.dart';
@@ -33,6 +34,8 @@ class ControlPlaneEventManager {
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
+    ControlPlaneEventHandlerManagerOptions options =
+        const ControlPlaneEventHandlerManagerOptions(),
   })  : _streamManager = streamManager,
         _logger =
             logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
@@ -42,6 +45,7 @@ class ControlPlaneEventManager {
       connectionManager: connectionManager,
       channelRepository: channelRepository,
       connectionOfferRepository: connectionOfferRepository,
+      options: options,
       logger: _logger,
     );
     _invitationGroupAcceptedEventHandler = InvitationGroupAcceptedEventHandler(
@@ -51,6 +55,7 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       groupRepository: groupRepository,
       channelRepository: channelRepository,
+      options: options,
       logger: _logger,
     );
     _offerFinalisedEventHandler = OfferFinalisedEventHandler(
@@ -61,6 +66,7 @@ class ControlPlaneEventManager {
       channelRepository: channelRepository,
       connectionManager: connectionManager,
       didResolver: didResolver,
+      options: options,
       logger: _logger,
     );
     _channelActivityEventHandler = ChannelActivityEventHandler(
@@ -69,6 +75,7 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       channelRepository: channelRepository,
       connectionManager: connectionManager,
+      options: options,
       logger: _logger,
     );
     _groupMembershipFinalisedEventHandler =
@@ -80,6 +87,7 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       groupRepository: groupRepository,
       channelRepository: channelRepository,
+      options: options,
       logger: _logger,
     );
     _outreachInvitationEventHandler = OutreachInvitationEventHandler(
@@ -89,6 +97,7 @@ class ControlPlaneEventManager {
       channelRepository: channelRepository,
       connectionService: connectionService,
       connectionOfferRepository: connectionOfferRepository,
+      options: options,
       logger: _logger,
     );
   }

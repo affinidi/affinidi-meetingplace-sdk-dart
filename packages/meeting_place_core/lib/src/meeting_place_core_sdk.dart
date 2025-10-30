@@ -11,6 +11,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MeetingPlaceMediatorSDKOptions;
 import 'constants/sdk_constants.dart';
 import 'entity/entity.dart';
+import 'event_handler/control_plane_event_handler_manager_options.dart';
 import 'event_handler/control_plane_stream_event.dart';
 import 'exception/sdk_exception.dart';
 import 'loggers/default_meeting_place_core_sdk_logger.dart';
@@ -297,6 +298,10 @@ class MeetingPlaceCoreSDK {
       channelRepository: repositoryConfig.channelRepository,
       streamManager: discoveryEventStreamManager,
       didResolver: didResolver,
+      options: ControlPlaneEventHandlerManagerOptions(
+        maxRetries: options.eventHandlerMessageFetchMaxRetries,
+        maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
+      ),
       logger: mpxLogger,
     );
 

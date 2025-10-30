@@ -1,0 +1,1 @@
+class EmptyMessageListException implements Exception {}

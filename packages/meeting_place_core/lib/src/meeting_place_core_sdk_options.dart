@@ -7,6 +7,9 @@ class MeetingPlaceCoreSDKOptions {
     this.didResolverAddress,
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
+    this.eventHandlerMessageFetchMaxRetries = 3,
+    this.eventHandlerMessageFetchMaxRetriesDelay =
+        const Duration(milliseconds: 3000),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
     this.signatureScheme = SignatureScheme.ecdsa_p256_sha256,
@@ -32,6 +35,26 @@ class MeetingPlaceCoreSDKOptions {
   /// The maximum delay between retry attempts when a network issue occurs.
   /// This value sets the upper bound for the delay between retries.
   final Duration maxRetriesDelay;
+
+  /// The number of retry attempts for a request when fetching messages
+  /// from the mediator within control plane event handlers.
+  ///
+  /// If a fetch request returns no messages, it will be retried up to this
+  /// number of times before giving up.
+  ///
+  /// This retry mechanism helps prevent race conditions between receiving
+  /// signals from the control plane API and the availability of corresponding
+  /// messages from the mediator.
+  ///
+  /// Without retries, messages triggered by control plane events might not be
+  /// immediately accessible, leading to missed or delayed processing.
+  final int eventHandlerMessageFetchMaxRetries;
+
+  /// The maximum delay between retry attempts when fetching messages from
+  /// the mediator within control plane event handlers.
+  ///
+  /// This value sets the upper bound for the delay between retries.
+  final Duration eventHandlerMessageFetchMaxRetriesDelay;
 
   /// Specifies the maximum time (in milliseconds) the SDK will wait while
   /// establishing a connection to the server. If the connection cannot be

@@ -2,9 +2,9 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import '../entity/channel.dart';
 import '../entity/group_connection_offer.dart';
-import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
+import 'exceptions/empty_message_list_exception.dart';
 import 'exceptions/group_membership_finalised_exception.dart';
 import '../protocol/message/group_member_inauguration.dart';
 import '../protocol/meeting_place_protocol.dart';
@@ -24,6 +24,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
+    required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required GroupRepository groupRepository,
   })  : _groupRepository = groupRepository,
@@ -71,14 +72,10 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       final didManager = await connectionManager.getDidManagerForDid(
           wallet, permanentChannelDid);
 
-      final messages = await mediatorService.fetchMessages(
+      final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: didManager,
         mediatorDid: connection.mediatorDid,
-        options: FetchMessagesOptions(
-          filterByMessageTypes: [
-            MeetingPlaceProtocol.groupMemberInauguration.value,
-          ],
-        ),
+        messageType: MeetingPlaceProtocol.groupMemberInauguration,
       );
 
       // TODO: handle duplicates
@@ -177,6 +174,12 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
 
       logger.warning(
         'No ${MeetingPlaceProtocol.groupMemberInauguration.value} message found for processing',
+        name: methodName,
+      );
+      return null;
+    } on EmptyMessageListException {
+      logger.error(
+        'No messages found to process for event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
         name: methodName,
       );
       return null;

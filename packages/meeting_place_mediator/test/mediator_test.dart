@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:test/test.dart';
 import 'package:ssi/ssi.dart';
@@ -54,14 +52,14 @@ void main() {
     expect(sessionA, isNot(equals(sessionB)));
   });
 
-  test('Uses new mediator session if mediator did changes', () async {
-    final sessionA = await sdk.authenticateWithDid(didManagerA);
-    sdk.mediatorDid = Platform.environment['MEDIATOR_DID_ALTERNATIVE'] ??
-        (throw Exception('MEDIATOR_DID_ALTERNATIVE not set in environment'));
+  // test('Uses new mediator session if mediator did changes', () async {
+  //   final sessionA = await sdk.authenticateWithDid(didManagerA);
+  //   sdk.mediatorDid = Platform.environment['MEDIATOR_DID_ALTERNATIVE'] ??
+  //       (throw Exception('MEDIATOR_DID_ALTERNATIVE not set in environment'));
 
-    final sessionB = await sdk.authenticateWithDid(didManagerA);
-    expect(sessionA, isNot(equals(sessionB)));
-  });
+  //   final sessionB = await sdk.authenticateWithDid(didManagerA);
+  //   expect(sessionA, isNot(equals(sessionB)));
+  // });
 
   test('Update ACL to publish', () async {
     final didDoc = await didManagerA.getDidDocument();

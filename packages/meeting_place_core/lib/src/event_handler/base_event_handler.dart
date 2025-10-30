@@ -1,14 +1,20 @@
 import 'package:meta/meta.dart';
+import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../protocol/meeting_place_protocol.dart';
 import '../repository/channel_repository.dart';
 import '../repository/connection_offer_repository.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/connection_offer/connection_offer_exception.dart';
+import '../service/mediator/fetch_messages_options.dart';
+import '../service/mediator/mediator_message.dart';
 import '../service/mediator/mediator_service.dart';
+import 'control_plane_event_handler_manager_options.dart';
+import 'exceptions/empty_message_list_exception.dart';
 
 abstract class BaseEventHandler {
   BaseEventHandler({
@@ -18,7 +24,9 @@ abstract class BaseEventHandler {
     required this.channelRepository,
     required this.connectionManager,
     required this.logger,
-  });
+    ControlPlaneEventHandlerManagerOptions options =
+        const ControlPlaneEventHandlerManagerOptions(),
+  }) : _options = options;
 
   @internal
   final Wallet wallet;
@@ -37,6 +45,8 @@ abstract class BaseEventHandler {
 
   @internal
   final MeetingPlaceCoreSDKLogger logger;
+
+  final ControlPlaneEventHandlerManagerOptions _options;
 
   @internal
   Future<ConnectionOffer> findConnectionByDid(String did) async {
@@ -70,5 +80,43 @@ abstract class BaseEventHandler {
         (throw ArgumentError('Channel must have a permanent DID'));
 
     return connectionManager.getDidManagerForDid(wallet, did);
+  }
+
+  @internal
+  Future<List<MediatorMessage>> fetchMessagesFromMediatorWithRetry({
+    required DidManager didManager,
+    required String mediatorDid,
+    required MeetingPlaceProtocol messageType,
+  }) {
+    return retry(
+      () async {
+        final messages = await mediatorService.fetchMessages(
+          didManager: didManager,
+          mediatorDid: mediatorDid,
+          options: FetchMessagesOptions(
+            filterByMessageTypes: [messageType.value],
+          ),
+        );
+
+        if (messages.isEmpty) {
+          logger.warning(
+            'No messages found for ${messageType.value}',
+            name: 'fetchMessagesFromMediatorWithRetry',
+          );
+          throw EmptyMessageListException();
+        }
+
+        return messages;
+      },
+      retryIf: (e) => e is EmptyMessageListException,
+      onRetry: (e) {
+        logger.info(
+          'Retry fetching ${messageType.value} messages',
+          name: 'fetchMessagesFromMediatorWithRetry',
+        );
+      },
+      maxAttempts: _options.maxRetries,
+      maxDelay: _options.maxRetriesDelay,
+    );
   }
 }

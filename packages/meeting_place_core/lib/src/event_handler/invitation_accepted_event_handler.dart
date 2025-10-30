@@ -3,8 +3,8 @@ import '../entity/channel.dart';
 import '../protocol/meeting_place_protocol.dart';
 import '../entity/connection_offer.dart';
 import '../messages/utils.dart';
-import '../service/mediator/fetch_messages_options.dart';
 import 'base_event_handler.dart';
+import 'exceptions/empty_message_list_exception.dart';
 
 class InvitationAcceptedEventHandler extends BaseEventHandler {
   InvitationAcceptedEventHandler({
@@ -13,6 +13,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
     required super.channelRepository,
     required super.connectionManager,
     required super.mediatorService,
+    required super.options,
     required super.logger,
   });
 
@@ -37,12 +38,10 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       final publishedOfferDidManager = await connectionManager
           .getDidManagerForDid(wallet, connection.publishOfferDid);
 
-      final messages = await mediatorService.fetchMessages(
+      final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: publishedOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        options: FetchMessagesOptions(
-          filterByMessageTypes: [MeetingPlaceProtocol.connectionSetup.value],
-        ),
+        messageType: MeetingPlaceProtocol.connectionSetup,
       );
 
       for (final result in messages) {
@@ -90,6 +89,12 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
 
         return channel;
       }
+      return null;
+    } on EmptyMessageListException {
+      logger.error(
+        'No messages found to process for event of type ${ControlPlaneEventType.InvitationAccept}',
+        name: methodName,
+      );
       return null;
     } catch (e, stackTrace) {
       logger.error(

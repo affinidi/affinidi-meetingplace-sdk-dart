@@ -143,8 +143,9 @@ void main() async {
       stream!.listen((message) {
         if (message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatDelivered.value) {
-          messageIds.remove(message.plainTextMessage?.body!['messages'][0]);
-          if (messageIds.isEmpty) {
+          final removed =
+              messageIds.remove(message.plainTextMessage?.body!['messages'][0]);
+          if (messageIds.isEmpty && removed) {
             aliceCompleter.complete();
           }
         }

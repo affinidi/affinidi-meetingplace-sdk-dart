@@ -132,8 +132,9 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
 
         // TODO: improve update logic
         final updatedGroup = _updateLocalCopyOfGroupMembers(
-          group,
-          groupMemberInaugurationMessage,
+          group: group,
+          selfMemberDid: permanentChannelDid,
+          message: groupMemberInaugurationMessage,
         );
 
         await _groupRepository.createGroup(updatedGroup);
@@ -248,16 +249,15 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     );
   }
 
-  ///
   /// Iterate the member details list and populate/update the
   /// group membership list. Note that this will cause the local
   /// store to reflect the administrator's view of the group membership
   /// list, obviously without the private details of the members.
-  ///
-  Group _updateLocalCopyOfGroupMembers(
-    Group group,
-    GroupMemberInauguration message,
-  ) {
+  Group _updateLocalCopyOfGroupMembers({
+    required Group group,
+    required String selfMemberDid,
+    required GroupMemberInauguration message,
+  }) {
     final methodName = '_updateLocalCopyOfGroupMembers';
     logger.info(
       'Updating local copy of group members for group DID: ${group.did.topAndTail()}',
@@ -271,6 +271,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       ownerDid: message.adminDids[0],
       created: DateTime.now().toUtc(),
     );
+
+    _updateSelfMemberStatusToApproved(updatedGroup, selfMemberDid);
 
     for (final member in message.members) {
       final localMemberIndex = updatedGroup.members.indexWhere(
@@ -311,6 +313,19 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       name: methodName,
     );
     return updatedGroup;
+  }
+
+  _updateSelfMemberStatusToApproved(
+    Group group,
+    String selfMemberDid,
+  ) {
+    final selfMember = group.members.firstWhere(
+      (member) => member.did == selfMemberDid,
+      orElse: () => throw Exception(
+        'Self member with DID: ${selfMemberDid.topAndTail()} not found in group members list',
+      ),
+    );
+    selfMember.status = GroupMemberStatus.approved;
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {

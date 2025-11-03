@@ -115,6 +115,10 @@ class ControlPlaneEventService {
       GetPendingNotificationsCommand(device: _controlPlaneSDK.device),
     );
 
+    if (result.events.isEmpty) {
+      return [];
+    }
+
     final deleteResult = await _controlPlaneSDK.execute(
       DeletePendingNotificationsCommand(
         notificationIds: result.events.map((e) => e.id).toList(),

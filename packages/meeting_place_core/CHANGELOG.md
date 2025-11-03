@@ -1,3 +1,7 @@
+## 0.0.1-dev.7
+
+ - **FIX**: update group on Chat SDK instance handling message (#12).
+
 ## 0.0.1-dev.6
 
  - **FEAT**: add retry logic to control plane event handlers to prevent race conditions (#9).

@@ -1,6 +1,6 @@
 # Affinidi Meeting Place SDK
 
-Affinidi Meeting Place SDK provides the toolkits to build a messaging app for a safe and secure method to discover, connect, and communicate with others (individuals, businesses, and AI agents) using Decentralised Identifiers (DIDs) and DIDComm v2.1 protocol. DIDComm v2.1 protocol enables a secure and private communication between entities using Decentralised Identifiers (DIDs) as the basis of the user's identity when communicating, instead of the usual email address or phone number.
+Affinidi Meeting Place SDK provides the toolkits to build a messaging app for a safe and secure method to discover, connect, and communicate between individuals, businesses, and AI agents using [Decentralised Identifiers (DIDs)](https://www.w3.org/TR/did-1.0/) and [DIDComm v2.1 protocol](https://identity.foundation/didcomm-messaging/spec/v2.1/). DIDComm v2.1 protocol enables a secure and private communication between entities using Decentralised Identifiers (DIDs) as the basis of the user's identity when communicating, instead of the usual email address or phone number.
 
 Using the decentralised approach in communication, all users have control over their identity, giving them better privacy and anonymity when required. Meeting Place SDK facilitates seamless, secure, and authentic communication between humans, AI agents, robots, and organisations, ensuring trust in digital interactions.
 
@@ -21,16 +21,16 @@ Leveraging the DID and DIDComm protocol guarantees:
 - Confidentiality – End-to-end encryption prevents leaks.
 - Non-repudiation – Sender can't deny sending a message.
 
-### Identity
+### Decentralised Identity
 
-Using other chat applications, you usually register with your email address or phone number as your identifier, which exposes users to privacy risks. The Meeting Place SDK allows users to have multiple identities to represent themselves in various digital interactions, depending on the context.
+Using other chat applications, you usually register with your email address or phone number as your identifier, which exposes users to privacy risks. Meeting Place allows users to have multiple identities to represent themselves in various digital interactions, depending on the context.
 
 ![Meeting Place Decentralised Identities](assets/images/meeting-place-identities.png)
 
-Each connection established to another participant, whether direct or through group chat, creates a new set of Decentralised Identifiers (DIDs).
+Each connection established with another participant, whether direct or in a group chat, generates a unique set of Decentralised Identifiers (DIDs). This dynamic DID assignment **enhances user privacy** by separating identity contexts across different interactions.
 
-- Channel DID that establishes the connection between participants.
-- DID for the new channel created upon approval of the connection request.
+- Channel DID to establish the connection.
+- DIDs for participants within the established channel with their selected identity.
 
 ### Discovery
 
@@ -38,9 +38,9 @@ The discovery through the Control Plane facilitates the secure discovery and est
 
 ![Meeting Place Control Plane](assets/images/meeting-place-control-plane.png)
 
-The Control Plane enables participants to publish a connection offer for direct or group chat channels to connect with others securely and in a privacy-preserving way. It allows them to create offers with a description, validity, and a vCard containing some information - it is up to the participants to provide more details to protect their privacy.
+The Control Plane API facilitates the **discovery** and **creation of secure channels** between participants in Meeting Place to exchange messages using the DIDComm v2.1 protocol. The Control Plane API enables participants to publish a connection offer or invitation using one of their identities (e.g., an identity for your gaming persona) for direct or group chat to allow discovery by other participants and initiate a connection request to start chatting with them through a secure channel.
 
-Another participant finds this offer using the passphrase created by the publisher and accepts the offer to connect. When the other participants accept the offer and request to connect through the published connection offer, the publisher must approve the connection request before the connection is established with another participant to create a channel DID to start communicating.
+A published invitation contains a description, validity, and a vCard containing additional information - it is up to the participants to provide more details or restrict the details to protect their privacy.
 
 ## Core Concepts
 
@@ -68,15 +68,15 @@ Below are the key components of the Meeting Place SDK. Depending on your use cas
 
 ![Meeting Place](assets/images/meeting-place-sdks.png)
 
-- **Chat SDK** - built on top of the core Meeting Place SDK that utilises Decentralised Identifier (DID) and DIDComm Messaging v2.1 protocol to send secure and private messages with end-to-end encryption.
+- [**Chat SDK**](./packages/meeting_place_chat/) - built on top of the core Meeting Place SDK that utilises Decentralised Identifier (DID) and DIDComm Messaging v2.1 protocol to send secure and private messages with end-to-end encryption.
 
-- **Core SDK** - the core package implementing the Control Plane and Mediator SDK, including managing multiple digital identities for better privacy and anonymity in digital interactions.
+- [**Core SDK**](./packages/meeting_place_core/) - the core package implementing the Control Plane and Mediator SDK, including managing multiple digital identities for better privacy and anonymity across digital interactions.
 
-- **Control Plane SDK** - enables participants to publish connection offers, allowing other participants to connect and communicate with them securely. It is an interface that integrates with the Affinidi Meeting Place API service.
+- [**Control Plane SDK**](./packages/meeting_place_control_plane/) - enables participants to publish connection offers, allowing other participants to connect and communicate securely. It is an interface that integrates with the [Affinidi Meeting Place Control Plane API](https://github.com/affinidi/affinidi-meetingplace-controlplane-api-dart) service.
 
-- **Mediator SDK** - enables participants to connect and authenticate with mediators, such as the DIDComm mediator, to send messages and connection offers. Mediator does not store permanently the messages and the content is not visible to the mediator.
+- [**Mediator SDK**](./packages/meeting_place_mediator/) - enables participants to connect and authenticate with mediators, such as the DIDComm mediator, to send messages and connection offers. Mediator does not store permanently the messages and the content is not visible to the mediator.
 
-- **Drift Repository SDK** - implements the [Drift database](https://pub.dev/packages/drift) to persist and manage channels, connection offers, groups, and chat history in the device's local storage.
+- [**Drift Repository SDK**](./packages/meeting_place_drift_repository/) - implements the [Drift database](https://pub.dev/packages/drift) to persist and manage channels, connection offers, groups, and chat history in the device's local storage.
 
 The Meeting Place SDK also leverages other Affinidi open-sourced SDKS, such as [DIDComm for Dart](https://github.com/affinidi/affinidi-didcomm-dart), which sends DIDComm messages, and [SSI for Dart](https://github.com/affinidi/affinidi-ssi-dart), which manages decentralised identity and associated cryptographic keys.
 
@@ -89,14 +89,14 @@ The Meeting Place SDK also leverages other Affinidi open-sourced SDKS, such as 
 Run:
 
 ```bash
-dart pub add mpx_sdk
+dart pub add meeting_place_core
 ```
 
 or manually, add the package into your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  mpx_sdk: ^<version_number>
+  meeting_place_core: ^<version_number>
 ```
 
 and then run the command below to install the package:
@@ -113,14 +113,14 @@ Visit the pub.dev install page of the Dart package for more information.
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:mpx_sdk/mpx_sdk.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
 void main() async {
    final storage = InMemoryStorage();
 
-   final aliceSDK = MpxSDK.create(
+   final aliceSDK = MeetingPlaceCoreSDK.create(
       wallet: PersistentWallet(InMemoryKeyStore()),
       repositoryConfig: RepositoryConfig(
          connectionOfferRepository: ConnectionOfferRepositoryImpl(storage: storage),
@@ -129,7 +129,7 @@ void main() async {
          keyRepository: KeyRepositoryImpl(storage: storage),
       ),
       mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
-      serviceDid: 'did:web:samplecontrolplane.affinidi.io', // Control Plane API DID
+      controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io', 
    );
 
    await aliceSDK.registerForPushNotifications(const Uuid().v4());
@@ -144,7 +144,7 @@ void main() async {
 }
 ```
 
-For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/example).
+For more examples and runnable scripts, go to the [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_core/example).
 
 ## Support & feedback
 

@@ -1,6 +1,6 @@
-## MPX_SDK Examples
+## Chat SDK Examples
 
-Check the sample code to learn how to use Meeting Place Chat package to enable chatting with others using Decentralised Identifiers (DIDs) and DIDComm v2.1 protocol.
+Check the sample code to learn how to use Affinidi Meeting Place - Chat SDK package to enable chatting with others using Decentralised Identifiers (DIDs) and the DIDComm v2.1 protocol.
 
 | File path | What it demonstrates |
 |------|----------------------|

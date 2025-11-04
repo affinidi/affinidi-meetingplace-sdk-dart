@@ -1,8 +1,8 @@
 # Affinidi Meeting Place - Core SDK for Dart
 
-The Affinidi Meeting Place - Core SDK for Dart provides the toolkits to build a messaging app for a safe and secure method to discover, connect, and communicate with others (individuals, businesses, and AI agents) using Decentralised Identifiers (DIDs) and DIDComm v2.1 protocol. DIDComm v2.1 protocol enables a secure and private communication between entities using Decentralised Identifiers (DIDs) as the basis of the user's identity when communicating, instead of the usual email address or phone number.
+The Affinidi Meeting Place - Core SDK for Dart provides the toolkits to build a messaging app for a safe and secure method to discover, connect, and communicate between individuals, businesses, and AI agents using Decentralised Identifiers (DIDs) and DIDComm v2.1 protocol. DIDComm v2.1 protocol enables a secure and private communication between entities using Decentralised Identifiers (DIDs) as the basis of the user's identity when communicating, instead of the usual email address or phone number.
 
-The Core SDK facilitates seamless, secure, and authentic communication between humans, AI agents, robots, and organisations, ensuring trust in digital interactions.
+The Core SDK facilitates seamless, secure, and authentic communication between parties, ensuring trust in digital interactions.
 
 > **DISCLAIMER:** Affinidi provides this SDK as a developer tool to facilitate decentralized messaging. Any personal data exchanged or stored via this tool is entirely initiated and controlled by end-users. Affinidi does not collect, access, or process such data. Implementing parties are responsible for ensuring that their applications comply with applicable privacy laws and user transparency obligations.
 

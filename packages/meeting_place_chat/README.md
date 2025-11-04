@@ -2,7 +2,7 @@
 
 Affinidi Meeting Place - Chat SDK for Dart provides the libraries to send a secure and private messages utilising Decentralised Identifiers (DIDs) and DIDComm v2.1 protocol for a safe digital interactions. The messages are protected with end-to-end encryption and only the intended recipient can read the content.
 
-The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and secure method of discovering, connecting, and communicating with others (individuals, businesses, and AI agents).
+The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and secure method of discovering, connecting, and communicating between individuals, businesses, and AI agents.
 
 > **DISCLAIMER:** Affinidi provides this SDK as a developer tool to facilitate decentralized messaging. Any personal data exchanged or stored via this tool is entirely initiated and controlled by end-users. Affinidi does not collect, access, or process such data. Implementing parties are responsible for ensuring that their applications comply with applicable privacy laws and user transparency obligations.
 

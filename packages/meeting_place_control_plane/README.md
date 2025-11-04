@@ -4,7 +4,7 @@ Affinidi Meeting Place - Control Plane SDK for Dart provides the libraries to en
 
 The Control Plane SDK is the interface that integrates with the Affinidi Meeting Place Control Plane API service to manage connection offers, channels, and event notifications.
 
-Control Plane SDK is part of the Meeting Place SDK toolkit to enable a safe and secure method to discover, connect, and communicate with others (individuals, businesses, and AI agents).
+Control Plane SDK is part of the Meeting Place SDK toolkit to enable a safe and secure method to discover, connect, and communicate between individuals, businesses, and AI agents.
 
 ![Meeting Place Control Plane](../../assets/images/meeting-place-control-plane.png)
 

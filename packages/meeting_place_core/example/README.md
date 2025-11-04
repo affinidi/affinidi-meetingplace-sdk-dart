@@ -1,6 +1,6 @@
-## MPX_SDK Examples
+## Core SDK Examples
 
-Check the sample code to learn how to use MPX_SDK package to discover, connect, and communicate with others using Decentralised Identifiers (DIDs) and DIDComm v2.1 protocol.
+Check the sample code to learn how to use the Affinidi Meeting Place - Core SDK package to discover, connect, and communicate with others using Decentralised Identifiers (DIDs) and the DIDComm v2.1 protocol.
 
 | File path | What it demonstrates |
 |------|----------------------|

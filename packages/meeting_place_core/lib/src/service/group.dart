@@ -356,18 +356,13 @@ class GroupService {
 
       await _channelRepository.createChannel(channel);
 
-      final acceptedConnectionOffer = connectionOffer.acceptGroupOffer(
-        groupId: group.id,
-        memberDid: permanentChannelDidDocument.id,
-        acceptOfferDid: acceptOfferDidDocument.id,
-        permanentChannelDid: permanentChannelDidDocument.id,
+      final acceptedConnectionOffer = await _acceptConnectionOffer(
+        connectionOffer,
+        group: group,
+        acceptOfferDidDocument: acceptOfferDidDocument,
+        permanentChannelDidDocument: permanentChannelDidDocument,
         vCard: vCard,
         externalRef: externalRef,
-        createdAt: DateTime.now().toUtc(),
-      );
-
-      await _connectionOfferRepository.createConnectionOffer(
-        acceptedConnectionOffer,
       );
 
       _logger.info(
@@ -388,6 +383,53 @@ class GroupService {
       );
       rethrow;
     }
+  }
+
+  Future<GroupConnectionOffer> _acceptConnectionOffer(
+    GroupConnectionOffer connectionOffer, {
+    required Group group,
+    required DidDocument acceptOfferDidDocument,
+    required DidDocument permanentChannelDidDocument,
+    required VCard vCard,
+    String? externalRef,
+  }) async {
+    final existingConnectionOffer = await _connectionOfferRepository
+        .getConnectionOfferByOfferLink(connectionOffer.offerLink);
+
+    if (existingConnectionOffer != null &&
+        existingConnectionOffer is GroupConnectionOffer) {
+      final acceptedConnectionOffer = existingConnectionOffer.acceptGroupOffer(
+        groupId: group.id,
+        memberDid: permanentChannelDidDocument.id,
+        acceptOfferDid: acceptOfferDidDocument.id,
+        permanentChannelDid: permanentChannelDidDocument.id,
+        vCard: vCard,
+        externalRef: externalRef,
+        createdAt: DateTime.now().toUtc(),
+      );
+
+      await _connectionOfferRepository.updateConnectionOffer(
+        acceptedConnectionOffer,
+      );
+
+      return acceptedConnectionOffer;
+    }
+
+    final acceptedConnectionOffer = connectionOffer.acceptGroupOffer(
+      groupId: group.id,
+      memberDid: permanentChannelDidDocument.id,
+      acceptOfferDid: acceptOfferDidDocument.id,
+      permanentChannelDid: permanentChannelDidDocument.id,
+      vCard: vCard,
+      externalRef: externalRef,
+      createdAt: DateTime.now().toUtc(),
+    );
+
+    await _connectionOfferRepository.createConnectionOffer(
+      acceptedConnectionOffer,
+    );
+
+    return acceptedConnectionOffer;
   }
 
   Future<recrypt.KeyPair> generateRecryptKeyPair(String did) async {

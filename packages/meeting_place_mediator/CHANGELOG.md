@@ -1,3 +1,7 @@
+## 0.0.1-dev.4
+
+ - **DOCS**: updated readme and pubspec desc (#13).
+
 ## 0.0.1-dev.3
 
  - **FEAT**: add retry logic to control plane event handlers to prevent race conditions (#9).

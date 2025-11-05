@@ -1,3 +1,7 @@
+## 0.0.1-dev.5
+
+ - **DOCS**: updated readme and pubspec desc (#13).
+
 ## 0.0.1-dev.4
 
  - **FIX**: connection flow issues and add matchesType for event type checkin (#8).

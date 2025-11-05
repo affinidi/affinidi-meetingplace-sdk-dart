@@ -1,6 +1,6 @@
 name: meeting_place_control_plane
 description: An interface to the Control Plane API for publishing connection offers to establish a secure communication channel between participants in Meeting Place.
-version: 0.0.1-dev.4
+version: 0.0.1-dev.5
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
 

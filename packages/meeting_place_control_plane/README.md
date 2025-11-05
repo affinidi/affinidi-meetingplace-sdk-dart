@@ -4,7 +4,7 @@ Affinidi Meeting Place - Control Plane SDK for Dart provides the libraries to en
 
 The Control Plane SDK is the interface that integrates with the Affinidi Meeting Place Control Plane API service to manage connection offers, channels, and event notifications.
 
-Control Plane SDK is part of the Meeting Place SDK toolkit to enable a safe and secure method to discover, connect, and communicate with others (individuals, businesses, and AI agents).
+Control Plane SDK is part of the Meeting Place SDK toolkit to enable a safe and secure method to discover, connect, and communicate between individuals, businesses, and AI agents.
 
 ![Meeting Place Control Plane](../../assets/images/meeting-place-control-plane.png)
 
@@ -20,13 +20,13 @@ Control Plane SDK is part of the Meeting Place SDK toolkit to enable a safe and 
 
 - **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
 
-- **Connection Offer** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **Connection Offer (Invitation)** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
 
 ## Key Features
 
 - Support for direct and group chat connection offer.
 - Implements the DIDComm Message v2.1 with Out-of-Band protocol.
-- Support vCard in publishing a connection offer and establishing connections with others to chat.
+- Support vCard in publishing a connection offer (invitation) and establishing connections with others to chat.
 - Secure device registration and event notification.
 - Facilitates the creation of channels and DIDs of the participants.
 

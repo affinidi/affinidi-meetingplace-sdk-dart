@@ -1,5 +1,5 @@
 name: affinidi_mpx_sdk
-description: A Dart toolkit to build a messaging app for a safe and secure method to discover, connect, and communicate with others (individuals, businesses, and AI agents).
+description: A Dart toolkit to build a messaging app for a safe and secure method to discover, connect, and communicate between individuals, businesses, and AI agents.
 publish_to: "none"
 
 workspace:

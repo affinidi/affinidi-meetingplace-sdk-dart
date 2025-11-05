@@ -20,6 +20,7 @@ enum MeetingPlaceCoreSDKErrorCode {
       'connection_offer_permanent_channel_did_error'),
   connectionOfferNotAcceptedError('connection_offer_not_accepted_error'),
   connectionOfferAlreadyFinalised('connection_offer_already_finalised'),
+  connectionOfferInvalidType('connection_offer_invalid_type'),
 
   // connection manager codes
   keyPairNotFoundError('key_pair_not_found'),

@@ -397,25 +397,15 @@ class GroupService {
         .getConnectionOfferByOfferLink(connectionOffer.offerLink);
 
     if (existingConnectionOffer != null &&
-        existingConnectionOffer is GroupConnectionOffer) {
-      final acceptedConnectionOffer = existingConnectionOffer.acceptGroupOffer(
-        groupId: group.id,
-        memberDid: permanentChannelDidDocument.id,
-        acceptOfferDid: acceptOfferDidDocument.id,
-        permanentChannelDid: permanentChannelDidDocument.id,
-        vCard: vCard,
-        externalRef: externalRef,
-        createdAt: DateTime.now().toUtc(),
-      );
-
-      await _connectionOfferRepository.updateConnectionOffer(
-        acceptedConnectionOffer,
-      );
-
-      return acceptedConnectionOffer;
+        existingConnectionOffer is! GroupConnectionOffer) {
+      throw ConnectionOfferException.invalidConnectionOfferType();
     }
 
-    final acceptedConnectionOffer = connectionOffer.acceptGroupOffer(
+    final connectionOfferToBeAccepted =
+        (existingConnectionOffer ?? connectionOffer) as GroupConnectionOffer;
+
+    final acceptedConnectionOffer =
+        connectionOfferToBeAccepted.acceptGroupOffer(
       groupId: group.id,
       memberDid: permanentChannelDidDocument.id,
       acceptOfferDid: acceptOfferDidDocument.id,
@@ -425,9 +415,11 @@ class GroupService {
       createdAt: DateTime.now().toUtc(),
     );
 
-    await _connectionOfferRepository.createConnectionOffer(
-      acceptedConnectionOffer,
-    );
+    existingConnectionOffer != null
+        ? await _connectionOfferRepository
+            .updateConnectionOffer(acceptedConnectionOffer)
+        : await _connectionOfferRepository
+            .createConnectionOffer(acceptedConnectionOffer);
 
     return acceptedConnectionOffer;
   }

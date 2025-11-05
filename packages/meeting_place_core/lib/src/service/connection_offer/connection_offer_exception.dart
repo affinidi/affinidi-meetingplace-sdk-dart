@@ -74,6 +74,16 @@ class ConnectionOfferException implements SDKException {
     );
   }
 
+  factory ConnectionOfferException.invalidConnectionOfferType({
+    Object? innerException,
+  }) {
+    return ConnectionOfferException(
+      message: 'Connection offer is of invalid type',
+      code: MeetingPlaceCoreSDKErrorCode.connectionOfferInvalidType,
+      innerException: innerException,
+    );
+  }
+
   @override
   final String message;
 

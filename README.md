@@ -10,7 +10,7 @@ Using the decentralised approach in communication, all users have control over t
 
 ![Meeting Place](assets/images/meeting-place-flow.png)
 
-Before participants can securely and privately communicate with each other in Meeting Place, they have to publish a connection offer using one of their identities created in Meeting Place. For example, you can create an identity you want to use when communicating with gaming friends. Upon acceptance of the connection offer and approval from the publisher of the offer, a connection is established between the two participants and creates the following DIDs:
+Before participants can securely and privately communicate with each other in Meeting Place, they have to publish a connection offer (invitation) using one of their identities created in Meeting Place. For example, you can create an identity you want to use when communicating with gaming friends. Upon acceptance of the invite and approval from the publisher of the offer, a connection is established between the two participants and creates the following DIDs:
 
 - Channel DID to establish the connection.
 - Alice and Bob's DID with their selected identity for this channel.
@@ -38,7 +38,7 @@ The discovery through the Control Plane facilitates the secure discovery and est
 
 ![Meeting Place Control Plane](assets/images/meeting-place-control-plane.png)
 
-The Control Plane API facilitates the **discovery** and **creation of secure channels** between participants in Meeting Place to exchange messages using the DIDComm v2.1 protocol. The Control Plane API enables participants to publish a connection offer or invitation using one of their identities (e.g., an identity for your gaming persona) for direct or group chat to allow discovery by other participants and initiate a connection request to start chatting with them through a secure channel.
+The Control Plane API facilitates the **discovery** and **creation of secure channels** between participants in Meeting Place to exchange messages using the DIDComm v2.1 protocol. The Control Plane API enables participants to publish a connection offer (invitation) using one of their identities (e.g., an identity for your gaming persona) for direct or group chat to allow discovery by other participants and initiate a connection request to start chatting with them through a secure channel.
 
 A published invitation contains a description, validity, and a vCard containing additional information - it is up to the participants to provide more details or restrict the details to protect their privacy.
 
@@ -52,7 +52,7 @@ A published invitation contains a description, validity, and a vCard containing 
 
 - **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
 
-- **Connection Offer** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **Connection Offer (Invitation)** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
 
 ## Key Features
 

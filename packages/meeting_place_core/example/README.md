@@ -4,13 +4,13 @@ Check the sample code to learn how to use the Affinidi Meeting Place - Core SDK 
 
 | File path | What it demonstrates |
 |------|----------------------|
-| chat/alice.dart| Publishes connection offer and initializes individual chat.|
-| chat/bob.dart | Finds and accepts the connection offer, initializes individual chat. |
-| group_chat/alice.dart | Publishes connection offer, approves connection request and initializes group chat. |
-| group_chat/bob.dart | Finds and accepts the connection offer, initializes the group chat after group owner approves connection request. Sends the message. |
-| group_chat/charlie.dart | Finds and accepts the connection offer, initializes the group chat after group owner approves connection request. Receives message on chat stream and sends message back. |
-| offer/alice.dart | Publishes connection offer and approve connection request after the offer was accepted. Initializes the chat. |
-| offer/bob.dart | Finds and accepts the connection offer, sends notification about acceptance of the connection request. Initializes the chat. |
+| chat/alice.dart| Publishes connection offer (invitation) and initialises individual chat.|
+| chat/bob.dart | Finds and accepts the connection offer, initialises individual chat. |
+| group_chat/alice.dart | Publishes connection offer, approves connection request and initialises group chat. |
+| group_chat/bob.dart | Finds and accepts the connection offer, initialises the group chat after group owner approves connection request. Sends the message. |
+| group_chat/charlie.dart | Finds and accepts the connection offer, initialises the group chat after group owner approves connection request. Receives message on chat stream and sends message back. |
+| offer/alice.dart | Publishes connection offer (invitation) and approve connection request after the offer was accepted. initialises the chat. |
+| offer/bob.dart | Finds and accepts the connection offer, sends notification about acceptance of the connection request. initialises the chat. |
 
 ### Running the Examples
 

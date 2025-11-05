@@ -16,14 +16,14 @@ The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and sec
 
 - **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
 
-- **Connection Offer** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **Connection Offer (Invitation)** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
 
 ## Key Features
 
 - End-to-end encryption of messages for more secure and private communication.
 - Support for individual or group chats, delivery receipt and chat presence.
 - Notifies connections for contact details update (e.g., name change).
-- Support vCard in publishing a connection offer and establishing connections with others to chat.
+- Support vCard in publishing a connection offer (invitation) and establishing connections with others to chat.
 - Implements the DIDComm Message v2.1 protocol for sending and receiving messages.
 
 ## Requirements

@@ -1,5 +1,7 @@
 # Affinidi Meeting Place SDK
 
+![Affinidi Meeting Place](assets/images/meetingplace-banner.png)
+
 Affinidi Meeting Place SDK provides the toolkits to build a messaging app for a safe and secure method to discover, connect, and communicate between individuals, businesses, and AI agents using [Decentralised Identifiers (DIDs)](https://www.w3.org/TR/did-1.0/) and [DIDComm v2.1 protocol](https://identity.foundation/didcomm-messaging/spec/v2.1/). DIDComm v2.1 protocol enables a secure and private communication between entities using Decentralised Identifiers (DIDs) as the basis of the user's identity when communicating, instead of the usual email address or phone number.
 
 Using the decentralised approach in communication, all users have control over their identity, giving them better privacy and anonymity when required. Meeting Place SDK facilitates seamless, secure, and authentic communication between humans, AI agents, robots, and organisations, ensuring trust in digital interactions.

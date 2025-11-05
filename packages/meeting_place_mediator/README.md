@@ -2,7 +2,7 @@
 
 The Affinidi Meeting Place - Mediator SDK for Dart provides the libraries to connect, authenticate, and send messages through the mediator service, handling and routing messages to intended recipients. The Affinidi Meeting Place - Mediator SDK is the interface for integrating with different mediators (e.g., DIDComm Mediators) to send messages securely to other participants.
 
-The Mediator SDK is part of the Meeting Place SDK toolkit and enables a safe and secure method of discovering, connecting, and communicating with others (individuals, businesses, and AI agents).
+The Mediator SDK is part of the Meeting Place SDK toolkit and enables a safe and secure method of discovering, connecting, and communicating between individuals, businesses, and AI agents.
 
 > **DISCLAIMER:** Affinidi provides this SDK as a developer tool to facilitate decentralized messaging. Any personal data exchanged or stored via this tool is entirely initiated and controlled by end-users. Affinidi does not collect, access, or process such data. Implementing parties are responsible for ensuring that their applications comply with applicable privacy laws and user transparency obligations.
 
@@ -16,7 +16,7 @@ The Mediator SDK is part of the Meeting Place SDK toolkit and enables a safe and
 
 - **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
 
-- **Connection Offer** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **Connection Offer (Invitation)** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
 
 ## Key Features
 

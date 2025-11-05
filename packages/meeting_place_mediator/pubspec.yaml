@@ -1,6 +1,6 @@
 name: meeting_place_mediator
 
-description: The package for connecting and authenticating with DIDComm mediators to securely send and receive messages, including out-of-band invitations.
+description: Mediator SDK is a package for securely connecting and authenticating with DIDComm mediators to send and receive messages, including out-of-band invitations.
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 version: 0.0.1-dev.3
 resolution: workspace

@@ -7,17 +7,18 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AccessListAdd,
         AclSet,
         MeetingPlaceMediatorSDK,
-        MeetingPlaceMediatorSDKException,
         MeetingPlaceMediatorSDKOptions;
+import 'package:ssi/ssi.dart';
+
 import 'constants/sdk_constants.dart';
 import 'entity/entity.dart';
+import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_handler_manager_options.dart';
+import 'event_handler/control_plane_event_stream_manager.dart';
 import 'event_handler/control_plane_stream_event.dart';
-import 'exception/sdk_exception.dart';
 import 'loggers/default_meeting_place_core_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
 import 'loggers/meeting_place_core_sdk_logger.dart';
-import 'meeting_place_core_sdk_exception.dart';
 import 'meeting_place_core_sdk_options.dart';
 import 'messages/utils.dart';
 import 'protocol/protocol.dart';
@@ -26,25 +27,22 @@ import 'sdk/connection_offer_type.dart';
 import 'sdk/results/accept_oob_flow_result.dart';
 import 'sdk/results/create_oob_flow_result.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
+import 'sdk/sdk.dart' as sdk;
+import 'sdk/sdk_error_handler.dart';
 import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
+import 'service/connection_service.dart';
+import 'service/control_plane_event_service.dart';
+import 'service/core_sdk_stream_subscription.dart';
+import 'service/group.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_message.dart';
 import 'service/mediator/mediator_service.dart';
-import 'service/core_sdk_stream_subscription.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_stream.dart';
-import 'service/outreach/outreach_service.dart';
 import 'service/oob/oob_stream_data.dart';
+import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
-import 'package:ssi/ssi.dart';
-
-import 'service/connection_service.dart';
-import 'event_handler/control_plane_event_handler_manager.dart';
-import 'event_handler/control_plane_event_stream_manager.dart';
-import 'sdk/sdk.dart' as sdk;
-import 'service/control_plane_event_service.dart';
-import 'service/group.dart';
 
 /// # Meeting Place Core SDK
 /// The Affinidi Meeting Place - Core SDK provides a high-level interface for coordinating connection setup using the discovery control plane API and mediator. This SDK acts as an orchestrator, applying business logic on top of underlying APIs to simplify integration.
@@ -129,6 +127,7 @@ class MeetingPlaceCoreSDK {
     required DidResolver didResolver,
     required String mediatorDid,
     required MeetingPlaceCoreSDKOptions options,
+    required SDKErrorHandler sdkErrorHandler,
     required MeetingPlaceCoreSDKLogger logger,
   })  : _repositoryConfig = repositoryConfig,
         _controlPlaneDid = controlPlaneDid,
@@ -145,6 +144,7 @@ class MeetingPlaceCoreSDK {
         _didResolver = didResolver,
         _mediatorDid = mediatorDid,
         _options = options,
+        _sdkErrorHandler = sdkErrorHandler,
         _logger = logger;
 
   final Wallet wallet;
@@ -163,6 +163,7 @@ class MeetingPlaceCoreSDK {
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
+  final SDKErrorHandler _sdkErrorHandler;
 
   String _mediatorDid;
 
@@ -344,6 +345,7 @@ class MeetingPlaceCoreSDK {
       didResolver: didResolver,
       mediatorDid: mediatorDid,
       options: options,
+      sdkErrorHandler: SDKErrorHandler(logger: mpxLogger),
       logger: mpxLogger,
     );
   }
@@ -1379,52 +1381,6 @@ class MeetingPlaceCoreSDK {
   }
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
-    final methodName = '_withSdkExceptionHandling';
-
-    try {
-      return await operation();
-    } on SDKException catch (e, stackTrace) {
-      Error.throwWithStackTrace(
-        MeetingPlaceCoreSDKException(
-          message: e.message,
-          code: e.code.value,
-          innerException: e.innerException ?? e,
-        ),
-        stackTrace,
-      );
-    } on ControlPlaneSDKException catch (e, stackTrace) {
-      _logger.error(
-        'Failed to execute ControlPlane SDK operation:',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      Error.throwWithStackTrace(
-        MeetingPlaceCoreSDKException(
-          message: e.message,
-          code: e.code,
-          innerException: e.innerException,
-        ),
-        stackTrace,
-      );
-    } on MeetingPlaceMediatorSDKException catch (e, stackTrace) {
-      Error.throwWithStackTrace(
-        MeetingPlaceCoreSDKException(
-          message: 'Failure on MeetingPlaceCore SDK operation',
-          code: e.code,
-          innerException: e,
-        ),
-        stackTrace,
-      );
-    } catch (e, stackTrace) {
-      Error.throwWithStackTrace(
-        MeetingPlaceCoreSDKException(
-          message: e.toString(),
-          code: 'generic',
-          innerException: e,
-        ),
-        stackTrace,
-      );
-    }
+    return _sdkErrorHandler.handleError(operation);
   }
 }

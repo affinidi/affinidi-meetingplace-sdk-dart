@@ -84,6 +84,7 @@ enum ControlPlaneSDKErrorCode {
   validateOfferPhraseGeneric('validate_offer_phrase_generic'),
 
   // others
+  networkError('network_error'),
   generic('generic');
 
   const ControlPlaneSDKErrorCode(this.value);

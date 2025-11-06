@@ -93,7 +93,7 @@ class RegisterOfferHandler
       ..offerDescription = command.offerDescription
       ..didcommMessage = toBase64(command.oobInvitationMessage.toJson())
       ..vcard = command.vCard.toBase64()
-      ..validUntil = command.validUntil?.toIso8601String()
+      ..validUntil = command.validUntil?.toUtc().toIso8601String()
       ..maximumUsage = command.maximumUsage
       ..deviceToken = command.device.deviceToken
       ..platformType = RegisterOfferInputPlatformTypeEnum.valueOf(

@@ -315,7 +315,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     return updatedGroup;
   }
 
-  _updateSelfMemberStatusToApproved(
+  void _updateSelfMemberStatusToApproved(
     Group group,
     String selfMemberDid,
   ) {

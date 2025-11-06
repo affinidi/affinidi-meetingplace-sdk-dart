@@ -1,3 +1,7 @@
+## 0.0.1-dev.5
+
+ - **DOCS**: added Meeting Place banner per SDK (#15).
+
 ## 0.0.1-dev.4
 
  - **DOCS**: updated readme and pubspec desc (#13).

@@ -3,6 +3,49 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-11-06
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.8`](#meeting_place_chat---v001-dev8)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.6`](#meeting_place_control_plane---v001-dev6)
+ - [`meeting_place_core` - `v0.0.1-dev.8`](#meeting_place_core---v001-dev8)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.9`](#meeting_place_drift_repository---v001-dev9)
+ - [`meeting_place_mediator` - `v0.0.1-dev.5`](#meeting_place_mediator---v001-dev5)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.8`
+
+ - **DOCS**: added Meeting Place banner per SDK (#15).
+ - **DOCS**: updated readme and pubspec desc (#13).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.6`
+
+ - **DOCS**: added Meeting Place banner per SDK (#15).
+
+#### `meeting_place_core` - `v0.0.1-dev.8`
+
+ - **DOCS**: added Meeting Place banner per SDK (#15).
+ - **DOCS**: updated readme and pubspec desc (#13).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.9`
+
+ - **DOCS**: added Meeting Place banner per SDK (#15).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.5`
+
+ - **DOCS**: added Meeting Place banner per SDK (#15).
+
+
 ## 2025-11-05
 
 ### Changes

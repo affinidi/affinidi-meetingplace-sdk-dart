@@ -1,3 +1,7 @@
+## 0.0.1-dev.9
+
+ - **DOCS**: added Meeting Place banner per SDK (#15).
+
 ## 0.0.1-dev.8
 
  - Update a dependency to the latest release.

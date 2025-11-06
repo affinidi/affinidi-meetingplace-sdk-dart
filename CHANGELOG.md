@@ -15,6 +15,41 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_control_plane` - `v0.0.1-dev.7`](#meeting_place_control_plane---v001-dev7)
+ - [`meeting_place_core` - `v0.0.1-dev.9`](#meeting_place_core---v001-dev9)
+ - [`meeting_place_chat` - `v0.0.1-dev.9`](#meeting_place_chat---v001-dev9)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.10`](#meeting_place_drift_repository---v001-dev10)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.9`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.10`
+
+---
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.7`
+
+ - **FIX**: update connection offer if it exists when accepting group offer (#14).
+
+#### `meeting_place_core` - `v0.0.1-dev.9`
+
+ - **FIX**: update connection offer if it exists when accepting group offer (#14).
+
+
+## 2025-11-06
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_chat` - `v0.0.1-dev.8`](#meeting_place_chat---v001-dev8)
  - [`meeting_place_control_plane` - `v0.0.1-dev.6`](#meeting_place_control_plane---v001-dev6)
  - [`meeting_place_core` - `v0.0.1-dev.8`](#meeting_place_core---v001-dev8)

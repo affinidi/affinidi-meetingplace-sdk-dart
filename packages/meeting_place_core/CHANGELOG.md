@@ -1,3 +1,7 @@
+## 0.0.1-dev.9
+
+ - **FIX**: update connection offer if it exists when accepting group offer (#14).
+
 ## 0.0.1-dev.8
 
  - **DOCS**: added Meeting Place banner per SDK (#15).

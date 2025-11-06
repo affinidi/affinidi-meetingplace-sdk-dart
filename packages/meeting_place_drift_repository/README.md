@@ -1,5 +1,7 @@
 # Affinidi Meeting Place - Drift Repository SDK for Dart
 
+![Affinidi Meeting Place](https://raw.githubusercontent.com/affinidi/affinidi-meetingplace-sdk-dart/main/assets/images/meetingplace-banner.png)
+
 The Affinidi Meeting Place - Drift Repository SDK is a package that implements the [Drift database](https://pub.dev/packages/drift) to persist and manage channels, connection offers, groups, and chat history in the device's local storage.
 
 ## Key Features

@@ -94,9 +94,9 @@ void main() async {
       expect(aliceChannel?.otherPartyVCard?.values, bobChannel?.vCard?.values);
     });
 
-    test('channel status is inaugaurated', () {
-      expect(aliceChannel?.status, equals(ChannelStatus.inaugaurated));
-      expect(bobChannel?.status, equals(ChannelStatus.inaugaurated));
+    test('channel status is inaugurated', () {
+      expect(aliceChannel?.status, equals(ChannelStatus.inaugurated));
+      expect(bobChannel?.status, equals(ChannelStatus.inaugurated));
     });
 
     test('mediator dids match', () {
@@ -186,7 +186,7 @@ void main() async {
     });
 
     test('status is waiting for approval', () {
-      expect(bobChannel?.status, ChannelStatus.inaugaurated);
+      expect(bobChannel?.status, ChannelStatus.inaugurated);
     });
 
     test('initial values are still the same', () {

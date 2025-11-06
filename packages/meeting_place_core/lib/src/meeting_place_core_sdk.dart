@@ -498,7 +498,7 @@ class MeetingPlaceCoreSDK {
           acceptOfferDid: plainTextMessage.from!,
           permanentChannelDid: permanentChannelDidDoc.id,
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          status: ChannelStatus.inaugaurated,
+          status: ChannelStatus.inaugurated,
           type: ChannelType.oob,
           vCard: vCard,
           otherPartyVCard: otherPartyVcard,
@@ -641,7 +641,7 @@ class MeetingPlaceCoreSDK {
 
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.otherPartyVCard = otherPartyVCard;
-        channel.status = ChannelStatus.inaugaurated;
+        channel.status = ChannelStatus.inaugurated;
 
         await _repositoryConfig.channelRepository.updateChannel(channel);
 

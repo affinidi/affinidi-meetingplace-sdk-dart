@@ -157,7 +157,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyPermanentChannelDid = updatedGroup.did;
         channel.seqNo = event.startSeqNo;
         channel.notificationToken = notificationToken;
-        channel.status = ChannelStatus.inaugaurated;
+        channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
         await mediatorService.deletedMessages(

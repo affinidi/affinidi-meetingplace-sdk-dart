@@ -15,23 +15,28 @@ class ConnectionOfferService {
     final connectionOffer = await _connectionOfferRepository
         .getConnectionOfferByOfferLink(offerLink);
 
-    if (connectionOffer != null && connectionOffer.isPublished()) {
+    if (connectionOffer == null) {
+      return;
+    }
+
+    if (connectionOffer.isPublished()) {
       throw ConnectionOfferException.ownedByClaimingPartyError();
     }
 
-    if (connectionOffer != null &&
-        !connectionOffer.isDeleted() &&
-        !connectionOffer.isFinalised()) {
+    if (!connectionOffer.isDeleted() && !connectionOffer.isFinalised()) {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
     }
 
-    if (connectionOffer != null) {
-      final channel = await _channelRepository.findChannelByDid(
-        connectionOffer.permanentChannelDid!,
-      );
-      if (channel?.isGroup == true && channel?.isInaugurated == true) {
-        throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
-      }
+    final permanentChannelDid = connectionOffer.permanentChannelDid;
+    if (permanentChannelDid == null) {
+      return;
+    }
+
+    final channel =
+        await _channelRepository.findChannelByDid(permanentChannelDid);
+
+    if (channel?.isGroup == true && channel?.isInaugurated == true) {
+      throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
     }
   }
 

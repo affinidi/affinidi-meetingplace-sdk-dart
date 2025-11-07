@@ -2,22 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:didcomm/didcomm.dart' hide ForwardMessage;
+import 'package:didcomm/didcomm.dart';
 import 'package:dio/dio.dart';
 import '../../constants/sdk_constants.dart';
 import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
 import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 import '../../protocol/message/oob_invitation_message.dart';
 import '../../meeting_place_mediator_sdk_options.dart';
-import '../../utils/base64.dart';
 import '../../utils/didcomm.dart';
 import '../../utils/string.dart';
-import 'forward_message.dart';
+import 'forward_message_builder.dart';
 import 'mediator_stream_subscription.dart';
 import 'mediator_exception.dart';
 import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
-import 'package:uuid/uuid.dart';
 
 import '../acl/acl_management.dart';
 import '../acl/acl_body.dart';
@@ -227,32 +225,14 @@ class MediatorService {
         name: methodName,
       );
 
-      final expiresTime = forwardExpiryInSeconds != null
-          ? DateTime.now().toUtc().add(
-                Duration(seconds: forwardExpiryInSeconds),
-              )
-          : null;
-
-      await mediatorClient.sendMessage(
-        ForwardMessage(
-          id: const Uuid().v4(),
-          from: senderDidDocument.id,
-          to: [mediatorClient.mediatorDidDocument.id],
-          next: next,
-          ephemeral: ephemeral,
-          expiresTime: expiresTime,
-          attachments: [
-            Attachment(
-              mediaType: 'application/json',
-              data: AttachmentData(
-                base64: removePaddingFromBase64(
-                  base64UrlEncode(utf8.encode(jsonEncode(encryptedMessage))),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+      await mediatorClient.sendMessage(ForwardMessageBuilder.build(
+        encryptedMessage,
+        senderDidDocument: senderDidDocument,
+        mediatorClient: mediatorClient,
+        next: next,
+        ephemeral: ephemeral,
+        forwardExpiryInSeconds: forwardExpiryInSeconds,
+      ));
 
       _logger.info(
         'Message sent from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',

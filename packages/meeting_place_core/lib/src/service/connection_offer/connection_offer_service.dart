@@ -19,7 +19,9 @@ class ConnectionOfferService {
       throw ConnectionOfferException.ownedByClaimingPartyError();
     }
 
-    if (connectionOffer != null && !connectionOffer.isDeleted()) {
+    if (connectionOffer != null &&
+        !connectionOffer.isDeleted() &&
+        !connectionOffer.isFinalised()) {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
     }
 
@@ -27,16 +29,15 @@ class ConnectionOfferService {
       final channel = await _channelRepository.findChannelByDid(
         connectionOffer.permanentChannelDid!,
       );
-      if (channel != null && channel.isInaugurated) {
+      if (channel?.isGroup == true && channel?.isInaugurated == true) {
         throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
       }
     }
   }
 
   Future<ConnectionOffer> markAsDeleted(ConnectionOffer connectionOffer) async {
-    await _connectionOfferRepository.updateConnectionOffer(
-      connectionOffer.markAsDeleted(),
-    );
-    return connectionOffer;
+    final deletedOffer = connectionOffer.markAsDeleted();
+    await _connectionOfferRepository.updateConnectionOffer(deletedOffer);
+    return deletedOffer;
   }
 }

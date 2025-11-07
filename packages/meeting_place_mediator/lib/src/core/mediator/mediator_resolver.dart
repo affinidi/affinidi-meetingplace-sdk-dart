@@ -56,9 +56,13 @@ class MediatorResolver {
       );
     }
 
+    final didUrl = mediatorEndpoint.endsWith('.well-known/did.json')
+        ? mediatorEndpoint
+        : '$mediatorEndpoint/.well-known/did.json';
+
     try {
       final response = await _dio.get(
-        '$mediatorEndpoint',
+        didUrl,
         options: Options(headers: {'CONTENT-TYPE': 'application/json'}),
       );
 

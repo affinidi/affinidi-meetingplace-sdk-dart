@@ -23,9 +23,13 @@ class ConnectionOfferService {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
     }
 
-    final channel = await _channelRepository.findChannelByOfferLink(offerLink);
-    if (channel != null && channel.isInaugurated) {
-      throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
+    if (connectionOffer != null) {
+      final channel = await _channelRepository.findChannelByDid(
+        connectionOffer.permanentChannelDid!,
+      );
+      if (channel != null && channel.isInaugurated) {
+        throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
+      }
     }
   }
 

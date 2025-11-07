@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 
 /// A [Dio] interceptor class that intercepts and modifies the HTTP requests
@@ -31,7 +33,7 @@ class RetryInterceptor extends Interceptor {
 
     if (_shouldRetry(err) && retryCount < maxRetries) {
       try {
-        await Future<void>.delayed(retryDelay * (retryCount + 1));
+        await Future<void>.delayed(retryDelay * pow(2, retryCount).toInt());
 
         final response = await dio.request<dynamic>(
           err.requestOptions.path,

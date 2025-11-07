@@ -92,6 +92,8 @@ class Channel {
 
   bool get isGroup => type == ChannelType.group;
 
+  bool get isInaugurated => status == ChannelStatus.inaugurated;
+
   Map<String, dynamic> toJson() {
     return _$ChannelToJson(this);
   }

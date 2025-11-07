@@ -69,7 +69,7 @@ melos:
         find ./packages -name "lcov.info" -path "*/coverage/lcov.info" -exec cat
         {} + > coverage/lcov.info &&
 
-        remove_from_coverage -f coverage/lcov.info -r packages/meeting_place_control_plane/lib/src/api/api_client
+        remove_from_coverage -f coverage/lcov.info -r 'packages/meeting_place_control_plane/lib/src/api/api_client/.*' &&
 
         echo "Coverage report generated at coverage/lcov.info"
 

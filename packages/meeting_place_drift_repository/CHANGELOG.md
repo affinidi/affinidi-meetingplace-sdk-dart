@@ -1,3 +1,7 @@
+## 0.0.1-dev.12
+
+ - **FIX**: allow offer acceptance if existing offer is finalised or if channel is not inaugurated (#18).
+
 ## 0.0.1-dev.11
 
  - **FIX**: apply configured retry count and return network_error code in case of connection error (#16).

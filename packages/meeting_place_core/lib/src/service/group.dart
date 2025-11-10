@@ -142,13 +142,10 @@ class GroupService {
       created: DateTime.now().toUtc(),
       externalRef: externalRef,
       members: [
-        GroupMember(
+        GroupMember.admin(
           did: ownerDidDocument.id,
-          vCard: vCard,
-          dateAdded: DateTime.now().toUtc(),
           publicKey: recryptKeyPair.publicKeyToBase64(),
-          status: GroupMemberStatus.approved,
-          membershipType: GroupMembershipType.admin,
+          vCard: vCard,
         ),
       ],
     );
@@ -380,12 +377,9 @@ class GroupService {
         created: DateTime.now().toUtc(),
         externalRef: externalRef,
         members: [
-          GroupMember(
+          GroupMember.pendingMember(
             did: permanentChannelDidDocument.id,
-            dateAdded: DateTime.now().toUtc(),
             publicKey: memberPublicKeyBase64,
-            status: GroupMemberStatus.pendingApproval,
-            membershipType: GroupMembershipType.member,
             vCard: vCard,
           ),
         ],
@@ -403,12 +397,9 @@ class GroupService {
       created: DateTime.now().toUtc(),
       externalRef: externalRef,
       members: [
-        GroupMember(
+        GroupMember.pendingMember(
           did: permanentChannelDidDocument.id,
-          dateAdded: DateTime.now().toUtc(),
           publicKey: memberPublicKeyBase64,
-          status: GroupMemberStatus.pendingApproval,
-          membershipType: GroupMembershipType.member,
           vCard: vCard,
         ),
       ],

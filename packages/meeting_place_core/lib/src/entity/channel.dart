@@ -6,7 +6,7 @@ import 'connection_offer.dart';
 
 part 'channel.g.dart';
 
-enum ChannelStatus { waitingForApproval, inaugaurated, approved }
+enum ChannelStatus { waitingForApproval, inaugurated, approved }
 
 enum ChannelType { individual, group, oob }
 

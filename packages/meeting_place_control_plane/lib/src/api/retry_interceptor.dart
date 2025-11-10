@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dio/dio.dart';
 
 /// A [Dio] interceptor class that intercepts and modifies the HTTP requests
@@ -27,31 +29,26 @@ class RetryInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    var retryCount = 0;
+    final retryCount = (err.requestOptions.extra['retry_count'] as int?) ?? 0;
 
-    if (_shouldRetry(err)) {
-      while (retryCount < maxRetries) {
-        try {
-          retryCount++;
+    if (_shouldRetry(err) && retryCount < maxRetries) {
+      try {
+        await Future<void>.delayed(retryDelay * pow(2, retryCount).toInt());
 
-          await Future<void>.delayed(retryDelay * retryCount);
+        final response = await dio.request<dynamic>(
+          err.requestOptions.path,
+          options: Options(
+            method: err.requestOptions.method,
+            headers: err.requestOptions.headers,
+            extra: {...err.requestOptions.extra, 'retry_count': retryCount + 1},
+          ),
+          data: err.requestOptions.data,
+          queryParameters: err.requestOptions.queryParameters,
+        );
 
-          final response = await dio.request<dynamic>(
-            err.requestOptions.path,
-            options: Options(
-              method: err.requestOptions.method,
-              headers: err.requestOptions.headers,
-            ),
-            data: err.requestOptions.data,
-            queryParameters: err.requestOptions.queryParameters,
-          );
-
-          return handler.resolve(response);
-        } on DioException catch (e) {
-          if (retryCount >= maxRetries) {
-            return handler.next(e);
-          }
-        }
+        return handler.resolve(response);
+      } on DioException catch (e) {
+        return handler.next(e);
       }
     }
 

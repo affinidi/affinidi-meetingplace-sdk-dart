@@ -1,11 +1,9 @@
 import 'dart:convert';
 
-import '../../api/api_client.dart';
-import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
+import '../../api/api_client.dart';
 
 import '../../api/control_plane_api_client.dart';
-import '../../api/retry_config.dart';
 import '../../api/auth_credentials.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
@@ -31,17 +29,14 @@ class AuthenticateHandler
   /// - [discoveryApiClient] - An instance of discovery api client object.
   /// - [didManager]: The did manager object.
   /// - [didResolver]: The did resolver object.
-  /// - [retryConfig]: The retry config object.
   AuthenticateHandler({
     required ControlPlaneApiClient apiClient,
     required DidManager didManager,
     required DidResolver didResolver,
-    RetryConfig retryConfig = const RetryConfig(),
     ControlPlaneSDKLogger? logger,
   })  : _apiClient = apiClient,
         _didManager = didManager,
         _didResolver = didResolver,
-        _retryConfig = retryConfig,
         _logger = logger ??
             DefaultControlPlaneSDKLogger(
               className: _className,
@@ -55,7 +50,6 @@ class AuthenticateHandler
   final DidResolver _didResolver;
 
   final ControlPlaneSDKLogger _logger;
-  final RetryConfig _retryConfig;
 
   /// Fetch the Auth Credentials from the provided did document.
   ///
@@ -203,29 +197,20 @@ class AuthenticateHandler
       'Started authentication for service DID: ${command.controlPlaneDid.topAndTail()}',
       name: methodName,
     );
+
     final meetingplaceDidDoc = await _didResolver.resolveDid(
       command.controlPlaneDid,
     );
 
-    return retry(
-      () async {
-        final authCredentials = await _getCredentials(
-          authServiceDidDocument: meetingplaceDidDoc,
-        );
-
-        _apiClient.setApiKey(authCredentials.accessToken);
-        _logger.info(
-          'Completed authentication for service DID: ${command.controlPlaneDid.topAndTail()}',
-          name: methodName,
-        );
-        return AuthenticateCommandOutput(credentials: authCredentials);
-      },
-      onRetry: (e) => _logger.warning(
-        'Retrying MPX API authentication... Error: ${e.runtimeType}: ${e.toString()}',
-        name: methodName,
-      ),
-      maxDelay: _retryConfig.maxDelay,
-      maxAttempts: _retryConfig.maxRetries,
+    final authCredentials = await _getCredentials(
+      authServiceDidDocument: meetingplaceDidDoc,
     );
+
+    _apiClient.setApiKey(authCredentials.accessToken);
+    _logger.info(
+      'Completed authentication for service DID: ${command.controlPlaneDid.topAndTail()}',
+      name: methodName,
+    );
+    return AuthenticateCommandOutput(credentials: authCredentials);
   }
 }

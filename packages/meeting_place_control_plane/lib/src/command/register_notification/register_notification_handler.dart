@@ -1,7 +1,6 @@
 import '../../api/api_client.dart';
 
 import '../../api/control_plane_api_client.dart';
-import '../../api/retry_config.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
@@ -24,10 +23,8 @@ class RegisterNotificationHandler
   ///
   /// **Parameters:**
   /// - [apiClient] - An instance of discovery api client object.
-  /// - [retryConfig] - An instance of retry config object.
   RegisterNotificationHandler({
     required ControlPlaneApiClient apiClient,
-    RetryConfig retryConfig = const RetryConfig(),
     ControlPlaneSDKLogger? logger,
   })  : _apiClient = apiClient,
         _logger = logger ??

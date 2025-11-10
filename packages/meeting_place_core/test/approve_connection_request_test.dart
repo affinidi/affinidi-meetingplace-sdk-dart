@@ -136,9 +136,9 @@ void main() async {
       expect(bobOfferFinalisedChannel.outboundMessageId, isNotNull);
     });
 
-    test('channel status has been updated to inaugaurated', () {
+    test('channel status has been updated to inaugurated', () {
       expect(
-          bobOfferFinalisedChannel.status, equals(ChannelStatus.inaugaurated));
+          bobOfferFinalisedChannel.status, equals(ChannelStatus.inaugurated));
     });
 
     test('connection offer status has been updated to finalised', () {

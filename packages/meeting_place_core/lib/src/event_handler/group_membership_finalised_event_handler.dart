@@ -67,7 +67,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       }
 
       final group = await _findGroupByOfferLink(connection.offerLink);
-      final channel = await findChannelByOfferLink(connection.offerLink);
+      final channel = await findChannelByDid(permanentChannelDid);
 
       final didManager = await connectionManager.getDidManagerForDid(
           wallet, permanentChannelDid);

@@ -82,16 +82,11 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
         );
 
         final acceptOfferDid = message.from!;
-        group.members.add(
-          GroupMember(
-            did: otherPartyPermanentChannelDid,
-            dateAdded: DateTime.now().toUtc(),
-            publicKey: publicKey,
-            status: GroupMemberStatus.pendingApproval,
-            membershipType: GroupMembershipType.member,
-            vCard: otherPartyVCard ?? VCard.empty(),
-          ),
-        );
+        group.members.add(GroupMember.pendingMember(
+          did: otherPartyPermanentChannelDid,
+          publicKey: publicKey,
+          vCard: otherPartyVCard ?? VCard.empty(),
+        ));
 
         await _groupRepository.updateGroup(group);
 

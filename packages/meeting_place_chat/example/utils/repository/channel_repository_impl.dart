@@ -52,17 +52,6 @@ class ChannelRepositoryImpl implements ChannelRepository {
   }
 
   @override
-  Future<Channel?> findChannelByOfferLink(String offerLink) async {
-    final permanentChanneDid = await _storage.get(
-      '$channelOfferLinkPrefix$offerLink',
-    );
-    if (permanentChanneDid == null) return null;
-
-    final channel = await _storage.get('$channelPrefix$permanentChanneDid');
-    return Channel.fromJson(json.decode(channel) as Map<String, dynamic>);
-  }
-
-  @override
   Future<void> updateChannel(Channel channel) async {
     return _writeChannel(channel);
   }

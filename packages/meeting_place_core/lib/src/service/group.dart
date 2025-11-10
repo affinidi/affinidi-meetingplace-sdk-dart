@@ -142,13 +142,10 @@ class GroupService {
       created: DateTime.now().toUtc(),
       externalRef: externalRef,
       members: [
-        GroupMember(
+        GroupMember.admin(
           did: ownerDidDocument.id,
-          vCard: vCard,
-          dateAdded: DateTime.now().toUtc(),
           publicKey: recryptKeyPair.publicKeyToBase64(),
-          status: GroupMemberStatus.approved,
-          membershipType: GroupMembershipType.admin,
+          vCard: vCard,
         ),
       ],
     );
@@ -309,28 +306,15 @@ class GroupService {
       // Using uuid will prevent it from being overwritten when being stored in
       // Hive box as the `group.groupDid` is used as the key, it should be
       // unique per transaction.
-      final placeholderId = const Uuid().v4();
       final memberPublicKeyBase64 = keyPair.publicKey.toBase64();
 
-      final group = Group(
-        id: placeholderId,
-        did: placeholderId,
-        offerLink: result.offerLink,
-        created: DateTime.now().toUtc(),
+      final group = await _createOrUpdateGroup(
+        permanentChannelDidDocument: permanentChannelDidDocument,
+        vCard: vCard,
         externalRef: externalRef,
-        members: [
-          GroupMember(
-            did: permanentChannelDidDocument.id,
-            dateAdded: DateTime.now().toUtc(),
-            publicKey: memberPublicKeyBase64,
-            status: GroupMemberStatus.pendingApproval,
-            membershipType: GroupMembershipType.member,
-            vCard: vCard,
-          ),
-        ],
+        memberPublicKeyBase64: memberPublicKeyBase64,
+        offerLink: connectionOffer.offerLink,
       );
-
-      await _groupRepository.createGroup(group);
 
       await sendAcceptInvitationGroupToMediator(
         senderDid: acceptOfferDidManager,
@@ -341,16 +325,11 @@ class GroupService {
         vCard: vCard,
       );
 
-      final channel = Channel(
-        offerLink: connectionOffer.offerLink,
-        publishOfferDid: connectionOffer.publishOfferDid,
+      final channel = Channel.groupFromAcceptedConnectionOffer(
+        connectionOffer,
         permanentChannelDid: permanentChannelDidDocument.id,
         acceptOfferDid: acceptOfferDidDocument.id,
-        mediatorDid: connectionOffer.mediatorDid,
-        status: ChannelStatus.waitingForApproval,
-        type: ChannelType.group,
         vCard: vCard,
-        otherPartyVCard: connectionOffer.vCard,
         externalRef: externalRef,
       );
 
@@ -383,6 +362,51 @@ class GroupService {
       );
       rethrow;
     }
+  }
+
+  Future<Group> _createOrUpdateGroup({
+    required DidDocument permanentChannelDidDocument,
+    required VCard vCard,
+    String? externalRef,
+    required String memberPublicKeyBase64,
+    required String offerLink,
+  }) async {
+    final existingGroup = await _groupRepository.getGroupByOfferLink(offerLink);
+    if (existingGroup != null) {
+      final updatedGroup = existingGroup.copyWith(
+        created: DateTime.now().toUtc(),
+        externalRef: externalRef,
+        members: [
+          GroupMember.pendingMember(
+            did: permanentChannelDidDocument.id,
+            publicKey: memberPublicKeyBase64,
+            vCard: vCard,
+          ),
+        ],
+      );
+
+      await _groupRepository.updateGroup(updatedGroup);
+      return updatedGroup;
+    }
+
+    final placeholderId = const Uuid().v4();
+    final group = Group(
+      id: placeholderId,
+      did: placeholderId,
+      offerLink: offerLink,
+      created: DateTime.now().toUtc(),
+      externalRef: externalRef,
+      members: [
+        GroupMember.pendingMember(
+          did: permanentChannelDidDocument.id,
+          publicKey: memberPublicKeyBase64,
+          vCard: vCard,
+        ),
+      ],
+    );
+
+    await _groupRepository.createGroup(group);
+    return group;
   }
 
   Future<GroupConnectionOffer> _acceptConnectionOffer(

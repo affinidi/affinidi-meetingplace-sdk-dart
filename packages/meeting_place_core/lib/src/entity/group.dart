@@ -57,6 +57,7 @@ class Group {
     String? ownerDid,
     String? groupKeyPair,
     String? publicKey,
+    String? externalRef,
   }) {
     return Group(
       id: id ?? this.id,
@@ -67,6 +68,7 @@ class Group {
       created: created ?? this.created,
       ownerDid: ownerDid ?? this.ownerDid,
       publicKey: publicKey ?? this.publicKey,
+      externalRef: externalRef ?? this.externalRef,
     );
   }
 

@@ -101,15 +101,6 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
         _database.channels.otherPartyPermanentChannelDid.equals(did),
       );
 
-  /// Retrieves a channel by its [offerLink].
-  ///
-  /// - [offerLink]: The link originally used to create or join the channel.
-  ///
-  /// Returns a [model.Channel] if found, or `null` otherwise.
-  @override
-  Future<model.Channel?> findChannelByOfferLink(String offerLink) =>
-      _getChannelByPredicate(_database.channels.offerLink.equals(offerLink));
-
   /// Updates a [model.Channel] and its associated vCards.
   ///
   /// - [channel]: The updated channel domain model.

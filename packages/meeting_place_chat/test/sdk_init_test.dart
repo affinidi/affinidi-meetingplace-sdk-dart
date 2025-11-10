@@ -16,7 +16,7 @@ void main() async {
         offerLink: '',
         publishOfferDid: '',
         mediatorDid: '',
-        status: ChannelStatus.inaugaurated,
+        status: ChannelStatus.inaugurated,
         vCard: VCard(values: {}),
         type: type,
         permanentChannelDid: 'did:key:123',

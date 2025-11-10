@@ -21,6 +21,8 @@ enum MeetingPlaceCoreSDKErrorCode {
   connectionOfferNotAcceptedError('connection_offer_not_accepted_error'),
   connectionOfferAlreadyFinalised('connection_offer_already_finalised'),
   connectionOfferInvalidType('connection_offer_invalid_type'),
+  connectionOfferLimitExceeded('connection_offer_limit_exceeded'),
+  connectionOfferExpired('connection_offer_expired'),
 
   // connection manager codes
   keyPairNotFoundError('key_pair_not_found'),

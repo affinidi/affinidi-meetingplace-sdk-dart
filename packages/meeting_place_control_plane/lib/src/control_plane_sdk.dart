@@ -34,12 +34,10 @@ import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
 import 'control_plane_sdk_options.dart';
 import 'core/device/device.dart';
-import 'core/exception/control_plane_exception.dart';
-import 'control_plane_sdk_error_code.dart';
 import 'control_plane_sdk_exception.dart';
 import 'loggers/default_control_plane_sdk_logger.dart';
 import 'loggers/control_plane_sdk_logger.dart';
-import 'utils/string.dart';
+import 'core/sdk_error_handler.dart';
 import 'constants/sdk_constants.dart';
 
 class MissingDeviceException implements Exception {}
@@ -74,7 +72,10 @@ class ControlPlaneSDK {
             DefaultControlPlaneSDKLogger(
               className: className,
               sdkName: sdkName,
-            );
+            ) {
+    _sdkErrorHandler =
+        SDKErrorHandler(logger: _logger, controlPlaneDid: controlPlaneDid);
+  }
 
   static const String className = 'ControlPlaneSDK';
 
@@ -85,6 +86,7 @@ class ControlPlaneSDK {
   final DidResolver didResolver;
   final ControlPlaneSDKLogger _logger;
 
+  late final SDKErrorHandler _sdkErrorHandler;
   late final ControlPlaneApiClient _controlPlaneApiClient;
   late final CommandDispatcher _dispatcher;
 
@@ -335,7 +337,7 @@ class ControlPlaneSDK {
     final methodName = 'execute';
     _logger.info('Executing command: ${command.runtimeType}', name: methodName);
 
-    return withSdkExceptionHandling(() async {
+    return _withSdkExceptionHandling(() async {
       if (!isInitialized) {
         _logger.warning(
           'SDK not initialized, starting initialization...',
@@ -359,40 +361,7 @@ class ControlPlaneSDK {
   ///
   /// **Returns:**
   /// - An asynchronous response with generics.
-  Future<T> withSdkExceptionHandling<T>(Future<T> Function() operation) async {
-    final methodName = 'withSdkExceptionHandling';
-    try {
-      return await operation();
-    } on ControlPlaneException catch (e, stackTrace) {
-      _logger.error(
-        'Discovery exception - control plane DID: ${controlPlaneDid.topAndTail()}',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      Error.throwWithStackTrace(
-        ControlPlaneSDKException(
-          message: e.message,
-          code: e.code.value,
-          innerException: e.innerException ?? e,
-        ),
-        stackTrace,
-      );
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Discovery exception - control plane DID: ${controlPlaneDid.topAndTail()}',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      Error.throwWithStackTrace(
-        ControlPlaneSDKException(
-          message: e.toString(),
-          code: ControlPlaneSDKErrorCode.generic.value,
-          innerException: e,
-        ),
-        stackTrace,
-      );
-    }
+  Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
+    return _sdkErrorHandler.handleError(operation);
   }
 }

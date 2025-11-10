@@ -129,7 +129,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.outboundMessageId = message.id;
         channel.otherPartyVCard = otherPartyVCard;
-        channel.status = ChannelStatus.inaugaurated;
+        channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
         final approvedConnection = connection.finalised(

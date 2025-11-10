@@ -43,3 +43,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
 }
 
 class NullQueryOfferCommandOutput extends QueryOfferCommandOutput {}
+
+class LimitExceededQueryOfferCommandOutput extends QueryOfferCommandOutput {}
+
+class ExpiredQueryOfferCommandOutput extends QueryOfferCommandOutput {}

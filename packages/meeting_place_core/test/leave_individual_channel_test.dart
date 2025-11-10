@@ -18,10 +18,7 @@ void main() async {
   bool assertMediatorClientException(Object? e) {
     if (e is MeetingPlaceCoreSDKException) {
       final coreSDKInnerException = e.innerException;
-      if (coreSDKInnerException is MeetingPlaceMediatorSDKException) {
-        final mediatorSdkInnerException = coreSDKInnerException.innerException;
-        return mediatorSdkInnerException is MediatorClientException;
-      }
+      return coreSDKInnerException is MediatorClientException;
     }
     return false;
   }

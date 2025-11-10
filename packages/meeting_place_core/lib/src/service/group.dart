@@ -196,7 +196,7 @@ class GroupService {
         offerLink: result.offerLink,
         publishOfferDid: oobDidDoc.id,
         mediatorDid: result.mediatorDid,
-        status: ChannelStatus.inaugaurated,
+        status: ChannelStatus.inaugurated,
         vCard: vCard,
         type: ChannelType.group,
         permanentChannelDid: ownerDidDocument.id,

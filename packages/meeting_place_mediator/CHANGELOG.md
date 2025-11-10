@@ -1,3 +1,7 @@
+## 0.0.1-dev.6
+
+ - **FIX**: apply configured retry count and return network_error code in case of connection error (#16).
+
 ## 0.0.1-dev.5
 
  - **DOCS**: added Meeting Place banner per SDK (#15).

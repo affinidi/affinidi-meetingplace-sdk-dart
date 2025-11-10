@@ -1,6 +1,6 @@
 name: meeting_place_chat
 description: Chat SDK is a package that provides secure, end-to-end encrypted messaging using Decentralised Identifiers (DID) and DIDComm v2.1 protocol.
-version: 0.0.1-dev.9
+version: 0.0.1-dev.10
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
 
@@ -11,7 +11,7 @@ dependencies:
   collection: ^1.19.1
   didcomm: ^2.0.3
   json_annotation: ^4.9.0
-  meeting_place_core: ^0.0.1-dev.9
+  meeting_place_core: ^0.0.1-dev.10
   meta: ^1.17.0
   uuid: ^4.5.1
 

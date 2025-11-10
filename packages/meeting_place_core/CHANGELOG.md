@@ -1,3 +1,7 @@
+## 0.0.1-dev.10
+
+ - **FIX**: apply configured retry count and return network_error code in case of connection error (#16).
+
 ## 0.0.1-dev.9
 
  - **FIX**: update connection offer if it exists when accepting group offer (#14).

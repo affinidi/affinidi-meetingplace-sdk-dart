@@ -16,6 +16,36 @@ enum GroupMembershipType { admin, member }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GroupMember {
+  factory GroupMember.pendingMember({
+    required String did,
+    required String publicKey,
+    required VCard vCard,
+  }) {
+    return GroupMember(
+      did: did,
+      publicKey: publicKey,
+      dateAdded: DateTime.now().toUtc(),
+      status: GroupMemberStatus.pendingApproval,
+      membershipType: GroupMembershipType.member,
+      vCard: vCard,
+    );
+  }
+
+  factory GroupMember.admin({
+    required String did,
+    required String publicKey,
+    required VCard vCard,
+  }) {
+    return GroupMember(
+      did: did,
+      publicKey: publicKey,
+      dateAdded: DateTime.now().toUtc(),
+      status: GroupMemberStatus.approved,
+      membershipType: GroupMembershipType.admin,
+      vCard: vCard,
+    );
+  }
+
   factory GroupMember.fromJson(Map<String, dynamic> json) {
     return _$GroupMemberFromJson(json);
   }

@@ -40,12 +40,9 @@ void main() async {
     final acceptance = await sdk.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
       vCard: VCardFixture.charliePrimaryVCard,
-    );
-
-    await sdk.notifyAcceptance(
-      connectionOffer: acceptance.connectionOffer,
       senderInfo: 'Charlie',
     );
+
     return (sdk, acceptance);
   }
 
@@ -77,10 +74,6 @@ void main() async {
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: bobFindOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: bobAcceptance.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -92,10 +85,6 @@ void main() async {
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: charlieFindOfferResult.connectionOffer!,
       vCard: VCardFixture.charliePrimaryVCard,
-    );
-
-    await charlieSDK.notifyAcceptance(
-      connectionOffer: charlieAcceptance.connectionOffer,
       senderInfo: 'Charlie',
     );
 

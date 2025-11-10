@@ -41,20 +41,12 @@ void main() async {
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: bobAcceptance.connectionOffer,
       senderInfo: 'Bob',
     );
 
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
       vCard: charlieVCard,
-    );
-
-    await charlieSDK.notifyAcceptance(
-      connectionOffer: charlieAcceptance.connectionOffer,
       senderInfo: 'Charlie',
     );
 

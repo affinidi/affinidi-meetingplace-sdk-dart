@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
@@ -247,6 +248,7 @@ class GroupService {
     required Wallet wallet,
     required GroupConnectionOffer connectionOffer,
     required VCard vCard,
+    required String senderInfo,
     String? externalRef,
   }) async {
     final methodName = 'acceptGroupOffer';
@@ -262,7 +264,7 @@ class GroupService {
     final acceptOfferDidManager = await _connectionManager.generateDid(wallet);
     final acceptOfferDidDocument = await acceptOfferDidManager.getDidDocument();
 
-    _logger.info(
+    _logger.debug(
       'Accept offer DID: ${acceptOfferDidDocument.id.topAndTail()}',
       name: methodName,
     );
@@ -274,7 +276,7 @@ class GroupService {
     final permanentChannelDidDocument =
         await permanentChannelDidManager.getDidDocument();
 
-    _logger.info(
+    _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
       name: methodName,
     );
@@ -348,6 +350,15 @@ class GroupService {
         'Successfully accepted group offer: ${connectionOffer.offerLink}',
         name: methodName,
       );
+
+      unawaited(_notifyAcceptance(
+        connectionOffer: connectionOffer,
+        senderInfo: senderInfo,
+      ).catchError((error, stackTrace) {
+        _logger.error('Failed to notify acceptance',
+            error: error, stackTrace: stackTrace, name: methodName);
+      }));
+
       return AcceptGroupOfferResult(
         connectionOffer: acceptedConnectionOffer,
         acceptOfferDid: acceptOfferDidManager,
@@ -513,7 +524,7 @@ class GroupService {
     );
   }
 
-  Future<void> notifyAcceptance({
+  Future<void> _notifyAcceptance({
     required ConnectionOffer connectionOffer,
     required String senderInfo,
   }) async {

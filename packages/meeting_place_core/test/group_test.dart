@@ -55,6 +55,7 @@ void main() async {
     final actual = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: VCardFixture.bobPrimaryVCard,
+      senderInfo: 'Bob',
     );
 
     expect(actual, isA<AcceptOfferResult>());
@@ -74,13 +75,9 @@ void main() async {
       metadata: 'foobar',
     );
 
-    final acceptOfferResult = await bobSDK.acceptOffer(
+    await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptOfferResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -117,10 +114,6 @@ void main() async {
       final acceptResult = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
         vCard: bobVCard,
-      );
-
-      await bobSDK.notifyAcceptance(
-        connectionOffer: acceptResult.connectionOffer,
         senderInfo: 'Bob',
       );
 
@@ -202,20 +195,12 @@ void main() async {
       final acceptResultBob = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
         vCard: bobVCard,
-      );
-
-      await bobSDK.notifyAcceptance(
-        connectionOffer: acceptResultBob.connectionOffer,
         senderInfo: 'Bob',
       );
 
       final acceptResultCharlie = await charlieSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
         vCard: VCardFixture.charliePrimaryVCard,
-      );
-
-      await charlieSDK.notifyAcceptance(
-        connectionOffer: acceptResultCharlie.connectionOffer,
         senderInfo: 'Charlie',
       );
 
@@ -373,10 +358,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -466,10 +447,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -522,10 +499,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -605,10 +578,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 

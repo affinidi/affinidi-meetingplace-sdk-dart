@@ -119,6 +119,7 @@ void main() async {
     final acceptOfferResult = await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
+      senderInfo: 'Bob',
     );
 
     await aliceSDK.deleteConnectionOffer(acceptOfferResult.connectionOffer);

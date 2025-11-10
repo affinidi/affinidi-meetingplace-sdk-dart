@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
@@ -260,6 +262,7 @@ class ConnectionService {
     required Wallet wallet,
     required ConnectionOffer connectionOffer,
     required VCard vCard,
+    required String senderInfo,
     String? externalRef,
   }) async {
     final methodName = 'acceptOffer';
@@ -275,7 +278,7 @@ class ConnectionService {
     final acceptOfferDidManager = await _connectionManager.generateDid(wallet);
     final acceptOfferDidDocument = await acceptOfferDidManager.getDidDocument();
 
-    _logger.info(
+    _logger.debug(
       'Accept offer DID: ${acceptOfferDidDocument.id.topAndTail()}',
       name: methodName,
     );
@@ -287,7 +290,7 @@ class ConnectionService {
     final permanentChannelDidDocument =
         await permanentChannelDidManager.getDidDocument();
 
-    _logger.info(
+    _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
       name: methodName,
     );
@@ -332,6 +335,15 @@ class ConnectionService {
     );
 
     await _channelRepository.createChannel(channel);
+
+    unawaited(_notifyAcceptance(
+      connectionOffer: connectionOffer,
+      senderInfo: senderInfo,
+    ).catchError((error, stackTrace) {
+      _logger.error('Failed to notify acceptance',
+          error: error, stackTrace: stackTrace, name: methodName);
+    }));
+
     return AcceptOfferResult(
       connectionOffer: acceptedConnectionOffer,
       channel: channel,
@@ -423,17 +435,13 @@ class ConnectionService {
     _logger.info('Accept offer sent to mediator', name: methodName);
   }
 
-  Future<void> notifyAcceptance({
+  Future<void> _notifyAcceptance({
     required ConnectionOffer connectionOffer,
     required String senderInfo,
   }) async {
     final methodName = 'notifyAcceptance';
-    _logger.info(
-      'Notifying acceptance for offer: ${connectionOffer.offerName}',
-      name: methodName,
-    );
-
     final acceptOfferDid = connectionOffer.acceptOfferDid;
+
     if (!connectionOffer.isAccepted() || acceptOfferDid == null) {
       _logger.error(
         'Connection offer is not accepted or acceptOfferDid is null',

@@ -39,6 +39,7 @@ void main() async {
   final acceptOfferResult = await bobSDK.acceptOffer(
     connectionOffer: findOfferResult.connectionOffer!,
     vCard: VCard(values: {}),
+    senderInfo: 'Bob',
   );
 
   prettyJsonPrintYellow(
@@ -73,13 +74,6 @@ void main() async {
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await bobSDK.processControlPlaneEvents();
   });
-
-  prettyPrintGreen('>>> Calling SDK.notifyAcceptance');
-  await bobSDK.notifyAcceptance(
-    connectionOffer: acceptOfferResult.connectionOffer,
-    senderInfo: 'Bob',
-  );
-  prettyPrint('Other party has been notified about acceptance');
 
   prettyPrintYellow('=== Waiting for Alice to approve connection request...');
   final offerFinalisedEvent = await waitForOfferFinalised.future;

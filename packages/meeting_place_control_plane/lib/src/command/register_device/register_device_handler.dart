@@ -1,7 +1,6 @@
 import '../../api/api_client.dart';
 
 import '../../api/control_plane_api_client.dart';
-import '../../api/retry_config.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
@@ -22,10 +21,8 @@ class RegisterDeviceHandler
   ///
   /// **Parameters:**
   /// - [discoveryApiClient] - An instance of discovery api client object.
-  /// - [retryConfig] - An instance of retry config object.
   RegisterDeviceHandler({
     required ControlPlaneApiClient mpxClient,
-    RetryConfig retryConfig = const RetryConfig(),
     ControlPlaneSDKLogger? logger,
   })  : _discoveryApiClient = mpxClient,
         _logger = logger ??

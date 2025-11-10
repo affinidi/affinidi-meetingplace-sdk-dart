@@ -67,7 +67,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       }
 
       final group = await _findGroupByOfferLink(connection.offerLink);
-      final channel = await findChannelByOfferLink(connection.offerLink);
+      final channel = await findChannelByDid(permanentChannelDid);
 
       final didManager = await connectionManager.getDidManagerForDid(
           wallet, permanentChannelDid);
@@ -157,7 +157,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyPermanentChannelDid = updatedGroup.did;
         channel.seqNo = event.startSeqNo;
         channel.notificationToken = notificationToken;
-        channel.status = ChannelStatus.inaugaurated;
+        channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
         await mediatorService.deletedMessages(
@@ -315,7 +315,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     return updatedGroup;
   }
 
-  _updateSelfMemberStatusToApproved(
+  void _updateSelfMemberStatusToApproved(
     Group group,
     String selfMemberDid,
   ) {

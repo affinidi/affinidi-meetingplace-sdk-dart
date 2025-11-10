@@ -15,24 +15,34 @@ class ConnectionOfferService {
     final connectionOffer = await _connectionOfferRepository
         .getConnectionOfferByOfferLink(offerLink);
 
-    if (connectionOffer != null && connectionOffer.isPublished()) {
+    if (connectionOffer == null) {
+      return;
+    }
+
+    if (connectionOffer.isPublished()) {
       throw ConnectionOfferException.ownedByClaimingPartyError();
     }
 
-    if (connectionOffer != null && !connectionOffer.isDeleted()) {
+    if (!connectionOffer.isDeleted() && !connectionOffer.isFinalised()) {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
     }
 
-    final channel = await _channelRepository.findChannelByOfferLink(offerLink);
-    if (channel != null) {
+    final permanentChannelDid = connectionOffer.permanentChannelDid;
+    if (permanentChannelDid == null) {
+      return;
+    }
+
+    final channel =
+        await _channelRepository.findChannelByDid(permanentChannelDid);
+
+    if (channel?.isGroup == true && channel?.isInaugurated == true) {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
     }
   }
 
   Future<ConnectionOffer> markAsDeleted(ConnectionOffer connectionOffer) async {
-    await _connectionOfferRepository.updateConnectionOffer(
-      connectionOffer.markAsDeleted(),
-    );
-    return connectionOffer;
+    final deletedOffer = connectionOffer.markAsDeleted();
+    await _connectionOfferRepository.updateConnectionOffer(deletedOffer);
+    return deletedOffer;
   }
 }

@@ -50,7 +50,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
             'Connection offer ${connection.offerLink} is missing acceptOfferDid or permanentChannelDid');
       }
 
-      final channel = await findChannelByOfferLink(event.offerLink);
+      final channel = await findChannelByDid(permanentChannelDid);
 
       final acceptOfferDidManager =
           await connectionManager.getDidManagerForDid(wallet, acceptOfferDid);
@@ -129,7 +129,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.outboundMessageId = message.id;
         channel.otherPartyVCard = otherPartyVCard;
-        channel.status = ChannelStatus.inaugaurated;
+        channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
         final approvedConnection = connection.finalised(

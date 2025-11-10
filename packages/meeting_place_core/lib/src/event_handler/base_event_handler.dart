@@ -69,12 +69,6 @@ abstract class BaseEventHandler {
   }
 
   @internal
-  Future<Channel> findChannelByOfferLink(String offerLink) async {
-    return await channelRepository.findChannelByOfferLink(offerLink) ??
-        (throw Exception('Channel not found'));
-  }
-
-  @internal
   Future<DidManager> findDidManager(Channel channel) {
     final did = channel.permanentChannelDid ??
         (throw ArgumentError('Channel must have a permanent DID'));

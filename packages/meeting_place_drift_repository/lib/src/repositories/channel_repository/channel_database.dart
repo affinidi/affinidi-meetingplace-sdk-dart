@@ -187,7 +187,7 @@ extension _ChannelStatusValue on ChannelStatus {
     switch (this) {
       case ChannelStatus.approved:
         return 1;
-      case ChannelStatus.inaugaurated:
+      case ChannelStatus.inaugurated:
         return 2;
       case ChannelStatus.waitingForApproval:
         return 3;

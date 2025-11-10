@@ -74,6 +74,16 @@ class ConnectionService {
       throw ConnectionOfferException.offerNotFoundError();
     }
 
+    if (response is LimitExceededQueryOfferCommandOutput) {
+      _logger.error('Offer query limit exceeded', name: methodName);
+      throw ConnectionOfferException.limitExceeded();
+    }
+
+    if (response is ExpiredQueryOfferCommandOutput) {
+      _logger.error('Connection offer has expired', name: methodName);
+      throw ConnectionOfferException.expired();
+    }
+
     FindOfferErrorCodes? errorCode;
     bool ownedByMe = false;
 

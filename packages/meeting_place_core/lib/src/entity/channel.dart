@@ -2,11 +2,11 @@ import 'package:json_annotation/json_annotation.dart';
 import '../protocol/v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
 
-import 'connection_offer.dart';
+import 'entity.dart';
 
 part 'channel.g.dart';
 
-enum ChannelStatus { waitingForApproval, inaugaurated, approved }
+enum ChannelStatus { waitingForApproval, inaugurated, approved }
 
 enum ChannelType { individual, group, oob }
 
@@ -57,6 +57,27 @@ class Channel {
     );
   }
 
+  factory Channel.groupFromAcceptedConnectionOffer(
+    GroupConnectionOffer connectionOffer, {
+    required String permanentChannelDid,
+    required String acceptOfferDid,
+    required VCard vCard,
+    required String? externalRef,
+  }) {
+    return Channel(
+      offerLink: connectionOffer.offerLink,
+      publishOfferDid: connectionOffer.publishOfferDid,
+      permanentChannelDid: permanentChannelDid,
+      acceptOfferDid: acceptOfferDid,
+      mediatorDid: connectionOffer.mediatorDid,
+      status: ChannelStatus.waitingForApproval,
+      type: ChannelType.group,
+      vCard: vCard,
+      otherPartyVCard: connectionOffer.vCard,
+      externalRef: externalRef,
+    );
+  }
+
   @JsonKey()
   final String id;
   final String publishOfferDid;
@@ -91,6 +112,8 @@ class Channel {
   DateTime? messageSyncMarker;
 
   bool get isGroup => type == ChannelType.group;
+
+  bool get isInaugurated => status == ChannelStatus.inaugaurated;
 
   Map<String, dynamic> toJson() {
     return _$ChannelToJson(this);

@@ -106,7 +106,7 @@ void main() async {
         mediatorDid: '',
         permanentChannelDid: charlieDidDocument.id,
         otherPartyPermanentChannelDid: aliceDidDocument.id,
-        status: ChannelStatus.inaugaurated,
+        status: ChannelStatus.inaugurated,
         type: ChannelType.individual,
         vCard: charlieVCard,
         otherPartyVCard: aliceVCard,

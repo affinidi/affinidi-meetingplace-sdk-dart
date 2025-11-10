@@ -48,7 +48,7 @@ void main() {
       offerLink: offerLink,
       publishOfferDid: 'did:key:1234',
       mediatorDid: 'did:key:mediator',
-      status: ChannelStatus.inaugaurated,
+      status: ChannelStatus.inaugurated,
       vCard: VCard.empty(),
       type: ChannelType.individual,
     );
@@ -98,7 +98,7 @@ void main() {
         offerLink: offerLink,
         publishOfferDid: 'did:key:1234',
         mediatorDid: 'did:key:mediator',
-        status: ChannelStatus.inaugaurated,
+        status: ChannelStatus.inaugurated,
         vCard: VCard.empty(),
         type: ChannelType.group,
       );

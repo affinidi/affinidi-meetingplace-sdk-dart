@@ -48,6 +48,7 @@ class MediatorResolver {
       'Started resolving mediator DID from endpoint: $mediatorEndpoint',
       name: methodName,
     );
+
     if (mediatorEndpoint.endsWith('/')) {
       mediatorEndpoint = mediatorEndpoint.substring(
         0,

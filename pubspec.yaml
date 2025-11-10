@@ -62,10 +62,16 @@ melos:
 
     coverage-report:
       run: >
-        mkdir -p coverage
+        dart pub global activate remove_from_coverage &&
+
+        mkdir -p coverage &&
 
         find ./packages -name "lcov.info" -path "*/coverage/lcov.info" -exec cat
-        {} + > coverage/lcov.info
+        {} + > coverage/lcov.info &&
+
+        remove_from_coverage -f coverage/lcov.info -r 'packages/meeting_place_control_plane/lib/src/api/api_client/.*' &&
+
+        echo "Coverage report generated at coverage/lcov.info"
 
     build-runner:
       exec: dart run build_runner clean && dart run build_runner build -d

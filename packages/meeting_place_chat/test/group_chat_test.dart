@@ -273,13 +273,15 @@ void main() async {
 
     final completer = Completer<void>();
     aliceSDK.controlPlaneEventsStream.listen((event) {
-      if (event.type == ControlPlaneEventType.InvitationGroupAccept) {
+      if (event.type == ControlPlaneEventType.InvitationGroupAccept &&
+          event.channel.offerLink == acceptance.connectionOffer.offerLink) {
         completer.complete();
       }
     });
 
     await bobChatSDK.startChatSession();
 
+    await Future.delayed(const Duration(seconds: 2));
     await aliceSDK.processControlPlaneEvents();
     await completer.future;
 
@@ -293,6 +295,10 @@ void main() async {
     );
 
     final chat = await newAliceChatSDK.startChatSession();
+
+    // Wait to ensure the concierge message is processed
+    await Future.delayed(const Duration(seconds: 2));
+
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
 

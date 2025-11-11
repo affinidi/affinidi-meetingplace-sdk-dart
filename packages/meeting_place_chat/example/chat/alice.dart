@@ -64,23 +64,12 @@ void main() async {
   final notificationStream =
       await aliceSDK.subscribeToMediator(notificationDidDocument.id);
 
-  prettyPrintYellow('>>> Listen on stream for invitation acccept messages');
+  prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream
-      .where((data) => data.plainTextMessage.isOfType(
-            '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.invitationAccept.value}',
-          ))
+      .where((data) => data.plainTextMessage.type
+          .toString()
+          .startsWith(getControlPlaneDid()))
       .listen((data) async {
-    prettyPrintYellow('Received invitation accept notification');
-    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
-    await aliceSDK.processControlPlaneEvents();
-  });
-
-  notificationStream.stream
-      .where((data) => data.plainTextMessage.isOfType(
-            '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.channelActivity.value}',
-          ))
-      .listen((data) async {
-    prettyPrintYellow('Received invitation channel activity notification');
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await aliceSDK.processControlPlaneEvents();
   });

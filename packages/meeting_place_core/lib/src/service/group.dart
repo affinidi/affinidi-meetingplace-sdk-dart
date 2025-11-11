@@ -534,7 +534,7 @@ class GroupService {
       name: methodName,
     );
 
-    if (!connectionOffer.isAccepted()) {
+    if (!connectionOffer.isAccepted) {
       _logger.error(
         'Connection offer is not accepted: ${connectionOffer.offerLink}',
         name: methodName,

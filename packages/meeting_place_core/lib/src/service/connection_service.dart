@@ -447,7 +447,7 @@ class ConnectionService {
     final methodName = 'notifyAcceptance';
     final acceptOfferDid = connectionOffer.acceptOfferDid;
 
-    if (!connectionOffer.isAccepted() || acceptOfferDid == null) {
+    if (!connectionOffer.isAccepted || acceptOfferDid == null) {
       _logger.error(
         'Connection offer is not accepted or acceptOfferDid is null',
         name: methodName,
@@ -486,7 +486,7 @@ class ConnectionService {
             .getConnectionOfferByOfferLink(channel.offerLink) ??
         (throw ConnectionOfferException.offerNotFoundError());
 
-    if (connectionOffer.isFinalised()) {
+    if (connectionOffer.isFinalised) {
       _logger.error('Connection offer is already finalised', name: methodName);
       throw ConnectionOfferException.alreadyFinalised();
     }
@@ -651,7 +651,7 @@ class ConnectionService {
       name: methodName,
     );
 
-    if (connectionOffer.isDeleted()) {
+    if (connectionOffer.isDeleted) {
       _logger.warning(
         'Connection offer already marked as deleted: ${connectionOffer.offerName}',
         name: methodName,

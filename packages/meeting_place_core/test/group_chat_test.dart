@@ -68,7 +68,6 @@ void main() async {
 
     // Alice approves Bob's group membership request
     await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
       channel: aliceToBobChannel!,
     );
 
@@ -79,7 +78,6 @@ void main() async {
 
     // Alice approves Charlie's group membership request
     await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
       channel: aliceToCharlieChannel!,
     );
 

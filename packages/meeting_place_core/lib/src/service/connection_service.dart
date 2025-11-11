@@ -337,9 +337,14 @@ class ConnectionService {
     await _channelRepository.createChannel(channel);
 
     unawaited(_notifyAcceptance(
-      connectionOffer: connectionOffer,
+      connectionOffer: acceptedConnectionOffer,
       senderInfo: senderInfo,
-    ).catchError((error, stackTrace) {
+    ).then((_) {
+      _logger.info(
+        'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
+        name: methodName,
+      );
+    }).catchError((error, stackTrace) {
       _logger.error('Failed to notify acceptance',
           error: error, stackTrace: stackTrace, name: methodName);
     }));
@@ -467,17 +472,19 @@ class ConnectionService {
 
   Future<Channel> approveConnectionRequest({
     required Wallet wallet,
-    required ConnectionOffer connectionOffer,
     required Channel channel,
   }) async {
     final methodName = 'approveConnectionRequest';
     _logger.info(
-      'Approving connection request for offer: ${connectionOffer.offerName}',
-      name: methodName,
-    );
+        'Approving connection request for offer link: ${channel.offerLink}',
+        name: methodName);
 
     final acceptOfferDid = channel.acceptOfferDid;
     final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
+
+    final connectionOffer = await _connectionOfferRepository
+            .getConnectionOfferByOfferLink(channel.offerLink) ??
+        (throw ConnectionOfferException.offerNotFoundError());
 
     if (connectionOffer.isFinalised()) {
       _logger.error('Connection offer is already finalised', name: methodName);
@@ -490,10 +497,8 @@ class ConnectionService {
     }
 
     if (otherPartyPermanentChannelDid == null) {
-      _logger.error(
-        'Other party permanent channel DID is null',
-        name: methodName,
-      );
+      _logger.error('Other party permanent channel DID is null',
+          name: methodName);
       throw ConnectionOfferException.permanentChannelDidError();
     }
 
@@ -511,8 +516,8 @@ class ConnectionService {
       permanentChannelDid: permanentChannelDid,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyAcceptOfferDid: acceptOfferDid,
-      outboundMessageId: connectionOffer.offerLink,
-      mediatorDid: connectionOffer.mediatorDid,
+      outboundMessageId: channel.offerLink,
+      mediatorDid: channel.mediatorDid,
       vCard: channel.vCard,
     );
 
@@ -520,7 +525,7 @@ class ConnectionService {
       FinaliseAcceptanceCommand(
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
-        offerLink: connectionOffer.offerLink,
+        offerLink: channel.offerLink,
         offerPublishedDid: channel.publishOfferDid,
         otherPartyAcceptOfferDid: channel.acceptOfferDid!,
         otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid!,

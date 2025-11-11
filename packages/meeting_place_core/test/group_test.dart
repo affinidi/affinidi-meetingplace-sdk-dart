@@ -126,18 +126,11 @@ void main() async {
       await aliceSDK.processControlPlaneEvents();
       await aliceCompleter.future;
 
-      final approved = await aliceSDK.getConnectionOffer(
-        result.connectionOffer.offerLink,
-      );
-
       final channel = await aliceSDK.getChannelByDid(
         result.connectionOffer.groupDid!,
       );
 
-      await aliceSDK.approveConnectionRequest(
-        connectionOffer: approved!,
-        channel: channel!,
-      );
+      await aliceSDK.approveConnectionRequest(channel: channel!);
 
       final group = await aliceSDK.getGroupByOfferLink(
         result.connectionOffer.offerLink,
@@ -246,10 +239,7 @@ void main() async {
           await acceptResultCharlie.permanentChannelDid.getDidDocument();
       final charlieChannel = await aliceSDK.getChannelByDid(charlieDidDoc.id);
 
-      await aliceSDK.approveConnectionRequest(
-        connectionOffer: result.connectionOffer,
-        channel: charlieChannel!,
-      );
+      await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
 
       final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         charlieSDK,
@@ -267,10 +257,7 @@ void main() async {
         acceptResultBobChannelDid.id,
       );
 
-      await aliceSDK.approveConnectionRequest(
-        connectionOffer: result.connectionOffer,
-        channel: bobChannel!,
-      );
+      await aliceSDK.approveConnectionRequest(channel: bobChannel!);
 
       await bobSDK.processControlPlaneEvents();
       // await charlieWaitForChatGroupDetailsUpdate.future;
@@ -377,10 +364,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     final group = await aliceSDK.getGroupByOfferLink(
       result.connectionOffer.offerLink,
@@ -463,10 +447,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     final group = await aliceSDK.getGroupByOfferLink(
       result.connectionOffer.offerLink,
@@ -518,10 +499,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
@@ -594,10 +572,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     await bobSDK.processControlPlaneEvents();
 

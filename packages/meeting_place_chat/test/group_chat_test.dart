@@ -108,16 +108,10 @@ void main() async {
     final charlieChannel = await aliceSDK.getChannelByDid(charlieMemberDid);
 
     // Alice approves Bob's group membership request
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
-      channel: bobChannel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: bobChannel!);
 
     // Alice approves Charlie's group membership request
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
-      channel: charlieChannel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,

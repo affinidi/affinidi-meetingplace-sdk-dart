@@ -955,26 +955,16 @@ class MeetingPlaceCoreSDK {
   /// informing the new member about approval.
   ///
   /// **Parameters:**
-  /// - [connectionOffer] - [GroupConnectionOffer] object for group.
   /// - [channel] - DID of member requesting membership
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({
-    required ConnectionOffer connectionOffer,
-    required Channel channel,
-  }) async {
+  Future<Channel> approveConnectionRequest({required Channel channel}) async {
     return _withSdkExceptionHandling(() async {
-      return connectionOffer is GroupConnectionOffer
-          ? await _groupService.approveMembershipRequest(
-              connectionOffer: connectionOffer,
-              channel: channel,
-            )
+      return channel.isGroup
+          ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
-              wallet: wallet,
-              connectionOffer: connectionOffer,
-              channel: channel,
-            );
+              wallet: wallet, channel: channel);
     });
   }
 

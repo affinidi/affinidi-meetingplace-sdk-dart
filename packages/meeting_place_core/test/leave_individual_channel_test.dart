@@ -50,10 +50,9 @@ void main() async {
 
     aliceSDK.controlPlaneEventsStream.listen((event) async {
       if (event.type == ControlPlaneEventType.InvitationAccept) {
-        final channel = await aliceSDK.approveConnectionRequest(
-          connectionOffer: offer.connectionOffer,
-          channel: event.channel,
-        );
+        final channel =
+            await aliceSDK.approveConnectionRequest(channel: event.channel);
+
         await bobSDK.processControlPlaneEvents();
         aliceCompleter.complete(channel);
       }

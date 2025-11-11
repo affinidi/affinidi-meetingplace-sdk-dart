@@ -94,7 +94,6 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
   final channel = await aliceSDK.approveConnectionRequest(
-    connectionOffer: publishOfferResult.connectionOffer,
     channel: receivedEvent.channel,
   );
 

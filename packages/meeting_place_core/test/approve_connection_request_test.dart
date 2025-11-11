@@ -50,12 +50,7 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     aliceInvitationAcceptChannel = await waitForInvitationAccept.future;
 
-    final connectionOffer = await aliceSDK.getConnectionOffer(
-      findOfferResult.connectionOffer!.offerLink,
-    );
-
     aliceApprovedChannel = await aliceSDK.approveConnectionRequest(
-      connectionOffer: connectionOffer!,
       channel: aliceInvitationAcceptChannel,
     );
 

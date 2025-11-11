@@ -550,10 +550,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       throw Exception(message);
     }
 
-    await coreSDK.approveConnectionRequest(
-      connectionOffer: connectionOffer,
-      channel: channel,
-    );
+    await coreSDK.approveConnectionRequest(channel: channel);
 
     // Refresh group due to changes within SDK
     group = (await coreSDK.getGroupById(group.id))!;

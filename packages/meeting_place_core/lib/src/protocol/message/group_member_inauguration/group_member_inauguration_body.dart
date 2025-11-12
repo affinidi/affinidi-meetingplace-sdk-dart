@@ -48,7 +48,7 @@ class GroupMemberInaugurationBodyMember {
     required this.vCard,
     required this.status,
     required this.publicKey,
-    required this.isAdmin,
+    required this.membershipType,
   });
 
   @JsonKey(name: 'did')
@@ -63,8 +63,8 @@ class GroupMemberInaugurationBodyMember {
   @JsonKey(name: 'public_key')
   final String publicKey;
 
-  @JsonKey(name: 'is_admin')
-  final String isAdmin;
+  @JsonKey(name: 'membership_type')
+  final String membershipType;
 
   Map<String, dynamic> toJson() =>
       _$GroupMemberInaugurationBodyMemberToJson(this);

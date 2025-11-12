@@ -40,7 +40,7 @@ GroupMemberInaugurationBodyMember _$GroupMemberInaugurationBodyMemberFromJson(
       vCard: json['v_card'] as Map<String, dynamic>,
       status: json['status'] as String,
       publicKey: json['public_key'] as String,
-      isAdmin: json['is_admin'] as String,
+      membershipType: json['membership_type'] as String,
     );
 
 Map<String, dynamic> _$GroupMemberInaugurationBodyMemberToJson(
@@ -50,5 +50,5 @@ Map<String, dynamic> _$GroupMemberInaugurationBodyMemberToJson(
       'v_card': instance.vCard,
       'status': instance.status,
       'public_key': instance.publicKey,
-      'is_admin': instance.isAdmin,
+      'membership_type': instance.membershipType,
     };

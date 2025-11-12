@@ -1,4 +1,5 @@
 import 'package:didcomm/didcomm.dart';
+import '../../../entity/group_member.dart';
 import '../../attachment/attachment_format.dart';
 import '../../attachment/attachment_media_type.dart';
 import '../../meeting_place_protocol.dart';
@@ -22,9 +23,9 @@ class GroupMemberInaugurationMember {
   final String status;
   final String publicKey;
 
-  bool get isAdmin => membershipType == 'admin';
+  bool get isAdmin => membershipType == GroupMembershipType.admin.name;
 
-  bool get isMember => membershipType == 'member';
+  bool get isMember => membershipType == GroupMembershipType.member.name;
 }
 
 class GroupMemberInauguration extends PlainTextMessage {
@@ -53,7 +54,7 @@ class GroupMemberInauguration extends PlainTextMessage {
                       vCard: m.vCard.toJson(),
                       status: m.status,
                       publicKey: m.publicKey,
-                      isAdmin: m.isAdmin.toString(),
+                      membershipType: m.membershipType,
                     ))
                 .toList(),
           ).toJson(),
@@ -112,7 +113,7 @@ class GroupMemberInauguration extends PlainTextMessage {
           vCard: VCard.fromJson(memberData['v_card'] as Map<String, dynamic>),
           status: memberData['status'],
           publicKey: memberData['public_key'] as String,
-          membershipType: memberData['is_admin'] == 'true' ? 'admin' : 'member',
+          membershipType: memberData['membership_type'] as String,
         );
       }).toList(),
     );

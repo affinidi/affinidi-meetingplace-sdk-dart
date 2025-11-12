@@ -10,6 +10,6 @@ export 'message/group_member_deregistration/group_member_deregistration.dart';
 export 'message/group_member_inauguration/group_member_inauguration.dart';
 export 'message/group_message/group_message.dart';
 export 'message/oob_invitation_message/oob_invitation_message.dart';
-export 'meeting_place_notification_suffix.dart';
+export 'meeting_place_notification_protocol.dart';
 export 'meeting_place_protocol.dart';
 export 'v_card/v_card.dart';

@@ -61,7 +61,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: publishedOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.connectionSetupGroup,
+        messageType: MeetingPlaceProtocol.invitationAcceptanceGroup,
       );
 
       // TODO: ensure duplicate requests are handled correctly

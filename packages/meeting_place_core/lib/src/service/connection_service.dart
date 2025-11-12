@@ -421,7 +421,7 @@ class ConnectionService {
       ),
     );
 
-    final connectionSetupMessage = ConnectionSetup.create(
+    final invitationAcceptanceMessage = InvitationAcceptance.create(
       from: acceptOfferDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
@@ -430,7 +430,7 @@ class ConnectionService {
     );
 
     await _mediatorSDK.sendMessage(
-      connectionSetupMessage,
+      invitationAcceptanceMessage,
       senderDidManager: acceptOfferDid,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
@@ -584,7 +584,8 @@ class ConnectionService {
       ),
     );
 
-    final connectionInvitationAcceptedMessage = ConnectionAccepted.create(
+    final connectionInvitationAcceptedMessage =
+        ConnectionRequestApproval.create(
       from: offerPublishedDidDocument.id,
       to: [otherPartyAcceptOfferDid],
       parentThreadId: outboundMessageId,

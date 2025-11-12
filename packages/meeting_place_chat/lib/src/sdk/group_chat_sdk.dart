@@ -240,7 +240,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     if (message.type.toString() ==
-        MeetingPlaceProtocol.groupMemberDeregistered.value) {
+        MeetingPlaceProtocol.groupMemberDeregistration.value) {
       logger.info(
         'Handling message for group member deregistered',
         name: methodName,
@@ -265,7 +265,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ).handle(group: group, message: message, chatId: chatId);
     }
 
-    if (message.type.toString() == MeetingPlaceProtocol.groupDeleted.value) {
+    if (message.type.toString() == MeetingPlaceProtocol.groupDeletion.value) {
       logger.info(
         'Handling message for group deleted for group ${group.id}',
         name: methodName,

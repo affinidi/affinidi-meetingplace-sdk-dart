@@ -4,8 +4,8 @@ import '../meeting_place_protocol.dart';
 import '../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
 
-class ConnectionSetup extends PlainTextMessage {
-  ConnectionSetup({
+class ConnectionRequestApproval extends PlainTextMessage {
+  ConnectionRequestApproval({
     required super.id,
     required super.from,
     required super.to,
@@ -13,7 +13,7 @@ class ConnectionSetup extends PlainTextMessage {
     required String permanentChannelDid,
     VCard? vCard,
   }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.connectionSetup.value),
+          type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
           body: {'channel_did': permanentChannelDid},
           createdTime: DateTime.now().toUtc(),
           attachments: vCard is VCard
@@ -27,14 +27,14 @@ class ConnectionSetup extends PlainTextMessage {
               : null,
         );
 
-  factory ConnectionSetup.create({
+  factory ConnectionRequestApproval.create({
     required String from,
     required List<String> to,
     required String parentThreadId,
     required String permanentChannelDid,
     VCard? vCard,
   }) {
-    return ConnectionSetup(
+    return ConnectionRequestApproval(
       id: Uuid().v4(),
       from: from,
       to: to,

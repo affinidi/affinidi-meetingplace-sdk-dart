@@ -30,7 +30,7 @@ void main() {
   final mediatorDid = 'did:web:mediator-did';
 
   final fetchMessageOptions = FetchMessagesOptions(
-    filterByMessageTypes: [MeetingPlaceProtocol.connectionSetup.value],
+    filterByMessageTypes: [MeetingPlaceProtocol.invitationAcceptance.value],
   );
 
   final offerLink = Uuid().v4();
@@ -120,7 +120,7 @@ void main() {
               id: Uuid().v4(),
               from: acceptOfferDid,
               to: [publishOfferDid],
-              type: Uri.parse(MeetingPlaceProtocol.connectionSetup.value),
+              type: Uri.parse(MeetingPlaceProtocol.invitationAcceptance.value),
               body: {'channel_did': 'permanent-permanent-did'},
             ),
             messageHash: messageHash,

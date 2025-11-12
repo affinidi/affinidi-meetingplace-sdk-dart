@@ -502,7 +502,7 @@ class GroupService {
       ),
     );
 
-    final connectionSetupMessage = ConnectionSetupGroup.create(
+    final invitationAcceptanceMessage = InvitationAcceptanceGroup.create(
       from: senderDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
@@ -512,7 +512,7 @@ class GroupService {
     );
 
     await _mediatorSDK.sendMessage(
-      connectionSetupMessage,
+      invitationAcceptanceMessage,
       senderDidManager: senderDid,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
@@ -897,7 +897,7 @@ class GroupService {
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupDelete.create(groupId: group.id),
+      GroupDeletion.create(groupId: group.id),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),
@@ -916,7 +916,7 @@ class GroupService {
     required String memberDid,
   }) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupMemberDeregistered.create(groupId: group.id, memberDid: memberDid),
+      GroupMemberDeregistration.create(groupId: group.id, memberDid: memberDid),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),

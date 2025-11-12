@@ -41,7 +41,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: publishedOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.connectionSetup,
+        messageType: MeetingPlaceProtocol.invitationAcceptance,
       );
 
       for (final result in messages) {

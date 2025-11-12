@@ -496,7 +496,7 @@ class MeetingPlaceCoreSDK {
       final plainTextMessage = message.plainTextMessage;
 
       if (plainTextMessage.type.toString() ==
-          MeetingPlaceProtocol.connectionSetup.value) {
+          MeetingPlaceProtocol.invitationAcceptance.value) {
         final otherPartyVcard = getVCardDataOrEmptyFromAttachments(
           plainTextMessage.attachments,
         );
@@ -655,7 +655,7 @@ class MeetingPlaceCoreSDK {
       final plainTextMessage = message.plainTextMessage;
 
       if (plainTextMessage.type.toString() ==
-              MeetingPlaceProtocol.connectionAccepted.value &&
+              MeetingPlaceProtocol.connectionRequestApproval.value &&
           plainTextMessage.parentThreadId == invitationMessage.id) {
         final otherPartyPermanentChannelDid =
             plainTextMessage.body!['channel_did'];

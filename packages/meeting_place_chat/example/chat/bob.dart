@@ -70,6 +70,7 @@ void main() async {
           .toString()
           .startsWith(getControlPlaneDid()))
       .listen((data) async {
+    prettyPrintYellow('Received offer finalised message');
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await bobSDK.processControlPlaneEvents();
   });

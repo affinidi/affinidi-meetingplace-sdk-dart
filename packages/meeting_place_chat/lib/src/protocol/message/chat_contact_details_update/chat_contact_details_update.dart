@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
 
 class ChatContactDetailsUpdate extends PlainTextMessage {
   ChatContactDetailsUpdate({

@@ -1,5 +1,7 @@
-import '../../../meeting_place_core.dart';
+import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
+import '../../meeting_place_protocol.dart';
+import 'group_member_deregistration_body.dart';
 
 class GroupMemberDeregistration extends PlainTextMessage {
   GroupMemberDeregistration({
@@ -8,7 +10,9 @@ class GroupMemberDeregistration extends PlainTextMessage {
     required String memberDid,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.groupMemberDeregistration.value),
-          body: {'groupId': groupId, 'memberDid': memberDid},
+          body: GroupMemberDeregistrationBody(
+                  groupId: groupId, memberDid: memberDid)
+              .toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

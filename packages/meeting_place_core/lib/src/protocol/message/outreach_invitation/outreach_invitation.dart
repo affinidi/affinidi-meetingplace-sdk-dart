@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
-import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../../meeting_place_protocol.dart';
+import '../../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
+import 'outreach_invitation_body.dart';
 
 class OutreachInvitation extends PlainTextMessage {
   OutreachInvitation({
@@ -13,7 +14,10 @@ class OutreachInvitation extends PlainTextMessage {
     VCard? vCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.outreachInvitation.value),
-          body: {'mnemonic': mnemonic, 'message': message},
+          body: OutreachInvitationBody(
+            mnemonic: mnemonic,
+            message: message,
+          ).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

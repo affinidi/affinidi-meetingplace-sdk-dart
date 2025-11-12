@@ -1,24 +1,23 @@
 import 'package:didcomm/didcomm.dart';
-import '../attachment/v_card_attachment.dart';
-import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../../attachment/v_card_attachment.dart';
+import '../../meeting_place_protocol.dart';
+import '../../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
+import 'invitation_acceptance_body.dart';
 
-class InvitationAcceptanceGroup extends PlainTextMessage {
-  InvitationAcceptanceGroup({
+class InvitationAcceptance extends PlainTextMessage {
+  InvitationAcceptance({
     required super.id,
     required super.from,
     required super.to,
     required super.parentThreadId,
     required String permanentChannelDid,
-    required String memberPublicKey,
     VCard? vCard,
   }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.invitationAcceptanceGroup.value),
-          body: {
-            'channel_did': permanentChannelDid,
-            'public_key': memberPublicKey,
-          },
+          type: Uri.parse(MeetingPlaceProtocol.invitationAcceptance.value),
+          body: InvitationAcceptanceBody(
+            channelDid: permanentChannelDid,
+          ).toJson(),
           createdTime: DateTime.now().toUtc(),
           attachments: vCard is VCard
               ? [
@@ -31,21 +30,19 @@ class InvitationAcceptanceGroup extends PlainTextMessage {
               : null,
         );
 
-  factory InvitationAcceptanceGroup.create({
+  factory InvitationAcceptance.create({
     required String from,
     required List<String> to,
     required String parentThreadId,
     required String permanentChannelDid,
-    required String memberPublicKey,
     VCard? vCard,
   }) {
-    return InvitationAcceptanceGroup(
+    return InvitationAcceptance(
       id: Uuid().v4(),
       from: from,
       to: to,
       parentThreadId: parentThreadId,
       permanentChannelDid: permanentChannelDid,
-      memberPublicKey: memberPublicKey,
       vCard: vCard,
     );
   }

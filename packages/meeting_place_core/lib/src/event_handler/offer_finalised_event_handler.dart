@@ -1,5 +1,5 @@
 import '../entity/channel.dart';
-import '../protocol/message/channel_inauguration.dart';
+import '../protocol/message/channel_inauguration/channel_inauguration.dart';
 import '../protocol/meeting_place_protocol.dart';
 import 'package:ssi/ssi.dart';
 

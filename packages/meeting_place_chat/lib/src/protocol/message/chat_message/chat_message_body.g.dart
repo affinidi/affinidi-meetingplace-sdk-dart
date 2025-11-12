@@ -9,11 +9,11 @@ part of 'chat_message_body.dart';
 ChatMessageBody _$ChatMessageBodyFromJson(Map<String, dynamic> json) =>
     ChatMessageBody(
       text: json['text'] as String,
-      seqNo: (json['seqNo'] as num).toInt(),
+      seqNo: (json['seq_no'] as num).toInt(),
     );
 
 Map<String, dynamic> _$ChatMessageBodyToJson(ChatMessageBody instance) =>
     <String, dynamic>{
       'text': instance.text,
-      'seqNo': instance.seqNo,
+      'seq_no': instance.seqNo,
     };

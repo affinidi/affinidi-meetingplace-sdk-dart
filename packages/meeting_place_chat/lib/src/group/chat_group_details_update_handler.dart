@@ -64,11 +64,11 @@ class ChatGroupDetailsUpdateHandler {
       members: membersFromMessage.map((member) {
         return GroupMember(
           did: member['did'] as String,
-          dateAdded: DateTime.parse(member['dateAdded'] as String),
+          dateAdded: DateTime.parse(member['date_added'] as String),
           status: GroupMemberStatus.values.byName(member['status'] as String),
-          publicKey: member['publicKey'] as String,
+          publicKey: member['public_key'] as String,
           membershipType: GroupMembershipType.values.byName(
-            member['membershipType'] as String,
+            member['membership_type'] as String,
           ),
           vCard: _vCardFromMessage(member),
         );
@@ -81,7 +81,7 @@ class ChatGroupDetailsUpdateHandler {
 
   VCard _vCardFromMessage(Map<String, dynamic> message) {
     return VCard(
-      values: (message['vCard'] as dynamic)['values'] as Map<String, dynamic>,
+      values: (message['v_card'] as dynamic)['values'] as Map<String, dynamic>,
     );
   }
 }

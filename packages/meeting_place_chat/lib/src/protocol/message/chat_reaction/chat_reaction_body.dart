@@ -12,7 +12,7 @@ class ChatReactionBody {
   @JsonKey(name: 'reactions')
   final List<String> reactions;
 
-  @JsonKey(name: 'messageId')
+  @JsonKey(name: 'message_id')
   final String messageId;
 
   Map<String, dynamic> toJson() => _$ChatReactionBodyToJson(this);

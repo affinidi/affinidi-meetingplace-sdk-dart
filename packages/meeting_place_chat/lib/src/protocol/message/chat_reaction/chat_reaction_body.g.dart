@@ -10,11 +10,11 @@ ChatReactionBody _$ChatReactionBodyFromJson(Map<String, dynamic> json) =>
     ChatReactionBody(
       reactions:
           (json['reactions'] as List<dynamic>).map((e) => e as String).toList(),
-      messageId: json['messageId'] as String,
+      messageId: json['message_id'] as String,
     );
 
 Map<String, dynamic> _$ChatReactionBodyToJson(ChatReactionBody instance) =>
     <String, dynamic>{
       'reactions': instance.reactions,
-      'messageId': instance.messageId,
+      'message_id': instance.messageId,
     };

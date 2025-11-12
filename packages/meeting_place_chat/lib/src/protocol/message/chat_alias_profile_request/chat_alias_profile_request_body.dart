@@ -9,7 +9,7 @@ class ChatAliasProfileRequestBody {
 
   ChatAliasProfileRequestBody({required this.profileHash});
 
-  @JsonKey(name: 'profileHash')
+  @JsonKey(name: 'profile_hash')
   final String profileHash;
 
   Map<String, dynamic> toJson() => _$ChatAliasProfileRequestBodyToJson(this);

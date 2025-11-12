@@ -197,7 +197,7 @@ abstract class BaseChatSDK {
     )) {
       _logger.info('Handling chat message', name: methodName);
       final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
+          message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
 
       final chatMessage = Message.fromReceivedMessage(
         message: message.plainTextMessage,
@@ -252,7 +252,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channel.type != ChannelType.group) {
-        final profileHash = message.plainTextMessage.body?['profileHash'];
+        final profileHash = message.plainTextMessage.body?['profile_hash'];
         if (profileHash != null && profileHash is String) {
           if (channel.otherPartyVCard?.toHash() == profileHash) {
             chatStream.pushData(
@@ -304,7 +304,7 @@ abstract class BaseChatSDK {
           status: ChatItemStatus.userInput,
           conciergeType: ConciergeMessageType.permissionToUpdateProfile,
           data: {
-            'profileHash': message.plainTextMessage.body?['profileHash'],
+            'profileHash': message.plainTextMessage.body?['profile_hash'],
             'replyTo': message.plainTextMessage.from,
           },
         );

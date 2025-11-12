@@ -19,28 +19,28 @@ class ChatGroupDetailsUpdateBody {
     this.groupKeyPair,
   });
 
-  @JsonKey(name: 'groupId')
+  @JsonKey(name: 'group_id')
   final String groupId;
 
-  @JsonKey(name: 'groupDid')
+  @JsonKey(name: 'group_did')
   final String groupDid;
 
-  @JsonKey(name: 'offerLink')
+  @JsonKey(name: 'offer_link')
   final String offerLink;
 
   @JsonKey(name: 'members')
   final List<ChatGroupDetailsUpdateBodyMember> members;
 
-  @JsonKey(name: 'adminDids')
+  @JsonKey(name: 'admin_dids')
   final List<String> adminDids;
 
-  @JsonKey(name: 'dateCreated')
+  @JsonKey(name: 'date_created')
   final DateTime dateCreated;
 
-  @JsonKey(name: 'groupPublicKey')
+  @JsonKey(name: 'group_public_key')
   final String groupPublicKey;
 
-  @JsonKey(name: 'groupKeyPair')
+  @JsonKey(name: 'group_key_pair')
   final String? groupKeyPair;
 
   Map<String, dynamic> toJson() => _$ChatGroupDetailsUpdateBodyToJson(this);
@@ -61,11 +61,22 @@ class ChatGroupDetailsUpdateBodyMember {
     required this.membershipType,
   });
 
+  @JsonKey(name: 'did')
   final String did;
+
+  @JsonKey(name: 'v_card')
   final VCard vCard;
+
+  @JsonKey(name: 'date_added')
   final DateTime dateAdded;
+
+  @JsonKey(name: 'status')
   final String status;
+
+  @JsonKey(name: 'public_key')
   final String publicKey;
+
+  @JsonKey(name: 'membership_type')
   final String membershipType;
 
   Map<String, dynamic> toJson() {

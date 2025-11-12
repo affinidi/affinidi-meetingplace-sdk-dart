@@ -64,7 +64,8 @@ class ChatMessage extends PlainTextMessage {
     required this.text,
     required this.seqNo,
   }) : super(
-          type: Uri.parse(ChatProtocol.chatMessage.value),
+          type: Uri.parse(
+              'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message'),
           body: ChatMessageBody(text: text, seqNo: seqNo).toJson(),
           createdTime: DateTime.now().toUtc(),
         );

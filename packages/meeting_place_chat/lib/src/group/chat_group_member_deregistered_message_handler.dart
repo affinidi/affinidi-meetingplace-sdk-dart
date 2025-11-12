@@ -23,8 +23,8 @@ class ChatGroupMemberDeregisteredMessageHandler {
     required Group group,
     required PlainTextMessage message,
   }) async {
-    final groupId = message.body?['groupId'] as String;
-    final memberDid = message.body?['memberDid'] as String;
+    final groupId = message.body?['group_id'] as String;
+    final memberDid = message.body?['member_did'] as String;
 
     if (groupId != group.id) {
       throw Exception('Group ids doesnt match');

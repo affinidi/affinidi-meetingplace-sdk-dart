@@ -290,7 +290,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         ' ${message.from?.topAndTail()}',
         name: methodName,
       );
-      final profileHash = message.body?['profileHash'];
+      final profileHash = message.body?['profile_hash'];
       if (profileHash != null && profileHash is String) {
         final member = group.members.firstWhere(
           (member) => member.did == message.from!,
@@ -374,7 +374,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         status: ChatItemStatus.userInput,
         conciergeType: ConciergeMessageType.permissionToUpdateProfile,
         data: {
-          'profileHash': message.body?['profileHash'],
+          'profileHash': message.body?['profile_hash'],
           'replyTo': message.from!,
         },
       );

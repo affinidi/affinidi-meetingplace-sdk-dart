@@ -12,7 +12,7 @@ class ChatMessageBody {
   @JsonKey(name: 'text')
   final String text;
 
-  @JsonKey(name: 'seqNo')
+  @JsonKey(name: 'seq_no')
   final int seqNo;
 
   Map<String, dynamic> toJson() => _$ChatMessageBodyToJson(this);

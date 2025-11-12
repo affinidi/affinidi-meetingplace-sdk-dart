@@ -73,7 +73,7 @@ class ChatReaction extends PlainTextMessage {
       to: message.to,
       // ignore: avoid_dynamic_calls
       reactions: message.body?['reactions'].cast<String>() as List<String>,
-      messageId: message.body?['messageId'] as String,
+      messageId: message.body?['message_id'] as String,
     );
   }
 

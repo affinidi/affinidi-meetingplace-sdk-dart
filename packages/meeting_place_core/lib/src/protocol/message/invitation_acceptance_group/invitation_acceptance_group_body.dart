@@ -18,6 +18,5 @@ class InvitationAcceptanceGroupBody {
   @JsonKey(name: 'public_key')
   final String publicKey;
 
-  Map<String, dynamic> toJson() =>
-      _$InvitationAcceptanceGroupBodyToJson(this);
+  Map<String, dynamic> toJson() => _$InvitationAcceptanceGroupBodyToJson(this);
 }

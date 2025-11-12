@@ -4,8 +4,8 @@ import '../meeting_place_protocol.dart';
 import '../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
 
-class ConnectionSetupGroup extends PlainTextMessage {
-  ConnectionSetupGroup({
+class InvitationAcceptanceGroup extends PlainTextMessage {
+  InvitationAcceptanceGroup({
     required super.id,
     required super.from,
     required super.to,
@@ -14,7 +14,7 @@ class ConnectionSetupGroup extends PlainTextMessage {
     required String memberPublicKey,
     VCard? vCard,
   }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.connectionSetupGroup.value),
+          type: Uri.parse(MeetingPlaceProtocol.invitationAcceptanceGroup.value),
           body: {
             'channel_did': permanentChannelDid,
             'public_key': memberPublicKey,
@@ -31,7 +31,7 @@ class ConnectionSetupGroup extends PlainTextMessage {
               : null,
         );
 
-  factory ConnectionSetupGroup.create({
+  factory InvitationAcceptanceGroup.create({
     required String from,
     required List<String> to,
     required String parentThreadId,
@@ -39,7 +39,7 @@ class ConnectionSetupGroup extends PlainTextMessage {
     required String memberPublicKey,
     VCard? vCard,
   }) {
-    return ConnectionSetupGroup(
+    return InvitationAcceptanceGroup(
       id: Uuid().v4(),
       from: from,
       to: to,

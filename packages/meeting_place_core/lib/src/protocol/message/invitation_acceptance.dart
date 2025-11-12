@@ -4,8 +4,8 @@ import '../meeting_place_protocol.dart';
 import '../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
 
-class ConnectionAccepted extends PlainTextMessage {
-  ConnectionAccepted({
+class InvitationAcceptance extends PlainTextMessage {
+  InvitationAcceptance({
     required super.id,
     required super.from,
     required super.to,
@@ -13,7 +13,7 @@ class ConnectionAccepted extends PlainTextMessage {
     required String permanentChannelDid,
     VCard? vCard,
   }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.connectionAccepted.value),
+          type: Uri.parse(MeetingPlaceProtocol.invitationAcceptance.value),
           body: {'channel_did': permanentChannelDid},
           createdTime: DateTime.now().toUtc(),
           attachments: vCard is VCard
@@ -27,14 +27,14 @@ class ConnectionAccepted extends PlainTextMessage {
               : null,
         );
 
-  factory ConnectionAccepted.create({
+  factory InvitationAcceptance.create({
     required String from,
     required List<String> to,
     required String parentThreadId,
     required String permanentChannelDid,
     VCard? vCard,
   }) {
-    return ConnectionAccepted(
+    return InvitationAcceptance(
       id: Uuid().v4(),
       from: from,
       to: to,

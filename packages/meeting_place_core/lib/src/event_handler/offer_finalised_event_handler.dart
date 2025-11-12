@@ -67,7 +67,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: acceptOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.connectionAccepted,
+        messageType: MeetingPlaceProtocol.connectionRequestApproval,
       );
 
       // TODO: handle duplicates

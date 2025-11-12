@@ -9,13 +9,13 @@ part of 'group_member_deregistration_body.dart';
 GroupMemberDeregistrationBody _$GroupMemberDeregistrationBodyFromJson(
         Map<String, dynamic> json) =>
     GroupMemberDeregistrationBody(
-      groupId: json['groupId'] as String,
+      groupId: json['group_id'] as String,
       memberDid: json['memberDid'] as String,
     );
 
 Map<String, dynamic> _$GroupMemberDeregistrationBodyToJson(
         GroupMemberDeregistrationBody instance) =>
     <String, dynamic>{
-      'groupId': instance.groupId,
+      'group_id': instance.groupId,
       'memberDid': instance.memberDid,
     };

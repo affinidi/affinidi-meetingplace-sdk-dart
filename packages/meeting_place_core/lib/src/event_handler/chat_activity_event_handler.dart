@@ -43,7 +43,7 @@ class ChatActivityEventHandler extends BaseEventHandler {
 
       for (final message in messages) {
         final messageSeqNumber =
-            message.seqNo ?? message.plainTextMessage.body?['seqNo'];
+            message.seqNo ?? message.plainTextMessage.body?['seq_no'];
 
         if (messageSeqNumber > channel.seqNo) {
           channel.seqNo = messageSeqNumber;

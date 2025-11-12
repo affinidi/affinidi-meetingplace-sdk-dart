@@ -29,8 +29,8 @@ class MediatorMessage {
       final decrypted = await _decryptGroupMessage(message, keyRepository);
       return MediatorMessage(
         plainTextMessage: decrypted,
-        seqNo: message.body!['seqNo'] as int?,
-        fromDid: message.body!['fromDid'] as String?,
+        seqNo: message.body!['seq_no'] as int?,
+        fromDid: message.body!['from_did'] as String?,
         messageHash: messageHash,
       );
     }

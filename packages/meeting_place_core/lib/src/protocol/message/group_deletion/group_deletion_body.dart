@@ -9,7 +9,7 @@ class GroupDeletionBody {
 
   GroupDeletionBody({required this.groupId});
 
-  @JsonKey(name: 'groupId')
+  @JsonKey(name: 'group_id')
   final String groupId;
 
   Map<String, dynamic> toJson() => _$GroupDeletionBodyToJson(this);

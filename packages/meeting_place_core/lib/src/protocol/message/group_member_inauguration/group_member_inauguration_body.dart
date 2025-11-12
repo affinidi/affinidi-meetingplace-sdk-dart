@@ -16,19 +16,19 @@ class GroupMemberInaugurationBody {
     required this.members,
   });
 
-  @JsonKey(name: 'memberDid')
+  @JsonKey(name: 'member_did')
   final String memberDid;
 
-  @JsonKey(name: 'groupDid')
+  @JsonKey(name: 'group_did')
   final String groupDid;
 
-  @JsonKey(name: 'groupId')
+  @JsonKey(name: 'group_id')
   final String groupId;
 
-  @JsonKey(name: 'groupPublicKey')
+  @JsonKey(name: 'group_public_key')
   final String groupPublicKey;
 
-  @JsonKey(name: 'adminDids')
+  @JsonKey(name: 'admin_dids')
   final List<String> adminDids;
 
   @JsonKey(name: 'members')
@@ -54,16 +54,16 @@ class GroupMemberInaugurationBodyMember {
   @JsonKey(name: 'did')
   final String did;
 
-  @JsonKey(name: 'vCard')
+  @JsonKey(name: 'v_card')
   final Map<String, dynamic> vCard;
 
   @JsonKey(name: 'status')
   final String status;
 
-  @JsonKey(name: 'publicKey')
+  @JsonKey(name: 'public_key')
   final String publicKey;
 
-  @JsonKey(name: 'isAdmin')
+  @JsonKey(name: 'is_admin')
   final String isAdmin;
 
   Map<String, dynamic> toJson() =>

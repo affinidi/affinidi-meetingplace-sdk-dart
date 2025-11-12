@@ -145,11 +145,11 @@ void main() async {
 
     final bobReceivedMessage = await bobReceivedMessageCompleter.future;
     expect(bobReceivedMessage.body!['text'], equals('Hello Group!'));
-    expect(bobReceivedMessage.body!['seqNo'], equals(1));
+    expect(bobReceivedMessage.body!['seq_no'], equals(1));
 
     final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
     expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
-    expect(charlieReceivedMessage.body!['seqNo'], equals(1));
+    expect(charlieReceivedMessage.body!['seq_no'], equals(1));
   });
 
   // test('group member sends group message', () async {
@@ -195,7 +195,7 @@ void main() async {
 
   //   final aliceReceivedMessage = await aliceReceivedMessageCompleter.future;
   //   expect(aliceReceivedMessage.body!['text'], equals('Hello Group!'));
-  //   expect(aliceReceivedMessage.body!['seqNo'], equals(2));
+  //   expect(aliceReceivedMessage.body!['seq_no'], equals(2));
   //   expect(
   //     aliceReceivedMessage.attachments?[0].data?.base64,
   //     equals(vCardBase64),
@@ -203,7 +203,7 @@ void main() async {
 
   //   final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
   //   expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
-  //   expect(charlieReceivedMessage.body!['seqNo'], equals(2));
+  //   expect(charlieReceivedMessage.body!['seq_no'], equals(2));
   //   expect(
   //     charlieReceivedMessage.attachments?[0].data?.base64,
   //     equals(vCardBase64),

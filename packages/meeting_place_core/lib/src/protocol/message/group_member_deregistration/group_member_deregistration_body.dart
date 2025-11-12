@@ -10,7 +10,7 @@ class GroupMemberDeregistrationBody {
   GroupMemberDeregistrationBody(
       {required this.groupId, required this.memberDid});
 
-  @JsonKey(name: 'groupId')
+  @JsonKey(name: 'group_id')
   final String groupId;
   final String memberDid;
 

@@ -99,19 +99,20 @@ class GroupMemberInauguration extends PlainTextMessage {
       id: message.id,
       from: message.from,
       to: message.to,
-      adminDids: List<String>.from(message.body!['adminDids'] as List<dynamic>),
-      memberDid: message.body!['memberDid'] as String,
-      groupId: message.body!['groupId'] as String,
-      groupDid: message.body!['groupDid'] as String,
-      groupPublicKey: message.body!['groupPublicKey'] as String,
+      adminDids:
+          List<String>.from(message.body!['admin_dids'] as List<dynamic>),
+      memberDid: message.body!['member_did'] as String,
+      groupId: message.body!['group_id'] as String,
+      groupDid: message.body!['group_did'] as String,
+      groupPublicKey: message.body!['group_public_key'] as String,
       members: (message.body!['members'] as List<dynamic>).map((member) {
         final memberData = member as Map<String, dynamic>;
         return GroupMemberInaugurationMember(
           did: memberData['did'] as String,
-          vCard: VCard.fromJson(memberData['vCard'] as Map<String, dynamic>),
+          vCard: VCard.fromJson(memberData['v_card'] as Map<String, dynamic>),
           status: memberData['status'],
-          publicKey: memberData['publicKey'] as String,
-          membershipType: memberData['isAdmin'] == 'true' ? 'admin' : 'member',
+          publicKey: memberData['public_key'] as String,
+          membershipType: memberData['is_admin'] == 'true' ? 'admin' : 'member',
         );
       }).toList(),
     );

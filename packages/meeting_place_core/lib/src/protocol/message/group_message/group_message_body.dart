@@ -22,16 +22,16 @@ class GroupMessageBody {
   @JsonKey(name: 'iv')
   final String iv;
 
-  @JsonKey(name: 'authenticationTag')
+  @JsonKey(name: 'authentication_tag')
   final String authenticationTag;
 
-  @JsonKey(name: 'preCapsule')
+  @JsonKey(name: 'pre_capsule')
   final String preCapsule;
 
-  @JsonKey(name: 'fromDid')
+  @JsonKey(name: 'from_did')
   final String fromDid;
 
-  @JsonKey(name: 'seqNo')
+  @JsonKey(name: 'seq_no')
   final int seqNo;
 
   Map<String, dynamic> toJson() => _$GroupMessageBodyToJson(this);

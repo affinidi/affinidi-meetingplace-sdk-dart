@@ -22,6 +22,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
             );
 
   static const String _className = 'RefreshAuthCredentialsInterceptor';
+  static const String _errorCodeTokenExpired = 'AUTHORIZATION_TOKEN_EXPIRED';
 
   final Dio dio;
   final ControlPlaneSDK controlPlaneSDK;
@@ -76,20 +77,21 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   Future<void> onError(
       DioException err, ErrorInterceptorHandler handler) async {
     final shouldRetryAuth = err.requestOptions.extra['retry_auth'] ?? true;
+    final isUnauthorized = err.response?.statusCode == HttpStatus.unauthorized;
+    final isTokenExpired = isUnauthorized &&
+        err.response?.data['errorCode'] == _errorCodeTokenExpired;
 
-    if (err.response?.statusCode == HttpStatus.unauthorized &&
-        err.response?.data['errorCode'] == 'AUTHORIZATION_TOKEN_EXPIRED' &&
-        shouldRetryAuth == true) {
+    if (isUnauthorized && isTokenExpired && shouldRetryAuth == true) {
       try {
         _logger.info(
           '''Authorization token expired — attempting to refresh access token.''',
         );
+
         final refreshedAccessToken = await _refreshToken();
 
-        final RequestOptions options = err.requestOptions;
-
-        options.headers['Authorization'] = 'Bearer $refreshedAccessToken';
-        options.extra['retry_auth'] = false;
+        final options = err.requestOptions
+          ..headers['Authorization'] = 'Bearer $refreshedAccessToken'
+          ..extra['retry_auth'] = false;
 
         _logger.info('Retry request with refreshed access token');
         final response = await dio.fetch(options);

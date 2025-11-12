@@ -1,5 +1,7 @@
-import '../../../meeting_place_core.dart';
+import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
+import '../../meeting_place_protocol.dart';
+import 'group_message_body.dart';
 
 class GroupMessage extends PlainTextMessage {
   GroupMessage({
@@ -14,14 +16,14 @@ class GroupMessage extends PlainTextMessage {
     required int seqNo,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.groupMessage.value),
-          body: {
-            'ciphertext': ciphertext,
-            'iv': iv,
-            'authenticationTag': authenticationTag,
-            'preCapsule': preCapsule,
-            'fromDid': fromDid,
-            'seqNo': seqNo,
-          },
+          body: GroupMessageBody(
+            ciphertext: ciphertext,
+            iv: iv,
+            authenticationTag: authenticationTag,
+            preCapsule: preCapsule,
+            fromDid: fromDid,
+            seqNo: seqNo,
+          ).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

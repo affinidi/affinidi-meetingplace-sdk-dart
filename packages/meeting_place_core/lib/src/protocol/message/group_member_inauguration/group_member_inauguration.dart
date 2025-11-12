@@ -1,9 +1,11 @@
 import 'package:didcomm/didcomm.dart';
-import '../attachment/attachment_format.dart';
-import '../attachment/attachment_media_type.dart';
-import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../../attachment/attachment_format.dart';
+import '../../attachment/attachment_media_type.dart';
+import '../../meeting_place_protocol.dart';
+import '../../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
+
+import 'group_member_inauguration_body.dart';
 
 class GroupMemberInaugurationMember {
   GroupMemberInaugurationMember({
@@ -20,9 +22,9 @@ class GroupMemberInaugurationMember {
   final String status;
   final String publicKey;
 
-  bool isAdmin() => membershipType == 'admin';
+  bool get isAdmin => membershipType == 'admin';
 
-  bool isMember() => membershipType == 'member';
+  bool get isMember => membershipType == 'member';
 }
 
 class GroupMemberInauguration extends PlainTextMessage {
@@ -39,24 +41,22 @@ class GroupMemberInauguration extends PlainTextMessage {
     this.vCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.groupMemberInauguration.value),
-          body: {
-            'memberDid': memberDid,
-            'groupDid': groupDid,
-            'groupId': groupId,
-            'groupPublicKey': groupPublicKey,
-            'adminDids': adminDids,
-            'members': members
-                .map(
-                  (m) => {
-                    'did': m.did,
-                    'vCard': m.vCard.toJson(),
-                    'status': m.status,
-                    'publicKey': m.publicKey,
-                    'isAdmin': (m.isAdmin()).toString(),
-                  },
-                )
+          body: GroupMemberInaugurationBody(
+            memberDid: memberDid,
+            groupDid: groupDid,
+            groupId: groupId,
+            groupPublicKey: groupPublicKey,
+            adminDids: adminDids,
+            members: members
+                .map((m) => GroupMemberInaugurationBodyMember(
+                      did: m.did,
+                      vCard: m.vCard.toJson(),
+                      status: m.status,
+                      publicKey: m.publicKey,
+                      isAdmin: m.isAdmin.toString(),
+                    ))
                 .toList(),
-          },
+          ).toJson(),
           createdTime: DateTime.now().toUtc(),
           attachments: [
             Attachment(

@@ -2,15 +2,16 @@ import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
+import 'oob_invitation_message_body.dart';
 
 class OobInvitationMessage extends OutOfBandMessage {
   OobInvitationMessage({required super.id, required super.from})
       : super(
-          body: {
-            'goal_code': 'connect',
-            'goal': 'Start relationship',
-            'accept': ['didcomm/v2'],
-          },
+          body: OobInvitationMessageBody(
+            goalCode: 'connect',
+            goal: 'Start relationship',
+            accept: ['didcomm/v2'],
+          ).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

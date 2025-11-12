@@ -1,7 +1,9 @@
 import 'package:didcomm/didcomm.dart';
-import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../../meeting_place_protocol.dart';
+import '../../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
+
+import 'channel_inauguration_body.dart';
 
 class ChannelInauguration extends PlainTextMessage {
   ChannelInauguration({
@@ -13,7 +15,10 @@ class ChannelInauguration extends PlainTextMessage {
     VCard? vCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.channelInauguration.value),
-          body: {'notificationToken': notificationToken, 'did': did},
+          body: ChannelInaugurationBody(
+            notificationToken: notificationToken,
+            did: did,
+          ).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

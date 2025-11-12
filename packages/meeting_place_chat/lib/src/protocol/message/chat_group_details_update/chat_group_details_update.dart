@@ -1,34 +1,10 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
+import 'chat_group_details_update_body.dart';
 
-part 'chat_group_details_update.g.dart';
-
-@JsonSerializable(
-    explicitToJson: true, includeIfNull: false, createFactory: false)
-class ChatGroupDetailsUpdateBodyMember {
-  ChatGroupDetailsUpdateBodyMember({
-    required this.did,
-    required this.vCard,
-    required this.dateAdded,
-    required this.status,
-    required this.publicKey,
-    required this.membershipType,
-  });
-
-  final String did;
-  final VCard vCard;
-  final DateTime dateAdded;
-  final String status;
-  final String publicKey;
-  final String membershipType;
-
-  Map<String, dynamic> toJson() {
-    return _$ChatGroupDetailsUpdateBodyMemberToJson(this);
-  }
-}
+export 'chat_group_details_update_body.dart';
 
 class ChatGroupDetailsUpdate extends PlainTextMessage {
   ChatGroupDetailsUpdate({
@@ -45,16 +21,16 @@ class ChatGroupDetailsUpdate extends PlainTextMessage {
     String? groupKeyPair,
   }) : super(
           type: Uri.parse(ChatProtocol.chatGroupDetailsUpdate.value),
-          body: {
-            'groupId': groupId,
-            'groupDid': groupDid,
-            'offerLink': offerLink,
-            'members': members.map((member) => member.toJson()).toList(),
-            'adminDids': adminDids,
-            'dateCreated': dateCreated.toIso8601String(),
-            'groupKeyPair': groupKeyPair,
-            'groupPublicKey': groupPublicKey,
-          },
+          body: ChatGroupDetailsUpdateBody(
+            groupId: groupId,
+            groupDid: groupDid,
+            offerLink: offerLink,
+            members: members,
+            adminDids: adminDids,
+            dateCreated: dateCreated,
+            groupPublicKey: groupPublicKey,
+            groupKeyPair: groupKeyPair,
+          ).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

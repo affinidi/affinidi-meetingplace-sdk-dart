@@ -1,7 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
+import 'chat_effect_body.dart';
 
 /// [ChatEffect] represents a visual or animated effect sent in chat.
 ///
@@ -26,7 +27,7 @@ class ChatEffect extends PlainTextMessage {
     VCard? vCard,
   }) : super(
           type: Uri.parse(ChatProtocol.chatEffect.value),
-          body: {'effect': effect},
+          body: ChatEffectBody(effect: effect).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

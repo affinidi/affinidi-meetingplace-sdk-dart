@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
+import 'chat_delivered_body.dart';
 
 class ChatDelivered extends PlainTextMessage {
   ChatDelivered({
@@ -11,7 +12,7 @@ class ChatDelivered extends PlainTextMessage {
     required List<String> messages,
   }) : super(
           type: Uri.parse(ChatProtocol.chatDelivered.value),
-          body: {'messages': messages},
+          body: ChatDeliveredBody(messages: messages).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

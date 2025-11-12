@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
+import 'chat_reaction_body.dart';
 
 /// [ChatReaction] represents an emoji or symbolic reaction
 /// to a previously sent chat message.
@@ -25,7 +26,8 @@ class ChatReaction extends PlainTextMessage {
     required this.messageId,
   }) : super(
           type: Uri.parse(ChatProtocol.chatReaction.value),
-          body: {'reactions': reactions, 'messageId': messageId},
+          body: ChatReactionBody(reactions: reactions, messageId: messageId)
+              .toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

@@ -40,12 +40,9 @@ void main() async {
     final acceptance = await sdk.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
       vCard: VCardFixture.charliePrimaryVCard,
-    );
-
-    await sdk.notifyAcceptance(
-      connectionOffer: acceptance.connectionOffer,
       senderInfo: 'Charlie',
     );
+
     return (sdk, acceptance);
   }
 
@@ -77,10 +74,6 @@ void main() async {
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: bobFindOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: bobAcceptance.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -92,10 +85,6 @@ void main() async {
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: charlieFindOfferResult.connectionOffer!,
       vCard: VCardFixture.charliePrimaryVCard,
-    );
-
-    await charlieSDK.notifyAcceptance(
-      connectionOffer: charlieAcceptance.connectionOffer,
       senderInfo: 'Charlie',
     );
 
@@ -119,16 +108,10 @@ void main() async {
     final charlieChannel = await aliceSDK.getChannelByDid(charlieMemberDid);
 
     // Alice approves Bob's group membership request
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
-      channel: bobChannel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: bobChannel!);
 
     // Alice approves Charlie's group membership request
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
-      channel: charlieChannel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
@@ -290,13 +273,15 @@ void main() async {
 
     final completer = Completer<void>();
     aliceSDK.controlPlaneEventsStream.listen((event) {
-      if (event.type == ControlPlaneEventType.InvitationGroupAccept) {
+      if (event.type == ControlPlaneEventType.InvitationGroupAccept &&
+          event.channel.offerLink == acceptance.connectionOffer.offerLink) {
         completer.complete();
       }
     });
 
     await bobChatSDK.startChatSession();
 
+    await Future.delayed(const Duration(seconds: 2));
     await aliceSDK.processControlPlaneEvents();
     await completer.future;
 
@@ -310,6 +295,10 @@ void main() async {
     );
 
     final chat = await newAliceChatSDK.startChatSession();
+
+    // Wait to ensure the concierge message is processed
+    await Future.delayed(const Duration(seconds: 2));
+
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
 

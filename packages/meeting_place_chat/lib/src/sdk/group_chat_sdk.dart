@@ -75,7 +75,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   Future<Chat> startChatSession() async {
     final methodName = 'start';
     logger.info('Started group chat', name: methodName);
-    if (group.isDeleted()) {
+    if (group.isDeleted) {
       logger.warning('Group chat is deleted', name: methodName);
       return Chat(
         id: chatId,
@@ -271,7 +271,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         'Handling message for group deleted for group ${group.id}',
         name: methodName,
       );
-      if (!group.isDeleted()) {
+      if (!group.isDeleted) {
         group.markAsDeleted();
         await coreSDK.updateGroup(group);
 
@@ -550,10 +550,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       throw Exception(message);
     }
 
-    await coreSDK.approveConnectionRequest(
-      connectionOffer: connectionOffer,
-      channel: channel,
-    );
+    await coreSDK.approveConnectionRequest(channel: channel);
 
     // Refresh group due to changes within SDK
     group = (await coreSDK.getGroupById(group.id))!;

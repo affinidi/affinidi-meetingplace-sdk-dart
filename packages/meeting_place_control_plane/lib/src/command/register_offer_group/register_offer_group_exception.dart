@@ -10,7 +10,7 @@ class RegisterOfferGroupException implements ControlPlaneException {
     this.innerException,
   });
 
-  /// Creates a `generic` [RegisterOfferException] instance.
+  /// Creates a `generic` [RegisterOfferGroupException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
@@ -25,7 +25,7 @@ class RegisterOfferGroupException implements ControlPlaneException {
     );
   }
 
-  /// Creates a `mediatorNotSet` [RegisterOfferException] instance.
+  /// Creates a `mediatorNotSet` [RegisterOfferGroupException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
@@ -38,6 +38,22 @@ class RegisterOfferGroupException implements ControlPlaneException {
       code: ControlPlaneSDKErrorCode.registerOfferGroupMediatorNotSet,
     );
   }
+
+  /// Creates a `mnemonicInUse` [RegisterOfferGroupException] instance.
+  ///
+  /// This constructor provides the specific message, error code and the actual
+  /// exception encountered in the operation.
+  ///
+  /// **Parameters:**
+  /// - [innerException]: The exception object.
+  factory RegisterOfferGroupException.mnemonicInUse() {
+    return RegisterOfferGroupException._(
+      message:
+          'Register offer group exception: Offer with the same mnemonic already exists.',
+      code: ControlPlaneSDKErrorCode.registerOfferGroupMnemonicInUse,
+    );
+  }
+
   @override
   final String message;
 

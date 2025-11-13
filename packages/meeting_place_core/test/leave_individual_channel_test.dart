@@ -39,13 +39,9 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
-    final acceptResult = await bobSDK.acceptOffer(
+    await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -54,10 +50,9 @@ void main() async {
 
     aliceSDK.controlPlaneEventsStream.listen((event) async {
       if (event.type == ControlPlaneEventType.InvitationAccept) {
-        final channel = await aliceSDK.approveConnectionRequest(
-          connectionOffer: offer.connectionOffer,
-          channel: event.channel,
-        );
+        final channel =
+            await aliceSDK.approveConnectionRequest(channel: event.channel);
+
         await bobSDK.processControlPlaneEvents();
         aliceCompleter.complete(channel);
       }

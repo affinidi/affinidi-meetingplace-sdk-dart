@@ -59,7 +59,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         );
       }
 
-      if (connection.isFinalised()) {
+      if (connection.isFinalised) {
         throw GroupMembershipFinalisedException
             .connectionOfferAlreadyFinalizedException(
           offerLink: event.offerLink,

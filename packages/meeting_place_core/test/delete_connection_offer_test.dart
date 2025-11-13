@@ -29,14 +29,14 @@ void main() async {
     );
 
     expect(updatedConnectionOffer.status, ConnectionOfferStatus.deleted);
-    expect(updatedConnectionOffer.isDeleted(), isTrue);
+    expect(updatedConnectionOffer.isDeleted, isTrue);
 
     final connectionOfferFromStorage = await aliceSDK.getConnectionOffer(
       offer.connectionOffer.offerLink,
     );
 
     expect(connectionOfferFromStorage!.status, ConnectionOfferStatus.deleted);
-    expect(connectionOfferFromStorage.isDeleted(), isTrue);
+    expect(connectionOfferFromStorage.isDeleted, isTrue);
   });
 
   test('gracefully handles multiple deletion calls', () async {
@@ -58,7 +58,7 @@ void main() async {
     );
 
     expect(connectionOfferFromStorage!.status, ConnectionOfferStatus.deleted);
-    expect(connectionOfferFromStorage.isDeleted(), isTrue);
+    expect(connectionOfferFromStorage.isDeleted, isTrue);
   });
 
   test('delete connection offer from storage', () async {
@@ -119,6 +119,7 @@ void main() async {
     final acceptOfferResult = await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
+      senderInfo: 'Bob',
     );
 
     await aliceSDK.deleteConnectionOffer(acceptOfferResult.connectionOffer);

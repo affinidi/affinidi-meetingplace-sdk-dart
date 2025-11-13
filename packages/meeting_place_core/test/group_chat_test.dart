@@ -41,20 +41,12 @@ void main() async {
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: bobAcceptance.connectionOffer,
       senderInfo: 'Bob',
     );
 
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
       vCard: charlieVCard,
-    );
-
-    await charlieSDK.notifyAcceptance(
-      connectionOffer: charlieAcceptance.connectionOffer,
       senderInfo: 'Charlie',
     );
 
@@ -76,7 +68,6 @@ void main() async {
 
     // Alice approves Bob's group membership request
     await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
       channel: aliceToBobChannel!,
     );
 
@@ -87,7 +78,6 @@ void main() async {
 
     // Alice approves Charlie's group membership request
     await aliceSDK.approveConnectionRequest(
-      connectionOffer: publishOfferResult.connectionOffer,
       channel: aliceToCharlieChannel!,
     );
 

@@ -71,10 +71,12 @@ enum ControlPlaneSDKErrorCode {
 
   // register offer codes
   registerOfferMediatorNotSet('register_offer_mediator_not_set'),
+  registerOfferMnemonicInUse('register_offer_mnemonic_in_use'),
   registerOfferGeneric('register_offer_generic'),
 
   // register offer group codes
   registerOfferGroupMediatorNotSet('register_offer_group_mediator_not_set'),
+  registerOfferGroupMnemonicInUse('register_offer_group_mnemonic_in_use'),
   registerOfferGroupGeneric('register_offer_group_generic'),
 
   // validate offer phrase codes

@@ -5,7 +5,7 @@ on:
       - main
 jobs:
   dart-pipeline:
-    uses: affinidi/pipeline-dart/.github/workflows/release.yaml@main
+    uses: affinidi/pipeline-dart/.github/workflows/release.yaml@test/dart-security-scanner-reports
     secrets: inherit
     with:
       flutter-version: '3.35.3'

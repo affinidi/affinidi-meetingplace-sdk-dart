@@ -49,13 +49,12 @@ void main() async {
   final notificationStream =
       await bobSDK.subscribeToMediator(notificationDidDocument.id);
 
-  prettyPrintYellow('>>> Listen on stream for invitation outreach messages');
+  prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream.where((data) {
-    return data.plainTextMessage.isOfType(
-      '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.invitationOutreach.value}',
-    );
+    return data.plainTextMessage.type
+        .toString()
+        .startsWith(getControlPlaneDid());
   }).listen((data) async {
-    prettyPrintYellow('Received outreach invitation message');
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await bobSDK.processControlPlaneEvents();
   });

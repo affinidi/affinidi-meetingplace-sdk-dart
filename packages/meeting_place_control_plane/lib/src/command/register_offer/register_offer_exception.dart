@@ -38,6 +38,22 @@ class RegisterOfferException implements ControlPlaneException {
       code: ControlPlaneSDKErrorCode.registerOfferMediatorNotSet,
     );
   }
+
+  /// Creates a `mnemonicInUse` [RegisterOfferException] instance.
+  ///
+  /// This constructor provides the specific message, error code and the actual
+  /// exception encountered in the operation.
+  ///
+  /// **Parameters:**
+  /// - [innerException]: The exception object.
+  factory RegisterOfferException.mnemonicInUse() {
+    return RegisterOfferException._(
+      message:
+          'Register offer exception: Offer with the same mnemonic already exists.',
+      code: ControlPlaneSDKErrorCode.registerOfferMnemonicInUse,
+    );
+  }
+
   @override
   final String message;
 

@@ -91,7 +91,5 @@ class Group {
     status = GroupStatus.deleted;
   }
 
-  bool isDeleted() {
-    return status == GroupStatus.deleted;
-  }
+  bool get isDeleted => status == GroupStatus.deleted;
 }

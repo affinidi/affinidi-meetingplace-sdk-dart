@@ -19,11 +19,11 @@ class ConnectionOfferService {
       return;
     }
 
-    if (connectionOffer.isPublished()) {
+    if (connectionOffer.isPublished) {
       throw ConnectionOfferException.ownedByClaimingPartyError();
     }
 
-    if (!connectionOffer.isDeleted() && !connectionOffer.isFinalised()) {
+    if (!connectionOffer.isDeleted && !connectionOffer.isFinalised) {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();
     }
 

@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 
 import '../../api/api_client.dart';
 import 'package:ssi/ssi.dart';
@@ -138,12 +141,22 @@ class RegisterOfferGroupHandler
         oobInvitationMessage: command.oobInvitationMessage,
       );
     } catch (e, stackTrace) {
+      if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {
+        _logger.error(
+          'Offer group with the same mnemonic already exists: ${command.customPhrase}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        throw RegisterOfferGroupException.mnemonicInUse();
+      }
+
       _logger.error(
         'Failed to register offer group: ${command.offerName}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
       );
+
       Error.throwWithStackTrace(
         RegisterOfferGroupException.generic(innerException: e),
         stackTrace,

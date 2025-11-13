@@ -60,23 +60,12 @@ void main() async {
   final notificationStream =
       await aliceSDK.subscribeToMediator(notificationDidDocument.id);
 
-  prettyPrintYellow('>>> Listen on stream for invitation acccept messages');
+  prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream
-      .where((data) => data.plainTextMessage.isOfType(
-            '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.invitationAccept.value}',
-          ))
+      .where((data) => data.plainTextMessage.type
+          .toString()
+          .startsWith(getControlPlaneDid()))
       .listen((data) async {
-    prettyPrintYellow('Received invitation accept notification');
-    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
-    await aliceSDK.processControlPlaneEvents();
-  });
-
-  notificationStream.stream
-      .where((data) => data.plainTextMessage.isOfType(
-            '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.channelActivity.value}',
-          ))
-      .listen((data) async {
-    prettyPrintYellow('Received invitation channel activity notification');
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await aliceSDK.processControlPlaneEvents();
   });
@@ -89,10 +78,7 @@ void main() async {
   prettyJsonPrintYellow('Channel:', receivedEvent.channel);
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
-  await aliceSDK.approveConnectionRequest(
-    connectionOffer: publishOfferResult.connectionOffer,
-    channel: receivedEvent.channel,
-  );
+  await aliceSDK.approveConnectionRequest(channel: receivedEvent.channel);
 
   prettyPrintYellow(
     '=== Waiting for Bob to send channel inauguraten message...',

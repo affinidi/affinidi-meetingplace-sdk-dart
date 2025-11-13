@@ -82,21 +82,10 @@ class ConnectionOffer {
     return _$ConnectionOfferToJson(this);
   }
 
-  bool isFinalised() {
-    return status == ConnectionOfferStatus.finalised;
-  }
-
-  bool isPublished() {
-    return status == ConnectionOfferStatus.published;
-  }
-
-  bool isAccepted() {
-    return status == ConnectionOfferStatus.accepted;
-  }
-
-  bool isDeleted() {
-    return status == ConnectionOfferStatus.deleted;
-  }
+  bool get isFinalised => status == ConnectionOfferStatus.finalised;
+  bool get isPublished => status == ConnectionOfferStatus.published;
+  bool get isAccepted => status == ConnectionOfferStatus.accepted;
+  bool get isDeleted => status == ConnectionOfferStatus.deleted;
 
   ConnectionOffer copyWith({
     VCard? vCard,

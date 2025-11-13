@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 
 import '../../api/api_client.dart';
 import 'package:ssi/ssi.dart';
@@ -135,6 +138,15 @@ class RegisterOfferHandler
         mediatorDid: mediatorForOffer.mediatorDid,
       );
     } catch (e, stackTrace) {
+      if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {
+        _logger.error(
+          'Offer with the same mnemonic already exists: ${command.customPhrase}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        throw RegisterOfferException.mnemonicInUse();
+      }
+
       _logger.error(
         'Failed to register offer: ${command.offerName}',
         error: e,

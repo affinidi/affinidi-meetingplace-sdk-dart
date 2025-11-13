@@ -37,7 +37,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       );
 
       final connection = await findConnectionByOfferLink(event.offerLink);
-      if (connection.isFinalised()) {
+      if (connection.isFinalised) {
         throw Exception(
             'Connection offer ${connection.offerLink} already finalised');
       }

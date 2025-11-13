@@ -35,6 +35,7 @@ void main() async {
   final acceptOfferResult = await bobSDK.acceptOffer(
     connectionOffer: findOfferResult.connectionOffer!,
     vCard: VCard(values: {}),
+    senderInfo: 'Bob',
   );
 
   prettyJsonPrintYellow(
@@ -59,23 +60,15 @@ void main() async {
   final notificationStream =
       await bobSDK.subscribeToMediator(notificationDidDocument.id);
 
-  prettyPrintYellow('>>> Listen on stream for offer finalised notification');
-  notificationStream.stream.where((data) {
-    return data.plainTextMessage.isOfType(
-      '${getControlPlaneDid()}${MeetingPlaceNotificationTypeSuffix.offerFinalised.value}',
-    );
-  }).listen((data) async {
-    prettyPrintYellow('Received offer finalised message');
+  prettyPrintYellow('>>> Listen on notification stream');
+  notificationStream.stream
+      .where((data) => data.plainTextMessage.type
+          .toString()
+          .startsWith(getControlPlaneDid()))
+      .listen((data) async {
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await bobSDK.processControlPlaneEvents();
   });
-
-  prettyPrintGreen('>>> Calling SDK.notifyAcceptance');
-  await bobSDK.notifyAcceptance(
-    connectionOffer: acceptOfferResult.connectionOffer,
-    senderInfo: 'Bob',
-  );
-  prettyPrint('Other party has been notified about acceptance');
 
   prettyPrintYellow('=== Waiting for Alice to approve connection request...');
   final offerFinalisedEvent = await waitForOfferFinalised.future;

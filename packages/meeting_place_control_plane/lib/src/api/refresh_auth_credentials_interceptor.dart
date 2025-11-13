@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 
 import '../../meeting_place_control_plane.dart';
@@ -21,6 +22,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
             );
 
   static const String _className = 'RefreshAuthCredentialsInterceptor';
+  static const String _errorCodeTokenExpired = 'AUTHORIZATION_TOKEN_EXPIRED';
 
   final Dio dio;
   final ControlPlaneSDK controlPlaneSDK;
@@ -64,15 +66,54 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
       return;
     }
 
+    final refreshedAccessToken = await _refreshToken();
+    options.headers['Authorization'] = 'Bearer $refreshedAccessToken';
+
+    super.onRequest(options, handler);
+    _logger.info('Completed processing request', name: methodName);
+  }
+
+  @override
+  Future<void> onError(
+      DioException err, ErrorInterceptorHandler handler) async {
+    final shouldRetryAuth = err.requestOptions.extra['retry_auth'] ?? true;
+    final isUnauthorized = err.response?.statusCode == HttpStatus.unauthorized;
+    final isTokenExpired = isUnauthorized &&
+        err.response?.data['errorCode'] == _errorCodeTokenExpired;
+
+    if (isUnauthorized && isTokenExpired && shouldRetryAuth == true) {
+      try {
+        _logger.info(
+          '''Authorization token expired — attempting to refresh access token.''',
+        );
+
+        final refreshedAccessToken = await _refreshToken();
+
+        final options = err.requestOptions
+          ..headers['Authorization'] = 'Bearer $refreshedAccessToken'
+          ..extra['retry_auth'] = false;
+
+        _logger.info('Retry request with refreshed access token');
+        final response = await dio.fetch(options);
+        return handler.resolve(response);
+      } catch (e) {
+        _logger.error('Retry failed', error: e);
+        return handler.next(err);
+      }
+    }
+
+    return handler.next(err);
+  }
+
+  Future<String> _refreshToken() async {
+    _logger.info('Refresh access token', name: 'refreshToken');
+
     final authenticationResult = await controlPlaneSDK.execute(
       AuthenticateCommand(controlPlaneDid: controlPlaneDid),
     );
 
     _authCredentials = authenticationResult.credentials;
-    options.headers['Authorization'] =
-        'Bearer ${authenticationResult.credentials.accessToken}';
-    super.onRequest(options, handler);
-    _logger.info('Completed processing request', name: methodName);
+    return authenticationResult.credentials.accessToken;
   }
 
   /// A private method that validates if the token is still valid.

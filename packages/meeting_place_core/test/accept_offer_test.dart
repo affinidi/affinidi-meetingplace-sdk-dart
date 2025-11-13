@@ -30,13 +30,9 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
-    final acceptResult = await bobSDK.acceptOffer(
+    await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -74,6 +70,7 @@ void main() async {
     final acceptOfferResult = await bobSDK.acceptOffer(
       connectionOffer: actual.connectionOffer,
       vCard: VCardFixture.bobPrimaryVCard,
+      senderInfo: 'Bob',
     );
 
     expect(
@@ -95,13 +92,9 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
-    final acceptResult = await bobSDK.acceptOffer(
+    await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -109,6 +102,7 @@ void main() async {
       () => charlieSDK.acceptOffer(
         connectionOffer: findOfferResult.connectionOffer!,
         vCard: VCardFixture.charliePrimaryVCard,
+        senderInfo: 'Charlie',
       ),
       throwsA(isA<MeetingPlaceCoreSDKException>()),
     );
@@ -129,12 +123,14 @@ void main() async {
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
+      senderInfo: 'Bob',
     );
 
     expect(
       () => bobSDK.acceptOffer(
         connectionOffer: findOfferResult.connectionOffer!,
         vCard: VCardFixture.bobPrimaryVCard,
+        senderInfo: 'Bob',
       ),
       throwsA(
         predicate((e) {
@@ -164,6 +160,7 @@ void main() async {
         () => aliceSDK.acceptOffer(
           connectionOffer: publishedOfferResult.connectionOffer,
           vCard: VCardFixture.bobPrimaryVCard,
+          senderInfo: 'Alice',
         ),
         throwsA(
           predicate(
@@ -195,12 +192,14 @@ void main() async {
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: VCardFixture.bobPrimaryVCard,
+      senderInfo: 'Bob',
     );
 
     expect(
       () => bobSDK.acceptOffer(
         connectionOffer: findOfferResult.connectionOffer!,
         vCard: VCardFixture.bobPrimaryVCard,
+        senderInfo: 'Bob',
       ),
       throwsA(
         predicate(

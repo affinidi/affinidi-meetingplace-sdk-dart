@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
@@ -247,6 +248,7 @@ class GroupService {
     required Wallet wallet,
     required GroupConnectionOffer connectionOffer,
     required VCard vCard,
+    required String senderInfo,
     String? externalRef,
   }) async {
     final methodName = 'acceptGroupOffer';
@@ -262,7 +264,7 @@ class GroupService {
     final acceptOfferDidManager = await _connectionManager.generateDid(wallet);
     final acceptOfferDidDocument = await acceptOfferDidManager.getDidDocument();
 
-    _logger.info(
+    _logger.debug(
       'Accept offer DID: ${acceptOfferDidDocument.id.topAndTail()}',
       name: methodName,
     );
@@ -274,7 +276,7 @@ class GroupService {
     final permanentChannelDidDocument =
         await permanentChannelDidManager.getDidDocument();
 
-    _logger.info(
+    _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
       name: methodName,
     );
@@ -345,9 +347,18 @@ class GroupService {
       );
 
       _logger.info(
-        'Successfully accepted group offer: ${connectionOffer.offerLink}',
+        'Successfully accepted group offer: ${acceptedConnectionOffer.offerLink}',
         name: methodName,
       );
+
+      unawaited(_notifyAcceptance(
+        connectionOffer: acceptedConnectionOffer,
+        senderInfo: senderInfo,
+      ).catchError((error, stackTrace) {
+        _logger.error('Failed to notify acceptance',
+            error: error, stackTrace: stackTrace, name: methodName);
+      }));
+
       return AcceptGroupOfferResult(
         connectionOffer: acceptedConnectionOffer,
         acceptOfferDid: acceptOfferDidManager,
@@ -513,7 +524,7 @@ class GroupService {
     );
   }
 
-  Future<void> notifyAcceptance({
+  Future<void> _notifyAcceptance({
     required ConnectionOffer connectionOffer,
     required String senderInfo,
   }) async {
@@ -523,7 +534,7 @@ class GroupService {
       name: methodName,
     );
 
-    if (!connectionOffer.isAccepted()) {
+    if (!connectionOffer.isAccepted) {
       _logger.error(
         'Connection offer is not accepted: ${connectionOffer.offerLink}',
         name: methodName,
@@ -545,35 +556,36 @@ class GroupService {
     );
   }
 
-  Future<Channel> approveMembershipRequest({
-    required GroupConnectionOffer connectionOffer,
-    required Channel channel,
-  }) async {
+  Future<Channel> approveMembershipRequest({required Channel channel}) async {
     final methodName = 'approveMembershipRequest';
     _logger.info(
-      'Started approving membership request for offer: ${connectionOffer.offerLink}',
-      name: methodName,
-    );
+        'Started approving membership request for offer: ${channel.offerLink}',
+        name: methodName);
 
     final memberDid = channel.otherPartyPermanentChannelDid;
     if (memberDid == null) {
-      _logger.error(
-        'Channel does not have other party permanent channel DID',
-        name: methodName,
-      );
+      _logger.error('Channel does not have other party permanent channel DID',
+          name: methodName);
       throw GroupException.memberDidIsNull();
     }
 
-    final group = await _groupRepository.getGroupByOfferLink(
-      connectionOffer.offerLink,
-    );
+    final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
 
     if (group == null) {
+      _logger.error('Group not found for offer link: ${channel.offerLink}',
+          name: methodName);
+      throw GroupException.notFoundError();
+    }
+
+    final connectionOffer = await _connectionOfferRepository
+        .getConnectionOfferByOfferLink(channel.offerLink);
+
+    if (connectionOffer == null) {
       _logger.error(
-        'Group not found for offer link: ${connectionOffer.offerLink}',
+        'Connection offer not found for offer link: ${channel.offerLink}',
         name: methodName,
       );
-      throw GroupException.notFoundError();
+      throw ConnectionOfferException.offerNotFoundError();
     }
 
     _logger.info(
@@ -644,7 +656,7 @@ class GroupService {
         groupId: group.id,
         memberDid: member.did,
         acceptOfferDid: channel.acceptOfferDid!,
-        offerLink: connectionOffer.offerLink,
+        offerLink: channel.offerLink,
         vCard: channel.otherPartyVCard != null
             ? VCardImpl(values: channel.otherPartyVCard!.values)
             : null,
@@ -657,7 +669,7 @@ class GroupService {
     await _groupRepository.updateGroup(group);
 
     _logger.info(
-      'Successfully approved membership request for offer: ${connectionOffer.offerLink}',
+      'Successfully approved membership request for offer: ${channel.offerLink}',
       name: methodName,
     );
 

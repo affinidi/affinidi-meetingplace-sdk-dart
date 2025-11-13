@@ -55,6 +55,7 @@ void main() async {
     final actual = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: VCardFixture.bobPrimaryVCard,
+      senderInfo: 'Bob',
     );
 
     expect(actual, isA<AcceptOfferResult>());
@@ -74,13 +75,9 @@ void main() async {
       metadata: 'foobar',
     );
 
-    final acceptOfferResult = await bobSDK.acceptOffer(
+    await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: VCardFixture.bobPrimaryVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptOfferResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -117,10 +114,6 @@ void main() async {
       final acceptResult = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
         vCard: bobVCard,
-      );
-
-      await bobSDK.notifyAcceptance(
-        connectionOffer: acceptResult.connectionOffer,
         senderInfo: 'Bob',
       );
 
@@ -133,18 +126,11 @@ void main() async {
       await aliceSDK.processControlPlaneEvents();
       await aliceCompleter.future;
 
-      final approved = await aliceSDK.getConnectionOffer(
-        result.connectionOffer.offerLink,
-      );
-
       final channel = await aliceSDK.getChannelByDid(
         result.connectionOffer.groupDid!,
       );
 
-      await aliceSDK.approveConnectionRequest(
-        connectionOffer: approved!,
-        channel: channel!,
-      );
+      await aliceSDK.approveConnectionRequest(channel: channel!);
 
       final group = await aliceSDK.getGroupByOfferLink(
         result.connectionOffer.offerLink,
@@ -202,20 +188,12 @@ void main() async {
       final acceptResultBob = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
         vCard: bobVCard,
-      );
-
-      await bobSDK.notifyAcceptance(
-        connectionOffer: acceptResultBob.connectionOffer,
         senderInfo: 'Bob',
       );
 
       final acceptResultCharlie = await charlieSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
         vCard: VCardFixture.charliePrimaryVCard,
-      );
-
-      await charlieSDK.notifyAcceptance(
-        connectionOffer: acceptResultCharlie.connectionOffer,
         senderInfo: 'Charlie',
       );
 
@@ -261,10 +239,7 @@ void main() async {
           await acceptResultCharlie.permanentChannelDid.getDidDocument();
       final charlieChannel = await aliceSDK.getChannelByDid(charlieDidDoc.id);
 
-      await aliceSDK.approveConnectionRequest(
-        connectionOffer: result.connectionOffer,
-        channel: charlieChannel!,
-      );
+      await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
 
       final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         charlieSDK,
@@ -282,10 +257,7 @@ void main() async {
         acceptResultBobChannelDid.id,
       );
 
-      await aliceSDK.approveConnectionRequest(
-        connectionOffer: result.connectionOffer,
-        channel: bobChannel!,
-      );
+      await aliceSDK.approveConnectionRequest(channel: bobChannel!);
 
       await bobSDK.processControlPlaneEvents();
       // await charlieWaitForChatGroupDetailsUpdate.future;
@@ -373,10 +345,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -396,10 +364,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     final group = await aliceSDK.getGroupByOfferLink(
       result.connectionOffer.offerLink,
@@ -466,10 +431,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -486,10 +447,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     final group = await aliceSDK.getGroupByOfferLink(
       result.connectionOffer.offerLink,
@@ -522,10 +480,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -545,10 +499,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
@@ -605,10 +556,6 @@ void main() async {
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
       vCard: bobVCard,
-    );
-
-    await bobSDK.notifyAcceptance(
-      connectionOffer: acceptResult.connectionOffer,
       senderInfo: 'Bob',
     );
 
@@ -625,10 +572,7 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(
-      connectionOffer: result.connectionOffer,
-      channel: channel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
 
     await bobSDK.processControlPlaneEvents();
 

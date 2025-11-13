@@ -889,19 +889,23 @@ class MeetingPlaceCoreSDK {
   /// - [ConnectionOffer] - Connection offer object.
   ///
   /// - [vCard] - A VCard that contains information about who is accepting
-  /// the offer. This helps the offeree to know who accepted the offer.
+  ///   the offer. This helps the offeree to know who accepted the offer.
+  ///
+  /// - [senderInfo] - Value to be shown in notification message to the other
+  ///   party.
   ///
   /// - [externalRef] - Application-specific data that is passed through to
-  /// internal entities, such as connection offers and channels, and can be
-  /// referenced later for tracking or identification purposes. [externalRef]
-  /// is accessible on the current device only.
+  ///   internal entities, such as connection offers and channels, and can be
+  ///   referenced later for tracking or identification purposes. [externalRef]
+  ///   is accessible on the current device only.
   ///
   /// **Returns:**
   /// - A [sdk.AcceptOfferResult] object that provides the [connectionOffer],
-  /// [acceptOfferDid] and [permanentChannelDid]
+  ///   [acceptOfferDid] and [permanentChannelDid]
   Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
     required T connectionOffer,
     required VCard vCard,
+    required String senderInfo,
     String? externalRef,
   }) async {
     return _withSdkExceptionHandling(() async {
@@ -910,6 +914,7 @@ class MeetingPlaceCoreSDK {
           wallet: wallet,
           connectionOffer: connectionOffer,
           vCard: vCard,
+          senderInfo: senderInfo,
           externalRef: externalRef,
         );
 
@@ -924,6 +929,7 @@ class MeetingPlaceCoreSDK {
         wallet: wallet,
         connectionOffer: connectionOffer,
         vCard: vCard,
+        senderInfo: senderInfo,
         externalRef: externalRef,
       );
 
@@ -931,29 +937,6 @@ class MeetingPlaceCoreSDK {
         connectionOffer: result.connectionOffer as T,
         acceptOfferDid: result.acceptOfferDid,
         permanentChannelDid: result.permanentChannelDid,
-      );
-    });
-  }
-
-  /// Notifies other party about acceptance of an offer.
-  ///
-  /// **Parameters:**
-  /// - [ConnectionOffer] - ConnectionOffer object in the 'accepted' state
-  /// - [senderInfo] - Sender information to be shown in notification message
-  Future<void> notifyAcceptance({
-    required ConnectionOffer connectionOffer,
-    required String senderInfo,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      if (connectionOffer is GroupConnectionOffer) {
-        return _groupService.notifyAcceptance(
-          connectionOffer: connectionOffer,
-          senderInfo: senderInfo,
-        );
-      }
-      return _connectionService.notifyAcceptance(
-        connectionOffer: connectionOffer,
-        senderInfo: senderInfo,
       );
     });
   }
@@ -972,26 +955,16 @@ class MeetingPlaceCoreSDK {
   /// informing the new member about approval.
   ///
   /// **Parameters:**
-  /// - [connectionOffer] - [GroupConnectionOffer] object for group.
   /// - [channel] - DID of member requesting membership
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({
-    required ConnectionOffer connectionOffer,
-    required Channel channel,
-  }) async {
+  Future<Channel> approveConnectionRequest({required Channel channel}) async {
     return _withSdkExceptionHandling(() async {
-      return connectionOffer is GroupConnectionOffer
-          ? await _groupService.approveMembershipRequest(
-              connectionOffer: connectionOffer,
-              channel: channel,
-            )
+      return channel.isGroup
+          ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
-              wallet: wallet,
-              connectionOffer: connectionOffer,
-              channel: channel,
-            );
+              wallet: wallet, channel: channel);
     });
   }
 

@@ -940,7 +940,7 @@ class GroupService {
           'ciphertext': base64.encode(message.ciphertextBytes),
           'capsule': message.capsule.toBase64(),
           'iv': base64.encode(message.initializationVector),
-          'authenticationTag': base64.encode(message.authenticationTag),
+          'authentication_tag': base64.encode(message.authenticationTag),
         }),
       ),
     );

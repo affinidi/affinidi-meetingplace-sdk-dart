@@ -2,6 +2,7 @@ import 'package:didcomm/didcomm.dart';
 
 import '../../protocol/message/plaintext_message_extension.dart';
 import '../../protocol/meeting_place_protocol.dart';
+import '../../protocol/protocol.dart' as protocol;
 import '../../repository/repository.dart';
 import '../../service/group/group_message.dart';
 import '../../utils/string.dart';
@@ -46,7 +47,8 @@ class MediatorMessage {
         (throw Exception(
             'Key pair not found for DID: ${message.to!.first.topAndTail()}'));
 
-    return GroupMessage.decrypt(message,
+    final groupMessage = protocol.GroupMessage.fromPlainTextMessage(message);
+    return GroupMessage.decrypt(groupMessage,
         privateKeyBytes: keyPair.privateKeyBytes);
   }
 }

@@ -1,3 +1,7 @@
+## 0.0.1-dev.12
+
+ - **FIX**: use latest ssi version v2.17.1 (#23).
+
 ## 0.0.1-dev.11
 
  - **FIX**: allow offer acceptance if existing offer is finalised or if channel is not inaugurated (#18).

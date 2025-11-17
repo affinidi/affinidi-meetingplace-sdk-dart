@@ -1,38 +1,55 @@
 import 'package:didcomm/didcomm.dart';
-import '../../meeting_place_protocol.dart';
-import '../../v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../meeting_place_protocol.dart';
 import 'outreach_invitation_body.dart';
 
-class OutreachInvitation extends PlainTextMessage {
-  OutreachInvitation({
-    required super.id,
-    required super.from,
-    required super.to,
-    required String mnemonic,
-    required String message,
-    VCard? vCard,
-  }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.outreachInvitation.value),
-          body: OutreachInvitationBody(
-            mnemonic: mnemonic,
-            message: message,
-          ).toJson(),
-          createdTime: DateTime.now().toUtc(),
-        );
+class OutreachInvitation {
+  factory OutreachInvitation.fromPlainTextMessage(PlainTextMessage message) {
+    return OutreachInvitation(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: OutreachInvitationBody.fromJson(message.body!),
+      createdTime: message.createdTime,
+    );
+  }
 
   factory OutreachInvitation.create({
     required String from,
     required List<String> to,
-    required String mnemonic,
-    required String message,
+    required OutreachInvitationBody body,
   }) {
     return OutreachInvitation(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
-      mnemonic: mnemonic,
-      message: message,
+      body: body,
+    );
+  }
+
+  OutreachInvitation({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final OutreachInvitationBody body;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(MeetingPlaceProtocol.outreachInvitation.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      createdTime: createdTime,
     );
   }
 }

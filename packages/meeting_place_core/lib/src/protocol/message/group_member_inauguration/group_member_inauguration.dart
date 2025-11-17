@@ -1,129 +1,82 @@
 import 'package:didcomm/didcomm.dart';
-import '../../../entity/group_member.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../attachment/attachment_format.dart';
 import '../../attachment/attachment_media_type.dart';
 import '../../meeting_place_protocol.dart';
 import '../../v_card/v_card.dart';
-import 'package:uuid/uuid.dart';
-
 import 'group_member_inauguration_body.dart';
 
-class GroupMemberInaugurationMember {
-  GroupMemberInaugurationMember({
-    required this.did,
-    required this.vCard,
-    required this.membershipType,
-    required this.status,
-    required this.publicKey,
-  });
-
-  final String did;
-  final VCard vCard;
-  final String membershipType;
-  final String status;
-  final String publicKey;
-
-  bool get isAdmin => membershipType == GroupMembershipType.admin.name;
-
-  bool get isMember => membershipType == GroupMembershipType.member.name;
-}
-
-class GroupMemberInauguration extends PlainTextMessage {
-  GroupMemberInauguration({
-    required super.id,
-    required super.from,
-    required super.to,
-    required this.memberDid,
-    required this.groupDid,
-    required this.groupId,
-    required this.groupPublicKey,
-    required this.adminDids,
-    required this.members,
-    this.vCard,
-  }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.groupMemberInauguration.value),
-          body: GroupMemberInaugurationBody(
-            memberDid: memberDid,
-            groupDid: groupDid,
-            groupId: groupId,
-            groupPublicKey: groupPublicKey,
-            adminDids: adminDids,
-            members: members
-                .map((m) => GroupMemberInaugurationBodyMember(
-                      did: m.did,
-                      vCard: m.vCard.toJson(),
-                      status: m.status,
-                      publicKey: m.publicKey,
-                      membershipType: m.membershipType,
-                    ))
-                .toList(),
-          ).toJson(),
-          createdTime: DateTime.now().toUtc(),
-          attachments: [
-            Attachment(
-              id: const Uuid().v4(),
-              format: AttachmentFormat.contactCard.value,
-              mediaType: AttachmentMediaType.textVcard.value,
-              description: 'vCard Info',
-              data: AttachmentData(base64: vCard?.toBase64()),
-            ),
-          ],
-        );
-
+class GroupMemberInauguration {
   factory GroupMemberInauguration.create({
     required String from,
     required List<String> to,
-    required String memberDid,
-    required String groupDid,
-    required String groupId,
-    required String groupPublicKey,
-    required List<String> adminDids,
-    required List<GroupMemberInaugurationMember> members,
-    required VCard vCard,
+    required GroupMemberInaugurationBody body,
+    VCard? vCard,
   }) {
     return GroupMemberInauguration(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
-      memberDid: memberDid,
-      groupDid: groupDid,
-      groupId: groupId,
-      adminDids: adminDids,
-      groupPublicKey: groupPublicKey,
-      members: members,
+      body: body,
       vCard: vCard,
     );
   }
 
-  factory GroupMemberInauguration.fromMessage(PlainTextMessage message) {
+  factory GroupMemberInauguration.fromPlainTextMessage(
+      PlainTextMessage message) {
+    VCard? vCard;
+    if (message.attachments != null && message.attachments!.isNotEmpty) {
+      final base64 = message.attachments!.first.data?.base64;
+      if (base64 != null) {
+        vCard = VCard.fromBase64(base64);
+      }
+    }
     return GroupMemberInauguration(
       id: message.id,
-      from: message.from,
-      to: message.to,
-      adminDids:
-          List<String>.from(message.body!['admin_dids'] as List<dynamic>),
-      memberDid: message.body!['member_did'] as String,
-      groupId: message.body!['group_id'] as String,
-      groupDid: message.body!['group_did'] as String,
-      groupPublicKey: message.body!['group_public_key'] as String,
-      members: (message.body!['members'] as List<dynamic>).map((member) {
-        final memberData = member as Map<String, dynamic>;
-        return GroupMemberInaugurationMember(
-          did: memberData['did'] as String,
-          vCard: VCard.fromJson(memberData['v_card'] as Map<String, dynamic>),
-          status: memberData['status'],
-          publicKey: memberData['public_key'] as String,
-          membershipType: memberData['membership_type'] as String,
-        );
-      }).toList(),
+      from: message.from!,
+      to: message.to!,
+      body: GroupMemberInaugurationBody.fromJson(message.body!),
+      vCard: vCard,
+      createdTime: message.createdTime,
     );
   }
 
-  final String memberDid;
-  final String groupDid;
-  final String groupId;
-  final String groupPublicKey;
-  final List<String> adminDids;
-  final List<GroupMemberInaugurationMember> members;
+  GroupMemberInauguration({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    this.vCard,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final GroupMemberInaugurationBody body;
   final VCard? vCard;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(MeetingPlaceProtocol.groupMemberInauguration.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      createdTime: createdTime,
+      attachments: vCard == null
+          ? null
+          : [
+              Attachment(
+                id: const Uuid().v4(),
+                format: AttachmentFormat.contactCard.value,
+                mediaType: AttachmentMediaType.textVcard.value,
+                description: 'vCard Info',
+                data: AttachmentData(base64: vCard!.toBase64()),
+              ),
+            ],
+    );
+  }
 }

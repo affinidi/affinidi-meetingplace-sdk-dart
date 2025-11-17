@@ -1,50 +1,79 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../attachment/v_card_attachment.dart';
 import '../../meeting_place_protocol.dart';
 import '../../v_card/v_card.dart';
-
+import '../../v_card/v_card_helper.dart';
 import 'connection_request_approval_body.dart';
 
-class ConnectionRequestApproval extends PlainTextMessage {
-  ConnectionRequestApproval({
-    required super.id,
-    required super.from,
-    required super.to,
-    required super.parentThreadId,
-    required String permanentChannelDid,
-    VCard? vCard,
-  }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
-          body: ConnectionRequestApprovalBody(channelDid: permanentChannelDid)
-              .toJson(),
-          createdTime: DateTime.now().toUtc(),
-          attachments: vCard is VCard
-              ? [
-                  VCardAttachment.create(
-                    data: AttachmentData(
-                      base64: vCard.toBase64(removePadding: true),
-                    ),
-                  ),
-                ]
-              : null,
-        );
-
+class ConnectionRequestApproval {
   factory ConnectionRequestApproval.create({
     required String from,
     required List<String> to,
     required String parentThreadId,
-    required String permanentChannelDid,
+    required ConnectionRequestApprovalBody body,
     VCard? vCard,
   }) {
     return ConnectionRequestApproval(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
       parentThreadId: parentThreadId,
-      permanentChannelDid: permanentChannelDid,
+      body: body,
       vCard: vCard,
+    );
+  }
+
+  factory ConnectionRequestApproval.fromPlainTextMessage(
+      PlainTextMessage message) {
+    VCard? vCard;
+    if (message.attachments != null && message.attachments!.isNotEmpty) {
+      final base64 = message.attachments!.first.data?.base64;
+      if (base64 != null) {
+        vCard = VCard.fromBase64(base64);
+      }
+    }
+
+    return ConnectionRequestApproval(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      parentThreadId: message.parentThreadId!,
+      body: ConnectionRequestApprovalBody.fromJson(message.body!),
+      vCard: vCard,
+      createdTime: message.createdTime,
+    );
+  }
+
+  ConnectionRequestApproval({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.parentThreadId,
+    required this.body,
+    this.vCard,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final String parentThreadId;
+  final ConnectionRequestApprovalBody body;
+  final VCard? vCard;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
+      from: from,
+      to: to,
+      parentThreadId: parentThreadId,
+      body: body.toJson(),
+      createdTime: createdTime,
+      attachments:
+          vCard == null ? null : [VCardHelper.vCardToAttachment(vCard!)],
     );
   }
 }

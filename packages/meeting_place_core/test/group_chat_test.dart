@@ -113,7 +113,7 @@ void main() async {
       type: messageType,
       from: aliceDid,
       to: [groupDid],
-      body: {'text': 'Hello Group!', 'seqNo': 1},
+      body: {'text': 'Hello Group!', 'seq_no': 1},
     );
 
     final bobStream = await bobSDK.subscribeToMediator(bobDid);

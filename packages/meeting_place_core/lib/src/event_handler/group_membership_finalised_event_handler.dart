@@ -82,12 +82,12 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       for (final result in messages) {
         final message = result.plainTextMessage;
         final groupMemberInaugurationMessage =
-            GroupMemberInauguration.fromMessage(message);
+            GroupMemberInauguration.fromPlainTextMessage(message);
 
-        if (groupMemberInaugurationMessage.memberDid !=
+        if (groupMemberInaugurationMessage.body.memberDid !=
             connection.permanentChannelDid!) {
           logger.error(
-            'Member DID mismatch: expected ${connection.permanentChannelDid?.topAndTail()}, found ${groupMemberInaugurationMessage.memberDid.topAndTail()}',
+            'Member DID mismatch: expected ${connection.permanentChannelDid?.topAndTail()}, found ${groupMemberInaugurationMessage.body.memberDid.topAndTail()}',
             name: methodName,
           );
           throw MemberDidMismatchException();
@@ -95,11 +95,11 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
 
         final notificationToken = await _registerNotificationToken(
           permanentChannelDid,
-          groupMemberInaugurationMessage.groupDid,
+          groupMemberInaugurationMessage.body.groupDid,
         );
 
-        final admin = groupMemberInaugurationMessage.members.firstWhere(
-          (member) => member.isAdmin,
+        final admin = groupMemberInaugurationMessage.body.members.firstWhere(
+          (member) => member.membershipType == GroupMembershipType.admin.name,
         );
 
         await Future.wait([
@@ -126,7 +126,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
           _allowGroupToSendMessagesToPermanetChannelDid(
             permanentChannelDid: didManager,
             mediatorDid: connection.mediatorDid,
-            groupDid: groupMemberInaugurationMessage.groupDid,
+            groupDid: groupMemberInaugurationMessage.body.groupDid,
           ),
         ]);
 
@@ -265,16 +265,16 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     );
 
     final updatedGroup = group.copyWith(
-      id: message.groupId,
-      did: message.groupDid,
-      publicKey: message.groupPublicKey,
-      ownerDid: message.adminDids[0],
+      id: message.body.groupId,
+      did: message.body.groupDid,
+      publicKey: message.body.groupPublicKey,
+      ownerDid: message.body.adminDids[0],
       created: DateTime.now().toUtc(),
     );
 
     _updateSelfMemberStatusToApproved(updatedGroup, selfMemberDid);
 
-    for (final member in message.members) {
+    for (final member in message.body.members) {
       final localMemberIndex = updatedGroup.members.indexWhere(
         (lm) => lm.did == member.did,
       );

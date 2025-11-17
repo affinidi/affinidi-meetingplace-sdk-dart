@@ -1,3 +1,7 @@
+## 0.0.1-dev.13
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.12
 
  - **FIX**: allow offer acceptance if existing offer is finalised or if channel is not inaugurated (#18).

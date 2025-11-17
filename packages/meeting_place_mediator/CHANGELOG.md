@@ -1,3 +1,7 @@
+## 0.0.1-dev.7
+
+ - **FIX**: use latest ssi version v2.17.1 (#23).
+
 ## 0.0.1-dev.6
 
  - **FIX**: apply configured retry count and return network_error code in case of connection error (#16).

@@ -22,7 +22,7 @@ import 'loggers/default_meeting_place_core_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
 import 'loggers/meeting_place_core_sdk_logger.dart';
 import 'meeting_place_core_sdk_options.dart';
-import 'messages/utils.dart';
+import 'utils/attachment.dart';
 import 'protocol/protocol.dart';
 import 'repository/repository.dart';
 import 'sdk/connection_offer_type.dart';

@@ -2,7 +2,7 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
 import '../protocol/meeting_place_protocol.dart';
 import '../entity/connection_offer.dart';
-import '../messages/utils.dart';
+import '../utils/attachment.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 

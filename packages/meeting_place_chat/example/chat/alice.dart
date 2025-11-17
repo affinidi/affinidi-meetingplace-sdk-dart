@@ -70,7 +70,6 @@ void main() async {
           .toString()
           .startsWith(getControlPlaneDid()))
       .listen((data) async {
-    prettyPrintYellow('Received invitation accept notification');
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await aliceSDK.processControlPlaneEvents();
   });

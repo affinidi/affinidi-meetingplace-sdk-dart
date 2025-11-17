@@ -3,7 +3,7 @@ import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
-import '../messages/utils.dart';
+import '../utils/attachment.dart';
 import '../protocol/protocol.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';

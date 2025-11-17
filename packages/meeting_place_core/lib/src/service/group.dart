@@ -507,10 +507,8 @@ class GroupService {
       from: senderDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
-      body: InvitationAcceptanceGroupBody(
-        channelDid: permanentChannelDidDocument.id,
-        publicKey: groupMemberPublicKey,
-      ),
+      channelDid: permanentChannelDidDocument.id,
+      publicKey: groupMemberPublicKey,
       vCard: vCard,
     );
 
@@ -622,25 +620,23 @@ class GroupService {
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
       to: [memberDid],
-      body: GroupMemberInaugurationBody(
-        memberDid: memberDid,
-        groupDid: group.did,
-        groupId: group.id,
-        adminDids: [group.ownerDid!],
-        groupPublicKey: group.publicKey!,
-        members: group.members
-            .where((member) => member.status == GroupMemberStatus.approved)
-            .map(
-              (member) => GroupMemberInaugurationMember(
-                did: member.did,
-                vCard: member.vCard,
-                status: member.status.name,
-                publicKey: member.publicKey,
-                membershipType: member.membershipType.name,
-              ),
-            )
-            .toList(),
-      ),
+      memberDid: memberDid,
+      groupDid: group.did,
+      groupId: group.id,
+      adminDids: [group.ownerDid!],
+      groupPublicKey: group.publicKey!,
+      members: group.members
+          .where((member) => member.status == GroupMemberStatus.approved)
+          .map(
+            (member) => GroupMemberInaugurationMember(
+              did: member.did,
+              vCard: member.vCard,
+              status: member.status.name,
+              publicKey: member.publicKey,
+              membershipType: member.membershipType.name,
+            ),
+          )
+          .toList(),
       vCard: VCard(
         values: {
           'n': {'given': connectionOffer.offerName},
@@ -902,8 +898,7 @@ class GroupService {
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupDeletion.create(body: GroupDeletionBody(groupId: group.id))
-          .toPlainTextMessage(),
+      GroupDeletion.create(groupId: group.id).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),
@@ -923,10 +918,9 @@ class GroupService {
   }) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
       GroupMemberDeregistration.create(
-          body: GroupMemberDeregistrationBody(
         groupId: group.id,
         memberDid: memberDid,
-      )).toPlainTextMessage(),
+      ).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),

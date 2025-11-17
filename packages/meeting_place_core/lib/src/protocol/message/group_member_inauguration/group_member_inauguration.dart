@@ -6,25 +6,39 @@ import '../../attachment/attachment_media_type.dart';
 import '../../meeting_place_protocol.dart';
 import '../../v_card/v_card.dart';
 import 'group_member_inauguration_body.dart';
+import 'group_member_inauguration_member.dart';
 
 class GroupMemberInauguration {
   factory GroupMemberInauguration.create({
     required String from,
     required List<String> to,
-    required GroupMemberInaugurationBody body,
+    required String memberDid,
+    required String groupDid,
+    required String groupId,
+    required String groupPublicKey,
+    required List<String> adminDids,
+    required List<GroupMemberInaugurationMember> members,
     VCard? vCard,
   }) {
     return GroupMemberInauguration(
       id: const Uuid().v4(),
       from: from,
       to: to,
-      body: body,
+      body: GroupMemberInaugurationBody(
+        memberDid: memberDid,
+        groupDid: groupDid,
+        groupId: groupId,
+        groupPublicKey: groupPublicKey,
+        adminDids: adminDids,
+        members: members,
+      ),
       vCard: vCard,
     );
   }
 
   factory GroupMemberInauguration.fromPlainTextMessage(
-      PlainTextMessage message) {
+    PlainTextMessage message,
+  ) {
     VCard? vCard;
     if (message.attachments != null && message.attachments!.isNotEmpty) {
       final base64 = message.attachments!.first.data?.base64;

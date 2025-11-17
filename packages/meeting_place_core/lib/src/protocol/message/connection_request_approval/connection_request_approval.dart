@@ -11,7 +11,7 @@ class ConnectionRequestApproval {
     required String from,
     required List<String> to,
     required String parentThreadId,
-    required ConnectionRequestApprovalBody body,
+    required String channelDid,
     VCard? vCard,
   }) {
     return ConnectionRequestApproval(
@@ -19,7 +19,7 @@ class ConnectionRequestApproval {
       from: from,
       to: to,
       parentThreadId: parentThreadId,
-      body: body,
+      body: ConnectionRequestApprovalBody(channelDid: channelDid),
       vCard: vCard,
     );
   }

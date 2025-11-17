@@ -11,7 +11,7 @@ class InvitationAcceptance {
     required String from,
     required List<String> to,
     required String parentThreadId,
-    required InvitationAcceptanceBody body,
+    required String channelDid,
     VCard? vCard,
   }) {
     return InvitationAcceptance(
@@ -19,7 +19,7 @@ class InvitationAcceptance {
       from: from,
       to: to,
       parentThreadId: parentThreadId,
-      body: body,
+      body: InvitationAcceptanceBody(channelDid: channelDid),
       vCard: vCard,
     );
   }

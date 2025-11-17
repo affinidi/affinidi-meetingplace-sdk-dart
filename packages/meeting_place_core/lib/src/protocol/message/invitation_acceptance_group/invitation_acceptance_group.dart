@@ -11,7 +11,8 @@ class InvitationAcceptanceGroup {
     required String from,
     required List<String> to,
     required String parentThreadId,
-    required InvitationAcceptanceGroupBody body,
+    required String channelDid,
+    required String publicKey,
     VCard? vCard,
   }) {
     return InvitationAcceptanceGroup(
@@ -19,7 +20,10 @@ class InvitationAcceptanceGroup {
       from: from,
       to: to,
       parentThreadId: parentThreadId,
-      body: body,
+      body: InvitationAcceptanceGroupBody(
+        channelDid: channelDid,
+        publicKey: publicKey,
+      ),
       vCard: vCard,
     );
   }

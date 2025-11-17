@@ -17,13 +17,25 @@ class GroupMessage {
   factory GroupMessage.create({
     required String from,
     required List<String> to,
-    required GroupMessageBody body,
+    required String ciphertext,
+    required String iv,
+    required String authenticationTag,
+    required String preCapsule,
+    required String fromDid,
+    required int seqNo,
   }) {
     return GroupMessage(
       id: const Uuid().v4(),
       from: from,
       to: to,
-      body: body,
+      body: GroupMessageBody(
+        ciphertext: ciphertext,
+        iv: iv,
+        authenticationTag: authenticationTag,
+        preCapsule: preCapsule,
+        fromDid: fromDid,
+        seqNo: seqNo,
+      ),
     );
   }
 

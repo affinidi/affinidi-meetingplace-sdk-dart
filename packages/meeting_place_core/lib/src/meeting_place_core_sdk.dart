@@ -477,7 +477,7 @@ class MeetingPlaceCoreSDK {
 
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
     final result = await _controlPlaneSDK.execute(
-      CreateOobCommand(oobInvitationMessage: oobMessage),
+      CreateOobCommand(oobInvitationMessage: oobMessage.toPlainTextMessage()),
     );
 
     final streamSubscription = await _mediatorService.subscribe(
@@ -608,7 +608,8 @@ class MeetingPlaceCoreSDK {
 
       invitationMessage = OobInvitationMessage.fromBase64(
         oobInfo.invitationMessage,
-      );
+      ).toPlainTextMessage();
+
       actualMediatorDid = oobInfo.mediatorDid;
     } catch (e, stackTrace) {
       _logger.error(

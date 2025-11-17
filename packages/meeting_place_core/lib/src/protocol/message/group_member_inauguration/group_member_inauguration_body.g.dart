@@ -17,8 +17,8 @@ GroupMemberInaugurationBody _$GroupMemberInaugurationBodyFromJson(
           .map((e) => e as String)
           .toList(),
       members: (json['members'] as List<dynamic>)
-          .map((e) => GroupMemberInaugurationBodyMember.fromJson(
-              e as Map<String, dynamic>))
+          .map((e) =>
+              GroupMemberInaugurationMember.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -31,24 +31,4 @@ Map<String, dynamic> _$GroupMemberInaugurationBodyToJson(
       'group_public_key': instance.groupPublicKey,
       'admin_dids': instance.adminDids,
       'members': instance.members.map((e) => e.toJson()).toList(),
-    };
-
-GroupMemberInaugurationBodyMember _$GroupMemberInaugurationBodyMemberFromJson(
-        Map<String, dynamic> json) =>
-    GroupMemberInaugurationBodyMember(
-      did: json['did'] as String,
-      vCard: json['v_card'] as Map<String, dynamic>,
-      status: json['status'] as String,
-      publicKey: json['public_key'] as String,
-      membershipType: json['membership_type'] as String,
-    );
-
-Map<String, dynamic> _$GroupMemberInaugurationBodyMemberToJson(
-        GroupMemberInaugurationBodyMember instance) =>
-    <String, dynamic>{
-      'did': instance.did,
-      'v_card': instance.vCard,
-      'status': instance.status,
-      'public_key': instance.publicKey,
-      'membership_type': instance.membershipType,
     };

@@ -9,6 +9,7 @@ import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
 import 'connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
@@ -122,7 +123,7 @@ class GroupService {
         offerDescription: offerDescription,
         vCard: VCardImpl(values: vCard.values),
         device: _controlPlaneSDK.device,
-        oobInvitationMessage: oobMessage,
+        oobInvitationMessage: oobMessage.toPlainTextMessage(),
         validUntil: validUntil,
         maximumUsage: maximumUsage,
         customPhrase: customPhrase,
@@ -506,13 +507,15 @@ class GroupService {
       from: senderDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
-      permanentChannelDid: permanentChannelDidDocument.id,
-      memberPublicKey: groupMemberPublicKey,
+      body: InvitationAcceptanceGroupBody(
+        channelDid: permanentChannelDidDocument.id,
+        publicKey: groupMemberPublicKey,
+      ),
       vCard: vCard,
     );
 
     await _mediatorSDK.sendMessage(
-      invitationAcceptanceMessage,
+      invitationAcceptanceMessage.toPlainTextMessage(),
       senderDidManager: senderDid,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
@@ -619,32 +622,34 @@ class GroupService {
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
       to: [memberDid],
-      memberDid: memberDid,
-      groupDid: group.did,
-      groupId: group.id,
-      adminDids: [group.ownerDid!],
-      groupPublicKey: group.publicKey!,
+      body: GroupMemberInaugurationBody(
+        memberDid: memberDid,
+        groupDid: group.did,
+        groupId: group.id,
+        adminDids: [group.ownerDid!],
+        groupPublicKey: group.publicKey!,
+        members: group.members
+            .where((member) => member.status == GroupMemberStatus.approved)
+            .map(
+              (member) => GroupMemberInaugurationMember(
+                did: member.did,
+                vCard: member.vCard,
+                status: member.status.name,
+                publicKey: member.publicKey,
+                membershipType: member.membershipType.name,
+              ),
+            )
+            .toList(),
+      ),
       vCard: VCard(
         values: {
           'n': {'given': connectionOffer.offerName},
         },
       ),
-      members: group.members
-          .where((member) => member.status == GroupMemberStatus.approved)
-          .map(
-            (member) => GroupMemberInaugurationMember(
-              did: member.did,
-              vCard: member.vCard,
-              status: member.status.name,
-              publicKey: member.publicKey,
-              membershipType: member.membershipType.name,
-            ),
-          )
-          .toList(),
     );
 
     await _mediatorSDK.sendMessage(
-      groupMemberInauguration,
+      groupMemberInauguration.toPlainTextMessage(),
       senderDidManager: senderDid,
       recipientDidDocument: memberDidDocument,
       mediatorDid: channel.mediatorDid,
@@ -897,7 +902,8 @@ class GroupService {
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupDeletion.create(groupId: group.id),
+      GroupDeletion.create(body: GroupDeletionBody(groupId: group.id))
+          .toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),
@@ -916,7 +922,11 @@ class GroupService {
     required String memberDid,
   }) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupMemberDeregistration.create(groupId: group.id, memberDid: memberDid),
+      GroupMemberDeregistration.create(
+          body: GroupMemberDeregistrationBody(
+        groupId: group.id,
+        memberDid: memberDid,
+      )).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),

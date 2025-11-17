@@ -5,6 +5,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../entity/connection_offer.dart';
 import '../../protocol/message/outreach_invitation/outreach_invitation.dart';
+import '../../protocol/message/outreach_invitation/outreach_invitation_body.dart';
 import '../../utils/string.dart';
 import '../connection_manager/connection_manager.dart';
 
@@ -38,8 +39,10 @@ class OutreachService {
     final outreachInvitation = OutreachInvitation.create(
       from: inviteToConnectionOffer.publishOfferDid,
       to: [message.from!],
-      mnemonic: inviteToConnectionOffer.mnemonic,
-      message: messageToInclude,
+      body: OutreachInvitationBody(
+        mnemonic: inviteToConnectionOffer.mnemonic,
+        message: messageToInclude,
+      ),
     );
 
     final senderDidManager = await _connectionManager.getDidManagerForDid(
@@ -48,7 +51,7 @@ class OutreachService {
     );
 
     await _mediatorSDK.sendMessage(
-      outreachInvitation,
+      outreachInvitation.toPlainTextMessage(),
       senderDidManager: senderDidManager,
       recipientDidDocument: await _didResolver.resolveDid(message.from!),
     );

@@ -1,11 +1,10 @@
 import '../entity/channel.dart';
-import '../protocol/message/channel_inauguration/channel_inauguration.dart';
-import '../protocol/meeting_place_protocol.dart';
 import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import '../messages/utils.dart';
+import '../protocol/protocol.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
@@ -116,9 +115,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           ChannelInauguration.create(
             from: permanentChannelDidDocument.id,
             to: [otherPartyPermanentChannelDid],
-            did: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-          ),
+            body: ChannelInaugurationBody(
+              did: otherPartyPermanentChannelDid,
+              notificationToken: notificationToken,
+            ),
+          ).toPlainTextMessage(),
           senderDidManager: permenantChannelDid,
           recipientDidDocument: otherPartyPermanentChannelDidDocument,
           mediatorDid: connection.mediatorDid,

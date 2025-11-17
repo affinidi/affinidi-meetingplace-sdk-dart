@@ -367,8 +367,7 @@ abstract class BaseChatSDK {
       }
     }
 
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatActivity.value) {
+    if (message.plainTextMessage.isOfType(ChatProtocol.chatActivity.value)) {
       _logger.info('Handling chat activity message', name: methodName);
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),

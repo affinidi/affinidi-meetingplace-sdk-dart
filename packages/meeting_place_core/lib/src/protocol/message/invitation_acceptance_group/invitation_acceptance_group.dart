@@ -1,53 +1,78 @@
 import 'package:didcomm/didcomm.dart';
-import '../../attachment/v_card_attachment.dart';
+import 'package:uuid/uuid.dart';
+
 import '../../meeting_place_protocol.dart';
 import '../../v_card/v_card.dart';
-import 'package:uuid/uuid.dart';
+import '../../v_card/v_card_helper.dart';
 import 'invitation_acceptance_group_body.dart';
 
-class InvitationAcceptanceGroup extends PlainTextMessage {
-  InvitationAcceptanceGroup({
-    required super.id,
-    required super.from,
-    required super.to,
-    required super.parentThreadId,
-    required String permanentChannelDid,
-    required String memberPublicKey,
-    VCard? vCard,
-  }) : super(
-          type: Uri.parse(MeetingPlaceProtocol.invitationAcceptanceGroup.value),
-          body: InvitationAcceptanceGroupBody(
-            channelDid: permanentChannelDid,
-            publicKey: memberPublicKey,
-          ).toJson(),
-          createdTime: DateTime.now().toUtc(),
-          attachments: vCard is VCard
-              ? [
-                  VCardAttachment.create(
-                    data: AttachmentData(
-                      base64: vCard.toBase64(removePadding: true),
-                    ),
-                  ),
-                ]
-              : null,
-        );
-
+class InvitationAcceptanceGroup {
   factory InvitationAcceptanceGroup.create({
     required String from,
     required List<String> to,
     required String parentThreadId,
-    required String permanentChannelDid,
-    required String memberPublicKey,
+    required InvitationAcceptanceGroupBody body,
     VCard? vCard,
   }) {
     return InvitationAcceptanceGroup(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
       parentThreadId: parentThreadId,
-      permanentChannelDid: permanentChannelDid,
-      memberPublicKey: memberPublicKey,
+      body: body,
       vCard: vCard,
+    );
+  }
+
+  factory InvitationAcceptanceGroup.fromPlainTextMessage(
+      PlainTextMessage message) {
+    VCard? vCard;
+    if (message.attachments != null && message.attachments!.isNotEmpty) {
+      final base64 = message.attachments!.first.data?.base64;
+      if (base64 != null) {
+        vCard = VCard.fromBase64(base64);
+      }
+    }
+    return InvitationAcceptanceGroup(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      parentThreadId: message.parentThreadId!,
+      body: InvitationAcceptanceGroupBody.fromJson(message.body!),
+      vCard: vCard,
+      createdTime: message.createdTime,
+    );
+  }
+
+  InvitationAcceptanceGroup({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.parentThreadId,
+    required this.body,
+    this.vCard,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final String parentThreadId;
+  final InvitationAcceptanceGroupBody body;
+  final VCard? vCard;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(MeetingPlaceProtocol.invitationAcceptanceGroup.value),
+      from: from,
+      to: to,
+      parentThreadId: parentThreadId,
+      body: body.toJson(),
+      createdTime: createdTime,
+      attachments:
+          vCard == null ? null : [VCardHelper.vCardToAttachment(vCard!)],
     );
   }
 }

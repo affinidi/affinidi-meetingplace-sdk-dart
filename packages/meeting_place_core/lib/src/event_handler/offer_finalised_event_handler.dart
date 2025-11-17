@@ -115,10 +115,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           ChannelInauguration.create(
             from: permanentChannelDidDocument.id,
             to: [otherPartyPermanentChannelDid],
-            body: ChannelInaugurationBody(
-              did: otherPartyPermanentChannelDid,
-              notificationToken: notificationToken,
-            ),
+            did: otherPartyPermanentChannelDid,
+            notificationToken: notificationToken,
           ).toPlainTextMessage(),
           senderDidManager: permenantChannelDid,
           recipientDidDocument: otherPartyPermanentChannelDidDocument,

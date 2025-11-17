@@ -18,13 +18,17 @@ class OutreachInvitation {
   factory OutreachInvitation.create({
     required String from,
     required List<String> to,
-    required OutreachInvitationBody body,
+    required String mnemonic,
+    required String message,
   }) {
     return OutreachInvitation(
       id: const Uuid().v4(),
       from: from,
       to: to,
-      body: body,
+      body: OutreachInvitationBody(
+        mnemonic: mnemonic,
+        message: message,
+      ),
     );
   }
 

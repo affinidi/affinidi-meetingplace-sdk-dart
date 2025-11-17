@@ -425,9 +425,7 @@ class ConnectionService {
       from: acceptOfferDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
-      body: InvitationAcceptanceBody(
-        channelDid: permanentChannelDidDocument.id,
-      ),
+      channelDid: permanentChannelDidDocument.id,
       vCard: acceptVCard,
     );
 
@@ -590,9 +588,7 @@ class ConnectionService {
       from: offerPublishedDidDocument.id,
       to: [otherPartyAcceptOfferDid],
       parentThreadId: outboundMessageId,
-      body: ConnectionRequestApprovalBody(
-        channelDid: permanentChannelDidDocument.id,
-      ),
+      channelDid: permanentChannelDidDocument.id,
       vCard: vCard,
     );
 

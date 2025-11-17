@@ -5,10 +5,10 @@ import '../../meeting_place_protocol.dart';
 import 'group_deletion_body.dart';
 
 class GroupDeletion {
-  factory GroupDeletion.create({required GroupDeletionBody body}) {
+  factory GroupDeletion.create({required String groupId}) {
     return GroupDeletion(
       id: const Uuid().v4(),
-      body: body,
+      body: GroupDeletionBody(groupId: groupId),
     );
   }
 

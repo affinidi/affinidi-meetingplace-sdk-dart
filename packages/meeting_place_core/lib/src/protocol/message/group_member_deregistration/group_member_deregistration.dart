@@ -6,11 +6,15 @@ import 'group_member_deregistration_body.dart';
 
 class GroupMemberDeregistration {
   factory GroupMemberDeregistration.create({
-    required GroupMemberDeregistrationBody body,
+    required String groupId,
+    required String memberDid,
   }) {
     return GroupMemberDeregistration(
       id: const Uuid().v4(),
-      body: body,
+      body: GroupMemberDeregistrationBody(
+        groupId: groupId,
+        memberDid: memberDid,
+      ),
     );
   }
 

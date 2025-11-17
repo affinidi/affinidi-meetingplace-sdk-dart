@@ -18,13 +18,17 @@ class ChannelInauguration {
   factory ChannelInauguration.create({
     required String from,
     required List<String> to,
-    required ChannelInaugurationBody body,
+    required String notificationToken,
+    required String did,
   }) {
     return ChannelInauguration(
       id: const Uuid().v4(),
       from: from,
       to: to,
-      body: body,
+      body: ChannelInaugurationBody(
+        notificationToken: notificationToken,
+        did: did,
+      ),
     );
   }
 

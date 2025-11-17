@@ -18,7 +18,7 @@ dependencies:
   one_of: ">=1.5.0 <2.0.0"
   one_of_serializer: ">=1.5.0 <2.0.0"
   retry: ^3.1.2
-  ssi: ^2.12.4
+  ssi: ^2.17.1
   uuid: ^4.5.1
 
 dev_dependencies:

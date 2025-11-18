@@ -3,15 +3,11 @@
 //
 
 export 'api_client/api.dart';
+export 'api_client/api/default_api.dart';
 export 'api_client/auth/api_key_auth.dart';
 export 'api_client/auth/basic_auth.dart';
 export 'api_client/auth/bearer_auth.dart';
 export 'api_client/auth/oauth.dart';
-export 'api_client/serializers.dart';
-export 'api_client/model/date.dart';
-
-export 'api_client/api/default_api.dart';
-
 export 'api_client/model/accept_offer_group_input.dart';
 export 'api_client/model/accept_offer_group_ok.dart';
 export 'api_client/model/accept_offer_input.dart';
@@ -22,6 +18,7 @@ export 'api_client/model/check_offer_phrase_ok.dart';
 export 'api_client/model/cors_register_device_ok.dart';
 export 'api_client/model/create_oob_input.dart';
 export 'api_client/model/create_oob_ok.dart';
+export 'api_client/model/date.dart';
 export 'api_client/model/delete_pending_notifications_input.dart';
 export 'api_client/model/delete_pending_notifications_ok.dart';
 export 'api_client/model/delete_pending_notifications_ok_notifications_inner.dart';
@@ -75,3 +72,4 @@ export 'api_client/model/register_offer_group_input.dart';
 export 'api_client/model/register_offer_group_ok.dart';
 export 'api_client/model/register_offer_input.dart';
 export 'api_client/model/register_offer_ok.dart';
+export 'api_client/serializers.dart';

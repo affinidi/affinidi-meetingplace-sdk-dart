@@ -8,6 +8,7 @@ class GroupMembershipFinalisedException implements SDKException {
     this.innerException,
   });
 
+  // ignore: lines_longer_than_80_chars
   factory GroupMembershipFinalisedException.connectionOfferAlreadyFinalizedException({
     required String offerLink,
     Object? innerException,

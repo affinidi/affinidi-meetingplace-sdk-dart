@@ -1,18 +1,19 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:ssi/ssi.dart';
+
 import '../entity/channel.dart';
+import '../entity/group.dart';
 import '../entity/group_connection_offer.dart';
+import '../entity/group_member.dart';
+import '../protocol/meeting_place_protocol.dart';
+import '../protocol/message/group_member_inauguration.dart';
+import '../repository/repository.dart';
+import '../service/group/group_exception.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 import 'exceptions/group_membership_finalised_exception.dart';
-import '../protocol/message/group_member_inauguration.dart';
-import '../protocol/meeting_place_protocol.dart';
-import '../repository/repository.dart';
-import '../service/group/group_exception.dart';
-import 'package:ssi/ssi.dart';
-import '../entity/group.dart';
-import '../entity/group_member.dart';
 
 class MemberDidMismatchException implements Exception {}
 
@@ -36,7 +37,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
   Future<Channel?> process(GroupMembershipFinalised event) async {
     final methodName = 'process';
     logger.info(
-      'Starting processing event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
+      'Starting processing event of type '
+      '${ControlPlaneEventType.GroupMembershipFinalised}',
       name: methodName,
     );
 
@@ -45,13 +47,14 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       final permanentChannelDid = connection.permanentChannelDid;
 
       if (permanentChannelDid == null) {
-        throw Exception(
-            'Connection offer ${connection.offerLink} is missing permanentChannelDid');
+        throw Exception('Connection offer ${connection.offerLink} is missing '
+            'permanentChannelDid');
       }
 
       if (connection is! GroupConnectionOffer) {
         logger.error(
-          'Connection offer is not a GroupConnectionOffer for offer link: ${event.offerLink}',
+          'Connection offer is not a GroupConnectionOffer for offer link: '
+          '${event.offerLink}',
           name: methodName,
         );
         throw GroupMembershipFinalisedException.groupConnectionOfferRequired(
@@ -87,7 +90,9 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         if (groupMemberInaugurationMessage.memberDid !=
             connection.permanentChannelDid!) {
           logger.error(
-            'Member DID mismatch: expected ${connection.permanentChannelDid?.topAndTail()}, found ${groupMemberInaugurationMessage.memberDid.topAndTail()}',
+            'Member DID mismatch: expected '
+            '${connection.permanentChannelDid?.topAndTail()}, found '
+            '${groupMemberInaugurationMessage.memberDid.topAndTail()}',
             name: methodName,
           );
           throw MemberDidMismatchException();
@@ -167,26 +172,31 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         );
 
         logger.info(
-          'Completely successfully processed ${MeetingPlaceProtocol.groupMemberInauguration.value} message for group DID: ${updatedGroup.did.topAndTail()}',
+          'Completely successfully processed '
+          '${MeetingPlaceProtocol.groupMemberInauguration.value} message '
+          'for group DID: ${updatedGroup.did.topAndTail()}',
           name: methodName,
         );
         return channel;
       }
 
       logger.warning(
-        'No ${MeetingPlaceProtocol.groupMemberInauguration.value} message found for processing',
+        'No ${MeetingPlaceProtocol.groupMemberInauguration.value} message '
+        'found for processing',
         name: methodName,
       );
       return null;
     } on EmptyMessageListException {
       logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
+        'No messages found to process for event of type '
+        '${ControlPlaneEventType.GroupMembershipFinalised}',
         name: methodName,
       );
       return null;
     } catch (e, stackTrace) {
       logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
+        'Failed to process event of type '
+        '${ControlPlaneEventType.GroupMembershipFinalised}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -201,7 +211,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
   ) async {
     final methodName = '_registerNotificationToken';
     logger.info(
-      'Registering notification token for myDid: ${myDid.topAndTail()}, theirDid: ${theirDid.topAndTail()}',
+      'Registering notification token for myDid: ${myDid.topAndTail()}, '
+      'theirDid: ${theirDid.topAndTail()}',
       name: methodName,
     );
 
@@ -220,7 +231,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     }
 
     logger.info(
-      'Successfully registered notification token: ${notificationToken.topAndTail()}',
+      'Successfully registered notification token: '
+      '${notificationToken.topAndTail()}',
       name: methodName,
     );
     return notificationToken;
@@ -236,7 +248,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         await permanentChannelDid.getDidDocument();
 
     logger.info(
-      'Allowing group DID: ${groupDid.topAndTail()} to send messages to permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
+      'Allowing group DID: ${groupDid.topAndTail()} to send messages to '
+      'permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
       name: methodName,
     );
     return mediatorService.updateAcl(
@@ -260,7 +273,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
   }) {
     final methodName = '_updateLocalCopyOfGroupMembers';
     logger.info(
-      'Updating local copy of group members for group DID: ${group.did.topAndTail()}',
+      'Updating local copy of group members for group DID: '
+      '${group.did.topAndTail()}',
       name: methodName,
     );
 
@@ -309,7 +323,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     }
 
     logger.info(
-      'Successfully updated local copy of group members for group DID: ${updatedGroup.did.topAndTail()}',
+      'Successfully updated local copy of group members for group DID: '
+      '${updatedGroup.did.topAndTail()}',
       name: methodName,
     );
     return updatedGroup;
@@ -322,7 +337,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     final selfMember = group.members.firstWhere(
       (member) => member.did == selfMemberDid,
       orElse: () => throw Exception(
-        'Self member with DID: ${selfMemberDid.topAndTail()} not found in group members list',
+        '''Self member with DID: ${selfMemberDid.topAndTail()} not found in group members list''',
       ),
     );
     selfMember.status = GroupMemberStatus.approved;

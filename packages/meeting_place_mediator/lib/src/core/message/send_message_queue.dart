@@ -15,11 +15,13 @@ import '../mediator/mediator_exception.dart';
 ///
 /// **Parameters:**
 /// - [message]: The [PlainTextMessage] that was sent to a queue.
-/// - [senderDidManager]: The [DidManager] instance used for authentication with the mediator
-/// and contains the identity credentials needed for the session.
+/// - [senderDidManager]: The [DidManager] instance used for authentication
+///   with the mediator and contains the identity credentials needed for the
+///   session.
 /// - [mediatorDid]: Optional mediator DID to authenticate against.
-/// If not provided, the SDK instance’s default mediator DID will be used.
-/// - [next]: The DID of the next recipient to which the attached message should be forwarded.
+/// If not provided, the SDK instance's default mediator DID will be used.
+/// - [next]: The DID of the next recipient to which the attached message
+///   should be forwarded.
 class QueueItem {
   QueueItem({
     required this.message,

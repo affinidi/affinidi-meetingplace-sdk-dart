@@ -8,9 +8,9 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import 'utils/sdk.dart';
 import 'utils/storage/in_memory_storage.dart';
 import 'utils/v_card.dart';
-import 'utils/sdk.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
@@ -143,8 +143,8 @@ void main() async {
       stream!.listen((message) {
         if (message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatDelivered.value) {
-          final removed =
-              messageIds.remove(message.plainTextMessage?.body!['messages'][0]);
+          final removed = messageIds.remove(
+              (message.plainTextMessage?.body!['messages'] as dynamic)[0]);
           if (messageIds.isEmpty && removed) {
             aliceCompleter.complete();
           }
@@ -419,7 +419,8 @@ void main() async {
     expect(receivedProfileRequestMessage, isFalse);
   });
 
-  // test('Bob receives profile hash request if profile hashes differ', () async {
+  // test('Bob receives profile hash request if profile hashes differ', () async
+  // {
   //   await aliceChatSDK.startChatSession();
   //   final aliceProfileRequestCompleter = Completer<void>();
 

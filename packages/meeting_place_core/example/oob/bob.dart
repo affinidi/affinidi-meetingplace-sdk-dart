@@ -45,7 +45,7 @@ void main() async {
 
   await bobSDK.sendMessage(
       PlainTextMessage(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           type: Uri.parse('https://affinidi.io/meeting-place-core/example/oob'),
           from: channel.permanentChannelDid,
           to: [channel.otherPartyPermanentChannelDid!],

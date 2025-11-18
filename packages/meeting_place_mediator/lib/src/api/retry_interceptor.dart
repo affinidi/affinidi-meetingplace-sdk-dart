@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
 
-/// [RetryInterceptor] used to intercept and handle HTTP requests by automatically retrying
-/// failed requests based on specific conditions.
+/// [RetryInterceptor] used to intercept and handle HTTP requests by
+/// automatically retrying failed requests based on specific conditions.
 ///
 /// **Parameters:**
 /// - [dio]: The Dio instance used to perform HTTP requests and retries.
-/// - [maxRetries]: The maximum number of times a request will be retried after failure.
+/// - [maxRetries]: The maximum number of times a request will be retried
+///   after failure.
 /// - [retryDelay]: The duration of wait between retry attempts.
 class RetryInterceptor extends Interceptor {
   RetryInterceptor({
@@ -31,7 +32,7 @@ class RetryInterceptor extends Interceptor {
   ) async {
     final requestOptions = err.requestOptions;
 
-    var retryCount = requestOptions.extra['retryCount'] ?? 0;
+    var retryCount = (requestOptions.extra['retryCount'] as int?) ?? 0;
 
     if (_shouldRetry(err) && retryCount < maxRetries) {
       retryCount++;

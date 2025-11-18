@@ -39,7 +39,12 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
         final plainTextMessage = message.plainTextMessage;
 
         logger.info(
-          'Peeked message ${plainTextMessage.type.toString().topAndTail(charCountTop: 8, charCountTail: 20)} from ${channel.permanentChannelDid!.topAndTail()}',
+          'Peeked message '
+          '''${plainTextMessage.type.toString().topAndTail(
+                charCountTop: 8,
+                charCountTail: 20,
+              )}'''
+          ' from ${channel.permanentChannelDid!.topAndTail()}',
           name: _logKey,
         );
 
@@ -57,7 +62,8 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
       return channel;
     } on EmptyMessageListException {
       logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.ChannelActivity}',
+        'No messages found to process for event of type '
+        '${ControlPlaneEventType.ChannelActivity}',
         name: _logKey,
       );
       return null;

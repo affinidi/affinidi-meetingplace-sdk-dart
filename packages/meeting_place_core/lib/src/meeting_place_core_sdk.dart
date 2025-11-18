@@ -45,25 +45,39 @@ import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
 
 /// # Meeting Place Core SDK
-/// The Affinidi Meeting Place - Core SDK provides a high-level interface for coordinating connection setup using the discovery control plane API and mediator. This SDK acts as an orchestrator, applying business logic on top of underlying APIs to simplify integration.
+/// The Affinidi Meeting Place - Core SDK provides a high-level interface for
+/// coordinating connection setup using the discovery control plane API and
+/// mediator. This SDK acts as an orchestrator, applying business logic on top
+/// of underlying APIs to simplify integration.
 /// ## Discovery Event Stream
-/// The DiscoveryEventStream exposes a stream that can be listened to, pushing each event after applying business logic within the SDK. The processEventStream method triggers this process, using a debounce mechanism to call the API at most once every second. This ensures efficient processing and keeps the main isolate available for background tasks.
-/// To improve performance and responsiveness, the event stream processing runs in a separate Dart isolate.
+/// The DiscoveryEventStream exposes a stream that can be listened to, pushing
+/// each event after applying business logic within the SDK. The
+/// processEventStream method triggers this process, using a debounce mechanism
+/// to call the API at most once every second. This ensures efficient
+/// processing and keeps the main isolate available for background tasks.
+/// To improve performance and responsiveness, the event stream processing runs
+/// in a separate Dart isolate.
 /// ## Device
-/// The Device object is used be provided once and reused throughout the entire flow. If it changes, you can easily update it without affecting other parts of your application.
+/// The Device object is used be provided once and reused throughout the entire
+/// flow. If it changes, you can easily update it without affecting other parts
+/// of your application.
 /// ## Error Handling
-/// All methods within this SDK throw a unified MeetingPlaceCoreSDKException, which includes:
+/// All methods within this SDK throw a unified MeetingPlaceCoreSDKException,
+/// which includes:
 /// * A message providing context about the error
-/// * A code that can be used to map specific error messages based on consumer requirements
+/// * A code that can be used to map specific error messages based on consumer
+/// requirements
 /// * A stacktrace for identifying the root cause of the issue
-/// By using a consistent exception type, you can easily handle and respond to errors in your application.
+/// By using a consistent exception type, you can easily handle and respond to
+/// errors in your application.
 ///
 /// Example:
 /// ```dart
 /// final wallet = PersistentWallet(InMemoryKeyStore())
 /// final storage = InMemoryStorage();
 /// final repositoryConfig = RepositoryConfig(
-///   connectionOfferRepository: ConnectionOfferRepositoryImpl(storage: storage),
+///   connectionOfferRepository:
+///       ConnectionOfferRepositoryImpl(storage: storage),
 ///   groupRepository: GroupRepositoryImpl(storage: storage),
 ///   channelRepository: ChannelRepositoryImpl(storage: storage),
 ///   keyRepository: KeyRepositoryImpl(storage: storage),
@@ -89,27 +103,41 @@ class MeetingPlaceCoreSDK {
   ///
   /// This constructor requires all of its dependencies to be provided via
   /// **named parameters**. Some parameters are directly assigned to public
-  /// fields, while others are assigned to private fields via the initializer list.
+  /// fields, while others are assigned to private fields via the initializer
+  /// list.
   ///
   /// ### Parameters
-  /// - `wallet` (`Wallet`): The wallet instance used for cryptographic operations.
-  /// - `repositoryConfig` (`RepositoryConfig`): Configuration for repository storage.
-  /// - `controlPlaneDid` (`String`): The DID (Decentralized Identifier) of this service.
-  /// - `mediatorSDK` (`MediatorSDK`): Instance of the mediator SDK used for routing messages.
-  /// - `controlPlaneSDK` (`ControlPlaneSDK`): Instance of the control plane SDK for discovering other agents.
-  /// - `connectionManager` (`ConnectionManager`): Manages connections between agents.
-  /// - `connectionService` (`ConnectionService`): Service that handles connection protocols.
-  /// - `discoveryEventService` (`DiscoveryEventService`): Service that handles discovery events.
-  /// - `discoveryEventStreamManager` (`DiscoveryEventStreamManager`): Manages streaming of discovery events.
+  /// - `wallet` (`Wallet`): The wallet instance used for cryptographic
+  ///   operations.
+  /// - `repositoryConfig` (`RepositoryConfig`): Configuration for repository
+  ///   storage.
+  /// - `controlPlaneDid` (`String`): The DID (Decentralized Identifier) of
+  ///   this service.
+  /// - `mediatorSDK` (`MediatorSDK`): Instance of the mediator SDK used for
+  ///   routing messages.
+  /// - `controlPlaneSDK` (`ControlPlaneSDK`): Instance of the control plane
+  ///   SDK for discovering other agents.
+  /// - `connectionManager` (`ConnectionManager`): Manages connections between
+  ///   agents.
+  /// - `connectionService` (`ConnectionService`): Service that handles
+  ///   connection protocols.
+  /// - `discoveryEventService` (`DiscoveryEventService`): Service that
+  ///   handles discovery events.
+  /// - `discoveryEventStreamManager` (`DiscoveryEventStreamManager`):
+  ///   Manages streaming of discovery events.
   /// - `groupService` (`GroupService`): Handles group-related operations.
   /// - `outreachService` (`OutreachService`): Handles outreach notifications
-  /// - `didResolver` (`DidResolver`): Resolves DIDs to their corresponding DID Documents.
+  /// - `didResolver` (`DidResolver`): Resolves DIDs to their corresponding
+  ///   DID Documents.
   /// - `mediatorDid` (`String`): The DID of the mediator agent.
   ///
   /// ### Notes
-  /// - Parameters marked as `required` must be provided when creating an instance.
-  /// - The initializer list (`: _repositoryConfig = repositoryConfig, ...`) is used
-  ///   to assign values to private fields that cannot be assigned directly using `this`.
+  /// - Parameters marked as `required` must be provided when creating an
+  ///   instance.
+  /// - The initializer list (`: _repositoryConfig = repositoryConfig, ...`)
+  ///   is used
+  ///   to assign values to private fields that cannot be assigned directly
+  ///   using `this`.
   MeetingPlaceCoreSDK._({
     required this.wallet,
     required RepositoryConfig repositoryConfig,
@@ -181,7 +209,8 @@ class MeetingPlaceCoreSDK {
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
   ///
   /// **Returns:**
-  /// - [MeetingPlaceCoreSDK] instance with all the required instance parameters.
+  /// - [MeetingPlaceCoreSDK] instance with all the required instance
+  ///   parameters.
   static Future<MeetingPlaceCoreSDK> create({
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
@@ -359,8 +388,8 @@ class MeetingPlaceCoreSDK {
   /// Returns a stream of [ControlPlaneStreamEvent] events.
   ///
   /// To emit events based on pending notifications from the Control Plane API,
-  /// call [processControlPlaneEvents]. Events are first processed internally before
-  /// being published to the stream.
+  /// call [processControlPlaneEvents]. Events are first processed internally
+  /// before being published to the stream.
   ///
   /// Each emitted event includes its type and the updated [Channel] entity
   /// associated with it.
@@ -452,8 +481,8 @@ class MeetingPlaceCoreSDK {
       mediatorDid: result.mediatorDid,
     );
 
-    final oobStream = OobStream(
-        onDispose: () => streamSubscription.dispose(), logger: _logger);
+    final oobStream =
+        OobStream(onDispose: streamSubscription.dispose, logger: _logger);
     _logger.info(
       'Listening for messages on mediator channel',
       name: methodName,
@@ -469,7 +498,7 @@ class MeetingPlaceCoreSDK {
         );
 
         final otherPartyPermanentChannelDid =
-            plainTextMessage.body!['channel_did'];
+            plainTextMessage.body!['channel_did'] as String;
 
         final permanentChannelDidManager = did != null
             ? await _connectionManager.getDidManagerForDid(
@@ -565,7 +594,7 @@ class MeetingPlaceCoreSDK {
     final didDoc = await permanentChannelDid.getDidDocument();
 
     PlainTextMessage invitationMessage;
-    String actualMediatorDid = _mediatorDid;
+    var actualMediatorDid = _mediatorDid;
 
     try {
       _logger.info('Fetching OOB invitation', name: methodName);
@@ -609,7 +638,7 @@ class MeetingPlaceCoreSDK {
     );
 
     final oobStream = OobStream(
-      onDispose: () => streamSubscription.dispose(),
+      onDispose: streamSubscription.dispose,
       logger: _logger,
     );
 
@@ -625,7 +654,7 @@ class MeetingPlaceCoreSDK {
               MeetingPlaceProtocol.connectionAccepted.value &&
           plainTextMessage.parentThreadId == invitationMessage.id) {
         final otherPartyPermanentChannelDid =
-            plainTextMessage.body!['channel_did'];
+            plainTextMessage.body!['channel_did'] as String;
 
         await _mediatorSDK.updateAcl(
           ownerDidManager: permanentChannelDid,
@@ -679,14 +708,15 @@ class MeetingPlaceCoreSDK {
     return AcceptOobFlowResult(streamSubscription: oobStream, channel: channel);
   }
 
-  /// Validates whether a given offer phrase is already in use within the system.
+  /// Validates whether a given offer phrase is already in use within the
+  /// system.
   ///
   /// **Parameters:**
   /// - [phrase] - The offer phrase to be checked for availability.
   ///
   /// **Returns:**
-  /// - A [sdk.ValidateOfferPhraseResult] object which provides isAvailable flag that shows whether the offer
-  /// phrase is already in use.
+  /// - A [sdk.ValidateOfferPhraseResult] object which provides isAvailable
+  ///   flag that shows whether the offer phrase is already in use.
   Future<sdk.ValidateOfferPhraseResult> validateOfferPhrase(
     String phrase,
   ) async {
@@ -701,8 +731,8 @@ class MeetingPlaceCoreSDK {
 
   /// Registers the device for push notifications using the provided deviceToken
   /// from the OS-native push notification service, which will be used to
-  /// notify the device about events in the Meeting Place flow and automatically included
-  /// in subsequent API calls.
+  /// notify the device about events in the Meeting Place flow and
+  /// automatically included in subsequent API calls.
   ///
   /// **Parameters:**
   /// - [deviceToken] - The device token obtained from the operating system's
@@ -775,9 +805,9 @@ class MeetingPlaceCoreSDK {
   /// offer. This helps others know whom they are connecting with and
   /// provides necessary contact details.
   ///
-  /// - [publishAsGroup] - Boolean value to publish offer as group offer.
+  /// - `publishAsGroup` - Boolean value to publish offer as group offer.
   ///
-  /// - [offerDescription] - Description of the offer to indicate the purpose of
+  /// - `offerDescription` - Description of the offer to indicate the purpose of
   /// the offer.
   ///
   /// - [customPhrase] - A custom phrase or keyword to help your offer be found
@@ -900,8 +930,8 @@ class MeetingPlaceCoreSDK {
   ///   is accessible on the current device only.
   ///
   /// **Returns:**
-  /// - A [sdk.AcceptOfferResult] object that provides the [connectionOffer],
-  ///   [acceptOfferDid] and [permanentChannelDid]
+  /// - A `AcceptOfferResult` object that provides the `connectionOffer`,
+  ///   `acceptOfferDid` and `permanentChannelDid`
   Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
     required T connectionOffer,
     required VCard vCard,
@@ -946,13 +976,13 @@ class MeetingPlaceCoreSDK {
   /// This action updates both admin and group ACLs so that the member can
   /// communicate with admins and the entire group.
   ///
-  /// A message of type [AtmMessageProtocol.groupMemberInauguration] is sent via
+  /// A message of type `AtmMessageProtocol.groupMemberInauguration` is sent via
   /// mediator, informing the new member that their membership has been accepted
   /// using DIDComm protocol.
   ///
-  /// The Meeting Place API is employed to add the member to a group on the backend,
-  /// enabling subsequent message processing and triggering a push notification
-  /// informing the new member about approval.
+  /// The Meeting Place API is employed to add the member to a group on the
+  /// backend, enabling subsequent message processing and triggering a push
+  /// notification informing the new member about approval.
   ///
   /// **Parameters:**
   /// - [channel] - DID of member requesting membership
@@ -968,7 +998,8 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// A method that allows the owner of the offer to reject the connection request.
+  /// A method that allows the owner of the offer to reject the connection
+  /// request.
   ///
   /// **Parameters:**
   /// - [channel] - Specifies the channel of the entity to reject.
@@ -995,15 +1026,17 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Encrypts and signs the message using the sender' s DID, then sends it to
-  /// the [recipientDidDocument] via DIDComm.
+  /// the [recipientDid] via DIDComm.
   ///
   /// **Parameters:**
   /// - [message] - DIDComm plain text message
   /// - [senderDid] - DID used to send messages
   /// - [recipientDid] - DID of recipient.
   /// - [mediatorDid] - the Mediator DID
-  /// - [notifyChannelType] - The notify channel type (currently its only chat_activity)
-  /// - [ephemeral] - boolean value that indicates if the message is short live only.
+  /// - [notifyChannelType] - The notify channel type (currently its only
+  ///   chat_activity)
+  /// - [ephemeral] - boolean value that indicates if the message is short
+  ///   live only.
   /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
   Future<void> sendMessage(
     PlainTextMessage message, {
@@ -1056,7 +1089,8 @@ class MeetingPlaceCoreSDK {
   /// - [senderDid] - DID used to send messages
   /// - [recipientDid] - DID of recipient.
   /// - [mediatorDid] - the Mediator DID
-  /// - [ephemeral] - boolean value that indicates if the message is short live only.
+  /// - [ephemeral] - boolean value that indicates if the message is short
+  ///   live only.
   /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
   Future<void> queueMessage(
     PlainTextMessage message, {
@@ -1082,17 +1116,18 @@ class MeetingPlaceCoreSDK {
   }
 
   /// A method that allows a user to send a message to a group using the group's
-  /// [recipientDidDocument] via DIDComm.
+  /// `recipientDidDocument` via DIDComm.
   ///
   /// **Parameters:**
-  /// - [message] - DIDComm plain text message
-  /// - [senderDid] - DID used to send messages
-  /// - [recipientDid] - DID of recipient. This is the DID of the group
-  /// - [increaseSequenceNumber] - boolean value that inidicates if the
+  /// - `message` - DIDComm plain text message
+  /// - `senderDid` - DID used to send messages
+  /// - `recipientDid` - DID of recipient. This is the DID of the group
+  /// - `increaseSequenceNumber` - boolean value that indicates if the
   /// sequence number increments for the message sent to the group.
   /// - [notify] - boolean value that indicates that a notification is sent to
   /// the group members. Always set to `true` by default.
-  /// - [ephemeral] - boolean value that indicates if the message is short live only.
+  /// - [ephemeral] - boolean value that indicates if the message is short live
+  ///   only.
   /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
   Future<void> sendGroupMessage(
     PlainTextMessage message, {
@@ -1150,9 +1185,9 @@ class MeetingPlaceCoreSDK {
   /// for each processed update event.
   ///
   /// **Parameters:**
-  /// - [debounceDiscoveryEventsInSeconds] - Seconds to wait before fetching
-  /// discovery events from discovery API.
-  Future<void> processControlPlaneEvents({Function? onDone}) {
+  /// - [onDone] - onDone callback function that is called when all events are
+  ///   processed.
+  Future<void> processControlPlaneEvents({void Function()? onDone}) {
     return _withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
         debounceEvents: _options.debounceControlPlaneEvents,
@@ -1161,8 +1196,8 @@ class MeetingPlaceCoreSDK {
     );
   }
 
-  /// A method that closes active discovery events stream. This result in not pushing
-  /// events to the stream when calling [deleteControlPlaneEvents].
+  /// A method that closes active discovery events stream. This result in not
+  /// pushing events to the stream when calling [deleteControlPlaneEvents].
   void disposeControlPlaneEventsStream() {
     _controlPlaneEventStreamManager.dispose();
   }
@@ -1181,16 +1216,16 @@ class MeetingPlaceCoreSDK {
   /// - [did] - DID used to fetch messages from mediator.
   ///
   /// - [mediatorDid] - Optional mediator DID that can override the already
-  /// registered mediator DID, if provided
+  ///   registered mediator DID, if provided
   ///
   /// - [deleteOnRetrieve] - Boolean flag indicating whether messages should be
-  /// deleted upon retrieval
+  ///   deleted upon retrieval
   ///
-  /// - [deleteFailedMessages] - Boolean flag indicating whether messages should be
-  /// deleted upon failure
+  /// - [deleteFailedMessages] - Boolean flag indicating whether messages should
+  ///   be deleted upon failure
   ///
   /// **Returns:**
-  /// - A [FetchMessageResult] object.
+  /// - A list of [MediatorMessage] objects.
   Future<List<MediatorMessage>> fetchMessages({
     required String did,
     String? mediatorDid,
@@ -1348,7 +1383,7 @@ class MeetingPlaceCoreSDK {
   /// Updates an existing channel in the repository.
   ///
   /// **Parameters:**
-  /// [channel] - Specifies the channel entity to update.
+  /// [mediatorEndpoint] - The mediator well-known url.
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
   }

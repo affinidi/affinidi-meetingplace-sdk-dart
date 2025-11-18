@@ -4,7 +4,8 @@ import 'package:uuid/uuid.dart';
 import 'acl_body.dart';
 import 'acl_time_utils.dart';
 
-/// [AclManagement] used for menaging ACLs by controlling permissions and access rights.
+/// [AclManagement] used for menaging ACLs by controlling permissions and
+/// access rights.
 class AclManagement extends AclManagementMessage {
   AclManagement({
     required super.from,
@@ -12,7 +13,7 @@ class AclManagement extends AclManagementMessage {
     required AclBody body,
     int expiresInSeconds = 60, // TODO: make value configurable
   }) : super(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           to: to,
           body: body.toJson(),
           expiresTime: getExpiresTime(expiresInSeconds),

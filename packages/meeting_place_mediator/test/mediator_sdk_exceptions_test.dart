@@ -90,7 +90,7 @@ void main() async {
     expect(
       () => mediatorSDK.sendMessage(
         PlainTextMessage(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           type: Uri.parse('https://example.com/type/test-message'),
         ),
         senderDidManager: didManager,

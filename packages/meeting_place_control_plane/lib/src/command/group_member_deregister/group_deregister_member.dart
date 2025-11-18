@@ -1,8 +1,8 @@
 import '../../core/command/command.dart';
 import 'group_deregister_member_output.dart';
 
-/// Model that represents the request sent for the [GroupDeregisterMemberCommand]
-/// operation.
+/// Model that represents the request sent for the
+/// [GroupDeregisterMemberCommand] operation.
 class GroupDeregisterMemberCommand
     extends DiscoveryCommand<GroupDeregisterMemberCommandOutput> {
   /// Creates a new instance of [GroupDeregisterMemberCommand].

@@ -2,7 +2,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'invitation_group_accept.g.dart';
 
-/// Notification event indicating that a user has accepted an invitation to join a group.
+/// Notification event indicating that a user has accepted an invitation to
+/// join a group.
 ///
 /// Typical handling:
 /// - Add the user to the group

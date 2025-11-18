@@ -15,7 +15,7 @@ void main() async {
     await sdk.execute(RegisterDeviceCommand(
         deviceToken: device.deviceToken, platformType: device.platformType));
 
-    final mnemonic = Uuid().v4();
+    final mnemonic = const Uuid().v4();
     final command = RegisterOfferGroupCommand(
       offerName: 'Offer name',
       offerDescription: 'Offer description',
@@ -26,7 +26,7 @@ void main() async {
       adminPublicKey: 'sample-public-key',
       adminReencryptionKey: 'sample-reencryption-key',
       oobInvitationMessage:
-          OobInvitationMessage(id: Uuid().v4(), from: 'did:key:1234'),
+          OobInvitationMessage(id: const Uuid().v4(), from: 'did:key:1234'),
     );
 
     await sdk.execute(command);

@@ -60,12 +60,12 @@ void main() async {
   });
 
   test('connection offer contains vCard of accepter after accepting', () async {
-    final actual = (await aliceSDK.publishOffer(
+    final actual = await aliceSDK.publishOffer(
       offerName: 'Sample',
       offerDescription: 'Sample offer description',
       vCard: VCardFixture.alicePrimaryVCard,
       type: SDKConnectionOfferType.invitation,
-    ));
+    );
 
     final acceptOfferResult = await bobSDK.acceptOffer(
       connectionOffer: actual.connectionOffer,
@@ -170,7 +170,7 @@ void main() async {
                     MeetingPlaceCoreSDKErrorCode
                         .connectionOfferOwnedByClaimingParty &&
                 (e.innerException as ConnectionOfferException).message ==
-                    'Failed to claim offer because claiming party is the owner.',
+                    '''Failed to claim offer because claiming party is the owner.''',
           ),
         ),
       );

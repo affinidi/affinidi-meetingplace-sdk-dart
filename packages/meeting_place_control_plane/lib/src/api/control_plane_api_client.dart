@@ -1,15 +1,16 @@
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
-import '../constants/sdk_constants.dart';
-import 'api_client.dart' as api_client;
 import 'package:ssi/ssi.dart';
 
 import '../../meeting_place_control_plane.dart';
+import '../constants/sdk_constants.dart';
+import 'api_client.dart' as api_client;
 import 'control_plane_api_client_options.dart';
 import 'refresh_auth_credentials_interceptor.dart';
 import 'retry_interceptor.dart';
 
-/// A class that is used to handle the API calls for [ControlPlaneSDK] using [Dio].
+/// A class that is used to handle the API calls for [ControlPlaneSDK]
+/// using [Dio].
 class ControlPlaneApiClient {
   /// Create an instance of the [ControlPlaneApiClient] class.
   ///
@@ -44,8 +45,9 @@ class ControlPlaneApiClient {
 
   /// Creates and initializes an instance of [ControlPlaneApiClient].
   ///
-  /// This static method sets up all necessary member variables and configurations
-  /// required for a fully functional [ControlPlaneApiClient] instance.
+  /// This static method sets up all necessary member variables and
+  /// configurations required for a fully functional [ControlPlaneApiClient]
+  /// instance.
   static Future<ControlPlaneApiClient> init({
     required ControlPlaneApiClientOptions options,
     required ControlPlaneSDK controlPlaneSDK,
@@ -57,7 +59,8 @@ class ControlPlaneApiClient {
         DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
 
     effectiveLogger.info(
-      'Started initializing DiscoveryApiClient with options: ${options.toJson()}',
+      'Started initializing DiscoveryApiClient with options: '
+      '${options.toJson()}',
       name: methodName,
     );
 
@@ -104,11 +107,11 @@ class ControlPlaneApiClient {
   /// A method used to fetch the base api path.
   ///
   /// **Parameters:**
-  /// - [controlPlaneDid]: The control plane DID string.
-  /// - [didResolver]: THe didResolver object.
+  /// - `controlPlaneDid`: The control plane DID string.
+  /// - `didResolver`: The didResolver object.
   ///
   /// **Returns:**
-  /// - [apiBasePath]: the base api path as string.
+  /// - `apiBasePath`: the base api path as string.
   static Future<String> _getApiBasePath(
     String controlPlaneDid,
     DidResolver didResolver,

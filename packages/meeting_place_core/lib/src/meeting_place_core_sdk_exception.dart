@@ -3,9 +3,9 @@ import '../meeting_place_core.dart';
 /// The exception that is thrown when an error occurs in the
 /// MeetingPlaceCoreSDKException.
 ///
-/// The [SDKException] is intended to provide more context about where
-/// the error originated by including the [method] name along with a
-/// descriptive [message].
+/// The [MeetingPlaceCoreSDKException] is intended to provides context
+/// containing an error code, message, and the original exception that caused
+/// the error.
 ///
 /// Example:
 /// ```dart

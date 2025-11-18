@@ -1,6 +1,6 @@
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
-import 'package:test/test.dart';
 import 'package:ssi/ssi.dart';
+import 'package:test/test.dart';
 
 import 'fixture/sdk_fixture.dart';
 
@@ -28,7 +28,8 @@ void main() {
   });
 
   test(
-    'handles multiple subscriptions to mediator gracefully returning a new instance',
+    'handles multiple subscriptions to mediator gracefully returning a new '
+    'instance',
     () async {
       final subscriptionA = await sdk.subscribeToMessages(didManagerA);
       final subscriptionB = await sdk.subscribeToMessages(didManagerA);

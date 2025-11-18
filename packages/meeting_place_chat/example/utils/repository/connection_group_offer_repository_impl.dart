@@ -24,19 +24,20 @@ class GroupRepositoryImpl implements GroupRepository {
   }
 
   @override
-  Future<Group?> getGroupById(groupId) async {
-    final group = await _storage.get('$groupPrefix$groupId');
+  Future<Group?> getGroupById(String groupId) async {
+    final group = await _storage.get<String>('$groupPrefix$groupId');
     if (group == null) return null;
 
-    return Group.fromJson(jsonDecode(group));
+    return Group.fromJson(jsonDecode(group) as Map<String, dynamic>);
   }
 
   @override
   Future<Group?> getGroupByOfferLink(String offerLink) async {
-    final groupId = await _storage.get(
+    final groupId = await _storage.get<String>(
       '$connectionGroupRelationPrefix$offerLink',
     );
 
+    if (groupId == null) return null;
     return getGroupById(groupId);
   }
 

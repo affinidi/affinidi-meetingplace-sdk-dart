@@ -1,7 +1,8 @@
 import 'dart:async';
 
-import 'package:uuid/uuid.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:uuid/uuid.dart';
+
 import '../event_handler/control_plane_event_handler_manager.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
@@ -27,10 +28,10 @@ class ControlPlaneEventService {
 
   Future<void> processEvents({
     required Duration debounceEvents,
-    Function? onDone,
+    void Function()? onDone,
   }) async {
     final methodName = 'processEvents';
-    final processId = Uuid().v4();
+    final processId = const Uuid().v4();
 
     _queue.add(processId);
     _logger.info('Process id $processId added to queue', name: methodName);
@@ -39,7 +40,7 @@ class ControlPlaneEventService {
       try {
         _queued = true;
         _logger.info('Debounce...');
-        await Future.delayed(debounceEvents);
+        await Future<void>.delayed(debounceEvents);
         _logger.info('Start processing discovery events..');
         await _process(processId: processId, onDone: onDone);
         _logger.info('Processing discovery events done..');
@@ -55,7 +56,10 @@ class ControlPlaneEventService {
     }
   }
 
-  Future<void> _process({required String processId, Function? onDone}) async {
+  Future<void> _process({
+    required String processId,
+    void Function()? onDone,
+  }) async {
     final methodName = '_process';
     _logger.info(
       'Processing process id $processId from queue',
@@ -70,10 +74,10 @@ class ControlPlaneEventService {
       if (result.events.isEmpty) {
         _queue.clear();
         _logger.info(
-          'Notification check complete: no pending items detected, queue successfully cleared.',
+          '''Notification check complete: no pending items detected, queue successfully cleared.''',
           name: methodName,
         );
-        if (onDone is Function) onDone();
+        if (onDone != null) onDone();
         return;
       }
 
@@ -94,7 +98,7 @@ class ControlPlaneEventService {
       if (_queue.isNotEmpty) {
         return _process(processId: _queue.first);
       }
-      if (onDone is Function) onDone();
+      if (onDone != null) onDone();
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to process queue item $processId -> ${e.toString()}',

@@ -1,8 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/event_handler/exceptions/group_membership_finalised_exception.dart';
 import 'package:meeting_place_core/src/sdk/sdk_error_handler.dart';
-import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
 
 class MockLogger extends Mock implements MeetingPlaceCoreSDKLogger {}
 
@@ -50,7 +50,7 @@ void main() {
     });
 
     test(
-        'throws MeetingPlaceCoreSDKException for MeetingPlaceMediatorSDKException',
+        '''throws MeetingPlaceCoreSDKException for MeetingPlaceMediatorSDKException''',
         () async {
       final mediatorException = MeetingPlaceMediatorSDKException(
           message: 'Mediator error',

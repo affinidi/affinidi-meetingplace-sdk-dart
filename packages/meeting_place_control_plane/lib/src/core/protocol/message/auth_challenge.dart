@@ -25,7 +25,7 @@ class MeetingplaceAuthChallenge extends PlainTextMessage {
   }) {
     final createdTime = DateTime.now().toUtc();
     return MeetingplaceAuthChallenge(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
       challenge: challenge,

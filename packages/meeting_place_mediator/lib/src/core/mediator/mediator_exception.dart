@@ -4,12 +4,15 @@ import '../../meeting_place_mediator_sdk_error_code.dart';
 import '../acl/acl_body.dart';
 import '../exception/i_mediator_exception.dart';
 
-/// Encapsulate an error message, a specific error code from MediatorExceptionCodes,
-/// and the original exeption object that caused this error.
+/// Encapsulate an error message, a specific error code from
+/// MediatorExceptionCodes, and the original exeption object that caused this
+/// error.
 ///
 /// **Parameters:**
-/// - [message]: A descriptive text explaining the nature of the exception or error.
-/// - [code]: An enumeration value representing the type or category of the exception for easier classification.
+/// - [message]: A descriptive text explaining the nature of the exception
+///   or error.
+/// - [code]: An enumeration value representing the type or category of the
+///   exception for easier classification.
 /// - [innerException]: Holds the original exception or error object.
 class MediatorException implements IMediatorException {
   MediatorException({
@@ -35,7 +38,8 @@ class MediatorException implements IMediatorException {
     );
   }
 
-  /// Represents an error when subscription to a websocket channel or stream fails.
+  /// Represents an error when subscription to a websocket channel or stream
+  /// fails.
   ///
   /// **Parameters:**
   /// - [innerException]: Holds the original exception or error object.
@@ -61,7 +65,8 @@ class MediatorException implements IMediatorException {
     );
   }
 
-  /// Denotes an error that occurs while queuing a message for delivery or processing.
+  /// Denotes an error that occurs while queuing a message for delivery or
+  /// processing.
   ///
   /// **Parameters:**
   /// - [innerException]: Holds the original exception or error object.

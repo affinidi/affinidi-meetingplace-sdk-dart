@@ -7,8 +7,8 @@ import 'base_chat_sdk.dart';
 import 'chat.dart';
 import 'chat_sdk.dart';
 
-/// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for handling
-/// **one-to-one (individual) chat sessions** in the Meeting Place SDK.
+/// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for
+/// handling **one-to-one (individual) chat sessions** in the Meeting Place SDK.
 ///
 /// Built on top of [BaseChatSDK], it leverages:
 /// - **Decentralised Identifiers (DIDs)** for a globally unique

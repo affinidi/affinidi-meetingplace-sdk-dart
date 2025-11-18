@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 
-import '../../protocol/message/plaintext_message_extension.dart';
 import '../../protocol/meeting_place_protocol.dart';
+import '../../protocol/message/plaintext_message_extension.dart';
 import '../../repository/repository.dart';
 import '../../service/group/group_message.dart';
 import '../../utils/string.dart';

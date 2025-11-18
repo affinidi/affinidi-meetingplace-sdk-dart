@@ -1,8 +1,8 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
-/// A concrete implementation of the [ControlPlaneException] interface for throwing
-/// specific exceptions related to Group Add Member command/operation.
+/// A concrete implementation of the [ControlPlaneException] interface for
+/// throwing specific exceptions related to GroupAddMember command/operation.
 class GroupAddMemberException implements ControlPlaneException {
   GroupAddMemberException._({
     required this.message,

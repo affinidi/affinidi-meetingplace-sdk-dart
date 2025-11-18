@@ -1,9 +1,10 @@
 import 'package:didcomm/didcomm.dart';
+import 'package:uuid/uuid.dart';
+
 import '../attachment/attachment_format.dart';
 import '../attachment/attachment_media_type.dart';
 import '../meeting_place_protocol.dart';
 import '../v_card/v_card.dart';
-import 'package:uuid/uuid.dart';
 
 class GroupMemberInaugurationMember {
   GroupMemberInaugurationMember({
@@ -52,7 +53,7 @@ class GroupMemberInauguration extends PlainTextMessage {
                     'vCard': m.vCard.toJson(),
                     'status': m.status,
                     'publicKey': m.publicKey,
-                    'isAdmin': (m.isAdmin()).toString(),
+                    'isAdmin': m.isAdmin().toString(),
                   },
                 )
                 .toList(),
@@ -81,7 +82,7 @@ class GroupMemberInauguration extends PlainTextMessage {
     required VCard vCard,
   }) {
     return GroupMemberInauguration(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
       memberDid: memberDid,
@@ -109,7 +110,7 @@ class GroupMemberInauguration extends PlainTextMessage {
         return GroupMemberInaugurationMember(
           did: memberData['did'] as String,
           vCard: VCard.fromJson(memberData['vCard'] as Map<String, dynamic>),
-          status: memberData['status'],
+          status: memberData['status'] as String,
           publicKey: memberData['publicKey'] as String,
           membershipType: memberData['isAdmin'] == 'true' ? 'admin' : 'member',
         );

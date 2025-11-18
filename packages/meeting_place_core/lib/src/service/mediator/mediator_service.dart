@@ -4,8 +4,8 @@ import 'package:ssi/ssi.dart';
 
 import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../repository/key_repository.dart';
-import 'mediator_message.dart';
 import 'fetch_messages_options.dart';
+import 'mediator_message.dart';
 import 'mediator_stream_subscription_wrapper.dart';
 
 class MediatorService {

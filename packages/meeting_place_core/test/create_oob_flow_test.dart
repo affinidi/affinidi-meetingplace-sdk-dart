@@ -23,11 +23,12 @@ void main() async {
 
     final oobUrl = await aliceSDK.mediator.createOob(did, getMediatorDid());
 
-    final response = await Dio().get(oobUrl.toString());
-
+    final response = await Dio().get<Map<String, dynamic>>(oobUrl.toString());
     expect(response.data!['message'], equals('Success'));
 
-    final actual = OobInvitationMessage.fromBase64(response.data['data']);
+    final actual =
+        OobInvitationMessage.fromBase64(response.data!['data'] as String);
+
     expect(actual.from, didDoc.id);
     expect(
       actual.type,
@@ -48,8 +49,8 @@ void main() async {
     Channel? bobChannel;
 
     setUpAll(() async {
-      final aliceOnDoneCompleter = Completer();
-      final bobOnDoneCompleter = Completer();
+      final aliceOnDoneCompleter = Completer<void>();
+      final bobOnDoneCompleter = Completer<void>();
 
       final createOobFlowResult = await aliceSDK.createOobFlow(
         vCard: VCardFixture.alicePrimaryVCard,
@@ -324,7 +325,7 @@ void main() async {
     createOobFlowResult.streamSubscription
         .timeout(const Duration(seconds: 1), () => fail('timeout executed'));
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 2));
   }, skip: 'flaky test on CI');
 
   test('Both parties can send messages', () async {

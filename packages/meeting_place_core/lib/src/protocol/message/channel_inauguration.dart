@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
+import 'package:uuid/uuid.dart';
+
 import '../meeting_place_protocol.dart';
 import '../v_card/v_card.dart';
-import 'package:uuid/uuid.dart';
 
 class ChannelInauguration extends PlainTextMessage {
   ChannelInauguration({
@@ -24,7 +25,7 @@ class ChannelInauguration extends PlainTextMessage {
     required String notificationToken,
   }) {
     return ChannelInauguration(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
       did: did,

@@ -1,7 +1,7 @@
-import 'package:meeting_place_control_plane/src/api/retry_interceptor.dart';
-import 'package:test/test.dart';
 import 'package:dio/dio.dart';
+import 'package:meeting_place_control_plane/src/api/retry_interceptor.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
 
 class MockDio extends Mock implements Dio {}
 
@@ -17,7 +17,10 @@ void main() {
     setUp(() {
       mockDio = MockDio();
       interceptor = RetryInterceptor(
-          dio: mockDio, maxRetries: 3, retryDelay: Duration(milliseconds: 10));
+          dio: mockDio,
+          maxRetries: 3,
+          retryDelay: const Duration(milliseconds: 10));
+
       mockHandler = MockErrorInterceptorHandler();
 
       // Register fallback values for mocktail

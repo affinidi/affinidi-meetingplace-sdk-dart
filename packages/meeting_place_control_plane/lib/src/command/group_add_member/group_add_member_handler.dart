@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import '../../api/api_client.dart';
-
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../utils/string.dart';
 import 'group_add_member.dart';
 import 'group_add_member_exception.dart';
@@ -20,10 +19,10 @@ import 'group_add_member_output.dart';
 class GroupAddMemberHandler
     implements
         CommandHandler<GroupAddMemberCommand, GroupAddMemberCommandOutput> {
-  /// Returns an instance of [FinaliseAcceGroupAddMemberHandlerptanceHandler].
+  /// Returns an instance of `GroupAddMemberHandler`.
   ///
   /// **Parameters:**
-  /// - [apiClient] - An instance of discovery api client object.
+  /// - `apiClient` - An instance of discovery api client object.
   GroupAddMemberHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
@@ -46,10 +45,12 @@ class GroupAddMemberHandler
   /// - [command]: Group Add Member command object.
   ///
   /// **Returns:**
-  /// - [GroupAddMemberCommandOutput]: The group add member command output object.
+  /// - [GroupAddMemberCommandOutput]: The group add member command output
+  /// object.
   ///
   /// **Throws:**
-  /// - [GroupAddMemberException]: Exception thrown by the group add member operation.
+  /// - [GroupAddMemberException]: Exception thrown by the group add member
+  /// operation.
   @override
   Future<GroupAddMemberCommandOutput> handle(
     GroupAddMemberCommand command,
@@ -69,7 +70,8 @@ class GroupAddMemberHandler
 
     try {
       _logger.info(
-        '[MPX API] Calling /group-add-member for groupId: ${command.groupId}, memberDid: ${command.memberDid.topAndTail()}',
+        '[MPX API] Calling /group-add-member for groupId: '
+        '${command.groupId}, memberDid: ${command.memberDid.topAndTail()}',
         name: methodName,
       );
       await _apiClient.client.groupAddMember(

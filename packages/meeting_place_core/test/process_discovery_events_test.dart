@@ -17,7 +17,7 @@ void main() async {
     }
 
     final completer = Completer<void>();
-    bool completed = false;
+    var completed = false;
 
     await aliceSDK.processControlPlaneEvents(
       onDone: () {

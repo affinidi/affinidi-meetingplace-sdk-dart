@@ -201,7 +201,8 @@ void main() async {
   //     equals(vCardBase64),
   //   );
 
-  //   final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
+  //   final charlieReceivedMessage =
+  //    await charlieReceivedMessageCompleter.future;
   //   expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
   //   expect(charlieReceivedMessage.body!['seqNo'], equals(2));
   //   expect(

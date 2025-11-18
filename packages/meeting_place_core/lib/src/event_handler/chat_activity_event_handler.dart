@@ -1,8 +1,8 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 
-import 'base_event_handler.dart';
 import '../entity/channel.dart';
 import '../service/mediator/fetch_messages_options.dart';
+import 'base_event_handler.dart';
 
 class ChatActivityEventHandler extends BaseEventHandler {
   ChatActivityEventHandler({
@@ -43,7 +43,7 @@ class ChatActivityEventHandler extends BaseEventHandler {
 
       for (final message in messages) {
         final messageSeqNumber =
-            message.seqNo ?? message.plainTextMessage.body?['seqNo'];
+            message.seqNo ?? message.plainTextMessage.body!['seqNo'] as int;
 
         if (messageSeqNumber > channel.seqNo) {
           channel.seqNo = messageSeqNumber;
@@ -68,7 +68,8 @@ class ChatActivityEventHandler extends BaseEventHandler {
       return channel;
     } catch (e, stackTrace) {
       logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.ChannelActivity}',
+        'Failed to process event of type '
+        '${ControlPlaneEventType.ChannelActivity}',
         error: e,
         stackTrace: stackTrace,
         name: _logKey,

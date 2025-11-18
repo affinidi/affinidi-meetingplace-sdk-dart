@@ -29,14 +29,14 @@ class ChannelRepositoryImpl implements ChannelRepository {
 
   @override
   Future<Channel?> findChannelByDid(String did) async {
-    final channel = await _storage.get('$channelPrefix$did');
-    final otherChannel = await _storage.get(
+    final channel = await _storage.get<String>('$channelPrefix$did');
+    final otherChannel = await _storage.get<String>(
       '$channelOtherPartyPermanentChannelDidPrefix$did',
     );
     if (channel == null && otherChannel == null) return null;
 
     return Channel.fromJson(
-      json.decode(channel ?? otherChannel) as Map<String, dynamic>,
+      json.decode(channel ?? otherChannel!) as Map<String, dynamic>,
     );
   }
 
@@ -44,7 +44,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
   Future<Channel?> findChannelByOtherPartyPermanentChannelDid(
     String did,
   ) async {
-    final channel = await _storage.get(
+    final channel = await _storage.get<String>(
       '$channelOtherPartyPermanentChannelDidPrefix$did',
     );
     if (channel == null) return null;
@@ -62,7 +62,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
     await _storage.remove('$channelPrefix${channel.permanentChannelDid}');
     if (channel.otherPartyPermanentChannelDid != null) {
       await _storage.remove(
-        '$channelOtherPartyPermanentChannelDidPrefix${channel.otherPartyPermanentChannelDid}',
+        '''$channelOtherPartyPermanentChannelDidPrefix${channel.otherPartyPermanentChannelDid}''',
       );
     }
 
@@ -82,7 +82,7 @@ class ChannelRepositoryImpl implements ChannelRepository {
 
     if (channel.otherPartyPermanentChannelDid != null) {
       await _storage.put(
-        '$channelOtherPartyPermanentChannelDidPrefix${channel.otherPartyPermanentChannelDid}',
+        '''$channelOtherPartyPermanentChannelDidPrefix${channel.otherPartyPermanentChannelDid}''',
         json.encode(channel.toJson()),
       );
     }

@@ -6,7 +6,7 @@ enum CommandDispatcherExceptionCodes {
   final String code;
 }
 
-class CommandDispatcherException {
+class CommandDispatcherException implements Exception {
   CommandDispatcherException({
     required this.message,
     required this.code,

@@ -1,11 +1,11 @@
-import '../entity/channel.dart';
-import '../protocol/message/channel_inauguration.dart';
-import '../protocol/meeting_place_protocol.dart';
-import 'package:ssi/ssi.dart';
-
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:ssi/ssi.dart';
+
+import '../entity/channel.dart';
 import '../messages/utils.dart';
+import '../protocol/meeting_place_protocol.dart';
+import '../protocol/message/channel_inauguration.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
@@ -32,7 +32,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
     final methodName = 'process';
     try {
       logger.info(
-        'Started processing OfferFinalised event for offerLink: ${event.offerLink}',
+        'Started processing OfferFinalised event for offerLink: '
+        '${event.offerLink}',
         name: methodName,
       );
 
@@ -46,8 +47,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       final permanentChannelDid = connection.permanentChannelDid;
 
       if (acceptOfferDid == null || permanentChannelDid == null) {
-        throw Exception(
-            'Connection offer ${connection.offerLink} is missing acceptOfferDid or permanentChannelDid');
+        throw Exception('Connection offer ${connection.offerLink} is missing '
+            'acceptOfferDid or permanentChannelDid');
       }
 
       final channel = await findChannelByDid(permanentChannelDid);
@@ -75,7 +76,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         final message = result.plainTextMessage;
 
         logger.info(
-          'Found ConnectionInvitationAccepted. Their channel is ${message.body!['channel_did']}',
+          'Found ConnectionInvitationAccepted. Their channel is '
+          '${message.body!["channel_did"]}',
           name: methodName,
         );
 
@@ -157,26 +159,30 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         );
 
         logger.info(
-          'Completed processing OfferFinalised event for offerLink: ${event.offerLink}',
+          'Completed processing OfferFinalised event for offerLink: '
+          '${event.offerLink}',
           name: methodName,
         );
         return channel;
       }
 
       logger.warning(
-        'No valid ConnectionInvitationAccepted message found for offerLink: ${event.offerLink}',
+        'No valid ConnectionInvitationAccepted message found for offerLink: '
+        '${event.offerLink}',
         name: methodName,
       );
       return null;
     } on EmptyMessageListException {
       logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.OfferFinalised}',
+        'No messages found to process for event of type '
+        '${ControlPlaneEventType.OfferFinalised}',
         name: methodName,
       );
       return null;
     } catch (e, stackTrace) {
       logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.OfferFinalised}',
+        'Failed to process event of type '
+        '${ControlPlaneEventType.OfferFinalised}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -191,7 +197,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
   ) async {
     final methodName = '_registerNotificationToken';
     logger.info(
-      'Started registering notification token for myDid: ${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
+      'Started registering notification token for myDid: '
+      '${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
       name: methodName,
     );
 
@@ -206,14 +213,15 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
     final notificationToken = result.notificationToken;
 
     if (notificationToken == null) {
-      final message =
-          'Error registering notification token for ${myDid.topAndTail()} and ${theirDid.topAndTail()}';
+      final message = 'Error registering notification token for '
+          '${myDid.topAndTail()} and ${theirDid.topAndTail()}';
       logger.error(message, name: methodName);
       throw Exception(message);
     }
 
     logger.info(
-      'Completed registering notification token for myDid: ${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
+      'Completed registering notification token for myDid: '
+      '${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
       name: methodName,
     );
     return notificationToken;

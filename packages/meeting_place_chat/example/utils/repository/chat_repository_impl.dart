@@ -8,12 +8,12 @@ import 'package:meeting_place_chat/src/repository/chat_repository.dart';
 import '../storage.dart';
 
 /// Implementation of [ChatRepository] that persists chat messages
-/// using the provided [IStorage] backend.
+/// using the provided [InMemoryStorage] backend.
 ///
 /// Each message is stored under a key with the format:
 /// `chat_<chatId>_<messageId>`.
 class ChatRepositoryImpl implements ChatRepository {
-  /// Creates a new [ChatRepositoryImpl] with the given [IStorage].
+  /// Creates a new [ChatRepositoryImpl] with the given [InMemoryStorage].
   ChatRepositoryImpl({required InMemoryStorage storage}) : _storage = storage;
 
   /// Prefix used for message keys in storage.

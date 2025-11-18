@@ -1,3 +1,6 @@
+import '../../meeting_place_control_plane.dart' show ControlPlaneSDK;
+import '../control_plane_sdk.dart' show ControlPlaneSDK;
+
 /// A model class that holds the authentication tokens used by [ControlPlaneSDK]
 /// to authenticate API calls.
 class AuthCredentials {

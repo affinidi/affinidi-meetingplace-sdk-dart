@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import '../../api/api_client.dart';
 import 'package:dio/dio.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'deregister_notification.dart';
 import 'deregister_notification_error_code.dart';
 import 'deregister_notification_exception.dart';
@@ -52,7 +52,7 @@ class DeregisterNotificationHandler
   /// output object.
   ///
   /// **Throws:**
-  /// - [DeregisterNotificationsException]: Exception thrown by the deregister
+  /// - [DeregisterNotificationException]: Exception thrown by the deregister
   /// notification operation.
   @override
   Future<DeregisterNotificationOutput> handle(
@@ -102,7 +102,7 @@ class DeregisterNotificationHandler
         name: methodName,
       );
       Error.throwWithStackTrace(
-        DeregisterNotificationsException.generic(),
+        DeregisterNotificationException.generic(),
         stackTrace,
       );
     }

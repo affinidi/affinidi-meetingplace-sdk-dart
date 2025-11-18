@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 
 import '../../meeting_place_control_plane.dart';
-import 'exception/control_plane_exception.dart';
 import '../utils/string.dart';
+import 'exception/control_plane_exception.dart';
 
 class SDKErrorHandler {
   SDKErrorHandler(
@@ -25,7 +25,7 @@ class SDKErrorHandler {
       return await operation();
     } on ControlPlaneException catch (e, stackTrace) {
       _logger.error(
-        'Control plane exception - control plane DID: ${controlPlaneDid.topAndTail()}',
+        '''Control plane exception - control plane DID: ${controlPlaneDid.topAndTail()}''',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -40,7 +40,7 @@ class SDKErrorHandler {
       );
     } on DioException catch (e, stackTrace) {
       _logger.error(
-        'Control Plane network exception - control plane DID: ${controlPlaneDid.topAndTail()}',
+        '''Control Plane network exception - control plane DID: ${controlPlaneDid.topAndTail()}''',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -67,7 +67,7 @@ class SDKErrorHandler {
       );
     } catch (e, stackTrace) {
       _logger.error(
-        'Control plane exception - control plane DID: ${controlPlaneDid.topAndTail()}',
+        '''Control plane exception - control plane DID: ${controlPlaneDid.topAndTail()}''',
         error: e,
         stackTrace: stackTrace,
         name: '_throwGeneric',

@@ -1,18 +1,18 @@
 import 'package:didcomm/didcomm.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_core/src/entity/channel.dart';
+import 'package:meeting_place_core/src/entity/connection_offer.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
+import 'package:meeting_place_core/src/event_handler/invitation_accepted_event_handler.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
+import 'package:meeting_place_core/src/protocol/meeting_place_protocol.dart';
 import 'package:meeting_place_core/src/protocol/v_card/v_card.dart';
+import 'package:meeting_place_core/src/repository/channel_repository.dart';
+import 'package:meeting_place_core/src/repository/connection_offer_repository.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:meeting_place_core/src/event_handler/invitation_accepted_event_handler.dart';
-import 'package:meeting_place_core/src/entity/channel.dart';
-import 'package:meeting_place_core/src/entity/connection_offer.dart';
-import 'package:meeting_place_core/src/protocol/meeting_place_protocol.dart';
-import 'package:meeting_place_core/src/repository/connection_offer_repository.dart';
-import 'package:meeting_place_core/src/repository/channel_repository.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
@@ -33,7 +33,7 @@ void main() {
     filterByMessageTypes: [MeetingPlaceProtocol.connectionSetup.value],
   );
 
-  final offerLink = Uuid().v4();
+  final offerLink = const Uuid().v4();
   final publishOfferDid = 'did:key:publisher-did';
   final acceptOfferDid = 'did:key:accept-did';
   final messageHash = 'hash-123';
@@ -53,7 +53,7 @@ void main() {
   );
 
   final event = InvitationAccept(
-    id: Uuid().v4(),
+    id: const Uuid().v4(),
     acceptOfferAsDid: acceptOfferDid,
     offerLink: offerLink,
   );
@@ -117,7 +117,7 @@ void main() {
           // Second attempt: one message
           MediatorMessage(
             plainTextMessage: PlainTextMessage(
-              id: Uuid().v4(),
+              id: const Uuid().v4(),
               from: acceptOfferDid,
               to: [publishOfferDid],
               type: Uri.parse(MeetingPlaceProtocol.connectionSetup.value),

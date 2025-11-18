@@ -2,11 +2,11 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'offer_finalised.g.dart';
 
-/// Notification event indicating that an invitation or offer has been finalized,
-/// such as when both parties have accepted.
+/// Notification event indicating that an invitation or offer has been
+/// finalised, such as when both parties have accepted.
 ///
 /// Typical handling:
-/// - Finalize the connection
+/// - Finalise the connection
 /// - Update the user interface
 /// - Clean up any temporary data related to the offer
 @JsonSerializable(explicitToJson: true, createToJson: false)

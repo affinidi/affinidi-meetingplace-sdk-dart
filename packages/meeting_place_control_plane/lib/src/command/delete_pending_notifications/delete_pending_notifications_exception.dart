@@ -1,8 +1,9 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
-/// A concrete implementation of the [ControlPlaneException] interface for throwing
-/// specific exceptions related to Delete Pending Notifications command/operation.
+/// A concrete implementation of the [ControlPlaneException] interface for
+/// throwing specific exceptions related to DeletePendingNotifications
+/// command/operation.
 class DeletePendingNotificationsException implements ControlPlaneException {
   DeletePendingNotificationsException._({
     required this.message,
@@ -10,7 +11,8 @@ class DeletePendingNotificationsException implements ControlPlaneException {
     this.innerException,
   });
 
-  /// Creates a `deletionFailedError` [DeletePendingNotificationsException] instance.
+  /// Creates a `deletionFailedError`
+  /// [DeletePendingNotificationsException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
@@ -22,8 +24,9 @@ class DeletePendingNotificationsException implements ControlPlaneException {
     Object? innerException,
   }) {
     return DeletePendingNotificationsException._(
-      message:
-          '''Delete pending notifications failed: ${innerException.toString()}, deleted notification ids: ${deletedNotificationIds.join(',')}''',
+      message: '''Delete pending notifications failed: '''
+          '''${innerException.toString()}, '''
+          '''deleted notification ids: ${deletedNotificationIds.join(',')}''',
       code: ControlPlaneSDKErrorCode
           .deletePendingNotificationsDeletionFailedError,
       innerException: innerException,

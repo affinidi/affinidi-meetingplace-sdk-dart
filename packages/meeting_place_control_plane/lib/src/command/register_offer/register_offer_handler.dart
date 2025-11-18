@@ -2,17 +2,16 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-
-import '../../api/api_client.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
-import '../../core/command/command_handler.dart';
 import '../../control_plane_sdk_options.dart';
+import '../../core/command/command_handler.dart';
 import '../../core/offer_type.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../utils/base64.dart';
 import '../../utils/mediator/mediator_utils.dart';
 import 'register_offer.dart';
@@ -140,7 +139,8 @@ class RegisterOfferHandler
     } catch (e, stackTrace) {
       if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {
         _logger.error(
-          'Offer with the same mnemonic already exists: ${command.customPhrase}',
+          'Offer with the same mnemonic already exists: '
+          '${command.customPhrase}',
           error: e,
           stackTrace: stackTrace,
         );

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:crypto_keys_plus/crypto_keys.dart' as ck;
+import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 
 import '../../../meeting_place_core.dart';
 
@@ -31,7 +31,7 @@ class GroupMessage {
     final encapsulateResult = recrypt.Recrypt().encapsulate(groupPublicKey);
 
     final capsule = encapsulateResult['capsule'] as recrypt.Capsule;
-    final symmetricKeyBytes = encapsulateResult['symmetricKey'];
+    final symmetricKeyBytes = encapsulateResult['symmetricKey'] as Uint8List;
 
     final encryptionResult =
         _encryptMessage(message, symmetricKeyBytes: symmetricKeyBytes);

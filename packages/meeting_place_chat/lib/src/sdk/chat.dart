@@ -3,7 +3,7 @@ import '../service/chat_stream.dart';
 
 /// [Chat] represents an active or historical chat session.
 ///
-/// It holds the unique chat ID, an optional live [MediatorStream]
+/// It holds the unique chat ID, an optional live [ChatStream]
 /// for receiving messages in real time, and a collection of
 /// persisted [ChatItem] messages.
 class Chat {

@@ -16,8 +16,8 @@ import 'base_chat_sdk.dart';
 import 'chat.dart';
 import 'chat_sdk.dart';
 
-/// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for handling
-/// **group chat functionality** in the Meeting Place SDK.
+/// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for
+/// handling **group chat functionality** in the Meeting Place SDK.
 ///
 /// Built on top of [BaseChatSDK], it leverages:
 /// - **Decentralised Identifiers (DIDs)** for a globally unique
@@ -421,9 +421,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// Subscribes to the mediator channel for group events.
   ///
   /// **Returns:**
-  /// - A [MediatorStream] subscription stream for group messages.
+  /// - A [CoreSDKStreamSubscription<MediatorMessage>] subscription stream
+  ///   for group messages.
   @override
-  Future<CoreSDKStreamSubscription> subscribeToMediator() async {
+  Future<CoreSDKStreamSubscription<MediatorMessage>>
+      subscribeToMediator() async {
     final methodName = 'subscribeToChannel';
     logger.info('Started subscribing to mediator channel', name: methodName);
 

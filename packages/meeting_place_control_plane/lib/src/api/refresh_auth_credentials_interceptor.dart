@@ -47,7 +47,8 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
     final methodName = 'onRequest';
     _logger.info('Started processing request', name: methodName);
 
-    if (options.extra['secure'] == null || options.extra['secure'].isEmpty) {
+    final secureExtra = options.extra['secure'];
+    if (secureExtra == null || (secureExtra is String && secureExtra.isEmpty)) {
       _logger.info(
         'Public endpoint, authentication handling not required',
         name: methodName,
@@ -75,11 +76,15 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
 
   @override
   Future<void> onError(
-      DioException err, ErrorInterceptorHandler handler) async {
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final shouldRetryAuth = err.requestOptions.extra['retry_auth'] ?? true;
     final isUnauthorized = err.response?.statusCode == HttpStatus.unauthorized;
+    final responseData = err.response?.data;
     final isTokenExpired = isUnauthorized &&
-        err.response?.data['errorCode'] == _errorCodeTokenExpired;
+        responseData is Map &&
+        responseData['errorCode'] == _errorCodeTokenExpired;
 
     if (isUnauthorized && isTokenExpired && shouldRetryAuth == true) {
       try {
@@ -94,7 +99,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
           ..extra['retry_auth'] = false;
 
         _logger.info('Retry request with refreshed access token');
-        final response = await dio.fetch(options);
+        final response = await dio.fetch<dynamic>(options);
         return handler.resolve(response);
       } catch (e) {
         _logger.error('Retry failed', error: e);

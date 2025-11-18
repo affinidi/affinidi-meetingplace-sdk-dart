@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
 
+import '../protocol/v_card/v_card.dart';
 import 'entity.dart';
 
 part 'channel.g.dart';

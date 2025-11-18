@@ -2,29 +2,30 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
-import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
+import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
+import 'package:uuid/uuid.dart';
+
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
+import '../entity/group.dart';
+import '../entity/group_connection_offer.dart';
+import '../entity/group_member.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/protocol.dart';
-import 'connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
+import '../utils/string.dart';
+import 'connection_manager/connection_manager.dart';
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
 import 'connection_service.dart';
 import 'group/group_admin.dart';
 import 'group/group_exception.dart';
-import 'group_service/accept_group_offer_result.dart';
-import '../utils/string.dart';
-import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
-import 'package:uuid/uuid.dart';
-import '../entity/group.dart';
-import '../entity/group_connection_offer.dart';
-import '../entity/group_member.dart';
 import 'group/group_message.dart' as group_message;
+import 'group_service/accept_group_offer_result.dart';
 
 class GroupService {
   GroupService({
@@ -347,14 +348,14 @@ class GroupService {
       );
 
       _logger.info(
-        'Successfully accepted group offer: ${acceptedConnectionOffer.offerLink}',
+        '''Successfully accepted group offer: ${acceptedConnectionOffer.offerLink}''',
         name: methodName,
       );
 
       unawaited(_notifyAcceptance(
         connectionOffer: acceptedConnectionOffer,
         senderInfo: senderInfo,
-      ).catchError((error, stackTrace) {
+      ).catchError((Object error, StackTrace stackTrace) {
         _logger.error('Failed to notify acceptance',
             error: error, stackTrace: stackTrace, name: methodName);
       }));
@@ -481,7 +482,7 @@ class GroupService {
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
     _logger.info(
-      'Started sending accept invitation to mediator: ${mediatorDid.topAndTail()}',
+      '''Started sending accept invitation to mediator: ${mediatorDid.topAndTail()}''',
       name: methodName,
     );
 
@@ -519,7 +520,7 @@ class GroupService {
       next: recipientDid,
     );
     _logger.info(
-      'Successfully sent accept invitation to mediator: ${mediatorDid.topAndTail()}',
+      '''Successfully sent accept invitation to mediator: ${mediatorDid.topAndTail()}''',
       name: methodName,
     );
   }
@@ -551,7 +552,7 @@ class GroupService {
       ),
     );
     _logger.info(
-      'Successfully notified acceptance for offer: ${connectionOffer.offerLink}',
+      '''Successfully notified acceptance for offer: ${connectionOffer.offerLink}''',
       name: methodName,
     );
   }
@@ -589,7 +590,7 @@ class GroupService {
     }
 
     _logger.info(
-      'Group member DIDs: ${group.members.length} members: [${group.members.map((m) => m.did.topAndTail()).join(', ')}], approving member DID: ${memberDid.topAndTail()}',
+      '''Group member DIDs: ${group.members.length} members: [${group.members.map((m) => m.did.topAndTail()).join(', ')}], approving member DID: ${memberDid.topAndTail()}''',
       name: methodName,
     );
     final member = group.members.firstWhere(
@@ -669,7 +670,7 @@ class GroupService {
     await _groupRepository.updateGroup(group);
 
     _logger.info(
-      'Successfully approved membership request for offer: ${channel.offerLink}',
+      '''Successfully approved membership request for offer: ${channel.offerLink}''',
       name: methodName,
     );
 
@@ -699,7 +700,7 @@ class GroupService {
     await _groupRepository.updateGroup(group);
 
     _logger.info(
-      'Successfully rejected membership request for offer: ${channel.offerLink}',
+      '''Successfully rejected membership request for offer: ${channel.offerLink}''',
       name: methodName,
     );
     return group;
@@ -762,7 +763,7 @@ class GroupService {
       ),
     );
     _logger.info(
-      'Successfully sent message to group DID: ${groupDidDocument.id.topAndTail()}',
+      '''Successfully sent message to group DID: ${groupDidDocument.id.topAndTail()}''',
       name: methodName,
     );
   }
@@ -846,7 +847,7 @@ class GroupService {
 
     if (channel.notificationToken != null) {
       _logger.info(
-        'Deregistering notification token for channel with offer link: ${channel.offerLink}',
+        '''Deregistering notification token for channel with offer link: ${channel.offerLink}''',
         name: methodName,
       );
       await _controlPlaneSDK.execute(
@@ -871,7 +872,7 @@ class GroupService {
 
     await _groupRepository.removeGroup(group);
     _logger.info(
-      'Successfully left group for channel with offer link: ${channel.offerLink}',
+      '''Successfully left group for channel with offer link: ${channel.offerLink}''',
       name: methodName,
     );
   }

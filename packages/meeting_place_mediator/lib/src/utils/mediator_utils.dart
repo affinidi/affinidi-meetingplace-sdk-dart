@@ -6,21 +6,41 @@ class MediatorUtils {
     required DidResolver didResolver,
   }) async {
     final didDocument = await didResolver.resolveDid(mediatorDid);
-    return getMediatorEndpointByDidDocument(didDocument);
+    return _getMediatorEndpointByDidDocument(didDocument);
   }
 
-  static String getMediatorEndpointByDidDocument(DidDocument didDocument) {
-    final service = didDocument.service.firstWhere(
-      (service) => service.type == 'DIDCommMessaging',
-    );
+  static String _getMediatorEndpointByDidDocument(DidDocument didDocument) {
+    final serviceEndpoint = didDocument.service
+        .firstWhere((service) => service.type == 'DIDCommMessaging')
+        .serviceEndpoint;
 
-    final endpoints = service.toJson()['serviceEndpoint'] as List<Object>;
+    if (serviceEndpoint is StringEndpoint &&
+        serviceEndpoint.url.startsWith('https')) {
+      return serviceEndpoint.url;
+    }
 
-    final mediatorEndpoint = endpoints.firstWhere(
-      (endpoint) =>
-          (endpoint as Map<String, dynamic>)['uri'].startsWith('http'),
-    );
+    if (serviceEndpoint is MapEndpoint &&
+        (serviceEndpoint.data['uri'] as String).startsWith('https')) {
+      return serviceEndpoint.data['uri'] as String;
+    }
 
-    return (mediatorEndpoint as Map<String, dynamic>)['uri'];
+    if (serviceEndpoint is SetEndpoint) {
+      for (final endpoint in serviceEndpoint.endpoints) {
+        if (endpoint is MapEndpoint) {
+          final uri = endpoint.data['uri'] as String;
+          if (uri.startsWith('https')) {
+            return uri;
+          }
+        }
+
+        if (endpoint is StringEndpoint) {
+          if (endpoint.url.startsWith('https')) {
+            return endpoint.url;
+          }
+        }
+      }
+    }
+
+    throw Exception('No valid mediator endpoint found in DID Document');
   }
 }

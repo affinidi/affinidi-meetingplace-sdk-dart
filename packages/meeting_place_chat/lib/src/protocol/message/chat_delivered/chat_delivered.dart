@@ -4,18 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../chat_protocol.dart';
 import 'chat_delivered_body.dart';
 
-class ChatDelivered extends PlainTextMessage {
-  ChatDelivered({
-    required super.id,
-    required super.from,
-    required super.to,
-    required List<String> messages,
-  }) : super(
-          type: Uri.parse(ChatProtocol.chatDelivered.value),
-          body: ChatDeliveredBody(messages: messages).toJson(),
-          createdTime: DateTime.now().toUtc(),
-        );
-
+class ChatDelivered {
   factory ChatDelivered.create({
     required String from,
     required List<String> to,
@@ -25,7 +14,42 @@ class ChatDelivered extends PlainTextMessage {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      messages: messages,
+      body: ChatDeliveredBody(messages: messages),
+    );
+  }
+
+  factory ChatDelivered.fromPlainTextMessage(PlainTextMessage message) {
+    return ChatDelivered(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: ChatDeliveredBody.fromJson(message.body!),
+      createdTime: message.createdTime,
+    );
+  }
+
+  ChatDelivered({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final ChatDeliveredBody body;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(ChatProtocol.chatDelivered.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      createdTime: createdTime,
     );
   }
 }

@@ -6,12 +6,12 @@ part of 'chat_activity_body.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ChatActivitiyBody _$ChatActivitiyBodyFromJson(Map<String, dynamic> json) =>
-    ChatActivitiyBody(
+ChatActivityBody _$ChatActivitiyBodyFromJson(Map<String, dynamic> json) =>
+    ChatActivityBody(
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
 
-Map<String, dynamic> _$ChatActivitiyBodyToJson(ChatActivitiyBody instance) =>
+Map<String, dynamic> _$ChatActivitiyBodyToJson(ChatActivityBody instance) =>
     <String, dynamic>{
       'timestamp': instance.timestamp.toIso8601String(),
     };

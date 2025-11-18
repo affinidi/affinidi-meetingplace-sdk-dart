@@ -6,34 +6,7 @@ import 'chat_group_details_update_body.dart';
 
 export 'chat_group_details_update_body.dart';
 
-class ChatGroupDetailsUpdate extends PlainTextMessage {
-  ChatGroupDetailsUpdate({
-    required super.id,
-    required super.from,
-    required super.to,
-    required String groupId,
-    required String groupDid,
-    required String offerLink,
-    required List<ChatGroupDetailsUpdateBodyMember> members,
-    required List<String> adminDids,
-    required DateTime dateCreated,
-    required String groupPublicKey,
-    String? groupKeyPair,
-  }) : super(
-          type: Uri.parse(ChatProtocol.chatGroupDetailsUpdate.value),
-          body: ChatGroupDetailsUpdateBody(
-            groupId: groupId,
-            groupDid: groupDid,
-            offerLink: offerLink,
-            members: members,
-            adminDids: adminDids,
-            dateCreated: dateCreated,
-            groupPublicKey: groupPublicKey,
-            groupKeyPair: groupKeyPair,
-          ).toJson(),
-          createdTime: DateTime.now().toUtc(),
-        );
-
+class ChatGroupDetailsUpdate {
   factory ChatGroupDetailsUpdate.create({
     required String from,
     required List<String> to,
@@ -50,14 +23,52 @@ class ChatGroupDetailsUpdate extends PlainTextMessage {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      groupId: groupId,
-      groupDid: groupDid,
-      offerLink: offerLink,
-      members: members,
-      adminDids: adminDids,
-      dateCreated: dateCreated,
-      groupKeyPair: groupKeyPair,
-      groupPublicKey: groupPublicKey,
+      body: ChatGroupDetailsUpdateBody(
+        groupId: groupId,
+        groupDid: groupDid,
+        offerLink: offerLink,
+        members: members,
+        adminDids: adminDids,
+        dateCreated: dateCreated,
+        groupPublicKey: groupPublicKey,
+        groupKeyPair: groupKeyPair,
+      ),
+    );
+  }
+
+  factory ChatGroupDetailsUpdate.fromPlainTextMessage(
+      PlainTextMessage message) {
+    return ChatGroupDetailsUpdate(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: ChatGroupDetailsUpdateBody.fromJson(message.body!),
+      createdTime: message.createdTime,
+    );
+  }
+
+  ChatGroupDetailsUpdate({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final ChatGroupDetailsUpdateBody body;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(ChatProtocol.chatGroupDetailsUpdate.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      createdTime: createdTime,
     );
   }
 

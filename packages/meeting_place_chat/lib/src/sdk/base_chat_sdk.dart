@@ -226,7 +226,7 @@ abstract class BaseChatSDK {
 
       final repositoryMessage = await chatRepository.getMessage(
         chatId: chatId,
-        messageId: chatReactionMessage.id,
+        messageId: chatReactionMessage.body.messageId,
       );
 
       if (repositoryMessage is! Message) {

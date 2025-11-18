@@ -4,18 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../chat_protocol.dart';
 import 'chat_alias_profile_request_body.dart';
 
-class ChatAliasProfileRequest extends PlainTextMessage {
-  ChatAliasProfileRequest({
-    required super.id,
-    required super.from,
-    required super.to,
-    required String profileHash,
-  }) : super(
-          type: Uri.parse(ChatProtocol.chatAliasProfileRequest.value),
-          body: ChatAliasProfileRequestBody(profileHash: profileHash).toJson(),
-          createdTime: DateTime.now().toUtc(),
-        );
-
+class ChatAliasProfileRequest {
   factory ChatAliasProfileRequest.create({
     required String from,
     required List<String> to,
@@ -25,7 +14,43 @@ class ChatAliasProfileRequest extends PlainTextMessage {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      profileHash: profileHash,
+      body: ChatAliasProfileRequestBody(profileHash: profileHash),
+    );
+  }
+
+  factory ChatAliasProfileRequest.fromPlainTextMessage(
+      PlainTextMessage message) {
+    return ChatAliasProfileRequest(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: ChatAliasProfileRequestBody.fromJson(message.body!),
+      createdTime: message.createdTime,
+    );
+  }
+
+  ChatAliasProfileRequest({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final ChatAliasProfileRequestBody body;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(ChatProtocol.chatAliasProfileRequest.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      createdTime: createdTime,
     );
   }
 }

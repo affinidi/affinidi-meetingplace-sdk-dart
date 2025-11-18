@@ -7,43 +7,56 @@ import 'chat_activity_body.dart';
 /// [ChatActivity] represents a "user is active" indicator in the chat,
 /// similar to typing notifications or activity pings.
 ///
-/// It extends [PlainTextMessage] and includes a timestamp in the `body`
-/// indicating when the activity was triggered.
+/// It includes a timestamp in the body indicating when the activity was triggered.
 ///
 /// This message is temporary and is not stored long-term.
-class ChatActivity extends PlainTextMessage {
-  /// Creates a new [ChatActivity] instance.
-  ///
-  /// **Parameters:**
-  /// - [id]: Unique identifier for this activity message.
-  /// - [from]: DID of the sender.
-  /// - [to]: List of recipient DIDs.
-  ///
-  /// Automatically sets:
-  /// - [type] to [ChatProtocol.chatActivity].
-  /// - [body] with the current UTC timestamp.
-  ChatActivity({required super.id, required super.from, required super.to})
-      : super(
-          type: Uri.parse(ChatProtocol.chatActivity.value),
-          body: ChatActivitiyBody(timestamp: DateTime.now().toUtc()).toJson(),
-          createdTime: DateTime.now().toUtc(),
-        );
-
-  /// Factory constructor to create a new outgoing [ChatActivity].
-  ///
-  /// Automatically generates a unique [id] and assigns the current UTC
-  /// timestamp.
-  ///
-  /// **Parameters:**
-  /// - [from]: DID of the sender.
-  /// - [to]: List of recipient DIDs.
-  ///
-  /// **Returns:**
-  /// - A new [ChatActivity] instance.
+class ChatActivity {
   factory ChatActivity.create({
     required String from,
     required List<String> to,
   }) {
-    return ChatActivity(id: const Uuid().v4(), from: from, to: to);
+    final now = DateTime.now().toUtc();
+    return ChatActivity(
+      id: const Uuid().v4(),
+      from: from,
+      to: to,
+      body: ChatActivityBody(timestamp: now),
+      createdTime: now,
+    );
+  }
+
+  factory ChatActivity.fromPlainTextMessage(PlainTextMessage message) {
+    return ChatActivity(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: ChatActivityBody.fromJson(message.body!),
+      createdTime: message.createdTime,
+    );
+  }
+
+  ChatActivity({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final ChatActivityBody body;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(ChatProtocol.chatActivity.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      createdTime: createdTime,
+    );
   }
 }

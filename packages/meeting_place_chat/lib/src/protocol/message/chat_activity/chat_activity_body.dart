@@ -3,11 +3,11 @@ import 'package:json_annotation/json_annotation.dart';
 part 'chat_activity_body.g.dart';
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
-class ChatActivitiyBody {
-  factory ChatActivitiyBody.fromJson(Map<String, dynamic> json) =>
+class ChatActivityBody {
+  factory ChatActivityBody.fromJson(Map<String, dynamic> json) =>
       _$ChatActivitiyBodyFromJson(json);
 
-  ChatActivitiyBody({required this.timestamp});
+  ChatActivityBody({required this.timestamp});
 
   @JsonKey(name: 'timestamp')
   final DateTime timestamp;

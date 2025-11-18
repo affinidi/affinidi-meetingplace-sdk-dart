@@ -1,4 +1,4 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../chat_protocol.dart';
@@ -8,41 +8,7 @@ import 'chat_effect_body.dart';
 ///
 /// Effects include reactions like confetti, fireworks,
 /// or other temporary visual indicators to enhance conversation.
-///
-/// It extends [PlainTextMessage] and embeds the effect in the `body`.
-class ChatEffect extends PlainTextMessage {
-  /// Creates a new [ChatEffect] message.
-  ///
-  /// **Parameters:**
-  /// - [id]: Unique identifier for this chat effect message.
-  /// - [from]: DID of the sender.
-  /// - [to]: List of recipient DIDs.
-  /// - [effect]: The name or identifier of the effect to trigger.
-  /// - [vCard]: Optional vCard metadata of the sender.
-  ChatEffect({
-    required super.id,
-    required super.from,
-    required super.to,
-    required String effect, // TODO: convert to enum?
-    VCard? vCard,
-  }) : super(
-          type: Uri.parse(ChatProtocol.chatEffect.value),
-          body: ChatEffectBody(effect: effect).toJson(),
-          createdTime: DateTime.now().toUtc(),
-        );
-
-  /// Factory constructor to conveniently create a new outgoing [ChatEffect].
-  ///
-  /// Automatically generates a unique [id] and populates
-  /// the `body` field with the provided effect.
-  ///
-  /// **Parameters:**
-  /// - [from]: DID of the sender.
-  /// - [to]: List of recipient DIDs.
-  /// - [effect]: The effect name or identifier.
-  ///
-  /// **Returns:**
-  /// - A new [ChatEffect] instance.
+class ChatEffect {
   factory ChatEffect.create({
     required String from,
     required List<String> to,
@@ -52,7 +18,42 @@ class ChatEffect extends PlainTextMessage {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      effect: effect,
+      body: ChatEffectBody(effect: effect),
+    );
+  }
+
+  factory ChatEffect.fromPlainTextMessage(PlainTextMessage message) {
+    return ChatEffect(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: ChatEffectBody.fromJson(message.body!),
+      createdTime: message.createdTime,
+    );
+  }
+
+  ChatEffect({
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+
+  final String id;
+  final String from;
+  final List<String> to;
+  final ChatEffectBody body;
+  final DateTime createdTime;
+
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(ChatProtocol.chatEffect.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      createdTime: createdTime,
     );
   }
 }

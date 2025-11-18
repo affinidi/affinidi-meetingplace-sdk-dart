@@ -7,12 +7,12 @@ import 'chat_message_body.dart';
 /// [ChatMessage] represents a plain text chat message exchanged
 /// between participants in the chat system.
 ///
-/// It extends [PlainTextMessage] by providing structured fields
-/// for the message text, sequence number, and attachments.
+/// It provides structured fields for the message text, sequence number,
+/// and attachments.
 ///
 /// A `ChatMessage` can be created locally for sending, or
 /// reconstructed from an incoming [PlainTextMessage].
-class ChatMessage extends PlainTextMessage {
+class ChatMessage {
   /// Factory constructor to create a new outgoing [ChatMessage].
   ///
   /// **Parameters:**
@@ -36,9 +36,19 @@ class ChatMessage extends PlainTextMessage {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      text: text,
-      seqNo: seqNo,
+      body: ChatMessageBody(text: text, seqNo: seqNo),
       attachments: attachments,
+    );
+  }
+
+  factory ChatMessage.fromPlainTextMessage(PlainTextMessage message) {
+    return ChatMessage(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: ChatMessageBody.fromJson(message.body!),
+      attachments: message.attachments ?? [],
+      createdTime: message.createdTime,
     );
   }
 
@@ -48,30 +58,34 @@ class ChatMessage extends PlainTextMessage {
   /// - [id]: Unique identifier for the message.
   /// - [from]: DID of the sender.
   /// - [to]: List of recipient DIDs.
+  /// - [body]: The typed message body containing text and seqNo.
   /// - [attachments]: List of attachments included with the message.
-  /// - [text]: The plain text content of the message.
-  /// - [seqNo]: Sequence number for ordering within a conversation.
-  ///
-  /// Automatically sets:
-  /// - [type] to [ChatProtocol.chatMessage].
-  /// - [body] with `{'text': text, 'seqNo': seqNo}`.
-  /// - [createdTime] to the current UTC time.
+  /// - [createdTime]: Optional creation timestamp.
   ChatMessage({
-    required super.id,
-    required super.from,
-    required super.to,
-    required super.attachments,
-    required this.text,
-    required this.seqNo,
-  }) : super(
-          type: Uri.parse(ChatProtocol.chatMessage.value),
-          body: ChatMessageBody(text: text, seqNo: seqNo).toJson(),
-          createdTime: DateTime.now().toUtc(),
-        );
+    required this.id,
+    required this.from,
+    required this.to,
+    required this.body,
+    this.attachments = const [],
+    DateTime? createdTime,
+  }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
-  /// The plain text content of the chat message.
-  final String text;
+  final String id;
+  final String from;
+  final List<String> to;
+  final ChatMessageBody body;
+  final List<Attachment> attachments;
+  final DateTime createdTime;
 
-  /// Sequence number for ordering messages within a conversation.
-  final int seqNo;
+  PlainTextMessage toPlainTextMessage() {
+    return PlainTextMessage(
+      id: id,
+      type: Uri.parse(ChatProtocol.chatMessage.value),
+      from: from,
+      to: to,
+      body: body.toJson(),
+      attachments: attachments.isEmpty ? null : attachments,
+      createdTime: createdTime,
+    );
+  }
 }

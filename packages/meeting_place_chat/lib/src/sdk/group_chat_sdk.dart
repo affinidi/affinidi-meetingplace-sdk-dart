@@ -165,7 +165,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Send group chat activity', name: methodName);
 
     await coreSDK.sendGroupMessage(
-      ChatActivity.create(from: did, to: [otherPartyDid]),
+      ChatActivity.create(from: did, to: [otherPartyDid]).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
       notify: false,
@@ -304,7 +304,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
               from: did,
               to: [message.from!],
               profileHash: profileHash,
-            ),
+            ).toPlainTextMessage(),
             senderDid: did,
             recipientDid: message.from!,
             mediatorDid: mediatorDid,
@@ -600,7 +600,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           from: did,
           to: [group.ownerDid!],
           profileHash: vCard!.toHash(),
-        ),
+        ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: group.ownerDid!,
         mediatorDid: mediatorDid,
@@ -720,7 +720,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
             from: did,
             to: [message.data['replyTo'] as String],
             profileDetails: vCard!.toJson(),
-          ),
+          ).toPlainTextMessage(),
           senderDid: did,
           recipientDid: message.data['replyTo'] as String,
           mediatorDid: mediatorDid,
@@ -745,7 +745,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Started sending chat group details update', name: methodName);
     unawaited(
       sendMessage(
-        ChatGroupDetailsUpdate.fromGroup(group, senderDid: did),
+        ChatGroupDetailsUpdate.fromGroup(group, senderDid: did)
+            .toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,

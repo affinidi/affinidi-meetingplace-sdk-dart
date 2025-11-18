@@ -10,6 +10,7 @@ include: package:lints/core.yaml
 
 linter:
   rules:
+    - always_declare_return_types
     - avoid_print
     - prefer_relative_imports
     - sort_pub_dependencies

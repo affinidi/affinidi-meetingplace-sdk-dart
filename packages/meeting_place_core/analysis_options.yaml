@@ -10,11 +10,13 @@ include: package:lints/recommended.yaml
 
 linter:
   rules:
+    - always_declare_return_types
     - avoid_print
     - prefer_relative_imports
     - sort_constructors_first
     - sort_pub_dependencies
     - unawaited_futures
+
 analyzer:
   errors:
     avoid_print: error

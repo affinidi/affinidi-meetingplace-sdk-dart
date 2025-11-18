@@ -12,7 +12,7 @@ void main() async {
   });
 
   test('debounce calls to process discovery events', () async {
-    onDoneFailed() {
+    void onDoneFailed() {
       fail('Debouncing failed');
     }
 

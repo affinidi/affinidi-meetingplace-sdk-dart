@@ -241,7 +241,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     if (message.type.toString() ==
-        MeetingPlaceProtocol.groupMemberDeregistered.value) {
+        MeetingPlaceProtocol.groupMemberDeregistration.value) {
       logger.info(
         'Handling message for group member deregistered',
         name: methodName,
@@ -266,7 +266,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ).handle(group: group, message: message, chatId: chatId);
     }
 
-    if (message.type.toString() == MeetingPlaceProtocol.groupDeleted.value) {
+    if (message.type.toString() == MeetingPlaceProtocol.groupDeletion.value) {
       logger.info(
         'Handling message for group deleted for group ${group.id}',
         name: methodName,
@@ -291,7 +291,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         ' ${message.from?.topAndTail()}',
         name: methodName,
       );
-      final profileHash = message.body?['profileHash'];
+      final profileHash = message.body?['profile_hash'];
       if (profileHash != null && profileHash is String) {
         final member = group.members.firstWhere(
           (member) => member.did == message.from!,
@@ -375,7 +375,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         status: ChatItemStatus.userInput,
         conciergeType: ConciergeMessageType.permissionToUpdateProfile,
         data: {
-          'profileHash': message.body?['profileHash'],
+          'profileHash': message.body?['profile_hash'],
           'replyTo': message.from!,
         },
       );

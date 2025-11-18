@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
+import 'chat_activity_body.dart';
 
 /// [ChatActivity] represents a "user is active" indicator in the chat,
 /// similar to typing notifications or activity pings.
@@ -24,7 +25,7 @@ class ChatActivity extends PlainTextMessage {
   ChatActivity({required super.id, required super.from, required super.to})
       : super(
           type: Uri.parse(ChatProtocol.chatActivity.value),
-          body: {'timestamp': DateTime.now().toUtc().toIso8601String()},
+          body: ChatActivitiyBody(timestamp: DateTime.now().toUtc()).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

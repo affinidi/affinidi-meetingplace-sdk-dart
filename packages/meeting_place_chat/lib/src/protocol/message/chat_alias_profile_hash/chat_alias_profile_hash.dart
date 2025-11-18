@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
+import 'chat_alias_profile_hash_body.dart';
 
 class ChatAliasProfileHash extends PlainTextMessage {
   ChatAliasProfileHash({
@@ -11,7 +12,7 @@ class ChatAliasProfileHash extends PlainTextMessage {
     required String profileHash,
   }) : super(
           type: Uri.parse(ChatProtocol.chatAliasProfileHash.value),
-          body: {'profileHash': profileHash},
+          body: ChatAliasProfileHashBody(profileHash: profileHash).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

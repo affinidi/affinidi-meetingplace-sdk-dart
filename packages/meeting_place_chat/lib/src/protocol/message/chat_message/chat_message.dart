@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../chat_protocol.dart';
+import '../../chat_protocol.dart';
+import 'chat_message_body.dart';
 
 /// [ChatMessage] represents a plain text chat message exchanged
 /// between participants in the chat system.
@@ -63,8 +64,9 @@ class ChatMessage extends PlainTextMessage {
     required this.text,
     required this.seqNo,
   }) : super(
-          type: Uri.parse(ChatProtocol.chatMessage.value),
-          body: {'text': text, 'seqNo': seqNo},
+          type: Uri.parse(
+              'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message'),
+          body: ChatMessageBody(text: text, seqNo: seqNo).toJson(),
           createdTime: DateTime.now().toUtc(),
         );
 

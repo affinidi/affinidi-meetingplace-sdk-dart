@@ -197,7 +197,7 @@ abstract class BaseChatSDK {
     )) {
       _logger.info('Handling chat message', name: methodName);
       final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
+          message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
 
       final chatMessage = Message.fromReceivedMessage(
         message: message.plainTextMessage,
@@ -252,7 +252,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channelEntity.type != ChannelType.group) {
-        final profileHash = message.plainTextMessage.body?['profileHash'];
+        final profileHash = message.plainTextMessage.body?['profile_hash'];
         if (profileHash != null && profileHash is String) {
           if (channelEntity.otherPartyVCard?.toHash() == profileHash) {
             chatStream.pushData(
@@ -304,7 +304,7 @@ abstract class BaseChatSDK {
           status: ChatItemStatus.userInput,
           conciergeType: ConciergeMessageType.permissionToUpdateProfile,
           data: {
-            'profileHash': message.plainTextMessage.body?['profileHash'],
+            'profileHash': message.plainTextMessage.body?['profile_hash'],
             'replyTo': message.plainTextMessage.from,
           },
         );
@@ -367,8 +367,7 @@ abstract class BaseChatSDK {
       }
     }
 
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatActivity.value) {
+    if (message.plainTextMessage.isOfType(ChatProtocol.chatActivity.value)) {
       _logger.info('Handling chat activity message', name: methodName);
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),

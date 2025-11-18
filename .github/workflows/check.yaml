@@ -10,8 +10,8 @@ jobs:
     with:
       flutter-version: '3.35.3'
       package: true
+      pana_min_score: 155
       env_vars: |
         MEDIATOR_DID=${{ vars.MEDIATOR_DID }}
         MEDIATOR_DID_ALTERNATIVE=${{ vars.MEDIATOR_DID_ALTERNATIVE }}
         CONTROL_PLANE_DID=${{ vars.CONTROL_PLANE_DID }}
-        

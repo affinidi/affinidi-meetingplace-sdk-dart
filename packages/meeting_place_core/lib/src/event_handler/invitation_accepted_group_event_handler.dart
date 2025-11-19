@@ -4,7 +4,7 @@ import '../protocol/protocol.dart';
 import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
-import '../messages/utils.dart';
+import '../utils/attachment.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 
@@ -61,7 +61,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: publishedOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.connectionSetupGroup,
+        messageType: MeetingPlaceProtocol.invitationAcceptanceGroup,
       );
 
       // TODO: ensure duplicate requests are handled correctly

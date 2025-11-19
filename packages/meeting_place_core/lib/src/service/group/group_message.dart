@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:didcomm/didcomm.dart';
 import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:crypto_keys_plus/crypto_keys.dart' as ck;
 
-import '../../../meeting_place_core.dart';
+import '../../protocol/protocol.dart' as protocol;
 
 class EncryptedGroupMessage {
   EncryptedGroupMessage({
@@ -46,10 +47,10 @@ class GroupMessage {
   }
 
   static PlainTextMessage decrypt(
-    PlainTextMessage message, {
+    protocol.GroupMessage message, {
     required Uint8List privateKeyBytes,
   }) {
-    final ciphertext = base64.decode(message.body!['ciphertext'] as String);
+    final ciphertext = base64.decode(message.body.ciphertext);
     final capsule = _getCapsuleFromMessage(message);
     final initializationVector = _getIVFromMessage(message);
 
@@ -61,7 +62,7 @@ class GroupMessage {
         recrypt.Recrypt().decapsulate(capsule, privateKey);
 
     final authenticationTagBytes =
-        base64.decode(message.body!['authenticationTag'] as String);
+        base64.decode(message.body.authenticationTag);
 
     final decryptedBytes = _decryptCiphertext(
       ciphertext,
@@ -77,12 +78,12 @@ class GroupMessage {
     return plainTextMessage;
   }
 
-  static recrypt.Capsule _getCapsuleFromMessage(PlainTextMessage message) {
-    return recrypt.Capsule.fromBase64(message.body!['preCapsule'] as String);
+  static recrypt.Capsule _getCapsuleFromMessage(protocol.GroupMessage message) {
+    return recrypt.Capsule.fromBase64(message.body.preCapsule);
   }
 
-  static Uint8List _getIVFromMessage(PlainTextMessage message) {
-    return base64.decode(message.body!['iv'] as String);
+  static Uint8List _getIVFromMessage(protocol.GroupMessage message) {
+    return base64.decode(message.body.iv);
   }
 
   static Uint8List _decryptCiphertext(

@@ -197,7 +197,7 @@ abstract class BaseChatSDK {
     )) {
       _logger.info('Handling chat message', name: methodName);
       final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
+          message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
 
       final chatMessage = Message.fromReceivedMessage(
         message: message.plainTextMessage,
@@ -221,11 +221,12 @@ abstract class BaseChatSDK {
     if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatReaction.value) {
       _logger.info('Handling chat reaction message', name: methodName);
-      final chatReaction = ChatReaction.fromMessage(message.plainTextMessage);
+      final chatReactionMessage =
+          ChatReaction.fromPlainTextMessage(message.plainTextMessage);
 
       final repositoryMessage = await chatRepository.getMessage(
         chatId: chatId,
-        messageId: chatReaction.messageId,
+        messageId: chatReactionMessage.body.messageId,
       );
 
       if (repositoryMessage is! Message) {
@@ -234,7 +235,7 @@ abstract class BaseChatSDK {
         throw Exception(message);
       }
 
-      repositoryMessage.reactions = chatReaction.reactions;
+      repositoryMessage.reactions = chatReactionMessage.body.reactions;
       await chatRepository.updateMesssage(repositoryMessage);
 
       chatStream.pushData(
@@ -252,7 +253,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channelEntity.type != ChannelType.group) {
-        final profileHash = message.plainTextMessage.body?['profileHash'];
+        final profileHash = message.plainTextMessage.body?['profile_hash'];
         if (profileHash != null && profileHash is String) {
           if (channelEntity.otherPartyVCard?.toHash() == profileHash) {
             chatStream.pushData(
@@ -266,7 +267,7 @@ abstract class BaseChatSDK {
               from: did,
               to: [otherPartyDid],
               profileHash: profileHash,
-            ),
+            ).toPlainTextMessage(),
             senderDid: did,
             recipientDid: otherPartyDid,
             mediatorDid: mediatorDid,
@@ -304,7 +305,7 @@ abstract class BaseChatSDK {
           status: ChatItemStatus.userInput,
           conciergeType: ConciergeMessageType.permissionToUpdateProfile,
           data: {
-            'profileHash': message.plainTextMessage.body?['profileHash'],
+            'profileHash': message.plainTextMessage.body?['profile_hash'],
             'replyTo': message.plainTextMessage.from,
           },
         );
@@ -367,8 +368,7 @@ abstract class BaseChatSDK {
       }
     }
 
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatActivity.value) {
+    if (message.plainTextMessage.isOfType(ChatProtocol.chatActivity.value)) {
       _logger.info('Handling chat activity message', name: methodName);
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
@@ -460,17 +460,21 @@ abstract class BaseChatSDK {
       attachments: attachments ?? [],
     );
 
+    final plainTextMessage = chatMessage.toPlainTextMessage();
     final createdMessage = await chatRepository.createMessage(
       Message.fromSentMessage(message: chatMessage, chatId: chatId),
     );
 
     try {
       chatStream.pushData(
-        StreamData(plainTextMessage: chatMessage, chatItem: createdMessage),
+        StreamData(
+          plainTextMessage: plainTextMessage,
+          chatItem: createdMessage,
+        ),
       );
 
       await sendMessage(
-        chatMessage,
+        plainTextMessage,
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
@@ -490,7 +494,8 @@ abstract class BaseChatSDK {
 
       await coreSDK.updateChannel(channelEntity);
       chatStream.pushData(
-        StreamData(plainTextMessage: chatMessage, chatItem: currentMessage),
+        StreamData(
+            plainTextMessage: plainTextMessage, chatItem: currentMessage),
       );
       _logger.info('Completed sending text message', name: methodName);
       return currentMessage as Message;
@@ -505,7 +510,8 @@ abstract class BaseChatSDK {
       );
 
       chatStream.pushData(
-        StreamData(plainTextMessage: chatMessage, chatItem: createdMessage),
+        StreamData(
+            plainTextMessage: plainTextMessage, chatItem: createdMessage),
       );
 
       return createdMessage as Message;
@@ -523,7 +529,7 @@ abstract class BaseChatSDK {
 
     _logger.info('Completed sending chat presence', name: methodName);
     return sendMessage(
-      message,
+      message.toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
@@ -550,7 +556,7 @@ abstract class BaseChatSDK {
           from: did,
           to: [otherPartyDid],
           profileHash: vCard!.toHash(),
-        ),
+        ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
@@ -590,7 +596,7 @@ abstract class BaseChatSDK {
         from: did,
         to: [otherPartyDid],
         messages: [message.id],
-      ),
+      ).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
@@ -621,7 +627,7 @@ abstract class BaseChatSDK {
           from: did,
           to: [otherPartyDid],
           profileDetails: vCard!.toJson(),
-        ),
+        ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
@@ -686,7 +692,7 @@ abstract class BaseChatSDK {
 
     try {
       await sendMessage(
-        chatReaction,
+        chatReaction.toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
@@ -715,7 +721,7 @@ abstract class BaseChatSDK {
       from: did,
       to: [otherPartyDid],
       effect: effect.name,
-    );
+    ).toPlainTextMessage();
 
     chatStream.pushData(StreamData(plainTextMessage: chatEffect));
 
@@ -734,7 +740,8 @@ abstract class BaseChatSDK {
     final methodName = 'sendChatActivity';
     _logger.info('Started sending chat activity', name: methodName);
     await sendMessage(
-      protocol.ChatActivity.create(from: did, to: [otherPartyDid]),
+      protocol.ChatActivity.create(from: did, to: [otherPartyDid])
+          .toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,

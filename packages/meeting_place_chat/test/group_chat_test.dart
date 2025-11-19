@@ -321,21 +321,18 @@ void main() async {
     await bobChatSDK.startChatSession();
     await charlieChatSDK.startChatSession();
 
-    var messageReceived = false;
-
-    final charlieCompleter = Completer<void>();
+    final messageReceivedCompleter = Completer<bool>();
     await charlieChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatActivity.value) {
-          messageReceived = true;
-          charlieCompleter.complete();
+        if (data.plainTextMessage?.isOfType(ChatProtocol.chatActivity.value) ==
+            true) {
+          messageReceivedCompleter.complete(true);
         }
       });
     });
 
     await bobChatSDK.sendChatActivity();
-    await charlieCompleter.future;
+    final messageReceived = await messageReceivedCompleter.future;
 
     expect(messageReceived, isTrue);
   });

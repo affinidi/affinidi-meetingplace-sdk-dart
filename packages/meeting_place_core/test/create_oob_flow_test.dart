@@ -30,7 +30,7 @@ void main() async {
     final actual = OobInvitationMessage.fromBase64(response.data['data']);
     expect(actual.from, didDoc.id);
     expect(
-      actual.type,
+      actual.toPlainTextMessage().type,
       Uri.parse('https://didcomm.org/out-of-band/2.0/invitation'),
     );
 

@@ -1,26 +1,32 @@
 import 'package:collection/collection.dart';
 
 enum MeetingPlaceProtocol {
-  channelInauguration('https://affinidi.io/mpx/core-sdk/channel-inauguration'),
+  channelInauguration(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/channel-inauguration'),
 
-  connectionAccepted('https://affinidi.io/mpx/core-sdk/connection-accepted'),
-  connectionSetup('https://affinidi.io/mpx/core-sdk/connection-setup'),
-  connectionSetupGroup(
-    'https://affinidi.io/mpx/core-sdk/connection-setup-group',
-  ),
+  connectionRequestApproval(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/connection-request-approval'),
 
-  groupDeleted('https://affinidi.io/mpx/core-sdk/group-delete'),
-  groupMessage('https://affinidi.io/mpx/core-sdk/group-message'),
+  invitationAcceptance(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/invitation-acceptance'),
+
+  invitationAcceptanceGroup(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/invitation-acceptance-group'),
+
+  groupDeletion(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-deletion'),
+
+  groupMemberDeregistration(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-member-deregistration'),
 
   groupMemberInauguration(
-    'https://affinidi.io/mpx/core-sdk/group-member-inauguration',
-  ),
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-member-inauguration'),
 
-  groupMemberDeregistered(
-    'https://affinidi.io/mpx/core-sdk/group-member-deregistered',
-  ),
+  groupMessage(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-message'),
 
-  outreachInvitation('https://affinidi.io/mpx/core-sdk/outreach-invitation');
+  outreachInvitation(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/outreach-invitation');
 
   const MeetingPlaceProtocol(this.value);
 

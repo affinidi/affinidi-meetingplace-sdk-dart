@@ -5,12 +5,12 @@ on:
      
 jobs:
   dart-pipeline:
-    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@feat-run-pana
+    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
     secrets: inherit
     with:
       flutter-version: '3.35.3'
       package: true
-      pana_min_score: 155
+      pana_min_score: 160
       env_vars: |
         MEDIATOR_DID=${{ vars.MEDIATOR_DID }}
         MEDIATOR_DID_ALTERNATIVE=${{ vars.MEDIATOR_DID_ALTERNATIVE }}

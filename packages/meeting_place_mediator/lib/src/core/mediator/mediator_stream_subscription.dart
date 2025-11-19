@@ -1,20 +1,28 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_mediator.dart';
 import '../../constants/sdk_constants.dart';
+import '../message/message_queue.dart';
+import 'didcomm_types.dart';
+import 'mediator_stream_data.dart';
 
 class MediatorStreamSubscription {
   MediatorStreamSubscription({
     required MediatorClient client,
     required DidManager didManager,
+    required Duration deleteMessageDelay,
     required List<MessageWrappingType> messageWrappingTypes,
     MeetingPlaceMediatorSDKLogger? logger,
   })  : _client = client,
         _didManager = didManager,
+        _deleteMessageDelay = deleteMessageDelay,
         _messageWrappingTypes = messageWrappingTypes,
+        _messageQueue = MessageQueue(client: client, logger: logger),
         _logger = logger ??
             DefaultMeetingPlaceMediatorSDKLogger(
               className: _className,
@@ -25,16 +33,18 @@ class MediatorStreamSubscription {
 
   final MediatorClient _client;
   final DidManager _didManager;
+  final Duration _deleteMessageDelay;
   final List<MessageWrappingType> _messageWrappingTypes;
-  final List<PlainTextMessage> _eventBuffer = <PlainTextMessage>[];
+  final List<MediatorStreamData> _eventBuffer = <MediatorStreamData>[];
+  final MessageQueue _messageQueue;
   final MeetingPlaceMediatorSDKLogger _logger;
 
-  StreamController<PlainTextMessage>? _streamController;
-
-  Stream<PlainTextMessage> get stream => _controller.stream;
+  StreamController<MediatorStreamData>? _streamController;
   bool get isClosed => _controller.isClosed;
-  StreamController<PlainTextMessage> get _controller =>
-      _streamController ??= StreamController<PlainTextMessage>.broadcast();
+
+  Stream<MediatorStreamData> get stream => _controller.stream;
+  StreamController<MediatorStreamData> get _controller =>
+      _streamController ??= StreamController<MediatorStreamData>.broadcast();
 
   Future<void> initialize() async {
     const methodName = 'initialize';
@@ -44,16 +54,14 @@ class MediatorStreamSubscription {
     }
 
     try {
-      // Improve as soon as connection pools are available for joining the
-      // pool later
-      _logger.info('Mediator stream subscription initialized',
-          name: methodName);
-
       _client.listenForIncomingMessages(
         _onIncomingMessage,
         onDone: _onDone,
       );
+
       await ConnectionPool.instance.startConnections();
+      _logger.info('Mediator stream subscription initialized',
+          name: methodName);
     } on StateError catch (e, stackTrace) {
       _logger.error('Mediator client already connected.',
           name: methodName, error: e, stackTrace: stackTrace);
@@ -62,36 +70,64 @@ class MediatorStreamSubscription {
     }
   }
 
-  void pushMessage(PlainTextMessage message) {
+  void pushMessage(MediatorStreamData data) {
     final methodName = 'addMessage';
     if (_controller.isClosed) {
-      _logger.warning('Stream is closed: message not pushed - ${message.id}',
+      _logger.warning('Stream is closed: data not pushed - ${data.message.id}',
           name: methodName);
       return;
     }
 
     if (!_controller.hasListener) {
       _logger.info('No listener detected. Event stored in buffer');
-      _eventBuffer.add(message);
+      _eventBuffer.add(data);
       return;
     }
 
-    _controller.add(message);
-    _logger.info('Message pushed to stream - ${message.id}', name: methodName);
+    _controller.add(data);
+    _logger.info('Data pushed to stream - ${data.message.id}',
+        name: methodName);
   }
 
   MediatorStreamSubscription listen(
-    void Function(PlainTextMessage) onData, {
-    Function? onError,
+    FutureOr<void> Function(PlainTextMessage) onData, {
+    void Function(Object e)? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) {
     _controller.stream.listen(
-      onData,
+      (MediatorStreamData data) async {
+        try {
+          await onData(data.message);
+
+          final type = data.message.type.toString();
+          if (DidcommTypes.isEphemeral.contains(type) ||
+              DidcommTypes.isTelemetery.contains(type)) {
+            return;
+          }
+
+          _messageQueue.scheduleDeletion(data.messageHash,
+              delay: _deleteMessageDelay);
+        } catch (e, stackTrace) {
+          _logger.error(
+            '''Error while processing message of type:
+            ${data.message.type.toString()}''',
+            error: e,
+            stackTrace: stackTrace,
+            name: 'listen',
+          );
+
+          onError?.call(e);
+        }
+      },
       onError: onError,
       onDone: onDone,
       cancelOnError: cancelOnError,
     );
+
+    if (_eventBuffer.isEmpty) {
+      return this;
+    }
 
     // Flush buffered events to the stream once listener attaches
     _logger.info('Flush buffered event to the stream');
@@ -119,6 +155,8 @@ class MediatorStreamSubscription {
   }
 
   Future<void> _onIncomingMessage(Map<String, dynamic> message) async {
+    final methodName = '_onIncomingMessage';
+
     try {
       final decryptedMessage = await DidcommMessage.unpackToPlainTextMessage(
         message: message,
@@ -126,7 +164,13 @@ class MediatorStreamSubscription {
         expectedMessageWrappingTypes: _messageWrappingTypes,
       );
 
-      pushMessage(decryptedMessage);
+      pushMessage(MediatorStreamData(
+        message: decryptedMessage,
+        messageHash: _hashMessage(message),
+      ));
+
+      _logger.info('Completed processing incoming message', name: methodName);
+      return;
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to process incoming message: ',
@@ -156,5 +200,9 @@ class MediatorStreamSubscription {
 
     await ConnectionPool.instance.startConnections();
     _logger.info('Re-subscribed to incoming messages', name: methodName);
+  }
+
+  String _hashMessage(Map<String, dynamic> message) {
+    return sha256.convert(utf8.encode(jsonEncode(message))).toString();
   }
 }

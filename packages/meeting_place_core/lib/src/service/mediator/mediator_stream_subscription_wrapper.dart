@@ -30,10 +30,10 @@ class MediatorStreamSubscriptionWrapper
   /// Stream of transformed mediator messages
   @override
   Stream<MediatorMessage> get stream {
-    return _baseSubscription.stream.asyncMap((message) async {
+    return _baseSubscription.stream.asyncMap((data) async {
       try {
         return await MediatorMessage.fromPlainTextMessage(
-          message,
+          data.message,
           keyRepository: _keyRepository,
         );
       } catch (e, stackTrace) {

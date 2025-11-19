@@ -1,16 +1,21 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:didcomm/didcomm.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../../meeting_place_mediator.dart';
+import '../../utils/string.dart';
 import '../mediator/mediator_exception.dart';
 
 typedef MessageId = String;
 
 class MessageQueue {
-  MessageQueue({MeetingPlaceMediatorSDKLogger? logger})
-      : _logger = logger ??
+  MessageQueue({
+    required MediatorClient client,
+    MeetingPlaceMediatorSDKLogger? logger,
+  })  : _client = client,
+        _logger = logger ??
             DefaultMeetingPlaceMediatorSDKLogger(
               className: _className,
               sdkName: MeetingPlaceMediatorSDK.className,
@@ -19,32 +24,44 @@ class MessageQueue {
   static final deleteMessageBatchSize = 100;
   static const String _className = 'MessageQueue';
 
+  final MediatorClient _client;
   final Queue<String> _queue = Queue<String>();
+
   final Mutex _messageDeleteMutex = Mutex();
   final MeetingPlaceMediatorSDKLogger _logger;
 
   Timer? _scheduledTimer;
 
   void add(String messageHash) {
-    final methodName = 'add';
-    _logger.info('Adding message to queue', name: methodName);
-    // TODO: filter by type -> epheral messages can be ignored
-    // TODO: filter telemetry messages?
     _queue.add(messageHash);
+    _logger.info('Message hash $messageHash queued', name: 'add');
+  }
+
+  void scheduleDeletion(String messageHash, {required Duration delay}) {
+    add(messageHash);
+    scheduleAction((List<String> hashes) async {
+      _logger.info(
+        '''Deleting ${hashes.length} message(s) for session ${_client.didKeyId.topAndTail()}...''',
+        name: '_scheduleForDeletion',
+      );
+
+      await _client.deleteMessages(messageIds: hashes);
+    }, delay);
   }
 
   void scheduleAction(
     Future<dynamic> Function(List<String>) action,
-    int afterSeconds,
+    Duration delay,
   ) {
     final methodName = 'scheduleAction';
     _logger.info(
-      'Started scheduling delete message action in $afterSeconds seconds',
+      '''Started scheduling delete message action in
+      ${delay.inMilliseconds} milliseconds''',
       name: methodName,
     );
     _clearSchedule();
 
-    _scheduledTimer = Timer(Duration(seconds: afterSeconds), () async {
+    _scheduledTimer = Timer(delay, () async {
       if (_queue.isEmpty) {
         _logger.warning(
           'No messages in queue to delete, skipping action',
@@ -56,7 +73,6 @@ class MessageQueue {
       try {
         await _messageDeleteMutex.acquire();
 
-        // Log message here...
         final messagesToDelete = _queue.toList();
 
         // Process messages in batches of DELETE_MESSAGE_BATCH_SIZE
@@ -100,10 +116,8 @@ class MessageQueue {
         _messageDeleteMutex.release();
       }
     });
-    _logger.info(
-      'Completed scheduling delete message action in $afterSeconds seconds',
-      name: methodName,
-    );
+
+    _logger.info('Message deletion scheduled', name: methodName);
   }
 
   void _clearSchedule() {

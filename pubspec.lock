@@ -301,10 +301,10 @@ packages:
     dependency: transitive
     description:
       name: didcomm
-      sha256: "4f18c62fdfd98eb011d7613517840cc7c905fd0028c2716ebee4a74fcdcf6d0f"
+      sha256: "8a6de5c8e2406603071b866b2e478028e16062596f68805f196a40ef58d31d62"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3"
+    version: "2.3.0"
   dio:
     dependency: transitive
     description:

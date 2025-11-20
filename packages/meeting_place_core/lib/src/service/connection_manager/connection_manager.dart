@@ -1,10 +1,11 @@
 import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
+
 import '../../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
+import '../../repository/key_repository.dart';
 import '../../utils/string.dart';
 import 'connection_manager_exception.dart';
-import '../../repository/key_repository.dart';
 
 class ConnectionManager {
   ConnectionManager({
@@ -58,7 +59,7 @@ class ConnectionManager {
       await _keyRepository.saveKeyIdForDid(keyId: keyId, did: didDoc.id);
 
       _logger.info(
-        'Generated new DID: ${didDoc.id.topAndTail()} with index: $currentIndex',
+        '''Generated new DID: ${didDoc.id.topAndTail()} with index: $currentIndex''',
         name: methodName,
       );
       return didManager;

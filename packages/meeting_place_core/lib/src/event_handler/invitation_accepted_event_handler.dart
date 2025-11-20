@@ -1,8 +1,9 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+
 import '../entity/channel.dart';
-import '../protocol/meeting_place_protocol.dart';
 import '../entity/connection_offer.dart';
 import '../messages/utils.dart';
+import '../protocol/meeting_place_protocol.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 
@@ -21,7 +22,8 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
   Future<Channel?> process(InvitationAccept event) async {
     final methodName = 'process';
     logger.info(
-      'Started processing InvitationAccept event with offerLink: ${event.offerLink}',
+      'Started processing InvitationAccept event with offerLink: '
+      '${event.offerLink}',
       name: methodName,
     );
 
@@ -29,7 +31,8 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       final connection = await findConnectionByOfferLink(event.offerLink);
       if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
         logger.warning(
-          'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
+          'Skipping processing: connection offer is not of type '
+          '${ConnectionOfferType.meetingPlaceInvitation.name}',
           name: methodName,
         );
         return null;
@@ -83,7 +86,8 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
         );
 
         logger.info(
-          'Completed processing InvitationAccept event and created channel with id: ${channel.id}',
+          'Completed processing InvitationAccept event and created channel '
+          'with id: ${channel.id}',
           name: methodName,
         );
 
@@ -92,13 +96,15 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       return null;
     } on EmptyMessageListException {
       logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.InvitationAccept}',
+        'No messages found to process for event of type '
+        '${ControlPlaneEventType.InvitationAccept}',
         name: methodName,
       );
       return null;
     } catch (e, stackTrace) {
       logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.InvitationAccept}',
+        'Failed to process event of type '
+        '${ControlPlaneEventType.InvitationAccept}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,

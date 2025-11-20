@@ -11,7 +11,7 @@ class ChatSDKOptions {
   /// **Parameters:**
   /// - [chatPresenceSendInterval]: Interval in seconds for sending
   ///   presence signals (default: `10` seconds).
-  /// - [chatActivityExpiresInSeconds]: Expiry time in seconds for
+  /// - [chatActivityExpiry]: Expiry time in seconds for
   ///   chat activity signals such as "typing" (default: `3` seconds).
   /// - [requiresAcknowledgement]: List of [ChatProtocol] message types
   ///   that require delivery acknowledgement

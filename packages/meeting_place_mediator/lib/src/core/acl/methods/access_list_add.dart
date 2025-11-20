@@ -5,7 +5,8 @@ import '../acl_hashing_utils.dart';
 
 part 'access_list_add.g.dart';
 
-/// [AccessListAdd] is an action type of [acl] which grants new permissions to specified entities.
+/// [AccessListAdd] is an action type of `AclBody` which grants new
+/// permissions to specified entities.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class AccessListAdd implements AclBody {
   factory AccessListAdd.fromJson(Map<String, dynamic> json) {

@@ -49,12 +49,13 @@ class KeyRepositoryImpl implements KeyRepository {
 
   @override
   Future<KeyPair?> getKeyPair(String did) async {
-    final keyPair = await _storage.get('$_keyPairIndex$did');
+    final keyPair =
+        await _storage.get<Map<String, Uint8List>>('$_keyPairIndex$did');
     if (keyPair == null) return null;
 
     return KeyPair(
-      publicKeyBytes: keyPair['publicKeyBytes'],
-      privateKeyBytes: keyPair['privateKeyBytes'],
+      publicKeyBytes: keyPair['publicKeyBytes']!,
+      privateKeyBytes: keyPair['privateKeyBytes']!,
     );
   }
 }

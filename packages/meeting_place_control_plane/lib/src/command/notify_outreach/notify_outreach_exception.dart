@@ -1,5 +1,5 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
 class NotifyOutreachException implements ControlPlaneException {
   NotifyOutreachException({

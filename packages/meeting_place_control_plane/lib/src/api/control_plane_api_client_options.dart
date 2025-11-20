@@ -1,5 +1,5 @@
-/// [ControlPlaneApiClientOptions] is a class that defines options when initialising
-/// the [DiscoveryApiClient].
+/// [ControlPlaneApiClientOptions] is a class that defines options when
+/// initialising the `ControlPlaneApiClient`.
 class ControlPlaneApiClientOptions {
   /// Create an instance of the [ControlPlaneApiClientOptions] class.
   ControlPlaneApiClientOptions({

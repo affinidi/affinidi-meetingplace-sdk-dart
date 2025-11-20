@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import '../../api/api_client.dart';
-
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
@@ -15,8 +14,10 @@ import '../../core/event/invitation_accept.dart';
 import '../../core/event/invitation_group_accept.dart';
 import '../../core/event/invitation_outreach.dart';
 import '../../core/event/offer_finalised.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../finalise_acceptance/finalise_acceptance_handler.dart'
+    show FinaliseAcceptanceHandler;
 import 'get_pending_notifications.dart';
 import 'get_pending_notifications_exception.dart';
 import 'get_pending_notifications_output.dart';
@@ -91,7 +92,8 @@ class GetPendingNotificationsHandler
 
       _logger.info(
         'Completed getting pending notifications. '
-        'Total events: ${events.length}, Processable events: ${processableEvents.length}',
+        'Total events: ${events.length}, '
+        'Processable events: ${processableEvents.length}',
         name: methodName,
       );
       return GetPendingNotificationsCommandOutput(events: processableEvents);
@@ -126,7 +128,8 @@ class GetPendingNotificationsHandler
 
     if (notificationPayload == null || notificationType == null) {
       _logger.error(
-        'Notification payload or type is null for notification ID: ${notification.id}',
+        'Notification payload or type is null for notification ID: '
+        '${notification.id}',
         name: methodName,
       );
       throw GetPendingNotificationsException.notificationPayloadError();

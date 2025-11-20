@@ -5,8 +5,8 @@ import '../acl_hashing_utils.dart';
 
 part 'access_list_remove.g.dart';
 
-/// [AccessListRemove] is an action type of [acl] which revokes existing permissions
-/// from specified entities.
+/// [AccessListRemove] is an action type of `AclBody` which revokes existing
+/// permissions from specified entities.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class AccessListRemove implements AclBody {
   factory AccessListRemove.fromJson(Map<String, dynamic> json) {

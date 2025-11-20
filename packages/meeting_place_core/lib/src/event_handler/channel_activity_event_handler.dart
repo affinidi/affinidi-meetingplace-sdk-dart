@@ -1,13 +1,14 @@
 import 'package:collection/collection.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:ssi/ssi.dart';
+
 import '../entity/channel.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
-import '../service/mediator/mediator_service.dart';
-import 'chat_activity_event_handler.dart';
-import '../service/connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
-import 'package:ssi/ssi.dart';
+import '../service/connection_manager/connection_manager.dart';
+import '../service/mediator/mediator_service.dart';
 import 'channel_inauguration_event_handler.dart';
+import 'chat_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
 
 class ChannelActivityEventHandler {
@@ -81,7 +82,9 @@ class ChannelActivityEventHandler {
     List<DiscoveryEvent<dynamic>> processedEvents,
   ) {
     return processedEvents.firstWhereOrNull(
-          (event) => event.data.did == channelActivity.did,
+          (event) =>
+              event.data is ChannelActivity &&
+              (event.data as ChannelActivity).did == channelActivity.did,
         ) !=
         null;
   }

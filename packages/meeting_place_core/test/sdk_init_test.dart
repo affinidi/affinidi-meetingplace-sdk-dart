@@ -33,8 +33,8 @@ void main() async {
   test(
     'Ensure repeated device registration is allowed and handled gracefully',
     () async {
-      final tokenA = Uuid().v4();
-      final tokenB = Uuid().v4();
+      final tokenA = const Uuid().v4();
+      final tokenB = const Uuid().v4();
       await aliceSDK.registerForPushNotifications(tokenA);
       await aliceSDK.registerForPushNotifications(tokenA);
       await aliceSDK.registerForPushNotifications(tokenB);
@@ -44,7 +44,7 @@ void main() async {
   test(
     '''Ensure SDK methods dependent on device registration work correctly after the device is registered''',
     () async {
-      await aliceSDK.registerForPushNotifications(Uuid().v4());
+      await aliceSDK.registerForPushNotifications(const Uuid().v4());
       await aliceSDK.publishOffer(
         offerName: 'Test offer',
         offerDescription: 'Sample offer description',
@@ -69,7 +69,7 @@ void main() async {
       controlPlaneDid: getControlPlaneDid(),
     );
 
-    await minimumSDK.registerForPushNotifications(Uuid().v4());
+    await minimumSDK.registerForPushNotifications(const Uuid().v4());
 
     expect(
       () => minimumSDK.publishOffer(

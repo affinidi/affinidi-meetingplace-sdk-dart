@@ -6,15 +6,17 @@
 # invoked from the command line by running `flutter analyze`.
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
-include: package:lints/recommended.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
 
 linter:
   rules:
+    - always_declare_return_types
     - avoid_print
     - prefer_relative_imports
     - sort_constructors_first
     - sort_pub_dependencies
     - unawaited_futures
+
 analyzer:
   errors:
     avoid_print: error

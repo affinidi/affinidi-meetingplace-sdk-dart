@@ -1,6 +1,6 @@
 import '../constants/sdk_constants.dart' as constants;
-import 'meeting_place_chat_sdk_logger.dart';
 import 'default_meeting_place_chat_sdk_logger.dart';
+import 'meeting_place_chat_sdk_logger.dart';
 
 /// Enhanced logger that automatically formats messages with SDK/class/method context
 class LoggerFormatter implements MeetingPlaceChatSDKLogger {

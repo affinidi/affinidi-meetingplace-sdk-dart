@@ -3,18 +3,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-
-import '../../api/api_client.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
-import '../../core/command/command_handler.dart';
 import '../../control_plane_sdk_options.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../core/command/command_handler.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../utils/base64.dart';
 import '../../utils/mediator/mediator_utils.dart';
+import '../register_offer/register_offer_handler.dart'
+    show RegisterOfferHandler;
 import 'register_offer_group.dart';
 import 'register_offer_group_exception.dart';
 import 'register_offer_group_output.dart';
@@ -86,7 +87,8 @@ class RegisterOfferGroupHandler
 
     if (mediatorForOffer == null) {
       _logger.error(
-        'Failed to register offer group "${command.offerName}": mediator configuration is missing.',
+        'Failed to register offer group "${command.offerName}": '
+        'mediator configuration is missing.',
         name: methodName,
       );
       throw RegisterOfferGroupException.mediatorNotSet();
@@ -143,7 +145,8 @@ class RegisterOfferGroupHandler
     } catch (e, stackTrace) {
       if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {
         _logger.error(
-          'Offer group with the same mnemonic already exists: ${command.customPhrase}',
+          'Offer group with the same mnemonic already exists: '
+          '${command.customPhrase}',
           error: e,
           stackTrace: stackTrace,
         );

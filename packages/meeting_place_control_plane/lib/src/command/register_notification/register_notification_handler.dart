@@ -1,10 +1,9 @@
 import '../../api/api_client.dart';
-
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../utils/string.dart';
 import 'register_notification.dart';
 import 'register_notification_exception.dart';
@@ -13,8 +12,8 @@ import 'register_notification_output.dart';
 /// A concreate implementation of the [CommandHandler] interface.
 ///
 /// Handles communication with the API server, including sending requests,
-/// receiving responses, and validating the returned data for Register Notification
-/// operation.
+/// receiving responses, and validating the returned data for Register
+/// Notification operation.
 class RegisterNotificationHandler
     implements
         CommandHandler<RegisterNotificationCommand,

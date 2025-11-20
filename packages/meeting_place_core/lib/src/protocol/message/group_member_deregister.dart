@@ -1,5 +1,6 @@
-import '../../../meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../../meeting_place_core.dart';
 
 class GroupMemberDeregistered extends PlainTextMessage {
   GroupMemberDeregistered({

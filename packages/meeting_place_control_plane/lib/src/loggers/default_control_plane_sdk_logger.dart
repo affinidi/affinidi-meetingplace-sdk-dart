@@ -7,10 +7,12 @@ import 'control_plane_sdk_logger.dart';
 ///
 /// This logger outputs logs to the console with a consistent format.
 class DefaultControlPlaneSDKLogger implements ControlPlaneSDKLogger {
-  /// Creates a logger with an optional [className] identifying the logging source.
+  /// Creates a logger with an optional [className] identifying the logging
+  /// source.
   ///
   /// [className] defaults to 'DefaultDiscoverySdkLogger'.
-  /// [sdkName] is used as the log name in `dart:developer` and defaults to 'DISC_SDK'.
+  /// [sdkName] is used as the log name in `dart:developer` and defaults to
+  /// 'DISC_SDK'.
   DefaultControlPlaneSDKLogger({
     this.className = 'DefaultControlPlaneSDKLogger',
     this.sdkName = constants.sdkName,

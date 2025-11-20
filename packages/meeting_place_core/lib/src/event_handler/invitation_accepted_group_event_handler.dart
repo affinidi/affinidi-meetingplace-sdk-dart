@@ -1,10 +1,10 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+
 import '../entity/entity.dart';
+import '../messages/utils.dart';
 import '../protocol/protocol.dart';
 import '../repository/group_repository.dart';
-
 import '../service/group/group_exception.dart';
-import '../messages/utils.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 
@@ -28,14 +28,16 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
     final methodName = 'process';
     try {
       logger.info(
-        'Started processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
+        'Started processing InvitationGroupAccept event for offerLink: '
+        '${event.offerLink}',
         name: methodName,
       );
 
       final connection = await findConnectionByOfferLink(event.offerLink);
       if (connection.permanentChannelDid != null) {
         logger.info(
-          'InvitationGroupAccept event ignored: connection is already associated with a permanent channel DID',
+          'InvitationGroupAccept event ignored: connection is already '
+          'associated with a permanent channel DID',
           name: methodName,
         );
         return null;
@@ -43,7 +45,8 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
 
       if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
         logger.info(
-          'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
+          'Skipping processing: connection offer is not of type '
+          '${ConnectionOfferType.meetingPlaceInvitation.name}',
           name: methodName,
         );
         return null;
@@ -112,26 +115,30 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
         );
 
         logger.info(
-          'Completed processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
+          'Completed processing InvitationGroupAccept event for offerLink: '
+          '${event.offerLink}',
           name: methodName,
         );
         return groupChannel;
       }
 
       logger.warning(
-        'No valid ConnectionSetupGroup message found for offerLink: ${event.offerLink}',
+        'No valid ConnectionSetupGroup message found for offerLink: '
+        '${event.offerLink}',
         name: methodName,
       );
       return null;
     } on EmptyMessageListException {
       logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.InvitationGroupAccept}',
+        'No messages found to process for event of type '
+        '${ControlPlaneEventType.InvitationGroupAccept}',
         name: methodName,
       );
       return null;
     } catch (e, stackTrace) {
       logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.InvitationGroupAccept}',
+        'Failed to process event of type '
+        '${ControlPlaneEventType.InvitationGroupAccept}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,

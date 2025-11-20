@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
-import '../../api/api_client.dart';
 import 'package:dio/dio.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'group_delete.dart';
 import 'group_delete_exception.dart';
 import 'group_delete_output.dart';
@@ -73,7 +73,8 @@ class GroupDeleteHandler
     } on DioException catch (e, stackTrace) {
       if (e.response?.statusCode == HttpStatus.gone) {
         _logger.warning(
-          '[MPX API] Response has status code ${e.response?.statusCode} - assume everything is okay as group was already deleted',
+          '[MPX API] Response has status code ${e.response?.statusCode} - '
+          'assume everything is okay as group was already deleted',
           name: methodName,
         );
         return GroupDeleteCommandOutput(success: true);

@@ -6,16 +6,19 @@
 # invoked from the command line by running `flutter analyze`.
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
-include: package:lints/core.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
 
 linter:
   rules:
+    - always_declare_return_types
     - avoid_print
     - prefer_relative_imports
     - sort_pub_dependencies
     - unawaited_futures
 
 analyzer:
+  exclude:
+    - lib/src/api/api_client/**
   errors:
     avoid_print: error
     deprecated_member_use_from_same_package: ignore

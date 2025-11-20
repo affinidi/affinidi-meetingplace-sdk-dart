@@ -55,8 +55,8 @@ abstract class BaseChatSDK {
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
-  CoreSDKStreamSubscription? _mediatorStreamSubscription;
-  Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  CoreSDKStreamSubscription<MediatorMessage>? _mediatorStreamSubscription;
+  Future<CoreSDKStreamSubscription<MediatorMessage>>? mediatorStreamFuture;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
@@ -426,12 +426,12 @@ abstract class BaseChatSDK {
   /// Subscribes to mediator channel for real-time updates.
   ///
   /// **Returns:**
-  /// - A [MediatorStream] subscription.
+  /// - A [CoreSDKStreamSubscription] subscription.
   ///
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
-  Future<CoreSDKStreamSubscription> subscribeToMediator() {
+  Future<CoreSDKStreamSubscription<MediatorMessage>> subscribeToMediator() {
     return coreSDK.subscribeToMediator(did, mediatorDid: mediatorDid);
   }
 

@@ -5,7 +5,8 @@ import '../acl_hashing_utils.dart';
 
 part 'acl_set.g.dart';
 
-/// [AclSet] is an action type of [acl] which replaces the entire ACL with the provided permissions.
+/// [AclSet] is an action type of `AclBody` which replaces the entire ACL
+/// with the provided permissions.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class AclSet implements AclBody {
   AclSet({required String ownerDid, required this.acls}) {

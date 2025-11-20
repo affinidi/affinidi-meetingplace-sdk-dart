@@ -69,7 +69,8 @@ class MessageQueue {
           final batch = messagesToDelete.sublist(i, end);
 
           _logger.info(
-            'Deleting batch of ${batch.length} messages from server (${i + 1}-$end of ${messagesToDelete.length})',
+            'Deleting batch of ${batch.length} messages from server '
+            '(${i + 1}-$end of ${messagesToDelete.length})',
             name: methodName,
           );
 

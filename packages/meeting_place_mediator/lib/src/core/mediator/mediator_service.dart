@@ -3,23 +3,23 @@ import 'dart:io';
 
 import 'package:didcomm/didcomm.dart';
 import 'package:dio/dio.dart';
-import '../../constants/sdk_constants.dart';
-import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
-import '../../loggers/meeting_place_mediator_sdk_logger.dart';
-import '../../protocol/message/oob_invitation_message.dart';
-import '../../meeting_place_mediator_sdk_options.dart';
-import '../../utils/didcomm.dart';
-import '../../utils/string.dart';
-import 'forward_message_builder.dart';
-import 'mediator_stream_subscription.dart';
-import 'mediator_exception.dart';
 import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 
-import '../acl/acl_management.dart';
+import '../../constants/sdk_constants.dart';
+import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
+import '../../loggers/meeting_place_mediator_sdk_logger.dart';
+import '../../meeting_place_mediator_sdk_options.dart';
+import '../../protocol/message/oob_invitation_message.dart';
+import '../../utils/didcomm.dart';
+import '../../utils/string.dart';
 import '../acl/acl_body.dart';
+import '../acl/acl_management.dart';
 import '../message/send_message_queue.dart';
 import 'fetch_message_result.dart';
+import 'forward_message_builder.dart';
+import 'mediator_exception.dart';
+import 'mediator_stream_subscription.dart';
 import 'unpack_message_exception.dart';
 
 typedef OnMessageCallback = Future<bool> Function(PlainTextMessage message);
@@ -89,12 +89,13 @@ class MediatorService {
           ),
           webSocketOptions: WebSocketOptions(
             pingIntervalInSeconds: _options.websocketPingInterval,
-            statusRequestMessageOptions: StatusRequestMessageOptions(
+            statusRequestMessageOptions: const StatusRequestMessageOptions(
               shouldSend: true,
               shouldSign: true,
               shouldEncrypt: true,
             ),
-            liveDeliveryChangeMessageOptions: LiveDeliveryChangeMessageOptions(
+            liveDeliveryChangeMessageOptions:
+                const LiveDeliveryChangeMessageOptions(
               shouldSend: true,
               shouldSign: true,
               shouldEncrypt: true,
@@ -189,9 +190,9 @@ class MediatorService {
     required DidManager didManager,
   }) async {
     final methodName = 'getOob';
-    final response = await Dio().get(oobUrl.toString());
+    final response = await Dio().get<Map<String, dynamic>>(oobUrl.toString());
     _logger.info('Fetched OOB invitation from $oobUrl', name: methodName);
-    return response.data['data'];
+    return response.data!['data'] as String;
   }
 
   Future<void> sendMessage(
@@ -220,7 +221,9 @@ class MediatorService {
 
       final senderDidDocument = await senderDidManager.getDidDocument();
       _logger.info(
-        'Sending message ${message.type.toString()} from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
+        'Sending message ${message.type.toString()} from '
+        '${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. '
+        'Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
 
@@ -234,12 +237,15 @@ class MediatorService {
       ));
 
       _logger.info(
-        'Message sent from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
+        'Message sent from ${senderDidDocument.id.topAndTail()} to '
+        '${next.topAndTail()}. Forwarding via '
+        '${mediatorClient.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to send message from ${message.from?.topAndTail()} to ${next.topAndTail()}',
+        'Failed to send message from ${message.from?.topAndTail()} to '
+        '${next.topAndTail()}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -271,7 +277,9 @@ class MediatorService {
       );
 
       _logger.info(
-        'Queuing message from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${client.mediatorDidDocument.id.topAndTail()}',
+        'Queuing message from ${senderDidDocument.id.topAndTail()} to '
+        '${next.topAndTail()}. Forwarding via '
+        '${client.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
 
@@ -296,12 +304,15 @@ class MediatorService {
         );
       }, 3);
       _logger.info(
-        'Message queued from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${client.mediatorDidDocument.id.topAndTail()}',
+        'Message queued from ${senderDidDocument.id.topAndTail()} to '
+        '${next.topAndTail()}. Forwarding via '
+        '${client.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to queue message from ${message.from?.topAndTail()} to ${next.topAndTail()}',
+        'Failed to queue message from ${message.from?.topAndTail()} to '
+        '${next.topAndTail()}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -340,13 +351,16 @@ class MediatorService {
 
       await streamSubscription.initialize();
 
-      _logger.info('Subscribed to mediator: ${mediatorDid.topAndTail()}',
-          name: methodName);
+      _logger.info(
+        'Subscribed to mediator: ${mediatorDid.topAndTail()}',
+        name: methodName,
+      );
 
       return streamSubscription;
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to subscribe to websocket for mediator: ${mediatorDid.topAndTail()}',
+        'Failed to subscribe to websocket for mediator: '
+        '${mediatorDid.topAndTail()}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -382,7 +396,8 @@ class MediatorService {
       );
 
       _logger.info(
-        'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on resource ${mediatorDid.topAndTail()}',
+        'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on '
+        'resource ${mediatorDid.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {
@@ -455,7 +470,8 @@ class MediatorService {
           return result;
         } on UnpackMessageException catch (e, stackTrace) {
           _logger.error(
-            'Failed to unpack message from ${client.mediatorDidDocument.id.topAndTail()}',
+            'Failed to unpack message from '
+            '${client.mediatorDidDocument.id.topAndTail()}',
             error: e,
             stackTrace: stackTrace,
             name: methodName,
@@ -500,7 +516,7 @@ class MediatorService {
     List<FetchMessageResult> messages,
     DateTime? startFrom,
   ) {
-    DateTime? nextStartFrom = startFrom;
+    var nextStartFrom = startFrom;
 
     for (final result in messages) {
       final messageCreatedTime = result.message?.createdTime;
@@ -553,7 +569,8 @@ class MediatorService {
     await client.deleteMessages(messageIds: messageHashes);
 
     _logger.info(
-      'Completed deleting ${messageHashes.length} message(s) from mediator ${mediatorDid.topAndTail()}',
+      'Completed deleting ${messageHashes.length} message(s) from mediator '
+      '${mediatorDid.topAndTail()}',
       name: methodName,
     );
   }
@@ -580,12 +597,16 @@ class MediatorService {
         ),
       );
 
-      final response = await dio.get(
+      final response = await dio.get<dynamic>(
         '$mediatorEndpoint/.well-known/did',
         options: Options(headers: {'CONTENT-TYPE': 'application/json'}),
       );
 
-      final mediatorDid = response.data['data'] as String;
+      if (response.data is! Map<String, dynamic>) {
+        throw Exception('Invalid response format');
+      }
+      final data = response.data as Map<String, dynamic>;
+      final mediatorDid = data['data'] as String;
       _logger.info(
         'Completed resolving mediator DID is $mediatorDid',
         name: methodName,

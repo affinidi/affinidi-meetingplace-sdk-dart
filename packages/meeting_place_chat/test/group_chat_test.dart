@@ -6,9 +6,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'utils/v_card.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
+import 'utils/v_card.dart';
 
 void main() async {
   late final MeetingPlaceCoreSDK aliceSDK;
@@ -196,7 +196,8 @@ void main() async {
 
   //   // expect(bobMembers.length, equals(1));
 
-  //   final aliceGroupRepresentation = await aliceSDK.getGroupById(aliceGroup.id);
+  //   final aliceGroupRepresentation =
+  //      await aliceSDK.getGroupById(aliceGroup.id);
   //   final aliceMembers = aliceGroupRepresentation!.members.where(
   //     (member) => member.status == GroupMemberStatus.deleted,
   //   );
@@ -281,7 +282,7 @@ void main() async {
 
     await bobChatSDK.startChatSession();
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 2));
     await aliceSDK.processControlPlaneEvents();
     await completer.future;
 
@@ -297,7 +298,7 @@ void main() async {
     final chat = await newAliceChatSDK.startChatSession();
 
     // Wait to ensure the concierge message is processed
-    await Future.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 2));
 
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);

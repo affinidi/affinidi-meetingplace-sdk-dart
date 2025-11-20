@@ -1,71 +1,72 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
-/// A concrete implementation of the [ControlPlaneException] interface for throwing
-/// specific exceptions related to Validate Offer Phrase command/operation.
-class ValidateOfferPhraseExceptions implements ControlPlaneException {
-  ValidateOfferPhraseExceptions._({
+/// A concrete implementation of the [ControlPlaneException] interface for
+/// throwing specific exceptions related to ValidateOfferPhrase
+/// command/operation.
+class ValidateOfferPhraseException implements ControlPlaneException {
+  ValidateOfferPhraseException._({
     required this.message,
     required this.code,
     this.innerException,
   });
 
-  /// Creates a `authentication` [ValidateOfferPhraseExceptions] instance.
+  /// Creates a `authentication` [ValidateOfferPhraseException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
   ///
   /// **Parameters:**
   /// - [innerException]: The exception object.
-  factory ValidateOfferPhraseExceptions.authentication({
+  factory ValidateOfferPhraseException.authentication({
     Object? innerException,
   }) {
-    return ValidateOfferPhraseExceptions._(
+    return ValidateOfferPhraseException._(
       message: 'Register offer group exception: ${innerException.toString()}.',
       code: ControlPlaneSDKErrorCode.validateOfferPhraseAuthentication,
       innerException: innerException,
     );
   }
 
-  /// Creates a `rateLimit` [ValidateOfferPhraseExceptions] instance.
+  /// Creates a `rateLimit` [ValidateOfferPhraseException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
   ///
   /// **Parameters:**
   /// - [innerException]: The exception object.
-  factory ValidateOfferPhraseExceptions.rateLimit({Object? innerException}) {
-    return ValidateOfferPhraseExceptions._(
+  factory ValidateOfferPhraseException.rateLimit({Object? innerException}) {
+    return ValidateOfferPhraseException._(
       message: 'Rate limit exceeded for phrase validation',
       code: ControlPlaneSDKErrorCode.validateOfferPhraseRateLimit,
       innerException: innerException,
     );
   }
 
-  /// Creates a `timeout` [ValidateOfferPhraseExceptions] instance.
+  /// Creates a `timeout` [ValidateOfferPhraseException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
   ///
   /// **Parameters:**
   /// - [innerException]: The exception object.
-  factory ValidateOfferPhraseExceptions.timeout({Object? innerException}) {
-    return ValidateOfferPhraseExceptions._(
+  factory ValidateOfferPhraseException.timeout({Object? innerException}) {
+    return ValidateOfferPhraseException._(
       message: 'Request timeout during phrase validation',
       code: ControlPlaneSDKErrorCode.validateOfferPhraseTimeout,
       innerException: innerException,
     );
   }
 
-  /// Creates a `generic` [ValidateOfferPhraseExceptions] instance.
+  /// Creates a `generic` [ValidateOfferPhraseException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
   ///
   /// **Parameters:**
   /// - [innerException]: The exception object.
-  factory ValidateOfferPhraseExceptions.generic({Object? innerException}) {
-    return ValidateOfferPhraseExceptions._(
+  factory ValidateOfferPhraseException.generic({Object? innerException}) {
+    return ValidateOfferPhraseException._(
       message: 'Unexpected error occurred',
       code: ControlPlaneSDKErrorCode.validateOfferPhraseGeneric,
       innerException: innerException,

@@ -1,5 +1,6 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:collection/collection.dart';
+import 'package:json_annotation/json_annotation.dart';
+
 import 'group_member.dart';
 
 part 'group.g.dart';

@@ -1,8 +1,9 @@
 import 'package:didcomm/didcomm.dart';
+import 'package:uuid/uuid.dart';
+
 import '../attachment/v_card_attachment.dart';
 import '../meeting_place_protocol.dart';
 import '../v_card/v_card.dart';
-import 'package:uuid/uuid.dart';
 
 class ConnectionAccepted extends PlainTextMessage {
   ConnectionAccepted({
@@ -35,7 +36,7 @@ class ConnectionAccepted extends PlainTextMessage {
     VCard? vCard,
   }) {
     return ConnectionAccepted(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       from: from,
       to: to,
       parentThreadId: parentThreadId,

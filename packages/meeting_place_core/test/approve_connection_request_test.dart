@@ -144,7 +144,7 @@ void main() async {
     });
 
     test(
-        'connection offer has been updated with other party permanent channel did',
+        '''connection offer has been updated with other party permanent channel did''',
         () {
       expect(connectionOffer.otherPartyPermanentChannelDid,
           equals(aliceApprovedChannel.permanentChannelDid));

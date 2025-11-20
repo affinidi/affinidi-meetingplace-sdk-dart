@@ -1,7 +1,8 @@
 import 'package:didcomm/didcomm.dart';
-import 'attachment_media_type.dart';
-import 'attachment_format.dart';
 import 'package:uuid/uuid.dart';
+
+import 'attachment_format.dart';
+import 'attachment_media_type.dart';
 
 class VCardAttachment extends Attachment {
   VCardAttachment({

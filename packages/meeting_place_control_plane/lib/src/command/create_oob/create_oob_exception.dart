@@ -1,8 +1,8 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
-/// A concrete implementation of the [ControlPlaneException] interface for throwing
-/// specific exceptions related to Create Out-Of-Band command/operation.
+/// A concrete implementation of the [ControlPlaneException] interface for
+/// throwing specific exceptions related to CreateOob command/operation.
 class CreateOobException implements ControlPlaneException {
   CreateOobException._({
     required this.message,

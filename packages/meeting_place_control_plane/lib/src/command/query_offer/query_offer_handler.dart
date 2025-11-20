@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'dart:io';
-import '../../api/api_client.dart';
+
 import 'package:dio/dio.dart';
+
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_dispatcher.dart';
 import '../../core/command/command_handler.dart';
 import '../../core/offer_type.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
 import '../../core/protocol/v_card/v_card_impl.dart';
+import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'query_offer.dart';
 import 'query_offer_exception.dart';
 import 'query_offer_output.dart';
@@ -104,11 +106,14 @@ class QueryOfferHandler
           e.response!.statusCode == HttpStatus.unprocessableEntity) {
         _logger.warning('[MPX API] Offer not found', name: methodName);
 
-        if (e.response!.data['errorCode'] == 'QUERY_LIMIT_EXCEEDED') {
+        final responseData = e.response!.data;
+        if (responseData is Map &&
+            responseData['errorCode'] == 'QUERY_LIMIT_EXCEEDED') {
           return LimitExceededQueryOfferCommandOutput();
         }
 
-        if (e.response!.data['errorCode'] == 'OFFER_EXPIRED') {
+        if (responseData is Map &&
+            responseData['errorCode'] == 'OFFER_EXPIRED') {
           return ExpiredQueryOfferCommandOutput();
         }
       }

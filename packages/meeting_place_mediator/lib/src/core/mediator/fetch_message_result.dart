@@ -1,16 +1,18 @@
 import 'dart:convert';
-import 'package:didcomm/didcomm.dart';
 
 import 'package:crypto/crypto.dart';
+import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
 import 'unpack_message_exception.dart';
 
-/// A [FetchMessageResult] object returned after fetching messages from the mediator.
+/// A [FetchMessageResult] object returned after fetching messages from the
+/// mediator.
 ///
 /// **Parameters:**
-/// - [messageHash]: List of cryptographic hashes representing stored messages,
-/// used to verify and track messages without exposing their content.
+/// - [messageHash]: List of cryptographic hashes representing stored
+///   messages, used to verify and track messages without exposing their
+///   content.
 /// - [message]: The [PlainTextMessage] that was delivered.
 /// - [error]: An error occurred while fetching the message.
 class FetchMessageResult {

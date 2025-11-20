@@ -1,8 +1,9 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
-/// A concrete implementation of the [ControlPlaneException] interface for throwing
-/// specific exceptions related to Register Notification command/operation.
+/// A concrete implementation of the [ControlPlaneException] interface for
+/// throwing specific exceptions related to RegisterNotification
+/// command/operation.
 class RegisterNotificationException implements ControlPlaneException {
   RegisterNotificationException._({
     required this.message,

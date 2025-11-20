@@ -91,7 +91,7 @@ void main() async {
         ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 60)),
   );
 
-  await Future.delayed(const Duration(seconds: 2));
+  await Future<void>.delayed(const Duration(seconds: 2));
 
   await bobChatSDK.startChatSession();
   await bobChatSDK.chatStreamSubscription.then((stream) {
@@ -125,7 +125,7 @@ void main() async {
   // Send message manually via core SDK
   await bobSDK.sendMessage(
     PlainTextMessage(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       type: Uri.parse(ChatProtocol.chatMessage.value),
       from: offerFinalisedEvent.channel.permanentChannelDid,
       to: [offerFinalisedEvent.channel.otherPartyPermanentChannelDid!],

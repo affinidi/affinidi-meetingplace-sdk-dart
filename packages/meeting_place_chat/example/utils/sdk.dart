@@ -16,7 +16,7 @@ String getMediatorDid() =>
     Platform.environment['MEDIATOR_DID'] ??
     (throw Exception('MEDIATOR_DID not set in environment'));
 
-getRepositoryConfig() {
+RepositoryConfig getRepositoryConfig() {
   final storage = InMemoryStorage();
   return RepositoryConfig(
     connectionOfferRepository: ConnectionOfferRepositoryImpl(storage: storage),

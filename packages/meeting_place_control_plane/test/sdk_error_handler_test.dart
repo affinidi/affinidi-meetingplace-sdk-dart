@@ -32,16 +32,16 @@ void main() {
     });
 
     test(
-        'should handle ControlPlaneException and throw ControlPlaneSDKException',
+        '''should handle ControlPlaneException and throw ControlPlaneSDKException''',
         () async {
       final controlPlaneException = AcceptOfferException.limitExceededError();
 
       expect(
-        () => errorHandler.handleError(() => throw controlPlaneException),
+        () => errorHandler.handleError<void>(() => throw controlPlaneException),
         throwsA(
           isA<ControlPlaneSDKException>()
               .having((e) => e.message, 'message',
-                  'Offer acceptance failed: the maximum number of allowed offer usages has been reached.')
+                  '''Offer acceptance failed: the maximum number of allowed offer usages has been reached.''')
               .having((e) => e.code, 'code',
                   ControlPlaneSDKErrorCode.acceptOfferLimitExceeded.value)
               .having((e) => e.innerException, 'innerException',
@@ -60,7 +60,7 @@ void main() {
 
       for (final errorType in networkErrorTypes) {
         test(
-            'should handle DioException with $errorType and set network error code',
+            '''should handle DioException with $errorType and set network error code''',
             () async {
           final dioException = DioException(
             requestOptions: RequestOptions(path: '/test'),
@@ -69,7 +69,7 @@ void main() {
           );
 
           expect(
-            () => errorHandler.handleError(() => throw dioException),
+            () => errorHandler.handleError<void>(() => throw dioException),
             throwsA(
               isA<ControlPlaneSDKException>()
                   .having((e) => e.code, 'code',
@@ -91,7 +91,7 @@ void main() {
       );
 
       expect(
-        () => errorHandler.handleError(() => throw dioException),
+        () => errorHandler.handleError<void>(() => throw dioException),
         throwsA(isA<ControlPlaneSDKException>()
             .having(
                 (e) => e.code, 'code', ControlPlaneSDKErrorCode.generic.value)
@@ -106,7 +106,7 @@ void main() {
 
       // Act & Assert
       expect(
-        () => errorHandler.handleError(() => throw genericException),
+        () => errorHandler.handleError<void>(() => throw genericException),
         throwsA(
           isA<ControlPlaneSDKException>()
               .having(

@@ -12,12 +12,12 @@ void main() async {
   });
 
   test('debounce calls to process discovery events', () async {
-    onDoneFailed() {
+    void onDoneFailed() {
       fail('Debouncing failed');
     }
 
     final completer = Completer<void>();
-    bool completed = false;
+    var completed = false;
 
     await aliceSDK.processControlPlaneEvents(
       onDone: () {

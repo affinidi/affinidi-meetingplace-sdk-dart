@@ -71,7 +71,7 @@ class MediatorStreamSubscription {
   }
 
   void pushMessage(MediatorStreamData data) {
-    final methodName = 'addMessage';
+    final methodName = 'pushMessage';
     if (_controller.isClosed) {
       _logger.warning('Stream is closed: data not pushed - ${data.message.id}',
           name: methodName);
@@ -79,8 +79,10 @@ class MediatorStreamSubscription {
     }
 
     if (!_controller.hasListener) {
-      _logger.info('No listener detected. Event stored in buffer');
       _eventBuffer.add(data);
+      _logger.info(
+          'No listener detected. Event buffered (total: ${_eventBuffer.length})',
+          name: methodName);
       return;
     }
 
@@ -125,16 +127,15 @@ class MediatorStreamSubscription {
       cancelOnError: cancelOnError,
     );
 
-    if (_eventBuffer.isEmpty) {
-      return this;
+    if (_eventBuffer.isNotEmpty) {
+      _logger.info(
+          'Flushing ${_eventBuffer.length} buffered event(s) to the stream',
+          name: 'listen');
+      for (var data in _eventBuffer) {
+        _controller.add(data);
+      }
+      _eventBuffer.clear();
     }
-
-    // Flush buffered events to the stream once listener attaches
-    _logger.info('Flush buffered event to the stream');
-    for (var data in _eventBuffer) {
-      _controller.add(data);
-    }
-    _eventBuffer.clear();
 
     return this;
   }

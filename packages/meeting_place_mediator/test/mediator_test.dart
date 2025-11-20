@@ -80,9 +80,12 @@ void main() {
     late DidDocument recipientDidDoc;
 
     setUp(() async {
-      final senderDidDoc = await didManagerA.getDidDocument();
+      // Clear queue
+      await sdk.fetchMessages(didManager: didManagerB, deleteOnRetrieve: true);
 
+      final senderDidDoc = await didManagerA.getDidDocument();
       recipientDidDoc = await didManagerB.getDidDocument();
+
       messageToSend = PlainTextMessage(
         id: Uuid().v4(),
         type: Uri.parse('https://affinidi.com/test/1.0/message'),
@@ -197,9 +200,6 @@ void main() {
     });
 
     test('Message is not deleted if listener throws error', () async {
-      // Clean up queue
-      await sdk.fetchMessages(didManager: didManagerB, deleteOnRetrieve: true);
-
       // Send message
       await sdk.sendMessage(
         messageToSend,
@@ -236,9 +236,6 @@ void main() {
 
     test('''Subsequent messages are processed even if previous
         listener threw an error''', () async {
-      // Clean up queue
-      await sdk.fetchMessages(didManager: didManagerB, deleteOnRetrieve: true);
-
       // Send message
       await sdk.sendMessage(
         messageToSend,

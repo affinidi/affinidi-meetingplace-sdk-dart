@@ -6,6 +6,8 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         AccessListAdd,
         AclSet,
+        DefaultMeetingPlaceMediatorSDKLogger,
+        MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
 import 'package:ssi/ssi.dart';
@@ -202,13 +204,13 @@ class MeetingPlaceCoreSDK {
     final controlPlaneLogger = LoggerAdapter(
       className: ControlPlaneSDK.className,
       sdkName: controlPlaneSDKName,
-      logger: logger,
+      logger: logger ?? DefaultControlPlaneSDKLogger(),
     );
 
     final mediatorLogger = LoggerAdapter(
       className: MeetingPlaceMediatorSDK.className,
       sdkName: mediatorSDKName,
-      logger: logger,
+      logger: logger ?? DefaultMeetingPlaceMediatorSDKLogger(),
     );
 
     final didResolver = CachedDidResolver(

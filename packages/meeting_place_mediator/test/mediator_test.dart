@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
-import 'package:meeting_place_mediator/src/sdk/mediator_subscription_options.dart';
+import 'package:meeting_place_mediator/src/core/mediator/mediator_stream/mediator_stream_subscription_options.dart';
 import 'package:test/test.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
@@ -184,7 +184,7 @@ void main() {
       // Open subscription to mediator and attach listener
       subscription = await sdk.subscribeToMessages(
         didManagerB,
-        options: const MediatorSubscriptionOptions(
+        options: const MediatorStreamSubscriptionOptions(
           deleteMessageDelay: Duration(milliseconds: 200),
         ),
       );
@@ -245,7 +245,7 @@ void main() {
 
       // Open subscription to mediator and attach listener that throws error
       subscription = await sdk.subscribeToMessages(didManagerB,
-          options: MediatorSubscriptionOptions(
+          options: MediatorStreamSubscriptionOptions(
               deleteMessageDelay: const Duration(milliseconds: 200)));
 
       final waitForError = Completer<void>();

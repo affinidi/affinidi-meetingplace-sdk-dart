@@ -1220,16 +1220,21 @@ class MeetingPlaceCoreSDK {
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   ///   If not provided, the SDK instance’s default mediator DID will be used.
   ///
+  /// - [options]: Options for subscribing to mediator messages.
+  ///
   /// **Returns: [CoreSDKStreamSubscription]**
   Future<CoreSDKStreamSubscription<MediatorMessage>> subscribeToMediator(
     String did, {
     String? mediatorDid,
+    MediatorStreamSubscriptionOptions options =
+        const MediatorStreamSubscriptionOptions(),
   }) async {
     return _withSdkExceptionHandling(() async {
       final didManager = await _getDidManager(did);
       return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
+        options: options,
       );
     });
   }

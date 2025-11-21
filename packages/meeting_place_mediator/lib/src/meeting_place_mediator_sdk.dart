@@ -17,7 +17,6 @@ import 'core/mediator/fetch_message_result.dart';
 import 'core/mediator/mediator_resolver.dart';
 import 'core/mediator/mediator_service.dart';
 import 'protocol/message/oob_invitation_message.dart';
-import 'sdk/mediator_subscription_options.dart';
 
 class MeetingPlaceMediatorSDK {
   MeetingPlaceMediatorSDK({
@@ -180,7 +179,8 @@ class MeetingPlaceMediatorSDK {
   /// Returns [MediatorStreamSubscription]
   Future<MediatorStreamSubscription> subscribeToMessages(
     DidManager didManager, {
-    MediatorSubscriptionOptions options = const MediatorSubscriptionOptions(),
+    MediatorStreamSubscriptionOptions options =
+        const MediatorStreamSubscriptionOptions(),
     String? mediatorDid,
   }) {
     return _withSdkExceptionHandling(

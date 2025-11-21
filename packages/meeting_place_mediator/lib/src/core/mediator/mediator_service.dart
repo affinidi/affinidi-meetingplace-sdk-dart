@@ -11,7 +11,7 @@ import '../../meeting_place_mediator_sdk_options.dart';
 import '../../utils/didcomm.dart';
 import '../../utils/string.dart';
 import 'forward_message_builder.dart';
-import 'mediator_stream_subscription.dart';
+import 'mediator_stream/mediator_stream_subscription.dart';
 import 'mediator_exception.dart';
 import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';

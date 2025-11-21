@@ -5,17 +5,17 @@ import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
-import '../../../meeting_place_mediator.dart';
-import '../../constants/sdk_constants.dart';
-import '../message/message_queue.dart';
-import 'didcomm_types.dart';
+import '../../../../meeting_place_mediator.dart';
+import '../../../constants/sdk_constants.dart';
+import '../../message/message_queue.dart';
+import '../didcomm_types.dart';
 import 'mediator_stream_data.dart';
 
 class MediatorStreamSubscription {
   MediatorStreamSubscription({
     required MediatorClient client,
     required DidManager didManager,
-    required Duration deleteMessageDelay,
+    required Duration? deleteMessageDelay,
     required List<MessageWrappingType> messageWrappingTypes,
     MeetingPlaceMediatorSDKLogger? logger,
   })  : _client = client,
@@ -33,7 +33,7 @@ class MediatorStreamSubscription {
 
   final MediatorClient _client;
   final DidManager _didManager;
-  final Duration _deleteMessageDelay;
+  final Duration? _deleteMessageDelay;
   final List<MessageWrappingType> _messageWrappingTypes;
   final List<MediatorStreamData> _eventBuffer = <MediatorStreamData>[];
   final MessageQueue _messageQueue;

@@ -16,7 +16,7 @@ abstract class CoreSDKStreamSubscription<T> {
   /// Listen to the stream of messages.
   StreamSubscription<T> listen(
     void Function(T) onData, {
-    Function(Object e)? onError,
+    Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
   });

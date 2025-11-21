@@ -70,7 +70,7 @@ class MediatorStreamSubscription {
     }
   }
 
-  void pushMessage(MediatorStreamData data) {
+  void _pushMessage(MediatorStreamData data) {
     final methodName = 'pushMessage';
     if (_controller.isClosed) {
       _logger.warning('Stream is closed: data not pushed - ${data.message.id}',
@@ -161,7 +161,7 @@ class MediatorStreamSubscription {
         expectedMessageWrappingTypes: _messageWrappingTypes,
       );
 
-      pushMessage(MediatorStreamData(
+      _pushMessage(MediatorStreamData(
         message: decryptedMessage,
         messageHash: _hashMessage(message),
       ));

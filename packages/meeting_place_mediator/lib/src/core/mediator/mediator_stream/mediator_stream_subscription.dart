@@ -9,7 +9,6 @@ import '../../../../meeting_place_mediator.dart';
 import '../../../constants/sdk_constants.dart';
 import '../../message/message_queue.dart';
 import '../../message/plaintext_message_extension.dart';
-import '../didcomm_types.dart';
 import 'mediator_stream_data.dart';
 
 class MediatorStreamSubscription {

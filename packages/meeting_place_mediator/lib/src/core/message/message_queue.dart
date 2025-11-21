@@ -37,7 +37,20 @@ class MessageQueue {
     _logger.info('Message hash $messageHash queued', name: 'add');
   }
 
-  void scheduleDeletion(String messageHash, {required Duration delay}) {
+  void scheduleDeletion(String messageHash, {required Duration? delay}) {
+    if (delay == null) {
+      _logger.info(
+        'Deleting message $messageHash immediately',
+        name: 'scheduleDeletion',
+      );
+
+      unawaited(_client.deleteMessages(messageIds: [messageHash]).then((_) =>
+          _logger.info('Message $messageHash deleted immediately',
+              name: 'scheduleDeletion')));
+
+      return;
+    }
+
     add(messageHash);
     scheduleAction((List<String> hashes) async {
       _logger.info(

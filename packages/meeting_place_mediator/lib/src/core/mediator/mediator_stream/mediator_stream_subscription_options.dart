@@ -5,6 +5,7 @@ class MediatorStreamSubscriptionOptions {
   });
 
   /// Delay before deleting messages from the mediator after they have been
-  /// processed by listeners on the WebSocket connection.
+  /// processed by listeners on the WebSocket connection. If set to `null`,
+  /// messages will be deleted immediately after processing.
   final Duration? deleteMessageDelay;
 }

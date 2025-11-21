@@ -317,7 +317,7 @@ class MediatorService {
   Future<MediatorStreamSubscription> createStreamSubscription({
     required DidManager didManager,
     required String mediatorDid,
-    required Duration deleteMessageDelay,
+    required Duration? deleteMessageDelay,
     bool reauthenticate = false,
     List<MessageWrappingType> messageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,

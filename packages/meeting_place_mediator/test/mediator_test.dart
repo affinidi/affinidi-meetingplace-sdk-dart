@@ -209,8 +209,7 @@ void main() {
 
       // Open subscription to mediator and attach listener that throws error
       subscription = await sdk.subscribeToMessages(didManagerB,
-          options: MediatorSubscriptionOptions(
-              deleteMessageDelay: const Duration(milliseconds: 200)));
+          options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null));
 
       final waitForError = Completer<void>();
       subscription.listen((PlainTextMessage msg) {

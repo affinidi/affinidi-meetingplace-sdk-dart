@@ -8,6 +8,7 @@ import 'package:ssi/ssi.dart';
 import '../../../../meeting_place_mediator.dart';
 import '../../../constants/sdk_constants.dart';
 import '../../message/message_queue.dart';
+import '../../message/plaintext_message_extension.dart';
 import '../didcomm_types.dart';
 import 'mediator_stream_data.dart';
 
@@ -102,9 +103,7 @@ class MediatorStreamSubscription {
         try {
           await onData(data.message);
 
-          final type = data.message.type.toString();
-          if (DidcommTypes.isEphemeral.contains(type) ||
-              DidcommTypes.isTelemetery.contains(type)) {
+          if (data.message.isEphermeral || data.message.isTelemetry) {
             return;
           }
 
@@ -131,9 +130,8 @@ class MediatorStreamSubscription {
       _logger.info(
           'Flushing ${_eventBuffer.length} buffered event(s) to the stream',
           name: 'listen');
-      for (var data in _eventBuffer) {
-        _controller.add(data);
-      }
+
+      _eventBuffer.forEach(_controller.add);
       _eventBuffer.clear();
     }
 

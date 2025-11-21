@@ -6,6 +6,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
+import '../entity/identity.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/protocol.dart';
@@ -40,6 +41,7 @@ class ConnectionService {
     required MeetingPlaceMediatorSDK mediatorSDK,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
+    required IdentityRepository identityRepository,
     MeetingPlaceCoreSDKLogger? logger,
   })  : _connectionManager = connectionManager,
         _channelRepository = channelRepository,
@@ -48,6 +50,7 @@ class ConnectionService {
         _controlPlaneSDK = controlPlaneSDK,
         _connectionOfferService = offerService,
         _didResolver = didResolver,
+        _identityRepository = identityRepository,
         _logger =
             logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -61,6 +64,7 @@ class ConnectionService {
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
+  final IdentityRepository _identityRepository;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
       findOffer({required String mnemonic}) async {
@@ -283,12 +287,24 @@ class ConnectionService {
       name: methodName,
     );
 
-    final permanentChannelDidManager = await _connectionManager.generateDid(
-      wallet,
-    );
-
-    final permanentChannelDidDocument =
-        await permanentChannelDidManager.getDidDocument();
+    Identity? identity;
+    if (externalRef != null) {
+      identity = await _identityRepository.getIdentityById(externalRef);
+    }
+    DidManager permanentChannelDidManager;
+    DidDocument permanentChannelDidDocument;
+    if (identity != null) {
+      permanentChannelDidManager = await _connectionManager.getDidManagerForDid(
+        wallet,
+        identity.did,
+      );
+      permanentChannelDidDocument =
+          await permanentChannelDidManager.getDidDocument();
+    } else {
+      permanentChannelDidManager = await _connectionManager.generateDid(wallet);
+      permanentChannelDidDocument =
+          await permanentChannelDidManager.getDidDocument();
+    }
 
     _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -507,9 +523,23 @@ class ConnectionService {
       channel.publishOfferDid,
     );
 
-    final permanentChannelDid = await _connectionManager.generateDid(wallet);
-    final permanentChannelDidDocument =
-        await permanentChannelDid.getDidDocument();
+    Identity? identity;
+    if (channel.externalRef != null) {
+      identity =
+          await _identityRepository.getIdentityById(channel.externalRef!);
+    }
+    DidManager permanentChannelDid;
+    DidDocument permanentChannelDidDocument;
+    if (identity != null) {
+      permanentChannelDid = await _connectionManager.getDidManagerForDid(
+        wallet,
+        identity.did,
+      );
+      permanentChannelDidDocument = await permanentChannelDid.getDidDocument();
+    } else {
+      permanentChannelDid = await _connectionManager.generateDid(wallet);
+      permanentChannelDidDocument = await permanentChannelDid.getDidDocument();
+    }
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,

@@ -43,6 +43,9 @@ import 'service/oob/oob_stream.dart';
 import 'service/oob/oob_stream_data.dart';
 import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
+import 'entity/identity.dart';
+import 'entity/contact_card.dart';
+import 'package:uuid/uuid.dart';
 
 /// # Meeting Place Core SDK
 /// The Affinidi Meeting Place - Core SDK provides a high-level interface for coordinating connection setup using the discovery control plane API and mediator. This SDK acts as an orchestrator, applying business logic on top of underlying APIs to simplify integration.
@@ -259,6 +262,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
+      identityRepository: repositoryConfig.identityRepository,
       logger: mpxLogger,
     );
 
@@ -1355,5 +1359,48 @@ class MeetingPlaceCoreSDK {
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);
+  }
+
+  Future<Identity> createIdentity({
+    required ContactCard card,
+    bool isPrimary = false,
+  }) async {
+    final didManager = await _connectionManager.generateDid(wallet);
+    final didDoc = await didManager.getDidDocument();
+    final id = const Uuid().v4();
+    final storedCard = ContactCard(
+      id: id,
+      firstName: card.firstName,
+      displayName: card.displayName,
+      lastName: card.lastName,
+      email: card.email,
+      mobile: card.mobile,
+      profilePic: card.profilePic,
+      cardColor: card.cardColor,
+    );
+    final identity = Identity(
+      id: id,
+      did: didDoc.id,
+      card: storedCard,
+      isPrimary: isPrimary,
+    );
+    await _repositoryConfig.identityRepository.addIdentity(identity);
+    return identity;
+  }
+
+  Future<List<Identity>> listIdentities() {
+    return _repositoryConfig.identityRepository.listIdentities();
+  }
+
+  Future<Identity?> getIdentityById(String id) {
+    return _repositoryConfig.identityRepository.getIdentityById(id);
+  }
+
+  Future<void> updateIdentity(Identity identity) {
+    return _repositoryConfig.identityRepository.updateIdentity(identity);
+  }
+
+  Future<void> deleteIdentity(String id) {
+    return _repositoryConfig.identityRepository.deleteIdentity(id);
   }
 }

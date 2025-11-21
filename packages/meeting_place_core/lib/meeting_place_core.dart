@@ -18,6 +18,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AccessListAdd,
         AccessListRemove,
         AclSet,
+        MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDKErrorCode,
         MeetingPlaceMediatorSDKException;
 

@@ -11,7 +11,7 @@ import '../../meeting_place_mediator_sdk_options.dart';
 import '../../utils/didcomm.dart';
 import '../../utils/string.dart';
 import 'forward_message_builder.dart';
-import 'mediator_stream_subscription.dart';
+import 'mediator_stream/mediator_stream_subscription.dart';
 import 'mediator_exception.dart';
 import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
@@ -88,6 +88,7 @@ class MediatorService {
             encryptionAlgorithm: EncryptionAlgorithm.a256cbc,
           ),
           webSocketOptions: WebSocketOptions(
+            deleteOnReceive: false,
             pingIntervalInSeconds: _options.websocketPingInterval,
             statusRequestMessageOptions: StatusRequestMessageOptions(
               shouldSend: true,
@@ -316,6 +317,7 @@ class MediatorService {
   Future<MediatorStreamSubscription> createStreamSubscription({
     required DidManager didManager,
     required String mediatorDid,
+    required Duration? deleteMessageDelay,
     bool reauthenticate = false,
     List<MessageWrappingType> messageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
@@ -335,6 +337,7 @@ class MediatorService {
         client: client,
         didManager: didManager,
         messageWrappingTypes: messageWrappingTypes,
+        deleteMessageDelay: deleteMessageDelay,
         logger: _logger,
       );
 

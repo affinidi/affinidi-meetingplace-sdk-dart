@@ -183,17 +183,27 @@ void main() {
       // Open subscription to mediator and attach listener
       subscription = await sdk.subscribeToMessages(
         didManagerB,
-        options: const MediatorStreamSubscriptionOptions(
-          deleteMessageDelay: Duration(milliseconds: 200),
-        ),
+        options:
+            const MediatorStreamSubscriptionOptions(deleteMessageDelay: null),
       );
-      subscription.listen((PlainTextMessage msg) {});
 
-      await Future.delayed(const Duration(seconds: 1));
-      final actual = await sdk.fetchMessages(
+      final messageReceivedCompleter = Completer<void>();
+      subscription.listen((PlainTextMessage msg) {
+        if (msg.type == messageToSend.type) {
+          messageReceivedCompleter.complete();
+        }
+      });
+
+      await messageReceivedCompleter.future;
+      await Future.delayed(const Duration(seconds: 2));
+
+      final fetchResult = await sdk.fetchMessages(
         didManager: didManagerB,
         deleteOnRetrieve: false,
       );
+
+      final actual =
+          fetchResult.where((r) => r.message?.id == messageToSend.id);
 
       expect(actual.length, isZero);
     });
@@ -243,8 +253,7 @@ void main() {
 
       // Open subscription to mediator and attach listener that throws error
       subscription = await sdk.subscribeToMessages(didManagerB,
-          options: MediatorStreamSubscriptionOptions(
-              deleteMessageDelay: const Duration(milliseconds: 200)));
+          options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null));
 
       final waitForError = Completer<void>();
       subscription.listen((PlainTextMessage msg) {
@@ -283,7 +292,7 @@ void main() {
       final actual =
           fetchResult.where((r) => r.message?.id == messageToBeProcessed.id);
 
-      expect(actual, isEmpty);
+      expect(actual.length, isZero);
     });
   });
 }

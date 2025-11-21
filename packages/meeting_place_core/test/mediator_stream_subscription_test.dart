@@ -264,4 +264,29 @@ void main() async {
 
     expect(messages.length, equals(0));
   });
+
+  test('invokes onError callback when listener throws exception', () async {
+    final subscription = await aliceSDK.subscribeToMediator(
+      aliceDidDoc.id,
+      options: MediatorStreamSubscriptionOptions(
+        deleteMessageDelay: const Duration(seconds: 3),
+      ),
+    );
+
+    final waitForError = Completer<bool>();
+    subscription.listen((message) {
+      if (message.plainTextMessage.isOfType('https://example.com/test')) {
+        throw Exception('Test error');
+      }
+    }, onError: (e) {
+      waitForError.complete(true);
+    });
+
+    await sendMessageFromBobToAlice();
+
+    final onErrorExecuted = await waitForError.future
+        .timeout(const Duration(seconds: 10), onTimeout: () => false);
+
+    expect(onErrorExecuted, isTrue);
+  });
 }

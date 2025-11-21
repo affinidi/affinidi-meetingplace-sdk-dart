@@ -39,7 +39,7 @@ class MediatorStreamSubscriptionWrapper
   @override
   StreamSubscription<MediatorMessage> listen(
     void Function(MediatorMessage) onData, {
-    Function(Object e)? onError,
+    Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) {
@@ -54,10 +54,9 @@ class MediatorStreamSubscriptionWrapper
             stackTrace: stackTrace,
             name: 'listen',
           );
-          if (onError != null) {
-            onError(e);
-          } else {
-            rethrow;
+
+          if (!_controller!.isClosed) {
+            _controller!.addError(e, stackTrace);
           }
         }
       },

@@ -94,7 +94,7 @@ class MediatorStreamSubscription {
 
   MediatorStreamSubscription listen(
     FutureOr<void> Function(PlainTextMessage) onData, {
-    void Function(Object e)? onError,
+    Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
   }) {
@@ -117,8 +117,7 @@ class MediatorStreamSubscription {
             stackTrace: stackTrace,
             name: 'listen',
           );
-
-          onError?.call(e);
+          _controller.addError(e);
         }
       },
       onError: onError,

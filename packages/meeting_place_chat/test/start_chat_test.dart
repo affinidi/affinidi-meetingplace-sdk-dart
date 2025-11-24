@@ -121,14 +121,16 @@ void main() async {
     final aliceCompleter = Completer<void>();
     final bobCompleter = Completer<void>();
 
-    var numberOfMessagesReceived = 0;
-
+    final receivedMessageIds = <String>[];
     await bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          numberOfMessagesReceived++;
-          if (numberOfMessagesReceived == 2) {
+        final isChatMessage = message.plainTextMessage?.type.toString() ==
+            ChatProtocol.chatMessage.value;
+
+        if (isChatMessage &&
+            !receivedMessageIds.contains(message.plainTextMessage!.id)) {
+          receivedMessageIds.add(message.plainTextMessage!.id);
+          if (receivedMessageIds.length == 2) {
             bobCompleter.complete();
           }
         }
@@ -154,7 +156,7 @@ void main() async {
 
     await bobCompleter.future;
     await aliceCompleter.future;
-    expect(numberOfMessagesReceived, equals(2));
+    expect(receivedMessageIds.length, equals(2));
 
     final aliceRepositoryMessages = await aliceChatSDK.messages;
     expect(aliceRepositoryMessages.length, equals(2));
@@ -247,8 +249,10 @@ void main() async {
     await bobChatSDK.chatStreamSubscription.then(
       (stream) => {
         stream!.listen((data) {
-          if (data.plainTextMessage?.type.toString() ==
-              ChatProtocol.chatMessage.value) {
+          final isChatMessage = data.plainTextMessage?.type.toString() ==
+              ChatProtocol.chatMessage.value;
+
+          if (isChatMessage && !completer.isCompleted) {
             completer.complete(data.plainTextMessage);
           }
         }),

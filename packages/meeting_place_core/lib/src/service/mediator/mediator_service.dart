@@ -58,9 +58,14 @@ class MediatorService {
   Future<MediatorStreamSubscriptionWrapper> subscribe({
     required DidManager didManager,
     required String mediatorDid,
+    MediatorStreamSubscriptionOptions options =
+        const MediatorStreamSubscriptionOptions(),
   }) async {
-    final streamSubscription = await _mediatorSDK
-        .subscribeToMessages(didManager, mediatorDid: mediatorDid);
+    final streamSubscription = await _mediatorSDK.subscribeToMessages(
+      didManager,
+      mediatorDid: mediatorDid,
+      options: options,
+    );
 
     return MediatorStreamSubscriptionWrapper(
       baseSubscription: streamSubscription,

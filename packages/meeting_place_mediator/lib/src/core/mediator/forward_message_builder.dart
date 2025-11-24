@@ -28,7 +28,7 @@ class ForwardMessageBuilder {
     return forwardMessage;
   }
 
-  static _getExpiresTime(int? forwardExpiryInSeconds) {
+  static DateTime? _getExpiresTime(int? forwardExpiryInSeconds) {
     if (forwardExpiryInSeconds == null) return null;
     return DateTime.now().toUtc().add(
           Duration(seconds: forwardExpiryInSeconds),

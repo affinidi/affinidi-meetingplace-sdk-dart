@@ -179,12 +179,15 @@ class MeetingPlaceMediatorSDK {
   /// Returns [MediatorStreamSubscription]
   Future<MediatorStreamSubscription> subscribeToMessages(
     DidManager didManager, {
+    MediatorStreamSubscriptionOptions options =
+        const MediatorStreamSubscriptionOptions(),
     String? mediatorDid,
   }) {
     return _withSdkExceptionHandling(
       () => _mediatorService.createStreamSubscription(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
+        deleteMessageDelay: options.deleteMessageDelay,
       ),
     );
   }

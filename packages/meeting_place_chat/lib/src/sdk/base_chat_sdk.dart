@@ -8,6 +8,7 @@ import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
 import '../utils/message_utils.dart';
+import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
@@ -757,6 +758,6 @@ abstract class BaseChatSDK {
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
-            'Channel with other party DID $otherPartyDid not found'));
+            'Channel with other party DID ${otherPartyDid.topAndTail()} not found'));
   }
 }

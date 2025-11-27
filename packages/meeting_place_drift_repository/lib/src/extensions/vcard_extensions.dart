@@ -15,7 +15,7 @@ enum _VCardPaths {
 /// Extension on VCard to get and set common fields.
 /// Fields include first name, last name, email, mobile number, profile picture,
 /// and MeetingPlace identity card color.
-extension VCardFieldsKeys on VCard {
+extension VCardFieldsKeys on ContactCard {
   String _getVcardPathValue(
     Map<dynamic, dynamic> values,
     List<String> pathKeys, {
@@ -67,42 +67,41 @@ extension VCardFieldsKeys on VCard {
   }
 
   /// Gets or sets the first name in the VCard.
-  String get firstName =>
-      _getVcardPathValue(values, _VCardPaths.firstName.paths);
+  String get firstName => _getVcardPathValue(info, _VCardPaths.firstName.paths);
   set firstName(String value) =>
-      _setVcardPathValue(values, _VCardPaths.firstName.paths, value);
+      _setVcardPathValue(info, _VCardPaths.firstName.paths, value);
 
   /// Gets or sets the last name in the VCard.
-  String get lastName => _getVcardPathValue(values, _VCardPaths.lastName.paths);
+  String get lastName => _getVcardPathValue(info, _VCardPaths.lastName.paths);
   set lastName(String value) =>
-      _setVcardPathValue(values, _VCardPaths.lastName.paths, value);
+      _setVcardPathValue(info, _VCardPaths.lastName.paths, value);
 
   /// Gets or sets the email in the VCard.
-  String get email => _getVcardPathValue(values, _VCardPaths.email.paths);
+  String get email => _getVcardPathValue(info, _VCardPaths.email.paths);
   set email(String value) =>
-      _setVcardPathValue(values, _VCardPaths.email.paths, value);
+      _setVcardPathValue(info, _VCardPaths.email.paths, value);
 
   /// Gets or sets the mobile number in the VCard.
-  String get mobile => _getVcardPathValue(values, _VCardPaths.mobile.paths);
+  String get mobile => _getVcardPathValue(info, _VCardPaths.mobile.paths);
   set mobile(String value) =>
-      _setVcardPathValue(values, _VCardPaths.mobile.paths, value);
+      _setVcardPathValue(info, _VCardPaths.mobile.paths, value);
 
   /// Gets or sets the profile picture in the VCard.
   String get profilePic => _getVcardPathValue(
-        values,
+        info,
         _VCardPaths.profilePic.paths,
         defaultValue: '',
       );
   set profilePic(String value) =>
-      _setVcardPathValue(values, _VCardPaths.profilePic.paths, value);
+      _setVcardPathValue(info, _VCardPaths.profilePic.paths, value);
 
   /// Gets or sets the MeetingPlace identity card color in the VCard.
   String get meetingplaceIdentityCardColor => _getVcardPathValue(
-        values,
+        info,
         _VCardPaths.meetingplaceIdentityCardColor.paths,
       );
   set meetingplaceIdentityCardColor(String value) => _setVcardPathValue(
-        values,
+        info,
         _VCardPaths.meetingplaceIdentityCardColor.paths,
         value,
       );

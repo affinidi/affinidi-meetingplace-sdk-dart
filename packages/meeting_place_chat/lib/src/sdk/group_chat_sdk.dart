@@ -231,7 +231,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           chatId: chatId,
           groupDid: group.did,
           memberDid: matchingMessage.data['memberDid'] as String,
-          memberVCard: VCard.fromJson(
+          memberVCard: ContactCard.fromJson(
             matchingMessage.data['vCard'] as Map<String, dynamic>,
           ),
         );
@@ -337,7 +337,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         },
       );
 
-      member.vCard = VCard.fromJson(message.body!);
+      member.vCard = ContactCard.fromJson(message.body!);
       await coreSDK.updateGroup(group);
       await sendChatGroupDetailsUpdate();
       chatStream.pushData(StreamData(plainTextMessage: message));

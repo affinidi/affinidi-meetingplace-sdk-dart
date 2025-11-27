@@ -23,7 +23,7 @@ import 'connection_offer_database.dart' as db;
 ///   - offerLink
 ///   - permanentChannelDid
 ///   - groupDid
-/// - Return fully hydrated domain models (including [model.VCard]).
+/// - Return fully hydrated domain models (including [model.ContactCard]).
 ///
 /// ### Parameters:
 /// - database: The Drift [db.ConnectionOfferDatabase] instance to use.
@@ -53,7 +53,7 @@ class ConnectionOfferRepositoryDrift
   /// Returns:
   /// - A fully constructed [model.ConnectionOffer]
   ///  (or [model.GroupConnectionOffer])
-  ///   with its [model.VCard].
+  ///   with its [model.ContactCard].
   Future<model.ConnectionOffer?> _getConnectionOfferByPredicate(
     Expression<bool> predicate,
   ) async {
@@ -220,7 +220,7 @@ class ConnectionOfferRepositoryDrift
   /// - Throws [MeetingPlaceCoreRepositoryException] if the record does not
   ///   exist.
   /// - Updates main offer, group data (if applicable),
-  ///   and associated [model.VCard] contact card.
+  ///   and associated [model.ContactCard] contact card.
   @override
   Future<void> updateConnectionOffer(
     model.ConnectionOffer connectionOffer,
@@ -343,7 +343,7 @@ class ConnectionOfferRepositoryDrift
 /// - Map [model.ConnectionOffer], [model.GroupConnectionOffer]
 /// , and [db.ConnectionContactCard]
 ///   database rows into a complete model.
-/// - Construct a [model.VCard] from contact card details.
+/// - Construct a [model.ContactCard] from contact card details.
 /// - Determine whether to return a base [model.ConnectionOffer]
 ///   or a [model.GroupConnectionOffer].
 class _ConnectionOfferMapper {
@@ -352,7 +352,7 @@ class _ConnectionOfferMapper {
     db.GroupConnectionOffer? groupConnectionOffer,
     db.ConnectionContactCard contactCard,
   ) {
-    final vCard = model.VCard(values: {});
+    final vCard = model.ContactCard(values: {});
     vCard.firstName = contactCard.firstName;
     vCard.lastName = contactCard.lastName;
     vCard.email = contactCard.email;

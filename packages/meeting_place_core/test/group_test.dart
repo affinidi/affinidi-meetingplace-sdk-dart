@@ -146,7 +146,7 @@ void main() async {
       final aliceAdmin = group.members.first;
       expect(aliceAdmin.membershipType, equals(GroupMembershipType.admin));
       expect(aliceAdmin.status, equals(GroupMemberStatus.approved));
-      expect(aliceAdmin.vCard.values, equals(aliceVCard.values));
+      expect(aliceAdmin.vCard.info, equals(aliceVCard.info));
       expect(aliceAdmin.did, equals(result.connectionOffer.groupOwnerDid));
 
       // member assertions
@@ -157,7 +157,7 @@ void main() async {
         bobMember.did,
         equals(acceptResult.connectionOffer.permanentChannelDid),
       );
-      expect(bobMember.vCard.values, equals(bobVCard.values));
+      expect(bobMember.vCard.info, equals(bobVCard.info));
 
       aliceSDK.disposeControlPlaneEventsStream();
     },

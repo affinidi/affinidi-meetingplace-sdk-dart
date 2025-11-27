@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
+import '../protocol/v_card/contact_card.dart';
 
 part 'connection_offer.g.dart';
 
@@ -53,7 +53,7 @@ class ConnectionOffer {
   final String publishOfferDid;
   final String mediatorDid;
   final String oobInvitationMessage;
-  final VCard vCard;
+  final ContactCard vCard;
   final ConnectionOfferType type;
   final ConnectionOfferStatus status;
   final bool ownedByMe;
@@ -88,7 +88,7 @@ class ConnectionOffer {
   bool get isDeleted => status == ConnectionOfferStatus.deleted;
 
   ConnectionOffer copyWith({
-    VCard? vCard,
+    ContactCard? vCard,
     String? outboundMessageId,
     String? otherPartyPermanentChannelDid,
     String? acceptOfferDid,
@@ -130,7 +130,7 @@ class ConnectionOffer {
   ConnectionOffer accept({
     required String acceptOfferDid,
     required String permanentChannelDid,
-    required VCard vCard,
+    required ContactCard vCard,
     required DateTime createdAt,
     String? externalRef,
   }) {

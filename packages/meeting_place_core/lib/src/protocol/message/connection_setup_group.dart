@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import '../attachment/v_card_attachment.dart';
 import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../v_card/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class ConnectionSetupGroup extends PlainTextMessage {
@@ -12,7 +12,7 @@ class ConnectionSetupGroup extends PlainTextMessage {
     required super.parentThreadId,
     required String permanentChannelDid,
     required String memberPublicKey,
-    VCard? vCard,
+    ContactCard? vCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.connectionSetupGroup.value),
           body: {
@@ -20,7 +20,7 @@ class ConnectionSetupGroup extends PlainTextMessage {
             'public_key': memberPublicKey,
           },
           createdTime: DateTime.now().toUtc(),
-          attachments: vCard is VCard
+          attachments: vCard is ContactCard
               ? [
                   VCardAttachment.create(
                     data: AttachmentData(
@@ -37,7 +37,7 @@ class ConnectionSetupGroup extends PlainTextMessage {
     required String parentThreadId,
     required String permanentChannelDid,
     required String memberPublicKey,
-    VCard? vCard,
+    ContactCard? vCard,
   }) {
     return ConnectionSetupGroup(
       id: Uuid().v4(),

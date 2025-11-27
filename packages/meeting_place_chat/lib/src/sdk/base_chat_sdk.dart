@@ -49,7 +49,7 @@ abstract class BaseChatSDK {
   final Channel channelEntity;
   final ChatRepository chatRepository;
   final ChatSDKOptions options;
-  final VCard? vCard;
+  final ContactCard? vCard;
   final MeetingPlaceChatSDKLogger _logger;
 
   MeetingPlaceChatSDKLogger get logger => _logger;
@@ -357,7 +357,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channelEntity.type != ChannelType.group) {
-        channelEntity.otherPartyVCard = VCard.fromJson(
+        channelEntity.otherPartyVCard = ContactCard.fromJson(
           message.plainTextMessage.body!,
         );
         await coreSDK.updateChannel(channelEntity);

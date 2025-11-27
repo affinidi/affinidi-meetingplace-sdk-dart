@@ -17,7 +17,7 @@ void main() async {
         publishOfferDid: '',
         mediatorDid: '',
         status: ChannelStatus.inaugurated,
-        vCard: VCard(values: {}),
+        vCard: ContactCard(values: {}),
         type: type,
         permanentChannelDid: 'did:key:123',
         otherPartyPermanentChannelDid: 'did:key:456',

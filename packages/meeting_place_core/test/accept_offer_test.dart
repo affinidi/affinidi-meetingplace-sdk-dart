@@ -49,13 +49,13 @@ void main() async {
     await completer.future;
 
     expect(
-      channel.vCard?.values,
-      equals(VCardFixture.alicePrimaryVCard.values),
+      channel.vCard?.info,
+      equals(VCardFixture.alicePrimaryVCard.info),
     );
 
     expect(
-      channel.otherPartyVCard?.values,
-      equals(VCardFixture.bobPrimaryVCard.values),
+      channel.otherPartyVCard?.info,
+      equals(VCardFixture.bobPrimaryVCard.info),
     );
   });
 
@@ -74,8 +74,8 @@ void main() async {
     );
 
     expect(
-      acceptOfferResult.connectionOffer.vCard.values,
-      equals(VCardFixture.bobPrimaryVCard.values),
+      acceptOfferResult.connectionOffer.vCard.info,
+      equals(VCardFixture.bobPrimaryVCard.info),
     );
   });
 

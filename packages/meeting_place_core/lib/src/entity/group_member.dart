@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
+import '../protocol/v_card/contact_card.dart';
 
 part 'group_member.g.dart';
 
@@ -19,7 +19,7 @@ class GroupMember {
   factory GroupMember.pendingMember({
     required String did,
     required String publicKey,
-    required VCard vCard,
+    required ContactCard vCard,
   }) {
     return GroupMember(
       did: did,
@@ -34,7 +34,7 @@ class GroupMember {
   factory GroupMember.admin({
     required String did,
     required String publicKey,
-    required VCard vCard,
+    required ContactCard vCard,
   }) {
     return GroupMember(
       did: did,
@@ -63,7 +63,8 @@ class GroupMember {
   final DateTime dateAdded;
   final GroupMembershipType membershipType;
   final String publicKey;
-  VCard vCard;
+
+  ContactCard vCard;
 
   GroupMemberStatus status;
 
@@ -76,7 +77,7 @@ class GroupMember {
     DateTime? dateAdded,
     GroupMemberStatus? status,
     GroupMembershipType? membershipType,
-    VCard? vCard,
+    ContactCard? vCard,
     String? publicKey,
   }) {
     return GroupMember(

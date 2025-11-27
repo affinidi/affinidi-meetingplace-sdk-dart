@@ -14,7 +14,7 @@ void main() async {
   // Alice creates OOB
   prettyPrintGreen('>>> Calling SDK.createOobFlow');
   final oob = await aliceSDK.createOobFlow(
-    vCard: VCard(values: {'firstName': 'Alice'}),
+    vCard: ContactCard(values: {'firstName': 'Alice'}),
   );
 
   prettyPrintYellow('OOB URL: ${oob.oobUrl.toString()}');

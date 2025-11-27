@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:didcomm/didcomm.dart';
 import '../protocol/protocol.dart';
 
-VCard? getVCardDataOrEmptyFromAttachments(List<Attachment>? attachments) {
+ContactCard? getVCardDataOrEmptyFromAttachments(List<Attachment>? attachments) {
   if (attachments == null) {
     return null;
   }
@@ -20,7 +20,7 @@ VCard? getVCardDataOrEmptyFromAttachments(List<Attachment>? attachments) {
 
   try {
     final normalized = base64Url.decode(base64.normalize(vCard.data!.base64!));
-    return VCard(
+    return ContactCard(
       values: jsonDecode(utf8.decode(normalized)) as Map<dynamic, dynamic>,
     );
   } catch (ex) {

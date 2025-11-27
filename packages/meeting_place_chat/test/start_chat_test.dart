@@ -75,9 +75,10 @@ void main() async {
       ),
     ]);
 
-    final aliceVCard = VCard(values: VCardFixture.alicePrimaryVCard.values);
-    final bobVCard = VCard(values: VCardFixture.bobPrimaryVCard.values);
-    final charlieVCard = VCard(values: VCardFixture.charliePrimaryVCard.values);
+    final aliceVCard = ContactCard(values: VCardFixture.alicePrimaryVCard.info);
+    final bobVCard = ContactCard(values: VCardFixture.bobPrimaryVCard.info);
+    final charlieVCard =
+        ContactCard(values: VCardFixture.charliePrimaryVCard.info);
 
     aliceChatSDK = await initIndividualChatSDK(
       coreSDK: aliceSDK,
@@ -460,7 +461,7 @@ void main() async {
     'Bob has concierge message after receiving profile hash requets',
     () async {
       await aliceChatSDK.startChatSession();
-      final updatedVCard = VCard(values: {'changed': 'value'});
+      final updatedVCard = ContactCard(values: {'changed': 'value'});
 
       final aliceOpenedChat = Completer<void>();
       await aliceChatSDK.chatStreamSubscription.then((stream) {
@@ -526,15 +527,15 @@ void main() async {
       await aliceChatCompleter.future;
       final aliceChannel = await aliceSDK.getChannelByDid(bobDidDocument.id);
       expect(
-        aliceChannel?.otherPartyVCard?.values,
-        equals(updatedVCard.values),
+        aliceChannel?.otherPartyVCard?.info,
+        equals(updatedVCard.info),
       );
     },
   );
 
   test('reject contact profile update', () async {
     await aliceChatSDK.startChatSession();
-    final updatedVCard = VCard(values: {'changed': 'value'});
+    final updatedVCard = ContactCard(values: {'changed': 'value'});
 
     final aliceOpenedChat = Completer<void>();
     await aliceChatSDK.chatStreamSubscription.then((stream) {

@@ -26,7 +26,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// - [coreSDK]: Instance of [MeetingPlaceCoreSDK] to retrieve group information if needed.
   /// - [chatRepository]: The [ChatRepository] used for persisting messages.
   /// - [options]: Configuration options for the chat.
-  /// - [vCard]: Optional [VCard] representing the user profile.
+  /// - [vCard]: Optional [ContactCard] representing the user profile.
   /// - [logger]: Optional logger implementation for custom logging behavior.
   ///   If not provided, uses DefaultChatSdkLogger.
   ///
@@ -39,7 +39,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
     required ChatSDKOptions options,
-    VCard? vCard,
+    ContactCard? vCard,
     MeetingPlaceChatSDKLogger? logger,
   }) async {
     if (channel.type == ChannelType.group) {

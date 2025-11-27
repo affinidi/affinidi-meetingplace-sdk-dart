@@ -1,6 +1,6 @@
 import 'package:didcomm/didcomm.dart';
 import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../v_card/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class OutreachInvitation extends PlainTextMessage {
@@ -10,7 +10,7 @@ class OutreachInvitation extends PlainTextMessage {
     required super.to,
     required String mnemonic,
     required String message,
-    VCard? vCard,
+    ContactCard? vCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.outreachInvitation.value),
           body: {'mnemonic': mnemonic, 'message': message},

@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
+import '../protocol/v_card/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 import 'entity.dart';
@@ -40,7 +40,7 @@ class Channel {
     ConnectionOffer connectionOffer, {
     required String permanentChannelDid,
     required String acceptOfferDid,
-    required VCard vCard,
+    required ContactCard vCard,
     required String? externalRef,
   }) {
     return Channel(
@@ -61,7 +61,7 @@ class Channel {
     GroupConnectionOffer connectionOffer, {
     required String permanentChannelDid,
     required String acceptOfferDid,
-    required VCard vCard,
+    required ContactCard vCard,
     required String? externalRef,
   }) {
     return Channel(
@@ -84,8 +84,8 @@ class Channel {
   final String mediatorDid;
   final String offerLink;
   final ChannelType type;
-  VCard? vCard;
-  VCard? otherPartyVCard;
+  ContactCard? vCard;
+  ContactCard? otherPartyVCard;
   ChannelStatus status;
 
   String? outboundMessageId;

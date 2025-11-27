@@ -16,7 +16,7 @@ ConnectionOffer _$ConnectionOfferFromJson(Map<String, dynamic> json) =>
       oobInvitationMessage: json['oobInvitationMessage'] as String,
       type: $enumDecode(_$ConnectionOfferTypeEnumMap, json['type']),
       status: $enumDecode(_$ConnectionOfferStatusEnumMap, json['status']),
-      vCard: VCard.fromJson(json['vCard'] as Map<String, dynamic>),
+      vCard: ContactCard.fromJson(json['vCard'] as Map<String, dynamic>),
       ownedByMe: json['ownedByMe'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
       expiresAt: json['expiresAt'] == null

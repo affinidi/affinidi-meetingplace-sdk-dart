@@ -15,7 +15,7 @@ void main() async {
 
   // Alice creates OOB
   final oob = await aliceSDK.createOobFlow(
-    vCard: VCard(values: {'firstName': 'Alice'}),
+    vCard: ContactCard(values: {'firstName': 'Alice'}),
   );
 
   // Alice listens on acceptance
@@ -26,7 +26,7 @@ void main() async {
 
   // Bob accepts OOB
   final acceptance = await bobSDK.acceptOobFlow(oob.oobUrl,
-      vCard: VCard(values: {'firstName': 'Bob'}));
+      vCard: ContactCard(values: {'firstName': 'Bob'}));
 
   // Bob listens for approval
   acceptance.streamSubscription.listen((data) {

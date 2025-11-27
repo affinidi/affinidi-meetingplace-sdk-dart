@@ -19,7 +19,7 @@ void main() async {
   // Bob accepts OOB
   final acceptance = await bobSDK.acceptOobFlow(
     oobUri,
-    vCard: VCard(values: {'firstName': 'Bob'}),
+    vCard: ContactCard(values: {'firstName': 'Bob'}),
   );
 
   // Bob listens for approval

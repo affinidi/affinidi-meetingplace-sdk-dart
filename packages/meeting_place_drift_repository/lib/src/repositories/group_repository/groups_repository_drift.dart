@@ -240,8 +240,9 @@ class _GroupMemberMapper {
     );
   }
 
-  static model.VCard _makeVCardFromContactCard(db.GroupMember groupMember) {
-    final vCard = model.VCard(values: {});
+  static model.ContactCard _makeVCardFromContactCard(
+      db.GroupMember groupMember) {
+    final vCard = model.ContactCard(values: {});
     vCard.firstName = groupMember.firstName;
     vCard.lastName = groupMember.lastName;
     vCard.email = groupMember.email;

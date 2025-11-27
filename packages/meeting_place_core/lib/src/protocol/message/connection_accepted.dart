@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import '../attachment/v_card_attachment.dart';
 import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../v_card/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class ConnectionAccepted extends PlainTextMessage {
@@ -11,12 +11,12 @@ class ConnectionAccepted extends PlainTextMessage {
     required super.to,
     required super.parentThreadId,
     required String permanentChannelDid,
-    VCard? vCard,
+    ContactCard? vCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.connectionAccepted.value),
           body: {'channel_did': permanentChannelDid},
           createdTime: DateTime.now().toUtc(),
-          attachments: vCard is VCard
+          attachments: vCard is ContactCard
               ? [
                   VCardAttachment.create(
                     data: AttachmentData(
@@ -32,7 +32,7 @@ class ConnectionAccepted extends PlainTextMessage {
     required List<String> to,
     required String parentThreadId,
     required String permanentChannelDid,
-    VCard? vCard,
+    ContactCard? vCard,
   }) {
     return ConnectionAccepted(
       id: Uuid().v4(),

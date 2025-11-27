@@ -14,11 +14,12 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       status: $enumDecode(_$ChannelStatusEnumMap, json['status']),
       vCard: json['vCard'] == null
           ? null
-          : VCard.fromJson(json['vCard'] as Map<String, dynamic>),
+          : ContactCard.fromJson(json['vCard'] as Map<String, dynamic>),
       type: $enumDecode(_$ChannelTypeEnumMap, json['type']),
       otherPartyVCard: json['otherPartyVCard'] == null
           ? null
-          : VCard.fromJson(json['otherPartyVCard'] as Map<String, dynamic>),
+          : ContactCard.fromJson(
+              json['otherPartyVCard'] as Map<String, dynamic>),
       outboundMessageId: json['outboundMessageId'] as String?,
       acceptOfferDid: json['acceptOfferDid'] as String?,
       permanentChannelDid: json['permanentChannelDid'] as String?,

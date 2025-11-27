@@ -79,8 +79,8 @@ class ChatGroupDetailsUpdateHandler {
     return updatedGroup;
   }
 
-  VCard _vCardFromMessage(Map<String, dynamic> message) {
-    return VCard(
+  ContactCard _vCardFromMessage(Map<String, dynamic> message) {
+    return ContactCard(
       values: (message['vCard'] as dynamic)['values'] as Map<String, dynamic>,
     );
   }

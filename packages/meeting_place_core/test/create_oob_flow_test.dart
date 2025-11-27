@@ -89,9 +89,9 @@ void main() async {
     });
 
     test('vCards match', () {
-      expect(aliceChannel?.vCard?.values, bobChannel?.otherPartyVCard?.values);
+      expect(aliceChannel?.vCard?.info, bobChannel?.otherPartyVCard?.info);
 
-      expect(aliceChannel?.otherPartyVCard?.values, bobChannel?.vCard?.values);
+      expect(aliceChannel?.otherPartyVCard?.info, bobChannel?.vCard?.info);
     });
 
     test('channel status is inaugurated', () {
@@ -156,8 +156,8 @@ void main() async {
       expect(bobChannel?.otherPartyVCard, isNull);
 
       expect(
-        bobChannel?.vCard?.values,
-        equals(VCardFixture.bobPrimaryVCard.values),
+        bobChannel?.vCard?.info,
+        equals(VCardFixture.bobPrimaryVCard.info),
       );
     });
   });
@@ -200,14 +200,14 @@ void main() async {
         channelBefore!.permanentChannelDid,
       );
       expect(bobChannel?.type, channelBefore!.type);
-      expect(bobChannel?.vCard?.values, equals(channelBefore?.vCard?.values));
+      expect(bobChannel?.vCard?.info, equals(channelBefore?.vCard?.info));
     });
 
     test('channel has been updated', () {
       expect(bobChannel?.otherPartyPermanentChannelDid, isNotNull);
       expect(
-        bobChannel?.otherPartyVCard?.values,
-        VCardFixture.alicePrimaryVCard.values,
+        bobChannel?.otherPartyVCard?.info,
+        VCardFixture.alicePrimaryVCard.info,
       );
     });
   });

@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
-import 'package:meeting_place_core/src/protocol/v_card/v_card.dart';
+import 'package:meeting_place_core/src/protocol/v_card/contact_card.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
@@ -47,7 +47,7 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     type: ConnectionOfferType.meetingPlaceInvitation,
-    vCard: VCard(values: {'fullName': 'Test User'}),
+    vCard: ContactCard(values: {'fullName': 'Test User'}),
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
   );
@@ -63,7 +63,7 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     status: ChannelStatus.approved,
-    vCard: VCard(values: {}),
+    vCard: ContactCard(values: {}),
     type: ChannelType.individual,
   );
 

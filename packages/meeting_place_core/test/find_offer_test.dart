@@ -18,7 +18,7 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       maximumUsage: 5,
-      vCard: VCard(values: {}),
+      vCard: ContactCard(values: {}),
       type: SDKConnectionOfferType.invitation,
     );
     connectionOffer = offer.connectionOffer;
@@ -38,7 +38,7 @@ void main() async {
 
     expect(
       actual.connectionOffer!.vCard.toJson(),
-      equals(VCard(values: {}).toJson()),
+      equals(ContactCard(values: {}).toJson()),
     );
 
     expect(
@@ -52,7 +52,7 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,
-      vCard: VCard(values: {}),
+      vCard: ContactCard(values: {}),
     );
 
     final actual = await bobSDK.findOffer(
@@ -72,7 +72,7 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.invitation,
-      vCard: VCard(values: {}),
+      vCard: ContactCard(values: {}),
     );
 
     expect(

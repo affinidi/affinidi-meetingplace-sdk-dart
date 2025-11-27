@@ -113,7 +113,7 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        vCard: VCard(values: queryOfferResult.vCard.values),
+        vCard: ContactCard(values: queryOfferResult.vCard.values),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
         mediatorDid: queryOfferResult.mediatorDid,
@@ -144,7 +144,7 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        vCard: VCard(values: queryOfferResult.vCard.values),
+        vCard: ContactCard(values: queryOfferResult.vCard.values),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
         mediatorDid: queryOfferResult.mediatorDid,
@@ -173,7 +173,7 @@ class ConnectionService {
   Future<(ConnectionOffer, DidManager)> publishOffer({
     required String offerName,
     required String offerDescription,
-    required VCard vCard,
+    required ContactCard vCard,
     required Wallet wallet,
     required ConnectionOfferType type,
     String? customPhrase,
@@ -204,7 +204,7 @@ class ConnectionService {
             ? OfferType.outreachInvitation
             : OfferType.invitation,
         oobInvitationMessage: oobMessage,
-        vCard: VCardImpl(values: vCard.values),
+        vCard: VCardImpl(values: vCard.info),
         device: _controlPlaneSDK.device,
         customPhrase: customPhrase,
         validUntil: validUntil,
@@ -261,7 +261,7 @@ class ConnectionService {
   Future<AcceptOfferResult> acceptOffer({
     required Wallet wallet,
     required ConnectionOffer connectionOffer,
-    required VCard vCard,
+    required ContactCard vCard,
     required String senderInfo,
     String? externalRef,
   }) async {
@@ -301,7 +301,7 @@ class ConnectionService {
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
         acceptOfferDid: acceptOfferDidDocument.id,
-        vCard: VCardImpl(values: vCard.values),
+        vCard: VCardImpl(values: vCard.info),
       ),
     );
 
@@ -361,7 +361,7 @@ class ConnectionService {
     ConnectionOffer connectionOffer, {
     required DidDocument acceptOfferDidDocument,
     required DidDocument permanentChannelDidDocument,
-    required VCard vCard,
+    required ContactCard vCard,
     String? externalRef,
   }) async {
     final existingConnectionOffer = await _connectionOfferRepository
@@ -403,7 +403,7 @@ class ConnectionService {
     required DidDocument permanentChannelDidDocument,
     required PlainTextMessage invitationMessage,
     String? mediatorDid,
-    VCard? acceptVCard,
+    ContactCard? acceptVCard,
   }) async {
     final methodName = 'sendAcceptOfferToMediator';
     _logger.info('Sending accept offer to mediator', name: methodName);
@@ -530,7 +530,7 @@ class ConnectionService {
         otherPartyAcceptOfferDid: channel.acceptOfferDid!,
         otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid!,
         vCard: channel.vCard != null
-            ? VCardImpl(values: channel.vCard!.values)
+            ? VCardImpl(values: channel.vCard!.info)
             : null,
       ),
     );
@@ -562,7 +562,7 @@ class ConnectionService {
     required String otherPartyAcceptOfferDid,
     required String outboundMessageId,
     required String mediatorDid,
-    VCard? vCard,
+    ContactCard? vCard,
   }) async {
     final methodName = 'sendConnectionRequestApprovalToMediator';
     _logger.info(

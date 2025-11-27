@@ -17,7 +17,7 @@ void main() async {
         'n': {'given': 'Alice'},
       };
 
-      final vCard = VCard(
+      final vCard = ContactCard(
         values: expValues,
       );
 
@@ -34,7 +34,7 @@ void main() async {
 
       expect(actual.connectionOffer.offerName, equals(offerName));
       expect(actual.connectionOffer.offerDescription, equals(offerDescription));
-      expect(actual.connectionOffer.vCard.values, equals(expValues));
+      expect(actual.connectionOffer.vCard.info, equals(expValues));
       expect(actual.connectionOffer.type,
           equals(ConnectionOfferType.meetingPlaceInvitation));
     },

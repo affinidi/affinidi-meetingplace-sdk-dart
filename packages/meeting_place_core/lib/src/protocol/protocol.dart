@@ -12,4 +12,4 @@ export 'message/group_message.dart';
 export 'message/oob_invitation_message.dart';
 export 'meeting_place_notification_suffix.dart';
 export 'meeting_place_protocol.dart';
-export 'v_card/v_card.dart';
+export 'v_card/contact_card.dart';

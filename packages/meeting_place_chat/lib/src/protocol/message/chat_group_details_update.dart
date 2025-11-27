@@ -19,7 +19,7 @@ class ChatGroupDetailsUpdateBodyMember {
   });
 
   final String did;
-  final VCard vCard;
+  final ContactCard vCard;
   final DateTime dateAdded;
   final String status;
   final String publicKey;

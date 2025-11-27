@@ -23,7 +23,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberVCard,
   }) {
     final methodName = 'createGroupMemberJoinedGroupEventMessage';
     _logger.info(
@@ -44,7 +44,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberVCard,
   }) {
     final methodName = 'createAwaitingGroupMemberToJoinEventMessage';
     _logger.info(
@@ -65,7 +65,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberVCard,
   }) {
     final methodName = 'createGroupMemberLeftGroupEventMessage';
     _logger.info('Creating group member left event message', name: methodName);
@@ -105,7 +105,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberVCard,
   }) async {
     return _chatRepository.createMessage(
       EventMessage(

@@ -12,7 +12,7 @@ GroupMember _$GroupMemberFromJson(Map<String, dynamic> json) => GroupMember(
       status: $enumDecode(_$GroupMemberStatusEnumMap, json['status']),
       membershipType:
           $enumDecode(_$GroupMembershipTypeEnumMap, json['membershipType']),
-      vCard: VCard.fromJson(json['vCard'] as Map<String, dynamic>),
+      vCard: ContactCard.fromJson(json['vCard'] as Map<String, dynamic>),
       publicKey: json['publicKey'] as String,
     );
 

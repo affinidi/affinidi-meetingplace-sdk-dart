@@ -25,7 +25,7 @@ void main() async {
   final publishOfferResult = await aliceSDK.publishOffer(
     offerName: 'Example offer',
     offerDescription: 'Example offer to test.',
-    vCard: VCard(values: {}),
+    vCard: ContactCard(values: {}),
     type: SDKConnectionOfferType.invitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
   );

@@ -26,7 +26,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   /// Inserts a new [model.Channel] into the database, along with its vCards.
   ///
   /// - [channel]: The channel domain model containing metadata and
-  ///   optional self ([model.VCard]) and other party
+  ///   optional self ([model.ContactCard]) and other party
   ///  (otherPartyVCard) contact details.
   ///
   /// Runs inside a database transaction to ensure atomicity.
@@ -165,7 +165,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
 
   Future<void> _upsertVCardType({
     required String channelId,
-    required model.VCard? vCard,
+    required model.ContactCard? vCard,
     required db.VCardType type,
   }) async {
     final vCardExistQuery = _database.select(_database.channelContactCards)
@@ -190,7 +190,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   /// Used during channel creation.
   Future<void> _insertVCardType({
     required String channelId,
-    required model.VCard vCard,
+    required model.ContactCard vCard,
     required db.VCardType type,
   }) async {
     await _database.into(_database.channelContactCards).insert(
@@ -216,7 +216,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   /// - If [vCard] is `null`, removes the vCard entry.
   Future<void> _updateVCardType({
     required String channelId,
-    required model.VCard? vCard,
+    required model.ContactCard? vCard,
     required db.VCardType type,
   }) async {
     if (vCard != null) {
@@ -325,12 +325,12 @@ class _ChannelMapper {
     );
   }
 
-  static model.VCard? _makeVCardFromContactCard(
+  static model.ContactCard? _makeVCardFromContactCard(
     db.ChannelContactCard? contactCard,
   ) {
     if (contactCard == null) return null;
 
-    final vCard = model.VCard(values: {});
+    final vCard = model.ContactCard(values: {});
     vCard.firstName = contactCard.firstName;
     vCard.lastName = contactCard.lastName;
     vCard.email = contactCard.email;

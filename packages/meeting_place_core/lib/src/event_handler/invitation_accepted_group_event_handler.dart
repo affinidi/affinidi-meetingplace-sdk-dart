@@ -85,7 +85,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
         group.members.add(GroupMember.pendingMember(
           did: otherPartyPermanentChannelDid,
           publicKey: publicKey,
-          vCard: otherPartyVCard ?? VCard.empty(),
+          vCard: otherPartyVCard ?? ContactCard.empty(),
         ));
 
         await _groupRepository.updateGroup(group);

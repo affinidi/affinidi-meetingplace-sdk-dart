@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
+import '../protocol/v_card/contact_card.dart';
 
 import 'connection_offer.dart';
 
@@ -52,7 +52,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     String? memberDid,
     String? groupOwnerDid,
     String? metadata,
-    VCard? vCard,
+    ContactCard? vCard,
     String? outboundMessageId,
     String? otherPartyPermanentChannelDid,
     String? acceptOfferDid,
@@ -102,7 +102,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     required String acceptOfferDid,
     required String permanentChannelDid,
     required DateTime createdAt,
-    VCard? vCard,
+    ContactCard? vCard,
     String? externalRef,
   }) {
     return copyWith(

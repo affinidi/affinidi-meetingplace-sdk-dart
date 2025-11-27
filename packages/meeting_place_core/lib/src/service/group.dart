@@ -80,7 +80,7 @@ class GroupService {
       )> createGroup({
     required String offerName,
     required String offerDescription,
-    required VCard vCard,
+    required ContactCard vCard,
     String? mediatorDid,
     String? customPhrase,
     DateTime? validUntil,
@@ -120,7 +120,7 @@ class GroupService {
       RegisterOfferGroupCommand(
         offerName: offerName,
         offerDescription: offerDescription,
-        vCard: VCardImpl(values: vCard.values),
+        vCard: VCardImpl(values: vCard.info),
         device: _controlPlaneSDK.device,
         oobInvitationMessage: oobMessage,
         validUntil: validUntil,
@@ -247,7 +247,7 @@ class GroupService {
   Future<AcceptGroupOfferResult> acceptGroupOffer({
     required Wallet wallet,
     required GroupConnectionOffer connectionOffer,
-    required VCard vCard,
+    required ContactCard vCard,
     required String senderInfo,
     String? externalRef,
   }) async {
@@ -286,7 +286,7 @@ class GroupService {
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
-        vCard: VCardImpl(values: vCard.values),
+        vCard: VCardImpl(values: vCard.info),
         acceptOfferDid: acceptOfferDidDocument.id,
       ),
     );
@@ -377,7 +377,7 @@ class GroupService {
 
   Future<Group> _createOrUpdateGroup({
     required DidDocument permanentChannelDidDocument,
-    required VCard vCard,
+    required ContactCard vCard,
     String? externalRef,
     required String memberPublicKeyBase64,
     required String offerLink,
@@ -425,7 +425,7 @@ class GroupService {
     required Group group,
     required DidDocument acceptOfferDidDocument,
     required DidDocument permanentChannelDidDocument,
-    required VCard vCard,
+    required ContactCard vCard,
     String? externalRef,
   }) async {
     final existingConnectionOffer = await _connectionOfferRepository
@@ -477,7 +477,7 @@ class GroupService {
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
     required String groupMemberPublicKey,
-    VCard? vCard,
+    ContactCard? vCard,
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
     _logger.info(
@@ -624,7 +624,7 @@ class GroupService {
       groupId: group.id,
       adminDids: [group.ownerDid!],
       groupPublicKey: group.publicKey!,
-      vCard: VCard(
+      vCard: ContactCard(
         values: {
           'n': {'given': connectionOffer.offerName},
         },
@@ -658,7 +658,7 @@ class GroupService {
         acceptOfferDid: channel.acceptOfferDid!,
         offerLink: channel.offerLink,
         vCard: channel.otherPartyVCard != null
-            ? VCardImpl(values: channel.otherPartyVCard!.values)
+            ? VCardImpl(values: channel.otherPartyVCard!.info)
             : null,
         publicKey: member.publicKey,
         reencryptionKey: reencryptionKey.toBase64(),

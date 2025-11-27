@@ -23,7 +23,7 @@ class ChatEffect extends PlainTextMessage {
     required super.from,
     required super.to,
     required String effect, // TODO: convert to enum?
-    VCard? vCard,
+    ContactCard? vCard,
   }) : super(
           type: Uri.parse(ChatProtocol.chatEffect.value),
           body: {'effect': effect},

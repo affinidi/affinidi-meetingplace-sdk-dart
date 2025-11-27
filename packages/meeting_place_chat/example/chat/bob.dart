@@ -38,7 +38,7 @@ void main() async {
   prettyPrintGreen('>>> Calling SDK.acceptOffer');
   final acceptOfferResult = await bobSDK.acceptOffer(
     connectionOffer: findOfferResult.connectionOffer!,
-    vCard: VCard(values: {}),
+    vCard: ContactCard(values: {}),
     senderInfo: 'Bob',
   );
 

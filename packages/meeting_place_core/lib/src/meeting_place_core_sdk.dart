@@ -428,7 +428,7 @@ class MeetingPlaceCoreSDK {
   ///
   /// Returns [CreateOobFlowResult]
   Future<CreateOobFlowResult> createOobFlow({
-    required VCard vCard,
+    required ContactCard vCard,
     String? did,
     String? mediatorDid,
     String? externalRef,
@@ -554,7 +554,7 @@ class MeetingPlaceCoreSDK {
   /// Returns [AcceptOobFlowResult]
   Future<AcceptOobFlowResult> acceptOobFlow(
     Uri oobUrl, {
-    required VCard vCard,
+    required ContactCard vCard,
     String? externalRef,
   }) async {
     final methodName = 'acceptOobFlow';
@@ -812,7 +812,7 @@ class MeetingPlaceCoreSDK {
   Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>({
     required String offerName,
     required sdk.SDKConnectionOfferType type,
-    required VCard vCard,
+    required ContactCard vCard,
     required String offerDescription,
     String? customPhrase,
     DateTime? validUntil,
@@ -906,7 +906,7 @@ class MeetingPlaceCoreSDK {
   ///   [acceptOfferDid] and [permanentChannelDid]
   Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
     required T connectionOffer,
-    required VCard vCard,
+    required ContactCard vCard,
     required String senderInfo,
     String? externalRef,
   }) async {

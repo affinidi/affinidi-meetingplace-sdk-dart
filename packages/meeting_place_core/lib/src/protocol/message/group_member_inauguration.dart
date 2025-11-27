@@ -2,7 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import '../attachment/attachment_format.dart';
 import '../attachment/attachment_media_type.dart';
 import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../v_card/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class GroupMemberInaugurationMember {
@@ -15,7 +15,7 @@ class GroupMemberInaugurationMember {
   });
 
   final String did;
-  final VCard vCard;
+  final ContactCard vCard;
   final String membershipType;
   final String status;
   final String publicKey;
@@ -78,7 +78,7 @@ class GroupMemberInauguration extends PlainTextMessage {
     required String groupPublicKey,
     required List<String> adminDids,
     required List<GroupMemberInaugurationMember> members,
-    required VCard vCard,
+    required ContactCard vCard,
   }) {
     return GroupMemberInauguration(
       id: Uuid().v4(),
@@ -108,7 +108,8 @@ class GroupMemberInauguration extends PlainTextMessage {
         final memberData = member as Map<String, dynamic>;
         return GroupMemberInaugurationMember(
           did: memberData['did'] as String,
-          vCard: VCard.fromJson(memberData['vCard'] as Map<String, dynamic>),
+          vCard:
+              ContactCard.fromJson(memberData['vCard'] as Map<String, dynamic>),
           status: memberData['status'],
           publicKey: memberData['publicKey'] as String,
           membershipType: memberData['isAdmin'] == 'true' ? 'admin' : 'member',
@@ -123,5 +124,5 @@ class GroupMemberInauguration extends PlainTextMessage {
   final String groupPublicKey;
   final List<String> adminDids;
   final List<GroupMemberInaugurationMember> members;
-  final VCard? vCard;
+  final ContactCard? vCard;
 }

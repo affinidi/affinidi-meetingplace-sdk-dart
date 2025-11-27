@@ -47,9 +47,9 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
   required String did,
   required String otherPartyDid,
   required ChannelRepository channelRepository,
-  VCard? vCard,
-  VCard? otherPartyVCard,
-  VCard? channelVCard,
+  ContactCard? vCard,
+  ContactCard? otherPartyVCard,
+  ContactCard? channelVCard,
   Storage? existingStorage,
   ChatSDKOptions? options,
 }) async {
@@ -89,7 +89,7 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
   required String otherPartyDid,
   required Group group,
   required ChannelRepository channelRepository,
-  VCard? vCard,
+  ContactCard? vCard,
   Storage? existingStorage,
 }) async {
   final storage = existingStorage ?? InMemoryStorage();

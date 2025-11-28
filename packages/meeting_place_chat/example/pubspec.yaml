@@ -8,7 +8,7 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
-  meeting_place_chat: ^0.0.1-dev.13
+  meeting_place_chat: ^0.0.1-dev.14
   meeting_place_core: ^0.0.1-dev.13
   pretty_json: ^2.0.0
   ssi: ^2.17.1

@@ -1,3 +1,7 @@
+## 0.0.1-dev.14
+
+ - **FIX**: get latest version of channel entity on ChatSDK before updating (#28).
+
 ## 0.0.1-dev.13
 
  - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).

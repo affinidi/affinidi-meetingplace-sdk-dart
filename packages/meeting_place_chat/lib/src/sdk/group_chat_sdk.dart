@@ -37,7 +37,6 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     required super.otherPartyDid,
     required super.mediatorDid,
     required super.chatRepository,
-    required super.channelEntity,
     required super.options,
     required this.group,
     super.vCard,
@@ -590,7 +589,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       return;
     }
 
-    if (channelEntity.vCard == null || vCard!.equals(channelEntity.vCard!)) {
+    final channel = await getChannel();
+    if (channel.vCard == null || vCard!.equals(channel.vCard!)) {
       return;
     }
 
@@ -606,8 +606,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         mediatorDid: mediatorDid,
       );
 
-      channelEntity.vCard = vCard;
-      await coreSDK.updateChannel(channelEntity);
+      channel.vCard = vCard;
+      await coreSDK.updateChannel(channel);
       return;
     }
 
@@ -641,8 +641,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await chatRepository.createMessage(conciergeMessage);
     logger.info('Completed sending profile hash', name: methodName);
 
-    channelEntity.vCard = vCard;
-    await coreSDK.updateChannel(channelEntity);
+    channel.vCard = vCard;
+    await coreSDK.updateChannel(channel);
     chatStream.pushData(StreamData(chatItem: conciergeMessage));
   }
 

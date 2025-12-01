@@ -78,7 +78,6 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
       chatRepository: ChatRepositoryImpl(storage: storage),
       options: options ??
           ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
-      channelEntity: channel,
     ),
   );
 }
@@ -117,7 +116,6 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
       chatRepository: ChatRepositoryImpl(storage: storage),
       options:
           ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
-      channelEntity: channel,
     ),
   );
 }

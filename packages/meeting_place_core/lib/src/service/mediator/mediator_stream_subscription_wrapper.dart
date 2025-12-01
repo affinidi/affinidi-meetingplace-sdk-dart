@@ -23,6 +23,8 @@ class MediatorStreamSubscriptionWrapper
   final KeyRepository _keyRepository;
   final MeetingPlaceCoreSDKLogger _logger;
 
+  StreamController<MediatorMessage>? _controller;
+
   /// Check if the underlying subscription is closed
   @override
   bool get isClosed => _baseSubscription.isClosed;
@@ -30,22 +32,8 @@ class MediatorStreamSubscriptionWrapper
   /// Stream of transformed mediator messages
   @override
   Stream<MediatorMessage> get stream {
-    return _baseSubscription.stream.asyncMap((message) async {
-      try {
-        return await MediatorMessage.fromPlainTextMessage(
-          message,
-          keyRepository: _keyRepository,
-        );
-      } catch (e, stackTrace) {
-        _logger.error(
-          'Error processing mediator message',
-          error: e,
-          stackTrace: stackTrace,
-          name: 'MediatorMessageSubscription.stream',
-        );
-        rethrow;
-      }
-    });
+    _initializeStreamTransformation();
+    return _controller!.stream;
   }
 
   @override
@@ -56,7 +44,22 @@ class MediatorStreamSubscriptionWrapper
     bool? cancelOnError,
   }) {
     return stream.listen(
-      onData,
+      (message) {
+        try {
+          onData(message);
+        } catch (e, stackTrace) {
+          _logger.error(
+            'Error in message handler',
+            error: e,
+            stackTrace: stackTrace,
+            name: 'listen',
+          );
+
+          if (!_controller!.isClosed) {
+            _controller!.addError(e, stackTrace);
+          }
+        }
+      },
       onError: onError,
       onDone: onDone,
       cancelOnError: cancelOnError,
@@ -69,29 +72,75 @@ class MediatorStreamSubscriptionWrapper
     void Function()? onTimeout,
   ) {
     return stream
-        .timeout(
-          timeLimit,
-          onTimeout: onTimeout != null
-              ? (EventSink<MediatorMessage> sink) {
-                  try {
-                    onTimeout();
-                  } catch (e, stackTrace) {
-                    _logger.error(
-                      'Error in timeout callback',
-                      error: e,
-                      stackTrace: stackTrace,
-                    );
-                  }
-                }
-              : null,
-        )
+        .timeout(timeLimit,
+            onTimeout: onTimeout != null
+                ? (sink) => _handleTimeout(onTimeout, sink)
+                : null)
         .listen(null);
+  }
+
+  void _handleTimeout(
+    void Function() onTimeout,
+    EventSink<MediatorMessage> sink,
+  ) {
+    try {
+      onTimeout();
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Error in timeout callback',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  void _initializeStreamTransformation() {
+    if (_controller != null) return;
+    _controller = StreamController<MediatorMessage>.broadcast();
+    _subscribeToBaseStream();
+  }
+
+  void _subscribeToBaseStream() {
+    _baseSubscription.listen(
+      (plainTextMessage) async {
+        try {
+          final mediatorMessage = await MediatorMessage.fromPlainTextMessage(
+            plainTextMessage,
+            keyRepository: _keyRepository,
+          );
+
+          if (!_controller!.isClosed) {
+            _controller!.add(mediatorMessage);
+          }
+        } catch (e, stackTrace) {
+          _logger.error('Error processing mediator message',
+              error: e, stackTrace: stackTrace, name: 'stream');
+
+          if (!_controller!.isClosed) {
+            _controller!.addError(e, stackTrace);
+          }
+        }
+      },
+      onError: (e) {
+        if (!_controller!.isClosed) {
+          _controller!.addError(e);
+        }
+      },
+      onDone: () {
+        if (!_controller!.isClosed) {
+          _controller!.close();
+        }
+      },
+    );
   }
 
   /// Dispose the subscription and close the connection
   @override
   Future<void> dispose() async {
     _logger.info('Disposing mediator message subscription');
+    if (_controller != null && !_controller!.isClosed) {
+      await _controller!.close();
+    }
     await _baseSubscription.dispose();
   }
 }

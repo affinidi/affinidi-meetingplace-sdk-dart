@@ -6,6 +6,8 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         AccessListAdd,
         AclSet,
+        DefaultMeetingPlaceMediatorSDKLogger,
+        MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
 import 'package:ssi/ssi.dart';
@@ -205,13 +207,13 @@ class MeetingPlaceCoreSDK {
     final controlPlaneLogger = LoggerAdapter(
       className: ControlPlaneSDK.className,
       sdkName: controlPlaneSDKName,
-      logger: logger,
+      logger: logger ?? DefaultControlPlaneSDKLogger(),
     );
 
     final mediatorLogger = LoggerAdapter(
       className: MeetingPlaceMediatorSDK.className,
       sdkName: mediatorSDKName,
-      logger: logger,
+      logger: logger ?? DefaultMeetingPlaceMediatorSDKLogger(),
     );
 
     final didResolver = CachedDidResolver(
@@ -1222,16 +1224,21 @@ class MeetingPlaceCoreSDK {
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   ///   If not provided, the SDK instance’s default mediator DID will be used.
   ///
+  /// - [options]: Options for subscribing to mediator messages.
+  ///
   /// **Returns: [CoreSDKStreamSubscription]**
   Future<CoreSDKStreamSubscription<MediatorMessage>> subscribeToMediator(
     String did, {
     String? mediatorDid,
+    MediatorStreamSubscriptionOptions options =
+        const MediatorStreamSubscriptionOptions(),
   }) async {
     return _withSdkExceptionHandling(() async {
       final didManager = await _getDidManager(did);
       return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
+        options: options,
       );
     });
   }

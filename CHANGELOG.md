@@ -3,6 +3,77 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-11-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.14`](#meeting_place_chat---v001-dev14)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.15`](#meeting_place_drift_repository---v001-dev15)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_drift_repository` - `v0.0.1-dev.15`
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.14`
+
+ - **FIX**: get latest version of channel entity on ChatSDK before updating (#28).
+
+
+## 2025-11-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.13`](#meeting_place_chat---v001-dev13)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.10`](#meeting_place_control_plane---v001-dev10)
+ - [`meeting_place_core` - `v0.0.1-dev.13`](#meeting_place_core---v001-dev13)
+ - [`meeting_place_mediator` - `v0.0.1-dev.8`](#meeting_place_mediator---v001-dev8)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.14`](#meeting_place_drift_repository---v001-dev14)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_drift_repository` - `v0.0.1-dev.14`
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.13`
+
+ - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.10`
+
+ - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).
+
+#### `meeting_place_core` - `v0.0.1-dev.13`
+
+ - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.8`
+
+ - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).
+
+
 ## 2025-11-17
 
 ### Changes

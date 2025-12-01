@@ -8,6 +8,7 @@ import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
 import '../utils/message_utils.dart';
+import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
@@ -32,7 +33,6 @@ abstract class BaseChatSDK {
     required this.did,
     required this.otherPartyDid,
     required this.mediatorDid,
-    required this.channelEntity,
     required this.chatRepository,
     required this.options,
     this.vCard,
@@ -46,7 +46,6 @@ abstract class BaseChatSDK {
   final String did;
   final String otherPartyDid;
   final String mediatorDid;
-  final Channel channelEntity;
   final ChatRepository chatRepository;
   final ChatSDKOptions options;
   final VCard? vCard;
@@ -187,6 +186,7 @@ abstract class BaseChatSDK {
       name: methodName,
     );
 
+    final channel = await getChannel();
     if (_requiresAcknowledgement(message.plainTextMessage)) {
       unawaited(sendChatDeliveredMessage(message.plainTextMessage));
     }
@@ -205,9 +205,9 @@ abstract class BaseChatSDK {
       );
       await chatRepository.createMessage(chatMessage);
 
-      if (sequenceNumber > channelEntity.seqNo) {
-        channelEntity.seqNo = sequenceNumber;
-        await coreSDK.updateChannel(channelEntity);
+      if (sequenceNumber > channel.seqNo) {
+        channel.seqNo = sequenceNumber;
+        await coreSDK.updateChannel(channel);
       }
 
       chatStream.pushData(
@@ -251,10 +251,10 @@ abstract class BaseChatSDK {
         'Handling chat alias profile hash message',
         name: methodName,
       );
-      if (channelEntity.type != ChannelType.group) {
+      if (channel.type != ChannelType.group) {
         final profileHash = message.plainTextMessage.body?['profileHash'];
         if (profileHash != null && profileHash is String) {
-          if (channelEntity.otherPartyVCard?.toHash() == profileHash) {
+          if (channel.otherPartyVCard?.toHash() == profileHash) {
             chatStream.pushData(
               StreamData(plainTextMessage: message.plainTextMessage),
             );
@@ -291,7 +291,7 @@ abstract class BaseChatSDK {
         'Handling chat alias profile request message',
         name: methodName,
       );
-      if (channelEntity.type != ChannelType.group) {
+      if (channel.type != ChannelType.group) {
         // TODO: delete old concierge messages
 
         final conciergeMessage = ConciergeMessage(
@@ -356,11 +356,11 @@ abstract class BaseChatSDK {
         'Handling chat contact details update message',
         name: methodName,
       );
-      if (channelEntity.type != ChannelType.group) {
-        channelEntity.otherPartyVCard = VCard.fromJson(
-          message.plainTextMessage.body!,
-        );
-        await coreSDK.updateChannel(channelEntity);
+      if (channel.type != ChannelType.group) {
+        channel.otherPartyVCard =
+            VCard.fromJson(message.plainTextMessage.body!);
+
+        await coreSDK.updateChannel(channel);
         chatStream.pushData(
           StreamData(plainTextMessage: message.plainTextMessage),
         );
@@ -450,13 +450,14 @@ abstract class BaseChatSDK {
     final methodName = 'sendTextMessage';
     _logger.info('Started sending text message', name: methodName);
 
-    channelEntity.increaseSeqNo();
+    final channel = await getChannel();
+    channel.increaseSeqNo();
 
     final chatMessage = protocol.ChatMessage.create(
       from: did,
       to: [otherPartyDid],
       text: text,
-      seqNo: channelEntity.seqNo,
+      seqNo: channel.seqNo,
       attachments: attachments ?? [],
     );
 
@@ -488,7 +489,7 @@ abstract class BaseChatSDK {
         await chatRepository.updateMesssage(currentMessage);
       }
 
-      await coreSDK.updateChannel(channelEntity);
+      await coreSDK.updateChannel(channel);
       chatStream.pushData(
         StreamData(plainTextMessage: chatMessage, chatItem: currentMessage),
       );
@@ -544,7 +545,8 @@ abstract class BaseChatSDK {
       return;
     }
 
-    if (channelEntity.vCard != null && !vCard!.equals(channelEntity.vCard!)) {
+    final channel = await getChannel();
+    if (channel.vCard != null && !vCard!.equals(channel.vCard!)) {
       await sendMessage(
         protocol.ChatAliasProfileHash.create(
           from: did,
@@ -556,8 +558,8 @@ abstract class BaseChatSDK {
         mediatorDid: mediatorDid,
       );
 
-      channelEntity.vCard = vCard;
-      await coreSDK.updateChannel(channelEntity);
+      channel.vCard = vCard;
+      await coreSDK.updateChannel(channel);
     }
 
     _logger.info('Completed sending profile hash', name: methodName);
@@ -750,5 +752,12 @@ abstract class BaseChatSDK {
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;
     chatStream.dispose();
+  }
+
+  @internal
+  Future<Channel> getChannel() async {
+    return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
+        (throw Exception(
+            'Channel with other party DID ${otherPartyDid.topAndTail()} not found'));
   }
 }

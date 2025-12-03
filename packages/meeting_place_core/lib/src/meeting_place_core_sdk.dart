@@ -401,10 +401,26 @@ class MeetingPlaceCoreSDK {
   /// the generated [DidManager] instance is stored via the repository’s `save`
   /// method.
   ///
-  /// **Returns:**
-  /// - A [DidManager] instance
+  /// Returns a [DidManager] instance
   Future<DidManager> generateDid() async {
     return _connectionManager.generateDid(wallet);
+  }
+
+  /// Retrieves an existing [DidManager] for the specified DID string.
+  ///
+  /// This method looks up a previously generated DID in the key repository
+  /// and reconstructs its corresponding [DidManager] instance using the
+  /// provided [Wallet].
+  ///
+  /// **Parameters:**
+  /// - [did] - The DID string to retrieve the manager for.
+  ///
+  /// Returns a [DidManager] instance for the specified DID.
+  ///
+  Future<DidManager> getDidManager(String did) {
+    return _withSdkExceptionHandling(() {
+      return _connectionManager.getDidManagerForDid(wallet, did);
+    });
   }
 
   /// Creates an Out-Of-Band invitation for a User.
@@ -1017,7 +1033,7 @@ class MeetingPlaceCoreSDK {
     int? forwardExpiryInSeconds,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final senderDidManager = await _getDidManager(senderDid);
+      final senderDidManager = await getDidManager(senderDid);
       final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       await _mediatorSDK.sendMessage(
@@ -1069,7 +1085,7 @@ class MeetingPlaceCoreSDK {
     int? forwardExpiryInSeconds,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final senderDidManager = await _getDidManager(senderDid);
+      final senderDidManager = await getDidManager(senderDid);
       final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       await _mediatorSDK.queueMessage(
@@ -1106,7 +1122,7 @@ class MeetingPlaceCoreSDK {
     int? forwardExpiryInSeconds,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final senderDidManager = await _getDidManager(senderDid);
+      final senderDidManager = await getDidManager(senderDid);
       final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       return _groupService.sendMessage(
@@ -1200,7 +1216,7 @@ class MeetingPlaceCoreSDK {
     bool deleteFailedMessages = false,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final didManager = await _getDidManager(did);
+      final didManager = await getDidManager(did);
       return _mediatorService.fetchMessages(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
@@ -1230,7 +1246,7 @@ class MeetingPlaceCoreSDK {
         const MediatorStreamSubscriptionOptions(),
   }) async {
     return _withSdkExceptionHandling(() async {
-      final didManager = await _getDidManager(did);
+      final didManager = await getDidManager(did);
       return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
@@ -1312,10 +1328,6 @@ class MeetingPlaceCoreSDK {
   /// - list of objects with type [ConnectionOffer].
   Future<List<ConnectionOffer>> listConnectionOffers() {
     return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
-  }
-
-  Future<DidManager> _getDidManager(String did) {
-    return _connectionManager.getDidManagerForDid(wallet, did);
   }
 
   /// Fetches a channel entity from the repository by using repository method

@@ -212,4 +212,10 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) =>
       _sdk.rejectChatContactDetailsUpdate(message);
+
+  /// Sends a persona shared message.
+  @override
+  Future<EventMessage> sendPersonaShared() {
+    return _sdk.sendPersonaShared();
+  }
 }

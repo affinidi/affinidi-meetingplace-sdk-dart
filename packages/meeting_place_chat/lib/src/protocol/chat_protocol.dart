@@ -49,7 +49,13 @@ enum ChatProtocol {
   chatPresence('https://affinidi.io/mpx/chat-sdk/presence'),
 
   /// Represents a reaction (emoji or similar) to a chat message.
-  chatReaction('https://affinidi.io/mpx/chat-sdk/reaction');
+  chatReaction('https://affinidi.io/mpx/chat-sdk/reaction'),
+
+  /// Represents sharing of a persona or identity profile.
+  chatPersonaShared('https://affinidi.io/mpx/chat-sdk/persona-shared'),
+
+  /// Represents a request to verify relationship via credential.
+  chatRequestCredential('https://affinidi.io/mpx/chat-sdk/request-credential');
 
   /// Creates a [ChatProtocol] instance with the given URI [value].
   const ChatProtocol(this.value);

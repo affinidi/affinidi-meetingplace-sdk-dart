@@ -391,6 +391,39 @@ abstract class BaseChatSDK {
       );
     }
 
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatPersonaShared.value) {
+      _logger.info('Handling persona share message', name: methodName);
+      final sequenceNumber =
+          message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
+
+      final eventMessage = EventMessage(
+        chatId: chatId,
+        messageId: message.plainTextMessage.id,
+        senderDid: message.plainTextMessage.from ?? '',
+        isFromMe: false,
+        dateCreated:
+            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        status: ChatItemStatus.received,
+        eventType: EventMessageType.personaShared,
+        data: {'vCard': channel.otherPartyVCard?.values},
+      );
+
+      await chatRepository.createMessage(eventMessage);
+
+      if (sequenceNumber > channel.seqNo) {
+        channel.seqNo = sequenceNumber;
+        await coreSDK.updateChannel(channel);
+      }
+
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: message.plainTextMessage,
+          chatItem: eventMessage,
+        ),
+      );
+    }
+
     _logger.info(
       'Completed handling message of type ${message.plainTextMessage.type}',
       name: methodName,
@@ -638,6 +671,68 @@ abstract class BaseChatSDK {
       'Completed sending chat contact details update',
       name: methodName,
     );
+  }
+
+  /// Sends a persona share message.
+  ///
+  /// **Returns:**
+  /// - The sent [Message] object persisted in the repository.
+  Future<EventMessage> sendPersonaShared() async {
+    final methodName = 'sendPersonaShared';
+    _logger.info('Started sending persona share', name: methodName);
+
+    final channel = await getChannel();
+    channel.increaseSeqNo();
+
+    final personaMessage = protocol.ChatPersonaShared.create(
+      from: did,
+      to: [otherPartyDid],
+      seqNo: channel.seqNo,
+    );
+
+    final eventMessage = EventMessage(
+      chatId: chatId,
+      messageId: personaMessage.id,
+      senderDid: did,
+      isFromMe: true,
+      dateCreated: DateTime.now().toUtc(),
+      status: ChatItemStatus.queued,
+      eventType: EventMessageType.personaShared,
+      data: {'vCard': vCard?.values},
+    );
+
+    final createdMessage = await chatRepository.createMessage(eventMessage);
+
+    try {
+      chatStream.pushData(
+        StreamData(plainTextMessage: personaMessage, chatItem: createdMessage),
+      );
+
+      await sendMessage(
+        personaMessage,
+        senderDid: did,
+        recipientDid: otherPartyDid,
+        mediatorDid: mediatorDid,
+        notify: true,
+      );
+
+      await coreSDK.updateChannel(channel);
+      createdMessage.status = ChatItemStatus.sent;
+      await chatRepository.updateMesssage(createdMessage);
+
+      _logger.info('Successfully sent persona share', name: methodName);
+      return createdMessage as EventMessage;
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to send persona share',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      createdMessage.status = ChatItemStatus.error;
+      await chatRepository.updateMesssage(createdMessage);
+      rethrow;
+    }
   }
 
   /// Rejects a contact details update and marks message as confirmed.

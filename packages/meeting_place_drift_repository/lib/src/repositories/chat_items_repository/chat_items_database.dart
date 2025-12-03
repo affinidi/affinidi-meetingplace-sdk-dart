@@ -257,6 +257,8 @@ extension _EventMessageTypeValue on EventMessageType {
         return 3;
       case EventMessageType.groupDeleted:
         return 4;
+      case EventMessageType.personaShared:
+        return 5;
     }
   }
 }
@@ -282,6 +284,8 @@ extension _ConciergeMessageTypeValue on ConciergeMessageType {
         return 1;
       case ConciergeMessageType.permissionToJoinGroup:
         return 2;
+      case ConciergeMessageType.permissionToVerifyRelationship:
+        return 3;
     }
   }
 }

@@ -1017,7 +1017,7 @@ class MeetingPlaceCoreSDK {
     int? forwardExpiryInSeconds,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final senderDidManager = await _getDidManager(senderDid);
+      final senderDidManager = await getDidManager(senderDid);
       final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       await _mediatorSDK.sendMessage(
@@ -1069,7 +1069,7 @@ class MeetingPlaceCoreSDK {
     int? forwardExpiryInSeconds,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final senderDidManager = await _getDidManager(senderDid);
+      final senderDidManager = await getDidManager(senderDid);
       final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       await _mediatorSDK.queueMessage(
@@ -1106,7 +1106,7 @@ class MeetingPlaceCoreSDK {
     int? forwardExpiryInSeconds,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final senderDidManager = await _getDidManager(senderDid);
+      final senderDidManager = await getDidManager(senderDid);
       final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       return _groupService.sendMessage(
@@ -1200,7 +1200,7 @@ class MeetingPlaceCoreSDK {
     bool deleteFailedMessages = false,
   }) async {
     return _withSdkExceptionHandling(() async {
-      final didManager = await _getDidManager(did);
+      final didManager = await getDidManager(did);
       return _mediatorService.fetchMessages(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
@@ -1230,7 +1230,7 @@ class MeetingPlaceCoreSDK {
         const MediatorStreamSubscriptionOptions(),
   }) async {
     return _withSdkExceptionHandling(() async {
-      final didManager = await _getDidManager(did);
+      final didManager = await getDidManager(did);
       return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
@@ -1314,7 +1314,7 @@ class MeetingPlaceCoreSDK {
     return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
   }
 
-  Future<DidManager> _getDidManager(String did) {
+  Future<DidManager> getDidManager(String did) {
     return _connectionManager.getDidManagerForDid(wallet, did);
   }
 

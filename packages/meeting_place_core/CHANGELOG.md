@@ -1,3 +1,7 @@
+## 0.0.1-dev.14
+
+ - **FIX**: expose method to retrieve DID manager from DID (#30).
+
 ## 0.0.1-dev.13
 
  - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).

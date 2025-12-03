@@ -3,6 +3,36 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-12-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v0.0.1-dev.14`](#meeting_place_core---v001-dev14)
+ - [`meeting_place_chat` - `v0.0.1-dev.15`](#meeting_place_chat---v001-dev15)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.16`](#meeting_place_drift_repository---v001-dev16)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.15`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.16`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.14`
+
+ - **FIX**: expose method to retrieve DID manager from DID (#30).
+
+
 ## 2025-11-28
 
 ### Changes

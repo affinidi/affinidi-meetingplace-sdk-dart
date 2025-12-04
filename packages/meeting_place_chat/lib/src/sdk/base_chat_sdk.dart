@@ -235,7 +235,7 @@ abstract class BaseChatSDK {
       }
 
       repositoryMessage.reactions = chatReaction.reactions;
-      await chatRepository.updateMesssage(repositoryMessage);
+      await chatRepository.updateMessage(repositoryMessage);
 
       chatStream.pushData(
         StreamData(
@@ -339,7 +339,7 @@ abstract class BaseChatSDK {
         }
 
         targetMessage.status = ChatItemStatus.delivered;
-        await chatRepository.updateMesssage(targetMessage);
+        await chatRepository.updateMessage(targetMessage);
 
         chatStream.pushData(
           StreamData(
@@ -519,7 +519,7 @@ abstract class BaseChatSDK {
 
       if (currentMessage!.status == ChatItemStatus.queued) {
         currentMessage.status = ChatItemStatus.sent;
-        await chatRepository.updateMesssage(currentMessage);
+        await chatRepository.updateMessage(currentMessage);
       }
 
       await coreSDK.updateChannel(channel);
@@ -530,7 +530,7 @@ abstract class BaseChatSDK {
       return currentMessage as Message;
     } catch (e, stackTrace) {
       createdMessage.status = ChatItemStatus.error;
-      await chatRepository.updateMesssage(createdMessage);
+      await chatRepository.updateMessage(createdMessage);
       _logger.error(
         'Failed to send message',
         error: e,
@@ -743,7 +743,7 @@ abstract class BaseChatSDK {
       name: methodName,
     );
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
     _logger.info(
       'Completed rejecting chat contact details update',
       name: methodName,
@@ -772,7 +772,7 @@ abstract class BaseChatSDK {
       message.reactions.add(reaction);
     }
 
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
 
     final chatReaction = protocol.ChatReaction.create(
       from: did,
@@ -797,7 +797,7 @@ abstract class BaseChatSDK {
       );
       // rollback
       message.reactions.remove(reaction);
-      await chatRepository.updateMesssage(message);
+      await chatRepository.updateMessage(message);
       Error.throwWithStackTrace(e, stackTrace);
     }
 

@@ -394,8 +394,8 @@ abstract class BaseChatSDK {
     if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatPersonaShared.value) {
       _logger.info('Handling persona share message', name: methodName);
-      final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
+      // final sequenceNumber =
+      //     message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
 
       final eventMessage = EventMessage(
         chatId: chatId,
@@ -411,10 +411,10 @@ abstract class BaseChatSDK {
 
       await chatRepository.createMessage(eventMessage);
 
-      if (sequenceNumber > channel.seqNo) {
-        channel.seqNo = sequenceNumber;
-        await coreSDK.updateChannel(channel);
-      }
+      // if (sequenceNumber > channel.seqNo) {
+      //   channel.seqNo = sequenceNumber;
+      //   await coreSDK.updateChannel(channel);
+      // }
 
       chatStream.pushData(
         StreamData(
@@ -422,6 +422,35 @@ abstract class BaseChatSDK {
           chatItem: eventMessage,
         ),
       );
+    }
+
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatDeclinedPersonaSharing.value) {
+      _logger.info('Handling declined persona sharing message',
+          name: methodName);
+      // final sequenceNumber =
+      //     message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
+
+      final eventMessage = EventMessage(
+        chatId: chatId,
+        messageId: message.plainTextMessage.id,
+        senderDid: message.plainTextMessage.from ?? '',
+        isFromMe: message.plainTextMessage.from == did,
+        dateCreated:
+            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        status: ChatItemStatus.sent,
+        eventType: EventMessageType.personaSharingDeclined,
+        data: {'vCard': channel.otherPartyVCard?.values},
+      );
+
+      await chatRepository.createMessage(eventMessage);
+
+      // if (sequenceNumber > channel.seqNo) {
+      //   channel.seqNo = sequenceNumber;
+      //   await coreSDK.updateChannel(channel);
+      // }
+
+      chatStream.pushData(StreamData(chatItem: eventMessage));
     }
 
     _logger.info(
@@ -656,55 +685,54 @@ abstract class BaseChatSDK {
     );
   }
 
-  /// Sends a persona share message.
+  /// Sends a persona share event message.
   ///
   /// **Returns:**
   /// - The sent [Message] object persisted in the repository.
-  Future<EventMessage> sendPersonaShared() async {
+  Future<void> sendPersonaShared() async {
     final methodName = 'sendPersonaShared';
     _logger.info('Started sending persona share', name: methodName);
 
-    final channel = await getChannel();
-    channel.increaseSeqNo();
+    // final channel = await getChannel();
+    // channel.increaseSeqNo();
 
     final personaMessage = protocol.ChatPersonaShared.create(
       from: did,
       to: [otherPartyDid],
-      seqNo: channel.seqNo,
+      // seqNo: channel.seqNo,
     );
 
-    final eventMessage = EventMessage(
-      chatId: chatId,
-      messageId: personaMessage.id,
-      senderDid: did,
-      isFromMe: true,
-      dateCreated: DateTime.now().toUtc(),
-      status: ChatItemStatus.queued,
-      eventType: EventMessageType.personaShared,
-      data: {'vCard': vCard?.values},
-    );
+    // final eventMessage = EventMessage(
+    //   chatId: chatId,
+    //   messageId: personaMessage.id,
+    //   senderDid: did,
+    //   isFromMe: true,
+    //   dateCreated: DateTime.now().toUtc(),
+    //   status: ChatItemStatus.queued,
+    //   eventType: EventMessageType.personaShared,
+    //   data: {'vCard': vCard?.values},
+    // );
 
-    final createdMessage = await chatRepository.createMessage(eventMessage);
+    // final createdMessage = await chatRepository.createMessage(eventMessage);
 
     try {
-      chatStream.pushData(
-        StreamData(plainTextMessage: personaMessage, chatItem: createdMessage),
-      );
+      // chatStream.pushData(
+      //   StreamData(plainTextMessage: personaMessage, chatItem: createdMessage),
+      // );
 
       await sendMessage(
         personaMessage,
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
-        notify: true,
       );
 
-      await coreSDK.updateChannel(channel);
-      createdMessage.status = ChatItemStatus.sent;
-      await chatRepository.updateMessage(createdMessage);
+      // await coreSDK.updateChannel(channel);
+
+      // createdMessage.status = ChatItemStatus.confirmed;
+      // await chatRepository.updateMessage(createdMessage);
 
       _logger.info('Successfully sent persona share', name: methodName);
-      return createdMessage as EventMessage;
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to send persona share',
@@ -712,8 +740,73 @@ abstract class BaseChatSDK {
         stackTrace: stackTrace,
         name: methodName,
       );
-      createdMessage.status = ChatItemStatus.error;
-      await chatRepository.updateMessage(createdMessage);
+      // createdMessage.status = ChatItemStatus.error;
+      // await chatRepository.updateMessage(createdMessage);
+      rethrow;
+    }
+  }
+
+  /// Sends a persona sharing declined event message.
+  ///
+  /// Returns the sent [EventMessage] object persisted in the repository.
+  Future<void> sendDeclinedPersonaSharing(ConciergeMessage message) async {
+    final methodName = 'sendDeclinedPersonaSharing';
+    _logger.info('Started sending declined persona sharing', name: methodName);
+
+    // final channel = await getChannel();
+    // channel.increaseSeqNo();
+
+    final declinedMessage = protocol.ChatDeclinedPersonaSharing.create(
+      from: did,
+      to: [otherPartyDid],
+      // seqNo: channel.seqNo,
+    );
+
+    // final eventMessage = EventMessage(
+    //   chatId: chatId,
+    //   messageId: declinedMessage.id,
+    //   senderDid: did,
+    //   isFromMe: true,
+    //   dateCreated: DateTime.now().toUtc(),
+    //   status: ChatItemStatus.queued,
+    //   eventType: EventMessageType.personaSharingDeclined,
+    //   data: {'vCard': vCard?.values},
+    // );
+
+    // final createdMessage = await chatRepository.createMessage(eventMessage);
+
+    try {
+      // chatStream.pushData(
+      //   StreamData(plainTextMessage: declinedMessage, chatItem: createdMessage),
+      // );
+
+      await sendMessage(
+        declinedMessage,
+        senderDid: did,
+        recipientDid: otherPartyDid,
+        mediatorDid: mediatorDid,
+      );
+
+      // await coreSDK.updateChannel(channel);
+
+      // createdMessage.status = ChatItemStatus.confirmed;
+      // await chatRepository.updateMessage(createdMessage);
+
+      message.status = ChatItemStatus.confirmed;
+      await chatRepository.updateMessage(message);
+      chatStream.pushData(StreamData(chatItem: message));
+
+      _logger.info('Successfully sent declined persona sharing',
+          name: methodName);
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to send declined persona sharing',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      // createdMessage.status = ChatItemStatus.error;
+      // await chatRepository.updateMessage(createdMessage);
       rethrow;
     }
   }

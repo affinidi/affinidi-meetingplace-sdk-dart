@@ -683,4 +683,14 @@ void main() async {
 
     expect(receivedMessages, greaterThan(1));
   });
+
+  test('message is shown as sent even for notification error', () async {
+    final channel = await aliceSDK.getChannelByDid(aliceDidDocument.id);
+    channel!.otherPartyNotificationToken = 'invalid_token';
+    await aliceSDK.updateChannel(channel);
+
+    await aliceChatSDK.startChatSession();
+    final actual = await aliceChatSDK.sendTextMessage('Sample text message');
+    expect(actual.status, ChatItemStatus.sent);
+  });
 }

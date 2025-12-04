@@ -470,46 +470,29 @@ abstract class BaseChatSDK {
         StreamData(plainTextMessage: chatMessage, chatItem: createdMessage),
       );
 
-      await sendMessage(
-        chatMessage,
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-        notify: true,
-      );
+      await _sendMessageWithNotification(chatMessage);
 
-      // TODO: add optimistic locking
-      final currentMessage = await chatRepository.getMessage(
+      final updatedMessage = await _updateMessageStatus(
         chatId: chatId,
         messageId: createdMessage.messageId,
       );
 
-      if (currentMessage!.status == ChatItemStatus.queued) {
-        currentMessage.status = ChatItemStatus.sent;
-        await chatRepository.updateMesssage(currentMessage);
-      }
-
       await coreSDK.updateChannel(channel);
+
       chatStream.pushData(
-        StreamData(plainTextMessage: chatMessage, chatItem: currentMessage),
+        StreamData(plainTextMessage: chatMessage, chatItem: updatedMessage),
       );
+
       _logger.info('Completed sending text message', name: methodName);
-      return currentMessage as Message;
+      return updatedMessage;
     } catch (e, stackTrace) {
-      createdMessage.status = ChatItemStatus.error;
-      await chatRepository.updateMesssage(createdMessage);
-      _logger.error(
-        'Failed to send message',
+      return await _handleSendMessageError(
+        createdMessage: createdMessage,
+        chatMessage: chatMessage,
         error: e,
         stackTrace: stackTrace,
-        name: methodName,
+        methodName: methodName,
       );
-
-      chatStream.pushData(
-        StreamData(plainTextMessage: chatMessage, chatItem: createdMessage),
-      );
-
-      return createdMessage as Message;
     }
   }
 
@@ -759,5 +742,69 @@ abstract class BaseChatSDK {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
             'Channel with other party DID ${otherPartyDid.topAndTail()} not found'));
+  }
+
+  /// Sends a message with notification, ignoring notification failures.
+  Future<void> _sendMessageWithNotification(PlainTextMessage message) async {
+    try {
+      await sendMessage(
+        message,
+        senderDid: did,
+        recipientDid: otherPartyDid,
+        mediatorDid: mediatorDid,
+        notify: true,
+      );
+    } on MeetingPlaceCoreSDKException catch (e) {
+      final isNotificationError = e.code ==
+          MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
+
+      if (!isNotificationError) {
+        rethrow;
+      }
+
+      _logger.warning('Failed to send notification for message ${message.id}');
+    }
+  }
+
+  Future<Message> _updateMessageStatus({
+    required String chatId,
+    required String messageId,
+  }) async {
+    // TODO: add optimistic locking
+    final message = await chatRepository.getMessage(
+      chatId: chatId,
+      messageId: messageId,
+    );
+
+    if (message!.status == ChatItemStatus.queued) {
+      message.status = ChatItemStatus.sent;
+      await chatRepository.updateMesssage(message);
+    }
+
+    return message as Message;
+  }
+
+  Future<Message> _handleSendMessageError({
+    required ChatItem createdMessage,
+    required PlainTextMessage chatMessage,
+    required Object error,
+    required StackTrace stackTrace,
+    required String methodName,
+  }) async {
+    createdMessage.status = ChatItemStatus.error;
+    await chatRepository.updateMesssage(createdMessage);
+
+    _logger.error(
+      'Failed to send message',
+      error: error,
+      stackTrace: stackTrace,
+      name: methodName,
+    );
+
+    chatStream.pushData(
+      StreamData(plainTextMessage: chatMessage, chatItem: createdMessage),
+    );
+
+    return createdMessage as Message;
   }
 }

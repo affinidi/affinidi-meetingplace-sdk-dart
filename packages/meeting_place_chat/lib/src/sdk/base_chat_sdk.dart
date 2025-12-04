@@ -235,7 +235,7 @@ abstract class BaseChatSDK {
       }
 
       repositoryMessage.reactions = chatReaction.reactions;
-      await chatRepository.updateMesssage(repositoryMessage);
+      await chatRepository.updateMessage(repositoryMessage);
 
       chatStream.pushData(
         StreamData(
@@ -339,7 +339,7 @@ abstract class BaseChatSDK {
         }
 
         targetMessage.status = ChatItemStatus.delivered;
-        await chatRepository.updateMesssage(targetMessage);
+        await chatRepository.updateMessage(targetMessage);
 
         chatStream.pushData(
           StreamData(
@@ -647,7 +647,7 @@ abstract class BaseChatSDK {
     );
 
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
     chatStream.pushData(StreamData(chatItem: message));
 
     _logger.info(
@@ -701,7 +701,7 @@ abstract class BaseChatSDK {
 
       await coreSDK.updateChannel(channel);
       createdMessage.status = ChatItemStatus.sent;
-      await chatRepository.updateMesssage(createdMessage);
+      await chatRepository.updateMessage(createdMessage);
 
       _logger.info('Successfully sent persona share', name: methodName);
       return createdMessage as EventMessage;
@@ -713,7 +713,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       createdMessage.status = ChatItemStatus.error;
-      await chatRepository.updateMesssage(createdMessage);
+      await chatRepository.updateMessage(createdMessage);
       rethrow;
     }
   }
@@ -726,7 +726,7 @@ abstract class BaseChatSDK {
       name: methodName,
     );
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
     _logger.info(
       'Completed rejecting chat contact details update',
       name: methodName,
@@ -755,7 +755,7 @@ abstract class BaseChatSDK {
       message.reactions.add(reaction);
     }
 
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
 
     final chatReaction = protocol.ChatReaction.create(
       from: did,
@@ -780,7 +780,7 @@ abstract class BaseChatSDK {
       );
       // rollback
       message.reactions.remove(reaction);
-      await chatRepository.updateMesssage(message);
+      await chatRepository.updateMessage(message);
       Error.throwWithStackTrace(e, stackTrace);
     }
 
@@ -876,7 +876,7 @@ abstract class BaseChatSDK {
 
     if (message!.status == ChatItemStatus.queued) {
       message.status = ChatItemStatus.sent;
-      await chatRepository.updateMesssage(message);
+      await chatRepository.updateMessage(message);
     }
 
     return message as Message;
@@ -890,7 +890,7 @@ abstract class BaseChatSDK {
     required String methodName,
   }) async {
     createdMessage.status = ChatItemStatus.error;
-    await chatRepository.updateMesssage(createdMessage);
+    await chatRepository.updateMessage(createdMessage);
 
     _logger.error(
       'Failed to send message',

@@ -479,7 +479,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// Supports both [model.Message] and [model.ConciergeMessage].
   /// Throws [MeetingPlaceCoreRepositoryException] if the type is unsupported.
   @override
-  Future<model.ChatItem> updateMesssage(model.ChatItem message) async {
+  Future<model.ChatItem> updateMessage(model.ChatItem message) async {
     if (message is model.Message) {
       return _updateMessage(message);
     }

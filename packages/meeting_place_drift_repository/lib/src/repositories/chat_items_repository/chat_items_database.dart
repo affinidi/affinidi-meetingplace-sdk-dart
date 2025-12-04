@@ -259,6 +259,8 @@ extension _EventMessageTypeValue on EventMessageType {
         return 4;
       case EventMessageType.personaShared:
         return 5;
+      case EventMessageType.personaSharingDeclined:
+        return 6;
     }
   }
 }

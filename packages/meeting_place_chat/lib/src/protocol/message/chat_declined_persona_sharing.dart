@@ -3,24 +3,24 @@ import 'package:uuid/uuid.dart';
 
 import '../chat_protocol.dart';
 
-class ChatPersonaShared extends PlainTextMessage {
-  ChatPersonaShared({
+class ChatDeclinedPersonaSharing extends PlainTextMessage {
+  ChatDeclinedPersonaSharing({
     required super.id,
     required super.from,
     required super.to,
     // required int seqNo,
   }) : super(
-          type: Uri.parse(ChatProtocol.chatPersonaShared.value),
+          type: Uri.parse(ChatProtocol.chatDeclinedPersonaSharing.value),
           createdTime: DateTime.now().toUtc(),
           // body: {'seqNo': seqNo},
         );
 
-  factory ChatPersonaShared.create({
+  factory ChatDeclinedPersonaSharing.create({
     required String from,
     required List<String> to,
     // required int seqNo,
   }) {
-    return ChatPersonaShared(
+    return ChatDeclinedPersonaSharing(
       id: const Uuid().v4(),
       from: from,
       to: to,

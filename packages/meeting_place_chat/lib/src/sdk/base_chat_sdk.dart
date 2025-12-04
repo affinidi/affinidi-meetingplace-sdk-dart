@@ -235,7 +235,7 @@ abstract class BaseChatSDK {
       }
 
       repositoryMessage.reactions = chatReaction.reactions;
-      await chatRepository.updateMesssage(repositoryMessage);
+      await chatRepository.updateMessage(repositoryMessage);
 
       chatStream.pushData(
         StreamData(
@@ -339,7 +339,7 @@ abstract class BaseChatSDK {
         }
 
         targetMessage.status = ChatItemStatus.delivered;
-        await chatRepository.updateMesssage(targetMessage);
+        await chatRepository.updateMessage(targetMessage);
 
         chatStream.pushData(
           StreamData(
@@ -389,6 +389,54 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+    }
+
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatPersonaShared.value) {
+      _logger.info('Handling persona share message', name: methodName);
+
+      final eventMessage = EventMessage(
+        chatId: chatId,
+        messageId: message.plainTextMessage.id,
+        senderDid: message.plainTextMessage.from ?? '',
+        isFromMe: false,
+        dateCreated:
+            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        status: ChatItemStatus.received,
+        eventType: EventMessageType.personaShared,
+        data: {'vCard': channel.otherPartyVCard?.values},
+      );
+
+      await chatRepository.createMessage(eventMessage);
+
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: message.plainTextMessage,
+          chatItem: eventMessage,
+        ),
+      );
+    }
+
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatDeclinedPersonaSharing.value) {
+      _logger.info('Handling declined persona sharing message',
+          name: methodName);
+
+      final eventMessage = EventMessage(
+        chatId: chatId,
+        messageId: message.plainTextMessage.id,
+        senderDid: message.plainTextMessage.from ?? '',
+        isFromMe: message.plainTextMessage.from == did,
+        dateCreated:
+            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        status: ChatItemStatus.sent,
+        eventType: EventMessageType.personaSharingDeclined,
+        data: {'vCard': channel.otherPartyVCard?.values},
+      );
+
+      await chatRepository.createMessage(eventMessage);
+
+      chatStream.pushData(StreamData(chatItem: eventMessage));
     }
 
     _logger.info(
@@ -486,7 +534,7 @@ abstract class BaseChatSDK {
 
       if (currentMessage!.status == ChatItemStatus.queued) {
         currentMessage.status = ChatItemStatus.sent;
-        await chatRepository.updateMesssage(currentMessage);
+        await chatRepository.updateMessage(currentMessage);
       }
 
       await coreSDK.updateChannel(channel);
@@ -497,7 +545,7 @@ abstract class BaseChatSDK {
       return currentMessage as Message;
     } catch (e, stackTrace) {
       createdMessage.status = ChatItemStatus.error;
-      await chatRepository.updateMesssage(createdMessage);
+      await chatRepository.updateMessage(createdMessage);
       _logger.error(
         'Failed to send message',
         error: e,
@@ -631,13 +679,83 @@ abstract class BaseChatSDK {
     );
 
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
     chatStream.pushData(StreamData(chatItem: message));
 
     _logger.info(
       'Completed sending chat contact details update',
       name: methodName,
     );
+  }
+
+  /// Sends a persona share event message.
+  ///
+  /// **Returns:**
+  /// - The sent [Message] object persisted in the repository.
+  Future<void> sendPersonaShared() async {
+    final methodName = 'sendPersonaShared';
+    _logger.info('Started sending persona share', name: methodName);
+
+    final personaMessage = protocol.ChatPersonaShared.create(
+      from: did,
+      to: [otherPartyDid],
+    );
+
+    try {
+      await sendMessage(
+        personaMessage,
+        senderDid: did,
+        recipientDid: otherPartyDid,
+        mediatorDid: mediatorDid,
+      );
+
+      _logger.info('Successfully sent persona share', name: methodName);
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to send persona share',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      rethrow;
+    }
+  }
+
+  /// Sends a persona sharing declined event message.
+  ///
+  /// Returns the sent [EventMessage] object persisted in the repository.
+  Future<void> sendDeclinedPersonaSharing(ConciergeMessage message) async {
+    final methodName = 'sendDeclinedPersonaSharing';
+    _logger.info('Started sending declined persona sharing', name: methodName);
+
+    final declinedMessage = protocol.ChatDeclinedPersonaSharing.create(
+      from: did,
+      to: [otherPartyDid],
+    );
+
+    try {
+      await sendMessage(
+        declinedMessage,
+        senderDid: did,
+        recipientDid: otherPartyDid,
+        mediatorDid: mediatorDid,
+      );
+
+      message.status = ChatItemStatus.confirmed;
+      await chatRepository.updateMessage(message);
+      chatStream.pushData(StreamData(chatItem: message));
+
+      _logger.info('Successfully sent declined persona sharing',
+          name: methodName);
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to send declined persona sharing',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      rethrow;
+    }
   }
 
   /// Rejects a contact details update and marks message as confirmed.
@@ -648,7 +766,7 @@ abstract class BaseChatSDK {
       name: methodName,
     );
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
     _logger.info(
       'Completed rejecting chat contact details update',
       name: methodName,
@@ -677,7 +795,7 @@ abstract class BaseChatSDK {
       message.reactions.add(reaction);
     }
 
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
 
     final chatReaction = protocol.ChatReaction.create(
       from: did,
@@ -702,7 +820,7 @@ abstract class BaseChatSDK {
       );
       // rollback
       message.reactions.remove(reaction);
-      await chatRepository.updateMesssage(message);
+      await chatRepository.updateMessage(message);
       Error.throwWithStackTrace(e, stackTrace);
     }
 

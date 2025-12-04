@@ -394,8 +394,6 @@ abstract class BaseChatSDK {
     if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatPersonaShared.value) {
       _logger.info('Handling persona share message', name: methodName);
-      // final sequenceNumber =
-      //     message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
 
       final eventMessage = EventMessage(
         chatId: chatId,
@@ -411,11 +409,6 @@ abstract class BaseChatSDK {
 
       await chatRepository.createMessage(eventMessage);
 
-      // if (sequenceNumber > channel.seqNo) {
-      //   channel.seqNo = sequenceNumber;
-      //   await coreSDK.updateChannel(channel);
-      // }
-
       chatStream.pushData(
         StreamData(
           plainTextMessage: message.plainTextMessage,
@@ -428,8 +421,6 @@ abstract class BaseChatSDK {
         ChatProtocol.chatDeclinedPersonaSharing.value) {
       _logger.info('Handling declined persona sharing message',
           name: methodName);
-      // final sequenceNumber =
-      //     message.seqNo ?? message.plainTextMessage.body?['seqNo'] as int;
 
       final eventMessage = EventMessage(
         chatId: chatId,
@@ -444,11 +435,6 @@ abstract class BaseChatSDK {
       );
 
       await chatRepository.createMessage(eventMessage);
-
-      // if (sequenceNumber > channel.seqNo) {
-      //   channel.seqNo = sequenceNumber;
-      //   await coreSDK.updateChannel(channel);
-      // }
 
       chatStream.pushData(StreamData(chatItem: eventMessage));
     }
@@ -693,44 +679,18 @@ abstract class BaseChatSDK {
     final methodName = 'sendPersonaShared';
     _logger.info('Started sending persona share', name: methodName);
 
-    // final channel = await getChannel();
-    // channel.increaseSeqNo();
-
     final personaMessage = protocol.ChatPersonaShared.create(
       from: did,
       to: [otherPartyDid],
-      // seqNo: channel.seqNo,
     );
 
-    // final eventMessage = EventMessage(
-    //   chatId: chatId,
-    //   messageId: personaMessage.id,
-    //   senderDid: did,
-    //   isFromMe: true,
-    //   dateCreated: DateTime.now().toUtc(),
-    //   status: ChatItemStatus.queued,
-    //   eventType: EventMessageType.personaShared,
-    //   data: {'vCard': vCard?.values},
-    // );
-
-    // final createdMessage = await chatRepository.createMessage(eventMessage);
-
     try {
-      // chatStream.pushData(
-      //   StreamData(plainTextMessage: personaMessage, chatItem: createdMessage),
-      // );
-
       await sendMessage(
         personaMessage,
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
       );
-
-      // await coreSDK.updateChannel(channel);
-
-      // createdMessage.status = ChatItemStatus.confirmed;
-      // await chatRepository.updateMessage(createdMessage);
 
       _logger.info('Successfully sent persona share', name: methodName);
     } catch (e, stackTrace) {
@@ -740,8 +700,6 @@ abstract class BaseChatSDK {
         stackTrace: stackTrace,
         name: methodName,
       );
-      // createdMessage.status = ChatItemStatus.error;
-      // await chatRepository.updateMessage(createdMessage);
       rethrow;
     }
   }
@@ -753,44 +711,18 @@ abstract class BaseChatSDK {
     final methodName = 'sendDeclinedPersonaSharing';
     _logger.info('Started sending declined persona sharing', name: methodName);
 
-    // final channel = await getChannel();
-    // channel.increaseSeqNo();
-
     final declinedMessage = protocol.ChatDeclinedPersonaSharing.create(
       from: did,
       to: [otherPartyDid],
-      // seqNo: channel.seqNo,
     );
 
-    // final eventMessage = EventMessage(
-    //   chatId: chatId,
-    //   messageId: declinedMessage.id,
-    //   senderDid: did,
-    //   isFromMe: true,
-    //   dateCreated: DateTime.now().toUtc(),
-    //   status: ChatItemStatus.queued,
-    //   eventType: EventMessageType.personaSharingDeclined,
-    //   data: {'vCard': vCard?.values},
-    // );
-
-    // final createdMessage = await chatRepository.createMessage(eventMessage);
-
     try {
-      // chatStream.pushData(
-      //   StreamData(plainTextMessage: declinedMessage, chatItem: createdMessage),
-      // );
-
       await sendMessage(
         declinedMessage,
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
       );
-
-      // await coreSDK.updateChannel(channel);
-
-      // createdMessage.status = ChatItemStatus.confirmed;
-      // await chatRepository.updateMessage(createdMessage);
 
       message.status = ChatItemStatus.confirmed;
       await chatRepository.updateMessage(message);
@@ -805,8 +737,6 @@ abstract class BaseChatSDK {
         stackTrace: stackTrace,
         name: methodName,
       );
-      // createdMessage.status = ChatItemStatus.error;
-      // await chatRepository.updateMessage(createdMessage);
       rethrow;
     }
   }

@@ -9,6 +9,7 @@ enum EventMessageType {
   groupMemberJoinedGroup,
   groupMemberLeftGroup,
   personaShared,
+  personaSharingDeclined,
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

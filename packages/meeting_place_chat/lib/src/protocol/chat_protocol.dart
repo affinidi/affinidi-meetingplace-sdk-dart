@@ -54,8 +54,9 @@ enum ChatProtocol {
   /// Represents sharing of a persona or identity profile.
   chatPersonaShared('https://affinidi.io/mpx/chat-sdk/persona-shared'),
 
-  /// Represents a request to verify relationship via credential.
-  chatRequestCredential('https://affinidi.io/mpx/chat-sdk/request-credential');
+  /// Represents a declined persona sharing.
+  chatDeclinedPersonaSharing(
+      'https://affinidi.io/mpx/chat-sdk/declined-persona-sharing');
 
   /// Creates a [ChatProtocol] instance with the given URI [value].
   const ChatProtocol(this.value);

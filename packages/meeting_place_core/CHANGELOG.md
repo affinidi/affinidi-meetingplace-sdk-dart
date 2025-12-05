@@ -1,3 +1,7 @@
+## 0.0.1-dev.15
+
+ - **FIX**: handle notification errors when sending messages (#32).
+
 ## 0.0.1-dev.14
 
  - **FIX**: expose method to retrieve DID manager from DID (#30).

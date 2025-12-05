@@ -759,10 +759,13 @@ abstract class BaseChatSDK {
           MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
 
       if (!isNotificationError) {
+        _logger.error('Failed to send message with notification',
+            error: e, name: '_sendMessageWithNotification');
         rethrow;
       }
 
-      _logger.warning('Failed to send notification for message ${message.id}');
+      _logger.warning('Failed to send notification for message ${message.id}',
+          name: '_sendMessageWithNotification');
     }
   }
 

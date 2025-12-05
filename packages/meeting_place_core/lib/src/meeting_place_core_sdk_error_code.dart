@@ -37,6 +37,7 @@ enum MeetingPlaceCoreSDKErrorCode {
   groupChannelDoesNotExistError('group_offer_channel_does_not_exist_error'),
 
   // others
+  channelNotificationFailed('channel_notification_failed'),
   generic('generic');
 
   const MeetingPlaceCoreSDKErrorCode(this.value);

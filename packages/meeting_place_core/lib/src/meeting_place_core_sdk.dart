@@ -40,6 +40,7 @@ import 'service/group.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_message.dart';
 import 'service/mediator/mediator_service.dart';
+import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_stream.dart';
 import 'service/oob/oob_stream_data.dart';
@@ -105,6 +106,7 @@ class MeetingPlaceCoreSDK {
   /// - `discoveryEventStreamManager` (`DiscoveryEventStreamManager`): Manages streaming of discovery events.
   /// - `groupService` (`GroupService`): Handles group-related operations.
   /// - `outreachService` (`OutreachService`): Handles outreach notifications
+  /// - `messageService` (`MessageService`): Handles message sending and receiving.
   /// - `didResolver` (`DidResolver`): Resolves DIDs to their corresponding DID Documents.
   /// - `mediatorDid` (`String`): The DID of the mediator agent.
   ///
@@ -125,6 +127,7 @@ class MeetingPlaceCoreSDK {
     required GroupService groupService,
     required NotificationService notificationService,
     required OutreachService outreachService,
+    required MessageService messageService,
     required MediatorService mediatorService,
     required DidResolver didResolver,
     required String mediatorDid,
@@ -143,6 +146,7 @@ class MeetingPlaceCoreSDK {
         _notificationService = notificationService,
         _outreachService = outreachService,
         _mediatorService = mediatorService,
+        _messageService = messageService,
         _didResolver = didResolver,
         _mediatorDid = mediatorDid,
         _options = options,
@@ -162,6 +166,7 @@ class MeetingPlaceCoreSDK {
   final NotificationService _notificationService;
   final MediatorService _mediatorService;
   final OutreachService _outreachService;
+  final MessageService _messageService;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -329,6 +334,15 @@ class MeetingPlaceCoreSDK {
       didResolver: didResolver,
     );
 
+    final messageService = MessageService(
+      connectionManager: connectionManager,
+      didResolver: didResolver,
+      mediatorService: mediatorService,
+      channelRepository: repositoryConfig.channelRepository,
+      controlPlaneSDK: controlPlaneSDK,
+      logger: mpxLogger,
+    );
+
     mpxLogger.info('Completed initializing CoreSDK', name: methodName);
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
@@ -343,6 +357,7 @@ class MeetingPlaceCoreSDK {
       groupService: groupService,
       notificationService: notificationService,
       mediatorService: mediatorService,
+      messageService: messageService,
       outreachService: outreachService,
       didResolver: didResolver,
       mediatorDid: mediatorDid,
@@ -1034,36 +1049,15 @@ class MeetingPlaceCoreSDK {
   }) async {
     return _withSdkExceptionHandling(() async {
       final senderDidManager = await getDidManager(senderDid);
-      final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
-
-      await _mediatorSDK.sendMessage(
+      return _messageService.sendMessage(
         message,
         senderDidManager: senderDidManager,
-        recipientDidDocument: recipientDidDocument,
-        mediatorDid: mediatorDid,
-        ephemeral: ephemeral,
+        recipientDid: recipientDid,
+        mediatorDid: mediatorDid ?? _mediatorDid,
+        notifyChannelType: notifyChannelType,
+        ephemeral: ephemeral ?? false,
         forwardExpiryInSeconds: forwardExpiryInSeconds,
       );
-
-      if (notifyChannelType != null) {
-        final channel = await _repositoryConfig.channelRepository
-            .findChannelByDid(recipientDid);
-
-        final otherPartyNotificationToken =
-            channel?.otherPartyNotificationToken;
-
-        if (otherPartyNotificationToken == null) {
-          return;
-        }
-
-        await _controlPlaneSDK.execute(
-          NotifyChannelCommand(
-            notificationToken: channel!.otherPartyNotificationToken!,
-            did: recipientDid,
-            type: notifyChannelType,
-          ),
-        );
-      }
     });
   }
 

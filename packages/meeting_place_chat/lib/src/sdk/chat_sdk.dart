@@ -1,3 +1,5 @@
+import 'package:didcomm/didcomm.dart';
+
 import '../../meeting_place_chat.dart';
 import 'chat.dart';
 
@@ -6,11 +8,15 @@ abstract interface class ChatSDK {
   Future<ChatStream?> get chatStreamSubscription;
   ChatRepository get chatRepository;
 
-  Future<Chat> startChatSession();
+  Future<Chat> startChatSession({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  });
   void endChatSession();
 
   Future<ChatItem?> getMessageById(String messageId);
-  Future<List<Message>> fetchNewMessages();
+  Future<List<Message>> fetchNewMessages({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  });
 
   Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
 

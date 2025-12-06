@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
@@ -91,17 +92,24 @@ abstract class BaseChatSDK {
   ///
   /// **Returns:**
   /// - A [Chat] instance containing retrieves messages and channel reference.
-  Future<Chat> startChatSession() async {
+  Future<Chat> startChatSession({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  }) async {
     final methodName = 'startChatSession';
     _logger.info('Starting chat session', name: methodName);
 
     chatStream = ChatStream();
 
-    mediatorStreamFuture = subscribeToMediator();
+    mediatorStreamFuture = subscribeToMediator(
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes);
     final messagesFuture = chatRepository.listMessages(chatId);
 
     unawaited(sendProfileHash());
-    unawaited(fetchNewMessages());
+    unawaited(
+      fetchNewMessages(
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+      ),
+    );
 
     final messages = await messagesFuture;
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
@@ -423,7 +431,9 @@ abstract class BaseChatSDK {
   ///
   /// **Returns:**
   /// - A list of newly processed [Message]s.
-  Future<List<Message>> fetchNewMessages() async {
+  Future<List<Message>> fetchNewMessages({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  }) async {
     final methodName = 'fetchNewMessages';
     _logger.info('Started fetching new messages', name: methodName);
     // TODO: delete after processing?
@@ -431,6 +441,7 @@ abstract class BaseChatSDK {
       did: did,
       mediatorDid: mediatorDid,
       deleteOnRetrieve: true,
+      expectedMessageWrappingTypes: expectedMessageWrappingTypes,
     );
     final newMessages = <Message>[];
 
@@ -453,8 +464,14 @@ abstract class BaseChatSDK {
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
-  Future<CoreSDKStreamSubscription> subscribeToMediator() {
-    return coreSDK.subscribeToMediator(did, mediatorDid: mediatorDid);
+  Future<CoreSDKStreamSubscription> subscribeToMediator({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  }) async {
+    return coreSDK.subscribeToMediator(
+      did,
+      mediatorDid: mediatorDid,
+      expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+    );
   }
 
   /// Sends a plain text message with optional attachments.

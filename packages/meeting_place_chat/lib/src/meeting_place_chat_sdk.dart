@@ -1,3 +1,4 @@
+import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
@@ -98,8 +99,12 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Chat] instance representing the started session.
   @override
-  Future<Chat> startChatSession() {
-    return _sdk.startChatSession();
+  Future<Chat> startChatSession({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  }) {
+    return _sdk.startChatSession(
+      expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+    );
   }
 
   /// Ends the active chat session.
@@ -125,8 +130,12 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [List] of [Message] objects representing new messages.
   @override
-  Future<List<Message>> fetchNewMessages() {
-    return _sdk.fetchNewMessages();
+  Future<List<Message>> fetchNewMessages({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  }) {
+    return _sdk.fetchNewMessages(
+      expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+    );
   }
 
   /// Sends the profile hash to the channel.

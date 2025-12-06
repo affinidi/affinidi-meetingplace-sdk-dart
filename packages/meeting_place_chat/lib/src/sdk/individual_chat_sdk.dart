@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:didcomm/didcomm.dart';
+
 import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
@@ -48,8 +50,12 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Chat] instance representing the started session.
   @override
-  Future<Chat> startChatSession() async {
-    final chat = await super.startChatSession();
+  Future<Chat> startChatSession({
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
+  }) async {
+    final chat = await super.startChatSession(
+      expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+    );
     unawaited(startChatPresenceInInterval(
         options.chatPresenceSendInterval.inSeconds));
     return chat;

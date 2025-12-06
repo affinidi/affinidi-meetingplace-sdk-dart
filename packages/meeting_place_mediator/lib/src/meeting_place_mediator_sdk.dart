@@ -182,6 +182,9 @@ class MeetingPlaceMediatorSDK {
     MediatorStreamSubscriptionOptions options =
         const MediatorStreamSubscriptionOptions(),
     String? mediatorDid,
+    List<MessageWrappingType> expectedMessageWrappingTypes = const [
+      MessageWrappingType.authcryptSignPlaintext,
+    ],
   }) {
     return _withSdkExceptionHandling(
       () => _mediatorService.createStreamSubscription(

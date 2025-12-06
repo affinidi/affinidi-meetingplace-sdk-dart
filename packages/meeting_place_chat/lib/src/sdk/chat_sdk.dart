@@ -20,7 +20,6 @@ abstract interface class ChatSDK {
   Future<void> sendEffect(Effect effect);
   Future<void> sendChatDeliveredMessage(PlainTextMessage message);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
-  Future<void> sendPersonaShared();
   Future<void> sendDeclinedPersonaSharing(ConciergeMessage message);
   Future<void> reactOnMessage(Message message, {required String reaction});
 

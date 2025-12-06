@@ -392,32 +392,6 @@ abstract class BaseChatSDK {
     }
 
     if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatPersonaShared.value) {
-      _logger.info('Handling persona share message', name: methodName);
-
-      final eventMessage = EventMessage(
-        chatId: chatId,
-        messageId: message.plainTextMessage.id,
-        senderDid: message.plainTextMessage.from ?? '',
-        isFromMe: false,
-        dateCreated:
-            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
-        status: ChatItemStatus.received,
-        eventType: EventMessageType.personaShared,
-        data: {'vCard': channel.otherPartyVCard?.values},
-      );
-
-      await chatRepository.createMessage(eventMessage);
-
-      chatStream.pushData(
-        StreamData(
-          plainTextMessage: message.plainTextMessage,
-          chatItem: eventMessage,
-        ),
-      );
-    }
-
-    if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatDeclinedPersonaSharing.value) {
       _logger.info('Handling declined persona sharing message',
           name: methodName);
@@ -669,39 +643,6 @@ abstract class BaseChatSDK {
       'Completed sending chat contact details update',
       name: methodName,
     );
-  }
-
-  /// Sends a persona share event message.
-  ///
-  /// **Returns:**
-  /// - The sent [Message] object persisted in the repository.
-  Future<void> sendPersonaShared() async {
-    final methodName = 'sendPersonaShared';
-    _logger.info('Started sending persona share', name: methodName);
-
-    final personaMessage = protocol.ChatPersonaShared.create(
-      from: did,
-      to: [otherPartyDid],
-    );
-
-    try {
-      await sendMessage(
-        personaMessage,
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-      );
-
-      _logger.info('Successfully sent persona share', name: methodName);
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to send persona share',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      rethrow;
-    }
   }
 
   /// Sends a persona sharing declined event message.

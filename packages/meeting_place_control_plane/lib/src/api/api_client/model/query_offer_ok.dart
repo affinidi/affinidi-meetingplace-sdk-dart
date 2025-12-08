@@ -17,7 +17,7 @@ part 'query_offer_ok.g.dart';
 /// * [name]
 /// * [description]
 /// * [validUntil] - validity date and time in ISO-8601 format, e.g. 2023-09-20T07:12:13
-/// * [vcard] - A vCard containing the details of the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard containing the details of the offer encoded in base64 format.
 /// * [contactAttributes] - A bitfield of contact attributes
 /// * [offerType] - Offer type information
 /// * [mediatorDid] - The mediator DID use to register the offer.
@@ -49,9 +49,9 @@ abstract class QueryOfferOK
   @BuiltValueField(wireName: r'validUntil')
   String? get validUntil;
 
-  /// A vCard containing the details of the offer encoded in base64 format.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// A ContactCard containing the details of the offer encoded in base64 format.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   /// A bitfield of contact attributes
   @BuiltValueField(wireName: r'contactAttributes')
@@ -144,9 +144,9 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
         specifiedType: const FullType(String),
       );
     }
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
     yield r'contactAttributes';
@@ -269,12 +269,12 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
           ) as String;
           result.validUntil = valueDes;
           break;
-        case r'vcard':
+        case r'contactCard':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.vcard = valueDes;
+          result.contactCard = valueDes;
           break;
         case r'contactAttributes':
           final valueDes = serializers.deserialize(

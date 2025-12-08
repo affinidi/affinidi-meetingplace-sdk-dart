@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
+import '../entity/contact_card.dart';
 
 import 'connection_offer.dart';
 
@@ -22,7 +22,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     required super.oobInvitationMessage,
     required super.type,
     required super.status,
-    required super.vCard,
+    required super.card,
     required super.ownedByMe,
     required super.createdAt,
     super.expiresAt,
@@ -52,7 +52,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     String? memberDid,
     String? groupOwnerDid,
     String? metadata,
-    VCard? vCard,
+    ContactCard? card,
     String? outboundMessageId,
     String? otherPartyPermanentChannelDid,
     String? acceptOfferDid,
@@ -80,7 +80,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       oobInvitationMessage: oobInvitationMessage,
       maximumUsage: maximumUsage ?? this.maximumUsage,
       type: type,
-      vCard: vCard ?? this.vCard,
+      card: card ?? this.card,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:
@@ -102,7 +102,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     required String acceptOfferDid,
     required String permanentChannelDid,
     required DateTime createdAt,
-    VCard? vCard,
+    ContactCard? card,
     String? externalRef,
   }) {
     return copyWith(
@@ -111,7 +111,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       acceptOfferDid: acceptOfferDid,
       permanentChannelDid: permanentChannelDid,
       status: ConnectionOfferStatus.accepted,
-      vCard: vCard,
+      card: card,
       externalRef: externalRef,
       createdAt: createdAt,
     );

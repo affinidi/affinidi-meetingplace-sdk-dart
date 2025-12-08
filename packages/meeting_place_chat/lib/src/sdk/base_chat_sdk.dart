@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
@@ -35,7 +38,7 @@ abstract class BaseChatSDK {
     required this.mediatorDid,
     required this.chatRepository,
     required this.options,
-    this.vCard,
+    this.card,
     MeetingPlaceChatSDKLogger? logger,
   })  : _logger = LoggerFormatter(className: _className, baseLogger: logger),
         chatStream = ChatStream();
@@ -48,7 +51,7 @@ abstract class BaseChatSDK {
   final String mediatorDid;
   final ChatRepository chatRepository;
   final ChatSDKOptions options;
-  final VCard? vCard;
+  final ContactCard? card;
   final MeetingPlaceChatSDKLogger _logger;
 
   MeetingPlaceChatSDKLogger get logger => _logger;
@@ -169,7 +172,7 @@ abstract class BaseChatSDK {
   /// - **Reaction**: Updates existing message reactions.
   /// - **AliasProfileHash / AliasProfileRequest**: Validates or creates concierge messages.
   /// - **Delivered**: Marks referenced messages as delivered.
-  /// - **ContactDetailsUpdate**: Updates channel vCard.
+  /// - **ContactDetailsUpdate**: Updates channel contact card.
   /// - **Activity / Presence / Effect**: Pushed downstream as events.
   ///
   /// **Parameters:**
@@ -255,7 +258,8 @@ abstract class BaseChatSDK {
       if (channel.type != ChannelType.group) {
         final profileHash = message.plainTextMessage.body?['profile_hash'];
         if (profileHash != null && profileHash is String) {
-          if (channel.otherPartyVCard?.toHash() == profileHash) {
+          if (channel.otherPartyCard != null &&
+              _contactHash(channel.otherPartyCard!) == profileHash) {
             chatStream.pushData(
               StreamData(plainTextMessage: message.plainTextMessage),
             );
@@ -358,8 +362,8 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channel.type != ChannelType.group) {
-        channel.otherPartyVCard =
-            VCard.fromJson(message.plainTextMessage.body!);
+        channel.otherPartyCard =
+            ContactCard.fromJson(message.plainTextMessage.body!);
 
         await coreSDK.updateChannel(channel);
         chatStream.pushData(
@@ -521,32 +525,32 @@ abstract class BaseChatSDK {
     );
   }
 
-  /// Sends a profile hash update if the vCard has changed.
+  /// Sends a profile hash update if the contact card has changed.
   Future<void> sendProfileHash() async {
     final methodName = 'sendProfileHash';
     _logger.info('Started sending profile hash', name: methodName);
-    if (vCard == null) {
+    if (card == null) {
       _logger.info(
-        'VCard is null, skipping profile hash update',
+        'ContactCard is null, skipping profile hash update',
         name: methodName,
       );
       return;
     }
 
     final channel = await getChannel();
-    if (channel.vCard != null && !vCard!.equals(channel.vCard!)) {
+    if (channel.card != null && !card!.equals(channel.card!)) {
       await sendMessage(
         protocol.ChatAliasProfileHash.create(
           from: did,
           to: [otherPartyDid],
-          profileHash: vCard!.toHash(),
+          profileHash: _contactHash(card!),
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
       );
 
-      channel.vCard = vCard;
+      channel.card = card;
       await coreSDK.updateChannel(channel);
     }
 
@@ -589,20 +593,20 @@ abstract class BaseChatSDK {
     _logger.info('Completed sending chat delivered message', name: methodName);
   }
 
-  /// Sends updated contact details from the current vCard.
+  /// Sends updated contact details from the current contact card.
   ///
   /// **Throws:**
-  /// - [Exception] if the [vCard] is missing.
+  /// - [Exception] if the [card] is missing.
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
     final methodName = 'sendChatContactDetailsUpdate';
     _logger.info(
       'Started sending chat contact details update',
       name: methodName,
     );
-    if (vCard == null) {
-      final message = 'Vcard missing for contact details update';
+    if (card == null) {
+      final message = 'ContactCard missing for contact details update';
       _logger.error(message, name: methodName);
-      // throw Exception('Vcard missing for contact details update');
+      // throw Exception('ContactCard missing for contact details update');
     }
 
     unawaited(
@@ -610,7 +614,7 @@ abstract class BaseChatSDK {
         protocol.ChatContactDetailsUpdate.create(
           from: did,
           to: [otherPartyDid],
-          profileDetails: vCard!.toJson(),
+          profileDetails: card!.toJson(),
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
@@ -815,5 +819,9 @@ abstract class BaseChatSDK {
     );
 
     return createdMessage as Message;
+  }
+
+  String _contactHash(ContactCard card) {
+    return sha256.convert(utf8.encode(jsonEncode(card.contactInfo))).toString();
   }
 }

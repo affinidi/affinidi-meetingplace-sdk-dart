@@ -159,7 +159,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   @override
   final String didcommMessage;
   @override
-  final String vcard;
+  final String contactCard;
   @override
   final String? validUntil;
   @override
@@ -192,7 +192,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
       this.offerDescription,
       this.offerType,
       required this.didcommMessage,
-      required this.vcard,
+      required this.contactCard,
       this.validUntil,
       this.maximumUsage,
       required this.deviceToken,
@@ -222,7 +222,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
         offerDescription == other.offerDescription &&
         offerType == other.offerType &&
         didcommMessage == other.didcommMessage &&
-        vcard == other.vcard &&
+        contactCard == other.contactCard &&
         validUntil == other.validUntil &&
         maximumUsage == other.maximumUsage &&
         deviceToken == other.deviceToken &&
@@ -243,7 +243,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     _$hash = $jc(_$hash, offerDescription.hashCode);
     _$hash = $jc(_$hash, offerType.hashCode);
     _$hash = $jc(_$hash, didcommMessage.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jc(_$hash, validUntil.hashCode);
     _$hash = $jc(_$hash, maximumUsage.hashCode);
     _$hash = $jc(_$hash, deviceToken.hashCode);
@@ -266,7 +266,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
           ..add('offerDescription', offerDescription)
           ..add('offerType', offerType)
           ..add('didcommMessage', didcommMessage)
-          ..add('vcard', vcard)
+          ..add('contactCard', contactCard)
           ..add('validUntil', validUntil)
           ..add('maximumUsage', maximumUsage)
           ..add('deviceToken', deviceToken)
@@ -305,9 +305,9 @@ class RegisterOfferInputBuilder
   set didcommMessage(String? didcommMessage) =>
       _$this._didcommMessage = didcommMessage;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   String? _validUntil;
   String? get validUntil => _$this._validUntil;
@@ -368,7 +368,7 @@ class RegisterOfferInputBuilder
       _offerDescription = $v.offerDescription;
       _offerType = $v.offerType;
       _didcommMessage = $v.didcommMessage;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _validUntil = $v.validUntil;
       _maximumUsage = $v.maximumUsage;
       _deviceToken = $v.deviceToken;
@@ -407,8 +407,8 @@ class RegisterOfferInputBuilder
           offerType: offerType,
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
               didcommMessage, r'RegisterOfferInput', 'didcommMessage'),
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'RegisterOfferInput', 'vcard'),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+              contactCard, r'RegisterOfferInput', 'contactCard'),
           validUntil: validUntil,
           maximumUsage: maximumUsage,
           deviceToken: BuiltValueNullFieldError.checkNotNull(

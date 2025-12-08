@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
-import 'package:meeting_place_core/src/protocol/v_card/v_card.dart';
+import 'package:meeting_place_core/src/entity/contact_card.dart' as core;
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
@@ -12,7 +12,8 @@ import 'package:meeting_place_core/src/entity/connection_offer.dart';
 import 'package:meeting_place_core/src/protocol/meeting_place_protocol.dart';
 import 'package:meeting_place_core/src/repository/connection_offer_repository.dart';
 import 'package:meeting_place_core/src/repository/channel_repository.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    as cp;
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
@@ -47,12 +48,15 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     type: ConnectionOfferType.meetingPlaceInvitation,
-    vCard: VCard(values: {'fullName': 'Test User'}),
+    card: core.ContactCard(
+        did: publishOfferDid,
+        type: 'human',
+        contactInfo: const {'fullName': 'Test User'}),
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
   );
 
-  final event = InvitationAccept(
+  final event = cp.InvitationAccept(
     id: Uuid().v4(),
     acceptOfferAsDid: acceptOfferDid,
     offerLink: offerLink,
@@ -63,7 +67,8 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     status: ChannelStatus.approved,
-    vCard: VCard(values: {}),
+    card: core.ContactCard(
+        did: publishOfferDid, type: 'human', contactInfo: const {}),
     type: ChannelType.individual,
   );
 

@@ -83,7 +83,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
   @override
   final AcceptOfferInputPlatformTypeEnum platformType;
   @override
-  final String vcard;
+  final String contactCard;
   @override
   final String offerLink;
 
@@ -96,7 +96,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
       required this.did,
       required this.deviceToken,
       required this.platformType,
-      required this.vcard,
+      required this.contactCard,
       required this.offerLink})
       : super._();
   @override
@@ -115,7 +115,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
         did == other.did &&
         deviceToken == other.deviceToken &&
         platformType == other.platformType &&
-        vcard == other.vcard &&
+        contactCard == other.contactCard &&
         offerLink == other.offerLink;
   }
 
@@ -126,7 +126,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
     _$hash = $jc(_$hash, did.hashCode);
     _$hash = $jc(_$hash, deviceToken.hashCode);
     _$hash = $jc(_$hash, platformType.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jc(_$hash, offerLink.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -139,7 +139,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
           ..add('did', did)
           ..add('deviceToken', deviceToken)
           ..add('platformType', platformType)
-          ..add('vcard', vcard)
+          ..add('contactCard', contactCard)
           ..add('offerLink', offerLink))
         .toString();
   }
@@ -166,9 +166,9 @@ class AcceptOfferInputBuilder
   set platformType(AcceptOfferInputPlatformTypeEnum? platformType) =>
       _$this._platformType = platformType;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   String? _offerLink;
   String? get offerLink => _$this._offerLink;
@@ -185,7 +185,7 @@ class AcceptOfferInputBuilder
       _did = $v.did;
       _deviceToken = $v.deviceToken;
       _platformType = $v.platformType;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _offerLink = $v.offerLink;
       _$v = null;
     }
@@ -216,8 +216,8 @@ class AcceptOfferInputBuilder
               deviceToken, r'AcceptOfferInput', 'deviceToken'),
           platformType: BuiltValueNullFieldError.checkNotNull(
               platformType, r'AcceptOfferInput', 'platformType'),
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'AcceptOfferInput', 'vcard'),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+              contactCard, r'AcceptOfferInput', 'contactCard'),
           offerLink: BuiltValueNullFieldError.checkNotNull(
               offerLink, r'AcceptOfferInput', 'offerLink'),
         );

@@ -96,7 +96,7 @@ class RegisterOfferGroupHandler
       ..offerName = command.offerName
       ..offerDescription = command.offerDescription
       ..didcommMessage = toBase64(command.oobInvitationMessage.toJson())
-      ..vcard = command.vCard.toBase64()
+      ..contactCard = command.contactCard.toBase64()
       ..validUntil = command.validUntil?.toUtc().toIso8601String()
       ..maximumUsage = command.maximumUsage
       ..deviceToken = command.device.deviceToken
@@ -111,7 +111,7 @@ class RegisterOfferGroupHandler
       ..adminDid = command.adminDid
       ..adminPublicKey = command.adminPublicKey
       ..adminReencryptionKey = command.adminReencryptionKey
-      ..memberVCard = base64Url.encode(
+      ..memberContactCard = base64Url.encode(
         utf8.encode('{}'),
       );
 

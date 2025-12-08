@@ -1,10 +1,12 @@
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    as cp;
 import '../entity/entity.dart';
 import '../protocol/protocol.dart';
 import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
 import '../utils/attachment.dart';
+import '../entity/contact_card.dart' as core;
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 
@@ -24,7 +26,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
 
   // This event is handled on the device of the group admin after a potential
   // new member accepted the group offer.
-  Future<Channel?> process(InvitationGroupAccept event) async {
+  Future<Channel?> process(cp.InvitationGroupAccept event) async {
     final methodName = 'process';
     try {
       logger.info(
@@ -77,7 +79,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        final otherPartyVCard = getVCardDataOrEmptyFromAttachments(
+        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
           message.attachments,
         );
 
@@ -85,7 +87,8 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
         group.members.add(GroupMember.pendingMember(
           did: otherPartyPermanentChannelDid,
           publicKey: publicKey,
-          vCard: otherPartyVCard ?? VCard.empty(),
+          card: otherPartyCard ??
+              core.ContactCard(did: '', type: '', contactInfo: {}),
         ));
 
         await _groupRepository.updateGroup(group);
@@ -99,8 +102,8 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           status: ChannelStatus.waitingForApproval,
           type: ChannelType.group,
-          vCard: connection.vCard,
-          otherPartyVCard: otherPartyVCard,
+          card: connection.card,
+          otherPartyCard: otherPartyCard,
           externalRef: connection.externalRef,
         );
 
@@ -125,13 +128,13 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
       return null;
     } on EmptyMessageListException {
       logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.InvitationGroupAccept}',
+        'No messages found to process for event of type ${cp.ControlPlaneEventType.InvitationGroupAccept}',
         name: methodName,
       );
       return null;
     } catch (e, stackTrace) {
       logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.InvitationGroupAccept}',
+        'Failed to process event of type ${cp.ControlPlaneEventType.InvitationGroupAccept}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,

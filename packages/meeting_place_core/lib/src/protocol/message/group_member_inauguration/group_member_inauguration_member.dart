@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../entity/contact_card.dart';
 import '../../../entity/group_member.dart';
 import '../../v_card/v_card.dart';
 
@@ -12,14 +13,14 @@ class GroupMemberInaugurationMember {
 
   GroupMemberInaugurationMember({
     required this.did,
-    required this.vCard,
+    required this.contactCard,
     required this.membershipType,
     required this.status,
     required this.publicKey,
   });
 
   final String did;
-  final VCard vCard;
+  final ContactCard contactCard;
   final String membershipType;
   final String status;
   final String publicKey;

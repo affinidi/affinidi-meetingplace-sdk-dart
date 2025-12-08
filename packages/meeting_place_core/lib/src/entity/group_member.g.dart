@@ -12,7 +12,7 @@ GroupMember _$GroupMemberFromJson(Map<String, dynamic> json) => GroupMember(
       status: $enumDecode(_$GroupMemberStatusEnumMap, json['status']),
       membershipType:
           $enumDecode(_$GroupMembershipTypeEnumMap, json['membershipType']),
-      vCard: VCard.fromJson(json['vCard'] as Map<String, dynamic>),
+      card: ContactCard.fromJson(json['card'] as Map<String, dynamic>),
       publicKey: json['publicKey'] as String,
     );
 
@@ -22,7 +22,7 @@ Map<String, dynamic> _$GroupMemberToJson(GroupMember instance) =>
       'dateAdded': instance.dateAdded.toIso8601String(),
       'membershipType': _$GroupMembershipTypeEnumMap[instance.membershipType]!,
       'publicKey': instance.publicKey,
-      'vCard': instance.vCard.toJson(),
+      'card': instance.card.toJson(),
       'status': _$GroupMemberStatusEnumMap[instance.status]!,
     };
 

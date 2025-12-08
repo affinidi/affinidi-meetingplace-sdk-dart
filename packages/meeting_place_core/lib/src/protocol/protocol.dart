@@ -1,6 +1,6 @@
 export 'attachment/attachment_format.dart';
 export 'attachment/attachment_media_type.dart';
-export 'attachment/v_card_attachment.dart';
+export 'attachment/contact_card_attachment.dart';
 export 'message/channel_inauguration/channel_inauguration.dart';
 export 'message/connection_request_approval/connection_request_approval.dart';
 export 'message/invitation_acceptance/invitation_acceptance.dart';
@@ -12,4 +12,4 @@ export 'message/group_message/group_message.dart';
 export 'message/oob_invitation_message/oob_invitation_message.dart';
 export 'meeting_place_notification_protocol.dart';
 export 'meeting_place_protocol.dart';
-export 'v_card/v_card.dart';
+export '../entity/contact_card.dart';

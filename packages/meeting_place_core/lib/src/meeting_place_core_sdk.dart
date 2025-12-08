@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:didcomm/didcomm.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         AccessListAdd,
@@ -441,7 +442,7 @@ class MeetingPlaceCoreSDK {
   /// Creates an Out-Of-Band invitation for a User.
   ///
   /// **Parameters:**
-  /// - [vCard]: An object that contains information about who is offering the
+  /// - [contactCard]: An object that contains information about who is offering the
   ///   offer. This helps others know whom they are connecting with and provides
   ///   necessary contact details.
   ///
@@ -459,7 +460,7 @@ class MeetingPlaceCoreSDK {
   ///
   /// Returns [CreateOobFlowResult]
   Future<CreateOobFlowResult> createOobFlow({
-    required VCard vCard,
+    required ContactCard contactCard,
     String? did,
     String? mediatorDid,
     String? externalRef,
@@ -497,7 +498,7 @@ class MeetingPlaceCoreSDK {
 
       if (plainTextMessage.type.toString() ==
           MeetingPlaceProtocol.invitationAcceptance.value) {
-        final otherPartyVcard = getVCardDataOrEmptyFromAttachments(
+        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
           plainTextMessage.attachments,
         );
 
@@ -519,7 +520,7 @@ class MeetingPlaceCoreSDK {
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           otherPartyAcceptOfferDid: plainTextMessage.from!,
           outboundMessageId: oobMessage.id,
-          vCard: vCard,
+          contactCard: contactCard,
           mediatorDid: result.mediatorDid,
         );
 
@@ -533,8 +534,8 @@ class MeetingPlaceCoreSDK {
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           status: ChannelStatus.inaugurated,
           type: ChannelType.oob,
-          vCard: vCard,
-          otherPartyVCard: otherPartyVcard,
+          card: contactCard,
+          otherPartyCard: otherPartyCard,
           externalRef: externalRef,
         );
 
@@ -573,7 +574,7 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [oobUrl]: The OOB URL.
   ///
-  /// - [vCard]: An object that contains information about who is offering the
+  /// - [contactCard]: An object that contains information about who is offering the
   ///   offer. This helps others know whom they are connecting with and provides
   ///   necessary contact details.
   ///
@@ -585,8 +586,9 @@ class MeetingPlaceCoreSDK {
   /// Returns [AcceptOobFlowResult]
   Future<AcceptOobFlowResult> acceptOobFlow(
     Uri oobUrl, {
-    required VCard vCard,
+    required ContactCard contactCard,
     String? externalRef,
+    String? did,
   }) async {
     final methodName = 'acceptOobFlow';
     _logger.info('Started accepting OOB invitation', name: methodName);
@@ -594,7 +596,9 @@ class MeetingPlaceCoreSDK {
     final acceptOfferDid = await generateDid();
     final acceptOfferDidDoc = await acceptOfferDid.getDidDocument();
 
-    final permanentChannelDid = await generateDid();
+    final permanentChannelDid = did != null
+        ? await _connectionManager.getDidManagerForDid(wallet, did)
+        : await generateDid();
     final didDoc = await permanentChannelDid.getDidDocument();
 
     PlainTextMessage invitationMessage;
@@ -633,7 +637,7 @@ class MeetingPlaceCoreSDK {
       acceptOfferDid: acceptOfferDidDoc.id,
       permanentChannelDid: didDoc.id,
       type: ChannelType.oob,
-      vCard: vCard,
+      card: contactCard,
       externalRef: externalRef,
     );
 
@@ -669,12 +673,12 @@ class MeetingPlaceCoreSDK {
           ),
         );
 
-        final otherPartyVCard = getVCardDataOrEmptyFromAttachments(
+        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
           plainTextMessage.attachments,
         );
 
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
-        channel.otherPartyVCard = otherPartyVCard;
+        channel.otherPartyCard = otherPartyCard;
         channel.status = ChannelStatus.inaugurated;
 
         await _repositoryConfig.channelRepository.updateChannel(channel);
@@ -706,7 +710,7 @@ class MeetingPlaceCoreSDK {
       permanentChannelDidDocument: didDoc,
       invitationMessage: invitationMessage,
       mediatorDid: actualMediatorDid,
-      acceptVCard: vCard,
+      acceptCard: contactCard,
     );
 
     await _repositoryConfig.channelRepository.createChannel(channel);
@@ -805,9 +809,9 @@ class MeetingPlaceCoreSDK {
   /// [type] - Type of the offer. Either invitation, outreachInvitation
   ///   or groupInvitation.
   ///
-  /// - [vCard] - A VCard that contains information about who is offering the
-  /// offer. This helps others know whom they are connecting with and
-  /// provides necessary contact details.
+  /// - [contactCard] - A ContactCard that contains information about who is
+  /// offering the offer. This helps others know whom they are connecting with
+  /// and provides necessary contact details.
   ///
   /// - [publishAsGroup] - Boolean value to publish offer as group offer.
   ///
@@ -844,7 +848,7 @@ class MeetingPlaceCoreSDK {
   Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>({
     required String offerName,
     required sdk.SDKConnectionOfferType type,
-    required VCard vCard,
+    required ContactCard contactCard,
     required String offerDescription,
     String? customPhrase,
     DateTime? validUntil,
@@ -864,7 +868,7 @@ class MeetingPlaceCoreSDK {
         mediatorDid: mediatorDid,
         externalRef: externalRef,
         metadata: metadata,
-        vCard: vCard,
+        card: contactCard,
       );
       return sdk.PublishOfferResult(
         connectionOffer: connectionOffer as T,
@@ -886,7 +890,7 @@ class MeetingPlaceCoreSDK {
       maximumUsage: maximumUsage,
       mediatorDid: mediatorDid,
       externalRef: externalRef,
-      vCard: vCard,
+      card: contactCard,
     );
 
     return sdk.PublishOfferResult(
@@ -922,8 +926,8 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [ConnectionOffer] - Connection offer object.
   ///
-  /// - [vCard] - A VCard that contains information about who is accepting
-  ///   the offer. This helps the offeree to know who accepted the offer.
+  /// - [contactCard] - A ContactCard that contains information about who is
+  ///   accepting the offer. This helps the offeree to know who accepted it.
   ///
   /// - [senderInfo] - Value to be shown in notification message to the other
   ///   party.
@@ -938,8 +942,8 @@ class MeetingPlaceCoreSDK {
   ///   [acceptOfferDid] and [permanentChannelDid]
   Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
     required T connectionOffer,
-    required VCard vCard,
-    required String senderInfo,
+    required ContactCard contactCard,
+    String? did,
     String? externalRef,
   }) async {
     return _withSdkExceptionHandling(() async {
@@ -947,8 +951,8 @@ class MeetingPlaceCoreSDK {
         final result = await _groupService.acceptGroupOffer(
           wallet: wallet,
           connectionOffer: connectionOffer,
-          vCard: vCard,
-          senderInfo: senderInfo,
+          card: contactCard,
+          did: did,
           externalRef: externalRef,
         );
 
@@ -962,8 +966,9 @@ class MeetingPlaceCoreSDK {
       final result = await _connectionService.acceptOffer(
         wallet: wallet,
         connectionOffer: connectionOffer,
-        vCard: vCard,
-        senderInfo: senderInfo,
+        card: contactCard,
+        did: did,
+        senderInfoOverride: contactCard.notificationValue,
         externalRef: externalRef,
       );
 
@@ -993,12 +998,15 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({required Channel channel}) async {
+  Future<Channel> approveConnectionRequest({
+    required Channel channel,
+    String? did,
+  }) async {
     return _withSdkExceptionHandling(() async {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
-              wallet: wallet, channel: channel);
+              wallet: wallet, channel: channel, did: did);
     });
   }
 

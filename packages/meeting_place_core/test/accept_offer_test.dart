@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
 import 'package:test/test.dart';
-import 'fixtures/v_card.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -17,12 +16,26 @@ void main() async {
     charlieSDK = await initSDKInstance();
   });
 
-  test('accept offer uses correct vcard', () async {
+  test('accept offer uses correct contact card', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       maximumUsage: 1,
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -32,8 +45,7 @@ void main() async {
 
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     final completer = Completer<void>();
@@ -49,42 +61,63 @@ void main() async {
     await completer.future;
 
     expect(
-      channel.vCard?.values,
-      equals(VCardFixture.alicePrimaryVCard.values),
+      channel.card?.contactInfo,
+      equals(aliceCard.contactInfo),
     );
 
     expect(
-      channel.otherPartyVCard?.values,
-      equals(VCardFixture.bobPrimaryVCard.values),
+      channel.otherPartyCard?.contactInfo,
+      equals(bobCard.contactInfo),
     );
   });
 
-  test('connection offer contains vCard of accepter after accepting', () async {
+  test('connection offer contains ContactCard of accepter after accepting',
+      () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final actual = (await aliceSDK.publishOffer(
       offerName: 'Sample',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.invitation,
     ));
 
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     final acceptOfferResult = await bobSDK.acceptOffer(
       connectionOffer: actual.connectionOffer,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     expect(
-      acceptOfferResult.connectionOffer.vCard.values,
-      equals(VCardFixture.bobPrimaryVCard.values),
+      acceptOfferResult.connectionOffer.card.contactInfo,
+      equals(bobCard.contactInfo),
     );
   });
 
   test('claim limit exceeded', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       maximumUsage: 1,
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -92,27 +125,45 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     expect(
       () => charlieSDK.acceptOffer(
         connectionOffer: findOfferResult.connectionOffer!,
-        vCard: VCardFixture.charliePrimaryVCard,
-        senderInfo: 'Charlie',
+        contactCard: ContactCard(
+          did: 'did:test:charlie',
+          type: 'human',
+          contactInfo: {
+            'n': {'given': 'Charlie', 'surname': 'A.'},
+          },
+        ),
       ),
       throwsA(isA<MeetingPlaceCoreSDKException>()),
     );
   });
 
   test('throws exception if user attempts to accept offer twice', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -120,17 +171,22 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     expect(
       () => bobSDK.acceptOffer(
         connectionOffer: findOfferResult.connectionOffer!,
-        vCard: VCardFixture.bobPrimaryVCard,
-        senderInfo: 'Bob',
+        contactCard: bobCard,
       ),
       throwsA(
         predicate((e) {
@@ -149,18 +205,30 @@ void main() async {
   test(
     'party who registered the offer should not be able to claim it',
     () async {
+      final aliceCard = ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
       final publishedOfferResult = await aliceSDK.publishOffer(
         offerName: 'Test Offer',
         offerDescription: 'Sample offer description',
-        vCard: VCardFixture.alicePrimaryVCard,
+        contactCard: aliceCard,
         type: SDKConnectionOfferType.invitation,
       );
 
       expect(
         () => aliceSDK.acceptOffer(
           connectionOffer: publishedOfferResult.connectionOffer,
-          vCard: VCardFixture.bobPrimaryVCard,
-          senderInfo: 'Alice',
+          contactCard: ContactCard(
+            did: 'did:test:bob',
+            type: 'human',
+            contactInfo: {
+              'n': {'given': 'Bob', 'surname': 'A.'},
+            },
+          ),
         ),
         throwsA(
           predicate(
@@ -178,10 +246,17 @@ void main() async {
   );
 
   test('throws error if offer claiming is in progress', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final publishedOfferResult = await aliceSDK.publishOffer(
       offerName: 'Test Offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -189,17 +264,22 @@ void main() async {
       mnemonic: publishedOfferResult.connectionOffer.mnemonic,
     );
 
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     expect(
       () => bobSDK.acceptOffer(
         connectionOffer: findOfferResult.connectionOffer!,
-        vCard: VCardFixture.bobPrimaryVCard,
-        senderInfo: 'Bob',
+        contactCard: bobCard,
       ),
       throwsA(
         predicate(

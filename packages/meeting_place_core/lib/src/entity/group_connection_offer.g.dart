@@ -23,7 +23,7 @@ GroupConnectionOffer _$GroupConnectionOfferFromJson(
       oobInvitationMessage: json['oobInvitationMessage'] as String,
       type: $enumDecode(_$ConnectionOfferTypeEnumMap, json['type']),
       status: $enumDecode(_$ConnectionOfferStatusEnumMap, json['status']),
-      vCard: VCard.fromJson(json['vCard'] as Map<String, dynamic>),
+      card: ContactCard.fromJson(json['card'] as Map<String, dynamic>),
       ownedByMe: json['ownedByMe'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
       expiresAt: json['expiresAt'] == null
@@ -53,7 +53,7 @@ Map<String, dynamic> _$GroupConnectionOfferToJson(
       'publishOfferDid': instance.publishOfferDid,
       'mediatorDid': instance.mediatorDid,
       'oobInvitationMessage': instance.oobInvitationMessage,
-      'vCard': instance.vCard.toJson(),
+      'card': instance.card.toJson(),
       'type': _$ConnectionOfferTypeEnumMap[instance.type]!,
       'status': _$ConnectionOfferStatusEnumMap[instance.status]!,
       'ownedByMe': instance.ownedByMe,

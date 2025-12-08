@@ -16,7 +16,7 @@ part 'register_offer_input.g.dart';
 /// * [offerDescription] - Describes the purpose of the connection offer.
 /// * [offerType] - Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
 /// * [didcommMessage] - A plaintext DIDComm message containing the offer encoded in base64 format.
-/// * [vcard] - A vCard of the user who registered the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard of the user who registered the offer encoded in base64 format.
 /// * [validUntil] - The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
 /// * [maximumUsage] - The maximum number of times other users can claim the offer. Set 0 for unlimited claims.
 /// * [deviceToken] - The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
@@ -48,9 +48,9 @@ abstract class RegisterOfferInput
   @BuiltValueField(wireName: r'didcommMessage')
   String get didcommMessage;
 
-  /// A vCard of the user who registered the offer encoded in base64 format.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// A ContactCard of the user who registered the offer encoded in base64 format.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   /// The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
   @BuiltValueField(wireName: r'validUntil')
@@ -147,9 +147,9 @@ class _$RegisterOfferInputSerializer
       object.didcommMessage,
       specifiedType: const FullType(String),
     );
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
     if (object.validUntil != null) {
@@ -270,12 +270,12 @@ class _$RegisterOfferInputSerializer
           ) as String;
           result.didcommMessage = valueDes;
           break;
-        case r'vcard':
+        case r'contactCard':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.vcard = valueDes;
+          result.contactCard = valueDes;
           break;
         case r'validUntil':
           final valueDes = serializers.deserialize(

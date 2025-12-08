@@ -4,7 +4,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/v_card.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -26,28 +25,44 @@ void main() async {
     charlieSDK = await initSDKInstance();
 
     // Setup group
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
-    final charlieVCard = VCardFixture.charliePrimaryVCard;
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
+    final charlieCard = ContactCard(
+      did: 'did:test:charlie',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Charlie', 'surname': 'A.'},
+      },
+    );
 
     final publishOfferResult =
         await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.groupInvitation,
     );
 
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
-      vCard: bobVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
-      vCard: charlieVCard,
-      senderInfo: 'Charlie',
+      contactCard: charlieCard,
     );
 
     final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(

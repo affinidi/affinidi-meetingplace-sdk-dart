@@ -1,10 +1,10 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../entity/contact_card.dart';
 import '../../attachment/attachment_format.dart';
 import '../../attachment/attachment_media_type.dart';
 import '../../meeting_place_protocol.dart';
-import '../../v_card/v_card.dart';
 import 'group_member_inauguration_body.dart';
 import 'group_member_inauguration_member.dart';
 
@@ -18,7 +18,6 @@ class GroupMemberInauguration {
     required String groupPublicKey,
     required List<String> adminDids,
     required List<GroupMemberInaugurationMember> members,
-    VCard? vCard,
   }) {
     return GroupMemberInauguration(
       id: const Uuid().v4(),
@@ -32,18 +31,17 @@ class GroupMemberInauguration {
         adminDids: adminDids,
         members: members,
       ),
-      vCard: vCard,
     );
   }
 
   factory GroupMemberInauguration.fromPlainTextMessage(
     PlainTextMessage message,
   ) {
-    VCard? vCard;
+    ContactCard? contactCard;
     if (message.attachments != null && message.attachments!.isNotEmpty) {
       final base64 = message.attachments!.first.data?.base64;
       if (base64 != null) {
-        vCard = VCard.fromBase64(base64);
+        contactCard = ContactCard.fromBase64(base64);
       }
     }
     return GroupMemberInauguration(
@@ -51,7 +49,7 @@ class GroupMemberInauguration {
       from: message.from!,
       to: message.to!,
       body: GroupMemberInaugurationBody.fromJson(message.body!),
-      vCard: vCard,
+      contactCard: contactCard,
       createdTime: message.createdTime,
     );
   }
@@ -61,7 +59,7 @@ class GroupMemberInauguration {
     required this.from,
     required this.to,
     required this.body,
-    this.vCard,
+    this.contactCard,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -69,7 +67,7 @@ class GroupMemberInauguration {
   final String from;
   final List<String> to;
   final GroupMemberInaugurationBody body;
-  final VCard? vCard;
+  final ContactCard? contactCard;
   final DateTime createdTime;
 
   PlainTextMessage toPlainTextMessage() {
@@ -80,15 +78,15 @@ class GroupMemberInauguration {
       to: to,
       body: body.toJson(),
       createdTime: createdTime,
-      attachments: vCard == null
+      attachments: contactCard == null
           ? null
           : [
               Attachment(
                 id: const Uuid().v4(),
                 format: AttachmentFormat.contactCard.value,
-                mediaType: AttachmentMediaType.textVcard.value,
-                description: 'vCard Info',
-                data: AttachmentData(base64: vCard!.toBase64()),
+                mediaType: AttachmentMediaType.textContactCard.value,
+                description: 'Contact card info',
+                data: AttachmentData(base64: contactCard!.toBase64()),
               ),
             ],
     );

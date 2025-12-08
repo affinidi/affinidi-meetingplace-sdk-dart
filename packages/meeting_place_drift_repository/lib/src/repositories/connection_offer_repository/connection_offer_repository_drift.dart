@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../extensions/vcard_extensions.dart';
+import '../../extensions/contact_card_extensions.dart';
 import 'connection_offer_database.dart' as db;
 
 /// [ConnectionOfferRepositoryDrift] provides a Drift-based
@@ -23,7 +23,7 @@ import 'connection_offer_database.dart' as db;
 ///   - offerLink
 ///   - permanentChannelDid
 ///   - groupDid
-/// - Return fully hydrated domain models (including [model.VCard]).
+/// - Return fully hydrated domain models (including [model.ContactCard]).
 ///
 /// ### Parameters:
 /// - database: The Drift [db.ConnectionOfferDatabase] instance to use.
@@ -52,8 +52,8 @@ class ConnectionOfferRepositoryDrift
   ///
   /// Returns:
   /// - A fully constructed [model.ConnectionOffer]
-  ///  (or [model.GroupConnectionOffer])
-  ///   with its [model.VCard].
+  ///   (or [model.GroupConnectionOffer])
+  ///   with its [model.ContactCard].
   Future<model.ConnectionOffer?> _getConnectionOfferByPredicate(
     Expression<bool> predicate,
   ) async {
@@ -198,17 +198,17 @@ class ConnectionOfferRepositoryDrift
             );
       }
 
-      final vCard = connectionOffer.vCard;
+      final card = connectionOffer.card;
       await _database.into(_database.connectionContactCards).insert(
             db.ConnectionContactCardsCompanion(
               connectionOfferId: Value(connectionOfferId),
-              firstName: Value(vCard.firstName),
-              lastName: Value(vCard.lastName),
-              email: Value(vCard.email),
-              mobile: Value(vCard.mobile),
-              profilePic: Value(vCard.profilePic),
+              firstName: Value(card.firstName),
+              lastName: Value(card.lastName),
+              email: Value(card.email),
+              mobile: Value(card.mobile),
+              profilePic: Value(card.profilePic),
               meetingplaceIdentityCardColor: Value(
-                vCard.meetingplaceIdentityCardColor,
+                card.meetingplaceIdentityCardColor,
               ),
             ),
           );
@@ -220,7 +220,7 @@ class ConnectionOfferRepositoryDrift
   /// - Throws [MeetingPlaceCoreRepositoryException] if the record does not
   ///   exist.
   /// - Updates main offer, group data (if applicable),
-  ///   and associated [model.VCard] contact card.
+  ///   and associated [model.ContactCard] contact card.
   @override
   Future<void> updateConnectionOffer(
     model.ConnectionOffer connectionOffer,
@@ -298,7 +298,7 @@ class ConnectionOfferRepositoryDrift
             .go();
       }
 
-      final vCard = connectionOffer.vCard;
+      final card = connectionOffer.card;
       await (_database.update(_database.connectionContactCards)
             ..where(
               (c) => _database.connectionContactCards.connectionOfferId.equals(
@@ -307,13 +307,13 @@ class ConnectionOfferRepositoryDrift
             ))
           .write(
         db.ConnectionContactCardsCompanion(
-          firstName: Value(vCard.firstName),
-          lastName: Value(vCard.lastName),
-          email: Value(vCard.email),
-          mobile: Value(vCard.mobile),
-          profilePic: Value(vCard.profilePic),
+          firstName: Value(card.firstName),
+          lastName: Value(card.lastName),
+          email: Value(card.email),
+          mobile: Value(card.mobile),
+          profilePic: Value(card.profilePic),
           meetingplaceIdentityCardColor: Value(
-            vCard.meetingplaceIdentityCardColor,
+            card.meetingplaceIdentityCardColor,
           ),
         ),
       );
@@ -343,7 +343,7 @@ class ConnectionOfferRepositoryDrift
 /// - Map [model.ConnectionOffer], [model.GroupConnectionOffer]
 /// , and [db.ConnectionContactCard]
 ///   database rows into a complete model.
-/// - Construct a [model.VCard] from contact card details.
+/// - Construct a [model.ContactCard] from contact card details.
 /// - Determine whether to return a base [model.ConnectionOffer]
 ///   or a [model.GroupConnectionOffer].
 class _ConnectionOfferMapper {
@@ -352,13 +352,17 @@ class _ConnectionOfferMapper {
     db.GroupConnectionOffer? groupConnectionOffer,
     db.ConnectionContactCard contactCard,
   ) {
-    final vCard = model.VCard(values: {});
-    vCard.firstName = contactCard.firstName;
-    vCard.lastName = contactCard.lastName;
-    vCard.email = contactCard.email;
-    vCard.mobile = contactCard.mobile;
-    vCard.profilePic = contactCard.profilePic;
-    vCard.meetingplaceIdentityCardColor =
+    final card = model.ContactCard(
+      did: '',
+      type: 'contactCard',
+      contactInfo: {},
+    );
+    card.firstName = contactCard.firstName;
+    card.lastName = contactCard.lastName;
+    card.email = contactCard.email;
+    card.mobile = contactCard.mobile;
+    card.profilePic = contactCard.profilePic;
+    card.meetingplaceIdentityCardColor =
         contactCard.meetingplaceIdentityCardColor;
 
     if (groupConnectionOffer != null) {
@@ -379,7 +383,7 @@ class _ConnectionOfferMapper {
         mediatorDid: connectionOffer.mediatorDid,
         type: connectionOffer.type,
         status: connectionOffer.status,
-        vCard: vCard,
+        card: card,
         maximumUsage: connectionOffer.maximumUsage,
         ownedByMe: connectionOffer.ownedByMe,
         outboundMessageId: connectionOffer.outboundMessageId,
@@ -404,7 +408,7 @@ class _ConnectionOfferMapper {
       mediatorDid: connectionOffer.mediatorDid,
       type: connectionOffer.type,
       status: connectionOffer.status,
-      vCard: vCard,
+      card: card,
       maximumUsage: connectionOffer.maximumUsage,
       ownedByMe: connectionOffer.ownedByMe,
       offerDescription: connectionOffer.offerDescription,

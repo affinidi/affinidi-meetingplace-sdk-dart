@@ -3,14 +3,14 @@ import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../extensions/vcard_extensions.dart';
+import '../../extensions/contact_card_extensions.dart';
 import 'channel_database.dart' as db;
 
 /// Repository implementation for managing [model.Channel] entities
 /// using a Drift-backed [db.ChannelDatabase].
 ///
 /// This repository encapsulates persistence and retrieval logic
-/// for channels and their associated contact cards (vCards).
+/// for channels and their associated contact cards.
 /// It supports creation, update, lookup, and deletion operations
 /// while ensuring data consistency with transactions.
 class ChannelRepositoryDrift implements model.ChannelRepository {
@@ -23,11 +23,12 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
 
   final db.ChannelDatabase _database;
 
-  /// Inserts a new [model.Channel] into the database, along with its vCards.
+  /// Inserts a new [model.Channel] into the database,
+  /// along with its contact cards.
   ///
   /// - [channel]: The channel domain model containing metadata and
-  ///   optional self ([model.VCard]) and other party
-  ///  (otherPartyVCard) contact details.
+  ///   optional self ([model.ContactCard]) and other party
+  ///   ([model.ContactCard]) contact details.
   ///
   /// Runs inside a database transaction to ensure atomicity.
   @override
@@ -58,20 +59,20 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             ),
           );
 
-      final vCard = channel.vCard;
-      if (vCard != null) {
-        await _insertVCardType(
+      final card = channel.card;
+      if (card != null) {
+        await _insertContactCardType(
           channelId: channelId,
-          vCard: vCard,
-          type: db.VCardType.mine,
+          card: card,
+          type: db.ContactCardType.mine,
         );
       }
-      final otherPartyVCard = channel.otherPartyVCard;
-      if (otherPartyVCard != null) {
-        await _insertVCardType(
+      final otherCard = channel.otherPartyCard;
+      if (otherCard != null) {
+        await _insertContactCardType(
           channelId: channelId,
-          vCard: otherPartyVCard,
-          type: db.VCardType.other,
+          card: otherCard,
+          type: db.ContactCardType.other,
         );
       }
     });
@@ -101,7 +102,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
         _database.channels.otherPartyPermanentChannelDid.equals(did),
       );
 
-  /// Updates a [model.Channel] and its associated vCards.
+  /// Updates a [model.Channel] and its associated contact cards.
   ///
   /// - [channel]: The updated channel domain model.
   ///
@@ -147,79 +148,76 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
         ),
       );
 
-      final vCard = channel.vCard;
-      await _upsertVCardType(
+      final card = channel.card;
+      await _upsertContactCardType(
         channelId: channelId,
-        vCard: vCard,
-        type: db.VCardType.mine,
+        card: card,
+        type: db.ContactCardType.mine,
       );
 
-      final otherPartyVCard = channel.otherPartyVCard;
-      await _upsertVCardType(
+      final otherCard = channel.otherPartyCard;
+      await _upsertContactCardType(
         channelId: channelId,
-        vCard: otherPartyVCard,
-        type: db.VCardType.other,
+        card: otherCard,
+        type: db.ContactCardType.other,
       );
     });
   }
 
-  Future<void> _upsertVCardType({
+  Future<void> _upsertContactCardType({
     required String channelId,
-    required model.VCard? vCard,
-    required db.VCardType type,
+    required model.ContactCard? card,
+    required db.ContactCardType type,
   }) async {
-    final vCardExistQuery = _database.select(_database.channelContactCards)
+    final cardExistQuery = _database.select(_database.channelContactCards)
       ..where(
         (c) =>
             _database.channelContactCards.channelId.equals(channelId) &
             _database.channelContactCards.cardType.equals(type.value),
       );
-    final existingVCard = await vCardExistQuery.getSingleOrNull();
+    final existingCard = await cardExistQuery.getSingleOrNull();
 
-    if (existingVCard != null) {
-      await _updateVCardType(channelId: channelId, vCard: vCard, type: type);
+    if (existingCard != null) {
+      await _updateContactCardType(
+          channelId: channelId, card: card, type: type);
       return;
     }
 
-    if (vCard == null) return;
-    await _insertVCardType(channelId: channelId, vCard: vCard, type: type);
+    if (card == null) return;
+    await _insertContactCardType(channelId: channelId, card: card, type: type);
   }
 
-  /// Internal helper to insert a vCard of a specific [type] for a [channelId].
-  ///
+  /// Internal helper to insert a contact card of a specific type for a channel.
   /// Used during channel creation.
-  Future<void> _insertVCardType({
+  Future<void> _insertContactCardType({
     required String channelId,
-    required model.VCard vCard,
-    required db.VCardType type,
+    required model.ContactCard card,
+    required db.ContactCardType type,
   }) async {
     await _database.into(_database.channelContactCards).insert(
           db.ChannelContactCardsCompanion(
             channelId: Value(channelId),
-            firstName: Value(vCard.firstName),
-            lastName: Value(vCard.lastName),
-            email: Value(vCard.email),
-            mobile: Value(vCard.mobile),
-            profilePic: Value(vCard.profilePic),
+            firstName: Value(card.firstName),
+            lastName: Value(card.lastName),
+            email: Value(card.email),
+            mobile: Value(card.mobile),
+            profilePic: Value(card.profilePic),
             meetingplaceIdentityCardColor: Value(
-              vCard.meetingplaceIdentityCardColor,
+              card.meetingplaceIdentityCardColor,
             ),
             cardType: Value(type),
           ),
         );
   }
 
-  /// Internal helper to update or delete a vCard of a specific [type]
-  ///  for a [channelId].
-  ///
-  /// - If [vCard] is not `null`, updates the existing record.
-  /// - If [vCard] is `null`, removes the vCard entry.
-  Future<void> _updateVCardType({
+  /// Internal helper to update or delete a contact card for a channel.
+  /// If `card` is not null, updates the existing record; otherwise removes it.
+  Future<void> _updateContactCardType({
     required String channelId,
-    required model.VCard? vCard,
-    required db.VCardType type,
+    required model.ContactCard? card,
+    required db.ContactCardType type,
   }) async {
-    if (vCard != null) {
+    if (card != null) {
       await (_database.update(_database.channelContactCards)
             ..where(
               (c) =>
@@ -228,13 +226,13 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             ))
           .write(
         db.ChannelContactCardsCompanion(
-          firstName: Value(vCard.firstName),
-          lastName: Value(vCard.lastName),
-          email: Value(vCard.email),
-          mobile: Value(vCard.mobile),
-          profilePic: Value(vCard.profilePic),
+          firstName: Value(card.firstName),
+          lastName: Value(card.lastName),
+          email: Value(card.email),
+          mobile: Value(card.mobile),
+          profilePic: Value(card.profilePic),
           meetingplaceIdentityCardColor: Value(
-            vCard.meetingplaceIdentityCardColor,
+            card.meetingplaceIdentityCardColor,
           ),
           cardType: Value(type),
         ),
@@ -252,27 +250,28 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
 
   /// Internal helper to retrieve a channel using an arbitrary [predicate].
   ///
-  /// Joins the [db.Channels] table with both `mine` and `other` vCard tables
+  /// Joins the [db.Channels] table with both `mine` and `other` contact-card
+  /// tables
   /// to return a fully hydrated [model.Channel].
   Future<model.Channel?> _getChannelByPredicate(
     Expression<bool> predicate,
   ) async {
-    final vCard = _database.alias(_database.channelContactCards, 'vcard');
-    final otherVCard = _database.alias(
+    final myCard = _database.alias(_database.channelContactCards, 'card');
+    final otherCard = _database.alias(
       _database.channelContactCards,
-      'otherVCard',
+      'otherCard',
     );
 
     final query = _database.select(_database.channels).join([
       leftOuterJoin(
-        vCard,
-        vCard.channelId.equalsExp(_database.channels.id) &
-            vCard.cardType.equals(db.VCardType.mine.value),
+        myCard,
+        myCard.channelId.equalsExp(_database.channels.id) &
+            myCard.cardType.equals(db.ContactCardType.mine.value),
       ),
       leftOuterJoin(
-        otherVCard,
-        otherVCard.channelId.equalsExp(_database.channels.id) &
-            otherVCard.cardType.equals(db.VCardType.other.value),
+        otherCard,
+        otherCard.channelId.equalsExp(_database.channels.id) &
+            otherCard.cardType.equals(db.ContactCardType.other.value),
       ),
     ])
       ..where(predicate);
@@ -282,8 +281,8 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
 
     return _ChannelMapper.fromDatabaseRecords(
       results.readTable(_database.channels),
-      results.readTableOrNull(vCard),
-      results.readTableOrNull(otherVCard),
+      results.readTableOrNull(myCard),
+      results.readTableOrNull(otherCard),
     );
   }
 
@@ -312,8 +311,8 @@ class _ChannelMapper {
       mediatorDid: channel.mediatorDid,
       status: channel.status,
       type: channel.type,
-      vCard: _makeVCardFromContactCard(contactCard),
-      otherPartyVCard: _makeVCardFromContactCard(otherContactCard),
+      card: _makeContactCardFromDb(contactCard),
+      otherPartyCard: _makeContactCardFromDb(otherContactCard),
       acceptOfferDid: channel.acceptOfferDid,
       permanentChannelDid: channel.permanentChannelDid,
       otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
@@ -325,20 +324,29 @@ class _ChannelMapper {
     );
   }
 
-  static model.VCard? _makeVCardFromContactCard(
+  static model.ContactCard? _makeContactCardFromDb(
     db.ChannelContactCard? contactCard,
   ) {
     if (contactCard == null) return null;
-
-    final vCard = model.VCard(values: {});
-    vCard.firstName = contactCard.firstName;
-    vCard.lastName = contactCard.lastName;
-    vCard.email = contactCard.email;
-    vCard.mobile = contactCard.mobile;
-    vCard.profilePic = contactCard.profilePic;
-    vCard.meetingplaceIdentityCardColor =
-        contactCard.meetingplaceIdentityCardColor;
-
-    return vCard;
+    final contactInfo = <String, dynamic>{
+      'n': {
+        'given': contactCard.firstName,
+        'surname': contactCard.lastName,
+      },
+      'email': {
+        'type': {'work': contactCard.email}
+      },
+      'tel': {
+        'type': {'cell': contactCard.mobile}
+      },
+      'photo': contactCard.profilePic,
+      'x-meetingplace-identity-card-color':
+          contactCard.meetingplaceIdentityCardColor,
+    };
+    return model.ContactCard(
+      did: '',
+      type: 'contactCard',
+      contactInfo: contactInfo,
+    );
   }
 }

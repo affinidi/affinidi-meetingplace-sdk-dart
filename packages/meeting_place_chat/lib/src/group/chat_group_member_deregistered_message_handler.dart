@@ -43,7 +43,7 @@ class ChatGroupMemberDeregisteredMessageHandler {
       chatId: chatId,
       groupDid: groupId,
       memberDid: memberDid,
-      memberVCard: member.vCard,
+      memberCard: member.card,
     );
 
     _streamManager.pushData(StreamData(chatItem: chatItem));

@@ -19,7 +19,7 @@ class VCardAttachment extends Attachment {
     return VCardAttachment(
       id: const Uuid().v4(),
       format: AttachmentFormat.contactCard.value,
-      mediaType: AttachmentMediaType.textVcard.value,
+      mediaType: AttachmentMediaType.textContactCard.value,
       description: description,
       data: data,
     );

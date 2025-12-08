@@ -1,8 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../entity/contact_card.dart';
 import '../../meeting_place_protocol.dart';
-import '../../v_card/v_card.dart';
 import '../../v_card/v_card_helper.dart';
 import 'connection_request_approval_body.dart';
 
@@ -12,7 +12,7 @@ class ConnectionRequestApproval {
     required List<String> to,
     required String parentThreadId,
     required String channelDid,
-    VCard? vCard,
+    ContactCard? contactCard,
   }) {
     return ConnectionRequestApproval(
       id: const Uuid().v4(),
@@ -20,17 +20,17 @@ class ConnectionRequestApproval {
       to: to,
       parentThreadId: parentThreadId,
       body: ConnectionRequestApprovalBody(channelDid: channelDid),
-      vCard: vCard,
+      contactCard: contactCard,
     );
   }
 
   factory ConnectionRequestApproval.fromPlainTextMessage(
       PlainTextMessage message) {
-    VCard? vCard;
+    ContactCard? contactCard;
     if (message.attachments != null && message.attachments!.isNotEmpty) {
       final base64 = message.attachments!.first.data?.base64;
       if (base64 != null) {
-        vCard = VCard.fromBase64(base64);
+        contactCard = ContactCard.fromBase64(base64);
       }
     }
 
@@ -40,7 +40,7 @@ class ConnectionRequestApproval {
       to: message.to!,
       parentThreadId: message.parentThreadId!,
       body: ConnectionRequestApprovalBody.fromJson(message.body!),
-      vCard: vCard,
+      contactCard: contactCard,
       createdTime: message.createdTime,
     );
   }
@@ -51,7 +51,7 @@ class ConnectionRequestApproval {
     required this.to,
     required this.parentThreadId,
     required this.body,
-    this.vCard,
+    this.contactCard,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -60,7 +60,7 @@ class ConnectionRequestApproval {
   final List<String> to;
   final String parentThreadId;
   final ConnectionRequestApprovalBody body;
-  final VCard? vCard;
+  final ContactCard? contactCard;
   final DateTime createdTime;
 
   PlainTextMessage toPlainTextMessage() {
@@ -72,8 +72,9 @@ class ConnectionRequestApproval {
       parentThreadId: parentThreadId,
       body: body.toJson(),
       createdTime: createdTime,
-      attachments:
-          vCard == null ? null : [VCardHelper.vCardToAttachment(vCard!)],
+      attachments: contactCard == null
+          ? null
+          : [VCardHelper.vCardToAttachment(contactCard!)],
     );
   }
 }

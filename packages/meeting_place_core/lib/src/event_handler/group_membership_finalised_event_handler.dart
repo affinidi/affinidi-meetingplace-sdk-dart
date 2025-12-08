@@ -283,7 +283,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         updatedGroup.members.add(
           GroupMember(
             did: member.did,
-            vCard: member.vCard,
+            card: member.contactCard,
             status: GroupMemberStatus.values.byName(member.status),
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,
@@ -298,7 +298,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       // TODO: add test case for this specific case
       final existingMember = updatedGroup.members[localMemberIndex];
       updatedGroup.members[localMemberIndex] = existingMember.copyWith(
-        vCard: member.vCard,
+        card: member.contactCard,
         dateAdded: DateTime.now().toUtc(),
         status: GroupMemberStatus.approved,
         publicKey: member.publicKey,

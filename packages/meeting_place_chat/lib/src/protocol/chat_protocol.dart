@@ -51,9 +51,6 @@ enum ChatProtocol {
   /// Represents a reaction (emoji or similar) to a chat message.
   chatReaction('https://affinidi.io/mpx/chat-sdk/reaction'),
 
-  /// Represents sharing of a persona or identity profile.
-  chatPersonaShared('https://affinidi.io/mpx/chat-sdk/persona-shared'),
-
   /// Represents a declined persona sharing.
   chatDeclinedPersonaSharing(
       'https://affinidi.io/mpx/chat-sdk/declined-persona-sharing');

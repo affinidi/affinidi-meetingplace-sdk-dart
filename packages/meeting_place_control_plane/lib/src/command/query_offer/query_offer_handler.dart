@@ -10,7 +10,7 @@ import '../../core/offer_type.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
-import '../../core/protocol/v_card/v_card_impl.dart';
+import '../../core/protocol/contact_card/contact_card_impl.dart';
 import 'query_offer.dart';
 import 'query_offer_exception.dart';
 import 'query_offer_output.dart';
@@ -92,7 +92,7 @@ class QueryOfferHandler
             ? DateTime.parse(response.validUntil!)
             : null,
         maximumUsage: response.maximumUsage,
-        vCard: VCardImpl.fromBase64(response.vcard),
+        contactCard: ContactCardImpl.fromBase64(response.contactCard),
         didcommMessage: OobInvitationMessage.fromBase64(
           response.didcommMessage,
         ),

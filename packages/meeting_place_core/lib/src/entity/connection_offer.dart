@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
+import '../entity/contact_card.dart';
 
 part 'connection_offer.g.dart';
 
@@ -27,7 +27,7 @@ class ConnectionOffer {
     required this.oobInvitationMessage,
     required this.type,
     required this.status,
-    required this.vCard,
+    required this.card,
     required this.ownedByMe,
     required this.createdAt,
     this.expiresAt,
@@ -53,7 +53,7 @@ class ConnectionOffer {
   final String publishOfferDid;
   final String mediatorDid;
   final String oobInvitationMessage;
-  final VCard vCard;
+  final ContactCard card;
   final ConnectionOfferType type;
   final ConnectionOfferStatus status;
   final bool ownedByMe;
@@ -88,7 +88,7 @@ class ConnectionOffer {
   bool get isDeleted => status == ConnectionOfferStatus.deleted;
 
   ConnectionOffer copyWith({
-    VCard? vCard,
+    ContactCard? card,
     String? outboundMessageId,
     String? otherPartyPermanentChannelDid,
     String? acceptOfferDid,
@@ -110,7 +110,7 @@ class ConnectionOffer {
       mediatorDid: mediatorDid,
       oobInvitationMessage: oobInvitationMessage,
       type: type,
-      vCard: vCard ?? this.vCard,
+      card: card ?? this.card,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:
@@ -130,7 +130,7 @@ class ConnectionOffer {
   ConnectionOffer accept({
     required String acceptOfferDid,
     required String permanentChannelDid,
-    required VCard vCard,
+    required ContactCard card,
     required DateTime createdAt,
     String? externalRef,
   }) {
@@ -138,7 +138,7 @@ class ConnectionOffer {
       acceptOfferDid: acceptOfferDid,
       permanentChannelDid: permanentChannelDid,
       status: ConnectionOfferStatus.accepted,
-      vCard: vCard,
+      card: card,
       createdAt: createdAt,
       externalRef: externalRef,
     );

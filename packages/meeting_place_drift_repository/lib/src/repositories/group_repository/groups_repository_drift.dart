@@ -3,7 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../extensions/vcard_extensions.dart';
+import '../../extensions/contact_card_extensions.dart';
 import 'groups_database.dart' as db;
 
 /// Repository implementation for persisting and retrieving
@@ -53,7 +53,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           );
 
       final groupMembers = group.members.map((member) {
-        final vCard = member.vCard;
+        final card = member.card;
         return db.GroupMembersCompanion.insert(
           groupId: group.id,
           memberDid: member.did,
@@ -61,12 +61,12 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
-          firstName: vCard.firstName,
-          lastName: vCard.lastName,
-          email: vCard.email,
-          mobile: vCard.mobile,
-          profilePic: vCard.profilePic,
-          meetingplaceIdentityCardColor: vCard.meetingplaceIdentityCardColor,
+          firstName: card.firstName,
+          lastName: card.lastName,
+          email: card.email,
+          mobile: card.mobile,
+          profilePic: card.profilePic,
+          meetingplaceIdentityCardColor: card.meetingplaceIdentityCardColor,
         );
       });
 
@@ -185,7 +185,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           .go();
 
       final groupMembersCompanions = group.members.map((member) {
-        final vCard = member.vCard;
+        final card = member.card;
         return db.GroupMembersCompanion.insert(
           groupId: group.id,
           memberDid: member.did,
@@ -193,12 +193,12 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
-          firstName: vCard.firstName,
-          lastName: vCard.lastName,
-          email: vCard.email,
-          mobile: vCard.mobile,
-          profilePic: vCard.profilePic,
-          meetingplaceIdentityCardColor: vCard.meetingplaceIdentityCardColor,
+          firstName: card.firstName,
+          lastName: card.lastName,
+          email: card.email,
+          mobile: card.mobile,
+          profilePic: card.profilePic,
+          meetingplaceIdentityCardColor: card.meetingplaceIdentityCardColor,
         );
       });
 
@@ -235,21 +235,31 @@ class _GroupMemberMapper {
       dateAdded: groupMember.dateAdded,
       status: groupMember.status,
       membershipType: groupMember.membershipType,
-      vCard: _makeVCardFromContactCard(groupMember),
+      card: _makeContactCardFromDb(groupMember),
       publicKey: groupMember.publicKey,
     );
   }
 
-  static model.VCard _makeVCardFromContactCard(db.GroupMember groupMember) {
-    final vCard = model.VCard(values: {});
-    vCard.firstName = groupMember.firstName;
-    vCard.lastName = groupMember.lastName;
-    vCard.email = groupMember.email;
-    vCard.mobile = groupMember.mobile;
-    vCard.profilePic = groupMember.profilePic;
-    vCard.meetingplaceIdentityCardColor =
-        groupMember.meetingplaceIdentityCardColor;
-
-    return vCard;
+  static model.ContactCard _makeContactCardFromDb(db.GroupMember groupMember) {
+    final contactInfo = <String, dynamic>{
+      'n': {
+        'given': groupMember.firstName,
+        'surname': groupMember.lastName,
+      },
+      'email': {
+        'type': {'work': groupMember.email}
+      },
+      'tel': {
+        'type': {'cell': groupMember.mobile}
+      },
+      'photo': groupMember.profilePic,
+      'x-meetingplace-identity-card-color':
+          groupMember.meetingplaceIdentityCardColor,
+    };
+    return model.ContactCard(
+      did: groupMember.memberDid,
+      type: 'contactCard',
+      contactInfo: contactInfo,
+    );
   }
 }

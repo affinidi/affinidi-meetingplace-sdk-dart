@@ -13,7 +13,7 @@ enum ChatProtocol {
   /// Represents a "typing" or activity indicator.
   chatActivity('https://affinidi.io/mpx/chat-sdk/activity'),
 
-  /// Represents a hash of the user's profile (vCard) for identity validation.
+  /// Represents a hash of the user's profile (contact card) for identity validation.
   chatAliasProfileHash('https://affinidi.io/mpx/chat-sdk/alias-profile-hash'),
 
   /// Represents a request to validate or update a user's alias profile.
@@ -26,7 +26,7 @@ enum ChatProtocol {
     'https://affinidi.io/mpx/chat-sdk/attachments-verifiable-presentation',
   ),
 
-  /// Represents an update to contact details (e.g., vCard information).
+  /// Represents an update to contact details (e.g., contact card information).
   chatContactDetailsUpdate(
     'https://affinidi.io/mpx/chat-sdk/contact-details-update',
   ),

@@ -15,7 +15,7 @@ part 'register_offer_group_input.g.dart';
 /// * [offerName] - Name of the offer.
 /// * [offerDescription] - Describes the purpose of the connection offer.
 /// * [didcommMessage] - A plaintext DIDComm message containing the offer encoded in base64 format.
-/// * [vcard] - A vCard of the user who registered the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard of the user who registered the offer encoded in base64 format.
 /// * [validUntil] - The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
 /// * [maximumUsage] - The maximum number of times other users can claim the offer. Set 0 for unlimited claims.
 /// * [deviceToken] - The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
@@ -45,9 +45,9 @@ abstract class RegisterOfferGroupInput
   @BuiltValueField(wireName: r'didcommMessage')
   String get didcommMessage;
 
-  /// A vCard of the user who registered the offer encoded in base64 format.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// A ContactCard of the user who registered the offer encoded in base64 format.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   /// The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
   @BuiltValueField(wireName: r'validUntil')
@@ -102,9 +102,9 @@ abstract class RegisterOfferGroupInput
   @BuiltValueField(wireName: r'adminPublicKey')
   String get adminPublicKey;
 
-  /// A vCard of the group chat member encoded in base64 format.
-  @BuiltValueField(wireName: r'memberVCard')
-  String get memberVCard;
+  /// A ContactCard of the group chat member encoded in base64 format.
+  @BuiltValueField(wireName: r'memberContactCard')
+  String get memberContactCard;
 
   RegisterOfferGroupInput._();
 
@@ -151,9 +151,9 @@ class _$RegisterOfferGroupInputSerializer
       object.didcommMessage,
       specifiedType: const FullType(String),
     );
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
     if (object.validUntil != null) {
@@ -231,9 +231,9 @@ class _$RegisterOfferGroupInputSerializer
       object.adminPublicKey,
       specifiedType: const FullType(String),
     );
-    yield r'memberVCard';
+    yield r'memberContactCard';
     yield serializers.serialize(
-      object.memberVCard,
+      object.memberContactCard,
       specifiedType: const FullType(String),
     );
   }
@@ -282,12 +282,12 @@ class _$RegisterOfferGroupInputSerializer
           ) as String;
           result.didcommMessage = valueDes;
           break;
-        case r'vcard':
+        case r'contactCard':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.vcard = valueDes;
+          result.contactCard = valueDes;
           break;
         case r'validUntil':
           final valueDes = serializers.deserialize(
@@ -381,12 +381,12 @@ class _$RegisterOfferGroupInputSerializer
           ) as String;
           result.adminPublicKey = valueDes;
           break;
-        case r'memberVCard':
+        case r'memberContactCard':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.memberVCard = valueDes;
+          result.memberContactCard = valueDes;
           break;
         default:
           unhandled.add(key);

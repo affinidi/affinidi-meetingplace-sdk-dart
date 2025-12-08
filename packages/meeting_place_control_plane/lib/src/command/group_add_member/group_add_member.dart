@@ -1,5 +1,5 @@
 import '../../core/command/command.dart';
-import '../../core/protocol/v_card/v_card.dart';
+import '../../core/protocol/contact_card/contact_card.dart';
 import 'group_add_member_output.dart';
 
 /// Model that represents the request sent for the [GroupAddMemberCommand]
@@ -15,7 +15,7 @@ class GroupAddMemberCommand
     required this.offerLink,
     required this.publicKey,
     required this.reencryptionKey,
-    this.vCard,
+    this.contactCard,
   });
   final String mnemonic;
   final String groupId;
@@ -24,5 +24,5 @@ class GroupAddMemberCommand
   final String offerLink;
   final String publicKey;
   final String reencryptionKey;
-  final VCard? vCard;
+  final ContactCard? contactCard;
 }

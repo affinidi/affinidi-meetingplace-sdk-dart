@@ -886,10 +886,10 @@ class $ChannelContactCardsTable extends ChannelContactCards
           'meetingplace_identity_card_color', aliasedName, false,
           type: DriftSqlType.string, requiredDuringInsert: true);
   @override
-  late final GeneratedColumnWithTypeConverter<VCardType, int> cardType =
+  late final GeneratedColumnWithTypeConverter<ContactCardType, int> cardType =
       GeneratedColumn<int>('card_type', aliasedName, false,
               type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<VCardType>(
+          .withConverter<ContactCardType>(
               $ChannelContactCardsTable.$convertercardType);
   @override
   List<GeneratedColumn> get $columns => [
@@ -1004,8 +1004,8 @@ class $ChannelContactCardsTable extends ChannelContactCards
     return $ChannelContactCardsTable(attachedDatabase, alias);
   }
 
-  static TypeConverter<VCardType, int> $convertercardType =
-      const _VCardTypeConverter();
+  static TypeConverter<ContactCardType, int> $convertercardType =
+      const _ContactCardTypeConverter();
 }
 
 class ChannelContactCard extends DataClass
@@ -1035,7 +1035,7 @@ class ChannelContactCard extends DataClass
   final String meetingplaceIdentityCardColor;
 
   /// Type of the contact card.
-  final VCardType cardType;
+  final ContactCardType cardType;
   const ChannelContactCard(
       {required this.id,
       required this.channelId,
@@ -1092,7 +1092,7 @@ class ChannelContactCard extends DataClass
       profilePic: serializer.fromJson<String>(json['profilePic']),
       meetingplaceIdentityCardColor:
           serializer.fromJson<String>(json['meetingplaceIdentityCardColor']),
-      cardType: serializer.fromJson<VCardType>(json['cardType']),
+      cardType: serializer.fromJson<ContactCardType>(json['cardType']),
     );
   }
   @override
@@ -1108,7 +1108,7 @@ class ChannelContactCard extends DataClass
       'profilePic': serializer.toJson<String>(profilePic),
       'meetingplaceIdentityCardColor':
           serializer.toJson<String>(meetingplaceIdentityCardColor),
-      'cardType': serializer.toJson<VCardType>(cardType),
+      'cardType': serializer.toJson<ContactCardType>(cardType),
     };
   }
 
@@ -1121,7 +1121,7 @@ class ChannelContactCard extends DataClass
           String? mobile,
           String? profilePic,
           String? meetingplaceIdentityCardColor,
-          VCardType? cardType}) =>
+          ContactCardType? cardType}) =>
       ChannelContactCard(
         id: id ?? this.id,
         channelId: channelId ?? this.channelId,
@@ -1196,7 +1196,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
   final Value<String> mobile;
   final Value<String> profilePic;
   final Value<String> meetingplaceIdentityCardColor;
-  final Value<VCardType> cardType;
+  final Value<ContactCardType> cardType;
   const ChannelContactCardsCompanion({
     this.id = const Value.absent(),
     this.channelId = const Value.absent(),
@@ -1217,7 +1217,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     required String mobile,
     required String profilePic,
     required String meetingplaceIdentityCardColor,
-    required VCardType cardType,
+    required ContactCardType cardType,
   })  : channelId = Value(channelId),
         firstName = Value(firstName),
         lastName = Value(lastName),
@@ -1260,7 +1260,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
       Value<String>? mobile,
       Value<String>? profilePic,
       Value<String>? meetingplaceIdentityCardColor,
-      Value<VCardType>? cardType}) {
+      Value<ContactCardType>? cardType}) {
     return ChannelContactCardsCompanion(
       id: id ?? this.id,
       channelId: channelId ?? this.channelId,
@@ -1797,7 +1797,7 @@ typedef $$ChannelContactCardsTableCreateCompanionBuilder
   required String mobile,
   required String profilePic,
   required String meetingplaceIdentityCardColor,
-  required VCardType cardType,
+  required ContactCardType cardType,
 });
 typedef $$ChannelContactCardsTableUpdateCompanionBuilder
     = ChannelContactCardsCompanion Function({
@@ -1809,7 +1809,7 @@ typedef $$ChannelContactCardsTableUpdateCompanionBuilder
   Value<String> mobile,
   Value<String> profilePic,
   Value<String> meetingplaceIdentityCardColor,
-  Value<VCardType> cardType,
+  Value<ContactCardType> cardType,
 });
 
 final class $$ChannelContactCardsTableReferences extends BaseReferences<
@@ -1864,8 +1864,8 @@ class $$ChannelContactCardsTableFilterComposer
       column: $table.meetingplaceIdentityCardColor,
       builder: (column) => ColumnFilters(column));
 
-  ColumnWithTypeConverterFilters<VCardType, VCardType, int> get cardType =>
-      $composableBuilder(
+  ColumnWithTypeConverterFilters<ContactCardType, ContactCardType, int>
+      get cardType => $composableBuilder(
           column: $table.cardType,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
@@ -1978,7 +1978,7 @@ class $$ChannelContactCardsTableAnnotationComposer
           column: $table.meetingplaceIdentityCardColor,
           builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<VCardType, int> get cardType =>
+  GeneratedColumnWithTypeConverter<ContactCardType, int> get cardType =>
       $composableBuilder(column: $table.cardType, builder: (column) => column);
 
   $$ChannelsTableAnnotationComposer get channelId {
@@ -2036,7 +2036,7 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
             Value<String> mobile = const Value.absent(),
             Value<String> profilePic = const Value.absent(),
             Value<String> meetingplaceIdentityCardColor = const Value.absent(),
-            Value<VCardType> cardType = const Value.absent(),
+            Value<ContactCardType> cardType = const Value.absent(),
           }) =>
               ChannelContactCardsCompanion(
             id: id,
@@ -2058,7 +2058,7 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
             required String mobile,
             required String profilePic,
             required String meetingplaceIdentityCardColor,
-            required VCardType cardType,
+            required ContactCardType cardType,
           }) =>
               ChannelContactCardsCompanion.insert(
             id: id,

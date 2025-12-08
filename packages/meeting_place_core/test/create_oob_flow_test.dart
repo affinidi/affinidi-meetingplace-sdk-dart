@@ -5,7 +5,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import 'package:test/test.dart';
 
-import 'fixtures/v_card.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -51,8 +50,16 @@ void main() async {
       final aliceOnDoneCompleter = Completer();
       final bobOnDoneCompleter = Completer();
 
+      final aliceCard = ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
+
       final createOobFlowResult = await aliceSDK.createOobFlow(
-        vCard: VCardFixture.alicePrimaryVCard,
+        contactCard: aliceCard,
       );
 
       createOobFlowResult.streamSubscription.listen((data) {
@@ -60,9 +67,16 @@ void main() async {
         aliceOnDoneCompleter.complete();
       });
 
+      final bobCard = ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      );
       final acceptOobFlowResult = await bobSDK.acceptOobFlow(
         createOobFlowResult.oobUrl,
-        vCard: VCardFixture.bobPrimaryVCard,
+        contactCard: bobCard,
       );
 
       acceptOobFlowResult.streamSubscription.listen((data) {
@@ -88,10 +102,12 @@ void main() async {
       );
     });
 
-    test('vCards match', () {
-      expect(aliceChannel?.vCard?.values, bobChannel?.otherPartyVCard?.values);
+    test('Contact cards match', () {
+      expect(aliceChannel?.card?.contactInfo,
+          bobChannel?.otherPartyCard?.contactInfo);
 
-      expect(aliceChannel?.otherPartyVCard?.values, bobChannel?.vCard?.values);
+      expect(aliceChannel?.otherPartyCard?.contactInfo,
+          bobChannel?.card?.contactInfo);
     });
 
     test('channel status is inaugurated', () {
@@ -128,13 +144,27 @@ void main() async {
     Channel? bobChannel;
 
     setUpAll(() async {
+      final aliceCard = ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
       final createOobFlowResult = await aliceSDK.createOobFlow(
-        vCard: VCardFixture.alicePrimaryVCard,
+        contactCard: aliceCard,
       );
 
+      final bobCard = ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      );
       final acceptOobFlowResult = await bobSDK.acceptOobFlow(
         createOobFlowResult.oobUrl,
-        vCard: VCardFixture.bobPrimaryVCard,
+        contactCard: bobCard,
       );
 
       bobChannel = acceptOobFlowResult.channel;
@@ -153,11 +183,13 @@ void main() async {
       expect(bobChannel?.permanentChannelDid, isNotNull);
       expect(bobChannel?.type, equals(ChannelType.oob));
       expect(bobChannel?.otherPartyPermanentChannelDid, isNull);
-      expect(bobChannel?.otherPartyVCard, isNull);
+      expect(bobChannel?.otherPartyCard, isNull);
 
       expect(
-        bobChannel?.vCard?.values,
-        equals(VCardFixture.bobPrimaryVCard.values),
+        bobChannel?.card?.contactInfo,
+        equals({
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        }),
       );
     });
   });
@@ -167,13 +199,27 @@ void main() async {
     Channel? channelBefore;
 
     setUpAll(() async {
+      final aliceCard = ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
       final createOobFlowResult = await aliceSDK.createOobFlow(
-        vCard: VCardFixture.alicePrimaryVCard,
+        contactCard: aliceCard,
       );
 
+      final bobCard = ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      );
       final acceptOobFlowResult = await bobSDK.acceptOobFlow(
         createOobFlowResult.oobUrl,
-        vCard: VCardFixture.bobPrimaryVCard,
+        contactCard: bobCard,
       );
 
       final bobCompleter = Completer<Channel>();
@@ -200,25 +246,35 @@ void main() async {
         channelBefore!.permanentChannelDid,
       );
       expect(bobChannel?.type, channelBefore!.type);
-      expect(bobChannel?.vCard?.values, equals(channelBefore?.vCard?.values));
+      expect(bobChannel?.card?.contactInfo,
+          equals(channelBefore?.card?.contactInfo));
     });
 
     test('channel has been updated', () {
       expect(bobChannel?.otherPartyPermanentChannelDid, isNotNull);
       expect(
-        bobChannel?.otherPartyVCard?.values,
-        VCardFixture.alicePrimaryVCard.values,
+        bobChannel?.otherPartyCard?.contactInfo,
+        {
+          'n': {'given': 'Alice'},
+        },
       );
     });
   });
 
   test('uses separate stream for each createOobFlow call', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final resultA = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
     );
 
     final resultB = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
     );
 
     expect(
@@ -226,18 +282,32 @@ void main() async {
   });
 
   test('uses separate stream for each acceptOobFlow call', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final createOobFlowResult = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
     );
 
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     final resultA = await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: bobCard,
     );
 
     final resultB = await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: bobCard,
     );
 
     expect(
@@ -248,14 +318,27 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final createOobFlowResult = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       did: didDoc.id,
     );
 
     await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
     );
 
     final aliceCompleter = Completer<Channel>();
@@ -273,14 +356,27 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final createOobFlowResult = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       did: didDoc.id,
     );
 
     await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
     );
 
     final aliceCompleter = Completer<Channel>();
@@ -295,8 +391,15 @@ void main() async {
   });
 
   test('executes callback on timeout', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final createOobFlowResult = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
     );
 
     final aliceCompleter = Completer<String>();
@@ -311,13 +414,26 @@ void main() async {
   });
 
   test('cancels timeout after receiving first event', () async {
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final createOobFlowResult = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
     );
 
     await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
     );
 
     createOobFlowResult.streamSubscription.listen((data) => data);
@@ -331,14 +447,27 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final createOobFlowResult = await aliceSDK.createOobFlow(
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       did: didDoc.id,
     );
 
     final acceptOobFlowResult = await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
     );
 
     final aliceCompleter = Completer<Channel>();

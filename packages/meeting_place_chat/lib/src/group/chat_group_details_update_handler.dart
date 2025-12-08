@@ -55,7 +55,7 @@ class ChatGroupDetailsUpdateHandler {
         chatId: chatId,
         groupDid: group.did,
         memberDid: newMember['did'] as String,
-        memberVCard: _vCardFromMessage(newMember),
+        memberCard: _cardFromMessage(newMember),
       );
       _chatStreamManager.pushData(StreamData(chatItem: chatItem));
     }
@@ -70,7 +70,7 @@ class ChatGroupDetailsUpdateHandler {
           membershipType: GroupMembershipType.values.byName(
             member['membershipType'] as String,
           ),
-          vCard: _vCardFromMessage(member),
+          card: _cardFromMessage(member),
         );
       }).toList(),
     );
@@ -79,9 +79,9 @@ class ChatGroupDetailsUpdateHandler {
     return updatedGroup;
   }
 
-  VCard _vCardFromMessage(Map<String, dynamic> message) {
-    return VCard(
-      values: (message['vCard'] as dynamic)['values'] as Map<String, dynamic>,
+  ContactCard _cardFromMessage(Map<String, dynamic> message) {
+    return ContactCard.fromJson(
+      message['card'] as Map<String, dynamic>,
     );
   }
 }

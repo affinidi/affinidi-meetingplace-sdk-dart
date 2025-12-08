@@ -6,7 +6,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'utils/v_card.dart';
+import 'utils/contact_card_fixture.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -39,8 +39,11 @@ void main() async {
 
     final acceptance = await sdk.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
-      vCard: VCardFixture.charliePrimaryVCard,
-      senderInfo: 'Charlie',
+      contactCard: ContactCard(
+        did: 'did:test:charlie',
+        type: 'human',
+        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      ),
     );
 
     return (sdk, acceptance);
@@ -60,7 +63,11 @@ void main() async {
     publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+      ),
       type: SDKConnectionOfferType.groupInvitation,
     );
 
@@ -73,8 +80,11 @@ void main() async {
     );
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: bobFindOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: ContactCardFixture.bobPrimaryCardInfo,
+      ),
     );
 
     // Charlie requests group membership
@@ -84,8 +94,11 @@ void main() async {
 
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: charlieFindOfferResult.connectionOffer!,
-      vCard: VCardFixture.charliePrimaryVCard,
-      senderInfo: 'Charlie',
+      contactCard: ContactCard(
+        did: 'did:test:charlie',
+        type: 'human',
+        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      ),
     );
 
     // Get did documents of each member

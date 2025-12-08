@@ -18,7 +18,7 @@ part 'group_add_member_input.g.dart';
 /// * [acceptOfferAsDid] - Decentralised Identifier (DID) of when the member accepted the offer.
 /// * [reencryptionKey] - The reencryption key for the group chat member.
 /// * [publicKey] - The public key information of the group chat member.
-/// * [vcard] - The vCard of the member to add to the group chat.
+/// * [contactCard] - The ContactCard of the member to add to the group chat.
 @BuiltValue()
 abstract class GroupAddMemberInput
     implements Built<GroupAddMemberInput, GroupAddMemberInputBuilder> {
@@ -50,9 +50,9 @@ abstract class GroupAddMemberInput
   @BuiltValueField(wireName: r'publicKey')
   String get publicKey;
 
-  /// The vCard of the member to add to the group chat.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// The ContactCard of the member to add to the group chat.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   GroupAddMemberInput._();
 
@@ -118,9 +118,9 @@ class _$GroupAddMemberInputSerializer
       object.publicKey,
       specifiedType: const FullType(String),
     );
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
   }
@@ -197,12 +197,12 @@ class _$GroupAddMemberInputSerializer
           ) as String;
           result.publicKey = valueDes;
           break;
-        case r'vcard':
+        case r'contactCard':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.vcard = valueDes;
+          result.contactCard = valueDes;
           break;
         default:
           unhandled.add(key);

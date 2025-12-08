@@ -64,7 +64,7 @@ class GroupAddMemberHandler
       ..acceptOfferAsDid = command.acceptOfferDid
       ..offerLink = command.offerLink
       ..publicKey = command.publicKey
-      ..vcard = command.vCard?.toBase64()
+      ..contactCard = command.contactCard?.toBase64()
       ..reencryptionKey = command.reencryptionKey;
 
     try {

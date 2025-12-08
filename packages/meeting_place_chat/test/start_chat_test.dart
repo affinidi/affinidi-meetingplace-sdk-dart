@@ -7,9 +7,11 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 import 'utils/storage/in_memory_storage.dart';
-import 'utils/v_card.dart';
+import 'utils/contact_card_fixture.dart' as fixtures;
 import 'utils/sdk.dart';
 
 void main() async {
@@ -75,28 +77,40 @@ void main() async {
       ),
     ]);
 
-    final aliceVCard = VCard(values: VCardFixture.alicePrimaryVCard.values);
-    final bobVCard = VCard(values: VCardFixture.bobPrimaryVCard.values);
-    final charlieVCard = VCard(values: VCardFixture.charliePrimaryVCard.values);
+    final aliceCard = ContactCard(
+      did: aliceDidDocument.id,
+      type: 'human',
+      contactInfo: fixtures.ContactCardFixture.alicePrimaryCardInfo,
+    );
+    final bobCard = ContactCard(
+      did: bobDidDocument.id,
+      type: 'human',
+      contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+    );
+    final charlieCard = ContactCard(
+      did: charlieDidDocument.id,
+      type: 'human',
+      contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
+    );
 
     aliceChatSDK = await initIndividualChatSDK(
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: bobDidDocument.id,
       channelRepository: aliceChannelRepository,
-      channelVCard: aliceVCard,
-      vCard: aliceVCard,
-      otherPartyVCard: bobVCard,
+      channelCard: aliceCard,
+      card: aliceCard,
+      otherPartyCard: bobCard,
     );
 
     bobChatSDK = await initIndividualChatSDK(
       coreSDK: bobSDK,
       did: bobDidDocument.id,
       otherPartyDid: aliceDidDocument.id,
-      vCard: bobVCard,
-      otherPartyVCard: aliceVCard,
+      card: bobCard,
+      otherPartyCard: aliceCard,
       channelRepository: bobChannelRepository,
-      channelVCard: aliceVCard,
+      channelCard: aliceCard,
     );
 
     await charlieChannelRepository.createChannel(
@@ -108,8 +122,8 @@ void main() async {
         otherPartyPermanentChannelDid: aliceDidDocument.id,
         status: ChannelStatus.inaugurated,
         type: ChannelType.individual,
-        vCard: charlieVCard,
-        otherPartyVCard: aliceVCard,
+        card: charlieCard,
+        otherPartyCard: aliceCard,
       ),
     );
   });
@@ -223,7 +237,11 @@ void main() async {
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: charlieDidDocument.id,
-      otherPartyVCard: VCardFixture.charliePrimaryVCard,
+      otherPartyCard: ContactCard(
+        did: charlieDidDocument.id,
+        type: 'human',
+        contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
+      ),
       channelRepository: aliceChannelRepository,
     );
 
@@ -271,7 +289,11 @@ void main() async {
         coreSDK: aliceSDK,
         did: aliceDidDocument.id,
         otherPartyDid: bobDidDocument.id,
-        otherPartyVCard: VCardFixture.bobPrimaryVCard,
+        otherPartyCard: ContactCard(
+          did: bobDidDocument.id,
+          type: 'human',
+          contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+        ),
         existingStorage: storage,
         channelRepository: aliceChannelRepository,
       );
@@ -460,7 +482,11 @@ void main() async {
     'Bob has concierge message after receiving profile hash requets',
     () async {
       await aliceChatSDK.startChatSession();
-      final updatedVCard = VCard(values: {'changed': 'value'});
+      final updatedCard = ContactCard(
+        did: bobDidDocument.id,
+        type: 'human',
+        contactInfo: {'changed': 'value'},
+      );
 
       final aliceOpenedChat = Completer<void>();
       await aliceChatSDK.chatStreamSubscription.then((stream) {
@@ -473,9 +499,13 @@ void main() async {
         coreSDK: bobSDK,
         did: bobDidDocument.id,
         otherPartyDid: aliceDidDocument.id,
-        vCard: updatedVCard,
+        card: updatedCard,
         channelRepository: bobChannelRepository,
-        channelVCard: VCardFixture.bobPrimaryVCard,
+        channelCard: ContactCard(
+          did: bobDidDocument.id,
+          type: 'human',
+          contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+        ),
       );
 
       final bobChat = await newBobChatSDK.startChatSession();
@@ -504,7 +534,9 @@ void main() async {
       expect(conciergeMessage.chatId, bobChat.id);
       expect(conciergeMessage.status, ChatItemStatus.userInput);
       expect(conciergeMessage.data, {
-        'profileHash': updatedVCard.toHash(),
+        'profileHash': sha256
+            .convert(utf8.encode(jsonEncode(updatedCard.contactInfo)))
+            .toString(),
         'replyTo': aliceDidDocument.id,
       });
 
@@ -526,15 +558,19 @@ void main() async {
       await aliceChatCompleter.future;
       final aliceChannel = await aliceSDK.getChannelByDid(bobDidDocument.id);
       expect(
-        aliceChannel?.otherPartyVCard?.values,
-        equals(updatedVCard.values),
+        aliceChannel?.otherPartyCard?.contactInfo,
+        equals(updatedCard.contactInfo),
       );
     },
   );
 
   test('reject contact profile update', () async {
     await aliceChatSDK.startChatSession();
-    final updatedVCard = VCard(values: {'changed': 'value'});
+    final updatedCard = ContactCard(
+      did: bobDidDocument.id,
+      type: 'human',
+      contactInfo: {'changed': 'value'},
+    );
 
     final aliceOpenedChat = Completer<void>();
     await aliceChatSDK.chatStreamSubscription.then((stream) {
@@ -547,9 +583,13 @@ void main() async {
       coreSDK: bobSDK,
       did: bobDidDocument.id,
       otherPartyDid: aliceDidDocument.id,
-      vCard: updatedVCard,
+      card: updatedCard,
       channelRepository: bobChannelRepository,
-      channelVCard: VCardFixture.bobPrimaryVCard,
+      channelCard: ContactCard(
+        did: bobDidDocument.id,
+        type: 'human',
+        contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+      ),
     );
 
     await newBobChatSDK.startChatSession();

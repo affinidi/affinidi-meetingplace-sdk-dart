@@ -26,7 +26,7 @@ void main() {
     permanentChannelDid: 'did:example:permanent',
     mediatorDid: 'did:example:mediator',
     oobInvitationMessage: '',
-    vCard: VCard.empty(),
+    card: ContactCard(did: 'did:test', type: 'human', contactInfo: const {}),
     status: ConnectionOfferStatus.published,
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
@@ -49,7 +49,7 @@ void main() {
       publishOfferDid: 'did:key:1234',
       mediatorDid: 'did:key:mediator',
       status: ChannelStatus.inaugurated,
-      vCard: VCard.empty(),
+      card: ContactCard(did: 'did:test', type: 'human', contactInfo: const {}),
       type: ChannelType.individual,
     );
 
@@ -99,7 +99,8 @@ void main() {
         publishOfferDid: 'did:key:1234',
         mediatorDid: 'did:key:mediator',
         status: ChannelStatus.inaugurated,
-        vCard: VCard.empty(),
+        card:
+            ContactCard(did: 'did:test', type: 'human', contactInfo: const {}),
         type: ChannelType.group,
       );
 

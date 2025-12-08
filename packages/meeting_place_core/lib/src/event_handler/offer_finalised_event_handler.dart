@@ -79,8 +79,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        final otherPartyVCard =
-            getVCardDataOrEmptyFromAttachments(message.attachments);
+        final otherPartyCard =
+            getContactCardDataOrEmptyFromAttachments(message.attachments);
 
         final otherPartyPermanentChannelDid =
             message.body!['channel_did'] as String;
@@ -128,7 +128,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyNotificationToken = event.notificationToken;
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.outboundMessageId = message.id;
-        channel.otherPartyVCard = otherPartyVCard;
+        channel.otherPartyCard = otherPartyCard;
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 

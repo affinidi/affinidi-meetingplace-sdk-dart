@@ -19,7 +19,7 @@ void main() async {
     final command = RegisterOfferGroupCommand(
       offerName: 'Offer name',
       offerDescription: 'Offer description',
-      vCard: VCardImpl(values: {}),
+      contactCard: ContactCardImpl(contactInfo: {}),
       device: device,
       customPhrase: mnemonic,
       adminDid: 'did:key:1234',

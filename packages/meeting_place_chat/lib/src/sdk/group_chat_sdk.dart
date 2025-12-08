@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:crypto/crypto.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
@@ -298,7 +296,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           (member) => member.did == message.from!,
         );
 
-        if (_contactHash(member.card) == profileHash) {
+        if (contactCardHash(member.card) == profileHash) {
           chatStream.pushData(StreamData(plainTextMessage: message));
         } else {
           await coreSDK.sendMessage(
@@ -601,7 +599,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         ChatAliasProfileHash.create(
           from: did,
           to: [group.ownerDid!],
-          profileHash: _contactHash(card!),
+          profileHash: contactCardHash(card!),
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: group.ownerDid!,
@@ -758,9 +756,5 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       'Completed sending chat group details update',
       name: methodName,
     );
-  }
-
-  String _contactHash(ContactCard card) {
-    return sha256.convert(utf8.encode(jsonEncode(card.contactInfo))).toString();
   }
 }

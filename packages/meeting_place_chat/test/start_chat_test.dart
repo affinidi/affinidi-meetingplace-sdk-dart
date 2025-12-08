@@ -7,8 +7,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:convert';
-import 'package:crypto/crypto.dart';
 
 import 'utils/storage/in_memory_storage.dart';
 import 'utils/contact_card_fixture.dart' as fixtures;
@@ -534,9 +532,7 @@ void main() async {
       expect(conciergeMessage.chatId, bobChat.id);
       expect(conciergeMessage.status, ChatItemStatus.userInput);
       expect(conciergeMessage.data, {
-        'profileHash': sha256
-            .convert(utf8.encode(jsonEncode(updatedCard.contactInfo)))
-            .toString(),
+        'profileHash': contactCardHash(updatedCard),
         'replyTo': aliceDidDocument.id,
       });
 

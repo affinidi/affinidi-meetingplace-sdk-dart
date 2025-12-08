@@ -178,6 +178,7 @@ class MeetingPlaceCoreSDK {
   final MeetingPlaceCoreSDKOptions _options;
   final MeetingPlaceCoreSDKLogger logger;
   final SDKErrorHandler _sdkErrorHandler;
+  final Map<Type, Object> _extensions = {};
 
   String _mediatorDid;
 
@@ -1378,23 +1379,19 @@ class MeetingPlaceCoreSDK {
     return _sdkErrorHandler.handleError(operation);
   }
 
-  final Map<Type, Object> _extByType = {};
-
   /// Register an initialized extension instance
-  void enableExtension<T>(T instance) {
-    if (_extByType.containsKey(T)) {
-      throw StateError('Extension of type $T already enabled.');
+  void registerExtension<T>(T instance) {
+    if (_extensions.containsKey(T)) {
+      throw StateError('Extension of type $T already registered.');
     }
-    _extByType[T] = instance as Object;
+    _extensions[T] = instance as Object;
   }
 
-  /// Fetch by type; throws if missing
   T getExtension<T>() {
-    final obj = _extByType[T];
-    if (obj is T) return obj;
-    throw StateError('Extension of type $T not enabled.');
+    return (_extensions[T] is T
+        ? _extensions[T] as T
+        : throw StateError('Extension of type $T not registered.'));
   }
 
-  /// Try fetch by type; returns null if missing
-  T? tryExtension<T>() => _extByType[T] is T ? _extByType[T] as T : null;
+  T? tryExtension<T>() => _extensions[T] is T ? _extensions[T] as T : null;
 }

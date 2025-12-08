@@ -10,8 +10,6 @@ import '../utils/sdk.dart';
 
 void main() async {
   final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
-  aliceSDK.enableExtension<VdipExtension>(VdipExtension(sdk: aliceSDK));
-
   final aliceWaitFor = Completer<Channel>();
 
   // Alice creates OOB

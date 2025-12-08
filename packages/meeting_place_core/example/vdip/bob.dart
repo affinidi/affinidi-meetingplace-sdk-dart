@@ -70,7 +70,6 @@ void main() async {
   final oobUri = Uri.parse(utf8.decode(oobUrlBytes));
   prettyPrintYellow('OOB uri: ${oobUri.toString()}');
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
-  bobSDK.enableExtension<VdipExtension>(VdipExtension(sdk: bobSDK));
 
   final bobWaitFor = Completer<Channel>();
   CoreSDKStreamSubscription<MediatorMessage>? mediatorSubscription;

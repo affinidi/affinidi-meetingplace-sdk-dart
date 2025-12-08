@@ -40,3 +40,4 @@ export 'src/sdk/sdk.dart';
 export 'src/service/mediator/mediator_message.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
 export 'src/service/oob/oob_stream_data.dart';
+export 'src/utils/contact_card_utils.dart';

@@ -188,6 +188,7 @@ class MeetingPlaceMediatorSDK {
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         deleteMessageDelay: options.deleteMessageDelay,
+        messageWrappingTypes: options.messageWrappingTypes,
       ),
     );
   }

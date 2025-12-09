@@ -52,6 +52,7 @@ enum ChatProtocol {
   chatReaction('https://affinidi.io/mpx/chat-sdk/reaction'),
 
   /// Represents a declined persona sharing.
+  // TODO (Earl): remove this protocol once extension is merged
   chatDeclinedPersonaSharing(
       'https://affinidi.io/mpx/chat-sdk/declined-persona-sharing');
 

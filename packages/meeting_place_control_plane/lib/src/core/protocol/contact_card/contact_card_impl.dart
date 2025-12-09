@@ -6,7 +6,8 @@ class ContactCardImpl implements ContactCard {
   ContactCardImpl({required this.contactInfo});
 
   factory ContactCardImpl.fromJson(Map<String, dynamic> json) {
-    return ContactCardImpl(contactInfo: (json['contactInfo'] as Map).cast<String, dynamic>());
+    return ContactCardImpl(
+        contactInfo: (json['contactInfo'] as Map).cast<String, dynamic>());
   }
 
   factory ContactCardImpl.empty() {

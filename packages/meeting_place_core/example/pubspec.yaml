@@ -8,6 +8,9 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
+  affinidi_tdk_didcomm_mediator_client: ^1.0.0
+  affinidi_tdk_vdip: ^1.0.0
+  didcomm: ^2.3.0
   meeting_place_core:
     path: ../../../packages/meeting_place_core
   pretty_json: ^2.0.0

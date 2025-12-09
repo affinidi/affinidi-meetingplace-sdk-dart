@@ -17,6 +17,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  affinidi_tdk_didcomm_mediator_client:
+    dependency: transitive
+    description:
+      name: affinidi_tdk_didcomm_mediator_client
+      sha256: d39aa49bca44e6d6cacc975e13b9fdf87d105b0c09e7aad7ae88458bae944d5f
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  affinidi_tdk_vdip:
+    dependency: transitive
+    description:
+      name: affinidi_tdk_vdip
+      sha256: "5f0fc23fdedbde552b1f5d417b4fa6723763552a47e6afee6f0bd6c23a7088fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
+  affinidi_tdk_vdsp:
+    dependency: transitive
+    description:
+      name: affinidi_tdk_vdsp
+      sha256: f42cc18404f0a7eb745d50464661639f6ae35c9e1fdfe02da7e5099b1c6216a0
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -281,6 +305,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.3"
+  dcql:
+    dependency: transitive
+    description:
+      name: dcql
+      sha256: "5bc1d01d8a87bd1bf60474c7a6e6ad1f89d6e43aed7dacb8c410521a9e243cb2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   didcomm:
     dependency: transitive
     description:

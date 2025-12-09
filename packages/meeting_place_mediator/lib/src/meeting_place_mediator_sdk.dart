@@ -182,9 +182,6 @@ class MeetingPlaceMediatorSDK {
     MediatorStreamSubscriptionOptions options =
         const MediatorStreamSubscriptionOptions(),
     String? mediatorDid,
-    List<MessageWrappingType> expectedMessageWrappingTypes = const [
-      MessageWrappingType.authcryptSignPlaintext,
-    ],
   }) {
     return _withSdkExceptionHandling(
       () => _mediatorService.createStreamSubscription(
@@ -273,9 +270,7 @@ class MeetingPlaceMediatorSDK {
     int? fetchMessagesBatchSize,
     bool deleteOnRetrieve = false,
     bool deleteFailedMessages = false,
-    List<MessageWrappingType> expectedMessageWrappingTypes = const [
-      MessageWrappingType.authcryptSignPlaintext,
-    ],
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     return _withSdkExceptionHandling(() async {
       final results = await _mediatorService.fetch(

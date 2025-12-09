@@ -2,7 +2,7 @@ library;
 
 // external exports
 export 'package:didcomm/didcomm.dart'
-    show Attachment, AttachmentData, PlainTextMessage;
+    show Attachment, AttachmentData, PlainTextMessage, MessageWrappingType;
 
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show

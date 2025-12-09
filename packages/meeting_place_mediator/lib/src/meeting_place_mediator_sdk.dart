@@ -182,16 +182,13 @@ class MeetingPlaceMediatorSDK {
     MediatorStreamSubscriptionOptions options =
         const MediatorStreamSubscriptionOptions(),
     String? mediatorDid,
-    List<MessageWrappingType> expectedMessageWrappingTypes = const [
-      MessageWrappingType.authcryptSignPlaintext,
-    ],
   }) {
     return _withSdkExceptionHandling(
       () => _mediatorService.createStreamSubscription(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         deleteMessageDelay: options.deleteMessageDelay,
-        messageWrappingTypes: expectedMessageWrappingTypes,
+        messageWrappingTypes: options.expectedMessageWrappingTypes,
       ),
     );
   }
@@ -273,9 +270,7 @@ class MeetingPlaceMediatorSDK {
     int? fetchMessagesBatchSize,
     bool deleteOnRetrieve = false,
     bool deleteFailedMessages = false,
-    List<MessageWrappingType> expectedMessageWrappingTypes = const [
-      MessageWrappingType.authcryptSignPlaintext,
-    ],
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     return _withSdkExceptionHandling(() async {
       final results = await _mediatorService.fetch(
@@ -284,7 +279,8 @@ class MeetingPlaceMediatorSDK {
         deleteOnRetrieve: deleteOnRetrieve,
         startFrom: startFrom,
         fetchMessagesBatchSize: fetchMessagesBatchSize,
-        expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+            _options.expectedMessageWrappingTypes,
       );
 
       if (deleteFailedMessages) {

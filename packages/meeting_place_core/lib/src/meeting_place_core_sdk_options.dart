@@ -77,7 +77,7 @@ class MeetingPlaceCoreSDKOptions {
 
   /// Expected message wrapping types for unpacking DIDComm messages.
   ///
-  /// Defaults to [MessageWrappingType.authcryptSignPlaintext] for backward compatibility.
+  /// Defaults to [MessageWrappingType.authcryptSignPlaintext]
   ///
   /// Set to both [MessageWrappingType.authcryptPlaintext] and
   /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols

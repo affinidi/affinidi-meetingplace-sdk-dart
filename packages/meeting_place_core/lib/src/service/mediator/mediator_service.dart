@@ -25,7 +25,6 @@ class MediatorService {
     required DidManager didManager,
     required String mediatorDid,
     FetchMessagesOptions options = const FetchMessagesOptions(),
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     final results = await _mediatorSDK.fetchMessages(
       didManager: didManager,
@@ -34,8 +33,7 @@ class MediatorService {
       fetchMessagesBatchSize: options.batchSize,
       deleteOnRetrieve: options.deleteOnRetrieve,
       deleteFailedMessages: options.deleteFailedMessages,
-      expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
-          const [MessageWrappingType.authcryptSignPlaintext],
+      expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
     );
 
     final mediatorMessages = await Future.wait(
@@ -63,14 +61,11 @@ class MediatorService {
     required String mediatorDid,
     MediatorStreamSubscriptionOptions options =
         const MediatorStreamSubscriptionOptions(),
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     final streamSubscription = await _mediatorSDK.subscribeToMessages(
       didManager,
       mediatorDid: mediatorDid,
       options: options,
-      expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
-          const [MessageWrappingType.authcryptSignPlaintext],
     );
 
     return MediatorStreamSubscriptionWrapper(

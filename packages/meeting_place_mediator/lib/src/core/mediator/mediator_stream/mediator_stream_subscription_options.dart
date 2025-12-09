@@ -4,7 +4,7 @@ import 'package:didcomm/didcomm.dart';
 class MediatorStreamSubscriptionOptions {
   const MediatorStreamSubscriptionOptions({
     this.deleteMessageDelay = const Duration(milliseconds: 3000),
-    this.expectedMessageWrappingTypes = const [
+    this.messageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
   });
@@ -14,12 +14,6 @@ class MediatorStreamSubscriptionOptions {
   /// messages will be deleted immediately after processing.
   final Duration? deleteMessageDelay;
 
-  /// Expected message wrapping types for unpacking DIDComm messages.
-  ///
-  /// Defaults to [MessageWrappingType.authcryptSignPlaintext]
-  ///
-  /// Set to both [MessageWrappingType.authcryptPlaintext] and
-  /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
-  /// (e.g., chat + VDIP) that use different message signing configurations.
-  final List<MessageWrappingType> expectedMessageWrappingTypes;
+  /// Types of message wrapping to use when subscribing to mediator messages.
+  final List<MessageWrappingType> messageWrappingTypes;
 }

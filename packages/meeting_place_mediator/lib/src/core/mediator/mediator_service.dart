@@ -411,6 +411,9 @@ class MediatorService {
     DateTime? startFrom,
     int? fetchMessagesBatchSize,
     int? maxResults,
+    List<MessageWrappingType> expectedMessageWrappingTypes = const [
+      MessageWrappingType.authcryptSignPlaintext,
+    ],
   }) async {
     final methodName = 'fetch';
     _logger.info('Fetch messages', name: methodName);
@@ -438,6 +441,7 @@ class MediatorService {
           final result = await FetchMessageResult.fromMessage(
             mediatorMessage,
             didManager: didManager,
+            expectedMessageWrappingTypes: expectedMessageWrappingTypes,
           );
 
           final messageCreatedTime = result.message?.createdTime;

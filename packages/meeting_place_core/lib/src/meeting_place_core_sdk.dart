@@ -1208,6 +1208,7 @@ class MeetingPlaceCoreSDK {
     String? mediatorDid,
     bool deleteOnRetrieve = false,
     bool deleteFailedMessages = false,
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     return _withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
@@ -1218,6 +1219,8 @@ class MeetingPlaceCoreSDK {
           deleteFailedMessages: deleteFailedMessages,
           deleteOnRetrieve: deleteOnRetrieve,
         ),
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+            _options.expectedMessageWrappingTypes,
       );
     });
   }
@@ -1238,6 +1241,7 @@ class MeetingPlaceCoreSDK {
     String? mediatorDid,
     MediatorStreamSubscriptionOptions options =
         const MediatorStreamSubscriptionOptions(),
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     return _withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
@@ -1245,6 +1249,8 @@ class MeetingPlaceCoreSDK {
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         options: options,
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+            _options.expectedMessageWrappingTypes,
       );
     });
   }

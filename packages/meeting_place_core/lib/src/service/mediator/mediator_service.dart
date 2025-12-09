@@ -33,6 +33,7 @@ class MediatorService {
       fetchMessagesBatchSize: options.batchSize,
       deleteOnRetrieve: options.deleteOnRetrieve,
       deleteFailedMessages: options.deleteFailedMessages,
+      expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
     );
 
     final mediatorMessages = await Future.wait(

@@ -27,6 +27,7 @@ class FetchMessageResult {
   static Future<FetchMessageResult> fromMessage(
     Map<String, dynamic> message, {
     required DidManager didManager,
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     final messageHash = sha256.convert(utf8.encode(jsonEncode(message)));
     try {
@@ -34,9 +35,7 @@ class FetchMessageResult {
         message: await DidcommMessage.unpackToPlainTextMessage(
           message: message,
           recipientDidManager: didManager,
-          expectedMessageWrappingTypes: [
-            MessageWrappingType.authcryptSignPlaintext,
-          ],
+          expectedMessageWrappingTypes: expectedMessageWrappingTypes,
         ),
         messageHash: messageHash.toString(),
       );

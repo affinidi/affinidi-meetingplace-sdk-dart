@@ -188,6 +188,7 @@ class MeetingPlaceMediatorSDK {
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         deleteMessageDelay: options.deleteMessageDelay,
+        messageWrappingTypes: options.expectedMessageWrappingTypes,
       ),
     );
   }
@@ -269,6 +270,7 @@ class MeetingPlaceMediatorSDK {
     int? fetchMessagesBatchSize,
     bool deleteOnRetrieve = false,
     bool deleteFailedMessages = false,
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     return _withSdkExceptionHandling(() async {
       final results = await _mediatorService.fetch(
@@ -277,6 +279,8 @@ class MeetingPlaceMediatorSDK {
         deleteOnRetrieve: deleteOnRetrieve,
         startFrom: startFrom,
         fetchMessagesBatchSize: fetchMessagesBatchSize,
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+            _options.expectedMessageWrappingTypes,
       );
 
       if (deleteFailedMessages) {

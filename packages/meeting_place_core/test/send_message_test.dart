@@ -5,7 +5,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/v_card.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -20,10 +19,17 @@ void main() async {
     aliceSDK = await initSDKInstance();
     bobSDK = await initSDKInstance();
 
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -31,10 +37,16 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     final waitForInvitationAccept = Completer<Channel>();

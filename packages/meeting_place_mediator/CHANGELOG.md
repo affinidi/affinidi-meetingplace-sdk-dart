@@ -1,3 +1,7 @@
+## 0.0.1-dev.9
+
+ - **FIX**: add expectedMessageWrappingTypes to MeetingPlaceCoreSDKOptions (#35).
+
 ## 0.0.1-dev.8
 
  - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).

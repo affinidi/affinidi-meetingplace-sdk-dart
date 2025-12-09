@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-12-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v0.0.1-dev.16`](#meeting_place_core---v001-dev16)
+ - [`meeting_place_mediator` - `v0.0.1-dev.9`](#meeting_place_mediator---v001-dev9)
+ - [`meeting_place_chat` - `v0.0.1-dev.17`](#meeting_place_chat---v001-dev17)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.18`](#meeting_place_drift_repository---v001-dev18)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.17`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.18`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.16`
+
+ - **FIX**: add expectedMessageWrappingTypes to MeetingPlaceCoreSDKOptions (#35).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.9`
+
+ - **FIX**: add expectedMessageWrappingTypes to MeetingPlaceCoreSDKOptions (#35).
+
+
 ## 2025-12-05
 
 ### Changes

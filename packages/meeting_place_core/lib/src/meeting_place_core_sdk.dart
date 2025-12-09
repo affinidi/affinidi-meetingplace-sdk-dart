@@ -968,7 +968,7 @@ class MeetingPlaceCoreSDK {
         connectionOffer: connectionOffer,
         card: contactCard,
         did: did,
-        senderInfoOverride: contactCard.notificationValue,
+        senderInfoOverride: contactCard.senderInfo,
         externalRef: externalRef,
       );
 
@@ -995,6 +995,8 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// - [channel] - DID of member requesting membership
+  /// - [did] - Optional DID to use for the permanent channel. If omitted,
+  ///   a new DID will be generated.
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.

@@ -381,7 +381,7 @@ class GroupService {
   }
 
   String _deriveSenderInfoFromContactCard(core.ContactCard card) {
-    return card.notificationValue;
+    return card.senderInfo;
   }
 
   Future<Group> _createOrUpdateGroup({

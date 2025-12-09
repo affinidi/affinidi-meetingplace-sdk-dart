@@ -168,9 +168,6 @@ void main() async {
   });
 
   // test('group member sends group message', () async {
-  //   final vCardBase64 = VCard(
-  //     values: VCardFixture.bobPrimaryVCard.values,
-  //   ).toBase64();
 
   //   final chatMessage = PlainTextMessage(
   //     id: const Uuid().v4(),
@@ -179,7 +176,6 @@ void main() async {
   //     to: [groupDid],
   //     body: {'text': 'Hello Group!', 'seqNo': 2},
   //     attachments: [
-  //       VCardAttachment.create(data: AttachmentData(base64: vCardBase64)),
   //     ],
   //   );
 

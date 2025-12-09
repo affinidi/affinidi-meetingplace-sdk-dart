@@ -115,10 +115,9 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        card: toCoreContactCard(
-          queryOfferResult.contactCard,
+        card: queryOfferResult.contactCard.toCoreContactCard(
           did: queryOfferResult.didcommMessage.from,
-          type: 'offer',
+          type: core.ContactCardType.offer.value,
         ),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
@@ -150,10 +149,9 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        card: toCoreContactCard(
-          queryOfferResult.contactCard,
+        card: queryOfferResult.contactCard.toCoreContactCard(
           did: queryOfferResult.didcommMessage.from,
-          type: 'offer',
+          type: core.ContactCardType.offer.value,
         ),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
@@ -372,7 +370,7 @@ class ConnectionService {
   }
 
   String _deriveSenderInfoFromContactCard(core.ContactCard card) {
-    return card.notificationValue;
+    return card.senderInfo;
   }
 
   Future<ConnectionOffer> _acceptConnectionOffer(
@@ -493,6 +491,7 @@ class ConnectionService {
     required Channel channel,
     String? did,
   }) async {
+    // If [did] is not provided, a new DID is generated for the permanent channel.
     final methodName = 'approveConnectionRequest';
     _logger.info(
         'Approving connection request for offer link: ${channel.offerLink}',

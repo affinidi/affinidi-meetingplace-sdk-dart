@@ -451,9 +451,7 @@ void main() async {
   //     coreSDK: bobSDK,
   //     did: bobDidDocument.id,
   //     otherPartyDid: aliceDidDocument.id,
-  //     vCard: VCard(values: {'some-values': 'changed'}),
   //     channelRepository: bobChannelRepository,
-  //     channelVCard: VCardFixture.bobPrimaryVCard,
   //   );
   //   await newBobChatSDK.startChatSession();
   //   var receivedMessage = false;

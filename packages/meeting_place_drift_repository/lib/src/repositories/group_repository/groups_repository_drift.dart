@@ -241,25 +241,18 @@ class _GroupMemberMapper {
   }
 
   static model.ContactCard _makeContactCardFromDb(db.GroupMember groupMember) {
-    final contactInfo = <String, dynamic>{
-      'n': {
-        'given': groupMember.firstName,
-        'surname': groupMember.lastName,
-      },
-      'email': {
-        'type': {'work': groupMember.email}
-      },
-      'tel': {
-        'type': {'cell': groupMember.mobile}
-      },
-      'photo': groupMember.profilePic,
-      'x-meetingplace-identity-card-color':
-          groupMember.meetingplaceIdentityCardColor,
-    };
-    return model.ContactCard(
+    final card = model.ContactCard(
       did: groupMember.memberDid,
-      type: 'contactCard',
-      contactInfo: contactInfo,
+      type: model.ContactCardType.contactCard.value,
+      contactInfo: {},
     );
+    card.firstName = groupMember.firstName;
+    card.lastName = groupMember.lastName;
+    card.email = groupMember.email;
+    card.mobile = groupMember.mobile;
+    card.profilePic = groupMember.profilePic;
+    card.meetingplaceIdentityCardColor =
+        groupMember.meetingplaceIdentityCardColor;
+    return card;
   }
 }

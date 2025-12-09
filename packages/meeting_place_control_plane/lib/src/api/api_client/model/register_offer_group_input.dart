@@ -29,7 +29,7 @@ part 'register_offer_group_input.g.dart';
 /// * [adminReencryptionKey] - Reencryption key for the group chat admin.
 /// * [adminDid] - The Decentralised Identifier (DUD) of the group chat admin.
 /// * [adminPublicKey] - The public key information of the group chat admin.
-/// * [memberVCard] - A vCard of the group chat member encoded in base64 format.
+/// * [memberContactCard] - A ContactCard of the group chat member encoded in base64 format.
 @BuiltValue()
 abstract class RegisterOfferGroupInput
     implements Built<RegisterOfferGroupInput, RegisterOfferGroupInputBuilder> {

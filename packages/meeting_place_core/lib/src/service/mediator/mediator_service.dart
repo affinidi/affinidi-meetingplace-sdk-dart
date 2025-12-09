@@ -69,9 +69,7 @@ class MediatorService {
       mediatorDid: mediatorDid,
       options: options,
       expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
-          const [
-            MessageWrappingType.authcryptSignPlaintext,
-          ],
+          const [MessageWrappingType.authcryptSignPlaintext],
     );
 
     return MediatorStreamSubscriptionWrapper(

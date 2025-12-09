@@ -273,7 +273,9 @@ class MeetingPlaceMediatorSDK {
     int? fetchMessagesBatchSize,
     bool deleteOnRetrieve = false,
     bool deleteFailedMessages = false,
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
+    List<MessageWrappingType> expectedMessageWrappingTypes = const [
+      MessageWrappingType.authcryptSignPlaintext,
+    ],
   }) async {
     return _withSdkExceptionHandling(() async {
       final results = await _mediatorService.fetch(

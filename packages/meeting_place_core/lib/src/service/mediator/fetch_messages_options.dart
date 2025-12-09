@@ -1,3 +1,5 @@
+import 'package:didcomm/didcomm.dart';
+
 /// Options for fetching messages from the mediator.
 class FetchMessagesOptions {
   const FetchMessagesOptions({
@@ -6,6 +8,9 @@ class FetchMessagesOptions {
     this.deleteFailedMessages = false,
     this.startFrom,
     this.filterByMessageTypes = const [],
+    this.expectedMessageWrappingTypes = const [
+      MessageWrappingType.authcryptSignPlaintext,
+    ],
   });
 
   /// Number of records to fetch from mediator at once.
@@ -29,4 +34,13 @@ class FetchMessagesOptions {
 
   /// Optional list of message types to filter messages by.
   final List<String> filterByMessageTypes;
+
+  /// Expected message wrapping types for unpacking DIDComm messages.
+  ///
+  /// Defaults to [MessageWrappingType.authcryptSignPlaintext]
+  ///
+  /// Set to both [MessageWrappingType.authcryptPlaintext] and
+  /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
+  /// (e.g., chat + VDIP) that use different message signing configurations.
+  final List<MessageWrappingType> expectedMessageWrappingTypes;
 }

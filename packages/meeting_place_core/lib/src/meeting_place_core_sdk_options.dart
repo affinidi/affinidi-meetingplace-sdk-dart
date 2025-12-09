@@ -1,3 +1,4 @@
+import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
 class MeetingPlaceCoreSDKOptions {
@@ -13,6 +14,9 @@ class MeetingPlaceCoreSDKOptions {
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
     this.signatureScheme = SignatureScheme.ecdsa_p256_sha256,
+    this.expectedMessageWrappingTypes = const [
+      MessageWrappingType.authcryptSignPlaintext,
+    ],
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -70,4 +74,13 @@ class MeetingPlaceCoreSDKOptions {
 
   /// The signature scheme to be used for signing messages.
   final SignatureScheme signatureScheme;
+
+  /// Expected message wrapping types for unpacking DIDComm messages.
+  ///
+  /// Defaults to [MessageWrappingType.authcryptSignPlaintext]
+  ///
+  /// Set to both [MessageWrappingType.authcryptPlaintext] and
+  /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
+  /// (e.g., chat + VDIP) that use different message signing configurations.
+  final List<MessageWrappingType> expectedMessageWrappingTypes;
 }

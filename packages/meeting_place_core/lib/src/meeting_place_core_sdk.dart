@@ -1208,6 +1208,7 @@ class MeetingPlaceCoreSDK {
     String? mediatorDid,
     bool deleteOnRetrieve = false,
     bool deleteFailedMessages = false,
+    List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
     return withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);

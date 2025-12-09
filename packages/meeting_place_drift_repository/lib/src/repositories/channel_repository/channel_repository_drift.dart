@@ -328,25 +328,18 @@ class _ChannelMapper {
     db.ChannelContactCard? contactCard,
   ) {
     if (contactCard == null) return null;
-    final contactInfo = <String, dynamic>{
-      'n': {
-        'given': contactCard.firstName,
-        'surname': contactCard.lastName,
-      },
-      'email': {
-        'type': {'work': contactCard.email}
-      },
-      'tel': {
-        'type': {'cell': contactCard.mobile}
-      },
-      'photo': contactCard.profilePic,
-      'x-meetingplace-identity-card-color':
-          contactCard.meetingplaceIdentityCardColor,
-    };
-    return model.ContactCard(
+    final card = model.ContactCard(
       did: '',
-      type: 'contactCard',
-      contactInfo: contactInfo,
+      type: model.ContactCardType.contactCard.value,
+      contactInfo: {},
     );
+    card.firstName = contactCard.firstName;
+    card.lastName = contactCard.lastName;
+    card.email = contactCard.email;
+    card.mobile = contactCard.mobile;
+    card.profilePic = contactCard.profilePic;
+    card.meetingplaceIdentityCardColor =
+        contactCard.meetingplaceIdentityCardColor;
+    return card;
   }
 }

@@ -380,7 +380,7 @@ class GroupService {
   }
 
   String _deriveSenderInfoFromContactCard(core.ContactCard card) {
-    return card.notificationValue;
+    return card.senderInfo;
   }
 
   Future<Group> _createOrUpdateGroup({
@@ -634,7 +634,7 @@ class GroupService {
       groupPublicKey: group.publicKey!,
       card: core.ContactCard(
         did: channel.publishOfferDid,
-        type: 'admin',
+        type: core.ContactCardType.admin.value,
         contactInfo: {
           'n': {'given': connectionOffer.offerName},
         },

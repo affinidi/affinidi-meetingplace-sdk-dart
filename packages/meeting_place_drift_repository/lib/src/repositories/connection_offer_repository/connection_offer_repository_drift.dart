@@ -354,7 +354,7 @@ class _ConnectionOfferMapper {
   ) {
     final card = model.ContactCard(
       did: '',
-      type: 'contactCard',
+      type: model.ContactCardType.contactCard.value,
       contactInfo: {},
     );
     card.firstName = contactCard.firstName;

@@ -1,5 +1,18 @@
 import 'dart:convert';
 
+/// Enumerates known ContactCard type values to avoid string literals.
+/// Use `ContactCardType.<name>.value` when assigning to `ContactCard.type`.
+enum ContactCardType {
+  human('human'),
+  individual('individual'),
+  contactCard('contactCard'),
+  admin('admin'),
+  offer('offer');
+
+  const ContactCardType(this.value);
+  final String value;
+}
+
 class ContactCard {
   ContactCard({
     required this.did,
@@ -28,7 +41,10 @@ class ContactCard {
   final String type;
   final Map<String, dynamic> contactInfo;
 
-  String get notificationValue {
+  /// Short sender information derived from the card.
+  ///
+  /// Prefers first name, then work email, else empty string.
+  String get senderInfo {
     String firstName = _getPathValue(['n', 'given']);
     if (firstName.trim().isNotEmpty) return firstName;
     String email = _getPathValue(['email', 'type', 'work']);
@@ -79,42 +95,6 @@ class ContactCard {
 }
 
 class InfoCard {
-  InfoCard({
-    required this.did,
-    required this.type,
-    required this.contactInfo,
-  });
-
-  final String did;
-  final String type;
-  final Map<String, dynamic> contactInfo;
-
-  String get notificationValue {
-    String firstName = _getPathValue(['n', 'given']);
-    if (firstName.trim().isNotEmpty) return firstName;
-    String email = _getPathValue(['email', 'type', 'work']);
-    if (email.trim().isNotEmpty) return email;
-    return '';
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'did': did,
-      'type': type,
-      'contactInfo': contactInfo,
-    };
-  }
-
-  String _getPathValue(List<String> pathKeys) {
-    Map<dynamic, dynamic> parent = contactInfo;
-    for (final key in pathKeys) {
-      final element = parent[key];
-      if (element == null) return '';
-      if (key == pathKeys.last && element is String) return element;
-      if (element is Map<dynamic, dynamic>) {
-        parent = element;
-      }
-    }
-    return '';
-  }
+  // Deprecated: InfoCard duplicated ContactCard functionality.
+  // Removed to prevent confusion and reduce duplication.
 }

@@ -168,9 +168,6 @@ void main() async {
   });
 
   // test('group member sends group message', () async {
-  //   final vCardBase64 = VCard(
-  //     values: VCardFixture.bobPrimaryVCard.values,
-  //   ).toBase64();
 
   //   final chatMessage = PlainTextMessage(
   //     id: const Uuid().v4(),
@@ -179,7 +176,6 @@ void main() async {
   //     to: [groupDid],
   //     body: {'text': 'Hello Group!', 'seqNo': 2},
   //     attachments: [
-  //       VCardAttachment.create(data: AttachmentData(base64: vCardBase64)),
   //     ],
   //   );
 
@@ -211,17 +207,9 @@ void main() async {
   //   final aliceReceivedMessage = await aliceReceivedMessageCompleter.future;
   //   expect(aliceReceivedMessage.body!['text'], equals('Hello Group!'));
   //   expect(aliceReceivedMessage.body!['seqNo'], equals(2));
-  //   expect(
-  //     aliceReceivedMessage.attachments?[0].data?.base64,
-  //     equals(vCardBase64),
-  //   );
 
   //   final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
   //   expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
   //   expect(charlieReceivedMessage.body!['seqNo'], equals(2));
-  //   expect(
-  //     charlieReceivedMessage.attachments?[0].data?.base64,
-  //     equals(vCardBase64),
-  //   );
   // });
 }

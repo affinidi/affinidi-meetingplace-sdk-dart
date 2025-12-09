@@ -50,12 +50,8 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Chat] instance representing the started session.
   @override
-  Future<Chat> startChatSession({
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
-  }) async {
-    final chat = await super.startChatSession(
-      expectedMessageWrappingTypes: expectedMessageWrappingTypes,
-    );
+  Future<Chat> startChatSession() async {
+    final chat = await super.startChatSession();
     unawaited(startChatPresenceInInterval(
         options.chatPresenceSendInterval.inSeconds));
     return chat;

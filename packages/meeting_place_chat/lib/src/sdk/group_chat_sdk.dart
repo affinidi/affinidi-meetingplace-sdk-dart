@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
-import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
@@ -72,9 +71,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Chat] instance representing the started session.
   @override
-  Future<Chat> startChatSession({
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
-  }) async {
+  Future<Chat> startChatSession() async {
     final methodName = 'start';
     logger.info('Started group chat', name: methodName);
     if (group.isDeleted) {
@@ -397,9 +394,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A list of [Message]s representing newly processed chat messages.
   @override
-  Future<List<entity_chat_message.Message>> fetchNewMessages({
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
-  }) async {
+  Future<List<entity_chat_message.Message>> fetchNewMessages() async {
     final methodName = 'fetchNewMessages';
     logger.info('Started loading new messages', name: methodName);
     final messagesFromMediator = await coreSDK.fetchMessages(
@@ -427,9 +422,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [MediatorStream] subscription stream for group messages.
   @override
-  Future<CoreSDKStreamSubscription> subscribeToMediator({
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
-  }) async {
+  Future<CoreSDKStreamSubscription> subscribeToMediator() async {
     final methodName = 'subscribeToChannel';
     logger.info('Started subscribing to mediator channel', name: methodName);
 

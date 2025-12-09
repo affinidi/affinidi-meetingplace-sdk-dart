@@ -1219,7 +1219,8 @@ class MeetingPlaceCoreSDK {
           deleteFailedMessages: deleteFailedMessages,
           deleteOnRetrieve: deleteOnRetrieve,
         ),
-        expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+            _options.expectedMessageWrappingTypes,
       );
     });
   }
@@ -1248,7 +1249,8 @@ class MeetingPlaceCoreSDK {
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         options: options,
-        expectedMessageWrappingTypes: expectedMessageWrappingTypes,
+        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+            _options.expectedMessageWrappingTypes,
       );
     });
   }

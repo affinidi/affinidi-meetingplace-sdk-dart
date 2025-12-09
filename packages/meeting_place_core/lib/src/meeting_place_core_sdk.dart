@@ -147,11 +147,7 @@ class MeetingPlaceCoreSDK {
         _notificationService = notificationService,
         _outreachService = outreachService,
         _mediatorService = mediatorService,
-<<<<<<< HEAD
         _messageService = messageService,
-        _didResolver = didResolver,
-=======
->>>>>>> eef230f (chore: vdip extension - experimental)
         _mediatorDid = mediatorDid,
         _options = options,
         _sdkErrorHandler = sdkErrorHandler;
@@ -169,12 +165,8 @@ class MeetingPlaceCoreSDK {
   final NotificationService _notificationService;
   final MediatorService _mediatorService;
   final OutreachService _outreachService;
-<<<<<<< HEAD
   final MessageService _messageService;
-  final DidResolver _didResolver;
-=======
   final DidResolver didResolver;
->>>>>>> eef230f (chore: vdip extension - experimental)
   final MeetingPlaceCoreSDKOptions _options;
   final MeetingPlaceCoreSDKLogger logger;
   final SDKErrorHandler _sdkErrorHandler;

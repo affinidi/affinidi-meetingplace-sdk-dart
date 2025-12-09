@@ -110,7 +110,7 @@ void main() async {
   mediatorSubscription = await bobSDK.subscribeToMediator(
     channel.permanentChannelDid!,
     options: MediatorStreamSubscriptionOptions(
-      messageWrappingTypes: [
+      expectedMessageWrappingTypes: [
         MessageWrappingType.authcryptSignPlaintext,
         // authcryptPlaintext is needed to receive VDIP messages as it
         // not automatically signing them

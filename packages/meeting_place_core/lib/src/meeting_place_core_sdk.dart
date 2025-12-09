@@ -11,6 +11,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
+import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import 'constants/sdk_constants.dart';
@@ -131,29 +132,27 @@ class MeetingPlaceCoreSDK {
     required OutreachService outreachService,
     required MessageService messageService,
     required MediatorService mediatorService,
-    required DidResolver didResolver,
+    required this.didResolver,
     required String mediatorDid,
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
-    required MeetingPlaceCoreSDKLogger logger,
-  }) : _repositoryConfig = repositoryConfig,
-       _controlPlaneDid = controlPlaneDid,
-       _mediatorSDK = mediatorSDK,
-       _controlPlaneSDK = controlPlaneSDK,
-       _connectionManager = connectionManager,
-       _connectionService = connectionService,
-       _controlPlaneEventService = controlPlaneEventService,
-       _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
-       _groupService = groupService,
-       _notificationService = notificationService,
-       _outreachService = outreachService,
-       _mediatorService = mediatorService,
-       _messageService = messageService,
-       _didResolver = didResolver,
-       _mediatorDid = mediatorDid,
-       _options = options,
-       _sdkErrorHandler = sdkErrorHandler,
-       _logger = logger;
+    required this.logger,
+  })  : _repositoryConfig = repositoryConfig,
+        _controlPlaneDid = controlPlaneDid,
+        _mediatorSDK = mediatorSDK,
+        _controlPlaneSDK = controlPlaneSDK,
+        _connectionManager = connectionManager,
+        _connectionService = connectionService,
+        _controlPlaneEventService = controlPlaneEventService,
+        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
+        _groupService = groupService,
+        _notificationService = notificationService,
+        _outreachService = outreachService,
+        _mediatorService = mediatorService,
+        _messageService = messageService,
+        _mediatorDid = mediatorDid,
+        _options = options,
+        _sdkErrorHandler = sdkErrorHandler;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -169,10 +168,11 @@ class MeetingPlaceCoreSDK {
   final MediatorService _mediatorService;
   final OutreachService _outreachService;
   final MessageService _messageService;
-  final DidResolver _didResolver;
+  final DidResolver didResolver;
   final MeetingPlaceCoreSDKOptions _options;
-  final MeetingPlaceCoreSDKLogger _logger;
+  final MeetingPlaceCoreSDKLogger logger;
   final SDKErrorHandler _sdkErrorHandler;
+  final Map<Type, Object> _extensions = {};
 
   String _mediatorDid;
 
@@ -440,7 +440,7 @@ class MeetingPlaceCoreSDK {
   /// Returns a [DidManager] instance for the specified DID.
   ///
   Future<DidManager> getDidManager(String did) {
-    return _withSdkExceptionHandling(() {
+    return withSdkExceptionHandling(() {
       return _connectionManager.getDidManagerForDid(wallet, did);
     });
   }
@@ -472,7 +472,7 @@ class MeetingPlaceCoreSDK {
     String? externalRef,
   }) async {
     final methodName = 'createOobFlow';
-    _logger.info('Started creating OOB invitation', name: methodName);
+    logger.info('Started creating OOB invitation', name: methodName);
 
     final oobDidManager = await generateDid();
     final oobDidDoc = await oobDidManager.getDidDocument();
@@ -494,9 +494,10 @@ class MeetingPlaceCoreSDK {
 
     final oobStream = OobStream(
       onDispose: () => streamSubscription.dispose(),
-      logger: _logger,
+      logger: logger,
     );
-    _logger.info(
+
+    logger.info(
       'Listening for messages on mediator channel',
       name: methodName,
     );
@@ -516,8 +517,8 @@ class MeetingPlaceCoreSDK {
         final permanentChannelDidManager = did != null
             ? await _connectionManager.getDidManagerForDid(wallet, did)
             : await generateDid();
-        final permanentChannelDidDoc = await permanentChannelDidManager
-            .getDidDocument();
+        final permanentChannelDidDoc =
+            await permanentChannelDidManager.getDidDocument();
 
         await _connectionService.sendConnectionRequestApprovalToMediator(
           offerPublishedDid: oobDidManager,
@@ -546,7 +547,7 @@ class MeetingPlaceCoreSDK {
 
         await _repositoryConfig.channelRepository.createChannel(channel);
 
-        _logger.info(
+        logger.info(
           'OOB invitation accepted, channel created with ID: ${channel.id}',
           name: methodName,
         );
@@ -596,7 +597,7 @@ class MeetingPlaceCoreSDK {
     String? did,
   }) async {
     final methodName = 'acceptOobFlow';
-    _logger.info('Started accepting OOB invitation', name: methodName);
+    logger.info('Started accepting OOB invitation', name: methodName);
 
     final acceptOfferDid = await generateDid();
     final acceptOfferDidDoc = await acceptOfferDid.getDidDocument();
@@ -610,7 +611,7 @@ class MeetingPlaceCoreSDK {
     String actualMediatorDid = _mediatorDid;
 
     try {
-      _logger.info('Fetching OOB invitation', name: methodName);
+      logger.info('Fetching OOB invitation', name: methodName);
       final oobInfo = await _controlPlaneSDK.execute(
         GetOobCommand(oobId: oobUrl.pathSegments.last),
       );
@@ -621,7 +622,7 @@ class MeetingPlaceCoreSDK {
 
       actualMediatorDid = oobInfo.mediatorDid;
     } catch (e, stackTrace) {
-      _logger.error(
+      logger.error(
         'Failed to fetch OOB invitation:',
         error: e,
         stackTrace: stackTrace,
@@ -653,10 +654,10 @@ class MeetingPlaceCoreSDK {
 
     final oobStream = OobStream(
       onDispose: () => streamSubscription.dispose(),
-      logger: _logger,
+      logger: logger,
     );
 
-    _logger.info(
+    logger.info(
       'Listening for messages on mediator channel',
       name: methodName,
     );
@@ -703,7 +704,7 @@ class MeetingPlaceCoreSDK {
           ),
         );
 
-        _logger.info(
+        logger.info(
           'OOB invitation accepted, channel created with ID: ${channel.id}',
           name: methodName,
         );
@@ -733,7 +734,7 @@ class MeetingPlaceCoreSDK {
   Future<sdk.ValidateOfferPhraseResult> validateOfferPhrase(
     String phrase,
   ) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final result = await _controlPlaneSDK.execute(
         ValidateOfferPhraseCommand(phrase: phrase.trim()),
       );
@@ -754,7 +755,7 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - A [Device] instance used for subsequent SDK calls.
   Future<Device> registerForPushNotifications(String deviceToken) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final device = await _notificationService.registerForPushNotifications(
         deviceToken,
       );
@@ -784,11 +785,11 @@ class MeetingPlaceCoreSDK {
   /// for subsequent SDK calls and the generated DidManager for the recipient
   /// DID.
   Future<RegisterForDidcommNotificationsResult>
-  registerForDIDCommNotifications({
+      registerForDIDCommNotifications({
     String? mediatorDid,
     String? recipientDid,
   }) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final result = await _notificationService.registerForDIDCommNotifications(
         wallet: wallet,
         controlPlaneDid: _controlPlaneDid,
@@ -863,18 +864,18 @@ class MeetingPlaceCoreSDK {
     String? externalRef,
   }) async {
     if (type == sdk.SDKConnectionOfferType.groupInvitation) {
-      final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
-          .createGroup(
-            offerName: offerName,
-            offerDescription: offerDescription,
-            customPhrase: customPhrase,
-            validUntil: validUntil,
-            maximumUsage: maximumUsage,
-            mediatorDid: mediatorDid,
-            externalRef: externalRef,
-            metadata: metadata,
-            card: contactCard,
-          );
+      final (connectionOffer, publishedOfferDid, ownerDid) =
+          await _groupService.createGroup(
+        offerName: offerName,
+        offerDescription: offerDescription,
+        customPhrase: customPhrase,
+        validUntil: validUntil,
+        maximumUsage: maximumUsage,
+        mediatorDid: mediatorDid,
+        externalRef: externalRef,
+        metadata: metadata,
+        card: contactCard,
+      );
       return sdk.PublishOfferResult(
         connectionOffer: connectionOffer as T,
         publishedOfferDidManager: publishedOfferDid,
@@ -882,21 +883,21 @@ class MeetingPlaceCoreSDK {
       );
     }
 
-    final (connectionOffer, publishedOfferDid) = await _connectionService
-        .publishOffer(
-          wallet: wallet,
-          offerName: offerName,
-          offerDescription: offerDescription,
-          type: type == SDKConnectionOfferType.outreachInvitation
-              ? ConnectionOfferType.meetingPlaceOutreachInvitation
-              : ConnectionOfferType.meetingPlaceInvitation,
-          customPhrase: customPhrase,
-          validUntil: validUntil,
-          maximumUsage: maximumUsage,
-          mediatorDid: mediatorDid,
-          externalRef: externalRef,
-          contactCard: contactCard,
-        );
+    final (connectionOffer, publishedOfferDid) =
+        await _connectionService.publishOffer(
+      wallet: wallet,
+      offerName: offerName,
+      offerDescription: offerDescription,
+      type: type == SDKConnectionOfferType.outreachInvitation
+          ? ConnectionOfferType.meetingPlaceOutreachInvitation
+          : ConnectionOfferType.meetingPlaceInvitation,
+      customPhrase: customPhrase,
+      validUntil: validUntil,
+      maximumUsage: maximumUsage,
+      mediatorDid: mediatorDid,
+      externalRef: externalRef,
+      contactCard: contactCard,
+    );
 
     return sdk.PublishOfferResult(
       connectionOffer: connectionOffer as T,
@@ -914,7 +915,7 @@ class MeetingPlaceCoreSDK {
   /// - [sdk.FindOfferResult] containing the details of the matched offer,
   /// or information indicating that no matching offer was found.
   Future<sdk.FindOfferResult> findOffer({required String mnemonic}) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final (connectionOffer, errorCode) = await _connectionService.findOffer(
         mnemonic: mnemonic,
       );
@@ -951,7 +952,7 @@ class MeetingPlaceCoreSDK {
     required String senderInfo,
     String? externalRef,
   }) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       if (connectionOffer is GroupConnectionOffer) {
         final result = await _groupService.acceptGroupOffer(
           wallet: wallet,
@@ -1003,7 +1004,7 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// Returns updated [Channel] instance.
   Future<Channel> approveConnectionRequest({required Channel channel}) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
@@ -1018,7 +1019,7 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [channel] - Specifies the channel of the entity to reject.
   Future<Group> rejectConnectionRequest({required Channel channel}) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       if (channel.type == ChannelType.group) {
         return _groupService.rejectMembershipRequest(channel);
       }
@@ -1033,7 +1034,7 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [channel] - Specifies the channel representing the connection.
   Future<void> leaveChannel(Channel channel) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       if (channel.isGroup) return _groupService.leaveGroup(channel);
       await _connectionService.unlink(wallet: wallet, channel: channel);
     });
@@ -1059,7 +1060,7 @@ class MeetingPlaceCoreSDK {
     bool? ephemeral,
     int? forwardExpiryInSeconds,
   }) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final senderDidManager = await getDidManager(senderDid);
       return _messageService.sendMessage(
         message,
@@ -1090,9 +1091,9 @@ class MeetingPlaceCoreSDK {
     bool? ephemeral,
     int? forwardExpiryInSeconds,
   }) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final senderDidManager = await getDidManager(senderDid);
-      final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
+      final recipientDidDocument = await didResolver.resolveDid(recipientDid);
 
       await _mediatorSDK.queueMessage(
         message,
@@ -1127,9 +1128,9 @@ class MeetingPlaceCoreSDK {
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
   }) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final senderDidManager = await getDidManager(senderDid);
-      final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
+      final recipientDidDocument = await didResolver.resolveDid(recipientDid);
 
       return _groupService.sendMessage(
         message,
@@ -1157,7 +1158,7 @@ class MeetingPlaceCoreSDK {
     required String messageToInclude,
     required String senderInfo,
   }) {
-    return _withSdkExceptionHandling(() {
+    return withSdkExceptionHandling(() {
       return _outreachService.sendOutreachInvitation(
         wallet: wallet,
         outreachConnectionOffer: outreachConnectionOffer,
@@ -1177,7 +1178,7 @@ class MeetingPlaceCoreSDK {
   /// - [debounceDiscoveryEventsInSeconds] - Seconds to wait before fetching
   /// discovery events from discovery API.
   Future<void> processControlPlaneEvents({Function? onDone}) {
-    return _withSdkExceptionHandling(
+    return withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
         debounceEvents: _options.debounceControlPlaneEvents,
         onDone: onDone,
@@ -1222,7 +1223,7 @@ class MeetingPlaceCoreSDK {
     bool deleteFailedMessages = false,
     List<MessageWrappingType>? expectedMessageWrappingTypes,
   }) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
       return _mediatorService.fetchMessages(
         didManager: didManager,
@@ -1252,7 +1253,7 @@ class MeetingPlaceCoreSDK {
     MediatorStreamSubscriptionOptions options =
         const MediatorStreamSubscriptionOptions(),
   }) async {
-    return _withSdkExceptionHandling(() async {
+    return withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
       return _mediatorService.subscribe(
         didManager: didManager,
@@ -1379,7 +1380,24 @@ class MeetingPlaceCoreSDK {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
   }
 
-  Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
+  @internal
+  Future<T> withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);
   }
+
+  /// Register an initialized extension instance
+  void registerExtension<T>(T instance) {
+    if (_extensions.containsKey(T)) {
+      throw StateError('Extension of type $T already registered.');
+    }
+    _extensions[T] = instance as Object;
+  }
+
+  T getExtension<T>() {
+    return (_extensions[T] is T
+        ? _extensions[T] as T
+        : throw StateError('Extension of type $T not registered.'));
+  }
+
+  T? tryExtension<T>() => _extensions[T] is T ? _extensions[T] as T : null;
 }

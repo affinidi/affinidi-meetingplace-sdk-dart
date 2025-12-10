@@ -13,6 +13,9 @@ enum ConciergeMessageType {
 
   /// Requests permission to join a group chat.
   permissionToJoinGroup,
+
+  /// Requests permission to verify a relationship.
+  permissionToVerifyRelationship,
 }
 
 /// Represents the approval state of a concierge request.

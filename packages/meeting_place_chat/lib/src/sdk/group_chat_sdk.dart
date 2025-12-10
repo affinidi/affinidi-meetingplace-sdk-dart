@@ -228,7 +228,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           name: methodName,
         );
         matchingMessage.status = ChatItemStatus.confirmed;
-        await chatRepository.updateMesssage(matchingMessage);
+        await chatRepository.updateMessage(matchingMessage);
         chatStream.pushData(StreamData(chatItem: matchingMessage));
 
         final chatItem = await _chatHistoryService
@@ -366,7 +366,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       await Future.wait(
         targets.map((t) async {
           t.status = ChatItemStatus.confirmed;
-          await chatRepository.updateMesssage(t);
+          await chatRepository.updateMessage(t);
           chatStream.pushData(StreamData(chatItem: t));
         }),
       );
@@ -564,7 +564,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await sendChatGroupDetailsUpdate();
 
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
     chatStream.pushData(StreamData(chatItem: message));
 
     final chatItem = await _chatHistoryService
@@ -630,7 +630,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await Future.wait(
       targets.map((t) async {
         t.status = ChatItemStatus.confirmed;
-        await chatRepository.updateMesssage(t);
+        await chatRepository.updateMessage(t);
         chatStream.pushData(StreamData(chatItem: t));
       }),
     );
@@ -686,7 +686,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await sendChatGroupDetailsUpdate();
 
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
     logger.info(
       'Completed rejecting connection request for member: '
       '${channel.otherPartyPermanentChannelDid?.topAndTail()}',
@@ -737,7 +737,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+    await chatRepository.updateMessage(message);
 
     logger.info(
       'Completed sending chat contact details update',

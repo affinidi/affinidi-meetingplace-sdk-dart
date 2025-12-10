@@ -4,6 +4,7 @@ import 'chat.dart';
 abstract interface class ChatSDK {
   Future<List<ChatItem>> get messages;
   Future<ChatStream?> get chatStreamSubscription;
+  ChatRepository get chatRepository;
 
   Future<Chat> startChatSession();
   void endChatSession();
@@ -19,6 +20,7 @@ abstract interface class ChatSDK {
   Future<void> sendEffect(Effect effect);
   Future<void> sendChatDeliveredMessage(PlainTextMessage message);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
+  Future<void> sendDeclinedPersonaSharing(ConciergeMessage message);
   Future<void> reactOnMessage(Message message, {required String reaction});
 
   Future<void> approveConnectionRequest(ConciergeMessage message);

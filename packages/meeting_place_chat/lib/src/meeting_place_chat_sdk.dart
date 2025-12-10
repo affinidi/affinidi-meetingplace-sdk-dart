@@ -89,6 +89,10 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<ChatStream?> get chatStreamSubscription => _sdk.chatStreamSubscription;
 
+  /// Provides access to the chat repository for persistence operations.
+  @override
+  ChatRepository get chatRepository => _sdk.chatRepository;
+
   /// Starts a new chat session.
   ///
   /// **Returns:**
@@ -212,4 +216,9 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) =>
       _sdk.rejectChatContactDetailsUpdate(message);
+
+  /// Sends a declined persona sharing event message.
+  @override
+  Future<void> sendDeclinedPersonaSharing(ConciergeMessage message) =>
+      _sdk.sendDeclinedPersonaSharing(message);
 }

@@ -49,7 +49,12 @@ enum ChatProtocol {
   chatPresence('https://affinidi.io/mpx/chat-sdk/presence'),
 
   /// Represents a reaction (emoji or similar) to a chat message.
-  chatReaction('https://affinidi.io/mpx/chat-sdk/reaction');
+  chatReaction('https://affinidi.io/mpx/chat-sdk/reaction'),
+
+  /// Represents a declined persona sharing.
+  // TODO (Earl): remove this protocol once extension is merged
+  chatDeclinedPersonaSharing(
+      'https://affinidi.io/mpx/chat-sdk/declined-persona-sharing');
 
   /// Creates a [ChatProtocol] instance with the given URI [value].
   const ChatProtocol(this.value);

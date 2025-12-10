@@ -46,7 +46,7 @@ class ChatRepositoryImpl implements ChatRepository {
   /// **Returns:**
   /// - The updated [ChatItem] after being saved.
   @override
-  Future<ChatItem> updateMesssage(ChatItem message) async {
+  Future<ChatItem> updateMessage(ChatItem message) async {
     await _storage.put(
       '$prefix${message.chatId}_${message.messageId}',
       json.encode(message.toJson()),

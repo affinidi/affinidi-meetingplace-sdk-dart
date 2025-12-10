@@ -142,12 +142,9 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         await connectionOfferRepository
             .updateConnectionOffer(approvedConnection);
 
-        await _controlPlaneSDK.execute(
-          NotifyChannelCommand(
-            notificationToken: event.notificationToken,
-            did: otherPartyPermanentChannelDid,
-            type: 'channel-inauguration', // TODO: move to enum
-          ),
+        await _notifyChannel(
+          notificationToken: event.notificationToken,
+          did: otherPartyPermanentChannelDid,
         );
 
         await mediatorService.deletedMessages(
@@ -217,5 +214,25 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       name: methodName,
     );
     return notificationToken;
+  }
+
+  Future<void> _notifyChannel(
+      {required String notificationToken, required String did}) async {
+    try {
+      await _controlPlaneSDK.execute(
+        NotifyChannelCommand(
+          notificationToken: notificationToken,
+          did: did,
+          type: 'channel-inauguration', // TODO: move to enum
+        ),
+      );
+    } catch (e, stackTrace) {
+      logger.error(
+        '''Failed to send channel-inauguration notification for did: ${did.topAndTail()}''',
+        error: e,
+        stackTrace: stackTrace,
+        name: '_notifyChannel',
+      );
+    }
   }
 }

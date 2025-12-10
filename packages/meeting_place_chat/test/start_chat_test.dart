@@ -8,9 +8,9 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'utils/storage/in_memory_storage.dart';
 import 'utils/contact_card_fixture.dart' as fixtures;
 import 'utils/sdk.dart';
+import 'utils/storage/in_memory_storage.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
@@ -530,7 +530,7 @@ void main() async {
       expect(conciergeMessage.chatId, bobChat.id);
       expect(conciergeMessage.status, ChatItemStatus.userInput);
       expect(conciergeMessage.data, {
-        'profileHash': contactCardHash(updatedCard),
+        'profileHash': updatedCard.profileHash,
         'replyTo': aliceDidDocument.id,
       });
 

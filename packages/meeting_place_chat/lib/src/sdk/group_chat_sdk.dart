@@ -296,7 +296,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           (member) => member.did == message.from!,
         );
 
-        if (contactCardHash(member.card) == profileHash) {
+        if (member.card.profileHash == profileHash) {
           chatStream.pushData(StreamData(plainTextMessage: message));
         } else {
           await coreSDK.sendMessage(
@@ -599,7 +599,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         ChatAliasProfileHash.create(
           from: did,
           to: [group.ownerDid!],
-          profileHash: contactCardHash(card!),
+          profileHash: card!.profileHash,
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: group.ownerDid!,

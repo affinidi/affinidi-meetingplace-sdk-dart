@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
+
 import '../protocol/protocol.dart';
 
-ContactCard? getContactCardDataOrEmptyFromAttachments(List<Attachment>? attachments) {
+ContactCard? getContactCardDataOrEmptyFromAttachments(
+  List<Attachment>? attachments,
+) {
   if (attachments == null) {
     return null;
   }

@@ -3,16 +3,29 @@ import 'dart:convert';
 import 'contact_card.dart';
 
 class ContactCardImpl implements ContactCard {
-  ContactCardImpl({required this.contactInfo});
+  ContactCardImpl({
+    required this.did,
+    required this.type,
+    required this.contactInfo,
+  });
 
   factory ContactCardImpl.fromJson(Map<String, dynamic> json) {
     return ContactCardImpl(
-        contactInfo: (json['contactInfo'] as Map).cast<String, dynamic>());
+      did: json['did'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      contactInfo: (json['contactInfo'] as Map).cast<String, dynamic>(),
+    );
   }
 
   factory ContactCardImpl.empty() {
-    return ContactCardImpl(contactInfo: {});
+    return ContactCardImpl(did: '', type: '', contactInfo: {});
   }
+
+  @override
+  final String did;
+
+  @override
+  final String type;
 
   @override
   final Map<String, dynamic> contactInfo;
@@ -20,6 +33,8 @@ class ContactCardImpl implements ContactCard {
   @override
   Map<String, dynamic> toJson() {
     return {
+      'did': did,
+      'type': type,
       'contactInfo': contactInfo,
     };
   }
@@ -40,7 +55,9 @@ class ContactCardImpl implements ContactCard {
 
   @override
   bool equals(ContactCard other) {
-    return jsonEncode(contactInfo) == jsonEncode(other.contactInfo);
+    return did == other.did &&
+        type == other.type &&
+        jsonEncode(contactInfo) == jsonEncode(other.contactInfo);
   }
 
   static ContactCardImpl fromBase64(String base64, {bool addPadding = false}) {

@@ -1,4 +1,8 @@
 abstract interface class ContactCard {
+  String get did;
+
+  String get type;
+
   Map<String, dynamic> get contactInfo;
 
   Map<String, dynamic> toJson();

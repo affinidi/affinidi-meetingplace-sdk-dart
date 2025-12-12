@@ -212,7 +212,11 @@ class ConnectionService {
             ? OfferType.outreachInvitation
             : OfferType.invitation,
         oobInvitationMessage: oobMessage.toPlainTextMessage(),
-        contactCard: ContactCardImpl(contactInfo: card.contactInfo),
+        contactCard: ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
         device: _controlPlaneSDK.device,
         customPhrase: customPhrase,
         validUntil: validUntil,
@@ -310,7 +314,11 @@ class ConnectionService {
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
         acceptOfferDid: acceptOfferDidDocument.id,
-        contactCard: ContactCardImpl(contactInfo: card.contactInfo),
+        contactCard: ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
       ),
     );
 
@@ -550,7 +558,11 @@ class ConnectionService {
         otherPartyAcceptOfferDid: channel.acceptOfferDid!,
         otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid!,
         contactCard: channel.card != null
-            ? ContactCardImpl(contactInfo: channel.card!.contactInfo)
+            ? ContactCardImpl(
+                did: channel.card!.did,
+                type: channel.card!.type,
+                contactInfo: channel.card!.contactInfo,
+              )
             : null,
       ),
     );

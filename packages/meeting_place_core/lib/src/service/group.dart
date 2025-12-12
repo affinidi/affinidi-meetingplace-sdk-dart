@@ -123,7 +123,11 @@ class GroupService {
       cp.RegisterOfferGroupCommand(
         offerName: offerName,
         offerDescription: offerDescription,
-        contactCard: cp.ContactCardImpl(contactInfo: card.contactInfo),
+        contactCard: cp.ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
         device: _controlPlaneSDK.device,
         oobInvitationMessage: oobMessage.toPlainTextMessage(),
         validUntil: validUntil,
@@ -289,7 +293,11 @@ class GroupService {
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
-        contactCard: cp.ContactCardImpl(contactInfo: card.contactInfo),
+        contactCard: cp.ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
         acceptOfferDid: acceptOfferDidDocument.id,
       ),
     );
@@ -663,6 +671,8 @@ class GroupService {
         offerLink: channel.offerLink,
         contactCard: channel.otherPartyCard != null
             ? cp.ContactCardImpl(
+                did: channel.otherPartyCard!.did,
+                type: channel.otherPartyCard!.type,
                 contactInfo: channel.otherPartyCard!.contactInfo,
               )
             : null,

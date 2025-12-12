@@ -19,7 +19,13 @@ void main() async {
     final command = RegisterOfferCommand(
       offerName: 'Offer name',
       offerDescription: 'Offer description',
-      contactCard: ContactCardImpl(contactInfo: {}),
+      contactCard: ContactCardImpl(
+        did: 'did:key:offer-${Uuid().v4()}',
+        type: 'offer',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       device: device,
       customPhrase: mnemonic,
       type: OfferType.invitation,

@@ -19,7 +19,7 @@ part 'accept_offer_ok.g.dart';
 /// * [description]
 /// * [validUntil] - validity date and time in ISO-8601 format, e.g. 2023-09-20T07:12:13
 /// * [maximumUsage]
-/// * [vcard] - A vCard containing the details of the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard containing the details of the offer encoded in base64 format.
 /// * [mediatorDid] - The mediator DID use to register the offer.
 /// * [mediatorEndpoint] - The mediator endpoint to register the offer.
 /// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register the offer.
@@ -51,9 +51,9 @@ abstract class AcceptOfferOK
   @BuiltValueField(wireName: r'maximumUsage')
   int? get maximumUsage;
 
-  /// A vCard containing the details of the offer encoded in base64 format.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// A ContactCard containing the details of the offer encoded in base64 format.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   /// The mediator DID use to register the offer.
   @BuiltValueField(wireName: r'mediatorDid')
@@ -140,9 +140,9 @@ class _$AcceptOfferOKSerializer implements PrimitiveSerializer<AcceptOfferOK> {
         specifiedType: const FullType(int),
       );
     }
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
     yield r'mediatorDid';
@@ -241,12 +241,12 @@ class _$AcceptOfferOKSerializer implements PrimitiveSerializer<AcceptOfferOK> {
           ) as int;
           result.maximumUsage = valueDes;
           break;
-        case r'vcard':
+        case r'contactCard':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.vcard = valueDes;
+          result.contactCard = valueDes;
           break;
         case r'mediatorDid':
           final valueDes = serializers.deserialize(

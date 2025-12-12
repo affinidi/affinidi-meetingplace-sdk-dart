@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:didcomm/didcomm.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import '../entity/contact_card.dart' as core;
+import '../utils/contact_card_converter.dart';
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
@@ -113,7 +115,10 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        vCard: VCard(values: queryOfferResult.vCard.values),
+        card: queryOfferResult.contactCard.toCoreContactCard(
+          did: queryOfferResult.didcommMessage.from,
+          type: core.ContactCardType.offer.value,
+        ),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
         mediatorDid: queryOfferResult.mediatorDid,
@@ -144,7 +149,10 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        vCard: VCard(values: queryOfferResult.vCard.values),
+        card: queryOfferResult.contactCard.toCoreContactCard(
+          did: queryOfferResult.didcommMessage.from,
+          type: core.ContactCardType.offer.value,
+        ),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
         mediatorDid: queryOfferResult.mediatorDid,
@@ -173,7 +181,7 @@ class ConnectionService {
   Future<(ConnectionOffer, DidManager)> publishOffer({
     required String offerName,
     required String offerDescription,
-    required VCard vCard,
+    required core.ContactCard card,
     required Wallet wallet,
     required ConnectionOfferType type,
     String? customPhrase,
@@ -204,7 +212,11 @@ class ConnectionService {
             ? OfferType.outreachInvitation
             : OfferType.invitation,
         oobInvitationMessage: oobMessage,
-        vCard: VCardImpl(values: vCard.values),
+        contactCard: ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
         device: _controlPlaneSDK.device,
         customPhrase: customPhrase,
         validUntil: validUntil,
@@ -228,7 +240,7 @@ class ConnectionService {
         ),
         publishOfferDid: didDocument.id,
         maximumUsage: registerOfferOutput.maximumUsage,
-        vCard: vCard,
+        card: card,
         status: ConnectionOfferStatus.published,
         ownedByMe: true,
         externalRef: externalRef,
@@ -261,8 +273,9 @@ class ConnectionService {
   Future<AcceptOfferResult> acceptOffer({
     required Wallet wallet,
     required ConnectionOffer connectionOffer,
-    required VCard vCard,
-    required String senderInfo,
+    required core.ContactCard card,
+    String? did,
+    String? senderInfoOverride,
     String? externalRef,
   }) async {
     final methodName = 'acceptOffer';
@@ -283,9 +296,9 @@ class ConnectionService {
       name: methodName,
     );
 
-    final permanentChannelDidManager = await _connectionManager.generateDid(
-      wallet,
-    );
+    final permanentChannelDidManager = did != null
+        ? await _connectionManager.getDidManagerForDid(wallet, did)
+        : await _connectionManager.generateDid(wallet);
 
     final permanentChannelDidDocument =
         await permanentChannelDidManager.getDidDocument();
@@ -301,7 +314,11 @@ class ConnectionService {
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
         acceptOfferDid: acceptOfferDidDocument.id,
-        vCard: VCardImpl(values: vCard.values),
+        contactCard: ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
       ),
     );
 
@@ -315,14 +332,14 @@ class ConnectionService {
       permanentChannelDidDocument: permanentChannelDidDocument,
       invitationMessage: invitationMessage,
       mediatorDid: result.mediatorDid,
-      acceptVCard: vCard,
+      acceptCard: card,
     );
 
     final acceptedConnectionOffer = await _acceptConnectionOffer(
       connectionOffer,
       acceptOfferDidDocument: acceptOfferDidDocument,
       permanentChannelDidDocument: permanentChannelDidDocument,
-      vCard: vCard,
+      card: card,
       externalRef: externalRef,
     );
 
@@ -330,15 +347,18 @@ class ConnectionService {
       acceptedConnectionOffer,
       permanentChannelDid: permanentChannelDidDocument.id,
       acceptOfferDid: acceptOfferDidDocument.id,
-      vCard: vCard,
+      card: card,
       externalRef: externalRef,
     );
 
     await _channelRepository.createChannel(channel);
 
+    final derivedSenderInfo =
+        senderInfoOverride ?? _deriveSenderInfoFromContactCard(card);
+
     unawaited(_notifyAcceptance(
       connectionOffer: acceptedConnectionOffer,
-      senderInfo: senderInfo,
+      senderInfo: derivedSenderInfo,
     ).then((_) {
       _logger.info(
         'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
@@ -357,11 +377,15 @@ class ConnectionService {
     );
   }
 
+  String _deriveSenderInfoFromContactCard(core.ContactCard card) {
+    return card.senderInfo;
+  }
+
   Future<ConnectionOffer> _acceptConnectionOffer(
     ConnectionOffer connectionOffer, {
     required DidDocument acceptOfferDidDocument,
     required DidDocument permanentChannelDidDocument,
-    required VCard vCard,
+    required core.ContactCard card,
     String? externalRef,
   }) async {
     final existingConnectionOffer = await _connectionOfferRepository
@@ -371,7 +395,7 @@ class ConnectionService {
       final acceptedConnectionOffer = existingConnectionOffer.accept(
         acceptOfferDid: acceptOfferDidDocument.id,
         permanentChannelDid: permanentChannelDidDocument.id,
-        vCard: vCard,
+        card: card,
         externalRef: externalRef,
         createdAt: DateTime.now().toUtc(),
       );
@@ -386,7 +410,7 @@ class ConnectionService {
     final acceptedConnectionOffer = connectionOffer.accept(
       acceptOfferDid: acceptOfferDidDocument.id,
       permanentChannelDid: permanentChannelDidDocument.id,
-      vCard: vCard,
+      card: card,
       externalRef: externalRef,
       createdAt: DateTime.now().toUtc(),
     );
@@ -403,7 +427,7 @@ class ConnectionService {
     required DidDocument permanentChannelDidDocument,
     required PlainTextMessage invitationMessage,
     String? mediatorDid,
-    VCard? acceptVCard,
+    core.ContactCard? acceptCard,
   }) async {
     final methodName = 'sendAcceptOfferToMediator';
     _logger.info('Sending accept offer to mediator', name: methodName);
@@ -426,7 +450,7 @@ class ConnectionService {
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
       permanentChannelDid: permanentChannelDidDocument.id,
-      vCard: acceptVCard,
+      contactCard: acceptCard,
     );
 
     await _mediatorSDK.sendMessage(
@@ -473,7 +497,9 @@ class ConnectionService {
   Future<Channel> approveConnectionRequest({
     required Wallet wallet,
     required Channel channel,
+    String? did,
   }) async {
+    // If [did] is not provided, a new DID is generated for the permanent channel.
     final methodName = 'approveConnectionRequest';
     _logger.info(
         'Approving connection request for offer link: ${channel.offerLink}',
@@ -507,7 +533,9 @@ class ConnectionService {
       channel.publishOfferDid,
     );
 
-    final permanentChannelDid = await _connectionManager.generateDid(wallet);
+    final permanentChannelDid = did != null
+        ? await _connectionManager.getDidManagerForDid(wallet, did)
+        : await _connectionManager.generateDid(wallet);
     final permanentChannelDidDocument =
         await permanentChannelDid.getDidDocument();
 
@@ -518,7 +546,7 @@ class ConnectionService {
       otherPartyAcceptOfferDid: acceptOfferDid,
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
-      vCard: channel.vCard,
+      contactCard: channel.card,
     );
 
     final finaliseAcceptanceOutput = await _controlPlaneSDK.execute(
@@ -529,8 +557,12 @@ class ConnectionService {
         offerPublishedDid: channel.publishOfferDid,
         otherPartyAcceptOfferDid: channel.acceptOfferDid!,
         otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid!,
-        vCard: channel.vCard != null
-            ? VCardImpl(values: channel.vCard!.values)
+        contactCard: channel.card != null
+            ? ContactCardImpl(
+                did: channel.card!.did,
+                type: channel.card!.type,
+                contactInfo: channel.card!.contactInfo,
+              )
             : null,
       ),
     );
@@ -562,7 +594,7 @@ class ConnectionService {
     required String otherPartyAcceptOfferDid,
     required String outboundMessageId,
     required String mediatorDid,
-    VCard? vCard,
+    core.ContactCard? contactCard,
   }) async {
     final methodName = 'sendConnectionRequestApprovalToMediator';
     _logger.info(
@@ -589,7 +621,7 @@ class ConnectionService {
       to: [otherPartyAcceptOfferDid],
       parentThreadId: outboundMessageId,
       permanentChannelDid: permanentChannelDidDocument.id,
-      vCard: vCard,
+      contactCard: contactCard,
     );
 
     final recipientDidDocument = await _didResolver.resolveDid(

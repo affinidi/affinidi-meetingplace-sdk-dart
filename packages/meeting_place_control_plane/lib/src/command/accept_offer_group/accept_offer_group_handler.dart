@@ -66,7 +66,7 @@ class AcceptOfferGroupHandler
         command.device.platformType.value,
       )
       ..offerLink = command.offerLink
-      ..vcard = command.vCard.toBase64();
+      ..contactCard = command.contactCard.toBase64();
 
     Response<AcceptOfferGroupOK> response;
     try {

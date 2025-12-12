@@ -1,28 +1,30 @@
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
+
 import '../protocol/protocol.dart';
 
-VCard? getVCardDataOrEmptyFromAttachments(List<Attachment>? attachments) {
+ContactCard? getContactCardDataOrEmptyFromAttachments(
+  List<Attachment>? attachments,
+) {
   if (attachments == null) {
     return null;
   }
 
   final base64 = const Base64Codec();
-  final vCard = getAttachmentWithFormat(
+  final card = getAttachmentWithFormat(
     attachments,
     AttachmentFormat.contactCard,
   );
 
-  if (vCard == null) {
+  if (card == null) {
     return null;
   }
 
   try {
-    final normalized = base64Url.decode(base64.normalize(vCard.data!.base64!));
-    return VCard(
-      values: jsonDecode(utf8.decode(normalized)) as Map<dynamic, dynamic>,
-    );
+    final normalized = base64Url.decode(base64.normalize(card.data!.base64!));
+    final jsonMap = jsonDecode(utf8.decode(normalized)) as Map<String, dynamic>;
+    return ContactCard.fromJson(jsonMap);
   } catch (ex) {
     return null;
   }

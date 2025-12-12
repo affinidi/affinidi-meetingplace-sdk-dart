@@ -6,7 +6,6 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/v_card.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -31,7 +30,13 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.groupInvitation,
       metadata: metadata,
     );
@@ -47,15 +52,26 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.groupInvitation,
       metadata: 'foobar',
     );
 
     final actual = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
     );
 
     expect(actual, isA<AcceptOfferResult>());
@@ -70,15 +86,26 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.groupInvitation,
       metadata: 'foobar',
     );
 
     await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
     );
 
     final completer = Completer<void>();
@@ -100,21 +127,32 @@ void main() async {
     () async {
       await aliceSDK.deleteControlPlaneEvents();
 
-      final aliceVCard = VCardFixture.alicePrimaryVCard;
-      final bobVCard = VCardFixture.bobPrimaryVCard;
+      final aliceCard = ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
+      final bobCard = ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      );
 
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
         offerName: 'Sample offer',
         offerDescription: 'Sample offer description',
-        vCard: aliceVCard,
+        contactCard: aliceCard,
         type: SDKConnectionOfferType.groupInvitation,
         metadata: 'foobar',
       );
 
       final acceptResult = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
-        vCard: bobVCard,
-        senderInfo: 'Bob',
+        contactCard: bobCard,
       );
 
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -146,7 +184,7 @@ void main() async {
       final aliceAdmin = group.members.first;
       expect(aliceAdmin.membershipType, equals(GroupMembershipType.admin));
       expect(aliceAdmin.status, equals(GroupMemberStatus.approved));
-      expect(aliceAdmin.vCard.values, equals(aliceVCard.values));
+      expect(aliceAdmin.card.contactInfo, equals(aliceCard.contactInfo));
       expect(aliceAdmin.did, equals(result.connectionOffer.groupOwnerDid));
 
       // member assertions
@@ -157,7 +195,7 @@ void main() async {
         bobMember.did,
         equals(acceptResult.connectionOffer.permanentChannelDid),
       );
-      expect(bobMember.vCard.values, equals(bobVCard.values));
+      expect(bobMember.card.contactInfo, equals(bobCard.contactInfo));
 
       aliceSDK.disposeControlPlaneEventsStream();
     },
@@ -166,8 +204,20 @@ void main() async {
   test(
     '''Group admin approves membership request -> ACLS getting updated and group details update message is sent''',
     () async {
-      final aliceVCard = VCardFixture.alicePrimaryVCard;
-      final bobVCard = VCardFixture.bobPrimaryVCard;
+      final aliceCard = ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
+      final bobCard = ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      );
 
       PlainTextMessage useChatMessage(String from, String to) =>
           PlainTextMessage(
@@ -181,20 +231,24 @@ void main() async {
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
         offerName: 'Sample offer',
         offerDescription: 'Sample offer description',
-        vCard: aliceVCard,
+        contactCard: aliceCard,
         type: SDKConnectionOfferType.groupInvitation,
       );
 
       final acceptResultBob = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
-        vCard: bobVCard,
-        senderInfo: 'Bob',
+        contactCard: bobCard,
       );
 
       final acceptResultCharlie = await charlieSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
-        vCard: VCardFixture.charliePrimaryVCard,
-        senderInfo: 'Charlie',
+        contactCard: ContactCard(
+          did: 'did:test:charlie',
+          type: 'human',
+          contactInfo: {
+            'n': {'given': 'Charlie', 'surname': 'A.'},
+          },
+        ),
       );
 
       final groupDid = result.connectionOffer.groupDid!;
@@ -311,13 +365,25 @@ void main() async {
   );
 
   test('Member receives group membership finalied discovery event', () async {
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.groupInvitation,
     );
 
@@ -344,8 +410,7 @@ void main() async {
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: bobVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -418,20 +483,31 @@ void main() async {
   });
 
   test('Member has been approved', () async {
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,
-      vCard: aliceVCard,
+      contactCard: aliceCard,
     );
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: bobVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -462,13 +538,25 @@ void main() async {
 
   test('Member leaves group', () async {
     // TODO: check ACLs
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
+      contactCard: aliceCard,
       validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       type: SDKConnectionOfferType.groupInvitation,
     );
@@ -479,8 +567,7 @@ void main() async {
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: bobVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     final acceptConnectionOffer =
@@ -543,20 +630,31 @@ void main() async {
 
   test('Admin leaves group', () async {
     // TODO: check ACLs
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCard(
+      did: 'did:test:bob',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.groupInvitation,
     );
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: bobVCard,
-      senderInfo: 'Bob',
+      contactCard: bobCard,
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(

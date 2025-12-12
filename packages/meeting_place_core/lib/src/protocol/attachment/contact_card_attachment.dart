@@ -3,8 +3,8 @@ import 'attachment_media_type.dart';
 import 'attachment_format.dart';
 import 'package:uuid/uuid.dart';
 
-class VCardAttachment extends Attachment {
-  VCardAttachment({
+class ContactCardAttachment extends Attachment {
+  ContactCardAttachment({
     super.id,
     super.description,
     super.mediaType,
@@ -12,14 +12,14 @@ class VCardAttachment extends Attachment {
     super.data,
   });
 
-  factory VCardAttachment.create({
+  factory ContactCardAttachment.create({
     required AttachmentData data,
     String? description,
   }) {
-    return VCardAttachment(
+    return ContactCardAttachment(
       id: const Uuid().v4(),
       format: AttachmentFormat.contactCard.value,
-      mediaType: AttachmentMediaType.textVcard.value,
+      mediaType: AttachmentMediaType.textContactCard.value,
       description: description,
       data: data,
     );

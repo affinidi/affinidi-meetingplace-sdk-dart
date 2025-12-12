@@ -22,7 +22,11 @@ void main() async {
     offerName: 'Example offer',
     offerDescription: 'Example offer to test.',
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-    vCard: VCard(values: {}),
+    contactCard: ContactCard(
+      did: 'did:test:bob',
+      type: 'individual',
+      contactInfo: {},
+    ),
     type: SDKConnectionOfferType.outreachInvitation,
   );
 

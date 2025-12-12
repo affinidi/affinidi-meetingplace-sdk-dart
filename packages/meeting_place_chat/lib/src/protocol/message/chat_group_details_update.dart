@@ -11,7 +11,7 @@ part 'chat_group_details_update.g.dart';
 class ChatGroupDetailsUpdateBodyMember {
   ChatGroupDetailsUpdateBodyMember({
     required this.did,
-    required this.vCard,
+    required this.card,
     required this.dateAdded,
     required this.status,
     required this.publicKey,
@@ -19,7 +19,7 @@ class ChatGroupDetailsUpdateBodyMember {
   });
 
   final String did;
-  final VCard vCard;
+  final ContactCard card;
   final DateTime dateAdded;
   final String status;
   final String publicKey;
@@ -109,7 +109,7 @@ class ChatGroupDetailsUpdate extends PlainTextMessage {
   ) {
     return ChatGroupDetailsUpdateBodyMember(
       did: groupMember.did,
-      vCard: groupMember.vCard,
+      card: groupMember.card,
       dateAdded: groupMember.dateAdded,
       status: groupMember.status.name,
       publicKey: groupMember.publicKey,

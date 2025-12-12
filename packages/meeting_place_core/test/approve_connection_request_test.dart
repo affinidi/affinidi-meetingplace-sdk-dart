@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/v_card.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -21,7 +20,13 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -31,8 +36,13 @@ void main() async {
 
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
-      senderInfo: 'Bob',
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'human',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
     );
 
     final waitForInvitationAccept = Completer<Channel>();

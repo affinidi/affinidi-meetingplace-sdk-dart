@@ -22,7 +22,11 @@ void main() async {
         () => sdkWithoutDevice.publishOffer(
           offerName: 'Test offer',
           offerDescription: 'Sample offer description',
-          vCard: VCard(values: {}),
+          contactCard: ContactCard(
+            did: 'did:test:alice',
+            type: 'human',
+            contactInfo: const {},
+          ),
           type: SDKConnectionOfferType.invitation,
         ),
         throwsA(isA<MissingDeviceException>()),
@@ -48,7 +52,11 @@ void main() async {
       await aliceSDK.publishOffer(
         offerName: 'Test offer',
         offerDescription: 'Sample offer description',
-        vCard: VCard(values: {}),
+        contactCard: ContactCard(
+          did: 'did:test:alice',
+          type: 'human',
+          contactInfo: const {},
+        ),
         type: SDKConnectionOfferType.invitation,
       );
     },
@@ -75,7 +83,11 @@ void main() async {
       () => minimumSDK.publishOffer(
         offerName: 'Test offer',
         offerDescription: 'Sample offer description',
-        vCard: VCard(values: {}),
+        contactCard: ContactCard(
+          did: 'did:test:alice',
+          type: 'human',
+          contactInfo: const {},
+        ),
         type: SDKConnectionOfferType.groupInvitation,
       ),
       throwsA(isA<UnimplementedError>()),

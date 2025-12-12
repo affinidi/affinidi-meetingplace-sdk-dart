@@ -17,13 +17,11 @@ class ChatEffect extends PlainTextMessage {
   /// - [from]: DID of the sender.
   /// - [to]: List of recipient DIDs.
   /// - [effect]: The name or identifier of the effect to trigger.
-  /// - [vCard]: Optional vCard metadata of the sender.
   ChatEffect({
     required super.id,
     required super.from,
     required super.to,
     required String effect, // TODO: convert to enum?
-    VCard? vCard,
   }) : super(
           type: Uri.parse(ChatProtocol.chatEffect.value),
           body: {'effect': effect},

@@ -16,7 +16,7 @@ part 'accept_offer_input.g.dart';
 /// * [did] - Permanent channel DID of the user upon approval of the connection request.
 /// * [deviceToken] - The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
-/// * [vcard] - A vCard containing the details of the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard containing the details of the offer encoded in base64 format.
 /// * [offerLink]
 @BuiltValue()
 abstract class AcceptOfferInput
@@ -38,9 +38,9 @@ abstract class AcceptOfferInput
   AcceptOfferInputPlatformTypeEnum get platformType;
   // enum platformTypeEnum {  DIDCOMM,  PUSH_NOTIFICATION,  NONE,  };
 
-  /// A vCard containing the details of the offer encoded in base64 format.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// A ContactCard containing the details of the offer encoded in base64 format.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   @BuiltValueField(wireName: r'offerLink')
   String get offerLink;
@@ -91,9 +91,9 @@ class _$AcceptOfferInputSerializer
       object.platformType,
       specifiedType: const FullType(AcceptOfferInputPlatformTypeEnum),
     );
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
     yield r'offerLink';
@@ -154,12 +154,12 @@ class _$AcceptOfferInputSerializer
           ) as AcceptOfferInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
-        case r'vcard':
+        case r'contactCard':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.vcard = valueDes;
+          result.contactCard = valueDes;
           break;
         case r'offerLink':
           final valueDes = serializers.deserialize(

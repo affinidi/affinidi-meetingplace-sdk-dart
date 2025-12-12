@@ -1,6 +1,6 @@
 import '../../core/offer_type.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
-import '../../core/protocol/v_card/v_card.dart';
+import '../../core/protocol/contact_card/contact_card.dart';
 
 abstract class QueryOfferCommandOutput {}
 
@@ -14,7 +14,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
     required this.offerDescription,
     required this.type,
     required this.mnemonic,
-    required this.vCard,
+    required this.contactCard,
     required this.expiresAt,
     required this.maximumUsage,
     required this.mediatorDid,
@@ -28,7 +28,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   final String offerDescription;
   final OfferType type;
   final String mnemonic;
-  final VCard vCard;
+  final ContactCard contactCard;
   final DateTime? expiresAt;
   final int? maximumUsage;
   final String mediatorDid;

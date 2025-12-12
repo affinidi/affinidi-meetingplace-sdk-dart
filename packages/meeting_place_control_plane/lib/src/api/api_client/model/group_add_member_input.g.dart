@@ -22,7 +22,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
   @override
   final String publicKey;
   @override
-  final String vcard;
+  final String contactCard;
 
   factory _$GroupAddMemberInput(
           [void Function(GroupAddMemberInputBuilder)? updates]) =>
@@ -36,7 +36,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
       required this.acceptOfferAsDid,
       required this.reencryptionKey,
       required this.publicKey,
-      required this.vcard})
+      required this.contactCard})
       : super._();
   @override
   GroupAddMemberInput rebuild(
@@ -58,7 +58,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
         acceptOfferAsDid == other.acceptOfferAsDid &&
         reencryptionKey == other.reencryptionKey &&
         publicKey == other.publicKey &&
-        vcard == other.vcard;
+        contactCard == other.contactCard;
   }
 
   @override
@@ -71,7 +71,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
     _$hash = $jc(_$hash, acceptOfferAsDid.hashCode);
     _$hash = $jc(_$hash, reencryptionKey.hashCode);
     _$hash = $jc(_$hash, publicKey.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -86,7 +86,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
           ..add('acceptOfferAsDid', acceptOfferAsDid)
           ..add('reencryptionKey', reencryptionKey)
           ..add('publicKey', publicKey)
-          ..add('vcard', vcard))
+          ..add('contactCard', contactCard))
         .toString();
   }
 }
@@ -125,9 +125,9 @@ class GroupAddMemberInputBuilder
   String? get publicKey => _$this._publicKey;
   set publicKey(String? publicKey) => _$this._publicKey = publicKey;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   GroupAddMemberInputBuilder() {
     GroupAddMemberInput._defaults(this);
@@ -143,7 +143,7 @@ class GroupAddMemberInputBuilder
       _acceptOfferAsDid = $v.acceptOfferAsDid;
       _reencryptionKey = $v.reencryptionKey;
       _publicKey = $v.publicKey;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _$v = null;
     }
     return this;
@@ -179,8 +179,8 @@ class GroupAddMemberInputBuilder
               reencryptionKey, r'GroupAddMemberInput', 'reencryptionKey'),
           publicKey: BuiltValueNullFieldError.checkNotNull(
               publicKey, r'GroupAddMemberInput', 'publicKey'),
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'GroupAddMemberInput', 'vcard'),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+              contactCard, r'GroupAddMemberInput', 'contactCard'),
         );
     replace(_$result);
     return _$result;

@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
-import '../attachment/v_card_attachment.dart';
+import '../attachment/contact_card_attachment.dart';
 import '../meeting_place_protocol.dart';
-import '../v_card/v_card.dart';
+import '../../entity/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class ConnectionSetup extends PlainTextMessage {
@@ -11,16 +11,16 @@ class ConnectionSetup extends PlainTextMessage {
     required super.to,
     required super.parentThreadId,
     required String permanentChannelDid,
-    VCard? vCard,
+    ContactCard? contactCard,
   }) : super(
           type: Uri.parse(MeetingPlaceProtocol.connectionSetup.value),
           body: {'channel_did': permanentChannelDid},
           createdTime: DateTime.now().toUtc(),
-          attachments: vCard is VCard
+          attachments: contactCard != null
               ? [
-                  VCardAttachment.create(
+                  ContactCardAttachment.create(
                     data: AttachmentData(
-                      base64: vCard.toBase64(removePadding: true),
+                      base64: contactCard.toBase64(removePadding: true),
                     ),
                   ),
                 ]
@@ -32,7 +32,7 @@ class ConnectionSetup extends PlainTextMessage {
     required List<String> to,
     required String parentThreadId,
     required String permanentChannelDid,
-    VCard? vCard,
+    ContactCard? contactCard,
   }) {
     return ConnectionSetup(
       id: Uuid().v4(),
@@ -40,7 +40,7 @@ class ConnectionSetup extends PlainTextMessage {
       to: to,
       parentThreadId: parentThreadId,
       permanentChannelDid: permanentChannelDid,
-      vCard: vCard,
+      contactCard: contactCard,
     );
   }
 }

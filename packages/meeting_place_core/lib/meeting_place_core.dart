@@ -25,6 +25,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
 export 'package:ssi/ssi.dart' show DidManager;
 
 export 'src/entity/entity.dart';
+export 'src/entity/contact_card.dart';
 export 'src/event_handler/control_plane_stream_event.dart';
 export 'src/loggers/default_meeting_place_core_sdk_logger.dart';
 export 'src/loggers/meeting_place_core_sdk_logger.dart';
@@ -39,3 +40,4 @@ export 'src/sdk/sdk.dart';
 export 'src/service/mediator/mediator_message.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
 export 'src/service/oob/oob_stream_data.dart';
+export 'src/utils/contact_card_utils.dart';

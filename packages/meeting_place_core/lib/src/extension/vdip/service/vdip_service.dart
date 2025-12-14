@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../meeting_place_core.dart';
 import '../meeting_place_core_sdk_vdip_exception.dart';
-import '../request_credential_response.dart';
+import 'didcomm_acl_helper.dart';
 
 class VdipService {
   VdipService({required MeetingPlaceCoreSDK sdk}) : _sdk = sdk;
@@ -24,8 +24,10 @@ class VdipService {
 
     final waitForCredential = Completer<RequestCredentialResponse>();
     final vdipHolder = await _initVdipHolderClient(
-        permanentChannelDid: permanentChannelDid,
-        mediatorDid: channel.mediatorDid);
+      permanentChannelDid: permanentChannelDid,
+      otherPermanentChannelDid: otherPartyPermanentChannelDid,
+      mediatorDid: channel.mediatorDid,
+    );
 
     // TODO: use onProblemReport callback?
 
@@ -93,16 +95,23 @@ class VdipService {
     final mediatorDidDocument =
         await _sdk.didResolver.resolveDid(channel.mediatorDid);
 
+    await DidcommAclHelper.configureAcl(
+      mediatorDidDocument: mediatorDidDocument,
+      didManager: issuerDidManager,
+      theirDids: [otherPartyPermanentChannelDid],
+    );
+
     // === VDIP for issuer starts here ===
     final vdipIssuer = await VdipIssuer.init(
+      mediatorDidDocument: mediatorDidDocument,
+      didManager: issuerDidManager,
+      featureDisclosures: [],
+      authorizationProvider: await AffinidiAuthorizationProvider.init(
         mediatorDidDocument: mediatorDidDocument,
         didManager: issuerDidManager,
-        featureDisclosures: [],
-        authorizationProvider: await AffinidiAuthorizationProvider.init(
-          mediatorDidDocument: mediatorDidDocument,
-          didManager: issuerDidManager,
-        ),
-        clientOptions: const AffinidiClientOptions());
+      ),
+      clientOptions: const AffinidiClientOptions(),
+    );
 
     await vdipIssuer.sendIssuedCredentials(
       holderDid: otherPartyPermanentChannelDid,
@@ -112,6 +121,7 @@ class VdipService {
 
   Future<VdipHolder> _initVdipHolderClient({
     required String permanentChannelDid,
+    required String otherPermanentChannelDid,
     required String mediatorDid,
   }) async {
     final permanentChannelDidManager =
@@ -120,6 +130,12 @@ class VdipService {
 
     // TODO: How to get initialized mediator client from Mediator SDK?
     // VdipHolder(didManager: permanentChannelDidManager, mediatorClient: '');
+
+    await DidcommAclHelper.configureAcl(
+      mediatorDidDocument: mediatorDidDocument,
+      didManager: permanentChannelDidManager,
+      theirDids: [otherPermanentChannelDid],
+    );
 
     return VdipHolder.init(
       mediatorDidDocument: mediatorDidDocument,

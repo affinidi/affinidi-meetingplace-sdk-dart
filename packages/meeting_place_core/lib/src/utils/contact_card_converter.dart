@@ -4,11 +4,12 @@ import '../entity/contact_card.dart';
 
 /// Converter extension for Control Plane ContactCard to Core ContactCard.
 extension ContactCardConverterX on cp.ContactCard {
-  ContactCard toCoreContactCard({required String did, required String type}) {
+  ContactCard toCoreContactCard() {
     return ContactCard(
       did: did,
       type: type,
-      contactInfo: toJson()['contactInfo'] as Map<String, dynamic>,
+      schema: schema,
+      contactInfo: contactInfo,
     );
   }
 }

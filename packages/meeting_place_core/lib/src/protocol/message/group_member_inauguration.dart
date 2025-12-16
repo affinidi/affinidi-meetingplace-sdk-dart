@@ -8,14 +8,14 @@ import 'package:uuid/uuid.dart';
 class GroupMemberInaugurationMember {
   GroupMemberInaugurationMember({
     required this.did,
-    required this.card,
+    required this.contactCard,
     required this.membershipType,
     required this.status,
     required this.publicKey,
   });
 
   final String did;
-  final ContactCard card;
+  final ContactCard contactCard;
   final String membershipType;
   final String status;
   final String publicKey;
@@ -49,7 +49,7 @@ class GroupMemberInauguration extends PlainTextMessage {
                 .map(
                   (m) => {
                     'did': m.did,
-                    'card': m.card.toJson(),
+                    'card': m.contactCard.toJson(),
                     'status': m.status,
                     'publicKey': m.publicKey,
                     'isAdmin': (m.isAdmin()).toString(),
@@ -78,7 +78,6 @@ class GroupMemberInauguration extends PlainTextMessage {
     required String groupPublicKey,
     required List<String> adminDids,
     required List<GroupMemberInaugurationMember> members,
-    required ContactCard card,
   }) {
     return GroupMemberInauguration(
       id: Uuid().v4(),
@@ -90,7 +89,6 @@ class GroupMemberInauguration extends PlainTextMessage {
       adminDids: adminDids,
       groupPublicKey: groupPublicKey,
       members: members,
-      card: card,
     );
   }
 
@@ -108,7 +106,7 @@ class GroupMemberInauguration extends PlainTextMessage {
         final memberData = member as Map<String, dynamic>;
         return GroupMemberInaugurationMember(
           did: memberData['did'] as String,
-          card:
+          contactCard:
               ContactCard.fromJson(memberData['card'] as Map<String, dynamic>),
           status: memberData['status'],
           publicKey: memberData['publicKey'] as String,

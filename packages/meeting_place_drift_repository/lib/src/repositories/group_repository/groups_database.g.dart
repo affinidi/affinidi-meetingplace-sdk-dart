@@ -775,6 +775,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   /// The status of the group member.
   final GroupMemberStatus status;
 
+  // The identity DID of the group member.
+  final String identityDid;
+
   /// The first name of the group member.
   final String firstName;
 
@@ -804,6 +807,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       required this.membershipType,
       this.peerProfileHash,
       required this.status,
+      required this.identityDid,
       required this.firstName,
       required this.lastName,
       required this.email,
@@ -1127,6 +1131,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     required GroupMembershipType membershipType,
     this.peerProfileHash = const Value.absent(),
     required GroupMemberStatus status,
+    required String identityDid,
     required String firstName,
     required String lastName,
     required String email,
@@ -1139,6 +1144,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
         publicKey = Value(publicKey),
         membershipType = Value(membershipType),
         status = Value(status),
+        identityDid = Value(identityDid),
         firstName = Value(firstName),
         lastName = Value(lastName),
         email = Value(email),
@@ -1157,6 +1163,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<int>? membershipType,
     Expression<String>? peerProfileHash,
     Expression<int>? status,
+    Expression<String>? identityDid,
     Expression<String>? firstName,
     Expression<String>? lastName,
     Expression<String>? email,

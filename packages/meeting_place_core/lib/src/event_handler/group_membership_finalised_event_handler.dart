@@ -283,7 +283,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         updatedGroup.members.add(
           GroupMember(
             did: member.did,
-            card: member.contactCard,
+            contactCard: member.contactCard,
             status: GroupMemberStatus.values.byName(member.status),
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,

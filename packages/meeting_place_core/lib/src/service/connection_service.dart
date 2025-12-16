@@ -115,10 +115,7 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        card: queryOfferResult.contactCard.toCoreContactCard(
-          did: queryOfferResult.didcommMessage.from,
-          type: core.ContactCardType.offer.value,
-        ),
+        contactCard: queryOfferResult.contactCard.toCoreContactCard(),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
         mediatorDid: queryOfferResult.mediatorDid,
@@ -149,10 +146,7 @@ class ConnectionService {
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
         mnemonic: queryOfferResult.mnemonic,
-        card: queryOfferResult.contactCard.toCoreContactCard(
-          did: queryOfferResult.didcommMessage.from,
-          type: core.ContactCardType.offer.value,
-        ),
+        contactCard: queryOfferResult.contactCard.toCoreContactCard(),
         expiresAt: queryOfferResult.expiresAt,
         publishOfferDid: queryOfferResult.didcommMessage.from,
         mediatorDid: queryOfferResult.mediatorDid,
@@ -215,6 +209,7 @@ class ConnectionService {
         contactCard: ContactCardImpl(
           did: card.did,
           type: card.type,
+          schema: card.schema,
           contactInfo: card.contactInfo,
         ),
         device: _controlPlaneSDK.device,
@@ -240,7 +235,7 @@ class ConnectionService {
         ),
         publishOfferDid: didDocument.id,
         maximumUsage: registerOfferOutput.maximumUsage,
-        card: card,
+        contactCard: card,
         status: ConnectionOfferStatus.published,
         ownedByMe: true,
         externalRef: externalRef,
@@ -317,6 +312,7 @@ class ConnectionService {
         contactCard: ContactCardImpl(
           did: card.did,
           type: card.type,
+          schema: card.schema,
           contactInfo: card.contactInfo,
         ),
       ),
@@ -546,9 +542,10 @@ class ConnectionService {
       otherPartyAcceptOfferDid: acceptOfferDid,
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
-      contactCard: channel.card,
+      contactCard: channel.contactCard,
     );
 
+    final contactCard = channel.contactCard;
     final finaliseAcceptanceOutput = await _controlPlaneSDK.execute(
       FinaliseAcceptanceCommand(
         mnemonic: connectionOffer.mnemonic,
@@ -557,11 +554,12 @@ class ConnectionService {
         offerPublishedDid: channel.publishOfferDid,
         otherPartyAcceptOfferDid: channel.acceptOfferDid!,
         otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid!,
-        contactCard: channel.card != null
+        contactCard: contactCard != null
             ? ContactCardImpl(
-                did: channel.card!.did,
-                type: channel.card!.type,
-                contactInfo: channel.card!.contactInfo,
+                did: contactCard.did,
+                type: contactCard.type,
+                schema: contactCard.schema,
+                contactInfo: contactCard.contactInfo,
               )
             : null,
       ),

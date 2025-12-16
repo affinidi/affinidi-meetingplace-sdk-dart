@@ -5,6 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import 'package:test/test.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -50,9 +51,8 @@ void main() async {
       final aliceOnDoneCompleter = Completer();
       final bobOnDoneCompleter = Completer();
 
-      final aliceCard = ContactCard(
+      final aliceCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
@@ -67,9 +67,8 @@ void main() async {
         aliceOnDoneCompleter.complete();
       });
 
-      final bobCard = ContactCard(
+      final bobCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -103,11 +102,11 @@ void main() async {
     });
 
     test('Contact cards match', () {
-      expect(aliceChannel?.card?.contactInfo,
-          bobChannel?.otherPartyCard?.contactInfo);
+      expect(aliceChannel?.contactCard?.contactInfo,
+          bobChannel?.otherPartyContactCard?.contactInfo);
 
-      expect(aliceChannel?.otherPartyCard?.contactInfo,
-          bobChannel?.card?.contactInfo);
+      expect(aliceChannel?.otherPartyContactCard?.contactInfo,
+          bobChannel?.contactCard?.contactInfo);
     });
 
     test('channel status is inaugurated', () {
@@ -144,9 +143,8 @@ void main() async {
     Channel? bobChannel;
 
     setUpAll(() async {
-      final aliceCard = ContactCard(
+      final aliceCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
@@ -155,9 +153,8 @@ void main() async {
         contactCard: aliceCard,
       );
 
-      final bobCard = ContactCard(
+      final bobCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -183,10 +180,10 @@ void main() async {
       expect(bobChannel?.permanentChannelDid, isNotNull);
       expect(bobChannel?.type, equals(ChannelType.oob));
       expect(bobChannel?.otherPartyPermanentChannelDid, isNull);
-      expect(bobChannel?.otherPartyCard, isNull);
+      expect(bobChannel?.otherPartyContactCard, isNull);
 
       expect(
-        bobChannel?.card?.contactInfo,
+        bobChannel?.contactCard?.contactInfo,
         equals({
           'n': {'given': 'Bob', 'surname': 'A.'},
         }),
@@ -199,9 +196,8 @@ void main() async {
     Channel? channelBefore;
 
     setUpAll(() async {
-      final aliceCard = ContactCard(
+      final aliceCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
@@ -210,9 +206,8 @@ void main() async {
         contactCard: aliceCard,
       );
 
-      final bobCard = ContactCard(
+      final bobCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -246,14 +241,14 @@ void main() async {
         channelBefore!.permanentChannelDid,
       );
       expect(bobChannel?.type, channelBefore!.type);
-      expect(bobChannel?.card?.contactInfo,
-          equals(channelBefore?.card?.contactInfo));
+      expect(bobChannel?.contactCard?.contactInfo,
+          equals(channelBefore?.contactCard?.contactInfo));
     });
 
     test('channel has been updated', () {
       expect(bobChannel?.otherPartyPermanentChannelDid, isNotNull);
       expect(
-        bobChannel?.otherPartyCard?.contactInfo,
+        bobChannel?.otherPartyContactCard?.contactInfo,
         {
           'n': {'given': 'Alice'},
         },
@@ -262,9 +257,8 @@ void main() async {
   });
 
   test('uses separate stream for each createOobFlow call', () async {
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -282,9 +276,8 @@ void main() async {
   });
 
   test('uses separate stream for each acceptOobFlow call', () async {
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -293,9 +286,8 @@ void main() async {
       contactCard: aliceCard,
     );
 
-    final bobCard = ContactCard(
+    final bobCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:bob',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Bob', 'surname': 'A.'},
       },
@@ -318,9 +310,8 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -332,9 +323,8 @@ void main() async {
 
     await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -356,9 +346,8 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -370,9 +359,8 @@ void main() async {
 
     await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -391,9 +379,8 @@ void main() async {
   });
 
   test('executes callback on timeout', () async {
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -414,9 +401,8 @@ void main() async {
   });
 
   test('cancels timeout after receiving first event', () async {
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -427,9 +413,8 @@ void main() async {
 
     await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -447,9 +432,8 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -461,9 +445,8 @@ void main() async {
 
     final acceptOobFlowResult = await bobSDK.acceptOobFlow(
       createOobFlowResult.oobUrl,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },

@@ -258,8 +258,8 @@ abstract class BaseChatSDK {
       if (channel.type != ChannelType.group) {
         final profileHash = message.plainTextMessage.body?['profile_hash'];
         if (profileHash != null && profileHash is String) {
-          if (channel.otherPartyCard != null &&
-              _contactHash(channel.otherPartyCard!) == profileHash) {
+          if (channel.otherPartyContactCard != null &&
+              _contactHash(channel.otherPartyContactCard!) == profileHash) {
             chatStream.pushData(
               StreamData(plainTextMessage: message.plainTextMessage),
             );
@@ -362,7 +362,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channel.type != ChannelType.group) {
-        channel.otherPartyCard =
+        channel.otherPartyContactCard =
             ContactCard.fromJson(message.plainTextMessage.body!);
 
         await coreSDK.updateChannel(channel);
@@ -538,7 +538,7 @@ abstract class BaseChatSDK {
     }
 
     final channel = await getChannel();
-    if (channel.card != null && !card!.equals(channel.card!)) {
+    if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
       await sendMessage(
         protocol.ChatAliasProfileHash.create(
           from: did,
@@ -550,7 +550,7 @@ abstract class BaseChatSDK {
         mediatorDid: mediatorDid,
       );
 
-      channel.card = card;
+      channel.contactCard = card;
       await coreSDK.updateChannel(channel);
     }
 

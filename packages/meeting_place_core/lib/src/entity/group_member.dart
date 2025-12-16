@@ -19,7 +19,7 @@ class GroupMember {
   factory GroupMember.pendingMember({
     required String did,
     required String publicKey,
-    required ContactCard card,
+    required ContactCard contactCard,
   }) {
     return GroupMember(
       did: did,
@@ -27,7 +27,7 @@ class GroupMember {
       dateAdded: DateTime.now().toUtc(),
       status: GroupMemberStatus.pendingApproval,
       membershipType: GroupMembershipType.member,
-      card: card,
+      contactCard: contactCard,
     );
   }
 
@@ -42,7 +42,7 @@ class GroupMember {
       dateAdded: DateTime.now().toUtc(),
       status: GroupMemberStatus.approved,
       membershipType: GroupMembershipType.admin,
-      card: card,
+      contactCard: card,
     );
   }
 
@@ -55,7 +55,7 @@ class GroupMember {
     required this.dateAdded,
     required this.status,
     required this.membershipType,
-    required this.card,
+    required this.contactCard,
     required this.publicKey,
   });
 
@@ -63,7 +63,7 @@ class GroupMember {
   final DateTime dateAdded;
   final GroupMembershipType membershipType;
   final String publicKey;
-  ContactCard card;
+  ContactCard contactCard;
 
   GroupMemberStatus status;
 
@@ -84,7 +84,7 @@ class GroupMember {
       dateAdded: dateAdded ?? this.dateAdded,
       status: status ?? this.status,
       membershipType: membershipType ?? this.membershipType,
-      card: card ?? this.card,
+      contactCard: card ?? this.contactCard,
       publicKey: publicKey ?? this.publicKey,
     );
   }

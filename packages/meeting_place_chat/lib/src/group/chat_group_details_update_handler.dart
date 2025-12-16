@@ -70,7 +70,7 @@ class ChatGroupDetailsUpdateHandler {
           membershipType: GroupMembershipType.values.byName(
             member['membership_type'] as String,
           ),
-          card: _cardFromMessage(member),
+          contactCard: _cardFromMessage(member),
         );
       }).toList(),
     );

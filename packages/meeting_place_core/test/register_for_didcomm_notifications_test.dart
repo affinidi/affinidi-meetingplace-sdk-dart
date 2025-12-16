@@ -1,5 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -19,9 +20,8 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       validUntil: DateTime.now().toUtc().add(const Duration(seconds: 30)),
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },

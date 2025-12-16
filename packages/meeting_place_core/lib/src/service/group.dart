@@ -126,6 +126,7 @@ class GroupService {
         contactCard: cp.ContactCardImpl(
           did: card.did,
           type: card.type,
+          schema: card.schema,
           contactInfo: card.contactInfo,
         ),
         device: _controlPlaneSDK.device,
@@ -188,7 +189,7 @@ class GroupService {
         expiresAt: result.expiresAt,
         mediatorDid: result.mediatorDid,
         publishOfferDid: oobDidDoc.id,
-        card: card,
+        contactCard: card,
         status: ConnectionOfferStatus.published,
         ownedByMe: true,
         externalRef: externalRef,
@@ -202,7 +203,7 @@ class GroupService {
         publishOfferDid: oobDidDoc.id,
         mediatorDid: result.mediatorDid,
         status: ChannelStatus.inaugurated,
-        card: card,
+        contactCard: card,
         type: ChannelType.group,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
@@ -296,6 +297,7 @@ class GroupService {
         contactCard: cp.ContactCardImpl(
           did: card.did,
           type: card.type,
+          schema: card.schema,
           contactInfo: card.contactInfo,
         ),
         acceptOfferDid: acceptOfferDidDocument.id,
@@ -408,7 +410,7 @@ class GroupService {
           GroupMember.pendingMember(
             did: permanentChannelDidDocument.id,
             publicKey: memberPublicKeyBase64,
-            card: card,
+            contactCard: card,
           ),
         ],
       );
@@ -428,7 +430,7 @@ class GroupService {
         GroupMember.pendingMember(
           did: permanentChannelDidDocument.id,
           publicKey: memberPublicKeyBase64,
-          card: card,
+          contactCard: card,
         ),
       ],
     );
@@ -646,7 +648,7 @@ class GroupService {
           .map(
             (member) => GroupMemberInaugurationMember(
               did: member.did,
-              contactCard: member.card,
+              contactCard: member.contactCard,
               status: member.status.name,
               publicKey: member.publicKey,
               membershipType: member.membershipType.name,
@@ -662,6 +664,7 @@ class GroupService {
       mediatorDid: channel.mediatorDid,
     );
 
+    final otherPartyContactCard = channel.otherPartyContactCard;
     await _controlPlaneSDK.execute(
       cp.GroupAddMemberCommand(
         mnemonic: connectionOffer.mnemonic,
@@ -669,11 +672,12 @@ class GroupService {
         memberDid: member.did,
         acceptOfferDid: channel.acceptOfferDid!,
         offerLink: channel.offerLink,
-        contactCard: channel.otherPartyCard != null
+        contactCard: otherPartyContactCard != null
             ? cp.ContactCardImpl(
-                did: channel.otherPartyCard!.did,
-                type: channel.otherPartyCard!.type,
-                contactInfo: channel.otherPartyCard!.contactInfo,
+                did: otherPartyContactCard.did,
+                type: otherPartyContactCard.type,
+                schema: otherPartyContactCard.schema,
+                contactInfo: otherPartyContactCard.contactInfo,
               )
             : null,
         publicKey: member.publicKey,

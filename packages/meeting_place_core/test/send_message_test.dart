@@ -5,6 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -19,9 +20,8 @@ void main() async {
     aliceSDK = await initSDKInstance();
     bobSDK = await initSDKInstance();
 
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
@@ -37,9 +37,8 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
-    final bobCard = ContactCard(
+    final bobCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:bob',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Bob', 'surname': 'A.'},
       },

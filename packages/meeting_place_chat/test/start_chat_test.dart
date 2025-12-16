@@ -75,19 +75,16 @@ void main() async {
       ),
     ]);
 
-    final aliceCard = ContactCard(
+    final aliceCard = fixtures.ContactCardFixture.getContactCardFixture(
       did: aliceDidDocument.id,
-      type: 'human',
       contactInfo: fixtures.ContactCardFixture.alicePrimaryCardInfo,
     );
-    final bobCard = ContactCard(
+    final bobCard = fixtures.ContactCardFixture.getContactCardFixture(
       did: bobDidDocument.id,
-      type: 'human',
       contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
     );
-    final charlieCard = ContactCard(
+    final charlieCard = fixtures.ContactCardFixture.getContactCardFixture(
       did: charlieDidDocument.id,
-      type: 'human',
       contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
     );
 
@@ -120,8 +117,8 @@ void main() async {
         otherPartyPermanentChannelDid: aliceDidDocument.id,
         status: ChannelStatus.inaugurated,
         type: ChannelType.individual,
-        card: charlieCard,
-        otherPartyCard: aliceCard,
+        contactCard: charlieCard,
+        otherPartyContactCard: aliceCard,
       ),
     );
   });
@@ -235,9 +232,8 @@ void main() async {
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: charlieDidDocument.id,
-      otherPartyCard: ContactCard(
+      otherPartyCard: fixtures.ContactCardFixture.getContactCardFixture(
         did: charlieDidDocument.id,
-        type: 'human',
         contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
       ),
       channelRepository: aliceChannelRepository,
@@ -287,9 +283,8 @@ void main() async {
         coreSDK: aliceSDK,
         did: aliceDidDocument.id,
         otherPartyDid: bobDidDocument.id,
-        otherPartyCard: ContactCard(
+        otherPartyCard: fixtures.ContactCardFixture.getContactCardFixture(
           did: bobDidDocument.id,
-          type: 'human',
           contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
         ),
         existingStorage: storage,
@@ -478,9 +473,8 @@ void main() async {
     'Bob has concierge message after receiving profile hash requets',
     () async {
       await aliceChatSDK.startChatSession();
-      final updatedCard = ContactCard(
+      final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
         did: bobDidDocument.id,
-        type: 'human',
         contactInfo: {'changed': 'value'},
       );
 
@@ -497,9 +491,8 @@ void main() async {
         otherPartyDid: aliceDidDocument.id,
         card: updatedCard,
         channelRepository: bobChannelRepository,
-        channelCard: ContactCard(
+        channelCard: fixtures.ContactCardFixture.getContactCardFixture(
           did: bobDidDocument.id,
-          type: 'human',
           contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
         ),
       );
@@ -552,7 +545,7 @@ void main() async {
       await aliceChatCompleter.future;
       final aliceChannel = await aliceSDK.getChannelByDid(bobDidDocument.id);
       expect(
-        aliceChannel?.otherPartyCard?.contactInfo,
+        aliceChannel?.otherPartyContactCard?.contactInfo,
         equals(updatedCard.contactInfo),
       );
     },
@@ -560,9 +553,8 @@ void main() async {
 
   test('reject contact profile update', () async {
     await aliceChatSDK.startChatSession();
-    final updatedCard = ContactCard(
+    final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
       did: bobDidDocument.id,
-      type: 'human',
       contactInfo: {'changed': 'value'},
     );
 
@@ -579,9 +571,8 @@ void main() async {
       otherPartyDid: aliceDidDocument.id,
       card: updatedCard,
       channelRepository: bobChannelRepository,
-      channelCard: ContactCard(
+      channelCard: fixtures.ContactCardFixture.getContactCardFixture(
         did: bobDidDocument.id,
-        type: 'human',
         contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
       ),
     );

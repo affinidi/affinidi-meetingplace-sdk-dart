@@ -27,7 +27,7 @@ class ConnectionOffer {
     required this.oobInvitationMessage,
     required this.type,
     required this.status,
-    required this.card,
+    required this.contactCard,
     required this.ownedByMe,
     required this.createdAt,
     this.expiresAt,
@@ -53,7 +53,7 @@ class ConnectionOffer {
   final String publishOfferDid;
   final String mediatorDid;
   final String oobInvitationMessage;
-  final ContactCard card;
+  final ContactCard contactCard;
   final ConnectionOfferType type;
   final ConnectionOfferStatus status;
   final bool ownedByMe;
@@ -110,7 +110,7 @@ class ConnectionOffer {
       mediatorDid: mediatorDid,
       oobInvitationMessage: oobInvitationMessage,
       type: type,
-      card: card ?? this.card,
+      contactCard: card ?? this.contactCard,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:

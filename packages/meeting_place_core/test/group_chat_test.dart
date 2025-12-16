@@ -4,6 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -25,23 +26,20 @@ void main() async {
     charlieSDK = await initSDKInstance();
 
     // Setup group
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
     );
-    final bobCard = ContactCard(
+    final bobCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:bob',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Bob', 'surname': 'A.'},
       },
     );
-    final charlieCard = ContactCard(
+    final charlieCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:charlie',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Charlie', 'surname': 'A.'},
       },

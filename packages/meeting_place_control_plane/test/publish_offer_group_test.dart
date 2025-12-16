@@ -22,6 +22,7 @@ void main() async {
       contactCard: ContactCardImpl(
         did: 'did:key:offer-${Uuid().v4()}',
         type: 'offer',
+        schema: 'https://affinidi.com/schemas/v1/sample-contact-card',
         contactInfo: {
           'n': {'given': 'Alice'},
         },

@@ -5,6 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -30,9 +31,8 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       maximumUsage: 1,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
@@ -46,9 +46,8 @@ void main() async {
 
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },

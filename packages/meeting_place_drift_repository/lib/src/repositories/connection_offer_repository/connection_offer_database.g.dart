@@ -1311,6 +1311,15 @@ class ConnectionContactCard extends DataClass
   /// Auto-incrementing ID for the contact card.
   final int id;
 
+  /// The decentralized identifier (DID) of the contact.
+  final String did;
+
+  /// The type of the contact card.
+  final String type;
+
+  /// The schema of the contact card.
+  final String schema;
+
   /// The connection offer ID this contact card is associated with.
   final String connectionOfferId;
 
@@ -1333,6 +1342,8 @@ class ConnectionContactCard extends DataClass
   final String meetingplaceIdentityCardColor;
   const ConnectionContactCard(
       {required this.id,
+      required this.did,
+      required this.type,
       required this.connectionOfferId,
       required this.firstName,
       required this.lastName,

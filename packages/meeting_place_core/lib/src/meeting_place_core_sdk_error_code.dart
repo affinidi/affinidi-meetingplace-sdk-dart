@@ -9,6 +9,10 @@ enum MeetingPlaceCoreSDKErrorCode {
   groupMembershipFinalisedChannelNotFound(
       'group_membership_finalised_channel_not_found'),
 
+  // inivitation accepted group codes
+  invitationAcceptedGroupContactCardNotPresent(
+      'invitation_accepted_group_contact_card_not_present'),
+
   // connection offer codes
   connectionOfferOwnedByClaimingParty(
       'connection_offer_owned_by_claiming_party'),

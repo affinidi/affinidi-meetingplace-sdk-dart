@@ -9,6 +9,7 @@ import '../utils/attachment.dart';
 import '../entity/contact_card.dart' as core;
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
+import 'exceptions/invitation_accepted_group_exception.dart';
 
 class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
   InvitationGroupAcceptedEventHandler({
@@ -79,16 +80,18 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
-          message.attachments,
-        );
+        final contactCard =
+            getContactCardDataOrEmptyFromAttachments(message.attachments);
+
+        if (contactCard == null) {
+          throw InvitationAcceptedGroupException.contactCardNotPresent();
+        }
 
         final acceptOfferDid = message.from!;
         group.members.add(GroupMember.pendingMember(
           did: otherPartyPermanentChannelDid,
           publicKey: publicKey,
-          card: otherPartyCard ??
-              core.ContactCard(did: '', type: '', contactInfo: {}),
+          contactCard: contactCard,
         ));
 
         await _groupRepository.updateGroup(group);
@@ -102,8 +105,8 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           status: ChannelStatus.waitingForApproval,
           type: ChannelType.group,
-          card: connection.card,
-          otherPartyCard: otherPartyCard,
+          contactCard: connection.contactCard,
+          otherPartyContactCard: contactCard,
           externalRef: connection.externalRef,
         );
 

@@ -22,7 +22,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     required super.oobInvitationMessage,
     required super.type,
     required super.status,
-    required super.card,
+    required super.contactCard,
     required super.ownedByMe,
     required super.createdAt,
     super.expiresAt,
@@ -80,7 +80,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       oobInvitationMessage: oobInvitationMessage,
       maximumUsage: maximumUsage ?? this.maximumUsage,
       type: type,
-      card: card ?? this.card,
+      contactCard: card ?? this.contactCard,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:

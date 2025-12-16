@@ -3,6 +3,8 @@ abstract interface class ContactCard {
 
   String get type;
 
+  String get schema;
+
   Map<String, dynamic> get contactInfo;
 
   Map<String, dynamic> toJson();

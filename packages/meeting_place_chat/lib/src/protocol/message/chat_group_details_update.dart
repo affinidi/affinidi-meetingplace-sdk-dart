@@ -109,7 +109,7 @@ class ChatGroupDetailsUpdate extends PlainTextMessage {
   ) {
     return ChatGroupDetailsUpdateBodyMember(
       did: groupMember.did,
-      card: groupMember.card,
+      card: groupMember.contactCard,
       dateAdded: groupMember.dateAdded,
       status: groupMember.status.name,
       publicKey: groupMember.publicKey,

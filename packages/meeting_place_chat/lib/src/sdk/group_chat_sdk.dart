@@ -296,7 +296,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           (member) => member.did == message.from!,
         );
 
-        if (member.card.profileHash == profileHash) {
+        if (member.contactCard.profileHash == profileHash) {
           chatStream.pushData(StreamData(plainTextMessage: message));
         } else {
           await coreSDK.sendMessage(
@@ -336,7 +336,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         },
       );
 
-      member.card = ContactCard.fromJson(message.body!);
+      member.contactCard = ContactCard.fromJson(message.body!);
       await coreSDK.updateGroup(group);
       await sendChatGroupDetailsUpdate();
       chatStream.pushData(StreamData(plainTextMessage: message));
@@ -492,7 +492,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         conciergeType: ConciergeMessageType.permissionToJoinGroup,
         data: {
           'groupId': group.id,
-          'card': pendingApproval.card.toJson(),
+          'card': pendingApproval.contactCard.toJson(),
           'memberDid': pendingApproval.did,
           'adminDid': group.ownerDid,
           'offerLink': group.offerLink,
@@ -564,7 +564,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       chatId: chatId,
       groupDid: group.did,
       memberDid: channel.otherPartyPermanentChannelDid!,
-      memberCard: channel.otherPartyCard!,
+      memberCard: channel.otherPartyContactCard!,
     );
 
     logger.info(
@@ -590,7 +590,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     final channel = await getChannel();
-    if (channel.card == null || card!.equals(channel.card!)) {
+    if (channel.contactCard == null || card!.equals(channel.contactCard!)) {
       return;
     }
 
@@ -606,7 +606,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         mediatorDid: mediatorDid,
       );
 
-      channel.card = card;
+      channel.contactCard = card;
       await coreSDK.updateChannel(channel);
       return;
     }
@@ -641,7 +641,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await chatRepository.createMessage(conciergeMessage);
     logger.info('Completed sending profile hash', name: methodName);
 
-    channel.card = card;
+    channel.contactCard = card;
     await coreSDK.updateChannel(channel);
     chatStream.pushData(StreamData(chatItem: conciergeMessage));
   }
@@ -709,7 +709,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
     if (_isGroupOwner()) {
       final myMember = group.members.firstWhere((m) => m.did == did);
-      myMember.card = card!;
+      myMember.contactCard = card!;
 
       await coreSDK.updateGroup(group);
       unawaited(sendChatGroupDetailsUpdate());

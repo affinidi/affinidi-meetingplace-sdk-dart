@@ -59,7 +59,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             ),
           );
 
-      final card = channel.card;
+      final card = channel.contactCard;
       if (card != null) {
         await _insertContactCardType(
           channelId: channelId,
@@ -67,7 +67,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           type: db.ContactCardType.mine,
         );
       }
-      final otherCard = channel.otherPartyCard;
+      final otherCard = channel.otherPartyContactCard;
       if (otherCard != null) {
         await _insertContactCardType(
           channelId: channelId,
@@ -148,14 +148,14 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
         ),
       );
 
-      final card = channel.card;
+      final card = channel.contactCard;
       await _upsertContactCardType(
         channelId: channelId,
         card: card,
         type: db.ContactCardType.mine,
       );
 
-      final otherCard = channel.otherPartyCard;
+      final otherCard = channel.otherPartyContactCard;
       await _upsertContactCardType(
         channelId: channelId,
         card: otherCard,
@@ -311,8 +311,8 @@ class _ChannelMapper {
       mediatorDid: channel.mediatorDid,
       status: channel.status,
       type: channel.type,
-      card: _makeContactCardFromDb(contactCard),
-      otherPartyCard: _makeContactCardFromDb(otherContactCard),
+      contactCard: _makeContactCardFromDb(contactCard),
+      otherPartyContactCard: _makeContactCardFromDb(otherContactCard),
       acceptOfferDid: channel.acceptOfferDid,
       permanentChannelDid: channel.permanentChannelDid,
       otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
@@ -328,18 +328,20 @@ class _ChannelMapper {
     db.ChannelContactCard? contactCard,
   ) {
     if (contactCard == null) return null;
-    final card = model.ContactCard(
-      did: '',
-      type: model.ContactCardType.contactCard.value,
-      contactInfo: {},
+
+    return model.ContactCard(
+      did: contactCard.did,
+      type: contactCard.type,
+      schema: contactCard.schema,
+      contactInfo: {
+        'firstName': contactCard.firstName,
+        'lastName': contactCard.lastName,
+        'email': contactCard.email,
+        'mobile': contactCard.mobile,
+        'profilePic': contactCard.profilePic,
+        'meetingplaceIdentityCardColor':
+            contactCard.meetingplaceIdentityCardColor
+      },
     );
-    card.firstName = contactCard.firstName;
-    card.lastName = contactCard.lastName;
-    card.email = contactCard.email;
-    card.mobile = contactCard.mobile;
-    card.profilePic = contactCard.profilePic;
-    card.meetingplaceIdentityCardColor =
-        contactCard.meetingplaceIdentityCardColor;
-    return card;
   }
 }

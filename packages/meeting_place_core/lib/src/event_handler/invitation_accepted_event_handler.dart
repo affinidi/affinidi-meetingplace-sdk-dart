@@ -69,8 +69,8 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           outboundMessageId: message.id,
           status: ChannelStatus.waitingForApproval,
           type: ChannelType.individual,
-          card: connection.card,
-          otherPartyCard: otherPartyCard,
+          contactCard: connection.contactCard,
+          otherPartyContactCard: otherPartyCard,
           externalRef: connection.externalRef,
         );
 

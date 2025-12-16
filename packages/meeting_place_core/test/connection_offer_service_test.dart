@@ -5,6 +5,8 @@ import 'package:test/test.dart';
 
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_service.dart';
 
+import 'fixtures/contact_card_fixture.dart';
+
 // Mock classes
 class MockConnectionOfferRepository extends Mock
     implements ConnectionOfferRepository {}
@@ -26,7 +28,8 @@ void main() {
     permanentChannelDid: 'did:example:permanent',
     mediatorDid: 'did:example:mediator',
     oobInvitationMessage: '',
-    card: ContactCard(did: 'did:test', type: 'human', contactInfo: const {}),
+    contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test', contactInfo: const {}),
     status: ConnectionOfferStatus.published,
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
@@ -49,7 +52,8 @@ void main() {
       publishOfferDid: 'did:key:1234',
       mediatorDid: 'did:key:mediator',
       status: ChannelStatus.inaugurated,
-      card: ContactCard(did: 'did:test', type: 'human', contactInfo: const {}),
+      contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test', contactInfo: const {}),
       type: ChannelType.individual,
     );
 
@@ -99,8 +103,8 @@ void main() {
         publishOfferDid: 'did:key:1234',
         mediatorDid: 'did:key:mediator',
         status: ChannelStatus.inaugurated,
-        card:
-            ContactCard(did: 'did:test', type: 'human', contactInfo: const {}),
+        contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test', contactInfo: const {}),
         type: ChannelType.group,
       );
 

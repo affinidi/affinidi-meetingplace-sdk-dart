@@ -1,22 +1,10 @@
 import 'dart:convert';
 
-/// Enumerates known ContactCard type values to avoid string literals.
-/// Use `ContactCardType.<name>.value` when assigning to `ContactCard.type`.
-enum ContactCardType {
-  human('human'),
-  individual('individual'),
-  contactCard('contactCard'),
-  admin('admin'),
-  offer('offer');
-
-  const ContactCardType(this.value);
-  final String value;
-}
-
 class ContactCard {
   ContactCard({
     required this.did,
     required this.type,
+    required this.schema,
     required this.contactInfo,
   });
 
@@ -24,6 +12,7 @@ class ContactCard {
     return ContactCard(
       did: json['did'] as String,
       type: json['type'] as String,
+      schema: json['schema'] as String,
       contactInfo: (json['contactInfo'] as Map).cast<String, dynamic>(),
     );
   }
@@ -39,11 +28,14 @@ class ContactCard {
 
   final String did;
   final String type;
+  final String schema;
   final Map<String, dynamic> contactInfo;
 
   /// Short sender information derived from the card.
   ///
-  /// Prefers first name, then work email, else empty string.
+  /// Prefers first name, else empty string.
+  /// TODO: make this part of an interface. SDK shouldn't know about a specifc
+  /// implementation of senderInfo.
   String get senderInfo {
     String firstName = _getPathValue(['n', 'given']);
     if (firstName.trim().isNotEmpty) return firstName;
@@ -56,6 +48,7 @@ class ContactCard {
     return {
       'did': did,
       'type': type,
+      'schema': schema,
       'contactInfo': contactInfo,
     };
   }
@@ -92,9 +85,4 @@ class ContactCard {
     if (mod == 0) return s;
     return s.padRight(s.length + (4 - mod), '=');
   }
-}
-
-class InfoCard {
-  // Deprecated: InfoCard duplicated ContactCard functionality.
-  // Removed to prevent confusion and reduce duplication.
 }

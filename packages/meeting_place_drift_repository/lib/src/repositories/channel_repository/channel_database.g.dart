@@ -1013,6 +1013,15 @@ class ChannelContactCard extends DataClass
   /// Auto-incrementing ID for the contact card.
   final int id;
 
+  /// DID of the identity.
+  final String did;
+
+  /// Type of the contact.
+  final String type;
+
+  /// Schema of the contact.
+  final String schema;
+
   /// ID of the associated channel.
   final String channelId;
 

@@ -1,6 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -24,9 +25,8 @@ void main() async {
       final actual = await aliceSDK.publishOffer(
         offerName: offerName,
         offerDescription: offerDescription,
-        contactCard: ContactCard(
+        contactCard: ContactCardFixture.getContactCardFixture(
           did: 'did:test:alice',
-          type: 'human',
           contactInfo: expInfo,
         ),
         type: type,
@@ -34,7 +34,7 @@ void main() async {
 
       expect(actual.connectionOffer.offerName, equals(offerName));
       expect(actual.connectionOffer.offerDescription, equals(offerDescription));
-      expect(actual.connectionOffer.card.contactInfo, equals(expInfo));
+      expect(actual.connectionOffer.contactCard.contactInfo, equals(expInfo));
       expect(actual.connectionOffer.type,
           equals(ConnectionOfferType.meetingPlaceInvitation));
     },

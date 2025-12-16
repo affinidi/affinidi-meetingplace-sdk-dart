@@ -3,6 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
+import 'utils/contact_card_fixture.dart';
 import 'utils/repository/chat_repository_impl.dart';
 import 'utils/repository/connection_group_offer_repository_impl.dart';
 import 'utils/sdk.dart';
@@ -17,7 +18,8 @@ void main() async {
         publishOfferDid: '',
         mediatorDid: '',
         status: ChannelStatus.inaugurated,
-        card: ContactCard(did: 'did:test', type: 'human', contactInfo: {}),
+        contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test', contactInfo: {}),
         type: type,
         permanentChannelDid: 'did:key:123',
         otherPartyPermanentChannelDid: 'did:key:456',

@@ -198,7 +198,7 @@ class ConnectionOfferRepositoryDrift
             );
       }
 
-      final card = connectionOffer.card;
+      final card = connectionOffer.contactCard;
       await _database.into(_database.connectionContactCards).insert(
             db.ConnectionContactCardsCompanion(
               connectionOfferId: Value(connectionOfferId),
@@ -298,7 +298,7 @@ class ConnectionOfferRepositoryDrift
             .go();
       }
 
-      final card = connectionOffer.card;
+      final card = connectionOffer.contactCard;
       await (_database.update(_database.connectionContactCards)
             ..where(
               (c) => _database.connectionContactCards.connectionOfferId.equals(
@@ -353,17 +353,19 @@ class _ConnectionOfferMapper {
     db.ConnectionContactCard contactCard,
   ) {
     final card = model.ContactCard(
-      did: '',
-      type: model.ContactCardType.contactCard.value,
-      contactInfo: {},
+      did: contactCard.did,
+      type: contactCard.type,
+      schema: contactCard.schema,
+      contactInfo: {
+        'firstName': contactCard.firstName,
+        'lastName': contactCard.lastName,
+        'email': contactCard.email,
+        'mobile': contactCard.mobile,
+        'profilePic': contactCard.profilePic,
+        'meetingplaceIdentityCardColor':
+            contactCard.meetingplaceIdentityCardColor
+      },
     );
-    card.firstName = contactCard.firstName;
-    card.lastName = contactCard.lastName;
-    card.email = contactCard.email;
-    card.mobile = contactCard.mobile;
-    card.profilePic = contactCard.profilePic;
-    card.meetingplaceIdentityCardColor =
-        contactCard.meetingplaceIdentityCardColor;
 
     if (groupConnectionOffer != null) {
       return model.GroupConnectionOffer(
@@ -383,7 +385,7 @@ class _ConnectionOfferMapper {
         mediatorDid: connectionOffer.mediatorDid,
         type: connectionOffer.type,
         status: connectionOffer.status,
-        card: card,
+        contactCard: card,
         maximumUsage: connectionOffer.maximumUsage,
         ownedByMe: connectionOffer.ownedByMe,
         outboundMessageId: connectionOffer.outboundMessageId,
@@ -408,7 +410,7 @@ class _ConnectionOfferMapper {
       mediatorDid: connectionOffer.mediatorDid,
       type: connectionOffer.type,
       status: connectionOffer.status,
-      card: card,
+      contactCard: card,
       maximumUsage: connectionOffer.maximumUsage,
       ownedByMe: connectionOffer.ownedByMe,
       offerDescription: connectionOffer.offerDescription,

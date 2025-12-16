@@ -6,6 +6,7 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -30,9 +31,8 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
@@ -52,9 +52,8 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
@@ -65,9 +64,8 @@ void main() async {
 
     final actual = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -86,9 +84,8 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
@@ -99,9 +96,8 @@ void main() async {
 
     await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -127,16 +123,14 @@ void main() async {
     () async {
       await aliceSDK.deleteControlPlaneEvents();
 
-      final aliceCard = ContactCard(
+      final aliceCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
       );
-      final bobCard = ContactCard(
+      final bobCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -184,7 +178,7 @@ void main() async {
       final aliceAdmin = group.members.first;
       expect(aliceAdmin.membershipType, equals(GroupMembershipType.admin));
       expect(aliceAdmin.status, equals(GroupMemberStatus.approved));
-      expect(aliceAdmin.card.contactInfo, equals(aliceCard.contactInfo));
+      expect(aliceAdmin.contactCard.contactInfo, equals(aliceCard.contactInfo));
       expect(aliceAdmin.did, equals(result.connectionOffer.groupOwnerDid));
 
       // member assertions
@@ -195,7 +189,7 @@ void main() async {
         bobMember.did,
         equals(acceptResult.connectionOffer.permanentChannelDid),
       );
-      expect(bobMember.card.contactInfo, equals(bobCard.contactInfo));
+      expect(bobMember.contactCard.contactInfo, equals(bobCard.contactInfo));
 
       aliceSDK.disposeControlPlaneEventsStream();
     },
@@ -204,16 +198,14 @@ void main() async {
   test(
     '''Group admin approves membership request -> ACLS getting updated and group details update message is sent''',
     () async {
-      final aliceCard = ContactCard(
+      final aliceCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Alice'},
         },
       );
-      final bobCard = ContactCard(
+      final bobCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
@@ -242,9 +234,8 @@ void main() async {
 
       final acceptResultCharlie = await charlieSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
-        contactCard: ContactCard(
+        contactCard: ContactCardFixture.getContactCardFixture(
           did: 'did:test:charlie',
-          type: 'human',
           contactInfo: {
             'n': {'given': 'Charlie', 'surname': 'A.'},
           },
@@ -365,16 +356,14 @@ void main() async {
   );
 
   test('Member receives group membership finalied discovery event', () async {
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
     );
-    final bobCard = ContactCard(
+    final bobCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:bob',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Bob', 'surname': 'A.'},
       },
@@ -483,16 +472,14 @@ void main() async {
   });
 
   test('Member has been approved', () async {
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
     );
-    final bobCard = ContactCard(
+    final bobCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:bob',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Bob', 'surname': 'A.'},
       },
@@ -538,16 +525,14 @@ void main() async {
 
   test('Member leaves group', () async {
     // TODO: check ACLs
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
     );
-    final bobCard = ContactCard(
+    final bobCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:bob',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Bob', 'surname': 'A.'},
       },
@@ -630,16 +615,14 @@ void main() async {
 
   test('Admin leaves group', () async {
     // TODO: check ACLs
-    final aliceCard = ContactCard(
+    final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Alice'},
       },
     );
-    final bobCard = ContactCard(
+    final bobCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:bob',
-      type: 'human',
       contactInfo: {
         'n': {'given': 'Bob', 'surname': 'A.'},
       },

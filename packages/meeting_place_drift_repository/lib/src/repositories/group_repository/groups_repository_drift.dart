@@ -53,7 +53,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           );
 
       final groupMembers = group.members.map((member) {
-        final card = member.card;
+        final contactCard = member.contactCard;
         return db.GroupMembersCompanion.insert(
           groupId: group.id,
           memberDid: member.did,
@@ -61,12 +61,14 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
-          firstName: card.firstName,
-          lastName: card.lastName,
-          email: card.email,
-          mobile: card.mobile,
-          profilePic: card.profilePic,
-          meetingplaceIdentityCardColor: card.meetingplaceIdentityCardColor,
+          identityDid: contactCard.did,
+          firstName: contactCard.firstName,
+          lastName: contactCard.lastName,
+          email: contactCard.email,
+          mobile: contactCard.mobile,
+          profilePic: contactCard.profilePic,
+          meetingplaceIdentityCardColor:
+              contactCard.meetingplaceIdentityCardColor,
         );
       });
 
@@ -185,7 +187,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           .go();
 
       final groupMembersCompanions = group.members.map((member) {
-        final card = member.card;
+        final contactCard = member.contactCard;
         return db.GroupMembersCompanion.insert(
           groupId: group.id,
           memberDid: member.did,
@@ -193,12 +195,14 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
-          firstName: card.firstName,
-          lastName: card.lastName,
-          email: card.email,
-          mobile: card.mobile,
-          profilePic: card.profilePic,
-          meetingplaceIdentityCardColor: card.meetingplaceIdentityCardColor,
+          identityDid: contactCard.did,
+          firstName: contactCard.firstName,
+          lastName: contactCard.lastName,
+          email: contactCard.email,
+          mobile: contactCard.mobile,
+          profilePic: contactCard.profilePic,
+          meetingplaceIdentityCardColor:
+              contactCard.meetingplaceIdentityCardColor,
         );
       });
 
@@ -235,24 +239,27 @@ class _GroupMemberMapper {
       dateAdded: groupMember.dateAdded,
       status: groupMember.status,
       membershipType: groupMember.membershipType,
-      card: _makeContactCardFromDb(groupMember),
+      contactCard: _makeContactCardFromDb(groupMember),
       publicKey: groupMember.publicKey,
     );
   }
 
   static model.ContactCard _makeContactCardFromDb(db.GroupMember groupMember) {
     final card = model.ContactCard(
-      did: groupMember.memberDid,
-      type: model.ContactCardType.contactCard.value,
-      contactInfo: {},
+      did: groupMember.identityDid,
+      type: 'individual',
+      schema:
+          'https://schema.affinidi.com/schemas/v1/contact-card.json', // TODO: where to define schema?
+      contactInfo: {
+        'firstName': groupMember.firstName,
+        'lastName': groupMember.lastName,
+        'email': groupMember.email,
+        'mobile': groupMember.mobile,
+        'profilePic': groupMember.profilePic,
+        'meetingplaceIdentityCardColor':
+            groupMember.meetingplaceIdentityCardColor
+      },
     );
-    card.firstName = groupMember.firstName;
-    card.lastName = groupMember.lastName;
-    card.email = groupMember.email;
-    card.mobile = groupMember.mobile;
-    card.profilePic = groupMember.profilePic;
-    card.meetingplaceIdentityCardColor =
-        groupMember.meetingplaceIdentityCardColor;
     return card;
   }
 }

@@ -2,6 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
 import 'package:test/test.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -18,9 +19,8 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       maximumUsage: 5,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: const {},
       ),
       type: SDKConnectionOfferType.invitation,
@@ -41,7 +41,7 @@ void main() async {
     );
 
     expect(
-      actual.connectionOffer!.card.contactInfo,
+      actual.connectionOffer!.contactCard.contactInfo,
       equals(const {}),
     );
 
@@ -56,9 +56,8 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: const {},
       ),
     );
@@ -80,9 +79,8 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.invitation,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: const {},
       ),
     );

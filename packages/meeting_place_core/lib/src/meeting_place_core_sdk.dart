@@ -534,8 +534,8 @@ class MeetingPlaceCoreSDK {
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           status: ChannelStatus.inaugurated,
           type: ChannelType.oob,
-          card: contactCard,
-          otherPartyCard: otherPartyCard,
+          contactCard: contactCard,
+          otherPartyContactCard: otherPartyCard,
           externalRef: externalRef,
         );
 
@@ -637,7 +637,7 @@ class MeetingPlaceCoreSDK {
       acceptOfferDid: acceptOfferDidDoc.id,
       permanentChannelDid: didDoc.id,
       type: ChannelType.oob,
-      card: contactCard,
+      contactCard: contactCard,
       externalRef: externalRef,
     );
 
@@ -678,7 +678,7 @@ class MeetingPlaceCoreSDK {
         );
 
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
-        channel.otherPartyCard = otherPartyCard;
+        channel.otherPartyContactCard = otherPartyCard;
         channel.status = ChannelStatus.inaugurated;
 
         await _repositoryConfig.channelRepository.updateChannel(channel);
@@ -985,7 +985,7 @@ class MeetingPlaceCoreSDK {
   /// This action updates both admin and group ACLs so that the member can
   /// communicate with admins and the entire group.
   ///
-  /// A message of type [AtmMessageProtocol.groupMemberInauguration] is sent via
+  /// A message of type [MeetingPlaceProtocol.groupMemberInauguration] is sent via
   /// mediator, informing the new member that their membership has been accepted
   /// using DIDComm protocol.
   ///

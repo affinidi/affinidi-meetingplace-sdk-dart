@@ -17,9 +17,9 @@ class Channel {
     required this.publishOfferDid,
     required this.mediatorDid,
     required this.status,
-    required this.card,
+    required this.contactCard,
     required this.type,
-    this.otherPartyCard,
+    this.otherPartyContactCard,
     this.outboundMessageId,
     this.acceptOfferDid,
     this.permanentChannelDid,
@@ -50,8 +50,8 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,
-      card: card,
-      otherPartyCard: connectionOffer.card,
+      contactCard: card,
+      otherPartyContactCard: connectionOffer.contactCard,
       externalRef: externalRef,
     );
   }
@@ -71,8 +71,8 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
-      card: card,
-      otherPartyCard: connectionOffer.card,
+      contactCard: card,
+      otherPartyContactCard: connectionOffer.contactCard,
       externalRef: externalRef,
     );
   }
@@ -83,8 +83,8 @@ class Channel {
   final String mediatorDid;
   final String offerLink;
   final ChannelType type;
-  ContactCard? card;
-  ContactCard? otherPartyCard;
+  ContactCard? contactCard;
+  ContactCard? otherPartyContactCard;
   ChannelStatus status;
 
   String? outboundMessageId;

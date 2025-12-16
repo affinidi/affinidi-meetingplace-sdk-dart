@@ -16,7 +16,7 @@ ConnectionOffer _$ConnectionOfferFromJson(Map<String, dynamic> json) =>
       oobInvitationMessage: json['oobInvitationMessage'] as String,
       type: $enumDecode(_$ConnectionOfferTypeEnumMap, json['type']),
       status: $enumDecode(_$ConnectionOfferStatusEnumMap, json['status']),
-      card: ContactCard.fromJson(json['card'] as Map<String, dynamic>),
+      contactCard: ContactCard.fromJson(json['card'] as Map<String, dynamic>),
       ownedByMe: json['ownedByMe'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
       expiresAt: json['expiresAt'] == null
@@ -46,7 +46,7 @@ Map<String, dynamic> _$ConnectionOfferToJson(ConnectionOffer instance) =>
       'publishOfferDid': instance.publishOfferDid,
       'mediatorDid': instance.mediatorDid,
       'oobInvitationMessage': instance.oobInvitationMessage,
-      'card': instance.card.toJson(),
+      'card': instance.contactCard.toJson(),
       'type': _$ConnectionOfferTypeEnumMap[instance.type]!,
       'status': _$ConnectionOfferStatusEnumMap[instance.status]!,
       'ownedByMe': instance.ownedByMe,

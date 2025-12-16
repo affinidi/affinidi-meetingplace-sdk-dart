@@ -39,9 +39,8 @@ void main() async {
 
     final acceptance = await sdk.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:charlie',
-        type: 'human',
         contactInfo: ContactCardFixture.charliePrimaryCardInfo,
       ),
     );
@@ -63,9 +62,8 @@ void main() async {
     publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
-        type: 'human',
         contactInfo: ContactCardFixture.alicePrimaryCardInfo,
       ),
       type: SDKConnectionOfferType.groupInvitation,
@@ -80,9 +78,8 @@ void main() async {
     );
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: bobFindOfferResult.connectionOffer!,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
-        type: 'human',
         contactInfo: ContactCardFixture.bobPrimaryCardInfo,
       ),
     );
@@ -94,9 +91,8 @@ void main() async {
 
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: charlieFindOfferResult.connectionOffer!,
-      contactCard: ContactCard(
+      contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:charlie',
-        type: 'human',
         contactInfo: ContactCardFixture.charliePrimaryCardInfo,
       ),
     );

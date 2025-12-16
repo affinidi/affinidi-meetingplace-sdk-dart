@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
-import 'package:meeting_place_core/src/entity/contact_card.dart' as core;
+import 'package:meeting_place_core/src/entity/contact_card.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
@@ -48,10 +48,12 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     type: ConnectionOfferType.meetingPlaceInvitation,
-    card: core.ContactCard(
-        did: publishOfferDid,
-        type: 'human',
-        contactInfo: const {'fullName': 'Test User'}),
+    contactCard: ContactCard(
+      did: 'did:key:contact-card-did',
+      type: 'individual',
+      schema: 'https://affinidi.com/schemas/v1/sample-contact-card',
+      contactInfo: const {'fullName': 'Test User'},
+    ),
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
   );
@@ -67,8 +69,12 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     status: ChannelStatus.approved,
-    card: core.ContactCard(
-        did: publishOfferDid, type: 'human', contactInfo: const {}),
+    contactCard: ContactCard(
+      did: 'did:key:contact-card-did',
+      type: 'individual',
+      schema: 'https://affinidi.com/schemas/v1/sample-contact-card',
+      contactInfo: const {'fullName': 'Test User'},
+    ),
     type: ChannelType.individual,
   );
 

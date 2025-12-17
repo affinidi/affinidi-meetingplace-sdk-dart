@@ -527,6 +527,22 @@ class $GroupMembersTable extends GroupMembers
               type: DriftSqlType.int, requiredDuringInsert: true)
           .withConverter<GroupMemberStatus>(
               $GroupMembersTable.$converterstatus);
+  static const VerificationMeta _identityDidMeta =
+      const VerificationMeta('identityDid');
+  @override
+  late final GeneratedColumn<String> identityDid = GeneratedColumn<String>(
+      'identity_did', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _schemaMeta = const VerificationMeta('schema');
+  @override
+  late final GeneratedColumn<String> schema = GeneratedColumn<String>(
+      'schema', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _firstNameMeta =
       const VerificationMeta('firstName');
   @override
@@ -575,6 +591,9 @@ class $GroupMembersTable extends GroupMembers
         membershipType,
         peerProfileHash,
         status,
+        identityDid,
+        type,
+        schema,
         firstName,
         lastName,
         email,
@@ -639,6 +658,26 @@ class $GroupMembersTable extends GroupMembers
           _peerProfileHashMeta,
           peerProfileHash.isAcceptableOrUnknown(
               data['peer_profile_hash']!, _peerProfileHashMeta));
+    }
+    if (data.containsKey('identity_did')) {
+      context.handle(
+          _identityDidMeta,
+          identityDid.isAcceptableOrUnknown(
+              data['identity_did']!, _identityDidMeta));
+    } else if (isInserting) {
+      context.missing(_identityDidMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('schema')) {
+      context.handle(_schemaMeta,
+          schema.isAcceptableOrUnknown(data['schema']!, _schemaMeta));
+    } else if (isInserting) {
+      context.missing(_schemaMeta);
     }
     if (data.containsKey('first_name')) {
       context.handle(_firstNameMeta,
@@ -714,6 +753,12 @@ class $GroupMembersTable extends GroupMembers
       status: $GroupMembersTable.$converterstatus.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
+      identityDid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}identity_did'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      schema: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}schema'])!,
       firstName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}first_name'])!,
       lastName: attachedDatabase.typeMapping
@@ -775,8 +820,12 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   /// The status of the group member.
   final GroupMemberStatus status;
 
-  // The identity DID of the group member.
+  /// DID of the contact.
   final String identityDid;
+
+  /// Type of the contact.
+  final String type;
+  final String schema;
 
   /// The first name of the group member.
   final String firstName;
@@ -808,6 +857,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       this.peerProfileHash,
       required this.status,
       required this.identityDid,
+      required this.type,
+      required this.schema,
       required this.firstName,
       required this.lastName,
       required this.email,
@@ -844,6 +895,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       map['status'] =
           Variable<int>($GroupMembersTable.$converterstatus.toSql(status));
     }
+    map['identity_did'] = Variable<String>(identityDid);
+    map['type'] = Variable<String>(type);
+    map['schema'] = Variable<String>(schema);
     map['first_name'] = Variable<String>(firstName);
     map['last_name'] = Variable<String>(lastName);
     map['email'] = Variable<String>(email);
@@ -877,6 +931,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ? const Value.absent()
           : Value(peerProfileHash),
       status: Value(status),
+      identityDid: Value(identityDid),
+      type: Value(type),
+      schema: Value(schema),
       firstName: Value(firstName),
       lastName: Value(lastName),
       email: Value(email),
@@ -902,6 +959,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           serializer.fromJson<GroupMembershipType>(json['membershipType']),
       peerProfileHash: serializer.fromJson<String?>(json['peerProfileHash']),
       status: serializer.fromJson<GroupMemberStatus>(json['status']),
+      identityDid: serializer.fromJson<String>(json['identityDid']),
+      type: serializer.fromJson<String>(json['type']),
+      schema: serializer.fromJson<String>(json['schema']),
       firstName: serializer.fromJson<String>(json['firstName']),
       lastName: serializer.fromJson<String>(json['lastName']),
       email: serializer.fromJson<String>(json['email']),
@@ -926,6 +986,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       'membershipType': serializer.toJson<GroupMembershipType>(membershipType),
       'peerProfileHash': serializer.toJson<String?>(peerProfileHash),
       'status': serializer.toJson<GroupMemberStatus>(status),
+      'identityDid': serializer.toJson<String>(identityDid),
+      'type': serializer.toJson<String>(type),
+      'schema': serializer.toJson<String>(schema),
       'firstName': serializer.toJson<String>(firstName),
       'lastName': serializer.toJson<String>(lastName),
       'email': serializer.toJson<String>(email),
@@ -948,6 +1011,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           GroupMembershipType? membershipType,
           Value<String?> peerProfileHash = const Value.absent(),
           GroupMemberStatus? status,
+          String? identityDid,
+          String? type,
+          String? schema,
           String? firstName,
           String? lastName,
           String? email,
@@ -971,6 +1037,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
             ? peerProfileHash.value
             : this.peerProfileHash,
         status: status ?? this.status,
+        identityDid: identityDid ?? this.identityDid,
+        type: type ?? this.type,
+        schema: schema ?? this.schema,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         email: email ?? this.email,
@@ -1000,6 +1069,10 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ? data.peerProfileHash.value
           : this.peerProfileHash,
       status: data.status.present ? data.status.value : this.status,
+      identityDid:
+          data.identityDid.present ? data.identityDid.value : this.identityDid,
+      type: data.type.present ? data.type.value : this.type,
+      schema: data.schema.present ? data.schema.value : this.schema,
       firstName: data.firstName.present ? data.firstName.value : this.firstName,
       lastName: data.lastName.present ? data.lastName.value : this.lastName,
       email: data.email.present ? data.email.value : this.email,
@@ -1026,6 +1099,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('membershipType: $membershipType, ')
           ..write('peerProfileHash: $peerProfileHash, ')
           ..write('status: $status, ')
+          ..write('identityDid: $identityDid, ')
+          ..write('type: $type, ')
+          ..write('schema: $schema, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1050,6 +1126,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       membershipType,
       peerProfileHash,
       status,
+      identityDid,
+      type,
+      schema,
       firstName,
       lastName,
       email,
@@ -1071,6 +1150,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.membershipType == this.membershipType &&
           other.peerProfileHash == this.peerProfileHash &&
           other.status == this.status &&
+          other.identityDid == this.identityDid &&
+          other.type == this.type &&
+          other.schema == this.schema &&
           other.firstName == this.firstName &&
           other.lastName == this.lastName &&
           other.email == this.email &&
@@ -1092,6 +1174,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<GroupMembershipType> membershipType;
   final Value<String?> peerProfileHash;
   final Value<GroupMemberStatus> status;
+  final Value<String> identityDid;
+  final Value<String> type;
+  final Value<String> schema;
   final Value<String> firstName;
   final Value<String> lastName;
   final Value<String> email;
@@ -1111,6 +1196,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.membershipType = const Value.absent(),
     this.peerProfileHash = const Value.absent(),
     this.status = const Value.absent(),
+    this.identityDid = const Value.absent(),
+    this.type = const Value.absent(),
+    this.schema = const Value.absent(),
     this.firstName = const Value.absent(),
     this.lastName = const Value.absent(),
     this.email = const Value.absent(),
@@ -1132,6 +1220,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.peerProfileHash = const Value.absent(),
     required GroupMemberStatus status,
     required String identityDid,
+    required String type,
+    required String schema,
     required String firstName,
     required String lastName,
     required String email,
@@ -1145,6 +1235,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
         membershipType = Value(membershipType),
         status = Value(status),
         identityDid = Value(identityDid),
+        type = Value(type),
+        schema = Value(schema),
         firstName = Value(firstName),
         lastName = Value(lastName),
         email = Value(email),
@@ -1164,6 +1256,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<String>? peerProfileHash,
     Expression<int>? status,
     Expression<String>? identityDid,
+    Expression<String>? type,
+    Expression<String>? schema,
     Expression<String>? firstName,
     Expression<String>? lastName,
     Expression<String>? email,
@@ -1184,6 +1278,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (membershipType != null) 'membership_type': membershipType,
       if (peerProfileHash != null) 'peer_profile_hash': peerProfileHash,
       if (status != null) 'status': status,
+      if (identityDid != null) 'identity_did': identityDid,
+      if (type != null) 'type': type,
+      if (schema != null) 'schema': schema,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,
@@ -1207,6 +1304,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       Value<GroupMembershipType>? membershipType,
       Value<String?>? peerProfileHash,
       Value<GroupMemberStatus>? status,
+      Value<String>? identityDid,
+      Value<String>? type,
+      Value<String>? schema,
       Value<String>? firstName,
       Value<String>? lastName,
       Value<String>? email,
@@ -1226,6 +1326,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       membershipType: membershipType ?? this.membershipType,
       peerProfileHash: peerProfileHash ?? this.peerProfileHash,
       status: status ?? this.status,
+      identityDid: identityDid ?? this.identityDid,
+      type: type ?? this.type,
+      schema: schema ?? this.schema,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -1276,6 +1379,15 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       map['status'] = Variable<int>(
           $GroupMembersTable.$converterstatus.toSql(status.value));
     }
+    if (identityDid.present) {
+      map['identity_did'] = Variable<String>(identityDid.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (schema.present) {
+      map['schema'] = Variable<String>(schema.value);
+    }
     if (firstName.present) {
       map['first_name'] = Variable<String>(firstName.value);
     }
@@ -1315,6 +1427,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('membershipType: $membershipType, ')
           ..write('peerProfileHash: $peerProfileHash, ')
           ..write('status: $status, ')
+          ..write('identityDid: $identityDid, ')
+          ..write('type: $type, ')
+          ..write('schema: $schema, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1673,6 +1788,9 @@ typedef $$GroupMembersTableCreateCompanionBuilder = GroupMembersCompanion
   required GroupMembershipType membershipType,
   Value<String?> peerProfileHash,
   required GroupMemberStatus status,
+  required String identityDid,
+  required String type,
+  required String schema,
   required String firstName,
   required String lastName,
   required String email,
@@ -1694,6 +1812,9 @@ typedef $$GroupMembersTableUpdateCompanionBuilder = GroupMembersCompanion
   Value<GroupMembershipType> membershipType,
   Value<String?> peerProfileHash,
   Value<GroupMemberStatus> status,
+  Value<String> identityDid,
+  Value<String> type,
+  Value<String> schema,
   Value<String> firstName,
   Value<String> lastName,
   Value<String> email,
@@ -1768,6 +1889,15 @@ class $$GroupMembersTableFilterComposer
       get status => $composableBuilder(
           column: $table.status,
           builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get identityDid => $composableBuilder(
+      column: $table.identityDid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get schema => $composableBuilder(
+      column: $table.schema, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnFilters(column));
@@ -1852,6 +1982,15 @@ class $$GroupMembersTableOrderingComposer
   ColumnOrderings<int> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get identityDid => $composableBuilder(
+      column: $table.identityDid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get schema => $composableBuilder(
+      column: $table.schema, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnOrderings(column));
 
@@ -1933,6 +2072,15 @@ class $$GroupMembersTableAnnotationComposer
   GeneratedColumnWithTypeConverter<GroupMemberStatus, int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
+  GeneratedColumn<String> get identityDid => $composableBuilder(
+      column: $table.identityDid, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get schema =>
+      $composableBuilder(column: $table.schema, builder: (column) => column);
+
   GeneratedColumn<String> get firstName =>
       $composableBuilder(column: $table.firstName, builder: (column) => column);
 
@@ -2009,6 +2157,9 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             Value<GroupMembershipType> membershipType = const Value.absent(),
             Value<String?> peerProfileHash = const Value.absent(),
             Value<GroupMemberStatus> status = const Value.absent(),
+            Value<String> identityDid = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<String> schema = const Value.absent(),
             Value<String> firstName = const Value.absent(),
             Value<String> lastName = const Value.absent(),
             Value<String> email = const Value.absent(),
@@ -2029,6 +2180,9 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             membershipType: membershipType,
             peerProfileHash: peerProfileHash,
             status: status,
+            identityDid: identityDid,
+            type: type,
+            schema: schema,
             firstName: firstName,
             lastName: lastName,
             email: email,
@@ -2049,6 +2203,9 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             required GroupMembershipType membershipType,
             Value<String?> peerProfileHash = const Value.absent(),
             required GroupMemberStatus status,
+            required String identityDid,
+            required String type,
+            required String schema,
             required String firstName,
             required String lastName,
             required String email,
@@ -2069,6 +2226,9 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             membershipType: membershipType,
             peerProfileHash: peerProfileHash,
             status: status,
+            identityDid: identityDid,
+            type: type,
+            schema: schema,
             firstName: firstName,
             lastName: lastName,
             email: email,

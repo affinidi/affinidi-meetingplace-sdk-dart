@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../entity/contact_card.dart';
+import '../protocol/contact_card.dart';
 
 part 'group_member.g.dart';
 
@@ -34,7 +34,7 @@ class GroupMember {
   factory GroupMember.admin({
     required String did,
     required String publicKey,
-    required ContactCard card,
+    required ContactCard contactCard,
   }) {
     return GroupMember(
       did: did,
@@ -42,7 +42,7 @@ class GroupMember {
       dateAdded: DateTime.now().toUtc(),
       status: GroupMemberStatus.approved,
       membershipType: GroupMembershipType.admin,
-      contactCard: card,
+      contactCard: contactCard,
     );
   }
 
@@ -84,7 +84,7 @@ class GroupMember {
       dateAdded: dateAdded ?? this.dateAdded,
       status: status ?? this.status,
       membershipType: membershipType ?? this.membershipType,
-      contactCard: card ?? this.contactCard,
+      contactCard: card ?? contactCard,
       publicKey: publicKey ?? this.publicKey,
     );
   }

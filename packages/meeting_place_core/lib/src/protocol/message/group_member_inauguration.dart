@@ -2,7 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import '../attachment/attachment_format.dart';
 import '../attachment/attachment_media_type.dart';
 import '../meeting_place_protocol.dart';
-import '../../entity/contact_card.dart';
+import '../contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class GroupMemberInaugurationMember {
@@ -49,7 +49,7 @@ class GroupMemberInauguration extends PlainTextMessage {
                 .map(
                   (m) => {
                     'did': m.did,
-                    'card': m.contactCard.toJson(),
+                    'contactCard': m.contactCard.toJson(),
                     'status': m.status,
                     'publicKey': m.publicKey,
                     'isAdmin': (m.isAdmin()).toString(),
@@ -106,8 +106,8 @@ class GroupMemberInauguration extends PlainTextMessage {
         final memberData = member as Map<String, dynamic>;
         return GroupMemberInaugurationMember(
           did: memberData['did'] as String,
-          contactCard:
-              ContactCard.fromJson(memberData['card'] as Map<String, dynamic>),
+          contactCard: ContactCard.fromJson(
+              memberData['contactCard'] as Map<String, dynamic>),
           status: memberData['status'],
           publicKey: memberData['publicKey'] as String,
           membershipType: memberData['isAdmin'] == 'true' ? 'admin' : 'member',

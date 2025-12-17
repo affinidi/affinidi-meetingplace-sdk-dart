@@ -116,7 +116,7 @@ class ChatHistoryService {
         isFromMe: false,
         dateCreated: DateTime.now().toUtc(),
         status: ChatItemStatus.received,
-        data: {'memberDid': memberDid, 'card': memberCard.toJson()},
+        data: {'memberDid': memberDid, 'contactCard': memberCard.toJson()},
       ),
     );
   }

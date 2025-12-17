@@ -10,7 +10,7 @@ Map<String, dynamic> _$ChatGroupDetailsUpdateBodyMemberToJson(
         ChatGroupDetailsUpdateBodyMember instance) =>
     <String, dynamic>{
       'did': instance.did,
-      'card': instance.card.toJson(),
+      'contactCard': instance.card.toJson(),
       'dateAdded': instance.dateAdded.toIso8601String(),
       'status': instance.status,
       'publicKey': instance.publicKey,

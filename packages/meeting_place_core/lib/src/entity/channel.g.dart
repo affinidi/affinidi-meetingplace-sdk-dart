@@ -12,14 +12,14 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       publishOfferDid: json['publishOfferDid'] as String,
       mediatorDid: json['mediatorDid'] as String,
       status: $enumDecode(_$ChannelStatusEnumMap, json['status']),
-      contactCard: json['card'] == null
+      contactCard: json['contactCard'] == null
           ? null
-          : ContactCard.fromJson(json['card'] as Map<String, dynamic>),
+          : ContactCard.fromJson(json['contactCard'] as Map<String, dynamic>),
       type: $enumDecode(_$ChannelTypeEnumMap, json['type']),
-      otherPartyContactCard: json['otherPartyCard'] == null
+      otherPartyContactCard: json['otherPartyContactCard'] == null
           ? null
           : ContactCard.fromJson(
-              json['otherPartyCard'] as Map<String, dynamic>),
+              json['otherPartyContactCard'] as Map<String, dynamic>),
       outboundMessageId: json['outboundMessageId'] as String?,
       acceptOfferDid: json['acceptOfferDid'] as String?,
       permanentChannelDid: json['permanentChannelDid'] as String?,
@@ -41,9 +41,10 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
       'mediatorDid': instance.mediatorDid,
       'offerLink': instance.offerLink,
       'type': _$ChannelTypeEnumMap[instance.type]!,
-      if (instance.contactCard?.toJson() case final value?) 'card': value,
+      if (instance.contactCard?.toJson() case final value?)
+        'contactCard': value,
       if (instance.otherPartyContactCard?.toJson() case final value?)
-        'otherPartyCard': value,
+        'otherPartyContactCard': value,
       'status': _$ChannelStatusEnumMap[instance.status]!,
       if (instance.outboundMessageId case final value?)
         'outboundMessageId': value,

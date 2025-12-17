@@ -60,7 +60,7 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
         final acceptance = await _connectionService.acceptOffer(
           wallet: wallet,
           connectionOffer: findOfferResult.$1!,
-          card: connection.contactCard,
+          contactCard: connection.contactCard,
         );
 
         logger.info(

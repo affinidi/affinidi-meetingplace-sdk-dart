@@ -231,7 +231,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           groupDid: group.did,
           memberDid: matchingMessage.data['memberDid'] as String,
           memberCard: ContactCard.fromJson(
-            matchingMessage.data['card'] as Map<String, dynamic>,
+            matchingMessage.data['contactCard'] as Map<String, dynamic>,
           ),
         );
 
@@ -492,7 +492,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         conciergeType: ConciergeMessageType.permissionToJoinGroup,
         data: {
           'groupId': group.id,
-          'card': pendingApproval.contactCard.toJson(),
+          'contactCard': pendingApproval.contactCard.toJson(),
           'memberDid': pendingApproval.did,
           'adminDid': group.ownerDid,
           'offerLink': group.offerLink,

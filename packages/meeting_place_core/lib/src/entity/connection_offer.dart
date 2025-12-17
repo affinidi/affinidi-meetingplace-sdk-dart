@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../entity/contact_card.dart';
+import '../protocol/contact_card.dart';
 
 part 'connection_offer.g.dart';
 
@@ -110,7 +110,7 @@ class ConnectionOffer {
       mediatorDid: mediatorDid,
       oobInvitationMessage: oobInvitationMessage,
       type: type,
-      contactCard: card ?? this.contactCard,
+      contactCard: card ?? contactCard,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:

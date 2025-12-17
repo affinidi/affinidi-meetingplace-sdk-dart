@@ -62,6 +62,8 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           membershipType: member.membershipType,
           status: member.status,
           identityDid: contactCard.did,
+          type: contactCard.type,
+          schema: contactCard.schema,
           firstName: contactCard.firstName,
           lastName: contactCard.lastName,
           email: contactCard.email,
@@ -196,6 +198,8 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           membershipType: member.membershipType,
           status: member.status,
           identityDid: contactCard.did,
+          type: contactCard.type,
+          schema: contactCard.schema,
           firstName: contactCard.firstName,
           lastName: contactCard.lastName,
           email: contactCard.email,
@@ -247,19 +251,19 @@ class _GroupMemberMapper {
   static model.ContactCard _makeContactCardFromDb(db.GroupMember groupMember) {
     final card = model.ContactCard(
       did: groupMember.identityDid,
-      type: 'individual',
-      schema:
-          'https://schema.affinidi.com/schemas/v1/contact-card.json', // TODO: where to define schema?
-      contactInfo: {
-        'firstName': groupMember.firstName,
-        'lastName': groupMember.lastName,
-        'email': groupMember.email,
-        'mobile': groupMember.mobile,
-        'profilePic': groupMember.profilePic,
-        'meetingplaceIdentityCardColor':
-            groupMember.meetingplaceIdentityCardColor
-      },
+      type: groupMember.type,
+      schema: groupMember.schema,
+      contactInfo: {},
     );
+
+    card.firstName = groupMember.firstName;
+    card.lastName = groupMember.lastName;
+    card.email = groupMember.email;
+    card.mobile = groupMember.mobile;
+    card.profilePic = groupMember.profilePic;
+    card.meetingplaceIdentityCardColor =
+        groupMember.meetingplaceIdentityCardColor;
+
     return card;
   }
 }

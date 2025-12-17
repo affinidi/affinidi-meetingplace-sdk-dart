@@ -24,7 +24,7 @@ import '../utils/string.dart';
 import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
 import 'package:uuid/uuid.dart';
 import '../entity/group.dart';
-import '../entity/contact_card.dart' as core;
+import '../protocol/contact_card.dart' as core;
 import '../entity/group_connection_offer.dart';
 import '../entity/group_member.dart';
 import 'group/group_message.dart' as group_message;
@@ -154,7 +154,7 @@ class GroupService {
         GroupMember.admin(
           did: ownerDidDocument.id,
           publicKey: recryptKeyPair.publicKeyToBase64(),
-          card: card,
+          contactCard: card,
         ),
       ],
     );
@@ -256,7 +256,6 @@ class GroupService {
     required Wallet wallet,
     required GroupConnectionOffer connectionOffer,
     required core.ContactCard card,
-    String? did,
     String? externalRef,
   }) async {
     final methodName = 'acceptGroupOffer';
@@ -277,9 +276,8 @@ class GroupService {
       name: methodName,
     );
 
-    final permanentChannelDidManager = did != null
-        ? await _connectionManager.getDidManagerForDid(wallet, did)
-        : await _connectionManager.generateDid(wallet);
+    final permanentChannelDidManager =
+        await _connectionManager.generateDid(wallet);
 
     final permanentChannelDidDocument =
         await permanentChannelDidManager.getDidDocument();

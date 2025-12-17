@@ -1162,6 +1162,21 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
       requiredDuringInsert: true,
       $customConstraints:
           'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL');
+  static const VerificationMeta _didMeta = const VerificationMeta('did');
+  @override
+  late final GeneratedColumn<String> did = GeneratedColumn<String>(
+      'did', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _schemaMeta = const VerificationMeta('schema');
+  @override
+  late final GeneratedColumn<String> schema = GeneratedColumn<String>(
+      'schema', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _firstNameMeta =
       const VerificationMeta('firstName');
   @override
@@ -1201,6 +1216,9 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
   List<GeneratedColumn> get $columns => [
         id,
         connectionOfferId,
+        did,
+        type,
+        schema,
         firstName,
         lastName,
         email,
@@ -1229,6 +1247,24 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
               data['connection_offer_id']!, _connectionOfferIdMeta));
     } else if (isInserting) {
       context.missing(_connectionOfferIdMeta);
+    }
+    if (data.containsKey('did')) {
+      context.handle(
+          _didMeta, did.isAcceptableOrUnknown(data['did']!, _didMeta));
+    } else if (isInserting) {
+      context.missing(_didMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('schema')) {
+      context.handle(_schemaMeta,
+          schema.isAcceptableOrUnknown(data['schema']!, _schemaMeta));
+    } else if (isInserting) {
+      context.missing(_schemaMeta);
     }
     if (data.containsKey('first_name')) {
       context.handle(_firstNameMeta,
@@ -1284,6 +1320,12 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       connectionOfferId: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}connection_offer_id'])!,
+      did: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      schema: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}schema'])!,
       firstName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}first_name'])!,
       lastName: attachedDatabase.typeMapping
@@ -1311,17 +1353,15 @@ class ConnectionContactCard extends DataClass
   /// Auto-incrementing ID for the contact card.
   final int id;
 
-  /// The decentralized identifier (DID) of the contact.
-  final String did;
-
-  /// The type of the contact card.
-  final String type;
-
-  /// The schema of the contact card.
-  final String schema;
-
   /// The connection offer ID this contact card is associated with.
   final String connectionOfferId;
+
+  /// DID of the contact.
+  final String did;
+
+  /// Type of the contact.
+  final String type;
+  final String schema;
 
   /// First name of the contact.
   final String firstName;
@@ -1342,9 +1382,10 @@ class ConnectionContactCard extends DataClass
   final String meetingplaceIdentityCardColor;
   const ConnectionContactCard(
       {required this.id,
+      required this.connectionOfferId,
       required this.did,
       required this.type,
-      required this.connectionOfferId,
+      required this.schema,
       required this.firstName,
       required this.lastName,
       required this.email,
@@ -1356,6 +1397,9 @@ class ConnectionContactCard extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['connection_offer_id'] = Variable<String>(connectionOfferId);
+    map['did'] = Variable<String>(did);
+    map['type'] = Variable<String>(type);
+    map['schema'] = Variable<String>(schema);
     map['first_name'] = Variable<String>(firstName);
     map['last_name'] = Variable<String>(lastName);
     map['email'] = Variable<String>(email);
@@ -1370,6 +1414,9 @@ class ConnectionContactCard extends DataClass
     return ConnectionContactCardsCompanion(
       id: Value(id),
       connectionOfferId: Value(connectionOfferId),
+      did: Value(did),
+      type: Value(type),
+      schema: Value(schema),
       firstName: Value(firstName),
       lastName: Value(lastName),
       email: Value(email),
@@ -1385,6 +1432,9 @@ class ConnectionContactCard extends DataClass
     return ConnectionContactCard(
       id: serializer.fromJson<int>(json['id']),
       connectionOfferId: serializer.fromJson<String>(json['connectionOfferId']),
+      did: serializer.fromJson<String>(json['did']),
+      type: serializer.fromJson<String>(json['type']),
+      schema: serializer.fromJson<String>(json['schema']),
       firstName: serializer.fromJson<String>(json['firstName']),
       lastName: serializer.fromJson<String>(json['lastName']),
       email: serializer.fromJson<String>(json['email']),
@@ -1400,6 +1450,9 @@ class ConnectionContactCard extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'connectionOfferId': serializer.toJson<String>(connectionOfferId),
+      'did': serializer.toJson<String>(did),
+      'type': serializer.toJson<String>(type),
+      'schema': serializer.toJson<String>(schema),
       'firstName': serializer.toJson<String>(firstName),
       'lastName': serializer.toJson<String>(lastName),
       'email': serializer.toJson<String>(email),
@@ -1413,6 +1466,9 @@ class ConnectionContactCard extends DataClass
   ConnectionContactCard copyWith(
           {int? id,
           String? connectionOfferId,
+          String? did,
+          String? type,
+          String? schema,
           String? firstName,
           String? lastName,
           String? email,
@@ -1422,6 +1478,9 @@ class ConnectionContactCard extends DataClass
       ConnectionContactCard(
         id: id ?? this.id,
         connectionOfferId: connectionOfferId ?? this.connectionOfferId,
+        did: did ?? this.did,
+        type: type ?? this.type,
+        schema: schema ?? this.schema,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         email: email ?? this.email,
@@ -1437,6 +1496,9 @@ class ConnectionContactCard extends DataClass
       connectionOfferId: data.connectionOfferId.present
           ? data.connectionOfferId.value
           : this.connectionOfferId,
+      did: data.did.present ? data.did.value : this.did,
+      type: data.type.present ? data.type.value : this.type,
+      schema: data.schema.present ? data.schema.value : this.schema,
       firstName: data.firstName.present ? data.firstName.value : this.firstName,
       lastName: data.lastName.present ? data.lastName.value : this.lastName,
       email: data.email.present ? data.email.value : this.email,
@@ -1454,6 +1516,9 @@ class ConnectionContactCard extends DataClass
     return (StringBuffer('ConnectionContactCard(')
           ..write('id: $id, ')
           ..write('connectionOfferId: $connectionOfferId, ')
+          ..write('did: $did, ')
+          ..write('type: $type, ')
+          ..write('schema: $schema, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1466,14 +1531,27 @@ class ConnectionContactCard extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, connectionOfferId, firstName, lastName,
-      email, mobile, profilePic, meetingplaceIdentityCardColor);
+  int get hashCode => Object.hash(
+      id,
+      connectionOfferId,
+      did,
+      type,
+      schema,
+      firstName,
+      lastName,
+      email,
+      mobile,
+      profilePic,
+      meetingplaceIdentityCardColor);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ConnectionContactCard &&
           other.id == this.id &&
           other.connectionOfferId == this.connectionOfferId &&
+          other.did == this.did &&
+          other.type == this.type &&
+          other.schema == this.schema &&
           other.firstName == this.firstName &&
           other.lastName == this.lastName &&
           other.email == this.email &&
@@ -1487,6 +1565,9 @@ class ConnectionContactCardsCompanion
     extends UpdateCompanion<ConnectionContactCard> {
   final Value<int> id;
   final Value<String> connectionOfferId;
+  final Value<String> did;
+  final Value<String> type;
+  final Value<String> schema;
   final Value<String> firstName;
   final Value<String> lastName;
   final Value<String> email;
@@ -1496,6 +1577,9 @@ class ConnectionContactCardsCompanion
   const ConnectionContactCardsCompanion({
     this.id = const Value.absent(),
     this.connectionOfferId = const Value.absent(),
+    this.did = const Value.absent(),
+    this.type = const Value.absent(),
+    this.schema = const Value.absent(),
     this.firstName = const Value.absent(),
     this.lastName = const Value.absent(),
     this.email = const Value.absent(),
@@ -1506,6 +1590,9 @@ class ConnectionContactCardsCompanion
   ConnectionContactCardsCompanion.insert({
     this.id = const Value.absent(),
     required String connectionOfferId,
+    required String did,
+    required String type,
+    required String schema,
     required String firstName,
     required String lastName,
     required String email,
@@ -1513,6 +1600,9 @@ class ConnectionContactCardsCompanion
     required String profilePic,
     required String meetingplaceIdentityCardColor,
   })  : connectionOfferId = Value(connectionOfferId),
+        did = Value(did),
+        type = Value(type),
+        schema = Value(schema),
         firstName = Value(firstName),
         lastName = Value(lastName),
         email = Value(email),
@@ -1522,6 +1612,9 @@ class ConnectionContactCardsCompanion
   static Insertable<ConnectionContactCard> custom({
     Expression<int>? id,
     Expression<String>? connectionOfferId,
+    Expression<String>? did,
+    Expression<String>? type,
+    Expression<String>? schema,
     Expression<String>? firstName,
     Expression<String>? lastName,
     Expression<String>? email,
@@ -1532,6 +1625,9 @@ class ConnectionContactCardsCompanion
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (connectionOfferId != null) 'connection_offer_id': connectionOfferId,
+      if (did != null) 'did': did,
+      if (type != null) 'type': type,
+      if (schema != null) 'schema': schema,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,
@@ -1545,6 +1641,9 @@ class ConnectionContactCardsCompanion
   ConnectionContactCardsCompanion copyWith(
       {Value<int>? id,
       Value<String>? connectionOfferId,
+      Value<String>? did,
+      Value<String>? type,
+      Value<String>? schema,
       Value<String>? firstName,
       Value<String>? lastName,
       Value<String>? email,
@@ -1554,6 +1653,9 @@ class ConnectionContactCardsCompanion
     return ConnectionContactCardsCompanion(
       id: id ?? this.id,
       connectionOfferId: connectionOfferId ?? this.connectionOfferId,
+      did: did ?? this.did,
+      type: type ?? this.type,
+      schema: schema ?? this.schema,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -1572,6 +1674,15 @@ class ConnectionContactCardsCompanion
     }
     if (connectionOfferId.present) {
       map['connection_offer_id'] = Variable<String>(connectionOfferId.value);
+    }
+    if (did.present) {
+      map['did'] = Variable<String>(did.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (schema.present) {
+      map['schema'] = Variable<String>(schema.value);
     }
     if (firstName.present) {
       map['first_name'] = Variable<String>(firstName.value);
@@ -1600,6 +1711,9 @@ class ConnectionContactCardsCompanion
     return (StringBuffer('ConnectionContactCardsCompanion(')
           ..write('id: $id, ')
           ..write('connectionOfferId: $connectionOfferId, ')
+          ..write('did: $did, ')
+          ..write('type: $type, ')
+          ..write('schema: $schema, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -2672,6 +2786,9 @@ typedef $$ConnectionContactCardsTableCreateCompanionBuilder
     = ConnectionContactCardsCompanion Function({
   Value<int> id,
   required String connectionOfferId,
+  required String did,
+  required String type,
+  required String schema,
   required String firstName,
   required String lastName,
   required String email,
@@ -2683,6 +2800,9 @@ typedef $$ConnectionContactCardsTableUpdateCompanionBuilder
     = ConnectionContactCardsCompanion Function({
   Value<int> id,
   Value<String> connectionOfferId,
+  Value<String> did,
+  Value<String> type,
+  Value<String> schema,
   Value<String> firstName,
   Value<String> lastName,
   Value<String> email,
@@ -2727,6 +2847,15 @@ class $$ConnectionContactCardsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get did => $composableBuilder(
+      column: $table.did, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get schema => $composableBuilder(
+      column: $table.schema, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnFilters(column));
@@ -2780,6 +2909,15 @@ class $$ConnectionContactCardsTableOrderingComposer
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get did => $composableBuilder(
+      column: $table.did, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get schema => $composableBuilder(
+      column: $table.schema, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnOrderings(column));
 
@@ -2832,6 +2970,15 @@ class $$ConnectionContactCardsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get did =>
+      $composableBuilder(column: $table.did, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get schema =>
+      $composableBuilder(column: $table.schema, builder: (column) => column);
 
   GeneratedColumn<String> get firstName =>
       $composableBuilder(column: $table.firstName, builder: (column) => column);
@@ -2903,6 +3050,9 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> connectionOfferId = const Value.absent(),
+            Value<String> did = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<String> schema = const Value.absent(),
             Value<String> firstName = const Value.absent(),
             Value<String> lastName = const Value.absent(),
             Value<String> email = const Value.absent(),
@@ -2913,6 +3063,9 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
               ConnectionContactCardsCompanion(
             id: id,
             connectionOfferId: connectionOfferId,
+            did: did,
+            type: type,
+            schema: schema,
             firstName: firstName,
             lastName: lastName,
             email: email,
@@ -2923,6 +3076,9 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String connectionOfferId,
+            required String did,
+            required String type,
+            required String schema,
             required String firstName,
             required String lastName,
             required String email,
@@ -2933,6 +3089,9 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
               ConnectionContactCardsCompanion.insert(
             id: id,
             connectionOfferId: connectionOfferId,
+            did: did,
+            type: type,
+            schema: schema,
             firstName: firstName,
             lastName: lastName,
             email: email,

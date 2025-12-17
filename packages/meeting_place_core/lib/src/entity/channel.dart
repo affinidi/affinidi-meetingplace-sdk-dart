@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:uuid/uuid.dart';
 
-import 'entity.dart';
+import '../../meeting_place_core.dart';
 
 part 'channel.g.dart';
 
@@ -39,7 +39,7 @@ class Channel {
     ConnectionOffer connectionOffer, {
     required String permanentChannelDid,
     required String acceptOfferDid,
-    required ContactCard card,
+    required ContactCard contactCard,
     required String? externalRef,
   }) {
     return Channel(
@@ -50,7 +50,7 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,
-      contactCard: card,
+      contactCard: contactCard,
       otherPartyContactCard: connectionOffer.contactCard,
       externalRef: externalRef,
     );

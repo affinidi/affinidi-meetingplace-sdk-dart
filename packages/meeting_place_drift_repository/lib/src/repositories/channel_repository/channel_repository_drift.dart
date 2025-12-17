@@ -197,6 +197,9 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
     await _database.into(_database.channelContactCards).insert(
           db.ChannelContactCardsCompanion(
             channelId: Value(channelId),
+            did: Value(card.did),
+            type: Value(card.type),
+            schema: Value(card.schema),
             firstName: Value(card.firstName),
             lastName: Value(card.lastName),
             email: Value(card.email),
@@ -226,6 +229,9 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             ))
           .write(
         db.ChannelContactCardsCompanion(
+          did: Value(card.did),
+          type: Value(card.type),
+          schema: Value(card.schema),
           firstName: Value(card.firstName),
           lastName: Value(card.lastName),
           email: Value(card.email),
@@ -256,10 +262,11 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   Future<model.Channel?> _getChannelByPredicate(
     Expression<bool> predicate,
   ) async {
-    final myCard = _database.alias(_database.channelContactCards, 'card');
-    final otherCard = _database.alias(
+    final myCard =
+        _database.alias(_database.channelContactCards, 'contactCard');
+    final otherPartyContactCard = _database.alias(
       _database.channelContactCards,
-      'otherCard',
+      'otherPartyContactCard',
     );
 
     final query = _database.select(_database.channels).join([
@@ -269,9 +276,10 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             myCard.cardType.equals(db.ContactCardType.mine.value),
       ),
       leftOuterJoin(
-        otherCard,
-        otherCard.channelId.equalsExp(_database.channels.id) &
-            otherCard.cardType.equals(db.ContactCardType.other.value),
+        otherPartyContactCard,
+        otherPartyContactCard.channelId.equalsExp(_database.channels.id) &
+            otherPartyContactCard.cardType
+                .equals(db.ContactCardType.other.value),
       ),
     ])
       ..where(predicate);
@@ -282,7 +290,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
     return _ChannelMapper.fromDatabaseRecords(
       results.readTable(_database.channels),
       results.readTableOrNull(myCard),
-      results.readTableOrNull(otherCard),
+      results.readTableOrNull(otherPartyContactCard),
     );
   }
 
@@ -329,19 +337,21 @@ class _ChannelMapper {
   ) {
     if (contactCard == null) return null;
 
-    return model.ContactCard(
+    final card = model.ContactCard(
       did: contactCard.did,
       type: contactCard.type,
       schema: contactCard.schema,
-      contactInfo: {
-        'firstName': contactCard.firstName,
-        'lastName': contactCard.lastName,
-        'email': contactCard.email,
-        'mobile': contactCard.mobile,
-        'profilePic': contactCard.profilePic,
-        'meetingplaceIdentityCardColor':
-            contactCard.meetingplaceIdentityCardColor
-      },
+      contactInfo: {},
     );
+
+    card.firstName = contactCard.firstName;
+    card.lastName = contactCard.lastName;
+    card.email = contactCard.email;
+    card.mobile = contactCard.mobile;
+    card.profilePic = contactCard.profilePic;
+    card.meetingplaceIdentityCardColor =
+        contactCard.meetingplaceIdentityCardColor;
+
+    return card;
   }
 }

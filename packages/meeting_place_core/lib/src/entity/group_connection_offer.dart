@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../entity/contact_card.dart';
+import '../protocol/contact_card.dart';
 
 import 'connection_offer.dart';
 
@@ -80,7 +80,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       oobInvitationMessage: oobInvitationMessage,
       maximumUsage: maximumUsage ?? this.maximumUsage,
       type: type,
-      contactCard: card ?? this.contactCard,
+      contactCard: card ?? contactCard,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:

@@ -6,7 +6,6 @@ import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
 import '../utils/attachment.dart';
-import '../entity/contact_card.dart' as core;
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 import 'exceptions/invitation_accepted_group_exception.dart';

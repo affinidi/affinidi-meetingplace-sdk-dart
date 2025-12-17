@@ -710,7 +710,7 @@ class MeetingPlaceCoreSDK {
       permanentChannelDidDocument: didDoc,
       invitationMessage: invitationMessage,
       mediatorDid: actualMediatorDid,
-      acceptCard: contactCard,
+      acceptContactCard: contactCard,
     );
 
     await _repositoryConfig.channelRepository.createChannel(channel);
@@ -926,11 +926,8 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [ConnectionOffer] - Connection offer object.
   ///
-  /// - [contactCard] - A ContactCard that contains information about who is
+  /// - [contactCard] - A [ContactCard that contains information about who is
   ///   accepting the offer. This helps the offeree to know who accepted it.
-  ///
-  /// - [senderInfo] - Value to be shown in notification message to the other
-  ///   party.
   ///
   /// - [externalRef] - Application-specific data that is passed through to
   ///   internal entities, such as connection offers and channels, and can be
@@ -943,7 +940,6 @@ class MeetingPlaceCoreSDK {
   Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
     required T connectionOffer,
     required ContactCard contactCard,
-    String? did,
     String? externalRef,
   }) async {
     return _withSdkExceptionHandling(() async {
@@ -952,7 +948,6 @@ class MeetingPlaceCoreSDK {
           wallet: wallet,
           connectionOffer: connectionOffer,
           card: contactCard,
-          did: did,
           externalRef: externalRef,
         );
 
@@ -966,9 +961,7 @@ class MeetingPlaceCoreSDK {
       final result = await _connectionService.acceptOffer(
         wallet: wallet,
         connectionOffer: connectionOffer,
-        card: contactCard,
-        did: did,
-        senderInfoOverride: contactCard.senderInfo,
+        contactCard: contactCard,
         externalRef: externalRef,
       );
 
@@ -995,20 +988,15 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// - [channel] - DID of member requesting membership
-  /// - [did] - Optional DID to use for the permanent channel. If omitted,
-  ///   a new DID will be generated.
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({
-    required Channel channel,
-    String? did,
-  }) async {
+  Future<Channel> approveConnectionRequest({required Channel channel}) async {
     return _withSdkExceptionHandling(() async {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
-              wallet: wallet, channel: channel, did: did);
+              wallet: wallet, channel: channel);
     });
   }
 

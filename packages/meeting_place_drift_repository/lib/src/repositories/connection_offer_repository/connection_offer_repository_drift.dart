@@ -202,6 +202,9 @@ class ConnectionOfferRepositoryDrift
       await _database.into(_database.connectionContactCards).insert(
             db.ConnectionContactCardsCompanion(
               connectionOfferId: Value(connectionOfferId),
+              did: Value(card.did),
+              type: Value(card.type),
+              schema: Value(card.schema),
               firstName: Value(card.firstName),
               lastName: Value(card.lastName),
               email: Value(card.email),
@@ -307,6 +310,9 @@ class ConnectionOfferRepositoryDrift
             ))
           .write(
         db.ConnectionContactCardsCompanion(
+          did: Value(card.did),
+          type: Value(card.type),
+          schema: Value(card.schema),
           firstName: Value(card.firstName),
           lastName: Value(card.lastName),
           email: Value(card.email),
@@ -353,19 +359,18 @@ class _ConnectionOfferMapper {
     db.ConnectionContactCard contactCard,
   ) {
     final card = model.ContactCard(
-      did: contactCard.did,
-      type: contactCard.type,
-      schema: contactCard.schema,
-      contactInfo: {
-        'firstName': contactCard.firstName,
-        'lastName': contactCard.lastName,
-        'email': contactCard.email,
-        'mobile': contactCard.mobile,
-        'profilePic': contactCard.profilePic,
-        'meetingplaceIdentityCardColor':
-            contactCard.meetingplaceIdentityCardColor
-      },
-    );
+        did: contactCard.did,
+        type: contactCard.type,
+        schema: contactCard.schema,
+        contactInfo: {});
+
+    card.firstName = contactCard.firstName;
+    card.lastName = contactCard.lastName;
+    card.email = contactCard.email;
+    card.mobile = contactCard.mobile;
+    card.profilePic = contactCard.profilePic;
+    card.meetingplaceIdentityCardColor =
+        contactCard.meetingplaceIdentityCardColor;
 
     if (groupConnectionOffer != null) {
       return model.GroupConnectionOffer(

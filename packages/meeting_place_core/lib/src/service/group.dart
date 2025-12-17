@@ -362,11 +362,8 @@ class GroupService {
         name: methodName,
       );
 
-      final derivedSenderInfo = _deriveSenderInfoFromContactCard(card);
-
       unawaited(_notifyAcceptance(
         connectionOffer: acceptedConnectionOffer,
-        senderInfo: derivedSenderInfo,
       ).catchError((error, stackTrace) {
         _logger.error('Failed to notify acceptance',
             error: error, stackTrace: stackTrace, name: methodName);
@@ -386,10 +383,6 @@ class GroupService {
       );
       rethrow;
     }
-  }
-
-  String _deriveSenderInfoFromContactCard(core.ContactCard card) {
-    return card.senderInfo;
   }
 
   Future<Group> _createOrUpdateGroup({
@@ -543,7 +536,6 @@ class GroupService {
 
   Future<void> _notifyAcceptance({
     required ConnectionOffer connectionOffer,
-    required String senderInfo,
   }) async {
     final methodName = 'notifyAcceptance';
     _logger.info(
@@ -564,7 +556,7 @@ class GroupService {
         mnemonic: connectionOffer.mnemonic,
         acceptOfferDid: connectionOffer.acceptOfferDid!,
         offerLink: connectionOffer.offerLink,
-        senderInfo: senderInfo,
+        senderInfo: connectionOffer.contactCard.senderInfo,
       ),
     );
     _logger.info(

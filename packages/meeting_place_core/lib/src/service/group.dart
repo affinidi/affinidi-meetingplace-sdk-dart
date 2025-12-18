@@ -9,6 +9,7 @@ import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
 import 'connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
@@ -122,7 +123,7 @@ class GroupService {
         offerDescription: offerDescription,
         vCard: VCardImpl(values: vCard.values),
         device: _controlPlaneSDK.device,
-        oobInvitationMessage: oobMessage,
+        oobInvitationMessage: oobMessage.toPlainTextMessage(),
         validUntil: validUntil,
         maximumUsage: maximumUsage,
         customPhrase: customPhrase,
@@ -502,17 +503,17 @@ class GroupService {
       ),
     );
 
-    final connectionSetupMessage = ConnectionSetupGroup.create(
+    final invitationAcceptanceMessage = InvitationAcceptanceGroup.create(
       from: senderDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
-      permanentChannelDid: permanentChannelDidDocument.id,
-      memberPublicKey: groupMemberPublicKey,
+      channelDid: permanentChannelDidDocument.id,
+      publicKey: groupMemberPublicKey,
       vCard: vCard,
     );
 
     await _mediatorSDK.sendMessage(
-      connectionSetupMessage,
+      invitationAcceptanceMessage.toPlainTextMessage(),
       senderDidManager: senderDid,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
@@ -624,11 +625,6 @@ class GroupService {
       groupId: group.id,
       adminDids: [group.ownerDid!],
       groupPublicKey: group.publicKey!,
-      vCard: VCard(
-        values: {
-          'n': {'given': connectionOffer.offerName},
-        },
-      ),
       members: group.members
           .where((member) => member.status == GroupMemberStatus.approved)
           .map(
@@ -641,10 +637,15 @@ class GroupService {
             ),
           )
           .toList(),
+      vCard: VCard(
+        values: {
+          'n': {'given': connectionOffer.offerName},
+        },
+      ),
     );
 
     await _mediatorSDK.sendMessage(
-      groupMemberInauguration,
+      groupMemberInauguration.toPlainTextMessage(),
       senderDidManager: senderDid,
       recipientDidDocument: memberDidDocument,
       mediatorDid: channel.mediatorDid,
@@ -897,7 +898,7 @@ class GroupService {
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupDelete.create(groupId: group.id),
+      GroupDeletion.create(groupId: group.id).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),
@@ -916,7 +917,10 @@ class GroupService {
     required String memberDid,
   }) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupMemberDeregistered.create(groupId: group.id, memberDid: memberDid),
+      GroupMemberDeregistration.create(
+        groupId: group.id,
+        memberDid: memberDid,
+      ).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
       ).point.toBytes(),
@@ -940,7 +944,7 @@ class GroupService {
           'ciphertext': base64.encode(message.ciphertextBytes),
           'capsule': message.capsule.toBase64(),
           'iv': base64.encode(message.initializationVector),
-          'authenticationTag': base64.encode(message.authenticationTag),
+          'authentication_tag': base64.encode(message.authenticationTag),
         }),
       ),
     );

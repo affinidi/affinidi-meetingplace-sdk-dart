@@ -203,7 +203,7 @@ class ConnectionService {
         type: type == ConnectionOfferType.meetingPlaceOutreachInvitation
             ? OfferType.outreachInvitation
             : OfferType.invitation,
-        oobInvitationMessage: oobMessage,
+        oobInvitationMessage: oobMessage.toPlainTextMessage(),
         vCard: VCardImpl(values: vCard.values),
         device: _controlPlaneSDK.device,
         customPhrase: customPhrase,
@@ -313,7 +313,7 @@ class ConnectionService {
     await sendAcceptOfferToMediator(
       acceptOfferDid: acceptOfferDidManager,
       permanentChannelDidDocument: permanentChannelDidDocument,
-      invitationMessage: invitationMessage,
+      invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: result.mediatorDid,
       acceptVCard: vCard,
     );
@@ -421,16 +421,16 @@ class ConnectionService {
       ),
     );
 
-    final connectionSetupMessage = ConnectionSetup.create(
+    final invitationAcceptanceMessage = InvitationAcceptance.create(
       from: acceptOfferDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
-      permanentChannelDid: permanentChannelDidDocument.id,
+      channelDid: permanentChannelDidDocument.id,
       vCard: acceptVCard,
     );
 
     await _mediatorSDK.sendMessage(
-      connectionSetupMessage,
+      invitationAcceptanceMessage.toPlainTextMessage(),
       senderDidManager: acceptOfferDid,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
@@ -584,11 +584,11 @@ class ConnectionService {
       ),
     );
 
-    final connectionInvitationAcceptedMessage = ConnectionAccepted.create(
+    final connectionApprovalMwssage = ConnectionRequestApproval.create(
       from: offerPublishedDidDocument.id,
       to: [otherPartyAcceptOfferDid],
       parentThreadId: outboundMessageId,
-      permanentChannelDid: permanentChannelDidDocument.id,
+      channelDid: permanentChannelDidDocument.id,
       vCard: vCard,
     );
 
@@ -597,7 +597,7 @@ class ConnectionService {
     );
 
     await _mediatorSDK.sendMessage(
-      connectionInvitationAcceptedMessage,
+      connectionApprovalMwssage.toPlainTextMessage(),
       senderDidManager: offerPublishedDid,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,

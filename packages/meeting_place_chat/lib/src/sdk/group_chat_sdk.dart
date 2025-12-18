@@ -165,7 +165,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Send group chat activity', name: methodName);
 
     await coreSDK.sendGroupMessage(
-      ChatActivity.create(from: did, to: [otherPartyDid]),
+      ChatActivity.create(from: did, to: [otherPartyDid]).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
       notify: false,
@@ -240,7 +240,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     if (message.type.toString() ==
-        MeetingPlaceProtocol.groupMemberDeregistered.value) {
+        MeetingPlaceProtocol.groupMemberDeregistration.value) {
       logger.info(
         'Handling message for group member deregistered',
         name: methodName,
@@ -265,7 +265,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ).handle(group: group, message: message, chatId: chatId);
     }
 
-    if (message.type.toString() == MeetingPlaceProtocol.groupDeleted.value) {
+    if (message.type.toString() == MeetingPlaceProtocol.groupDeletion.value) {
       logger.info(
         'Handling message for group deleted for group ${group.id}',
         name: methodName,
@@ -290,7 +290,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         ' ${message.from?.topAndTail()}',
         name: methodName,
       );
-      final profileHash = message.body?['profileHash'];
+      final profileHash = message.body?['profile_hash'];
       if (profileHash != null && profileHash is String) {
         final member = group.members.firstWhere(
           (member) => member.did == message.from!,
@@ -304,7 +304,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
               from: did,
               to: [message.from!],
               profileHash: profileHash,
-            ),
+            ).toPlainTextMessage(),
             senderDid: did,
             recipientDid: message.from!,
             mediatorDid: mediatorDid,
@@ -374,7 +374,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         status: ChatItemStatus.userInput,
         conciergeType: ConciergeMessageType.permissionToUpdateProfile,
         data: {
-          'profileHash': message.body?['profileHash'],
+          'profileHash': message.body?['profile_hash'],
           'replyTo': message.from!,
         },
       );
@@ -600,7 +600,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           from: did,
           to: [group.ownerDid!],
           profileHash: vCard!.toHash(),
-        ),
+        ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: group.ownerDid!,
         mediatorDid: mediatorDid,
@@ -720,7 +720,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
             from: did,
             to: [message.data['replyTo'] as String],
             profileDetails: vCard!.toJson(),
-          ),
+          ).toPlainTextMessage(),
           senderDid: did,
           recipientDid: message.data['replyTo'] as String,
           mediatorDid: mediatorDid,
@@ -745,7 +745,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Started sending chat group details update', name: methodName);
     unawaited(
       sendMessage(
-        ChatGroupDetailsUpdate.fromGroup(group, senderDid: did),
+        ChatGroupDetailsUpdate.fromGroup(group, senderDid: did)
+            .toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,

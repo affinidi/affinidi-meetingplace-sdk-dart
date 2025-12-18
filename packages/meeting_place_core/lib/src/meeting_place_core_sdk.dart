@@ -22,7 +22,7 @@ import 'loggers/default_meeting_place_core_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
 import 'loggers/meeting_place_core_sdk_logger.dart';
 import 'meeting_place_core_sdk_options.dart';
-import 'messages/utils.dart';
+import 'utils/attachment.dart';
 import 'protocol/protocol.dart';
 import 'repository/repository.dart';
 import 'sdk/connection_offer_type.dart';
@@ -477,7 +477,7 @@ class MeetingPlaceCoreSDK {
 
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
     final result = await _controlPlaneSDK.execute(
-      CreateOobCommand(oobInvitationMessage: oobMessage),
+      CreateOobCommand(oobInvitationMessage: oobMessage.toPlainTextMessage()),
     );
 
     final streamSubscription = await _mediatorService.subscribe(
@@ -496,7 +496,7 @@ class MeetingPlaceCoreSDK {
       final plainTextMessage = message.plainTextMessage;
 
       if (plainTextMessage.type.toString() ==
-          MeetingPlaceProtocol.connectionSetup.value) {
+          MeetingPlaceProtocol.invitationAcceptance.value) {
         final otherPartyVcard = getVCardDataOrEmptyFromAttachments(
           plainTextMessage.attachments,
         );
@@ -608,7 +608,8 @@ class MeetingPlaceCoreSDK {
 
       invitationMessage = OobInvitationMessage.fromBase64(
         oobInfo.invitationMessage,
-      );
+      ).toPlainTextMessage();
+
       actualMediatorDid = oobInfo.mediatorDid;
     } catch (e, stackTrace) {
       _logger.error(
@@ -655,7 +656,7 @@ class MeetingPlaceCoreSDK {
       final plainTextMessage = message.plainTextMessage;
 
       if (plainTextMessage.type.toString() ==
-              MeetingPlaceProtocol.connectionAccepted.value &&
+              MeetingPlaceProtocol.connectionRequestApproval.value &&
           plainTextMessage.parentThreadId == invitationMessage.id) {
         final otherPartyPermanentChannelDid =
             plainTextMessage.body!['channel_did'];

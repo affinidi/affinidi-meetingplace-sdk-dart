@@ -383,13 +383,13 @@ void main() async {
 
     expect(actual, isNotNull);
     expect(
-      actual!.plainTextMessage.body?['memberDid'],
+      actual!.plainTextMessage.body?['member_did'],
       acceptResult.connectionOffer.permanentChannelDid!,
     );
 
     // assert group information
-    expect(actual.plainTextMessage.body?['groupDid'], group!.did);
-    expect(actual.plainTextMessage.body?['groupPublicKey'], group.publicKey);
+    expect(actual.plainTextMessage.body?['group_did'], group!.did);
+    expect(actual.plainTextMessage.body?['group_public_key'], group.publicKey);
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,

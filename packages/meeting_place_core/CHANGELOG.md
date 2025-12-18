@@ -1,3 +1,8 @@
+## 0.0.1-dev.16
+
+ - **FIX**: handle notify-channel error gracefully (#36).
+ - **FIX**: add expectedMessageWrappingTypes to MeetingPlaceCoreSDKOptions (#35).
+
 ## 0.0.1-dev.15
 
  - **FIX**: handle notification errors when sending messages (#32).

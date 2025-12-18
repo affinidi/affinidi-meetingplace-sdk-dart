@@ -7,11 +7,12 @@ part of 'query_offer404_response.dart';
 // **************************************************************************
 
 const QueryOffer404ResponseNameEnum
-    _$queryOffer404ResponseNameEnum_expiredAcceptanceError =
+_$queryOffer404ResponseNameEnum_expiredAcceptanceError =
     const QueryOffer404ResponseNameEnum._('expiredAcceptanceError');
 
 QueryOffer404ResponseNameEnum _$queryOffer404ResponseNameEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'expiredAcceptanceError':
       return _$queryOffer404ResponseNameEnum_expiredAcceptanceError;
@@ -21,17 +22,19 @@ QueryOffer404ResponseNameEnum _$queryOffer404ResponseNameEnumValueOf(
 }
 
 final BuiltSet<QueryOffer404ResponseNameEnum>
-    _$queryOffer404ResponseNameEnumValues = BuiltSet<
-        QueryOffer404ResponseNameEnum>(const <QueryOffer404ResponseNameEnum>[
-  _$queryOffer404ResponseNameEnum_expiredAcceptanceError,
-]);
+_$queryOffer404ResponseNameEnumValues = BuiltSet<QueryOffer404ResponseNameEnum>(
+  const <QueryOffer404ResponseNameEnum>[
+    _$queryOffer404ResponseNameEnum_expiredAcceptanceError,
+  ],
+);
 
 const QueryOffer404ResponseMessageEnum
-    _$queryOffer404ResponseMessageEnum_theAcceptanceHasExpired =
+_$queryOffer404ResponseMessageEnum_theAcceptanceHasExpired =
     const QueryOffer404ResponseMessageEnum._('theAcceptanceHasExpired');
 
 QueryOffer404ResponseMessageEnum _$queryOffer404ResponseMessageEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'theAcceptanceHasExpired':
       return _$queryOffer404ResponseMessageEnum_theAcceptanceHasExpired;
@@ -41,17 +44,19 @@ QueryOffer404ResponseMessageEnum _$queryOffer404ResponseMessageEnumValueOf(
 }
 
 final BuiltSet<QueryOffer404ResponseMessageEnum>
-    _$queryOffer404ResponseMessageEnumValues = BuiltSet<
-        QueryOffer404ResponseMessageEnum>(const <QueryOffer404ResponseMessageEnum>[
-  _$queryOffer404ResponseMessageEnum_theAcceptanceHasExpired,
-]);
+_$queryOffer404ResponseMessageEnumValues =
+    BuiltSet<QueryOffer404ResponseMessageEnum>(
+      const <QueryOffer404ResponseMessageEnum>[
+        _$queryOffer404ResponseMessageEnum_theAcceptanceHasExpired,
+      ],
+    );
 
 const QueryOffer404ResponseHttpStatusCodeEnum
-    _$queryOffer404ResponseHttpStatusCodeEnum_number404 =
+_$queryOffer404ResponseHttpStatusCodeEnum_number404 =
     const QueryOffer404ResponseHttpStatusCodeEnum._('number404');
 
 QueryOffer404ResponseHttpStatusCodeEnum
-    _$queryOffer404ResponseHttpStatusCodeEnumValueOf(String name) {
+_$queryOffer404ResponseHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$queryOffer404ResponseHttpStatusCodeEnum_number404;
@@ -61,19 +66,21 @@ QueryOffer404ResponseHttpStatusCodeEnum
 }
 
 final BuiltSet<QueryOffer404ResponseHttpStatusCodeEnum>
-    _$queryOffer404ResponseHttpStatusCodeEnumValues = BuiltSet<
-        QueryOffer404ResponseHttpStatusCodeEnum>(const <QueryOffer404ResponseHttpStatusCodeEnum>[
-  _$queryOffer404ResponseHttpStatusCodeEnum_number404,
-]);
+_$queryOffer404ResponseHttpStatusCodeEnumValues =
+    BuiltSet<QueryOffer404ResponseHttpStatusCodeEnum>(
+      const <QueryOffer404ResponseHttpStatusCodeEnum>[
+        _$queryOffer404ResponseHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<QueryOffer404ResponseNameEnum>
-    _$queryOffer404ResponseNameEnumSerializer =
+_$queryOffer404ResponseNameEnumSerializer =
     _$QueryOffer404ResponseNameEnumSerializer();
 Serializer<QueryOffer404ResponseMessageEnum>
-    _$queryOffer404ResponseMessageEnumSerializer =
+_$queryOffer404ResponseMessageEnumSerializer =
     _$QueryOffer404ResponseMessageEnumSerializer();
 Serializer<QueryOffer404ResponseHttpStatusCodeEnum>
-    _$queryOffer404ResponseHttpStatusCodeEnumSerializer =
+_$queryOffer404ResponseHttpStatusCodeEnumSerializer =
     _$QueryOffer404ResponseHttpStatusCodeEnumSerializer();
 
 class _$QueryOffer404ResponseNameEnumSerializer
@@ -92,16 +99,19 @@ class _$QueryOffer404ResponseNameEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, QueryOffer404ResponseNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    QueryOffer404ResponseNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   QueryOffer404ResponseNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      QueryOffer404ResponseNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => QueryOffer404ResponseNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$QueryOffer404ResponseMessageEnumSerializer
@@ -120,16 +130,19 @@ class _$QueryOffer404ResponseMessageEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, QueryOffer404ResponseMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    QueryOffer404ResponseMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   QueryOffer404ResponseMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      QueryOffer404ResponseMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => QueryOffer404ResponseMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$QueryOffer404ResponseHttpStatusCodeEnumSerializer
@@ -143,38 +156,41 @@ class _$QueryOffer404ResponseHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    QueryOffer404ResponseHttpStatusCodeEnum
+    QueryOffer404ResponseHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'QueryOffer404ResponseHttpStatusCodeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          QueryOffer404ResponseHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    QueryOffer404ResponseHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   QueryOffer404ResponseHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      QueryOffer404ResponseHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => QueryOffer404ResponseHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$QueryOffer404Response extends QueryOffer404Response {
   @override
   final OneOf oneOf;
 
-  factory _$QueryOffer404Response(
-          [void Function(QueryOffer404ResponseBuilder)? updates]) =>
-      (QueryOffer404ResponseBuilder()..update(updates))._build();
+  factory _$QueryOffer404Response([
+    void Function(QueryOffer404ResponseBuilder)? updates,
+  ]) => (QueryOffer404ResponseBuilder()..update(updates))._build();
 
   _$QueryOffer404Response._({required this.oneOf}) : super._();
   @override
   QueryOffer404Response rebuild(
-          void Function(QueryOffer404ResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(QueryOffer404ResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   QueryOffer404ResponseBuilder toBuilder() =>
@@ -196,9 +212,9 @@ class _$QueryOffer404Response extends QueryOffer404Response {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'QueryOffer404Response')
-          ..add('oneOf', oneOf))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'QueryOffer404Response',
+    )..add('oneOf', oneOf)).toString();
   }
 }
 
@@ -237,10 +253,14 @@ class QueryOffer404ResponseBuilder
   QueryOffer404Response build() => _build();
 
   _$QueryOffer404Response _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$QueryOffer404Response._(
           oneOf: BuiltValueNullFieldError.checkNotNull(
-              oneOf, r'QueryOffer404Response', 'oneOf'),
+            oneOf,
+            r'QueryOffer404Response',
+            'oneOf',
+          ),
         );
     replace(_$result);
     return _$result;

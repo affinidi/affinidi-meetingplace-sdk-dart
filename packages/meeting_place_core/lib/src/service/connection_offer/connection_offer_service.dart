@@ -6,8 +6,8 @@ class ConnectionOfferService {
   ConnectionOfferService({
     required ConnectionOfferRepository connectionOfferRepository,
     required ChannelRepository channelRepository,
-  })  : _connectionOfferRepository = connectionOfferRepository,
-        _channelRepository = channelRepository;
+  }) : _connectionOfferRepository = connectionOfferRepository,
+       _channelRepository = channelRepository;
   final ConnectionOfferRepository _connectionOfferRepository;
   final ChannelRepository _channelRepository;
 
@@ -32,8 +32,9 @@ class ConnectionOfferService {
       return;
     }
 
-    final channel =
-        await _channelRepository.findChannelByDid(permanentChannelDid);
+    final channel = await _channelRepository.findChannelByDid(
+      permanentChannelDid,
+    );
 
     if (channel?.isGroup == true && channel?.isInaugurated == true) {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();

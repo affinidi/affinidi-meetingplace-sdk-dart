@@ -37,7 +37,8 @@ class ChatGroupDetailsUpdate {
   }
 
   factory ChatGroupDetailsUpdate.fromPlainTextMessage(
-      PlainTextMessage message) {
+    PlainTextMessage message,
+  ) {
     return ChatGroupDetailsUpdate(
       id: message.id,
       from: message.from!,

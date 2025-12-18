@@ -32,11 +32,7 @@ class ContactCardImpl implements ContactCard {
 
   @override
   Map<String, dynamic> toJson() {
-    return {
-      'did': did,
-      'type': type,
-      'contactInfo': contactInfo,
-    };
+    return {'did': did, 'type': type, 'contactInfo': contactInfo};
   }
 
   @override

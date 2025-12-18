@@ -7,13 +7,9 @@ part of 'chat_alias_profile_hash_body.dart';
 // **************************************************************************
 
 ChatAliasProfileHashBody _$ChatAliasProfileHashBodyFromJson(
-        Map<String, dynamic> json) =>
-    ChatAliasProfileHashBody(
-      profileHash: json['profile_hash'] as String,
-    );
+  Map<String, dynamic> json,
+) => ChatAliasProfileHashBody(profileHash: json['profile_hash'] as String);
 
 Map<String, dynamic> _$ChatAliasProfileHashBodyToJson(
-        ChatAliasProfileHashBody instance) =>
-    <String, dynamic>{
-      'profile_hash': instance.profileHash,
-    };
+  ChatAliasProfileHashBody instance,
+) => <String, dynamic>{'profile_hash': instance.profileHash};

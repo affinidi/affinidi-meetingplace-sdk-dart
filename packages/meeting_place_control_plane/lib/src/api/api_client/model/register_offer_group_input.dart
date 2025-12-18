@@ -108,9 +108,9 @@ abstract class RegisterOfferGroupInput
 
   RegisterOfferGroupInput._();
 
-  factory RegisterOfferGroupInput(
-          [void updates(RegisterOfferGroupInputBuilder b)]) =
-      _$RegisterOfferGroupInput;
+  factory RegisterOfferGroupInput([
+    void updates(RegisterOfferGroupInputBuilder b),
+  ]) = _$RegisterOfferGroupInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(RegisterOfferGroupInputBuilder b) => b;
@@ -125,7 +125,7 @@ class _$RegisterOfferGroupInputSerializer
   @override
   final Iterable<Type> types = const [
     RegisterOfferGroupInput,
-    _$RegisterOfferGroupInput
+    _$RegisterOfferGroupInput,
   ];
 
   @override
@@ -244,9 +244,11 @@ class _$RegisterOfferGroupInputSerializer
     RegisterOfferGroupInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -262,130 +264,164 @@ class _$RegisterOfferGroupInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'offerName':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerName = valueDes;
           break;
         case r'offerDescription':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerDescription = valueDes;
           break;
         case r'didcommMessage':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.didcommMessage = valueDes;
           break;
         case r'contactCard':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.contactCard = valueDes;
           break;
         case r'validUntil':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.validUntil = valueDes;
           break;
         case r'maximumUsage':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(int),
-          ) as int;
+          final valueDes =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int;
           result.maximumUsage = valueDes;
           break;
         case r'deviceToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceToken = valueDes;
           break;
         case r'platformType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType:
-                const FullType(RegisterOfferGroupInputPlatformTypeEnum),
-          ) as RegisterOfferGroupInputPlatformTypeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      RegisterOfferGroupInputPlatformTypeEnum,
+                    ),
+                  )
+                  as RegisterOfferGroupInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
         case r'mediatorDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mediatorDid = valueDes;
           break;
         case r'mediatorEndpoint':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mediatorEndpoint = valueDes;
           break;
         case r'mediatorWSSEndpoint':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mediatorWSSEndpoint = valueDes;
           break;
         case r'customPhrase':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.customPhrase = valueDes;
           break;
         case r'isSearchable':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(bool),
-          ) as bool;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool;
           result.isSearchable = valueDes;
           break;
         case r'metadata':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.metadata = valueDes;
           break;
         case r'adminReencryptionKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.adminReencryptionKey = valueDes;
           break;
         case r'adminDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.adminDid = valueDes;
           break;
         case r'adminPublicKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.adminPublicKey = valueDes;
           break;
         case r'memberContactCard':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.memberContactCard = valueDes;
           break;
         default:

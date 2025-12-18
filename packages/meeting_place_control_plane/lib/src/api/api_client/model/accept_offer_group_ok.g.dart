@@ -30,27 +30,27 @@ class _$AcceptOfferGroupOK extends AcceptOfferGroupOK {
   @override
   final String mediatorWSSEndpoint;
 
-  factory _$AcceptOfferGroupOK(
-          [void Function(AcceptOfferGroupOKBuilder)? updates]) =>
-      (AcceptOfferGroupOKBuilder()..update(updates))._build();
+  factory _$AcceptOfferGroupOK([
+    void Function(AcceptOfferGroupOKBuilder)? updates,
+  ]) => (AcceptOfferGroupOKBuilder()..update(updates))._build();
 
-  _$AcceptOfferGroupOK._(
-      {this.status,
-      this.message,
-      required this.didcommMessage,
-      required this.offerLink,
-      required this.name,
-      required this.description,
-      this.validUntil,
-      required this.contactCard,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint})
-      : super._();
+  _$AcceptOfferGroupOK._({
+    this.status,
+    this.message,
+    required this.didcommMessage,
+    required this.offerLink,
+    required this.name,
+    required this.description,
+    this.validUntil,
+    required this.contactCard,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+  }) : super._();
   @override
   AcceptOfferGroupOK rebuild(
-          void Function(AcceptOfferGroupOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(AcceptOfferGroupOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   AcceptOfferGroupOKBuilder toBuilder() =>
@@ -197,29 +197,52 @@ class AcceptOfferGroupOKBuilder
   AcceptOfferGroupOK build() => _build();
 
   _$AcceptOfferGroupOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$AcceptOfferGroupOK._(
           status: status,
           message: message,
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'AcceptOfferGroupOK', 'didcommMessage'),
+            didcommMessage,
+            r'AcceptOfferGroupOK',
+            'didcommMessage',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'AcceptOfferGroupOK', 'offerLink'),
+            offerLink,
+            r'AcceptOfferGroupOK',
+            'offerLink',
+          ),
           name: BuiltValueNullFieldError.checkNotNull(
-              name, r'AcceptOfferGroupOK', 'name'),
+            name,
+            r'AcceptOfferGroupOK',
+            'name',
+          ),
           description: BuiltValueNullFieldError.checkNotNull(
-              description, r'AcceptOfferGroupOK', 'description'),
+            description,
+            r'AcceptOfferGroupOK',
+            'description',
+          ),
           validUntil: validUntil,
           contactCard: BuiltValueNullFieldError.checkNotNull(
-              contactCard, r'AcceptOfferGroupOK', 'contactCard'),
+            contactCard,
+            r'AcceptOfferGroupOK',
+            'contactCard',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'AcceptOfferGroupOK', 'mediatorDid'),
+            mediatorDid,
+            r'AcceptOfferGroupOK',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'AcceptOfferGroupOK', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'AcceptOfferGroupOK',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint,
-              r'AcceptOfferGroupOK',
-              'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'AcceptOfferGroupOK',
+            'mediatorWSSEndpoint',
+          ),
         );
     replace(_$result);
     return _$result;

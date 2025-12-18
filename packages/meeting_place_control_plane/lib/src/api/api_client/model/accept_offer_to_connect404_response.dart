@@ -26,8 +26,10 @@ part 'accept_offer_to_connect404_response.g.dart';
 @BuiltValue()
 abstract class AcceptOfferToConnect404Response
     implements
-        Built<AcceptOfferToConnect404Response,
-            AcceptOfferToConnect404ResponseBuilder> {
+        Built<
+          AcceptOfferToConnect404Response,
+          AcceptOfferToConnect404ResponseBuilder
+        > {
   /// One Of [InvalidAcceptanceError], [InvalidOfferError], [OfferLimitExceededError]
   OneOf get oneOf;
 
@@ -90,8 +92,9 @@ class _$AcceptOfferToConnect404ResponseSerializer
       FullType(InvalidAcceptanceError),
     ]);
     oneOfDataSrc = serialized;
-    result.oneOf = serializers.deserialize(oneOfDataSrc,
-        specifiedType: targetType) as OneOf;
+    result.oneOf =
+        serializers.deserialize(oneOfDataSrc, specifiedType: targetType)
+            as OneOf;
     return result.build();
   }
 }
@@ -117,11 +120,11 @@ class AcceptOfferToConnect404ResponseMessageEnum extends EnumClass {
     wireName: r'No valid acceptance found that matches the details provided.',
   )
   static const AcceptOfferToConnect404ResponseMessageEnum
-      noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
+  noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
       _$acceptOfferToConnect404ResponseMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod;
 
   static Serializer<AcceptOfferToConnect404ResponseMessageEnum>
-      get serializer => _$acceptOfferToConnect404ResponseMessageEnumSerializer;
+  get serializer => _$acceptOfferToConnect404ResponseMessageEnumSerializer;
 
   const AcceptOfferToConnect404ResponseMessageEnum._(String name) : super(name);
 
@@ -137,16 +140,15 @@ class AcceptOfferToConnect404ResponseHttpStatusCodeEnum extends EnumClass {
       _$acceptOfferToConnect404ResponseHttpStatusCodeEnum_number404;
 
   static Serializer<AcceptOfferToConnect404ResponseHttpStatusCodeEnum>
-      get serializer =>
-          _$acceptOfferToConnect404ResponseHttpStatusCodeEnumSerializer;
+  get serializer =>
+      _$acceptOfferToConnect404ResponseHttpStatusCodeEnumSerializer;
 
   const AcceptOfferToConnect404ResponseHttpStatusCodeEnum._(String name)
-      : super(name);
+    : super(name);
 
   static BuiltSet<AcceptOfferToConnect404ResponseHttpStatusCodeEnum>
-      get values => _$acceptOfferToConnect404ResponseHttpStatusCodeEnumValues;
+  get values => _$acceptOfferToConnect404ResponseHttpStatusCodeEnumValues;
   static AcceptOfferToConnect404ResponseHttpStatusCodeEnum valueOf(
     String name,
-  ) =>
-      _$acceptOfferToConnect404ResponseHttpStatusCodeEnumValueOf(name);
+  ) => _$acceptOfferToConnect404ResponseHttpStatusCodeEnumValueOf(name);
 }

@@ -20,9 +20,10 @@ class ContactCardFixture {
     return ContactCard(
       did: did ?? 'did:test:default',
       type: 'human',
-      contactInfo: contactInfo ??
+      contactInfo:
+          contactInfo ??
           {
-            'n': {'given': 'Default'}
+            'n': {'given': 'Default'},
           },
     );
   }

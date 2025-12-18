@@ -7,18 +7,19 @@ part of 'delete_pending_notifications_input.dart';
 // **************************************************************************
 
 const DeletePendingNotificationsInputPlatformTypeEnum
-    _$deletePendingNotificationsInputPlatformTypeEnum_DIDCOMM =
+_$deletePendingNotificationsInputPlatformTypeEnum_DIDCOMM =
     const DeletePendingNotificationsInputPlatformTypeEnum._('DIDCOMM');
 const DeletePendingNotificationsInputPlatformTypeEnum
-    _$deletePendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$deletePendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const DeletePendingNotificationsInputPlatformTypeEnum._(
-        'PUSH_NOTIFICATION');
+      'PUSH_NOTIFICATION',
+    );
 const DeletePendingNotificationsInputPlatformTypeEnum
-    _$deletePendingNotificationsInputPlatformTypeEnum_NONE =
+_$deletePendingNotificationsInputPlatformTypeEnum_NONE =
     const DeletePendingNotificationsInputPlatformTypeEnum._('NONE');
 
 DeletePendingNotificationsInputPlatformTypeEnum
-    _$deletePendingNotificationsInputPlatformTypeEnumValueOf(String name) {
+_$deletePendingNotificationsInputPlatformTypeEnumValueOf(String name) {
   switch (name) {
     case 'DIDCOMM':
       return _$deletePendingNotificationsInputPlatformTypeEnum_DIDCOMM;
@@ -32,15 +33,17 @@ DeletePendingNotificationsInputPlatformTypeEnum
 }
 
 final BuiltSet<DeletePendingNotificationsInputPlatformTypeEnum>
-    _$deletePendingNotificationsInputPlatformTypeEnumValues = BuiltSet<
-        DeletePendingNotificationsInputPlatformTypeEnum>(const <DeletePendingNotificationsInputPlatformTypeEnum>[
-  _$deletePendingNotificationsInputPlatformTypeEnum_DIDCOMM,
-  _$deletePendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$deletePendingNotificationsInputPlatformTypeEnum_NONE,
-]);
+_$deletePendingNotificationsInputPlatformTypeEnumValues =
+    BuiltSet<DeletePendingNotificationsInputPlatformTypeEnum>(
+      const <DeletePendingNotificationsInputPlatformTypeEnum>[
+        _$deletePendingNotificationsInputPlatformTypeEnum_DIDCOMM,
+        _$deletePendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$deletePendingNotificationsInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<DeletePendingNotificationsInputPlatformTypeEnum>
-    _$deletePendingNotificationsInputPlatformTypeEnumSerializer =
+_$deletePendingNotificationsInputPlatformTypeEnumSerializer =
     _$DeletePendingNotificationsInputPlatformTypeEnumSerializer();
 
 class _$DeletePendingNotificationsInputPlatformTypeEnumSerializer
@@ -59,23 +62,26 @@ class _$DeletePendingNotificationsInputPlatformTypeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    DeletePendingNotificationsInputPlatformTypeEnum
+    DeletePendingNotificationsInputPlatformTypeEnum,
   ];
   @override
   final String wireName = 'DeletePendingNotificationsInputPlatformTypeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          DeletePendingNotificationsInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    DeletePendingNotificationsInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   DeletePendingNotificationsInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      DeletePendingNotificationsInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => DeletePendingNotificationsInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$DeletePendingNotificationsInput
@@ -87,19 +93,19 @@ class _$DeletePendingNotificationsInput
   @override
   final DeletePendingNotificationsInputPlatformTypeEnum platformType;
 
-  factory _$DeletePendingNotificationsInput(
-          [void Function(DeletePendingNotificationsInputBuilder)? updates]) =>
-      (DeletePendingNotificationsInputBuilder()..update(updates))._build();
+  factory _$DeletePendingNotificationsInput([
+    void Function(DeletePendingNotificationsInputBuilder)? updates,
+  ]) => (DeletePendingNotificationsInputBuilder()..update(updates))._build();
 
-  _$DeletePendingNotificationsInput._(
-      {required this.notificationIds,
-      required this.deviceToken,
-      required this.platformType})
-      : super._();
+  _$DeletePendingNotificationsInput._({
+    required this.notificationIds,
+    required this.deviceToken,
+    required this.platformType,
+  }) : super._();
   @override
   DeletePendingNotificationsInput rebuild(
-          void Function(DeletePendingNotificationsInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DeletePendingNotificationsInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DeletePendingNotificationsInputBuilder toBuilder() =>
@@ -136,8 +142,10 @@ class _$DeletePendingNotificationsInput
 
 class DeletePendingNotificationsInputBuilder
     implements
-        Builder<DeletePendingNotificationsInput,
-            DeletePendingNotificationsInputBuilder> {
+        Builder<
+          DeletePendingNotificationsInput,
+          DeletePendingNotificationsInputBuilder
+        > {
   _$DeletePendingNotificationsInput? _$v;
 
   ListBuilder<String>? _notificationIds;
@@ -154,8 +162,8 @@ class DeletePendingNotificationsInputBuilder
   DeletePendingNotificationsInputPlatformTypeEnum? get platformType =>
       _$this._platformType;
   set platformType(
-          DeletePendingNotificationsInputPlatformTypeEnum? platformType) =>
-      _$this._platformType = platformType;
+    DeletePendingNotificationsInputPlatformTypeEnum? platformType,
+  ) => _$this._platformType = platformType;
 
   DeletePendingNotificationsInputBuilder() {
     DeletePendingNotificationsInput._defaults(this);
@@ -188,13 +196,20 @@ class DeletePendingNotificationsInputBuilder
   _$DeletePendingNotificationsInput _build() {
     _$DeletePendingNotificationsInput _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$DeletePendingNotificationsInput._(
             notificationIds: notificationIds.build(),
             deviceToken: BuiltValueNullFieldError.checkNotNull(
-                deviceToken, r'DeletePendingNotificationsInput', 'deviceToken'),
-            platformType: BuiltValueNullFieldError.checkNotNull(platformType,
-                r'DeletePendingNotificationsInput', 'platformType'),
+              deviceToken,
+              r'DeletePendingNotificationsInput',
+              'deviceToken',
+            ),
+            platformType: BuiltValueNullFieldError.checkNotNull(
+              platformType,
+              r'DeletePendingNotificationsInput',
+              'platformType',
+            ),
           );
     } catch (_) {
       late String _$failedField;
@@ -203,7 +218,10 @@ class DeletePendingNotificationsInputBuilder
         notificationIds.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'DeletePendingNotificationsInput', _$failedField, e.toString());
+          r'DeletePendingNotificationsInput',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

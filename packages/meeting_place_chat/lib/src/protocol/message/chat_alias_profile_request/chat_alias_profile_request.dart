@@ -19,7 +19,8 @@ class ChatAliasProfileRequest {
   }
 
   factory ChatAliasProfileRequest.fromPlainTextMessage(
-      PlainTextMessage message) {
+    PlainTextMessage message,
+  ) {
     return ChatAliasProfileRequest(
       id: message.id,
       from: message.from!,

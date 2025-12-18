@@ -33,8 +33,9 @@ void main() async {
     bobChannelRepository = initChannelRepository();
     charlieChannelRepository = initChannelRepository();
 
-    aliceSDK =
-        await initCoreSDKInstance(channelRepository: aliceChannelRepository);
+    aliceSDK = await initCoreSDKInstance(
+      channelRepository: aliceChannelRepository,
+    );
 
     bobSDK = await initCoreSDKInstance(channelRepository: bobChannelRepository);
 
@@ -133,7 +134,8 @@ void main() async {
     final receivedMessageIds = <String>[];
     await bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        final isChatMessage = message.plainTextMessage?.type.toString() ==
+        final isChatMessage =
+            message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatMessage.value;
 
         if (isChatMessage &&
@@ -154,8 +156,9 @@ void main() async {
       stream!.listen((message) {
         if (message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatDelivered.value) {
-          final removed =
-              messageIds.remove(message.plainTextMessage?.body!['messages'][0]);
+          final removed = messageIds.remove(
+            message.plainTextMessage?.body!['messages'][0],
+          );
           if (messageIds.isEmpty && removed) {
             aliceCompleter.complete();
           }
@@ -261,7 +264,8 @@ void main() async {
     await bobChatSDK.chatStreamSubscription.then(
       (stream) => {
         stream!.listen((data) {
-          final isChatMessage = data.plainTextMessage?.type.toString() ==
+          final isChatMessage =
+              data.plainTextMessage?.type.toString() ==
               ChatProtocol.chatMessage.value;
 
           if (isChatMessage && !completer.isCompleted) {
@@ -515,9 +519,11 @@ void main() async {
       await newBobChatSDK.sendProfileHash();
       await bobProfileRequestCompleter.future;
 
-      final conciergeMessage = (await newBobChatSDK.messages).firstWhere(
-        (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
-      ) as ConciergeMessage;
+      final conciergeMessage =
+          (await newBobChatSDK.messages).firstWhere(
+                (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
+              )
+              as ConciergeMessage;
 
       expect(conciergeMessage.isFromMe, false);
       expect(conciergeMessage.chatId, bobChat.id);
@@ -595,9 +601,11 @@ void main() async {
     await newBobChatSDK.sendProfileHash();
     await bobProfileRequestCompleter.future;
 
-    final conciergeMessage = (await newBobChatSDK.messages).firstWhere(
-      (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
-    ) as ConciergeMessage;
+    final conciergeMessage =
+        (await newBobChatSDK.messages).firstWhere(
+              (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
+            )
+            as ConciergeMessage;
 
     final aliceChatCompleter = Completer<void>();
 
@@ -646,8 +654,9 @@ void main() async {
         if (data.plainTextMessage?.type.toString() ==
                 ChatProtocol.chatMessage.value &&
             message.messageId == data.plainTextMessage?.id) {
-          bobWaitForAttachments
-              .complete(data.plainTextMessage?.attachments ?? []);
+          bobWaitForAttachments.complete(
+            data.plainTextMessage?.attachments ?? [],
+          );
         }
       });
     });

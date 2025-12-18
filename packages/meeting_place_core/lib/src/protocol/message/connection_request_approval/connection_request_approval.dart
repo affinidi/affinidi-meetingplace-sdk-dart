@@ -25,7 +25,8 @@ class ConnectionRequestApproval {
   }
 
   factory ConnectionRequestApproval.fromPlainTextMessage(
-      PlainTextMessage message) {
+    PlainTextMessage message,
+  ) {
     ContactCard? contactCard;
     if (message.attachments != null && message.attachments!.isNotEmpty) {
       final base64 = message.attachments!.first.data?.base64;

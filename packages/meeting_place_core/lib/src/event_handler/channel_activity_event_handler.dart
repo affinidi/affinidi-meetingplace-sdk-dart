@@ -19,13 +19,13 @@ class ChannelActivityEventHandler {
     required ConnectionOfferRepository connectionOfferRepository,
     required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
-  })  : _wallet = wallet,
-        _connectionManager = connectionManager,
-        _channelRepository = channelRepository,
-        _connectionOfferRepository = connectionOfferRepository,
-        _mediatorService = mediatorService,
-        _options = options,
-        _logger = logger;
+  }) : _wallet = wallet,
+       _connectionManager = connectionManager,
+       _channelRepository = channelRepository,
+       _connectionOfferRepository = connectionOfferRepository,
+       _mediatorService = mediatorService,
+       _options = options,
+       _logger = logger;
 
   final Wallet _wallet;
   final MediatorService _mediatorService;

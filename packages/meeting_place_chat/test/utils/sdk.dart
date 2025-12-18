@@ -76,7 +76,8 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
       card: card,
       mediatorDid: getMediatorDid(),
       chatRepository: ChatRepositoryImpl(storage: storage),
-      options: options ??
+      options:
+          options ??
           ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
     ),
   );
@@ -114,17 +115,17 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
       mediatorDid: getMediatorDid(),
       card: card,
       chatRepository: ChatRepositoryImpl(storage: storage),
-      options:
-          ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
+      options: ChatSDKOptions(
+        chatPresenceSendInterval: const Duration(seconds: 3),
+      ),
     ),
   );
 }
 
 String getControlPlaneDid() =>
-    'did:web:juice-sunday.meetingplace.dev.affinidi.io';
-// Platform.environment['CONTROL_PLANE_DID'] ??
-// (throw Exception('CONTROL_PLANE_DID not set in environment'));
+    Platform.environment['CONTROL_PLANE_DID'] ??
+    (throw Exception('CONTROL_PLANE_DID not set in environment'));
 
-String getMediatorDid() => 'did:web:euw1.mediator.affinidi.io:.well-known';
-    // Platform.environment['MEDIATOR_DID'] ??
-    // (throw Exception('MEDIATOR_DID not set in environment'));
+String getMediatorDid() =>
+    Platform.environment['MEDIATOR_DID'] ??
+    (throw Exception('MEDIATOR_DID not set in environment'));

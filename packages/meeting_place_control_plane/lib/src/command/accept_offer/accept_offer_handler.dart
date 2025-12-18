@@ -22,12 +22,10 @@ class AcceptOfferHandler
   ///
   /// **Parameters:**
   /// - [apiClient] - An instance of control plane api client object.
-  AcceptOfferHandler({
-    required this.apiClient,
-    ControlPlaneSDKLogger? logger,
-  }) : _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  AcceptOfferHandler({required this.apiClient, ControlPlaneSDKLogger? logger})
+    : _logger =
+          logger ??
+          DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
   static const String _className = 'AcceptOfferHandler';
 
   final ControlPlaneApiClient apiClient;

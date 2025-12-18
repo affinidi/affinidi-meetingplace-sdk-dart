@@ -7,20 +7,21 @@ part of 'register_offer_input.dart';
 // **************************************************************************
 
 const RegisterOfferInputOfferTypeEnum
-    _$registerOfferInputOfferTypeEnum_number1 =
+_$registerOfferInputOfferTypeEnum_number1 =
     const RegisterOfferInputOfferTypeEnum._('number1');
 const RegisterOfferInputOfferTypeEnum
-    _$registerOfferInputOfferTypeEnum_number2 =
+_$registerOfferInputOfferTypeEnum_number2 =
     const RegisterOfferInputOfferTypeEnum._('number2');
 const RegisterOfferInputOfferTypeEnum
-    _$registerOfferInputOfferTypeEnum_number3 =
+_$registerOfferInputOfferTypeEnum_number3 =
     const RegisterOfferInputOfferTypeEnum._('number3');
 const RegisterOfferInputOfferTypeEnum
-    _$registerOfferInputOfferTypeEnum_number4 =
+_$registerOfferInputOfferTypeEnum_number4 =
     const RegisterOfferInputOfferTypeEnum._('number4');
 
 RegisterOfferInputOfferTypeEnum _$registerOfferInputOfferTypeEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'number1':
       return _$registerOfferInputOfferTypeEnum_number1;
@@ -36,26 +37,29 @@ RegisterOfferInputOfferTypeEnum _$registerOfferInputOfferTypeEnumValueOf(
 }
 
 final BuiltSet<RegisterOfferInputOfferTypeEnum>
-    _$registerOfferInputOfferTypeEnumValues = BuiltSet<
-        RegisterOfferInputOfferTypeEnum>(const <RegisterOfferInputOfferTypeEnum>[
-  _$registerOfferInputOfferTypeEnum_number1,
-  _$registerOfferInputOfferTypeEnum_number2,
-  _$registerOfferInputOfferTypeEnum_number3,
-  _$registerOfferInputOfferTypeEnum_number4,
-]);
+_$registerOfferInputOfferTypeEnumValues =
+    BuiltSet<RegisterOfferInputOfferTypeEnum>(
+      const <RegisterOfferInputOfferTypeEnum>[
+        _$registerOfferInputOfferTypeEnum_number1,
+        _$registerOfferInputOfferTypeEnum_number2,
+        _$registerOfferInputOfferTypeEnum_number3,
+        _$registerOfferInputOfferTypeEnum_number4,
+      ],
+    );
 
 const RegisterOfferInputPlatformTypeEnum
-    _$registerOfferInputPlatformTypeEnum_DIDCOMM =
+_$registerOfferInputPlatformTypeEnum_DIDCOMM =
     const RegisterOfferInputPlatformTypeEnum._('DIDCOMM');
 const RegisterOfferInputPlatformTypeEnum
-    _$registerOfferInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$registerOfferInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const RegisterOfferInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const RegisterOfferInputPlatformTypeEnum
-    _$registerOfferInputPlatformTypeEnum_NONE =
+_$registerOfferInputPlatformTypeEnum_NONE =
     const RegisterOfferInputPlatformTypeEnum._('NONE');
 
 RegisterOfferInputPlatformTypeEnum _$registerOfferInputPlatformTypeEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'DIDCOMM':
       return _$registerOfferInputPlatformTypeEnum_DIDCOMM;
@@ -69,18 +73,20 @@ RegisterOfferInputPlatformTypeEnum _$registerOfferInputPlatformTypeEnumValueOf(
 }
 
 final BuiltSet<RegisterOfferInputPlatformTypeEnum>
-    _$registerOfferInputPlatformTypeEnumValues = BuiltSet<
-        RegisterOfferInputPlatformTypeEnum>(const <RegisterOfferInputPlatformTypeEnum>[
-  _$registerOfferInputPlatformTypeEnum_DIDCOMM,
-  _$registerOfferInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$registerOfferInputPlatformTypeEnum_NONE,
-]);
+_$registerOfferInputPlatformTypeEnumValues =
+    BuiltSet<RegisterOfferInputPlatformTypeEnum>(
+      const <RegisterOfferInputPlatformTypeEnum>[
+        _$registerOfferInputPlatformTypeEnum_DIDCOMM,
+        _$registerOfferInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$registerOfferInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<RegisterOfferInputOfferTypeEnum>
-    _$registerOfferInputOfferTypeEnumSerializer =
+_$registerOfferInputOfferTypeEnumSerializer =
     _$RegisterOfferInputOfferTypeEnumSerializer();
 Serializer<RegisterOfferInputPlatformTypeEnum>
-    _$registerOfferInputPlatformTypeEnumSerializer =
+_$registerOfferInputPlatformTypeEnumSerializer =
     _$RegisterOfferInputPlatformTypeEnumSerializer();
 
 class _$RegisterOfferInputOfferTypeEnumSerializer
@@ -105,16 +111,19 @@ class _$RegisterOfferInputOfferTypeEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, RegisterOfferInputOfferTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    RegisterOfferInputOfferTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   RegisterOfferInputOfferTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      RegisterOfferInputOfferTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => RegisterOfferInputOfferTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$RegisterOfferInputPlatformTypeEnumSerializer
@@ -137,16 +146,19 @@ class _$RegisterOfferInputPlatformTypeEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, RegisterOfferInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    RegisterOfferInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   RegisterOfferInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      RegisterOfferInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => RegisterOfferInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$RegisterOfferInput extends RegisterOfferInput {
@@ -183,32 +195,32 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   @override
   final String? metadata;
 
-  factory _$RegisterOfferInput(
-          [void Function(RegisterOfferInputBuilder)? updates]) =>
-      (RegisterOfferInputBuilder()..update(updates))._build();
+  factory _$RegisterOfferInput([
+    void Function(RegisterOfferInputBuilder)? updates,
+  ]) => (RegisterOfferInputBuilder()..update(updates))._build();
 
-  _$RegisterOfferInput._(
-      {required this.offerName,
-      this.offerDescription,
-      this.offerType,
-      required this.didcommMessage,
-      required this.contactCard,
-      this.validUntil,
-      this.maximumUsage,
-      required this.deviceToken,
-      required this.platformType,
-      required this.contactAttributes,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint,
-      this.customPhrase,
-      this.isSearchable,
-      this.metadata})
-      : super._();
+  _$RegisterOfferInput._({
+    required this.offerName,
+    this.offerDescription,
+    this.offerType,
+    required this.didcommMessage,
+    required this.contactCard,
+    this.validUntil,
+    this.maximumUsage,
+    required this.deviceToken,
+    required this.platformType,
+    required this.contactAttributes,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+    this.customPhrase,
+    this.isSearchable,
+    this.metadata,
+  }) : super._();
   @override
   RegisterOfferInput rebuild(
-          void Function(RegisterOfferInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(RegisterOfferInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   RegisterOfferInputBuilder toBuilder() =>
@@ -399,32 +411,58 @@ class RegisterOfferInputBuilder
   RegisterOfferInput build() => _build();
 
   _$RegisterOfferInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterOfferInput._(
           offerName: BuiltValueNullFieldError.checkNotNull(
-              offerName, r'RegisterOfferInput', 'offerName'),
+            offerName,
+            r'RegisterOfferInput',
+            'offerName',
+          ),
           offerDescription: offerDescription,
           offerType: offerType,
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'RegisterOfferInput', 'didcommMessage'),
+            didcommMessage,
+            r'RegisterOfferInput',
+            'didcommMessage',
+          ),
           contactCard: BuiltValueNullFieldError.checkNotNull(
-              contactCard, r'RegisterOfferInput', 'contactCard'),
+            contactCard,
+            r'RegisterOfferInput',
+            'contactCard',
+          ),
           validUntil: validUntil,
           maximumUsage: maximumUsage,
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'RegisterOfferInput', 'deviceToken'),
+            deviceToken,
+            r'RegisterOfferInput',
+            'deviceToken',
+          ),
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'RegisterOfferInput', 'platformType'),
+            platformType,
+            r'RegisterOfferInput',
+            'platformType',
+          ),
           contactAttributes: BuiltValueNullFieldError.checkNotNull(
-              contactAttributes, r'RegisterOfferInput', 'contactAttributes'),
+            contactAttributes,
+            r'RegisterOfferInput',
+            'contactAttributes',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'RegisterOfferInput', 'mediatorDid'),
+            mediatorDid,
+            r'RegisterOfferInput',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'RegisterOfferInput', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'RegisterOfferInput',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint,
-              r'RegisterOfferInput',
-              'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'RegisterOfferInput',
+            'mediatorWSSEndpoint',
+          ),
           customPhrase: customPhrase,
           isSearchable: isSearchable,
           metadata: metadata,

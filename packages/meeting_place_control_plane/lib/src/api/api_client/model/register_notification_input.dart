@@ -39,9 +39,9 @@ abstract class RegisterNotificationInput
 
   RegisterNotificationInput._();
 
-  factory RegisterNotificationInput(
-          [void updates(RegisterNotificationInputBuilder b)]) =
-      _$RegisterNotificationInput;
+  factory RegisterNotificationInput([
+    void updates(RegisterNotificationInputBuilder b),
+  ]) = _$RegisterNotificationInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(RegisterNotificationInputBuilder b) => b;
@@ -56,7 +56,7 @@ class _$RegisterNotificationInputSerializer
   @override
   final Iterable<Type> types = const [
     RegisterNotificationInput,
-    _$RegisterNotificationInput
+    _$RegisterNotificationInput,
   ];
 
   @override
@@ -95,9 +95,11 @@ class _$RegisterNotificationInputSerializer
     RegisterNotificationInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -113,32 +115,41 @@ class _$RegisterNotificationInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'myDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.myDid = valueDes;
           break;
         case r'theirDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.theirDid = valueDes;
           break;
         case r'deviceToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceToken = valueDes;
           break;
         case r'platformType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType:
-                const FullType(RegisterNotificationInputPlatformTypeEnum),
-          ) as RegisterNotificationInputPlatformTypeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      RegisterNotificationInputPlatformTypeEnum,
+                    ),
+                  )
+                  as RegisterNotificationInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
         default:

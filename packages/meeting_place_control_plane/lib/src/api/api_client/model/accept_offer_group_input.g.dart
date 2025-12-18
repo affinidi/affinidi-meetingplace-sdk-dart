@@ -7,17 +7,17 @@ part of 'accept_offer_group_input.dart';
 // **************************************************************************
 
 const AcceptOfferGroupInputPlatformTypeEnum
-    _$acceptOfferGroupInputPlatformTypeEnum_DIDCOMM =
+_$acceptOfferGroupInputPlatformTypeEnum_DIDCOMM =
     const AcceptOfferGroupInputPlatformTypeEnum._('DIDCOMM');
 const AcceptOfferGroupInputPlatformTypeEnum
-    _$acceptOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$acceptOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const AcceptOfferGroupInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const AcceptOfferGroupInputPlatformTypeEnum
-    _$acceptOfferGroupInputPlatformTypeEnum_NONE =
+_$acceptOfferGroupInputPlatformTypeEnum_NONE =
     const AcceptOfferGroupInputPlatformTypeEnum._('NONE');
 
 AcceptOfferGroupInputPlatformTypeEnum
-    _$acceptOfferGroupInputPlatformTypeEnumValueOf(String name) {
+_$acceptOfferGroupInputPlatformTypeEnumValueOf(String name) {
   switch (name) {
     case 'DIDCOMM':
       return _$acceptOfferGroupInputPlatformTypeEnum_DIDCOMM;
@@ -31,15 +31,17 @@ AcceptOfferGroupInputPlatformTypeEnum
 }
 
 final BuiltSet<AcceptOfferGroupInputPlatformTypeEnum>
-    _$acceptOfferGroupInputPlatformTypeEnumValues = BuiltSet<
-        AcceptOfferGroupInputPlatformTypeEnum>(const <AcceptOfferGroupInputPlatformTypeEnum>[
-  _$acceptOfferGroupInputPlatformTypeEnum_DIDCOMM,
-  _$acceptOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$acceptOfferGroupInputPlatformTypeEnum_NONE,
-]);
+_$acceptOfferGroupInputPlatformTypeEnumValues =
+    BuiltSet<AcceptOfferGroupInputPlatformTypeEnum>(
+      const <AcceptOfferGroupInputPlatformTypeEnum>[
+        _$acceptOfferGroupInputPlatformTypeEnum_DIDCOMM,
+        _$acceptOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$acceptOfferGroupInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<AcceptOfferGroupInputPlatformTypeEnum>
-    _$acceptOfferGroupInputPlatformTypeEnumSerializer =
+_$acceptOfferGroupInputPlatformTypeEnumSerializer =
     _$AcceptOfferGroupInputPlatformTypeEnumSerializer();
 
 class _$AcceptOfferGroupInputPlatformTypeEnumSerializer
@@ -57,23 +59,26 @@ class _$AcceptOfferGroupInputPlatformTypeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    AcceptOfferGroupInputPlatformTypeEnum
+    AcceptOfferGroupInputPlatformTypeEnum,
   ];
   @override
   final String wireName = 'AcceptOfferGroupInputPlatformTypeEnum';
 
   @override
   Object serialize(
-          Serializers serializers, AcceptOfferGroupInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    AcceptOfferGroupInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   AcceptOfferGroupInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      AcceptOfferGroupInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => AcceptOfferGroupInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$AcceptOfferGroupInput extends AcceptOfferGroupInput {
@@ -90,22 +95,22 @@ class _$AcceptOfferGroupInput extends AcceptOfferGroupInput {
   @override
   final String offerLink;
 
-  factory _$AcceptOfferGroupInput(
-          [void Function(AcceptOfferGroupInputBuilder)? updates]) =>
-      (AcceptOfferGroupInputBuilder()..update(updates))._build();
+  factory _$AcceptOfferGroupInput([
+    void Function(AcceptOfferGroupInputBuilder)? updates,
+  ]) => (AcceptOfferGroupInputBuilder()..update(updates))._build();
 
-  _$AcceptOfferGroupInput._(
-      {required this.mnemonic,
-      required this.did,
-      required this.deviceToken,
-      required this.platformType,
-      required this.contactCard,
-      required this.offerLink})
-      : super._();
+  _$AcceptOfferGroupInput._({
+    required this.mnemonic,
+    required this.did,
+    required this.deviceToken,
+    required this.platformType,
+    required this.contactCard,
+    required this.offerLink,
+  }) : super._();
   @override
   AcceptOfferGroupInput rebuild(
-          void Function(AcceptOfferGroupInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(AcceptOfferGroupInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   AcceptOfferGroupInputBuilder toBuilder() =>
@@ -211,20 +216,39 @@ class AcceptOfferGroupInputBuilder
   AcceptOfferGroupInput build() => _build();
 
   _$AcceptOfferGroupInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$AcceptOfferGroupInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'AcceptOfferGroupInput', 'mnemonic'),
+            mnemonic,
+            r'AcceptOfferGroupInput',
+            'mnemonic',
+          ),
           did: BuiltValueNullFieldError.checkNotNull(
-              did, r'AcceptOfferGroupInput', 'did'),
+            did,
+            r'AcceptOfferGroupInput',
+            'did',
+          ),
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'AcceptOfferGroupInput', 'deviceToken'),
+            deviceToken,
+            r'AcceptOfferGroupInput',
+            'deviceToken',
+          ),
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'AcceptOfferGroupInput', 'platformType'),
+            platformType,
+            r'AcceptOfferGroupInput',
+            'platformType',
+          ),
           contactCard: BuiltValueNullFieldError.checkNotNull(
-              contactCard, r'AcceptOfferGroupInput', 'contactCard'),
+            contactCard,
+            r'AcceptOfferGroupInput',
+            'contactCard',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'AcceptOfferGroupInput', 'offerLink'),
+            offerLink,
+            r'AcceptOfferGroupInput',
+            'offerLink',
+          ),
         );
     replace(_$result);
     return _$result;

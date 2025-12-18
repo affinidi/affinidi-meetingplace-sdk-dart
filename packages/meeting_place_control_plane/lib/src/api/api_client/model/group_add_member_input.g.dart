@@ -24,24 +24,24 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
   @override
   final String contactCard;
 
-  factory _$GroupAddMemberInput(
-          [void Function(GroupAddMemberInputBuilder)? updates]) =>
-      (GroupAddMemberInputBuilder()..update(updates))._build();
+  factory _$GroupAddMemberInput([
+    void Function(GroupAddMemberInputBuilder)? updates,
+  ]) => (GroupAddMemberInputBuilder()..update(updates))._build();
 
-  _$GroupAddMemberInput._(
-      {required this.mnemonic,
-      required this.offerLink,
-      required this.groupId,
-      required this.memberDid,
-      required this.acceptOfferAsDid,
-      required this.reencryptionKey,
-      required this.publicKey,
-      required this.contactCard})
-      : super._();
+  _$GroupAddMemberInput._({
+    required this.mnemonic,
+    required this.offerLink,
+    required this.groupId,
+    required this.memberDid,
+    required this.acceptOfferAsDid,
+    required this.reencryptionKey,
+    required this.publicKey,
+    required this.contactCard,
+  }) : super._();
   @override
   GroupAddMemberInput rebuild(
-          void Function(GroupAddMemberInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GroupAddMemberInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GroupAddMemberInputBuilder toBuilder() =>
@@ -163,24 +163,49 @@ class GroupAddMemberInputBuilder
   GroupAddMemberInput build() => _build();
 
   _$GroupAddMemberInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GroupAddMemberInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'GroupAddMemberInput', 'mnemonic'),
+            mnemonic,
+            r'GroupAddMemberInput',
+            'mnemonic',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'GroupAddMemberInput', 'offerLink'),
+            offerLink,
+            r'GroupAddMemberInput',
+            'offerLink',
+          ),
           groupId: BuiltValueNullFieldError.checkNotNull(
-              groupId, r'GroupAddMemberInput', 'groupId'),
+            groupId,
+            r'GroupAddMemberInput',
+            'groupId',
+          ),
           memberDid: BuiltValueNullFieldError.checkNotNull(
-              memberDid, r'GroupAddMemberInput', 'memberDid'),
+            memberDid,
+            r'GroupAddMemberInput',
+            'memberDid',
+          ),
           acceptOfferAsDid: BuiltValueNullFieldError.checkNotNull(
-              acceptOfferAsDid, r'GroupAddMemberInput', 'acceptOfferAsDid'),
+            acceptOfferAsDid,
+            r'GroupAddMemberInput',
+            'acceptOfferAsDid',
+          ),
           reencryptionKey: BuiltValueNullFieldError.checkNotNull(
-              reencryptionKey, r'GroupAddMemberInput', 'reencryptionKey'),
+            reencryptionKey,
+            r'GroupAddMemberInput',
+            'reencryptionKey',
+          ),
           publicKey: BuiltValueNullFieldError.checkNotNull(
-              publicKey, r'GroupAddMemberInput', 'publicKey'),
+            publicKey,
+            r'GroupAddMemberInput',
+            'publicKey',
+          ),
           contactCard: BuiltValueNullFieldError.checkNotNull(
-              contactCard, r'GroupAddMemberInput', 'contactCard'),
+            contactCard,
+            r'GroupAddMemberInput',
+            'contactCard',
+          ),
         );
     replace(_$result);
     return _$result;

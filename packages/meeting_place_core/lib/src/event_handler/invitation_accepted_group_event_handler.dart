@@ -53,8 +53,10 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
 
       final group = await _findGroupByOfferLink(event.offerLink);
 
-      final groupChannel = await channelRepository
-              .findChannelByOtherPartyPermanentChannelDid(group.did) ??
+      final groupChannel =
+          await channelRepository.findChannelByOtherPartyPermanentChannelDid(
+            group.did,
+          ) ??
           (throw Exception('Channel not found for group: ${group.did}'));
 
       final publishedOfferDidManager = await connectionManager
@@ -79,19 +81,22 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        final contactCard =
-            getContactCardDataOrEmptyFromAttachments(message.attachments);
+        final contactCard = getContactCardDataOrEmptyFromAttachments(
+          message.attachments,
+        );
 
         if (contactCard == null) {
           throw InvitationAcceptedGroupException.contactCardNotPresent();
         }
 
         final acceptOfferDid = message.from!;
-        group.members.add(GroupMember.pendingMember(
-          did: otherPartyPermanentChannelDid,
-          publicKey: publicKey,
-          contactCard: contactCard,
-        ));
+        group.members.add(
+          GroupMember.pendingMember(
+            did: otherPartyPermanentChannelDid,
+            publicKey: publicKey,
+            contactCard: contactCard,
+          ),
+        );
 
         await _groupRepository.updateGroup(group);
 

@@ -41,17 +41,23 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     required this.group,
     super.card,
     MeetingPlaceChatSDKLogger? logger,
-  })  : _chatHistoryService = ChatHistoryService(
-          chatRepository: chatRepository,
-          logger: logger ??
-              DefaultMeetingPlaceChatSDKLogger(
-                  className: _className, sdkName: sdkName),
-        ),
-        super(
-          logger: logger ??
-              DefaultMeetingPlaceChatSDKLogger(
-                  className: _className, sdkName: sdkName),
-        );
+  }) : _chatHistoryService = ChatHistoryService(
+         chatRepository: chatRepository,
+         logger:
+             logger ??
+             DefaultMeetingPlaceChatSDKLogger(
+               className: _className,
+               sdkName: sdkName,
+             ),
+       ),
+       super(
+         logger:
+             logger ??
+             DefaultMeetingPlaceChatSDKLogger(
+               className: _className,
+               sdkName: sdkName,
+             ),
+       );
 
   static const String _className = 'GroupChatSDK';
 
@@ -225,15 +231,15 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         await chatRepository.updateMesssage(matchingMessage);
         chatStream.pushData(StreamData(chatItem: matchingMessage));
 
-        final chatItem =
-            await _chatHistoryService.createGroupMemberJoinedGroupEventMessage(
-          chatId: chatId,
-          groupDid: group.did,
-          memberDid: matchingMessage.data['memberDid'] as String,
-          memberCard: ContactCard.fromJson(
-            matchingMessage.data['contactCard'] as Map<String, dynamic>,
-          ),
-        );
+        final chatItem = await _chatHistoryService
+            .createGroupMemberJoinedGroupEventMessage(
+              chatId: chatId,
+              groupDid: group.did,
+              memberDid: matchingMessage.data['memberDid'] as String,
+              memberCard: ContactCard.fromJson(
+                matchingMessage.data['contactCard'] as Map<String, dynamic>,
+              ),
+            );
 
         chatStream.pushData(StreamData(chatItem: chatItem));
       }
@@ -274,11 +280,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         group.markAsDeleted();
         await coreSDK.updateGroup(group);
 
-        final chatItem =
-            await _chatHistoryService.createGroupDeletedEventMessage(
-          chatId: chatId,
-          groupDid: group.did,
-        );
+        final chatItem = await _chatHistoryService
+            .createGroupDeletedEventMessage(
+              chatId: chatId,
+              groupDid: group.did,
+            );
 
         chatStream.pushData(StreamData(chatItem: chatItem));
       }
@@ -457,8 +463,10 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     Chat chat,
   ) async {
     final methodName = '_createConciergeMessagesForPendingApprovals';
-    logger.info('Looking up group members with pending approval status.',
-        name: methodName);
+    logger.info(
+      'Looking up group members with pending approval status.',
+      name: methodName,
+    );
 
     final pendingApprovals = group.getGroupMembersWaitingForApproval();
     final conciergeMessages = <ConciergeMessage>[];
@@ -559,13 +567,13 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await chatRepository.updateMesssage(message);
     chatStream.pushData(StreamData(chatItem: message));
 
-    final chatItem =
-        await _chatHistoryService.createAwaitingGroupMemberToJoinEventMessage(
-      chatId: chatId,
-      groupDid: group.did,
-      memberDid: channel.otherPartyPermanentChannelDid!,
-      memberCard: channel.otherPartyContactCard!,
-    );
+    final chatItem = await _chatHistoryService
+        .createAwaitingGroupMemberToJoinEventMessage(
+          chatId: chatId,
+          groupDid: group.did,
+          memberDid: channel.otherPartyPermanentChannelDid!,
+          memberCard: channel.otherPartyContactCard!,
+        );
 
     logger.info(
       'Completed approving connection request for member: '
@@ -745,8 +753,10 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Started sending chat group details update', name: methodName);
     unawaited(
       sendMessage(
-        ChatGroupDetailsUpdate.fromGroup(group, senderDid: did)
-            .toPlainTextMessage(),
+        ChatGroupDetailsUpdate.fromGroup(
+          group,
+          senderDid: did,
+        ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,

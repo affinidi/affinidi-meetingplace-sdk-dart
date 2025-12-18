@@ -126,46 +126,56 @@ class _$OfferPhraseInUseErrorSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              OfferPhraseInUseErrorNameEnum,
-            ),
-          ) as OfferPhraseInUseErrorNameEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      OfferPhraseInUseErrorNameEnum,
+                    ),
+                  )
+                  as OfferPhraseInUseErrorNameEnum;
           result.name = valueDes;
           break;
         case r'message':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              OfferPhraseInUseErrorMessageEnum,
-            ),
-          ) as OfferPhraseInUseErrorMessageEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      OfferPhraseInUseErrorMessageEnum,
+                    ),
+                  )
+                  as OfferPhraseInUseErrorMessageEnum;
           result.message = valueDes;
           break;
         case r'httpStatusCode':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              OfferPhraseInUseErrorHttpStatusCodeEnum,
-            ),
-          ) as OfferPhraseInUseErrorHttpStatusCodeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      OfferPhraseInUseErrorHttpStatusCodeEnum,
+                    ),
+                  )
+                  as OfferPhraseInUseErrorHttpStatusCodeEnum;
           result.httpStatusCode = valueDes;
           break;
         case r'traceId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.traceId = valueDes;
           break;
         case r'details':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(NotFoundErrorDetailsInner),
-            ]),
-          ) as BuiltList<NotFoundErrorDetailsInner>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(NotFoundErrorDetailsInner),
+                    ]),
+                  )
+                  as BuiltList<NotFoundErrorDetailsInner>;
           result.details.replace(valueDes);
           break;
         default:
@@ -218,7 +228,7 @@ class OfferPhraseInUseErrorMessageEnum extends EnumClass {
     wireName: r'The offer phrase is already in use by another offer',
   )
   static const OfferPhraseInUseErrorMessageEnum
-      theOfferPhraseIsAlreadyInUseByAnotherOffer =
+  theOfferPhraseIsAlreadyInUseByAnotherOffer =
       _$offerPhraseInUseErrorMessageEnum_theOfferPhraseIsAlreadyInUseByAnotherOffer;
 
   static Serializer<OfferPhraseInUseErrorMessageEnum> get serializer =>

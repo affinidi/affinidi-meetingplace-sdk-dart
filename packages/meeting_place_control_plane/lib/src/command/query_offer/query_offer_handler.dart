@@ -31,10 +31,13 @@ class QueryOfferHandler
     required ControlPlaneApiClient apiClient,
     required this.dispatcher,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'QueryOfferHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -71,8 +74,7 @@ class QueryOfferHandler
       );
       final response = (await _apiClient.client.queryOffer(
         queryOfferInput: builder.build(),
-      ))
-          .data;
+      )).data;
 
       if (response == null) {
         _logger.warning('Query offer returned null response', name: methodName);

@@ -14,16 +14,18 @@ void main() async {
   late final GroupRepository groupRepository;
 
   Channel getChannel(ChannelType type) => Channel(
-        offerLink: '',
-        publishOfferDid: '',
-        mediatorDid: '',
-        status: ChannelStatus.inaugurated,
-        contactCard: ContactCardFixture.getContactCardFixture(
-            did: 'did:test', contactInfo: {}),
-        type: type,
-        permanentChannelDid: 'did:key:123',
-        otherPartyPermanentChannelDid: 'did:key:456',
-      );
+    offerLink: '',
+    publishOfferDid: '',
+    mediatorDid: '',
+    status: ChannelStatus.inaugurated,
+    contactCard: ContactCardFixture.getContactCardFixture(
+      did: 'did:test',
+      contactInfo: {},
+    ),
+    type: type,
+    permanentChannelDid: 'did:key:123',
+    otherPartyPermanentChannelDid: 'did:key:456',
+  );
 
   setUpAll(() async {
     groupRepository = GroupRepositoryImpl(storage: InMemoryStorage());
@@ -60,13 +62,15 @@ void main() async {
   test('group chat SDK instance for channel type group', () async {
     final channel = getChannel(ChannelType.group);
 
-    await groupRepository.createGroup(Group(
-      id: channel.permanentChannelDid!,
-      did: channel.otherPartyPermanentChannelDid!,
-      offerLink: channel.offerLink,
-      members: [],
-      created: DateTime.now().toUtc(),
-    ));
+    await groupRepository.createGroup(
+      Group(
+        id: channel.permanentChannelDid!,
+        did: channel.otherPartyPermanentChannelDid!,
+        offerLink: channel.offerLink,
+        members: [],
+        created: DateTime.now().toUtc(),
+      ),
+    );
 
     final actual = await MeetingPlaceChatSDK.initialiseFromChannel(
       channel,

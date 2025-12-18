@@ -40,9 +40,12 @@ class RegisterOfferHandler
     required this.sdkConfig,
     required this.didResolver,
     ControlPlaneSDKLogger? logger,
-  }) : _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'RegisterOfferHandler';
 
   final ControlPlaneApiClient apiClient;

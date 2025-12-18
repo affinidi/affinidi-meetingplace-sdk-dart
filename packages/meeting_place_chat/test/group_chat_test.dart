@@ -34,7 +34,7 @@ void main() async {
   late final PublishOfferResult<GroupConnectionOffer> publishOfferResult;
 
   Future<(MeetingPlaceCoreSDK, AcceptOfferResult)>
-      anotherMemberJoinsGroup() async {
+  anotherMemberJoinsGroup() async {
     final sdk = await initCoreSDKInstance();
 
     final acceptance = await sdk.acceptOffer(
@@ -70,8 +70,8 @@ void main() async {
       type: SDKConnectionOfferType.groupInvitation,
     );
 
-    groupOwnerDidDocument =
-        await publishOfferResult.groupOwnerDidManager!.getDidDocument();
+    groupOwnerDidDocument = await publishOfferResult.groupOwnerDidManager!
+        .getDidDocument();
 
     // Bob requests group membership
     final bobFindOfferResult = await bobSDK.findOffer(
@@ -314,8 +314,8 @@ void main() async {
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
 
-    final newMemberDidDoc =
-        await acceptance.permanentChannelDid.getDidDocument();
+    final newMemberDidDoc = await acceptance.permanentChannelDid
+        .getDidDocument();
 
     final updatedGroup = await aliceSDK.getGroupById(aliceGroup.id);
     expect(conciergeMessage.status, ChatItemStatus.confirmed);

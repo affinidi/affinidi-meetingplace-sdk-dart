@@ -14,10 +14,10 @@ class OutreachService {
     required ControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
     required DidResolver didResolver,
-  })  : _mediatorSDK = mediatorSDK,
-        _controlPlaneSDK = controlPlaneSDK,
-        _connectionManager = connectionManager,
-        _didResolver = didResolver;
+  }) : _mediatorSDK = mediatorSDK,
+       _controlPlaneSDK = controlPlaneSDK,
+       _connectionManager = connectionManager,
+       _didResolver = didResolver;
 
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;

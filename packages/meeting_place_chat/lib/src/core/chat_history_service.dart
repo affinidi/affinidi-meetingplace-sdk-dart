@@ -9,10 +9,13 @@ class ChatHistoryService {
   ChatHistoryService({
     required ChatRepository chatRepository,
     MeetingPlaceChatSDKLogger? logger,
-  })  : _chatRepository = chatRepository,
-        _logger = logger ??
-            DefaultMeetingPlaceChatSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _chatRepository = chatRepository,
+       _logger =
+           logger ??
+           DefaultMeetingPlaceChatSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
 
   static const String _className = 'ChatHistoryService';
 

@@ -40,8 +40,8 @@ abstract class BaseChatSDK {
     required this.options,
     this.card,
     MeetingPlaceChatSDKLogger? logger,
-  })  : _logger = LoggerFormatter(className: _className, baseLogger: logger),
-        chatStream = ChatStream();
+  }) : _logger = LoggerFormatter(className: _className, baseLogger: logger),
+       chatStream = ChatStream();
 
   static const String _className = 'BaseChatSDK';
 
@@ -224,8 +224,9 @@ abstract class BaseChatSDK {
     if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatReaction.value) {
       _logger.info('Handling chat reaction message', name: methodName);
-      final chatReactionMessage =
-          ChatReaction.fromPlainTextMessage(message.plainTextMessage);
+      final chatReactionMessage = ChatReaction.fromPlainTextMessage(
+        message.plainTextMessage,
+      );
 
       final repositoryMessage = await chatRepository.getMessage(
         chatId: chatId,
@@ -362,8 +363,9 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channel.type != ChannelType.group) {
-        channel.otherPartyContactCard =
-            ContactCard.fromJson(message.plainTextMessage.body!);
+        channel.otherPartyContactCard = ContactCard.fromJson(
+          message.plainTextMessage.body!,
+        );
 
         await coreSDK.updateChannel(channel);
         chatStream.pushData(
@@ -487,10 +489,12 @@ abstract class BaseChatSDK {
 
       await coreSDK.updateChannel(channel);
 
-      chatStream.pushData(StreamData(
-        plainTextMessage: plainTextMessage,
-        chatItem: updatedMessage,
-      ));
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: plainTextMessage,
+          chatItem: updatedMessage,
+        ),
+      );
 
       _logger.info('Completed sending text message', name: methodName);
       return updatedMessage;
@@ -728,8 +732,10 @@ abstract class BaseChatSDK {
     final methodName = 'sendChatActivity';
     _logger.info('Started sending chat activity', name: methodName);
     await sendMessage(
-      protocol.ChatActivity.create(from: did, to: [otherPartyDid])
-          .toPlainTextMessage(),
+      protocol.ChatActivity.create(
+        from: did,
+        to: [otherPartyDid],
+      ).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
@@ -751,7 +757,8 @@ abstract class BaseChatSDK {
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
-            'Channel with other party DID ${otherPartyDid.topAndTail()} not found'));
+          'Channel with other party DID ${otherPartyDid.topAndTail()} not found',
+        ));
   }
 
   /// Sends a message with notification, ignoring notification failures.
@@ -765,17 +772,23 @@ abstract class BaseChatSDK {
         notify: true,
       );
     } on MeetingPlaceCoreSDKException catch (e) {
-      final isNotificationError = e.code ==
+      final isNotificationError =
+          e.code ==
           MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
 
       if (!isNotificationError) {
-        _logger.error('Failed to send message with notification',
-            error: e, name: '_sendMessageWithNotification');
+        _logger.error(
+          'Failed to send message with notification',
+          error: e,
+          name: '_sendMessageWithNotification',
+        );
         rethrow;
       }
 
-      _logger.warning('Failed to send notification for message ${message.id}',
-          name: '_sendMessageWithNotification');
+      _logger.warning(
+        'Failed to send notification for message ${message.id}',
+        name: '_sendMessageWithNotification',
+      );
     }
   }
 

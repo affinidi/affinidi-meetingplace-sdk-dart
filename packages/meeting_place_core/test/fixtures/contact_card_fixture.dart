@@ -4,10 +4,9 @@ class ContactCardFixture {
   static ContactCard getContactCardFixture({
     String? did,
     Map<String, dynamic>? contactInfo,
-  }) =>
-      ContactCard(
-        did: did ?? 'did:test:contact-card',
-        type: 'individual',
-        contactInfo: contactInfo ?? {'fullName': 'Test User'},
-      );
+  }) => ContactCard(
+    did: did ?? 'did:test:contact-card',
+    type: 'individual',
+    contactInfo: contactInfo ?? {'fullName': 'Test User'},
+  );
 }

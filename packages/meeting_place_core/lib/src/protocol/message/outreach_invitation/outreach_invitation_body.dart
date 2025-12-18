@@ -7,10 +7,7 @@ class OutreachInvitationBody {
   factory OutreachInvitationBody.fromJson(Map<String, dynamic> json) =>
       _$OutreachInvitationBodyFromJson(json);
 
-  OutreachInvitationBody({
-    required this.mnemonic,
-    required this.message,
-  });
+  OutreachInvitationBody({required this.mnemonic, required this.message});
 
   @JsonKey(name: 'mnemonic')
   final String mnemonic;

@@ -7,17 +7,17 @@ part of 'register_offer_group_input.dart';
 // **************************************************************************
 
 const RegisterOfferGroupInputPlatformTypeEnum
-    _$registerOfferGroupInputPlatformTypeEnum_DIDCOMM =
+_$registerOfferGroupInputPlatformTypeEnum_DIDCOMM =
     const RegisterOfferGroupInputPlatformTypeEnum._('DIDCOMM');
 const RegisterOfferGroupInputPlatformTypeEnum
-    _$registerOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$registerOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const RegisterOfferGroupInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const RegisterOfferGroupInputPlatformTypeEnum
-    _$registerOfferGroupInputPlatformTypeEnum_NONE =
+_$registerOfferGroupInputPlatformTypeEnum_NONE =
     const RegisterOfferGroupInputPlatformTypeEnum._('NONE');
 
 RegisterOfferGroupInputPlatformTypeEnum
-    _$registerOfferGroupInputPlatformTypeEnumValueOf(String name) {
+_$registerOfferGroupInputPlatformTypeEnumValueOf(String name) {
   switch (name) {
     case 'DIDCOMM':
       return _$registerOfferGroupInputPlatformTypeEnum_DIDCOMM;
@@ -31,15 +31,17 @@ RegisterOfferGroupInputPlatformTypeEnum
 }
 
 final BuiltSet<RegisterOfferGroupInputPlatformTypeEnum>
-    _$registerOfferGroupInputPlatformTypeEnumValues = BuiltSet<
-        RegisterOfferGroupInputPlatformTypeEnum>(const <RegisterOfferGroupInputPlatformTypeEnum>[
-  _$registerOfferGroupInputPlatformTypeEnum_DIDCOMM,
-  _$registerOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$registerOfferGroupInputPlatformTypeEnum_NONE,
-]);
+_$registerOfferGroupInputPlatformTypeEnumValues =
+    BuiltSet<RegisterOfferGroupInputPlatformTypeEnum>(
+      const <RegisterOfferGroupInputPlatformTypeEnum>[
+        _$registerOfferGroupInputPlatformTypeEnum_DIDCOMM,
+        _$registerOfferGroupInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$registerOfferGroupInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<RegisterOfferGroupInputPlatformTypeEnum>
-    _$registerOfferGroupInputPlatformTypeEnumSerializer =
+_$registerOfferGroupInputPlatformTypeEnumSerializer =
     _$RegisterOfferGroupInputPlatformTypeEnumSerializer();
 
 class _$RegisterOfferGroupInputPlatformTypeEnumSerializer
@@ -57,23 +59,26 @@ class _$RegisterOfferGroupInputPlatformTypeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    RegisterOfferGroupInputPlatformTypeEnum
+    RegisterOfferGroupInputPlatformTypeEnum,
   ];
   @override
   final String wireName = 'RegisterOfferGroupInputPlatformTypeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          RegisterOfferGroupInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    RegisterOfferGroupInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   RegisterOfferGroupInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      RegisterOfferGroupInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => RegisterOfferGroupInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$RegisterOfferGroupInput extends RegisterOfferGroupInput {
@@ -114,34 +119,34 @@ class _$RegisterOfferGroupInput extends RegisterOfferGroupInput {
   @override
   final String memberContactCard;
 
-  factory _$RegisterOfferGroupInput(
-          [void Function(RegisterOfferGroupInputBuilder)? updates]) =>
-      (RegisterOfferGroupInputBuilder()..update(updates))._build();
+  factory _$RegisterOfferGroupInput([
+    void Function(RegisterOfferGroupInputBuilder)? updates,
+  ]) => (RegisterOfferGroupInputBuilder()..update(updates))._build();
 
-  _$RegisterOfferGroupInput._(
-      {required this.offerName,
-      required this.offerDescription,
-      required this.didcommMessage,
-      required this.contactCard,
-      this.validUntil,
-      this.maximumUsage,
-      required this.deviceToken,
-      required this.platformType,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint,
-      this.customPhrase,
-      this.isSearchable,
-      this.metadata,
-      required this.adminReencryptionKey,
-      required this.adminDid,
-      required this.adminPublicKey,
-      required this.memberContactCard})
-      : super._();
+  _$RegisterOfferGroupInput._({
+    required this.offerName,
+    required this.offerDescription,
+    required this.didcommMessage,
+    required this.contactCard,
+    this.validUntil,
+    this.maximumUsage,
+    required this.deviceToken,
+    required this.platformType,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+    this.customPhrase,
+    this.isSearchable,
+    this.metadata,
+    required this.adminReencryptionKey,
+    required this.adminDid,
+    required this.adminPublicKey,
+    required this.memberContactCard,
+  }) : super._();
   @override
   RegisterOfferGroupInput rebuild(
-          void Function(RegisterOfferGroupInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(RegisterOfferGroupInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   RegisterOfferGroupInputBuilder toBuilder() =>
@@ -351,45 +356,79 @@ class RegisterOfferGroupInputBuilder
   RegisterOfferGroupInput build() => _build();
 
   _$RegisterOfferGroupInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterOfferGroupInput._(
           offerName: BuiltValueNullFieldError.checkNotNull(
-              offerName, r'RegisterOfferGroupInput', 'offerName'),
+            offerName,
+            r'RegisterOfferGroupInput',
+            'offerName',
+          ),
           offerDescription: BuiltValueNullFieldError.checkNotNull(
-              offerDescription, r'RegisterOfferGroupInput', 'offerDescription'),
+            offerDescription,
+            r'RegisterOfferGroupInput',
+            'offerDescription',
+          ),
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'RegisterOfferGroupInput', 'didcommMessage'),
+            didcommMessage,
+            r'RegisterOfferGroupInput',
+            'didcommMessage',
+          ),
           contactCard: BuiltValueNullFieldError.checkNotNull(
-              contactCard, r'RegisterOfferGroupInput', 'contactCard'),
+            contactCard,
+            r'RegisterOfferGroupInput',
+            'contactCard',
+          ),
           validUntil: validUntil,
           maximumUsage: maximumUsage,
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'RegisterOfferGroupInput', 'deviceToken'),
+            deviceToken,
+            r'RegisterOfferGroupInput',
+            'deviceToken',
+          ),
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'RegisterOfferGroupInput', 'platformType'),
+            platformType,
+            r'RegisterOfferGroupInput',
+            'platformType',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'RegisterOfferGroupInput', 'mediatorDid'),
+            mediatorDid,
+            r'RegisterOfferGroupInput',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'RegisterOfferGroupInput', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'RegisterOfferGroupInput',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint,
-              r'RegisterOfferGroupInput',
-              'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'RegisterOfferGroupInput',
+            'mediatorWSSEndpoint',
+          ),
           customPhrase: customPhrase,
           isSearchable: isSearchable,
           metadata: metadata,
           adminReencryptionKey: BuiltValueNullFieldError.checkNotNull(
-              adminReencryptionKey,
-              r'RegisterOfferGroupInput',
-              'adminReencryptionKey'),
+            adminReencryptionKey,
+            r'RegisterOfferGroupInput',
+            'adminReencryptionKey',
+          ),
           adminDid: BuiltValueNullFieldError.checkNotNull(
-              adminDid, r'RegisterOfferGroupInput', 'adminDid'),
+            adminDid,
+            r'RegisterOfferGroupInput',
+            'adminDid',
+          ),
           adminPublicKey: BuiltValueNullFieldError.checkNotNull(
-              adminPublicKey, r'RegisterOfferGroupInput', 'adminPublicKey'),
+            adminPublicKey,
+            r'RegisterOfferGroupInput',
+            'adminPublicKey',
+          ),
           memberContactCard: BuiltValueNullFieldError.checkNotNull(
-              memberContactCard,
-              r'RegisterOfferGroupInput',
-              'memberContactCard'),
+            memberContactCard,
+            r'RegisterOfferGroupInput',
+            'memberContactCard',
+          ),
         );
     replace(_$result);
     return _$result;

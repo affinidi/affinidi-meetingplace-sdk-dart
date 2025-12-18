@@ -37,9 +37,9 @@ class _$QueryOfferInput extends QueryOfferInput {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'QueryOfferInput')
-          ..add('mnemonic', mnemonic))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'QueryOfferInput',
+    )..add('mnemonic', mnemonic)).toString();
   }
 }
 
@@ -78,10 +78,14 @@ class QueryOfferInputBuilder
   QueryOfferInput build() => _build();
 
   _$QueryOfferInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$QueryOfferInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'QueryOfferInput', 'mnemonic'),
+            mnemonic,
+            r'QueryOfferInput',
+            'mnemonic',
+          ),
         );
     replace(_$result);
     return _$result;

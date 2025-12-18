@@ -43,24 +43,24 @@ class _$QueryOfferOK extends QueryOfferOK {
   factory _$QueryOfferOK([void Function(QueryOfferOKBuilder)? updates]) =>
       (QueryOfferOKBuilder()..update(updates))._build();
 
-  _$QueryOfferOK._(
-      {required this.status,
-      this.message,
-      required this.offerLink,
-      required this.name,
-      required this.description,
-      this.validUntil,
-      required this.contactCard,
-      required this.contactAttributes,
-      this.offerType,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint,
-      required this.didcommMessage,
-      this.maximumUsage,
-      this.groupId,
-      this.groupDid})
-      : super._();
+  _$QueryOfferOK._({
+    required this.status,
+    this.message,
+    required this.offerLink,
+    required this.name,
+    required this.description,
+    this.validUntil,
+    required this.contactCard,
+    required this.contactAttributes,
+    this.offerType,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+    required this.didcommMessage,
+    this.maximumUsage,
+    this.groupId,
+    this.groupDid,
+  }) : super._();
   @override
   QueryOfferOK rebuild(void Function(QueryOfferOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -250,31 +250,62 @@ class QueryOfferOKBuilder
   QueryOfferOK build() => _build();
 
   _$QueryOfferOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$QueryOfferOK._(
           status: BuiltValueNullFieldError.checkNotNull(
-              status, r'QueryOfferOK', 'status'),
+            status,
+            r'QueryOfferOK',
+            'status',
+          ),
           message: message,
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'QueryOfferOK', 'offerLink'),
+            offerLink,
+            r'QueryOfferOK',
+            'offerLink',
+          ),
           name: BuiltValueNullFieldError.checkNotNull(
-              name, r'QueryOfferOK', 'name'),
+            name,
+            r'QueryOfferOK',
+            'name',
+          ),
           description: BuiltValueNullFieldError.checkNotNull(
-              description, r'QueryOfferOK', 'description'),
+            description,
+            r'QueryOfferOK',
+            'description',
+          ),
           validUntil: validUntil,
           contactCard: BuiltValueNullFieldError.checkNotNull(
-              contactCard, r'QueryOfferOK', 'contactCard'),
+            contactCard,
+            r'QueryOfferOK',
+            'contactCard',
+          ),
           contactAttributes: BuiltValueNullFieldError.checkNotNull(
-              contactAttributes, r'QueryOfferOK', 'contactAttributes'),
+            contactAttributes,
+            r'QueryOfferOK',
+            'contactAttributes',
+          ),
           offerType: offerType,
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'QueryOfferOK', 'mediatorDid'),
+            mediatorDid,
+            r'QueryOfferOK',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'QueryOfferOK', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'QueryOfferOK',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint, r'QueryOfferOK', 'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'QueryOfferOK',
+            'mediatorWSSEndpoint',
+          ),
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'QueryOfferOK', 'didcommMessage'),
+            didcommMessage,
+            r'QueryOfferOK',
+            'didcommMessage',
+          ),
           maximumUsage: maximumUsage,
           groupId: groupId,
           groupDid: groupDid,

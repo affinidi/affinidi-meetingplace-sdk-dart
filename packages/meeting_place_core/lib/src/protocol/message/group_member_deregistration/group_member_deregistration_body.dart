@@ -7,8 +7,10 @@ class GroupMemberDeregistrationBody {
   factory GroupMemberDeregistrationBody.fromJson(Map<String, dynamic> json) =>
       _$GroupMemberDeregistrationBodyFromJson(json);
 
-  GroupMemberDeregistrationBody(
-      {required this.groupId, required this.memberDid});
+  GroupMemberDeregistrationBody({
+    required this.groupId,
+    required this.memberDid,
+  });
 
   @JsonKey(name: 'group_id')
   final String groupId;

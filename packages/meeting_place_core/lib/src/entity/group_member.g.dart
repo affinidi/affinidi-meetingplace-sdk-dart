@@ -7,15 +7,18 @@ part of 'group_member.dart';
 // **************************************************************************
 
 GroupMember _$GroupMemberFromJson(Map<String, dynamic> json) => GroupMember(
-      did: json['did'] as String,
-      dateAdded: DateTime.parse(json['dateAdded'] as String),
-      status: $enumDecode(_$GroupMemberStatusEnumMap, json['status']),
-      membershipType:
-          $enumDecode(_$GroupMembershipTypeEnumMap, json['membershipType']),
-      contactCard:
-          ContactCard.fromJson(json['contactCard'] as Map<String, dynamic>),
-      publicKey: json['publicKey'] as String,
-    );
+  did: json['did'] as String,
+  dateAdded: DateTime.parse(json['dateAdded'] as String),
+  status: $enumDecode(_$GroupMemberStatusEnumMap, json['status']),
+  membershipType: $enumDecode(
+    _$GroupMembershipTypeEnumMap,
+    json['membershipType'],
+  ),
+  contactCard: ContactCard.fromJson(
+    json['contactCard'] as Map<String, dynamic>,
+  ),
+  publicKey: json['publicKey'] as String,
+);
 
 Map<String, dynamic> _$GroupMemberToJson(GroupMember instance) =>
     <String, dynamic>{

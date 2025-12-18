@@ -102,11 +102,15 @@ void main() async {
     });
 
     test('Contact cards match', () {
-      expect(aliceChannel?.contactCard?.contactInfo,
-          bobChannel?.otherPartyContactCard?.contactInfo);
+      expect(
+        aliceChannel?.contactCard?.contactInfo,
+        bobChannel?.otherPartyContactCard?.contactInfo,
+      );
 
-      expect(aliceChannel?.otherPartyContactCard?.contactInfo,
-          bobChannel?.contactCard?.contactInfo);
+      expect(
+        aliceChannel?.otherPartyContactCard?.contactInfo,
+        bobChannel?.contactCard?.contactInfo,
+      );
     });
 
     test('channel status is inaugurated', () {
@@ -241,18 +245,17 @@ void main() async {
         channelBefore!.permanentChannelDid,
       );
       expect(bobChannel?.type, channelBefore!.type);
-      expect(bobChannel?.contactCard?.contactInfo,
-          equals(channelBefore?.contactCard?.contactInfo));
+      expect(
+        bobChannel?.contactCard?.contactInfo,
+        equals(channelBefore?.contactCard?.contactInfo),
+      );
     });
 
     test('channel has been updated', () {
       expect(bobChannel?.otherPartyPermanentChannelDid, isNotNull);
-      expect(
-        bobChannel?.otherPartyContactCard?.contactInfo,
-        {
-          'n': {'given': 'Alice'},
-        },
-      );
+      expect(bobChannel?.otherPartyContactCard?.contactInfo, {
+        'n': {'given': 'Alice'},
+      });
     });
   });
 
@@ -263,16 +266,14 @@ void main() async {
         'n': {'given': 'Alice'},
       },
     );
-    final resultA = await aliceSDK.createOobFlow(
-      contactCard: aliceCard,
-    );
+    final resultA = await aliceSDK.createOobFlow(contactCard: aliceCard);
 
-    final resultB = await aliceSDK.createOobFlow(
-      contactCard: aliceCard,
-    );
+    final resultB = await aliceSDK.createOobFlow(contactCard: aliceCard);
 
     expect(
-        resultA.streamSubscription, isNot(equals(resultB.streamSubscription)));
+      resultA.streamSubscription,
+      isNot(equals(resultB.streamSubscription)),
+    );
   });
 
   test('uses separate stream for each acceptOobFlow call', () async {
@@ -303,7 +304,9 @@ void main() async {
     );
 
     expect(
-        resultA.streamSubscription, isNot(equals(resultB.streamSubscription)));
+      resultA.streamSubscription,
+      isNot(equals(resultB.streamSubscription)),
+    );
   });
 
   test('uses given did as permanent channel did for OOB flow', () async {
@@ -422,8 +425,10 @@ void main() async {
     );
 
     createOobFlowResult.streamSubscription.listen((data) => data);
-    createOobFlowResult.streamSubscription
-        .timeout(const Duration(seconds: 1), () => fail('timeout executed'));
+    createOobFlowResult.streamSubscription.timeout(
+      const Duration(seconds: 1),
+      () => fail('timeout executed'),
+    );
 
     await Future.delayed(const Duration(seconds: 2));
   }, skip: 'flaky test on CI');
@@ -468,22 +473,24 @@ void main() async {
 
     await bobSDK.sendMessage(
       PlainTextMessage(
-          id: 'test-message-id',
-          type: Uri.parse('https://example.com/test'),
-          from: bobChannel.permanentChannelDid,
-          to: [bobChannel.otherPartyPermanentChannelDid!],
-          body: {'hello': 'alice'}),
+        id: 'test-message-id',
+        type: Uri.parse('https://example.com/test'),
+        from: bobChannel.permanentChannelDid,
+        to: [bobChannel.otherPartyPermanentChannelDid!],
+        body: {'hello': 'alice'},
+      ),
       senderDid: bobChannel.permanentChannelDid!,
       recipientDid: bobChannel.otherPartyPermanentChannelDid!,
     );
 
     await aliceSDK.sendMessage(
       PlainTextMessage(
-          id: 'test-message-id',
-          type: Uri.parse('https://example.com/test'),
-          from: aliceChannel.permanentChannelDid,
-          to: [aliceChannel.otherPartyPermanentChannelDid!],
-          body: {'hello': 'bob'}),
+        id: 'test-message-id',
+        type: Uri.parse('https://example.com/test'),
+        from: aliceChannel.permanentChannelDid,
+        to: [aliceChannel.otherPartyPermanentChannelDid!],
+        body: {'hello': 'bob'},
+      ),
       senderDid: aliceChannel.permanentChannelDid!,
       recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
     );

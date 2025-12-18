@@ -76,7 +76,7 @@ void main() async {
     setUp(() async {
       connectionOffer =
           await aliceSDK.getConnectionOffer(aliceApprovedChannel.offerLink) ??
-              fail('Connection offer does not exist');
+          fail('Connection offer does not exist');
     });
 
     test('existing channel has been updated', () async {
@@ -129,7 +129,7 @@ void main() async {
     setUp(() async {
       connectionOffer =
           await bobSDK.getConnectionOffer(bobOfferFinalisedChannel.offerLink) ??
-              fail('Connection offer does not exist');
+          fail('Connection offer does not exist');
     });
 
     test('channel has been updated with notification tokens', () {

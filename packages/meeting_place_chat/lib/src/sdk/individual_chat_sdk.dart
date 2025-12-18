@@ -31,10 +31,13 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     super.card,
     MeetingPlaceChatSDKLogger? logger,
   }) : super(
-          logger: logger ??
-              DefaultMeetingPlaceChatSDKLogger(
-                  className: _className, sdkName: sdkName),
-        );
+         logger:
+             logger ??
+             DefaultMeetingPlaceChatSDKLogger(
+               className: _className,
+               sdkName: sdkName,
+             ),
+       );
 
   static const String _className = 'IndividualChatSDK';
 
@@ -50,8 +53,9 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   @override
   Future<Chat> startChatSession() async {
     final chat = await super.startChatSession();
-    unawaited(startChatPresenceInInterval(
-        options.chatPresenceSendInterval.inSeconds));
+    unawaited(
+      startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds),
+    );
     return chat;
   }
 

@@ -12,9 +12,9 @@ class _$DeregisterOfferOK extends DeregisterOfferOK {
   @override
   final String? message;
 
-  factory _$DeregisterOfferOK(
-          [void Function(DeregisterOfferOKBuilder)? updates]) =>
-      (DeregisterOfferOKBuilder()..update(updates))._build();
+  factory _$DeregisterOfferOK([
+    void Function(DeregisterOfferOKBuilder)? updates,
+  ]) => (DeregisterOfferOKBuilder()..update(updates))._build();
 
   _$DeregisterOfferOK._({this.status, this.message}) : super._();
   @override
@@ -91,11 +91,8 @@ class DeregisterOfferOKBuilder
   DeregisterOfferOK build() => _build();
 
   _$DeregisterOfferOK _build() {
-    final _$result = _$v ??
-        _$DeregisterOfferOK._(
-          status: status,
-          message: message,
-        );
+    final _$result =
+        _$v ?? _$DeregisterOfferOK._(status: status, message: message);
     replace(_$result);
     return _$result;
   }

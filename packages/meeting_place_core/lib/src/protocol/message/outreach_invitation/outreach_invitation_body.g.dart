@@ -7,15 +7,15 @@ part of 'outreach_invitation_body.dart';
 // **************************************************************************
 
 OutreachInvitationBody _$OutreachInvitationBodyFromJson(
-        Map<String, dynamic> json) =>
-    OutreachInvitationBody(
-      mnemonic: json['mnemonic'] as String,
-      message: json['message'] as String,
-    );
+  Map<String, dynamic> json,
+) => OutreachInvitationBody(
+  mnemonic: json['mnemonic'] as String,
+  message: json['message'] as String,
+);
 
 Map<String, dynamic> _$OutreachInvitationBodyToJson(
-        OutreachInvitationBody instance) =>
-    <String, dynamic>{
-      'mnemonic': instance.mnemonic,
-      'message': instance.message,
-    };
+  OutreachInvitationBody instance,
+) => <String, dynamic>{
+  'mnemonic': instance.mnemonic,
+  'message': instance.message,
+};

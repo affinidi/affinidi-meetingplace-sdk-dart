@@ -35,20 +35,20 @@ class _$AcceptOfferOK extends AcceptOfferOK {
   factory _$AcceptOfferOK([void Function(AcceptOfferOKBuilder)? updates]) =>
       (AcceptOfferOKBuilder()..update(updates))._build();
 
-  _$AcceptOfferOK._(
-      {this.status,
-      this.message,
-      required this.didcommMessage,
-      required this.offerLink,
-      required this.name,
-      required this.description,
-      this.validUntil,
-      this.maximumUsage,
-      required this.contactCard,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint})
-      : super._();
+  _$AcceptOfferOK._({
+    this.status,
+    this.message,
+    required this.didcommMessage,
+    required this.offerLink,
+    required this.name,
+    required this.description,
+    this.validUntil,
+    this.maximumUsage,
+    required this.contactCard,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+  }) : super._();
   @override
   AcceptOfferOK rebuild(void Function(AcceptOfferOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -205,28 +205,53 @@ class AcceptOfferOKBuilder
   AcceptOfferOK build() => _build();
 
   _$AcceptOfferOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$AcceptOfferOK._(
           status: status,
           message: message,
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'AcceptOfferOK', 'didcommMessage'),
+            didcommMessage,
+            r'AcceptOfferOK',
+            'didcommMessage',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'AcceptOfferOK', 'offerLink'),
+            offerLink,
+            r'AcceptOfferOK',
+            'offerLink',
+          ),
           name: BuiltValueNullFieldError.checkNotNull(
-              name, r'AcceptOfferOK', 'name'),
+            name,
+            r'AcceptOfferOK',
+            'name',
+          ),
           description: BuiltValueNullFieldError.checkNotNull(
-              description, r'AcceptOfferOK', 'description'),
+            description,
+            r'AcceptOfferOK',
+            'description',
+          ),
           validUntil: validUntil,
           maximumUsage: maximumUsage,
           contactCard: BuiltValueNullFieldError.checkNotNull(
-              contactCard, r'AcceptOfferOK', 'contactCard'),
+            contactCard,
+            r'AcceptOfferOK',
+            'contactCard',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'AcceptOfferOK', 'mediatorDid'),
+            mediatorDid,
+            r'AcceptOfferOK',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'AcceptOfferOK', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'AcceptOfferOK',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint, r'AcceptOfferOK', 'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'AcceptOfferOK',
+            'mediatorWSSEndpoint',
+          ),
         );
     replace(_$result);
     return _$result;

@@ -37,9 +37,9 @@ class _$NotifyChannelOK extends NotifyChannelOK {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'NotifyChannelOK')
-          ..add('notificationId', notificationId))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'NotifyChannelOK',
+    )..add('notificationId', notificationId)).toString();
   }
 }
 
@@ -79,10 +79,14 @@ class NotifyChannelOKBuilder
   NotifyChannelOK build() => _build();
 
   _$NotifyChannelOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$NotifyChannelOK._(
           notificationId: BuiltValueNullFieldError.checkNotNull(
-              notificationId, r'NotifyChannelOK', 'notificationId'),
+            notificationId,
+            r'NotifyChannelOK',
+            'notificationId',
+          ),
         );
     replace(_$result);
     return _$result;

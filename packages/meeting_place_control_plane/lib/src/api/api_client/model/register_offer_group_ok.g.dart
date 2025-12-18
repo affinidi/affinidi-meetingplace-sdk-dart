@@ -22,23 +22,23 @@ class _$RegisterOfferGroupOK extends RegisterOfferGroupOK {
   @override
   final String groupDid;
 
-  factory _$RegisterOfferGroupOK(
-          [void Function(RegisterOfferGroupOKBuilder)? updates]) =>
-      (RegisterOfferGroupOKBuilder()..update(updates))._build();
+  factory _$RegisterOfferGroupOK([
+    void Function(RegisterOfferGroupOKBuilder)? updates,
+  ]) => (RegisterOfferGroupOKBuilder()..update(updates))._build();
 
-  _$RegisterOfferGroupOK._(
-      {this.message,
-      required this.mnemonic,
-      this.validUntil,
-      this.maximumUsage,
-      required this.offerLink,
-      required this.groupId,
-      required this.groupDid})
-      : super._();
+  _$RegisterOfferGroupOK._({
+    this.message,
+    required this.mnemonic,
+    this.validUntil,
+    this.maximumUsage,
+    required this.offerLink,
+    required this.groupId,
+    required this.groupDid,
+  }) : super._();
   @override
   RegisterOfferGroupOK rebuild(
-          void Function(RegisterOfferGroupOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(RegisterOfferGroupOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   RegisterOfferGroupOKBuilder toBuilder() =>
@@ -150,19 +150,32 @@ class RegisterOfferGroupOKBuilder
   RegisterOfferGroupOK build() => _build();
 
   _$RegisterOfferGroupOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterOfferGroupOK._(
           message: message,
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'RegisterOfferGroupOK', 'mnemonic'),
+            mnemonic,
+            r'RegisterOfferGroupOK',
+            'mnemonic',
+          ),
           validUntil: validUntil,
           maximumUsage: maximumUsage,
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'RegisterOfferGroupOK', 'offerLink'),
+            offerLink,
+            r'RegisterOfferGroupOK',
+            'offerLink',
+          ),
           groupId: BuiltValueNullFieldError.checkNotNull(
-              groupId, r'RegisterOfferGroupOK', 'groupId'),
+            groupId,
+            r'RegisterOfferGroupOK',
+            'groupId',
+          ),
           groupDid: BuiltValueNullFieldError.checkNotNull(
-              groupDid, r'RegisterOfferGroupOK', 'groupDid'),
+            groupDid,
+            r'RegisterOfferGroupOK',
+            'groupDid',
+          ),
         );
     replace(_$result);
     return _$result;

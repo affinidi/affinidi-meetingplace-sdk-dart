@@ -16,16 +16,16 @@ class _$RegisterDeviceOK extends RegisterDeviceOK {
   @override
   final String platformType;
 
-  factory _$RegisterDeviceOK(
-          [void Function(RegisterDeviceOKBuilder)? updates]) =>
-      (RegisterDeviceOKBuilder()..update(updates))._build();
+  factory _$RegisterDeviceOK([
+    void Function(RegisterDeviceOKBuilder)? updates,
+  ]) => (RegisterDeviceOKBuilder()..update(updates))._build();
 
-  _$RegisterDeviceOK._(
-      {this.status,
-      this.message,
-      required this.deviceToken,
-      required this.platformType})
-      : super._();
+  _$RegisterDeviceOK._({
+    this.status,
+    this.message,
+    required this.deviceToken,
+    required this.platformType,
+  }) : super._();
   @override
   RegisterDeviceOK rebuild(void Function(RegisterDeviceOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -116,14 +116,21 @@ class RegisterDeviceOKBuilder
   RegisterDeviceOK build() => _build();
 
   _$RegisterDeviceOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterDeviceOK._(
           status: status,
           message: message,
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'RegisterDeviceOK', 'deviceToken'),
+            deviceToken,
+            r'RegisterDeviceOK',
+            'deviceToken',
+          ),
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'RegisterDeviceOK', 'platformType'),
+            platformType,
+            r'RegisterDeviceOK',
+            'platformType',
+          ),
         );
     replace(_$result);
     return _$result;

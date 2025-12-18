@@ -10,15 +10,15 @@ class _$GetPendingNotificationsOK extends GetPendingNotificationsOK {
   @override
   final BuiltList<GetPendingNotificationsOKNotificationsInner>? notifications;
 
-  factory _$GetPendingNotificationsOK(
-          [void Function(GetPendingNotificationsOKBuilder)? updates]) =>
-      (GetPendingNotificationsOKBuilder()..update(updates))._build();
+  factory _$GetPendingNotificationsOK([
+    void Function(GetPendingNotificationsOKBuilder)? updates,
+  ]) => (GetPendingNotificationsOKBuilder()..update(updates))._build();
 
   _$GetPendingNotificationsOK._({this.notifications}) : super._();
   @override
   GetPendingNotificationsOK rebuild(
-          void Function(GetPendingNotificationsOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GetPendingNotificationsOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GetPendingNotificationsOKBuilder toBuilder() =>
@@ -41,9 +41,9 @@ class _$GetPendingNotificationsOK extends GetPendingNotificationsOK {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'GetPendingNotificationsOK')
-          ..add('notifications', notifications))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'GetPendingNotificationsOK',
+    )..add('notifications', notifications)).toString();
   }
 }
 
@@ -57,9 +57,8 @@ class GetPendingNotificationsOKBuilder
       _$this._notifications ??=
           ListBuilder<GetPendingNotificationsOKNotificationsInner>();
   set notifications(
-          ListBuilder<GetPendingNotificationsOKNotificationsInner>?
-              notifications) =>
-      _$this._notifications = notifications;
+    ListBuilder<GetPendingNotificationsOKNotificationsInner>? notifications,
+  ) => _$this._notifications = notifications;
 
   GetPendingNotificationsOKBuilder() {
     GetPendingNotificationsOK._defaults(this);
@@ -90,10 +89,9 @@ class GetPendingNotificationsOKBuilder
   _$GetPendingNotificationsOK _build() {
     _$GetPendingNotificationsOK _$result;
     try {
-      _$result = _$v ??
-          _$GetPendingNotificationsOK._(
-            notifications: _notifications?.build(),
-          );
+      _$result =
+          _$v ??
+          _$GetPendingNotificationsOK._(notifications: _notifications?.build());
     } catch (_) {
       late String _$failedField;
       try {
@@ -101,7 +99,10 @@ class GetPendingNotificationsOKBuilder
         _notifications?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'GetPendingNotificationsOK', _$failedField, e.toString());
+          r'GetPendingNotificationsOK',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

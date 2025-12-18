@@ -10,15 +10,15 @@ class _$RegisterNotificationOK extends RegisterNotificationOK {
   @override
   final String notificationToken;
 
-  factory _$RegisterNotificationOK(
-          [void Function(RegisterNotificationOKBuilder)? updates]) =>
-      (RegisterNotificationOKBuilder()..update(updates))._build();
+  factory _$RegisterNotificationOK([
+    void Function(RegisterNotificationOKBuilder)? updates,
+  ]) => (RegisterNotificationOKBuilder()..update(updates))._build();
 
   _$RegisterNotificationOK._({required this.notificationToken}) : super._();
   @override
   RegisterNotificationOK rebuild(
-          void Function(RegisterNotificationOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(RegisterNotificationOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   RegisterNotificationOKBuilder toBuilder() =>
@@ -41,9 +41,9 @@ class _$RegisterNotificationOK extends RegisterNotificationOK {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'RegisterNotificationOK')
-          ..add('notificationToken', notificationToken))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'RegisterNotificationOK',
+    )..add('notificationToken', notificationToken)).toString();
   }
 }
 
@@ -83,12 +83,14 @@ class RegisterNotificationOKBuilder
   RegisterNotificationOK build() => _build();
 
   _$RegisterNotificationOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterNotificationOK._(
           notificationToken: BuiltValueNullFieldError.checkNotNull(
-              notificationToken,
-              r'RegisterNotificationOK',
-              'notificationToken'),
+            notificationToken,
+            r'RegisterNotificationOK',
+            'notificationToken',
+          ),
         );
     replace(_$result);
     return _$result;

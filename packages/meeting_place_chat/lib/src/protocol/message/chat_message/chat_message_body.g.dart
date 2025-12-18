@@ -13,7 +13,4 @@ ChatMessageBody _$ChatMessageBodyFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$ChatMessageBodyToJson(ChatMessageBody instance) =>
-    <String, dynamic>{
-      'text': instance.text,
-      'seq_no': instance.seqNo,
-    };
+    <String, dynamic>{'text': instance.text, 'seq_no': instance.seqNo};

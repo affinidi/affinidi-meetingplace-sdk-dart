@@ -40,10 +40,7 @@ void main() async {
       equals(connectionOffer.offerName),
     );
 
-    expect(
-      actual.connectionOffer!.contactCard.contactInfo,
-      equals(const {}),
-    );
+    expect(actual.connectionOffer!.contactCard.contactInfo, equals(const {}));
 
     expect(
       actual.connectionOffer!.maximumUsage,

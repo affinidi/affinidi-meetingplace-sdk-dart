@@ -35,8 +35,10 @@ void main() async {
       expect(actual.connectionOffer.offerName, equals(offerName));
       expect(actual.connectionOffer.offerDescription, equals(offerDescription));
       expect(actual.connectionOffer.contactCard.contactInfo, equals(expInfo));
-      expect(actual.connectionOffer.type,
-          equals(ConnectionOfferType.meetingPlaceInvitation));
+      expect(
+        actual.connectionOffer.type,
+        equals(ConnectionOfferType.meetingPlaceInvitation),
+      );
     },
   );
 }

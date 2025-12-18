@@ -13,11 +13,11 @@ class NotificationService {
     required MeetingPlaceMediatorSDK mediatorSDK,
     required ConnectionManager connectionManager,
     MeetingPlaceCoreSDKLogger? logger,
-  })  : _controlPlaneSDK = controlPlaneSDK,
-        _mediatorSDK = mediatorSDK,
-        _connectionManager = connectionManager,
-        _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+  }) : _controlPlaneSDK = controlPlaneSDK,
+       _mediatorSDK = mediatorSDK,
+       _connectionManager = connectionManager,
+       _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'NotificationService';
 
@@ -27,7 +27,7 @@ class NotificationService {
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<RegisterForDidcommNotificationsResult>
-      registerForDIDCommNotifications({
+  registerForDIDCommNotifications({
     required Wallet wallet,
     required String mediatorDid,
     required String controlPlaneDid,

@@ -11,10 +11,10 @@ class ControlPlaneEventService {
     required ControlPlaneSDK controlPlaneSDK,
     required ControlPlaneEventManager discoveryEventManager,
     MeetingPlaceCoreSDKLogger? logger,
-  })  : _controlPlaneSDK = controlPlaneSDK,
-        _discoveryEventManager = discoveryEventManager,
-        _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+  }) : _controlPlaneSDK = controlPlaneSDK,
+       _discoveryEventManager = discoveryEventManager,
+       _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'DiscoveryEventService';
 

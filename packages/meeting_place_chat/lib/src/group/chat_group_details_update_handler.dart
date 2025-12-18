@@ -7,9 +7,9 @@ class ChatGroupDetailsUpdateHandler {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatHistoryService chatHistoryService,
     required ChatStream streamManager,
-  })  : _coreSDK = coreSDK,
-        _chatHistoryService = chatHistoryService,
-        _chatStreamManager = streamManager;
+  }) : _coreSDK = coreSDK,
+       _chatHistoryService = chatHistoryService,
+       _chatStreamManager = streamManager;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final ChatHistoryService _chatHistoryService;
@@ -50,13 +50,13 @@ class ChatGroupDetailsUpdateHandler {
         .cast<Map<String, dynamic>>();
 
     for (final newMember in newMembers) {
-      final chatItem =
-          await _chatHistoryService.createGroupMemberJoinedGroupEventMessage(
-        chatId: chatId,
-        groupDid: group.did,
-        memberDid: newMember['did'] as String,
-        memberCard: _cardFromMessage(newMember),
-      );
+      final chatItem = await _chatHistoryService
+          .createGroupMemberJoinedGroupEventMessage(
+            chatId: chatId,
+            groupDid: group.did,
+            memberDid: newMember['did'] as String,
+            memberCard: _cardFromMessage(newMember),
+          );
       _chatStreamManager.pushData(StreamData(chatItem: chatItem));
     }
 

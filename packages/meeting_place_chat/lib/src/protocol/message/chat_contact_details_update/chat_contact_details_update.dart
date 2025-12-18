@@ -18,7 +18,8 @@ class ChatContactDetailsUpdate {
   }
 
   factory ChatContactDetailsUpdate.fromPlainTextMessage(
-      PlainTextMessage message) {
+    PlainTextMessage message,
+  ) {
     return ChatContactDetailsUpdate(
       id: message.id,
       from: message.from!,

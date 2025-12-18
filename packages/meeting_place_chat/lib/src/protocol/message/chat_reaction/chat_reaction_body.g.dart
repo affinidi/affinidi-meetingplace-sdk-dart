@@ -8,8 +8,9 @@ part of 'chat_reaction_body.dart';
 
 ChatReactionBody _$ChatReactionBodyFromJson(Map<String, dynamic> json) =>
     ChatReactionBody(
-      reactions:
-          (json['reactions'] as List<dynamic>).map((e) => e as String).toList(),
+      reactions: (json['reactions'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       messageId: json['message_id'] as String,
     );
 

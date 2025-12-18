@@ -10,9 +10,9 @@ class ChatGroupMemberDeregisteredMessageHandler {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatHistoryService chatHistoryService,
     required ChatStream streamManager,
-  })  : _coreSDK = coreSDK,
-        _chatHistoryService = chatHistoryService,
-        _streamManager = streamManager;
+  }) : _coreSDK = coreSDK,
+       _chatHistoryService = chatHistoryService,
+       _streamManager = streamManager;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final ChatHistoryService _chatHistoryService;
@@ -38,13 +38,13 @@ class ChatGroupMemberDeregisteredMessageHandler {
     member.status = GroupMemberStatus.deleted;
     await _coreSDK.updateGroup(group);
 
-    final chatItem =
-        await _chatHistoryService.createGroupMemberLeftGroupEventMessage(
-      chatId: chatId,
-      groupDid: groupId,
-      memberDid: memberDid,
-      memberCard: member.contactCard,
-    );
+    final chatItem = await _chatHistoryService
+        .createGroupMemberLeftGroupEventMessage(
+          chatId: chatId,
+          groupDid: groupId,
+          memberDid: memberDid,
+          memberCard: member.contactCard,
+        );
 
     _streamManager.pushData(StreamData(chatItem: chatItem));
 

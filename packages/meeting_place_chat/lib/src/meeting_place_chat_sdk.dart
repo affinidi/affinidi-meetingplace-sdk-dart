@@ -43,7 +43,8 @@ class MeetingPlaceChatSDK implements ChatSDK {
     MeetingPlaceChatSDKLogger? logger,
   }) async {
     if (channel.type == ChannelType.group) {
-      final group = await coreSDK.getGroupByOfferLink(channel.offerLink) ??
+      final group =
+          await coreSDK.getGroupByOfferLink(channel.offerLink) ??
           (throw Exception('Group not found'));
 
       return MeetingPlaceChatSDK(

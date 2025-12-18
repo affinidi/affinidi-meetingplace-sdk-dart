@@ -42,19 +42,19 @@ class GroupService {
     required MeetingPlaceMediatorSDK mediatorSDK,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
-  })  : _wallet = wallet,
-        _connectionManager = connectionManager,
-        _connectionOfferRepository = connectionOfferRepository,
-        _groupRepository = groupRepository,
-        _channelRepository = channelRepository,
-        _keyRepository = keyRepository,
-        _connectionOfferService = offerService,
-        _connectionService = connectionService,
-        _controlPlaneSDK = controlPlaneSDK,
-        _mediatorSDK = mediatorSDK,
-        _didResolver = didResolver,
-        _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+  }) : _wallet = wallet,
+       _connectionManager = connectionManager,
+       _connectionOfferRepository = connectionOfferRepository,
+       _groupRepository = groupRepository,
+       _channelRepository = channelRepository,
+       _keyRepository = keyRepository,
+       _connectionOfferService = offerService,
+       _connectionService = connectionService,
+       _controlPlaneSDK = controlPlaneSDK,
+       _mediatorSDK = mediatorSDK,
+       _didResolver = didResolver,
+       _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'GroupService';
 
@@ -75,11 +75,13 @@ class GroupService {
   final _recrypt = recrypt.Recrypt();
 
   Future<
-      (
-        GroupConnectionOffer connectionOffer,
-        DidManager didManager,
-        DidManager ownerDid,
-      )> createGroup({
+    (
+      GroupConnectionOffer connectionOffer,
+      DidManager didManager,
+      DidManager ownerDid,
+    )
+  >
+  createGroup({
     required String offerName,
     required String offerDescription,
     required ContactCard card,
@@ -279,8 +281,8 @@ class GroupService {
       wallet,
     );
 
-    final permanentChannelDidDocument =
-        await permanentChannelDidManager.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDidManager
+        .getDidDocument();
 
     _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -455,16 +457,16 @@ class GroupService {
     final connectionOfferToBeAccepted =
         (existingConnectionOffer ?? connectionOffer) as GroupConnectionOffer;
 
-    final acceptedConnectionOffer =
-        connectionOfferToBeAccepted.acceptGroupOffer(
-      groupId: group.id,
-      memberDid: permanentChannelDidDocument.id,
-      acceptOfferDid: acceptOfferDidDocument.id,
-      permanentChannelDid: permanentChannelDidDocument.id,
-      card: card,
-      externalRef: externalRef,
-      createdAt: DateTime.now().toUtc(),
-    );
+    final acceptedConnectionOffer = connectionOfferToBeAccepted
+        .acceptGroupOffer(
+          groupId: group.id,
+          memberDid: permanentChannelDidDocument.id,
+          acceptOfferDid: acceptOfferDidDocument.id,
+          permanentChannelDid: permanentChannelDidDocument.id,
+          card: card,
+          externalRef: externalRef,
+          createdAt: DateTime.now().toUtc(),
+        );
 
     existingConnectionOffer != null
         ? await _connectionOfferRepository.updateConnectionOffer(
@@ -506,8 +508,8 @@ class GroupService {
     final recipientDid = invitationMessage.from;
 
     final senderDidDocument = await senderDid.getDidDocument();
-    final permanentChannelDidDocument =
-        await permanentChannelDid.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDid
+        .getDidDocument();
 
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 

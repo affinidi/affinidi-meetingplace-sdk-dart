@@ -49,8 +49,8 @@ class ChatGroupDetailsUpdateBody {
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class ChatGroupDetailsUpdateBodyMember {
   factory ChatGroupDetailsUpdateBodyMember.fromJson(
-          Map<String, dynamic> json) =>
-      _$ChatGroupDetailsUpdateBodyMemberFromJson(json);
+    Map<String, dynamic> json,
+  ) => _$ChatGroupDetailsUpdateBodyMemberFromJson(json);
 
   ChatGroupDetailsUpdateBodyMember({
     required this.did,

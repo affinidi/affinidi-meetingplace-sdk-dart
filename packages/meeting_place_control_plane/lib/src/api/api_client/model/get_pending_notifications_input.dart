@@ -17,8 +17,10 @@ part 'get_pending_notifications_input.g.dart';
 @BuiltValue()
 abstract class GetPendingNotificationsInput
     implements
-        Built<GetPendingNotificationsInput,
-            GetPendingNotificationsInputBuilder> {
+        Built<
+          GetPendingNotificationsInput,
+          GetPendingNotificationsInputBuilder
+        > {
   /// The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
@@ -30,9 +32,9 @@ abstract class GetPendingNotificationsInput
 
   GetPendingNotificationsInput._();
 
-  factory GetPendingNotificationsInput(
-          [void updates(GetPendingNotificationsInputBuilder b)]) =
-      _$GetPendingNotificationsInput;
+  factory GetPendingNotificationsInput([
+    void updates(GetPendingNotificationsInputBuilder b),
+  ]) = _$GetPendingNotificationsInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(GetPendingNotificationsInputBuilder b) => b;
@@ -47,7 +49,7 @@ class _$GetPendingNotificationsInputSerializer
   @override
   final Iterable<Type> types = const [
     GetPendingNotificationsInput,
-    _$GetPendingNotificationsInput
+    _$GetPendingNotificationsInput,
   ];
 
   @override
@@ -66,8 +68,9 @@ class _$GetPendingNotificationsInputSerializer
     yield r'platformType';
     yield serializers.serialize(
       object.platformType,
-      specifiedType:
-          const FullType(GetPendingNotificationsInputPlatformTypeEnum),
+      specifiedType: const FullType(
+        GetPendingNotificationsInputPlatformTypeEnum,
+      ),
     );
   }
 
@@ -77,9 +80,11 @@ class _$GetPendingNotificationsInputSerializer
     GetPendingNotificationsInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -95,18 +100,23 @@ class _$GetPendingNotificationsInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'deviceToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceToken = valueDes;
           break;
         case r'platformType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType:
-                const FullType(GetPendingNotificationsInputPlatformTypeEnum),
-          ) as GetPendingNotificationsInputPlatformTypeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      GetPendingNotificationsInputPlatformTypeEnum,
+                    ),
+                  )
+                  as GetPendingNotificationsInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
         default:
@@ -155,11 +165,10 @@ class GetPendingNotificationsInputPlatformTypeEnum extends EnumClass {
       _$getPendingNotificationsInputPlatformTypeEnum_NONE;
 
   static Serializer<GetPendingNotificationsInputPlatformTypeEnum>
-      get serializer =>
-          _$getPendingNotificationsInputPlatformTypeEnumSerializer;
+  get serializer => _$getPendingNotificationsInputPlatformTypeEnumSerializer;
 
   const GetPendingNotificationsInputPlatformTypeEnum._(String name)
-      : super(name);
+    : super(name);
 
   static BuiltSet<GetPendingNotificationsInputPlatformTypeEnum> get values =>
       _$getPendingNotificationsInputPlatformTypeEnumValues;

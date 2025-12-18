@@ -7,9 +7,8 @@ part 'contact_card.g.dart';
 class ContactCard {
   factory ContactCard.fromBase64(String base64, {bool addPadding = false}) {
     final base64Padded = addPadding ? 'base64=' : base64;
-    final json =
-        jsonDecode(utf8.decode(base64Decode(base64Padded)))
-            as Map<String, dynamic>;
+    final json = jsonDecode(utf8.decode(base64Decode(base64Padded)))
+        as Map<String, dynamic>;
 
     return ContactCard.fromJson(json);
   }

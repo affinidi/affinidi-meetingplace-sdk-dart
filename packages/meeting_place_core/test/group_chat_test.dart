@@ -45,13 +45,13 @@ void main() async {
       },
     );
 
-    final publishOfferResult = await aliceSDK
-        .publishOffer<GroupConnectionOffer>(
-          offerName: 'Sample offer',
-          offerDescription: 'Sample offer description',
-          contactCard: aliceCard,
-          type: SDKConnectionOfferType.groupInvitation,
-        );
+    final publishOfferResult =
+        await aliceSDK.publishOffer<GroupConnectionOffer>(
+      offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
+      contactCard: aliceCard,
+      type: SDKConnectionOfferType.groupInvitation,
+    );
 
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
@@ -75,8 +75,8 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceSDKCompleter.future;
 
-    final bobMemberDidDoc = await bobAcceptance.permanentChannelDid
-        .getDidDocument();
+    final bobMemberDidDoc =
+        await bobAcceptance.permanentChannelDid.getDidDocument();
     final aliceToBobChannel = await aliceSDK.getChannelByOtherPartyPermanentDid(
       bobMemberDidDoc.id,
     );
@@ -84,8 +84,8 @@ void main() async {
     // Alice approves Bob's group membership request
     await aliceSDK.approveConnectionRequest(channel: aliceToBobChannel!);
 
-    final charlieMemberDidDoc = await charlieAcceptance.permanentChannelDid
-        .getDidDocument();
+    final charlieMemberDidDoc =
+        await charlieAcceptance.permanentChannelDid.getDidDocument();
     final aliceToCharlieChannel = await aliceSDK
         .getChannelByOtherPartyPermanentDid(charlieMemberDidDoc.id);
 

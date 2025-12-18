@@ -43,15 +43,15 @@ class ConnectionService {
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
-  }) : _connectionManager = connectionManager,
-       _channelRepository = channelRepository,
-       _connectionOfferRepository = connectionOfferRepository,
-       _mediatorSDK = mediatorSDK,
-       _controlPlaneSDK = controlPlaneSDK,
-       _connectionOfferService = offerService,
-       _didResolver = didResolver,
-       _logger =
-           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+  })  : _connectionManager = connectionManager,
+        _channelRepository = channelRepository,
+        _connectionOfferRepository = connectionOfferRepository,
+        _mediatorSDK = mediatorSDK,
+        _controlPlaneSDK = controlPlaneSDK,
+        _connectionOfferService = offerService,
+        _didResolver = didResolver,
+        _logger =
+            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'ConnectionService';
 
@@ -65,7 +65,7 @@ class ConnectionService {
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
-  findOffer({required String mnemonic}) async {
+      findOffer({required String mnemonic}) async {
     final methodName = 'findOffer';
     _logger.info('Finding offer with mnemonic: $mnemonic', name: methodName);
 
@@ -293,8 +293,8 @@ class ConnectionService {
       wallet,
     );
 
-    final permanentChannelDidDocument = await permanentChannelDidManager
-        .getDidDocument();
+    final permanentChannelDidDocument =
+        await permanentChannelDidManager.getDidDocument();
 
     _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -348,23 +348,21 @@ class ConnectionService {
 
     unawaited(
       _notifyAcceptance(
-            connectionOffer: acceptedConnectionOffer,
-            senderInfo: senderInfo,
-          )
-          .then((_) {
-            _logger.info(
-              'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
-              name: methodName,
-            );
-          })
-          .catchError((error, stackTrace) {
-            _logger.error(
-              'Failed to notify acceptance',
-              error: error,
-              stackTrace: stackTrace,
-              name: methodName,
-            );
-          }),
+        connectionOffer: acceptedConnectionOffer,
+        senderInfo: senderInfo,
+      ).then((_) {
+        _logger.info(
+          'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
+          name: methodName,
+        );
+      }).catchError((error, stackTrace) {
+        _logger.error(
+          'Failed to notify acceptance',
+          error: error,
+          stackTrace: stackTrace,
+          name: methodName,
+        );
+      }),
     );
 
     return AcceptOfferResult(
@@ -504,9 +502,9 @@ class ConnectionService {
 
     final connectionOffer =
         await _connectionOfferRepository.getConnectionOfferByOfferLink(
-          channel.offerLink,
-        ) ??
-        (throw ConnectionOfferException.offerNotFoundError());
+              channel.offerLink,
+            ) ??
+            (throw ConnectionOfferException.offerNotFoundError());
 
     if (connectionOffer.isFinalised) {
       _logger.error('Connection offer is already finalised', name: methodName);
@@ -533,8 +531,8 @@ class ConnectionService {
 
     final permanentChannelDid = await _connectionManager.generateDid(wallet);
 
-    final permanentChannelDidDocument = await permanentChannelDid
-        .getDidDocument();
+    final permanentChannelDidDocument =
+        await permanentChannelDid.getDidDocument();
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
@@ -600,8 +598,8 @@ class ConnectionService {
       name: methodName,
     );
 
-    final permanentChannelDidDocument = await permanentChannelDid
-        .getDidDocument();
+    final permanentChannelDidDocument =
+        await permanentChannelDid.getDidDocument();
 
     final offerPublishedDidDocument = await offerPublishedDid.getDidDocument();
 

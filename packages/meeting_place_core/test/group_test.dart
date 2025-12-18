@@ -248,8 +248,8 @@ void main() async {
       );
 
       final groupDid = result.connectionOffer.groupDid!;
-      final groupOwnerDidDoc = await result.groupOwnerDidManager!
-          .getDidDocument();
+      final groupOwnerDidDoc =
+          await result.groupOwnerDidManager!.getDidDocument();
 
       // --- Check that ACLs are not updated yet
       expect(
@@ -287,8 +287,8 @@ void main() async {
       await aliceSDK.processControlPlaneEvents();
       await aliceCompleter.future;
 
-      final charlieDidDoc = await acceptResultCharlie.permanentChannelDid
-          .getDidDocument();
+      final charlieDidDoc =
+          await acceptResultCharlie.permanentChannelDid.getDidDocument();
       final charlieChannel = await aliceSDK.getChannelByDid(charlieDidDoc.id);
 
       await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
@@ -302,9 +302,8 @@ void main() async {
       await charlieSDK.processControlPlaneEvents();
       await charlieCompleter.future;
 
-      final acceptResultBobChannelDid = await acceptResultBob
-          .permanentChannelDid
-          .getDidDocument();
+      final acceptResultBobChannelDid =
+          await acceptResultBob.permanentChannelDid.getDidDocument();
 
       final bobChannel = await aliceSDK.getChannelByDid(
         acceptResultBobChannelDid.id,
@@ -387,8 +386,8 @@ void main() async {
     final groupDidDocument = await UniversalDIDResolver().resolveDid(
       result.connectionOffer.groupDid!,
     );
-    final senderDidDocument = await result.groupOwnerDidManager!
-        .getDidDocument();
+    final senderDidDocument =
+        await result.groupOwnerDidManager!.getDidDocument();
 
     final chatMessage = PlainTextMessage(
       id: Uuid().v4(),
@@ -420,8 +419,8 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceCompleter.future;
 
-    final publishOfferDidDoc = await result.publishedOfferDidManager
-        .getDidDocument();
+    final publishOfferDidDoc =
+        await result.publishedOfferDidManager.getDidDocument();
 
     final channel = await aliceSDK.getChannelByDid(
       result.connectionOffer.groupDid!,
@@ -593,8 +592,8 @@ void main() async {
     await bobSDK.processControlPlaneEvents();
     await bobCompleter.future;
 
-    final bobMemberDidDic = await acceptResult.permanentChannelDid
-        .getDidDocument();
+    final bobMemberDidDic =
+        await acceptResult.permanentChannelDid.getDidDocument();
 
     final bobChannel = await bobSDK.getChannelByDid(bobMemberDidDic.id);
 
@@ -669,8 +668,8 @@ void main() async {
 
     await bobSDK.processControlPlaneEvents();
 
-    final aliceMemberDidDoc = await result.groupOwnerDidManager!
-        .getDidDocument();
+    final aliceMemberDidDoc =
+        await result.groupOwnerDidManager!.getDidDocument();
 
     final aliceChannel = await aliceSDK.getChannelByDid(aliceMemberDidDoc.id);
     await aliceSDK.leaveChannel(aliceChannel!);
@@ -696,8 +695,7 @@ void main() async {
               e is MeetingPlaceCoreSDKException &&
               e.code ==
                   MeetingPlaceCoreSDKErrorCode
-                      .connectionOfferNotFoundError
-                      .value,
+                      .connectionOfferNotFoundError.value,
         ),
       ),
     );

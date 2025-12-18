@@ -81,7 +81,7 @@ class ChatGroupDetailsUpdateHandler {
 
   ContactCard _cardFromMessage(Map<String, dynamic> message) {
     return ContactCard.fromJson(
-      message['contactCard'] as Map<String, dynamic>,
+      message['contact_card'] as Map<String, dynamic>,
     );
   }
 }

@@ -38,7 +38,9 @@ class ChatActivityEventHandler extends BaseEventHandler {
             batchSize: 100,
             deleteOnRetrieve: false,
             // TODO: fix interdependency - make configurable via SDK options
-            filterByMessageTypes: ['https://affinidi.io/mpx/chat-sdk/message']),
+            filterByMessageTypes: [
+              'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message'
+            ]),
       );
 
       for (final message in messages) {

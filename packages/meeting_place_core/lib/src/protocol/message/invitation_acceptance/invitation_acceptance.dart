@@ -2,7 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../protocol.dart';
-import '../../v_card/v_card_helper.dart';
+import '../../contact_card/contact_card_helper.dart';
 import 'invitation_acceptance_body.dart';
 
 class InvitationAcceptance {
@@ -71,7 +71,7 @@ class InvitationAcceptance {
       createdTime: createdTime,
       attachments: contactCard == null
           ? null
-          : [VCardHelper.vCardToAttachment(contactCard!)],
+          : [ContactCardHelper.vCardToAttachment(contactCard!)],
     );
   }
 }

@@ -538,10 +538,11 @@ class $GroupMembersTable extends GroupMembers
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
       'type', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _schemaMeta = const VerificationMeta('schema');
+  static const VerificationMeta _senderInfoMeta =
+      const VerificationMeta('senderInfo');
   @override
-  late final GeneratedColumn<String> schema = GeneratedColumn<String>(
-      'schema', aliasedName, false,
+  late final GeneratedColumn<String> senderInfo = GeneratedColumn<String>(
+      'sender_info', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _firstNameMeta =
       const VerificationMeta('firstName');
@@ -593,7 +594,7 @@ class $GroupMembersTable extends GroupMembers
         status,
         identityDid,
         type,
-        schema,
+        senderInfo,
         firstName,
         lastName,
         email,
@@ -673,11 +674,13 @@ class $GroupMembersTable extends GroupMembers
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
-    if (data.containsKey('schema')) {
-      context.handle(_schemaMeta,
-          schema.isAcceptableOrUnknown(data['schema']!, _schemaMeta));
+    if (data.containsKey('sender_info')) {
+      context.handle(
+          _senderInfoMeta,
+          senderInfo.isAcceptableOrUnknown(
+              data['sender_info']!, _senderInfoMeta));
     } else if (isInserting) {
-      context.missing(_schemaMeta);
+      context.missing(_senderInfoMeta);
     }
     if (data.containsKey('first_name')) {
       context.handle(_firstNameMeta,
@@ -757,8 +760,8 @@ class $GroupMembersTable extends GroupMembers
           .read(DriftSqlType.string, data['${effectivePrefix}identity_did'])!,
       type: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
-      schema: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}schema'])!,
+      senderInfo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sender_info'])!,
       firstName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}first_name'])!,
       lastName: attachedDatabase.typeMapping
@@ -825,7 +828,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
 
   /// Type of the contact.
   final String type;
-  final String schema;
+  final String senderInfo;
 
   /// The first name of the group member.
   final String firstName;
@@ -858,7 +861,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       required this.status,
       required this.identityDid,
       required this.type,
-      required this.schema,
+      required this.senderInfo,
       required this.firstName,
       required this.lastName,
       required this.email,
@@ -897,7 +900,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     }
     map['identity_did'] = Variable<String>(identityDid);
     map['type'] = Variable<String>(type);
-    map['schema'] = Variable<String>(schema);
+    map['sender_info'] = Variable<String>(senderInfo);
     map['first_name'] = Variable<String>(firstName);
     map['last_name'] = Variable<String>(lastName);
     map['email'] = Variable<String>(email);
@@ -933,7 +936,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       status: Value(status),
       identityDid: Value(identityDid),
       type: Value(type),
-      schema: Value(schema),
+      senderInfo: Value(senderInfo),
       firstName: Value(firstName),
       lastName: Value(lastName),
       email: Value(email),
@@ -961,7 +964,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       status: serializer.fromJson<GroupMemberStatus>(json['status']),
       identityDid: serializer.fromJson<String>(json['identityDid']),
       type: serializer.fromJson<String>(json['type']),
-      schema: serializer.fromJson<String>(json['schema']),
+      senderInfo: serializer.fromJson<String>(json['senderInfo']),
       firstName: serializer.fromJson<String>(json['firstName']),
       lastName: serializer.fromJson<String>(json['lastName']),
       email: serializer.fromJson<String>(json['email']),
@@ -988,7 +991,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       'status': serializer.toJson<GroupMemberStatus>(status),
       'identityDid': serializer.toJson<String>(identityDid),
       'type': serializer.toJson<String>(type),
-      'schema': serializer.toJson<String>(schema),
+      'senderInfo': serializer.toJson<String>(senderInfo),
       'firstName': serializer.toJson<String>(firstName),
       'lastName': serializer.toJson<String>(lastName),
       'email': serializer.toJson<String>(email),
@@ -1013,7 +1016,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           GroupMemberStatus? status,
           String? identityDid,
           String? type,
-          String? schema,
+          String? senderInfo,
           String? firstName,
           String? lastName,
           String? email,
@@ -1039,7 +1042,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
         status: status ?? this.status,
         identityDid: identityDid ?? this.identityDid,
         type: type ?? this.type,
-        schema: schema ?? this.schema,
+        senderInfo: senderInfo ?? this.senderInfo,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         email: email ?? this.email,
@@ -1072,7 +1075,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       identityDid:
           data.identityDid.present ? data.identityDid.value : this.identityDid,
       type: data.type.present ? data.type.value : this.type,
-      schema: data.schema.present ? data.schema.value : this.schema,
+      senderInfo:
+          data.senderInfo.present ? data.senderInfo.value : this.senderInfo,
       firstName: data.firstName.present ? data.firstName.value : this.firstName,
       lastName: data.lastName.present ? data.lastName.value : this.lastName,
       email: data.email.present ? data.email.value : this.email,
@@ -1101,7 +1105,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('status: $status, ')
           ..write('identityDid: $identityDid, ')
           ..write('type: $type, ')
-          ..write('schema: $schema, ')
+          ..write('senderInfo: $senderInfo, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1128,7 +1132,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       status,
       identityDid,
       type,
-      schema,
+      senderInfo,
       firstName,
       lastName,
       email,
@@ -1152,7 +1156,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.status == this.status &&
           other.identityDid == this.identityDid &&
           other.type == this.type &&
-          other.schema == this.schema &&
+          other.senderInfo == this.senderInfo &&
           other.firstName == this.firstName &&
           other.lastName == this.lastName &&
           other.email == this.email &&
@@ -1176,7 +1180,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<GroupMemberStatus> status;
   final Value<String> identityDid;
   final Value<String> type;
-  final Value<String> schema;
+  final Value<String> senderInfo;
   final Value<String> firstName;
   final Value<String> lastName;
   final Value<String> email;
@@ -1198,7 +1202,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.status = const Value.absent(),
     this.identityDid = const Value.absent(),
     this.type = const Value.absent(),
-    this.schema = const Value.absent(),
+    this.senderInfo = const Value.absent(),
     this.firstName = const Value.absent(),
     this.lastName = const Value.absent(),
     this.email = const Value.absent(),
@@ -1221,7 +1225,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     required GroupMemberStatus status,
     required String identityDid,
     required String type,
-    required String schema,
+    required String senderInfo,
     required String firstName,
     required String lastName,
     required String email,
@@ -1236,7 +1240,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
         status = Value(status),
         identityDid = Value(identityDid),
         type = Value(type),
-        schema = Value(schema),
+        senderInfo = Value(senderInfo),
         firstName = Value(firstName),
         lastName = Value(lastName),
         email = Value(email),
@@ -1257,7 +1261,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<int>? status,
     Expression<String>? identityDid,
     Expression<String>? type,
-    Expression<String>? schema,
+    Expression<String>? senderInfo,
     Expression<String>? firstName,
     Expression<String>? lastName,
     Expression<String>? email,
@@ -1280,7 +1284,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (status != null) 'status': status,
       if (identityDid != null) 'identity_did': identityDid,
       if (type != null) 'type': type,
-      if (schema != null) 'schema': schema,
+      if (senderInfo != null) 'sender_info': senderInfo,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,
@@ -1306,7 +1310,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       Value<GroupMemberStatus>? status,
       Value<String>? identityDid,
       Value<String>? type,
-      Value<String>? schema,
+      Value<String>? senderInfo,
       Value<String>? firstName,
       Value<String>? lastName,
       Value<String>? email,
@@ -1328,7 +1332,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       status: status ?? this.status,
       identityDid: identityDid ?? this.identityDid,
       type: type ?? this.type,
-      schema: schema ?? this.schema,
+      senderInfo: senderInfo ?? this.senderInfo,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -1385,8 +1389,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
-    if (schema.present) {
-      map['schema'] = Variable<String>(schema.value);
+    if (senderInfo.present) {
+      map['sender_info'] = Variable<String>(senderInfo.value);
     }
     if (firstName.present) {
       map['first_name'] = Variable<String>(firstName.value);
@@ -1429,7 +1433,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('status: $status, ')
           ..write('identityDid: $identityDid, ')
           ..write('type: $type, ')
-          ..write('schema: $schema, ')
+          ..write('senderInfo: $senderInfo, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1790,7 +1794,7 @@ typedef $$GroupMembersTableCreateCompanionBuilder = GroupMembersCompanion
   required GroupMemberStatus status,
   required String identityDid,
   required String type,
-  required String schema,
+  required String senderInfo,
   required String firstName,
   required String lastName,
   required String email,
@@ -1814,7 +1818,7 @@ typedef $$GroupMembersTableUpdateCompanionBuilder = GroupMembersCompanion
   Value<GroupMemberStatus> status,
   Value<String> identityDid,
   Value<String> type,
-  Value<String> schema,
+  Value<String> senderInfo,
   Value<String> firstName,
   Value<String> lastName,
   Value<String> email,
@@ -1896,8 +1900,8 @@ class $$GroupMembersTableFilterComposer
   ColumnFilters<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get schema => $composableBuilder(
-      column: $table.schema, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get senderInfo => $composableBuilder(
+      column: $table.senderInfo, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnFilters(column));
@@ -1988,8 +1992,8 @@ class $$GroupMembersTableOrderingComposer
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get schema => $composableBuilder(
-      column: $table.schema, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get senderInfo => $composableBuilder(
+      column: $table.senderInfo, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnOrderings(column));
@@ -2078,8 +2082,8 @@ class $$GroupMembersTableAnnotationComposer
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumn<String> get schema =>
-      $composableBuilder(column: $table.schema, builder: (column) => column);
+  GeneratedColumn<String> get senderInfo => $composableBuilder(
+      column: $table.senderInfo, builder: (column) => column);
 
   GeneratedColumn<String> get firstName =>
       $composableBuilder(column: $table.firstName, builder: (column) => column);
@@ -2159,7 +2163,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             Value<GroupMemberStatus> status = const Value.absent(),
             Value<String> identityDid = const Value.absent(),
             Value<String> type = const Value.absent(),
-            Value<String> schema = const Value.absent(),
+            Value<String> senderInfo = const Value.absent(),
             Value<String> firstName = const Value.absent(),
             Value<String> lastName = const Value.absent(),
             Value<String> email = const Value.absent(),
@@ -2182,7 +2186,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             status: status,
             identityDid: identityDid,
             type: type,
-            schema: schema,
+            senderInfo: senderInfo,
             firstName: firstName,
             lastName: lastName,
             email: email,
@@ -2205,7 +2209,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             required GroupMemberStatus status,
             required String identityDid,
             required String type,
-            required String schema,
+            required String senderInfo,
             required String firstName,
             required String lastName,
             required String email,
@@ -2228,7 +2232,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             status: status,
             identityDid: identityDid,
             type: type,
-            schema: schema,
+            senderInfo: senderInfo,
             firstName: firstName,
             lastName: lastName,
             email: email,

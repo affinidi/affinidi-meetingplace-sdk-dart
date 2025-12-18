@@ -1172,10 +1172,11 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
       'type', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _schemaMeta = const VerificationMeta('schema');
+  static const VerificationMeta _senderInfoMeta =
+      const VerificationMeta('senderInfo');
   @override
-  late final GeneratedColumn<String> schema = GeneratedColumn<String>(
-      'schema', aliasedName, false,
+  late final GeneratedColumn<String> senderInfo = GeneratedColumn<String>(
+      'sender_info', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _firstNameMeta =
       const VerificationMeta('firstName');
@@ -1218,7 +1219,7 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
         connectionOfferId,
         did,
         type,
-        schema,
+        senderInfo,
         firstName,
         lastName,
         email,
@@ -1260,11 +1261,13 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
-    if (data.containsKey('schema')) {
-      context.handle(_schemaMeta,
-          schema.isAcceptableOrUnknown(data['schema']!, _schemaMeta));
+    if (data.containsKey('sender_info')) {
+      context.handle(
+          _senderInfoMeta,
+          senderInfo.isAcceptableOrUnknown(
+              data['sender_info']!, _senderInfoMeta));
     } else if (isInserting) {
-      context.missing(_schemaMeta);
+      context.missing(_senderInfoMeta);
     }
     if (data.containsKey('first_name')) {
       context.handle(_firstNameMeta,
@@ -1324,8 +1327,8 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
           .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
       type: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
-      schema: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}schema'])!,
+      senderInfo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sender_info'])!,
       firstName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}first_name'])!,
       lastName: attachedDatabase.typeMapping
@@ -1361,7 +1364,7 @@ class ConnectionContactCard extends DataClass
 
   /// Type of the contact.
   final String type;
-  final String schema;
+  final String senderInfo;
 
   /// First name of the contact.
   final String firstName;
@@ -1385,7 +1388,7 @@ class ConnectionContactCard extends DataClass
       required this.connectionOfferId,
       required this.did,
       required this.type,
-      required this.schema,
+      required this.senderInfo,
       required this.firstName,
       required this.lastName,
       required this.email,
@@ -1399,7 +1402,7 @@ class ConnectionContactCard extends DataClass
     map['connection_offer_id'] = Variable<String>(connectionOfferId);
     map['did'] = Variable<String>(did);
     map['type'] = Variable<String>(type);
-    map['schema'] = Variable<String>(schema);
+    map['sender_info'] = Variable<String>(senderInfo);
     map['first_name'] = Variable<String>(firstName);
     map['last_name'] = Variable<String>(lastName);
     map['email'] = Variable<String>(email);
@@ -1416,7 +1419,7 @@ class ConnectionContactCard extends DataClass
       connectionOfferId: Value(connectionOfferId),
       did: Value(did),
       type: Value(type),
-      schema: Value(schema),
+      senderInfo: Value(senderInfo),
       firstName: Value(firstName),
       lastName: Value(lastName),
       email: Value(email),
@@ -1434,7 +1437,7 @@ class ConnectionContactCard extends DataClass
       connectionOfferId: serializer.fromJson<String>(json['connectionOfferId']),
       did: serializer.fromJson<String>(json['did']),
       type: serializer.fromJson<String>(json['type']),
-      schema: serializer.fromJson<String>(json['schema']),
+      senderInfo: serializer.fromJson<String>(json['senderInfo']),
       firstName: serializer.fromJson<String>(json['firstName']),
       lastName: serializer.fromJson<String>(json['lastName']),
       email: serializer.fromJson<String>(json['email']),
@@ -1452,7 +1455,7 @@ class ConnectionContactCard extends DataClass
       'connectionOfferId': serializer.toJson<String>(connectionOfferId),
       'did': serializer.toJson<String>(did),
       'type': serializer.toJson<String>(type),
-      'schema': serializer.toJson<String>(schema),
+      'senderInfo': serializer.toJson<String>(senderInfo),
       'firstName': serializer.toJson<String>(firstName),
       'lastName': serializer.toJson<String>(lastName),
       'email': serializer.toJson<String>(email),
@@ -1468,7 +1471,7 @@ class ConnectionContactCard extends DataClass
           String? connectionOfferId,
           String? did,
           String? type,
-          String? schema,
+          String? senderInfo,
           String? firstName,
           String? lastName,
           String? email,
@@ -1480,7 +1483,7 @@ class ConnectionContactCard extends DataClass
         connectionOfferId: connectionOfferId ?? this.connectionOfferId,
         did: did ?? this.did,
         type: type ?? this.type,
-        schema: schema ?? this.schema,
+        senderInfo: senderInfo ?? this.senderInfo,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         email: email ?? this.email,
@@ -1498,7 +1501,8 @@ class ConnectionContactCard extends DataClass
           : this.connectionOfferId,
       did: data.did.present ? data.did.value : this.did,
       type: data.type.present ? data.type.value : this.type,
-      schema: data.schema.present ? data.schema.value : this.schema,
+      senderInfo:
+          data.senderInfo.present ? data.senderInfo.value : this.senderInfo,
       firstName: data.firstName.present ? data.firstName.value : this.firstName,
       lastName: data.lastName.present ? data.lastName.value : this.lastName,
       email: data.email.present ? data.email.value : this.email,
@@ -1518,7 +1522,7 @@ class ConnectionContactCard extends DataClass
           ..write('connectionOfferId: $connectionOfferId, ')
           ..write('did: $did, ')
           ..write('type: $type, ')
-          ..write('schema: $schema, ')
+          ..write('senderInfo: $senderInfo, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1536,7 +1540,7 @@ class ConnectionContactCard extends DataClass
       connectionOfferId,
       did,
       type,
-      schema,
+      senderInfo,
       firstName,
       lastName,
       email,
@@ -1551,7 +1555,7 @@ class ConnectionContactCard extends DataClass
           other.connectionOfferId == this.connectionOfferId &&
           other.did == this.did &&
           other.type == this.type &&
-          other.schema == this.schema &&
+          other.senderInfo == this.senderInfo &&
           other.firstName == this.firstName &&
           other.lastName == this.lastName &&
           other.email == this.email &&
@@ -1567,7 +1571,7 @@ class ConnectionContactCardsCompanion
   final Value<String> connectionOfferId;
   final Value<String> did;
   final Value<String> type;
-  final Value<String> schema;
+  final Value<String> senderInfo;
   final Value<String> firstName;
   final Value<String> lastName;
   final Value<String> email;
@@ -1579,7 +1583,7 @@ class ConnectionContactCardsCompanion
     this.connectionOfferId = const Value.absent(),
     this.did = const Value.absent(),
     this.type = const Value.absent(),
-    this.schema = const Value.absent(),
+    this.senderInfo = const Value.absent(),
     this.firstName = const Value.absent(),
     this.lastName = const Value.absent(),
     this.email = const Value.absent(),
@@ -1592,7 +1596,7 @@ class ConnectionContactCardsCompanion
     required String connectionOfferId,
     required String did,
     required String type,
-    required String schema,
+    required String senderInfo,
     required String firstName,
     required String lastName,
     required String email,
@@ -1602,7 +1606,7 @@ class ConnectionContactCardsCompanion
   })  : connectionOfferId = Value(connectionOfferId),
         did = Value(did),
         type = Value(type),
-        schema = Value(schema),
+        senderInfo = Value(senderInfo),
         firstName = Value(firstName),
         lastName = Value(lastName),
         email = Value(email),
@@ -1614,7 +1618,7 @@ class ConnectionContactCardsCompanion
     Expression<String>? connectionOfferId,
     Expression<String>? did,
     Expression<String>? type,
-    Expression<String>? schema,
+    Expression<String>? senderInfo,
     Expression<String>? firstName,
     Expression<String>? lastName,
     Expression<String>? email,
@@ -1627,7 +1631,7 @@ class ConnectionContactCardsCompanion
       if (connectionOfferId != null) 'connection_offer_id': connectionOfferId,
       if (did != null) 'did': did,
       if (type != null) 'type': type,
-      if (schema != null) 'schema': schema,
+      if (senderInfo != null) 'sender_info': senderInfo,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,
@@ -1643,7 +1647,7 @@ class ConnectionContactCardsCompanion
       Value<String>? connectionOfferId,
       Value<String>? did,
       Value<String>? type,
-      Value<String>? schema,
+      Value<String>? senderInfo,
       Value<String>? firstName,
       Value<String>? lastName,
       Value<String>? email,
@@ -1655,7 +1659,7 @@ class ConnectionContactCardsCompanion
       connectionOfferId: connectionOfferId ?? this.connectionOfferId,
       did: did ?? this.did,
       type: type ?? this.type,
-      schema: schema ?? this.schema,
+      senderInfo: senderInfo ?? this.senderInfo,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -1681,8 +1685,8 @@ class ConnectionContactCardsCompanion
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
-    if (schema.present) {
-      map['schema'] = Variable<String>(schema.value);
+    if (senderInfo.present) {
+      map['sender_info'] = Variable<String>(senderInfo.value);
     }
     if (firstName.present) {
       map['first_name'] = Variable<String>(firstName.value);
@@ -1713,7 +1717,7 @@ class ConnectionContactCardsCompanion
           ..write('connectionOfferId: $connectionOfferId, ')
           ..write('did: $did, ')
           ..write('type: $type, ')
-          ..write('schema: $schema, ')
+          ..write('senderInfo: $senderInfo, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -2788,7 +2792,7 @@ typedef $$ConnectionContactCardsTableCreateCompanionBuilder
   required String connectionOfferId,
   required String did,
   required String type,
-  required String schema,
+  required String senderInfo,
   required String firstName,
   required String lastName,
   required String email,
@@ -2802,7 +2806,7 @@ typedef $$ConnectionContactCardsTableUpdateCompanionBuilder
   Value<String> connectionOfferId,
   Value<String> did,
   Value<String> type,
-  Value<String> schema,
+  Value<String> senderInfo,
   Value<String> firstName,
   Value<String> lastName,
   Value<String> email,
@@ -2854,8 +2858,8 @@ class $$ConnectionContactCardsTableFilterComposer
   ColumnFilters<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get schema => $composableBuilder(
-      column: $table.schema, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get senderInfo => $composableBuilder(
+      column: $table.senderInfo, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnFilters(column));
@@ -2915,8 +2919,8 @@ class $$ConnectionContactCardsTableOrderingComposer
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get schema => $composableBuilder(
-      column: $table.schema, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get senderInfo => $composableBuilder(
+      column: $table.senderInfo, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnOrderings(column));
@@ -2977,8 +2981,8 @@ class $$ConnectionContactCardsTableAnnotationComposer
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumn<String> get schema =>
-      $composableBuilder(column: $table.schema, builder: (column) => column);
+  GeneratedColumn<String> get senderInfo => $composableBuilder(
+      column: $table.senderInfo, builder: (column) => column);
 
   GeneratedColumn<String> get firstName =>
       $composableBuilder(column: $table.firstName, builder: (column) => column);
@@ -3052,7 +3056,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             Value<String> connectionOfferId = const Value.absent(),
             Value<String> did = const Value.absent(),
             Value<String> type = const Value.absent(),
-            Value<String> schema = const Value.absent(),
+            Value<String> senderInfo = const Value.absent(),
             Value<String> firstName = const Value.absent(),
             Value<String> lastName = const Value.absent(),
             Value<String> email = const Value.absent(),
@@ -3065,7 +3069,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             connectionOfferId: connectionOfferId,
             did: did,
             type: type,
-            schema: schema,
+            senderInfo: senderInfo,
             firstName: firstName,
             lastName: lastName,
             email: email,
@@ -3078,7 +3082,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             required String connectionOfferId,
             required String did,
             required String type,
-            required String schema,
+            required String senderInfo,
             required String firstName,
             required String lastName,
             required String email,
@@ -3091,7 +3095,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             connectionOfferId: connectionOfferId,
             did: did,
             type: type,
-            schema: schema,
+            senderInfo: senderInfo,
             firstName: firstName,
             lastName: lastName,
             email: email,

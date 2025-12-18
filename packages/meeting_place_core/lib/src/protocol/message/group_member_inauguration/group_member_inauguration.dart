@@ -1,10 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../entity/contact_card.dart';
-import '../../attachment/attachment_format.dart';
-import '../../attachment/attachment_media_type.dart';
-import '../../meeting_place_protocol.dart';
+import '../../protocol.dart';
 import 'group_member_inauguration_body.dart';
 import 'group_member_inauguration_member.dart';
 

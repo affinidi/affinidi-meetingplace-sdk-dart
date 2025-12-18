@@ -63,7 +63,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           status: member.status,
           identityDid: contactCard.did,
           type: contactCard.type,
-          schema: contactCard.schema,
+          senderInfo: contactCard.senderInfo,
           firstName: contactCard.firstName,
           lastName: contactCard.lastName,
           email: contactCard.email,
@@ -199,7 +199,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           status: member.status,
           identityDid: contactCard.did,
           type: contactCard.type,
-          schema: contactCard.schema,
+          senderInfo: contactCard.senderInfo,
           firstName: contactCard.firstName,
           lastName: contactCard.lastName,
           email: contactCard.email,
@@ -252,7 +252,7 @@ class _GroupMemberMapper {
     final card = model.ContactCard(
       did: groupMember.identityDid,
       type: groupMember.type,
-      schema: groupMember.schema,
+      senderInfo: groupMember.senderInfo,
       contactInfo: {},
     );
 

@@ -17,7 +17,6 @@ import '../repository/repository.dart';
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
 import 'connection_service.dart';
-import '../contact_card/registry/contact_card_schema_registry.dart';
 import 'group/group_admin.dart';
 import 'group/group_exception.dart';
 import 'group_service/accept_group_offer_result.dart';
@@ -25,7 +24,6 @@ import '../utils/string.dart';
 import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
 import 'package:uuid/uuid.dart';
 import '../entity/group.dart';
-import '../contact_card/contact_card.dart' as core;
 import '../entity/group_connection_offer.dart';
 import '../entity/group_member.dart';
 import 'group/group_message.dart' as group_message;
@@ -44,19 +42,19 @@ class GroupService {
     required MeetingPlaceMediatorSDK mediatorSDK,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
-  })  : _wallet = wallet,
-        _connectionManager = connectionManager,
-        _connectionOfferRepository = connectionOfferRepository,
-        _groupRepository = groupRepository,
-        _channelRepository = channelRepository,
-        _keyRepository = keyRepository,
-        _connectionOfferService = offerService,
-        _connectionService = connectionService,
-        _controlPlaneSDK = controlPlaneSDK,
-        _mediatorSDK = mediatorSDK,
-        _didResolver = didResolver,
-        _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+  }) : _wallet = wallet,
+       _connectionManager = connectionManager,
+       _connectionOfferRepository = connectionOfferRepository,
+       _groupRepository = groupRepository,
+       _channelRepository = channelRepository,
+       _keyRepository = keyRepository,
+       _connectionOfferService = offerService,
+       _connectionService = connectionService,
+       _controlPlaneSDK = controlPlaneSDK,
+       _mediatorSDK = mediatorSDK,
+       _didResolver = didResolver,
+       _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'GroupService';
 
@@ -77,14 +75,16 @@ class GroupService {
   final _recrypt = recrypt.Recrypt();
 
   Future<
-      (
-        GroupConnectionOffer connectionOffer,
-        DidManager didManager,
-        DidManager ownerDid,
-      )> createGroup({
+    (
+      GroupConnectionOffer connectionOffer,
+      DidManager didManager,
+      DidManager ownerDid,
+    )
+  >
+  createGroup({
     required String offerName,
     required String offerDescription,
-    required core.ContactCard card,
+    required ContactCard card,
     String? mediatorDid,
     String? customPhrase,
     DateTime? validUntil,
@@ -127,7 +127,7 @@ class GroupService {
         contactCard: cp.ContactCardImpl(
           did: card.did,
           type: card.type,
-          schema: card.schema,
+          senderInfo: card.senderInfo,
           contactInfo: card.contactInfo,
         ),
         device: _controlPlaneSDK.device,
@@ -256,7 +256,7 @@ class GroupService {
   Future<AcceptGroupOfferResult> acceptGroupOffer({
     required Wallet wallet,
     required GroupConnectionOffer connectionOffer,
-    required core.ContactCard card,
+    required ContactCard card,
     String? externalRef,
   }) async {
     final methodName = 'acceptGroupOffer';
@@ -277,11 +277,12 @@ class GroupService {
       name: methodName,
     );
 
-    final permanentChannelDidManager =
-        await _connectionManager.generateDid(wallet);
+    final permanentChannelDidManager = await _connectionManager.generateDid(
+      wallet,
+    );
 
-    final permanentChannelDidDocument =
-        await permanentChannelDidManager.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDidManager
+        .getDidDocument();
 
     _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -296,7 +297,7 @@ class GroupService {
         contactCard: cp.ContactCardImpl(
           did: card.did,
           type: card.type,
-          schema: card.schema,
+          senderInfo: card.senderInfo,
           contactInfo: card.contactInfo,
         ),
         acceptOfferDid: acceptOfferDidDocument.id,
@@ -363,12 +364,19 @@ class GroupService {
         name: methodName,
       );
 
-      unawaited(_notifyAcceptance(
-        connectionOffer: acceptedConnectionOffer,
-      ).catchError((error, stackTrace) {
-        _logger.error('Failed to notify acceptance',
-            error: error, stackTrace: stackTrace, name: methodName);
-      }));
+      unawaited(
+        _notifyAcceptance(connectionOffer: acceptedConnectionOffer).catchError((
+          error,
+          stackTrace,
+        ) {
+          _logger.error(
+            'Failed to notify acceptance',
+            error: error,
+            stackTrace: stackTrace,
+            name: methodName,
+          );
+        }),
+      );
 
       return AcceptGroupOfferResult(
         connectionOffer: acceptedConnectionOffer,
@@ -388,7 +396,7 @@ class GroupService {
 
   Future<Group> _createOrUpdateGroup({
     required DidDocument permanentChannelDidDocument,
-    required core.ContactCard card,
+    required ContactCard card,
     String? externalRef,
     required String memberPublicKeyBase64,
     required String offerLink,
@@ -436,7 +444,7 @@ class GroupService {
     required Group group,
     required DidDocument acceptOfferDidDocument,
     required DidDocument permanentChannelDidDocument,
-    required core.ContactCard card,
+    required ContactCard card,
     String? externalRef,
   }) async {
     final existingConnectionOffer = await _connectionOfferRepository
@@ -450,22 +458,24 @@ class GroupService {
     final connectionOfferToBeAccepted =
         (existingConnectionOffer ?? connectionOffer) as GroupConnectionOffer;
 
-    final acceptedConnectionOffer =
-        connectionOfferToBeAccepted.acceptGroupOffer(
-      groupId: group.id,
-      memberDid: permanentChannelDidDocument.id,
-      acceptOfferDid: acceptOfferDidDocument.id,
-      permanentChannelDid: permanentChannelDidDocument.id,
-      card: card,
-      externalRef: externalRef,
-      createdAt: DateTime.now().toUtc(),
-    );
+    final acceptedConnectionOffer = connectionOfferToBeAccepted
+        .acceptGroupOffer(
+          groupId: group.id,
+          memberDid: permanentChannelDidDocument.id,
+          acceptOfferDid: acceptOfferDidDocument.id,
+          permanentChannelDid: permanentChannelDidDocument.id,
+          card: card,
+          externalRef: externalRef,
+          createdAt: DateTime.now().toUtc(),
+        );
 
     existingConnectionOffer != null
-        ? await _connectionOfferRepository
-            .updateConnectionOffer(acceptedConnectionOffer)
-        : await _connectionOfferRepository
-            .createConnectionOffer(acceptedConnectionOffer);
+        ? await _connectionOfferRepository.updateConnectionOffer(
+            acceptedConnectionOffer,
+          )
+        : await _connectionOfferRepository.createConnectionOffer(
+            acceptedConnectionOffer,
+          );
 
     return acceptedConnectionOffer;
   }
@@ -488,7 +498,7 @@ class GroupService {
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
     required String groupMemberPublicKey,
-    core.ContactCard? contactCard,
+    ContactCard? contactCard,
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
     _logger.info(
@@ -499,8 +509,8 @@ class GroupService {
     final recipientDid = invitationMessage.from;
 
     final senderDidDocument = await senderDid.getDidDocument();
-    final permanentChannelDidDocument =
-        await permanentChannelDid.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDid
+        .getDidDocument();
 
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
@@ -557,8 +567,7 @@ class GroupService {
         mnemonic: connectionOffer.mnemonic,
         acceptOfferDid: connectionOffer.acceptOfferDid!,
         offerLink: connectionOffer.offerLink,
-        senderInfo: ContactCardSchemaRegistry.getSenderInfo(
-            connectionOffer.contactCard),
+        senderInfo: connectionOffer.contactCard.senderInfo,
       ),
     );
     _logger.info(
@@ -570,21 +579,26 @@ class GroupService {
   Future<Channel> approveMembershipRequest({required Channel channel}) async {
     final methodName = 'approveMembershipRequest';
     _logger.info(
-        'Started approving membership request for offer: ${channel.offerLink}',
-        name: methodName);
+      'Started approving membership request for offer: ${channel.offerLink}',
+      name: methodName,
+    );
 
     final memberDid = channel.otherPartyPermanentChannelDid;
     if (memberDid == null) {
-      _logger.error('Channel does not have other party permanent channel DID',
-          name: methodName);
+      _logger.error(
+        'Channel does not have other party permanent channel DID',
+        name: methodName,
+      );
       throw GroupException.memberDidIsNull();
     }
 
     final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
 
     if (group == null) {
-      _logger.error('Group not found for offer link: ${channel.offerLink}',
-          name: methodName);
+      _logger.error(
+        'Group not found for offer link: ${channel.offerLink}',
+        name: methodName,
+      );
       throw GroupException.notFoundError();
     }
 
@@ -668,7 +682,7 @@ class GroupService {
             ? cp.ContactCardImpl(
                 did: otherPartyContactCard.did,
                 type: otherPartyContactCard.type,
-                schema: otherPartyContactCard.schema,
+                senderInfo: otherPartyContactCard.senderInfo,
                 contactInfo: otherPartyContactCard.contactInfo,
               )
             : null,
@@ -847,8 +861,10 @@ class GroupService {
       return;
     }
 
-    final memberDidManager =
-        await _connectionManager.getDidManagerForDid(_wallet, memberDid);
+    final memberDidManager = await _connectionManager.getDidManagerForDid(
+      _wallet,
+      memberDid,
+    );
 
     if (group.isMemberOfTypeAdmin(memberDid)) {
       await _leaveGroupAsAdmin(group, memberDid);

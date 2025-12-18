@@ -131,8 +131,8 @@ class ChannelContactCards extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  // Schema of the contact card.
-  TextColumn get schema => text()();
+  /// Sender info of the contact card.
+  TextColumn get senderInfo => text()();
 
   /// First name of the contact.
   TextColumn get firstName => text()();

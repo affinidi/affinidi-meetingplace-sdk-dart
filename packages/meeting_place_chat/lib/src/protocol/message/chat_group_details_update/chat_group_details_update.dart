@@ -96,7 +96,7 @@ class ChatGroupDetailsUpdate {
   ) {
     return ChatGroupDetailsUpdateBodyMember(
       did: groupMember.did,
-      vCard: groupMember.vCard,
+      contactCard: groupMember.contactCard,
       dateAdded: groupMember.dateAdded,
       status: groupMember.status.name,
       publicKey: groupMember.publicKey,

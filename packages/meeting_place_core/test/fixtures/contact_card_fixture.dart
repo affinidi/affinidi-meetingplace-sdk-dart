@@ -4,11 +4,10 @@ class ContactCardFixture {
   static ContactCard getContactCardFixture({
     String? did,
     Map<String, dynamic>? contactInfo,
-  }) =>
-      ContactCard(
-        did: did ?? 'did:test:contact-card',
-        type: 'individual',
-        schema: 'https://affinidi.com/schemas/v1/sample-contact-card',
-        contactInfo: contactInfo ?? {'fullName': 'Test User'},
-      );
+  }) => ContactCard(
+    did: did ?? 'did:test:contact-card',
+    type: 'individual',
+    senderInfo: 'Test User',
+    contactInfo: contactInfo ?? {'fullName': 'Test User'},
+  );
 }

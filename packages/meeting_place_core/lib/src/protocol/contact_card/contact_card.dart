@@ -1,32 +1,41 @@
 import 'dart:convert';
 
 class ContactCard {
-  ContactCard({
-    required this.did,
-    required this.type,
-    required this.schema,
-    required this.contactInfo,
-  });
+  factory ContactCard.fromBase64(String base64, {bool addPadding = false}) {
+    final base64Padded = addPadding ? 'base64=' : base64;
+    final json =
+        jsonDecode(utf8.decode(base64Decode(base64Padded)))
+            as Map<String, dynamic>;
+
+    return ContactCard.fromJson(json);
+  }
 
   factory ContactCard.fromJson(Map<String, dynamic> json) {
     return ContactCard(
       did: json['did'] as String,
       type: json['type'] as String,
-      schema: json['schema'] as String,
+      senderInfo: json['senderInfo'] as String,
       contactInfo: (json['contactInfo'] as Map).cast<String, dynamic>(),
     );
   }
 
+  ContactCard({
+    required this.did,
+    required this.type,
+    required this.senderInfo,
+    required this.contactInfo,
+  });
+
   final String did;
   final String type;
-  final String schema;
+  final String senderInfo;
   final Map<String, dynamic> contactInfo;
 
   Map<String, dynamic> toJson() {
     return {
       'did': did,
       'type': type,
-      'schema': schema,
+      'senderInfo': senderInfo,
       'contactInfo': contactInfo,
     };
   }

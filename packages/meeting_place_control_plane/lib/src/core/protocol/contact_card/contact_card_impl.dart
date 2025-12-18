@@ -6,7 +6,7 @@ class ContactCardImpl implements ContactCard {
   ContactCardImpl({
     required this.did,
     required this.type,
-    required this.schema,
+    required this.senderInfo,
     required this.contactInfo,
   });
 
@@ -14,13 +14,13 @@ class ContactCardImpl implements ContactCard {
     return ContactCardImpl(
       did: json['did'] as String? ?? '',
       type: json['type'] as String? ?? '',
-      schema: json['schema'] as String? ?? '',
+      senderInfo: json['senderInfo'] as String? ?? '',
       contactInfo: (json['contactInfo'] as Map).cast<String, dynamic>(),
     );
   }
 
   factory ContactCardImpl.empty() {
-    return ContactCardImpl(did: '', type: '', schema: '', contactInfo: {});
+    return ContactCardImpl(did: '', type: '', senderInfo: '', contactInfo: {});
   }
 
   @override
@@ -30,7 +30,7 @@ class ContactCardImpl implements ContactCard {
   final String type;
 
   @override
-  final String schema;
+  final String senderInfo;
 
   @override
   final Map<String, dynamic> contactInfo;
@@ -40,7 +40,7 @@ class ContactCardImpl implements ContactCard {
     return {
       'did': did,
       'type': type,
-      'schema': schema,
+      'senderInfo': senderInfo,
       'contactInfo': contactInfo,
     };
   }

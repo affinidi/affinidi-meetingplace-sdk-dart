@@ -41,7 +41,7 @@ ChatGroupDetailsUpdateBodyMember _$ChatGroupDetailsUpdateBodyMemberFromJson(
         Map<String, dynamic> json) =>
     ChatGroupDetailsUpdateBodyMember(
       did: json['did'] as String,
-      vCard: VCard.fromJson(json['v_card'] as Map<String, dynamic>),
+      contactCard: ContactCard.fromJson(json['v_card'] as Map<String, dynamic>),
       dateAdded: DateTime.parse(json['date_added'] as String),
       status: json['status'] as String,
       publicKey: json['public_key'] as String,
@@ -52,7 +52,7 @@ Map<String, dynamic> _$ChatGroupDetailsUpdateBodyMemberToJson(
         ChatGroupDetailsUpdateBodyMember instance) =>
     <String, dynamic>{
       'did': instance.did,
-      'v_card': instance.vCard.toJson(),
+      'v_card': instance.contactCard.toJson(),
       'date_added': instance.dateAdded.toIso8601String(),
       'status': instance.status,
       'public_key': instance.publicKey,

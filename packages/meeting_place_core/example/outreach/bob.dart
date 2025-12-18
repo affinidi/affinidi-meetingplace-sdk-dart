@@ -25,7 +25,7 @@ void main() async {
     contactCard: ContactCard(
       did: 'did:test:bob',
       type: 'individual',
-      schema: 'https://affinidi.com/schemas/v1/sample-contact-card',
+      senderInfo: 'Bob',
       contactInfo: {},
     ),
     type: SDKConnectionOfferType.outreachInvitation,

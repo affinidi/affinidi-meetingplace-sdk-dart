@@ -204,7 +204,7 @@ class ConnectionOfferRepositoryDrift
               connectionOfferId: Value(connectionOfferId),
               did: Value(card.did),
               type: Value(card.type),
-              schema: Value(card.schema),
+              senderInfo: Value(card.senderInfo),
               firstName: Value(card.firstName),
               lastName: Value(card.lastName),
               email: Value(card.email),
@@ -312,7 +312,7 @@ class ConnectionOfferRepositoryDrift
         db.ConnectionContactCardsCompanion(
           did: Value(card.did),
           type: Value(card.type),
-          schema: Value(card.schema),
+          senderInfo: Value(card.senderInfo),
           firstName: Value(card.firstName),
           lastName: Value(card.lastName),
           email: Value(card.email),
@@ -361,7 +361,7 @@ class _ConnectionOfferMapper {
     final card = model.ContactCard(
         did: contactCard.did,
         type: contactCard.type,
-        schema: contactCard.schema,
+        senderInfo: contactCard.senderInfo,
         contactInfo: {});
 
     card.firstName = contactCard.firstName;

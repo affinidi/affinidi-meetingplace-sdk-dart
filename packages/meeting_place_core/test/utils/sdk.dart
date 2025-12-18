@@ -30,7 +30,6 @@ Future<MeetingPlaceCoreSDK> initSDKInstance({
     ),
     mediatorDid: getMediatorDid(),
     controlPlaneDid: getControlPlaneDid(),
-    contactCardParsers: [ContactCardVcardParser()],
   );
 
   if (!withoutDevice) {

@@ -20,7 +20,7 @@ class ContactCardFixture {
     return ContactCard(
       did: did ?? 'did:test:default',
       type: 'human',
-      schema: 'https://affinidi.com/schemas/v1/sample-contact-card',
+      senderInfo: contactInfo?['n']?['given'] ?? 'Default',
       contactInfo: contactInfo ??
           {
             'n': {'given': 'Default'}

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
-import '../contact_card/contact_card.dart';
+import '../protocol/contact_card/contact_card.dart';
 
 /// Convenience hash extension for ContactCard.
 extension ContactCardHashX on ContactCard {

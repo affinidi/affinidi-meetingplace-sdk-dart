@@ -54,7 +54,7 @@ class ChatGroupDetailsUpdateBodyMember {
 
   ChatGroupDetailsUpdateBodyMember({
     required this.did,
-    required this.vCard,
+    required this.contactCard,
     required this.dateAdded,
     required this.status,
     required this.publicKey,
@@ -64,8 +64,8 @@ class ChatGroupDetailsUpdateBodyMember {
   @JsonKey(name: 'did')
   final String did;
 
-  @JsonKey(name: 'v_card')
-  final VCard vCard;
+  @JsonKey(name: 'contact_card')
+  final ContactCard contactCard;
 
   @JsonKey(name: 'date_added')
   final DateTime dateAdded;

@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../contact_card/contact_card.dart';
+
+import '../protocol/contact_card/contact_card.dart';
 
 part 'connection_offer.g.dart';
 

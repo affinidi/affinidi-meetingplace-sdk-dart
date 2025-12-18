@@ -21,7 +21,6 @@ import 'package:ssi/ssi.dart';
 import 'connection_offer/offer_already_claimed_exception.dart';
 import 'connection_offer/offer_owner_exception.dart';
 import 'connection_service/accept_offer_result.dart';
-import '../contact_card/registry/contact_card_schema_registry.dart';
 
 class FindOfferException implements Exception {
   FindOfferException(this.message);
@@ -44,15 +43,15 @@ class ConnectionService {
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
-  })  : _connectionManager = connectionManager,
-        _channelRepository = channelRepository,
-        _connectionOfferRepository = connectionOfferRepository,
-        _mediatorSDK = mediatorSDK,
-        _controlPlaneSDK = controlPlaneSDK,
-        _connectionOfferService = offerService,
-        _didResolver = didResolver,
-        _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+  }) : _connectionManager = connectionManager,
+       _channelRepository = channelRepository,
+       _connectionOfferRepository = connectionOfferRepository,
+       _mediatorSDK = mediatorSDK,
+       _controlPlaneSDK = controlPlaneSDK,
+       _connectionOfferService = offerService,
+       _didResolver = didResolver,
+       _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'ConnectionService';
 
@@ -66,7 +65,7 @@ class ConnectionService {
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
-      findOffer({required String mnemonic}) async {
+  findOffer({required String mnemonic}) async {
     final methodName = 'findOffer';
     _logger.info('Finding offer with mnemonic: $mnemonic', name: methodName);
 
@@ -176,7 +175,7 @@ class ConnectionService {
   Future<(ConnectionOffer, DidManager)> publishOffer({
     required String offerName,
     required String offerDescription,
-    required ContactCard card,
+    required ContactCard contactCard,
     required Wallet wallet,
     required ConnectionOfferType type,
     String? customPhrase,
@@ -208,10 +207,10 @@ class ConnectionService {
             : OfferType.invitation,
         oobInvitationMessage: oobMessage.toPlainTextMessage(),
         contactCard: ContactCardImpl(
-          did: card.did,
-          type: card.type,
-          schema: card.schema,
-          contactInfo: card.contactInfo,
+          did: contactCard.did,
+          type: contactCard.type,
+          senderInfo: contactCard.senderInfo,
+          contactInfo: contactCard.contactInfo,
         ),
         device: _controlPlaneSDK.device,
         customPhrase: customPhrase,
@@ -236,7 +235,7 @@ class ConnectionService {
         ),
         publishOfferDid: didDocument.id,
         maximumUsage: registerOfferOutput.maximumUsage,
-        contactCard: card,
+        contactCard: contactCard,
         status: ConnectionOfferStatus.published,
         ownedByMe: true,
         externalRef: externalRef,
@@ -290,11 +289,12 @@ class ConnectionService {
       name: methodName,
     );
 
-    final permanentChannelDidManager =
-        await _connectionManager.generateDid(wallet);
+    final permanentChannelDidManager = await _connectionManager.generateDid(
+      wallet,
+    );
 
-    final permanentChannelDidDocument =
-        await permanentChannelDidManager.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDidManager
+        .getDidDocument();
 
     _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -310,7 +310,7 @@ class ConnectionService {
         contactCard: ContactCardImpl(
           did: contactCard.did,
           type: contactCard.type,
-          schema: contactCard.schema,
+          senderInfo: contactCard.senderInfo,
           contactInfo: contactCard.contactInfo,
         ),
       ),
@@ -347,17 +347,23 @@ class ConnectionService {
 
     await _channelRepository.createChannel(channel);
 
-    unawaited(_notifyAcceptance(
-      connectionOffer: acceptedConnectionOffer,
-    ).then((_) {
-      _logger.info(
-        'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
-        name: methodName,
-      );
-    }).catchError((error, stackTrace) {
-      _logger.error('Failed to notify acceptance',
-          error: error, stackTrace: stackTrace, name: methodName);
-    }));
+    unawaited(
+      _notifyAcceptance(connectionOffer: acceptedConnectionOffer)
+          .then((_) {
+            _logger.info(
+              'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
+              name: methodName,
+            );
+          })
+          .catchError((error, stackTrace) {
+            _logger.error(
+              'Failed to notify acceptance',
+              error: error,
+              stackTrace: stackTrace,
+              name: methodName,
+            );
+          }),
+    );
 
     return AcceptOfferResult(
       connectionOffer: acceptedConnectionOffer,
@@ -469,8 +475,7 @@ class ConnectionService {
         mnemonic: connectionOffer.mnemonic,
         offerLink: connectionOffer.offerLink,
         acceptOfferDid: acceptOfferDid,
-        senderInfo: ContactCardSchemaRegistry.getSenderInfo(
-            connectionOffer.contactCard),
+        senderInfo: connectionOffer.contactCard.senderInfo,
       ),
     );
 
@@ -487,14 +492,17 @@ class ConnectionService {
     // If [did] is not provided, a new DID is generated for the permanent channel.
     final methodName = 'approveConnectionRequest';
     _logger.info(
-        'Approving connection request for offer link: ${channel.offerLink}',
-        name: methodName);
+      'Approving connection request for offer link: ${channel.offerLink}',
+      name: methodName,
+    );
 
     final acceptOfferDid = channel.acceptOfferDid;
     final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
 
-    final connectionOffer = await _connectionOfferRepository
-            .getConnectionOfferByOfferLink(channel.offerLink) ??
+    final connectionOffer =
+        await _connectionOfferRepository.getConnectionOfferByOfferLink(
+          channel.offerLink,
+        ) ??
         (throw ConnectionOfferException.offerNotFoundError());
 
     if (connectionOffer.isFinalised) {
@@ -508,8 +516,10 @@ class ConnectionService {
     }
 
     if (otherPartyPermanentChannelDid == null) {
-      _logger.error('Other party permanent channel DID is null',
-          name: methodName);
+      _logger.error(
+        'Other party permanent channel DID is null',
+        name: methodName,
+      );
       throw ConnectionOfferException.permanentChannelDidError();
     }
 
@@ -520,8 +530,8 @@ class ConnectionService {
 
     final permanentChannelDid = await _connectionManager.generateDid(wallet);
 
-    final permanentChannelDidDocument =
-        await permanentChannelDid.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDid
+        .getDidDocument();
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
@@ -546,7 +556,7 @@ class ConnectionService {
             ? ContactCardImpl(
                 did: contactCard.did,
                 type: contactCard.type,
-                schema: contactCard.schema,
+                senderInfo: contactCard.senderInfo,
                 contactInfo: contactCard.contactInfo,
               )
             : null,
@@ -588,8 +598,8 @@ class ConnectionService {
       name: methodName,
     );
 
-    final permanentChannelDidDocument =
-        await permanentChannelDid.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDid
+        .getDidDocument();
 
     final offerPublishedDidDocument = await offerPublishedDid.getDidDocument();
 

@@ -1,8 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../../entity/contact_card.dart';
 import '../../../entity/group_member.dart';
-import '../../v_card/v_card.dart';
+import '../../contact_card/contact_card.dart';
 
 part 'group_member_inauguration_member.g.dart';
 

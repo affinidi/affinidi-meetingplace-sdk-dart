@@ -3,7 +3,7 @@ abstract interface class ContactCard {
 
   String get type;
 
-  String get schema;
+  String get senderInfo;
 
   Map<String, dynamic> get contactInfo;
 

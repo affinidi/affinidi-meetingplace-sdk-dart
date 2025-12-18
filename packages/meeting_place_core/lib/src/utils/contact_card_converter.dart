@@ -1,6 +1,6 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
-import '../contact_card/contact_card.dart';
+import '../protocol/contact_card/contact_card.dart';
 
 /// Converter extension for Control Plane ContactCard to Core ContactCard.
 extension ContactCardConverterX on cp.ContactCard {
@@ -8,7 +8,7 @@ extension ContactCardConverterX on cp.ContactCard {
     return ContactCard(
       did: did,
       type: type,
-      schema: schema,
+      senderInfo: senderInfo,
       contactInfo: contactInfo,
     );
   }

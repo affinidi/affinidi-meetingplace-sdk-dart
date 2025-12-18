@@ -135,8 +135,8 @@ class GroupMembers extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  // Schema of the contact card.
-  TextColumn get schema => text()();
+  // Sender info of the contact card.
+  TextColumn get senderInfo => text()();
 
   /// The first name of the group member.
   TextColumn get firstName => text()();

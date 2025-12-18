@@ -216,7 +216,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
             eventMessage.eventType ==
                 EventMessageType.awaitingGroupMemberToJoin &&
             (eventMessage.data['memberDid'] == message.from! ||
-                eventMessage.data['memberDid'] == message.body?['fromDid']),
+                eventMessage.data['memberDid'] == message.body?['from_did']),
       );
 
       if (matchingMessage != null) {

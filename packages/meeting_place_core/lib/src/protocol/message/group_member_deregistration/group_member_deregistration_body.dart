@@ -14,6 +14,8 @@ class GroupMemberDeregistrationBody {
 
   @JsonKey(name: 'group_id')
   final String groupId;
+
+  @JsonKey(name: 'member_did')
   final String memberDid;
 
   Map<String, dynamic> toJson() => _$GroupMemberDeregistrationBodyToJson(this);

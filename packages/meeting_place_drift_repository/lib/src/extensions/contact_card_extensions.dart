@@ -133,6 +133,4 @@ extension ContactCardFieldsKeys on ContactCard {
         _ContactCardPaths.meetingplaceIdentityCardColor.paths,
         value,
       );
-
-  String get senderInfo => firstName;
 }

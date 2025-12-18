@@ -204,7 +204,6 @@ class ConnectionOfferRepositoryDrift
               connectionOfferId: Value(connectionOfferId),
               did: Value(card.did),
               type: Value(card.type),
-              senderInfo: Value(card.senderInfo),
               firstName: Value(card.firstName),
               lastName: Value(card.lastName),
               email: Value(card.email),
@@ -312,7 +311,6 @@ class ConnectionOfferRepositoryDrift
         db.ConnectionContactCardsCompanion(
           did: Value(card.did),
           type: Value(card.type),
-          senderInfo: Value(card.senderInfo),
           firstName: Value(card.firstName),
           lastName: Value(card.lastName),
           email: Value(card.email),

@@ -186,9 +186,6 @@ class ConnectionContactCards extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  // Sender info of the contact card.
-  TextColumn get senderInfo => text()();
-
   /// First name of the contact.
   TextColumn get firstName => text()();
 

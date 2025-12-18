@@ -199,7 +199,6 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             channelId: Value(channelId),
             did: Value(card.did),
             type: Value(card.type),
-            senderInfo: Value(card.senderInfo),
             firstName: Value(card.firstName),
             lastName: Value(card.lastName),
             email: Value(card.email),
@@ -231,7 +230,6 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
         db.ChannelContactCardsCompanion(
           did: Value(card.did),
           type: Value(card.type),
-          senderInfo: Value(card.senderInfo),
           firstName: Value(card.firstName),
           lastName: Value(card.lastName),
           email: Value(card.email),

@@ -10,15 +10,15 @@ class _$CorsRegisterDeviceOK extends CorsRegisterDeviceOK {
   @override
   final String? corsRegisterDeviceOk;
 
-  factory _$CorsRegisterDeviceOK(
-          [void Function(CorsRegisterDeviceOKBuilder)? updates]) =>
-      (CorsRegisterDeviceOKBuilder()..update(updates))._build();
+  factory _$CorsRegisterDeviceOK([
+    void Function(CorsRegisterDeviceOKBuilder)? updates,
+  ]) => (CorsRegisterDeviceOKBuilder()..update(updates))._build();
 
   _$CorsRegisterDeviceOK._({this.corsRegisterDeviceOk}) : super._();
   @override
   CorsRegisterDeviceOK rebuild(
-          void Function(CorsRegisterDeviceOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(CorsRegisterDeviceOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   CorsRegisterDeviceOKBuilder toBuilder() =>
@@ -41,9 +41,9 @@ class _$CorsRegisterDeviceOK extends CorsRegisterDeviceOK {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'CorsRegisterDeviceOK')
-          ..add('corsRegisterDeviceOk', corsRegisterDeviceOk))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'CorsRegisterDeviceOK',
+    )..add('corsRegisterDeviceOk', corsRegisterDeviceOk)).toString();
   }
 }
 
@@ -83,10 +83,9 @@ class CorsRegisterDeviceOKBuilder
   CorsRegisterDeviceOK build() => _build();
 
   _$CorsRegisterDeviceOK _build() {
-    final _$result = _$v ??
-        _$CorsRegisterDeviceOK._(
-          corsRegisterDeviceOk: corsRegisterDeviceOk,
-        );
+    final _$result =
+        _$v ??
+        _$CorsRegisterDeviceOK._(corsRegisterDeviceOk: corsRegisterDeviceOk);
     replace(_$result);
     return _$result;
   }

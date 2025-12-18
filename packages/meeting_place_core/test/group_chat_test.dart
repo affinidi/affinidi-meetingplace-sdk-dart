@@ -4,7 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/v_card.dart';
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -26,28 +26,43 @@ void main() async {
     charlieSDK = await initSDKInstance();
 
     // Setup group
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
-    final charlieVCard = VCardFixture.charliePrimaryVCard;
-
-    final publishOfferResult =
-        await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
-      type: SDKConnectionOfferType.groupInvitation,
+    final aliceCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:alice',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
     );
+    final bobCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
+    final charlieCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:charlie',
+      contactInfo: {
+        'n': {'given': 'Charlie', 'surname': 'A.'},
+      },
+    );
+
+    final publishOfferResult = await aliceSDK
+        .publishOffer<GroupConnectionOffer>(
+          offerName: 'Sample offer',
+          offerDescription: 'Sample offer description',
+          contactCard: aliceCard,
+          type: SDKConnectionOfferType.groupInvitation,
+        );
 
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
-      vCard: bobVCard,
+      contactCard: bobCard,
       senderInfo: 'Bob',
     );
 
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
-      vCard: charlieVCard,
-      senderInfo: 'Charlie',
+      contactCard: charlieCard,
+      senderInfo: 'Bob',
     );
 
     final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -60,26 +75,22 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceSDKCompleter.future;
 
-    final bobMemberDidDoc =
-        await bobAcceptance.permanentChannelDid.getDidDocument();
+    final bobMemberDidDoc = await bobAcceptance.permanentChannelDid
+        .getDidDocument();
     final aliceToBobChannel = await aliceSDK.getChannelByOtherPartyPermanentDid(
       bobMemberDidDoc.id,
     );
 
     // Alice approves Bob's group membership request
-    await aliceSDK.approveConnectionRequest(
-      channel: aliceToBobChannel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: aliceToBobChannel!);
 
-    final charlieMemberDidDoc =
-        await charlieAcceptance.permanentChannelDid.getDidDocument();
+    final charlieMemberDidDoc = await charlieAcceptance.permanentChannelDid
+        .getDidDocument();
     final aliceToCharlieChannel = await aliceSDK
         .getChannelByOtherPartyPermanentDid(charlieMemberDidDoc.id);
 
     // Alice approves Charlie's group membership request
-    await aliceSDK.approveConnectionRequest(
-      channel: aliceToCharlieChannel!,
-    );
+    await aliceSDK.approveConnectionRequest(channel: aliceToCharlieChannel!);
 
     // Run event handlers in background for Bob and Charlie -> ready to chat
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -153,9 +164,6 @@ void main() async {
   });
 
   // test('group member sends group message', () async {
-  //   final vCardBase64 = VCard(
-  //     values: VCardFixture.bobPrimaryVCard.values,
-  //   ).toBase64();
 
   //   final chatMessage = PlainTextMessage(
   //     id: const Uuid().v4(),
@@ -164,7 +172,6 @@ void main() async {
   //     to: [groupDid],
   //     body: {'text': 'Hello Group!', 'seqNo': 2},
   //     attachments: [
-  //       VCardAttachment.create(data: AttachmentData(base64: vCardBase64)),
   //     ],
   //   );
 

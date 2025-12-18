@@ -19,8 +19,10 @@ part 'delete_pending_notifications_ok_notifications_inner.g.dart';
 @BuiltValue()
 abstract class DeletePendingNotificationsOKNotificationsInner
     implements
-        Built<DeletePendingNotificationsOKNotificationsInner,
-            DeletePendingNotificationsOKNotificationsInnerBuilder> {
+        Built<
+          DeletePendingNotificationsOKNotificationsInner,
+          DeletePendingNotificationsOKNotificationsInnerBuilder
+        > {
   /// The notification identifier
   @BuiltValueField(wireName: r'id')
   String? get id;
@@ -43,20 +45,19 @@ abstract class DeletePendingNotificationsOKNotificationsInner
 
   DeletePendingNotificationsOKNotificationsInner._();
 
-  factory DeletePendingNotificationsOKNotificationsInner(
-          [void updates(
-              DeletePendingNotificationsOKNotificationsInnerBuilder b)]) =
-      _$DeletePendingNotificationsOKNotificationsInner;
+  factory DeletePendingNotificationsOKNotificationsInner([
+    void updates(DeletePendingNotificationsOKNotificationsInnerBuilder b),
+  ]) = _$DeletePendingNotificationsOKNotificationsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(
-          DeletePendingNotificationsOKNotificationsInnerBuilder b) =>
-      b;
+    DeletePendingNotificationsOKNotificationsInnerBuilder b,
+  ) => b;
 
   @BuiltValueSerializer(custom: true)
   static Serializer<DeletePendingNotificationsOKNotificationsInner>
-      get serializer =>
-          _$DeletePendingNotificationsOKNotificationsInnerSerializer();
+  get serializer =>
+      _$DeletePendingNotificationsOKNotificationsInnerSerializer();
 }
 
 class _$DeletePendingNotificationsOKNotificationsInnerSerializer
@@ -65,7 +66,7 @@ class _$DeletePendingNotificationsOKNotificationsInnerSerializer
   @override
   final Iterable<Type> types = const [
     DeletePendingNotificationsOKNotificationsInner,
-    _$DeletePendingNotificationsOKNotificationsInner
+    _$DeletePendingNotificationsOKNotificationsInner,
   ];
 
   @override
@@ -119,9 +120,11 @@ class _$DeletePendingNotificationsOKNotificationsInnerSerializer
     DeletePendingNotificationsOKNotificationsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -137,38 +140,48 @@ class _$DeletePendingNotificationsOKNotificationsInnerSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.id = valueDes;
           break;
         case r'offerLink':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerLink = valueDes;
           break;
         case r'deviceHash':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceHash = valueDes;
           break;
         case r'did':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.did = valueDes;
           break;
         case r'payload':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.payload = valueDes;
           break;
         default:

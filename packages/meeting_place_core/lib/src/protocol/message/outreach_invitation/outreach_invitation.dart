@@ -25,10 +25,7 @@ class OutreachInvitation {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      body: OutreachInvitationBody(
-        mnemonic: mnemonic,
-        message: message,
-      ),
+      body: OutreachInvitationBody(mnemonic: mnemonic, message: message),
     );
   }
 

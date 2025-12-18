@@ -5,10 +5,11 @@ repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.8.0
 
 dependencies:
   collection: ^1.19.1
+  crypto: ^3.0.6
   didcomm: ^2.3.0
   json_annotation: ^4.9.0
   meeting_place_core: ^0.0.1-dev.15

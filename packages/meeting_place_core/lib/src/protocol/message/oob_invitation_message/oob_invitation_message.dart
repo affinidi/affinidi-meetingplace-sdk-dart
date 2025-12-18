@@ -13,7 +13,8 @@ class OobInvitationMessage {
     return OobInvitationMessage(
       id: const Uuid().v4(),
       from: from,
-      body: body ??
+      body:
+          body ??
           OobInvitationMessageBody(
             goalCode: 'connect',
             goal: 'Start relationship',
@@ -36,7 +37,8 @@ class OobInvitationMessage {
       id: json['id'] as String,
       from: json['from'] as String,
       body: OobInvitationMessageBody.fromJson(
-          json['body'] as Map<String, dynamic>),
+        json['body'] as Map<String, dynamic>,
+      ),
       createdTime: json['created_time'] != null
           ? DateTime.fromMillisecondsSinceEpoch(
               json['created_time'] * 1000,

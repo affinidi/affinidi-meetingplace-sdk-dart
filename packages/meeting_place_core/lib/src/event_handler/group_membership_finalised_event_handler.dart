@@ -27,8 +27,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required GroupRepository groupRepository,
-  })  : _groupRepository = groupRepository,
-        _controlPlaneSDK = controlPlaneSDK;
+  }) : _groupRepository = groupRepository,
+       _controlPlaneSDK = controlPlaneSDK;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
@@ -46,7 +46,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
 
       if (permanentChannelDid == null) {
         throw Exception(
-            'Connection offer ${connection.offerLink} is missing permanentChannelDid');
+          'Connection offer ${connection.offerLink} is missing permanentChannelDid',
+        );
       }
 
       if (connection is! GroupConnectionOffer) {
@@ -60,8 +61,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       }
 
       if (connection.isFinalised) {
-        throw GroupMembershipFinalisedException
-            .connectionOfferAlreadyFinalizedException(
+        throw GroupMembershipFinalisedException.connectionOfferAlreadyFinalizedException(
           offerLink: event.offerLink,
         );
       }
@@ -70,7 +70,9 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       final channel = await findChannelByDid(permanentChannelDid);
 
       final didManager = await connectionManager.getDidManagerForDid(
-          wallet, permanentChannelDid);
+        wallet,
+        permanentChannelDid,
+      );
 
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: didManager,
@@ -232,8 +234,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     required String groupDid,
   }) async {
     final methodName = '_allowGroupToSendMessagesToPermanentChannelDid';
-    final permanentChannelDidDocument =
-        await permanentChannelDid.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDid
+        .getDidDocument();
 
     logger.info(
       'Allowing group DID: ${groupDid.topAndTail()} to send messages to permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -283,7 +285,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         updatedGroup.members.add(
           GroupMember(
             did: member.did,
-            vCard: member.vCard,
+            contactCard: member.contactCard,
             status: GroupMemberStatus.values.byName(member.status),
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,
@@ -298,7 +300,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       // TODO: add test case for this specific case
       final existingMember = updatedGroup.members[localMemberIndex];
       updatedGroup.members[localMemberIndex] = existingMember.copyWith(
-        vCard: member.vCard,
+        card: member.contactCard,
         dateAdded: DateTime.now().toUtc(),
         status: GroupMemberStatus.approved,
         publicKey: member.publicKey,
@@ -315,10 +317,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     return updatedGroup;
   }
 
-  void _updateSelfMemberStatusToApproved(
-    Group group,
-    String selfMemberDid,
-  ) {
+  void _updateSelfMemberStatusToApproved(Group group, String selfMemberDid) {
     final selfMember = group.members.firstWhere(
       (member) => member.did == selfMemberDid,
       orElse: () => throw Exception(

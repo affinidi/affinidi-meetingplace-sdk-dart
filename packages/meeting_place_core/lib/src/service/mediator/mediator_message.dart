@@ -43,12 +43,16 @@ class MediatorMessage {
     PlainTextMessage message,
     KeyRepository keyRepository,
   ) async {
-    final keyPair = await keyRepository.getKeyPair(message.to!.first) ??
+    final keyPair =
+        await keyRepository.getKeyPair(message.to!.first) ??
         (throw Exception(
-            'Key pair not found for DID: ${message.to!.first.topAndTail()}'));
+          'Key pair not found for DID: ${message.to!.first.topAndTail()}',
+        ));
 
     final groupMessage = protocol.GroupMessage.fromPlainTextMessage(message);
-    return GroupMessage.decrypt(groupMessage,
-        privateKeyBytes: keyPair.privateKeyBytes);
+    return GroupMessage.decrypt(
+      groupMessage,
+      privateKeyBytes: keyPair.privateKeyBytes,
+    );
   }
 }

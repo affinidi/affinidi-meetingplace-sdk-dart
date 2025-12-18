@@ -57,8 +57,9 @@ abstract class BaseEventHandler {
 
   @internal
   Future<ConnectionOffer> findConnectionByOfferLink(String offerLink) async {
-    return await connectionOfferRepository
-            .getConnectionOfferByOfferLink(offerLink) ??
+    return await connectionOfferRepository.getConnectionOfferByOfferLink(
+          offerLink,
+        ) ??
         (throw ConnectionOfferException.offerNotFoundError());
   }
 
@@ -70,7 +71,8 @@ abstract class BaseEventHandler {
 
   @internal
   Future<DidManager> findDidManager(Channel channel) {
-    final did = channel.permanentChannelDid ??
+    final did =
+        channel.permanentChannelDid ??
         (throw ArgumentError('Channel must have a permanent DID'));
 
     return connectionManager.getDidManagerForDid(wallet, did);

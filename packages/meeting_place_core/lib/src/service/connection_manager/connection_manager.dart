@@ -10,9 +10,9 @@ class ConnectionManager {
   ConnectionManager({
     required KeyRepository keyRepository,
     MeetingPlaceCoreSDKLogger? logger,
-  })  : _keyRepository = keyRepository,
-        _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+  }) : _keyRepository = keyRepository,
+       _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'ConnectionManager';
   static const String connectionPrefix = 'connection_';
@@ -67,10 +67,7 @@ class ConnectionManager {
     }
   }
 
-  Future<DidManager> getDidManagerForDid(
-    Wallet wallet,
-    String did,
-  ) async {
+  Future<DidManager> getDidManagerForDid(Wallet wallet, String did) async {
     final methodName = 'getKeyPairForConnectionDid';
     final keyId = await _keyRepository.getKeyIdByDid(did: did);
     if (keyId == null) {

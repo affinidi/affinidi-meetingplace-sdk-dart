@@ -16,7 +16,7 @@ part 'accept_offer_input.g.dart';
 /// * [did] - Permanent channel DID of the user upon approval of the connection request.
 /// * [deviceToken] - The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
-/// * [vcard] - A vCard containing the details of the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard containing the details of the offer encoded in base64 format.
 /// * [offerLink]
 @BuiltValue()
 abstract class AcceptOfferInput
@@ -38,9 +38,9 @@ abstract class AcceptOfferInput
   AcceptOfferInputPlatformTypeEnum get platformType;
   // enum platformTypeEnum {  DIDCOMM,  PUSH_NOTIFICATION,  NONE,  };
 
-  /// A vCard containing the details of the offer encoded in base64 format.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// A ContactCard containing the details of the offer encoded in base64 format.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   @BuiltValueField(wireName: r'offerLink')
   String get offerLink;
@@ -91,9 +91,9 @@ class _$AcceptOfferInputSerializer
       object.platformType,
       specifiedType: const FullType(AcceptOfferInputPlatformTypeEnum),
     );
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
     yield r'offerLink';
@@ -109,9 +109,11 @@ class _$AcceptOfferInputSerializer
     AcceptOfferInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -127,45 +129,59 @@ class _$AcceptOfferInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'mnemonic':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mnemonic = valueDes;
           break;
         case r'did':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.did = valueDes;
           break;
         case r'deviceToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceToken = valueDes;
           break;
         case r'platformType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(AcceptOfferInputPlatformTypeEnum),
-          ) as AcceptOfferInputPlatformTypeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      AcceptOfferInputPlatformTypeEnum,
+                    ),
+                  )
+                  as AcceptOfferInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
-        case r'vcard':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.vcard = valueDes;
+        case r'contactCard':
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
+          result.contactCard = valueDes;
           break;
         case r'offerLink':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerLink = valueDes;
           break;
         default:

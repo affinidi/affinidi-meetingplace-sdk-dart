@@ -14,19 +14,19 @@ class _$NotifyChannelInput extends NotifyChannelInput {
   @override
   final String type;
 
-  factory _$NotifyChannelInput(
-          [void Function(NotifyChannelInputBuilder)? updates]) =>
-      (NotifyChannelInputBuilder()..update(updates))._build();
+  factory _$NotifyChannelInput([
+    void Function(NotifyChannelInputBuilder)? updates,
+  ]) => (NotifyChannelInputBuilder()..update(updates))._build();
 
-  _$NotifyChannelInput._(
-      {required this.notificationChannelId,
-      required this.did,
-      required this.type})
-      : super._();
+  _$NotifyChannelInput._({
+    required this.notificationChannelId,
+    required this.did,
+    required this.type,
+  }) : super._();
   @override
   NotifyChannelInput rebuild(
-          void Function(NotifyChannelInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(NotifyChannelInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   NotifyChannelInputBuilder toBuilder() =>
@@ -107,16 +107,24 @@ class NotifyChannelInputBuilder
   NotifyChannelInput build() => _build();
 
   _$NotifyChannelInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$NotifyChannelInput._(
           notificationChannelId: BuiltValueNullFieldError.checkNotNull(
-              notificationChannelId,
-              r'NotifyChannelInput',
-              'notificationChannelId'),
+            notificationChannelId,
+            r'NotifyChannelInput',
+            'notificationChannelId',
+          ),
           did: BuiltValueNullFieldError.checkNotNull(
-              did, r'NotifyChannelInput', 'did'),
+            did,
+            r'NotifyChannelInput',
+            'did',
+          ),
           type: BuiltValueNullFieldError.checkNotNull(
-              type, r'NotifyChannelInput', 'type'),
+            type,
+            r'NotifyChannelInput',
+            'type',
+          ),
         );
     replace(_$result);
     return _$result;

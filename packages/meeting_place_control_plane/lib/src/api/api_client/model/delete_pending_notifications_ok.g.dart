@@ -11,21 +11,23 @@ class _$DeletePendingNotificationsOK extends DeletePendingNotificationsOK {
   final BuiltList<String>? deletedIds;
   @override
   final BuiltList<DeletePendingNotificationsOKNotificationsInner>?
-      notifications;
+  notifications;
   @override
   final JsonObject? examples;
 
-  factory _$DeletePendingNotificationsOK(
-          [void Function(DeletePendingNotificationsOKBuilder)? updates]) =>
-      (DeletePendingNotificationsOKBuilder()..update(updates))._build();
+  factory _$DeletePendingNotificationsOK([
+    void Function(DeletePendingNotificationsOKBuilder)? updates,
+  ]) => (DeletePendingNotificationsOKBuilder()..update(updates))._build();
 
-  _$DeletePendingNotificationsOK._(
-      {this.deletedIds, this.notifications, this.examples})
-      : super._();
+  _$DeletePendingNotificationsOK._({
+    this.deletedIds,
+    this.notifications,
+    this.examples,
+  }) : super._();
   @override
   DeletePendingNotificationsOK rebuild(
-          void Function(DeletePendingNotificationsOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DeletePendingNotificationsOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DeletePendingNotificationsOKBuilder toBuilder() =>
@@ -62,8 +64,10 @@ class _$DeletePendingNotificationsOK extends DeletePendingNotificationsOK {
 
 class DeletePendingNotificationsOKBuilder
     implements
-        Builder<DeletePendingNotificationsOK,
-            DeletePendingNotificationsOKBuilder> {
+        Builder<
+          DeletePendingNotificationsOK,
+          DeletePendingNotificationsOKBuilder
+        > {
   _$DeletePendingNotificationsOK? _$v;
 
   ListBuilder<String>? _deletedIds;
@@ -74,12 +78,11 @@ class DeletePendingNotificationsOKBuilder
 
   ListBuilder<DeletePendingNotificationsOKNotificationsInner>? _notifications;
   ListBuilder<DeletePendingNotificationsOKNotificationsInner>
-      get notifications => _$this._notifications ??=
-          ListBuilder<DeletePendingNotificationsOKNotificationsInner>();
+  get notifications => _$this._notifications ??=
+      ListBuilder<DeletePendingNotificationsOKNotificationsInner>();
   set notifications(
-          ListBuilder<DeletePendingNotificationsOKNotificationsInner>?
-              notifications) =>
-      _$this._notifications = notifications;
+    ListBuilder<DeletePendingNotificationsOKNotificationsInner>? notifications,
+  ) => _$this._notifications = notifications;
 
   JsonObject? _examples;
   JsonObject? get examples => _$this._examples;
@@ -116,7 +119,8 @@ class DeletePendingNotificationsOKBuilder
   _$DeletePendingNotificationsOK _build() {
     _$DeletePendingNotificationsOK _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$DeletePendingNotificationsOK._(
             deletedIds: _deletedIds?.build(),
             notifications: _notifications?.build(),
@@ -131,7 +135,10 @@ class DeletePendingNotificationsOKBuilder
         _notifications?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'DeletePendingNotificationsOK', _$failedField, e.toString());
+          r'DeletePendingNotificationsOK',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

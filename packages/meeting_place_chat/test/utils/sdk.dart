@@ -47,9 +47,9 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
   required String did,
   required String otherPartyDid,
   required ChannelRepository channelRepository,
-  VCard? vCard,
-  VCard? otherPartyVCard,
-  VCard? channelVCard,
+  ContactCard? card,
+  ContactCard? otherPartyCard,
+  ContactCard? channelCard,
   Storage? existingStorage,
   ChatSDKOptions? options,
 }) async {
@@ -59,8 +59,8 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
     publishOfferDid: '',
     mediatorDid: getMediatorDid(),
     status: ChannelStatus.inaugurated,
-    vCard: channelVCard,
-    otherPartyVCard: otherPartyVCard,
+    contactCard: channelCard,
+    otherPartyContactCard: otherPartyCard,
     type: ChannelType.individual,
     permanentChannelDid: did,
     otherPartyPermanentChannelDid: otherPartyDid,
@@ -73,10 +73,11 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
       coreSDK: coreSDK,
       did: did,
       otherPartyDid: otherPartyDid,
-      vCard: vCard,
+      card: card,
       mediatorDid: getMediatorDid(),
       chatRepository: ChatRepositoryImpl(storage: storage),
-      options: options ??
+      options:
+          options ??
           ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
     ),
   );
@@ -88,7 +89,7 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
   required String otherPartyDid,
   required Group group,
   required ChannelRepository channelRepository,
-  VCard? vCard,
+  ContactCard? card,
   Storage? existingStorage,
 }) async {
   final storage = existingStorage ?? InMemoryStorage();
@@ -97,7 +98,7 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
     publishOfferDid: '',
     mediatorDid: getMediatorDid(),
     status: ChannelStatus.inaugurated,
-    vCard: vCard,
+    contactCard: card,
     type: ChannelType.group,
     permanentChannelDid: did,
     otherPartyPermanentChannelDid: otherPartyDid,
@@ -112,10 +113,11 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
       did: did,
       otherPartyDid: otherPartyDid,
       mediatorDid: getMediatorDid(),
-      vCard: vCard,
+      card: card,
       chatRepository: ChatRepositoryImpl(storage: storage),
-      options:
-          ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
+      options: ChatSDKOptions(
+        chatPresenceSendInterval: const Duration(seconds: 3),
+      ),
     ),
   );
 }

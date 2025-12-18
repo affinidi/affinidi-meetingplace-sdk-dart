@@ -7,11 +7,12 @@ part of 'expired_acceptance_error.dart';
 // **************************************************************************
 
 const ExpiredAcceptanceErrorNameEnum
-    _$expiredAcceptanceErrorNameEnum_expiredAcceptanceError =
+_$expiredAcceptanceErrorNameEnum_expiredAcceptanceError =
     const ExpiredAcceptanceErrorNameEnum._('expiredAcceptanceError');
 
 ExpiredAcceptanceErrorNameEnum _$expiredAcceptanceErrorNameEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'expiredAcceptanceError':
       return _$expiredAcceptanceErrorNameEnum_expiredAcceptanceError;
@@ -21,17 +22,20 @@ ExpiredAcceptanceErrorNameEnum _$expiredAcceptanceErrorNameEnumValueOf(
 }
 
 final BuiltSet<ExpiredAcceptanceErrorNameEnum>
-    _$expiredAcceptanceErrorNameEnumValues = BuiltSet<
-        ExpiredAcceptanceErrorNameEnum>(const <ExpiredAcceptanceErrorNameEnum>[
-  _$expiredAcceptanceErrorNameEnum_expiredAcceptanceError,
-]);
+_$expiredAcceptanceErrorNameEnumValues =
+    BuiltSet<ExpiredAcceptanceErrorNameEnum>(
+      const <ExpiredAcceptanceErrorNameEnum>[
+        _$expiredAcceptanceErrorNameEnum_expiredAcceptanceError,
+      ],
+    );
 
 const ExpiredAcceptanceErrorMessageEnum
-    _$expiredAcceptanceErrorMessageEnum_theAcceptanceHasExpired =
+_$expiredAcceptanceErrorMessageEnum_theAcceptanceHasExpired =
     const ExpiredAcceptanceErrorMessageEnum._('theAcceptanceHasExpired');
 
 ExpiredAcceptanceErrorMessageEnum _$expiredAcceptanceErrorMessageEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'theAcceptanceHasExpired':
       return _$expiredAcceptanceErrorMessageEnum_theAcceptanceHasExpired;
@@ -41,17 +45,19 @@ ExpiredAcceptanceErrorMessageEnum _$expiredAcceptanceErrorMessageEnumValueOf(
 }
 
 final BuiltSet<ExpiredAcceptanceErrorMessageEnum>
-    _$expiredAcceptanceErrorMessageEnumValues = BuiltSet<
-        ExpiredAcceptanceErrorMessageEnum>(const <ExpiredAcceptanceErrorMessageEnum>[
-  _$expiredAcceptanceErrorMessageEnum_theAcceptanceHasExpired,
-]);
+_$expiredAcceptanceErrorMessageEnumValues =
+    BuiltSet<ExpiredAcceptanceErrorMessageEnum>(
+      const <ExpiredAcceptanceErrorMessageEnum>[
+        _$expiredAcceptanceErrorMessageEnum_theAcceptanceHasExpired,
+      ],
+    );
 
 const ExpiredAcceptanceErrorHttpStatusCodeEnum
-    _$expiredAcceptanceErrorHttpStatusCodeEnum_number404 =
+_$expiredAcceptanceErrorHttpStatusCodeEnum_number404 =
     const ExpiredAcceptanceErrorHttpStatusCodeEnum._('number404');
 
 ExpiredAcceptanceErrorHttpStatusCodeEnum
-    _$expiredAcceptanceErrorHttpStatusCodeEnumValueOf(String name) {
+_$expiredAcceptanceErrorHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$expiredAcceptanceErrorHttpStatusCodeEnum_number404;
@@ -61,19 +67,21 @@ ExpiredAcceptanceErrorHttpStatusCodeEnum
 }
 
 final BuiltSet<ExpiredAcceptanceErrorHttpStatusCodeEnum>
-    _$expiredAcceptanceErrorHttpStatusCodeEnumValues = BuiltSet<
-        ExpiredAcceptanceErrorHttpStatusCodeEnum>(const <ExpiredAcceptanceErrorHttpStatusCodeEnum>[
-  _$expiredAcceptanceErrorHttpStatusCodeEnum_number404,
-]);
+_$expiredAcceptanceErrorHttpStatusCodeEnumValues =
+    BuiltSet<ExpiredAcceptanceErrorHttpStatusCodeEnum>(
+      const <ExpiredAcceptanceErrorHttpStatusCodeEnum>[
+        _$expiredAcceptanceErrorHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<ExpiredAcceptanceErrorNameEnum>
-    _$expiredAcceptanceErrorNameEnumSerializer =
+_$expiredAcceptanceErrorNameEnumSerializer =
     _$ExpiredAcceptanceErrorNameEnumSerializer();
 Serializer<ExpiredAcceptanceErrorMessageEnum>
-    _$expiredAcceptanceErrorMessageEnumSerializer =
+_$expiredAcceptanceErrorMessageEnumSerializer =
     _$ExpiredAcceptanceErrorMessageEnumSerializer();
 Serializer<ExpiredAcceptanceErrorHttpStatusCodeEnum>
-    _$expiredAcceptanceErrorHttpStatusCodeEnumSerializer =
+_$expiredAcceptanceErrorHttpStatusCodeEnumSerializer =
     _$ExpiredAcceptanceErrorHttpStatusCodeEnumSerializer();
 
 class _$ExpiredAcceptanceErrorNameEnumSerializer
@@ -92,16 +100,19 @@ class _$ExpiredAcceptanceErrorNameEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, ExpiredAcceptanceErrorNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    ExpiredAcceptanceErrorNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   ExpiredAcceptanceErrorNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      ExpiredAcceptanceErrorNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => ExpiredAcceptanceErrorNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$ExpiredAcceptanceErrorMessageEnumSerializer
@@ -120,16 +131,19 @@ class _$ExpiredAcceptanceErrorMessageEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, ExpiredAcceptanceErrorMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    ExpiredAcceptanceErrorMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   ExpiredAcceptanceErrorMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      ExpiredAcceptanceErrorMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => ExpiredAcceptanceErrorMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$ExpiredAcceptanceErrorHttpStatusCodeEnumSerializer
@@ -143,23 +157,26 @@ class _$ExpiredAcceptanceErrorHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    ExpiredAcceptanceErrorHttpStatusCodeEnum
+    ExpiredAcceptanceErrorHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'ExpiredAcceptanceErrorHttpStatusCodeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          ExpiredAcceptanceErrorHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    ExpiredAcceptanceErrorHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   ExpiredAcceptanceErrorHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      ExpiredAcceptanceErrorHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => ExpiredAcceptanceErrorHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$ExpiredAcceptanceError extends ExpiredAcceptanceError {
@@ -174,21 +191,21 @@ class _$ExpiredAcceptanceError extends ExpiredAcceptanceError {
   @override
   final BuiltList<NotFoundErrorDetailsInner>? details;
 
-  factory _$ExpiredAcceptanceError(
-          [void Function(ExpiredAcceptanceErrorBuilder)? updates]) =>
-      (ExpiredAcceptanceErrorBuilder()..update(updates))._build();
+  factory _$ExpiredAcceptanceError([
+    void Function(ExpiredAcceptanceErrorBuilder)? updates,
+  ]) => (ExpiredAcceptanceErrorBuilder()..update(updates))._build();
 
-  _$ExpiredAcceptanceError._(
-      {required this.name,
-      required this.message,
-      required this.httpStatusCode,
-      required this.traceId,
-      this.details})
-      : super._();
+  _$ExpiredAcceptanceError._({
+    required this.name,
+    required this.message,
+    required this.httpStatusCode,
+    required this.traceId,
+    this.details,
+  }) : super._();
   @override
   ExpiredAcceptanceError rebuild(
-          void Function(ExpiredAcceptanceErrorBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpiredAcceptanceErrorBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpiredAcceptanceErrorBuilder toBuilder() =>
@@ -246,8 +263,8 @@ class ExpiredAcceptanceErrorBuilder
   ExpiredAcceptanceErrorHttpStatusCodeEnum? get httpStatusCode =>
       _$this._httpStatusCode;
   set httpStatusCode(
-          ExpiredAcceptanceErrorHttpStatusCodeEnum? httpStatusCode) =>
-      _$this._httpStatusCode = httpStatusCode;
+    ExpiredAcceptanceErrorHttpStatusCodeEnum? httpStatusCode,
+  ) => _$this._httpStatusCode = httpStatusCode;
 
   String? _traceId;
   String? get traceId => _$this._traceId;
@@ -292,16 +309,29 @@ class ExpiredAcceptanceErrorBuilder
   _$ExpiredAcceptanceError _build() {
     _$ExpiredAcceptanceError _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$ExpiredAcceptanceError._(
             name: BuiltValueNullFieldError.checkNotNull(
-                name, r'ExpiredAcceptanceError', 'name'),
+              name,
+              r'ExpiredAcceptanceError',
+              'name',
+            ),
             message: BuiltValueNullFieldError.checkNotNull(
-                message, r'ExpiredAcceptanceError', 'message'),
+              message,
+              r'ExpiredAcceptanceError',
+              'message',
+            ),
             httpStatusCode: BuiltValueNullFieldError.checkNotNull(
-                httpStatusCode, r'ExpiredAcceptanceError', 'httpStatusCode'),
+              httpStatusCode,
+              r'ExpiredAcceptanceError',
+              'httpStatusCode',
+            ),
             traceId: BuiltValueNullFieldError.checkNotNull(
-                traceId, r'ExpiredAcceptanceError', 'traceId'),
+              traceId,
+              r'ExpiredAcceptanceError',
+              'traceId',
+            ),
             details: _details?.build(),
           );
     } catch (_) {
@@ -311,7 +341,10 @@ class ExpiredAcceptanceErrorBuilder
         _details?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'ExpiredAcceptanceError', _$failedField, e.toString());
+          r'ExpiredAcceptanceError',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

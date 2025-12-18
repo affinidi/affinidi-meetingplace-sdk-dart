@@ -39,19 +39,25 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     required super.chatRepository,
     required super.options,
     required this.group,
-    super.vCard,
+    super.card,
     MeetingPlaceChatSDKLogger? logger,
-  })  : _chatHistoryService = ChatHistoryService(
-          chatRepository: chatRepository,
-          logger: logger ??
-              DefaultMeetingPlaceChatSDKLogger(
-                  className: _className, sdkName: sdkName),
-        ),
-        super(
-          logger: logger ??
-              DefaultMeetingPlaceChatSDKLogger(
-                  className: _className, sdkName: sdkName),
-        );
+  }) : _chatHistoryService = ChatHistoryService(
+         chatRepository: chatRepository,
+         logger:
+             logger ??
+             DefaultMeetingPlaceChatSDKLogger(
+               className: _className,
+               sdkName: sdkName,
+             ),
+       ),
+       super(
+         logger:
+             logger ??
+             DefaultMeetingPlaceChatSDKLogger(
+               className: _className,
+               sdkName: sdkName,
+             ),
+       );
 
   static const String _className = 'GroupChatSDK';
 
@@ -210,7 +216,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
             eventMessage.eventType ==
                 EventMessageType.awaitingGroupMemberToJoin &&
             (eventMessage.data['memberDid'] == message.from! ||
-                eventMessage.data['memberDid'] == message.body?['fromDid']),
+                eventMessage.data['memberDid'] == message.body?['from_did']),
       );
 
       if (matchingMessage != null) {
@@ -225,15 +231,15 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         await chatRepository.updateMesssage(matchingMessage);
         chatStream.pushData(StreamData(chatItem: matchingMessage));
 
-        final chatItem =
-            await _chatHistoryService.createGroupMemberJoinedGroupEventMessage(
-          chatId: chatId,
-          groupDid: group.did,
-          memberDid: matchingMessage.data['memberDid'] as String,
-          memberVCard: VCard.fromJson(
-            matchingMessage.data['vCard'] as Map<String, dynamic>,
-          ),
-        );
+        final chatItem = await _chatHistoryService
+            .createGroupMemberJoinedGroupEventMessage(
+              chatId: chatId,
+              groupDid: group.did,
+              memberDid: matchingMessage.data['memberDid'] as String,
+              memberCard: ContactCard.fromJson(
+                matchingMessage.data['contactCard'] as Map<String, dynamic>,
+              ),
+            );
 
         chatStream.pushData(StreamData(chatItem: chatItem));
       }
@@ -274,11 +280,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         group.markAsDeleted();
         await coreSDK.updateGroup(group);
 
-        final chatItem =
-            await _chatHistoryService.createGroupDeletedEventMessage(
-          chatId: chatId,
-          groupDid: group.did,
-        );
+        final chatItem = await _chatHistoryService
+            .createGroupDeletedEventMessage(
+              chatId: chatId,
+              groupDid: group.did,
+            );
 
         chatStream.pushData(StreamData(chatItem: chatItem));
       }
@@ -296,7 +302,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           (member) => member.did == message.from!,
         );
 
-        if (member.vCard.toHash() == profileHash) {
+        if (member.contactCard.profileHash == profileHash) {
           chatStream.pushData(StreamData(plainTextMessage: message));
         } else {
           await coreSDK.sendMessage(
@@ -336,7 +342,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         },
       );
 
-      member.vCard = VCard.fromJson(message.body!);
+      member.contactCard = ContactCard.fromJson(message.body!);
       await coreSDK.updateGroup(group);
       await sendChatGroupDetailsUpdate();
       chatStream.pushData(StreamData(plainTextMessage: message));
@@ -457,8 +463,10 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     Chat chat,
   ) async {
     final methodName = '_createConciergeMessagesForPendingApprovals';
-    logger.info('Looking up group members with pending approval status.',
-        name: methodName);
+    logger.info(
+      'Looking up group members with pending approval status.',
+      name: methodName,
+    );
 
     final pendingApprovals = group.getGroupMembersWaitingForApproval();
     final conciergeMessages = <ConciergeMessage>[];
@@ -492,7 +500,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         conciergeType: ConciergeMessageType.permissionToJoinGroup,
         data: {
           'groupId': group.id,
-          'memberVCard': pendingApproval.vCard.toJson(),
+          'contactCard': pendingApproval.contactCard.toJson(),
           'memberDid': pendingApproval.did,
           'adminDid': group.ownerDid,
           'offerLink': group.offerLink,
@@ -559,13 +567,13 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await chatRepository.updateMesssage(message);
     chatStream.pushData(StreamData(chatItem: message));
 
-    final chatItem =
-        await _chatHistoryService.createAwaitingGroupMemberToJoinEventMessage(
-      chatId: chatId,
-      groupDid: group.did,
-      memberDid: channel.otherPartyPermanentChannelDid!,
-      memberVCard: channel.otherPartyVCard!,
-    );
+    final chatItem = await _chatHistoryService
+        .createAwaitingGroupMemberToJoinEventMessage(
+          chatId: chatId,
+          groupDid: group.did,
+          memberDid: channel.otherPartyPermanentChannelDid!,
+          memberCard: channel.otherPartyContactCard!,
+        );
 
     logger.info(
       'Completed approving connection request for member: '
@@ -575,22 +583,22 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     chatStream.pushData(StreamData(chatItem: chatItem));
   }
 
-  /// Sends a profile hash message to the group owner if the current vCard
+  /// Sends a profile hash message to the group owner if the current contact card
   /// has changed since the last update.
   @override
   Future<void> sendProfileHash() async {
     final methodName = 'sendProfileHash';
     logger.info('Started sending profile hash', name: methodName);
-    if (vCard == null) {
+    if (card == null) {
       logger.warning(
-        'VCard is null. Skipping sending profile hash message.',
+        'ContactCard is null. Skipping sending profile hash message.',
         name: methodName,
       );
       return;
     }
 
     final channel = await getChannel();
-    if (channel.vCard == null || vCard!.equals(channel.vCard!)) {
+    if (channel.contactCard == null || card!.equals(channel.contactCard!)) {
       return;
     }
 
@@ -599,14 +607,14 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         ChatAliasProfileHash.create(
           from: did,
           to: [group.ownerDid!],
-          profileHash: vCard!.toHash(),
+          profileHash: card!.profileHash,
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: group.ownerDid!,
         mediatorDid: mediatorDid,
       );
 
-      channel.vCard = vCard;
+      channel.contactCard = card;
       await coreSDK.updateChannel(channel);
       return;
     }
@@ -635,13 +643,13 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       dateCreated: DateTime.now().toUtc(),
       status: ChatItemStatus.userInput,
       conciergeType: ConciergeMessageType.permissionToUpdateProfile,
-      data: {'profileDetails': vCard!.toJson(), 'replyTo': otherPartyDid},
+      data: {'profileDetails': card!.toJson(), 'replyTo': otherPartyDid},
     );
 
     await chatRepository.createMessage(conciergeMessage);
     logger.info('Completed sending profile hash', name: methodName);
 
-    channel.vCard = vCard;
+    channel.contactCard = card;
     await coreSDK.updateChannel(channel);
     chatStream.pushData(StreamData(chatItem: conciergeMessage));
   }
@@ -693,7 +701,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// - [message]: The [ConciergeMessage] representing the update request.
   ///
   /// **Throws:**
-  /// - [Exception] if [vCard] is missing.
+  /// - [Exception] if [card] is missing.
   @override
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
     final methodName = 'sendChatContactDetailsUpdate';
@@ -701,15 +709,15 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       'Started sending chat contact details update',
       name: methodName,
     );
-    if (vCard == null) {
-      final message = 'Vcard missing for contact details update';
+    if (card == null) {
+      final message = 'ContactCard missing for contact details update';
       logger.error(message, name: methodName);
       throw Exception(message);
     }
 
     if (_isGroupOwner()) {
       final myMember = group.members.firstWhere((m) => m.did == did);
-      myMember.vCard = vCard!;
+      myMember.contactCard = card!;
 
       await coreSDK.updateGroup(group);
       unawaited(sendChatGroupDetailsUpdate());
@@ -719,7 +727,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           ChatContactDetailsUpdate.create(
             from: did,
             to: [message.data['replyTo'] as String],
-            profileDetails: vCard!.toJson(),
+            profileDetails: card!.toJson(),
           ).toPlainTextMessage(),
           senderDid: did,
           recipientDid: message.data['replyTo'] as String,
@@ -745,8 +753,10 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Started sending chat group details update', name: methodName);
     unawaited(
       sendMessage(
-        ChatGroupDetailsUpdate.fromGroup(group, senderDid: did)
-            .toPlainTextMessage(),
+        ChatGroupDetailsUpdate.fromGroup(
+          group,
+          senderDid: did,
+        ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,

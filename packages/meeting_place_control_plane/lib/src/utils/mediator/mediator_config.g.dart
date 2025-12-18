@@ -20,6 +20,6 @@ Map<String, dynamic> _$MediatorConfigToJson(MediatorConfig instance) =>
       'mediatorDid': instance.mediatorDid,
       'mediatorEndpoint': instance.mediatorEndpoint,
       'mediatorWSSEndpoint': instance.mediatorWSSEndpoint,
-      if (instance.secondsBeforeExpiryReauthenticate case final value?)
-        'secondsBeforeExpiryReauthenticate': value,
+      'secondsBeforeExpiryReauthenticate':
+          ?instance.secondsBeforeExpiryReauthenticate,
     };

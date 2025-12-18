@@ -7,17 +7,18 @@ part of 'event_message.dart';
 // **************************************************************************
 
 EventMessage _$EventMessageFromJson(Map<String, dynamic> json) => EventMessage(
-      chatId: json['chatId'] as String,
-      messageId: json['messageId'] as String,
-      senderDid: json['senderDid'] as String,
-      isFromMe: json['isFromMe'] as bool,
-      dateCreated: DateTime.parse(json['dateCreated'] as String),
-      status: $enumDecode(_$ChatItemStatusEnumMap, json['status']),
-      eventType: $enumDecode(_$EventMessageTypeEnumMap, json['eventType']),
-      data: json['data'] as Map<String, dynamic>,
-      type: $enumDecodeNullable(_$ChatItemTypeEnumMap, json['type']) ??
-          ChatItemType.eventMessage,
-    );
+  chatId: json['chatId'] as String,
+  messageId: json['messageId'] as String,
+  senderDid: json['senderDid'] as String,
+  isFromMe: json['isFromMe'] as bool,
+  dateCreated: DateTime.parse(json['dateCreated'] as String),
+  status: $enumDecode(_$ChatItemStatusEnumMap, json['status']),
+  eventType: $enumDecode(_$EventMessageTypeEnumMap, json['eventType']),
+  data: json['data'] as Map<String, dynamic>,
+  type:
+      $enumDecodeNullable(_$ChatItemTypeEnumMap, json['type']) ??
+      ChatItemType.eventMessage,
+);
 
 Map<String, dynamic> _$EventMessageToJson(EventMessage instance) =>
     <String, dynamic>{

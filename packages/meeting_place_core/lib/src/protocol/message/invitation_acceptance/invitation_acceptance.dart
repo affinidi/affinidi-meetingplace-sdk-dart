@@ -1,9 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../meeting_place_protocol.dart';
-import '../../v_card/v_card.dart';
-import '../../v_card/v_card_helper.dart';
+import '../../protocol.dart';
+import '../../contact_card/contact_card_helper.dart';
 import 'invitation_acceptance_body.dart';
 
 class InvitationAcceptance {
@@ -12,7 +11,7 @@ class InvitationAcceptance {
     required List<String> to,
     required String parentThreadId,
     required String channelDid,
-    VCard? vCard,
+    ContactCard? contactCard,
   }) {
     return InvitationAcceptance(
       id: const Uuid().v4(),
@@ -20,16 +19,16 @@ class InvitationAcceptance {
       to: to,
       parentThreadId: parentThreadId,
       body: InvitationAcceptanceBody(channelDid: channelDid),
-      vCard: vCard,
+      contactCard: contactCard,
     );
   }
 
   factory InvitationAcceptance.fromPlainTextMessage(PlainTextMessage message) {
-    VCard? vCard;
+    ContactCard? contactCard;
     if (message.attachments != null && message.attachments!.isNotEmpty) {
       final base64 = message.attachments!.first.data?.base64;
       if (base64 != null) {
-        vCard = VCard.fromBase64(base64);
+        contactCard = ContactCard.fromBase64(base64);
       }
     }
     return InvitationAcceptance(
@@ -38,7 +37,7 @@ class InvitationAcceptance {
       to: message.to!,
       parentThreadId: message.parentThreadId!,
       body: InvitationAcceptanceBody.fromJson(message.body!),
-      vCard: vCard,
+      contactCard: contactCard,
       createdTime: message.createdTime,
     );
   }
@@ -49,7 +48,7 @@ class InvitationAcceptance {
     required this.to,
     required this.parentThreadId,
     required this.body,
-    this.vCard,
+    this.contactCard,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -58,7 +57,7 @@ class InvitationAcceptance {
   final List<String> to;
   final String parentThreadId;
   final InvitationAcceptanceBody body;
-  final VCard? vCard;
+  final ContactCard? contactCard;
   final DateTime createdTime;
 
   PlainTextMessage toPlainTextMessage() {
@@ -70,8 +69,9 @@ class InvitationAcceptance {
       parentThreadId: parentThreadId,
       body: body.toJson(),
       createdTime: createdTime,
-      attachments:
-          vCard == null ? null : [VCardHelper.vCardToAttachment(vCard!)],
+      attachments: contactCard == null
+          ? null
+          : [ContactCardHelper.vCardToAttachment(contactCard!)],
     );
   }
 }

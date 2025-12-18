@@ -850,6 +850,16 @@ class $ChannelContactCardsTable extends ChannelContactCards
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints: 'REFERENCES channels(id) ON DELETE CASCADE NOT NULL');
+  static const VerificationMeta _didMeta = const VerificationMeta('did');
+  @override
+  late final GeneratedColumn<String> did = GeneratedColumn<String>(
+      'did', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _firstNameMeta =
       const VerificationMeta('firstName');
   @override
@@ -886,15 +896,17 @@ class $ChannelContactCardsTable extends ChannelContactCards
           'meetingplace_identity_card_color', aliasedName, false,
           type: DriftSqlType.string, requiredDuringInsert: true);
   @override
-  late final GeneratedColumnWithTypeConverter<VCardType, int> cardType =
+  late final GeneratedColumnWithTypeConverter<ContactCardType, int> cardType =
       GeneratedColumn<int>('card_type', aliasedName, false,
               type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<VCardType>(
+          .withConverter<ContactCardType>(
               $ChannelContactCardsTable.$convertercardType);
   @override
   List<GeneratedColumn> get $columns => [
         id,
         channelId,
+        did,
+        type,
         firstName,
         lastName,
         email,
@@ -921,6 +933,18 @@ class $ChannelContactCardsTable extends ChannelContactCards
           channelId.isAcceptableOrUnknown(data['channel_id']!, _channelIdMeta));
     } else if (isInserting) {
       context.missing(_channelIdMeta);
+    }
+    if (data.containsKey('did')) {
+      context.handle(
+          _didMeta, did.isAcceptableOrUnknown(data['did']!, _didMeta));
+    } else if (isInserting) {
+      context.missing(_didMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
     }
     if (data.containsKey('first_name')) {
       context.handle(_firstNameMeta,
@@ -980,6 +1004,10 @@ class $ChannelContactCardsTable extends ChannelContactCards
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       channelId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}channel_id'])!,
+      did: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       firstName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}first_name'])!,
       lastName: attachedDatabase.typeMapping
@@ -1004,8 +1032,8 @@ class $ChannelContactCardsTable extends ChannelContactCards
     return $ChannelContactCardsTable(attachedDatabase, alias);
   }
 
-  static TypeConverter<VCardType, int> $convertercardType =
-      const _VCardTypeConverter();
+  static TypeConverter<ContactCardType, int> $convertercardType =
+      const _ContactCardTypeConverter();
 }
 
 class ChannelContactCard extends DataClass
@@ -1015,6 +1043,12 @@ class ChannelContactCard extends DataClass
 
   /// ID of the associated channel.
   final String channelId;
+
+  /// DID of the contact.
+  final String did;
+
+  /// Type of the contact.
+  final String type;
 
   /// First name of the contact.
   final String firstName;
@@ -1035,10 +1069,12 @@ class ChannelContactCard extends DataClass
   final String meetingplaceIdentityCardColor;
 
   /// Type of the contact card.
-  final VCardType cardType;
+  final ContactCardType cardType;
   const ChannelContactCard(
       {required this.id,
       required this.channelId,
+      required this.did,
+      required this.type,
       required this.firstName,
       required this.lastName,
       required this.email,
@@ -1051,6 +1087,8 @@ class ChannelContactCard extends DataClass
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['channel_id'] = Variable<String>(channelId);
+    map['did'] = Variable<String>(did);
+    map['type'] = Variable<String>(type);
     map['first_name'] = Variable<String>(firstName);
     map['last_name'] = Variable<String>(lastName);
     map['email'] = Variable<String>(email);
@@ -1069,6 +1107,8 @@ class ChannelContactCard extends DataClass
     return ChannelContactCardsCompanion(
       id: Value(id),
       channelId: Value(channelId),
+      did: Value(did),
+      type: Value(type),
       firstName: Value(firstName),
       lastName: Value(lastName),
       email: Value(email),
@@ -1085,6 +1125,8 @@ class ChannelContactCard extends DataClass
     return ChannelContactCard(
       id: serializer.fromJson<int>(json['id']),
       channelId: serializer.fromJson<String>(json['channelId']),
+      did: serializer.fromJson<String>(json['did']),
+      type: serializer.fromJson<String>(json['type']),
       firstName: serializer.fromJson<String>(json['firstName']),
       lastName: serializer.fromJson<String>(json['lastName']),
       email: serializer.fromJson<String>(json['email']),
@@ -1092,7 +1134,7 @@ class ChannelContactCard extends DataClass
       profilePic: serializer.fromJson<String>(json['profilePic']),
       meetingplaceIdentityCardColor:
           serializer.fromJson<String>(json['meetingplaceIdentityCardColor']),
-      cardType: serializer.fromJson<VCardType>(json['cardType']),
+      cardType: serializer.fromJson<ContactCardType>(json['cardType']),
     );
   }
   @override
@@ -1101,6 +1143,8 @@ class ChannelContactCard extends DataClass
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'channelId': serializer.toJson<String>(channelId),
+      'did': serializer.toJson<String>(did),
+      'type': serializer.toJson<String>(type),
       'firstName': serializer.toJson<String>(firstName),
       'lastName': serializer.toJson<String>(lastName),
       'email': serializer.toJson<String>(email),
@@ -1108,23 +1152,27 @@ class ChannelContactCard extends DataClass
       'profilePic': serializer.toJson<String>(profilePic),
       'meetingplaceIdentityCardColor':
           serializer.toJson<String>(meetingplaceIdentityCardColor),
-      'cardType': serializer.toJson<VCardType>(cardType),
+      'cardType': serializer.toJson<ContactCardType>(cardType),
     };
   }
 
   ChannelContactCard copyWith(
           {int? id,
           String? channelId,
+          String? did,
+          String? type,
           String? firstName,
           String? lastName,
           String? email,
           String? mobile,
           String? profilePic,
           String? meetingplaceIdentityCardColor,
-          VCardType? cardType}) =>
+          ContactCardType? cardType}) =>
       ChannelContactCard(
         id: id ?? this.id,
         channelId: channelId ?? this.channelId,
+        did: did ?? this.did,
+        type: type ?? this.type,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         email: email ?? this.email,
@@ -1138,6 +1186,8 @@ class ChannelContactCard extends DataClass
     return ChannelContactCard(
       id: data.id.present ? data.id.value : this.id,
       channelId: data.channelId.present ? data.channelId.value : this.channelId,
+      did: data.did.present ? data.did.value : this.did,
+      type: data.type.present ? data.type.value : this.type,
       firstName: data.firstName.present ? data.firstName.value : this.firstName,
       lastName: data.lastName.present ? data.lastName.value : this.lastName,
       email: data.email.present ? data.email.value : this.email,
@@ -1156,6 +1206,8 @@ class ChannelContactCard extends DataClass
     return (StringBuffer('ChannelContactCard(')
           ..write('id: $id, ')
           ..write('channelId: $channelId, ')
+          ..write('did: $did, ')
+          ..write('type: $type, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1169,14 +1221,16 @@ class ChannelContactCard extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, channelId, firstName, lastName, email,
-      mobile, profilePic, meetingplaceIdentityCardColor, cardType);
+  int get hashCode => Object.hash(id, channelId, did, type, firstName, lastName,
+      email, mobile, profilePic, meetingplaceIdentityCardColor, cardType);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ChannelContactCard &&
           other.id == this.id &&
           other.channelId == this.channelId &&
+          other.did == this.did &&
+          other.type == this.type &&
           other.firstName == this.firstName &&
           other.lastName == this.lastName &&
           other.email == this.email &&
@@ -1190,16 +1244,20 @@ class ChannelContactCard extends DataClass
 class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
   final Value<int> id;
   final Value<String> channelId;
+  final Value<String> did;
+  final Value<String> type;
   final Value<String> firstName;
   final Value<String> lastName;
   final Value<String> email;
   final Value<String> mobile;
   final Value<String> profilePic;
   final Value<String> meetingplaceIdentityCardColor;
-  final Value<VCardType> cardType;
+  final Value<ContactCardType> cardType;
   const ChannelContactCardsCompanion({
     this.id = const Value.absent(),
     this.channelId = const Value.absent(),
+    this.did = const Value.absent(),
+    this.type = const Value.absent(),
     this.firstName = const Value.absent(),
     this.lastName = const Value.absent(),
     this.email = const Value.absent(),
@@ -1211,14 +1269,18 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
   ChannelContactCardsCompanion.insert({
     this.id = const Value.absent(),
     required String channelId,
+    required String did,
+    required String type,
     required String firstName,
     required String lastName,
     required String email,
     required String mobile,
     required String profilePic,
     required String meetingplaceIdentityCardColor,
-    required VCardType cardType,
+    required ContactCardType cardType,
   })  : channelId = Value(channelId),
+        did = Value(did),
+        type = Value(type),
         firstName = Value(firstName),
         lastName = Value(lastName),
         email = Value(email),
@@ -1229,6 +1291,8 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
   static Insertable<ChannelContactCard> custom({
     Expression<int>? id,
     Expression<String>? channelId,
+    Expression<String>? did,
+    Expression<String>? type,
     Expression<String>? firstName,
     Expression<String>? lastName,
     Expression<String>? email,
@@ -1240,6 +1304,8 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (channelId != null) 'channel_id': channelId,
+      if (did != null) 'did': did,
+      if (type != null) 'type': type,
       if (firstName != null) 'first_name': firstName,
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,
@@ -1254,16 +1320,20 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
   ChannelContactCardsCompanion copyWith(
       {Value<int>? id,
       Value<String>? channelId,
+      Value<String>? did,
+      Value<String>? type,
       Value<String>? firstName,
       Value<String>? lastName,
       Value<String>? email,
       Value<String>? mobile,
       Value<String>? profilePic,
       Value<String>? meetingplaceIdentityCardColor,
-      Value<VCardType>? cardType}) {
+      Value<ContactCardType>? cardType}) {
     return ChannelContactCardsCompanion(
       id: id ?? this.id,
       channelId: channelId ?? this.channelId,
+      did: did ?? this.did,
+      type: type ?? this.type,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -1283,6 +1353,12 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     }
     if (channelId.present) {
       map['channel_id'] = Variable<String>(channelId.value);
+    }
+    if (did.present) {
+      map['did'] = Variable<String>(did.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
     }
     if (firstName.present) {
       map['first_name'] = Variable<String>(firstName.value);
@@ -1315,6 +1391,8 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     return (StringBuffer('ChannelContactCardsCompanion(')
           ..write('id: $id, ')
           ..write('channelId: $channelId, ')
+          ..write('did: $did, ')
+          ..write('type: $type, ')
           ..write('firstName: $firstName, ')
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
@@ -1791,25 +1869,29 @@ typedef $$ChannelContactCardsTableCreateCompanionBuilder
     = ChannelContactCardsCompanion Function({
   Value<int> id,
   required String channelId,
+  required String did,
+  required String type,
   required String firstName,
   required String lastName,
   required String email,
   required String mobile,
   required String profilePic,
   required String meetingplaceIdentityCardColor,
-  required VCardType cardType,
+  required ContactCardType cardType,
 });
 typedef $$ChannelContactCardsTableUpdateCompanionBuilder
     = ChannelContactCardsCompanion Function({
   Value<int> id,
   Value<String> channelId,
+  Value<String> did,
+  Value<String> type,
   Value<String> firstName,
   Value<String> lastName,
   Value<String> email,
   Value<String> mobile,
   Value<String> profilePic,
   Value<String> meetingplaceIdentityCardColor,
-  Value<VCardType> cardType,
+  Value<ContactCardType> cardType,
 });
 
 final class $$ChannelContactCardsTableReferences extends BaseReferences<
@@ -1845,6 +1927,12 @@ class $$ChannelContactCardsTableFilterComposer
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get did => $composableBuilder(
+      column: $table.did, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnFilters(column));
 
@@ -1864,8 +1952,8 @@ class $$ChannelContactCardsTableFilterComposer
       column: $table.meetingplaceIdentityCardColor,
       builder: (column) => ColumnFilters(column));
 
-  ColumnWithTypeConverterFilters<VCardType, VCardType, int> get cardType =>
-      $composableBuilder(
+  ColumnWithTypeConverterFilters<ContactCardType, ContactCardType, int>
+      get cardType => $composableBuilder(
           column: $table.cardType,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
@@ -1901,6 +1989,12 @@ class $$ChannelContactCardsTableOrderingComposer
   });
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get did => $composableBuilder(
+      column: $table.did, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get firstName => $composableBuilder(
       column: $table.firstName, builder: (column) => ColumnOrderings(column));
@@ -1958,6 +2052,12 @@ class $$ChannelContactCardsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get did =>
+      $composableBuilder(column: $table.did, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
   GeneratedColumn<String> get firstName =>
       $composableBuilder(column: $table.firstName, builder: (column) => column);
 
@@ -1978,7 +2078,7 @@ class $$ChannelContactCardsTableAnnotationComposer
           column: $table.meetingplaceIdentityCardColor,
           builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<VCardType, int> get cardType =>
+  GeneratedColumnWithTypeConverter<ContactCardType, int> get cardType =>
       $composableBuilder(column: $table.cardType, builder: (column) => column);
 
   $$ChannelsTableAnnotationComposer get channelId {
@@ -2030,17 +2130,21 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> channelId = const Value.absent(),
+            Value<String> did = const Value.absent(),
+            Value<String> type = const Value.absent(),
             Value<String> firstName = const Value.absent(),
             Value<String> lastName = const Value.absent(),
             Value<String> email = const Value.absent(),
             Value<String> mobile = const Value.absent(),
             Value<String> profilePic = const Value.absent(),
             Value<String> meetingplaceIdentityCardColor = const Value.absent(),
-            Value<VCardType> cardType = const Value.absent(),
+            Value<ContactCardType> cardType = const Value.absent(),
           }) =>
               ChannelContactCardsCompanion(
             id: id,
             channelId: channelId,
+            did: did,
+            type: type,
             firstName: firstName,
             lastName: lastName,
             email: email,
@@ -2052,17 +2156,21 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String channelId,
+            required String did,
+            required String type,
             required String firstName,
             required String lastName,
             required String email,
             required String mobile,
             required String profilePic,
             required String meetingplaceIdentityCardColor,
-            required VCardType cardType,
+            required ContactCardType cardType,
           }) =>
               ChannelContactCardsCompanion.insert(
             id: id,
             channelId: channelId,
+            did: did,
+            type: type,
             firstName: firstName,
             lastName: lastName,
             email: email,

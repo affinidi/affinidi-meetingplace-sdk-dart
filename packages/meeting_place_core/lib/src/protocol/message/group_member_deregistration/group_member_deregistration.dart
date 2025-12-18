@@ -19,7 +19,8 @@ class GroupMemberDeregistration {
   }
 
   factory GroupMemberDeregistration.fromPlainTextMessage(
-      PlainTextMessage message) {
+    PlainTextMessage message,
+  ) {
     return GroupMemberDeregistration(
       id: message.id,
       body: GroupMemberDeregistrationBody.fromJson(message.body!),

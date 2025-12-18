@@ -3,6 +3,7 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/repository/channel_repository_impl.dart';
 import 'utils/repository/connection_offer_repository_impl.dart';
 import 'utils/repository/key_repository_impl.dart';
@@ -22,7 +23,10 @@ void main() async {
         () => sdkWithoutDevice.publishOffer(
           offerName: 'Test offer',
           offerDescription: 'Sample offer description',
-          vCard: VCard(values: {}),
+          contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test:alice',
+            contactInfo: const {},
+          ),
           type: SDKConnectionOfferType.invitation,
         ),
         throwsA(isA<MissingDeviceException>()),
@@ -48,7 +52,10 @@ void main() async {
       await aliceSDK.publishOffer(
         offerName: 'Test offer',
         offerDescription: 'Sample offer description',
-        vCard: VCard(values: {}),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: const {},
+        ),
         type: SDKConnectionOfferType.invitation,
       );
     },
@@ -75,7 +82,10 @@ void main() async {
       () => minimumSDK.publishOffer(
         offerName: 'Test offer',
         offerDescription: 'Sample offer description',
-        vCard: VCard(values: {}),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: const {},
+        ),
         type: SDKConnectionOfferType.groupInvitation,
       ),
       throwsA(isA<UnimplementedError>()),

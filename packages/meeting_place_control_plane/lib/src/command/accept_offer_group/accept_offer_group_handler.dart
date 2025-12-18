@@ -26,10 +26,13 @@ class AcceptOfferGroupHandler
   AcceptOfferGroupHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'AcceptOfferGroupHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -66,7 +69,7 @@ class AcceptOfferGroupHandler
         command.device.platformType.value,
       )
       ..offerLink = command.offerLink
-      ..vcard = command.vCard.toBase64();
+      ..contactCard = command.contactCard.toBase64();
 
     Response<AcceptOfferGroupOK> response;
     try {

@@ -90,11 +90,13 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult =
-          AuthenticateCommandOutput(credentials: authCredentials);
+      final authResult = AuthenticateCommandOutput(
+        credentials: authCredentials,
+      );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => authResult);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
       await interceptor.onRequest(requestOptions, mockRequestHandler);
@@ -104,8 +106,9 @@ void main() {
         equals('Bearer new-access-token'),
       );
 
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(1);
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(1);
 
       verify(() => mockRequestHandler.next(requestOptions)).called(1);
     });
@@ -123,11 +126,13 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult =
-          AuthenticateCommandOutput(credentials: authCredentials);
+      final authResult = AuthenticateCommandOutput(
+        credentials: authCredentials,
+      );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => authResult);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
       await interceptor.onRequest(firstRequestOptions, mockRequestHandler);
@@ -138,8 +143,9 @@ void main() {
       );
       await interceptor.onRequest(secondRequestOptions, mockRequestHandler);
 
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(1);
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(1);
       verify(() => mockRequestHandler.next(any())).called(2);
     });
 
@@ -152,16 +158,19 @@ void main() {
       final expiredCredentials = AuthCredentials(
         accessToken: 'expired-token',
         refreshToken: 'refresh-token',
-        accessExpiresAt:
-            DateTime.now().toUtc().subtract(const Duration(hours: 1)),
+        accessExpiresAt: DateTime.now().toUtc().subtract(
+          const Duration(hours: 1),
+        ),
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final expiredAuthResult =
-          AuthenticateCommandOutput(credentials: expiredCredentials);
+      final expiredAuthResult = AuthenticateCommandOutput(
+        credentials: expiredCredentials,
+      );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => expiredAuthResult);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => expiredAuthResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
       await interceptor.onRequest(firstRequestOptions, mockRequestHandler);
@@ -178,22 +187,22 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final newAuthResult =
-          AuthenticateCommandOutput(credentials: newCredentials);
+      final newAuthResult = AuthenticateCommandOutput(
+        credentials: newCredentials,
+      );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => newAuthResult);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => newAuthResult);
 
       // Act
       await interceptor.onRequest(secondRequestOptions, mockRequestHandler);
 
       // Assert
-      expect(
-        secondRequestOptions.headers['Authorization'],
-        'Bearer new-token',
-      );
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(2);
+      expect(secondRequestOptions.headers['Authorization'], 'Bearer new-token');
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(2);
     });
   });
 
@@ -218,8 +227,9 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult =
-          AuthenticateCommandOutput(credentials: authCredentials);
+      final authResult = AuthenticateCommandOutput(
+        credentials: authCredentials,
+      );
 
       final retryResponse = Response(
         requestOptions: requestOptions,
@@ -227,19 +237,24 @@ void main() {
         data: {'success': true},
       );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => authResult);
-      when(() => mockDio.fetch<dynamic>(any()))
-          .thenAnswer((_) async => retryResponse);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => authResult);
+      when(
+        () => mockDio.fetch<dynamic>(any()),
+      ).thenAnswer((_) async => retryResponse);
       when(() => mockErrorHandler.resolve(any())).thenReturn(null);
 
       await interceptor.onError(dioError, mockErrorHandler);
 
-      expect(requestOptions.headers['Authorization'],
-          equals('Bearer refreshed-token'));
+      expect(
+        requestOptions.headers['Authorization'],
+        equals('Bearer refreshed-token'),
+      );
 
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(1);
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(1);
       verify(() => mockDio.fetch<dynamic>(requestOptions)).called(1);
       verify(() => mockErrorHandler.resolve(retryResponse)).called(1);
       verifyNever(() => mockErrorHandler.next(any()));
@@ -281,15 +296,17 @@ void main() {
 
       final refreshException = Exception('Refresh failed');
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenThrow(refreshException);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenThrow(refreshException);
       when(() => mockErrorHandler.next(any())).thenReturn(null);
 
       // Act
       await interceptor.onError(dioError, mockErrorHandler);
 
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(1);
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(1);
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });
   });
@@ -304,16 +321,19 @@ void main() {
       final authCredentials = AuthCredentials(
         accessToken: 'expired-token',
         refreshToken: 'refresh',
-        accessExpiresAt:
-            DateTime.now().toUtc().subtract(const Duration(hours: 1)),
+        accessExpiresAt: DateTime.now().toUtc().subtract(
+          const Duration(hours: 1),
+        ),
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult =
-          AuthenticateCommandOutput(credentials: authCredentials);
+      final authResult = AuthenticateCommandOutput(
+        credentials: authCredentials,
+      );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => authResult);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
       await interceptor.onRequest(requestOptions, mockRequestHandler);
@@ -324,8 +344,9 @@ void main() {
       );
       await interceptor.onRequest(secondRequest, mockRequestHandler);
 
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(2);
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(2);
     });
 
     test('should consider token invalid within buffer time', () async {
@@ -342,11 +363,13 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult =
-          AuthenticateCommandOutput(credentials: authCredentials);
+      final authResult = AuthenticateCommandOutput(
+        credentials: authCredentials,
+      );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => authResult);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
       await interceptor.onRequest(requestOptions, mockRequestHandler);
@@ -357,8 +380,9 @@ void main() {
       );
       await interceptor.onRequest(secondRequest, mockRequestHandler);
 
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(2);
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(2);
     });
   });
 
@@ -383,8 +407,9 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult =
-          AuthenticateCommandOutput(credentials: authCredentials);
+      final authResult = AuthenticateCommandOutput(
+        credentials: authCredentials,
+      );
 
       // Simulate that retry also fails with 401
       final retryError = DioException(
@@ -397,16 +422,18 @@ void main() {
         ),
       );
 
-      when(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .thenAnswer((_) async => authResult);
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer((_) async => authResult);
       when(() => mockDio.fetch<dynamic>(any())).thenThrow(retryError);
       when(() => mockErrorHandler.next(any())).thenReturn(null);
 
       // Act
       await interceptor.onError(dioError, mockErrorHandler);
 
-      verify(() => mockControlPlaneSDK.execute(any<AuthenticateCommand>()))
-          .called(1);
+      verify(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).called(1);
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });
 

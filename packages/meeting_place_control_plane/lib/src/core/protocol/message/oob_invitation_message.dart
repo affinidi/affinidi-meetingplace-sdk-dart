@@ -6,13 +6,13 @@ import 'package:uuid/uuid.dart';
 class OobInvitationMessage extends OutOfBandMessage
     implements PlainTextMessage {
   OobInvitationMessage({required super.id, required super.from})
-      : super(
-          body: {
-            'goal_code': 'connect',
-            'goal': 'Start relationship',
-            'accept': ['didcomm/v2'],
-          },
-        );
+    : super(
+        body: {
+          'goal_code': 'connect',
+          'goal': 'Start relationship',
+          'accept': ['didcomm/v2'],
+        },
+      );
 
   factory OobInvitationMessage.fromJson(Map<String, dynamic> json) {
     return OobInvitationMessage(

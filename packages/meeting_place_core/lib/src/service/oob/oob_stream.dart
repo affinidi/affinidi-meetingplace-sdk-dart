@@ -8,8 +8,8 @@ class OobStream implements CoreSDKStreamSubscription<OobStreamData> {
   OobStream({
     OnDisposeCallback? onDispose,
     required MeetingPlaceCoreSDKLogger logger,
-  })  : _onDispose = onDispose,
-        _logger = logger;
+  }) : _onDispose = onDispose,
+       _logger = logger;
 
   final OnDisposeCallback? _onDispose;
   final List<OobStreamData> _eventBuffer = <OobStreamData>[];

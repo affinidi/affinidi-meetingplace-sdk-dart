@@ -24,10 +24,13 @@ class RegisterDeviceHandler
   RegisterDeviceHandler({
     required ControlPlaneApiClient mpxClient,
     ControlPlaneSDKLogger? logger,
-  })  : _discoveryApiClient = mpxClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _discoveryApiClient = mpxClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'RegisterDeviceHandler';
 
   final ControlPlaneApiClient _discoveryApiClient;

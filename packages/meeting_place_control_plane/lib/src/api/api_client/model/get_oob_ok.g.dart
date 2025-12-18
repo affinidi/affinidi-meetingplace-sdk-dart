@@ -19,12 +19,12 @@ class _$GetOobOK extends GetOobOK {
   factory _$GetOobOK([void Function(GetOobOKBuilder)? updates]) =>
       (GetOobOKBuilder()..update(updates))._build();
 
-  _$GetOobOK._(
-      {required this.didcommMessage,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint})
-      : super._();
+  _$GetOobOK._({
+    required this.didcommMessage,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+  }) : super._();
   @override
   GetOobOK rebuild(void Function(GetOobOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -116,16 +116,29 @@ class GetOobOKBuilder implements Builder<GetOobOK, GetOobOKBuilder> {
   GetOobOK build() => _build();
 
   _$GetOobOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GetOobOK._(
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'GetOobOK', 'didcommMessage'),
+            didcommMessage,
+            r'GetOobOK',
+            'didcommMessage',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'GetOobOK', 'mediatorDid'),
+            mediatorDid,
+            r'GetOobOK',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'GetOobOK', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'GetOobOK',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint, r'GetOobOK', 'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'GetOobOK',
+            'mediatorWSSEndpoint',
+          ),
         );
     replace(_$result);
     return _$result;

@@ -7,11 +7,7 @@ part of 'chat_effect_body.dart';
 // **************************************************************************
 
 ChatEffectBody _$ChatEffectBodyFromJson(Map<String, dynamic> json) =>
-    ChatEffectBody(
-      effect: json['effect'] as String,
-    );
+    ChatEffectBody(effect: json['effect'] as String);
 
 Map<String, dynamic> _$ChatEffectBodyToJson(ChatEffectBody instance) =>
-    <String, dynamic>{
-      'effect': instance.effect,
-    };
+    <String, dynamic>{'effect': instance.effect};

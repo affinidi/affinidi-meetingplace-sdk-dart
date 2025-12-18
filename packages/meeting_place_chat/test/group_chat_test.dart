@@ -6,7 +6,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'utils/v_card.dart';
+import 'utils/contact_card_fixture.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -34,12 +34,15 @@ void main() async {
   late final PublishOfferResult<GroupConnectionOffer> publishOfferResult;
 
   Future<(MeetingPlaceCoreSDK, AcceptOfferResult)>
-      anotherMemberJoinsGroup() async {
+  anotherMemberJoinsGroup() async {
     final sdk = await initCoreSDKInstance();
 
     final acceptance = await sdk.acceptOffer(
       connectionOffer: publishOfferResult.connectionOffer,
-      vCard: VCardFixture.charliePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:charlie',
+        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      ),
       senderInfo: 'Charlie',
     );
 
@@ -60,12 +63,15 @@ void main() async {
     publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+      ),
       type: SDKConnectionOfferType.groupInvitation,
     );
 
-    groupOwnerDidDocument =
-        await publishOfferResult.groupOwnerDidManager!.getDidDocument();
+    groupOwnerDidDocument = await publishOfferResult.groupOwnerDidManager!
+        .getDidDocument();
 
     // Bob requests group membership
     final bobFindOfferResult = await bobSDK.findOffer(
@@ -73,7 +79,10 @@ void main() async {
     );
     final bobAcceptance = await bobSDK.acceptOffer(
       connectionOffer: bobFindOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:bob',
+        contactInfo: ContactCardFixture.bobPrimaryCardInfo,
+      ),
       senderInfo: 'Bob',
     );
 
@@ -84,7 +93,10 @@ void main() async {
 
     final charlieAcceptance = await charlieSDK.acceptOffer(
       connectionOffer: charlieFindOfferResult.connectionOffer!,
-      vCard: VCardFixture.charliePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:charlie',
+        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      ),
       senderInfo: 'Charlie',
     );
 
@@ -302,8 +314,8 @@ void main() async {
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
 
-    final newMemberDidDoc =
-        await acceptance.permanentChannelDid.getDidDocument();
+    final newMemberDidDoc = await acceptance.permanentChannelDid
+        .getDidDocument();
 
     final updatedGroup = await aliceSDK.getGroupById(aliceGroup.id);
     expect(conciergeMessage.status, ChatItemStatus.confirmed);

@@ -20,8 +20,10 @@ import 'group_deregister_member_output.dart';
 /// Member operation.
 class GroupDeregisterMemberHandler
     implements
-        CommandHandler<GroupDeregisterMemberCommand,
-            GroupDeregisterMemberCommandOutput> {
+        CommandHandler<
+          GroupDeregisterMemberCommand,
+          GroupDeregisterMemberCommandOutput
+        > {
   /// Returns an instance of [GroupDeregisterMemberHandler].
   ///
   /// **Parameters:**
@@ -29,10 +31,13 @@ class GroupDeregisterMemberHandler
   GroupDeregisterMemberHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'GroupDeregisterMemberHandler';
 
   final ControlPlaneApiClient _apiClient;

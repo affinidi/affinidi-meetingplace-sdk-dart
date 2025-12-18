@@ -16,20 +16,20 @@ class _$NotifyAcceptOfferInput extends NotifyAcceptOfferInput {
   @override
   final String senderInfo;
 
-  factory _$NotifyAcceptOfferInput(
-          [void Function(NotifyAcceptOfferInputBuilder)? updates]) =>
-      (NotifyAcceptOfferInputBuilder()..update(updates))._build();
+  factory _$NotifyAcceptOfferInput([
+    void Function(NotifyAcceptOfferInputBuilder)? updates,
+  ]) => (NotifyAcceptOfferInputBuilder()..update(updates))._build();
 
-  _$NotifyAcceptOfferInput._(
-      {required this.mnemonic,
-      required this.did,
-      required this.offerLink,
-      required this.senderInfo})
-      : super._();
+  _$NotifyAcceptOfferInput._({
+    required this.mnemonic,
+    required this.did,
+    required this.offerLink,
+    required this.senderInfo,
+  }) : super._();
   @override
   NotifyAcceptOfferInput rebuild(
-          void Function(NotifyAcceptOfferInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(NotifyAcceptOfferInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   NotifyAcceptOfferInputBuilder toBuilder() =>
@@ -117,16 +117,29 @@ class NotifyAcceptOfferInputBuilder
   NotifyAcceptOfferInput build() => _build();
 
   _$NotifyAcceptOfferInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$NotifyAcceptOfferInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'NotifyAcceptOfferInput', 'mnemonic'),
+            mnemonic,
+            r'NotifyAcceptOfferInput',
+            'mnemonic',
+          ),
           did: BuiltValueNullFieldError.checkNotNull(
-              did, r'NotifyAcceptOfferInput', 'did'),
+            did,
+            r'NotifyAcceptOfferInput',
+            'did',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'NotifyAcceptOfferInput', 'offerLink'),
+            offerLink,
+            r'NotifyAcceptOfferInput',
+            'offerLink',
+          ),
           senderInfo: BuiltValueNullFieldError.checkNotNull(
-              senderInfo, r'NotifyAcceptOfferInput', 'senderInfo'),
+            senderInfo,
+            r'NotifyAcceptOfferInput',
+            'senderInfo',
+          ),
         );
     replace(_$result);
     return _$result;

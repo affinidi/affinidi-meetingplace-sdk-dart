@@ -1,8 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
 import 'package:uuid/uuid.dart';
 
-import 'entity.dart';
+import '../../meeting_place_core.dart';
 
 part 'channel.g.dart';
 
@@ -18,9 +17,9 @@ class Channel {
     required this.publishOfferDid,
     required this.mediatorDid,
     required this.status,
-    required this.vCard,
+    required this.contactCard,
     required this.type,
-    this.otherPartyVCard,
+    this.otherPartyContactCard,
     this.outboundMessageId,
     this.acceptOfferDid,
     this.permanentChannelDid,
@@ -40,7 +39,7 @@ class Channel {
     ConnectionOffer connectionOffer, {
     required String permanentChannelDid,
     required String acceptOfferDid,
-    required VCard vCard,
+    required ContactCard contactCard,
     required String? externalRef,
   }) {
     return Channel(
@@ -51,8 +50,8 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,
-      vCard: vCard,
-      otherPartyVCard: connectionOffer.vCard,
+      contactCard: contactCard,
+      otherPartyContactCard: connectionOffer.contactCard,
       externalRef: externalRef,
     );
   }
@@ -61,7 +60,7 @@ class Channel {
     GroupConnectionOffer connectionOffer, {
     required String permanentChannelDid,
     required String acceptOfferDid,
-    required VCard vCard,
+    required ContactCard card,
     required String? externalRef,
   }) {
     return Channel(
@@ -72,8 +71,8 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
-      vCard: vCard,
-      otherPartyVCard: connectionOffer.vCard,
+      contactCard: card,
+      otherPartyContactCard: connectionOffer.contactCard,
       externalRef: externalRef,
     );
   }
@@ -84,8 +83,8 @@ class Channel {
   final String mediatorDid;
   final String offerLink;
   final ChannelType type;
-  VCard? vCard;
-  VCard? otherPartyVCard;
+  ContactCard? contactCard;
+  ContactCard? otherPartyContactCard;
   ChannelStatus status;
 
   String? outboundMessageId;

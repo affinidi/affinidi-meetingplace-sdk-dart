@@ -1,6 +1,6 @@
 import '../../core/command/command.dart';
 import '../../core/device/device.dart';
-import '../../core/protocol/v_card/v_card.dart';
+import '../../core/protocol/contact_card/contact_card.dart';
 import 'finalise_acceptance_output.dart';
 
 /// Model that represents the request sent for the [FinaliseAcceptanceCommand]
@@ -15,7 +15,7 @@ class FinaliseAcceptanceCommand
     required this.otherPartyAcceptOfferDid,
     required this.otherPartyPermanentChannelDid,
     required this.device,
-    this.vCard,
+    this.contactCard,
   });
   final String mnemonic;
   final String offerLink;
@@ -23,5 +23,5 @@ class FinaliseAcceptanceCommand
   final String otherPartyAcceptOfferDid;
   final String otherPartyPermanentChannelDid;
   final Device device;
-  final VCard? vCard;
+  final ContactCard? contactCard;
 }

@@ -28,10 +28,13 @@ class GetOobHandler
     required this.mediatorDid,
     required this.didResolver,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'GetOobHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -60,9 +63,7 @@ class GetOobHandler
       '[MPX API] Calling /get-oob for oobId: ${command.oobId}',
       name: methodName,
     );
-    final response = await _apiClient.client.getOOB(
-      oobId: command.oobId,
-    );
+    final response = await _apiClient.client.getOOB(oobId: command.oobId);
 
     _logger.info(
       'Completed getting OOB: '

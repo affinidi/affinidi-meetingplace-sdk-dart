@@ -3,7 +3,7 @@ import 'package:meeting_place_core/src/service/connection_offer/connection_offer
 
 import 'package:test/test.dart';
 
-import 'fixtures/v_card.dart';
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -20,7 +20,12 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -44,7 +49,12 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -66,7 +76,12 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -83,7 +98,12 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -108,7 +128,12 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -118,7 +143,12 @@ void main() async {
 
     final acceptOfferResult = await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:bob',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
       senderInfo: 'Bob',
     );
 

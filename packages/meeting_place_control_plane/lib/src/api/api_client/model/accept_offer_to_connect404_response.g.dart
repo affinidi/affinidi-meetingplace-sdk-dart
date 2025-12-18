@@ -7,11 +7,11 @@ part of 'accept_offer_to_connect404_response.dart';
 // **************************************************************************
 
 const AcceptOfferToConnect404ResponseNameEnum
-    _$acceptOfferToConnect404ResponseNameEnum_invalidAcceptanceError =
+_$acceptOfferToConnect404ResponseNameEnum_invalidAcceptanceError =
     const AcceptOfferToConnect404ResponseNameEnum._('invalidAcceptanceError');
 
 AcceptOfferToConnect404ResponseNameEnum
-    _$acceptOfferToConnect404ResponseNameEnumValueOf(String name) {
+_$acceptOfferToConnect404ResponseNameEnumValueOf(String name) {
   switch (name) {
     case 'invalidAcceptanceError':
       return _$acceptOfferToConnect404ResponseNameEnum_invalidAcceptanceError;
@@ -21,18 +21,21 @@ AcceptOfferToConnect404ResponseNameEnum
 }
 
 final BuiltSet<AcceptOfferToConnect404ResponseNameEnum>
-    _$acceptOfferToConnect404ResponseNameEnumValues = BuiltSet<
-        AcceptOfferToConnect404ResponseNameEnum>(const <AcceptOfferToConnect404ResponseNameEnum>[
-  _$acceptOfferToConnect404ResponseNameEnum_invalidAcceptanceError,
-]);
+_$acceptOfferToConnect404ResponseNameEnumValues =
+    BuiltSet<AcceptOfferToConnect404ResponseNameEnum>(
+      const <AcceptOfferToConnect404ResponseNameEnum>[
+        _$acceptOfferToConnect404ResponseNameEnum_invalidAcceptanceError,
+      ],
+    );
 
 const AcceptOfferToConnect404ResponseMessageEnum
-    _$acceptOfferToConnect404ResponseMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
+_$acceptOfferToConnect404ResponseMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
     const AcceptOfferToConnect404ResponseMessageEnum._(
-        'noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod');
+      'noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod',
+    );
 
 AcceptOfferToConnect404ResponseMessageEnum
-    _$acceptOfferToConnect404ResponseMessageEnumValueOf(String name) {
+_$acceptOfferToConnect404ResponseMessageEnumValueOf(String name) {
   switch (name) {
     case 'noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod':
       return _$acceptOfferToConnect404ResponseMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod;
@@ -42,17 +45,19 @@ AcceptOfferToConnect404ResponseMessageEnum
 }
 
 final BuiltSet<AcceptOfferToConnect404ResponseMessageEnum>
-    _$acceptOfferToConnect404ResponseMessageEnumValues = BuiltSet<
-        AcceptOfferToConnect404ResponseMessageEnum>(const <AcceptOfferToConnect404ResponseMessageEnum>[
-  _$acceptOfferToConnect404ResponseMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod,
-]);
+_$acceptOfferToConnect404ResponseMessageEnumValues =
+    BuiltSet<AcceptOfferToConnect404ResponseMessageEnum>(const <
+      AcceptOfferToConnect404ResponseMessageEnum
+    >[
+      _$acceptOfferToConnect404ResponseMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod,
+    ]);
 
 const AcceptOfferToConnect404ResponseHttpStatusCodeEnum
-    _$acceptOfferToConnect404ResponseHttpStatusCodeEnum_number404 =
+_$acceptOfferToConnect404ResponseHttpStatusCodeEnum_number404 =
     const AcceptOfferToConnect404ResponseHttpStatusCodeEnum._('number404');
 
 AcceptOfferToConnect404ResponseHttpStatusCodeEnum
-    _$acceptOfferToConnect404ResponseHttpStatusCodeEnumValueOf(String name) {
+_$acceptOfferToConnect404ResponseHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$acceptOfferToConnect404ResponseHttpStatusCodeEnum_number404;
@@ -62,19 +67,21 @@ AcceptOfferToConnect404ResponseHttpStatusCodeEnum
 }
 
 final BuiltSet<AcceptOfferToConnect404ResponseHttpStatusCodeEnum>
-    _$acceptOfferToConnect404ResponseHttpStatusCodeEnumValues = BuiltSet<
-        AcceptOfferToConnect404ResponseHttpStatusCodeEnum>(const <AcceptOfferToConnect404ResponseHttpStatusCodeEnum>[
-  _$acceptOfferToConnect404ResponseHttpStatusCodeEnum_number404,
-]);
+_$acceptOfferToConnect404ResponseHttpStatusCodeEnumValues =
+    BuiltSet<AcceptOfferToConnect404ResponseHttpStatusCodeEnum>(
+      const <AcceptOfferToConnect404ResponseHttpStatusCodeEnum>[
+        _$acceptOfferToConnect404ResponseHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<AcceptOfferToConnect404ResponseNameEnum>
-    _$acceptOfferToConnect404ResponseNameEnumSerializer =
+_$acceptOfferToConnect404ResponseNameEnumSerializer =
     _$AcceptOfferToConnect404ResponseNameEnumSerializer();
 Serializer<AcceptOfferToConnect404ResponseMessageEnum>
-    _$acceptOfferToConnect404ResponseMessageEnumSerializer =
+_$acceptOfferToConnect404ResponseMessageEnumSerializer =
     _$AcceptOfferToConnect404ResponseMessageEnumSerializer();
 Serializer<AcceptOfferToConnect404ResponseHttpStatusCodeEnum>
-    _$acceptOfferToConnect404ResponseHttpStatusCodeEnumSerializer =
+_$acceptOfferToConnect404ResponseHttpStatusCodeEnumSerializer =
     _$AcceptOfferToConnect404ResponseHttpStatusCodeEnumSerializer();
 
 class _$AcceptOfferToConnect404ResponseNameEnumSerializer
@@ -88,23 +95,26 @@ class _$AcceptOfferToConnect404ResponseNameEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    AcceptOfferToConnect404ResponseNameEnum
+    AcceptOfferToConnect404ResponseNameEnum,
   ];
   @override
   final String wireName = 'AcceptOfferToConnect404ResponseNameEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          AcceptOfferToConnect404ResponseNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    AcceptOfferToConnect404ResponseNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   AcceptOfferToConnect404ResponseNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      AcceptOfferToConnect404ResponseNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => AcceptOfferToConnect404ResponseNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$AcceptOfferToConnect404ResponseMessageEnumSerializer
@@ -120,23 +130,26 @@ class _$AcceptOfferToConnect404ResponseMessageEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    AcceptOfferToConnect404ResponseMessageEnum
+    AcceptOfferToConnect404ResponseMessageEnum,
   ];
   @override
   final String wireName = 'AcceptOfferToConnect404ResponseMessageEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          AcceptOfferToConnect404ResponseMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    AcceptOfferToConnect404ResponseMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   AcceptOfferToConnect404ResponseMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      AcceptOfferToConnect404ResponseMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => AcceptOfferToConnect404ResponseMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$AcceptOfferToConnect404ResponseHttpStatusCodeEnumSerializer
@@ -151,23 +164,26 @@ class _$AcceptOfferToConnect404ResponseHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    AcceptOfferToConnect404ResponseHttpStatusCodeEnum
+    AcceptOfferToConnect404ResponseHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'AcceptOfferToConnect404ResponseHttpStatusCodeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          AcceptOfferToConnect404ResponseHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    AcceptOfferToConnect404ResponseHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   AcceptOfferToConnect404ResponseHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      AcceptOfferToConnect404ResponseHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => AcceptOfferToConnect404ResponseHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$AcceptOfferToConnect404Response
@@ -175,15 +191,15 @@ class _$AcceptOfferToConnect404Response
   @override
   final OneOf oneOf;
 
-  factory _$AcceptOfferToConnect404Response(
-          [void Function(AcceptOfferToConnect404ResponseBuilder)? updates]) =>
-      (AcceptOfferToConnect404ResponseBuilder()..update(updates))._build();
+  factory _$AcceptOfferToConnect404Response([
+    void Function(AcceptOfferToConnect404ResponseBuilder)? updates,
+  ]) => (AcceptOfferToConnect404ResponseBuilder()..update(updates))._build();
 
   _$AcceptOfferToConnect404Response._({required this.oneOf}) : super._();
   @override
   AcceptOfferToConnect404Response rebuild(
-          void Function(AcceptOfferToConnect404ResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(AcceptOfferToConnect404ResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   AcceptOfferToConnect404ResponseBuilder toBuilder() =>
@@ -205,16 +221,18 @@ class _$AcceptOfferToConnect404Response
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'AcceptOfferToConnect404Response')
-          ..add('oneOf', oneOf))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'AcceptOfferToConnect404Response',
+    )..add('oneOf', oneOf)).toString();
   }
 }
 
 class AcceptOfferToConnect404ResponseBuilder
     implements
-        Builder<AcceptOfferToConnect404Response,
-            AcceptOfferToConnect404ResponseBuilder> {
+        Builder<
+          AcceptOfferToConnect404Response,
+          AcceptOfferToConnect404ResponseBuilder
+        > {
   _$AcceptOfferToConnect404Response? _$v;
 
   OneOf? _oneOf;
@@ -248,10 +266,14 @@ class AcceptOfferToConnect404ResponseBuilder
   AcceptOfferToConnect404Response build() => _build();
 
   _$AcceptOfferToConnect404Response _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$AcceptOfferToConnect404Response._(
           oneOf: BuiltValueNullFieldError.checkNotNull(
-              oneOf, r'AcceptOfferToConnect404Response', 'oneOf'),
+            oneOf,
+            r'AcceptOfferToConnect404Response',
+            'oneOf',
+          ),
         );
     replace(_$result);
     return _$result;

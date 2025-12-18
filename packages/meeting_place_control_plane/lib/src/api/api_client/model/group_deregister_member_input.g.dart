@@ -14,17 +14,19 @@ class _$GroupDeregisterMemberInput extends GroupDeregisterMemberInput {
   @override
   final String? messageToRelay;
 
-  factory _$GroupDeregisterMemberInput(
-          [void Function(GroupDeregisterMemberInputBuilder)? updates]) =>
-      (GroupDeregisterMemberInputBuilder()..update(updates))._build();
+  factory _$GroupDeregisterMemberInput([
+    void Function(GroupDeregisterMemberInputBuilder)? updates,
+  ]) => (GroupDeregisterMemberInputBuilder()..update(updates))._build();
 
-  _$GroupDeregisterMemberInput._(
-      {required this.memberDid, required this.groupId, this.messageToRelay})
-      : super._();
+  _$GroupDeregisterMemberInput._({
+    required this.memberDid,
+    required this.groupId,
+    this.messageToRelay,
+  }) : super._();
   @override
   GroupDeregisterMemberInput rebuild(
-          void Function(GroupDeregisterMemberInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GroupDeregisterMemberInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GroupDeregisterMemberInputBuilder toBuilder() =>
@@ -106,12 +108,19 @@ class GroupDeregisterMemberInputBuilder
   GroupDeregisterMemberInput build() => _build();
 
   _$GroupDeregisterMemberInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GroupDeregisterMemberInput._(
           memberDid: BuiltValueNullFieldError.checkNotNull(
-              memberDid, r'GroupDeregisterMemberInput', 'memberDid'),
+            memberDid,
+            r'GroupDeregisterMemberInput',
+            'memberDid',
+          ),
           groupId: BuiltValueNullFieldError.checkNotNull(
-              groupId, r'GroupDeregisterMemberInput', 'groupId'),
+            groupId,
+            r'GroupDeregisterMemberInput',
+            'groupId',
+          ),
           messageToRelay: messageToRelay,
         );
     replace(_$result);

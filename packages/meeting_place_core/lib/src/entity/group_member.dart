@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/v_card/v_card.dart';
+import '../protocol/contact_card/contact_card.dart';
 
 part 'group_member.g.dart';
 
@@ -19,7 +19,7 @@ class GroupMember {
   factory GroupMember.pendingMember({
     required String did,
     required String publicKey,
-    required VCard vCard,
+    required ContactCard contactCard,
   }) {
     return GroupMember(
       did: did,
@@ -27,14 +27,14 @@ class GroupMember {
       dateAdded: DateTime.now().toUtc(),
       status: GroupMemberStatus.pendingApproval,
       membershipType: GroupMembershipType.member,
-      vCard: vCard,
+      contactCard: contactCard,
     );
   }
 
   factory GroupMember.admin({
     required String did,
     required String publicKey,
-    required VCard vCard,
+    required ContactCard contactCard,
   }) {
     return GroupMember(
       did: did,
@@ -42,7 +42,7 @@ class GroupMember {
       dateAdded: DateTime.now().toUtc(),
       status: GroupMemberStatus.approved,
       membershipType: GroupMembershipType.admin,
-      vCard: vCard,
+      contactCard: contactCard,
     );
   }
 
@@ -55,7 +55,7 @@ class GroupMember {
     required this.dateAdded,
     required this.status,
     required this.membershipType,
-    required this.vCard,
+    required this.contactCard,
     required this.publicKey,
   });
 
@@ -63,7 +63,7 @@ class GroupMember {
   final DateTime dateAdded;
   final GroupMembershipType membershipType;
   final String publicKey;
-  VCard vCard;
+  ContactCard contactCard;
 
   GroupMemberStatus status;
 
@@ -76,7 +76,7 @@ class GroupMember {
     DateTime? dateAdded,
     GroupMemberStatus? status,
     GroupMembershipType? membershipType,
-    VCard? vCard,
+    ContactCard? card,
     String? publicKey,
   }) {
     return GroupMember(
@@ -84,7 +84,7 @@ class GroupMember {
       dateAdded: dateAdded ?? this.dateAdded,
       status: status ?? this.status,
       membershipType: membershipType ?? this.membershipType,
-      vCard: vCard ?? this.vCard,
+      contactCard: card ?? contactCard,
       publicKey: publicKey ?? this.publicKey,
     );
   }

@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
@@ -35,10 +38,10 @@ abstract class BaseChatSDK {
     required this.mediatorDid,
     required this.chatRepository,
     required this.options,
-    this.vCard,
+    this.card,
     MeetingPlaceChatSDKLogger? logger,
-  })  : _logger = LoggerFormatter(className: _className, baseLogger: logger),
-        chatStream = ChatStream();
+  }) : _logger = LoggerFormatter(className: _className, baseLogger: logger),
+       chatStream = ChatStream();
 
   static const String _className = 'BaseChatSDK';
 
@@ -48,7 +51,7 @@ abstract class BaseChatSDK {
   final String mediatorDid;
   final ChatRepository chatRepository;
   final ChatSDKOptions options;
-  final VCard? vCard;
+  final ContactCard? card;
   final MeetingPlaceChatSDKLogger _logger;
 
   MeetingPlaceChatSDKLogger get logger => _logger;
@@ -169,7 +172,7 @@ abstract class BaseChatSDK {
   /// - **Reaction**: Updates existing message reactions.
   /// - **AliasProfileHash / AliasProfileRequest**: Validates or creates concierge messages.
   /// - **Delivered**: Marks referenced messages as delivered.
-  /// - **ContactDetailsUpdate**: Updates channel vCard.
+  /// - **ContactDetailsUpdate**: Updates channel contact card.
   /// - **Activity / Presence / Effect**: Pushed downstream as events.
   ///
   /// **Parameters:**
@@ -221,8 +224,9 @@ abstract class BaseChatSDK {
     if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatReaction.value) {
       _logger.info('Handling chat reaction message', name: methodName);
-      final chatReactionMessage =
-          ChatReaction.fromPlainTextMessage(message.plainTextMessage);
+      final chatReactionMessage = ChatReaction.fromPlainTextMessage(
+        message.plainTextMessage,
+      );
 
       final repositoryMessage = await chatRepository.getMessage(
         chatId: chatId,
@@ -255,7 +259,8 @@ abstract class BaseChatSDK {
       if (channel.type != ChannelType.group) {
         final profileHash = message.plainTextMessage.body?['profile_hash'];
         if (profileHash != null && profileHash is String) {
-          if (channel.otherPartyVCard?.toHash() == profileHash) {
+          if (channel.otherPartyContactCard != null &&
+              _contactHash(channel.otherPartyContactCard!) == profileHash) {
             chatStream.pushData(
               StreamData(plainTextMessage: message.plainTextMessage),
             );
@@ -358,8 +363,9 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       if (channel.type != ChannelType.group) {
-        channel.otherPartyVCard =
-            VCard.fromJson(message.plainTextMessage.body!);
+        channel.otherPartyContactCard = ContactCard.fromJson(
+          message.plainTextMessage.body!,
+        );
 
         await coreSDK.updateChannel(channel);
         chatStream.pushData(
@@ -483,10 +489,12 @@ abstract class BaseChatSDK {
 
       await coreSDK.updateChannel(channel);
 
-      chatStream.pushData(StreamData(
-        plainTextMessage: plainTextMessage,
-        chatItem: updatedMessage,
-      ));
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: plainTextMessage,
+          chatItem: updatedMessage,
+        ),
+      );
 
       _logger.info('Completed sending text message', name: methodName);
       return updatedMessage;
@@ -521,32 +529,32 @@ abstract class BaseChatSDK {
     );
   }
 
-  /// Sends a profile hash update if the vCard has changed.
+  /// Sends a profile hash update if the contact card has changed.
   Future<void> sendProfileHash() async {
     final methodName = 'sendProfileHash';
     _logger.info('Started sending profile hash', name: methodName);
-    if (vCard == null) {
+    if (card == null) {
       _logger.info(
-        'VCard is null, skipping profile hash update',
+        'ContactCard is null, skipping profile hash update',
         name: methodName,
       );
       return;
     }
 
     final channel = await getChannel();
-    if (channel.vCard != null && !vCard!.equals(channel.vCard!)) {
+    if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
       await sendMessage(
         protocol.ChatAliasProfileHash.create(
           from: did,
           to: [otherPartyDid],
-          profileHash: vCard!.toHash(),
+          profileHash: _contactHash(card!),
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
       );
 
-      channel.vCard = vCard;
+      channel.contactCard = card;
       await coreSDK.updateChannel(channel);
     }
 
@@ -589,20 +597,20 @@ abstract class BaseChatSDK {
     _logger.info('Completed sending chat delivered message', name: methodName);
   }
 
-  /// Sends updated contact details from the current vCard.
+  /// Sends updated contact details from the current contact card.
   ///
   /// **Throws:**
-  /// - [Exception] if the [vCard] is missing.
+  /// - [Exception] if the [card] is missing.
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
     final methodName = 'sendChatContactDetailsUpdate';
     _logger.info(
       'Started sending chat contact details update',
       name: methodName,
     );
-    if (vCard == null) {
-      final message = 'Vcard missing for contact details update';
+    if (card == null) {
+      final message = 'ContactCard missing for contact details update';
       _logger.error(message, name: methodName);
-      // throw Exception('Vcard missing for contact details update');
+      // throw Exception('ContactCard missing for contact details update');
     }
 
     unawaited(
@@ -610,7 +618,7 @@ abstract class BaseChatSDK {
         protocol.ChatContactDetailsUpdate.create(
           from: did,
           to: [otherPartyDid],
-          profileDetails: vCard!.toJson(),
+          profileDetails: card!.toJson(),
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
@@ -724,8 +732,10 @@ abstract class BaseChatSDK {
     final methodName = 'sendChatActivity';
     _logger.info('Started sending chat activity', name: methodName);
     await sendMessage(
-      protocol.ChatActivity.create(from: did, to: [otherPartyDid])
-          .toPlainTextMessage(),
+      protocol.ChatActivity.create(
+        from: did,
+        to: [otherPartyDid],
+      ).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
@@ -747,7 +757,8 @@ abstract class BaseChatSDK {
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
-            'Channel with other party DID ${otherPartyDid.topAndTail()} not found'));
+          'Channel with other party DID ${otherPartyDid.topAndTail()} not found',
+        ));
   }
 
   /// Sends a message with notification, ignoring notification failures.
@@ -761,17 +772,23 @@ abstract class BaseChatSDK {
         notify: true,
       );
     } on MeetingPlaceCoreSDKException catch (e) {
-      final isNotificationError = e.code ==
+      final isNotificationError =
+          e.code ==
           MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
 
       if (!isNotificationError) {
-        _logger.error('Failed to send message with notification',
-            error: e, name: '_sendMessageWithNotification');
+        _logger.error(
+          'Failed to send message with notification',
+          error: e,
+          name: '_sendMessageWithNotification',
+        );
         rethrow;
       }
 
-      _logger.warning('Failed to send notification for message ${message.id}',
-          name: '_sendMessageWithNotification');
+      _logger.warning(
+        'Failed to send notification for message ${message.id}',
+        name: '_sendMessageWithNotification',
+      );
     }
   }
 
@@ -815,5 +832,9 @@ abstract class BaseChatSDK {
     );
 
     return createdMessage as Message;
+  }
+
+  String _contactHash(ContactCard card) {
+    return sha256.convert(utf8.encode(jsonEncode(card.contactInfo))).toString();
   }
 }

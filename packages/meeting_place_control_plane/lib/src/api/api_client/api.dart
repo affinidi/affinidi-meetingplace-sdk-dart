@@ -21,15 +21,16 @@ class ControlPlaneApi {
     required String basePath,
     List<Interceptor>? interceptors,
     Future<String?> Function()? authTokenHook,
-  })  : this.serializers = serializers ?? standardSerializers,
-        this.dio = dio ??
-            Dio(
-              BaseOptions(
-                baseUrl: basePath,
-                connectTimeout: const Duration(milliseconds: 15000),
-                receiveTimeout: const Duration(milliseconds: 15000),
-              ),
-            ) {
+  }) : this.serializers = serializers ?? standardSerializers,
+       this.dio =
+           dio ??
+           Dio(
+             BaseOptions(
+               baseUrl: basePath,
+               connectTimeout: const Duration(milliseconds: 15000),
+               receiveTimeout: const Duration(milliseconds: 15000),
+             ),
+           ) {
     if (interceptors == null) {
       this.dio.interceptors.addAll([
         OAuthInterceptor(),
@@ -75,8 +76,8 @@ class ControlPlaneApi {
               final errorName = errorData['name'] ?? 'Unknown Error';
               final traceId =
                   errorData['traceId']?.toString().isNotEmpty == true
-                      ? errorData['traceId']
-                      : 'N/A';
+                  ? errorData['traceId']
+                  : 'N/A';
               final errorMessage =
                   errorData['message'] ?? 'No error message provided';
               final details = errorData['details'] != null
@@ -111,16 +112,18 @@ class ControlPlaneApi {
   void setOAuthToken(String name, String token) {
     if (this.dio.interceptors.any((i) => i is OAuthInterceptor)) {
       (this.dio.interceptors.firstWhere((i) => i is OAuthInterceptor)
-              as OAuthInterceptor)
-          .tokens[name] = token;
+                  as OAuthInterceptor)
+              .tokens[name] =
+          token;
     }
   }
 
   void setBearerAuth(String name, String token) {
     if (this.dio.interceptors.any((i) => i is BearerAuthInterceptor)) {
       (this.dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor)
-              as BearerAuthInterceptor)
-          .tokens[name] = token;
+                  as BearerAuthInterceptor)
+              .tokens[name] =
+          token;
     }
   }
 
@@ -138,9 +141,11 @@ class ControlPlaneApi {
   void setApiKey(String name, String apiKey) {
     if (this.dio.interceptors.any((i) => i is ApiKeyAuthInterceptor)) {
       (this.dio.interceptors.firstWhere(
-                (element) => element is ApiKeyAuthInterceptor,
-              ) as ApiKeyAuthInterceptor)
-          .apiKeys[name] = apiKey;
+                    (element) => element is ApiKeyAuthInterceptor,
+                  )
+                  as ApiKeyAuthInterceptor)
+              .apiKeys[name] =
+          apiKey;
     }
   }
 

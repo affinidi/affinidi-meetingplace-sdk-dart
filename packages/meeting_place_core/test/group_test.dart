@@ -6,7 +6,7 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/v_card.dart';
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
@@ -31,7 +31,12 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.groupInvitation,
       metadata: metadata,
     );
@@ -47,14 +52,24 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.groupInvitation,
       metadata: 'foobar',
     );
 
     final actual = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:bob',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
       senderInfo: 'Bob',
     );
 
@@ -70,14 +85,24 @@ void main() async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.groupInvitation,
       metadata: 'foobar',
     );
 
     await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:bob',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
       senderInfo: 'Bob',
     );
 
@@ -100,20 +125,30 @@ void main() async {
     () async {
       await aliceSDK.deleteControlPlaneEvents();
 
-      final aliceVCard = VCardFixture.alicePrimaryVCard;
-      final bobVCard = VCardFixture.bobPrimaryVCard;
+      final aliceCard = ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
+      final bobCard = ContactCardFixture.getContactCardFixture(
+        did: 'did:test:bob',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      );
 
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
         offerName: 'Sample offer',
         offerDescription: 'Sample offer description',
-        vCard: aliceVCard,
+        contactCard: aliceCard,
         type: SDKConnectionOfferType.groupInvitation,
         metadata: 'foobar',
       );
 
       final acceptResult = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
-        vCard: bobVCard,
+        contactCard: bobCard,
         senderInfo: 'Bob',
       );
 
@@ -146,7 +181,7 @@ void main() async {
       final aliceAdmin = group.members.first;
       expect(aliceAdmin.membershipType, equals(GroupMembershipType.admin));
       expect(aliceAdmin.status, equals(GroupMemberStatus.approved));
-      expect(aliceAdmin.vCard.values, equals(aliceVCard.values));
+      expect(aliceAdmin.contactCard.contactInfo, equals(aliceCard.contactInfo));
       expect(aliceAdmin.did, equals(result.connectionOffer.groupOwnerDid));
 
       // member assertions
@@ -157,7 +192,7 @@ void main() async {
         bobMember.did,
         equals(acceptResult.connectionOffer.permanentChannelDid),
       );
-      expect(bobMember.vCard.values, equals(bobVCard.values));
+      expect(bobMember.contactCard.contactInfo, equals(bobCard.contactInfo));
 
       aliceSDK.disposeControlPlaneEventsStream();
     },
@@ -166,8 +201,18 @@ void main() async {
   test(
     '''Group admin approves membership request -> ACLS getting updated and group details update message is sent''',
     () async {
-      final aliceVCard = VCardFixture.alicePrimaryVCard;
-      final bobVCard = VCardFixture.bobPrimaryVCard;
+      final aliceCard = ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      );
+      final bobCard = ContactCardFixture.getContactCardFixture(
+        did: 'did:test:bob',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      );
 
       PlainTextMessage useChatMessage(String from, String to) =>
           PlainTextMessage(
@@ -181,48 +226,55 @@ void main() async {
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
         offerName: 'Sample offer',
         offerDescription: 'Sample offer description',
-        vCard: aliceVCard,
+        contactCard: aliceCard,
         type: SDKConnectionOfferType.groupInvitation,
       );
 
       final acceptResultBob = await bobSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
-        vCard: bobVCard,
+        contactCard: bobCard,
         senderInfo: 'Bob',
       );
 
       final acceptResultCharlie = await charlieSDK.acceptOffer(
         connectionOffer: result.connectionOffer,
-        vCard: VCardFixture.charliePrimaryVCard,
-        senderInfo: 'Charlie',
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:charlie',
+          contactInfo: {
+            'n': {'given': 'Charlie', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       );
 
       final groupDid = result.connectionOffer.groupDid!;
-      final groupOwnerDidDoc =
-          await result.groupOwnerDidManager!.getDidDocument();
+      final groupOwnerDidDoc = await result.groupOwnerDidManager!
+          .getDidDocument();
 
       // --- Check that ACLs are not updated yet
       expect(
-          () => bobSDK.sendMessage(
-                useChatMessage(
-                  acceptResultBob.connectionOffer.permanentChannelDid!,
-                  groupDid,
-                ),
-                senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
-                recipientDid: groupDid,
-              ),
-          throwsA(isA<MeetingPlaceCoreSDKException>()));
+        () => bobSDK.sendMessage(
+          useChatMessage(
+            acceptResultBob.connectionOffer.permanentChannelDid!,
+            groupDid,
+          ),
+          senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
+          recipientDid: groupDid,
+        ),
+        throwsA(isA<MeetingPlaceCoreSDKException>()),
+      );
 
       expect(
-          () => bobSDK.sendMessage(
-                useChatMessage(
-                  acceptResultBob.connectionOffer.permanentChannelDid!,
-                  groupOwnerDidDoc.id,
-                ),
-                senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
-                recipientDid: groupOwnerDidDoc.id,
-              ),
-          throwsA(isA<MeetingPlaceCoreSDKException>()));
+        () => bobSDK.sendMessage(
+          useChatMessage(
+            acceptResultBob.connectionOffer.permanentChannelDid!,
+            groupOwnerDidDoc.id,
+          ),
+          senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
+          recipientDid: groupOwnerDidDoc.id,
+        ),
+        throwsA(isA<MeetingPlaceCoreSDKException>()),
+      );
       // --- [OK] ACLs not set
 
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -235,8 +287,8 @@ void main() async {
       await aliceSDK.processControlPlaneEvents();
       await aliceCompleter.future;
 
-      final charlieDidDoc =
-          await acceptResultCharlie.permanentChannelDid.getDidDocument();
+      final charlieDidDoc = await acceptResultCharlie.permanentChannelDid
+          .getDidDocument();
       final charlieChannel = await aliceSDK.getChannelByDid(charlieDidDoc.id);
 
       await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
@@ -250,8 +302,9 @@ void main() async {
       await charlieSDK.processControlPlaneEvents();
       await charlieCompleter.future;
 
-      final acceptResultBobChannelDid =
-          await acceptResultBob.permanentChannelDid.getDidDocument();
+      final acceptResultBobChannelDid = await acceptResultBob
+          .permanentChannelDid
+          .getDidDocument();
 
       final bobChannel = await aliceSDK.getChannelByDid(
         acceptResultBobChannelDid.id,
@@ -311,21 +364,31 @@ void main() async {
   );
 
   test('Member receives group membership finalied discovery event', () async {
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:alice',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.groupInvitation,
     );
 
     final groupDidDocument = await UniversalDIDResolver().resolveDid(
       result.connectionOffer.groupDid!,
     );
-    final senderDidDocument =
-        await result.groupOwnerDidManager!.getDidDocument();
+    final senderDidDocument = await result.groupOwnerDidManager!
+        .getDidDocument();
 
     final chatMessage = PlainTextMessage(
       id: Uuid().v4(),
@@ -344,7 +407,7 @@ void main() async {
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: bobVCard,
+      contactCard: bobCard,
       senderInfo: 'Bob',
     );
 
@@ -357,8 +420,8 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceCompleter.future;
 
-    final publishOfferDidDoc =
-        await result.publishedOfferDidManager.getDidDocument();
+    final publishOfferDidDoc = await result.publishedOfferDidManager
+        .getDidDocument();
 
     final channel = await aliceSDK.getChannelByDid(
       result.connectionOffer.groupDid!,
@@ -418,19 +481,29 @@ void main() async {
   });
 
   test('Member has been approved', () async {
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:alice',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,
-      vCard: aliceVCard,
+      contactCard: aliceCard,
     );
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: bobVCard,
+      contactCard: bobCard,
       senderInfo: 'Bob',
     );
 
@@ -462,13 +535,23 @@ void main() async {
 
   test('Member leaves group', () async {
     // TODO: check ACLs
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:alice',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
+      contactCard: aliceCard,
       validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       type: SDKConnectionOfferType.groupInvitation,
     );
@@ -479,7 +562,7 @@ void main() async {
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: bobVCard,
+      contactCard: bobCard,
       senderInfo: 'Bob',
     );
 
@@ -510,8 +593,8 @@ void main() async {
     await bobSDK.processControlPlaneEvents();
     await bobCompleter.future;
 
-    final bobMemberDidDic =
-        await acceptResult.permanentChannelDid.getDidDocument();
+    final bobMemberDidDic = await acceptResult.permanentChannelDid
+        .getDidDocument();
 
     final bobChannel = await bobSDK.getChannelByDid(bobMemberDidDic.id);
 
@@ -543,19 +626,29 @@ void main() async {
 
   test('Admin leaves group', () async {
     // TODO: check ACLs
-    final aliceVCard = VCardFixture.alicePrimaryVCard;
-    final bobVCard = VCardFixture.bobPrimaryVCard;
+    final aliceCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:alice',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
       offerName: 'Sample offer',
       offerDescription: 'Sample offer description',
-      vCard: aliceVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.groupInvitation,
     );
 
     final acceptResult = await bobSDK.acceptOffer(
       connectionOffer: result.connectionOffer,
-      vCard: bobVCard,
+      contactCard: bobCard,
       senderInfo: 'Bob',
     );
 
@@ -576,8 +669,8 @@ void main() async {
 
     await bobSDK.processControlPlaneEvents();
 
-    final aliceMemberDidDoc =
-        await result.groupOwnerDidManager!.getDidDocument();
+    final aliceMemberDidDoc = await result.groupOwnerDidManager!
+        .getDidDocument();
 
     final aliceChannel = await aliceSDK.getChannelByDid(aliceMemberDidDoc.id);
     await aliceSDK.leaveChannel(aliceChannel!);
@@ -596,14 +689,18 @@ void main() async {
 
     // Verify that connection offer has been deregistered from meeting place
     expect(
-        () => aliceSDK.findOffer(mnemonic: result.connectionOffer.mnemonic),
-        throwsA(
-          predicate((e) =>
+      () => aliceSDK.findOffer(mnemonic: result.connectionOffer.mnemonic),
+      throwsA(
+        predicate(
+          (e) =>
               e is MeetingPlaceCoreSDKException &&
               e.code ==
                   MeetingPlaceCoreSDKErrorCode
-                      .connectionOfferNotFoundError.value),
-        ));
+                      .connectionOfferNotFoundError
+                      .value,
+        ),
+      ),
+    );
 
     // Verify group and channel entities have been deleted
     expect(groupExp, isNull);

@@ -34,8 +34,10 @@ class GroupMessage {
     final capsule = encapsulateResult['capsule'] as recrypt.Capsule;
     final symmetricKeyBytes = encapsulateResult['symmetricKey'];
 
-    final encryptionResult =
-        _encryptMessage(message, symmetricKeyBytes: symmetricKeyBytes);
+    final encryptionResult = _encryptMessage(
+      message,
+      symmetricKeyBytes: symmetricKeyBytes,
+    );
 
     final encrypted = EncryptedGroupMessage(
       capsule: capsule,
@@ -58,11 +60,14 @@ class GroupMessage {
       base64.encode(privateKeyBytes),
     );
 
-    final symmetricKeyBytes =
-        recrypt.Recrypt().decapsulate(capsule, privateKey);
+    final symmetricKeyBytes = recrypt.Recrypt().decapsulate(
+      capsule,
+      privateKey,
+    );
 
-    final authenticationTagBytes =
-        base64.decode(message.body.authenticationTag);
+    final authenticationTagBytes = base64.decode(
+      message.body.authenticationTag,
+    );
 
     final decryptedBytes = _decryptCiphertext(
       ciphertext,
@@ -93,11 +98,13 @@ class GroupMessage {
     required Uint8List authenticationTag,
   }) {
     final encrypter = _createEncrypter(symmetricKeyBytes);
-    final decrypted = encrypter.decrypt(ck.EncryptionResult(
-      ciphertext,
-      initializationVector: initializationVector,
-      authenticationTag: authenticationTag,
-    ));
+    final decrypted = encrypter.decrypt(
+      ck.EncryptionResult(
+        ciphertext,
+        initializationVector: initializationVector,
+        authenticationTag: authenticationTag,
+      ),
+    );
     return decrypted;
   }
 
@@ -106,9 +113,7 @@ class GroupMessage {
     required Uint8List symmetricKeyBytes,
   }) {
     final encrypter = _createEncrypter(symmetricKeyBytes);
-    return encrypter.encrypt(
-      utf8.encode(jsonEncode(message.toJson())),
-    );
+    return encrypter.encrypt(utf8.encode(jsonEncode(message.toJson())));
   }
 
   static ck.Encrypter _createEncrypter(Uint8List symmetricKeyBytes) {

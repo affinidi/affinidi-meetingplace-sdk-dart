@@ -5,7 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/v_card.dart';
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -31,7 +31,12 @@ void main() async {
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
       maximumUsage: 1,
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -41,7 +46,12 @@ void main() async {
 
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:bob',
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'A.'},
+        },
+      ),
       senderInfo: 'Bob',
     );
 
@@ -50,8 +60,9 @@ void main() async {
 
     aliceSDK.controlPlaneEventsStream.listen((event) async {
       if (event.type == ControlPlaneEventType.InvitationAccept) {
-        final channel =
-            await aliceSDK.approveConnectionRequest(channel: event.channel);
+        final channel = await aliceSDK.approveConnectionRequest(
+          channel: event.channel,
+        );
 
         await bobSDK.processControlPlaneEvents();
         aliceCompleter.complete(channel);

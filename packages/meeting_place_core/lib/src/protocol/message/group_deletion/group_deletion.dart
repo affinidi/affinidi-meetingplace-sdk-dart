@@ -20,11 +20,8 @@ class GroupDeletion {
     );
   }
 
-  GroupDeletion({
-    required this.id,
-    required this.body,
-    DateTime? createdTime,
-  }) : createdTime = createdTime ?? DateTime.now().toUtc();
+  GroupDeletion({required this.id, required this.body, DateTime? createdTime})
+    : createdTime = createdTime ?? DateTime.now().toUtc();
 
   final String id;
   final GroupDeletionBody body;

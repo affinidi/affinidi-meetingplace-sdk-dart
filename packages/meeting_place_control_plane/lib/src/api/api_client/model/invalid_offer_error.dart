@@ -122,42 +122,52 @@ class _$InvalidOfferErrorSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(InvalidOfferErrorNameEnum),
-          ) as InvalidOfferErrorNameEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(InvalidOfferErrorNameEnum),
+                  )
+                  as InvalidOfferErrorNameEnum;
           result.name = valueDes;
           break;
         case r'message':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(InvalidOfferErrorMessageEnum),
-          ) as InvalidOfferErrorMessageEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(InvalidOfferErrorMessageEnum),
+                  )
+                  as InvalidOfferErrorMessageEnum;
           result.message = valueDes;
           break;
         case r'httpStatusCode':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              InvalidOfferErrorHttpStatusCodeEnum,
-            ),
-          ) as InvalidOfferErrorHttpStatusCodeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      InvalidOfferErrorHttpStatusCodeEnum,
+                    ),
+                  )
+                  as InvalidOfferErrorHttpStatusCodeEnum;
           result.httpStatusCode = valueDes;
           break;
         case r'traceId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.traceId = valueDes;
           break;
         case r'details':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(NotFoundErrorDetailsInner),
-            ]),
-          ) as BuiltList<NotFoundErrorDetailsInner>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(NotFoundErrorDetailsInner),
+                    ]),
+                  )
+                  as BuiltList<NotFoundErrorDetailsInner>;
           result.details.replace(valueDes);
           break;
         default:
@@ -210,7 +220,7 @@ class InvalidOfferErrorMessageEnum extends EnumClass {
     wireName: r'No valid offer found that matches the details provided.',
   )
   static const InvalidOfferErrorMessageEnum
-      noValidOfferFoundThatMatchesTheDetailsProvidedPeriod =
+  noValidOfferFoundThatMatchesTheDetailsProvidedPeriod =
       _$invalidOfferErrorMessageEnum_noValidOfferFoundThatMatchesTheDetailsProvidedPeriod;
 
   static Serializer<InvalidOfferErrorMessageEnum> get serializer =>

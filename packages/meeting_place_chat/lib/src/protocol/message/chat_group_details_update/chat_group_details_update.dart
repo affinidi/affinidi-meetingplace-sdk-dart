@@ -37,7 +37,8 @@ class ChatGroupDetailsUpdate {
   }
 
   factory ChatGroupDetailsUpdate.fromPlainTextMessage(
-      PlainTextMessage message) {
+    PlainTextMessage message,
+  ) {
     return ChatGroupDetailsUpdate(
       id: message.id,
       from: message.from!,
@@ -96,7 +97,7 @@ class ChatGroupDetailsUpdate {
   ) {
     return ChatGroupDetailsUpdateBodyMember(
       did: groupMember.did,
-      vCard: groupMember.vCard,
+      contactCard: groupMember.contactCard,
       dateAdded: groupMember.dateAdded,
       status: groupMember.status.name,
       publicKey: groupMember.publicKey,

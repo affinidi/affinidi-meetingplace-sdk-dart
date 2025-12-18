@@ -22,9 +22,9 @@ abstract class DeregisterNotificationInput
 
   DeregisterNotificationInput._();
 
-  factory DeregisterNotificationInput(
-          [void updates(DeregisterNotificationInputBuilder b)]) =
-      _$DeregisterNotificationInput;
+  factory DeregisterNotificationInput([
+    void updates(DeregisterNotificationInputBuilder b),
+  ]) = _$DeregisterNotificationInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(DeregisterNotificationInputBuilder b) => b;
@@ -39,7 +39,7 @@ class _$DeregisterNotificationInputSerializer
   @override
   final Iterable<Type> types = const [
     DeregisterNotificationInput,
-    _$DeregisterNotificationInput
+    _$DeregisterNotificationInput,
   ];
 
   @override
@@ -63,9 +63,11 @@ class _$DeregisterNotificationInputSerializer
     DeregisterNotificationInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -81,10 +83,12 @@ class _$DeregisterNotificationInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'notificationToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.notificationToken = valueDes;
           break;
         default:

@@ -84,9 +84,7 @@ class ConnectionOfferException implements SDKException {
     );
   }
 
-  factory ConnectionOfferException.limitExceeded({
-    Object? innerException,
-  }) {
+  factory ConnectionOfferException.limitExceeded({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Offer limit exceeded',
       code: MeetingPlaceCoreSDKErrorCode.connectionOfferLimitExceeded,
@@ -94,9 +92,7 @@ class ConnectionOfferException implements SDKException {
     );
   }
 
-  factory ConnectionOfferException.expired({
-    Object? innerException,
-  }) {
+  factory ConnectionOfferException.expired({Object? innerException}) {
     return ConnectionOfferException(
       message: 'Offer expired',
       code: MeetingPlaceCoreSDKErrorCode.connectionOfferExpired,

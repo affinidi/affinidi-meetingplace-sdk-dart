@@ -7,12 +7,13 @@ part of 'finalise_offer_acceptance404_response.dart';
 // **************************************************************************
 
 const FinaliseOfferAcceptance404ResponseNameEnum
-    _$finaliseOfferAcceptance404ResponseNameEnum_expiredAcceptanceError =
+_$finaliseOfferAcceptance404ResponseNameEnum_expiredAcceptanceError =
     const FinaliseOfferAcceptance404ResponseNameEnum._(
-        'expiredAcceptanceError');
+      'expiredAcceptanceError',
+    );
 
 FinaliseOfferAcceptance404ResponseNameEnum
-    _$finaliseOfferAcceptance404ResponseNameEnumValueOf(String name) {
+_$finaliseOfferAcceptance404ResponseNameEnumValueOf(String name) {
   switch (name) {
     case 'expiredAcceptanceError':
       return _$finaliseOfferAcceptance404ResponseNameEnum_expiredAcceptanceError;
@@ -22,18 +23,21 @@ FinaliseOfferAcceptance404ResponseNameEnum
 }
 
 final BuiltSet<FinaliseOfferAcceptance404ResponseNameEnum>
-    _$finaliseOfferAcceptance404ResponseNameEnumValues = BuiltSet<
-        FinaliseOfferAcceptance404ResponseNameEnum>(const <FinaliseOfferAcceptance404ResponseNameEnum>[
-  _$finaliseOfferAcceptance404ResponseNameEnum_expiredAcceptanceError,
-]);
+_$finaliseOfferAcceptance404ResponseNameEnumValues =
+    BuiltSet<FinaliseOfferAcceptance404ResponseNameEnum>(
+      const <FinaliseOfferAcceptance404ResponseNameEnum>[
+        _$finaliseOfferAcceptance404ResponseNameEnum_expiredAcceptanceError,
+      ],
+    );
 
 const FinaliseOfferAcceptance404ResponseMessageEnum
-    _$finaliseOfferAcceptance404ResponseMessageEnum_theAcceptanceHasExpired =
+_$finaliseOfferAcceptance404ResponseMessageEnum_theAcceptanceHasExpired =
     const FinaliseOfferAcceptance404ResponseMessageEnum._(
-        'theAcceptanceHasExpired');
+      'theAcceptanceHasExpired',
+    );
 
 FinaliseOfferAcceptance404ResponseMessageEnum
-    _$finaliseOfferAcceptance404ResponseMessageEnumValueOf(String name) {
+_$finaliseOfferAcceptance404ResponseMessageEnumValueOf(String name) {
   switch (name) {
     case 'theAcceptanceHasExpired':
       return _$finaliseOfferAcceptance404ResponseMessageEnum_theAcceptanceHasExpired;
@@ -43,17 +47,19 @@ FinaliseOfferAcceptance404ResponseMessageEnum
 }
 
 final BuiltSet<FinaliseOfferAcceptance404ResponseMessageEnum>
-    _$finaliseOfferAcceptance404ResponseMessageEnumValues = BuiltSet<
-        FinaliseOfferAcceptance404ResponseMessageEnum>(const <FinaliseOfferAcceptance404ResponseMessageEnum>[
-  _$finaliseOfferAcceptance404ResponseMessageEnum_theAcceptanceHasExpired,
-]);
+_$finaliseOfferAcceptance404ResponseMessageEnumValues =
+    BuiltSet<FinaliseOfferAcceptance404ResponseMessageEnum>(
+      const <FinaliseOfferAcceptance404ResponseMessageEnum>[
+        _$finaliseOfferAcceptance404ResponseMessageEnum_theAcceptanceHasExpired,
+      ],
+    );
 
 const FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum
-    _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnum_number404 =
+_$finaliseOfferAcceptance404ResponseHttpStatusCodeEnum_number404 =
     const FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum._('number404');
 
 FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum
-    _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValueOf(String name) {
+_$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnum_number404;
@@ -63,19 +69,21 @@ FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum
 }
 
 final BuiltSet<FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>
-    _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValues = BuiltSet<
-        FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>(const <FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>[
-  _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnum_number404,
-]);
+_$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValues =
+    BuiltSet<FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>(
+      const <FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>[
+        _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<FinaliseOfferAcceptance404ResponseNameEnum>
-    _$finaliseOfferAcceptance404ResponseNameEnumSerializer =
+_$finaliseOfferAcceptance404ResponseNameEnumSerializer =
     _$FinaliseOfferAcceptance404ResponseNameEnumSerializer();
 Serializer<FinaliseOfferAcceptance404ResponseMessageEnum>
-    _$finaliseOfferAcceptance404ResponseMessageEnumSerializer =
+_$finaliseOfferAcceptance404ResponseMessageEnumSerializer =
     _$FinaliseOfferAcceptance404ResponseMessageEnumSerializer();
 Serializer<FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>
-    _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumSerializer =
+_$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumSerializer =
     _$FinaliseOfferAcceptance404ResponseHttpStatusCodeEnumSerializer();
 
 class _$FinaliseOfferAcceptance404ResponseNameEnumSerializer
@@ -89,23 +97,26 @@ class _$FinaliseOfferAcceptance404ResponseNameEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    FinaliseOfferAcceptance404ResponseNameEnum
+    FinaliseOfferAcceptance404ResponseNameEnum,
   ];
   @override
   final String wireName = 'FinaliseOfferAcceptance404ResponseNameEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          FinaliseOfferAcceptance404ResponseNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    FinaliseOfferAcceptance404ResponseNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   FinaliseOfferAcceptance404ResponseNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      FinaliseOfferAcceptance404ResponseNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => FinaliseOfferAcceptance404ResponseNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$FinaliseOfferAcceptance404ResponseMessageEnumSerializer
@@ -120,29 +131,33 @@ class _$FinaliseOfferAcceptance404ResponseMessageEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    FinaliseOfferAcceptance404ResponseMessageEnum
+    FinaliseOfferAcceptance404ResponseMessageEnum,
   ];
   @override
   final String wireName = 'FinaliseOfferAcceptance404ResponseMessageEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          FinaliseOfferAcceptance404ResponseMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    FinaliseOfferAcceptance404ResponseMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   FinaliseOfferAcceptance404ResponseMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      FinaliseOfferAcceptance404ResponseMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => FinaliseOfferAcceptance404ResponseMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$FinaliseOfferAcceptance404ResponseHttpStatusCodeEnumSerializer
     implements
         PrimitiveSerializer<
-            FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum> {
+          FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum
+        > {
   static const Map<String, Object> _toWire = const <String, Object>{
     'number404': 404,
   };
@@ -152,24 +167,27 @@ class _$FinaliseOfferAcceptance404ResponseHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum
+    FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum,
   ];
   @override
   final String wireName =
       'FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$FinaliseOfferAcceptance404Response
@@ -177,16 +195,15 @@ class _$FinaliseOfferAcceptance404Response
   @override
   final OneOf oneOf;
 
-  factory _$FinaliseOfferAcceptance404Response(
-          [void Function(FinaliseOfferAcceptance404ResponseBuilder)?
-              updates]) =>
-      (FinaliseOfferAcceptance404ResponseBuilder()..update(updates))._build();
+  factory _$FinaliseOfferAcceptance404Response([
+    void Function(FinaliseOfferAcceptance404ResponseBuilder)? updates,
+  ]) => (FinaliseOfferAcceptance404ResponseBuilder()..update(updates))._build();
 
   _$FinaliseOfferAcceptance404Response._({required this.oneOf}) : super._();
   @override
   FinaliseOfferAcceptance404Response rebuild(
-          void Function(FinaliseOfferAcceptance404ResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(FinaliseOfferAcceptance404ResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   FinaliseOfferAcceptance404ResponseBuilder toBuilder() =>
@@ -208,16 +225,18 @@ class _$FinaliseOfferAcceptance404Response
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'FinaliseOfferAcceptance404Response')
-          ..add('oneOf', oneOf))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'FinaliseOfferAcceptance404Response',
+    )..add('oneOf', oneOf)).toString();
   }
 }
 
 class FinaliseOfferAcceptance404ResponseBuilder
     implements
-        Builder<FinaliseOfferAcceptance404Response,
-            FinaliseOfferAcceptance404ResponseBuilder> {
+        Builder<
+          FinaliseOfferAcceptance404Response,
+          FinaliseOfferAcceptance404ResponseBuilder
+        > {
   _$FinaliseOfferAcceptance404Response? _$v;
 
   OneOf? _oneOf;
@@ -244,7 +263,8 @@ class FinaliseOfferAcceptance404ResponseBuilder
 
   @override
   void update(
-      void Function(FinaliseOfferAcceptance404ResponseBuilder)? updates) {
+    void Function(FinaliseOfferAcceptance404ResponseBuilder)? updates,
+  ) {
     if (updates != null) updates(this);
   }
 
@@ -252,10 +272,14 @@ class FinaliseOfferAcceptance404ResponseBuilder
   FinaliseOfferAcceptance404Response build() => _build();
 
   _$FinaliseOfferAcceptance404Response _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$FinaliseOfferAcceptance404Response._(
           oneOf: BuiltValueNullFieldError.checkNotNull(
-              oneOf, r'FinaliseOfferAcceptance404Response', 'oneOf'),
+            oneOf,
+            r'FinaliseOfferAcceptance404Response',
+            'oneOf',
+          ),
         );
     replace(_$result);
     return _$result;

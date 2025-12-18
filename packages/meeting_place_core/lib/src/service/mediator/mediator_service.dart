@@ -13,9 +13,9 @@ class MediatorService {
     required MeetingPlaceMediatorSDK mediatorSDK,
     required KeyRepository keyRepository,
     required MeetingPlaceCoreSDKLogger logger,
-  })  : _mediatorSDK = mediatorSDK,
-        _keyRepository = keyRepository,
-        _logger = logger;
+  }) : _mediatorSDK = mediatorSDK,
+       _keyRepository = keyRepository,
+       _logger = logger;
 
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final KeyRepository _keyRepository;
@@ -51,8 +51,11 @@ class MediatorService {
     }
 
     return mediatorMessages
-        .where((m) => options.filterByMessageTypes
-            .contains(m.plainTextMessage.type.toString()))
+        .where(
+          (m) => options.filterByMessageTypes.contains(
+            m.plainTextMessage.type.toString(),
+          ),
+        )
         .toList();
   }
 

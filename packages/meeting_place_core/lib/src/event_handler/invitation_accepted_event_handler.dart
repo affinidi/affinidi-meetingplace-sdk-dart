@@ -55,7 +55,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        final otherPartyVcard = getVCardDataOrEmptyFromAttachments(
+        final otherPartyContactCard = getContactCardDataOrEmptyFromAttachments(
           message.attachments,
         );
 
@@ -69,8 +69,8 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           outboundMessageId: message.id,
           status: ChannelStatus.waitingForApproval,
           type: ChannelType.individual,
-          vCard: connection.vCard,
-          otherPartyVCard: otherPartyVcard,
+          contactCard: connection.contactCard,
+          otherPartyContactCard: otherPartyContactCard,
           externalRef: connection.externalRef,
         );
 

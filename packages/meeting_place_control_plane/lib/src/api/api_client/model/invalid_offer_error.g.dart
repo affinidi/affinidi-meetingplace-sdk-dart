@@ -20,16 +20,18 @@ InvalidOfferErrorNameEnum _$invalidOfferErrorNameEnumValueOf(String name) {
 
 final BuiltSet<InvalidOfferErrorNameEnum> _$invalidOfferErrorNameEnumValues =
     BuiltSet<InvalidOfferErrorNameEnum>(const <InvalidOfferErrorNameEnum>[
-  _$invalidOfferErrorNameEnum_invalidOfferError,
-]);
+      _$invalidOfferErrorNameEnum_invalidOfferError,
+    ]);
 
 const InvalidOfferErrorMessageEnum
-    _$invalidOfferErrorMessageEnum_noValidOfferFoundThatMatchesTheDetailsProvidedPeriod =
+_$invalidOfferErrorMessageEnum_noValidOfferFoundThatMatchesTheDetailsProvidedPeriod =
     const InvalidOfferErrorMessageEnum._(
-        'noValidOfferFoundThatMatchesTheDetailsProvidedPeriod');
+      'noValidOfferFoundThatMatchesTheDetailsProvidedPeriod',
+    );
 
 InvalidOfferErrorMessageEnum _$invalidOfferErrorMessageEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'noValidOfferFoundThatMatchesTheDetailsProvidedPeriod':
       return _$invalidOfferErrorMessageEnum_noValidOfferFoundThatMatchesTheDetailsProvidedPeriod;
@@ -39,17 +41,18 @@ InvalidOfferErrorMessageEnum _$invalidOfferErrorMessageEnumValueOf(
 }
 
 final BuiltSet<InvalidOfferErrorMessageEnum>
-    _$invalidOfferErrorMessageEnumValues =
-    BuiltSet<InvalidOfferErrorMessageEnum>(const <InvalidOfferErrorMessageEnum>[
-  _$invalidOfferErrorMessageEnum_noValidOfferFoundThatMatchesTheDetailsProvidedPeriod,
-]);
+_$invalidOfferErrorMessageEnumValues = BuiltSet<InvalidOfferErrorMessageEnum>(
+  const <InvalidOfferErrorMessageEnum>[
+    _$invalidOfferErrorMessageEnum_noValidOfferFoundThatMatchesTheDetailsProvidedPeriod,
+  ],
+);
 
 const InvalidOfferErrorHttpStatusCodeEnum
-    _$invalidOfferErrorHttpStatusCodeEnum_number404 =
+_$invalidOfferErrorHttpStatusCodeEnum_number404 =
     const InvalidOfferErrorHttpStatusCodeEnum._('number404');
 
 InvalidOfferErrorHttpStatusCodeEnum
-    _$invalidOfferErrorHttpStatusCodeEnumValueOf(String name) {
+_$invalidOfferErrorHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$invalidOfferErrorHttpStatusCodeEnum_number404;
@@ -59,18 +62,20 @@ InvalidOfferErrorHttpStatusCodeEnum
 }
 
 final BuiltSet<InvalidOfferErrorHttpStatusCodeEnum>
-    _$invalidOfferErrorHttpStatusCodeEnumValues = BuiltSet<
-        InvalidOfferErrorHttpStatusCodeEnum>(const <InvalidOfferErrorHttpStatusCodeEnum>[
-  _$invalidOfferErrorHttpStatusCodeEnum_number404,
-]);
+_$invalidOfferErrorHttpStatusCodeEnumValues =
+    BuiltSet<InvalidOfferErrorHttpStatusCodeEnum>(
+      const <InvalidOfferErrorHttpStatusCodeEnum>[
+        _$invalidOfferErrorHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<InvalidOfferErrorNameEnum> _$invalidOfferErrorNameEnumSerializer =
     _$InvalidOfferErrorNameEnumSerializer();
 Serializer<InvalidOfferErrorMessageEnum>
-    _$invalidOfferErrorMessageEnumSerializer =
+_$invalidOfferErrorMessageEnumSerializer =
     _$InvalidOfferErrorMessageEnumSerializer();
 Serializer<InvalidOfferErrorHttpStatusCodeEnum>
-    _$invalidOfferErrorHttpStatusCodeEnumSerializer =
+_$invalidOfferErrorHttpStatusCodeEnumSerializer =
     _$InvalidOfferErrorHttpStatusCodeEnumSerializer();
 
 class _$InvalidOfferErrorNameEnumSerializer
@@ -88,16 +93,20 @@ class _$InvalidOfferErrorNameEnumSerializer
   final String wireName = 'InvalidOfferErrorNameEnum';
 
   @override
-  Object serialize(Serializers serializers, InvalidOfferErrorNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    InvalidOfferErrorNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   InvalidOfferErrorNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      InvalidOfferErrorNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => InvalidOfferErrorNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$InvalidOfferErrorMessageEnumSerializer
@@ -117,16 +126,20 @@ class _$InvalidOfferErrorMessageEnumSerializer
   final String wireName = 'InvalidOfferErrorMessageEnum';
 
   @override
-  Object serialize(Serializers serializers, InvalidOfferErrorMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    InvalidOfferErrorMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   InvalidOfferErrorMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      InvalidOfferErrorMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => InvalidOfferErrorMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$InvalidOfferErrorHttpStatusCodeEnumSerializer
@@ -140,23 +153,26 @@ class _$InvalidOfferErrorHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    InvalidOfferErrorHttpStatusCodeEnum
+    InvalidOfferErrorHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'InvalidOfferErrorHttpStatusCodeEnum';
 
   @override
   Object serialize(
-          Serializers serializers, InvalidOfferErrorHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    InvalidOfferErrorHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   InvalidOfferErrorHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      InvalidOfferErrorHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => InvalidOfferErrorHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$InvalidOfferError extends InvalidOfferError {
@@ -171,17 +187,17 @@ class _$InvalidOfferError extends InvalidOfferError {
   @override
   final BuiltList<NotFoundErrorDetailsInner>? details;
 
-  factory _$InvalidOfferError(
-          [void Function(InvalidOfferErrorBuilder)? updates]) =>
-      (InvalidOfferErrorBuilder()..update(updates))._build();
+  factory _$InvalidOfferError([
+    void Function(InvalidOfferErrorBuilder)? updates,
+  ]) => (InvalidOfferErrorBuilder()..update(updates))._build();
 
-  _$InvalidOfferError._(
-      {required this.name,
-      required this.message,
-      required this.httpStatusCode,
-      required this.traceId,
-      this.details})
-      : super._();
+  _$InvalidOfferError._({
+    required this.name,
+    required this.message,
+    required this.httpStatusCode,
+    required this.traceId,
+    this.details,
+  }) : super._();
   @override
   InvalidOfferError rebuild(void Function(InvalidOfferErrorBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -287,16 +303,29 @@ class InvalidOfferErrorBuilder
   _$InvalidOfferError _build() {
     _$InvalidOfferError _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$InvalidOfferError._(
             name: BuiltValueNullFieldError.checkNotNull(
-                name, r'InvalidOfferError', 'name'),
+              name,
+              r'InvalidOfferError',
+              'name',
+            ),
             message: BuiltValueNullFieldError.checkNotNull(
-                message, r'InvalidOfferError', 'message'),
+              message,
+              r'InvalidOfferError',
+              'message',
+            ),
             httpStatusCode: BuiltValueNullFieldError.checkNotNull(
-                httpStatusCode, r'InvalidOfferError', 'httpStatusCode'),
+              httpStatusCode,
+              r'InvalidOfferError',
+              'httpStatusCode',
+            ),
             traceId: BuiltValueNullFieldError.checkNotNull(
-                traceId, r'InvalidOfferError', 'traceId'),
+              traceId,
+              r'InvalidOfferError',
+              'traceId',
+            ),
             details: _details?.build(),
           );
     } catch (_) {
@@ -306,7 +335,10 @@ class InvalidOfferErrorBuilder
         _details?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'InvalidOfferError', _$failedField, e.toString());
+          r'InvalidOfferError',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

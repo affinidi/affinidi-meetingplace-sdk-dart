@@ -12,11 +12,11 @@ class MeetingplaceAuthChallenge extends PlainTextMessage {
     required DateTime createdTime,
     required DateTime expiresTime,
   }) : super(
-          type: Uri.parse(ControlPlaneProtocol.authChallenge.value),
-          body: {'challenge': challenge},
-          createdTime: createdTime,
-          expiresTime: expiresTime,
-        );
+         type: Uri.parse(ControlPlaneProtocol.authChallenge.value),
+         body: {'challenge': challenge},
+         createdTime: createdTime,
+         expiresTime: expiresTime,
+       );
 
   factory MeetingplaceAuthChallenge.create({
     required String from,

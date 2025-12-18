@@ -129,6 +129,12 @@ class GroupMembers extends Table {
   /// The status of the group member.
   IntColumn get status => integer().map(const _GroupMemberStatusConverter())();
 
+  /// DID of the contact.
+  TextColumn get identityDid => text()();
+
+  /// Type of the contact.
+  TextColumn get type => text()();
+
   /// The first name of the group member.
   TextColumn get firstName => text()();
 

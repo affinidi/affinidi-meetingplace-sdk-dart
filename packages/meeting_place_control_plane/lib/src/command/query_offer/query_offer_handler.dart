@@ -10,7 +10,7 @@ import '../../core/offer_type.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
-import '../../core/protocol/v_card/v_card_impl.dart';
+import '../../core/protocol/contact_card/contact_card_impl.dart';
 import 'query_offer.dart';
 import 'query_offer_exception.dart';
 import 'query_offer_output.dart';
@@ -31,10 +31,13 @@ class QueryOfferHandler
     required ControlPlaneApiClient apiClient,
     required this.dispatcher,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'QueryOfferHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -71,8 +74,7 @@ class QueryOfferHandler
       );
       final response = (await _apiClient.client.queryOffer(
         queryOfferInput: builder.build(),
-      ))
-          .data;
+      )).data;
 
       if (response == null) {
         _logger.warning('Query offer returned null response', name: methodName);
@@ -92,7 +94,7 @@ class QueryOfferHandler
             ? DateTime.parse(response.validUntil!)
             : null,
         maximumUsage: response.maximumUsage,
-        vCard: VCardImpl.fromBase64(response.vcard),
+        contactCard: ContactCardImpl.fromBase64(response.contactCard),
         didcommMessage: OobInvitationMessage.fromBase64(
           response.didcommMessage,
         ),

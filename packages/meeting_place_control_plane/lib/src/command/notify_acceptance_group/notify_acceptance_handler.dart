@@ -18,8 +18,10 @@ import 'notify_acceptance_output.dart';
 /// Group operation.
 class NotifyAcceptanceGroupHandler
     implements
-        CommandHandler<NotifyAcceptanceGroupCommand,
-            NotifyAcceptanceGroupCommandOutput> {
+        CommandHandler<
+          NotifyAcceptanceGroupCommand,
+          NotifyAcceptanceGroupCommandOutput
+        > {
   /// Returns an instance of [NotifyAcceptanceGroupHandler].
   ///
   /// **Parameters:**
@@ -27,10 +29,13 @@ class NotifyAcceptanceGroupHandler
   NotifyAcceptanceGroupHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'NotifyAcceptanceGroupHandler';
 
   final ControlPlaneApiClient _apiClient;

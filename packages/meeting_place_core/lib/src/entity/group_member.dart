@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import '../protocol/contact_card.dart';
+import '../contact_card/contact_card.dart';
 
 part 'group_member.g.dart';
 

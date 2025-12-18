@@ -74,6 +74,7 @@ void main() async {
       ),
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
+      contactCardParsers: [ContactCardVcardParser()],
     );
 
     await minimumSDK.registerForPushNotifications(Uuid().v4());

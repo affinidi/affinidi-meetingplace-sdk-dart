@@ -21,6 +21,7 @@ import 'package:ssi/ssi.dart';
 import 'connection_offer/offer_already_claimed_exception.dart';
 import 'connection_offer/offer_owner_exception.dart';
 import 'connection_service/accept_offer_result.dart';
+import '../contact_card/registry/contact_card_schema_registry.dart';
 
 class FindOfferException implements Exception {
   FindOfferException(this.message);
@@ -468,7 +469,8 @@ class ConnectionService {
         mnemonic: connectionOffer.mnemonic,
         offerLink: connectionOffer.offerLink,
         acceptOfferDid: acceptOfferDid,
-        senderInfo: connectionOffer.contactCard.senderInfo,
+        senderInfo: ContactCardSchemaRegistry.getSenderInfo(
+            connectionOffer.contactCard),
       ),
     );
 

@@ -22,15 +22,6 @@ class ContactCard {
   final String schema;
   final Map<String, dynamic> contactInfo;
 
-  /// Short sender information derived from the card.
-  ///
-  /// Prefers first name, else empty string.
-  /// TODO: make this part of an interface. SDK shouldn't know about a specifc
-  /// implementation of senderInfo.
-  String get senderInfo {
-    throw UnimplementedError('senderInfo getter not implemented');
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'did': did,

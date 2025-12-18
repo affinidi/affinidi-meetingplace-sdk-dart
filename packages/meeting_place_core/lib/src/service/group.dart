@@ -17,6 +17,7 @@ import '../repository/repository.dart';
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
 import 'connection_service.dart';
+import '../contact_card/registry/contact_card_schema_registry.dart';
 import 'group/group_admin.dart';
 import 'group/group_exception.dart';
 import 'group_service/accept_group_offer_result.dart';
@@ -24,7 +25,7 @@ import '../utils/string.dart';
 import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
 import 'package:uuid/uuid.dart';
 import '../entity/group.dart';
-import '../protocol/contact_card.dart' as core;
+import '../contact_card/contact_card.dart' as core;
 import '../entity/group_connection_offer.dart';
 import '../entity/group_member.dart';
 import 'group/group_message.dart' as group_message;
@@ -556,7 +557,8 @@ class GroupService {
         mnemonic: connectionOffer.mnemonic,
         acceptOfferDid: connectionOffer.acceptOfferDid!,
         offerLink: connectionOffer.offerLink,
-        senderInfo: connectionOffer.contactCard.senderInfo,
+        senderInfo: ContactCardSchemaRegistry.getSenderInfo(
+            connectionOffer.contactCard),
       ),
     );
     _logger.info(

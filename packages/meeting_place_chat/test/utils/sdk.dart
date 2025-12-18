@@ -32,6 +32,7 @@ Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
     ),
     mediatorDid: getMediatorDid(),
     controlPlaneDid: getControlPlaneDid(),
+    contactCardParsers: [ContactCardVcardParser()],
   );
 
   await sdk.registerForPushNotifications(const Uuid().v4());

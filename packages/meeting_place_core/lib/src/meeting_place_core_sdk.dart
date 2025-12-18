@@ -14,6 +14,8 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
 import 'package:ssi/ssi.dart';
 
 import 'constants/sdk_constants.dart';
+import 'contact_card/registry/contact_card_schema_registry.dart';
+import 'contact_card/schema_parser/contact_card_parser.dart';
 import 'entity/entity.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_handler_manager_options.dart';
@@ -195,6 +197,7 @@ class MeetingPlaceCoreSDK {
     required RepositoryConfig repositoryConfig,
     required String mediatorDid,
     required String controlPlaneDid,
+    required List<ContactCardParser> contactCardParsers,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -206,6 +209,8 @@ class MeetingPlaceCoreSDK {
     );
 
     mpxLogger.info('Starting Core SDK initialization', name: methodName);
+
+    ContactCardSchemaRegistry.registerParsers(contactCardParsers);
 
     final controlPlaneLogger = LoggerAdapter(
       className: ControlPlaneSDK.className,

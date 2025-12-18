@@ -2,7 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import '../attachment/attachment_format.dart';
 import '../attachment/attachment_media_type.dart';
 import '../meeting_place_protocol.dart';
-import '../contact_card.dart';
+import '../../contact_card/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class GroupMemberInaugurationMember {

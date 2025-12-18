@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import '../attachment/contact_card_attachment.dart';
 import '../meeting_place_protocol.dart';
-import '../contact_card.dart';
+import '../../contact_card/contact_card.dart';
 import 'package:uuid/uuid.dart';
 
 class ConnectionAccepted extends PlainTextMessage {

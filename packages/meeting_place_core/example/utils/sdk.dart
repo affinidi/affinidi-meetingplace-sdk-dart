@@ -32,5 +32,6 @@ Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
       repositoryConfig: getRepositoryConfig(),
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
+      contactCardParsers: [ContactCardVcardParser()],
       logger: DefaultMeetingPlaceCoreSDKLogger());
 }

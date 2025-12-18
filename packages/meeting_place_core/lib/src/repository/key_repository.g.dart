@@ -7,6 +7,6 @@ part of 'key_repository.dart';
 // **************************************************************************
 
 KeyPair _$KeyPairFromJson(Map<String, dynamic> json) => KeyPair(
-  publicKeyBytes: KeyPair._bytesFromJson(json['publicKeyBytes'] as List),
-  privateKeyBytes: KeyPair._bytesFromJson(json['privateKeyBytes'] as List),
-);
+      publicKeyBytes: KeyPair._bytesFromJson(json['publicKeyBytes'] as List),
+      privateKeyBytes: KeyPair._bytesFromJson(json['privateKeyBytes'] as List),
+    );

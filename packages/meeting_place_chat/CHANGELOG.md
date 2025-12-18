@@ -1,3 +1,7 @@
+## 0.0.1-dev.17
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.16
 
  - **FIX**: handle notification errors when sending messages (#32).

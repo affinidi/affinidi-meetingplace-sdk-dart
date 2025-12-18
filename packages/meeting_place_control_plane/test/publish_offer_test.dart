@@ -22,7 +22,6 @@ void main() async {
       contactCard: ContactCardImpl(
         did: 'did:key:offer-${Uuid().v4()}',
         type: 'offer',
-        senderInfo: 'Alice',
         contactInfo: {
           'n': {'given': 'Alice'},
         },

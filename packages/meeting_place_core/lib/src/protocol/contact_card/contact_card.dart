@@ -21,13 +21,11 @@ class ContactCard {
   ContactCard({
     required this.did,
     required this.type,
-    this.senderInfo,
     required this.contactInfo,
   });
 
   final String did;
   final String type;
-  final String? senderInfo;
   final Map<String, dynamic> contactInfo;
 
   Map<String, dynamic> toJson() {

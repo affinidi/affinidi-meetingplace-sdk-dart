@@ -61,6 +61,7 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
           wallet: wallet,
           connectionOffer: findOfferResult.$1!,
           contactCard: connection.contactCard,
+          senderInfo: 'Somebody',
         );
 
         logger.info(

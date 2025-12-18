@@ -43,6 +43,7 @@ void main() async {
         did: 'did:test:charlie',
         contactInfo: ContactCardFixture.charliePrimaryCardInfo,
       ),
+      senderInfo: 'Charlie',
     );
 
     return (sdk, acceptance);
@@ -82,6 +83,7 @@ void main() async {
         did: 'did:test:bob',
         contactInfo: ContactCardFixture.bobPrimaryCardInfo,
       ),
+      senderInfo: 'Bob',
     );
 
     // Charlie requests group membership
@@ -95,6 +97,7 @@ void main() async {
         did: 'did:test:charlie',
         contactInfo: ContactCardFixture.charliePrimaryCardInfo,
       ),
+      senderInfo: 'Charlie',
     );
 
     // Get did documents of each member

@@ -5,11 +5,6 @@ import '../protocol/contact_card/contact_card.dart';
 /// Converter extension for Control Plane ContactCard to Core ContactCard.
 extension ContactCardConverterX on cp.ContactCard {
   ContactCard toCoreContactCard() {
-    return ContactCard(
-      did: did,
-      type: type,
-      senderInfo: senderInfo,
-      contactInfo: contactInfo,
-    );
+    return ContactCard(did: did, type: type, contactInfo: contactInfo);
   }
 }

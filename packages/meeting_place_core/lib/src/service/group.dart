@@ -127,7 +127,6 @@ class GroupService {
         contactCard: cp.ContactCardImpl(
           did: card.did,
           type: card.type,
-          senderInfo: card.senderInfo,
           contactInfo: card.contactInfo,
         ),
         device: _controlPlaneSDK.device,
@@ -257,6 +256,7 @@ class GroupService {
     required Wallet wallet,
     required GroupConnectionOffer connectionOffer,
     required ContactCard card,
+    required String senderInfo,
     String? externalRef,
   }) async {
     final methodName = 'acceptGroupOffer';
@@ -297,7 +297,6 @@ class GroupService {
         contactCard: cp.ContactCardImpl(
           did: card.did,
           type: card.type,
-          senderInfo: card.senderInfo,
           contactInfo: card.contactInfo,
         ),
         acceptOfferDid: acceptOfferDidDocument.id,
@@ -365,10 +364,10 @@ class GroupService {
       );
 
       unawaited(
-        _notifyAcceptance(connectionOffer: acceptedConnectionOffer).catchError((
-          error,
-          stackTrace,
-        ) {
+        _notifyAcceptance(
+          connectionOffer: acceptedConnectionOffer,
+          senderInfo: senderInfo,
+        ).catchError((error, stackTrace) {
           _logger.error(
             'Failed to notify acceptance',
             error: error,
@@ -547,6 +546,7 @@ class GroupService {
 
   Future<void> _notifyAcceptance({
     required ConnectionOffer connectionOffer,
+    required String senderInfo,
   }) async {
     final methodName = 'notifyAcceptance';
     _logger.info(
@@ -567,7 +567,7 @@ class GroupService {
         mnemonic: connectionOffer.mnemonic,
         acceptOfferDid: connectionOffer.acceptOfferDid!,
         offerLink: connectionOffer.offerLink,
-        senderInfo: connectionOffer.contactCard.senderInfo,
+        senderInfo: senderInfo,
       ),
     );
     _logger.info(
@@ -682,7 +682,6 @@ class GroupService {
             ? cp.ContactCardImpl(
                 did: otherPartyContactCard.did,
                 type: otherPartyContactCard.type,
-                senderInfo: otherPartyContactCard.senderInfo,
                 contactInfo: otherPartyContactCard.contactInfo,
               )
             : null,

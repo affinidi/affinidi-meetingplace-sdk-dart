@@ -359,10 +359,7 @@ class _ConnectionOfferMapper {
     db.ConnectionContactCard contactCard,
   ) {
     final card = model.ContactCard(
-        did: contactCard.did,
-        type: contactCard.type,
-        senderInfo: contactCard.senderInfo,
-        contactInfo: {});
+        did: contactCard.did, type: contactCard.type, contactInfo: {});
 
     card.firstName = contactCard.firstName;
     card.lastName = contactCard.lastName;

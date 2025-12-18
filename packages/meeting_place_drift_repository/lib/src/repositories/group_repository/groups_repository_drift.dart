@@ -252,7 +252,6 @@ class _GroupMemberMapper {
     final card = model.ContactCard(
       did: groupMember.identityDid,
       type: groupMember.type,
-      senderInfo: groupMember.senderInfo,
       contactInfo: {},
     );
 

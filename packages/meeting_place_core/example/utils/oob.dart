@@ -18,7 +18,6 @@ void main() async {
     contactCard: ContactCard(
       did: 'did:test:alice',
       type: 'individual',
-      senderInfo: 'Alice',
       contactInfo: {'firstName': 'Alice'},
     ),
   );
@@ -35,7 +34,6 @@ void main() async {
     contactCard: ContactCard(
       did: 'did:test:bob',
       type: 'individual',
-      senderInfo: 'Bob',
       contactInfo: {'firstName': 'Bob'},
     ),
   );

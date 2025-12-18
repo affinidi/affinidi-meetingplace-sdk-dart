@@ -52,6 +52,7 @@ void main() async {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
       ),
+      senderInfo: 'Bob',
     );
 
     final aliceCompleter = Completer<Channel>();
@@ -59,8 +60,9 @@ void main() async {
 
     aliceSDK.controlPlaneEventsStream.listen((event) async {
       if (event.type == ControlPlaneEventType.InvitationAccept) {
-        final channel =
-            await aliceSDK.approveConnectionRequest(channel: event.channel);
+        final channel = await aliceSDK.approveConnectionRequest(
+          channel: event.channel,
+        );
 
         await bobSDK.processControlPlaneEvents();
         aliceCompleter.complete(channel);

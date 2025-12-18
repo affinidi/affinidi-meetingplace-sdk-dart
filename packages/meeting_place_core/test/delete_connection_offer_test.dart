@@ -149,6 +149,7 @@ void main() async {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
       ),
+      senderInfo: 'Bob',
     );
 
     await aliceSDK.deleteConnectionOffer(acceptOfferResult.connectionOffer);

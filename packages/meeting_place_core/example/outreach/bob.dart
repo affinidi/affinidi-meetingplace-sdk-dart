@@ -25,7 +25,6 @@ void main() async {
     contactCard: ContactCard(
       did: 'did:test:bob',
       type: 'individual',
-      senderInfo: 'Bob',
       contactInfo: {},
     ),
     type: SDKConnectionOfferType.outreachInvitation,

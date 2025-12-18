@@ -340,7 +340,6 @@ class _ChannelMapper {
     final card = model.ContactCard(
       did: contactCard.did,
       type: contactCard.type,
-      senderInfo: contactCard.senderInfo,
       contactInfo: {},
     );
 

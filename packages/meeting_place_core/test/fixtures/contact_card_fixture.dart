@@ -7,7 +7,6 @@ class ContactCardFixture {
   }) => ContactCard(
     did: did ?? 'did:test:contact-card',
     type: 'individual',
-    senderInfo: 'Test User',
     contactInfo: contactInfo ?? {'fullName': 'Test User'},
   );
 }

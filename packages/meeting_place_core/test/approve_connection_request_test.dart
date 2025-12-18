@@ -42,18 +42,21 @@ void main() async {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
       ),
+      senderInfo: 'Bob',
     );
 
     final waitForInvitationAccept = Completer<Channel>();
     aliceSDK.controlPlaneEventsStream
-        .where((event) =>
-            event.matchesType(ControlPlaneEventType.InvitationAccept))
+        .where(
+          (event) => event.matchesType(ControlPlaneEventType.InvitationAccept),
+        )
         .listen((event) => waitForInvitationAccept.complete(event.channel));
 
     final waitForOfferFinalised = Completer<Channel>();
     bobSDK.controlPlaneEventsStream
         .where(
-            (event) => event.matchesType(ControlPlaneEventType.OfferFinalised))
+          (event) => event.matchesType(ControlPlaneEventType.OfferFinalised),
+        )
         .listen((event) => waitForOfferFinalised.complete(event.channel));
 
     await aliceSDK.processControlPlaneEvents();
@@ -71,9 +74,8 @@ void main() async {
     late ConnectionOffer connectionOffer;
 
     setUp(() async {
-      connectionOffer = await aliceSDK.getConnectionOffer(
-            aliceApprovedChannel.offerLink,
-          ) ??
+      connectionOffer =
+          await aliceSDK.getConnectionOffer(aliceApprovedChannel.offerLink) ??
           fail('Connection offer does not exist');
     });
 
@@ -82,11 +84,15 @@ void main() async {
     });
 
     test('channel has been updated with permanent channel DIDs', () async {
-      expect(aliceApprovedChannel.permanentChannelDid,
-          equals(bobOfferFinalisedChannel.otherPartyPermanentChannelDid));
+      expect(
+        aliceApprovedChannel.permanentChannelDid,
+        equals(bobOfferFinalisedChannel.otherPartyPermanentChannelDid),
+      );
 
-      expect(aliceApprovedChannel.otherPartyPermanentChannelDid,
-          equals(bobOfferFinalisedChannel.permanentChannelDid));
+      expect(
+        aliceApprovedChannel.otherPartyPermanentChannelDid,
+        equals(bobOfferFinalisedChannel.permanentChannelDid),
+      );
     });
 
     test('channel has been updated with notification token', () async {
@@ -97,14 +103,20 @@ void main() async {
       expect(aliceApprovedChannel.status, equals(ChannelStatus.approved));
     });
 
-    test('connection offer has been updated with permanent channel DIDs',
-        () async {
-      expect(connectionOffer.permanentChannelDid,
-          equals(aliceApprovedChannel.permanentChannelDid));
+    test(
+      'connection offer has been updated with permanent channel DIDs',
+      () async {
+        expect(
+          connectionOffer.permanentChannelDid,
+          equals(aliceApprovedChannel.permanentChannelDid),
+        );
 
-      expect(connectionOffer.otherPartyPermanentChannelDid,
-          equals(bobOfferFinalisedChannel.permanentChannelDid));
-    });
+        expect(
+          connectionOffer.otherPartyPermanentChannelDid,
+          equals(bobOfferFinalisedChannel.permanentChannelDid),
+        );
+      },
+    );
 
     test('connection offer stays in status published', () async {
       expect(connectionOffer.status, equals(ConnectionOfferStatus.published));
@@ -115,9 +127,8 @@ void main() async {
     late ConnectionOffer connectionOffer;
 
     setUp(() async {
-      connectionOffer = await bobSDK.getConnectionOffer(
-            bobOfferFinalisedChannel.offerLink,
-          ) ??
+      connectionOffer =
+          await bobSDK.getConnectionOffer(bobOfferFinalisedChannel.offerLink) ??
           fail('Connection offer does not exist');
     });
 
@@ -126,11 +137,15 @@ void main() async {
       expect(bobOfferFinalisedChannel.otherPartyNotificationToken, isNotNull);
     });
 
-    test('channel has been updated with other party permanent channel DIDs',
-        () {
-      expect(bobOfferFinalisedChannel.otherPartyPermanentChannelDid,
-          equals(aliceApprovedChannel.permanentChannelDid));
-    });
+    test(
+      'channel has been updated with other party permanent channel DIDs',
+      () {
+        expect(
+          bobOfferFinalisedChannel.otherPartyPermanentChannelDid,
+          equals(aliceApprovedChannel.permanentChannelDid),
+        );
+      },
+    );
 
     test('channel outbound message id has been updated with message id', () {
       expect(bobOfferFinalisedChannel.outboundMessageId, isNotNull);
@@ -138,7 +153,9 @@ void main() async {
 
     test('channel status has been updated to inaugurated', () {
       expect(
-          bobOfferFinalisedChannel.status, equals(ChannelStatus.inaugurated));
+        bobOfferFinalisedChannel.status,
+        equals(ChannelStatus.inaugurated),
+      );
     });
 
     test('connection offer status has been updated to finalised', () {
@@ -146,22 +163,30 @@ void main() async {
     });
 
     test(
-        'connection offer outbound message id has been updated with message id',
-        () {
-      expect(connectionOffer.outboundMessageId,
-          equals(bobOfferFinalisedChannel.outboundMessageId));
-    });
+      'connection offer outbound message id has been updated with message id',
+      () {
+        expect(
+          connectionOffer.outboundMessageId,
+          equals(bobOfferFinalisedChannel.outboundMessageId),
+        );
+      },
+    );
 
     test(
-        'connection offer has been updated with other party permanent channel did',
-        () {
-      expect(connectionOffer.otherPartyPermanentChannelDid,
-          equals(aliceApprovedChannel.permanentChannelDid));
-    });
+      'connection offer has been updated with other party permanent channel did',
+      () {
+        expect(
+          connectionOffer.otherPartyPermanentChannelDid,
+          equals(aliceApprovedChannel.permanentChannelDid),
+        );
+      },
+    );
 
     test('connection offer has been updated with notification tokens', () {
-      expect(connectionOffer.notificationToken,
-          equals(bobOfferFinalisedChannel.notificationToken));
+      expect(
+        connectionOffer.notificationToken,
+        equals(bobOfferFinalisedChannel.notificationToken),
+      );
 
       expect(connectionOffer.otherPartyNotificationToken, isNotNull);
     });

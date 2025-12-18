@@ -51,7 +51,6 @@ void main() {
     contactCard: ContactCard(
       did: 'did:key:contact-card-did',
       type: 'individual',
-      senderInfo: 'Test User',
       contactInfo: const {'fullName': 'Test User'},
     ),
     ownedByMe: true,
@@ -72,7 +71,6 @@ void main() {
     contactCard: ContactCard(
       did: 'did:key:contact-card-did',
       type: 'individual',
-      senderInfo: 'Test User',
       contactInfo: const {'fullName': 'Test User'},
     ),
     type: ChannelType.individual,

@@ -20,7 +20,6 @@ class ContactCardFixture {
     return ContactCard(
       did: did ?? 'did:test:default',
       type: 'human',
-      senderInfo: contactInfo?['n']?['given'] ?? 'Default',
       contactInfo: contactInfo ??
           {
             'n': {'given': 'Default'}

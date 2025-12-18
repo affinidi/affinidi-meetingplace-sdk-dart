@@ -135,24 +135,24 @@ class MeetingPlaceCoreSDK {
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
     required MeetingPlaceCoreSDKLogger logger,
-  })  : _repositoryConfig = repositoryConfig,
-        _controlPlaneDid = controlPlaneDid,
-        _mediatorSDK = mediatorSDK,
-        _controlPlaneSDK = controlPlaneSDK,
-        _connectionManager = connectionManager,
-        _connectionService = connectionService,
-        _controlPlaneEventService = controlPlaneEventService,
-        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
-        _groupService = groupService,
-        _notificationService = notificationService,
-        _outreachService = outreachService,
-        _mediatorService = mediatorService,
-        _messageService = messageService,
-        _didResolver = didResolver,
-        _mediatorDid = mediatorDid,
-        _options = options,
-        _sdkErrorHandler = sdkErrorHandler,
-        _logger = logger;
+  }) : _repositoryConfig = repositoryConfig,
+       _controlPlaneDid = controlPlaneDid,
+       _mediatorSDK = mediatorSDK,
+       _controlPlaneSDK = controlPlaneSDK,
+       _connectionManager = connectionManager,
+       _connectionService = connectionService,
+       _controlPlaneEventService = controlPlaneEventService,
+       _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
+       _groupService = groupService,
+       _notificationService = notificationService,
+       _outreachService = outreachService,
+       _mediatorService = mediatorService,
+       _messageService = messageService,
+       _didResolver = didResolver,
+       _mediatorDid = mediatorDid,
+       _options = options,
+       _sdkErrorHandler = sdkErrorHandler,
+       _logger = logger;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -487,7 +487,9 @@ class MeetingPlaceCoreSDK {
     );
 
     final oobStream = OobStream(
-        onDispose: () => streamSubscription.dispose(), logger: _logger);
+      onDispose: () => streamSubscription.dispose(),
+      logger: _logger,
+    );
     _logger.info(
       'Listening for messages on mediator channel',
       name: methodName,
@@ -506,13 +508,10 @@ class MeetingPlaceCoreSDK {
             plainTextMessage.body!['channel_did'];
 
         final permanentChannelDidManager = did != null
-            ? await _connectionManager.getDidManagerForDid(
-                wallet,
-                did,
-              )
+            ? await _connectionManager.getDidManagerForDid(wallet, did)
             : await generateDid();
-        final permanentChannelDidDoc =
-            await permanentChannelDidManager.getDidDocument();
+        final permanentChannelDidDoc = await permanentChannelDidManager
+            .getDidDocument();
 
         await _connectionService.sendConnectionRequestApprovalToMediator(
           offerPublishedDid: oobDidManager,
@@ -779,7 +778,7 @@ class MeetingPlaceCoreSDK {
   /// for subsequent SDK calls and the generated DidManager for the recipient
   /// DID.
   Future<RegisterForDidcommNotificationsResult>
-      registerForDIDCommNotifications({
+  registerForDIDCommNotifications({
     String? mediatorDid,
     String? recipientDid,
   }) async {
@@ -858,18 +857,18 @@ class MeetingPlaceCoreSDK {
     String? externalRef,
   }) async {
     if (type == sdk.SDKConnectionOfferType.groupInvitation) {
-      final (connectionOffer, publishedOfferDid, ownerDid) =
-          await _groupService.createGroup(
-        offerName: offerName,
-        offerDescription: offerDescription,
-        customPhrase: customPhrase,
-        validUntil: validUntil,
-        maximumUsage: maximumUsage,
-        mediatorDid: mediatorDid,
-        externalRef: externalRef,
-        metadata: metadata,
-        card: contactCard,
-      );
+      final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
+          .createGroup(
+            offerName: offerName,
+            offerDescription: offerDescription,
+            customPhrase: customPhrase,
+            validUntil: validUntil,
+            maximumUsage: maximumUsage,
+            mediatorDid: mediatorDid,
+            externalRef: externalRef,
+            metadata: metadata,
+            card: contactCard,
+          );
       return sdk.PublishOfferResult(
         connectionOffer: connectionOffer as T,
         publishedOfferDidManager: publishedOfferDid,
@@ -877,21 +876,21 @@ class MeetingPlaceCoreSDK {
       );
     }
 
-    final (connectionOffer, publishedOfferDid) =
-        await _connectionService.publishOffer(
-      wallet: wallet,
-      offerName: offerName,
-      offerDescription: offerDescription,
-      type: type == SDKConnectionOfferType.outreachInvitation
-          ? ConnectionOfferType.meetingPlaceOutreachInvitation
-          : ConnectionOfferType.meetingPlaceInvitation,
-      customPhrase: customPhrase,
-      validUntil: validUntil,
-      maximumUsage: maximumUsage,
-      mediatorDid: mediatorDid,
-      externalRef: externalRef,
-      contactCard: contactCard,
-    );
+    final (connectionOffer, publishedOfferDid) = await _connectionService
+        .publishOffer(
+          wallet: wallet,
+          offerName: offerName,
+          offerDescription: offerDescription,
+          type: type == SDKConnectionOfferType.outreachInvitation
+              ? ConnectionOfferType.meetingPlaceOutreachInvitation
+              : ConnectionOfferType.meetingPlaceInvitation,
+          customPhrase: customPhrase,
+          validUntil: validUntil,
+          maximumUsage: maximumUsage,
+          mediatorDid: mediatorDid,
+          externalRef: externalRef,
+          contactCard: contactCard,
+        );
 
     return sdk.PublishOfferResult(
       connectionOffer: connectionOffer as T,
@@ -929,6 +928,9 @@ class MeetingPlaceCoreSDK {
   /// - [contactCard] - A [ContactCard that contains information about who is
   ///   accepting the offer. This helps the offeree to know who accepted it.
   ///
+  /// - [senderInfo] - Value to be shown in notification message to the other
+  ///   party.
+  ///
   /// - [externalRef] - Application-specific data that is passed through to
   ///   internal entities, such as connection offers and channels, and can be
   ///   referenced later for tracking or identification purposes. [externalRef]
@@ -940,6 +942,7 @@ class MeetingPlaceCoreSDK {
   Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
     required T connectionOffer,
     required ContactCard contactCard,
+    required String senderInfo,
     String? externalRef,
   }) async {
     return _withSdkExceptionHandling(() async {
@@ -948,6 +951,7 @@ class MeetingPlaceCoreSDK {
           wallet: wallet,
           connectionOffer: connectionOffer,
           card: contactCard,
+          senderInfo: senderInfo,
           externalRef: externalRef,
         );
 
@@ -962,6 +966,7 @@ class MeetingPlaceCoreSDK {
         wallet: wallet,
         connectionOffer: connectionOffer,
         contactCard: contactCard,
+        senderInfo: senderInfo,
         externalRef: externalRef,
       );
 
@@ -996,7 +1001,9 @@ class MeetingPlaceCoreSDK {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
-              wallet: wallet, channel: channel);
+              wallet: wallet,
+              channel: channel,
+            );
     });
   }
 

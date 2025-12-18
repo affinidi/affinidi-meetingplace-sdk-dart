@@ -209,7 +209,6 @@ class ConnectionService {
         contactCard: ContactCardImpl(
           did: contactCard.did,
           type: contactCard.type,
-          senderInfo: contactCard.senderInfo,
           contactInfo: contactCard.contactInfo,
         ),
         device: _controlPlaneSDK.device,
@@ -269,6 +268,7 @@ class ConnectionService {
     required Wallet wallet,
     required ConnectionOffer connectionOffer,
     required ContactCard contactCard,
+    required String senderInfo,
     String? externalRef,
   }) async {
     final methodName = 'acceptOffer';
@@ -310,7 +310,6 @@ class ConnectionService {
         contactCard: ContactCardImpl(
           did: contactCard.did,
           type: contactCard.type,
-          senderInfo: contactCard.senderInfo,
           contactInfo: contactCard.contactInfo,
         ),
       ),
@@ -348,7 +347,10 @@ class ConnectionService {
     await _channelRepository.createChannel(channel);
 
     unawaited(
-      _notifyAcceptance(connectionOffer: acceptedConnectionOffer)
+      _notifyAcceptance(
+            connectionOffer: acceptedConnectionOffer,
+            senderInfo: senderInfo,
+          )
           .then((_) {
             _logger.info(
               'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
@@ -458,6 +460,7 @@ class ConnectionService {
 
   Future<void> _notifyAcceptance({
     required ConnectionOffer connectionOffer,
+    required String senderInfo,
   }) async {
     final methodName = 'notifyAcceptance';
     final acceptOfferDid = connectionOffer.acceptOfferDid;
@@ -475,7 +478,7 @@ class ConnectionService {
         mnemonic: connectionOffer.mnemonic,
         offerLink: connectionOffer.offerLink,
         acceptOfferDid: acceptOfferDid,
-        senderInfo: connectionOffer.contactCard.senderInfo,
+        senderInfo: senderInfo,
       ),
     );
 
@@ -556,7 +559,6 @@ class ConnectionService {
             ? ContactCardImpl(
                 did: contactCard.did,
                 type: contactCard.type,
-                senderInfo: contactCard.senderInfo,
                 contactInfo: contactCard.contactInfo,
               )
             : null,

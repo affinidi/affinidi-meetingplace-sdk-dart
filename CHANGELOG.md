@@ -3,6 +3,48 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-12-19
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.18`](#meeting_place_chat---v001-dev18)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.11`](#meeting_place_control_plane---v001-dev11)
+ - [`meeting_place_core` - `v0.0.1-dev.17`](#meeting_place_core---v001-dev17)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.19`](#meeting_place_drift_repository---v001-dev19)
+ - [`meeting_place_mediator` - `v0.0.1-dev.10`](#meeting_place_mediator---v001-dev10)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.18`
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.11`
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+
+#### `meeting_place_core` - `v0.0.1-dev.17`
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+ - **FIX**: handle notify-channel error gracefully (#36).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.19`
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.10`
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+
+
 ## 2025-12-18
 
 ### Changes

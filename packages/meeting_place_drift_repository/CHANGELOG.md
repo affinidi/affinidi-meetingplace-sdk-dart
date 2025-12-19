@@ -1,3 +1,7 @@
+## 0.0.1-dev.19
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+
 ## 0.0.1-dev.18
 
  - Update a dependency to the latest release.

@@ -32,10 +32,7 @@ void main() async {
 
     await aliceSDK.mediator.updateAcl(
       ownerDidManager: aliceDID,
-      acl: AccessListAdd(
-        ownerDid: aliceDidDoc.id,
-        granteeDids: [bobDidDoc.id],
-      ),
+      acl: AccessListAdd(ownerDid: aliceDidDoc.id, granteeDids: [bobDidDoc.id]),
     );
 
     await clearMessageQueue(aliceDidDoc);
@@ -70,8 +67,9 @@ void main() async {
 
     await sendMessageFromBobToAlice();
 
-    final receivedMessage =
-        await messageCompleter.future.timeout(const Duration(seconds: 10));
+    final receivedMessage = await messageCompleter.future.timeout(
+      const Duration(seconds: 10),
+    );
 
     expect(receivedMessage.plainTextMessage.body!['message'], 'Hello World');
     await subscription.dispose();
@@ -107,11 +105,13 @@ void main() async {
 
     await sendMessageFromBobToAlice();
 
-    final message1 =
-        await listener1Completer.future.timeout(const Duration(seconds: 10));
+    final message1 = await listener1Completer.future.timeout(
+      const Duration(seconds: 10),
+    );
 
-    final message2 =
-        await listener2Completer.future.timeout(const Duration(seconds: 10));
+    final message2 = await listener2Completer.future.timeout(
+      const Duration(seconds: 10),
+    );
 
     expect(message1.plainTextMessage.body!['message'], 'Hello World');
     expect(message2.plainTextMessage.body!['message'], 'Hello World');
@@ -142,8 +142,10 @@ void main() async {
   });
 
   test('deletes message from mediator after being processed', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id,
-        options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null));
+    final subscription = await aliceSDK.subscribeToMediator(
+      aliceDidDoc.id,
+      options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null),
+    );
 
     var messageCount = 0;
     final waitForMesage = Completer<void>();
@@ -166,7 +168,9 @@ void main() async {
     // Delay test execution to allow for message deletion to occur
     await Future.delayed(const Duration(seconds: 2));
     final messages = await aliceSDK.fetchMessages(
-        did: aliceDidDoc.id, deleteOnRetrieve: true);
+      did: aliceDidDoc.id,
+      deleteOnRetrieve: true,
+    );
 
     expect(messages.length, equals(0));
   });
@@ -185,11 +189,15 @@ void main() async {
     final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
     final timeoutCompleter = Completer<bool>();
 
-    subscription.timeout(const Duration(milliseconds: 100),
-        () => timeoutCompleter.complete(true));
+    subscription.timeout(
+      const Duration(milliseconds: 100),
+      () => timeoutCompleter.complete(true),
+    );
 
-    final timedOut = await timeoutCompleter.future
-        .timeout(const Duration(seconds: 5), onTimeout: () => false);
+    final timedOut = await timeoutCompleter.future.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => false,
+    );
 
     expect(timedOut, isTrue);
     await subscription.dispose();
@@ -212,57 +220,63 @@ void main() async {
     final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
     final doneCompleter = Completer<bool>();
 
-    subscription.listen((message) {},
-        onDone: () => doneCompleter.complete(true));
+    subscription.listen(
+      (message) {},
+      onDone: () => doneCompleter.complete(true),
+    );
 
     await subscription.dispose();
 
-    final done = await doneCompleter.future
-        .timeout(const Duration(seconds: 5), onTimeout: () => false);
+    final done = await doneCompleter.future.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => false,
+    );
 
     expect(done, isTrue);
   });
 
-  test('deletes messages in queue even after subscription was disposed',
-      () async {
-    final subscription = await aliceSDK.subscribeToMediator(
-      aliceDidDoc.id,
-      options: MediatorStreamSubscriptionOptions(
-        deleteMessageDelay: const Duration(seconds: 3),
-      ),
-    );
+  test(
+    'deletes messages in queue even after subscription was disposed',
+    () async {
+      final subscription = await aliceSDK.subscribeToMediator(
+        aliceDidDoc.id,
+        options: MediatorStreamSubscriptionOptions(
+          deleteMessageDelay: const Duration(seconds: 3),
+        ),
+      );
 
-    var messageCount = 0;
-    final waitForMessage = Completer<void>();
+      var messageCount = 0;
+      final waitForMessage = Completer<void>();
 
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        messageCount++;
-        if (messageCount == 2) {
-          waitForMessage.complete();
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          messageCount++;
+          if (messageCount == 2) {
+            waitForMessage.complete();
+          }
         }
-      }
-    });
+      });
 
-    await sendMessageFromBobToAlice('message#1');
-    await sendMessageFromBobToAlice('message#2');
+      await sendMessageFromBobToAlice('message#1');
+      await sendMessageFromBobToAlice('message#2');
 
-    await waitForMessage.future.timeout(const Duration(seconds: 10));
+      await waitForMessage.future.timeout(const Duration(seconds: 10));
 
-    // Dispose subscription before scheduled deletion
-    await subscription.dispose();
+      // Dispose subscription before scheduled deletion
+      await subscription.dispose();
 
-    // Wait for scheduled deletion to complete
-    await Future.delayed(const Duration(seconds: 5));
+      // Wait for scheduled deletion to complete
+      await Future.delayed(const Duration(seconds: 5));
 
-    // Verify messages were deleted even though subscription was disposed
-    final messages = await aliceSDK.fetchMessages(
-      did: aliceDidDoc.id,
-      deleteOnRetrieve: false,
-    );
+      // Verify messages were deleted even though subscription was disposed
+      final messages = await aliceSDK.fetchMessages(
+        did: aliceDidDoc.id,
+        deleteOnRetrieve: false,
+      );
 
-    expect(messages.length, equals(0));
-  });
+      expect(messages.length, equals(0));
+    },
+  );
 
   test('invokes onError callback when listener throws exception', () async {
     final subscription = await aliceSDK.subscribeToMediator(
@@ -273,18 +287,23 @@ void main() async {
     );
 
     final waitForError = Completer<bool>();
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        throw Exception('Test error');
-      }
-    }, onError: (e) {
-      waitForError.complete(true);
-    });
+    subscription.listen(
+      (message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          throw Exception('Test error');
+        }
+      },
+      onError: (e) {
+        waitForError.complete(true);
+      },
+    );
 
     await sendMessageFromBobToAlice();
 
-    final onErrorExecuted = await waitForError.future
-        .timeout(const Duration(seconds: 10), onTimeout: () => false);
+    final onErrorExecuted = await waitForError.future.timeout(
+      const Duration(seconds: 10),
+      onTimeout: () => false,
+    );
 
     expect(onErrorExecuted, isTrue);
   });

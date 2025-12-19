@@ -27,10 +27,13 @@ class GroupDeleteHandler
   GroupDeleteHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'GroupDeleteHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -64,9 +67,7 @@ class GroupDeleteHandler
         '[MPX API] Calling /group-delete for groupId: ${command.groupId}',
         name: methodName,
       );
-      await _apiClient.client.groupDelete(
-        groupDeleteInput: builder.build(),
-      );
+      await _apiClient.client.groupDelete(groupDeleteInput: builder.build());
 
       _logger.info('Completed handling group delete', name: methodName);
       return GroupDeleteCommandOutput(success: true);

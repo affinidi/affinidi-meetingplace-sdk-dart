@@ -36,9 +36,9 @@ class ControlPlaneEventManager {
     MeetingPlaceCoreSDKLogger? logger,
     ControlPlaneEventHandlerManagerOptions options =
         const ControlPlaneEventHandlerManagerOptions(),
-  })  : _streamManager = streamManager,
-        _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
+  }) : _streamManager = streamManager,
+       _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
     _invitationAcceptHandler = InvitationAcceptedEventHandler(
       wallet: wallet,
       mediatorService: mediatorService,
@@ -80,16 +80,16 @@ class ControlPlaneEventManager {
     );
     _groupMembershipFinalisedEventHandler =
         GroupMembershipFinalisedEventHandler(
-      wallet: wallet,
-      mediatorService: mediatorService,
-      controlPlaneSDK: controlPlaneSDK,
-      connectionManager: connectionManager,
-      connectionOfferRepository: connectionOfferRepository,
-      groupRepository: groupRepository,
-      channelRepository: channelRepository,
-      options: options,
-      logger: _logger,
-    );
+          wallet: wallet,
+          mediatorService: mediatorService,
+          controlPlaneSDK: controlPlaneSDK,
+          connectionManager: connectionManager,
+          connectionOfferRepository: connectionOfferRepository,
+          groupRepository: groupRepository,
+          channelRepository: channelRepository,
+          options: options,
+          logger: _logger,
+        );
     _outreachInvitationEventHandler = OutreachInvitationEventHandler(
       wallet: wallet,
       mediatorService: mediatorService,
@@ -109,11 +109,11 @@ class ControlPlaneEventManager {
 
   late final InvitationAcceptedEventHandler _invitationAcceptHandler;
   late final InvitationGroupAcceptedEventHandler
-      _invitationGroupAcceptedEventHandler;
+  _invitationGroupAcceptedEventHandler;
   late final OfferFinalisedEventHandler _offerFinalisedEventHandler;
   late final ChannelActivityEventHandler _channelActivityEventHandler;
   late final GroupMembershipFinalisedEventHandler
-      _groupMembershipFinalisedEventHandler;
+  _groupMembershipFinalisedEventHandler;
   late final OutreachInvitationEventHandler _outreachInvitationEventHandler;
 
   Future<List<DiscoveryEvent<dynamic>>> handleEventsBatch(

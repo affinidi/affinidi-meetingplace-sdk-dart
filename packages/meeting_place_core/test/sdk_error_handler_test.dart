@@ -23,54 +23,83 @@ void main() {
 
     test('throws MeetingPlaceCoreSDKException for SDKException', () async {
       final sdkException = GroupMembershipFinalisedException(
-          message: 'SDK error', code: MeetingPlaceCoreSDKErrorCode.generic);
+        message: 'SDK error',
+        code: MeetingPlaceCoreSDKErrorCode.generic,
+      );
 
       expect(
         () => errorHandler.handleError(() async => throw sdkException),
-        throwsA(isA<MeetingPlaceCoreSDKException>()
-            .having((e) => e.message, 'message', 'SDK error')),
-      );
-    });
-
-    test('throws MeetingPlaceCoreSDKException for ControlPlaneSDKException',
-        () async {
-      final controlPlaneException = ControlPlaneSDKException(
-          message: 'ControlPlane error',
-          code: ControlPlaneSDKErrorCode.networkError.value,
-          innerException: ControlPlaneSDKException(
-              message: 'Control Plane SDK exception',
-              code: ControlPlaneSDKErrorCode.networkError.value,
-              innerException: Exception('Inner exception')));
-
-      expect(
-        () => errorHandler.handleError(() async => throw controlPlaneException),
-        throwsA(isA<MeetingPlaceCoreSDKException>().having((e) => e.code,
-            'code', ControlPlaneSDKErrorCode.networkError.value)),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.message,
+            'message',
+            'SDK error',
+          ),
+        ),
       );
     });
 
     test(
-        'throws MeetingPlaceCoreSDKException for MeetingPlaceMediatorSDKException',
-        () async {
-      final mediatorException = MeetingPlaceMediatorSDKException(
+      'throws MeetingPlaceCoreSDKException for ControlPlaneSDKException',
+      () async {
+        final controlPlaneException = ControlPlaneSDKException(
+          message: 'ControlPlane error',
+          code: ControlPlaneSDKErrorCode.networkError.value,
+          innerException: ControlPlaneSDKException(
+            message: 'Control Plane SDK exception',
+            code: ControlPlaneSDKErrorCode.networkError.value,
+            innerException: Exception('Inner exception'),
+          ),
+        );
+
+        expect(
+          () =>
+              errorHandler.handleError(() async => throw controlPlaneException),
+          throwsA(
+            isA<MeetingPlaceCoreSDKException>().having(
+              (e) => e.code,
+              'code',
+              ControlPlaneSDKErrorCode.networkError.value,
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'throws MeetingPlaceCoreSDKException for MeetingPlaceMediatorSDKException',
+      () async {
+        final mediatorException = MeetingPlaceMediatorSDKException(
           message: 'Mediator error',
           code: 'MED_ERR',
-          innerException: Exception('Inner exception'));
+          innerException: Exception('Inner exception'),
+        );
 
-      expect(
-        () => errorHandler.handleError(() async => throw mediatorException),
-        throwsA(isA<MeetingPlaceCoreSDKException>()
-            .having((e) => e.code, 'code', 'MED_ERR')),
-      );
-    });
+        expect(
+          () => errorHandler.handleError(() async => throw mediatorException),
+          throwsA(
+            isA<MeetingPlaceCoreSDKException>().having(
+              (e) => e.code,
+              'code',
+              'MED_ERR',
+            ),
+          ),
+        );
+      },
+    );
 
     test('throws MeetingPlaceCoreSDKException for generic exception', () async {
       final genericException = Exception('Generic failure');
 
       expect(
         () => errorHandler.handleError(() async => throw genericException),
-        throwsA(isA<MeetingPlaceCoreSDKException>()
-            .having((e) => e.code, 'code', 'generic')),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            'generic',
+          ),
+        ),
       );
     });
   });

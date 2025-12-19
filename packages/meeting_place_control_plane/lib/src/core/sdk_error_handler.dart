@@ -5,9 +5,10 @@ import 'exception/control_plane_exception.dart';
 import '../utils/string.dart';
 
 class SDKErrorHandler {
-  SDKErrorHandler(
-      {required ControlPlaneSDKLogger logger, required this.controlPlaneDid})
-      : _logger = logger;
+  SDKErrorHandler({
+    required ControlPlaneSDKLogger logger,
+    required this.controlPlaneDid,
+  }) : _logger = logger;
 
   final ControlPlaneSDKLogger _logger;
   final String controlPlaneDid;

@@ -2,6 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
 import 'package:test/test.dart';
 
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -18,7 +19,10 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       maximumUsage: 5,
-      vCard: VCard(values: {}),
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: const {},
+      ),
       type: SDKConnectionOfferType.invitation,
     );
     connectionOffer = offer.connectionOffer;
@@ -36,10 +40,7 @@ void main() async {
       equals(connectionOffer.offerName),
     );
 
-    expect(
-      actual.connectionOffer!.vCard.toJson(),
-      equals(VCard(values: {}).toJson()),
-    );
+    expect(actual.connectionOffer!.contactCard.contactInfo, equals(const {}));
 
     expect(
       actual.connectionOffer!.maximumUsage,
@@ -52,7 +53,10 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,
-      vCard: VCard(values: {}),
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: const {},
+      ),
     );
 
     final actual = await bobSDK.findOffer(
@@ -72,7 +76,10 @@ void main() async {
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.invitation,
-      vCard: VCard(values: {}),
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: const {},
+      ),
     );
 
     expect(

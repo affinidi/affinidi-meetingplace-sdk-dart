@@ -22,7 +22,7 @@ class _$AcceptOfferGroupOK extends AcceptOfferGroupOK {
   @override
   final String? validUntil;
   @override
-  final String vcard;
+  final String contactCard;
   @override
   final String mediatorDid;
   @override
@@ -30,27 +30,27 @@ class _$AcceptOfferGroupOK extends AcceptOfferGroupOK {
   @override
   final String mediatorWSSEndpoint;
 
-  factory _$AcceptOfferGroupOK(
-          [void Function(AcceptOfferGroupOKBuilder)? updates]) =>
-      (AcceptOfferGroupOKBuilder()..update(updates))._build();
+  factory _$AcceptOfferGroupOK([
+    void Function(AcceptOfferGroupOKBuilder)? updates,
+  ]) => (AcceptOfferGroupOKBuilder()..update(updates))._build();
 
-  _$AcceptOfferGroupOK._(
-      {this.status,
-      this.message,
-      required this.didcommMessage,
-      required this.offerLink,
-      required this.name,
-      required this.description,
-      this.validUntil,
-      required this.vcard,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint})
-      : super._();
+  _$AcceptOfferGroupOK._({
+    this.status,
+    this.message,
+    required this.didcommMessage,
+    required this.offerLink,
+    required this.name,
+    required this.description,
+    this.validUntil,
+    required this.contactCard,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+  }) : super._();
   @override
   AcceptOfferGroupOK rebuild(
-          void Function(AcceptOfferGroupOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(AcceptOfferGroupOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   AcceptOfferGroupOKBuilder toBuilder() =>
@@ -67,7 +67,7 @@ class _$AcceptOfferGroupOK extends AcceptOfferGroupOK {
         name == other.name &&
         description == other.description &&
         validUntil == other.validUntil &&
-        vcard == other.vcard &&
+        contactCard == other.contactCard &&
         mediatorDid == other.mediatorDid &&
         mediatorEndpoint == other.mediatorEndpoint &&
         mediatorWSSEndpoint == other.mediatorWSSEndpoint;
@@ -83,7 +83,7 @@ class _$AcceptOfferGroupOK extends AcceptOfferGroupOK {
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, validUntil.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jc(_$hash, mediatorDid.hashCode);
     _$hash = $jc(_$hash, mediatorEndpoint.hashCode);
     _$hash = $jc(_$hash, mediatorWSSEndpoint.hashCode);
@@ -101,7 +101,7 @@ class _$AcceptOfferGroupOK extends AcceptOfferGroupOK {
           ..add('name', name)
           ..add('description', description)
           ..add('validUntil', validUntil)
-          ..add('vcard', vcard)
+          ..add('contactCard', contactCard)
           ..add('mediatorDid', mediatorDid)
           ..add('mediatorEndpoint', mediatorEndpoint)
           ..add('mediatorWSSEndpoint', mediatorWSSEndpoint))
@@ -142,9 +142,9 @@ class AcceptOfferGroupOKBuilder
   String? get validUntil => _$this._validUntil;
   set validUntil(String? validUntil) => _$this._validUntil = validUntil;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   String? _mediatorDid;
   String? get mediatorDid => _$this._mediatorDid;
@@ -174,7 +174,7 @@ class AcceptOfferGroupOKBuilder
       _name = $v.name;
       _description = $v.description;
       _validUntil = $v.validUntil;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _mediatorDid = $v.mediatorDid;
       _mediatorEndpoint = $v.mediatorEndpoint;
       _mediatorWSSEndpoint = $v.mediatorWSSEndpoint;
@@ -197,29 +197,52 @@ class AcceptOfferGroupOKBuilder
   AcceptOfferGroupOK build() => _build();
 
   _$AcceptOfferGroupOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$AcceptOfferGroupOK._(
           status: status,
           message: message,
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'AcceptOfferGroupOK', 'didcommMessage'),
+            didcommMessage,
+            r'AcceptOfferGroupOK',
+            'didcommMessage',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'AcceptOfferGroupOK', 'offerLink'),
+            offerLink,
+            r'AcceptOfferGroupOK',
+            'offerLink',
+          ),
           name: BuiltValueNullFieldError.checkNotNull(
-              name, r'AcceptOfferGroupOK', 'name'),
+            name,
+            r'AcceptOfferGroupOK',
+            'name',
+          ),
           description: BuiltValueNullFieldError.checkNotNull(
-              description, r'AcceptOfferGroupOK', 'description'),
+            description,
+            r'AcceptOfferGroupOK',
+            'description',
+          ),
           validUntil: validUntil,
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'AcceptOfferGroupOK', 'vcard'),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+            contactCard,
+            r'AcceptOfferGroupOK',
+            'contactCard',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'AcceptOfferGroupOK', 'mediatorDid'),
+            mediatorDid,
+            r'AcceptOfferGroupOK',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'AcceptOfferGroupOK', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'AcceptOfferGroupOK',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint,
-              r'AcceptOfferGroupOK',
-              'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'AcceptOfferGroupOK',
+            'mediatorWSSEndpoint',
+          ),
         );
     replace(_$result);
     return _$result;

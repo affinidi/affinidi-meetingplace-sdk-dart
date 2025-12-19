@@ -88,12 +88,19 @@ class CreateOobOKBuilder implements Builder<CreateOobOK, CreateOobOKBuilder> {
   CreateOobOK build() => _build();
 
   _$CreateOobOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$CreateOobOK._(
           oobUrl: BuiltValueNullFieldError.checkNotNull(
-              oobUrl, r'CreateOobOK', 'oobUrl'),
+            oobUrl,
+            r'CreateOobOK',
+            'oobUrl',
+          ),
           oobId: BuiltValueNullFieldError.checkNotNull(
-              oobId, r'CreateOobOK', 'oobId'),
+            oobId,
+            r'CreateOobOK',
+            'oobId',
+          ),
         );
     replace(_$result);
     return _$result;

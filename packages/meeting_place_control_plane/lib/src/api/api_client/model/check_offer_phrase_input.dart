@@ -21,8 +21,9 @@ abstract class CheckOfferPhraseInput
 
   CheckOfferPhraseInput._();
 
-  factory CheckOfferPhraseInput(
-      [void updates(CheckOfferPhraseInputBuilder b)]) = _$CheckOfferPhraseInput;
+  factory CheckOfferPhraseInput([
+    void updates(CheckOfferPhraseInputBuilder b),
+  ]) = _$CheckOfferPhraseInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(CheckOfferPhraseInputBuilder b) => b;
@@ -37,7 +38,7 @@ class _$CheckOfferPhraseInputSerializer
   @override
   final Iterable<Type> types = const [
     CheckOfferPhraseInput,
-    _$CheckOfferPhraseInput
+    _$CheckOfferPhraseInput,
   ];
 
   @override
@@ -61,9 +62,11 @@ class _$CheckOfferPhraseInputSerializer
     CheckOfferPhraseInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -79,10 +82,12 @@ class _$CheckOfferPhraseInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'offerPhrase':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerPhrase = valueDes;
           break;
         default:

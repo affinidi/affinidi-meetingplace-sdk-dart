@@ -74,8 +74,8 @@ class Message extends ChatItem {
   }) {
     return Message.fromPlaintextMessage(
       chatId: chatId,
-      message,
-      senderDid: message.from!,
+      message.toPlainTextMessage(),
+      senderDid: message.from,
       attachments: message.attachments,
       status: ChatItemStatus.queued,
       createdByMe: true,

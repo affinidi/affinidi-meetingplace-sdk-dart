@@ -7,11 +7,12 @@ part of 'invalid_acceptance_error.dart';
 // **************************************************************************
 
 const InvalidAcceptanceErrorNameEnum
-    _$invalidAcceptanceErrorNameEnum_invalidAcceptanceError =
+_$invalidAcceptanceErrorNameEnum_invalidAcceptanceError =
     const InvalidAcceptanceErrorNameEnum._('invalidAcceptanceError');
 
 InvalidAcceptanceErrorNameEnum _$invalidAcceptanceErrorNameEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'invalidAcceptanceError':
       return _$invalidAcceptanceErrorNameEnum_invalidAcceptanceError;
@@ -21,18 +22,22 @@ InvalidAcceptanceErrorNameEnum _$invalidAcceptanceErrorNameEnumValueOf(
 }
 
 final BuiltSet<InvalidAcceptanceErrorNameEnum>
-    _$invalidAcceptanceErrorNameEnumValues = BuiltSet<
-        InvalidAcceptanceErrorNameEnum>(const <InvalidAcceptanceErrorNameEnum>[
-  _$invalidAcceptanceErrorNameEnum_invalidAcceptanceError,
-]);
+_$invalidAcceptanceErrorNameEnumValues =
+    BuiltSet<InvalidAcceptanceErrorNameEnum>(
+      const <InvalidAcceptanceErrorNameEnum>[
+        _$invalidAcceptanceErrorNameEnum_invalidAcceptanceError,
+      ],
+    );
 
 const InvalidAcceptanceErrorMessageEnum
-    _$invalidAcceptanceErrorMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
+_$invalidAcceptanceErrorMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
     const InvalidAcceptanceErrorMessageEnum._(
-        'noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod');
+      'noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod',
+    );
 
 InvalidAcceptanceErrorMessageEnum _$invalidAcceptanceErrorMessageEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod':
       return _$invalidAcceptanceErrorMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod;
@@ -42,17 +47,19 @@ InvalidAcceptanceErrorMessageEnum _$invalidAcceptanceErrorMessageEnumValueOf(
 }
 
 final BuiltSet<InvalidAcceptanceErrorMessageEnum>
-    _$invalidAcceptanceErrorMessageEnumValues = BuiltSet<
-        InvalidAcceptanceErrorMessageEnum>(const <InvalidAcceptanceErrorMessageEnum>[
-  _$invalidAcceptanceErrorMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod,
-]);
+_$invalidAcceptanceErrorMessageEnumValues =
+    BuiltSet<InvalidAcceptanceErrorMessageEnum>(const <
+      InvalidAcceptanceErrorMessageEnum
+    >[
+      _$invalidAcceptanceErrorMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod,
+    ]);
 
 const InvalidAcceptanceErrorHttpStatusCodeEnum
-    _$invalidAcceptanceErrorHttpStatusCodeEnum_number404 =
+_$invalidAcceptanceErrorHttpStatusCodeEnum_number404 =
     const InvalidAcceptanceErrorHttpStatusCodeEnum._('number404');
 
 InvalidAcceptanceErrorHttpStatusCodeEnum
-    _$invalidAcceptanceErrorHttpStatusCodeEnumValueOf(String name) {
+_$invalidAcceptanceErrorHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$invalidAcceptanceErrorHttpStatusCodeEnum_number404;
@@ -62,19 +69,21 @@ InvalidAcceptanceErrorHttpStatusCodeEnum
 }
 
 final BuiltSet<InvalidAcceptanceErrorHttpStatusCodeEnum>
-    _$invalidAcceptanceErrorHttpStatusCodeEnumValues = BuiltSet<
-        InvalidAcceptanceErrorHttpStatusCodeEnum>(const <InvalidAcceptanceErrorHttpStatusCodeEnum>[
-  _$invalidAcceptanceErrorHttpStatusCodeEnum_number404,
-]);
+_$invalidAcceptanceErrorHttpStatusCodeEnumValues =
+    BuiltSet<InvalidAcceptanceErrorHttpStatusCodeEnum>(
+      const <InvalidAcceptanceErrorHttpStatusCodeEnum>[
+        _$invalidAcceptanceErrorHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<InvalidAcceptanceErrorNameEnum>
-    _$invalidAcceptanceErrorNameEnumSerializer =
+_$invalidAcceptanceErrorNameEnumSerializer =
     _$InvalidAcceptanceErrorNameEnumSerializer();
 Serializer<InvalidAcceptanceErrorMessageEnum>
-    _$invalidAcceptanceErrorMessageEnumSerializer =
+_$invalidAcceptanceErrorMessageEnumSerializer =
     _$InvalidAcceptanceErrorMessageEnumSerializer();
 Serializer<InvalidAcceptanceErrorHttpStatusCodeEnum>
-    _$invalidAcceptanceErrorHttpStatusCodeEnumSerializer =
+_$invalidAcceptanceErrorHttpStatusCodeEnumSerializer =
     _$InvalidAcceptanceErrorHttpStatusCodeEnumSerializer();
 
 class _$InvalidAcceptanceErrorNameEnumSerializer
@@ -93,16 +102,19 @@ class _$InvalidAcceptanceErrorNameEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, InvalidAcceptanceErrorNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    InvalidAcceptanceErrorNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   InvalidAcceptanceErrorNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      InvalidAcceptanceErrorNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => InvalidAcceptanceErrorNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$InvalidAcceptanceErrorMessageEnumSerializer
@@ -123,16 +135,19 @@ class _$InvalidAcceptanceErrorMessageEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, InvalidAcceptanceErrorMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    InvalidAcceptanceErrorMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   InvalidAcceptanceErrorMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      InvalidAcceptanceErrorMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => InvalidAcceptanceErrorMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$InvalidAcceptanceErrorHttpStatusCodeEnumSerializer
@@ -146,23 +161,26 @@ class _$InvalidAcceptanceErrorHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    InvalidAcceptanceErrorHttpStatusCodeEnum
+    InvalidAcceptanceErrorHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'InvalidAcceptanceErrorHttpStatusCodeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          InvalidAcceptanceErrorHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    InvalidAcceptanceErrorHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   InvalidAcceptanceErrorHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      InvalidAcceptanceErrorHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => InvalidAcceptanceErrorHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$InvalidAcceptanceError extends InvalidAcceptanceError {
@@ -177,21 +195,21 @@ class _$InvalidAcceptanceError extends InvalidAcceptanceError {
   @override
   final BuiltList<NotFoundErrorDetailsInner>? details;
 
-  factory _$InvalidAcceptanceError(
-          [void Function(InvalidAcceptanceErrorBuilder)? updates]) =>
-      (InvalidAcceptanceErrorBuilder()..update(updates))._build();
+  factory _$InvalidAcceptanceError([
+    void Function(InvalidAcceptanceErrorBuilder)? updates,
+  ]) => (InvalidAcceptanceErrorBuilder()..update(updates))._build();
 
-  _$InvalidAcceptanceError._(
-      {required this.name,
-      required this.message,
-      required this.httpStatusCode,
-      required this.traceId,
-      this.details})
-      : super._();
+  _$InvalidAcceptanceError._({
+    required this.name,
+    required this.message,
+    required this.httpStatusCode,
+    required this.traceId,
+    this.details,
+  }) : super._();
   @override
   InvalidAcceptanceError rebuild(
-          void Function(InvalidAcceptanceErrorBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(InvalidAcceptanceErrorBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   InvalidAcceptanceErrorBuilder toBuilder() =>
@@ -249,8 +267,8 @@ class InvalidAcceptanceErrorBuilder
   InvalidAcceptanceErrorHttpStatusCodeEnum? get httpStatusCode =>
       _$this._httpStatusCode;
   set httpStatusCode(
-          InvalidAcceptanceErrorHttpStatusCodeEnum? httpStatusCode) =>
-      _$this._httpStatusCode = httpStatusCode;
+    InvalidAcceptanceErrorHttpStatusCodeEnum? httpStatusCode,
+  ) => _$this._httpStatusCode = httpStatusCode;
 
   String? _traceId;
   String? get traceId => _$this._traceId;
@@ -295,16 +313,29 @@ class InvalidAcceptanceErrorBuilder
   _$InvalidAcceptanceError _build() {
     _$InvalidAcceptanceError _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$InvalidAcceptanceError._(
             name: BuiltValueNullFieldError.checkNotNull(
-                name, r'InvalidAcceptanceError', 'name'),
+              name,
+              r'InvalidAcceptanceError',
+              'name',
+            ),
             message: BuiltValueNullFieldError.checkNotNull(
-                message, r'InvalidAcceptanceError', 'message'),
+              message,
+              r'InvalidAcceptanceError',
+              'message',
+            ),
             httpStatusCode: BuiltValueNullFieldError.checkNotNull(
-                httpStatusCode, r'InvalidAcceptanceError', 'httpStatusCode'),
+              httpStatusCode,
+              r'InvalidAcceptanceError',
+              'httpStatusCode',
+            ),
             traceId: BuiltValueNullFieldError.checkNotNull(
-                traceId, r'InvalidAcceptanceError', 'traceId'),
+              traceId,
+              r'InvalidAcceptanceError',
+              'traceId',
+            ),
             details: _details?.build(),
           );
     } catch (_) {
@@ -314,7 +345,10 @@ class InvalidAcceptanceErrorBuilder
         _details?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'InvalidAcceptanceError', _$failedField, e.toString());
+          r'InvalidAcceptanceError',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

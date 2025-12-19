@@ -12,12 +12,12 @@ class _$GroupDeleteInput extends GroupDeleteInput {
   @override
   final String messageToRelay;
 
-  factory _$GroupDeleteInput(
-          [void Function(GroupDeleteInputBuilder)? updates]) =>
-      (GroupDeleteInputBuilder()..update(updates))._build();
+  factory _$GroupDeleteInput([
+    void Function(GroupDeleteInputBuilder)? updates,
+  ]) => (GroupDeleteInputBuilder()..update(updates))._build();
 
   _$GroupDeleteInput._({required this.groupId, required this.messageToRelay})
-      : super._();
+    : super._();
   @override
   GroupDeleteInput rebuild(void Function(GroupDeleteInputBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -93,12 +93,19 @@ class GroupDeleteInputBuilder
   GroupDeleteInput build() => _build();
 
   _$GroupDeleteInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GroupDeleteInput._(
           groupId: BuiltValueNullFieldError.checkNotNull(
-              groupId, r'GroupDeleteInput', 'groupId'),
+            groupId,
+            r'GroupDeleteInput',
+            'groupId',
+          ),
           messageToRelay: BuiltValueNullFieldError.checkNotNull(
-              messageToRelay, r'GroupDeleteInput', 'messageToRelay'),
+            messageToRelay,
+            r'GroupDeleteInput',
+            'messageToRelay',
+          ),
         );
     replace(_$result);
     return _$result;

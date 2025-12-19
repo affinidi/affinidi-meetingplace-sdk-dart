@@ -38,9 +38,9 @@ class _$DidAuthenticate extends DidAuthenticate {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'DidAuthenticate')
-          ..add('challengeResponse', challengeResponse))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'DidAuthenticate',
+    )..add('challengeResponse', challengeResponse)).toString();
   }
 }
 
@@ -80,10 +80,8 @@ class DidAuthenticateBuilder
   DidAuthenticate build() => _build();
 
   _$DidAuthenticate _build() {
-    final _$result = _$v ??
-        _$DidAuthenticate._(
-          challengeResponse: challengeResponse,
-        );
+    final _$result =
+        _$v ?? _$DidAuthenticate._(challengeResponse: challengeResponse);
     replace(_$result);
     return _$result;
   }

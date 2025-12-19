@@ -10,16 +10,16 @@ class _$DeregisterNotificationInput extends DeregisterNotificationInput {
   @override
   final String notificationToken;
 
-  factory _$DeregisterNotificationInput(
-          [void Function(DeregisterNotificationInputBuilder)? updates]) =>
-      (DeregisterNotificationInputBuilder()..update(updates))._build();
+  factory _$DeregisterNotificationInput([
+    void Function(DeregisterNotificationInputBuilder)? updates,
+  ]) => (DeregisterNotificationInputBuilder()..update(updates))._build();
 
   _$DeregisterNotificationInput._({required this.notificationToken})
-      : super._();
+    : super._();
   @override
   DeregisterNotificationInput rebuild(
-          void Function(DeregisterNotificationInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DeregisterNotificationInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DeregisterNotificationInputBuilder toBuilder() =>
@@ -42,16 +42,18 @@ class _$DeregisterNotificationInput extends DeregisterNotificationInput {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'DeregisterNotificationInput')
-          ..add('notificationToken', notificationToken))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'DeregisterNotificationInput',
+    )..add('notificationToken', notificationToken)).toString();
   }
 }
 
 class DeregisterNotificationInputBuilder
     implements
-        Builder<DeregisterNotificationInput,
-            DeregisterNotificationInputBuilder> {
+        Builder<
+          DeregisterNotificationInput,
+          DeregisterNotificationInputBuilder
+        > {
   _$DeregisterNotificationInput? _$v;
 
   String? _notificationToken;
@@ -86,12 +88,14 @@ class DeregisterNotificationInputBuilder
   DeregisterNotificationInput build() => _build();
 
   _$DeregisterNotificationInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$DeregisterNotificationInput._(
           notificationToken: BuiltValueNullFieldError.checkNotNull(
-              notificationToken,
-              r'DeregisterNotificationInput',
-              'notificationToken'),
+            notificationToken,
+            r'DeregisterNotificationInput',
+            'notificationToken',
+          ),
         );
     replace(_$result);
     return _$result;

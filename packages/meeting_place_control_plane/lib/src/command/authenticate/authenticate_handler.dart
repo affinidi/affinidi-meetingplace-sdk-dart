@@ -34,14 +34,15 @@ class AuthenticateHandler
     required DidManager didManager,
     required DidResolver didResolver,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _didManager = didManager,
-        _didResolver = didResolver,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-              className: _className,
-              sdkName: sdkName,
-            );
+  }) : _apiClient = apiClient,
+       _didManager = didManager,
+       _didResolver = didResolver,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
 
   static const String _className = 'AuthenticateHandler';
 

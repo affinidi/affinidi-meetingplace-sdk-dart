@@ -17,8 +17,10 @@ import 'register_notification_output.dart';
 /// operation.
 class RegisterNotificationHandler
     implements
-        CommandHandler<RegisterNotificationCommand,
-            RegisterNotificationOutput> {
+        CommandHandler<
+          RegisterNotificationCommand,
+          RegisterNotificationOutput
+        > {
   /// Returns an instance of [RegisterNotificationHandler].
   ///
   /// **Parameters:**
@@ -26,10 +28,13 @@ class RegisterNotificationHandler
   RegisterNotificationHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'RegisterNotificationHandler';
 
   final ControlPlaneApiClient _apiClient;

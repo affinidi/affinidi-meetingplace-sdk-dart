@@ -16,17 +16,20 @@ class _$NotFoundErrorDetailsInner extends NotFoundErrorDetailsInner {
   @override
   final String? location;
 
-  factory _$NotFoundErrorDetailsInner(
-          [void Function(NotFoundErrorDetailsInnerBuilder)? updates]) =>
-      (NotFoundErrorDetailsInnerBuilder()..update(updates))._build();
+  factory _$NotFoundErrorDetailsInner([
+    void Function(NotFoundErrorDetailsInnerBuilder)? updates,
+  ]) => (NotFoundErrorDetailsInnerBuilder()..update(updates))._build();
 
-  _$NotFoundErrorDetailsInner._(
-      {required this.issue, this.field, this.value, this.location})
-      : super._();
+  _$NotFoundErrorDetailsInner._({
+    required this.issue,
+    this.field,
+    this.value,
+    this.location,
+  }) : super._();
   @override
   NotFoundErrorDetailsInner rebuild(
-          void Function(NotFoundErrorDetailsInnerBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(NotFoundErrorDetailsInnerBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   NotFoundErrorDetailsInnerBuilder toBuilder() =>
@@ -115,10 +118,14 @@ class NotFoundErrorDetailsInnerBuilder
   NotFoundErrorDetailsInner build() => _build();
 
   _$NotFoundErrorDetailsInner _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$NotFoundErrorDetailsInner._(
           issue: BuiltValueNullFieldError.checkNotNull(
-              issue, r'NotFoundErrorDetailsInner', 'issue'),
+            issue,
+            r'NotFoundErrorDetailsInner',
+            'issue',
+          ),
           field: field,
           value: value,
           location: location,

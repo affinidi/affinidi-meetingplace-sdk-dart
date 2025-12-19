@@ -12,15 +12,15 @@ class _$GroupMemberDeregisterOK extends GroupMemberDeregisterOK {
   @override
   final String? message;
 
-  factory _$GroupMemberDeregisterOK(
-          [void Function(GroupMemberDeregisterOKBuilder)? updates]) =>
-      (GroupMemberDeregisterOKBuilder()..update(updates))._build();
+  factory _$GroupMemberDeregisterOK([
+    void Function(GroupMemberDeregisterOKBuilder)? updates,
+  ]) => (GroupMemberDeregisterOKBuilder()..update(updates))._build();
 
   _$GroupMemberDeregisterOK._({this.status, this.message}) : super._();
   @override
   GroupMemberDeregisterOK rebuild(
-          void Function(GroupMemberDeregisterOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GroupMemberDeregisterOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GroupMemberDeregisterOKBuilder toBuilder() =>
@@ -93,11 +93,8 @@ class GroupMemberDeregisterOKBuilder
   GroupMemberDeregisterOK build() => _build();
 
   _$GroupMemberDeregisterOK _build() {
-    final _$result = _$v ??
-        _$GroupMemberDeregisterOK._(
-          status: status,
-          message: message,
-        );
+    final _$result =
+        _$v ?? _$GroupMemberDeregisterOK._(status: status, message: message);
     replace(_$result);
     return _$result;
   }

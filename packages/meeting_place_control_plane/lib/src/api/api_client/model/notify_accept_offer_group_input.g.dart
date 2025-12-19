@@ -16,20 +16,20 @@ class _$NotifyAcceptOfferGroupInput extends NotifyAcceptOfferGroupInput {
   @override
   final String senderInfo;
 
-  factory _$NotifyAcceptOfferGroupInput(
-          [void Function(NotifyAcceptOfferGroupInputBuilder)? updates]) =>
-      (NotifyAcceptOfferGroupInputBuilder()..update(updates))._build();
+  factory _$NotifyAcceptOfferGroupInput([
+    void Function(NotifyAcceptOfferGroupInputBuilder)? updates,
+  ]) => (NotifyAcceptOfferGroupInputBuilder()..update(updates))._build();
 
-  _$NotifyAcceptOfferGroupInput._(
-      {required this.mnemonic,
-      required this.did,
-      required this.offerLink,
-      required this.senderInfo})
-      : super._();
+  _$NotifyAcceptOfferGroupInput._({
+    required this.mnemonic,
+    required this.did,
+    required this.offerLink,
+    required this.senderInfo,
+  }) : super._();
   @override
   NotifyAcceptOfferGroupInput rebuild(
-          void Function(NotifyAcceptOfferGroupInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(NotifyAcceptOfferGroupInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   NotifyAcceptOfferGroupInputBuilder toBuilder() =>
@@ -69,8 +69,10 @@ class _$NotifyAcceptOfferGroupInput extends NotifyAcceptOfferGroupInput {
 
 class NotifyAcceptOfferGroupInputBuilder
     implements
-        Builder<NotifyAcceptOfferGroupInput,
-            NotifyAcceptOfferGroupInputBuilder> {
+        Builder<
+          NotifyAcceptOfferGroupInput,
+          NotifyAcceptOfferGroupInputBuilder
+        > {
   _$NotifyAcceptOfferGroupInput? _$v;
 
   String? _mnemonic;
@@ -119,16 +121,29 @@ class NotifyAcceptOfferGroupInputBuilder
   NotifyAcceptOfferGroupInput build() => _build();
 
   _$NotifyAcceptOfferGroupInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$NotifyAcceptOfferGroupInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'NotifyAcceptOfferGroupInput', 'mnemonic'),
+            mnemonic,
+            r'NotifyAcceptOfferGroupInput',
+            'mnemonic',
+          ),
           did: BuiltValueNullFieldError.checkNotNull(
-              did, r'NotifyAcceptOfferGroupInput', 'did'),
+            did,
+            r'NotifyAcceptOfferGroupInput',
+            'did',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'NotifyAcceptOfferGroupInput', 'offerLink'),
+            offerLink,
+            r'NotifyAcceptOfferGroupInput',
+            'offerLink',
+          ),
           senderInfo: BuiltValueNullFieldError.checkNotNull(
-              senderInfo, r'NotifyAcceptOfferGroupInput', 'senderInfo'),
+            senderInfo,
+            r'NotifyAcceptOfferGroupInput',
+            'senderInfo',
+          ),
         );
     replace(_$result);
     return _$result;

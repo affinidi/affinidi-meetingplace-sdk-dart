@@ -1,0 +1,48 @@
+import 'dart:convert';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'contact_card.g.dart';
+
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
+class ContactCard {
+  factory ContactCard.fromBase64(String base64, {bool addPadding = false}) {
+    final base64Padded = addPadding ? 'base64=' : base64;
+    final json =
+        jsonDecode(utf8.decode(base64Decode(base64Padded)))
+            as Map<String, dynamic>;
+
+    return ContactCard.fromJson(json);
+  }
+
+  factory ContactCard.fromJson(Map<String, dynamic> json) {
+    return _$ContactCardFromJson(json);
+  }
+
+  ContactCard({
+    required this.did,
+    required this.type,
+    required this.contactInfo,
+  });
+
+  final String did;
+  final String type;
+  final Map<String, dynamic> contactInfo;
+
+  Map<String, dynamic> toJson() {
+    return _$ContactCardToJson(this);
+  }
+
+  String toBase64({bool removePadding = false}) {
+    final encoded = const Base64Codec().encode(
+      utf8.encode(jsonEncode(toJson())),
+    );
+    if (!removePadding) return encoded;
+    return encoded.replaceAll('=', '');
+  }
+
+  bool equals(ContactCard other) {
+    return did == other.did &&
+        type == other.type &&
+        jsonEncode(contactInfo) == jsonEncode(other.contactInfo);
+  }
+}

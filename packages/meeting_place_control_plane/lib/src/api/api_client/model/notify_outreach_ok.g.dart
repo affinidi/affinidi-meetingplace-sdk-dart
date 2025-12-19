@@ -12,9 +12,9 @@ class _$NotifyOutreachOK extends NotifyOutreachOK {
   @override
   final String? message;
 
-  factory _$NotifyOutreachOK(
-          [void Function(NotifyOutreachOKBuilder)? updates]) =>
-      (NotifyOutreachOKBuilder()..update(updates))._build();
+  factory _$NotifyOutreachOK([
+    void Function(NotifyOutreachOKBuilder)? updates,
+  ]) => (NotifyOutreachOKBuilder()..update(updates))._build();
 
   _$NotifyOutreachOK._({this.status, this.message}) : super._();
   @override
@@ -91,11 +91,8 @@ class NotifyOutreachOKBuilder
   NotifyOutreachOK build() => _build();
 
   _$NotifyOutreachOK _build() {
-    final _$result = _$v ??
-        _$NotifyOutreachOK._(
-          status: status,
-          message: message,
-        );
+    final _$result =
+        _$v ?? _$NotifyOutreachOK._(status: status, message: message);
     replace(_$result);
     return _$result;
   }

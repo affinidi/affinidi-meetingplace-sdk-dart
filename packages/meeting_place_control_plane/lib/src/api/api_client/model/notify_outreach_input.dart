@@ -42,7 +42,7 @@ class _$NotifyOutreachInputSerializer
   @override
   final Iterable<Type> types = const [
     NotifyOutreachInput,
-    _$NotifyOutreachInput
+    _$NotifyOutreachInput,
   ];
 
   @override
@@ -71,9 +71,11 @@ class _$NotifyOutreachInputSerializer
     NotifyOutreachInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -89,17 +91,21 @@ class _$NotifyOutreachInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'mnemonic':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mnemonic = valueDes;
           break;
         case r'senderInfo':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.senderInfo = valueDes;
           break;
         default:

@@ -6,7 +6,7 @@ import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 import 'exceptions/group_membership_finalised_exception.dart';
-import '../protocol/message/group_member_inauguration.dart';
+import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
 import '../protocol/meeting_place_protocol.dart';
 import '../repository/repository.dart';
 import '../service/group/group_exception.dart';
@@ -27,8 +27,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required GroupRepository groupRepository,
-  })  : _groupRepository = groupRepository,
-        _controlPlaneSDK = controlPlaneSDK;
+  }) : _groupRepository = groupRepository,
+       _controlPlaneSDK = controlPlaneSDK;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
@@ -46,7 +46,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
 
       if (permanentChannelDid == null) {
         throw Exception(
-            'Connection offer ${connection.offerLink} is missing permanentChannelDid');
+          'Connection offer ${connection.offerLink} is missing permanentChannelDid',
+        );
       }
 
       if (connection is! GroupConnectionOffer) {
@@ -60,8 +61,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       }
 
       if (connection.isFinalised) {
-        throw GroupMembershipFinalisedException
-            .connectionOfferAlreadyFinalizedException(
+        throw GroupMembershipFinalisedException.connectionOfferAlreadyFinalizedException(
           offerLink: event.offerLink,
         );
       }
@@ -70,7 +70,9 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       final channel = await findChannelByDid(permanentChannelDid);
 
       final didManager = await connectionManager.getDidManagerForDid(
-          wallet, permanentChannelDid);
+        wallet,
+        permanentChannelDid,
+      );
 
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: didManager,
@@ -82,12 +84,12 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       for (final result in messages) {
         final message = result.plainTextMessage;
         final groupMemberInaugurationMessage =
-            GroupMemberInauguration.fromMessage(message);
+            GroupMemberInauguration.fromPlainTextMessage(message);
 
-        if (groupMemberInaugurationMessage.memberDid !=
+        if (groupMemberInaugurationMessage.body.memberDid !=
             connection.permanentChannelDid!) {
           logger.error(
-            'Member DID mismatch: expected ${connection.permanentChannelDid?.topAndTail()}, found ${groupMemberInaugurationMessage.memberDid.topAndTail()}',
+            'Member DID mismatch: expected ${connection.permanentChannelDid?.topAndTail()}, found ${groupMemberInaugurationMessage.body.memberDid.topAndTail()}',
             name: methodName,
           );
           throw MemberDidMismatchException();
@@ -95,11 +97,11 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
 
         final notificationToken = await _registerNotificationToken(
           permanentChannelDid,
-          groupMemberInaugurationMessage.groupDid,
+          groupMemberInaugurationMessage.body.groupDid,
         );
 
-        final admin = groupMemberInaugurationMessage.members.firstWhere(
-          (member) => member.isAdmin(),
+        final admin = groupMemberInaugurationMessage.body.members.firstWhere(
+          (member) => member.membershipType == GroupMembershipType.admin.name,
         );
 
         await Future.wait([
@@ -126,7 +128,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
           _allowGroupToSendMessagesToPermanetChannelDid(
             permanentChannelDid: didManager,
             mediatorDid: connection.mediatorDid,
-            groupDid: groupMemberInaugurationMessage.groupDid,
+            groupDid: groupMemberInaugurationMessage.body.groupDid,
           ),
         ]);
 
@@ -232,8 +234,8 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     required String groupDid,
   }) async {
     final methodName = '_allowGroupToSendMessagesToPermanentChannelDid';
-    final permanentChannelDidDocument =
-        await permanentChannelDid.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDid
+        .getDidDocument();
 
     logger.info(
       'Allowing group DID: ${groupDid.topAndTail()} to send messages to permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -265,16 +267,16 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     );
 
     final updatedGroup = group.copyWith(
-      id: message.groupId,
-      did: message.groupDid,
-      publicKey: message.groupPublicKey,
-      ownerDid: message.adminDids[0],
+      id: message.body.groupId,
+      did: message.body.groupDid,
+      publicKey: message.body.groupPublicKey,
+      ownerDid: message.body.adminDids[0],
       created: DateTime.now().toUtc(),
     );
 
     _updateSelfMemberStatusToApproved(updatedGroup, selfMemberDid);
 
-    for (final member in message.members) {
+    for (final member in message.body.members) {
       final localMemberIndex = updatedGroup.members.indexWhere(
         (lm) => lm.did == member.did,
       );
@@ -283,7 +285,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         updatedGroup.members.add(
           GroupMember(
             did: member.did,
-            vCard: member.vCard,
+            contactCard: member.contactCard,
             status: GroupMemberStatus.values.byName(member.status),
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,
@@ -298,7 +300,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       // TODO: add test case for this specific case
       final existingMember = updatedGroup.members[localMemberIndex];
       updatedGroup.members[localMemberIndex] = existingMember.copyWith(
-        vCard: member.vCard,
+        card: member.contactCard,
         dateAdded: DateTime.now().toUtc(),
         status: GroupMemberStatus.approved,
         publicKey: member.publicKey,
@@ -315,10 +317,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     return updatedGroup;
   }
 
-  void _updateSelfMemberStatusToApproved(
-    Group group,
-    String selfMemberDid,
-  ) {
+  void _updateSelfMemberStatusToApproved(Group group, String selfMemberDid) {
     final selfMember = group.members.firstWhere(
       (member) => member.did == selfMemberDid,
       orElse: () => throw Exception(

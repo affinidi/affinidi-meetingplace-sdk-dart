@@ -126,46 +126,56 @@ class _$InvalidAcceptanceErrorSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              InvalidAcceptanceErrorNameEnum,
-            ),
-          ) as InvalidAcceptanceErrorNameEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      InvalidAcceptanceErrorNameEnum,
+                    ),
+                  )
+                  as InvalidAcceptanceErrorNameEnum;
           result.name = valueDes;
           break;
         case r'message':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              InvalidAcceptanceErrorMessageEnum,
-            ),
-          ) as InvalidAcceptanceErrorMessageEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      InvalidAcceptanceErrorMessageEnum,
+                    ),
+                  )
+                  as InvalidAcceptanceErrorMessageEnum;
           result.message = valueDes;
           break;
         case r'httpStatusCode':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              InvalidAcceptanceErrorHttpStatusCodeEnum,
-            ),
-          ) as InvalidAcceptanceErrorHttpStatusCodeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      InvalidAcceptanceErrorHttpStatusCodeEnum,
+                    ),
+                  )
+                  as InvalidAcceptanceErrorHttpStatusCodeEnum;
           result.httpStatusCode = valueDes;
           break;
         case r'traceId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.traceId = valueDes;
           break;
         case r'details':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(NotFoundErrorDetailsInner),
-            ]),
-          ) as BuiltList<NotFoundErrorDetailsInner>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(NotFoundErrorDetailsInner),
+                    ]),
+                  )
+                  as BuiltList<NotFoundErrorDetailsInner>;
           result.details.replace(valueDes);
           break;
         default:
@@ -218,7 +228,7 @@ class InvalidAcceptanceErrorMessageEnum extends EnumClass {
     wireName: r'No valid acceptance found that matches the details provided.',
   )
   static const InvalidAcceptanceErrorMessageEnum
-      noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
+  noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod =
       _$invalidAcceptanceErrorMessageEnum_noValidAcceptanceFoundThatMatchesTheDetailsProvidedPeriod;
 
   static Serializer<InvalidAcceptanceErrorMessageEnum> get serializer =>

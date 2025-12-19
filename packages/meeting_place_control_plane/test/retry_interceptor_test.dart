@@ -17,16 +17,21 @@ void main() {
     setUp(() {
       mockDio = MockDio();
       interceptor = RetryInterceptor(
-          dio: mockDio, maxRetries: 3, retryDelay: Duration(milliseconds: 10));
+        dio: mockDio,
+        maxRetries: 3,
+        retryDelay: Duration(milliseconds: 10),
+      );
       mockHandler = MockErrorInterceptorHandler();
 
       // Register fallback values for mocktail
       registerFallbackValue(RequestOptions(path: '/test'));
       registerFallbackValue(Options());
-      registerFallbackValue(DioException(
-        requestOptions: RequestOptions(path: '/fallback'),
-        type: DioExceptionType.unknown,
-      ));
+      registerFallbackValue(
+        DioException(
+          requestOptions: RequestOptions(path: '/fallback'),
+          type: DioExceptionType.unknown,
+        ),
+      );
     });
 
     test('should not retry if error type is not retryable', () async {
@@ -38,10 +43,14 @@ void main() {
       await interceptor.onError(err, mockHandler);
 
       verify(() => mockHandler.next(err)).called(1);
-      verifyNever(() => mockDio.request<dynamic>(any(),
+      verifyNever(
+        () => mockDio.request<dynamic>(
+          any(),
           options: any(named: 'options'),
           data: any(named: 'data'),
-          queryParameters: any(named: 'queryParameters')));
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      );
     });
 
     group('retryable errors', () {
@@ -53,68 +62,82 @@ void main() {
       ];
 
       for (final retryableType in retryableTypes) {
-        test('should retry once for ${retryableType.name} and resolve response',
-            () async {
-          final err = DioException(
-            requestOptions:
-                RequestOptions(path: '/test', extra: {'retry_count': 0}),
-            type: retryableType,
-          );
+        test(
+          'should retry once for ${retryableType.name} and resolve response',
+          () async {
+            final err = DioException(
+              requestOptions: RequestOptions(
+                path: '/test',
+                extra: {'retry_count': 0},
+              ),
+              type: retryableType,
+            );
 
-          final fakeResponse = Response(
-            requestOptions: err.requestOptions,
-            statusCode: 200,
-            data: 'success',
-          );
+            final fakeResponse = Response(
+              requestOptions: err.requestOptions,
+              statusCode: 200,
+              data: 'success',
+            );
 
-          // Stub dio.request to return a successful response
-          when(() => mockDio.request<dynamic>(
+            // Stub dio.request to return a successful response
+            when(
+              () => mockDio.request<dynamic>(
                 any(),
                 options: any(named: 'options'),
                 data: any(named: 'data'),
                 queryParameters: any(named: 'queryParameters'),
-              )).thenAnswer((_) async => fakeResponse);
+              ),
+            ).thenAnswer((_) async => fakeResponse);
 
-          // Stub handler.resolve
-          when(() => mockHandler.resolve(fakeResponse)).thenReturn(null);
+            // Stub handler.resolve
+            when(() => mockHandler.resolve(fakeResponse)).thenReturn(null);
 
-          await interceptor.onError(err, mockHandler);
+            await interceptor.onError(err, mockHandler);
 
-          // Verify that retry was attempted
-          verify(() => mockDio.request<dynamic>(
+            // Verify that retry was attempted
+            verify(
+              () => mockDio.request<dynamic>(
                 '/test',
                 options: any(named: 'options'),
                 data: any(named: 'data'),
                 queryParameters: any(named: 'queryParameters'),
-              )).called(1);
+              ),
+            ).called(1);
 
-          // Verify that handler.resolve was called with the successful response
-          verify(() => mockHandler.resolve(fakeResponse)).called(1);
-        });
+            // Verify that handler.resolve was called with the successful response
+            verify(() => mockHandler.resolve(fakeResponse)).called(1);
+          },
+        );
       }
     });
 
     test('should retry up to maxRetries and then call handler.next', () async {
       final err = DioException(
-        requestOptions:
-            RequestOptions(path: '/test', extra: {'retry_count': 0}),
+        requestOptions: RequestOptions(
+          path: '/test',
+          extra: {'retry_count': 0},
+        ),
         type: DioExceptionType.connectionTimeout,
       );
 
-      when(() => mockDio.request<dynamic>(
-            any(),
-            options: any(named: 'options'),
-            data: any(named: 'data'),
-            queryParameters: any(named: 'queryParameters'),
-          )).thenThrow(err);
+      when(
+        () => mockDio.request<dynamic>(
+          any(),
+          options: any(named: 'options'),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).thenThrow(err);
 
       when(() => mockHandler.next(err)).thenReturn(null);
 
       for (var i = 0; i < interceptor.maxRetries; i++) {
         await interceptor.onError(
           DioException(
-            requestOptions:
-                RequestOptions(path: '/test', extra: {'retry_count': i}),
+            requestOptions: RequestOptions(
+              path: '/test',
+              extra: {'retry_count': i},
+            ),
             type: DioExceptionType.connectionTimeout,
           ),
           mockHandler,
@@ -122,16 +145,19 @@ void main() {
       }
 
       // Verify that request was attempted maxRetries times
-      verify(() => mockDio.request<dynamic>(
-            '/test',
-            options: any(named: 'options'),
-            data: any(named: 'data'),
-            queryParameters: any(named: 'queryParameters'),
-          )).called(interceptor.maxRetries);
+      verify(
+        () => mockDio.request<dynamic>(
+          '/test',
+          options: any(named: 'options'),
+          data: any(named: 'data'),
+          queryParameters: any(named: 'queryParameters'),
+        ),
+      ).called(interceptor.maxRetries);
 
       // After retries, handler.next should be called
-      verify(() => mockHandler.next(any(that: isA<DioException>())))
-          .called(interceptor.maxRetries);
+      verify(
+        () => mockHandler.next(any(that: isA<DioException>())),
+      ).called(interceptor.maxRetries);
     });
   });
 }

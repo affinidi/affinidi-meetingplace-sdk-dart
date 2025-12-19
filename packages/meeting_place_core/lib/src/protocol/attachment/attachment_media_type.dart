@@ -1,5 +1,5 @@
 enum AttachmentMediaType {
-  textVcard('text/x-vcard'),
+  textContactCard('application/json'),
   imageJpeg('image/jpeg'),
   verifiablePresentation('text/vp-something'),
   verifiableCredential('text/vc-something');

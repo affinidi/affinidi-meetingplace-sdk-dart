@@ -12,16 +12,16 @@ class _$NotifyOutreachInput extends NotifyOutreachInput {
   @override
   final String senderInfo;
 
-  factory _$NotifyOutreachInput(
-          [void Function(NotifyOutreachInputBuilder)? updates]) =>
-      (NotifyOutreachInputBuilder()..update(updates))._build();
+  factory _$NotifyOutreachInput([
+    void Function(NotifyOutreachInputBuilder)? updates,
+  ]) => (NotifyOutreachInputBuilder()..update(updates))._build();
 
   _$NotifyOutreachInput._({required this.mnemonic, required this.senderInfo})
-      : super._();
+    : super._();
   @override
   NotifyOutreachInput rebuild(
-          void Function(NotifyOutreachInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(NotifyOutreachInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   NotifyOutreachInputBuilder toBuilder() =>
@@ -93,12 +93,19 @@ class NotifyOutreachInputBuilder
   NotifyOutreachInput build() => _build();
 
   _$NotifyOutreachInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$NotifyOutreachInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'NotifyOutreachInput', 'mnemonic'),
+            mnemonic,
+            r'NotifyOutreachInput',
+            'mnemonic',
+          ),
           senderInfo: BuiltValueNullFieldError.checkNotNull(
-              senderInfo, r'NotifyOutreachInput', 'senderInfo'),
+            senderInfo,
+            r'NotifyOutreachInput',
+            'senderInfo',
+          ),
         );
     replace(_$result);
     return _$result;

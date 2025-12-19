@@ -17,20 +17,21 @@ class _$GetPendingNotificationsOKNotificationsInner
   @override
   final String? notificationDate;
 
-  factory _$GetPendingNotificationsOKNotificationsInner(
-          [void Function(GetPendingNotificationsOKNotificationsInnerBuilder)?
-              updates]) =>
-      (GetPendingNotificationsOKNotificationsInnerBuilder()..update(updates))
-          ._build();
+  factory _$GetPendingNotificationsOKNotificationsInner([
+    void Function(GetPendingNotificationsOKNotificationsInnerBuilder)? updates,
+  ]) => (GetPendingNotificationsOKNotificationsInnerBuilder()..update(updates))
+      ._build();
 
-  _$GetPendingNotificationsOKNotificationsInner._(
-      {this.id, this.type, this.payload, this.notificationDate})
-      : super._();
+  _$GetPendingNotificationsOKNotificationsInner._({
+    this.id,
+    this.type,
+    this.payload,
+    this.notificationDate,
+  }) : super._();
   @override
   GetPendingNotificationsOKNotificationsInner rebuild(
-          void Function(GetPendingNotificationsOKNotificationsInnerBuilder)
-              updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GetPendingNotificationsOKNotificationsInnerBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GetPendingNotificationsOKNotificationsInnerBuilder toBuilder() =>
@@ -60,7 +61,8 @@ class _$GetPendingNotificationsOKNotificationsInner
   @override
   String toString() {
     return (newBuiltValueToStringHelper(
-            r'GetPendingNotificationsOKNotificationsInner')
+            r'GetPendingNotificationsOKNotificationsInner',
+          )
           ..add('id', id)
           ..add('type', type)
           ..add('payload', payload)
@@ -71,8 +73,10 @@ class _$GetPendingNotificationsOKNotificationsInner
 
 class GetPendingNotificationsOKNotificationsInnerBuilder
     implements
-        Builder<GetPendingNotificationsOKNotificationsInner,
-            GetPendingNotificationsOKNotificationsInnerBuilder> {
+        Builder<
+          GetPendingNotificationsOKNotificationsInner,
+          GetPendingNotificationsOKNotificationsInnerBuilder
+        > {
   _$GetPendingNotificationsOKNotificationsInner? _$v;
 
   String? _id;
@@ -115,8 +119,8 @@ class GetPendingNotificationsOKNotificationsInnerBuilder
 
   @override
   void update(
-      void Function(GetPendingNotificationsOKNotificationsInnerBuilder)?
-          updates) {
+    void Function(GetPendingNotificationsOKNotificationsInnerBuilder)? updates,
+  ) {
     if (updates != null) updates(this);
   }
 
@@ -124,7 +128,8 @@ class GetPendingNotificationsOKNotificationsInnerBuilder
   GetPendingNotificationsOKNotificationsInner build() => _build();
 
   _$GetPendingNotificationsOKNotificationsInner _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GetPendingNotificationsOKNotificationsInner._(
           id: id,
           type: type,

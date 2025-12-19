@@ -5,14 +5,9 @@ import 'package:ssi/ssi.dart';
 
 Future<ControlPlaneSDK> initSDKInstance() async {
   final wallet = PersistentWallet(InMemoryKeyStore());
-  final didManager = DidKeyManager(
-    wallet: wallet,
-    store: InMemoryDidStore(),
-  );
+  final didManager = DidKeyManager(wallet: wallet, store: InMemoryDidStore());
 
-  await didManager.addVerificationMethod(
-    (await wallet.generateKey()).id,
-  );
+  await didManager.addVerificationMethod((await wallet.generateKey()).id);
 
   return ControlPlaneSDK(
     didManager: didManager,

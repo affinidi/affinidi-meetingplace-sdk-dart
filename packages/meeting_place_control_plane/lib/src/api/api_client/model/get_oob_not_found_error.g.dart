@@ -7,7 +7,7 @@ part of 'get_oob_not_found_error.dart';
 // **************************************************************************
 
 const GetOobNotFoundErrorNameEnum
-    _$getOobNotFoundErrorNameEnum_getOobNotFoundError =
+_$getOobNotFoundErrorNameEnum_getOobNotFoundError =
     const GetOobNotFoundErrorNameEnum._('getOobNotFoundError');
 
 GetOobNotFoundErrorNameEnum _$getOobNotFoundErrorNameEnumValueOf(String name) {
@@ -20,17 +20,19 @@ GetOobNotFoundErrorNameEnum _$getOobNotFoundErrorNameEnumValueOf(String name) {
 }
 
 final BuiltSet<GetOobNotFoundErrorNameEnum>
-    _$getOobNotFoundErrorNameEnumValues =
-    BuiltSet<GetOobNotFoundErrorNameEnum>(const <GetOobNotFoundErrorNameEnum>[
-  _$getOobNotFoundErrorNameEnum_getOobNotFoundError,
-]);
+_$getOobNotFoundErrorNameEnumValues = BuiltSet<GetOobNotFoundErrorNameEnum>(
+  const <GetOobNotFoundErrorNameEnum>[
+    _$getOobNotFoundErrorNameEnum_getOobNotFoundError,
+  ],
+);
 
 const GetOobNotFoundErrorMessageEnum
-    _$getOobNotFoundErrorMessageEnum_theOobCouldNotBeFound =
+_$getOobNotFoundErrorMessageEnum_theOobCouldNotBeFound =
     const GetOobNotFoundErrorMessageEnum._('theOobCouldNotBeFound');
 
 GetOobNotFoundErrorMessageEnum _$getOobNotFoundErrorMessageEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'theOobCouldNotBeFound':
       return _$getOobNotFoundErrorMessageEnum_theOobCouldNotBeFound;
@@ -40,17 +42,19 @@ GetOobNotFoundErrorMessageEnum _$getOobNotFoundErrorMessageEnumValueOf(
 }
 
 final BuiltSet<GetOobNotFoundErrorMessageEnum>
-    _$getOobNotFoundErrorMessageEnumValues = BuiltSet<
-        GetOobNotFoundErrorMessageEnum>(const <GetOobNotFoundErrorMessageEnum>[
-  _$getOobNotFoundErrorMessageEnum_theOobCouldNotBeFound,
-]);
+_$getOobNotFoundErrorMessageEnumValues =
+    BuiltSet<GetOobNotFoundErrorMessageEnum>(
+      const <GetOobNotFoundErrorMessageEnum>[
+        _$getOobNotFoundErrorMessageEnum_theOobCouldNotBeFound,
+      ],
+    );
 
 const GetOobNotFoundErrorHttpStatusCodeEnum
-    _$getOobNotFoundErrorHttpStatusCodeEnum_number404 =
+_$getOobNotFoundErrorHttpStatusCodeEnum_number404 =
     const GetOobNotFoundErrorHttpStatusCodeEnum._('number404');
 
 GetOobNotFoundErrorHttpStatusCodeEnum
-    _$getOobNotFoundErrorHttpStatusCodeEnumValueOf(String name) {
+_$getOobNotFoundErrorHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$getOobNotFoundErrorHttpStatusCodeEnum_number404;
@@ -60,19 +64,21 @@ GetOobNotFoundErrorHttpStatusCodeEnum
 }
 
 final BuiltSet<GetOobNotFoundErrorHttpStatusCodeEnum>
-    _$getOobNotFoundErrorHttpStatusCodeEnumValues = BuiltSet<
-        GetOobNotFoundErrorHttpStatusCodeEnum>(const <GetOobNotFoundErrorHttpStatusCodeEnum>[
-  _$getOobNotFoundErrorHttpStatusCodeEnum_number404,
-]);
+_$getOobNotFoundErrorHttpStatusCodeEnumValues =
+    BuiltSet<GetOobNotFoundErrorHttpStatusCodeEnum>(
+      const <GetOobNotFoundErrorHttpStatusCodeEnum>[
+        _$getOobNotFoundErrorHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<GetOobNotFoundErrorNameEnum>
-    _$getOobNotFoundErrorNameEnumSerializer =
+_$getOobNotFoundErrorNameEnumSerializer =
     _$GetOobNotFoundErrorNameEnumSerializer();
 Serializer<GetOobNotFoundErrorMessageEnum>
-    _$getOobNotFoundErrorMessageEnumSerializer =
+_$getOobNotFoundErrorMessageEnumSerializer =
     _$GetOobNotFoundErrorMessageEnumSerializer();
 Serializer<GetOobNotFoundErrorHttpStatusCodeEnum>
-    _$getOobNotFoundErrorHttpStatusCodeEnumSerializer =
+_$getOobNotFoundErrorHttpStatusCodeEnumSerializer =
     _$GetOobNotFoundErrorHttpStatusCodeEnumSerializer();
 
 class _$GetOobNotFoundErrorNameEnumSerializer
@@ -90,16 +96,20 @@ class _$GetOobNotFoundErrorNameEnumSerializer
   final String wireName = 'GetOobNotFoundErrorNameEnum';
 
   @override
-  Object serialize(Serializers serializers, GetOobNotFoundErrorNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    GetOobNotFoundErrorNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   GetOobNotFoundErrorNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      GetOobNotFoundErrorNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => GetOobNotFoundErrorNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$GetOobNotFoundErrorMessageEnumSerializer
@@ -118,16 +128,19 @@ class _$GetOobNotFoundErrorMessageEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, GetOobNotFoundErrorMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    GetOobNotFoundErrorMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   GetOobNotFoundErrorMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      GetOobNotFoundErrorMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => GetOobNotFoundErrorMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$GetOobNotFoundErrorHttpStatusCodeEnumSerializer
@@ -141,23 +154,26 @@ class _$GetOobNotFoundErrorHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    GetOobNotFoundErrorHttpStatusCodeEnum
+    GetOobNotFoundErrorHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'GetOobNotFoundErrorHttpStatusCodeEnum';
 
   @override
   Object serialize(
-          Serializers serializers, GetOobNotFoundErrorHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    GetOobNotFoundErrorHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   GetOobNotFoundErrorHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      GetOobNotFoundErrorHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => GetOobNotFoundErrorHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$GetOobNotFoundError extends GetOobNotFoundError {
@@ -172,21 +188,21 @@ class _$GetOobNotFoundError extends GetOobNotFoundError {
   @override
   final BuiltList<NotFoundErrorDetailsInner>? details;
 
-  factory _$GetOobNotFoundError(
-          [void Function(GetOobNotFoundErrorBuilder)? updates]) =>
-      (GetOobNotFoundErrorBuilder()..update(updates))._build();
+  factory _$GetOobNotFoundError([
+    void Function(GetOobNotFoundErrorBuilder)? updates,
+  ]) => (GetOobNotFoundErrorBuilder()..update(updates))._build();
 
-  _$GetOobNotFoundError._(
-      {required this.name,
-      required this.message,
-      required this.httpStatusCode,
-      required this.traceId,
-      this.details})
-      : super._();
+  _$GetOobNotFoundError._({
+    required this.name,
+    required this.message,
+    required this.httpStatusCode,
+    required this.traceId,
+    this.details,
+  }) : super._();
   @override
   GetOobNotFoundError rebuild(
-          void Function(GetOobNotFoundErrorBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GetOobNotFoundErrorBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GetOobNotFoundErrorBuilder toBuilder() =>
@@ -289,16 +305,29 @@ class GetOobNotFoundErrorBuilder
   _$GetOobNotFoundError _build() {
     _$GetOobNotFoundError _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$GetOobNotFoundError._(
             name: BuiltValueNullFieldError.checkNotNull(
-                name, r'GetOobNotFoundError', 'name'),
+              name,
+              r'GetOobNotFoundError',
+              'name',
+            ),
             message: BuiltValueNullFieldError.checkNotNull(
-                message, r'GetOobNotFoundError', 'message'),
+              message,
+              r'GetOobNotFoundError',
+              'message',
+            ),
             httpStatusCode: BuiltValueNullFieldError.checkNotNull(
-                httpStatusCode, r'GetOobNotFoundError', 'httpStatusCode'),
+              httpStatusCode,
+              r'GetOobNotFoundError',
+              'httpStatusCode',
+            ),
             traceId: BuiltValueNullFieldError.checkNotNull(
-                traceId, r'GetOobNotFoundError', 'traceId'),
+              traceId,
+              r'GetOobNotFoundError',
+              'traceId',
+            ),
             details: _details?.build(),
           );
     } catch (_) {
@@ -308,7 +337,10 @@ class GetOobNotFoundErrorBuilder
         _details?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'GetOobNotFoundError', _$failedField, e.toString());
+          r'GetOobNotFoundError',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

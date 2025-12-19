@@ -10,15 +10,15 @@ class _$CheckOfferPhraseOK extends CheckOfferPhraseOK {
   @override
   final bool isInUse;
 
-  factory _$CheckOfferPhraseOK(
-          [void Function(CheckOfferPhraseOKBuilder)? updates]) =>
-      (CheckOfferPhraseOKBuilder()..update(updates))._build();
+  factory _$CheckOfferPhraseOK([
+    void Function(CheckOfferPhraseOKBuilder)? updates,
+  ]) => (CheckOfferPhraseOKBuilder()..update(updates))._build();
 
   _$CheckOfferPhraseOK._({required this.isInUse}) : super._();
   @override
   CheckOfferPhraseOK rebuild(
-          void Function(CheckOfferPhraseOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(CheckOfferPhraseOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   CheckOfferPhraseOKBuilder toBuilder() =>
@@ -40,9 +40,9 @@ class _$CheckOfferPhraseOK extends CheckOfferPhraseOK {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'CheckOfferPhraseOK')
-          ..add('isInUse', isInUse))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'CheckOfferPhraseOK',
+    )..add('isInUse', isInUse)).toString();
   }
 }
 
@@ -81,10 +81,14 @@ class CheckOfferPhraseOKBuilder
   CheckOfferPhraseOK build() => _build();
 
   _$CheckOfferPhraseOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$CheckOfferPhraseOK._(
           isInUse: BuiltValueNullFieldError.checkNotNull(
-              isInUse, r'CheckOfferPhraseOK', 'isInUse'),
+            isInUse,
+            r'CheckOfferPhraseOK',
+            'isInUse',
+          ),
         );
     replace(_$result);
     return _$result;

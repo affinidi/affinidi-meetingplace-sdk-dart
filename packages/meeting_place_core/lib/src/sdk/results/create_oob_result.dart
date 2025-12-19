@@ -1,4 +1,4 @@
-import '../../protocol/message/oob_invitation_message.dart';
+import '../../protocol/message/oob_invitation_message/oob_invitation_message.dart';
 import 'package:ssi/ssi.dart';
 
 class CreateOobResult {

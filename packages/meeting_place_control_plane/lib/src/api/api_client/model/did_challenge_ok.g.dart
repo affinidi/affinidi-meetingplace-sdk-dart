@@ -37,9 +37,9 @@ class _$DidChallengeOK extends DidChallengeOK {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'DidChallengeOK')
-          ..add('challenge', challenge))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'DidChallengeOK',
+    )..add('challenge', challenge)).toString();
   }
 }
 
@@ -78,10 +78,7 @@ class DidChallengeOKBuilder
   DidChallengeOK build() => _build();
 
   _$DidChallengeOK _build() {
-    final _$result = _$v ??
-        _$DidChallengeOK._(
-          challenge: challenge,
-        );
+    final _$result = _$v ?? _$DidChallengeOK._(challenge: challenge);
     replace(_$result);
     return _$result;
   }

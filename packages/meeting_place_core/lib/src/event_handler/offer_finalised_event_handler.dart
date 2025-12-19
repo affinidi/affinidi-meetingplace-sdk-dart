@@ -1,11 +1,10 @@
 import '../entity/channel.dart';
-import '../protocol/message/channel_inauguration.dart';
-import '../protocol/meeting_place_protocol.dart';
 import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
-import '../messages/utils.dart';
+import '../utils/attachment.dart';
+import '../protocol/protocol.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
@@ -21,8 +20,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required DidResolver didResolver,
-  })  : _controlPlaneSDK = controlPlaneSDK,
-        _didResolver = didResolver;
+  }) : _controlPlaneSDK = controlPlaneSDK,
+       _didResolver = didResolver;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
@@ -39,7 +38,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       final connection = await findConnectionByOfferLink(event.offerLink);
       if (connection.isFinalised) {
         throw Exception(
-            'Connection offer ${connection.offerLink} already finalised');
+          'Connection offer ${connection.offerLink} already finalised',
+        );
       }
 
       final acceptOfferDid = connection.acceptOfferDid;
@@ -47,27 +47,32 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
 
       if (acceptOfferDid == null || permanentChannelDid == null) {
         throw Exception(
-            'Connection offer ${connection.offerLink} is missing acceptOfferDid or permanentChannelDid');
+          'Connection offer ${connection.offerLink} is missing acceptOfferDid or permanentChannelDid',
+        );
       }
 
       final channel = await findChannelByDid(permanentChannelDid);
 
-      final acceptOfferDidManager =
-          await connectionManager.getDidManagerForDid(wallet, acceptOfferDid);
+      final acceptOfferDidManager = await connectionManager.getDidManagerForDid(
+        wallet,
+        acceptOfferDid,
+      );
 
-      final acceptOfferDidDocument =
-          await acceptOfferDidManager.getDidDocument();
+      final acceptOfferDidDocument = await acceptOfferDidManager
+          .getDidDocument();
 
       final permenantChannelDid = await connectionManager.getDidManagerForDid(
-          wallet, permanentChannelDid);
+        wallet,
+        permanentChannelDid,
+      );
 
-      final permanentChannelDidDocument =
-          await permenantChannelDid.getDidDocument();
+      final permanentChannelDidDocument = await permenantChannelDid
+          .getDidDocument();
 
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: acceptOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.connectionAccepted,
+        messageType: MeetingPlaceProtocol.connectionRequestApproval,
       );
 
       // TODO: handle duplicates
@@ -79,8 +84,9 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        final otherPartyVCard =
-            getVCardDataOrEmptyFromAttachments(message.attachments);
+        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
+          message.attachments,
+        );
 
         final otherPartyPermanentChannelDid =
             message.body!['channel_did'] as String;
@@ -109,8 +115,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           ),
         ]);
 
-        final otherPartyPermanentChannelDidDocument =
-            await _didResolver.resolveDid(otherPartyPermanentChannelDid);
+        final otherPartyPermanentChannelDidDocument = await _didResolver
+            .resolveDid(otherPartyPermanentChannelDid);
 
         await mediatorService.sendMessage(
           ChannelInauguration.create(
@@ -118,7 +124,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
             to: [otherPartyPermanentChannelDid],
             did: otherPartyPermanentChannelDid,
             notificationToken: notificationToken,
-          ),
+          ).toPlainTextMessage(),
           senderDidManager: permenantChannelDid,
           recipientDidDocument: otherPartyPermanentChannelDidDocument,
           mediatorDid: connection.mediatorDid,
@@ -128,7 +134,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyNotificationToken = event.notificationToken;
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.outboundMessageId = message.id;
-        channel.otherPartyVCard = otherPartyVCard;
+        channel.otherPartyContactCard = otherPartyCard;
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
@@ -139,8 +145,9 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           otherPartyNotificationToken: event.notificationToken,
         );
 
-        await connectionOfferRepository
-            .updateConnectionOffer(approvedConnection);
+        await connectionOfferRepository.updateConnectionOffer(
+          approvedConnection,
+        );
 
         await _notifyChannel(
           notificationToken: event.notificationToken,
@@ -216,8 +223,10 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
     return notificationToken;
   }
 
-  Future<void> _notifyChannel(
-      {required String notificationToken, required String did}) async {
+  Future<void> _notifyChannel({
+    required String notificationToken,
+    required String did,
+  }) async {
     try {
       await _controlPlaneSDK.execute(
         NotifyChannelCommand(

@@ -19,12 +19,12 @@ class _$CreateOobInput extends CreateOobInput {
   factory _$CreateOobInput([void Function(CreateOobInputBuilder)? updates]) =>
       (CreateOobInputBuilder()..update(updates))._build();
 
-  _$CreateOobInput._(
-      {required this.didcommMessage,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint})
-      : super._();
+  _$CreateOobInput._({
+    required this.didcommMessage,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+  }) : super._();
   @override
   CreateOobInput rebuild(void Function(CreateOobInputBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -117,16 +117,29 @@ class CreateOobInputBuilder
   CreateOobInput build() => _build();
 
   _$CreateOobInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$CreateOobInput._(
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'CreateOobInput', 'didcommMessage'),
+            didcommMessage,
+            r'CreateOobInput',
+            'didcommMessage',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'CreateOobInput', 'mediatorDid'),
+            mediatorDid,
+            r'CreateOobInput',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'CreateOobInput', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'CreateOobInput',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint, r'CreateOobInput', 'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'CreateOobInput',
+            'mediatorWSSEndpoint',
+          ),
         );
     replace(_$result);
     return _$result;

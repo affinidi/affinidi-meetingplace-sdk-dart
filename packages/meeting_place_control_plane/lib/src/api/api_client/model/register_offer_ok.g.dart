@@ -21,13 +21,13 @@ class _$RegisterOfferOK extends RegisterOfferOK {
   factory _$RegisterOfferOK([void Function(RegisterOfferOKBuilder)? updates]) =>
       (RegisterOfferOKBuilder()..update(updates))._build();
 
-  _$RegisterOfferOK._(
-      {this.message,
-      required this.mnemonic,
-      this.validUntil,
-      this.maximumUsage,
-      required this.offerLink})
-      : super._();
+  _$RegisterOfferOK._({
+    this.message,
+    required this.mnemonic,
+    this.validUntil,
+    this.maximumUsage,
+    required this.offerLink,
+  }) : super._();
   @override
   RegisterOfferOK rebuild(void Function(RegisterOfferOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -125,15 +125,22 @@ class RegisterOfferOKBuilder
   RegisterOfferOK build() => _build();
 
   _$RegisterOfferOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterOfferOK._(
           message: message,
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'RegisterOfferOK', 'mnemonic'),
+            mnemonic,
+            r'RegisterOfferOK',
+            'mnemonic',
+          ),
           validUntil: validUntil,
           maximumUsage: maximumUsage,
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'RegisterOfferOK', 'offerLink'),
+            offerLink,
+            r'RegisterOfferOK',
+            'offerLink',
+          ),
         );
     replace(_$result);
     return _$result;

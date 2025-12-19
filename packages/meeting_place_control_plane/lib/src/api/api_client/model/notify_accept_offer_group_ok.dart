@@ -25,9 +25,9 @@ abstract class NotifyAcceptOfferGroupOK
 
   NotifyAcceptOfferGroupOK._();
 
-  factory NotifyAcceptOfferGroupOK(
-          [void updates(NotifyAcceptOfferGroupOKBuilder b)]) =
-      _$NotifyAcceptOfferGroupOK;
+  factory NotifyAcceptOfferGroupOK([
+    void updates(NotifyAcceptOfferGroupOKBuilder b),
+  ]) = _$NotifyAcceptOfferGroupOK;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(NotifyAcceptOfferGroupOKBuilder b) => b;
@@ -42,7 +42,7 @@ class _$NotifyAcceptOfferGroupOKSerializer
   @override
   final Iterable<Type> types = const [
     NotifyAcceptOfferGroupOK,
-    _$NotifyAcceptOfferGroupOK
+    _$NotifyAcceptOfferGroupOK,
   ];
 
   @override
@@ -75,9 +75,11 @@ class _$NotifyAcceptOfferGroupOKSerializer
     NotifyAcceptOfferGroupOK object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -93,17 +95,21 @@ class _$NotifyAcceptOfferGroupOKSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'status':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.status = valueDes;
           break;
         case r'message':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.message = valueDes;
           break;
         default:

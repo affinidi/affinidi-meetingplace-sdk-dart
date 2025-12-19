@@ -44,7 +44,7 @@ class _$RegisterDeviceInputSerializer
   @override
   final Iterable<Type> types = const [
     RegisterDeviceInput,
-    _$RegisterDeviceInput
+    _$RegisterDeviceInput,
   ];
 
   @override
@@ -73,9 +73,11 @@ class _$RegisterDeviceInputSerializer
     RegisterDeviceInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -91,17 +93,23 @@ class _$RegisterDeviceInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'platformType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(RegisterDeviceInputPlatformTypeEnum),
-          ) as RegisterDeviceInputPlatformTypeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      RegisterDeviceInputPlatformTypeEnum,
+                    ),
+                  )
+                  as RegisterDeviceInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
         case r'deviceToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceToken = valueDes;
           break;
         default:

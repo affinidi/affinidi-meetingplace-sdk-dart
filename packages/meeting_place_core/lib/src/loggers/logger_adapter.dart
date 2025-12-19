@@ -21,27 +21,37 @@ class LoggerAdapter<T>
   @override
   void info(String message, {String name = ''}) {
     if (_logger is MeetingPlaceCoreSDKLogger) {
-      (_logger as MeetingPlaceCoreSDKLogger)
-          .info(message, name: _formatName(name));
+      (_logger as MeetingPlaceCoreSDKLogger).info(
+        message,
+        name: _formatName(name),
+      );
     } else if (_logger is ControlPlaneSDKLogger) {
       (_logger as ControlPlaneSDKLogger).info(message, name: _formatName(name));
     } else if (_logger is MeetingPlaceMediatorSDKLogger) {
-      (_logger as MeetingPlaceMediatorSDKLogger)
-          .info(message, name: _formatName(name));
+      (_logger as MeetingPlaceMediatorSDKLogger).info(
+        message,
+        name: _formatName(name),
+      );
     }
   }
 
   @override
   void warning(String message, {String name = ''}) {
     if (_logger is MeetingPlaceCoreSDKLogger) {
-      (_logger as MeetingPlaceCoreSDKLogger)
-          .warning(message, name: _formatName(name));
+      (_logger as MeetingPlaceCoreSDKLogger).warning(
+        message,
+        name: _formatName(name),
+      );
     } else if (_logger is ControlPlaneSDKLogger) {
-      (_logger as ControlPlaneSDKLogger)
-          .warning(message, name: _formatName(name));
+      (_logger as ControlPlaneSDKLogger).warning(
+        message,
+        name: _formatName(name),
+      );
     } else if (_logger is MeetingPlaceMediatorSDKLogger) {
-      (_logger as MeetingPlaceMediatorSDKLogger)
-          .warning(message, name: _formatName(name));
+      (_logger as MeetingPlaceMediatorSDKLogger).warning(
+        message,
+        name: _formatName(name),
+      );
     }
   }
 
@@ -79,14 +89,20 @@ class LoggerAdapter<T>
   @override
   void debug(String message, {String name = ''}) {
     if (_logger is MeetingPlaceCoreSDKLogger) {
-      (_logger as MeetingPlaceCoreSDKLogger)
-          .debug(message, name: _formatName(name));
+      (_logger as MeetingPlaceCoreSDKLogger).debug(
+        message,
+        name: _formatName(name),
+      );
     } else if (_logger is ControlPlaneSDKLogger) {
-      (_logger as ControlPlaneSDKLogger)
-          .debug(message, name: _formatName(name));
+      (_logger as ControlPlaneSDKLogger).debug(
+        message,
+        name: _formatName(name),
+      );
     } else if (_logger is MeetingPlaceMediatorSDKLogger) {
-      (_logger as MeetingPlaceMediatorSDKLogger)
-          .debug(message, name: _formatName(name));
+      (_logger as MeetingPlaceMediatorSDKLogger).debug(
+        message,
+        name: _formatName(name),
+      );
     }
   }
 

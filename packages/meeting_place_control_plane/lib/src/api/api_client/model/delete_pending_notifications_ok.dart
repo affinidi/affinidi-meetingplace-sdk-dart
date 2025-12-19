@@ -20,8 +20,10 @@ part 'delete_pending_notifications_ok.g.dart';
 @BuiltValue()
 abstract class DeletePendingNotificationsOK
     implements
-        Built<DeletePendingNotificationsOK,
-            DeletePendingNotificationsOKBuilder> {
+        Built<
+          DeletePendingNotificationsOK,
+          DeletePendingNotificationsOKBuilder
+        > {
   @BuiltValueField(wireName: r'deletedIds')
   BuiltList<String>? get deletedIds;
 
@@ -112,28 +114,34 @@ class _$DeletePendingNotificationsOKSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'deletedIds':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(String),
-            ]),
-          ) as BuiltList<String>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(String),
+                    ]),
+                  )
+                  as BuiltList<String>;
           result.deletedIds.replace(valueDes);
           break;
         case r'notifications':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(DeletePendingNotificationsOKNotificationsInner),
-            ]),
-          ) as BuiltList<DeletePendingNotificationsOKNotificationsInner>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(DeletePendingNotificationsOKNotificationsInner),
+                    ]),
+                  )
+                  as BuiltList<DeletePendingNotificationsOKNotificationsInner>;
           result.notifications.replace(valueDes);
           break;
         case r'examples':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(JsonObject),
-          ) as JsonObject?;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType.nullable(JsonObject),
+                  )
+                  as JsonObject?;
           if (valueDes == null) continue;
           result.examples = valueDes;
           break;

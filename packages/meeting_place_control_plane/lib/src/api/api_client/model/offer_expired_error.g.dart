@@ -20,15 +20,16 @@ OfferExpiredErrorNameEnum _$offerExpiredErrorNameEnumValueOf(String name) {
 
 final BuiltSet<OfferExpiredErrorNameEnum> _$offerExpiredErrorNameEnumValues =
     BuiltSet<OfferExpiredErrorNameEnum>(const <OfferExpiredErrorNameEnum>[
-  _$offerExpiredErrorNameEnum_offerExpiredError,
-]);
+      _$offerExpiredErrorNameEnum_offerExpiredError,
+    ]);
 
 const OfferExpiredErrorMessageEnum
-    _$offerExpiredErrorMessageEnum_theOfferHasExpired =
+_$offerExpiredErrorMessageEnum_theOfferHasExpired =
     const OfferExpiredErrorMessageEnum._('theOfferHasExpired');
 
 OfferExpiredErrorMessageEnum _$offerExpiredErrorMessageEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'theOfferHasExpired':
       return _$offerExpiredErrorMessageEnum_theOfferHasExpired;
@@ -38,17 +39,18 @@ OfferExpiredErrorMessageEnum _$offerExpiredErrorMessageEnumValueOf(
 }
 
 final BuiltSet<OfferExpiredErrorMessageEnum>
-    _$offerExpiredErrorMessageEnumValues =
-    BuiltSet<OfferExpiredErrorMessageEnum>(const <OfferExpiredErrorMessageEnum>[
-  _$offerExpiredErrorMessageEnum_theOfferHasExpired,
-]);
+_$offerExpiredErrorMessageEnumValues = BuiltSet<OfferExpiredErrorMessageEnum>(
+  const <OfferExpiredErrorMessageEnum>[
+    _$offerExpiredErrorMessageEnum_theOfferHasExpired,
+  ],
+);
 
 const OfferExpiredErrorHttpStatusCodeEnum
-    _$offerExpiredErrorHttpStatusCodeEnum_number404 =
+_$offerExpiredErrorHttpStatusCodeEnum_number404 =
     const OfferExpiredErrorHttpStatusCodeEnum._('number404');
 
 OfferExpiredErrorHttpStatusCodeEnum
-    _$offerExpiredErrorHttpStatusCodeEnumValueOf(String name) {
+_$offerExpiredErrorHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number404':
       return _$offerExpiredErrorHttpStatusCodeEnum_number404;
@@ -58,18 +60,20 @@ OfferExpiredErrorHttpStatusCodeEnum
 }
 
 final BuiltSet<OfferExpiredErrorHttpStatusCodeEnum>
-    _$offerExpiredErrorHttpStatusCodeEnumValues = BuiltSet<
-        OfferExpiredErrorHttpStatusCodeEnum>(const <OfferExpiredErrorHttpStatusCodeEnum>[
-  _$offerExpiredErrorHttpStatusCodeEnum_number404,
-]);
+_$offerExpiredErrorHttpStatusCodeEnumValues =
+    BuiltSet<OfferExpiredErrorHttpStatusCodeEnum>(
+      const <OfferExpiredErrorHttpStatusCodeEnum>[
+        _$offerExpiredErrorHttpStatusCodeEnum_number404,
+      ],
+    );
 
 Serializer<OfferExpiredErrorNameEnum> _$offerExpiredErrorNameEnumSerializer =
     _$OfferExpiredErrorNameEnumSerializer();
 Serializer<OfferExpiredErrorMessageEnum>
-    _$offerExpiredErrorMessageEnumSerializer =
+_$offerExpiredErrorMessageEnumSerializer =
     _$OfferExpiredErrorMessageEnumSerializer();
 Serializer<OfferExpiredErrorHttpStatusCodeEnum>
-    _$offerExpiredErrorHttpStatusCodeEnumSerializer =
+_$offerExpiredErrorHttpStatusCodeEnumSerializer =
     _$OfferExpiredErrorHttpStatusCodeEnumSerializer();
 
 class _$OfferExpiredErrorNameEnumSerializer
@@ -87,16 +91,20 @@ class _$OfferExpiredErrorNameEnumSerializer
   final String wireName = 'OfferExpiredErrorNameEnum';
 
   @override
-  Object serialize(Serializers serializers, OfferExpiredErrorNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    OfferExpiredErrorNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   OfferExpiredErrorNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      OfferExpiredErrorNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => OfferExpiredErrorNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$OfferExpiredErrorMessageEnumSerializer
@@ -114,16 +122,20 @@ class _$OfferExpiredErrorMessageEnumSerializer
   final String wireName = 'OfferExpiredErrorMessageEnum';
 
   @override
-  Object serialize(Serializers serializers, OfferExpiredErrorMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    OfferExpiredErrorMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   OfferExpiredErrorMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      OfferExpiredErrorMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => OfferExpiredErrorMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$OfferExpiredErrorHttpStatusCodeEnumSerializer
@@ -137,23 +149,26 @@ class _$OfferExpiredErrorHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    OfferExpiredErrorHttpStatusCodeEnum
+    OfferExpiredErrorHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'OfferExpiredErrorHttpStatusCodeEnum';
 
   @override
   Object serialize(
-          Serializers serializers, OfferExpiredErrorHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    OfferExpiredErrorHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   OfferExpiredErrorHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      OfferExpiredErrorHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => OfferExpiredErrorHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$OfferExpiredError extends OfferExpiredError {
@@ -168,17 +183,17 @@ class _$OfferExpiredError extends OfferExpiredError {
   @override
   final BuiltList<NotFoundErrorDetailsInner>? details;
 
-  factory _$OfferExpiredError(
-          [void Function(OfferExpiredErrorBuilder)? updates]) =>
-      (OfferExpiredErrorBuilder()..update(updates))._build();
+  factory _$OfferExpiredError([
+    void Function(OfferExpiredErrorBuilder)? updates,
+  ]) => (OfferExpiredErrorBuilder()..update(updates))._build();
 
-  _$OfferExpiredError._(
-      {required this.name,
-      required this.message,
-      required this.httpStatusCode,
-      required this.traceId,
-      this.details})
-      : super._();
+  _$OfferExpiredError._({
+    required this.name,
+    required this.message,
+    required this.httpStatusCode,
+    required this.traceId,
+    this.details,
+  }) : super._();
   @override
   OfferExpiredError rebuild(void Function(OfferExpiredErrorBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -284,16 +299,29 @@ class OfferExpiredErrorBuilder
   _$OfferExpiredError _build() {
     _$OfferExpiredError _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$OfferExpiredError._(
             name: BuiltValueNullFieldError.checkNotNull(
-                name, r'OfferExpiredError', 'name'),
+              name,
+              r'OfferExpiredError',
+              'name',
+            ),
             message: BuiltValueNullFieldError.checkNotNull(
-                message, r'OfferExpiredError', 'message'),
+              message,
+              r'OfferExpiredError',
+              'message',
+            ),
             httpStatusCode: BuiltValueNullFieldError.checkNotNull(
-                httpStatusCode, r'OfferExpiredError', 'httpStatusCode'),
+              httpStatusCode,
+              r'OfferExpiredError',
+              'httpStatusCode',
+            ),
             traceId: BuiltValueNullFieldError.checkNotNull(
-                traceId, r'OfferExpiredError', 'traceId'),
+              traceId,
+              r'OfferExpiredError',
+              'traceId',
+            ),
             details: _details?.build(),
           );
     } catch (_) {
@@ -303,7 +331,10 @@ class OfferExpiredErrorBuilder
         _details?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'OfferExpiredError', _$failedField, e.toString());
+          r'OfferExpiredError',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

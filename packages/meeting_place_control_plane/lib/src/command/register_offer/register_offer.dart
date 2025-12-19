@@ -3,7 +3,7 @@ import 'package:didcomm/didcomm.dart';
 import '../../core/command/command.dart';
 import '../../core/device/device.dart';
 import '../../core/offer_type.dart';
-import '../../core/protocol/v_card/v_card.dart';
+import '../../core/protocol/contact_card/contact_card.dart';
 import 'register_offer_output.dart';
 
 /// Model that represents the request sent for the [RegisterOfferCommand]
@@ -14,7 +14,7 @@ class RegisterOfferCommand
   RegisterOfferCommand({
     required this.offerName,
     required this.offerDescription,
-    required this.vCard,
+    required this.contactCard,
     required this.device,
     required this.type,
     required this.oobInvitationMessage,
@@ -26,7 +26,7 @@ class RegisterOfferCommand
 
   final String offerName;
   final String offerDescription;
-  final VCard vCard;
+  final ContactCard contactCard;
   final Device device;
   final OfferType type;
   final PlainTextMessage oobInvitationMessage;

@@ -180,6 +180,12 @@ class ConnectionContactCards extends Table {
         'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
       )();
 
+  /// DID of the contact.
+  TextColumn get did => text()();
+
+  /// Type of the contact.
+  TextColumn get type => text()();
+
   /// First name of the contact.
   TextColumn get firstName => text()();
 

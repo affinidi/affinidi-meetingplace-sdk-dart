@@ -88,12 +88,14 @@ class _$GetPendingNotificationsOKSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'notifications':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(GetPendingNotificationsOKNotificationsInner),
-            ]),
-          ) as BuiltList<GetPendingNotificationsOKNotificationsInner>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(GetPendingNotificationsOKNotificationsInner),
+                    ]),
+                  )
+                  as BuiltList<GetPendingNotificationsOKNotificationsInner>;
           result.notifications.replace(valueDes);
           break;
         default:

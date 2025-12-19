@@ -16,9 +16,12 @@ class StreamData {
 
 class ChatStream {
   ChatStream({MeetingPlaceChatSDKLogger? logger})
-      : _logger = logger ??
-            DefaultMeetingPlaceChatSDKLogger(
-                className: _className, sdkName: sdkName);
+    : _logger =
+          logger ??
+          DefaultMeetingPlaceChatSDKLogger(
+            className: _className,
+            sdkName: sdkName,
+          );
 
   static const String _className = 'ChatStream';
   final List<StreamData> _eventBuffer = <StreamData>[];

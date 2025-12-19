@@ -147,9 +147,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(AcceptOfferOK),
-            ) as AcceptOfferOK;
+                  rawResponse,
+                  specifiedType: const FullType(AcceptOfferOK),
+                )
+                as AcceptOfferOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -247,9 +248,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(AcceptOfferGroupOK),
-            ) as AcceptOfferGroupOK;
+                  rawResponse,
+                  specifiedType: const FullType(AcceptOfferGroupOK),
+                )
+                as AcceptOfferGroupOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -347,9 +349,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(CheckOfferPhraseOK),
-            ) as CheckOfferPhraseOK;
+                  rawResponse,
+                  specifiedType: const FullType(CheckOfferPhraseOK),
+                )
+                as CheckOfferPhraseOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -444,9 +447,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(CreateOobOK),
-            ) as CreateOobOK;
+                  rawResponse,
+                  specifiedType: const FullType(CreateOobOK),
+                )
+                as CreateOobOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -544,9 +548,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(DeletePendingNotificationsOK),
-            ) as DeletePendingNotificationsOK;
+                  rawResponse,
+                  specifiedType: const FullType(DeletePendingNotificationsOK),
+                )
+                as DeletePendingNotificationsOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -644,9 +649,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(JsonObject),
-            ) as JsonObject;
+                  rawResponse,
+                  specifiedType: const FullType(JsonObject),
+                )
+                as JsonObject;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -744,9 +750,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(DeregisterOfferOK),
-            ) as DeregisterOfferOK;
+                  rawResponse,
+                  specifiedType: const FullType(DeregisterOfferOK),
+                )
+                as DeregisterOfferOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -831,9 +838,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(DidAuthenticateOK),
-            ) as DidAuthenticateOK;
+                  rawResponse,
+                  specifiedType: const FullType(DidAuthenticateOK),
+                )
+                as DidAuthenticateOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -918,9 +926,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(DidChallengeOK),
-            ) as DidChallengeOK;
+                  rawResponse,
+                  specifiedType: const FullType(DidChallengeOK),
+                )
+                as DidChallengeOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1018,9 +1027,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(FinaliseOfferOK),
-            ) as FinaliseOfferOK;
+                  rawResponse,
+                  specifiedType: const FullType(FinaliseOfferOK),
+                )
+                as FinaliseOfferOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1108,9 +1118,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(GetOobOK),
-            ) as GetOobOK;
+                  rawResponse,
+                  specifiedType: const FullType(GetOobOK),
+                )
+                as GetOobOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1208,9 +1219,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(GetPendingNotificationsOK),
-            ) as GetPendingNotificationsOK;
+                  rawResponse,
+                  specifiedType: const FullType(GetPendingNotificationsOK),
+                )
+                as GetPendingNotificationsOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1308,9 +1320,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(GroupAddMemberOK),
-            ) as GroupAddMemberOK;
+                  rawResponse,
+                  specifiedType: const FullType(GroupAddMemberOK),
+                )
+                as GroupAddMemberOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1408,9 +1421,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(GroupDeleteOK),
-            ) as GroupDeleteOK;
+                  rawResponse,
+                  specifiedType: const FullType(GroupDeleteOK),
+                )
+                as GroupDeleteOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1508,9 +1522,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(GroupMemberDeregisterOK),
-            ) as GroupMemberDeregisterOK;
+                  rawResponse,
+                  specifiedType: const FullType(GroupMemberDeregisterOK),
+                )
+                as GroupMemberDeregisterOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1608,9 +1623,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(GroupSendMessageOK),
-            ) as GroupSendMessageOK;
+                  rawResponse,
+                  specifiedType: const FullType(GroupSendMessageOK),
+                )
+                as GroupSendMessageOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1708,9 +1724,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(NotifyAcceptOfferOK),
-            ) as NotifyAcceptOfferOK;
+                  rawResponse,
+                  specifiedType: const FullType(NotifyAcceptOfferOK),
+                )
+                as NotifyAcceptOfferOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1808,9 +1825,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(NotifyAcceptOfferGroupOK),
-            ) as NotifyAcceptOfferGroupOK;
+                  rawResponse,
+                  specifiedType: const FullType(NotifyAcceptOfferGroupOK),
+                )
+                as NotifyAcceptOfferGroupOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -1908,9 +1926,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(NotifyChannelOK),
-            ) as NotifyChannelOK;
+                  rawResponse,
+                  specifiedType: const FullType(NotifyChannelOK),
+                )
+                as NotifyChannelOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -2008,9 +2027,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(NotifyOutreachOK),
-            ) as NotifyOutreachOK;
+                  rawResponse,
+                  specifiedType: const FullType(NotifyOutreachOK),
+                )
+                as NotifyOutreachOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -2105,9 +2125,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(QueryOfferOK),
-            ) as QueryOfferOK;
+                  rawResponse,
+                  specifiedType: const FullType(QueryOfferOK),
+                )
+                as QueryOfferOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -2205,9 +2226,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(RegisterDeviceOK),
-            ) as RegisterDeviceOK;
+                  rawResponse,
+                  specifiedType: const FullType(RegisterDeviceOK),
+                )
+                as RegisterDeviceOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -2305,9 +2327,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(RegisterNotificationOK),
-            ) as RegisterNotificationOK;
+                  rawResponse,
+                  specifiedType: const FullType(RegisterNotificationOK),
+                )
+                as RegisterNotificationOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -2405,9 +2428,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(RegisterOfferOK),
-            ) as RegisterOfferOK;
+                  rawResponse,
+                  specifiedType: const FullType(RegisterOfferOK),
+                )
+                as RegisterOfferOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,
@@ -2505,9 +2529,10 @@ class DefaultApi {
       _responseData = rawResponse == null
           ? null
           : _serializers.deserialize(
-              rawResponse,
-              specifiedType: const FullType(RegisterOfferGroupOK),
-            ) as RegisterOfferGroupOK;
+                  rawResponse,
+                  specifiedType: const FullType(RegisterOfferGroupOK),
+                )
+                as RegisterOfferGroupOK;
     } catch (error, stackTrace) {
       throw DioException(
         requestOptions: _response.requestOptions,

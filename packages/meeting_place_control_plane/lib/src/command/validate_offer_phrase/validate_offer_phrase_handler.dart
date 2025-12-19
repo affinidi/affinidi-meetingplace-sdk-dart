@@ -18,8 +18,10 @@ import 'validate_offer_phrase_output.dart';
 /// Phrase operation.
 class ValidateOfferPhraseHandler
     implements
-        CommandHandler<ValidateOfferPhraseCommand,
-            ValidateOfferPhraseCommandOutput> {
+        CommandHandler<
+          ValidateOfferPhraseCommand,
+          ValidateOfferPhraseCommandOutput
+        > {
   /// Returns an instance of [ValidateOfferPhraseHandler].
   ///
   /// **Parameters:**
@@ -30,10 +32,13 @@ class ValidateOfferPhraseHandler
     required ControlPlaneApiClient apiClient,
     required CommandDispatcher dispatcher,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'ValidateOfferPhraseHandler';
 
   final ControlPlaneApiClient _apiClient;

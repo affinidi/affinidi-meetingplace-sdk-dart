@@ -1,7 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
-import 'package:meeting_place_core/src/protocol/v_card/v_card.dart';
+import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
@@ -12,7 +12,8 @@ import 'package:meeting_place_core/src/entity/connection_offer.dart';
 import 'package:meeting_place_core/src/protocol/meeting_place_protocol.dart';
 import 'package:meeting_place_core/src/repository/connection_offer_repository.dart';
 import 'package:meeting_place_core/src/repository/channel_repository.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    as cp;
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,7 +31,7 @@ void main() {
   final mediatorDid = 'did:web:mediator-did';
 
   final fetchMessageOptions = FetchMessagesOptions(
-    filterByMessageTypes: [MeetingPlaceProtocol.connectionSetup.value],
+    filterByMessageTypes: [MeetingPlaceProtocol.invitationAcceptance.value],
   );
 
   final offerLink = Uuid().v4();
@@ -47,12 +48,16 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     type: ConnectionOfferType.meetingPlaceInvitation,
-    vCard: VCard(values: {'fullName': 'Test User'}),
+    contactCard: ContactCard(
+      did: 'did:key:contact-card-did',
+      type: 'individual',
+      contactInfo: const {'fullName': 'Test User'},
+    ),
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
   );
 
-  final event = InvitationAccept(
+  final event = cp.InvitationAccept(
     id: Uuid().v4(),
     acceptOfferAsDid: acceptOfferDid,
     offerLink: offerLink,
@@ -63,7 +68,11 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     status: ChannelStatus.approved,
-    vCard: VCard(values: {}),
+    contactCard: ContactCard(
+      did: 'did:key:contact-card-did',
+      type: 'individual',
+      contactInfo: const {'fullName': 'Test User'},
+    ),
     type: ChannelType.individual,
   );
 
@@ -88,22 +97,30 @@ void main() {
     registerFallbackValue(fetchMessageOptions);
     registerFallbackValue(channel);
 
-    when(() => mockConnectionOfferRepository.getConnectionOfferByOfferLink(
-        offerLink)).thenAnswer((_) async => connectionOffer);
+    when(
+      () => mockConnectionOfferRepository.getConnectionOfferByOfferLink(
+        offerLink,
+      ),
+    ).thenAnswer((_) async => connectionOffer);
 
-    when(() => mockConnectionManager.getDidManagerForDid(
-          mockWallet,
-          publishOfferDid,
-        )).thenAnswer((_) async => mockDidManager);
+    when(
+      () => mockConnectionManager.getDidManagerForDid(
+        mockWallet,
+        publishOfferDid,
+      ),
+    ).thenAnswer((_) async => mockDidManager);
 
-    when(() => mockChannelRepository.createChannel(any()))
-        .thenAnswer((_) async => {});
+    when(
+      () => mockChannelRepository.createChannel(any()),
+    ).thenAnswer((_) async => {});
 
-    when(() => mockMediatorService.deletedMessages(
-          didManager: mockDidManager,
-          mediatorDid: mediatorDid,
-          messageHashes: [messageHash],
-        )).thenAnswer((_) async => {});
+    when(
+      () => mockMediatorService.deletedMessages(
+        didManager: mockDidManager,
+        mediatorDid: mediatorDid,
+        messageHashes: [messageHash],
+      ),
+    ).thenAnswer((_) async => {});
   });
 
   group('retry behavior', () {
@@ -120,19 +137,21 @@ void main() {
               id: Uuid().v4(),
               from: acceptOfferDid,
               to: [publishOfferDid],
-              type: Uri.parse(MeetingPlaceProtocol.connectionSetup.value),
+              type: Uri.parse(MeetingPlaceProtocol.invitationAcceptance.value),
               body: {'channel_did': 'permanent-permanent-did'},
             ),
             messageHash: messageHash,
           ),
-        ]
+        ],
       ];
 
-      when(() => mockMediatorService.fetchMessages(
-            didManager: mockDidManager,
-            mediatorDid: mediatorDid,
-            options: any(named: 'options'),
-          )).thenAnswer((_) async => fetchMessagesResponses.removeAt(0));
+      when(
+        () => mockMediatorService.fetchMessages(
+          didManager: mockDidManager,
+          mediatorDid: mediatorDid,
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer((_) async => fetchMessagesResponses.removeAt(0));
 
       processResult = await handler.process(event);
     });
@@ -142,31 +161,37 @@ void main() {
     });
 
     test('fetchMessages called twice', () async {
-      verify(() => mockMediatorService.fetchMessages(
-            didManager: mockDidManager,
-            mediatorDid: mediatorDid,
-            options: any(named: 'options'), // Matches any instance
-          )).called(2);
+      verify(
+        () => mockMediatorService.fetchMessages(
+          didManager: mockDidManager,
+          mediatorDid: mediatorDid,
+          options: any(named: 'options'), // Matches any instance
+        ),
+      ).called(2);
     });
   });
 
   group('retry behavior for exceeded retries', () {
     setUpAll(() {
       // Mediator returns no messages
-      when(() => mockMediatorService.fetchMessages(
-            didManager: mockDidManager,
-            mediatorDid: mediatorDid,
-            options: any(named: 'options'),
-          )).thenAnswer((_) async => []);
+      when(
+        () => mockMediatorService.fetchMessages(
+          didManager: mockDidManager,
+          mediatorDid: mediatorDid,
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer((_) async => []);
     });
 
     test('respect maximum number of retries', () async {
       await handler.process(event);
-      verify(() => mockMediatorService.fetchMessages(
-            didManager: mockDidManager,
-            mediatorDid: any(named: 'mediatorDid'),
-            options: any(named: 'options'),
-          )).called(3);
+      verify(
+        () => mockMediatorService.fetchMessages(
+          didManager: mockDidManager,
+          mediatorDid: any(named: 'mediatorDid'),
+          options: any(named: 'options'),
+        ),
+      ).called(3);
     });
 
     test('returns null', () async {

@@ -7,17 +7,17 @@ part of 'register_notification_input.dart';
 // **************************************************************************
 
 const RegisterNotificationInputPlatformTypeEnum
-    _$registerNotificationInputPlatformTypeEnum_DIDCOMM =
+_$registerNotificationInputPlatformTypeEnum_DIDCOMM =
     const RegisterNotificationInputPlatformTypeEnum._('DIDCOMM');
 const RegisterNotificationInputPlatformTypeEnum
-    _$registerNotificationInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$registerNotificationInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const RegisterNotificationInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const RegisterNotificationInputPlatformTypeEnum
-    _$registerNotificationInputPlatformTypeEnum_NONE =
+_$registerNotificationInputPlatformTypeEnum_NONE =
     const RegisterNotificationInputPlatformTypeEnum._('NONE');
 
 RegisterNotificationInputPlatformTypeEnum
-    _$registerNotificationInputPlatformTypeEnumValueOf(String name) {
+_$registerNotificationInputPlatformTypeEnumValueOf(String name) {
   switch (name) {
     case 'DIDCOMM':
       return _$registerNotificationInputPlatformTypeEnum_DIDCOMM;
@@ -31,15 +31,17 @@ RegisterNotificationInputPlatformTypeEnum
 }
 
 final BuiltSet<RegisterNotificationInputPlatformTypeEnum>
-    _$registerNotificationInputPlatformTypeEnumValues = BuiltSet<
-        RegisterNotificationInputPlatformTypeEnum>(const <RegisterNotificationInputPlatformTypeEnum>[
-  _$registerNotificationInputPlatformTypeEnum_DIDCOMM,
-  _$registerNotificationInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$registerNotificationInputPlatformTypeEnum_NONE,
-]);
+_$registerNotificationInputPlatformTypeEnumValues =
+    BuiltSet<RegisterNotificationInputPlatformTypeEnum>(
+      const <RegisterNotificationInputPlatformTypeEnum>[
+        _$registerNotificationInputPlatformTypeEnum_DIDCOMM,
+        _$registerNotificationInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$registerNotificationInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<RegisterNotificationInputPlatformTypeEnum>
-    _$registerNotificationInputPlatformTypeEnumSerializer =
+_$registerNotificationInputPlatformTypeEnumSerializer =
     _$RegisterNotificationInputPlatformTypeEnumSerializer();
 
 class _$RegisterNotificationInputPlatformTypeEnumSerializer
@@ -57,23 +59,26 @@ class _$RegisterNotificationInputPlatformTypeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    RegisterNotificationInputPlatformTypeEnum
+    RegisterNotificationInputPlatformTypeEnum,
   ];
   @override
   final String wireName = 'RegisterNotificationInputPlatformTypeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          RegisterNotificationInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    RegisterNotificationInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   RegisterNotificationInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      RegisterNotificationInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => RegisterNotificationInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$RegisterNotificationInput extends RegisterNotificationInput {
@@ -86,20 +91,20 @@ class _$RegisterNotificationInput extends RegisterNotificationInput {
   @override
   final RegisterNotificationInputPlatformTypeEnum platformType;
 
-  factory _$RegisterNotificationInput(
-          [void Function(RegisterNotificationInputBuilder)? updates]) =>
-      (RegisterNotificationInputBuilder()..update(updates))._build();
+  factory _$RegisterNotificationInput([
+    void Function(RegisterNotificationInputBuilder)? updates,
+  ]) => (RegisterNotificationInputBuilder()..update(updates))._build();
 
-  _$RegisterNotificationInput._(
-      {required this.myDid,
-      required this.theirDid,
-      required this.deviceToken,
-      required this.platformType})
-      : super._();
+  _$RegisterNotificationInput._({
+    required this.myDid,
+    required this.theirDid,
+    required this.deviceToken,
+    required this.platformType,
+  }) : super._();
   @override
   RegisterNotificationInput rebuild(
-          void Function(RegisterNotificationInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(RegisterNotificationInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   RegisterNotificationInputBuilder toBuilder() =>
@@ -190,16 +195,29 @@ class RegisterNotificationInputBuilder
   RegisterNotificationInput build() => _build();
 
   _$RegisterNotificationInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterNotificationInput._(
           myDid: BuiltValueNullFieldError.checkNotNull(
-              myDid, r'RegisterNotificationInput', 'myDid'),
+            myDid,
+            r'RegisterNotificationInput',
+            'myDid',
+          ),
           theirDid: BuiltValueNullFieldError.checkNotNull(
-              theirDid, r'RegisterNotificationInput', 'theirDid'),
+            theirDid,
+            r'RegisterNotificationInput',
+            'theirDid',
+          ),
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'RegisterNotificationInput', 'deviceToken'),
+            deviceToken,
+            r'RegisterNotificationInput',
+            'deviceToken',
+          ),
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'RegisterNotificationInput', 'platformType'),
+            platformType,
+            r'RegisterNotificationInput',
+            'platformType',
+          ),
         );
     replace(_$result);
     return _$result;

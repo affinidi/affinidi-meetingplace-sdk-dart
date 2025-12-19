@@ -20,20 +20,20 @@ class ControlPlaneApiClient {
     required ControlPlaneSDK controlPlaneSDK,
     required String controlPlaneDid,
     required ControlPlaneSDKLogger logger,
-  })  : _mpxClient = api_client.ControlPlaneApi(
-          basePath: basePath,
-          dio: dio,
-          interceptors: [
-            api_client.ApiKeyAuthInterceptor(),
-            RefreshAuthCredentialsInterceptor(
-              dio: dio,
-              controlPlaneSDK: controlPlaneSDK,
-              controlPlaneDid: controlPlaneDid,
-              logger: logger,
-            ),
-          ],
-        ),
-        _logger = logger;
+  }) : _mpxClient = api_client.ControlPlaneApi(
+         basePath: basePath,
+         dio: dio,
+         interceptors: [
+           api_client.ApiKeyAuthInterceptor(),
+           RefreshAuthCredentialsInterceptor(
+             dio: dio,
+             controlPlaneSDK: controlPlaneSDK,
+             controlPlaneDid: controlPlaneDid,
+             logger: logger,
+           ),
+         ],
+       ),
+       _logger = logger;
   static final String _apiKeyName = 'DidCommTokenAuth';
   static const String _className = 'DiscoveryApiClient';
 
@@ -53,7 +53,8 @@ class ControlPlaneApiClient {
     ControlPlaneSDKLogger? logger,
   }) async {
     final methodName = 'init';
-    final effectiveLogger = logger ??
+    final effectiveLogger =
+        logger ??
         DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
 
     effectiveLogger.info(

@@ -40,9 +40,12 @@ class RegisterOfferHandler
     required this.sdkConfig,
     required this.didResolver,
     ControlPlaneSDKLogger? logger,
-  }) : _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'RegisterOfferHandler';
 
   final ControlPlaneApiClient apiClient;
@@ -95,7 +98,7 @@ class RegisterOfferHandler
       ..offerName = command.offerName
       ..offerDescription = command.offerDescription
       ..didcommMessage = toBase64(command.oobInvitationMessage.toJson())
-      ..vcard = command.vCard.toBase64()
+      ..contactCard = command.contactCard.toBase64()
       ..validUntil = command.validUntil?.toUtc().toIso8601String()
       ..maximumUsage = command.maximumUsage
       ..deviceToken = command.device.deviceToken

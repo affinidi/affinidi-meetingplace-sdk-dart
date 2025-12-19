@@ -7,11 +7,12 @@ part of 'offer_phrase_in_use_error.dart';
 // **************************************************************************
 
 const OfferPhraseInUseErrorNameEnum
-    _$offerPhraseInUseErrorNameEnum_offerPhraseInUseError =
+_$offerPhraseInUseErrorNameEnum_offerPhraseInUseError =
     const OfferPhraseInUseErrorNameEnum._('offerPhraseInUseError');
 
 OfferPhraseInUseErrorNameEnum _$offerPhraseInUseErrorNameEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'offerPhraseInUseError':
       return _$offerPhraseInUseErrorNameEnum_offerPhraseInUseError;
@@ -21,18 +22,21 @@ OfferPhraseInUseErrorNameEnum _$offerPhraseInUseErrorNameEnumValueOf(
 }
 
 final BuiltSet<OfferPhraseInUseErrorNameEnum>
-    _$offerPhraseInUseErrorNameEnumValues = BuiltSet<
-        OfferPhraseInUseErrorNameEnum>(const <OfferPhraseInUseErrorNameEnum>[
-  _$offerPhraseInUseErrorNameEnum_offerPhraseInUseError,
-]);
+_$offerPhraseInUseErrorNameEnumValues = BuiltSet<OfferPhraseInUseErrorNameEnum>(
+  const <OfferPhraseInUseErrorNameEnum>[
+    _$offerPhraseInUseErrorNameEnum_offerPhraseInUseError,
+  ],
+);
 
 const OfferPhraseInUseErrorMessageEnum
-    _$offerPhraseInUseErrorMessageEnum_theOfferPhraseIsAlreadyInUseByAnotherOffer =
+_$offerPhraseInUseErrorMessageEnum_theOfferPhraseIsAlreadyInUseByAnotherOffer =
     const OfferPhraseInUseErrorMessageEnum._(
-        'theOfferPhraseIsAlreadyInUseByAnotherOffer');
+      'theOfferPhraseIsAlreadyInUseByAnotherOffer',
+    );
 
 OfferPhraseInUseErrorMessageEnum _$offerPhraseInUseErrorMessageEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'theOfferPhraseIsAlreadyInUseByAnotherOffer':
       return _$offerPhraseInUseErrorMessageEnum_theOfferPhraseIsAlreadyInUseByAnotherOffer;
@@ -42,17 +46,19 @@ OfferPhraseInUseErrorMessageEnum _$offerPhraseInUseErrorMessageEnumValueOf(
 }
 
 final BuiltSet<OfferPhraseInUseErrorMessageEnum>
-    _$offerPhraseInUseErrorMessageEnumValues = BuiltSet<
-        OfferPhraseInUseErrorMessageEnum>(const <OfferPhraseInUseErrorMessageEnum>[
-  _$offerPhraseInUseErrorMessageEnum_theOfferPhraseIsAlreadyInUseByAnotherOffer,
-]);
+_$offerPhraseInUseErrorMessageEnumValues =
+    BuiltSet<OfferPhraseInUseErrorMessageEnum>(const <
+      OfferPhraseInUseErrorMessageEnum
+    >[
+      _$offerPhraseInUseErrorMessageEnum_theOfferPhraseIsAlreadyInUseByAnotherOffer,
+    ]);
 
 const OfferPhraseInUseErrorHttpStatusCodeEnum
-    _$offerPhraseInUseErrorHttpStatusCodeEnum_number409 =
+_$offerPhraseInUseErrorHttpStatusCodeEnum_number409 =
     const OfferPhraseInUseErrorHttpStatusCodeEnum._('number409');
 
 OfferPhraseInUseErrorHttpStatusCodeEnum
-    _$offerPhraseInUseErrorHttpStatusCodeEnumValueOf(String name) {
+_$offerPhraseInUseErrorHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
     case 'number409':
       return _$offerPhraseInUseErrorHttpStatusCodeEnum_number409;
@@ -62,19 +68,21 @@ OfferPhraseInUseErrorHttpStatusCodeEnum
 }
 
 final BuiltSet<OfferPhraseInUseErrorHttpStatusCodeEnum>
-    _$offerPhraseInUseErrorHttpStatusCodeEnumValues = BuiltSet<
-        OfferPhraseInUseErrorHttpStatusCodeEnum>(const <OfferPhraseInUseErrorHttpStatusCodeEnum>[
-  _$offerPhraseInUseErrorHttpStatusCodeEnum_number409,
-]);
+_$offerPhraseInUseErrorHttpStatusCodeEnumValues =
+    BuiltSet<OfferPhraseInUseErrorHttpStatusCodeEnum>(
+      const <OfferPhraseInUseErrorHttpStatusCodeEnum>[
+        _$offerPhraseInUseErrorHttpStatusCodeEnum_number409,
+      ],
+    );
 
 Serializer<OfferPhraseInUseErrorNameEnum>
-    _$offerPhraseInUseErrorNameEnumSerializer =
+_$offerPhraseInUseErrorNameEnumSerializer =
     _$OfferPhraseInUseErrorNameEnumSerializer();
 Serializer<OfferPhraseInUseErrorMessageEnum>
-    _$offerPhraseInUseErrorMessageEnumSerializer =
+_$offerPhraseInUseErrorMessageEnumSerializer =
     _$OfferPhraseInUseErrorMessageEnumSerializer();
 Serializer<OfferPhraseInUseErrorHttpStatusCodeEnum>
-    _$offerPhraseInUseErrorHttpStatusCodeEnumSerializer =
+_$offerPhraseInUseErrorHttpStatusCodeEnumSerializer =
     _$OfferPhraseInUseErrorHttpStatusCodeEnumSerializer();
 
 class _$OfferPhraseInUseErrorNameEnumSerializer
@@ -93,16 +101,19 @@ class _$OfferPhraseInUseErrorNameEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, OfferPhraseInUseErrorNameEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    OfferPhraseInUseErrorNameEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   OfferPhraseInUseErrorNameEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      OfferPhraseInUseErrorNameEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => OfferPhraseInUseErrorNameEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$OfferPhraseInUseErrorMessageEnumSerializer
@@ -123,16 +134,19 @@ class _$OfferPhraseInUseErrorMessageEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, OfferPhraseInUseErrorMessageEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    OfferPhraseInUseErrorMessageEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   OfferPhraseInUseErrorMessageEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      OfferPhraseInUseErrorMessageEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => OfferPhraseInUseErrorMessageEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$OfferPhraseInUseErrorHttpStatusCodeEnumSerializer
@@ -146,23 +160,26 @@ class _$OfferPhraseInUseErrorHttpStatusCodeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    OfferPhraseInUseErrorHttpStatusCodeEnum
+    OfferPhraseInUseErrorHttpStatusCodeEnum,
   ];
   @override
   final String wireName = 'OfferPhraseInUseErrorHttpStatusCodeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          OfferPhraseInUseErrorHttpStatusCodeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    OfferPhraseInUseErrorHttpStatusCodeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   OfferPhraseInUseErrorHttpStatusCodeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      OfferPhraseInUseErrorHttpStatusCodeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => OfferPhraseInUseErrorHttpStatusCodeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$OfferPhraseInUseError extends OfferPhraseInUseError {
@@ -177,21 +194,21 @@ class _$OfferPhraseInUseError extends OfferPhraseInUseError {
   @override
   final BuiltList<NotFoundErrorDetailsInner>? details;
 
-  factory _$OfferPhraseInUseError(
-          [void Function(OfferPhraseInUseErrorBuilder)? updates]) =>
-      (OfferPhraseInUseErrorBuilder()..update(updates))._build();
+  factory _$OfferPhraseInUseError([
+    void Function(OfferPhraseInUseErrorBuilder)? updates,
+  ]) => (OfferPhraseInUseErrorBuilder()..update(updates))._build();
 
-  _$OfferPhraseInUseError._(
-      {required this.name,
-      required this.message,
-      required this.httpStatusCode,
-      required this.traceId,
-      this.details})
-      : super._();
+  _$OfferPhraseInUseError._({
+    required this.name,
+    required this.message,
+    required this.httpStatusCode,
+    required this.traceId,
+    this.details,
+  }) : super._();
   @override
   OfferPhraseInUseError rebuild(
-          void Function(OfferPhraseInUseErrorBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(OfferPhraseInUseErrorBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   OfferPhraseInUseErrorBuilder toBuilder() =>
@@ -294,16 +311,29 @@ class OfferPhraseInUseErrorBuilder
   _$OfferPhraseInUseError _build() {
     _$OfferPhraseInUseError _$result;
     try {
-      _$result = _$v ??
+      _$result =
+          _$v ??
           _$OfferPhraseInUseError._(
             name: BuiltValueNullFieldError.checkNotNull(
-                name, r'OfferPhraseInUseError', 'name'),
+              name,
+              r'OfferPhraseInUseError',
+              'name',
+            ),
             message: BuiltValueNullFieldError.checkNotNull(
-                message, r'OfferPhraseInUseError', 'message'),
+              message,
+              r'OfferPhraseInUseError',
+              'message',
+            ),
             httpStatusCode: BuiltValueNullFieldError.checkNotNull(
-                httpStatusCode, r'OfferPhraseInUseError', 'httpStatusCode'),
+              httpStatusCode,
+              r'OfferPhraseInUseError',
+              'httpStatusCode',
+            ),
             traceId: BuiltValueNullFieldError.checkNotNull(
-                traceId, r'OfferPhraseInUseError', 'traceId'),
+              traceId,
+              r'OfferPhraseInUseError',
+              'traceId',
+            ),
             details: _details?.build(),
           );
     } catch (_) {
@@ -313,7 +343,10 @@ class OfferPhraseInUseErrorBuilder
         _details?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'OfferPhraseInUseError', _$failedField, e.toString());
+          r'OfferPhraseInUseError',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }

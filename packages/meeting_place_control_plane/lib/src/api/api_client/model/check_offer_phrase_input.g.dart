@@ -10,15 +10,15 @@ class _$CheckOfferPhraseInput extends CheckOfferPhraseInput {
   @override
   final String offerPhrase;
 
-  factory _$CheckOfferPhraseInput(
-          [void Function(CheckOfferPhraseInputBuilder)? updates]) =>
-      (CheckOfferPhraseInputBuilder()..update(updates))._build();
+  factory _$CheckOfferPhraseInput([
+    void Function(CheckOfferPhraseInputBuilder)? updates,
+  ]) => (CheckOfferPhraseInputBuilder()..update(updates))._build();
 
   _$CheckOfferPhraseInput._({required this.offerPhrase}) : super._();
   @override
   CheckOfferPhraseInput rebuild(
-          void Function(CheckOfferPhraseInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(CheckOfferPhraseInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   CheckOfferPhraseInputBuilder toBuilder() =>
@@ -40,9 +40,9 @@ class _$CheckOfferPhraseInput extends CheckOfferPhraseInput {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'CheckOfferPhraseInput')
-          ..add('offerPhrase', offerPhrase))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'CheckOfferPhraseInput',
+    )..add('offerPhrase', offerPhrase)).toString();
   }
 }
 
@@ -81,10 +81,14 @@ class CheckOfferPhraseInputBuilder
   CheckOfferPhraseInput build() => _build();
 
   _$CheckOfferPhraseInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$CheckOfferPhraseInput._(
           offerPhrase: BuiltValueNullFieldError.checkNotNull(
-              offerPhrase, r'CheckOfferPhraseInput', 'offerPhrase'),
+            offerPhrase,
+            r'CheckOfferPhraseInput',
+            'offerPhrase',
+          ),
         );
     replace(_$result);
     return _$result;

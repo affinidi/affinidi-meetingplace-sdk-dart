@@ -121,42 +121,52 @@ class _$NotFoundErrorSerializer implements PrimitiveSerializer<NotFoundError> {
       final value = serializedList[i + 1];
       switch (key) {
         case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(NotFoundErrorNameEnum),
-          ) as NotFoundErrorNameEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(NotFoundErrorNameEnum),
+                  )
+                  as NotFoundErrorNameEnum;
           result.name = valueDes;
           break;
         case r'message':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(NotFoundErrorMessageEnum),
-          ) as NotFoundErrorMessageEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(NotFoundErrorMessageEnum),
+                  )
+                  as NotFoundErrorMessageEnum;
           result.message = valueDes;
           break;
         case r'httpStatusCode':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              NotFoundErrorHttpStatusCodeEnum,
-            ),
-          ) as NotFoundErrorHttpStatusCodeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      NotFoundErrorHttpStatusCodeEnum,
+                    ),
+                  )
+                  as NotFoundErrorHttpStatusCodeEnum;
           result.httpStatusCode = valueDes;
           break;
         case r'traceId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.traceId = valueDes;
           break;
         case r'details':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(NotFoundErrorDetailsInner),
-            ]),
-          ) as BuiltList<NotFoundErrorDetailsInner>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(NotFoundErrorDetailsInner),
+                    ]),
+                  )
+                  as BuiltList<NotFoundErrorDetailsInner>;
           result.details.replace(valueDes);
           break;
         default:
@@ -207,7 +217,7 @@ class NotFoundErrorNameEnum extends EnumClass {
 class NotFoundErrorMessageEnum extends EnumClass {
   @BuiltValueEnumConst(wireName: r'Not found: ${param}.')
   static const NotFoundErrorMessageEnum
-      notFoundColonDollarLeftCurlyBracketParamRightCurlyBracketPeriod =
+  notFoundColonDollarLeftCurlyBracketParamRightCurlyBracketPeriod =
       _$notFoundErrorMessageEnum_notFoundColonDollarLeftCurlyBracketParamRightCurlyBracketPeriod;
 
   static Serializer<NotFoundErrorMessageEnum> get serializer =>

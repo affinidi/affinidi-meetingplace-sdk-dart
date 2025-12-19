@@ -18,8 +18,10 @@ part 'delete_pending_notifications_input.g.dart';
 @BuiltValue()
 abstract class DeletePendingNotificationsInput
     implements
-        Built<DeletePendingNotificationsInput,
-            DeletePendingNotificationsInputBuilder> {
+        Built<
+          DeletePendingNotificationsInput,
+          DeletePendingNotificationsInputBuilder
+        > {
   @BuiltValueField(wireName: r'notificationIds')
   BuiltList<String> get notificationIds;
 
@@ -34,9 +36,9 @@ abstract class DeletePendingNotificationsInput
 
   DeletePendingNotificationsInput._();
 
-  factory DeletePendingNotificationsInput(
-          [void updates(DeletePendingNotificationsInputBuilder b)]) =
-      _$DeletePendingNotificationsInput;
+  factory DeletePendingNotificationsInput([
+    void updates(DeletePendingNotificationsInputBuilder b),
+  ]) = _$DeletePendingNotificationsInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(DeletePendingNotificationsInputBuilder b) => b;
@@ -51,7 +53,7 @@ class _$DeletePendingNotificationsInputSerializer
   @override
   final Iterable<Type> types = const [
     DeletePendingNotificationsInput,
-    _$DeletePendingNotificationsInput
+    _$DeletePendingNotificationsInput,
   ];
 
   @override
@@ -75,8 +77,9 @@ class _$DeletePendingNotificationsInputSerializer
     yield r'platformType';
     yield serializers.serialize(
       object.platformType,
-      specifiedType:
-          const FullType(DeletePendingNotificationsInputPlatformTypeEnum),
+      specifiedType: const FullType(
+        DeletePendingNotificationsInputPlatformTypeEnum,
+      ),
     );
   }
 
@@ -86,9 +89,11 @@ class _$DeletePendingNotificationsInputSerializer
     DeletePendingNotificationsInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -104,25 +109,34 @@ class _$DeletePendingNotificationsInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'notificationIds':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [FullType(String)]),
-          ) as BuiltList<String>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(String),
+                    ]),
+                  )
+                  as BuiltList<String>;
           result.notificationIds.replace(valueDes);
           break;
         case r'deviceToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceToken = valueDes;
           break;
         case r'platformType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType:
-                const FullType(DeletePendingNotificationsInputPlatformTypeEnum),
-          ) as DeletePendingNotificationsInputPlatformTypeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      DeletePendingNotificationsInputPlatformTypeEnum,
+                    ),
+                  )
+                  as DeletePendingNotificationsInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
         default:
@@ -163,7 +177,7 @@ class DeletePendingNotificationsInputPlatformTypeEnum extends EnumClass {
   /// Platform type for sending notification.
   @BuiltValueEnumConst(wireName: r'PUSH_NOTIFICATION')
   static const DeletePendingNotificationsInputPlatformTypeEnum
-      PUSH_NOTIFICATION =
+  PUSH_NOTIFICATION =
       _$deletePendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION;
 
   /// Platform type for sending notification.
@@ -172,11 +186,10 @@ class DeletePendingNotificationsInputPlatformTypeEnum extends EnumClass {
       _$deletePendingNotificationsInputPlatformTypeEnum_NONE;
 
   static Serializer<DeletePendingNotificationsInputPlatformTypeEnum>
-      get serializer =>
-          _$deletePendingNotificationsInputPlatformTypeEnumSerializer;
+  get serializer => _$deletePendingNotificationsInputPlatformTypeEnumSerializer;
 
   const DeletePendingNotificationsInputPlatformTypeEnum._(String name)
-      : super(name);
+    : super(name);
 
   static BuiltSet<DeletePendingNotificationsInputPlatformTypeEnum> get values =>
       _$deletePendingNotificationsInputPlatformTypeEnumValues;

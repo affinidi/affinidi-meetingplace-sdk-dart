@@ -89,11 +89,7 @@ class GroupDeleteOKBuilder
   GroupDeleteOK build() => _build();
 
   _$GroupDeleteOK _build() {
-    final _$result = _$v ??
-        _$GroupDeleteOK._(
-          status: status,
-          message: message,
-        );
+    final _$result = _$v ?? _$GroupDeleteOK._(status: status, message: message);
     replace(_$result);
     return _$result;
   }

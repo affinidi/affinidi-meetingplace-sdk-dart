@@ -7,17 +7,17 @@ part of 'get_pending_notifications_input.dart';
 // **************************************************************************
 
 const GetPendingNotificationsInputPlatformTypeEnum
-    _$getPendingNotificationsInputPlatformTypeEnum_DIDCOMM =
+_$getPendingNotificationsInputPlatformTypeEnum_DIDCOMM =
     const GetPendingNotificationsInputPlatformTypeEnum._('DIDCOMM');
 const GetPendingNotificationsInputPlatformTypeEnum
-    _$getPendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$getPendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const GetPendingNotificationsInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const GetPendingNotificationsInputPlatformTypeEnum
-    _$getPendingNotificationsInputPlatformTypeEnum_NONE =
+_$getPendingNotificationsInputPlatformTypeEnum_NONE =
     const GetPendingNotificationsInputPlatformTypeEnum._('NONE');
 
 GetPendingNotificationsInputPlatformTypeEnum
-    _$getPendingNotificationsInputPlatformTypeEnumValueOf(String name) {
+_$getPendingNotificationsInputPlatformTypeEnumValueOf(String name) {
   switch (name) {
     case 'DIDCOMM':
       return _$getPendingNotificationsInputPlatformTypeEnum_DIDCOMM;
@@ -31,15 +31,17 @@ GetPendingNotificationsInputPlatformTypeEnum
 }
 
 final BuiltSet<GetPendingNotificationsInputPlatformTypeEnum>
-    _$getPendingNotificationsInputPlatformTypeEnumValues = BuiltSet<
-        GetPendingNotificationsInputPlatformTypeEnum>(const <GetPendingNotificationsInputPlatformTypeEnum>[
-  _$getPendingNotificationsInputPlatformTypeEnum_DIDCOMM,
-  _$getPendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$getPendingNotificationsInputPlatformTypeEnum_NONE,
-]);
+_$getPendingNotificationsInputPlatformTypeEnumValues =
+    BuiltSet<GetPendingNotificationsInputPlatformTypeEnum>(
+      const <GetPendingNotificationsInputPlatformTypeEnum>[
+        _$getPendingNotificationsInputPlatformTypeEnum_DIDCOMM,
+        _$getPendingNotificationsInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$getPendingNotificationsInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<GetPendingNotificationsInputPlatformTypeEnum>
-    _$getPendingNotificationsInputPlatformTypeEnumSerializer =
+_$getPendingNotificationsInputPlatformTypeEnumSerializer =
     _$GetPendingNotificationsInputPlatformTypeEnumSerializer();
 
 class _$GetPendingNotificationsInputPlatformTypeEnumSerializer
@@ -58,23 +60,26 @@ class _$GetPendingNotificationsInputPlatformTypeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    GetPendingNotificationsInputPlatformTypeEnum
+    GetPendingNotificationsInputPlatformTypeEnum,
   ];
   @override
   final String wireName = 'GetPendingNotificationsInputPlatformTypeEnum';
 
   @override
-  Object serialize(Serializers serializers,
-          GetPendingNotificationsInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+  Object serialize(
+    Serializers serializers,
+    GetPendingNotificationsInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   GetPendingNotificationsInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      GetPendingNotificationsInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => GetPendingNotificationsInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$GetPendingNotificationsInput extends GetPendingNotificationsInput {
@@ -83,17 +88,18 @@ class _$GetPendingNotificationsInput extends GetPendingNotificationsInput {
   @override
   final GetPendingNotificationsInputPlatformTypeEnum platformType;
 
-  factory _$GetPendingNotificationsInput(
-          [void Function(GetPendingNotificationsInputBuilder)? updates]) =>
-      (GetPendingNotificationsInputBuilder()..update(updates))._build();
+  factory _$GetPendingNotificationsInput([
+    void Function(GetPendingNotificationsInputBuilder)? updates,
+  ]) => (GetPendingNotificationsInputBuilder()..update(updates))._build();
 
-  _$GetPendingNotificationsInput._(
-      {required this.deviceToken, required this.platformType})
-      : super._();
+  _$GetPendingNotificationsInput._({
+    required this.deviceToken,
+    required this.platformType,
+  }) : super._();
   @override
   GetPendingNotificationsInput rebuild(
-          void Function(GetPendingNotificationsInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GetPendingNotificationsInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GetPendingNotificationsInputBuilder toBuilder() =>
@@ -127,8 +133,10 @@ class _$GetPendingNotificationsInput extends GetPendingNotificationsInput {
 
 class GetPendingNotificationsInputBuilder
     implements
-        Builder<GetPendingNotificationsInput,
-            GetPendingNotificationsInputBuilder> {
+        Builder<
+          GetPendingNotificationsInput,
+          GetPendingNotificationsInputBuilder
+        > {
   _$GetPendingNotificationsInput? _$v;
 
   String? _deviceToken;
@@ -139,8 +147,8 @@ class GetPendingNotificationsInputBuilder
   GetPendingNotificationsInputPlatformTypeEnum? get platformType =>
       _$this._platformType;
   set platformType(
-          GetPendingNotificationsInputPlatformTypeEnum? platformType) =>
-      _$this._platformType = platformType;
+    GetPendingNotificationsInputPlatformTypeEnum? platformType,
+  ) => _$this._platformType = platformType;
 
   GetPendingNotificationsInputBuilder() {
     GetPendingNotificationsInput._defaults(this);
@@ -170,12 +178,19 @@ class GetPendingNotificationsInputBuilder
   GetPendingNotificationsInput build() => _build();
 
   _$GetPendingNotificationsInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GetPendingNotificationsInput._(
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'GetPendingNotificationsInput', 'deviceToken'),
+            deviceToken,
+            r'GetPendingNotificationsInput',
+            'deviceToken',
+          ),
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'GetPendingNotificationsInput', 'platformType'),
+            platformType,
+            r'GetPendingNotificationsInput',
+            'platformType',
+          ),
         );
     replace(_$result);
     return _$result;

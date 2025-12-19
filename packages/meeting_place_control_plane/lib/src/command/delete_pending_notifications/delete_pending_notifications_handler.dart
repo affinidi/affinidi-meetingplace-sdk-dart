@@ -20,8 +20,10 @@ import '../../core/device/device.dart';
 /// Notifications operation.
 class DeletePendingNotificationsHandler
     implements
-        CommandHandler<DeletePendingNotificationsCommand,
-            DeletePendingNotificationsCommandOutput> {
+        CommandHandler<
+          DeletePendingNotificationsCommand,
+          DeletePendingNotificationsCommandOutput
+        > {
   /// Returns an instance of [DeletePendingNotificationsHandler].
   ///
   /// **Parameters:**
@@ -29,10 +31,13 @@ class DeletePendingNotificationsHandler
   DeletePendingNotificationsHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'DeletePendingNotificationsHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -109,8 +114,8 @@ class DeletePendingNotificationsHandler
       final builder = DeletePendingNotificationsInputBuilder()
         ..platformType =
             DeletePendingNotificationsInputPlatformTypeEnum.valueOf(
-          device.platformType.value,
-        )
+              device.platformType.value,
+            )
         ..deviceToken = device.deviceToken
         ..notificationIds = ListBuilder(notificationIds);
 

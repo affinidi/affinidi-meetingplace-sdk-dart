@@ -7,7 +7,7 @@ import '../meeting_place_core_sdk_exception.dart';
 
 class SDKErrorHandler {
   SDKErrorHandler({required MeetingPlaceCoreSDKLogger logger})
-      : _logger = logger;
+    : _logger = logger;
 
   final MeetingPlaceCoreSDKLogger _logger;
 

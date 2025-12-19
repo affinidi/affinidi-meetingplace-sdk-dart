@@ -16,16 +16,16 @@ class _$DidAuthenticateOK extends DidAuthenticateOK {
   @override
   final String? refreshExpiresAt;
 
-  factory _$DidAuthenticateOK(
-          [void Function(DidAuthenticateOKBuilder)? updates]) =>
-      (DidAuthenticateOKBuilder()..update(updates))._build();
+  factory _$DidAuthenticateOK([
+    void Function(DidAuthenticateOKBuilder)? updates,
+  ]) => (DidAuthenticateOKBuilder()..update(updates))._build();
 
-  _$DidAuthenticateOK._(
-      {this.accessToken,
-      this.accessExpiresAt,
-      this.refreshToken,
-      this.refreshExpiresAt})
-      : super._();
+  _$DidAuthenticateOK._({
+    this.accessToken,
+    this.accessExpiresAt,
+    this.refreshToken,
+    this.refreshExpiresAt,
+  }) : super._();
   @override
   DidAuthenticateOK rebuild(void Function(DidAuthenticateOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -118,7 +118,8 @@ class DidAuthenticateOKBuilder
   DidAuthenticateOK build() => _build();
 
   _$DidAuthenticateOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$DidAuthenticateOK._(
           accessToken: accessToken,
           accessExpiresAt: accessExpiresAt,

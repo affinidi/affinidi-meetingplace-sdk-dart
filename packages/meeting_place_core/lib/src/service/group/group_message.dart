@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:didcomm/didcomm.dart';
 import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:crypto_keys_plus/crypto_keys.dart' as ck;
 
-import '../../../meeting_place_core.dart';
+import '../../protocol/protocol.dart' as protocol;
 
 class EncryptedGroupMessage {
   EncryptedGroupMessage({
@@ -33,8 +34,10 @@ class GroupMessage {
     final capsule = encapsulateResult['capsule'] as recrypt.Capsule;
     final symmetricKeyBytes = encapsulateResult['symmetricKey'];
 
-    final encryptionResult =
-        _encryptMessage(message, symmetricKeyBytes: symmetricKeyBytes);
+    final encryptionResult = _encryptMessage(
+      message,
+      symmetricKeyBytes: symmetricKeyBytes,
+    );
 
     final encrypted = EncryptedGroupMessage(
       capsule: capsule,
@@ -46,10 +49,10 @@ class GroupMessage {
   }
 
   static PlainTextMessage decrypt(
-    PlainTextMessage message, {
+    protocol.GroupMessage message, {
     required Uint8List privateKeyBytes,
   }) {
-    final ciphertext = base64.decode(message.body!['ciphertext'] as String);
+    final ciphertext = base64.decode(message.body.ciphertext);
     final capsule = _getCapsuleFromMessage(message);
     final initializationVector = _getIVFromMessage(message);
 
@@ -57,11 +60,14 @@ class GroupMessage {
       base64.encode(privateKeyBytes),
     );
 
-    final symmetricKeyBytes =
-        recrypt.Recrypt().decapsulate(capsule, privateKey);
+    final symmetricKeyBytes = recrypt.Recrypt().decapsulate(
+      capsule,
+      privateKey,
+    );
 
-    final authenticationTagBytes =
-        base64.decode(message.body!['authenticationTag'] as String);
+    final authenticationTagBytes = base64.decode(
+      message.body.authenticationTag,
+    );
 
     final decryptedBytes = _decryptCiphertext(
       ciphertext,
@@ -77,12 +83,12 @@ class GroupMessage {
     return plainTextMessage;
   }
 
-  static recrypt.Capsule _getCapsuleFromMessage(PlainTextMessage message) {
-    return recrypt.Capsule.fromBase64(message.body!['preCapsule'] as String);
+  static recrypt.Capsule _getCapsuleFromMessage(protocol.GroupMessage message) {
+    return recrypt.Capsule.fromBase64(message.body.preCapsule);
   }
 
-  static Uint8List _getIVFromMessage(PlainTextMessage message) {
-    return base64.decode(message.body!['iv'] as String);
+  static Uint8List _getIVFromMessage(protocol.GroupMessage message) {
+    return base64.decode(message.body.iv);
   }
 
   static Uint8List _decryptCiphertext(
@@ -92,11 +98,13 @@ class GroupMessage {
     required Uint8List authenticationTag,
   }) {
     final encrypter = _createEncrypter(symmetricKeyBytes);
-    final decrypted = encrypter.decrypt(ck.EncryptionResult(
-      ciphertext,
-      initializationVector: initializationVector,
-      authenticationTag: authenticationTag,
-    ));
+    final decrypted = encrypter.decrypt(
+      ck.EncryptionResult(
+        ciphertext,
+        initializationVector: initializationVector,
+        authenticationTag: authenticationTag,
+      ),
+    );
     return decrypted;
   }
 
@@ -105,9 +113,7 @@ class GroupMessage {
     required Uint8List symmetricKeyBytes,
   }) {
     final encrypter = _createEncrypter(symmetricKeyBytes);
-    return encrypter.encrypt(
-      utf8.encode(jsonEncode(message.toJson())),
-    );
+    return encrypter.encrypt(utf8.encode(jsonEncode(message.toJson())));
   }
 
   static ck.Encrypter _createEncrypter(Uint8List symmetricKeyBytes) {

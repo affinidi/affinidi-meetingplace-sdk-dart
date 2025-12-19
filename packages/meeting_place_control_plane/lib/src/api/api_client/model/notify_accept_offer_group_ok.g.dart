@@ -12,15 +12,15 @@ class _$NotifyAcceptOfferGroupOK extends NotifyAcceptOfferGroupOK {
   @override
   final String? message;
 
-  factory _$NotifyAcceptOfferGroupOK(
-          [void Function(NotifyAcceptOfferGroupOKBuilder)? updates]) =>
-      (NotifyAcceptOfferGroupOKBuilder()..update(updates))._build();
+  factory _$NotifyAcceptOfferGroupOK([
+    void Function(NotifyAcceptOfferGroupOKBuilder)? updates,
+  ]) => (NotifyAcceptOfferGroupOKBuilder()..update(updates))._build();
 
   _$NotifyAcceptOfferGroupOK._({this.status, this.message}) : super._();
   @override
   NotifyAcceptOfferGroupOK rebuild(
-          void Function(NotifyAcceptOfferGroupOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(NotifyAcceptOfferGroupOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   NotifyAcceptOfferGroupOKBuilder toBuilder() =>
@@ -93,11 +93,8 @@ class NotifyAcceptOfferGroupOKBuilder
   NotifyAcceptOfferGroupOK build() => _build();
 
   _$NotifyAcceptOfferGroupOK _build() {
-    final _$result = _$v ??
-        _$NotifyAcceptOfferGroupOK._(
-          status: status,
-          message: message,
-        );
+    final _$result =
+        _$v ?? _$NotifyAcceptOfferGroupOK._(status: status, message: message);
     replace(_$result);
     return _$result;
   }

@@ -68,13 +68,16 @@ class ControlPlaneSDK {
     required this.didResolver,
     this.controlPlaneSDKConfig = const ControlPlaneSDKOptions(),
     ControlPlaneSDKLogger? logger,
-  }) : _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-              className: className,
-              sdkName: sdkName,
-            ) {
-    _sdkErrorHandler =
-        SDKErrorHandler(logger: _logger, controlPlaneDid: controlPlaneDid);
+  }) : _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: className,
+             sdkName: sdkName,
+           ) {
+    _sdkErrorHandler = SDKErrorHandler(
+      logger: _logger,
+      controlPlaneDid: controlPlaneDid,
+    );
   }
 
   static const String className = 'ControlPlaneSDK';
@@ -188,7 +191,9 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       DeregisterOfferHandler(
-          apiClient: _controlPlaneApiClient, logger: _logger),
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
     );
     _dispatcher.registerHandler(
       ValidateOfferPhraseHandler(
@@ -199,14 +204,13 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      AcceptOfferHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      AcceptOfferHandler(apiClient: _controlPlaneApiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
       AcceptOfferGroupHandler(
-          apiClient: _controlPlaneApiClient, logger: _logger),
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
     );
     _dispatcher.registerHandler(
       NotifyAcceptanceHandler(
@@ -229,7 +233,9 @@ class ControlPlaneSDK {
     );
     _dispatcher.registerHandler(
       FinaliseAcceptanceHandler(
-          apiClient: _controlPlaneApiClient, logger: _logger),
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
     );
     _dispatcher.registerHandler(
       RegisterNotificationHandler(
@@ -245,10 +251,7 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      NotifyChannelHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      NotifyChannelHandler(apiClient: _controlPlaneApiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
@@ -259,10 +262,7 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      GroupAddMemberHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      GroupAddMemberHandler(apiClient: _controlPlaneApiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
       GroupSendMessageHandler(
@@ -279,10 +279,7 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      GroupDeleteHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      GroupDeleteHandler(apiClient: _controlPlaneApiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(

@@ -12,9 +12,9 @@ class _$GroupAddMemberOK extends GroupAddMemberOK {
   @override
   final String? message;
 
-  factory _$GroupAddMemberOK(
-          [void Function(GroupAddMemberOKBuilder)? updates]) =>
-      (GroupAddMemberOKBuilder()..update(updates))._build();
+  factory _$GroupAddMemberOK([
+    void Function(GroupAddMemberOKBuilder)? updates,
+  ]) => (GroupAddMemberOKBuilder()..update(updates))._build();
 
   _$GroupAddMemberOK._({this.status, this.message}) : super._();
   @override
@@ -91,11 +91,8 @@ class GroupAddMemberOKBuilder
   GroupAddMemberOK build() => _build();
 
   _$GroupAddMemberOK _build() {
-    final _$result = _$v ??
-        _$GroupAddMemberOK._(
-          status: status,
-          message: message,
-        );
+    final _$result =
+        _$v ?? _$GroupAddMemberOK._(status: status, message: message);
     replace(_$result);
     return _$result;
   }

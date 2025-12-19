@@ -16,7 +16,9 @@ ConnectionOffer _$ConnectionOfferFromJson(Map<String, dynamic> json) =>
       oobInvitationMessage: json['oobInvitationMessage'] as String,
       type: $enumDecode(_$ConnectionOfferTypeEnumMap, json['type']),
       status: $enumDecode(_$ConnectionOfferStatusEnumMap, json['status']),
-      vCard: VCard.fromJson(json['vCard'] as Map<String, dynamic>),
+      contactCard: ContactCard.fromJson(
+        json['contactCard'] as Map<String, dynamic>,
+      ),
       ownedByMe: json['ownedByMe'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
       expiresAt: json['expiresAt'] == null
@@ -39,32 +41,25 @@ Map<String, dynamic> _$ConnectionOfferToJson(ConnectionOffer instance) =>
     <String, dynamic>{
       'offerName': instance.offerName,
       'offerLink': instance.offerLink,
-      if (instance.offerDescription case final value?)
-        'offerDescription': value,
+      'offerDescription': ?instance.offerDescription,
       'mnemonic': instance.mnemonic,
       'createdAt': instance.createdAt.toIso8601String(),
       'publishOfferDid': instance.publishOfferDid,
       'mediatorDid': instance.mediatorDid,
       'oobInvitationMessage': instance.oobInvitationMessage,
-      'vCard': instance.vCard.toJson(),
+      'contactCard': instance.contactCard.toJson(),
       'type': _$ConnectionOfferTypeEnumMap[instance.type]!,
       'status': _$ConnectionOfferStatusEnumMap[instance.status]!,
       'ownedByMe': instance.ownedByMe,
-      if (instance.expiresAt?.toIso8601String() case final value?)
-        'expiresAt': value,
-      if (instance.maximumUsage case final value?) 'maximumUsage': value,
-      if (instance.outboundMessageId case final value?)
-        'outboundMessageId': value,
-      if (instance.acceptOfferDid case final value?) 'acceptOfferDid': value,
-      if (instance.permanentChannelDid case final value?)
-        'permanentChannelDid': value,
-      if (instance.otherPartyPermanentChannelDid case final value?)
-        'otherPartyPermanentChannelDid': value,
-      if (instance.notificationToken case final value?)
-        'notificationToken': value,
-      if (instance.otherPartyNotificationToken case final value?)
-        'otherPartyNotificationToken': value,
-      if (instance.externalRef case final value?) 'externalRef': value,
+      'expiresAt': ?instance.expiresAt?.toIso8601String(),
+      'maximumUsage': ?instance.maximumUsage,
+      'outboundMessageId': ?instance.outboundMessageId,
+      'acceptOfferDid': ?instance.acceptOfferDid,
+      'permanentChannelDid': ?instance.permanentChannelDid,
+      'otherPartyPermanentChannelDid': ?instance.otherPartyPermanentChannelDid,
+      'notificationToken': ?instance.notificationToken,
+      'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
+      'externalRef': ?instance.externalRef,
     };
 
 const _$ConnectionOfferTypeEnumMap = {

@@ -25,30 +25,44 @@ void main() {
       final result = await errorHandler.handleError(() async => expectedResult);
 
       expect(result, equals(expectedResult));
-      verifyNever(() => mockLogger.error(any(),
+      verifyNever(
+        () => mockLogger.error(
+          any(),
           error: any(named: 'error'),
           stackTrace: any(named: 'stackTrace'),
-          name: any(named: 'name')));
-    });
-
-    test(
-        'should handle ControlPlaneException and throw ControlPlaneSDKException',
-        () async {
-      final controlPlaneException = AcceptOfferException.limitExceededError();
-
-      expect(
-        () => errorHandler.handleError(() => throw controlPlaneException),
-        throwsA(
-          isA<ControlPlaneSDKException>()
-              .having((e) => e.message, 'message',
-                  'Offer acceptance failed: the maximum number of allowed offer usages has been reached.')
-              .having((e) => e.code, 'code',
-                  ControlPlaneSDKErrorCode.acceptOfferLimitExceeded.value)
-              .having((e) => e.innerException, 'innerException',
-                  controlPlaneException),
+          name: any(named: 'name'),
         ),
       );
     });
+
+    test(
+      'should handle ControlPlaneException and throw ControlPlaneSDKException',
+      () async {
+        final controlPlaneException = AcceptOfferException.limitExceededError();
+
+        expect(
+          () => errorHandler.handleError(() => throw controlPlaneException),
+          throwsA(
+            isA<ControlPlaneSDKException>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'Offer acceptance failed: the maximum number of allowed offer usages has been reached.',
+                )
+                .having(
+                  (e) => e.code,
+                  'code',
+                  ControlPlaneSDKErrorCode.acceptOfferLimitExceeded.value,
+                )
+                .having(
+                  (e) => e.innerException,
+                  'innerException',
+                  controlPlaneException,
+                ),
+          ),
+        );
+      },
+    );
 
     group('Network error handling', () {
       final networkErrorTypes = [
@@ -60,25 +74,32 @@ void main() {
 
       for (final errorType in networkErrorTypes) {
         test(
-            'should handle DioException with $errorType and set network error code',
-            () async {
-          final dioException = DioException(
-            requestOptions: RequestOptions(path: '/test'),
-            type: errorType,
-            message: 'Network error occurred',
-          );
+          'should handle DioException with $errorType and set network error code',
+          () async {
+            final dioException = DioException(
+              requestOptions: RequestOptions(path: '/test'),
+              type: errorType,
+              message: 'Network error occurred',
+            );
 
-          expect(
-            () => errorHandler.handleError(() => throw dioException),
-            throwsA(
-              isA<ControlPlaneSDKException>()
-                  .having((e) => e.code, 'code',
-                      ControlPlaneSDKErrorCode.networkError.value)
-                  .having(
-                      (e) => e.innerException, 'innerException', dioException),
-            ),
-          );
-        });
+            expect(
+              () => errorHandler.handleError(() => throw dioException),
+              throwsA(
+                isA<ControlPlaneSDKException>()
+                    .having(
+                      (e) => e.code,
+                      'code',
+                      ControlPlaneSDKErrorCode.networkError.value,
+                    )
+                    .having(
+                      (e) => e.innerException,
+                      'innerException',
+                      dioException,
+                    ),
+              ),
+            );
+          },
+        );
       }
     });
 
@@ -92,30 +113,43 @@ void main() {
 
       expect(
         () => errorHandler.handleError(() => throw dioException),
-        throwsA(isA<ControlPlaneSDKException>()
-            .having(
-                (e) => e.code, 'code', ControlPlaneSDKErrorCode.generic.value)
-            .having((e) => e.innerException, 'innerException', dioException)),
-      );
-    });
-
-    test('should handle generic exception and throw ControlPlaneSDKException',
-        () async {
-      // Arrange
-      final genericException = Exception('Generic error');
-
-      // Act & Assert
-      expect(
-        () => errorHandler.handleError(() => throw genericException),
         throwsA(
           isA<ControlPlaneSDKException>()
               .having(
-                  (e) => e.code, 'code', ControlPlaneSDKErrorCode.generic.value)
-              .having(
-                  (e) => e.innerException, 'innerException', genericException)
-              .having((e) => e.message, 'message', contains('Generic error')),
+                (e) => e.code,
+                'code',
+                ControlPlaneSDKErrorCode.generic.value,
+              )
+              .having((e) => e.innerException, 'innerException', dioException),
         ),
       );
     });
+
+    test(
+      'should handle generic exception and throw ControlPlaneSDKException',
+      () async {
+        // Arrange
+        final genericException = Exception('Generic error');
+
+        // Act & Assert
+        expect(
+          () => errorHandler.handleError(() => throw genericException),
+          throwsA(
+            isA<ControlPlaneSDKException>()
+                .having(
+                  (e) => e.code,
+                  'code',
+                  ControlPlaneSDKErrorCode.generic.value,
+                )
+                .having(
+                  (e) => e.innerException,
+                  'innerException',
+                  genericException,
+                )
+                .having((e) => e.message, 'message', contains('Generic error')),
+          ),
+        );
+      },
+    );
   });
 }

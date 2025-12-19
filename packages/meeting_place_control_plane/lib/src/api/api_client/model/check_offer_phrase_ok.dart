@@ -58,9 +58,11 @@ class _$CheckOfferPhraseOKSerializer
     CheckOfferPhraseOK object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -76,10 +78,12 @@ class _$CheckOfferPhraseOKSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'isInUse':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(bool),
-          ) as bool;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool;
           result.isInUse = valueDes;
           break;
         default:

@@ -12,15 +12,15 @@ class _$GroupSendMessageOK extends GroupSendMessageOK {
   @override
   final String? message;
 
-  factory _$GroupSendMessageOK(
-          [void Function(GroupSendMessageOKBuilder)? updates]) =>
-      (GroupSendMessageOKBuilder()..update(updates))._build();
+  factory _$GroupSendMessageOK([
+    void Function(GroupSendMessageOKBuilder)? updates,
+  ]) => (GroupSendMessageOKBuilder()..update(updates))._build();
 
   _$GroupSendMessageOK._({this.status, this.message}) : super._();
   @override
   GroupSendMessageOK rebuild(
-          void Function(GroupSendMessageOKBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GroupSendMessageOKBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GroupSendMessageOKBuilder toBuilder() =>
@@ -92,11 +92,8 @@ class GroupSendMessageOKBuilder
   GroupSendMessageOK build() => _build();
 
   _$GroupSendMessageOK _build() {
-    final _$result = _$v ??
-        _$GroupSendMessageOK._(
-          status: status,
-          message: message,
-        );
+    final _$result =
+        _$v ?? _$GroupSendMessageOK._(status: status, message: message);
     replace(_$result);
     return _$result;
   }

@@ -64,9 +64,11 @@ class _$CreateOobOKSerializer implements PrimitiveSerializer<CreateOobOK> {
     CreateOobOK object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -82,17 +84,21 @@ class _$CreateOobOKSerializer implements PrimitiveSerializer<CreateOobOK> {
       final value = serializedList[i + 1];
       switch (key) {
         case r'oobUrl':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.oobUrl = valueDes;
           break;
         case r'oobId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.oobId = valueDes;
           break;
         default:

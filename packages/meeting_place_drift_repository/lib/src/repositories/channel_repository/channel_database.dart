@@ -125,6 +125,12 @@ class ChannelContactCards extends Table {
         'REFERENCES channels(id) ON DELETE CASCADE NOT NULL',
       )();
 
+  /// DID of the contact.
+  TextColumn get did => text()();
+
+  /// Type of the contact.
+  TextColumn get type => text()();
+
   /// First name of the contact.
   TextColumn get firstName => text()();
 
@@ -144,7 +150,7 @@ class ChannelContactCards extends Table {
   TextColumn get meetingplaceIdentityCardColor => text()();
 
   /// Type of the contact card.
-  IntColumn get cardType => integer().map(const _VCardTypeConverter())();
+  IntColumn get cardType => integer().map(const _ContactCardTypeConverter())();
 
   /// Unique keys for the contact cards table.
   @override
@@ -153,31 +159,25 @@ class ChannelContactCards extends Table {
       ];
 }
 
-/// Enumeration representing the type of VCard.
-enum VCardType {
-  /// Personal VCard type.
+/// Enumeration representing the type of ContactCard.
+enum ContactCardType {
   mine(1),
-
-  /// Other VCard type.
   other(2);
 
-  /// Constructor for [VCardType].
-  const VCardType(this.value);
-
-  /// Integer value associated with the VCard type.
+  const ContactCardType(this.value);
   final int value;
 }
 
-class _VCardTypeConverter extends TypeConverter<VCardType, int> {
-  const _VCardTypeConverter();
+class _ContactCardTypeConverter extends TypeConverter<ContactCardType, int> {
+  const _ContactCardTypeConverter();
 
   @override
-  VCardType fromSql(int fromDb) {
-    return VCardType.values.firstWhere((type) => type.value == fromDb);
+  ContactCardType fromSql(int fromDb) {
+    return ContactCardType.values.firstWhere((type) => type.value == fromDb);
   }
 
   @override
-  int toSql(VCardType value) {
+  int toSql(ContactCardType value) {
     return value.value;
   }
 }

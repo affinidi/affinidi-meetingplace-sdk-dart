@@ -24,7 +24,7 @@ class _$AcceptOfferOK extends AcceptOfferOK {
   @override
   final int? maximumUsage;
   @override
-  final String vcard;
+  final String contactCard;
   @override
   final String mediatorDid;
   @override
@@ -35,20 +35,20 @@ class _$AcceptOfferOK extends AcceptOfferOK {
   factory _$AcceptOfferOK([void Function(AcceptOfferOKBuilder)? updates]) =>
       (AcceptOfferOKBuilder()..update(updates))._build();
 
-  _$AcceptOfferOK._(
-      {this.status,
-      this.message,
-      required this.didcommMessage,
-      required this.offerLink,
-      required this.name,
-      required this.description,
-      this.validUntil,
-      this.maximumUsage,
-      required this.vcard,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint})
-      : super._();
+  _$AcceptOfferOK._({
+    this.status,
+    this.message,
+    required this.didcommMessage,
+    required this.offerLink,
+    required this.name,
+    required this.description,
+    this.validUntil,
+    this.maximumUsage,
+    required this.contactCard,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+  }) : super._();
   @override
   AcceptOfferOK rebuild(void Function(AcceptOfferOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -68,7 +68,7 @@ class _$AcceptOfferOK extends AcceptOfferOK {
         description == other.description &&
         validUntil == other.validUntil &&
         maximumUsage == other.maximumUsage &&
-        vcard == other.vcard &&
+        contactCard == other.contactCard &&
         mediatorDid == other.mediatorDid &&
         mediatorEndpoint == other.mediatorEndpoint &&
         mediatorWSSEndpoint == other.mediatorWSSEndpoint;
@@ -85,7 +85,7 @@ class _$AcceptOfferOK extends AcceptOfferOK {
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, validUntil.hashCode);
     _$hash = $jc(_$hash, maximumUsage.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jc(_$hash, mediatorDid.hashCode);
     _$hash = $jc(_$hash, mediatorEndpoint.hashCode);
     _$hash = $jc(_$hash, mediatorWSSEndpoint.hashCode);
@@ -104,7 +104,7 @@ class _$AcceptOfferOK extends AcceptOfferOK {
           ..add('description', description)
           ..add('validUntil', validUntil)
           ..add('maximumUsage', maximumUsage)
-          ..add('vcard', vcard)
+          ..add('contactCard', contactCard)
           ..add('mediatorDid', mediatorDid)
           ..add('mediatorEndpoint', mediatorEndpoint)
           ..add('mediatorWSSEndpoint', mediatorWSSEndpoint))
@@ -149,9 +149,9 @@ class AcceptOfferOKBuilder
   int? get maximumUsage => _$this._maximumUsage;
   set maximumUsage(int? maximumUsage) => _$this._maximumUsage = maximumUsage;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   String? _mediatorDid;
   String? get mediatorDid => _$this._mediatorDid;
@@ -182,7 +182,7 @@ class AcceptOfferOKBuilder
       _description = $v.description;
       _validUntil = $v.validUntil;
       _maximumUsage = $v.maximumUsage;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _mediatorDid = $v.mediatorDid;
       _mediatorEndpoint = $v.mediatorEndpoint;
       _mediatorWSSEndpoint = $v.mediatorWSSEndpoint;
@@ -205,28 +205,53 @@ class AcceptOfferOKBuilder
   AcceptOfferOK build() => _build();
 
   _$AcceptOfferOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$AcceptOfferOK._(
           status: status,
           message: message,
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'AcceptOfferOK', 'didcommMessage'),
+            didcommMessage,
+            r'AcceptOfferOK',
+            'didcommMessage',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'AcceptOfferOK', 'offerLink'),
+            offerLink,
+            r'AcceptOfferOK',
+            'offerLink',
+          ),
           name: BuiltValueNullFieldError.checkNotNull(
-              name, r'AcceptOfferOK', 'name'),
+            name,
+            r'AcceptOfferOK',
+            'name',
+          ),
           description: BuiltValueNullFieldError.checkNotNull(
-              description, r'AcceptOfferOK', 'description'),
+            description,
+            r'AcceptOfferOK',
+            'description',
+          ),
           validUntil: validUntil,
           maximumUsage: maximumUsage,
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'AcceptOfferOK', 'vcard'),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+            contactCard,
+            r'AcceptOfferOK',
+            'contactCard',
+          ),
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'AcceptOfferOK', 'mediatorDid'),
+            mediatorDid,
+            r'AcceptOfferOK',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'AcceptOfferOK', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'AcceptOfferOK',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint, r'AcceptOfferOK', 'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'AcceptOfferOK',
+            'mediatorWSSEndpoint',
+          ),
         );
     replace(_$result);
     return _$result;

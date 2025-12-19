@@ -42,7 +42,7 @@ The discovery through the Control Plane facilitates the secure discovery and est
 
 The Control Plane API facilitates the **discovery** and **creation of secure channels** between participants in Meeting Place to exchange messages using the DIDComm v2.1 protocol. The Control Plane API enables participants to publish a connection offer (invitation) using one of their identities (e.g., an identity for your gaming persona) for direct or group chat to allow discovery by other participants and initiate a connection request to start chatting with them through a secure channel.
 
-A published invitation contains a description, validity, and a vCard containing additional information - it is up to the participants to provide more details or restrict the details to protect their privacy.
+A published invitation contains a description, validity, and a ContactCard containing additional information - it is up to the participants to provide more details or restrict the details to protect their privacy.
 
 ## Core Concepts
 
@@ -54,7 +54,7 @@ A published invitation contains a description, validity, and a vCard containing 
 
 - **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
 
-- **Connection Offer (Invitation)** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **Connection Offer (Invitation)** - An invite to connect containing description and ContactCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
 
 ## Key Features
 
@@ -139,7 +139,13 @@ void main() async {
    final publishOfferResult = await aliceSDK.publishOffer(
       offerName: 'Example offer',
       offerDescription: 'Example offer to test.',
-      vCard: VCard(values: {}),
+         contactCard: ContactCard(
+            did: 'did:test:alice',
+            type: 'human',
+            contactInfo: {
+               'n': {'given': 'Alice'},
+            },
+         ),
       publishAsGroup: false,
       validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
   );

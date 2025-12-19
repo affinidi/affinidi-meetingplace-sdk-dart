@@ -36,9 +36,9 @@ abstract class NotifyAcceptOfferInput
 
   NotifyAcceptOfferInput._();
 
-  factory NotifyAcceptOfferInput(
-          [void updates(NotifyAcceptOfferInputBuilder b)]) =
-      _$NotifyAcceptOfferInput;
+  factory NotifyAcceptOfferInput([
+    void updates(NotifyAcceptOfferInputBuilder b),
+  ]) = _$NotifyAcceptOfferInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(NotifyAcceptOfferInputBuilder b) => b;
@@ -53,7 +53,7 @@ class _$NotifyAcceptOfferInputSerializer
   @override
   final Iterable<Type> types = const [
     NotifyAcceptOfferInput,
-    _$NotifyAcceptOfferInput
+    _$NotifyAcceptOfferInput,
   ];
 
   @override
@@ -92,9 +92,11 @@ class _$NotifyAcceptOfferInputSerializer
     NotifyAcceptOfferInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -110,31 +112,39 @@ class _$NotifyAcceptOfferInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'mnemonic':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mnemonic = valueDes;
           break;
         case r'did':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.did = valueDes;
           break;
         case r'offerLink':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerLink = valueDes;
           break;
         case r'senderInfo':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.senderInfo = valueDes;
           break;
         default:

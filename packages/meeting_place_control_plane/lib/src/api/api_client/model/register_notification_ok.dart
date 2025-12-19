@@ -21,9 +21,9 @@ abstract class RegisterNotificationOK
 
   RegisterNotificationOK._();
 
-  factory RegisterNotificationOK(
-          [void updates(RegisterNotificationOKBuilder b)]) =
-      _$RegisterNotificationOK;
+  factory RegisterNotificationOK([
+    void updates(RegisterNotificationOKBuilder b),
+  ]) = _$RegisterNotificationOK;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(RegisterNotificationOKBuilder b) => b;
@@ -38,7 +38,7 @@ class _$RegisterNotificationOKSerializer
   @override
   final Iterable<Type> types = const [
     RegisterNotificationOK,
-    _$RegisterNotificationOK
+    _$RegisterNotificationOK,
   ];
 
   @override
@@ -62,9 +62,11 @@ class _$RegisterNotificationOKSerializer
     RegisterNotificationOK object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -80,10 +82,12 @@ class _$RegisterNotificationOKSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'notificationToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.notificationToken = valueDes;
           break;
         default:

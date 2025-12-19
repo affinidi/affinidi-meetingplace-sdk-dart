@@ -18,8 +18,10 @@ part 'get_pending_notifications_ok_notifications_inner.g.dart';
 @BuiltValue()
 abstract class GetPendingNotificationsOKNotificationsInner
     implements
-        Built<GetPendingNotificationsOKNotificationsInner,
-            GetPendingNotificationsOKNotificationsInnerBuilder> {
+        Built<
+          GetPendingNotificationsOKNotificationsInner,
+          GetPendingNotificationsOKNotificationsInnerBuilder
+        > {
   /// The notification identifier
   @BuiltValueField(wireName: r'id')
   String? get id;
@@ -38,10 +40,9 @@ abstract class GetPendingNotificationsOKNotificationsInner
 
   GetPendingNotificationsOKNotificationsInner._();
 
-  factory GetPendingNotificationsOKNotificationsInner(
-          [void updates(
-              GetPendingNotificationsOKNotificationsInnerBuilder b)]) =
-      _$GetPendingNotificationsOKNotificationsInner;
+  factory GetPendingNotificationsOKNotificationsInner([
+    void updates(GetPendingNotificationsOKNotificationsInnerBuilder b),
+  ]) = _$GetPendingNotificationsOKNotificationsInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(GetPendingNotificationsOKNotificationsInnerBuilder b) =>
@@ -49,8 +50,7 @@ abstract class GetPendingNotificationsOKNotificationsInner
 
   @BuiltValueSerializer(custom: true)
   static Serializer<GetPendingNotificationsOKNotificationsInner>
-      get serializer =>
-          _$GetPendingNotificationsOKNotificationsInnerSerializer();
+  get serializer => _$GetPendingNotificationsOKNotificationsInnerSerializer();
 }
 
 class _$GetPendingNotificationsOKNotificationsInnerSerializer
@@ -59,7 +59,7 @@ class _$GetPendingNotificationsOKNotificationsInnerSerializer
   @override
   final Iterable<Type> types = const [
     GetPendingNotificationsOKNotificationsInner,
-    _$GetPendingNotificationsOKNotificationsInner
+    _$GetPendingNotificationsOKNotificationsInner,
   ];
 
   @override
@@ -106,9 +106,11 @@ class _$GetPendingNotificationsOKNotificationsInnerSerializer
     GetPendingNotificationsOKNotificationsInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -124,31 +126,39 @@ class _$GetPendingNotificationsOKNotificationsInnerSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.id = valueDes;
           break;
         case r'type':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.type = valueDes;
           break;
         case r'payload':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.payload = valueDes;
           break;
         case r'notificationDate':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.notificationDate = valueDes;
           break;
         default:

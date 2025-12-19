@@ -7,17 +7,17 @@ part of 'register_device_input.dart';
 // **************************************************************************
 
 const RegisterDeviceInputPlatformTypeEnum
-    _$registerDeviceInputPlatformTypeEnum_DIDCOMM =
+_$registerDeviceInputPlatformTypeEnum_DIDCOMM =
     const RegisterDeviceInputPlatformTypeEnum._('DIDCOMM');
 const RegisterDeviceInputPlatformTypeEnum
-    _$registerDeviceInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$registerDeviceInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const RegisterDeviceInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const RegisterDeviceInputPlatformTypeEnum
-    _$registerDeviceInputPlatformTypeEnum_NONE =
+_$registerDeviceInputPlatformTypeEnum_NONE =
     const RegisterDeviceInputPlatformTypeEnum._('NONE');
 
 RegisterDeviceInputPlatformTypeEnum
-    _$registerDeviceInputPlatformTypeEnumValueOf(String name) {
+_$registerDeviceInputPlatformTypeEnumValueOf(String name) {
   switch (name) {
     case 'DIDCOMM':
       return _$registerDeviceInputPlatformTypeEnum_DIDCOMM;
@@ -31,15 +31,17 @@ RegisterDeviceInputPlatformTypeEnum
 }
 
 final BuiltSet<RegisterDeviceInputPlatformTypeEnum>
-    _$registerDeviceInputPlatformTypeEnumValues = BuiltSet<
-        RegisterDeviceInputPlatformTypeEnum>(const <RegisterDeviceInputPlatformTypeEnum>[
-  _$registerDeviceInputPlatformTypeEnum_DIDCOMM,
-  _$registerDeviceInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$registerDeviceInputPlatformTypeEnum_NONE,
-]);
+_$registerDeviceInputPlatformTypeEnumValues =
+    BuiltSet<RegisterDeviceInputPlatformTypeEnum>(
+      const <RegisterDeviceInputPlatformTypeEnum>[
+        _$registerDeviceInputPlatformTypeEnum_DIDCOMM,
+        _$registerDeviceInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$registerDeviceInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<RegisterDeviceInputPlatformTypeEnum>
-    _$registerDeviceInputPlatformTypeEnumSerializer =
+_$registerDeviceInputPlatformTypeEnumSerializer =
     _$RegisterDeviceInputPlatformTypeEnumSerializer();
 
 class _$RegisterDeviceInputPlatformTypeEnumSerializer
@@ -57,23 +59,26 @@ class _$RegisterDeviceInputPlatformTypeEnumSerializer
 
   @override
   final Iterable<Type> types = const <Type>[
-    RegisterDeviceInputPlatformTypeEnum
+    RegisterDeviceInputPlatformTypeEnum,
   ];
   @override
   final String wireName = 'RegisterDeviceInputPlatformTypeEnum';
 
   @override
   Object serialize(
-          Serializers serializers, RegisterDeviceInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    RegisterDeviceInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   RegisterDeviceInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      RegisterDeviceInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => RegisterDeviceInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$RegisterDeviceInput extends RegisterDeviceInput {
@@ -82,17 +87,18 @@ class _$RegisterDeviceInput extends RegisterDeviceInput {
   @override
   final String deviceToken;
 
-  factory _$RegisterDeviceInput(
-          [void Function(RegisterDeviceInputBuilder)? updates]) =>
-      (RegisterDeviceInputBuilder()..update(updates))._build();
+  factory _$RegisterDeviceInput([
+    void Function(RegisterDeviceInputBuilder)? updates,
+  ]) => (RegisterDeviceInputBuilder()..update(updates))._build();
 
-  _$RegisterDeviceInput._(
-      {required this.platformType, required this.deviceToken})
-      : super._();
+  _$RegisterDeviceInput._({
+    required this.platformType,
+    required this.deviceToken,
+  }) : super._();
   @override
   RegisterDeviceInput rebuild(
-          void Function(RegisterDeviceInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(RegisterDeviceInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   RegisterDeviceInputBuilder toBuilder() =>
@@ -165,12 +171,19 @@ class RegisterDeviceInputBuilder
   RegisterDeviceInput build() => _build();
 
   _$RegisterDeviceInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$RegisterDeviceInput._(
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'RegisterDeviceInput', 'platformType'),
+            platformType,
+            r'RegisterDeviceInput',
+            'platformType',
+          ),
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'RegisterDeviceInput', 'deviceToken'),
+            deviceToken,
+            r'RegisterDeviceInput',
+            'deviceToken',
+          ),
         );
     replace(_$result);
     return _$result;

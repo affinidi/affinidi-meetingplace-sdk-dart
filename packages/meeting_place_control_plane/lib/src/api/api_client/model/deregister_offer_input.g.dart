@@ -12,16 +12,16 @@ class _$DeregisterOfferInput extends DeregisterOfferInput {
   @override
   final String offerLink;
 
-  factory _$DeregisterOfferInput(
-          [void Function(DeregisterOfferInputBuilder)? updates]) =>
-      (DeregisterOfferInputBuilder()..update(updates))._build();
+  factory _$DeregisterOfferInput([
+    void Function(DeregisterOfferInputBuilder)? updates,
+  ]) => (DeregisterOfferInputBuilder()..update(updates))._build();
 
   _$DeregisterOfferInput._({required this.mnemonic, required this.offerLink})
-      : super._();
+    : super._();
   @override
   DeregisterOfferInput rebuild(
-          void Function(DeregisterOfferInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DeregisterOfferInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DeregisterOfferInputBuilder toBuilder() =>
@@ -93,12 +93,19 @@ class DeregisterOfferInputBuilder
   DeregisterOfferInput build() => _build();
 
   _$DeregisterOfferInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$DeregisterOfferInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'DeregisterOfferInput', 'mnemonic'),
+            mnemonic,
+            r'DeregisterOfferInput',
+            'mnemonic',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'DeregisterOfferInput', 'offerLink'),
+            offerLink,
+            r'DeregisterOfferInput',
+            'offerLink',
+          ),
         );
     replace(_$result);
     return _$result;

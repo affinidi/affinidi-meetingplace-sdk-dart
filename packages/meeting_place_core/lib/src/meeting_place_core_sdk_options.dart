@@ -9,8 +9,9 @@ class MeetingPlaceCoreSDKOptions {
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.eventHandlerMessageFetchMaxRetries = 3,
-    this.eventHandlerMessageFetchMaxRetriesDelay =
-        const Duration(milliseconds: 3000),
+    this.eventHandlerMessageFetchMaxRetriesDelay = const Duration(
+      milliseconds: 3000,
+    ),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
     this.signatureScheme = SignatureScheme.ecdsa_p256_sha256,

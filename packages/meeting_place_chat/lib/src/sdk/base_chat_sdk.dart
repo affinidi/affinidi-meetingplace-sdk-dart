@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
@@ -189,6 +190,17 @@ abstract class BaseChatSDK {
     final channel = await getChannel();
     if (_requiresAcknowledgement(message.plainTextMessage)) {
       unawaited(sendChatDeliveredMessage(message.plainTextMessage));
+    }
+
+    // TODO: pass all incoming messages to SDK consumer - this specific
+    // handling is only used to make it work for now
+    if (message.plainTextMessage
+        .isOfType(VdipRequestIssuanceMessage.messageType.toString())) {
+      _logger.info('Handling VDIP request issuance message', name: methodName);
+
+      chatStream.pushData(
+        StreamData(plainTextMessage: message.plainTextMessage),
+      );
     }
 
     if (MessageUtils.isType(

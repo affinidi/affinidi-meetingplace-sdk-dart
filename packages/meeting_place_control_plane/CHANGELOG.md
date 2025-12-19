@@ -1,3 +1,7 @@
+## 0.0.1-dev.11
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+
 ## 0.0.1-dev.10
 
  - **FIX**: upgrade to DIDComm v2.3.0; handle message deletion in mediator SDK (#26).

@@ -1,3 +1,7 @@
+## 0.0.1-dev.10
+
+ - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).
+
 ## 0.0.1-dev.9
 
  - **FIX**: add expectedMessageWrappingTypes to MeetingPlaceCoreSDKOptions (#35).

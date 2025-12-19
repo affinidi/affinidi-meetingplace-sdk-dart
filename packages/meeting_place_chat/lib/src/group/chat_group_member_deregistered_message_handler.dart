@@ -10,9 +10,9 @@ class ChatGroupMemberDeregisteredMessageHandler {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatHistoryService chatHistoryService,
     required ChatStream streamManager,
-  })  : _coreSDK = coreSDK,
-        _chatHistoryService = chatHistoryService,
-        _streamManager = streamManager;
+  }) : _coreSDK = coreSDK,
+       _chatHistoryService = chatHistoryService,
+       _streamManager = streamManager;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final ChatHistoryService _chatHistoryService;
@@ -23,8 +23,8 @@ class ChatGroupMemberDeregisteredMessageHandler {
     required Group group,
     required PlainTextMessage message,
   }) async {
-    final groupId = message.body?['groupId'] as String;
-    final memberDid = message.body?['memberDid'] as String;
+    final groupId = message.body?['group_id'] as String;
+    final memberDid = message.body?['member_did'] as String;
 
     if (groupId != group.id) {
       throw Exception('Group ids doesnt match');
@@ -38,13 +38,13 @@ class ChatGroupMemberDeregisteredMessageHandler {
     member.status = GroupMemberStatus.deleted;
     await _coreSDK.updateGroup(group);
 
-    final chatItem =
-        await _chatHistoryService.createGroupMemberLeftGroupEventMessage(
-      chatId: chatId,
-      groupDid: groupId,
-      memberDid: memberDid,
-      memberVCard: member.vCard,
-    );
+    final chatItem = await _chatHistoryService
+        .createGroupMemberLeftGroupEventMessage(
+          chatId: chatId,
+          groupDid: groupId,
+          memberDid: memberDid,
+          memberCard: member.contactCard,
+        );
 
     _streamManager.pushData(StreamData(chatItem: chatItem));
 

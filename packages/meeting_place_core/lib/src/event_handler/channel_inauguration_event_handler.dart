@@ -1,6 +1,7 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
 import '../protocol/meeting_place_protocol.dart';
+import '../protocol/protocol.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
@@ -36,17 +37,19 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
 
       logger.info('Found ${messages.length} in inbox', name: _logKey);
       for (final message in messages) {
-        final plainTextMessage = message.plainTextMessage;
+        final plainTextMessage = ChannelInauguration.fromPlainTextMessage(
+          message.plainTextMessage,
+        );
 
         logger.info(
-          'Peeked message ${plainTextMessage.type.toString().topAndTail(charCountTop: 8, charCountTail: 20)} from ${channel.permanentChannelDid!.topAndTail()}',
+          'Peeked message ${message.plainTextMessage.type.toString().topAndTail(charCountTop: 8, charCountTail: 20)} from ${channel.permanentChannelDid!.topAndTail()}',
           name: _logKey,
         );
 
         channel.otherPartyNotificationToken =
-            plainTextMessage.body!['notificationToken'] as String;
-        channel.status = ChannelStatus.inaugurated;
+            plainTextMessage.body.notificationToken;
 
+        channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
       }
 

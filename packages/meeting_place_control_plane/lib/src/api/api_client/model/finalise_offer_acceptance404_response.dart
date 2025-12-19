@@ -25,8 +25,10 @@ part 'finalise_offer_acceptance404_response.g.dart';
 @BuiltValue()
 abstract class FinaliseOfferAcceptance404Response
     implements
-        Built<FinaliseOfferAcceptance404Response,
-            FinaliseOfferAcceptance404ResponseBuilder> {
+        Built<
+          FinaliseOfferAcceptance404Response,
+          FinaliseOfferAcceptance404ResponseBuilder
+        > {
   /// One Of [ExpiredAcceptanceError], [InvalidAcceptanceError]
   OneOf get oneOf;
 
@@ -88,8 +90,9 @@ class _$FinaliseOfferAcceptance404ResponseSerializer
       FullType(ExpiredAcceptanceError),
     ]);
     oneOfDataSrc = serialized;
-    result.oneOf = serializers.deserialize(oneOfDataSrc,
-        specifiedType: targetType) as OneOf;
+    result.oneOf =
+        serializers.deserialize(oneOfDataSrc, specifiedType: targetType)
+            as OneOf;
     return result.build();
   }
 }
@@ -97,11 +100,11 @@ class _$FinaliseOfferAcceptance404ResponseSerializer
 class FinaliseOfferAcceptance404ResponseNameEnum extends EnumClass {
   @BuiltValueEnumConst(wireName: r'ExpiredAcceptanceError')
   static const FinaliseOfferAcceptance404ResponseNameEnum
-      expiredAcceptanceError =
+  expiredAcceptanceError =
       _$finaliseOfferAcceptance404ResponseNameEnum_expiredAcceptanceError;
 
   static Serializer<FinaliseOfferAcceptance404ResponseNameEnum>
-      get serializer => _$finaliseOfferAcceptance404ResponseNameEnumSerializer;
+  get serializer => _$finaliseOfferAcceptance404ResponseNameEnumSerializer;
 
   const FinaliseOfferAcceptance404ResponseNameEnum._(String name) : super(name);
 
@@ -114,15 +117,14 @@ class FinaliseOfferAcceptance404ResponseNameEnum extends EnumClass {
 class FinaliseOfferAcceptance404ResponseMessageEnum extends EnumClass {
   @BuiltValueEnumConst(wireName: r'The acceptance has expired')
   static const FinaliseOfferAcceptance404ResponseMessageEnum
-      theAcceptanceHasExpired =
+  theAcceptanceHasExpired =
       _$finaliseOfferAcceptance404ResponseMessageEnum_theAcceptanceHasExpired;
 
   static Serializer<FinaliseOfferAcceptance404ResponseMessageEnum>
-      get serializer =>
-          _$finaliseOfferAcceptance404ResponseMessageEnumSerializer;
+  get serializer => _$finaliseOfferAcceptance404ResponseMessageEnumSerializer;
 
   const FinaliseOfferAcceptance404ResponseMessageEnum._(String name)
-      : super(name);
+    : super(name);
 
   static BuiltSet<FinaliseOfferAcceptance404ResponseMessageEnum> get values =>
       _$finaliseOfferAcceptance404ResponseMessageEnumValues;
@@ -136,17 +138,15 @@ class FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum extends EnumClass {
       _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnum_number404;
 
   static Serializer<FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>
-      get serializer =>
-          _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumSerializer;
+  get serializer =>
+      _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumSerializer;
 
   const FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum._(String name)
-      : super(name);
+    : super(name);
 
   static BuiltSet<FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum>
-      get values =>
-          _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValues;
+  get values => _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValues;
   static FinaliseOfferAcceptance404ResponseHttpStatusCodeEnum valueOf(
     String name,
-  ) =>
-      _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValueOf(name);
+  ) => _$finaliseOfferAcceptance404ResponseHttpStatusCodeEnumValueOf(name);
 }

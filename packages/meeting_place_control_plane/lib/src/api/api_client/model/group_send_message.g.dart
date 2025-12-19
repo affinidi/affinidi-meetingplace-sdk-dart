@@ -24,20 +24,20 @@ class _$GroupSendMessage extends GroupSendMessage {
   @override
   final bool? incSeqNo;
 
-  factory _$GroupSendMessage(
-          [void Function(GroupSendMessageBuilder)? updates]) =>
-      (GroupSendMessageBuilder()..update(updates))._build();
+  factory _$GroupSendMessage([
+    void Function(GroupSendMessageBuilder)? updates,
+  ]) => (GroupSendMessageBuilder()..update(updates))._build();
 
-  _$GroupSendMessage._(
-      {required this.offerLink,
-      required this.fromDid,
-      required this.groupDid,
-      required this.payload,
-      this.ephemeral,
-      this.expiresTime,
-      this.notify,
-      this.incSeqNo})
-      : super._();
+  _$GroupSendMessage._({
+    required this.offerLink,
+    required this.fromDid,
+    required this.groupDid,
+    required this.payload,
+    this.ephemeral,
+    this.expiresTime,
+    this.notify,
+    this.incSeqNo,
+  }) : super._();
   @override
   GroupSendMessage rebuild(void Function(GroupSendMessageBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -160,16 +160,29 @@ class GroupSendMessageBuilder
   GroupSendMessage build() => _build();
 
   _$GroupSendMessage _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GroupSendMessage._(
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'GroupSendMessage', 'offerLink'),
+            offerLink,
+            r'GroupSendMessage',
+            'offerLink',
+          ),
           fromDid: BuiltValueNullFieldError.checkNotNull(
-              fromDid, r'GroupSendMessage', 'fromDid'),
+            fromDid,
+            r'GroupSendMessage',
+            'fromDid',
+          ),
           groupDid: BuiltValueNullFieldError.checkNotNull(
-              groupDid, r'GroupSendMessage', 'groupDid'),
+            groupDid,
+            r'GroupSendMessage',
+            'groupDid',
+          ),
           payload: BuiltValueNullFieldError.checkNotNull(
-              payload, r'GroupSendMessage', 'payload'),
+            payload,
+            r'GroupSendMessage',
+            'payload',
+          ),
           ephemeral: ephemeral,
           expiresTime: expiresTime,
           notify: notify,

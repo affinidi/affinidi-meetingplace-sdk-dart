@@ -9,10 +9,13 @@ class ChatHistoryService {
   ChatHistoryService({
     required ChatRepository chatRepository,
     MeetingPlaceChatSDKLogger? logger,
-  })  : _chatRepository = chatRepository,
-        _logger = logger ??
-            DefaultMeetingPlaceChatSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _chatRepository = chatRepository,
+       _logger =
+           logger ??
+           DefaultMeetingPlaceChatSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
 
   static const String _className = 'ChatHistoryService';
 
@@ -23,7 +26,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberCard,
   }) {
     final methodName = 'createGroupMemberJoinedGroupEventMessage';
     _logger.info(
@@ -36,7 +39,7 @@ class ChatHistoryService {
       chatId: chatId,
       groupDid: groupDid,
       memberDid: memberDid,
-      memberVCard: memberVCard,
+      memberCard: memberCard,
     );
   }
 
@@ -44,7 +47,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberCard,
   }) {
     final methodName = 'createAwaitingGroupMemberToJoinEventMessage';
     _logger.info(
@@ -57,7 +60,7 @@ class ChatHistoryService {
       chatId: chatId,
       groupDid: groupDid,
       memberDid: memberDid,
-      memberVCard: memberVCard,
+      memberCard: memberCard,
     );
   }
 
@@ -65,7 +68,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberCard,
   }) {
     final methodName = 'createGroupMemberLeftGroupEventMessage';
     _logger.info('Creating group member left event message', name: methodName);
@@ -75,7 +78,7 @@ class ChatHistoryService {
       chatId: chatId,
       groupDid: groupDid,
       memberDid: memberDid,
-      memberVCard: memberVCard,
+      memberCard: memberCard,
     );
   }
 
@@ -105,7 +108,7 @@ class ChatHistoryService {
     required String chatId,
     required String groupDid,
     required String memberDid,
-    required VCard memberVCard,
+    required ContactCard memberCard,
   }) async {
     return _chatRepository.createMessage(
       EventMessage(
@@ -116,7 +119,7 @@ class ChatHistoryService {
         isFromMe: false,
         dateCreated: DateTime.now().toUtc(),
         status: ChatItemStatus.received,
-        data: {'memberDid': memberDid, 'vCard': memberVCard.toJson()},
+        data: {'memberDid': memberDid, 'contactCard': memberCard.toJson()},
       ),
     );
   }

@@ -5,7 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/v_card.dart';
+import 'fixtures/contact_card_fixture.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -20,10 +20,16 @@ void main() async {
     aliceSDK = await initSDKInstance();
     bobSDK = await initSDKInstance();
 
+    final aliceCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:alice',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      vCard: VCardFixture.alicePrimaryVCard,
+      contactCard: aliceCard,
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -31,22 +37,30 @@ void main() async {
       mnemonic: offer.connectionOffer.mnemonic,
     );
 
+    final bobCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      vCard: VCardFixture.bobPrimaryVCard,
+      contactCard: bobCard,
       senderInfo: 'Bob',
     );
 
     final waitForInvitationAccept = Completer<Channel>();
     aliceSDK.controlPlaneEventsStream
-        .where((event) =>
-            event.matchesType(ControlPlaneEventType.InvitationAccept))
+        .where(
+          (event) => event.matchesType(ControlPlaneEventType.InvitationAccept),
+        )
         .listen((event) => waitForInvitationAccept.complete(event.channel));
 
     final waitForOfferFinalised = Completer<Channel>();
     bobSDK.controlPlaneEventsStream
         .where(
-            (event) => event.matchesType(ControlPlaneEventType.OfferFinalised))
+          (event) => event.matchesType(ControlPlaneEventType.OfferFinalised),
+        )
         .listen((event) => waitForOfferFinalised.complete(event.channel));
 
     await aliceSDK.processControlPlaneEvents();
@@ -65,21 +79,24 @@ void main() async {
 
     await aliceSDK.sendMessage(
       PlainTextMessage(
-          id: messageId,
-          from: aliceApprovedChannel.permanentChannelDid!,
-          to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
-          type: Uri.parse('https://example.org/plain-text'),
-          body: {'text': 'Hello, Bob!'}),
+        id: messageId,
+        from: aliceApprovedChannel.permanentChannelDid!,
+        to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
+        type: Uri.parse('https://example.org/plain-text'),
+        body: {'text': 'Hello, Bob!'},
+      ),
       senderDid: aliceApprovedChannel.permanentChannelDid!,
       recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
     );
 
     await Future.delayed(const Duration(seconds: 4));
     final messages = await bobSDK.fetchMessages(
-        did: bobOfferFinalisedChannel.permanentChannelDid!);
+      did: bobOfferFinalisedChannel.permanentChannelDid!,
+    );
 
-    final actual =
-        messages.firstWhereOrNull((m) => m.plainTextMessage.id == messageId);
+    final actual = messages.firstWhereOrNull(
+      (m) => m.plainTextMessage.id == messageId,
+    );
 
     expect(actual, isNotNull);
   });
@@ -92,20 +109,25 @@ void main() async {
     await aliceSDK.updateChannel(aliceApprovedChannel);
 
     expect(
-        () => aliceSDK.sendMessage(
-            PlainTextMessage(
-                id: messageId,
-                from: aliceApprovedChannel.permanentChannelDid!,
-                to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
-                type: Uri.parse('https://example.org/plain-text'),
-                body: {'text': 'Hello, Bob!'}),
-            senderDid: aliceApprovedChannel.permanentChannelDid!,
-            recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
-            notifyChannelType: 'notify-channel'),
-        throwsA(isA<MeetingPlaceCoreSDKException>().having(
+      () => aliceSDK.sendMessage(
+        PlainTextMessage(
+          id: messageId,
+          from: aliceApprovedChannel.permanentChannelDid!,
+          to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
+          type: Uri.parse('https://example.org/plain-text'),
+          body: {'text': 'Hello, Bob!'},
+        ),
+        senderDid: aliceApprovedChannel.permanentChannelDid!,
+        recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
+        notifyChannelType: 'notify-channel',
+      ),
+      throwsA(
+        isA<MeetingPlaceCoreSDKException>().having(
           (e) => e.code,
           'code',
           MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value,
-        )));
+        ),
+      ),
+    );
   });
 }

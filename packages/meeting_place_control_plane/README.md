@@ -22,13 +22,13 @@ Control Plane SDK is part of the Meeting Place SDK toolkit to enable a safe and 
 
 - **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
 
-- **Connection Offer (Invitation)** - An invite to connect containing description and vCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **Connection Offer (Invitation)** - An invite to connect containing description and ContactCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
 
 ## Key Features
 
 - Support for direct and group chat connection offer.
 - Implements the DIDComm Message v2.1 with Out-of-Band protocol.
-- Support vCard in publishing a connection offer (invitation) and establishing connections with others to chat.
+- Support ContactCard in publishing a connection offer (invitation) and establishing connections with others to chat.
 - Secure device registration and event notification.
 - Facilitates the creation of channels and DIDs of the participants.
 

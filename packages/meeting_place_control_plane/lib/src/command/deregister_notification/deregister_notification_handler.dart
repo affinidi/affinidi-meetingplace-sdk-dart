@@ -20,8 +20,10 @@ import 'deregister_notification_output.dart';
 /// Notifications operation.
 class DeregisterNotificationHandler
     implements
-        CommandHandler<DeregisterNotificationCommand,
-            DeregisterNotificationOutput> {
+        CommandHandler<
+          DeregisterNotificationCommand,
+          DeregisterNotificationOutput
+        > {
   /// Returns an instance of [DeregisterNotificationHandler].
   ///
   /// **Parameters:**
@@ -29,10 +31,13 @@ class DeregisterNotificationHandler
   DeregisterNotificationHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'DeregisterNotificationHandler';
 
   final ControlPlaneApiClient _apiClient;

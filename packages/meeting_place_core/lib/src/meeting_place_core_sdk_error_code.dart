@@ -1,23 +1,35 @@
 enum MeetingPlaceCoreSDKErrorCode {
   // group membership finalised codes
   groupMembershipFinalisedConnectionOfferGroupNotFound(
-      'group_membership_finalised_connection_offer_group_not_found'),
+    'group_membership_finalised_connection_offer_group_not_found',
+  ),
   groupMembershipFinalisedConnectionOfferAlreadyFinalizedException(
-      'group_membership_finalised_connection_offer_already_finalized'),
+    'group_membership_finalised_connection_offer_already_finalized',
+  ),
   groupMembershipFinalisedGroupConnectionOfferRequired(
-      'group_membership_finalised_group_connection_offer_required'),
+    'group_membership_finalised_group_connection_offer_required',
+  ),
   groupMembershipFinalisedChannelNotFound(
-      'group_membership_finalised_channel_not_found'),
+    'group_membership_finalised_channel_not_found',
+  ),
+
+  // inivitation accepted group codes
+  invitationAcceptedGroupContactCardNotPresent(
+    'invitation_accepted_group_contact_card_not_present',
+  ),
 
   // connection offer codes
   connectionOfferOwnedByClaimingParty(
-      'connection_offer_owned_by_claiming_party'),
+    'connection_offer_owned_by_claiming_party',
+  ),
   connectionOfferAlreadyClaimedByClaimingParty(
-      'connection_offer_already_claimed_by_claiming_party'),
+    'connection_offer_already_claimed_by_claiming_party',
+  ),
   connectionOfferPublishError('connection_offer_publish_error'),
   connectionOfferNotFoundError('connection_offer_not_found_error'),
   connectionOfferPermanentChannelDidError(
-      'connection_offer_permanent_channel_did_error'),
+    'connection_offer_permanent_channel_did_error',
+  ),
   connectionOfferNotAcceptedError('connection_offer_not_accepted_error'),
   connectionOfferAlreadyFinalised('connection_offer_already_finalised'),
   connectionOfferInvalidType('connection_offer_invalid_type'),

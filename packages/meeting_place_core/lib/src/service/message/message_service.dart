@@ -14,11 +14,11 @@ class MessageService {
     required ChannelRepository channelRepository,
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceCoreSDKLogger logger,
-  })  : _didResolver = didResolver,
-        _mediatorService = mediatorService,
-        _channelRepository = channelRepository,
-        _controlPlaneSDK = controlPlaneSDK,
-        _logger = logger;
+  }) : _didResolver = didResolver,
+       _mediatorService = mediatorService,
+       _channelRepository = channelRepository,
+       _controlPlaneSDK = controlPlaneSDK,
+       _logger = logger;
 
   final DidResolver _didResolver;
   final MediatorService _mediatorService;
@@ -72,8 +72,11 @@ class MessageService {
         ),
       );
     } catch (e) {
-      _logger.error('Failed to send notification for channel ',
-          error: e, name: 'sendMessage');
+      _logger.error(
+        'Failed to send notification for channel ',
+        error: e,
+        name: 'sendMessage',
+      );
       throw MessageServiceException.notifyChannelFailed(innerException: e);
     }
   }

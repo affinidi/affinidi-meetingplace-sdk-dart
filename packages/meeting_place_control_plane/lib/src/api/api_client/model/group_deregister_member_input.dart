@@ -32,9 +32,9 @@ abstract class GroupDeregisterMemberInput
 
   GroupDeregisterMemberInput._();
 
-  factory GroupDeregisterMemberInput(
-          [void updates(GroupDeregisterMemberInputBuilder b)]) =
-      _$GroupDeregisterMemberInput;
+  factory GroupDeregisterMemberInput([
+    void updates(GroupDeregisterMemberInputBuilder b),
+  ]) = _$GroupDeregisterMemberInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(GroupDeregisterMemberInputBuilder b) => b;
@@ -49,7 +49,7 @@ class _$GroupDeregisterMemberInputSerializer
   @override
   final Iterable<Type> types = const [
     GroupDeregisterMemberInput,
-    _$GroupDeregisterMemberInput
+    _$GroupDeregisterMemberInput,
   ];
 
   @override
@@ -85,9 +85,11 @@ class _$GroupDeregisterMemberInputSerializer
     GroupDeregisterMemberInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -103,24 +105,30 @@ class _$GroupDeregisterMemberInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'memberDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.memberDid = valueDes;
           break;
         case r'groupId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.groupId = valueDes;
           break;
         case r'messageToRelay':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.messageToRelay = valueDes;
           break;
         default:

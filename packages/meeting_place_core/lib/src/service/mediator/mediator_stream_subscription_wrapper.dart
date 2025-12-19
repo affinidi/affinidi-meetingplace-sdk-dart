@@ -15,9 +15,9 @@ class MediatorStreamSubscriptionWrapper
     required mediator_sdk.MediatorStreamSubscription baseSubscription,
     required KeyRepository keyRepository,
     required MeetingPlaceCoreSDKLogger logger,
-  })  : _baseSubscription = baseSubscription,
-        _keyRepository = keyRepository,
-        _logger = logger;
+  }) : _baseSubscription = baseSubscription,
+       _keyRepository = keyRepository,
+       _logger = logger;
 
   final mediator_sdk.MediatorStreamSubscription _baseSubscription;
   final KeyRepository _keyRepository;
@@ -72,10 +72,12 @@ class MediatorStreamSubscriptionWrapper
     void Function()? onTimeout,
   ) {
     return stream
-        .timeout(timeLimit,
-            onTimeout: onTimeout != null
-                ? (sink) => _handleTimeout(onTimeout, sink)
-                : null)
+        .timeout(
+          timeLimit,
+          onTimeout: onTimeout != null
+              ? (sink) => _handleTimeout(onTimeout, sink)
+              : null,
+        )
         .listen(null);
   }
 
@@ -113,8 +115,12 @@ class MediatorStreamSubscriptionWrapper
             _controller!.add(mediatorMessage);
           }
         } catch (e, stackTrace) {
-          _logger.error('Error processing mediator message',
-              error: e, stackTrace: stackTrace, name: 'stream');
+          _logger.error(
+            'Error processing mediator message',
+            error: e,
+            stackTrace: stackTrace,
+            name: 'stream',
+          );
 
           if (!_controller!.isClosed) {
             _controller!.addError(e, stackTrace);

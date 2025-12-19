@@ -8,9 +8,9 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'utils/storage/in_memory_storage.dart';
-import 'utils/v_card.dart';
+import 'utils/contact_card_fixture.dart' as fixtures;
 import 'utils/sdk.dart';
+import 'utils/storage/in_memory_storage.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
@@ -33,8 +33,9 @@ void main() async {
     bobChannelRepository = initChannelRepository();
     charlieChannelRepository = initChannelRepository();
 
-    aliceSDK =
-        await initCoreSDKInstance(channelRepository: aliceChannelRepository);
+    aliceSDK = await initCoreSDKInstance(
+      channelRepository: aliceChannelRepository,
+    );
 
     bobSDK = await initCoreSDKInstance(channelRepository: bobChannelRepository);
 
@@ -75,28 +76,37 @@ void main() async {
       ),
     ]);
 
-    final aliceVCard = VCard(values: VCardFixture.alicePrimaryVCard.values);
-    final bobVCard = VCard(values: VCardFixture.bobPrimaryVCard.values);
-    final charlieVCard = VCard(values: VCardFixture.charliePrimaryVCard.values);
+    final aliceCard = fixtures.ContactCardFixture.getContactCardFixture(
+      did: aliceDidDocument.id,
+      contactInfo: fixtures.ContactCardFixture.alicePrimaryCardInfo,
+    );
+    final bobCard = fixtures.ContactCardFixture.getContactCardFixture(
+      did: bobDidDocument.id,
+      contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+    );
+    final charlieCard = fixtures.ContactCardFixture.getContactCardFixture(
+      did: charlieDidDocument.id,
+      contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
+    );
 
     aliceChatSDK = await initIndividualChatSDK(
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: bobDidDocument.id,
       channelRepository: aliceChannelRepository,
-      channelVCard: aliceVCard,
-      vCard: aliceVCard,
-      otherPartyVCard: bobVCard,
+      channelCard: aliceCard,
+      card: aliceCard,
+      otherPartyCard: bobCard,
     );
 
     bobChatSDK = await initIndividualChatSDK(
       coreSDK: bobSDK,
       did: bobDidDocument.id,
       otherPartyDid: aliceDidDocument.id,
-      vCard: bobVCard,
-      otherPartyVCard: aliceVCard,
+      card: bobCard,
+      otherPartyCard: aliceCard,
       channelRepository: bobChannelRepository,
-      channelVCard: aliceVCard,
+      channelCard: aliceCard,
     );
 
     await charlieChannelRepository.createChannel(
@@ -108,8 +118,8 @@ void main() async {
         otherPartyPermanentChannelDid: aliceDidDocument.id,
         status: ChannelStatus.inaugurated,
         type: ChannelType.individual,
-        vCard: charlieVCard,
-        otherPartyVCard: aliceVCard,
+        contactCard: charlieCard,
+        otherPartyContactCard: aliceCard,
       ),
     );
   });
@@ -124,7 +134,8 @@ void main() async {
     final receivedMessageIds = <String>[];
     await bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        final isChatMessage = message.plainTextMessage?.type.toString() ==
+        final isChatMessage =
+            message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatMessage.value;
 
         if (isChatMessage &&
@@ -145,8 +156,9 @@ void main() async {
       stream!.listen((message) {
         if (message.plainTextMessage?.type.toString() ==
             ChatProtocol.chatDelivered.value) {
-          final removed =
-              messageIds.remove(message.plainTextMessage?.body!['messages'][0]);
+          final removed = messageIds.remove(
+            message.plainTextMessage?.body!['messages'][0],
+          );
           if (messageIds.isEmpty && removed) {
             aliceCompleter.complete();
           }
@@ -223,7 +235,10 @@ void main() async {
       coreSDK: aliceSDK,
       did: aliceDidDocument.id,
       otherPartyDid: charlieDidDocument.id,
-      otherPartyVCard: VCardFixture.charliePrimaryVCard,
+      otherPartyCard: fixtures.ContactCardFixture.getContactCardFixture(
+        did: charlieDidDocument.id,
+        contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
+      ),
       channelRepository: aliceChannelRepository,
     );
 
@@ -249,7 +264,8 @@ void main() async {
     await bobChatSDK.chatStreamSubscription.then(
       (stream) => {
         stream!.listen((data) {
-          final isChatMessage = data.plainTextMessage?.type.toString() ==
+          final isChatMessage =
+              data.plainTextMessage?.type.toString() ==
               ChatProtocol.chatMessage.value;
 
           if (isChatMessage && !completer.isCompleted) {
@@ -271,7 +287,10 @@ void main() async {
         coreSDK: aliceSDK,
         did: aliceDidDocument.id,
         otherPartyDid: bobDidDocument.id,
-        otherPartyVCard: VCardFixture.bobPrimaryVCard,
+        otherPartyCard: fixtures.ContactCardFixture.getContactCardFixture(
+          did: bobDidDocument.id,
+          contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+        ),
         existingStorage: storage,
         channelRepository: aliceChannelRepository,
       );
@@ -431,9 +450,7 @@ void main() async {
   //     coreSDK: bobSDK,
   //     did: bobDidDocument.id,
   //     otherPartyDid: aliceDidDocument.id,
-  //     vCard: VCard(values: {'some-values': 'changed'}),
   //     channelRepository: bobChannelRepository,
-  //     channelVCard: VCardFixture.bobPrimaryVCard,
   //   );
   //   await newBobChatSDK.startChatSession();
   //   var receivedMessage = false;
@@ -460,7 +477,10 @@ void main() async {
     'Bob has concierge message after receiving profile hash requets',
     () async {
       await aliceChatSDK.startChatSession();
-      final updatedVCard = VCard(values: {'changed': 'value'});
+      final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
+        did: bobDidDocument.id,
+        contactInfo: {'changed': 'value'},
+      );
 
       final aliceOpenedChat = Completer<void>();
       await aliceChatSDK.chatStreamSubscription.then((stream) {
@@ -473,9 +493,12 @@ void main() async {
         coreSDK: bobSDK,
         did: bobDidDocument.id,
         otherPartyDid: aliceDidDocument.id,
-        vCard: updatedVCard,
+        card: updatedCard,
         channelRepository: bobChannelRepository,
-        channelVCard: VCardFixture.bobPrimaryVCard,
+        channelCard: fixtures.ContactCardFixture.getContactCardFixture(
+          did: bobDidDocument.id,
+          contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+        ),
       );
 
       final bobChat = await newBobChatSDK.startChatSession();
@@ -496,15 +519,17 @@ void main() async {
       await newBobChatSDK.sendProfileHash();
       await bobProfileRequestCompleter.future;
 
-      final conciergeMessage = (await newBobChatSDK.messages).firstWhere(
-        (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
-      ) as ConciergeMessage;
+      final conciergeMessage =
+          (await newBobChatSDK.messages).firstWhere(
+                (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
+              )
+              as ConciergeMessage;
 
       expect(conciergeMessage.isFromMe, false);
       expect(conciergeMessage.chatId, bobChat.id);
       expect(conciergeMessage.status, ChatItemStatus.userInput);
       expect(conciergeMessage.data, {
-        'profileHash': updatedVCard.toHash(),
+        'profileHash': updatedCard.profileHash,
         'replyTo': aliceDidDocument.id,
       });
 
@@ -526,15 +551,18 @@ void main() async {
       await aliceChatCompleter.future;
       final aliceChannel = await aliceSDK.getChannelByDid(bobDidDocument.id);
       expect(
-        aliceChannel?.otherPartyVCard?.values,
-        equals(updatedVCard.values),
+        aliceChannel?.otherPartyContactCard?.contactInfo,
+        equals(updatedCard.contactInfo),
       );
     },
   );
 
   test('reject contact profile update', () async {
     await aliceChatSDK.startChatSession();
-    final updatedVCard = VCard(values: {'changed': 'value'});
+    final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
+      did: bobDidDocument.id,
+      contactInfo: {'changed': 'value'},
+    );
 
     final aliceOpenedChat = Completer<void>();
     await aliceChatSDK.chatStreamSubscription.then((stream) {
@@ -547,9 +575,12 @@ void main() async {
       coreSDK: bobSDK,
       did: bobDidDocument.id,
       otherPartyDid: aliceDidDocument.id,
-      vCard: updatedVCard,
+      card: updatedCard,
       channelRepository: bobChannelRepository,
-      channelVCard: VCardFixture.bobPrimaryVCard,
+      channelCard: fixtures.ContactCardFixture.getContactCardFixture(
+        did: bobDidDocument.id,
+        contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
+      ),
     );
 
     await newBobChatSDK.startChatSession();
@@ -570,9 +601,11 @@ void main() async {
     await newBobChatSDK.sendProfileHash();
     await bobProfileRequestCompleter.future;
 
-    final conciergeMessage = (await newBobChatSDK.messages).firstWhere(
-      (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
-    ) as ConciergeMessage;
+    final conciergeMessage =
+        (await newBobChatSDK.messages).firstWhere(
+              (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
+            )
+            as ConciergeMessage;
 
     final aliceChatCompleter = Completer<void>();
 
@@ -621,8 +654,9 @@ void main() async {
         if (data.plainTextMessage?.type.toString() ==
                 ChatProtocol.chatMessage.value &&
             message.messageId == data.plainTextMessage?.id) {
-          bobWaitForAttachments
-              .complete(data.plainTextMessage?.attachments ?? []);
+          bobWaitForAttachments.complete(
+            data.plainTextMessage?.attachments ?? [],
+          );
         }
       });
     });

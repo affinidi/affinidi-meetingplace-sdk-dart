@@ -7,16 +7,17 @@ part of 'accept_offer_input.dart';
 // **************************************************************************
 
 const AcceptOfferInputPlatformTypeEnum
-    _$acceptOfferInputPlatformTypeEnum_DIDCOMM =
+_$acceptOfferInputPlatformTypeEnum_DIDCOMM =
     const AcceptOfferInputPlatformTypeEnum._('DIDCOMM');
 const AcceptOfferInputPlatformTypeEnum
-    _$acceptOfferInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$acceptOfferInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const AcceptOfferInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const AcceptOfferInputPlatformTypeEnum _$acceptOfferInputPlatformTypeEnum_NONE =
     const AcceptOfferInputPlatformTypeEnum._('NONE');
 
 AcceptOfferInputPlatformTypeEnum _$acceptOfferInputPlatformTypeEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'DIDCOMM':
       return _$acceptOfferInputPlatformTypeEnum_DIDCOMM;
@@ -30,15 +31,17 @@ AcceptOfferInputPlatformTypeEnum _$acceptOfferInputPlatformTypeEnumValueOf(
 }
 
 final BuiltSet<AcceptOfferInputPlatformTypeEnum>
-    _$acceptOfferInputPlatformTypeEnumValues = BuiltSet<
-        AcceptOfferInputPlatformTypeEnum>(const <AcceptOfferInputPlatformTypeEnum>[
-  _$acceptOfferInputPlatformTypeEnum_DIDCOMM,
-  _$acceptOfferInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$acceptOfferInputPlatformTypeEnum_NONE,
-]);
+_$acceptOfferInputPlatformTypeEnumValues =
+    BuiltSet<AcceptOfferInputPlatformTypeEnum>(
+      const <AcceptOfferInputPlatformTypeEnum>[
+        _$acceptOfferInputPlatformTypeEnum_DIDCOMM,
+        _$acceptOfferInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$acceptOfferInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<AcceptOfferInputPlatformTypeEnum>
-    _$acceptOfferInputPlatformTypeEnumSerializer =
+_$acceptOfferInputPlatformTypeEnumSerializer =
     _$AcceptOfferInputPlatformTypeEnumSerializer();
 
 class _$AcceptOfferInputPlatformTypeEnumSerializer
@@ -61,16 +64,19 @@ class _$AcceptOfferInputPlatformTypeEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, AcceptOfferInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    AcceptOfferInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   AcceptOfferInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      AcceptOfferInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => AcceptOfferInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$AcceptOfferInput extends AcceptOfferInput {
@@ -83,22 +89,22 @@ class _$AcceptOfferInput extends AcceptOfferInput {
   @override
   final AcceptOfferInputPlatformTypeEnum platformType;
   @override
-  final String vcard;
+  final String contactCard;
   @override
   final String offerLink;
 
-  factory _$AcceptOfferInput(
-          [void Function(AcceptOfferInputBuilder)? updates]) =>
-      (AcceptOfferInputBuilder()..update(updates))._build();
+  factory _$AcceptOfferInput([
+    void Function(AcceptOfferInputBuilder)? updates,
+  ]) => (AcceptOfferInputBuilder()..update(updates))._build();
 
-  _$AcceptOfferInput._(
-      {required this.mnemonic,
-      required this.did,
-      required this.deviceToken,
-      required this.platformType,
-      required this.vcard,
-      required this.offerLink})
-      : super._();
+  _$AcceptOfferInput._({
+    required this.mnemonic,
+    required this.did,
+    required this.deviceToken,
+    required this.platformType,
+    required this.contactCard,
+    required this.offerLink,
+  }) : super._();
   @override
   AcceptOfferInput rebuild(void Function(AcceptOfferInputBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -115,7 +121,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
         did == other.did &&
         deviceToken == other.deviceToken &&
         platformType == other.platformType &&
-        vcard == other.vcard &&
+        contactCard == other.contactCard &&
         offerLink == other.offerLink;
   }
 
@@ -126,7 +132,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
     _$hash = $jc(_$hash, did.hashCode);
     _$hash = $jc(_$hash, deviceToken.hashCode);
     _$hash = $jc(_$hash, platformType.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jc(_$hash, offerLink.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -139,7 +145,7 @@ class _$AcceptOfferInput extends AcceptOfferInput {
           ..add('did', did)
           ..add('deviceToken', deviceToken)
           ..add('platformType', platformType)
-          ..add('vcard', vcard)
+          ..add('contactCard', contactCard)
           ..add('offerLink', offerLink))
         .toString();
   }
@@ -166,9 +172,9 @@ class AcceptOfferInputBuilder
   set platformType(AcceptOfferInputPlatformTypeEnum? platformType) =>
       _$this._platformType = platformType;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   String? _offerLink;
   String? get offerLink => _$this._offerLink;
@@ -185,7 +191,7 @@ class AcceptOfferInputBuilder
       _did = $v.did;
       _deviceToken = $v.deviceToken;
       _platformType = $v.platformType;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _offerLink = $v.offerLink;
       _$v = null;
     }
@@ -206,20 +212,39 @@ class AcceptOfferInputBuilder
   AcceptOfferInput build() => _build();
 
   _$AcceptOfferInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$AcceptOfferInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'AcceptOfferInput', 'mnemonic'),
+            mnemonic,
+            r'AcceptOfferInput',
+            'mnemonic',
+          ),
           did: BuiltValueNullFieldError.checkNotNull(
-              did, r'AcceptOfferInput', 'did'),
+            did,
+            r'AcceptOfferInput',
+            'did',
+          ),
           deviceToken: BuiltValueNullFieldError.checkNotNull(
-              deviceToken, r'AcceptOfferInput', 'deviceToken'),
+            deviceToken,
+            r'AcceptOfferInput',
+            'deviceToken',
+          ),
           platformType: BuiltValueNullFieldError.checkNotNull(
-              platformType, r'AcceptOfferInput', 'platformType'),
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'AcceptOfferInput', 'vcard'),
+            platformType,
+            r'AcceptOfferInput',
+            'platformType',
+          ),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+            contactCard,
+            r'AcceptOfferInput',
+            'contactCard',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'AcceptOfferInput', 'offerLink'),
+            offerLink,
+            r'AcceptOfferInput',
+            'offerLink',
+          ),
         );
     replace(_$result);
     return _$result;

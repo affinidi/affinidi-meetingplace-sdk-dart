@@ -26,10 +26,13 @@ class GroupSendMessageHandler
   GroupSendMessageHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'GroupSendMessageHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -68,9 +71,9 @@ class GroupSendMessageHandler
       ..ephemeral = command.ephemeral
       ..expiresTime = command.forwardExpiryInSeconds != null
           ? DateTime.now()
-              .toUtc()
-              .add(Duration(seconds: command.forwardExpiryInSeconds!))
-              .toIso8601String()
+                .toUtc()
+                .add(Duration(seconds: command.forwardExpiryInSeconds!))
+                .toIso8601String()
           : null;
 
     try {

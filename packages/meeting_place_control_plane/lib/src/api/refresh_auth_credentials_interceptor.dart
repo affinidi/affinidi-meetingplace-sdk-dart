@@ -15,11 +15,12 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
     required this.controlPlaneSDK,
     required this.controlPlaneDid,
     ControlPlaneSDKLogger? logger,
-  }) : _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-              className: _className,
-              sdkName: sdkName,
-            );
+  }) : _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
 
   static const String _className = 'RefreshAuthCredentialsInterceptor';
   static const String _errorCodeTokenExpired = 'AUTHORIZATION_TOKEN_EXPIRED';
@@ -75,10 +76,13 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
 
   @override
   Future<void> onError(
-      DioException err, ErrorInterceptorHandler handler) async {
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final shouldRetryAuth = err.requestOptions.extra['retry_auth'] ?? true;
     final isUnauthorized = err.response?.statusCode == HttpStatus.unauthorized;
-    final isTokenExpired = isUnauthorized &&
+    final isTokenExpired =
+        isUnauthorized &&
         err.response?.data['errorCode'] == _errorCodeTokenExpired;
 
     if (isUnauthorized && isTokenExpired && shouldRetryAuth == true) {

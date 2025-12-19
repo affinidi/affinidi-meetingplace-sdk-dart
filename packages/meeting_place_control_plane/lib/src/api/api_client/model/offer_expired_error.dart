@@ -122,42 +122,52 @@ class _$OfferExpiredErrorSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(OfferExpiredErrorNameEnum),
-          ) as OfferExpiredErrorNameEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(OfferExpiredErrorNameEnum),
+                  )
+                  as OfferExpiredErrorNameEnum;
           result.name = valueDes;
           break;
         case r'message':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(OfferExpiredErrorMessageEnum),
-          ) as OfferExpiredErrorMessageEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(OfferExpiredErrorMessageEnum),
+                  )
+                  as OfferExpiredErrorMessageEnum;
           result.message = valueDes;
           break;
         case r'httpStatusCode':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(
-              OfferExpiredErrorHttpStatusCodeEnum,
-            ),
-          ) as OfferExpiredErrorHttpStatusCodeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      OfferExpiredErrorHttpStatusCodeEnum,
+                    ),
+                  )
+                  as OfferExpiredErrorHttpStatusCodeEnum;
           result.httpStatusCode = valueDes;
           break;
         case r'traceId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.traceId = valueDes;
           break;
         case r'details':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [
-              FullType(NotFoundErrorDetailsInner),
-            ]),
-          ) as BuiltList<NotFoundErrorDetailsInner>;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(BuiltList, [
+                      FullType(NotFoundErrorDetailsInner),
+                    ]),
+                  )
+                  as BuiltList<NotFoundErrorDetailsInner>;
           result.details.replace(valueDes);
           break;
         default:

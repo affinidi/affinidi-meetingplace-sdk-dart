@@ -3,7 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../extensions/vcard_extensions.dart';
+import '../../extensions/contact_card_extensions.dart';
 import 'groups_database.dart' as db;
 
 /// Repository implementation for persisting and retrieving
@@ -53,7 +53,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           );
 
       final groupMembers = group.members.map((member) {
-        final vCard = member.vCard;
+        final contactCard = member.contactCard;
         return db.GroupMembersCompanion.insert(
           groupId: group.id,
           memberDid: member.did,
@@ -61,12 +61,15 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
-          firstName: vCard.firstName,
-          lastName: vCard.lastName,
-          email: vCard.email,
-          mobile: vCard.mobile,
-          profilePic: vCard.profilePic,
-          meetingplaceIdentityCardColor: vCard.meetingplaceIdentityCardColor,
+          identityDid: contactCard.did,
+          type: contactCard.type,
+          firstName: contactCard.firstName,
+          lastName: contactCard.lastName,
+          email: contactCard.email,
+          mobile: contactCard.mobile,
+          profilePic: contactCard.profilePic,
+          meetingplaceIdentityCardColor:
+              contactCard.meetingplaceIdentityCardColor,
         );
       });
 
@@ -185,7 +188,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           .go();
 
       final groupMembersCompanions = group.members.map((member) {
-        final vCard = member.vCard;
+        final contactCard = member.contactCard;
         return db.GroupMembersCompanion.insert(
           groupId: group.id,
           memberDid: member.did,
@@ -193,12 +196,15 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
-          firstName: vCard.firstName,
-          lastName: vCard.lastName,
-          email: vCard.email,
-          mobile: vCard.mobile,
-          profilePic: vCard.profilePic,
-          meetingplaceIdentityCardColor: vCard.meetingplaceIdentityCardColor,
+          identityDid: contactCard.did,
+          type: contactCard.type,
+          firstName: contactCard.firstName,
+          lastName: contactCard.lastName,
+          email: contactCard.email,
+          mobile: contactCard.mobile,
+          profilePic: contactCard.profilePic,
+          meetingplaceIdentityCardColor:
+              contactCard.meetingplaceIdentityCardColor,
         );
       });
 
@@ -235,21 +241,26 @@ class _GroupMemberMapper {
       dateAdded: groupMember.dateAdded,
       status: groupMember.status,
       membershipType: groupMember.membershipType,
-      vCard: _makeVCardFromContactCard(groupMember),
+      contactCard: _makeContactCardFromDb(groupMember),
       publicKey: groupMember.publicKey,
     );
   }
 
-  static model.VCard _makeVCardFromContactCard(db.GroupMember groupMember) {
-    final vCard = model.VCard(values: {});
-    vCard.firstName = groupMember.firstName;
-    vCard.lastName = groupMember.lastName;
-    vCard.email = groupMember.email;
-    vCard.mobile = groupMember.mobile;
-    vCard.profilePic = groupMember.profilePic;
-    vCard.meetingplaceIdentityCardColor =
+  static model.ContactCard _makeContactCardFromDb(db.GroupMember groupMember) {
+    final card = model.ContactCard(
+      did: groupMember.identityDid,
+      type: groupMember.type,
+      contactInfo: {},
+    );
+
+    card.firstName = groupMember.firstName;
+    card.lastName = groupMember.lastName;
+    card.email = groupMember.email;
+    card.mobile = groupMember.mobile;
+    card.profilePic = groupMember.profilePic;
+    card.meetingplaceIdentityCardColor =
         groupMember.meetingplaceIdentityCardColor;
 
-    return vCard;
+    return card;
   }
 }

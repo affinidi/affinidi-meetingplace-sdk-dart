@@ -22,26 +22,26 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
   @override
   final String publicKey;
   @override
-  final String vcard;
+  final String contactCard;
 
-  factory _$GroupAddMemberInput(
-          [void Function(GroupAddMemberInputBuilder)? updates]) =>
-      (GroupAddMemberInputBuilder()..update(updates))._build();
+  factory _$GroupAddMemberInput([
+    void Function(GroupAddMemberInputBuilder)? updates,
+  ]) => (GroupAddMemberInputBuilder()..update(updates))._build();
 
-  _$GroupAddMemberInput._(
-      {required this.mnemonic,
-      required this.offerLink,
-      required this.groupId,
-      required this.memberDid,
-      required this.acceptOfferAsDid,
-      required this.reencryptionKey,
-      required this.publicKey,
-      required this.vcard})
-      : super._();
+  _$GroupAddMemberInput._({
+    required this.mnemonic,
+    required this.offerLink,
+    required this.groupId,
+    required this.memberDid,
+    required this.acceptOfferAsDid,
+    required this.reencryptionKey,
+    required this.publicKey,
+    required this.contactCard,
+  }) : super._();
   @override
   GroupAddMemberInput rebuild(
-          void Function(GroupAddMemberInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(GroupAddMemberInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   GroupAddMemberInputBuilder toBuilder() =>
@@ -58,7 +58,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
         acceptOfferAsDid == other.acceptOfferAsDid &&
         reencryptionKey == other.reencryptionKey &&
         publicKey == other.publicKey &&
-        vcard == other.vcard;
+        contactCard == other.contactCard;
   }
 
   @override
@@ -71,7 +71,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
     _$hash = $jc(_$hash, acceptOfferAsDid.hashCode);
     _$hash = $jc(_$hash, reencryptionKey.hashCode);
     _$hash = $jc(_$hash, publicKey.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -86,7 +86,7 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
           ..add('acceptOfferAsDid', acceptOfferAsDid)
           ..add('reencryptionKey', reencryptionKey)
           ..add('publicKey', publicKey)
-          ..add('vcard', vcard))
+          ..add('contactCard', contactCard))
         .toString();
   }
 }
@@ -125,9 +125,9 @@ class GroupAddMemberInputBuilder
   String? get publicKey => _$this._publicKey;
   set publicKey(String? publicKey) => _$this._publicKey = publicKey;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   GroupAddMemberInputBuilder() {
     GroupAddMemberInput._defaults(this);
@@ -143,7 +143,7 @@ class GroupAddMemberInputBuilder
       _acceptOfferAsDid = $v.acceptOfferAsDid;
       _reencryptionKey = $v.reencryptionKey;
       _publicKey = $v.publicKey;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _$v = null;
     }
     return this;
@@ -163,24 +163,49 @@ class GroupAddMemberInputBuilder
   GroupAddMemberInput build() => _build();
 
   _$GroupAddMemberInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$GroupAddMemberInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'GroupAddMemberInput', 'mnemonic'),
+            mnemonic,
+            r'GroupAddMemberInput',
+            'mnemonic',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'GroupAddMemberInput', 'offerLink'),
+            offerLink,
+            r'GroupAddMemberInput',
+            'offerLink',
+          ),
           groupId: BuiltValueNullFieldError.checkNotNull(
-              groupId, r'GroupAddMemberInput', 'groupId'),
+            groupId,
+            r'GroupAddMemberInput',
+            'groupId',
+          ),
           memberDid: BuiltValueNullFieldError.checkNotNull(
-              memberDid, r'GroupAddMemberInput', 'memberDid'),
+            memberDid,
+            r'GroupAddMemberInput',
+            'memberDid',
+          ),
           acceptOfferAsDid: BuiltValueNullFieldError.checkNotNull(
-              acceptOfferAsDid, r'GroupAddMemberInput', 'acceptOfferAsDid'),
+            acceptOfferAsDid,
+            r'GroupAddMemberInput',
+            'acceptOfferAsDid',
+          ),
           reencryptionKey: BuiltValueNullFieldError.checkNotNull(
-              reencryptionKey, r'GroupAddMemberInput', 'reencryptionKey'),
+            reencryptionKey,
+            r'GroupAddMemberInput',
+            'reencryptionKey',
+          ),
           publicKey: BuiltValueNullFieldError.checkNotNull(
-              publicKey, r'GroupAddMemberInput', 'publicKey'),
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'GroupAddMemberInput', 'vcard'),
+            publicKey,
+            r'GroupAddMemberInput',
+            'publicKey',
+          ),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+            contactCard,
+            r'GroupAddMemberInput',
+            'contactCard',
+          ),
         );
     replace(_$result);
     return _$result;

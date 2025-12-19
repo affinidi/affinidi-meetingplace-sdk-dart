@@ -7,9 +7,9 @@ class ChatGroupDetailsUpdateHandler {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatHistoryService chatHistoryService,
     required ChatStream streamManager,
-  })  : _coreSDK = coreSDK,
-        _chatHistoryService = chatHistoryService,
-        _chatStreamManager = streamManager;
+  }) : _coreSDK = coreSDK,
+       _chatHistoryService = chatHistoryService,
+       _chatStreamManager = streamManager;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final ChatHistoryService _chatHistoryService;
@@ -50,13 +50,13 @@ class ChatGroupDetailsUpdateHandler {
         .cast<Map<String, dynamic>>();
 
     for (final newMember in newMembers) {
-      final chatItem =
-          await _chatHistoryService.createGroupMemberJoinedGroupEventMessage(
-        chatId: chatId,
-        groupDid: group.did,
-        memberDid: newMember['did'] as String,
-        memberVCard: _vCardFromMessage(newMember),
-      );
+      final chatItem = await _chatHistoryService
+          .createGroupMemberJoinedGroupEventMessage(
+            chatId: chatId,
+            groupDid: group.did,
+            memberDid: newMember['did'] as String,
+            memberCard: _cardFromMessage(newMember),
+          );
       _chatStreamManager.pushData(StreamData(chatItem: chatItem));
     }
 
@@ -64,13 +64,13 @@ class ChatGroupDetailsUpdateHandler {
       members: membersFromMessage.map((member) {
         return GroupMember(
           did: member['did'] as String,
-          dateAdded: DateTime.parse(member['dateAdded'] as String),
+          dateAdded: DateTime.parse(member['date_added'] as String),
           status: GroupMemberStatus.values.byName(member['status'] as String),
-          publicKey: member['publicKey'] as String,
+          publicKey: member['public_key'] as String,
           membershipType: GroupMembershipType.values.byName(
-            member['membershipType'] as String,
+            member['membership_type'] as String,
           ),
-          vCard: _vCardFromMessage(member),
+          contactCard: _cardFromMessage(member),
         );
       }).toList(),
     );
@@ -79,9 +79,9 @@ class ChatGroupDetailsUpdateHandler {
     return updatedGroup;
   }
 
-  VCard _vCardFromMessage(Map<String, dynamic> message) {
-    return VCard(
-      values: (message['vCard'] as dynamic)['values'] as Map<String, dynamic>,
+  ContactCard _cardFromMessage(Map<String, dynamic> message) {
+    return ContactCard.fromJson(
+      message['contact_card'] as Map<String, dynamic>,
     );
   }
 }

@@ -11,45 +11,59 @@ import 'package:collection/collection.dart';
 /// profile updates, and message delivery acknowledgements.
 enum ChatProtocol {
   /// Represents a "typing" or activity indicator.
-  chatActivity('https://affinidi.io/mpx/chat-sdk/activity'),
+  chatActivity(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/chat-activity',
+  ),
 
-  /// Represents a hash of the user's profile (vCard) for identity validation.
-  chatAliasProfileHash('https://affinidi.io/mpx/chat-sdk/alias-profile-hash'),
+  /// Represents a hash of the user's profile (contact card) for identity validation.
+  chatAliasProfileHash(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/alias-profile-hash',
+  ),
 
   /// Represents a request to validate or update a user's alias profile.
   chatAliasProfileRequest(
-    'https://affinidi.io/mpx/chat-sdk/alias-profile-request',
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/alias-profile-request',
   ),
 
   /// Represents verifiable presentations of chat attachments.
   chatAttachmentsVerifiablePresentation(
-    'https://affinidi.io/mpx/chat-sdk/attachments-verifiable-presentation',
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/attachments-verifiable-presentation',
   ),
 
-  /// Represents an update to contact details (e.g., vCard information).
+  /// Represents an update to contact details (e.g., contact card information).
   chatContactDetailsUpdate(
-    'https://affinidi.io/mpx/chat-sdk/contact-details-update',
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/contact-details-update',
   ),
 
   /// Represents a "delivered" acknowledgement for received messages.
-  chatDelivered('https://affinidi.io/mpx/chat-sdk/delivered'),
+  chatDelivered(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/delivered',
+  ),
 
   /// Represents a visual or animated effect sent in chat.
-  chatEffect('https://affinidi.io/mpx/chat-sdk/effect'),
+  chatEffect(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/effect',
+  ),
 
   /// Represents an update to group details (e.g., membership changes).
   chatGroupDetailsUpdate(
-    'https://affinidi.io/mpx/chat-sdk/group-details-update',
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/group-details-update',
   ),
 
   /// Represents a plain chat message.
-  chatMessage('https://affinidi.io/mpx/chat-sdk/message'),
+  chatMessage(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
+  ),
 
   /// Represents an online/offline presence signal.
-  chatPresence('https://affinidi.io/mpx/chat-sdk/presence'),
+  chatPresence(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/presence',
+  ),
 
   /// Represents a reaction (emoji or similar) to a chat message.
-  chatReaction('https://affinidi.io/mpx/chat-sdk/reaction');
+  chatReaction(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/reaction',
+  );
 
   /// Creates a [ChatProtocol] instance with the given URI [value].
   const ChatProtocol(this.value);

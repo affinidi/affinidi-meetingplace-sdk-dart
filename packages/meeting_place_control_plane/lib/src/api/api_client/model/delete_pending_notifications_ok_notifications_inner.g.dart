@@ -19,20 +19,25 @@ class _$DeletePendingNotificationsOKNotificationsInner
   @override
   final String? payload;
 
-  factory _$DeletePendingNotificationsOKNotificationsInner(
-          [void Function(DeletePendingNotificationsOKNotificationsInnerBuilder)?
-              updates]) =>
+  factory _$DeletePendingNotificationsOKNotificationsInner([
+    void Function(DeletePendingNotificationsOKNotificationsInnerBuilder)?
+    updates,
+  ]) =>
       (DeletePendingNotificationsOKNotificationsInnerBuilder()..update(updates))
           ._build();
 
-  _$DeletePendingNotificationsOKNotificationsInner._(
-      {this.id, this.offerLink, this.deviceHash, this.did, this.payload})
-      : super._();
+  _$DeletePendingNotificationsOKNotificationsInner._({
+    this.id,
+    this.offerLink,
+    this.deviceHash,
+    this.did,
+    this.payload,
+  }) : super._();
   @override
   DeletePendingNotificationsOKNotificationsInner rebuild(
-          void Function(DeletePendingNotificationsOKNotificationsInnerBuilder)
-              updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DeletePendingNotificationsOKNotificationsInnerBuilder)
+    updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DeletePendingNotificationsOKNotificationsInnerBuilder toBuilder() =>
@@ -64,7 +69,8 @@ class _$DeletePendingNotificationsOKNotificationsInner
   @override
   String toString() {
     return (newBuiltValueToStringHelper(
-            r'DeletePendingNotificationsOKNotificationsInner')
+            r'DeletePendingNotificationsOKNotificationsInner',
+          )
           ..add('id', id)
           ..add('offerLink', offerLink)
           ..add('deviceHash', deviceHash)
@@ -76,8 +82,10 @@ class _$DeletePendingNotificationsOKNotificationsInner
 
 class DeletePendingNotificationsOKNotificationsInnerBuilder
     implements
-        Builder<DeletePendingNotificationsOKNotificationsInner,
-            DeletePendingNotificationsOKNotificationsInnerBuilder> {
+        Builder<
+          DeletePendingNotificationsOKNotificationsInner,
+          DeletePendingNotificationsOKNotificationsInnerBuilder
+        > {
   _$DeletePendingNotificationsOKNotificationsInner? _$v;
 
   String? _id;
@@ -124,8 +132,9 @@ class DeletePendingNotificationsOKNotificationsInnerBuilder
 
   @override
   void update(
-      void Function(DeletePendingNotificationsOKNotificationsInnerBuilder)?
-          updates) {
+    void Function(DeletePendingNotificationsOKNotificationsInnerBuilder)?
+    updates,
+  ) {
     if (updates != null) updates(this);
   }
 
@@ -133,7 +142,8 @@ class DeletePendingNotificationsOKNotificationsInnerBuilder
   DeletePendingNotificationsOKNotificationsInner build() => _build();
 
   _$DeletePendingNotificationsOKNotificationsInner _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$DeletePendingNotificationsOKNotificationsInner._(
           id: id,
           offerLink: offerLink,

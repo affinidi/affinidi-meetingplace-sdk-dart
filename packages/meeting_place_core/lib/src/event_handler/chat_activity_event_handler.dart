@@ -34,16 +34,19 @@ class ChatActivityEventHandler extends BaseEventHandler {
         didManager: didManager,
         mediatorDid: channel.mediatorDid,
         options: FetchMessagesOptions(
-            startFrom: messageSyncMarker,
-            batchSize: 100,
-            deleteOnRetrieve: false,
-            // TODO: fix interdependency - make configurable via SDK options
-            filterByMessageTypes: ['https://affinidi.io/mpx/chat-sdk/message']),
+          startFrom: messageSyncMarker,
+          batchSize: 100,
+          deleteOnRetrieve: false,
+          // TODO: fix interdependency - make configurable via SDK options
+          filterByMessageTypes: [
+            'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
+          ],
+        ),
       );
 
       for (final message in messages) {
         final messageSeqNumber =
-            message.seqNo ?? message.plainTextMessage.body?['seqNo'];
+            message.seqNo ?? message.plainTextMessage.body?['seq_no'];
 
         if (messageSeqNumber > channel.seqNo) {
           channel.seqNo = messageSeqNumber;

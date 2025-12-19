@@ -114,9 +114,11 @@ class _$FinaliseOfferInputSerializer
     FinaliseOfferInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -132,45 +134,59 @@ class _$FinaliseOfferInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'mnemonic':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mnemonic = valueDes;
           break;
         case r'did':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.did = valueDes;
           break;
         case r'offerLink':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerLink = valueDes;
           break;
         case r'theirDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.theirDid = valueDes;
           break;
         case r'deviceToken':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.deviceToken = valueDes;
           break;
         case r'platformType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(FinaliseOfferInputPlatformTypeEnum),
-          ) as FinaliseOfferInputPlatformTypeEnum;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(
+                      FinaliseOfferInputPlatformTypeEnum,
+                    ),
+                  )
+                  as FinaliseOfferInputPlatformTypeEnum;
           result.platformType = valueDes;
           break;
         default:

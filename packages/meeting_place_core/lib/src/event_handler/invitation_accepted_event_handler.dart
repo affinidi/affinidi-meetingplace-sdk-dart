@@ -2,7 +2,7 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
 import '../protocol/meeting_place_protocol.dart';
 import '../entity/connection_offer.dart';
-import '../messages/utils.dart';
+import '../utils/attachment.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 
@@ -41,7 +41,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: publishedOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.connectionSetup,
+        messageType: MeetingPlaceProtocol.invitationAcceptance,
       );
 
       for (final result in messages) {
@@ -55,7 +55,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        final otherPartyVcard = getVCardDataOrEmptyFromAttachments(
+        final otherPartyContactCard = getContactCardDataOrEmptyFromAttachments(
           message.attachments,
         );
 
@@ -69,8 +69,8 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           outboundMessageId: message.id,
           status: ChannelStatus.waitingForApproval,
           type: ChannelType.individual,
-          vCard: connection.vCard,
-          otherPartyVCard: otherPartyVcard,
+          contactCard: connection.contactCard,
+          otherPartyContactCard: otherPartyContactCard,
           externalRef: connection.externalRef,
         );
 

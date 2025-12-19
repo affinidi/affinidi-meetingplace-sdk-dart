@@ -20,7 +20,7 @@ class _$QueryOfferOK extends QueryOfferOK {
   @override
   final String? validUntil;
   @override
-  final String vcard;
+  final String contactCard;
   @override
   final int contactAttributes;
   @override
@@ -43,24 +43,24 @@ class _$QueryOfferOK extends QueryOfferOK {
   factory _$QueryOfferOK([void Function(QueryOfferOKBuilder)? updates]) =>
       (QueryOfferOKBuilder()..update(updates))._build();
 
-  _$QueryOfferOK._(
-      {required this.status,
-      this.message,
-      required this.offerLink,
-      required this.name,
-      required this.description,
-      this.validUntil,
-      required this.vcard,
-      required this.contactAttributes,
-      this.offerType,
-      required this.mediatorDid,
-      required this.mediatorEndpoint,
-      required this.mediatorWSSEndpoint,
-      required this.didcommMessage,
-      this.maximumUsage,
-      this.groupId,
-      this.groupDid})
-      : super._();
+  _$QueryOfferOK._({
+    required this.status,
+    this.message,
+    required this.offerLink,
+    required this.name,
+    required this.description,
+    this.validUntil,
+    required this.contactCard,
+    required this.contactAttributes,
+    this.offerType,
+    required this.mediatorDid,
+    required this.mediatorEndpoint,
+    required this.mediatorWSSEndpoint,
+    required this.didcommMessage,
+    this.maximumUsage,
+    this.groupId,
+    this.groupDid,
+  }) : super._();
   @override
   QueryOfferOK rebuild(void Function(QueryOfferOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -78,7 +78,7 @@ class _$QueryOfferOK extends QueryOfferOK {
         name == other.name &&
         description == other.description &&
         validUntil == other.validUntil &&
-        vcard == other.vcard &&
+        contactCard == other.contactCard &&
         contactAttributes == other.contactAttributes &&
         offerType == other.offerType &&
         mediatorDid == other.mediatorDid &&
@@ -99,7 +99,7 @@ class _$QueryOfferOK extends QueryOfferOK {
     _$hash = $jc(_$hash, name.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jc(_$hash, validUntil.hashCode);
-    _$hash = $jc(_$hash, vcard.hashCode);
+    _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jc(_$hash, contactAttributes.hashCode);
     _$hash = $jc(_$hash, offerType.hashCode);
     _$hash = $jc(_$hash, mediatorDid.hashCode);
@@ -122,7 +122,7 @@ class _$QueryOfferOK extends QueryOfferOK {
           ..add('name', name)
           ..add('description', description)
           ..add('validUntil', validUntil)
-          ..add('vcard', vcard)
+          ..add('contactCard', contactCard)
           ..add('contactAttributes', contactAttributes)
           ..add('offerType', offerType)
           ..add('mediatorDid', mediatorDid)
@@ -164,9 +164,9 @@ class QueryOfferOKBuilder
   String? get validUntil => _$this._validUntil;
   set validUntil(String? validUntil) => _$this._validUntil = validUntil;
 
-  String? _vcard;
-  String? get vcard => _$this._vcard;
-  set vcard(String? vcard) => _$this._vcard = vcard;
+  String? _contactCard;
+  String? get contactCard => _$this._contactCard;
+  set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
   int? _contactAttributes;
   int? get contactAttributes => _$this._contactAttributes;
@@ -221,7 +221,7 @@ class QueryOfferOKBuilder
       _name = $v.name;
       _description = $v.description;
       _validUntil = $v.validUntil;
-      _vcard = $v.vcard;
+      _contactCard = $v.contactCard;
       _contactAttributes = $v.contactAttributes;
       _offerType = $v.offerType;
       _mediatorDid = $v.mediatorDid;
@@ -250,31 +250,62 @@ class QueryOfferOKBuilder
   QueryOfferOK build() => _build();
 
   _$QueryOfferOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$QueryOfferOK._(
           status: BuiltValueNullFieldError.checkNotNull(
-              status, r'QueryOfferOK', 'status'),
+            status,
+            r'QueryOfferOK',
+            'status',
+          ),
           message: message,
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'QueryOfferOK', 'offerLink'),
+            offerLink,
+            r'QueryOfferOK',
+            'offerLink',
+          ),
           name: BuiltValueNullFieldError.checkNotNull(
-              name, r'QueryOfferOK', 'name'),
+            name,
+            r'QueryOfferOK',
+            'name',
+          ),
           description: BuiltValueNullFieldError.checkNotNull(
-              description, r'QueryOfferOK', 'description'),
+            description,
+            r'QueryOfferOK',
+            'description',
+          ),
           validUntil: validUntil,
-          vcard: BuiltValueNullFieldError.checkNotNull(
-              vcard, r'QueryOfferOK', 'vcard'),
+          contactCard: BuiltValueNullFieldError.checkNotNull(
+            contactCard,
+            r'QueryOfferOK',
+            'contactCard',
+          ),
           contactAttributes: BuiltValueNullFieldError.checkNotNull(
-              contactAttributes, r'QueryOfferOK', 'contactAttributes'),
+            contactAttributes,
+            r'QueryOfferOK',
+            'contactAttributes',
+          ),
           offerType: offerType,
           mediatorDid: BuiltValueNullFieldError.checkNotNull(
-              mediatorDid, r'QueryOfferOK', 'mediatorDid'),
+            mediatorDid,
+            r'QueryOfferOK',
+            'mediatorDid',
+          ),
           mediatorEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorEndpoint, r'QueryOfferOK', 'mediatorEndpoint'),
+            mediatorEndpoint,
+            r'QueryOfferOK',
+            'mediatorEndpoint',
+          ),
           mediatorWSSEndpoint: BuiltValueNullFieldError.checkNotNull(
-              mediatorWSSEndpoint, r'QueryOfferOK', 'mediatorWSSEndpoint'),
+            mediatorWSSEndpoint,
+            r'QueryOfferOK',
+            'mediatorWSSEndpoint',
+          ),
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
-              didcommMessage, r'QueryOfferOK', 'didcommMessage'),
+            didcommMessage,
+            r'QueryOfferOK',
+            'didcommMessage',
+          ),
           maximumUsage: maximumUsage,
           groupId: groupId,
           groupDid: groupDid,

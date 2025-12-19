@@ -6,8 +6,8 @@ import 'control_plane_stream_event.dart';
 
 class ControlPlaneEventStreamManager {
   ControlPlaneEventStreamManager({MeetingPlaceCoreSDKLogger? logger})
-      : _logger =
-            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
+    : _logger =
+          logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
     _streamController = _controller;
   }
 

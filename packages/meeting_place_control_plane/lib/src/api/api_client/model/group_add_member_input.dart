@@ -18,7 +18,7 @@ part 'group_add_member_input.g.dart';
 /// * [acceptOfferAsDid] - Decentralised Identifier (DID) of when the member accepted the offer.
 /// * [reencryptionKey] - The reencryption key for the group chat member.
 /// * [publicKey] - The public key information of the group chat member.
-/// * [vcard] - The vCard of the member to add to the group chat.
+/// * [contactCard] - The ContactCard of the member to add to the group chat.
 @BuiltValue()
 abstract class GroupAddMemberInput
     implements Built<GroupAddMemberInput, GroupAddMemberInputBuilder> {
@@ -50,9 +50,9 @@ abstract class GroupAddMemberInput
   @BuiltValueField(wireName: r'publicKey')
   String get publicKey;
 
-  /// The vCard of the member to add to the group chat.
-  @BuiltValueField(wireName: r'vcard')
-  String get vcard;
+  /// The ContactCard of the member to add to the group chat.
+  @BuiltValueField(wireName: r'contactCard')
+  String get contactCard;
 
   GroupAddMemberInput._();
 
@@ -72,7 +72,7 @@ class _$GroupAddMemberInputSerializer
   @override
   final Iterable<Type> types = const [
     GroupAddMemberInput,
-    _$GroupAddMemberInput
+    _$GroupAddMemberInput,
   ];
 
   @override
@@ -118,9 +118,9 @@ class _$GroupAddMemberInputSerializer
       object.publicKey,
       specifiedType: const FullType(String),
     );
-    yield r'vcard';
+    yield r'contactCard';
     yield serializers.serialize(
-      object.vcard,
+      object.contactCard,
       specifiedType: const FullType(String),
     );
   }
@@ -131,9 +131,11 @@ class _$GroupAddMemberInputSerializer
     GroupAddMemberInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object,
-            specifiedType: specifiedType)
-        .toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -149,60 +151,76 @@ class _$GroupAddMemberInputSerializer
       final value = serializedList[i + 1];
       switch (key) {
         case r'mnemonic':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mnemonic = valueDes;
           break;
         case r'offerLink':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.offerLink = valueDes;
           break;
         case r'groupId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.groupId = valueDes;
           break;
         case r'memberDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.memberDid = valueDes;
           break;
         case r'acceptOfferAsDid':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.acceptOfferAsDid = valueDes;
           break;
         case r'reencryptionKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.reencryptionKey = valueDes;
           break;
         case r'publicKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.publicKey = valueDes;
           break;
-        case r'vcard':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.vcard = valueDes;
+        case r'contactCard':
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
+          result.contactCard = valueDes;
           break;
         default:
           unhandled.add(key);

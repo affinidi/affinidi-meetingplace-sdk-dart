@@ -28,8 +28,10 @@ import 'get_pending_notifications_output.dart';
 /// Notifications operation.
 class GetPendingNotificationsHandler
     implements
-        CommandHandler<GetPendingNotificationsCommand,
-            GetPendingNotificationsCommandOutput> {
+        CommandHandler<
+          GetPendingNotificationsCommand,
+          GetPendingNotificationsCommandOutput
+        > {
   /// Returns an instance of [FinaliseAcceptanceHandler].
   ///
   /// **Parameters:**
@@ -37,10 +39,13 @@ class GetPendingNotificationsHandler
   GetPendingNotificationsHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'GetPendingNotificationsHandler';
 
   final ControlPlaneApiClient _apiClient;
@@ -83,8 +88,7 @@ class GetPendingNotificationsHandler
       );
       final response = (await _apiClient.client.getPendingNotifications(
         getPendingNotificationsInput: builder.build(),
-      ))
-          .data;
+      )).data;
 
       final events = response!.notifications!.map(_parseNotification).toList();
       final processableEvents = _filterProcessableEvents(events);

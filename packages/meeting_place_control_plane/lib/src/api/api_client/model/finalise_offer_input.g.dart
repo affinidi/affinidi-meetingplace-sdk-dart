@@ -7,17 +7,18 @@ part of 'finalise_offer_input.dart';
 // **************************************************************************
 
 const FinaliseOfferInputPlatformTypeEnum
-    _$finaliseOfferInputPlatformTypeEnum_DIDCOMM =
+_$finaliseOfferInputPlatformTypeEnum_DIDCOMM =
     const FinaliseOfferInputPlatformTypeEnum._('DIDCOMM');
 const FinaliseOfferInputPlatformTypeEnum
-    _$finaliseOfferInputPlatformTypeEnum_PUSH_NOTIFICATION =
+_$finaliseOfferInputPlatformTypeEnum_PUSH_NOTIFICATION =
     const FinaliseOfferInputPlatformTypeEnum._('PUSH_NOTIFICATION');
 const FinaliseOfferInputPlatformTypeEnum
-    _$finaliseOfferInputPlatformTypeEnum_NONE =
+_$finaliseOfferInputPlatformTypeEnum_NONE =
     const FinaliseOfferInputPlatformTypeEnum._('NONE');
 
 FinaliseOfferInputPlatformTypeEnum _$finaliseOfferInputPlatformTypeEnumValueOf(
-    String name) {
+  String name,
+) {
   switch (name) {
     case 'DIDCOMM':
       return _$finaliseOfferInputPlatformTypeEnum_DIDCOMM;
@@ -31,15 +32,17 @@ FinaliseOfferInputPlatformTypeEnum _$finaliseOfferInputPlatformTypeEnumValueOf(
 }
 
 final BuiltSet<FinaliseOfferInputPlatformTypeEnum>
-    _$finaliseOfferInputPlatformTypeEnumValues = BuiltSet<
-        FinaliseOfferInputPlatformTypeEnum>(const <FinaliseOfferInputPlatformTypeEnum>[
-  _$finaliseOfferInputPlatformTypeEnum_DIDCOMM,
-  _$finaliseOfferInputPlatformTypeEnum_PUSH_NOTIFICATION,
-  _$finaliseOfferInputPlatformTypeEnum_NONE,
-]);
+_$finaliseOfferInputPlatformTypeEnumValues =
+    BuiltSet<FinaliseOfferInputPlatformTypeEnum>(
+      const <FinaliseOfferInputPlatformTypeEnum>[
+        _$finaliseOfferInputPlatformTypeEnum_DIDCOMM,
+        _$finaliseOfferInputPlatformTypeEnum_PUSH_NOTIFICATION,
+        _$finaliseOfferInputPlatformTypeEnum_NONE,
+      ],
+    );
 
 Serializer<FinaliseOfferInputPlatformTypeEnum>
-    _$finaliseOfferInputPlatformTypeEnumSerializer =
+_$finaliseOfferInputPlatformTypeEnumSerializer =
     _$FinaliseOfferInputPlatformTypeEnumSerializer();
 
 class _$FinaliseOfferInputPlatformTypeEnumSerializer
@@ -62,16 +65,19 @@ class _$FinaliseOfferInputPlatformTypeEnumSerializer
 
   @override
   Object serialize(
-          Serializers serializers, FinaliseOfferInputPlatformTypeEnum object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      _toWire[object.name] ?? object.name;
+    Serializers serializers,
+    FinaliseOfferInputPlatformTypeEnum object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => _toWire[object.name] ?? object.name;
 
   @override
   FinaliseOfferInputPlatformTypeEnum deserialize(
-          Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      FinaliseOfferInputPlatformTypeEnum.valueOf(
-          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => FinaliseOfferInputPlatformTypeEnum.valueOf(
+    _fromWire[serialized] ?? (serialized is String ? serialized : ''),
+  );
 }
 
 class _$FinaliseOfferInput extends FinaliseOfferInput {
@@ -88,22 +94,22 @@ class _$FinaliseOfferInput extends FinaliseOfferInput {
   @override
   final FinaliseOfferInputPlatformTypeEnum? platformType;
 
-  factory _$FinaliseOfferInput(
-          [void Function(FinaliseOfferInputBuilder)? updates]) =>
-      (FinaliseOfferInputBuilder()..update(updates))._build();
+  factory _$FinaliseOfferInput([
+    void Function(FinaliseOfferInputBuilder)? updates,
+  ]) => (FinaliseOfferInputBuilder()..update(updates))._build();
 
-  _$FinaliseOfferInput._(
-      {required this.mnemonic,
-      required this.did,
-      required this.offerLink,
-      required this.theirDid,
-      this.deviceToken,
-      this.platformType})
-      : super._();
+  _$FinaliseOfferInput._({
+    required this.mnemonic,
+    required this.did,
+    required this.offerLink,
+    required this.theirDid,
+    this.deviceToken,
+    this.platformType,
+  }) : super._();
   @override
   FinaliseOfferInput rebuild(
-          void Function(FinaliseOfferInputBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(FinaliseOfferInputBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   FinaliseOfferInputBuilder toBuilder() =>
@@ -208,16 +214,29 @@ class FinaliseOfferInputBuilder
   FinaliseOfferInput build() => _build();
 
   _$FinaliseOfferInput _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$FinaliseOfferInput._(
           mnemonic: BuiltValueNullFieldError.checkNotNull(
-              mnemonic, r'FinaliseOfferInput', 'mnemonic'),
+            mnemonic,
+            r'FinaliseOfferInput',
+            'mnemonic',
+          ),
           did: BuiltValueNullFieldError.checkNotNull(
-              did, r'FinaliseOfferInput', 'did'),
+            did,
+            r'FinaliseOfferInput',
+            'did',
+          ),
           offerLink: BuiltValueNullFieldError.checkNotNull(
-              offerLink, r'FinaliseOfferInput', 'offerLink'),
+            offerLink,
+            r'FinaliseOfferInput',
+            'offerLink',
+          ),
           theirDid: BuiltValueNullFieldError.checkNotNull(
-              theirDid, r'FinaliseOfferInput', 'theirDid'),
+            theirDid,
+            r'FinaliseOfferInput',
+            'theirDid',
+          ),
           deviceToken: deviceToken,
           platformType: platformType,
         );

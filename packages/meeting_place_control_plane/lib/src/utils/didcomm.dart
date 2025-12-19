@@ -12,7 +12,8 @@ Future<EncryptedMessage> signAndEncryptMessage(
   final authenticationKeyId = senderDidDocument.authentication.first.id;
 
   final keyAgreementKeyId = senderDidDocument
-      .matchKeysInKeyAgreement(otherDidDocuments: [recipientDidDocument]).first;
+      .matchKeysInKeyAgreement(otherDidDocuments: [recipientDidDocument])
+      .first;
 
   final signedMessage = await SignedMessage.pack(
     message,

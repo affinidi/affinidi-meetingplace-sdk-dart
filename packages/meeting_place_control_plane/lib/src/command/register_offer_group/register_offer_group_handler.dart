@@ -26,8 +26,10 @@ import 'register_offer_group_output.dart';
 /// Group operation.
 class RegisterOfferGroupHandler
     implements
-        CommandHandler<RegisterOfferGroupCommand,
-            RegisterOfferGroupCommandOutput> {
+        CommandHandler<
+          RegisterOfferGroupCommand,
+          RegisterOfferGroupCommandOutput
+        > {
   /// Returns an instance of [RegisterOfferHandler].
   ///
   /// **Parameters:**
@@ -41,9 +43,12 @@ class RegisterOfferGroupHandler
     required this.sdkConfig,
     required this.didResolver,
     ControlPlaneSDKLogger? logger,
-  }) : _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-                className: _className, sdkName: sdkName);
+  }) : _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'RegisterOfferGroupHandler';
 
   final ControlPlaneApiClient apiClient;
@@ -96,7 +101,7 @@ class RegisterOfferGroupHandler
       ..offerName = command.offerName
       ..offerDescription = command.offerDescription
       ..didcommMessage = toBase64(command.oobInvitationMessage.toJson())
-      ..vcard = command.vCard.toBase64()
+      ..contactCard = command.contactCard.toBase64()
       ..validUntil = command.validUntil?.toUtc().toIso8601String()
       ..maximumUsage = command.maximumUsage
       ..deviceToken = command.device.deviceToken
@@ -111,9 +116,7 @@ class RegisterOfferGroupHandler
       ..adminDid = command.adminDid
       ..adminPublicKey = command.adminPublicKey
       ..adminReencryptionKey = command.adminReencryptionKey
-      ..memberVCard = base64Url.encode(
-        utf8.encode('{}'),
-      );
+      ..memberContactCard = base64Url.encode(utf8.encode('{}'));
 
     try {
       _logger.info('[MPX API] calling /register-offer', name: methodName);

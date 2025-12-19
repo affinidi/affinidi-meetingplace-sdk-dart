@@ -8,8 +8,8 @@ class LoggerFormatter implements MeetingPlaceChatSDKLogger {
     required this.className,
     MeetingPlaceChatSDKLogger? baseLogger,
     this.sdkName = constants.sdkName,
-  }) : _baseLogger = baseLogger ??
-            DefaultMeetingPlaceChatSDKLogger(className: className);
+  }) : _baseLogger =
+           baseLogger ?? DefaultMeetingPlaceChatSDKLogger(className: className);
 
   final String className;
   final String sdkName;

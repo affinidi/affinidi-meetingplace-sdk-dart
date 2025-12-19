@@ -17,7 +17,8 @@ enum ControlPlaneSDKErrorCode {
 
   // delete pending notifications codes
   deletePendingNotificationsDeletionFailedError(
-      'delete_pending_notifications_deletion_failed_error'),
+    'delete_pending_notifications_deletion_failed_error',
+  ),
   deletePendingNotificationsGeneric('delete_pending_notifications_generic'),
 
   // deregister notification codes
@@ -33,7 +34,8 @@ enum ControlPlaneSDKErrorCode {
 
   // get pending notifications codes
   getPendingNotificationsNotificationPayloadError(
-      'get_pending_notifications_notification_payload_error'),
+    'get_pending_notifications_notification_payload_error',
+  ),
   getPendingNotificationsGeneric('get_pending_notifications_generic'),
 
   // group add member codes

@@ -17,9 +17,11 @@ class _$FinaliseOfferOK extends FinaliseOfferOK {
   factory _$FinaliseOfferOK([void Function(FinaliseOfferOKBuilder)? updates]) =>
       (FinaliseOfferOKBuilder()..update(updates))._build();
 
-  _$FinaliseOfferOK._(
-      {this.status, this.message, required this.notificationToken})
-      : super._();
+  _$FinaliseOfferOK._({
+    this.status,
+    this.message,
+    required this.notificationToken,
+  }) : super._();
   @override
   FinaliseOfferOK rebuild(void Function(FinaliseOfferOKBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -102,12 +104,16 @@ class FinaliseOfferOKBuilder
   FinaliseOfferOK build() => _build();
 
   _$FinaliseOfferOK _build() {
-    final _$result = _$v ??
+    final _$result =
+        _$v ??
         _$FinaliseOfferOK._(
           status: status,
           message: message,
           notificationToken: BuiltValueNullFieldError.checkNotNull(
-              notificationToken, r'FinaliseOfferOK', 'notificationToken'),
+            notificationToken,
+            r'FinaliseOfferOK',
+            'notificationToken',
+          ),
         );
     replace(_$result);
     return _$result;

@@ -133,7 +133,7 @@ class MeetingPlaceCoreSDK {
     required MediatorService mediatorService,
     required this.didResolver,
     required String mediatorDid,
-    required MeetingPlaceCoreSDKOptions options,
+    required this.options,
     required SDKErrorHandler sdkErrorHandler,
     required this.logger,
   })  : _repositoryConfig = repositoryConfig,
@@ -150,7 +150,6 @@ class MeetingPlaceCoreSDK {
         _mediatorService = mediatorService,
         _messageService = messageService,
         _mediatorDid = mediatorDid,
-        _options = options,
         _sdkErrorHandler = sdkErrorHandler;
 
   final Wallet wallet;
@@ -168,7 +167,7 @@ class MeetingPlaceCoreSDK {
   final OutreachService _outreachService;
   final MessageService _messageService;
   final DidResolver didResolver;
-  final MeetingPlaceCoreSDKOptions _options;
+  final MeetingPlaceCoreSDKOptions options;
   final MeetingPlaceCoreSDKLogger logger;
   final SDKErrorHandler _sdkErrorHandler;
   final Map<Type, Object> _extensions = {};
@@ -1174,7 +1173,7 @@ class MeetingPlaceCoreSDK {
   Future<void> processControlPlaneEvents({Function? onDone}) {
     return withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
-        debounceEvents: _options.debounceControlPlaneEvents,
+        debounceEvents: options.debounceControlPlaneEvents,
         onDone: onDone,
       ),
     );

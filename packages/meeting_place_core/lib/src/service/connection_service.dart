@@ -21,6 +21,7 @@ import 'package:ssi/ssi.dart';
 import 'connection_offer/offer_already_claimed_exception.dart';
 import 'connection_offer/offer_owner_exception.dart';
 import 'connection_service/accept_offer_result.dart';
+import 'mediator/mediator_acl_service.dart';
 
 class FindOfferException implements Exception {
   FindOfferException(this.message);
@@ -40,14 +41,16 @@ class ConnectionService {
     required ChannelRepository channelRepository,
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
+    required MediatorAclService mediatorAclService,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _channelRepository = channelRepository,
        _connectionOfferRepository = connectionOfferRepository,
-       _mediatorSDK = mediatorSDK,
        _controlPlaneSDK = controlPlaneSDK,
+       _mediatorSDK = mediatorSDK,
+       _mediatorAclService = mediatorAclService,
        _connectionOfferService = offerService,
        _didResolver = didResolver,
        _logger =
@@ -60,6 +63,7 @@ class ConnectionService {
   final ConnectionOfferService _connectionOfferService;
   final ChannelRepository _channelRepository;
   final MeetingPlaceMediatorSDK _mediatorSDK;
+  final MediatorAclService _mediatorAclService;
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -192,10 +196,9 @@ class ConnectionService {
 
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
 
-    await _mediatorSDK.updateAcl(
+    await _mediatorAclService.toPublic(
+      didManager: oobDidManager,
       mediatorDid: mediatorDid,
-      ownerDidManager: oobDidManager,
-      acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
     final registerOfferOutput = await _controlPlaneSDK.execute(
@@ -430,13 +433,10 @@ class ConnectionService {
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
     final acceptOfferDidDocument = await acceptOfferDid.getDidDocument();
 
-    await _mediatorSDK.updateAcl(
-      ownerDidManager: acceptOfferDid,
+    await _mediatorAclService.addToAcl(
+      didManager: acceptOfferDid,
       mediatorDid: mediatorDid,
-      acl: AccessListAdd(
-        ownerDid: acceptOfferDidDocument.id,
-        granteeDids: [recipientDid],
-      ),
+      granteeDids: [recipientDid],
     );
 
     final invitationAcceptanceMessage = InvitationAcceptance.create(
@@ -605,13 +605,10 @@ class ConnectionService {
 
     final offerPublishedDidDocument = await offerPublishedDid.getDidDocument();
 
-    await _mediatorSDK.updateAcl(
-      ownerDidManager: permanentChannelDid,
+    await _mediatorAclService.addToAcl(
+      didManager: permanentChannelDid,
       mediatorDid: mediatorDid,
-      acl: AccessListAdd(
-        ownerDid: permanentChannelDidDocument.id,
-        granteeDids: [otherPartyPermanentChannelDid, otherPartyAcceptOfferDid],
-      ),
+      granteeDids: [otherPartyPermanentChannelDid, otherPartyAcceptOfferDid],
     );
 
     final connectionApprovalMwssage = ConnectionRequestApproval.create(
@@ -659,7 +656,7 @@ class ConnectionService {
     }
 
     networkRequests.add(
-      _removePermissionToGetMessagesFromChannel(
+      _mediatorAclService.removePermissionFromChannel(
         wallet: wallet,
         channel: channel,
       ),
@@ -755,31 +752,6 @@ class ConnectionService {
     _logger.info(
       'Offer deregistered from control plane API: ${connectionOffer.offerName}',
       name: methodName,
-    );
-  }
-
-  Future<void> _removePermissionToGetMessagesFromChannel({
-    required Wallet wallet,
-    required Channel channel,
-  }) async {
-    final permanentChannelDid = channel.permanentChannelDid;
-    final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
-    if (permanentChannelDid == null || otherPartyPermanentChannelDid == null) {
-      return;
-    }
-
-    final didManager = await _connectionManager.getDidManagerForDid(
-      wallet,
-      channel.permanentChannelDid!,
-    );
-
-    return _mediatorSDK.updateAcl(
-      ownerDidManager: didManager,
-      mediatorDid: channel.mediatorDid,
-      acl: AccessListRemove(
-        ownerDid: channel.permanentChannelDid!,
-        granteeDids: [channel.otherPartyPermanentChannelDid!],
-      ),
     );
   }
 }

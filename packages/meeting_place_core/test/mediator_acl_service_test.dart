@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
-import 'package:meeting_place_core/src/service/mediator/mediator_acl_exception.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_acl_service.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:mocktail/mocktail.dart';
@@ -150,16 +149,6 @@ void main() {
       );
     }
 
-    Matcher throwsMediatorAclException() {
-      return throwsA(
-        isA<MediatorAclException>().having(
-          (e) => e.code.value,
-          'code',
-          'mediator_acl_missing_channel_dids',
-        ),
-      );
-    }
-
     test('successfully removes permission from channel', () async {
       stubGetDidManagerForDid();
       stubUpdateAclSuccess();
@@ -192,39 +181,29 @@ void main() {
       expect(captured[2], mediatorDid);
     });
 
-    test(
-      'throws MediatorAclException when permanentChannelDid is null',
-      () async {
-        final channelWithoutPermanentDid = createChannelWithoutDids(
-          otherPartyDid: otherPartyPermanentChannelDid,
-        );
+    test('skips ACL update when permanentChannelDid is null', () async {
+      final channelWithoutPermanentDid = createChannelWithoutDids(
+        otherPartyDid: otherPartyPermanentChannelDid,
+      );
 
-        expect(
-          () => service.removePermissionFromChannel(
-            wallet: mockWallet,
-            channel: channelWithoutPermanentDid,
-          ),
-          throwsMediatorAclException(),
-        );
+      await service.removePermissionFromChannel(
+        wallet: mockWallet,
+        channel: channelWithoutPermanentDid,
+      );
 
-        verifyGetDidManagerForDidNeverCalled();
-        verifyUpdateAclNeverCalled();
-      },
-    );
+      verifyGetDidManagerForDidNeverCalled();
+      verifyUpdateAclNeverCalled();
+    });
 
     test(
-      'throws MediatorAclException when otherPartyPermanentChannelDid is null',
+      'skips ACL update when otherPartyPermanentChannelDid is null',
       () async {
         final channelWithoutOtherPartyDid = createChannelWithoutDids(
           permanentDid: permanentChannelDid,
         );
-
-        expect(
-          () => service.removePermissionFromChannel(
-            wallet: mockWallet,
-            channel: channelWithoutOtherPartyDid,
-          ),
-          throwsMediatorAclException(),
+        await service.removePermissionFromChannel(
+          wallet: mockWallet,
+          channel: channelWithoutOtherPartyDid,
         );
 
         verifyGetDidManagerForDidNeverCalled();
@@ -232,23 +211,17 @@ void main() {
       },
     );
 
-    test(
-      'throws MediatorAclException when both permanent DIDs are null',
-      () async {
-        final channelWithoutDids = createChannelWithoutDids();
+    test('skips ACL update when both permanent DIDs are null', () async {
+      final channelWithoutDids = createChannelWithoutDids();
 
-        expect(
-          () => service.removePermissionFromChannel(
-            wallet: mockWallet,
-            channel: channelWithoutDids,
-          ),
-          throwsMediatorAclException(),
-        );
+      await service.removePermissionFromChannel(
+        wallet: mockWallet,
+        channel: channelWithoutDids,
+      );
 
-        verifyGetDidManagerForDidNeverCalled();
-        verifyUpdateAclNeverCalled();
-      },
-    );
+      verifyGetDidManagerForDidNeverCalled();
+      verifyUpdateAclNeverCalled();
+    });
 
     test(
       'continues without throwing when updateAcl throws invalid did:web error',

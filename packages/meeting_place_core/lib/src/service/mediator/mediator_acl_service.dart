@@ -4,7 +4,6 @@ import 'package:ssi/ssi.dart';
 import '../../entity/channel.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../connection_manager/connection_manager.dart';
-import 'mediator_acl_exception.dart';
 
 class MediatorAclService {
   MediatorAclService({
@@ -52,7 +51,7 @@ class MediatorAclService {
     final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
 
     if (permanentChannelDid == null || otherPartyPermanentChannelDid == null) {
-      throw MediatorAclException.missingPermanentChannelDids();
+      return;
     }
 
     final didManager = await _connectionManager.getDidManagerForDid(

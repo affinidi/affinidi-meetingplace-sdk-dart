@@ -50,6 +50,7 @@ enum MeetingPlaceCoreSDKErrorCode {
 
   // others
   channelNotificationFailed('channel_notification_failed'),
+  mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),
   generic('generic');
 
   const MeetingPlaceCoreSDKErrorCode(this.value);

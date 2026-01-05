@@ -7,7 +7,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../meeting_place_core.dart';
 import '../meeting_place_core_sdk_vdip_exception.dart';
-import '../request_credential_response.dart';
 
 class VdipService {
   VdipService({required MeetingPlaceCoreSDK sdk}) : _sdk = sdk;
@@ -24,28 +23,34 @@ class VdipService {
 
     final waitForCredential = Completer<RequestCredentialResponse>();
     final vdipHolder = await _initVdipHolderClient(
-        permanentChannelDid: permanentChannelDid,
-        mediatorDid: channel.mediatorDid);
+      permanentChannelDid: permanentChannelDid,
+      mediatorDid: channel.mediatorDid,
+    );
 
     // TODO: use onProblemReport callback?
 
     vdipHolder.listenForIncomingMessages(
       onCredentialsIssuanceResponse: (message) async {
-        VdipIssuedCredentialBody body =
-            VdipIssuedCredentialBody.fromJson(message.body!);
+        VdipIssuedCredentialBody body = VdipIssuedCredentialBody.fromJson(
+          message.body!,
+        );
 
         await ConnectionPool.instance.stopConnections();
-        waitForCredential.complete(RequestCredentialResponse(
+        waitForCredential.complete(
+          RequestCredentialResponse(
             credential: body.credential,
-            credentialFormat: body.credentialFormat));
+            credentialFormat: body.credentialFormat,
+          ),
+        );
       },
     );
 
     await ConnectionPool.instance.startConnections();
 
     final holderDidManager = await _sdk.getDidManager(holderDid);
-    final assertionSigner = await holderDidManager
-        .getSigner(holderDidManager.assertionMethod.first);
+    final assertionSigner = await holderDidManager.getSigner(
+      holderDidManager.assertionMethod.first,
+    );
 
     await vdipHolder.requestCredentialForHolder(
       holderDid,
@@ -90,19 +95,21 @@ class VdipService {
     // TODO: assertion needed on issuer?
 
     final issuerDidManager = await _sdk.getDidManager(permanentChannelDid);
-    final mediatorDidDocument =
-        await _sdk.didResolver.resolveDid(channel.mediatorDid);
+    final mediatorDidDocument = await _sdk.didResolver.resolveDid(
+      channel.mediatorDid,
+    );
 
     // === VDIP for issuer starts here ===
     final vdipIssuer = await VdipIssuer.init(
+      mediatorDidDocument: mediatorDidDocument,
+      didManager: issuerDidManager,
+      featureDisclosures: [],
+      authorizationProvider: await AffinidiAuthorizationProvider.init(
         mediatorDidDocument: mediatorDidDocument,
         didManager: issuerDidManager,
-        featureDisclosures: [],
-        authorizationProvider: await AffinidiAuthorizationProvider.init(
-          mediatorDidDocument: mediatorDidDocument,
-          didManager: issuerDidManager,
-        ),
-        clientOptions: const AffinidiClientOptions());
+      ),
+      clientOptions: const AffinidiClientOptions(),
+    );
 
     await vdipIssuer.sendIssuedCredentials(
       holderDid: otherPartyPermanentChannelDid,
@@ -114,8 +121,9 @@ class VdipService {
     required String permanentChannelDid,
     required String mediatorDid,
   }) async {
-    final permanentChannelDidManager =
-        await _sdk.getDidManager(permanentChannelDid);
+    final permanentChannelDidManager = await _sdk.getDidManager(
+      permanentChannelDid,
+    );
     final mediatorDidDocument = await _sdk.didResolver.resolveDid(mediatorDid);
 
     // TODO: How to get initialized mediator client from Mediator SDK?
@@ -136,7 +144,7 @@ class VdipService {
   ///
   /// Throws [MeetingPlaceCoreSDKException] if either DID is null.
   ({String permanentChannelDid, String otherPartyPermanentChannelDid})
-      _validateChannelDids(Channel channel) {
+  _validateChannelDids(Channel channel) {
     final permanentChannelDid = channel.permanentChannelDid;
     final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
 

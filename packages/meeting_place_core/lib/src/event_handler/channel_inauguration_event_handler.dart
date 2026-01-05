@@ -1,6 +1,5 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
-import '../protocol/meeting_place_protocol.dart';
 import '../protocol/protocol.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';

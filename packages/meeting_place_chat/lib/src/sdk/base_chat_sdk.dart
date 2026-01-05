@@ -197,8 +197,9 @@ abstract class BaseChatSDK {
 
     // TODO: pass all incoming messages to SDK consumer - this specific
     // handling is only used to make it work for now
-    if (message.plainTextMessage
-        .isOfType(VdipRequestIssuanceMessage.messageType.toString())) {
+    if (message.plainTextMessage.isOfType(
+      VdipRequestIssuanceMessage.messageType.toString(),
+    )) {
       _logger.info('Handling VDIP request issuance message', name: methodName);
 
       chatStream.pushData(
@@ -425,7 +426,10 @@ abstract class BaseChatSDK {
             message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
         status: ChatItemStatus.sent,
         eventType: EventMessageType.personaSharingDeclined,
-        data: {'contactCard': channel.otherPartyContactCard?.contactInfo},
+        data: {
+          'firstName':
+              channel.otherPartyContactCard?.contactInfo['n']?['given'] ?? '',
+        },
       );
 
       await chatRepository.createMessage(eventMessage);
@@ -474,12 +478,14 @@ abstract class BaseChatSDK {
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
   Future<CoreSDKStreamSubscription> subscribeToMediator() async {
-    return coreSDK.subscribeToMediator(did,
-        mediatorDid: mediatorDid,
-        options: MediatorStreamSubscriptionOptions(
-          expectedMessageWrappingTypes:
-              coreSDK.options.expectedMessageWrappingTypes,
-        ));
+    return coreSDK.subscribeToMediator(
+      did,
+      mediatorDid: mediatorDid,
+      options: MediatorStreamSubscriptionOptions(
+        expectedMessageWrappingTypes:
+            coreSDK.options.expectedMessageWrappingTypes,
+      ),
+    );
   }
 
   /// Sends a plain text message with optional attachments.

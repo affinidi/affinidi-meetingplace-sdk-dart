@@ -1,3 +1,7 @@
+## 0.0.1-dev.18
+
+ - **FIX**: handle update ACL error gracefully on leaving channel if mediator is not reachable (#43).
+
 ## 0.0.1-dev.17
 
  - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).

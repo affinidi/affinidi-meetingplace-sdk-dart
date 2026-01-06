@@ -426,12 +426,8 @@ abstract class BaseChatSDK {
             message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
         status: ChatItemStatus.sent,
         eventType: EventMessageType.personaSharingDeclined,
-        data: {
-          'firstName':
-              channel.otherPartyContactCard?.contactInfo['n']?['given'] ?? '',
-        },
+        data: {},
       );
-
       await chatRepository.createMessage(eventMessage);
 
       chatStream.pushData(StreamData(chatItem: eventMessage));

@@ -104,7 +104,10 @@ abstract class BaseChatSDK {
     mediatorStreamFuture = subscribeToMediator();
     final messagesFuture = chatRepository.listMessages(chatId);
 
-    unawaited(sendProfileHash());
+    if (options.sendProfileHashEnabled) {
+      unawaited(sendProfileHash());
+    }
+
     unawaited(fetchNewMessages());
 
     final messages = await messagesFuture;

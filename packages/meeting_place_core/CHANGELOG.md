@@ -1,3 +1,7 @@
+## 0.0.1-dev.19
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.18
 
  - **FIX**: handle update ACL error gracefully on leaving channel if mediator is not reachable (#43).

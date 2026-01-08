@@ -1,6 +1,6 @@
 name: meeting_place_core
 description: The core Meeting Place package that implements Control Plane API and Mediator capabilities, including multi-identity management for enhanced privacy and anonymity.
-version: 0.0.1-dev.18
+version: 0.0.1-dev.19
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
 
@@ -14,7 +14,7 @@ dependencies:
   didcomm: ^2.3.0
   json_annotation: ^4.9.0
   meeting_place_control_plane: ^0.0.1-dev.11
-  meeting_place_mediator: ^0.0.1-dev.10
+  meeting_place_mediator: ^0.0.1-dev.11
   meta: ^1.17.0
   mutex: ^3.1.0
   proxy_recrypt: ^1.1.3

@@ -1,3 +1,7 @@
+## 0.0.1-dev.11
+
+ - **FIX**: convert ephemeral to string (#46).
+
 ## 0.0.1-dev.10
 
  - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).

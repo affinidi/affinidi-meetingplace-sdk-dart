@@ -579,7 +579,6 @@ abstract class BaseChatSDK {
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
-      ephemeral: true,
       forwardExpiryInSeconds: options.chatPresenceExpiry.inSeconds,
     );
   }

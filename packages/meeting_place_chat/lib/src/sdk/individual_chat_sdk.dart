@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:didcomm/didcomm.dart';
-
 import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';

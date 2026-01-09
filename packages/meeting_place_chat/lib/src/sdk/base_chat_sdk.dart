@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
-
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
@@ -200,10 +199,20 @@ abstract class BaseChatSDK {
 
     // TODO: pass all incoming messages to SDK consumer - this specific
     // handling is only used to make it work for now
-    if (message.plainTextMessage
-        .isOfType(VdipRequestIssuanceMessage.messageType.toString())) {
+    if (message.plainTextMessage.isOfType(
+      VdipRequestIssuanceMessage.messageType.toString(),
+    )) {
       _logger.info('Handling VDIP request issuance message', name: methodName);
 
+      chatStream.pushData(
+        StreamData(plainTextMessage: message.plainTextMessage),
+      );
+    }
+
+    if (message.plainTextMessage.isOfType(
+      VdipIssuedCredentialMessage.messageType.toString(),
+    )) {
+      _logger.info('Handling VDIP issued credential message', name: methodName);
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
@@ -477,12 +486,14 @@ abstract class BaseChatSDK {
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
   Future<CoreSDKStreamSubscription> subscribeToMediator() async {
-    return coreSDK.subscribeToMediator(did,
-        mediatorDid: mediatorDid,
-        options: MediatorStreamSubscriptionOptions(
-          expectedMessageWrappingTypes:
-              coreSDK.options.expectedMessageWrappingTypes,
-        ));
+    return coreSDK.subscribeToMediator(
+      did,
+      mediatorDid: mediatorDid,
+      options: MediatorStreamSubscriptionOptions(
+        expectedMessageWrappingTypes:
+            coreSDK.options.expectedMessageWrappingTypes,
+      ),
+    );
   }
 
   /// Sends a plain text message with optional attachments.

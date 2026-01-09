@@ -33,7 +33,7 @@ class MessageService {
     required DidManager senderDidManager,
     required String recipientDid,
     required String mediatorDid,
-    String? notifyChannelType,
+    NotifyChannelType? notifyChannelType,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
   }) async {
@@ -60,7 +60,7 @@ class MessageService {
 
   Future<void> _notifyChannel({
     required String recipientDid,
-    required String notifyChannelType,
+    required NotifyChannelType notifyChannelType,
   }) async {
     final channel = await _channelRepository.findChannelByDid(recipientDid);
 

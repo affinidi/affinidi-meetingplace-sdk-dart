@@ -83,6 +83,8 @@ class VdipService {
       ),
     );
 
+    // TODO: enable if it counts for badge counts
+    // unawaited(() => _notifyChannel(channel));
     return waitForCredential.future;
   }
 
@@ -157,6 +159,9 @@ class VdipService {
         name: 'issueCredential',
       ),
     );
+
+    // TODO: enable if it counts for badge counts
+    // unawaited(() => _notifyChannel(channel));
   }
 
   Future<VdipHolder> _initVdipHolderClient({
@@ -201,5 +206,35 @@ class VdipService {
       permanentChannelDid: permanentChannelDid,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
     );
+  }
+
+  Future<void> _notifyChannel(Channel channel) async {
+    try {
+      if (channel.otherPartyNotificationToken == null) return;
+
+      await _sdk.discovery.notifyChannel(
+        notificationToken: channel.otherPartyNotificationToken!,
+        did: channel.otherPartyPermanentChannelDid!,
+        type: NotifyChannelType.chatActivity,
+      );
+    } on MeetingPlaceCoreSDKException catch (e) {
+      final isNotificationError =
+          e.code ==
+          MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
+
+      if (!isNotificationError) {
+        _sdk.logger.error(
+          'Failed to send message with notification',
+          error: e,
+          name: '_notifyChannel',
+        );
+        rethrow;
+      }
+
+      _sdk.logger.warning(
+        'Failed to send notification ',
+        name: '_notifyChannel',
+      );
+    }
   }
 }

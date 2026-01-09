@@ -100,39 +100,4 @@ void main() async {
 
     expect(actual, isNotNull);
   });
-
-  test(
-    'throws exception if notification fails',
-    () async {
-      final messageId = Uuid().v4();
-
-      aliceApprovedChannel.otherPartyNotificationToken =
-          'invalid_notification_token';
-      await aliceSDK.updateChannel(aliceApprovedChannel);
-
-      expect(
-        () => aliceSDK.sendMessage(
-          PlainTextMessage(
-            id: messageId,
-            from: aliceApprovedChannel.permanentChannelDid!,
-            to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
-            type: Uri.parse('https://example.org/plain-text'),
-            body: {'text': 'Hello, Bob!'},
-          ),
-          senderDid: aliceApprovedChannel.permanentChannelDid!,
-          recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
-          notifyChannelType: 'notify-channel',
-        ),
-        throwsA(
-          isA<MeetingPlaceCoreSDKException>().having(
-            (e) => e.code,
-            'code',
-            MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value,
-          ),
-        ),
-      );
-    },
-    skip:
-        '''Not easily testable in integration test as future is not awaited for performance reasons.''',
-  );
 }

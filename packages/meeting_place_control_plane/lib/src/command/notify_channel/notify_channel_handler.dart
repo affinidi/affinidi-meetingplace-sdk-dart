@@ -64,7 +64,7 @@ class NotifyChannelHandler
     final builder = NotifyChannelInputBuilder()
       ..notificationChannelId = command.notificationToken
       ..did = command.did
-      ..type = command.type;
+      ..type = command.type.value;
 
     try {
       _logger.info(

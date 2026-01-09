@@ -3,13 +3,12 @@ import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
-import 'request_credential_response.dart';
 import 'service/vdip_service.dart';
 
 class VdipExtension {
   VdipExtension({required MeetingPlaceCoreSDK sdk})
-      : _sdk = sdk,
-        _vdipService = VdipService(sdk: sdk);
+    : _sdk = sdk,
+      _vdipService = VdipService(sdk: sdk);
 
   final MeetingPlaceCoreSDK _sdk;
   final VdipService _vdipService;
@@ -36,8 +35,11 @@ class VdipExtension {
     required RequestCredentialsOptions options,
   }) async {
     return _sdk.withSdkExceptionHandling(() {
-      return _vdipService.requestCredential(holderDid,
-          channel: channel, options: options);
+      return _vdipService.requestCredential(
+        holderDid,
+        channel: channel,
+        options: options,
+      );
     });
   }
 
@@ -85,8 +87,11 @@ class VdipExtension {
     required PlainTextMessage requestIssuanceMessage,
   }) {
     return _sdk.withSdkExceptionHandling(() {
-      return _vdipService.sendProblemReport(channel,
-          code: code, requestIssuanceMessage: requestIssuanceMessage);
+      return _vdipService.sendProblemReport(
+        channel,
+        code: code,
+        requestIssuanceMessage: requestIssuanceMessage,
+      );
     });
   }
 }

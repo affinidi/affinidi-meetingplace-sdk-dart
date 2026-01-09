@@ -11,7 +11,8 @@ export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
         ControlPlaneEventType,
         ControlPlaneSDKException,
         ControlPlaneSDKErrorCode,
-        MissingDeviceException;
+        MissingDeviceException,
+        NotifyChannelType;
 
 export 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show

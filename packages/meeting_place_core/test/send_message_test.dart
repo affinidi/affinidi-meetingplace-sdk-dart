@@ -119,7 +119,7 @@ void main() async {
         ),
         senderDid: aliceApprovedChannel.permanentChannelDid!,
         recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
-        notifyChannelType: 'notify-channel',
+        notifyChannelType: NotifyChannelType.chatActivity,
       ),
       throwsA(
         isA<MeetingPlaceCoreSDKException>().having(

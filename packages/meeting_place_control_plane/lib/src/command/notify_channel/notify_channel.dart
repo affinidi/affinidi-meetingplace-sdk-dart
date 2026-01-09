@@ -1,4 +1,5 @@
 import '../../core/command/command.dart';
+import '../../core/protocol/protocol.dart';
 import 'notify_channel_output.dart';
 
 /// Model that represents the request sent for the [NotifyChannelCommand]
@@ -13,5 +14,5 @@ class NotifyChannelCommand
   });
   final String notificationToken;
   final String did;
-  final String type;
+  final NotifyChannelType type;
 }

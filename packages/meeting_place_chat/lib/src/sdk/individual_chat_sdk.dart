@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
@@ -117,7 +119,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
       senderDid: senderDid,
       recipientDid: recipientDid,
       mediatorDid: mediatorDid,
-      notifyChannelType: notify ? 'chat-activity' : null,
+      notifyChannelType: notify ? NotifyChannelType.chatActivity : null,
       ephemeral: ephemeral,
       forwardExpiryInSeconds: forwardExpiryInSeconds,
     );

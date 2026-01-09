@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:didcomm/didcomm.dart';
 
+import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../protocol/message/plaintext_message_extension.dart';
 import '../../protocol/meeting_place_protocol.dart';
 import '../../protocol/protocol.dart' as protocol;
@@ -24,6 +27,7 @@ class MediatorMessage {
   static Future<MediatorMessage> fromPlainTextMessage(
     PlainTextMessage message, {
     required KeyRepository keyRepository,
+    required MeetingPlaceCoreSDKLogger logger,
     String? messageHash,
   }) async {
     if (message.isOfType(MeetingPlaceProtocol.groupMessage.value)) {
@@ -33,6 +37,13 @@ class MediatorMessage {
         seqNo: message.body!['seq_no'] as int?,
         fromDid: message.body!['from_did'] as String?,
         messageHash: messageHash,
+      );
+    }
+
+    if (message.type == ProblemReportMessage.messageType) {
+      logger.warning(
+        'Received problem report message: ${jsonEncode(message.body)}',
+        name: 'MediatorMessage.fromPlainTextMessage',
       );
     }
 

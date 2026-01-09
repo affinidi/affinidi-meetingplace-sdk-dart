@@ -42,6 +42,7 @@ class MediatorService {
           result.message!,
           keyRepository: _keyRepository,
           messageHash: result.messageHash,
+          logger: _logger,
         );
       }).toList(),
     );

@@ -109,6 +109,7 @@ class MediatorStreamSubscriptionWrapper
           final mediatorMessage = await MediatorMessage.fromPlainTextMessage(
             plainTextMessage,
             keyRepository: _keyRepository,
+            logger: _logger,
           );
 
           if (!_controller!.isClosed) {

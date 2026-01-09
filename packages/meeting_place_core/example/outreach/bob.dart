@@ -54,11 +54,7 @@ void main() async {
       await bobSDK.subscribeToMediator(notificationDidDocument.id);
 
   prettyPrintYellow('>>> Listen on notification stream');
-  notificationStream.stream.where((data) {
-    return data.plainTextMessage.type
-        .toString()
-        .startsWith(getControlPlaneDid());
-  }).listen((data) async {
+  notificationStream.stream.listen((data) async {
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await bobSDK.processControlPlaneEvents();
   });

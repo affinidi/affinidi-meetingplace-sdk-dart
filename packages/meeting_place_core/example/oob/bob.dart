@@ -50,7 +50,8 @@ void main() async {
   await bobSDK.sendMessage(
       PlainTextMessage(
           id: Uuid().v4(),
-          type: Uri.parse('https://affinidi.io/meeting-place-core/example/oob'),
+          type: Uri.parse(
+              'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example'),
           from: channel.permanentChannelDid,
           to: [channel.otherPartyPermanentChannelDid!],
           body: {'hello': 'world'}),

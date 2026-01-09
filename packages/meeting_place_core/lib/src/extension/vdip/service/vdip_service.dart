@@ -59,6 +59,13 @@ class VdipService {
       options: options,
     );
 
+    // TODO: improve
+    await _sdk.discovery.notifyChannel(
+      notificationToken: channel.otherPartyNotificationToken!,
+      did: channel.otherPartyPermanentChannelDid!,
+      type: 'chat-activity',
+    );
+
     return waitForCredential.future;
   }
 

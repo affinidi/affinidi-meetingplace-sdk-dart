@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../meeting_place_control_plane.dart';
 import 'api/control_plane_api_client.dart';
 import 'api/control_plane_api_client_options.dart';
 import 'command/create_oob/create_oob_handler.dart';
@@ -345,6 +346,22 @@ class ControlPlaneSDK {
         _logger.info('SDK initialization complete', name: methodName);
       }
       return await _dispatcher.dispatch(command);
+    });
+  }
+
+  Future<void> notifyChannel({
+    required String notificationToken,
+    required String did,
+    required String type,
+  }) {
+    return _withSdkExceptionHandling(() {
+      return execute(
+        NotifyChannelCommand(
+          notificationToken: notificationToken,
+          did: did,
+          type: type,
+        ),
+      );
     });
   }
 

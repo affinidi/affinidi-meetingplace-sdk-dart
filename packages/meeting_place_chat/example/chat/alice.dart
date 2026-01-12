@@ -69,11 +69,7 @@ void main() async {
       await aliceSDK.subscribeToMediator(notificationDidDocument.id);
 
   prettyPrintYellow('>>> Listen on notification stream');
-  notificationStream.stream
-      .where((data) => data.plainTextMessage.type
-          .toString()
-          .startsWith(getControlPlaneDid()))
-      .listen((data) async {
+  notificationStream.stream.listen((data) async {
     prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
     await aliceSDK.processControlPlaneEvents();
   });

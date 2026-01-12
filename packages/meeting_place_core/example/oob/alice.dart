@@ -45,8 +45,8 @@ void main() async {
 
   final waitForBobsMessage = Completer<PlainTextMessage>();
   messageSubscription.stream.listen((message) {
-    if (message.plainTextMessage
-        .isOfType('https://affinidi.io/meeting-place-core/example/oob')) {
+    if (message.plainTextMessage.isOfType(
+        'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example')) {
       waitForBobsMessage.complete(message.plainTextMessage);
     }
   });

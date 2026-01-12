@@ -131,8 +131,13 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// Runs continuously in a loop until [stopChatPresenceInterval] is called.
   Future<void> startChatPresenceInInterval(int intervalInSeconds) async {
     while (_sendChatPresence) {
-      await sendChatPresence();
-      await Future<void>.delayed(Duration(seconds: intervalInSeconds));
+      try {
+        await sendChatPresence();
+        await Future<void>.delayed(Duration(seconds: intervalInSeconds));
+      } catch (e) {
+        logger.error('Error sending chat presence signal: $e');
+        stopChatPresenceInterval();
+      }
     }
   }
 

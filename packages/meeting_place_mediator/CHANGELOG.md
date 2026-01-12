@@ -1,3 +1,7 @@
+## 0.0.1-dev.12
+
+ - **FIX**: ephemeral usage and log DIDComm problem report details (#47).
+
 ## 0.0.1-dev.11
 
  - **FIX**: convert ephemeral to string (#46).

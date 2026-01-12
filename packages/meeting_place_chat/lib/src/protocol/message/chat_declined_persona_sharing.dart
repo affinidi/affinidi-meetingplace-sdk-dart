@@ -9,9 +9,9 @@ class ChatDeclinedPersonaSharing extends PlainTextMessage {
     required super.from,
     required super.to,
   }) : super(
-          type: Uri.parse(ChatProtocol.chatDeclinedPersonaSharing.value),
-          createdTime: DateTime.now().toUtc(),
-        );
+         type: Uri.parse(ChatProtocol.chatDeclinedPersonaSharing.value),
+         createdTime: DateTime.now().toUtc(),
+       );
 
   factory ChatDeclinedPersonaSharing.create({
     required String from,

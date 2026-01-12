@@ -137,21 +137,21 @@ class MeetingPlaceCoreSDK {
     required this.options,
     required SDKErrorHandler sdkErrorHandler,
     required this.logger,
-  })  : _repositoryConfig = repositoryConfig,
-        _controlPlaneDid = controlPlaneDid,
-        _mediatorSDK = mediatorSDK,
-        _controlPlaneSDK = controlPlaneSDK,
-        _connectionManager = connectionManager,
-        _connectionService = connectionService,
-        _controlPlaneEventService = controlPlaneEventService,
-        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
-        _groupService = groupService,
-        _notificationService = notificationService,
-        _outreachService = outreachService,
-        _mediatorService = mediatorService,
-        _messageService = messageService,
-        _mediatorDid = mediatorDid,
-        _sdkErrorHandler = sdkErrorHandler;
+  }) : _repositoryConfig = repositoryConfig,
+       _controlPlaneDid = controlPlaneDid,
+       _mediatorSDK = mediatorSDK,
+       _controlPlaneSDK = controlPlaneSDK,
+       _connectionManager = connectionManager,
+       _connectionService = connectionService,
+       _controlPlaneEventService = controlPlaneEventService,
+       _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
+       _groupService = groupService,
+       _notificationService = notificationService,
+       _outreachService = outreachService,
+       _mediatorService = mediatorService,
+       _messageService = messageService,
+       _mediatorDid = mediatorDid,
+       _sdkErrorHandler = sdkErrorHandler;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -497,10 +497,7 @@ class MeetingPlaceCoreSDK {
       logger: logger,
     );
 
-    logger.info(
-      'Listening for messages on mediator channel',
-      name: methodName,
-    );
+    logger.info('Listening for messages on mediator channel', name: methodName);
 
     streamSubscription.stream.listen((message) async {
       final plainTextMessage = message.plainTextMessage;
@@ -517,8 +514,8 @@ class MeetingPlaceCoreSDK {
         final permanentChannelDidManager = did != null
             ? await _connectionManager.getDidManagerForDid(wallet, did)
             : await generateDid();
-        final permanentChannelDidDoc =
-            await permanentChannelDidManager.getDidDocument();
+        final permanentChannelDidDoc = await permanentChannelDidManager
+            .getDidDocument();
 
         await _connectionService.sendConnectionRequestApprovalToMediator(
           offerPublishedDid: oobDidManager,
@@ -657,10 +654,7 @@ class MeetingPlaceCoreSDK {
       logger: logger,
     );
 
-    logger.info(
-      'Listening for messages on mediator channel',
-      name: methodName,
-    );
+    logger.info('Listening for messages on mediator channel', name: methodName);
 
     streamSubscription.stream.listen((message) async {
       final plainTextMessage = message.plainTextMessage;
@@ -785,7 +779,7 @@ class MeetingPlaceCoreSDK {
   /// for subsequent SDK calls and the generated DidManager for the recipient
   /// DID.
   Future<RegisterForDidcommNotificationsResult>
-      registerForDIDCommNotifications({
+  registerForDIDCommNotifications({
     String? mediatorDid,
     String? recipientDid,
   }) async {
@@ -864,18 +858,18 @@ class MeetingPlaceCoreSDK {
     String? externalRef,
   }) async {
     if (type == sdk.SDKConnectionOfferType.groupInvitation) {
-      final (connectionOffer, publishedOfferDid, ownerDid) =
-          await _groupService.createGroup(
-        offerName: offerName,
-        offerDescription: offerDescription,
-        customPhrase: customPhrase,
-        validUntil: validUntil,
-        maximumUsage: maximumUsage,
-        mediatorDid: mediatorDid,
-        externalRef: externalRef,
-        metadata: metadata,
-        card: contactCard,
-      );
+      final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
+          .createGroup(
+            offerName: offerName,
+            offerDescription: offerDescription,
+            customPhrase: customPhrase,
+            validUntil: validUntil,
+            maximumUsage: maximumUsage,
+            mediatorDid: mediatorDid,
+            externalRef: externalRef,
+            metadata: metadata,
+            card: contactCard,
+          );
       return sdk.PublishOfferResult(
         connectionOffer: connectionOffer as T,
         publishedOfferDidManager: publishedOfferDid,
@@ -883,21 +877,21 @@ class MeetingPlaceCoreSDK {
       );
     }
 
-    final (connectionOffer, publishedOfferDid) =
-        await _connectionService.publishOffer(
-      wallet: wallet,
-      offerName: offerName,
-      offerDescription: offerDescription,
-      type: type == SDKConnectionOfferType.outreachInvitation
-          ? ConnectionOfferType.meetingPlaceOutreachInvitation
-          : ConnectionOfferType.meetingPlaceInvitation,
-      customPhrase: customPhrase,
-      validUntil: validUntil,
-      maximumUsage: maximumUsage,
-      mediatorDid: mediatorDid,
-      externalRef: externalRef,
-      contactCard: contactCard,
-    );
+    final (connectionOffer, publishedOfferDid) = await _connectionService
+        .publishOffer(
+          wallet: wallet,
+          offerName: offerName,
+          offerDescription: offerDescription,
+          type: type == SDKConnectionOfferType.outreachInvitation
+              ? ConnectionOfferType.meetingPlaceOutreachInvitation
+              : ConnectionOfferType.meetingPlaceInvitation,
+          customPhrase: customPhrase,
+          validUntil: validUntil,
+          maximumUsage: maximumUsage,
+          mediatorDid: mediatorDid,
+          externalRef: externalRef,
+          contactCard: contactCard,
+        );
 
     return sdk.PublishOfferResult(
       connectionOffer: connectionOffer as T,

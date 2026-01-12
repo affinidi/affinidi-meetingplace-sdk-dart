@@ -33,11 +33,13 @@ class VdipExtension {
     String holderDid, {
     required Channel channel,
     required RequestCredentialsOptions options,
+    List<Attachment>? attachments,
   }) async {
     return _sdk.withSdkExceptionHandling(() {
       return _vdipService.requestCredential(
         holderDid,
         channel: channel,
+        attachments: attachments,
         options: options,
       );
     });
@@ -57,11 +59,16 @@ class VdipExtension {
   ///   holder. Must be a valid W3C Verifiable Credential.
   ///
   Future<void> issueCredential(
-    Channel channel,
-    VerifiableCredential verifiableCredential,
-  ) async {
+    VerifiableCredential verifiableCredential, {
+    required Channel channel,
+    List<Attachment>? attachments,
+  }) async {
     return _sdk.withSdkExceptionHandling(() {
-      return _vdipService.issueCredential(channel, verifiableCredential);
+      return _vdipService.issueCredential(
+        verifiableCredential,
+        channel: channel,
+        attachments: attachments,
+      );
     });
   }
 

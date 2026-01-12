@@ -1224,7 +1224,7 @@ class MeetingPlaceCoreSDK {
         options: FetchMessagesOptions(
           deleteFailedMessages: deleteFailedMessages,
           deleteOnRetrieve: deleteOnRetrieve,
-          expectedMessageWrappingTypes: _options.expectedMessageWrappingTypes,
+          expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
         ),
       );
     });

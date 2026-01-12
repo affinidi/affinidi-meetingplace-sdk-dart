@@ -24,7 +24,7 @@ class ForwardMessageBuilder {
       attachments: [_buildAttachment(encryptedMessage)],
     );
 
-    forwardMessage['ephemeral'] = ephemeral.toString();
+    forwardMessage['ephemeral'] = ephemeral;
     return forwardMessage;
   }
 

@@ -61,7 +61,7 @@ void main() {
         next: next,
       );
 
-      expect(result['ephemeral'], equals('false'));
+      expect(result['ephemeral'], equals(false));
     });
 
     test('sets ephemeral to true when specified', () {
@@ -73,7 +73,7 @@ void main() {
         ephemeral: true,
       );
 
-      expect(result['ephemeral'], equals('true'));
+      expect(result['ephemeral'], equals(true));
     });
 
     test('sets ephemeral to false when explicitly specified', () {
@@ -85,7 +85,7 @@ void main() {
         ephemeral: false,
       );
 
-      expect(result['ephemeral'], equals('false'));
+      expect(result['ephemeral'], equals(false));
     });
 
     test('does not set expiresTime when forwardExpiryInSeconds is null', () {
@@ -187,7 +187,7 @@ void main() {
       expect(result.to, contains(mediatorDidDocument.id));
       expect(result.next, equals(next));
       expect(result.expiresTime, isNotNull);
-      expect(result['ephemeral'], equals('true'));
+      expect(result['ephemeral'], equals(true));
       expect(result.attachments, hasLength(1));
     });
   });

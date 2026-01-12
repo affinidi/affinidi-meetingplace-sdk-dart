@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'repository/channel_repository_impl.dart';
@@ -9,12 +7,13 @@ import 'repository/key_repository_impl.dart';
 import 'storage.dart';
 
 String getControlPlaneDid() =>
-    Platform.environment['CONTROL_PLANE_DID'] ??
-    (throw Exception('CONTROL_PLANE_DID not set in environment'));
+    'did:web:control-flower.meetingplace.dev.affinidi.io';
+// Platform.environment['CONTROL_PLANE_DID'] ??
+// (throw Exception('CONTROL_PLANE_DID not set in environment'));
 
-String getMediatorDid() =>
-    Platform.environment['MEDIATOR_DID'] ??
-    (throw Exception('MEDIATOR_DID not set in environment'));
+String getMediatorDid() => 'did:web:euw1.mediator.affinidi.io:.well-known';
+// Platform.environment['MEDIATOR_DID'] ??
+// (throw Exception('MEDIATOR_DID not set in environment'));
 
 getRepositoryConfig() {
   final storage = InMemoryStorage();

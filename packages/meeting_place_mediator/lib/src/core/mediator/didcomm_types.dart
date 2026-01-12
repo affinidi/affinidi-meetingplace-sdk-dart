@@ -3,8 +3,7 @@ enum DidcommTypes {
   statusRequest,
   status,
   problemReport,
-  chatActivity,
-  chatPresence;
+  chatActivity;
 
   static const Map<DidcommTypes, String> stringValues = {
     DidcommTypes.trustPing: 'https://didcomm.org/trust-ping/2.0/ping',
@@ -16,7 +15,6 @@ enum DidcommTypes {
 
     // TODO: handle chat protocol types
     DidcommTypes.chatActivity: 'https://affinidi.io/mpx/chat-sdk/activity',
-    DidcommTypes.chatPresence: 'https://affinidi.io/mpx/chat-sdk/presence',
   };
 
   String get value => stringValues[this]!;
@@ -24,7 +22,6 @@ enum DidcommTypes {
   static List<String> get ephemeralTypes => [
         DidcommTypes.trustPing.value,
         DidcommTypes.chatActivity.value,
-        DidcommTypes.chatPresence.value,
       ];
 
   static List<String> get telemetryTypes => [

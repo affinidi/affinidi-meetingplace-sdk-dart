@@ -21,6 +21,8 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDKErrorCode,
         MeetingPlaceMediatorSDKException;
+export 'package:affinidi_tdk_didcomm_mediator_client/affinidi_tdk_didcomm_mediator_client.dart'
+    show CredentialFormat;
 
 export 'package:ssi/ssi.dart' show DidManager;
 

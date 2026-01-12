@@ -222,4 +222,16 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> sendDeclinedPersonaSharing(ConciergeMessage message) =>
       _sdk.sendDeclinedPersonaSharing(message);
+
+  // Temporary solution
+  @override
+  Future<void> createChatMessageFromRequestCredential({
+    required List<Attachment> attachments,
+  }) => _sdk.createChatMessageFromRequestCredential(attachments: attachments);
+
+  // Temporary solution
+  @override
+  Future<void> createChatMessageFromIssuedCredential({
+    required List<Attachment> attachments,
+  }) => _sdk.createChatMessageFromIssuedCredential(attachments: attachments);
 }

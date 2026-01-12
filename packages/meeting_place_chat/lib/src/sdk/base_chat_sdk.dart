@@ -5,6 +5,7 @@ import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:crypto/crypto.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../loggers/logger_formatter.dart';
@@ -849,6 +850,42 @@ abstract class BaseChatSDK {
         (throw Exception(
           'Channel with other party DID ${otherPartyDid.topAndTail()} not found',
         ));
+  }
+
+  Future<void> createChatMessageFromRequestCredential({
+    required List<Attachment> attachments,
+  }) async {
+    final chatMessage = Message(
+      chatId: chatId,
+      messageId: const Uuid().v4(),
+      senderDid: otherPartyDid,
+      isFromMe: false,
+      dateCreated: DateTime.now().toUtc(),
+      status: ChatItemStatus.confirmed,
+      value: '',
+      attachments: attachments,
+    );
+
+    await chatRepository.createMessage(chatMessage);
+    chatStream.pushData(StreamData(chatItem: chatMessage));
+  }
+
+  Future<void> createChatMessageFromIssuedCredential({
+    required List<Attachment> attachments,
+  }) async {
+    final chatMessage = Message(
+      chatId: chatId,
+      messageId: const Uuid().v4(),
+      senderDid: did,
+      isFromMe: true,
+      dateCreated: DateTime.now().toUtc(),
+      status: ChatItemStatus.confirmed,
+      value: '',
+      attachments: attachments,
+    );
+
+    await chatRepository.createMessage(chatMessage);
+    chatStream.pushData(StreamData(chatItem: chatMessage));
   }
 
   /// Sends a message with notification, ignoring notification failures.

@@ -27,4 +27,14 @@ abstract interface class ChatSDK {
   Future<void> rejectConnectionRequest(ConciergeMessage message);
 
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message);
+
+  // Temporary solution
+  Future<void> createChatMessageFromRequestCredential({
+    required List<Attachment> attachments,
+  });
+
+  // Temporary solution
+  Future<void> createChatMessageFromIssuedCredential({
+    required List<Attachment> attachments,
+  });
 }

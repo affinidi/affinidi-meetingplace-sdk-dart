@@ -17,6 +17,7 @@ class VdipService {
     String holderDid, {
     required Channel channel,
     required RequestCredentialsOptions options,
+    List<Attachment>? attachments,
   }) async {
     final (:permanentChannelDid, :otherPartyPermanentChannelDid) =
         _validateChannelDids(channel);
@@ -41,6 +42,7 @@ class VdipService {
           RequestCredentialResponse(
             credential: body.credential,
             credentialFormat: body.credentialFormat,
+            attachments: message.attachments,
           ),
         );
       },
@@ -57,6 +59,7 @@ class VdipService {
       holderDid,
       issuerDid: otherPartyPermanentChannelDid,
       assertionSigner: assertionSigner,
+      attachments: attachments,
       options: options,
     );
 
@@ -87,9 +90,10 @@ class VdipService {
   }
 
   Future<void> issueCredential(
-    Channel channel,
-    VerifiableCredential verifiableCredential,
-  ) async {
+    VerifiableCredential verifiableCredential, {
+    required Channel channel,
+    List<Attachment>? attachments,
+  }) async {
     final (:permanentChannelDid, :otherPartyPermanentChannelDid) =
         _validateChannelDids(channel);
 
@@ -115,6 +119,7 @@ class VdipService {
     await vdipIssuer.sendIssuedCredentials(
       holderDid: otherPartyPermanentChannelDid,
       verifiableCredential: verifiableCredential,
+      attachments: attachments,
     );
   }
 

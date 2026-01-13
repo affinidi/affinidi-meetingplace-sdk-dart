@@ -133,12 +133,13 @@ void main() async {
         'Received request insuance message', message.plainTextMessage.toJson());
 
     await bobSDK.vdip.issueCredential(
-        channel,
-        await buildCredential(
-          holderDid: message.plainTextMessage.from!, // TODO: correct?
-          issuerDidManager: issuerDidManager,
-          body: message.plainTextMessage.body!,
-        ));
+      await buildCredential(
+        holderDid: message.plainTextMessage.from!, // TODO: correct?
+        issuerDidManager: issuerDidManager,
+        body: message.plainTextMessage.body!,
+      ),
+      channel: channel,
+    );
 
     await mediatorSubscription!.dispose();
   });

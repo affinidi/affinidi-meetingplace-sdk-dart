@@ -26,12 +26,13 @@ packages:
     source: hosted
     version: "1.0.0"
   affinidi_tdk_vdip:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: affinidi_tdk_vdip
-      sha256: "5f0fc23fdedbde552b1f5d417b4fa6723763552a47e6afee6f0bd6c23a7088fe"
-      url: "https://pub.dev"
-    source: hosted
+      path: "libs/dart/didcomm/vdip"
+      ref: d71b99834be8e65fa1aa52b4502d3279b4dcbe47
+      resolved-ref: d71b99834be8e65fa1aa52b4502d3279b4dcbe47
+      url: "git@github.com:affinidi/affinidi-tdk.git"
+    source: git
     version: "1.0.0"
   affinidi_tdk_vdsp:
     dependency: transitive

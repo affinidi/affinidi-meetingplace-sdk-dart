@@ -1,3 +1,7 @@
+## 0.0.1-dev.22
+
+ - **FIX**: stop sending chat presence messages on error (#52).
+
 ## 0.0.1-dev.21
 
  - **FIX**: ephemeral usage and log DIDComm problem report details (#47).

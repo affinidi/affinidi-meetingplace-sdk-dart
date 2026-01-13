@@ -509,16 +509,13 @@ abstract class BaseChatSDK {
     }
   }
 
-  /// Sends an ephemeral chat presence signal to the other party.
-  Future<void> sendChatPresence() {
-    final methodName = 'sendChatPresence';
-    _logger.info('Sending chat presence', name: methodName);
+  /// Sends a chat presence signal to the other party.
+  Future<void> sendChatPresence() async {
     final message = protocol.ChatPresence.create(
       from: did,
       to: [otherPartyDid],
     );
 
-    _logger.info('Completed sending chat presence', name: methodName);
     return sendMessage(
       message.toPlainTextMessage(),
       senderDid: did,

@@ -257,6 +257,7 @@ class MeetingPlaceCoreSDK {
         maxRetries: options.maxRetries,
         maxRetriesDelay: options.maxRetriesDelay,
         signatureScheme: options.signatureScheme,
+        expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
       ),
     );
 

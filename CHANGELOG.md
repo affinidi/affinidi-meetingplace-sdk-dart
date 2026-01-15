@@ -15,6 +15,36 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_core` - `v0.0.1-dev.23`](#meeting_place_core---v001-dev23)
+ - [`meeting_place_chat` - `v0.0.1-dev.24`](#meeting_place_chat---v001-dev24)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.25`](#meeting_place_drift_repository---v001-dev25)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.24`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.25`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.23`
+
+ - **FIX**: prevent multiple approvals for the same connection request (#55).
+
+
+## 2026-01-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_core` - `v0.0.1-dev.22`](#meeting_place_core---v001-dev22)
  - [`meeting_place_chat` - `v0.0.1-dev.23`](#meeting_place_chat---v001-dev23)
  - [`meeting_place_drift_repository` - `v0.0.1-dev.24`](#meeting_place_drift_repository---v001-dev24)

@@ -1,3 +1,7 @@
+## 0.0.1-dev.23
+
+ - **FIX**: prevent multiple approvals for the same connection request (#55).
+
 ## 0.0.1-dev.22
 
  - **FIX**: preserve SDK options for expected message wrapping types in mediator service (#54).

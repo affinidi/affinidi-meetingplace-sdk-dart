@@ -499,6 +499,14 @@ class ConnectionService {
       name: methodName,
     );
 
+    if (channel.isApproved) {
+      _logger.error(
+        'Channel is already approved for offer link: ${channel.offerLink}',
+        name: methodName,
+      );
+      return channel;
+    }
+
     final acceptOfferDid = channel.acceptOfferDid;
     final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
 

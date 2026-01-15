@@ -114,6 +114,8 @@ class Channel {
 
   bool get isInaugurated => status == ChannelStatus.inaugurated;
 
+  bool get isApproved => status == ChannelStatus.approved;
+
   Map<String, dynamic> toJson() {
     return _$ChannelToJson(this);
   }

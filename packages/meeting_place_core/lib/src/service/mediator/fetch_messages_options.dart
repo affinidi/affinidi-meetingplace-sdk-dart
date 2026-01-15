@@ -8,9 +8,7 @@ class FetchMessagesOptions {
     this.deleteFailedMessages = false,
     this.startFrom,
     this.filterByMessageTypes = const [],
-    this.expectedMessageWrappingTypes = const [
-      MessageWrappingType.authcryptSignPlaintext,
-    ],
+    this.expectedMessageWrappingTypes,
   });
 
   /// Number of records to fetch from mediator at once.
@@ -42,5 +40,5 @@ class FetchMessagesOptions {
   /// Set to both [MessageWrappingType.authcryptPlaintext] and
   /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
   /// (e.g., chat + VDIP) that use different message signing configurations.
-  final List<MessageWrappingType> expectedMessageWrappingTypes;
+  final List<MessageWrappingType>? expectedMessageWrappingTypes;
 }

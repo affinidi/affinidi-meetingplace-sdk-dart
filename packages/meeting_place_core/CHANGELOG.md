@@ -1,3 +1,7 @@
+## 0.0.1-dev.22
+
+ - **FIX**: preserve SDK options for expected message wrapping types in mediator service (#54).
+
 ## 0.0.1-dev.21
 
  - **FIX**: stop sending chat presence messages on error (#52).

@@ -37,4 +37,4 @@ dependency_overrides:
     git:
       url: git@github.com:affinidi/affinidi-tdk.git
       path: libs/dart/didcomm/vdip
-      ref: d71b99834be8e65fa1aa52b4502d3279b4dcbe47
+      ref: 89669e3188b6ac2589f9fe20bca8515dba4755f2

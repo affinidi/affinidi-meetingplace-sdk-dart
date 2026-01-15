@@ -29,8 +29,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "libs/dart/didcomm/vdip"
-      ref: d71b99834be8e65fa1aa52b4502d3279b4dcbe47
-      resolved-ref: d71b99834be8e65fa1aa52b4502d3279b4dcbe47
+      ref: "89669e3188b6ac2589f9fe20bca8515dba4755f2"
+      resolved-ref: "89669e3188b6ac2589f9fe20bca8515dba4755f2"
       url: "git@github.com:affinidi/affinidi-tdk.git"
     source: git
     version: "1.0.0"

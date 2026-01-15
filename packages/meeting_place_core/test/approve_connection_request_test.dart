@@ -191,4 +191,26 @@ void main() async {
       expect(connectionOffer.otherPartyNotificationToken, isNotNull);
     });
   });
+
+  group('when channel is already approved', () {
+    test('returns the same channel without making any changes', () async {
+      final channelBeforeCall = aliceApprovedChannel;
+      expect(
+        channelBeforeCall.isApproved,
+        isTrue,
+        reason: 'Channel should already be approved',
+      );
+
+      final result = await aliceSDK.approveConnectionRequest(
+        channel: channelBeforeCall,
+      );
+
+      expect(result, equals(channelBeforeCall));
+      expect(
+        result.permanentChannelDid,
+        equals(channelBeforeCall.permanentChannelDid),
+      );
+      expect(result.status, equals(ChannelStatus.approved));
+    });
+  });
 }

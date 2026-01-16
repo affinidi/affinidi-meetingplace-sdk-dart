@@ -1,3 +1,7 @@
+## 0.0.1-dev.24
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.23
 
  - **FIX**: prevent multiple approvals for the same connection request (#55).

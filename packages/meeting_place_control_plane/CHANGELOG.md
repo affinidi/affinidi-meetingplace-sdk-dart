@@ -1,3 +1,7 @@
+## 0.0.1-dev.12
+
+ - **FIX**: improve resilience of Control Plane API reconnection following network issues (#56).
+
 ## 0.0.1-dev.11
 
  - **FIX**: protocol alignment with standard; replace vCard by contactCard (#42).

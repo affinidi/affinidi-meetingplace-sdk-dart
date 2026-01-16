@@ -203,7 +203,7 @@ abstract class BaseChatSDK {
           message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
 
       final chatMessage = Message.fromReceivedMessage(
-        message: message.plainTextMessage,
+        message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
         chatId: chatId,
       );
       await chatRepository.createMessage(chatMessage);

@@ -1432,6 +1432,9 @@ abstract class _$ChannelDatabase extends GeneratedDatabase {
           ),
         ],
       );
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $$ChannelsTableCreateCompanionBuilder = ChannelsCompanion Function({

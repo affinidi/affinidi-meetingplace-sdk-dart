@@ -1429,6 +1429,9 @@ abstract class _$GroupsDatabase extends GeneratedDatabase {
           ),
         ],
       );
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $$MeetingPlaceGroupsTableCreateCompanionBuilder

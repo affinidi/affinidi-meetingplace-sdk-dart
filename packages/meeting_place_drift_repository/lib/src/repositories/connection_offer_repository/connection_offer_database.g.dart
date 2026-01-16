@@ -1194,6 +1194,29 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
   late final GeneratedColumn<String> mobile = GeneratedColumn<String>(
       'mobile', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _companyMeta =
+      const VerificationMeta('company');
+  @override
+  late final GeneratedColumn<String> company = GeneratedColumn<String>(
+      'company', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _positionMeta =
+      const VerificationMeta('position');
+  @override
+  late final GeneratedColumn<String> position = GeneratedColumn<String>(
+      'position', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _socialMeta = const VerificationMeta('social');
+  @override
+  late final GeneratedColumn<String> social = GeneratedColumn<String>(
+      'social', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _websiteMeta =
+      const VerificationMeta('website');
+  @override
+  late final GeneratedColumn<String> website = GeneratedColumn<String>(
+      'website', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _profilePicMeta =
       const VerificationMeta('profilePic');
   @override
@@ -1217,6 +1240,10 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
         lastName,
         email,
         mobile,
+        company,
+        position,
+        social,
+        website,
         profilePic,
         meetingplaceIdentityCardColor
       ];
@@ -1278,6 +1305,30 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
     } else if (isInserting) {
       context.missing(_mobileMeta);
     }
+    if (data.containsKey('company')) {
+      context.handle(_companyMeta,
+          company.isAcceptableOrUnknown(data['company']!, _companyMeta));
+    } else if (isInserting) {
+      context.missing(_companyMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(_positionMeta,
+          position.isAcceptableOrUnknown(data['position']!, _positionMeta));
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('social')) {
+      context.handle(_socialMeta,
+          social.isAcceptableOrUnknown(data['social']!, _socialMeta));
+    } else if (isInserting) {
+      context.missing(_socialMeta);
+    }
+    if (data.containsKey('website')) {
+      context.handle(_websiteMeta,
+          website.isAcceptableOrUnknown(data['website']!, _websiteMeta));
+    } else if (isInserting) {
+      context.missing(_websiteMeta);
+    }
     if (data.containsKey('profile_pic')) {
       context.handle(
           _profilePicMeta,
@@ -1320,6 +1371,14 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
           .read(DriftSqlType.string, data['${effectivePrefix}email'])!,
       mobile: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}mobile'])!,
+      company: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}company'])!,
+      position: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}position'])!,
+      social: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}social'])!,
+      website: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}website'])!,
       profilePic: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}profile_pic'])!,
       meetingplaceIdentityCardColor: attachedDatabase.typeMapping.read(
@@ -1360,6 +1419,18 @@ class ConnectionContactCard extends DataClass
   /// Mobile number of the contact.
   final String mobile;
 
+  /// Company of the contact.
+  final String company;
+
+  /// Position of the contact.
+  final String position;
+
+  /// Social information of the contact.
+  final String social;
+
+  /// Website of the contact.
+  final String website;
+
   /// Profile picture of the contact.
   final String profilePic;
 
@@ -1374,6 +1445,10 @@ class ConnectionContactCard extends DataClass
       required this.lastName,
       required this.email,
       required this.mobile,
+      required this.company,
+      required this.position,
+      required this.social,
+      required this.website,
       required this.profilePic,
       required this.meetingplaceIdentityCardColor});
   @override
@@ -1387,6 +1462,10 @@ class ConnectionContactCard extends DataClass
     map['last_name'] = Variable<String>(lastName);
     map['email'] = Variable<String>(email);
     map['mobile'] = Variable<String>(mobile);
+    map['company'] = Variable<String>(company);
+    map['position'] = Variable<String>(position);
+    map['social'] = Variable<String>(social);
+    map['website'] = Variable<String>(website);
     map['profile_pic'] = Variable<String>(profilePic);
     map['meetingplace_identity_card_color'] =
         Variable<String>(meetingplaceIdentityCardColor);
@@ -1403,6 +1482,10 @@ class ConnectionContactCard extends DataClass
       lastName: Value(lastName),
       email: Value(email),
       mobile: Value(mobile),
+      company: Value(company),
+      position: Value(position),
+      social: Value(social),
+      website: Value(website),
       profilePic: Value(profilePic),
       meetingplaceIdentityCardColor: Value(meetingplaceIdentityCardColor),
     );
@@ -1420,6 +1503,10 @@ class ConnectionContactCard extends DataClass
       lastName: serializer.fromJson<String>(json['lastName']),
       email: serializer.fromJson<String>(json['email']),
       mobile: serializer.fromJson<String>(json['mobile']),
+      company: serializer.fromJson<String>(json['company']),
+      position: serializer.fromJson<String>(json['position']),
+      social: serializer.fromJson<String>(json['social']),
+      website: serializer.fromJson<String>(json['website']),
       profilePic: serializer.fromJson<String>(json['profilePic']),
       meetingplaceIdentityCardColor:
           serializer.fromJson<String>(json['meetingplaceIdentityCardColor']),
@@ -1437,6 +1524,10 @@ class ConnectionContactCard extends DataClass
       'lastName': serializer.toJson<String>(lastName),
       'email': serializer.toJson<String>(email),
       'mobile': serializer.toJson<String>(mobile),
+      'company': serializer.toJson<String>(company),
+      'position': serializer.toJson<String>(position),
+      'social': serializer.toJson<String>(social),
+      'website': serializer.toJson<String>(website),
       'profilePic': serializer.toJson<String>(profilePic),
       'meetingplaceIdentityCardColor':
           serializer.toJson<String>(meetingplaceIdentityCardColor),
@@ -1452,6 +1543,10 @@ class ConnectionContactCard extends DataClass
           String? lastName,
           String? email,
           String? mobile,
+          String? company,
+          String? position,
+          String? social,
+          String? website,
           String? profilePic,
           String? meetingplaceIdentityCardColor}) =>
       ConnectionContactCard(
@@ -1463,6 +1558,10 @@ class ConnectionContactCard extends DataClass
         lastName: lastName ?? this.lastName,
         email: email ?? this.email,
         mobile: mobile ?? this.mobile,
+        company: company ?? this.company,
+        position: position ?? this.position,
+        social: social ?? this.social,
+        website: website ?? this.website,
         profilePic: profilePic ?? this.profilePic,
         meetingplaceIdentityCardColor:
             meetingplaceIdentityCardColor ?? this.meetingplaceIdentityCardColor,
@@ -1480,6 +1579,10 @@ class ConnectionContactCard extends DataClass
       lastName: data.lastName.present ? data.lastName.value : this.lastName,
       email: data.email.present ? data.email.value : this.email,
       mobile: data.mobile.present ? data.mobile.value : this.mobile,
+      company: data.company.present ? data.company.value : this.company,
+      position: data.position.present ? data.position.value : this.position,
+      social: data.social.present ? data.social.value : this.social,
+      website: data.website.present ? data.website.value : this.website,
       profilePic:
           data.profilePic.present ? data.profilePic.value : this.profilePic,
       meetingplaceIdentityCardColor: data.meetingplaceIdentityCardColor.present
@@ -1499,6 +1602,10 @@ class ConnectionContactCard extends DataClass
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
           ..write('mobile: $mobile, ')
+          ..write('company: $company, ')
+          ..write('position: $position, ')
+          ..write('social: $social, ')
+          ..write('website: $website, ')
           ..write('profilePic: $profilePic, ')
           ..write(
               'meetingplaceIdentityCardColor: $meetingplaceIdentityCardColor')
@@ -1507,8 +1614,21 @@ class ConnectionContactCard extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, connectionOfferId, did, type, firstName,
-      lastName, email, mobile, profilePic, meetingplaceIdentityCardColor);
+  int get hashCode => Object.hash(
+      id,
+      connectionOfferId,
+      did,
+      type,
+      firstName,
+      lastName,
+      email,
+      mobile,
+      company,
+      position,
+      social,
+      website,
+      profilePic,
+      meetingplaceIdentityCardColor);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1521,6 +1641,10 @@ class ConnectionContactCard extends DataClass
           other.lastName == this.lastName &&
           other.email == this.email &&
           other.mobile == this.mobile &&
+          other.company == this.company &&
+          other.position == this.position &&
+          other.social == this.social &&
+          other.website == this.website &&
           other.profilePic == this.profilePic &&
           other.meetingplaceIdentityCardColor ==
               this.meetingplaceIdentityCardColor);
@@ -1536,6 +1660,10 @@ class ConnectionContactCardsCompanion
   final Value<String> lastName;
   final Value<String> email;
   final Value<String> mobile;
+  final Value<String> company;
+  final Value<String> position;
+  final Value<String> social;
+  final Value<String> website;
   final Value<String> profilePic;
   final Value<String> meetingplaceIdentityCardColor;
   const ConnectionContactCardsCompanion({
@@ -1547,6 +1675,10 @@ class ConnectionContactCardsCompanion
     this.lastName = const Value.absent(),
     this.email = const Value.absent(),
     this.mobile = const Value.absent(),
+    this.company = const Value.absent(),
+    this.position = const Value.absent(),
+    this.social = const Value.absent(),
+    this.website = const Value.absent(),
     this.profilePic = const Value.absent(),
     this.meetingplaceIdentityCardColor = const Value.absent(),
   });
@@ -1559,6 +1691,10 @@ class ConnectionContactCardsCompanion
     required String lastName,
     required String email,
     required String mobile,
+    required String company,
+    required String position,
+    required String social,
+    required String website,
     required String profilePic,
     required String meetingplaceIdentityCardColor,
   })  : connectionOfferId = Value(connectionOfferId),
@@ -1568,6 +1704,10 @@ class ConnectionContactCardsCompanion
         lastName = Value(lastName),
         email = Value(email),
         mobile = Value(mobile),
+        company = Value(company),
+        position = Value(position),
+        social = Value(social),
+        website = Value(website),
         profilePic = Value(profilePic),
         meetingplaceIdentityCardColor = Value(meetingplaceIdentityCardColor);
   static Insertable<ConnectionContactCard> custom({
@@ -1579,6 +1719,10 @@ class ConnectionContactCardsCompanion
     Expression<String>? lastName,
     Expression<String>? email,
     Expression<String>? mobile,
+    Expression<String>? company,
+    Expression<String>? position,
+    Expression<String>? social,
+    Expression<String>? website,
     Expression<String>? profilePic,
     Expression<String>? meetingplaceIdentityCardColor,
   }) {
@@ -1591,6 +1735,10 @@ class ConnectionContactCardsCompanion
       if (lastName != null) 'last_name': lastName,
       if (email != null) 'email': email,
       if (mobile != null) 'mobile': mobile,
+      if (company != null) 'company': company,
+      if (position != null) 'position': position,
+      if (social != null) 'social': social,
+      if (website != null) 'website': website,
       if (profilePic != null) 'profile_pic': profilePic,
       if (meetingplaceIdentityCardColor != null)
         'meetingplace_identity_card_color': meetingplaceIdentityCardColor,
@@ -1606,6 +1754,10 @@ class ConnectionContactCardsCompanion
       Value<String>? lastName,
       Value<String>? email,
       Value<String>? mobile,
+      Value<String>? company,
+      Value<String>? position,
+      Value<String>? social,
+      Value<String>? website,
       Value<String>? profilePic,
       Value<String>? meetingplaceIdentityCardColor}) {
     return ConnectionContactCardsCompanion(
@@ -1617,6 +1769,10 @@ class ConnectionContactCardsCompanion
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
       mobile: mobile ?? this.mobile,
+      company: company ?? this.company,
+      position: position ?? this.position,
+      social: social ?? this.social,
+      website: website ?? this.website,
       profilePic: profilePic ?? this.profilePic,
       meetingplaceIdentityCardColor:
           meetingplaceIdentityCardColor ?? this.meetingplaceIdentityCardColor,
@@ -1650,6 +1806,18 @@ class ConnectionContactCardsCompanion
     if (mobile.present) {
       map['mobile'] = Variable<String>(mobile.value);
     }
+    if (company.present) {
+      map['company'] = Variable<String>(company.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<String>(position.value);
+    }
+    if (social.present) {
+      map['social'] = Variable<String>(social.value);
+    }
+    if (website.present) {
+      map['website'] = Variable<String>(website.value);
+    }
     if (profilePic.present) {
       map['profile_pic'] = Variable<String>(profilePic.value);
     }
@@ -1671,6 +1839,10 @@ class ConnectionContactCardsCompanion
           ..write('lastName: $lastName, ')
           ..write('email: $email, ')
           ..write('mobile: $mobile, ')
+          ..write('company: $company, ')
+          ..write('position: $position, ')
+          ..write('social: $social, ')
+          ..write('website: $website, ')
           ..write('profilePic: $profilePic, ')
           ..write(
               'meetingplaceIdentityCardColor: $meetingplaceIdentityCardColor')
@@ -2745,6 +2917,10 @@ typedef $$ConnectionContactCardsTableCreateCompanionBuilder
   required String lastName,
   required String email,
   required String mobile,
+  required String company,
+  required String position,
+  required String social,
+  required String website,
   required String profilePic,
   required String meetingplaceIdentityCardColor,
 });
@@ -2758,6 +2934,10 @@ typedef $$ConnectionContactCardsTableUpdateCompanionBuilder
   Value<String> lastName,
   Value<String> email,
   Value<String> mobile,
+  Value<String> company,
+  Value<String> position,
+  Value<String> social,
+  Value<String> website,
   Value<String> profilePic,
   Value<String> meetingplaceIdentityCardColor,
 });
@@ -2817,6 +2997,18 @@ class $$ConnectionContactCardsTableFilterComposer
   ColumnFilters<String> get mobile => $composableBuilder(
       column: $table.mobile, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get company => $composableBuilder(
+      column: $table.company, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get social => $composableBuilder(
+      column: $table.social, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get website => $composableBuilder(
+      column: $table.website, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get profilePic => $composableBuilder(
       column: $table.profilePic, builder: (column) => ColumnFilters(column));
 
@@ -2874,6 +3066,18 @@ class $$ConnectionContactCardsTableOrderingComposer
 
   ColumnOrderings<String> get mobile => $composableBuilder(
       column: $table.mobile, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get company => $composableBuilder(
+      column: $table.company, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get position => $composableBuilder(
+      column: $table.position, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get social => $composableBuilder(
+      column: $table.social, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get website => $composableBuilder(
+      column: $table.website, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get profilePic => $composableBuilder(
       column: $table.profilePic, builder: (column) => ColumnOrderings(column));
@@ -2933,6 +3137,18 @@ class $$ConnectionContactCardsTableAnnotationComposer
 
   GeneratedColumn<String> get mobile =>
       $composableBuilder(column: $table.mobile, builder: (column) => column);
+
+  GeneratedColumn<String> get company =>
+      $composableBuilder(column: $table.company, builder: (column) => column);
+
+  GeneratedColumn<String> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get social =>
+      $composableBuilder(column: $table.social, builder: (column) => column);
+
+  GeneratedColumn<String> get website =>
+      $composableBuilder(column: $table.website, builder: (column) => column);
 
   GeneratedColumn<String> get profilePic => $composableBuilder(
       column: $table.profilePic, builder: (column) => column);
@@ -2998,6 +3214,10 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             Value<String> lastName = const Value.absent(),
             Value<String> email = const Value.absent(),
             Value<String> mobile = const Value.absent(),
+            Value<String> company = const Value.absent(),
+            Value<String> position = const Value.absent(),
+            Value<String> social = const Value.absent(),
+            Value<String> website = const Value.absent(),
             Value<String> profilePic = const Value.absent(),
             Value<String> meetingplaceIdentityCardColor = const Value.absent(),
           }) =>
@@ -3010,6 +3230,10 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             lastName: lastName,
             email: email,
             mobile: mobile,
+            company: company,
+            position: position,
+            social: social,
+            website: website,
             profilePic: profilePic,
             meetingplaceIdentityCardColor: meetingplaceIdentityCardColor,
           ),
@@ -3022,6 +3246,10 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             required String lastName,
             required String email,
             required String mobile,
+            required String company,
+            required String position,
+            required String social,
+            required String website,
             required String profilePic,
             required String meetingplaceIdentityCardColor,
           }) =>
@@ -3034,6 +3262,10 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             lastName: lastName,
             email: email,
             mobile: mobile,
+            company: company,
+            position: position,
+            social: social,
+            website: website,
             profilePic: profilePic,
             meetingplaceIdentityCardColor: meetingplaceIdentityCardColor,
           ),

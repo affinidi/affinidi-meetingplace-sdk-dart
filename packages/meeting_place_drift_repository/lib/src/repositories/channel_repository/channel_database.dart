@@ -143,6 +143,18 @@ class ChannelContactCards extends Table {
   /// Mobile number of the contact.
   TextColumn get mobile => text()();
 
+  /// Company of the contact.
+  TextColumn get company => text()();
+
+  /// Position of the contact.
+  TextColumn get position => text()();
+
+  /// Social information of the contact.
+  TextColumn get social => text()();
+
+  /// Website of the contact.
+  TextColumn get website => text()();
+
   /// Profile picture of the contact.
   TextColumn get profilePic => text()();
 

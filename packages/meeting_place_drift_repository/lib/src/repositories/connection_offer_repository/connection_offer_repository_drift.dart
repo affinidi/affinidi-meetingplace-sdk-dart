@@ -208,6 +208,10 @@ class ConnectionOfferRepositoryDrift
               lastName: Value(card.lastName),
               email: Value(card.email),
               mobile: Value(card.mobile),
+              company: Value(card.company),
+              position: Value(card.position),
+              social: Value(card.social),
+              website: Value(card.website),
               profilePic: Value(card.profilePic),
               meetingplaceIdentityCardColor: Value(
                 card.meetingplaceIdentityCardColor,
@@ -315,6 +319,10 @@ class ConnectionOfferRepositoryDrift
           lastName: Value(card.lastName),
           email: Value(card.email),
           mobile: Value(card.mobile),
+          company: Value(card.company),
+          position: Value(card.position),
+          social: Value(card.social),
+          website: Value(card.website),
           profilePic: Value(card.profilePic),
           meetingplaceIdentityCardColor: Value(
             card.meetingplaceIdentityCardColor,
@@ -363,6 +371,10 @@ class _ConnectionOfferMapper {
     card.lastName = contactCard.lastName;
     card.email = contactCard.email;
     card.mobile = contactCard.mobile;
+    card.company = contactCard.company;
+    card.position = contactCard.position;
+    card.social = contactCard.social;
+    card.website = contactCard.website;
     card.profilePic = contactCard.profilePic;
     card.meetingplaceIdentityCardColor =
         contactCard.meetingplaceIdentityCardColor;

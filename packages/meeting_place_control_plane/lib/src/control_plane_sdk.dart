@@ -336,13 +336,25 @@ class ControlPlaneSDK {
 
     return _withSdkExceptionHandling(() async {
       if (!isInitialized) {
+        // Ensure only one initialization happens, even with concurrent calls
+        _initializing ??= _init()
+            .then((_) {
+              _logger.info('SDK initialization complete', name: methodName);
+            })
+            .catchError((e, stackTrace) {
+              _logger.error('SDK initialization failed: $e', name: methodName);
+              // Reset to allow retry on next execute call
+              _initializing = null;
+              // Clean up partial state
+              isInitialized = false;
+              Error.throwWithStackTrace(e, stackTrace);
+            });
+
         _logger.warning(
           'SDK not initialized, starting initialization...',
           name: methodName,
         );
-        _initializing ??= _init();
-        await _initializing; // TODO: impove
-        _logger.info('SDK initialization complete', name: methodName);
+        await _initializing;
       }
       return await _dispatcher.dispatch(command);
     });

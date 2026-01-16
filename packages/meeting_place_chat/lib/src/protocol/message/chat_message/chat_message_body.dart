@@ -7,13 +7,20 @@ class ChatMessageBody {
   factory ChatMessageBody.fromJson(Map<String, dynamic> json) =>
       _$ChatMessageBodyFromJson(json);
 
-  ChatMessageBody({required this.text, required this.seqNo});
+  ChatMessageBody({
+    required this.text,
+    required this.seqNo,
+    required this.timestamp,
+  });
 
   @JsonKey(name: 'text')
   final String text;
 
   @JsonKey(name: 'seq_no')
   final int seqNo;
+
+  @JsonKey(name: 'timestamp')
+  final DateTime timestamp;
 
   Map<String, dynamic> toJson() => _$ChatMessageBodyToJson(this);
 }

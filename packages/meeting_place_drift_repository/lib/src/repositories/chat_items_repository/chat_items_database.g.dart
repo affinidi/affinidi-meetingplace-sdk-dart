@@ -1680,6 +1680,9 @@ abstract class _$ChatItemsDatabase extends GeneratedDatabase {
           ),
         ],
       );
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $$ChatItemsTableCreateCompanionBuilder = ChatItemsCompanion Function({

@@ -36,7 +36,11 @@ class ChatMessage {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      body: ChatMessageBody(text: text, seqNo: seqNo),
+      body: ChatMessageBody(
+        text: text,
+        seqNo: seqNo,
+        timestamp: DateTime.now().toUtc(),
+      ),
       attachments: attachments,
     );
   }

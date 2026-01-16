@@ -19,6 +19,18 @@ enum _ContactCardPaths {
     'type',
     'cell',
   ]),
+  company([
+    'org',
+  ]),
+  position([
+    'title',
+  ]),
+  social([
+    'social',
+  ]),
+  website([
+    'url',
+  ]),
   profilePic([
     'photo',
   ]),
@@ -110,6 +122,40 @@ extension ContactCardFieldsKeys on ContactCard {
   set mobile(String value) => _setContactCardPathValue(
         contactInfo,
         _ContactCardPaths.mobile.paths,
+        value,
+      );
+
+  String get company =>
+      _getContactCardPathValue(contactInfo, _ContactCardPaths.company.paths);
+  set company(String value) => _setContactCardPathValue(
+        contactInfo,
+        _ContactCardPaths.company.paths,
+        value,
+      );
+
+  String get position =>
+      _getContactCardPathValue(contactInfo, _ContactCardPaths.position.paths);
+  set position(String value) => _setContactCardPathValue(
+        contactInfo,
+        _ContactCardPaths.position.paths,
+        value,
+      );
+
+  String get social =>
+      _getContactCardPathValue(contactInfo, _ContactCardPaths.social.paths);
+  set social(String value) => _setContactCardPathValue(
+        contactInfo,
+        _ContactCardPaths.social.paths,
+        value,
+      );
+
+  String get website => _getContactCardPathValue(
+        contactInfo,
+        _ContactCardPaths.website.paths,
+      );
+  set website(String value) => _setContactCardPathValue(
+        contactInfo,
+        _ContactCardPaths.website.paths,
         value,
       );
 

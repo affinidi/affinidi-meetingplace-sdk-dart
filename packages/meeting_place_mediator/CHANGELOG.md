@@ -1,3 +1,7 @@
+## 0.0.1-dev.13
+
+ - **FIX**: improve handling of transient network issues (#58).
+
 ## 0.0.1-dev.12
 
  - **FIX**: ephemeral usage and log DIDComm problem report details (#47).

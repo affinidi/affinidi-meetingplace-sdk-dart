@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../protocol/message/chat_message/chat_message.dart';
 import '../protocol/protocol.dart' as protocol;
 import 'chat_item.dart';
 
@@ -42,13 +43,13 @@ class Message extends ChatItem {
   /// **Returns:**
   /// - A new [Message] instance representing the received message.
   factory Message.fromReceivedMessage({
-    required PlainTextMessage message,
+    required ChatMessage message,
     required String chatId,
   }) {
     return Message.fromPlaintextMessage(
       message,
       chatId: chatId,
-      senderDid: message.from!,
+      senderDid: message.from,
       attachments: message.attachments,
       status: ChatItemStatus.received,
       createdByMe: false,
@@ -69,12 +70,12 @@ class Message extends ChatItem {
   /// **Returns:**
   /// - A new [Message] instance representing the sent message.
   factory Message.fromSentMessage({
-    required protocol.ChatMessage message,
+    required ChatMessage message,
     required String chatId,
   }) {
     return Message.fromPlaintextMessage(
       chatId: chatId,
-      message.toPlainTextMessage(),
+      message,
       senderDid: message.from,
       attachments: message.attachments,
       status: ChatItemStatus.queued,
@@ -98,7 +99,7 @@ class Message extends ChatItem {
   /// **Returns:**
   /// - A new [Message] instance.
   factory Message.fromPlaintextMessage(
-    PlainTextMessage message, {
+    ChatMessage message, {
     required String chatId,
     required String senderDid,
     required bool createdByMe,
@@ -109,9 +110,9 @@ class Message extends ChatItem {
       chatId: chatId,
       messageId: message.id,
       senderDid: senderDid,
-      value: message.body!['text'] as String,
+      value: message.body.text,
       isFromMe: createdByMe,
-      dateCreated: message.createdTime ?? DateTime.now().toUtc(),
+      dateCreated: message.body.timestamp,
       status: status,
       attachments: attachments ?? [],
     );

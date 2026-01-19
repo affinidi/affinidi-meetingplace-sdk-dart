@@ -2099,6 +2099,9 @@ abstract class _$ConnectionOfferDatabase extends GeneratedDatabase {
           ),
         ],
       );
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
 typedef $$ConnectionOffersTableCreateCompanionBuilder

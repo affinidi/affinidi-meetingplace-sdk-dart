@@ -11,7 +11,7 @@ class MediatorUtils {
 
   static String getMediatorEndpointByDidDocument(DidDocument didDocument) {
     final service = didDocument.service.firstWhere(
-      (service) => service.type == 'DIDCommMessaging',
+      (service) => service.type.toString() == 'DIDCommMessaging',
     );
 
     final endpoints = service.toJson()['serviceEndpoint'] as List<Object>;

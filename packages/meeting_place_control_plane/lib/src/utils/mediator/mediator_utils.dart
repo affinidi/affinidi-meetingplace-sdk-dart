@@ -8,7 +8,7 @@ class MediatorUtils {
   }) async {
     final didDocument = await didResolver.resolveDid(mediatorDid);
     final service = didDocument.service.firstWhere(
-      (service) => service.type == 'DIDCommMessaging',
+      (service) => service.type.toString() == 'DIDCommMessaging',
     );
 
     final endpoints = service.toJson()['serviceEndpoint'] as List<Object>;

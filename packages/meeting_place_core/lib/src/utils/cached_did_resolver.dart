@@ -26,16 +26,20 @@ class CachedDidResolver implements DidResolver {
     }
 
     final didDocument = await retry(
-      () async => await UniversalDIDResolver(
-        resolverAddress: resolverAddress,
-      ).resolveDid(did),
-      retryIf: (e) =>
-          e is SsiException && e.code == SsiExceptionType.invalidDidWeb.code ||
-          e is SocketException ||
-          e is TimeoutException ||
-          e is HttpException ||
-          e is HandshakeException ||
-          e is TlsException,
+      () async {
+        return await UniversalDIDResolver(
+          resolverAddress: resolverAddress,
+        ).resolveDid(did);
+      },
+      retryIf: (e) {
+        return e is SsiException &&
+                e.code == SsiExceptionType.invalidDidWeb.code ||
+            e is SocketException ||
+            e is TimeoutException ||
+            e is HttpException ||
+            e is HandshakeException ||
+            e is TlsException;
+      },
       onRetry: (e) => _logger.warning(
         'Retrying unpacking message due to error: $e',
         name: 'resolveDid',

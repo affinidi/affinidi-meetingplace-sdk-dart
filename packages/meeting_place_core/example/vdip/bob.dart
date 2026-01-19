@@ -24,10 +24,10 @@ Future<VerifiableCredential> buildCredential({
   final issuerDidDoc = await issuerDidManager.getDidDocument();
 
   final unsignedCredential = VcDataModelV1(
-    context: [
+    context: JsonLdContext.fromJson([
       dmV1ContextUrl,
       'https://d2oeuqaac90cm.cloudfront.net/TTestMusicSubscriptionV1R0.jsonld',
-    ],
+    ]),
     credentialSchema: [
       CredentialSchema(
         id: Uri.parse(

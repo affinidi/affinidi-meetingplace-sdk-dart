@@ -31,10 +31,3 @@ dev_dependencies:
   json_serializable: ^6.9.5
   mocktail: ^1.0.4
   test: ^1.26.2
-
-dependency_overrides:
-  affinidi_tdk_vdip:
-    git:
-      url: git@github.com:affinidi/affinidi-tdk.git
-      path: libs/dart/didcomm/vdip
-      ref: 89669e3188b6ac2589f9fe20bca8515dba4755f2

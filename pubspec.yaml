@@ -25,17 +25,17 @@ dependency_overrides:
     git:
       url: git@github.com:affinidi/affinidi-tdk.git
       path: libs/dart/didcomm/vdip
-      ref: 64854df4be14c54ea53a9c212ce06886fe296bac
+      ref: 78da55b464e48ef6889b8c947020c99f783464ac
   affinidi_tdk_vdsp:
     git:
       url: git@github.com:affinidi/affinidi-tdk.git
       path: libs/dart/didcomm/vdsp
-      ref: 64854df4be14c54ea53a9c212ce06886fe296bac
+      ref: 78da55b464e48ef6889b8c947020c99f783464ac
   affinidi_tdk_didcomm_mediator_client:
     git:
       url: git@github.com:affinidi/affinidi-tdk.git
       path: libs/dart/didcomm/didcomm_mediator_client
-      ref: 64854df4be14c54ea53a9c212ce06886fe296bac
+      ref: 78da55b464e48ef6889b8c947020c99f783464ac
 
 melos:
   scripts:

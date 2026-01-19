@@ -21,8 +21,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "libs/dart/didcomm/didcomm_mediator_client"
-      ref: "64854df4be14c54ea53a9c212ce06886fe296bac"
-      resolved-ref: "64854df4be14c54ea53a9c212ce06886fe296bac"
+      ref: "78da55b464e48ef6889b8c947020c99f783464ac"
+      resolved-ref: "78da55b464e48ef6889b8c947020c99f783464ac"
       url: "git@github.com:affinidi/affinidi-tdk.git"
     source: git
     version: "1.0.1"
@@ -30,8 +30,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "libs/dart/didcomm/vdip"
-      ref: "64854df4be14c54ea53a9c212ce06886fe296bac"
-      resolved-ref: "64854df4be14c54ea53a9c212ce06886fe296bac"
+      ref: "78da55b464e48ef6889b8c947020c99f783464ac"
+      resolved-ref: "78da55b464e48ef6889b8c947020c99f783464ac"
       url: "git@github.com:affinidi/affinidi-tdk.git"
     source: git
     version: "1.0.0"
@@ -39,8 +39,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "libs/dart/didcomm/vdsp"
-      ref: "64854df4be14c54ea53a9c212ce06886fe296bac"
-      resolved-ref: "64854df4be14c54ea53a9c212ce06886fe296bac"
+      ref: "78da55b464e48ef6889b8c947020c99f783464ac"
+      resolved-ref: "78da55b464e48ef6889b8c947020c99f783464ac"
       url: "git@github.com:affinidi/affinidi-tdk.git"
     source: git
     version: "1.0.0"

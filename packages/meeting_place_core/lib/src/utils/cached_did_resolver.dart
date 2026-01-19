@@ -30,7 +30,7 @@ class CachedDidResolver implements DidResolver {
         resolverAddress: resolverAddress,
       ).resolveDid(did),
       retryIf: (e) =>
-          e is SsiException && e.code == 'invalid_did_web' ||
+          e is SsiException && e.code == SsiExceptionType.invalidDidWeb.code ||
           e is TimeoutException ||
           e is HttpException ||
           e is HandshakeException ||

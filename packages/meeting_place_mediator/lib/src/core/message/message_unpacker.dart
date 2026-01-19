@@ -33,7 +33,7 @@ class MessageUnpacker {
         );
       },
       retryIf: (e) =>
-          e is SsiException && e.code == 'invalid_did_web' ||
+          e is SsiException && e.code == SsiExceptionType.invalidDidWeb.code ||
           e is SocketException ||
           e is TimeoutException ||
           e is HttpException ||

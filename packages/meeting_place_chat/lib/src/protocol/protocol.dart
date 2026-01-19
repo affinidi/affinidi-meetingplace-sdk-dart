@@ -9,4 +9,3 @@ export 'message/chat_group_details_update/chat_group_details_update.dart';
 export 'message/chat_message/chat_message.dart';
 export 'message/chat_presence/chat_presence.dart';
 export 'message/chat_reaction/chat_reaction.dart';
-export 'message/chat_declined_persona_sharing.dart';

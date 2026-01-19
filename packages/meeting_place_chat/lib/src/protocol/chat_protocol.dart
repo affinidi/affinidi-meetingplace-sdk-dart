@@ -63,12 +63,6 @@ enum ChatProtocol {
   /// Represents a reaction (emoji or similar) to a chat message.
   chatReaction(
     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/reaction',
-  ),
-
-  /// Represents a declined persona sharing.
-  // TODO (Earl): remove this protocol once extension is merged
-  chatDeclinedPersonaSharing(
-    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/declined-persona-sharing',
   );
 
   /// Creates a [ChatProtocol] instance with the given URI [value].

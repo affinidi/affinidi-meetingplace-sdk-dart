@@ -1,3 +1,7 @@
+## 0.0.1-dev.27
+
+ - **FIX**: use timestamp from message body for improved accuracy.
+
 ## 0.0.1-dev.26
 
  - Update a dependency to the latest release.

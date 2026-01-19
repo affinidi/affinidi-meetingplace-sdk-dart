@@ -103,19 +103,19 @@ class QueryOfferHandler
       );
     } catch (e, stackTrace) {
       if (e is DioException &&
-          e.response!.statusCode == HttpStatus.unprocessableEntity) {
+          e.response?.statusCode == HttpStatus.unprocessableEntity) {
         _logger.warning('[MPX API] Offer not found', name: methodName);
 
-        if (e.response!.data['errorCode'] == 'QUERY_LIMIT_EXCEEDED') {
+        if (e.response?.data['errorCode'] == 'QUERY_LIMIT_EXCEEDED') {
           return LimitExceededQueryOfferCommandOutput();
         }
 
-        if (e.response!.data['errorCode'] == 'OFFER_EXPIRED') {
+        if (e.response?.data['errorCode'] == 'OFFER_EXPIRED') {
           return ExpiredQueryOfferCommandOutput();
         }
       }
 
-      if (e is DioException && e.response!.statusCode == HttpStatus.notFound) {
+      if (e is DioException && e.response?.statusCode == HttpStatus.notFound) {
         return NullQueryOfferCommandOutput();
       }
 
@@ -125,6 +125,7 @@ class QueryOfferHandler
         stackTrace: stackTrace,
         name: methodName,
       );
+
       Error.throwWithStackTrace(
         QueryOfferException.generic(innerException: e),
         stackTrace,

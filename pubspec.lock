@@ -285,10 +285,10 @@ packages:
     dependency: transitive
     description:
       name: didcomm
-      sha256: "8a6de5c8e2406603071b866b2e478028e16062596f68805f196a40ef58d31d62"
+      sha256: d0f853a71a06ebc77e822dd155e21ab7b6b476e21d0aa00bee8c22c669246bff
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.0"
+    version: "2.3.2"
   dio:
     dependency: transitive
     description:
@@ -837,10 +837,10 @@ packages:
     dependency: transitive
     description:
       name: ssi
-      sha256: "056d36059a7510f57b2b1088cfcd6f7db45743a79875c62905c489b4b4cdbe07"
+      sha256: be828ece1b6f8f35a8df0961c06ab8517c1dce7624f1be914d169bbfc18714da
       url: "https://pub.dev"
     source: hosted
-    version: "2.20.0"
+    version: "3.3.0"
   stack_trace:
     dependency: transitive
     description:

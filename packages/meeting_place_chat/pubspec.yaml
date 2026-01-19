@@ -10,7 +10,7 @@ environment:
 dependencies:
   collection: ^1.19.1
   crypto: ^3.0.6
-  didcomm: ^2.3.0
+  didcomm: ^2.3.2
   json_annotation: ^4.9.0
   meeting_place_core: ^0.0.1-dev.24
   meta: ^1.17.0
@@ -19,5 +19,5 @@ dependencies:
 dev_dependencies:
   build_runner: ^2.5.4
   json_serializable: ^6.9.5
-  ssi: ^2.17.1
+  ssi: ^3.3.0
   test: ^1.26.2

@@ -4,6 +4,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:crypto/crypto.dart';
 import 'package:ssi/ssi.dart';
 
+import '../message/message_unpacker.dart';
 import 'unpack_message_exception.dart';
 
 /// A [FetchMessageResult] object returned after fetching messages from the mediator.
@@ -32,7 +33,7 @@ class FetchMessageResult {
     final messageHash = sha256.convert(utf8.encode(jsonEncode(message)));
     try {
       return FetchMessageResult(
-        message: await DidcommMessage.unpackToPlainTextMessage(
+        message: await MessageUnpacker.unpackWithRetry(
           message: message,
           recipientDidManager: didManager,
           expectedMessageWrappingTypes: expectedMessageWrappingTypes,

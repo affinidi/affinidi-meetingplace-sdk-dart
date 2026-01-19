@@ -11,5 +11,5 @@ dependencies:
   meeting_place_chat: ^0.0.1-dev.26
   meeting_place_core: ^0.0.1-dev.24
   pretty_json: ^2.0.0
-  ssi: ^2.17.1
+  ssi: ^3.3.0
   uuid: ^4.5.1

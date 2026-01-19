@@ -222,6 +222,7 @@ class MeetingPlaceCoreSDK {
 
     final didResolver = CachedDidResolver(
       resolverAddress: options.didResolverAddress,
+      logger: mpxLogger,
     );
 
     final offerService = ConnectionOfferService(

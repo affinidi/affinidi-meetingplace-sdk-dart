@@ -116,7 +116,7 @@ class ControlPlaneApiClient {
   ) async {
     final didDocument = await didResolver.resolveDid(controlPlaneDid);
     final apiBasePath = didDocument.service.firstWhereOrNull(
-      (service) => service.type == 'RestAPI',
+      (service) => service.type.toString() == 'RestAPI',
     );
 
     if (apiBasePath == null) {

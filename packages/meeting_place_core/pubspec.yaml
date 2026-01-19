@@ -11,7 +11,7 @@ dependencies:
   collection: ^1.19.1
   crypto: ^3.0.6
   crypto_keys_plus: ^0.5.0
-  didcomm: ^2.3.0
+  didcomm: ^2.3.2
   json_annotation: ^4.9.0
   meeting_place_control_plane: ^0.0.1-dev.12
   meeting_place_mediator: ^0.0.1-dev.12
@@ -19,7 +19,7 @@ dependencies:
   mutex: ^3.1.0
   proxy_recrypt: ^1.1.3
   retry: ^3.1.2
-  ssi: ^2.17.1
+  ssi: ^3.0.2
   uuid: ^4.5.1
 
 dev_dependencies:

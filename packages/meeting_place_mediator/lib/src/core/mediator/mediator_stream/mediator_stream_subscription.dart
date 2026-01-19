@@ -3,11 +3,13 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
+import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../../meeting_place_mediator.dart';
 import '../../../constants/sdk_constants.dart';
 import '../../message/message_queue.dart';
+import '../../message/message_unpacker.dart';
 import '../../message/plaintext_message_extension.dart';
 import 'mediator_stream_data.dart';
 
@@ -155,10 +157,14 @@ class MediatorStreamSubscription {
     final methodName = '_onIncomingMessage';
 
     try {
-      final decryptedMessage = await DidcommMessage.unpackToPlainTextMessage(
+      final decryptedMessage = await MessageUnpacker.unpackWithRetry(
         message: message,
         recipientDidManager: _didManager,
         expectedMessageWrappingTypes: _messageWrappingTypes,
+        onRetry: (e) => _logger.warning(
+          'Retrying unpacking message due to error: $e',
+          name: methodName,
+        ),
       );
 
       _pushMessage(MediatorStreamData(
@@ -167,13 +173,12 @@ class MediatorStreamSubscription {
       ));
 
       _logger.info('Completed processing incoming message', name: methodName);
-      return;
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to process incoming message: ',
+        'Failed to process incoming message',
         error: e,
         stackTrace: stackTrace,
-        name: '_onIncomingMessage',
+        name: methodName,
       );
     }
   }

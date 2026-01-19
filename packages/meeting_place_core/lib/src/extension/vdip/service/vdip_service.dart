@@ -36,8 +36,8 @@ class VdipService {
           message.body!,
         );
 
-        // TODO: stop specific connection
-        // await ConnectionPool.instance.stopConnections();
+        await vdipHolder.mediatorClient.disconnect();
+
         waitForCredential.complete(
           RequestCredentialResponse(
             credential: body.credential,

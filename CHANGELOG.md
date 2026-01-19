@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-01-19
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.26`](#meeting_place_chat---v001-dev26)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.27`](#meeting_place_drift_repository---v001-dev27)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.26`
+
+ - **FIX**: use timestamp from message body for improved accuracy.
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.27`
+
+ - **FIX**: use timestamp from message body for improved accuracy.
+
+
 ## 2026-01-16
 
 ### Changes

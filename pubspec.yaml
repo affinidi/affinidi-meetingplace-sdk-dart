@@ -23,17 +23,17 @@ dev_dependencies:
 dependency_overrides:
   affinidi_tdk_vdip:
     git:
-      url: git@github.com:affinidi/affinidi-tdk.git
+      url: https://github.com/affinidi/affinidi-tdk.git
       path: libs/dart/didcomm/vdip
       ref: 78da55b464e48ef6889b8c947020c99f783464ac
   affinidi_tdk_vdsp:
     git:
-      url: git@github.com:affinidi/affinidi-tdk.git
+      url: https://github.com/affinidi/affinidi-tdk.git
       path: libs/dart/didcomm/vdsp
       ref: 78da55b464e48ef6889b8c947020c99f783464ac
   affinidi_tdk_didcomm_mediator_client:
     git:
-      url: git@github.com:affinidi/affinidi-tdk.git
+      url: https://github.com/affinidi/affinidi-tdk.git
       path: libs/dart/didcomm/didcomm_mediator_client
       ref: 78da55b464e48ef6889b8c947020c99f783464ac
 

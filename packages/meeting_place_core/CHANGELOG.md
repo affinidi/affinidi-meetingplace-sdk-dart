@@ -1,3 +1,7 @@
+## 0.0.1-dev.26
+
+ - **FIX**: run network requests in parallel when setting up OOB invitation (#61).
+
 ## 0.0.1-dev.25
 
  - **FIX**: improve handling of transient network issues (#58).

@@ -1,3 +1,7 @@
+## 0.0.1-dev.28
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.27
 
  - **FIX**: improve handling of transient network issues (#58).

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:didcomm/didcomm.dart';
 import 'package:dio/dio.dart';
@@ -9,6 +8,7 @@ import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 import '../../protocol/message/oob_invitation_message.dart';
 import '../../meeting_place_mediator_sdk_options.dart';
 import '../../utils/didcomm.dart';
+import '../../utils/error_handler_utils.dart';
 import '../../utils/string.dart';
 import 'forward_message_builder.dart';
 import 'mediator_stream/mediator_stream_subscription.dart';
@@ -57,14 +57,7 @@ class MediatorService {
     final didDocument = await didManager.getDidDocument();
     final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
 
-    if (!reauthenticate && _clients[cacheKey] != null) {
-      _logger.info('Reusing existing mediator session for cacheKey: $cacheKey',
-          name: methodName);
-
-      return Future.value(_clients[cacheKey]);
-    }
-
-    return retry(
+    return _retry(
       () async {
         _logger.info('Connect to mediator: ${mediatorDid.topAndTail()}',
             name: methodName);
@@ -113,14 +106,6 @@ class MediatorService {
 
         return client;
       },
-      retryIf: (e) {
-        _logger.warning('Retrying due to error: $e', name: methodName);
-        return e is SocketException || e is TimeoutException;
-      },
-      onRetry: (e) =>
-          _logger.warning('Retry attempt due to: $e', name: methodName),
-      maxDelay: _options.maxRetriesDelay,
-      maxAttempts: _options.maxRetries,
     );
   }
 
@@ -131,31 +116,27 @@ class MediatorService {
   }) async {
     final methodName = 'authenticateWithDid';
 
-    _logger.info(
-        'Started authenticating to mediator: ${mediatorDid.topAndTail()}',
-        name: methodName);
-
     try {
       final didDocument = await didManager.getDidDocument();
       final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
 
-      return retry(
-        () async {
-          final client = !reauthenticate && _clients[cacheKey] != null
-              ? _clients[cacheKey]!
-              : await _connectToMediator(
-                  didManager: didManager,
-                  mediatorDid: mediatorDid,
-                  signatureScheme: _options.signatureScheme,
-                  reauthenticate: reauthenticate,
-                );
+      if (!reauthenticate && _clients[cacheKey] != null) {
+        _logger.info(
+          'Reuse existing authenticated mediator client for cacheKey: ${cacheKey.topAndTail()}',
+          name: methodName,
+        );
+        return _clients[cacheKey]!;
+      }
 
-          _clients[cacheKey] = client;
-          return client;
-        },
-        maxAttempts: _options.maxRetries,
-        maxDelay: _options.maxRetriesDelay,
+      final client = await _connectToMediator(
+        didManager: didManager,
+        mediatorDid: mediatorDid,
+        signatureScheme: _options.signatureScheme,
+        reauthenticate: reauthenticate,
       );
+
+      _clients[cacheKey] = client;
+      return client;
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to authenticate with mediator: ${mediatorDid.topAndTail()}',
@@ -225,14 +206,18 @@ class MediatorService {
         name: methodName,
       );
 
-      await mediatorClient.sendMessage(ForwardMessageBuilder.build(
-        encryptedMessage,
-        senderDidDocument: senderDidDocument,
-        mediatorClient: mediatorClient,
-        next: next,
-        ephemeral: ephemeral,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
-      ));
+      await _retry(
+        () async {
+          await mediatorClient.sendMessage(ForwardMessageBuilder.build(
+            encryptedMessage,
+            senderDidDocument: senderDidDocument,
+            mediatorClient: mediatorClient,
+            next: next,
+            ephemeral: ephemeral,
+            forwardExpiryInSeconds: forwardExpiryInSeconds,
+          ));
+        },
+      );
 
       _logger.info(
         'Message sent from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
@@ -376,12 +361,17 @@ class MediatorService {
       );
 
       final ownerDidDocument = await ownerDidManager.getDidDocument();
-      await client.sendAclManagementMessage(
-        AclManagement(
-          from: ownerDidDocument.id,
-          to: [client.mediatorDidDocument.id],
-          body: acl,
-        ),
+
+      await _retry(
+        () async {
+          await client.sendAclManagementMessage(
+            AclManagement(
+              from: ownerDidDocument.id,
+              to: [client.mediatorDidDocument.id],
+              body: acl,
+            ),
+          );
+        },
       );
 
       _logger.info(
@@ -538,10 +528,14 @@ class MediatorService {
     DateTime? startFrom,
     int? maxResults,
   }) async {
-    return await client.fetchMessages(
-      deleteOnMediator: deleteOnRetrieve,
-      batchSize: fetchMessagesBatchSize,
-      startFrom: startFrom,
+    return _retry(
+      () async {
+        return await client.fetchMessages(
+          deleteOnMediator: deleteOnRetrieve,
+          batchSize: fetchMessagesBatchSize,
+          startFrom: startFrom,
+        );
+      },
     );
   }
 
@@ -557,7 +551,11 @@ class MediatorService {
       mediatorDid: mediatorDid,
     );
 
-    await client.deleteMessages(messageIds: messageHashes);
+    await _retry(
+      () async {
+        await client.deleteMessages(messageIds: messageHashes);
+      },
+    );
 
     _logger.info(
       'Completed deleting ${messageHashes.length} message(s) from mediator ${mediatorDid.topAndTail()}',
@@ -587,12 +585,17 @@ class MediatorService {
         ),
       );
 
-      final response = await dio.get(
-        '$mediatorEndpoint/.well-known/did',
-        options: Options(headers: {'CONTENT-TYPE': 'application/json'}),
+      final mediatorDid = await _retry(
+        () async {
+          final response = await dio.get(
+            '$mediatorEndpoint/.well-known/did',
+            options: Options(headers: {'CONTENT-TYPE': 'application/json'}),
+          );
+
+          return response.data['data'] as String;
+        },
       );
 
-      final mediatorDid = response.data['data'] as String;
       _logger.info(
         'Completed resolving mediator DID is $mediatorDid',
         name: methodName,
@@ -617,5 +620,17 @@ class MediatorService {
 
   String _cacheKey({required String mediatorDid, required String did}) {
     return '$mediatorDid$did';
+  }
+
+  /// Helper method to execute operations with retry logic and consistent error handling
+  Future<T> _retry<T>(Future<T> Function() operation) async {
+    return retry(
+      operation,
+      retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+      onRetry: (e) =>
+          _logger.warning('Retry attempt due to: $e', name: '_retry'),
+      maxDelay: _options.maxRetriesDelay,
+      maxAttempts: _options.maxRetries,
+    );
   }
 }

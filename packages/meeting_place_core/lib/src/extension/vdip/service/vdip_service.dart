@@ -133,6 +133,7 @@ class VdipService {
         mediatorDidDocument: mediatorClient.mediatorDidDocument,
         didManager: issuerDidManager,
       ),
+      clientOptions: const AffinidiClientOptions(),
       featureDisclosures: [],
     );
 

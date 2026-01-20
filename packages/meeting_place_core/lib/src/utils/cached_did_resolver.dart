@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../meeting_place_core.dart';
+import 'error_handler_utils.dart';
 
 class CachedDidResolver implements DidResolver {
   CachedDidResolver({
@@ -31,15 +31,7 @@ class CachedDidResolver implements DidResolver {
           resolverAddress: resolverAddress,
         ).resolveDid(did);
       },
-      retryIf: (e) {
-        return e is SsiException &&
-                e.code == SsiExceptionType.invalidDidWeb.code ||
-            e is SocketException ||
-            e is TimeoutException ||
-            e is HttpException ||
-            e is HandshakeException ||
-            e is TlsException;
-      },
+      retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
       onRetry: (e) => _logger.warning(
         'Retrying unpacking message due to error: $e',
         name: 'resolveDid',

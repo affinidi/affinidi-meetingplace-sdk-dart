@@ -257,10 +257,16 @@ extension _EventMessageTypeValue on EventMessageType {
         return 3;
       case EventMessageType.groupDeleted:
         return 4;
-      case EventMessageType.personaShared:
+      case EventMessageType.vrcExchangeInitiated:
         return 5;
-      case EventMessageType.personaSharingDeclined:
+      case EventMessageType.vrcRequestReceived:
         return 6;
+      case EventMessageType.vrcExchangeDoLater:
+        return 7;
+      case EventMessageType.vrcExchangeCompleted:
+        return 8;
+      case EventMessageType.rCardPlaceholder:
+        return 9;
     }
   }
 }

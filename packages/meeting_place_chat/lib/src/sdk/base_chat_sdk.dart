@@ -422,30 +422,6 @@ abstract class BaseChatSDK {
       );
     }
 
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatDeclinedPersonaSharing.value) {
-      _logger.info(
-        'Handling declined persona sharing message',
-        name: methodName,
-      );
-
-      final eventMessage = EventMessage(
-        chatId: chatId,
-        messageId: message.plainTextMessage.id,
-        senderDid: message.plainTextMessage.from ?? '',
-        isFromMe: message.plainTextMessage.from == did,
-        dateCreated:
-            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
-        status: ChatItemStatus.sent,
-        eventType: EventMessageType.personaSharingDeclined,
-        data: {'contactCard': channel.otherPartyContactCard?.contactInfo},
-      );
-
-      await chatRepository.createMessage(eventMessage);
-
-      chatStream.pushData(StreamData(chatItem: eventMessage));
-    }
-
     _logger.info(
       'Completed handling message of type ${message.plainTextMessage.type}',
       name: methodName,
@@ -686,45 +662,6 @@ abstract class BaseChatSDK {
       'Completed sending chat contact details update',
       name: methodName,
     );
-  }
-
-  /// Sends a persona sharing declined event message.
-  ///
-  /// Returns the sent [EventMessage] object persisted in the repository.
-  Future<void> sendDeclinedPersonaSharing(ConciergeMessage message) async {
-    final methodName = 'sendDeclinedPersonaSharing';
-    _logger.info('Started sending declined persona sharing', name: methodName);
-
-    final declinedMessage = protocol.ChatDeclinedPersonaSharing.create(
-      from: did,
-      to: [otherPartyDid],
-    );
-
-    try {
-      await sendMessage(
-        declinedMessage,
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-      );
-
-      message.status = ChatItemStatus.confirmed;
-      await chatRepository.updateMessage(message);
-      chatStream.pushData(StreamData(chatItem: message));
-
-      _logger.info(
-        'Successfully sent declined persona sharing',
-        name: methodName,
-      );
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to send declined persona sharing',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      rethrow;
-    }
   }
 
   /// Rejects a contact details update and marks message as confirmed.

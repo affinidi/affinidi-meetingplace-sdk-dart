@@ -8,8 +8,11 @@ enum EventMessageType {
   groupDeleted,
   groupMemberJoinedGroup,
   groupMemberLeftGroup,
-  personaShared,
-  personaSharingDeclined,
+  vrcExchangeInitiated,
+  vrcRequestReceived,
+  vrcExchangeDoLater,
+  vrcExchangeCompleted,
+  rCardPlaceholder,
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

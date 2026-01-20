@@ -23,7 +23,7 @@ packages:
       path: "libs/dart/didcomm/didcomm_mediator_client"
       ref: "78da55b464e48ef6889b8c947020c99f783464ac"
       resolved-ref: "78da55b464e48ef6889b8c947020c99f783464ac"
-      url: "git@github.com:affinidi/affinidi-tdk.git"
+      url: "https://github.com/affinidi/affinidi-tdk.git"
     source: git
     version: "1.0.1"
   affinidi_tdk_vdip:
@@ -32,7 +32,7 @@ packages:
       path: "libs/dart/didcomm/vdip"
       ref: "78da55b464e48ef6889b8c947020c99f783464ac"
       resolved-ref: "78da55b464e48ef6889b8c947020c99f783464ac"
-      url: "git@github.com:affinidi/affinidi-tdk.git"
+      url: "https://github.com/affinidi/affinidi-tdk.git"
     source: git
     version: "1.0.0"
   affinidi_tdk_vdsp:
@@ -41,7 +41,7 @@ packages:
       path: "libs/dart/didcomm/vdsp"
       ref: "78da55b464e48ef6889b8c947020c99f783464ac"
       resolved-ref: "78da55b464e48ef6889b8c947020c99f783464ac"
-      url: "git@github.com:affinidi/affinidi-tdk.git"
+      url: "https://github.com/affinidi/affinidi-tdk.git"
     source: git
     version: "1.0.0"
   analyzer:

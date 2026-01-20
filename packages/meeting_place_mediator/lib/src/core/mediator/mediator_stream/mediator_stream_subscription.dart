@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
-import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../../meeting_place_mediator.dart';

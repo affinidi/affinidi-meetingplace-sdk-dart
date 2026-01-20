@@ -66,25 +66,16 @@ class CreateOobHandler
     final methodName = 'handle';
     _logger.info('Started creating oob invitation', name: methodName);
 
-    final defaultMediatorConfig = await MediatorUtils.resolveMediator(
-      mediatorDid,
+    final mediatorConfig = await MediatorUtils.resolveMediator(
+      command.mediatorDid,
       didResolver: didResolver,
     );
 
-    final mediatorConfig = command.mediatorDid != null
-        ? await MediatorUtils.resolveMediator(
-            command.mediatorDid!,
-            didResolver: didResolver,
-          )
-        : null;
-
-    final mediatorForOffer = mediatorConfig ?? defaultMediatorConfig;
-
     final builder = CreateOobInputBuilder()
       ..didcommMessage = toBase64(command.oobInvitationMessage.toJson())
-      ..mediatorDid = mediatorForOffer.mediatorDid
-      ..mediatorEndpoint = mediatorForOffer.mediatorEndpoint
-      ..mediatorWSSEndpoint = mediatorForOffer.mediatorWSSEndpoint;
+      ..mediatorDid = mediatorConfig.mediatorDid
+      ..mediatorEndpoint = mediatorConfig.mediatorEndpoint
+      ..mediatorWSSEndpoint = mediatorConfig.mediatorWSSEndpoint;
 
     try {
       _logger.info(
@@ -103,7 +94,7 @@ class CreateOobHandler
       return CreateOobCommandOutput(
         oobId: response.data!.oobId,
         oobUrl: response.data!.oobUrl,
-        mediatorDid: mediatorForOffer.mediatorDid,
+        mediatorDid: mediatorConfig.mediatorDid,
       );
     } catch (e, stackTrace) {
       _logger.error(

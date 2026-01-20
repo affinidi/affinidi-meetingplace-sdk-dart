@@ -2,10 +2,11 @@ import 'dart:async';
 
 import 'package:affinidi_tdk_didcomm_mediator_client/affinidi_tdk_didcomm_mediator_client.dart';
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
+import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../../../meeting_place_core.dart';
+import '../../../utils/error_handler_utils.dart';
 import '../meeting_place_core_sdk_vdip_exception.dart';
 
 class VdipService {
@@ -55,12 +56,21 @@ class VdipService {
       holderDidManager.assertionMethod.first,
     );
 
-    await vdipHolder.requestCredentialForHolder(
-      holderDid,
-      issuerDid: otherPartyPermanentChannelDid,
-      assertionSigner: assertionSigner,
-      attachments: attachments,
-      options: options,
+    await retry(
+      () async {
+        await vdipHolder.requestCredentialForHolder(
+          holderDid,
+          issuerDid: otherPartyPermanentChannelDid,
+          assertionSigner: assertionSigner,
+          attachments: attachments,
+          options: options,
+        );
+      },
+      retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+      onRetry: (e) => _sdk.logger.warning(
+        'Retrying requestCredential due to error: $e',
+        name: 'requestCredential',
+      ),
     );
 
     return waitForCredential.future;
@@ -97,29 +107,38 @@ class VdipService {
     final (:permanentChannelDid, :otherPartyPermanentChannelDid) =
         _validateChannelDids(channel);
 
-    // TODO: assertion needed on issuer?
-
     final issuerDidManager = await _sdk.getDidManager(permanentChannelDid);
-    final mediatorDidDocument = await _sdk.didResolver.resolveDid(
-      channel.mediatorDid,
+    final mediatorClient = await _sdk.mediator.authenticateWithDid(
+      issuerDidManager,
     );
 
-    // === VDIP for issuer starts here ===
+    _sdk.logger.info(
+      'Initialized VDIP issuer client for DID: $permanentChannelDid',
+    );
+
     final vdipIssuer = await VdipIssuer.init(
-      mediatorDidDocument: mediatorDidDocument,
       didManager: issuerDidManager,
-      featureDisclosures: [],
+      mediatorDidDocument: mediatorClient.mediatorDidDocument,
       authorizationProvider: await AffinidiAuthorizationProvider.init(
-        mediatorDidDocument: mediatorDidDocument,
+        mediatorDidDocument: mediatorClient.mediatorDidDocument,
         didManager: issuerDidManager,
       ),
-      clientOptions: const AffinidiClientOptions(),
+      featureDisclosures: [],
     );
 
-    await vdipIssuer.sendIssuedCredentials(
-      holderDid: otherPartyPermanentChannelDid,
-      verifiableCredential: verifiableCredential,
-      attachments: attachments,
+    await retry(
+      () async {
+        await vdipIssuer.sendIssuedCredentials(
+          holderDid: otherPartyPermanentChannelDid,
+          verifiableCredential: verifiableCredential,
+          attachments: attachments,
+        );
+      },
+      retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+      onRetry: (e) => _sdk.logger.warning(
+        'Retrying sendIssuedCredentials due to error: $e',
+        name: 'issueCredential',
+      ),
     );
   }
 
@@ -130,16 +149,18 @@ class VdipService {
     final permanentChannelDidManager = await _sdk.getDidManager(
       permanentChannelDid,
     );
-    final mediatorDidDocument = await _sdk.didResolver.resolveDid(mediatorDid);
+    final mediatorClient = await _sdk.mediator.authenticateWithDid(
+      permanentChannelDidManager,
+    );
 
-    // TODO: How to get initialized mediator client from Mediator SDK?
-    // VdipHolder(didManager: permanentChannelDidManager, mediatorClient: '');
-
+    _sdk.logger.info(
+      'Initialized VDIP holder client for DID: $permanentChannelDid',
+    );
     return VdipHolder.init(
-      mediatorDidDocument: mediatorDidDocument,
       didManager: permanentChannelDidManager,
+      mediatorDidDocument: mediatorClient.mediatorDidDocument,
       authorizationProvider: await AffinidiAuthorizationProvider.init(
-        mediatorDidDocument: mediatorDidDocument,
+        mediatorDidDocument: mediatorClient.mediatorDidDocument,
         didManager: permanentChannelDidManager,
       ),
       clientOptions: const AffinidiClientOptions(),

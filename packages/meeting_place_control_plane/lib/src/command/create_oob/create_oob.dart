@@ -7,7 +7,11 @@ import 'create_oob_output.dart';
 /// operation.
 class CreateOobCommand extends DiscoveryCommand<CreateOobCommandOutput> {
   /// Creates a new instance of [CreateOobCommand].
-  CreateOobCommand({required this.oobInvitationMessage, this.mediatorDid});
+  CreateOobCommand({
+    required this.oobInvitationMessage,
+    required this.mediatorDid,
+  });
+
   final PlainTextMessage oobInvitationMessage;
-  final String? mediatorDid;
+  final String mediatorDid;
 }

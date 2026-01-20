@@ -486,17 +486,23 @@ class MeetingPlaceCoreSDK {
       name: methodName,
     );
 
-    final (_, oobCommandOutput, streamSubscription) = await (
-      _mediatorSDK.updateAcl(
-        ownerDidManager: oobDidManager,
-        mediatorDid: mediatorDidTouse,
-        acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
-      ),
+    // Authenticate on mediator before updating ACLs and subscribing to messages
+    // to ensure that authentication is done only once.
+    final (_, oobCommandOutput) = await (
+      _mediatorSDK.authenticateWithDid(oobDidManager),
       _controlPlaneSDK.execute(
         CreateOobCommand(
           oobInvitationMessage: oobMessage.toPlainTextMessage(),
           mediatorDid: mediatorDidTouse,
         ),
+      ),
+    ).wait;
+
+    final (_, streamSubscription) = await (
+      _mediatorService.updateAcl(
+        ownerDidManager: oobDidManager,
+        mediatorDid: mediatorDidTouse,
+        acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
       ),
       _mediatorService.subscribe(
         didManager: oobDidManager,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:affinidi_tdk_didcomm_mediator_client/affinidi_tdk_didcomm_mediator_client.dart';
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
@@ -37,6 +38,10 @@ class VdipService {
           message.body!,
         );
 
+        _sdk.logger.info(
+          'Received issued credential: ${jsonEncode(body)}',
+          name: 'issueCredential',
+        );
         await vdipHolder.mediatorClient.disconnect();
 
         waitForCredential.complete(
@@ -58,12 +63,17 @@ class VdipService {
 
     await retry(
       () async {
-        await vdipHolder.requestCredentialForHolder(
+        final message = await vdipHolder.requestCredentialForHolder(
           holderDid,
           issuerDid: otherPartyPermanentChannelDid,
           assertionSigner: assertionSigner,
           attachments: attachments,
           options: options,
+        );
+
+        _sdk.logger.info(
+          'Sent credential request message with ID: ${jsonEncode(message.body)}',
+          name: 'requestCredential',
         );
       },
       retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
@@ -128,10 +138,15 @@ class VdipService {
 
     await retry(
       () async {
-        await vdipIssuer.sendIssuedCredentials(
+        final message = await vdipIssuer.sendIssuedCredentials(
           holderDid: otherPartyPermanentChannelDid,
           verifiableCredential: verifiableCredential,
           attachments: attachments,
+        );
+
+        _sdk.logger.info(
+          'Issued credential message sent with ID: ${jsonEncode(message.body)}',
+          name: 'issueCredential',
         );
       },
       retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),

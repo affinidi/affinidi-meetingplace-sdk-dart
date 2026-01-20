@@ -1,3 +1,11 @@
+## 0.0.1-dev.14
+
+ - **FIX**: run network requests in parallel when setting up OOB invitation (#61).
+
+## 0.0.1-dev.13
+
+ - **FIX**: improve handling of transient network issues (#58).
+
 ## 0.0.1-dev.12
 
  - **FIX**: improve resilience of Control Plane API reconnection following network issues (#56).

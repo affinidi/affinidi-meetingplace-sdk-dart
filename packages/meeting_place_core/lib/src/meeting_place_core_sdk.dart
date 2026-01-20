@@ -49,6 +49,7 @@ import 'service/oob/oob_stream.dart';
 import 'service/oob/oob_stream_data.dart';
 import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
+import 'utils/string.dart';
 
 /// # Meeting Place Core SDK
 /// The Affinidi Meeting Place - Core SDK provides a high-level interface for coordinating connection setup using the discovery control plane API and mediator. This SDK acts as an orchestrator, applying business logic on top of underlying APIs to simplify integration.
@@ -477,25 +478,40 @@ class MeetingPlaceCoreSDK {
 
     final oobDidManager = await generateDid();
     final oobDidDoc = await oobDidManager.getDidDocument();
-
-    await _mediatorSDK.updateAcl(
-      ownerDidManager: oobDidManager,
-      acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
-    );
-
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
-    final result = await _controlPlaneSDK.execute(
-      CreateOobCommand(oobInvitationMessage: oobMessage.toPlainTextMessage()),
+    final mediatorDidTouse = mediatorDid ?? _mediatorDid;
+
+    logger.info(
+      '''Setup OOB invitation for ${oobDidDoc.id.topAndTail()} on $mediatorDidTouse''',
+      name: methodName,
     );
 
-    final streamSubscription = await _mediatorService.subscribe(
-      didManager: oobDidManager,
-      mediatorDid: result.mediatorDid,
-    );
+    final (_, oobCommandOutput, streamSubscription) = await (
+      _mediatorSDK.updateAcl(
+        ownerDidManager: oobDidManager,
+        mediatorDid: mediatorDidTouse,
+        acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
+      ),
+      _controlPlaneSDK.execute(
+        CreateOobCommand(
+          oobInvitationMessage: oobMessage.toPlainTextMessage(),
+          mediatorDid: mediatorDidTouse,
+        ),
+      ),
+      _mediatorService.subscribe(
+        didManager: oobDidManager,
+        mediatorDid: mediatorDidTouse,
+      ),
+    ).wait;
 
     final oobStream = OobStream(
       onDispose: () => streamSubscription.dispose(),
       logger: logger,
+    );
+
+    logger.info(
+      '''OOB invitation created with URL: ${oobCommandOutput.oobUrl}''',
+      name: methodName,
     );
 
     logger.info('Listening for messages on mediator channel', name: methodName);
@@ -525,13 +541,13 @@ class MeetingPlaceCoreSDK {
           otherPartyAcceptOfferDid: plainTextMessage.from!,
           outboundMessageId: oobMessage.id,
           contactCard: contactCard,
-          mediatorDid: result.mediatorDid,
+          mediatorDid: mediatorDidTouse,
         );
 
         final channel = Channel(
           offerLink: oobMessage.id,
           publishOfferDid: oobDidDoc.id,
-          mediatorDid: result.mediatorDid,
+          mediatorDid: mediatorDidTouse,
           outboundMessageId: oobMessage.id,
           acceptOfferDid: plainTextMessage.from!,
           permanentChannelDid: permanentChannelDidDoc.id,
@@ -567,9 +583,14 @@ class MeetingPlaceCoreSDK {
       }
     });
 
+    logger.info(
+      ''''Listening for messages on mediator channel $mediatorDidTouse and OOB DID ${oobDidDoc.id.topAndTail()}''',
+      name: methodName,
+    );
+
     return CreateOobFlowResult(
       streamSubscription: oobStream,
-      oobUrl: Uri.parse(result.oobUrl),
+      oobUrl: Uri.parse(oobCommandOutput.oobUrl),
     );
   }
 

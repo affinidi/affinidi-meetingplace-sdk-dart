@@ -220,12 +220,12 @@ class MediatorService {
       );
 
       _logger.info(
-        'Message sent from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
+        'Message ${message.type.toString()} with ${message.id} sent from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to send message from ${message.from?.topAndTail()} to ${next.topAndTail()}',
+        'Failed to send message ${message.type.toString()} with ${message.id} from ${message.from?.topAndTail()} to ${next.topAndTail()}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,

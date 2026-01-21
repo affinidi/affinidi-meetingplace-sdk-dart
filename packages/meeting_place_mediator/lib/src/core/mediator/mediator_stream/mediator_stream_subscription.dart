@@ -93,7 +93,8 @@ class MediatorStreamSubscription {
   }
 
   MediatorStreamSubscription listen(
-    FutureOr<void> Function(PlainTextMessage) onData, {
+    FutureOr<MediatorStreamProcessingResult> Function(PlainTextMessage)
+        onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
@@ -101,14 +102,16 @@ class MediatorStreamSubscription {
     _controller.stream.listen(
       (MediatorStreamData data) async {
         try {
-          await onData(data.message);
+          final processingResult = await onData(data.message);
 
           if (data.message.isEphermeral || data.message.isTelemetry) {
             return;
           }
 
-          _messageQueue.scheduleDeletion(data.messageHash,
-              delay: _deleteMessageDelay);
+          if (!processingResult.keepMessage) {
+            _messageQueue.scheduleDeletion(data.messageHash,
+                delay: _deleteMessageDelay);
+          }
         } catch (e, stackTrace) {
           _logger.error(
             '''Error while processing message of type:

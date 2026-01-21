@@ -70,7 +70,8 @@ void main() async {
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
   final bobWaitFor = Completer<Channel>();
-  CoreSDKStreamSubscription<MediatorMessage>? mediatorSubscription;
+  CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>?
+      mediatorSubscription;
 
   // Bob accepts OOB
   final acceptance = await bobSDK.acceptOobFlow(
@@ -126,7 +127,7 @@ void main() async {
     prettyPrintYellow(message.plainTextMessage.type.toString());
     if (!message.plainTextMessage
         .isOfType(VdipRequestIssuanceMessage.messageType.toString())) {
-      return;
+      return MediatorStreamProcessingResult(keepMessage: true);
     }
 
     prettyJsonPrintYellow(
@@ -142,6 +143,7 @@ void main() async {
     );
 
     await mediatorSubscription!.dispose();
+    return MediatorStreamProcessingResult(keepMessage: false);
   });
 
   prettyPrintYellow(

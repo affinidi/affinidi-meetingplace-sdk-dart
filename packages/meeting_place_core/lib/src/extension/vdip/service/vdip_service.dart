@@ -120,6 +120,7 @@ class VdipService {
     final issuerDidManager = await _sdk.getDidManager(permanentChannelDid);
     final mediatorClient = await _sdk.mediator.authenticateWithDid(
       issuerDidManager,
+      mediatorDid: channel.mediatorDid,
     );
 
     _sdk.logger.info(
@@ -167,6 +168,7 @@ class VdipService {
     );
     final mediatorClient = await _sdk.mediator.authenticateWithDid(
       permanentChannelDidManager,
+      mediatorDid: mediatorDid,
     );
 
     _sdk.logger.info(

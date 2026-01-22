@@ -27,7 +27,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
 
-  Future<Channel?> process(OfferFinalised event) async {
+  // TODO: move to service?
+  Future<List<Channel>> process(OfferFinalised event) async {
     final methodName = 'process';
     try {
       logger.info(
@@ -172,20 +173,20 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           'Completed processing OfferFinalised event for offerLink: ${event.offerLink}',
           name: methodName,
         );
-        return channel;
+        return [channel];
       }
 
       logger.warning(
-        'No valid ConnectionInvitationAccepted message found for offerLink: ${event.offerLink}',
+        'No valid ConnectionRequestApproval message found for offerLink: ${event.offerLink}',
         name: methodName,
       );
-      return null;
+      return [];
     } on EmptyMessageListException {
       logger.warning(
         'No messages found to process for event of type ${ControlPlaneEventType.OfferFinalised}',
         name: methodName,
       );
-      return null;
+      return [];
     } catch (e, stackTrace) {
       logger.error(
         'Failed to process event of type ${ControlPlaneEventType.OfferFinalised}',

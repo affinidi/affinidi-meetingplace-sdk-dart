@@ -33,7 +33,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
 
-  Future<Channel?> process(GroupMembershipFinalised event) async {
+  Future<List<Channel>> process(GroupMembershipFinalised event) async {
     final methodName = 'process';
     logger.info(
       'Starting processing event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
@@ -172,20 +172,20 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
           'Completely successfully processed ${MeetingPlaceProtocol.groupMemberInauguration.value} message for group DID: ${updatedGroup.did.topAndTail()}',
           name: methodName,
         );
-        return channel;
+        return [channel];
       }
 
       logger.warning(
         'No ${MeetingPlaceProtocol.groupMemberInauguration.value} message found for processing',
         name: methodName,
       );
-      return null;
+      return [];
     } on EmptyMessageListException {
       logger.error(
         'No messages found to process for event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
         name: methodName,
       );
-      return null;
+      return [];
     } catch (e, stackTrace) {
       logger.error(
         'Failed to process event of type ${ControlPlaneEventType.GroupMembershipFinalised}',

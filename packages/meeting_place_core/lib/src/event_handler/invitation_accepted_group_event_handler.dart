@@ -26,7 +26,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
 
   // This event is handled on the device of the group admin after a potential
   // new member accepted the group offer.
-  Future<Channel?> process(cp.InvitationGroupAccept event) async {
+  Future<List<Channel>> process(cp.InvitationGroupAccept event) async {
     final methodName = 'process';
     try {
       logger.info(
@@ -40,7 +40,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           'InvitationGroupAccept event ignored: connection is already associated with a permanent channel DID',
           name: methodName,
         );
-        return null;
+        return [];
       }
 
       if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
@@ -48,7 +48,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
           name: methodName,
         );
-        return null;
+        return [];
       }
 
       final group = await _findGroupByOfferLink(event.offerLink);
@@ -69,6 +69,8 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
       );
 
       // TODO: ensure duplicate requests are handled correctly
+
+      final channels = <Channel>[];
       for (final result in messages) {
         final message = result.plainTextMessage;
 
@@ -125,20 +127,16 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           'Completed processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
           name: methodName,
         );
-        return groupChannel;
-      }
 
-      logger.warning(
-        'No valid ConnectionSetupGroup message found for offerLink: ${event.offerLink}',
-        name: methodName,
-      );
-      return null;
+        channels.add(groupChannel);
+      }
+      return channels;
     } on EmptyMessageListException {
       logger.error(
         'No messages found to process for event of type ${cp.ControlPlaneEventType.InvitationGroupAccept}',
         name: methodName,
       );
-      return null;
+      return [];
     } catch (e, stackTrace) {
       logger.error(
         'Failed to process event of type ${cp.ControlPlaneEventType.InvitationGroupAccept}',

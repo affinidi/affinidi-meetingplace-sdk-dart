@@ -18,7 +18,7 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
 
   final ConnectionService _connectionService;
 
-  Future<Channel?> process(InvitationOutreach event) async {
+  Future<List<Channel>> process(InvitationOutreach event) async {
     final methodName = 'process';
     logger.info(
       'Started processing OutreachInvitation event with offerLink: ${event.offerLink}',
@@ -33,7 +33,7 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
           'Connection offer is not of type ${ConnectionOfferType.meetingPlaceOutreachInvitation.name}',
           name: methodName,
         );
-        return null;
+        return [];
       }
 
       final publishedOfferDidManager = await connectionManager
@@ -45,6 +45,7 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
         messageType: MeetingPlaceProtocol.outreachInvitation,
       );
 
+      final channels = <Channel>[];
       for (final result in messages) {
         final message = result.plainTextMessage;
 
@@ -68,15 +69,16 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
           'Completed processing Outreach invitation event',
           name: methodName,
         );
-        return acceptance.channel;
+        channels.add(acceptance.channel);
       }
-      return null;
+
+      return channels;
     } on EmptyMessageListException {
       logger.error(
         'No messages found to process for event of type ${ControlPlaneEventType.InvitationOutreach}',
         name: methodName,
       );
-      return null;
+      return [];
     } catch (e, stackTrace) {
       logger.error(
         'Failed to process event of type ${ControlPlaneEventType.InvitationOutreach}',

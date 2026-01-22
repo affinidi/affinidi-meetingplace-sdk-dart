@@ -37,31 +37,28 @@ class MediatorService {
 
   final SendMessageQueue sendMessageQueue = SendMessageQueue();
   final DidResolver didResolver;
-  final MeetingPlaceMediatorSDKOptions _options;
 
-  final Map<String, MediatorClient> _clients = {};
+  final MeetingPlaceMediatorSDKOptions _options;
   final MeetingPlaceMediatorSDKLogger _logger;
 
   MediatorStreamSubscription? stream;
 
-  Future<MediatorClient> _connectToMediator({
+  Future<MediatorClient> _initMediatorClient({
     required DidManager didManager,
     required String mediatorDid,
     required SignatureScheme signatureScheme,
     bool reauthenticate = false,
   }) async {
-    final methodName = '_connectToMediator';
-    _logger.info('Started connecting to mediator: ${mediatorDid.topAndTail()}',
-        name: methodName);
-
+    final methodName = '_initMediatorClient';
     final didDocument = await didManager.getDidDocument();
-    final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
+
+    _logger.info(
+      '''Initializing mediator client for DID ${didDocument.id.topAndTail()} and mediator DID ${mediatorDid.topAndTail()}''',
+      name: methodName,
+    );
 
     return _retry(
       () async {
-        _logger.info('Connect to mediator: ${mediatorDid.topAndTail()}',
-            name: methodName);
-
         final mediatorDidDocument = await didResolver.resolveDid(mediatorDid);
         final authenticationKeyId = didDocument.authentication.first.id;
 
@@ -70,7 +67,6 @@ class MediatorService {
 
         final client = MediatorClient(
           mediatorDidDocument: mediatorDidDocument,
-          // didManager: didManager,
           keyPair: await didManager.getKeyPairByDidKeyId(keyAgreementKeyId),
           didKeyId: keyAgreementKeyId,
           signer: await didManager.getSigner(authenticationKeyId),
@@ -100,9 +96,10 @@ class MediatorService {
           ),
         );
 
-        _clients[cacheKey] = client;
-        _logger.info('Connected to mediator: ${mediatorDid.topAndTail()}',
-            name: methodName);
+        _logger.info(
+          'Mediator client initialized for DID ${didDocument.id} and mediator DID ${mediatorDid.topAndTail()}',
+          name: methodName,
+        );
 
         return client;
       },
@@ -114,35 +111,19 @@ class MediatorService {
     required String mediatorDid,
     bool reauthenticate = false,
   }) async {
-    final methodName = 'authenticateWithDid';
-
     try {
-      final didDocument = await didManager.getDidDocument();
-      final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
-
-      // if (!reauthenticate && _clients[cacheKey] != null) {
-      //   _logger.info(
-      //     'Reuse existing authenticated mediator client for cacheKey: ${cacheKey.topAndTail()}',
-      //     name: methodName,
-      //   );
-      //   return _clients[cacheKey]!;
-      // }
-
-      final client = await _connectToMediator(
+      return await _initMediatorClient(
         didManager: didManager,
         mediatorDid: mediatorDid,
         signatureScheme: _options.signatureScheme,
         reauthenticate: reauthenticate,
       );
-
-      _clients[cacheKey] = client;
-      return client;
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to authenticate with mediator: ${mediatorDid.topAndTail()}',
+        '''Failed to initialize mediator client for mediator DID: ${mediatorDid.topAndTail()}''',
         error: e,
         stackTrace: stackTrace,
-        name: methodName,
+        name: 'authenticateWithDid',
       );
       Error.throwWithStackTrace(
         MediatorException.authenticationError(innerException: e),

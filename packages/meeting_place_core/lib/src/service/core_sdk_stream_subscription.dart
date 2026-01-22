@@ -3,7 +3,7 @@ import 'dart:async';
 /// Interface for mediator stream subscriptions.
 ///
 /// Provides a stream of [T]s and lifecycle management.
-abstract class CoreSDKStreamSubscription<T> {
+abstract class CoreSDKStreamSubscription<T, S> {
   /// Stream of transformed mediator messages.
   ///
   /// Messages are automatically decrypted and transformed based on their type.
@@ -14,8 +14,13 @@ abstract class CoreSDKStreamSubscription<T> {
   bool get isClosed;
 
   /// Listen to the stream of messages.
+  ///
+  /// The [onData] callback is called for each message.
+  ///
+  /// If multiple listeners are attached, the message is deleted if
+  /// any listener returns a result with `keepMessage: false`.
   StreamSubscription<T> listen(
-    void Function(T) onData, {
+    FutureOr<S> Function(T) onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,

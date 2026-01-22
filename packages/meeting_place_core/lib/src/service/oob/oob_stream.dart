@@ -4,7 +4,7 @@ import '../../../meeting_place_core.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();
 
-class OobStream implements CoreSDKStreamSubscription<OobStreamData> {
+class OobStream implements CoreSDKStreamSubscription<OobStreamData, void> {
   OobStream({
     OnDisposeCallback? onDispose,
     required MeetingPlaceCoreSDKLogger logger,

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
@@ -14,21 +13,14 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
 import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
+import '../meeting_place_core.dart';
 import 'constants/sdk_constants.dart';
-import 'entity/entity.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_handler_manager_options.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
-import 'event_handler/control_plane_stream_event.dart';
-import 'loggers/default_meeting_place_core_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
-import 'loggers/meeting_place_core_sdk_logger.dart';
-import 'meeting_place_core_sdk_options.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'utils/attachment.dart';
-import 'protocol/protocol.dart';
-import 'repository/repository.dart';
-import 'sdk/connection_offer_type.dart';
 import 'sdk/results/accept_oob_flow_result.dart';
 import 'sdk/results/create_oob_flow_result.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
@@ -38,15 +30,12 @@ import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
-import 'service/core_sdk_stream_subscription.dart';
 import 'service/group.dart';
 import 'service/mediator/fetch_messages_options.dart';
-import 'service/mediator/mediator_message.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_stream.dart';
-import 'service/oob/oob_stream_data.dart';
 import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
 import 'utils/string.dart';
@@ -1269,18 +1258,25 @@ class MeetingPlaceCoreSDK {
   /// - [options]: Options for subscribing to mediator messages.
   ///
   /// **Returns: [CoreSDKStreamSubscription]**
-  Future<CoreSDKStreamSubscription<MediatorMessage>> subscribeToMediator(
+  Future<
+    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>
+  >
+  subscribeToMediator(
     String did, {
     String? mediatorDid,
-    MediatorStreamSubscriptionOptions options =
-        const MediatorStreamSubscriptionOptions(),
+    MediatorStreamSubscriptionOptions? options,
   }) async {
     return withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
       return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
-        options: options,
+        options:
+            options ??
+            MediatorStreamSubscriptionOptions(
+              expectedMessageWrappingTypes:
+                  this.options.expectedMessageWrappingTypes,
+            ),
       );
     });
   }

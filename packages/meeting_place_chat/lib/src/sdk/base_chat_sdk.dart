@@ -116,8 +116,9 @@ abstract class BaseChatSDK {
     unawaited(
       mediatorStreamFuture!.then((subscription) {
         _mediatorStreamSubscription = subscription;
-        subscription.stream.listen((data) {
-          handleMessage(data, []);
+        subscription.listen((data) async {
+          await handleMessage(data, []);
+          return MediatorStreamProcessingResult(keepMessage: false);
         });
       }),
     );

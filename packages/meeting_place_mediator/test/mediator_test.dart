@@ -119,6 +119,7 @@ void main() {
         if (msg.type.toString() == 'https://affinidi.com/test/1.0/message') {
           waitForMessage.complete(msg);
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       });
 
       final actual = await waitForMessage.future;
@@ -143,6 +144,7 @@ void main() {
         if (msg.type.toString() == 'https://affinidi.com/test/1.0/message') {
           waitForMessage.complete(msg);
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       });
 
       final actual = await waitForMessage.future;
@@ -192,6 +194,7 @@ void main() {
         if (msg.type == messageToSend.type) {
           messageReceivedCompleter.complete();
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       });
 
       await messageReceivedCompleter.future;
@@ -225,6 +228,7 @@ void main() {
         if (msg.type.toString() == 'https://affinidi.com/test/1.0/message') {
           throw Exception('Error while processing message');
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       }, onError: (e) {
         if (e.toString().contains('Error while processing message')) {
           waitForError.complete();
@@ -260,6 +264,7 @@ void main() {
         if (msg.type.toString() == 'https://affinidi.com/test/1.0/message') {
           throw Exception('Error while processing message');
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       }, onError: (e) {
         if (e.toString().contains('Error while processing message')) {
           waitForError.complete();

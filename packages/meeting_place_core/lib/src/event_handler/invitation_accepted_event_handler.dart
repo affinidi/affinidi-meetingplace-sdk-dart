@@ -17,8 +17,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
     required super.logger,
   });
 
-  // TODO: handle duplicates + offerLink batch
-  Future<Channel?> process(InvitationAccept event) async {
+  Future<List<Channel>> process(InvitationAccept event) async {
     final methodName = 'process';
     logger.info(
       'Started processing InvitationAccept event with offerLink: ${event.offerLink}',
@@ -32,7 +31,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
           name: methodName,
         );
-        return null;
+        return [];
       }
 
       final publishedOfferDidManager = await connectionManager
@@ -44,6 +43,10 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
         messageType: MeetingPlaceProtocol.invitationAcceptance,
       );
 
+      final channels = <Channel>[];
+
+      // TODO: what if event with same offer link comes in?
+      // TODO: what if process dies after first message but others are left?
       for (final result in messages) {
         final message = result.plainTextMessage;
 
@@ -87,15 +90,16 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
-        return channel;
+        channels.add(channel);
       }
-      return null;
+
+      return channels;
     } on EmptyMessageListException {
       logger.error(
         'No messages found to process for event of type ${ControlPlaneEventType.InvitationAccept}',
         name: methodName,
       );
-      return null;
+      return [];
     } catch (e, stackTrace) {
       logger.error(
         'Failed to process event of type ${ControlPlaneEventType.InvitationAccept}',

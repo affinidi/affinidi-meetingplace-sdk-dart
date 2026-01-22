@@ -127,10 +127,10 @@ class ControlPlaneEventManager {
     for (final event in events) {
       try {
         _logger.info('Process event of type ${event.type.name}');
-        final channel = await _processEvent(event, processedEvents);
+        final channels = await _processEvent(event, processedEvents);
         processedEvents.add(event);
 
-        if (channel != null) {
+        for (final channel in channels) {
           _streamManager.pushEvent(
             ControlPlaneStreamEvent(channel: channel, type: event.type),
           );
@@ -151,10 +151,10 @@ class ControlPlaneEventManager {
     return processedEvents;
   }
 
-  Future<Channel?> _processEvent(
+  Future<List<Channel>> _processEvent(
     DiscoveryEvent event,
     List<DiscoveryEvent> processedEvents,
-  ) {
+  ) async {
     switch (event.type) {
       case ControlPlaneEventType.InvitationAccept:
         return _invitationAcceptHandler.process(event.data as InvitationAccept);
@@ -175,12 +175,14 @@ class ControlPlaneEventManager {
           event.data,
           processedChannelActivities,
         )) {
-          return Future.value();
+          return [];
         }
 
-        return _channelActivityEventHandler.process(
+        final channel = await _channelActivityEventHandler.process(
           event.data as ChannelActivity,
         );
+
+        return channel != null ? [channel] : [];
       case ControlPlaneEventType.GroupMembershipFinalised:
         return _groupMembershipFinalisedEventHandler.process(
           event.data as GroupMembershipFinalised,
@@ -191,7 +193,7 @@ class ControlPlaneEventManager {
         );
       default:
         _logger.warning('Not implemented: ${event.type.name}');
-        return Future.value(null);
+        return Future.value([]);
     }
   }
 }

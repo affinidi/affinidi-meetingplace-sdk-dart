@@ -124,7 +124,7 @@ void main() {
   });
 
   group('retry behavior', () {
-    late Channel? processResult;
+    final List<Channel> processResult = [];
 
     setUpAll(() async {
       // Mediator returns message on second attempt
@@ -153,11 +153,11 @@ void main() {
         ),
       ).thenAnswer((_) async => fetchMessagesResponses.removeAt(0));
 
-      processResult = await handler.process(event);
+      processResult.addAll(await handler.process(event));
     });
 
     test('succeed on second attempt to fetch messages', () async {
-      expect(processResult, isA<Channel>());
+      expect(processResult, isA<List<Channel>>());
     });
 
     test('fetchMessages called twice', () async {
@@ -194,9 +194,9 @@ void main() {
       ).called(3);
     });
 
-    test('returns null', () async {
+    test('returns empty list', () async {
       final result = await handler.process(event);
-      expect(result, isNull);
+      expect(result, isEmpty);
     });
   });
 }

@@ -599,10 +599,6 @@ class MediatorService {
     }
   }
 
-  String _cacheKey({required String mediatorDid, required String did}) {
-    return '$mediatorDid$did';
-  }
-
   /// Helper method to execute operations with retry logic and consistent error handling
   Future<T> _retry<T>(Future<T> Function() operation) async {
     return retry(

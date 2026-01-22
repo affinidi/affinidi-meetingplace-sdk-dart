@@ -43,6 +43,7 @@ void main() async {
       if (message.type.toString() == 'https://example.com/test') {
         stream1Body = message.body;
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     final stream2 = await aliceSDK.mediator.subscribeToMessages(didManagerB);
@@ -51,6 +52,7 @@ void main() async {
       if (message.type.toString() == 'https://example.com/test') {
         stream2Body = message.body;
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     // --- Send messages ---
@@ -244,6 +246,7 @@ void main() async {
         streamMessage = message.body;
         receivedMessageCompleter.complete();
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     final sendMessageDid = await bobSDK.generateDid();

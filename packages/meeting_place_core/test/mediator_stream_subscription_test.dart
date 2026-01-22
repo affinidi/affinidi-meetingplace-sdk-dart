@@ -64,6 +64,7 @@ void main() async {
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
         messageCompleter.complete(message);
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice();
@@ -96,12 +97,14 @@ void main() async {
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
         listener1Completer.complete(message);
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     subscription.listen((message) {
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
         listener2Completer.complete(message);
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice();
@@ -132,6 +135,7 @@ void main() async {
           messageCompleter.complete();
         }
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice(message: 'message#1');
@@ -165,6 +169,7 @@ void main() async {
           subscription.dispose();
         }
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice(type: messageType);
@@ -228,10 +233,9 @@ void main() async {
     final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
     final doneCompleter = Completer<bool>();
 
-    subscription.listen(
-      (message) {},
-      onDone: () => doneCompleter.complete(true),
-    );
+    subscription.listen((message) {
+      return MediatorStreamProcessingResult(keepMessage: false);
+    }, onDone: () => doneCompleter.complete(true));
 
     await subscription.dispose();
 
@@ -263,6 +267,7 @@ void main() async {
             waitForMessage.complete();
           }
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       });
 
       await sendMessageFromBobToAlice(message: 'message#1');
@@ -300,6 +305,7 @@ void main() async {
         if (message.plainTextMessage.isOfType('https://example.com/test')) {
           throw Exception('Test error');
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       },
       onError: (e) {
         waitForError.complete(true);

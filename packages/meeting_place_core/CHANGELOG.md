@@ -1,3 +1,7 @@
+## 0.0.1-dev.27
+
+ - **FIX**: prevent blocking by removing wait on notify channel (#66).
+
 ## 0.0.1-dev.26
 
  - **FIX**: run network requests in parallel when setting up OOB invitation (#61).

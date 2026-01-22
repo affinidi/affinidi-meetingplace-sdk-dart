@@ -120,13 +120,13 @@ class MediatorService {
       final didDocument = await didManager.getDidDocument();
       final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
 
-      if (!reauthenticate && _clients[cacheKey] != null) {
-        _logger.info(
-          'Reuse existing authenticated mediator client for cacheKey: ${cacheKey.topAndTail()}',
-          name: methodName,
-        );
-        return _clients[cacheKey]!;
-      }
+      // if (!reauthenticate && _clients[cacheKey] != null) {
+      //   _logger.info(
+      //     'Reuse existing authenticated mediator client for cacheKey: ${cacheKey.topAndTail()}',
+      //     name: methodName,
+      //   );
+      //   return _clients[cacheKey]!;
+      // }
 
       final client = await _connectToMediator(
         didManager: didManager,

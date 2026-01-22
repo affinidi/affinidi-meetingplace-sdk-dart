@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 
@@ -48,9 +50,11 @@ class MessageService {
 
     if (notifyChannelType == null) return;
 
-    return _notifyChannel(
-      recipientDid: recipientDid,
-      notifyChannelType: notifyChannelType,
+    unawaited(
+      _notifyChannel(
+        recipientDid: recipientDid,
+        notifyChannelType: notifyChannelType,
+      ),
     );
   }
 

@@ -3,6 +3,36 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-01-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v0.0.1-dev.27`](#meeting_place_core---v001-dev27)
+ - [`meeting_place_chat` - `v0.0.1-dev.29`](#meeting_place_chat---v001-dev29)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.30`](#meeting_place_drift_repository---v001-dev30)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.29`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.30`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.27`
+
+ - **FIX**: prevent blocking by removing wait on notify channel (#66).
+
+
 ## 2026-01-20
 
 ### Changes

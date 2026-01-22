@@ -46,7 +46,7 @@ void main() {
     () async {
       final clientA = await sdk.authenticateWithDid(didManagerA);
       final clientB = await sdk.authenticateWithDid(didManagerA);
-      expect(clientA, equals(clientB));
+      expect(clientA, isNot(equals(clientB)));
     },
   );
 

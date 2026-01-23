@@ -68,12 +68,10 @@ class MessageService {
     if (otherPartyNotificationToken == null) return;
 
     try {
-      await _controlPlaneSDK.execute(
-        NotifyChannelCommand(
-          notificationToken: channel!.otherPartyNotificationToken!,
-          did: recipientDid,
-          type: notifyChannelType,
-        ),
+      await _controlPlaneSDK.notifyChannel(
+        notificationToken: otherPartyNotificationToken,
+        did: recipientDid,
+        type: notifyChannelType,
       );
     } catch (e) {
       _logger.error(

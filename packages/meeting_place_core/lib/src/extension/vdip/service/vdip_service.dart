@@ -83,8 +83,7 @@ class VdipService {
       ),
     );
 
-    // TODO: enable if it counts for badge counts
-    // unawaited(() => _notifyChannel(channel));
+    // unawaited(_notifyChannel(channel));
     return waitForCredential.future;
   }
 
@@ -160,8 +159,7 @@ class VdipService {
       ),
     );
 
-    // TODO: enable if it counts for badge counts
-    // unawaited(() => _notifyChannel(channel));
+    // unawaited(_notifyChannel(channel));
   }
 
   Future<VdipHolder> _initVdipHolderClient({
@@ -208,33 +206,33 @@ class VdipService {
     );
   }
 
-  Future<void> _notifyChannel(Channel channel) async {
-    try {
-      if (channel.otherPartyNotificationToken == null) return;
+  // Future<void> _notifyChannel(Channel channel) async {
+  //   try {
+  //     if (channel.otherPartyNotificationToken == null) return;
 
-      await _sdk.discovery.notifyChannel(
-        notificationToken: channel.otherPartyNotificationToken!,
-        did: channel.otherPartyPermanentChannelDid!,
-        type: NotifyChannelType.chatActivity,
-      );
-    } on MeetingPlaceCoreSDKException catch (e) {
-      final isNotificationError =
-          e.code ==
-          MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
+  //     await _sdk.discovery.notifyChannel(
+  //       notificationToken: channel.otherPartyNotificationToken!,
+  //       did: channel.otherPartyPermanentChannelDid!,
+  //       type: NotifyChannelType.chatActivity,
+  //     );
+  //   } on MeetingPlaceCoreSDKException catch (e) {
+  //     final isNotificationError =
+  //         e.code ==
+  //         MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
 
-      if (!isNotificationError) {
-        _sdk.logger.error(
-          'Failed to send message with notification',
-          error: e,
-          name: '_notifyChannel',
-        );
-        rethrow;
-      }
+  //     if (!isNotificationError) {
+  //       _sdk.logger.error(
+  //         'Failed to send message with notification',
+  //         error: e,
+  //         name: '_notifyChannel',
+  //       );
+  //       rethrow;
+  //     }
 
-      _sdk.logger.warning(
-        'Failed to send notification ',
-        name: '_notifyChannel',
-      );
-    }
-  }
+  //     _sdk.logger.warning(
+  //       'Failed to send notification ',
+  //       name: '_notifyChannel',
+  //     );
+  //   }
+  // }
 }

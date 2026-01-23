@@ -118,7 +118,11 @@ abstract class BaseChatSDK {
       mediatorStreamFuture!.then((subscription) {
         _mediatorStreamSubscription = subscription;
         subscription.listen((data) async {
-          await handleMessage(data, []);
+          if (!await handleMessage(data, [])) {
+            chatStream.pushData(
+              StreamData(plainTextMessage: data.plainTextMessage),
+            );
+          }
           return MediatorStreamProcessingResult(keepMessage: false);
         });
       }),
@@ -184,8 +188,10 @@ abstract class BaseChatSDK {
   /// **Parameters:**
   /// - [MediatorMessage]: The incoming [MediatorMessage] to process.
   /// - [messages]: A list to collect new [Message] instances.
+  ///
+  /// Returns a boolean indicating whether the message was handled.
   @internal
-  Future<void> handleMessage(
+  Future<bool> handleMessage(
     MediatorMessage message,
     List<Message> messages,
   ) async {
@@ -210,6 +216,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (message.plainTextMessage.isOfType(
@@ -219,6 +226,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (MessageUtils.isType(
@@ -246,6 +254,7 @@ abstract class BaseChatSDK {
           chatItem: chatMessage,
         ),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -275,6 +284,7 @@ abstract class BaseChatSDK {
           chatItem: repositoryMessage,
         ),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -291,7 +301,7 @@ abstract class BaseChatSDK {
             chatStream.pushData(
               StreamData(plainTextMessage: message.plainTextMessage),
             );
-            return;
+            return true;
           }
 
           await sendChatMessage(
@@ -316,6 +326,7 @@ abstract class BaseChatSDK {
           );
         }
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -350,6 +361,7 @@ abstract class BaseChatSDK {
           ),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -381,6 +393,7 @@ abstract class BaseChatSDK {
           ),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -399,6 +412,7 @@ abstract class BaseChatSDK {
           StreamData(plainTextMessage: message.plainTextMessage),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.isOfType(ChatProtocol.chatActivity.value)) {
@@ -406,6 +420,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -414,6 +429,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -422,12 +438,11 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+
+      return true;
     }
 
-    _logger.info(
-      'Completed handling message of type ${message.plainTextMessage.type}',
-      name: methodName,
-    );
+    return false;
   }
 
   /// Fetch new messages from the mediator and process them via [handleMessage].
@@ -446,7 +461,11 @@ abstract class BaseChatSDK {
     final newMessages = <Message>[];
 
     for (final message in messagesFromMediator) {
-      await handleMessage(message, newMessages);
+      if (!await handleMessage(message, newMessages)) {
+        chatStream.pushData(
+          StreamData(plainTextMessage: message.plainTextMessage),
+        );
+      }
     }
 
     _logger.info(

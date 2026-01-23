@@ -145,6 +145,17 @@ class MeetingPlaceChatSDK implements ChatSDK {
     return _sdk.sendChatContactDetailsUpdate(message);
   }
 
+  /// Sends a plain text message.
+  ///
+  /// **Parameters:**
+  /// - [message]: The [PlainTextMessage] to send.
+  ///
+  /// Returns a [Future] that completes when the message has been sent.
+  @override
+  Future<void> sendMessage(PlainTextMessage message) {
+    return _sdk.sendMessage(message);
+  }
+
   /// Sends a plain text message (optionally with attachments).
   ///
   /// **Parameters:**

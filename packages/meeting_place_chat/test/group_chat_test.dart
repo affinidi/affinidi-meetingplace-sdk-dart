@@ -338,7 +338,10 @@ void main() async {
       stream!.listen((data) {
         if (data.plainTextMessage?.isOfType(ChatProtocol.chatActivity.value) ==
             true) {
-          messageReceivedCompleter.complete(true);
+          if (!messageReceivedCompleter.isCompleted) {
+            messageReceivedCompleter.complete(true);
+            stream.dispose();
+          }
         }
       });
     });

@@ -14,6 +14,7 @@ abstract interface class ChatSDK {
 
   Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
 
+  Future<void> sendMessage(PlainTextMessage message);
   Future<void> sendProfileHash();
   Future<void> sendChatActivity();
   Future<void> sendChatPresence();

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../meeting_place_control_plane.dart';
 import 'api/control_plane_api_client.dart';
 import 'api/control_plane_api_client_options.dart';
 import 'command/create_oob/create_oob_handler.dart';
@@ -12,8 +13,6 @@ import 'package:ssi/ssi.dart';
 import 'command/accept_offer/accept_offer_handler.dart';
 import 'command/accept_offer_group/accept_offer_group_handler.dart';
 import 'command/authenticate/authenticate_handler.dart';
-import 'command/authenticate/authenticate_output.dart';
-import 'command/authenticate/authenticate.dart';
 import 'command/delete_pending_notifications/delete_pending_notifications_handler.dart';
 import 'command/deregister_offer/deregister_offer_handler.dart';
 import 'command/notify_outreach/notify_outreach_handler.dart';
@@ -32,11 +31,6 @@ import 'command/register_offer/register_offer_handler.dart';
 import 'command/register_offer_group/register_offer_group_handler.dart';
 import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
-import 'control_plane_sdk_options.dart';
-import 'core/device/device.dart';
-import 'control_plane_sdk_exception.dart';
-import 'loggers/default_control_plane_sdk_logger.dart';
-import 'loggers/control_plane_sdk_logger.dart';
 import 'core/sdk_error_handler.dart';
 import 'constants/sdk_constants.dart';
 
@@ -357,6 +351,22 @@ class ControlPlaneSDK {
         await _initializing;
       }
       return await _dispatcher.dispatch(command);
+    });
+  }
+
+  Future<void> notifyChannel({
+    required String notificationToken,
+    required String did,
+    required NotifyChannelType type,
+  }) {
+    return _withSdkExceptionHandling(() {
+      return execute(
+        NotifyChannelCommand(
+          notificationToken: notificationToken,
+          did: did,
+          type: type,
+        ),
+      );
     });
   }
 

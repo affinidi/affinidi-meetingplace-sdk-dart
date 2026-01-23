@@ -1067,7 +1067,7 @@ class MeetingPlaceCoreSDK {
     required String senderDid,
     required String recipientDid,
     String? mediatorDid,
-    String? notifyChannelType,
+    NotifyChannelType? notifyChannelType,
     bool? ephemeral,
     int? forwardExpiryInSeconds,
   }) async {

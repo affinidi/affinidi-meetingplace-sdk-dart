@@ -267,6 +267,8 @@ extension _EventMessageTypeValue on EventMessageType {
         return 8;
       case EventMessageType.rCardPlaceholder:
         return 9;
+      case EventMessageType.matchMakerStarted:
+        return 10;
     }
   }
 }

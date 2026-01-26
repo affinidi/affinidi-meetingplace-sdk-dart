@@ -1,6 +1,6 @@
 enum NotifyChannelType {
   chatActivity('chat-activity'),
-  channelInauguration('channelInauguration');
+  channelInauguration('channel-inauguration');
 
   const NotifyChannelType(this.value);
   final String value;

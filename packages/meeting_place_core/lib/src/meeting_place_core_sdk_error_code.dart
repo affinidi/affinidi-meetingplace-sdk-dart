@@ -50,6 +50,8 @@ enum MeetingPlaceCoreSDKErrorCode {
 
   // others
   channelNotificationFailed('channel_notification_failed'),
+  channelNotFound('channel_not_found'),
+  channelMissingPermanentChannelDid('channel_missing_permanent_channel_did'),
   mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),
   generic('generic');
 

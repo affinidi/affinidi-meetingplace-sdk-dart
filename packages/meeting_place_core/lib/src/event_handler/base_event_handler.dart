@@ -16,6 +16,7 @@ import '../service/mediator/mediator_service.dart';
 import '../utils/string.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'exceptions/empty_message_list_exception.dart';
+import 'exceptions/event_handler_exception.dart';
 
 abstract class BaseEventHandler {
   BaseEventHandler({
@@ -67,14 +68,16 @@ abstract class BaseEventHandler {
   @internal
   Future<Channel> findChannelByDid(String did) async {
     return await channelRepository.findChannelByDid(did) ??
-        (throw Exception('Channel not found for DID: ${did.topAndTail()}'));
+        (throw EventHandlerException.channelNotFound(did: did));
   }
 
   @internal
   Future<DidManager> findDidManager(Channel channel) {
     final did =
         channel.permanentChannelDid ??
-        (throw ArgumentError('Channel must have a permanent DID'));
+        (throw EventHandlerException.missingPermanentChannelDid(
+          channelId: channel.id,
+        ));
 
     return connectionManager.getDidManagerForDid(wallet, did);
   }

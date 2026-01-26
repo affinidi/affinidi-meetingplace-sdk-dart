@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart' as model;
+import 'package:synchronized/synchronized.dart';
 
 import '../../../meeting_place_drift_repository.dart';
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
@@ -22,21 +23,21 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       : _database = database;
 
   final db.ChatItemsDatabase _database;
+  final Lock _lock = Lock();
 
   /// Persists a [model.Message] to the database, including its
   /// reactions and attachments. Skips if the message already exists.
   Future<model.Message> _createMessage(model.Message message) async {
-    late model.ChatItem addedEntry;
-
-    final exitingMessage = await getMessage(
-      chatId: message.chatId,
-      messageId: message.messageId,
-    );
-    if (exitingMessage != null) {
-      return exitingMessage as model.Message;
-    }
-
     await _database.transaction(() async {
+      // Check if message already exists (inside transaction for atomicity)
+      final existingMessage = await (_database.select(_database.chatItems)
+            ..where((filter) => filter.messageId.equals(message.messageId)))
+          .getSingleOrNull();
+
+      if (existingMessage != null) {
+        return existingMessage;
+      }
+
       await _database.into(_database.chatItems).insert(
             db.ChatItemsCompanion(
               chatId: Value(message.chatId),
@@ -49,9 +50,11 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
               senderDid: Value(message.senderDid),
             ),
           );
+
       final newMessage = await (_database.select(_database.chatItems)
             ..where((filter) => filter.messageId.equals(message.messageId)))
           .getSingleOrNull();
+
       if (newMessage == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Message not found',
@@ -96,22 +99,21 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
               );
         }
       }
-
-      final addedMessage = await getMessage(
-        chatId: message.chatId,
-        messageId: message.messageId,
-      );
-      if (addedMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
-        );
-      }
-
-      addedEntry = addedMessage;
     });
 
-    return addedEntry as model.Message;
+    // Fetch the complete message after transaction completes
+    final addedMessage = await getMessage(
+      chatId: message.chatId,
+      messageId: message.messageId,
+    );
+    if (addedMessage == null) {
+      throw MeetingPlaceCoreRepositoryException(
+        'Message not found',
+        code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+      );
+    }
+
+    return addedMessage as model.Message;
   }
 
   /// Persists a [model.ConciergeMessage] to the database.
@@ -193,22 +195,24 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// Throws [MeetingPlaceCoreRepositoryException] if the type is unsupported.
   @override
   Future<model.ChatItem> createMessage(model.ChatItem message) async {
-    if (message is model.Message) {
-      return _createMessage(message);
-    }
+    return await _lock.synchronized(() async {
+      if (message is model.Message) {
+        return _createMessage(message);
+      }
 
-    if (message is model.ConciergeMessage) {
-      return _createConciergeMessage(message);
-    }
+      if (message is model.ConciergeMessage) {
+        return _createConciergeMessage(message);
+      }
 
-    if (message is model.EventMessage) {
-      return _createEventMessage(message);
-    }
+      if (message is model.EventMessage) {
+        return _createEventMessage(message);
+      }
 
-    throw MeetingPlaceCoreRepositoryException(
-      'Unsupported message type',
-      code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
-    );
+      throw MeetingPlaceCoreRepositoryException(
+        'Unsupported message type',
+        code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
+      );
+    });
   }
 
   /// Retrieves a chat item by [chatId] and [messageId].
@@ -480,22 +484,24 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// Throws [MeetingPlaceCoreRepositoryException] if the type is unsupported.
   @override
   Future<model.ChatItem> updateMessage(model.ChatItem message) async {
-    if (message is model.Message) {
-      return _updateMessage(message);
-    }
+    return await _lock.synchronized(() async {
+      if (message is model.Message) {
+        return _updateMessage(message);
+      }
 
-    if (message is model.ConciergeMessage) {
-      return _updateConciergeMessage(message);
-    }
+      if (message is model.ConciergeMessage) {
+        return _updateConciergeMessage(message);
+      }
 
-    if (message is model.EventMessage) {
-      return _updateEventMessage(message);
-    }
+      if (message is model.EventMessage) {
+        return _updateEventMessage(message);
+      }
 
-    throw MeetingPlaceCoreRepositoryException(
-      'Unsupported message type',
-      code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
-    );
+      throw MeetingPlaceCoreRepositoryException(
+        'Unsupported message type',
+        code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
+      );
+    });
   }
 
   /// Groups attachments and their associated links by message ID.

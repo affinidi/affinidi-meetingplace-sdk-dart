@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart' as model;
+import 'package:synchronized/synchronized.dart';
 
 import '../../../meeting_place_drift_repository.dart';
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
@@ -23,92 +24,98 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
 
   final db.ChatItemsDatabase _database;
 
+  late final _createMessageLock = Lock();
+  late final _updateMessageLock = Lock();
+
   /// Persists a [model.Message] to the database, including its
   /// reactions and attachments. Skips if the message already exists.
   Future<model.Message> _createMessage(model.Message message) async {
     late model.ChatItem addedEntry;
 
-    final exitingMessage = await getMessage(
-      chatId: message.chatId,
-      messageId: message.messageId,
-    );
-    if (exitingMessage != null) {
-      return exitingMessage as model.Message;
-    }
-
-    await _database.transaction(() async {
-      await _database.into(_database.chatItems).insert(
-            db.ChatItemsCompanion(
-              chatId: Value(message.chatId),
-              messageId: Value(message.messageId),
-              value: Value(message.value),
-              isFromMe: Value(message.isFromMe),
-              dateCreated: Value(message.dateCreated),
-              status: Value(message.status),
-              type: Value(message.type),
-              senderDid: Value(message.senderDid),
-            ),
-          );
-      final newMessage = await (_database.select(_database.chatItems)
-            ..where((filter) => filter.messageId.equals(message.messageId)))
-          .getSingleOrNull();
-      if (newMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
-        );
-      }
-
-      final reactionCompanions = message.reactions.map((reaction) {
-        return db.ReactionsCompanion.insert(
-          messageId: message.messageId,
-          value: reaction,
-        );
-      }).toList();
-
-      await _database.batch((batch) {
-        batch.insertAll(_database.reactions, reactionCompanions);
-      });
-
-      for (final attachment in message.attachments) {
-        final attachmentId = await _database.into(_database.attachments).insert(
-              db.AttachmentsCompanion.insert(
-                messageId: message.messageId,
-                id: Value(attachment.id),
-                description: Value(attachment.description),
-                filename: Value(attachment.filename),
-                mediaType: Value(attachment.mediaType),
-                format: Value(attachment.format),
-                lastModifiedTime: Value(attachment.lastModifiedTime),
-                jws: Value(attachment.data?.jws),
-                byteCount: Value(attachment.byteCount),
-                hash: Value(attachment.data?.hash),
-                base64: Value(attachment.data?.base64),
-                json: Value(attachment.data?.json),
-              ),
-            );
-        for (final link in (attachment.data?.links ?? <Uri>[])) {
-          await _database.into(_database.attachmentsLinks).insert(
-                db.AttachmentsLinksCompanion.insert(
-                  attachmentId: attachmentId,
-                  url: link,
-                ),
-              );
-        }
-      }
-
-      final addedMessage = await getMessage(
+    await _createMessageLock.synchronized(() async {
+      final exitingMessage = await getMessage(
         chatId: message.chatId,
         messageId: message.messageId,
       );
-      if (addedMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
-        );
+      if (exitingMessage != null) {
+        return exitingMessage as model.Message;
       }
 
-      addedEntry = addedMessage;
+      await _database.transaction(() async {
+        await _database.into(_database.chatItems).insert(
+              db.ChatItemsCompanion(
+                chatId: Value(message.chatId),
+                messageId: Value(message.messageId),
+                value: Value(message.value),
+                isFromMe: Value(message.isFromMe),
+                dateCreated: Value(message.dateCreated),
+                status: Value(message.status),
+                type: Value(message.type),
+                senderDid: Value(message.senderDid),
+              ),
+            );
+        final newMessage = await (_database.select(_database.chatItems)
+              ..where((filter) => filter.messageId.equals(message.messageId)))
+            .getSingleOrNull();
+        if (newMessage == null) {
+          throw MeetingPlaceCoreRepositoryException(
+            'Message not found',
+            code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+          );
+        }
+
+        final reactionCompanions = message.reactions.map((reaction) {
+          return db.ReactionsCompanion.insert(
+            messageId: message.messageId,
+            value: reaction,
+          );
+        }).toList();
+
+        await _database.batch((batch) {
+          batch.insertAll(_database.reactions, reactionCompanions);
+        });
+
+        for (final attachment in message.attachments) {
+          final attachmentId =
+              await _database.into(_database.attachments).insert(
+                    db.AttachmentsCompanion.insert(
+                      messageId: message.messageId,
+                      id: Value(attachment.id),
+                      description: Value(attachment.description),
+                      filename: Value(attachment.filename),
+                      mediaType: Value(attachment.mediaType),
+                      format: Value(attachment.format),
+                      lastModifiedTime: Value(attachment.lastModifiedTime),
+                      jws: Value(attachment.data?.jws),
+                      byteCount: Value(attachment.byteCount),
+                      hash: Value(attachment.data?.hash),
+                      base64: Value(attachment.data?.base64),
+                      json: Value(attachment.data?.json),
+                    ),
+                  );
+          for (final link in (attachment.data?.links ?? <Uri>[])) {
+            await _database.into(_database.attachmentsLinks).insert(
+                  db.AttachmentsLinksCompanion.insert(
+                    attachmentId: attachmentId,
+                    url: link,
+                  ),
+                );
+          }
+        }
+
+        final addedMessage = await getMessage(
+          chatId: message.chatId,
+          messageId: message.messageId,
+        );
+        if (addedMessage == null) {
+          throw MeetingPlaceCoreRepositoryException(
+            'Message not found',
+            code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+          );
+        }
+
+        addedEntry = addedMessage;
+      });
     });
 
     return addedEntry as model.Message;
@@ -119,35 +126,35 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     model.ConciergeMessage message,
   ) async {
     late model.ChatItem addedEntry;
+    await _createMessageLock.synchronized(() async {
+      await _database.transaction(() async {
+        await _database.into(_database.chatItems).insert(
+              db.ChatItemsCompanion(
+                chatId: Value(message.chatId),
+                messageId: Value(message.messageId),
+                isFromMe: Value(message.isFromMe),
+                dateCreated: Value(message.dateCreated),
+                status: Value(message.status),
+                type: Value(message.type),
+                conciergeType: Value(message.conciergeType),
+                data: Value(message.data),
+                senderDid: Value(message.senderDid),
+              ),
+            );
 
-    await _database.transaction(() async {
-      await _database.into(_database.chatItems).insert(
-            db.ChatItemsCompanion(
-              chatId: Value(message.chatId),
-              messageId: Value(message.messageId),
-              isFromMe: Value(message.isFromMe),
-              dateCreated: Value(message.dateCreated),
-              status: Value(message.status),
-              type: Value(message.type),
-              conciergeType: Value(message.conciergeType),
-              data: Value(message.data),
-              senderDid: Value(message.senderDid),
-            ),
+        final newMessage = await (_database.select(_database.chatItems)
+              ..where((filter) => filter.messageId.equals(message.messageId)))
+            .getSingleOrNull();
+        if (newMessage == null) {
+          throw MeetingPlaceCoreRepositoryException(
+            'Message not found',
+            code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
           );
+        }
 
-      final newMessage = await (_database.select(_database.chatItems)
-            ..where((filter) => filter.messageId.equals(message.messageId)))
-          .getSingleOrNull();
-      if (newMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
-        );
-      }
-
-      addedEntry = _ChatItemMapper.fromDatabaseRecords(newMessage, [], {});
+        addedEntry = _ChatItemMapper.fromDatabaseRecords(newMessage, [], {});
+      });
     });
-
     return addedEntry as model.ConciergeMessage;
   }
 
@@ -155,33 +162,34 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     model.EventMessage message,
   ) async {
     late model.ChatItem addedEntry;
+    await _createMessageLock.synchronized(() async {
+      await _database.transaction(() async {
+        await _database.into(_database.chatItems).insert(
+              db.ChatItemsCompanion(
+                chatId: Value(message.chatId),
+                messageId: Value(message.messageId),
+                isFromMe: Value(message.isFromMe),
+                dateCreated: Value(message.dateCreated),
+                status: Value(message.status),
+                type: Value(message.type),
+                eventType: Value(message.eventType),
+                data: Value(message.data),
+                senderDid: Value(message.senderDid),
+              ),
+            );
 
-    await _database.transaction(() async {
-      await _database.into(_database.chatItems).insert(
-            db.ChatItemsCompanion(
-              chatId: Value(message.chatId),
-              messageId: Value(message.messageId),
-              isFromMe: Value(message.isFromMe),
-              dateCreated: Value(message.dateCreated),
-              status: Value(message.status),
-              type: Value(message.type),
-              eventType: Value(message.eventType),
-              data: Value(message.data),
-              senderDid: Value(message.senderDid),
-            ),
+        final newMessage = await (_database.select(_database.chatItems)
+              ..where((filter) => filter.messageId.equals(message.messageId)))
+            .getSingleOrNull();
+        if (newMessage == null) {
+          throw MeetingPlaceCoreRepositoryException(
+            'Message not found',
+            code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
           );
+        }
 
-      final newMessage = await (_database.select(_database.chatItems)
-            ..where((filter) => filter.messageId.equals(message.messageId)))
-          .getSingleOrNull();
-      if (newMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
-        );
-      }
-
-      addedEntry = _ChatItemMapper.fromDatabaseRecords(newMessage, [], {});
+        addedEntry = _ChatItemMapper.fromDatabaseRecords(newMessage, [], {});
+      });
     });
 
     return addedEntry as model.EventMessage;
@@ -293,87 +301,88 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// reactions and attachments with the latest state.
   Future<model.Message> _updateMessage(model.Message message) async {
     late model.ChatItem updatedEntry;
-
-    await _database.transaction(() async {
-      await (_database.update(
-        _database.chatItems,
-      )..where((m) => m.messageId.equals(message.messageId)))
-          .write(
-        db.ChatItemsCompanion(
-          chatId: Value(message.chatId),
-          messageId: Value(message.messageId),
-          value: Value(message.value),
-          isFromMe: Value(message.isFromMe),
-          dateCreated: Value(message.dateCreated),
-          status: Value(message.status),
-          type: Value(message.type),
-          senderDid: Value(message.senderDid),
-        ),
-      );
-
-      await (_database.delete(
-        _database.reactions,
-      )..where((a) => a.messageId.equals(message.messageId)))
-          .go();
-
-      final reactionCompanions = message.reactions.map((reaction) {
-        return db.ReactionsCompanion.insert(
-          messageId: message.messageId,
-          value: reaction,
+    await _updateMessageLock.synchronized(() async {
+      await _database.transaction(() async {
+        await (_database.update(
+          _database.chatItems,
+        )..where((m) => m.messageId.equals(message.messageId)))
+            .write(
+          db.ChatItemsCompanion(
+            chatId: Value(message.chatId),
+            messageId: Value(message.messageId),
+            value: Value(message.value),
+            isFromMe: Value(message.isFromMe),
+            dateCreated: Value(message.dateCreated),
+            status: Value(message.status),
+            type: Value(message.type),
+            senderDid: Value(message.senderDid),
+          ),
         );
-      }).toList();
 
-      await _database.batch((batch) {
-        batch.insertAll(_database.reactions, reactionCompanions);
-      });
+        await (_database.delete(
+          _database.reactions,
+        )..where((a) => a.messageId.equals(message.messageId)))
+            .go();
 
-      await (_database.delete(
-        _database.attachments,
-      )..where((a) => a.messageId.equals(message.messageId)))
-          .go();
+        final reactionCompanions = message.reactions.map((reaction) {
+          return db.ReactionsCompanion.insert(
+            messageId: message.messageId,
+            value: reaction,
+          );
+        }).toList();
 
-      for (final attachment in message.attachments) {
-        final attachmentId = await _database.into(_database.attachments).insert(
-              db.AttachmentsCompanion.insert(
-                messageId: message.messageId,
-                id: Value(attachment.id),
-                description: Value(attachment.description),
-                filename: Value(attachment.filename),
-                mediaType: Value(attachment.mediaType),
-                format: Value(attachment.format),
-                lastModifiedTime: Value(attachment.lastModifiedTime),
-                jws: Value(attachment.data?.jws),
-                byteCount: Value(attachment.byteCount),
-                hash: Value(attachment.data?.hash),
-                base64: Value(attachment.data?.base64),
-                json: Value(attachment.data?.json),
-              ),
-            );
-        for (final link in (attachment.data?.links ?? <Uri>[])) {
-          await _database.into(_database.attachmentsLinks).insert(
-                db.AttachmentsLinksCompanion.insert(
-                  attachmentId: attachmentId,
-                  url: link,
-                ),
-              );
+        await _database.batch((batch) {
+          batch.insertAll(_database.reactions, reactionCompanions);
+        });
+
+        await (_database.delete(
+          _database.attachments,
+        )..where((a) => a.messageId.equals(message.messageId)))
+            .go();
+
+        for (final attachment in message.attachments) {
+          final attachmentId =
+              await _database.into(_database.attachments).insert(
+                    db.AttachmentsCompanion.insert(
+                      messageId: message.messageId,
+                      id: Value(attachment.id),
+                      description: Value(attachment.description),
+                      filename: Value(attachment.filename),
+                      mediaType: Value(attachment.mediaType),
+                      format: Value(attachment.format),
+                      lastModifiedTime: Value(attachment.lastModifiedTime),
+                      jws: Value(attachment.data?.jws),
+                      byteCount: Value(attachment.byteCount),
+                      hash: Value(attachment.data?.hash),
+                      base64: Value(attachment.data?.base64),
+                      json: Value(attachment.data?.json),
+                    ),
+                  );
+          for (final link in (attachment.data?.links ?? <Uri>[])) {
+            await _database.into(_database.attachmentsLinks).insert(
+                  db.AttachmentsLinksCompanion.insert(
+                    attachmentId: attachmentId,
+                    url: link,
+                  ),
+                );
+          }
         }
-      }
 
-      final updatedMessage = await getMessage(
-        chatId: message.chatId,
-        messageId: message.messageId,
-      );
-
-      if (updatedMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+        final updatedMessage = await getMessage(
+          chatId: message.chatId,
+          messageId: message.messageId,
         );
-      }
 
-      updatedEntry = updatedMessage;
+        if (updatedMessage == null) {
+          throw MeetingPlaceCoreRepositoryException(
+            'Message not found',
+            code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+          );
+        }
+
+        updatedEntry = updatedMessage;
+      });
     });
-
     return updatedEntry as model.Message;
   }
 
@@ -382,45 +391,46 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     model.ConciergeMessage message,
   ) async {
     late model.ChatItem updatedEntry;
-
-    await _database.transaction(() async {
-      await (_database.update(
-        _database.chatItems,
-      )..where((m) => m.messageId.equals(message.messageId)))
-          .write(
-        db.ChatItemsCompanion(
-          chatId: Value(message.chatId),
-          messageId: Value(message.messageId),
-          isFromMe: Value(message.isFromMe),
-          dateCreated: Value(message.dateCreated),
-          status: Value(message.status),
-          type: Value(message.type),
-          conciergeType: Value(message.conciergeType),
-          data: Value(message.data),
-          senderDid: Value(message.senderDid),
-        ),
-      );
-
-      final updatedMessage = await (_database.select(_database.chatItems)
-            ..where(
-              (m) =>
-                  m.chatId.equals(message.chatId) &
-                  m.messageId.equals(message.messageId),
-            ))
-          .getSingleOrNull();
-
-      if (updatedMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+    await _updateMessageLock.synchronized(() async {
+      await _database.transaction(() async {
+        await (_database.update(
+          _database.chatItems,
+        )..where((m) => m.messageId.equals(message.messageId)))
+            .write(
+          db.ChatItemsCompanion(
+            chatId: Value(message.chatId),
+            messageId: Value(message.messageId),
+            isFromMe: Value(message.isFromMe),
+            dateCreated: Value(message.dateCreated),
+            status: Value(message.status),
+            type: Value(message.type),
+            conciergeType: Value(message.conciergeType),
+            data: Value(message.data),
+            senderDid: Value(message.senderDid),
+          ),
         );
-      }
 
-      updatedEntry = _ChatItemMapper.fromDatabaseRecords(
-        updatedMessage,
-        [],
-        {},
-      );
+        final updatedMessage = await (_database.select(_database.chatItems)
+              ..where(
+                (m) =>
+                    m.chatId.equals(message.chatId) &
+                    m.messageId.equals(message.messageId),
+              ))
+            .getSingleOrNull();
+
+        if (updatedMessage == null) {
+          throw MeetingPlaceCoreRepositoryException(
+            'Message not found',
+            code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+          );
+        }
+
+        updatedEntry = _ChatItemMapper.fromDatabaseRecords(
+          updatedMessage,
+          [],
+          {},
+        );
+      });
     });
 
     return updatedEntry as model.ConciergeMessage;
@@ -430,45 +440,46 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     model.EventMessage message,
   ) async {
     late model.ChatItem updatedEntry;
-
-    await _database.transaction(() async {
-      await (_database.update(
-        _database.chatItems,
-      )..where((m) => m.messageId.equals(message.messageId)))
-          .write(
-        db.ChatItemsCompanion(
-          chatId: Value(message.chatId),
-          messageId: Value(message.messageId),
-          isFromMe: Value(message.isFromMe),
-          dateCreated: Value(message.dateCreated),
-          status: Value(message.status),
-          eventType: Value(message.eventType),
-          type: Value(message.type),
-          data: Value(message.data),
-          senderDid: Value(message.senderDid),
-        ),
-      );
-
-      final updatedMessage = await (_database.select(_database.chatItems)
-            ..where(
-              (m) =>
-                  m.chatId.equals(message.chatId) &
-                  m.messageId.equals(message.messageId),
-            ))
-          .getSingleOrNull();
-
-      if (updatedMessage == null) {
-        throw MeetingPlaceCoreRepositoryException(
-          'Message not found',
-          code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+    await _updateMessageLock.synchronized(() async {
+      await _database.transaction(() async {
+        await (_database.update(
+          _database.chatItems,
+        )..where((m) => m.messageId.equals(message.messageId)))
+            .write(
+          db.ChatItemsCompanion(
+            chatId: Value(message.chatId),
+            messageId: Value(message.messageId),
+            isFromMe: Value(message.isFromMe),
+            dateCreated: Value(message.dateCreated),
+            status: Value(message.status),
+            eventType: Value(message.eventType),
+            type: Value(message.type),
+            data: Value(message.data),
+            senderDid: Value(message.senderDid),
+          ),
         );
-      }
 
-      updatedEntry = _ChatItemMapper.fromDatabaseRecords(
-        updatedMessage,
-        [],
-        {},
-      );
+        final updatedMessage = await (_database.select(_database.chatItems)
+              ..where(
+                (m) =>
+                    m.chatId.equals(message.chatId) &
+                    m.messageId.equals(message.messageId),
+              ))
+            .getSingleOrNull();
+
+        if (updatedMessage == null) {
+          throw MeetingPlaceCoreRepositoryException(
+            'Message not found',
+            code: MeetingPlaceCoreRepositoryErrorCode.missingMessage,
+          );
+        }
+
+        updatedEntry = _ChatItemMapper.fromDatabaseRecords(
+          updatedMessage,
+          [],
+          {},
+        );
+      });
     });
 
     return updatedEntry as model.EventMessage;

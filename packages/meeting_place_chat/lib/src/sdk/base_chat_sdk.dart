@@ -502,8 +502,24 @@ abstract class BaseChatSDK {
   ///
   /// Returns a [Future] that completes when the message has been sent.
   Future<void> sendMessage(PlainTextMessage message) {
+    if (message.from != null && message.from != did) {
+      throw Exception(
+        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+      );
+    }
+
+    if (message.to != null && message.to!.first != otherPartyDid) {
+      throw Exception(
+        'Message "to" DID ${message.to} does not match chat recipient DID $otherPartyDid.',
+      );
+    }
+
     return sendChatMessage(
-      message,
+      PlainTextMessage.fromJson({
+        ...message.toJson(),
+        'from': did,
+        'to': [otherPartyDid],
+      }),
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,

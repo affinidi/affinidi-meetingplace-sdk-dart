@@ -501,7 +501,7 @@ abstract class BaseChatSDK {
   /// - [message]: The [PlainTextMessage] to send.
   ///
   /// Returns a [Future] that completes when the message has been sent.
-  Future<void> sendMessage(PlainTextMessage message) {
+  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
     if (message.from != null && message.from != did) {
       throw Exception(
         'Message "from" DID ${message.from} does not match chat sender DID $did.',
@@ -523,6 +523,7 @@ abstract class BaseChatSDK {
       senderDid: did,
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
+      notify: notify,
     );
   }
 

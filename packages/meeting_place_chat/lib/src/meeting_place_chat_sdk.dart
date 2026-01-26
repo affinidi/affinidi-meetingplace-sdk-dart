@@ -152,8 +152,8 @@ class MeetingPlaceChatSDK implements ChatSDK {
   ///
   /// Returns a [Future] that completes when the message has been sent.
   @override
-  Future<void> sendMessage(PlainTextMessage message) {
-    return _sdk.sendMessage(message);
+  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
+    return _sdk.sendMessage(message, notify: notify);
   }
 
   /// Sends a plain text message (optionally with attachments).

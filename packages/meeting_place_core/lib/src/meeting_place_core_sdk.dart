@@ -478,7 +478,10 @@ class MeetingPlaceCoreSDK {
     // Authenticate on mediator before updating ACLs and subscribing to messages
     // to ensure that authentication is done only once.
     final (_, oobCommandOutput) = await (
-      _mediatorSDK.authenticateWithDid(oobDidManager),
+      _mediatorSDK.authenticateWithDid(
+        oobDidManager,
+        mediatorDid: mediatorDidTouse,
+      ),
       _controlPlaneSDK.execute(
         CreateOobCommand(
           oobInvitationMessage: oobMessage.toPlainTextMessage(),
@@ -684,6 +687,7 @@ class MeetingPlaceCoreSDK {
 
         await _mediatorSDK.updateAcl(
           ownerDidManager: permanentChannelDid,
+          mediatorDid: actualMediatorDid,
           acl: AccessListAdd(
             ownerDid: didDoc.id,
             granteeDids: [otherPartyPermanentChannelDid],

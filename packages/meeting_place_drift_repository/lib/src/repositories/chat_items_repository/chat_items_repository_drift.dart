@@ -38,7 +38,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         messageId: message.messageId,
       );
       if (exitingMessage != null) {
-        return exitingMessage as model.Message;
+        addedEntry = exitingMessage;
+        return addedEntry as model.Message;
       }
 
       await _database.transaction(() async {

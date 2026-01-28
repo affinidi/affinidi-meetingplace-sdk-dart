@@ -13,6 +13,7 @@ enum EventMessageType {
   vrcExchangeDoLater,
   vrcExchangeCompleted,
   rCardPlaceholder,
+  matchMakerStarted,
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)

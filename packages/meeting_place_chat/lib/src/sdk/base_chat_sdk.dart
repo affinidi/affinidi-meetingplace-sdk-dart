@@ -102,31 +102,30 @@ abstract class BaseChatSDK {
 
     chatStream = ChatStream();
 
+    final messagesFuture = await chatRepository.listMessages(chatId);
+    final chat = Chat(id: chatId, stream: chatStream, messages: messagesFuture);
+
+    unawaited(
+      fetchNewMessages().then((_) async {
+        await mediatorStreamFuture!.then((subscription) {
+          _mediatorStreamSubscription = subscription;
+          subscription.listen((data) async {
+            if (!await handleMessage(data, [])) {
+              chatStream.pushData(
+                StreamData(plainTextMessage: data.plainTextMessage),
+              );
+            }
+            return MediatorStreamProcessingResult(keepMessage: false);
+          });
+        });
+      }),
+    );
+
     mediatorStreamFuture = subscribeToMediator();
-    final messagesFuture = chatRepository.listMessages(chatId);
 
     if (options.sendProfileHashEnabled) {
       unawaited(sendProfileHash());
     }
-
-    unawaited(fetchNewMessages());
-
-    final messages = await messagesFuture;
-    final chat = Chat(id: chatId, stream: chatStream, messages: messages);
-
-    unawaited(
-      mediatorStreamFuture!.then((subscription) {
-        _mediatorStreamSubscription = subscription;
-        subscription.listen((data) async {
-          if (!await handleMessage(data, [])) {
-            chatStream.pushData(
-              StreamData(plainTextMessage: data.plainTextMessage),
-            );
-          }
-          return MediatorStreamProcessingResult(keepMessage: false);
-        });
-      }),
-    );
 
     // TODO: sort messages
     _logger.info('Completed chat start', name: methodName);

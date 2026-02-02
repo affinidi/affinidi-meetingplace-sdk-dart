@@ -16,7 +16,6 @@ import 'package:ssi/ssi.dart';
 import '../meeting_place_core.dart';
 import 'constants/sdk_constants.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
-import 'event_handler/control_plane_event_handler_manager_options.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
 import 'service/mediator/mediator_acl_service.dart';
@@ -307,6 +306,8 @@ class MeetingPlaceCoreSDK {
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
+        attachmentProvider: options.attachmentProvider,
+        onAttachmentsReceived: options.onAttachmentsReceived,
       ),
       logger: mpxLogger,
     );
@@ -606,12 +607,16 @@ class MeetingPlaceCoreSDK {
   ///   identification purposes. [externalRef] is accessible on the current
   ///   device only.
   ///
+  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
+  ///   to include in the invitation acceptance message.
+  ///
   /// Returns [AcceptOobFlowResult]
   Future<AcceptOobFlowResult> acceptOobFlow(
     Uri oobUrl, {
     required ContactCard contactCard,
     String? externalRef,
     String? did,
+    List<Attachment>? attachments,
   }) async {
     final methodName = 'acceptOobFlow';
     logger.info('Started accepting OOB invitation', name: methodName);
@@ -698,11 +703,22 @@ class MeetingPlaceCoreSDK {
           plainTextMessage.attachments,
         );
 
+        final receivedAttachments = _extractNonContactCardAttachments(
+          plainTextMessage.attachments,
+        );
+
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.otherPartyContactCard = otherPartyCard;
+        channel.receivedAttachments = receivedAttachments;
         channel.status = ChannelStatus.inaugurated;
 
         await _repositoryConfig.channelRepository.updateChannel(channel);
+
+        if (receivedAttachments != null &&
+            receivedAttachments.isNotEmpty &&
+            options.onAttachmentsReceived != null) {
+          options.onAttachmentsReceived!(channel, receivedAttachments);
+        }
 
         _controlPlaneEventStreamManager.pushEvent(
           ControlPlaneStreamEvent(
@@ -732,10 +748,23 @@ class MeetingPlaceCoreSDK {
       invitationMessage: invitationMessage,
       mediatorDid: actualMediatorDid,
       acceptContactCard: contactCard,
+      attachments: attachments,
     );
 
     await _repositoryConfig.channelRepository.createChannel(channel);
     return AcceptOobFlowResult(streamSubscription: oobStream, channel: channel);
+  }
+
+  List<Attachment>? _extractNonContactCardAttachments(
+    List<Attachment>? attachments,
+  ) {
+    if (attachments == null || attachments.isEmpty) {
+      return null;
+    }
+    final filtered = attachments
+        .where((a) => a.format != AttachmentFormat.contactCard.value)
+        .toList();
+    return filtered.isEmpty ? null : filtered;
   }
 
   /// Validates whether a given offer phrase is already in use within the system.
@@ -1015,16 +1044,22 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// - [channel] - DID of member requesting membership
+  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
+  ///   to include in the connection approval message
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({required Channel channel}) async {
+  Future<Channel> approveConnectionRequest({
+    required Channel channel,
+    List<Attachment>? attachments,
+  }) async {
     return withSdkExceptionHandling(() async {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
               wallet: wallet,
               channel: channel,
+              attachments: attachments,
             );
     });
   }

@@ -1,4 +1,5 @@
 import '../entity/channel.dart';
+import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
@@ -26,7 +27,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
 
-  // TODO: move to service?
   Future<List<Channel>> process(OfferFinalised event) async {
     final methodName = 'process';
     try {
@@ -75,7 +75,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         messageType: MeetingPlaceProtocol.connectionRequestApproval,
       );
 
-      // TODO: handle duplicates
       for (final result in messages) {
         final message = result.plainTextMessage;
 
@@ -85,6 +84,10 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         );
 
         final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
+          message.attachments,
+        );
+
+        final receivedAttachments = _extractNonContactCardAttachments(
           message.attachments,
         );
 
@@ -118,12 +121,18 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         final otherPartyPermanentChannelDidDocument = await _didResolver
             .resolveDid(otherPartyPermanentChannelDid);
 
+        List<Attachment>? outgoingAttachments;
+        if (options.attachmentProvider != null) {
+          outgoingAttachments = await options.attachmentProvider!(channel);
+        }
+
         await mediatorService.sendMessage(
           ChannelInauguration.create(
             from: permanentChannelDidDocument.id,
             to: [otherPartyPermanentChannelDid],
             did: otherPartyPermanentChannelDid,
             notificationToken: notificationToken,
+            attachments: outgoingAttachments,
           ).toPlainTextMessage(),
           senderDidManager: permenantChannelDid,
           recipientDidDocument: otherPartyPermanentChannelDidDocument,
@@ -135,8 +144,15 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.outboundMessageId = message.id;
         channel.otherPartyContactCard = otherPartyCard;
+        channel.receivedAttachments = receivedAttachments;
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
+
+        if (receivedAttachments != null &&
+            receivedAttachments.isNotEmpty &&
+            options.onAttachmentsReceived != null) {
+          options.onAttachmentsReceived!(channel, receivedAttachments);
+        }
 
         final approvedConnection = connection.finalised(
           outboundMessageId: message.id,
@@ -187,6 +203,18 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       );
       rethrow;
     }
+  }
+
+  List<Attachment>? _extractNonContactCardAttachments(
+    List<Attachment>? attachments,
+  ) {
+    if (attachments == null || attachments.isEmpty) {
+      return null;
+    }
+    final filtered = attachments
+        .where((a) => a.format != AttachmentFormat.contactCard.value)
+        .toList();
+    return filtered.isEmpty ? null : filtered;
   }
 
   Future<String> _registerNotificationToken(

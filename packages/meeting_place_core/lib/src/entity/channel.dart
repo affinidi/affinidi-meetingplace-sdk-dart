@@ -110,6 +110,9 @@ class Channel {
   /// to only fetch messages that have not been fetched before.
   DateTime? messageSyncMarker;
 
+  @JsonKey(includeToJson: false, includeFromJson: false)
+  List<Attachment>? receivedAttachments;
+
   bool get isGroup => type == ChannelType.group;
 
   bool get isInaugurated => status == ChannelStatus.inaugurated;

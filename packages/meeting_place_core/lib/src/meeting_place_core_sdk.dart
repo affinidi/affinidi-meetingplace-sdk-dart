@@ -263,6 +263,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
+      attachmentProvider: options.attachmentProvider,
       logger: mpxLogger,
     );
 
@@ -1059,7 +1060,6 @@ class MeetingPlaceCoreSDK {
               wallet: wallet,
               channel: channel,
               attachments: attachments,
-              attachmentProvider: options.attachmentProvider,
             );
     });
   }

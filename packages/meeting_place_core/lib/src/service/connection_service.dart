@@ -45,6 +45,7 @@ class ConnectionService {
     required MediatorAclService mediatorAclService,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
+    AttachmentProvider? attachmentProvider,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _channelRepository = channelRepository,
@@ -54,6 +55,7 @@ class ConnectionService {
        _mediatorAclService = mediatorAclService,
        _connectionOfferService = offerService,
        _didResolver = didResolver,
+       _attachmentProvider = attachmentProvider,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -67,6 +69,7 @@ class ConnectionService {
   final MediatorAclService _mediatorAclService;
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
+  final AttachmentProvider? _attachmentProvider;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
@@ -495,7 +498,6 @@ class ConnectionService {
     required Wallet wallet,
     required Channel channel,
     List<Attachment>? attachments,
-    AttachmentProvider? attachmentProvider,
   }) async {
     final methodName = 'approveConnectionRequest';
     _logger.info(
@@ -548,29 +550,14 @@ class ConnectionService {
     final permanentChannelDidDocument = await permanentChannelDid
         .getDidDocument();
 
+    final approvalChannel = channel.copyWith(
+      permanentChannelDid: permanentChannelDidDocument.id,
+    );
+
     final effectiveAttachments =
         attachments ??
-        (attachmentProvider != null
-            ? await attachmentProvider(
-                Channel(
-                  offerLink: channel.offerLink,
-                  publishOfferDid: channel.publishOfferDid,
-                  mediatorDid: channel.mediatorDid,
-                  status: channel.status,
-                  contactCard: channel.contactCard,
-                  type: channel.type,
-                  otherPartyContactCard: channel.otherPartyContactCard,
-                  otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
-                  acceptOfferDid: channel.acceptOfferDid,
-                  permanentChannelDid: permanentChannelDidDocument.id,
-                  outboundMessageId: channel.outboundMessageId,
-                  notificationToken: channel.notificationToken,
-                  otherPartyNotificationToken: channel.otherPartyNotificationToken,
-                  messageSyncMarker: channel.messageSyncMarker,
-                  seqNo: channel.seqNo,
-                  externalRef: channel.externalRef,
-                ),
-              )
+        (_attachmentProvider != null
+            ? await _attachmentProvider(approvalChannel)
             : null);
 
     await sendConnectionRequestApprovalToMediator(

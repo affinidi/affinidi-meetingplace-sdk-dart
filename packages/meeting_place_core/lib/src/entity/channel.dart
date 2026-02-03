@@ -123,4 +123,45 @@ class Channel {
   void increaseSeqNo() {
     seqNo++;
   }
+
+  Channel copyWith({
+    String? offerLink,
+    String? publishOfferDid,
+    String? mediatorDid,
+    ChannelStatus? status,
+    ContactCard? contactCard,
+    ChannelType? type,
+    ContactCard? otherPartyContactCard,
+    String? outboundMessageId,
+    String? acceptOfferDid,
+    String? permanentChannelDid,
+    String? otherPartyPermanentChannelDid,
+    String? notificationToken,
+    String? otherPartyNotificationToken,
+    DateTime? messageSyncMarker,
+    int? seqNo,
+    String? externalRef,
+  }) {
+    return Channel(
+      id: id,
+      offerLink: offerLink ?? this.offerLink,
+      publishOfferDid: publishOfferDid ?? this.publishOfferDid,
+      mediatorDid: mediatorDid ?? this.mediatorDid,
+      status: status ?? this.status,
+      contactCard: contactCard ?? this.contactCard,
+      type: type ?? this.type,
+      otherPartyContactCard: otherPartyContactCard ?? this.otherPartyContactCard,
+      outboundMessageId: outboundMessageId ?? this.outboundMessageId,
+      acceptOfferDid: acceptOfferDid ?? this.acceptOfferDid,
+      permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
+      otherPartyPermanentChannelDid:
+          otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
+      notificationToken: notificationToken ?? this.notificationToken,
+      otherPartyNotificationToken:
+          otherPartyNotificationToken ?? this.otherPartyNotificationToken,
+      messageSyncMarker: messageSyncMarker ?? this.messageSyncMarker,
+      seqNo: seqNo ?? this.seqNo,
+      externalRef: externalRef ?? this.externalRef,
+    );
+  }
 }

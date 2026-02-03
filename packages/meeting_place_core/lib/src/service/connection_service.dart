@@ -8,6 +8,7 @@ import '../utils/contact_card_converter.dart';
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
+import '../meeting_place_core_sdk_options.dart' show AttachmentProvider;
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/protocol.dart';
@@ -494,6 +495,7 @@ class ConnectionService {
     required Wallet wallet,
     required Channel channel,
     List<Attachment>? attachments,
+    AttachmentProvider? attachmentProvider,
   }) async {
     final methodName = 'approveConnectionRequest';
     _logger.info(
@@ -546,6 +548,31 @@ class ConnectionService {
     final permanentChannelDidDocument = await permanentChannelDid
         .getDidDocument();
 
+    final effectiveAttachments =
+        attachments ??
+        (attachmentProvider != null
+            ? await attachmentProvider(
+                Channel(
+                  offerLink: channel.offerLink,
+                  publishOfferDid: channel.publishOfferDid,
+                  mediatorDid: channel.mediatorDid,
+                  status: channel.status,
+                  contactCard: channel.contactCard,
+                  type: channel.type,
+                  otherPartyContactCard: channel.otherPartyContactCard,
+                  otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
+                  acceptOfferDid: channel.acceptOfferDid,
+                  permanentChannelDid: permanentChannelDidDocument.id,
+                  outboundMessageId: channel.outboundMessageId,
+                  notificationToken: channel.notificationToken,
+                  otherPartyNotificationToken: channel.otherPartyNotificationToken,
+                  messageSyncMarker: channel.messageSyncMarker,
+                  seqNo: channel.seqNo,
+                  externalRef: channel.externalRef,
+                ),
+              )
+            : null);
+
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
       permanentChannelDid: permanentChannelDid,
@@ -554,7 +581,7 @@ class ConnectionService {
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
-      attachments: attachments,
+      attachments: effectiveAttachments,
     );
 
     final contactCard = channel.contactCard;

@@ -1059,6 +1059,7 @@ class MeetingPlaceCoreSDK {
               wallet: wallet,
               channel: channel,
               attachments: attachments,
+              attachmentProvider: options.attachmentProvider,
             );
     });
   }

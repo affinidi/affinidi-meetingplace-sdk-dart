@@ -709,7 +709,6 @@ class MeetingPlaceCoreSDK {
 
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.otherPartyContactCard = otherPartyCard;
-        channel.receivedAttachments = receivedAttachments;
         channel.status = ChannelStatus.inaugurated;
 
         await _repositoryConfig.channelRepository.updateChannel(channel);

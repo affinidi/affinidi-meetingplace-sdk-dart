@@ -144,7 +144,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.outboundMessageId = message.id;
         channel.otherPartyContactCard = otherPartyCard;
-        channel.receivedAttachments = receivedAttachments;
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 

@@ -48,8 +48,6 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
         channel.otherPartyNotificationToken =
             plainTextMessage.body.notificationToken;
 
-        channel.receivedAttachments = plainTextMessage.attachments;
-
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 

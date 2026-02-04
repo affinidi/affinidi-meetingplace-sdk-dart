@@ -704,9 +704,7 @@ class MeetingPlaceCoreSDK {
           plainTextMessage.attachments,
         );
 
-        final receivedAttachments = _extractNonContactCardAttachments(
-          plainTextMessage.attachments,
-        );
+        final incomingAttachments = plainTextMessage.attachments;
 
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.otherPartyContactCard = otherPartyCard;
@@ -714,10 +712,10 @@ class MeetingPlaceCoreSDK {
 
         await _repositoryConfig.channelRepository.updateChannel(channel);
 
-        if (receivedAttachments != null &&
-            receivedAttachments.isNotEmpty &&
+        if (incomingAttachments != null &&
+            incomingAttachments.isNotEmpty &&
             options.onAttachmentsReceived != null) {
-          options.onAttachmentsReceived!(channel, receivedAttachments);
+          options.onAttachmentsReceived!(channel, incomingAttachments);
         }
 
         _controlPlaneEventStreamManager.pushEvent(
@@ -755,17 +753,6 @@ class MeetingPlaceCoreSDK {
     return AcceptOobFlowResult(streamSubscription: oobStream, channel: channel);
   }
 
-  List<Attachment>? _extractNonContactCardAttachments(
-    List<Attachment>? attachments,
-  ) {
-    if (attachments == null || attachments.isEmpty) {
-      return null;
-    }
-    final filtered = attachments
-        .where((a) => a.format != AttachmentFormat.contactCard.value)
-        .toList();
-    return filtered.isEmpty ? null : filtered;
-  }
 
   /// Validates whether a given offer phrase is already in use within the system.
   ///

@@ -87,9 +87,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           message.attachments,
         );
 
-        final receivedAttachments = _extractNonContactCardAttachments(
-          message.attachments,
-        );
+        final incomingAttachments = message.attachments;
 
         final otherPartyPermanentChannelDid =
             message.body!['channel_did'] as String;
@@ -147,10 +145,10 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
-        if (receivedAttachments != null &&
-            receivedAttachments.isNotEmpty &&
+        if (incomingAttachments != null &&
+            incomingAttachments.isNotEmpty &&
             options.onAttachmentsReceived != null) {
-          options.onAttachmentsReceived!(channel, receivedAttachments);
+          options.onAttachmentsReceived!(channel, incomingAttachments);
         }
 
         final approvedConnection = connection.finalised(
@@ -204,17 +202,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
     }
   }
 
-  List<Attachment>? _extractNonContactCardAttachments(
-    List<Attachment>? attachments,
-  ) {
-    if (attachments == null || attachments.isEmpty) {
-      return null;
-    }
-    final filtered = attachments
-        .where((a) => a.format != AttachmentFormat.contactCard.value)
-        .toList();
-    return filtered.isEmpty ? null : filtered;
-  }
 
   Future<String> _registerNotificationToken(
     String myDid,

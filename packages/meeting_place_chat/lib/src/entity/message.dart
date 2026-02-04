@@ -59,7 +59,7 @@ class Message extends ChatItem {
   /// Factory constructor to create a [Message] from a locally sent
   ///  chat message.
   ///
-  /// This sets the status to [ChatItemStatus.queued] until delivery
+  /// This sets the status to [ChatItemStatus.sent] until delivery
   ///  is confirmed
   /// and marks the message as created by the current user
   ///  (`createdByMe = true`).
@@ -78,7 +78,7 @@ class Message extends ChatItem {
       message,
       senderDid: message.from,
       attachments: message.attachments,
-      status: ChatItemStatus.queued,
+      status: ChatItemStatus.sent,
       createdByMe: true,
     );
   }

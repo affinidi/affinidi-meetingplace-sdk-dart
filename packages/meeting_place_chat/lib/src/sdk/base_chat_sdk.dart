@@ -468,8 +468,10 @@ abstract class BaseChatSDK {
     );
 
     final plainTextMessage = chatMessage.toPlainTextMessage();
-    final createdMessage = await chatRepository.createMessage(
-      Message.fromSentMessage(message: chatMessage, chatId: chatId),
+    // Create optimistic message object (don't await storage yet)
+    final createdMessage = Message.fromSentMessage(
+      message: chatMessage,
+      chatId: chatId,
     );
 
     try {
@@ -482,24 +484,28 @@ abstract class BaseChatSDK {
 
       await _sendMessageWithNotification(plainTextMessage);
 
-      final updatedMessage = await _updateMessageStatus(
-        chatId: chatId,
-        messageId: createdMessage.messageId,
-      );
 
+      // Update channel
       await coreSDK.updateChannel(channel);
 
+      // Update to "sent" status
+      createdMessage.status = ChatItemStatus.sent;
+
+      // Store asynchronously (fire-and-forget) - optimistic storage
+      unawaited(chatRepository.createMessage(createdMessage));
+
+      // Push final UI update with sent status
       chatStream.pushData(
         StreamData(
           plainTextMessage: plainTextMessage,
-          chatItem: updatedMessage,
+          chatItem: createdMessage,
         ),
       );
 
       _logger.info('Completed sending text message', name: methodName);
-      return updatedMessage;
+      return createdMessage;
     } catch (e, stackTrace) {
-      return await _handleSendMessageError(
+      return _handleSendMessageError(
         createdMessage: createdMessage,
         chatMessage: plainTextMessage,
         error: e,
@@ -788,33 +794,16 @@ abstract class BaseChatSDK {
     }
   }
 
-  Future<Message> _updateMessageStatus({
-    required String chatId,
-    required String messageId,
-  }) async {
-    // TODO: add optimistic locking
-    final message = await chatRepository.getMessage(
-      chatId: chatId,
-      messageId: messageId,
-    );
-
-    if (message!.status == ChatItemStatus.queued) {
-      message.status = ChatItemStatus.sent;
-      await chatRepository.updateMesssage(message);
-    }
-
-    return message as Message;
-  }
-
-  Future<Message> _handleSendMessageError({
+  Message _handleSendMessageError({
     required ChatItem createdMessage,
     required PlainTextMessage chatMessage,
     required Object error,
     required StackTrace stackTrace,
     required String methodName,
-  }) async {
+  }) {
     createdMessage.status = ChatItemStatus.error;
-    await chatRepository.updateMesssage(createdMessage);
+    // Store error status asynchronously (fire-and-forget)
+    unawaited(chatRepository.createMessage(createdMessage));
 
     _logger.error(
       'Failed to send message',

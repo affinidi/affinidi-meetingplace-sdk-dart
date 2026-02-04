@@ -690,7 +690,7 @@ void main() async {
       otherPartyDid: bobDidDocument.id,
       channelRepository: aliceChannelRepository,
       options: ChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 1),
+        chatPresenceSendInterval: const Duration(milliseconds: 200),
       ),
     );
 

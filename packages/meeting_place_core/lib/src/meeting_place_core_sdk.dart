@@ -1272,15 +1272,21 @@ class MeetingPlaceCoreSDK {
   }) async {
     return withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
+
       return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
-        options:
-            options ??
-            MediatorStreamSubscriptionOptions(
-              expectedMessageWrappingTypes:
-                  this.options.expectedMessageWrappingTypes,
-            ),
+        options: MediatorStreamSubscriptionOptions(
+          deleteMessageDelay:
+              options?.deleteMessageDelay ??
+              MediatorStreamSubscriptionOptions.defaults.deleteMessageDelay,
+          fetchMessagesOnConnect:
+              options?.fetchMessagesOnConnect ??
+              MediatorStreamSubscriptionOptions.defaults.fetchMessagesOnConnect,
+          expectedMessageWrappingTypes:
+              options?.expectedMessageWrappingTypes ??
+              this.options.expectedMessageWrappingTypes,
+        ),
       );
     });
   }

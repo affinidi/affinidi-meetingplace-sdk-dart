@@ -320,10 +320,10 @@ packages:
     dependency: transitive
     description:
       name: didcomm
-      sha256: d0f853a71a06ebc77e822dd155e21ab7b6b476e21d0aa00bee8c22c669246bff
+      sha256: "8fd4c7b14dc53bc125d788db16cc8a9381820f73c7526932bfd2b9a2a48eb629"
       url: "https://pub.dev"
     source: hosted
-    version: "2.3.2"
+    version: "2.3.3"
   dio:
     dependency: transitive
     description:

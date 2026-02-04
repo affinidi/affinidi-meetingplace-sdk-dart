@@ -48,6 +48,7 @@ class MediatorService {
     required String mediatorDid,
     required SignatureScheme signatureScheme,
     bool reauthenticate = false,
+    bool fetchMessagesOnConnect = true,
   }) async {
     final methodName = '_initMediatorClient';
     final didDocument = await didManager.getDidDocument();
@@ -79,6 +80,7 @@ class MediatorService {
           webSocketOptions: WebSocketOptions(
             deleteOnReceive: false,
             pingIntervalInSeconds: _options.websocketPingInterval,
+            fetchMessagesOnConnect: fetchMessagesOnConnect,
             statusRequestMessageOptions: StatusRequestMessageOptions(
               shouldSend: true,
               shouldSign: true,
@@ -110,6 +112,7 @@ class MediatorService {
     required DidManager didManager,
     required String mediatorDid,
     bool reauthenticate = false,
+    bool fetchMessagesOnConnect = true,
   }) async {
     try {
       return await _initMediatorClient(
@@ -117,6 +120,7 @@ class MediatorService {
         mediatorDid: mediatorDid,
         signatureScheme: _options.signatureScheme,
         reauthenticate: reauthenticate,
+        fetchMessagesOnConnect: fetchMessagesOnConnect,
       );
     } catch (e, stackTrace) {
       _logger.error(
@@ -285,6 +289,7 @@ class MediatorService {
     required String mediatorDid,
     required Duration? deleteMessageDelay,
     bool reauthenticate = false,
+    bool fetchMessagesOnConnect = true,
     List<MessageWrappingType> messageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
@@ -297,6 +302,7 @@ class MediatorService {
         didManager: didManager,
         mediatorDid: mediatorDid,
         reauthenticate: reauthenticate,
+        fetchMessagesOnConnect: fetchMessagesOnConnect,
       );
 
       final streamSubscription = MediatorStreamSubscription(

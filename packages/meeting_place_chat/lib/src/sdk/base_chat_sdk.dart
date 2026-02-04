@@ -397,6 +397,52 @@ abstract class BaseChatSDK {
       );
     }
 
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatQuestionWithAnswers.value) {
+      _logger.info('Handling survey question message', name: methodName);
+
+      final surveyQuestion = protocol.ChatSurveyQuestion.fromPlainTextMessage(
+        message.plainTextMessage,
+      );
+
+      // Persist survey question as a normal chat message item so it appears in
+      // history like other messages.
+      final chatQuestion = Message(
+        chatId: chatId,
+        messageId: message.plainTextMessage.id,
+        senderDid: message.plainTextMessage.from!,
+        isFromMe: false,
+        dateCreated:
+            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        status: ChatItemStatus.received,
+        value: surveyQuestion.body.question,
+        attachments: surveyQuestion.attachments,
+      );
+
+      await chatRepository.createMessage(chatQuestion);
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: message.plainTextMessage,
+          chatItem: chatQuestion,
+        ),
+      );
+    }
+
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatSurveyResponse.value) {
+      _logger.info('Handling survey response message', name: methodName);
+      // Parse to guarantee the expected schema, even if we don't persist.
+      // (Acts as a lightweight validation & keeps schema consistent.)
+      protocol.ChatSurveyResponse.fromPlainTextMessage(
+        message.plainTextMessage,
+      );
+      // Responses currently get pushed as stream events only (no persistence),
+      // mirroring how activity/presence/effects are treated.
+      chatStream.pushData(
+        StreamData(plainTextMessage: message.plainTextMessage),
+      );
+    }
+
     _logger.info(
       'Completed handling message of type ${message.plainTextMessage.type}',
       name: methodName,

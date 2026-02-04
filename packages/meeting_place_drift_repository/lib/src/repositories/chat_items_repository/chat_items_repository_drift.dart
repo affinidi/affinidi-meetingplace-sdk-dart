@@ -128,6 +128,15 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   ) async {
     late model.ChatItem addedEntry;
     await _createMessageLock.synchronized(() async {
+      final exitingMessage = await getMessage(
+        chatId: message.chatId,
+        messageId: message.messageId,
+      );
+      if (exitingMessage != null) {
+        addedEntry = exitingMessage;
+        return addedEntry as model.ConciergeMessage;
+      }
+
       await _database.transaction(() async {
         await _database.into(_database.chatItems).insert(
               db.ChatItemsCompanion(
@@ -164,6 +173,15 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   ) async {
     late model.ChatItem addedEntry;
     await _createMessageLock.synchronized(() async {
+      final exitingMessage = await getMessage(
+        chatId: message.chatId,
+        messageId: message.messageId,
+      );
+      if (exitingMessage != null) {
+        addedEntry = exitingMessage;
+        return addedEntry as model.EventMessage;
+      }
+
       await _database.transaction(() async {
         await _database.into(_database.chatItems).insert(
               db.ChatItemsCompanion(

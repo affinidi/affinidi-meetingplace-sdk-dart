@@ -79,7 +79,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         final message = result.plainTextMessage;
 
         logger.info(
-          'Found ConnectionInvitationAccepted. Their channel is ${message.body!['channel_did']}',
+          'Found ConnectionRequestApproval. Their channel is ${message.body!['channel_did']}',
           name: methodName,
         );
 

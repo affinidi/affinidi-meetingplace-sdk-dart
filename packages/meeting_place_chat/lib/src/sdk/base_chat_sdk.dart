@@ -558,41 +558,30 @@ abstract class BaseChatSDK {
       Message.fromSentMessage(message: chatMessage, chatId: chatId),
     );
 
-    try {
-      chatStream.pushData(
-        StreamData(
-          plainTextMessage: plainTextMessage,
-          chatItem: createdMessage,
-        ),
-      );
+    // Push to stream immediately with 'sent' status for optimistic UI
+    chatStream.pushData(
+      StreamData(plainTextMessage: plainTextMessage, chatItem: createdMessage),
+    );
 
-      await _sendMessageWithNotification(plainTextMessage);
+    // Fire-and-forget: send message and update channel asynchronously
+    unawaited(
+      _sendMessageWithNotification(plainTextMessage)
+          .then((_) async {
+            await coreSDK.updateChannel(channel);
+            _logger.info('Completed sending text message', name: methodName);
+          })
+          .catchError((Object e, StackTrace stackTrace) async {
+            await _handleSendMessageError(
+              createdMessage: createdMessage,
+              chatMessage: plainTextMessage,
+              error: e,
+              stackTrace: stackTrace,
+              methodName: methodName,
+            );
+          }),
+    );
 
-      final updatedMessage = await _updateMessageStatus(
-        chatId: chatId,
-        messageId: createdMessage.messageId,
-      );
-
-      await coreSDK.updateChannel(channel);
-
-      chatStream.pushData(
-        StreamData(
-          plainTextMessage: plainTextMessage,
-          chatItem: updatedMessage,
-        ),
-      );
-
-      _logger.info('Completed sending text message', name: methodName);
-      return updatedMessage;
-    } catch (e, stackTrace) {
-      return await _handleSendMessageError(
-        createdMessage: createdMessage,
-        chatMessage: plainTextMessage,
-        error: e,
-        stackTrace: stackTrace,
-        methodName: methodName,
-      );
-    }
+    return createdMessage as Message;
   }
 
   /// Sends a chat presence signal to the other party.
@@ -908,24 +897,6 @@ abstract class BaseChatSDK {
         name: '_sendMessageWithNotification',
       );
     }
-  }
-
-  Future<Message> _updateMessageStatus({
-    required String chatId,
-    required String messageId,
-  }) async {
-    // TODO: add optimistic locking
-    final message = await chatRepository.getMessage(
-      chatId: chatId,
-      messageId: messageId,
-    );
-
-    if (message!.status == ChatItemStatus.queued) {
-      message.status = ChatItemStatus.sent;
-      await chatRepository.updateMessage(message);
-    }
-
-    return message as Message;
   }
 
   Future<Message> _handleSendMessageError({

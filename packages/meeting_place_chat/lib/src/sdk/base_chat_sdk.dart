@@ -558,12 +558,11 @@ abstract class BaseChatSDK {
       Message.fromSentMessage(message: chatMessage, chatId: chatId),
     );
 
-    // Push to stream immediately with 'sent' status for optimistic UI
     chatStream.pushData(
       StreamData(plainTextMessage: plainTextMessage, chatItem: createdMessage),
     );
 
-    // Fire-and-forget: send message and update channel asynchronously
+    // send message and update channel asynchronously
     unawaited(
       _sendMessageWithNotification(plainTextMessage)
           .then((_) async {

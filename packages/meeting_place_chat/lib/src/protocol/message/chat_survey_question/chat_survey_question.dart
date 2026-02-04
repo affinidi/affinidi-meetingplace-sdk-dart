@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../chat_protocol.dart';
 import 'chat_survey_question_body.dart';
 
 /// [ChatSurveyQuestion] represents a survey question message.
@@ -43,7 +42,9 @@ class ChatSurveyQuestion {
       to: message.to!,
       body: ChatSurveyQuestionBody.fromJson(message.body ?? const {}),
       attachments: message.attachments ?? [],
-      createdTime: message.createdTime,
+      createdTime:
+          DateTime.tryParse(message.body?['timestamp'] as String? ?? '') ??
+          DateTime.now().toUtc(),
     );
   }
 
@@ -63,10 +64,13 @@ class ChatSurveyQuestion {
   final List<Attachment> attachments;
   final DateTime createdTime;
 
+  static const String type =
+      'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/survey-question';
+
   PlainTextMessage toPlainTextMessage() {
     return PlainTextMessage(
       id: id,
-      type: Uri.parse(ChatProtocol.chatQuestionWithAnswers.value),
+      type: Uri.parse(ChatSurveyQuestion.type),
       from: from,
       to: to,
       body: body.toJson(),

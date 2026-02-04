@@ -19,15 +19,19 @@ class ChatSurveyResponseBody {
   }
 
   /// PlainTextMessage.id of the original question message.
+  @JsonKey(name: 'question_message_id')
   final String? questionMessageId;
 
   /// Optional stable identifier of the question.
+  @JsonKey(name: 'question_id')
   final String? questionId;
 
   /// Answer selected / free-form response.
+  @JsonKey(name: 'response')
   final String response;
 
   /// Creation timestamp (UTC).
+  @JsonKey(name: 'timestamp')
   final DateTime timestamp;
 
   Map<String, dynamic> toJson() => _$ChatSurveyResponseBodyToJson(this);

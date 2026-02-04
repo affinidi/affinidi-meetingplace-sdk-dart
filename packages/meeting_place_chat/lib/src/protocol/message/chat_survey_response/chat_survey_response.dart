@@ -43,12 +43,14 @@ class ChatSurveyResponse {
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
+  static const String type =
+      'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/survey-response';
+
   final String id;
   final String from;
   final List<String> to;
   final ChatSurveyResponseBody body;
   final DateTime createdTime;
-
   PlainTextMessage toPlainTextMessage() {
     return PlainTextMessage(
       id: id,

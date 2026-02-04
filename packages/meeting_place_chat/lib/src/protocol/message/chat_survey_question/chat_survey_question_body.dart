@@ -19,13 +19,16 @@ class ChatSurveyQuestionBody {
   }
 
   /// Human-readable question.
+  @JsonKey(name: 'question')
   final String question;
 
   /// Optional stable identifier so responses can reference a question even if
   /// message IDs aren’t available.
+  @JsonKey(name: 'question_id')
   final String? questionId;
 
   /// Creation timestamp (UTC).
+  @JsonKey(name: 'timestamp')
   final DateTime timestamp;
 
   Map<String, dynamic> toJson() => _$ChatSurveyQuestionBodyToJson(this);

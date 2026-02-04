@@ -397,11 +397,10 @@ abstract class BaseChatSDK {
       );
     }
 
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatQuestionWithAnswers.value) {
+    if (message.plainTextMessage.type.toString() == ChatSurveyQuestion.type) {
       _logger.info('Handling survey question message', name: methodName);
 
-      final surveyQuestion = protocol.ChatSurveyQuestion.fromPlainTextMessage(
+      final surveyQuestion = ChatSurveyQuestion.fromPlainTextMessage(
         message.plainTextMessage,
       );
 
@@ -412,8 +411,7 @@ abstract class BaseChatSDK {
         messageId: message.plainTextMessage.id,
         senderDid: message.plainTextMessage.from!,
         isFromMe: false,
-        dateCreated:
-            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        dateCreated: surveyQuestion.body.timestamp,
         status: ChatItemStatus.received,
         value: surveyQuestion.body.question,
         attachments: surveyQuestion.attachments,

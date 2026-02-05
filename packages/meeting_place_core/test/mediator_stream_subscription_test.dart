@@ -173,7 +173,7 @@ void main() async {
     await subscription.dispose();
 
     // Delay test execution to allow for message deletion to occur
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 5));
     final messages = await aliceSDK.fetchMessages(
       did: aliceDidDoc.id,
       deleteOnRetrieve: true,

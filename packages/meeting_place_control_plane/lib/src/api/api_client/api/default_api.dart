@@ -2554,4 +2554,91 @@ class DefaultApi {
       extra: _response.extra,
     );
   }
+
+  /// updateOffersScore
+  /// Batch update the score for multiple offers.
+  ///
+  /// Parameters:
+  /// * [score] - Latest score (VRC count) to set.
+  /// * [offerLinksOrMnemonics] - List of offerLinks or mnemonics to update.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [JsonObject] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<JsonObject>> updateOffersScore({
+    required int score,
+    required List<String> offerLinksOrMnemonics,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/update-offers-score';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {
+            'type': 'apiKey',
+            'name': 'DidCommTokenAuth',
+            'keyName': 'authorization',
+            'where': 'header',
+          },
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      responseType: ResponseType.plain,
+      validateStatus: validateStatus,
+    );
+
+    final _bodyData = <String, dynamic>{
+      'score': score,
+      'offerLinks': offerLinksOrMnemonics,
+    };
+
+    Response<JsonObject> toSuccess(
+      Response<dynamic> r, [
+      RequestOptions? opts,
+    ]) => Response<JsonObject>(
+      data: null,
+      headers: r.headers,
+      isRedirect: r.isRedirect,
+      requestOptions: opts ?? r.requestOptions,
+      redirects: r.redirects,
+      statusCode: r.statusCode,
+      statusMessage: r.statusMessage,
+      extra: r.extra,
+    );
+
+    try {
+      final res = await _dio.request<Object>(
+        _path,
+        data: _bodyData,
+        options: _options,
+        cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+      );
+      return toSuccess(res);
+    } on DioException catch (e) {
+      final r = e.response;
+      final code = r?.statusCode ?? 0;
+      if (r != null &&
+          code >= 200 &&
+          code < 300 &&
+          e.error is FormatException) {
+        return toSuccess(r, e.requestOptions);
+      }
+      rethrow;
+    }
+  }
 }

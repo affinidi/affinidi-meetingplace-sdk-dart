@@ -155,13 +155,13 @@ void main() async {
     );
 
     int messageCount = 0;
-    final waitForMesage = Completer<void>();
+    final waitForMessage = Completer<void>();
 
     subscription.listen((message) {
       if (message.plainTextMessage.isOfType(messageType)) {
         messageCount++;
         if (messageCount == 3) {
-          waitForMesage.complete();
+          waitForMessage.complete();
           subscription.dispose();
         }
       }
@@ -171,10 +171,10 @@ void main() async {
     await sendMessageFromBobToAlice(type: messageType);
     await sendMessageFromBobToAlice(type: messageType);
 
-    await waitForMesage.future.timeout(const Duration(seconds: 10));
+    await waitForMessage.future.timeout(const Duration(seconds: 10));
 
-    // Delay test execution to allow for message deletion to occur
-    await Future.delayed(const Duration(seconds: 2));
+    // Wait for scheduled deletion to complete
+    await Future.delayed(const Duration(seconds: 5));
     final messages = await aliceSDK.fetchMessages(
       did: aliceDidDoc.id,
       deleteOnRetrieve: true,

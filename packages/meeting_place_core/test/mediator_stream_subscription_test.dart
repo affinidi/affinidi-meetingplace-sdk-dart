@@ -149,17 +149,17 @@ void main() async {
     final subscription = await aliceSDK.subscribeToMediator(
       aliceDidDoc.id,
       options: MediatorStreamSubscriptionOptions(
-        deleteMessageDelay: const Duration(milliseconds: 200),
+        deleteMessageDelay: const Duration(seconds: 2),
       ),
     );
 
     var messageCount = 0;
-    final waitForMesage = Completer<void>();
+    final waitForMessage = Completer<void>();
     subscription.listen((message) {
-      messageCount++;
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
+        messageCount++;
         if (messageCount == 3) {
-          waitForMesage.complete();
+          waitForMessage.complete();
         }
       }
       return MediatorStreamProcessingResult(keepMessage: false);
@@ -169,11 +169,11 @@ void main() async {
     await sendMessageFromBobToAlice();
     await sendMessageFromBobToAlice();
 
-    await waitForMesage.future.timeout(const Duration(seconds: 10));
+    await waitForMessage.future.timeout(const Duration(seconds: 10));
     await subscription.dispose();
 
-    // Delay test execution to allow for message deletion to occur
-    await Future.delayed(const Duration(seconds: 2));
+    // Wait for scheduled deletion to complete
+    await Future.delayed(const Duration(seconds: 5));
     final messages = await aliceSDK.fetchMessages(
       did: aliceDidDoc.id,
       deleteOnRetrieve: true,

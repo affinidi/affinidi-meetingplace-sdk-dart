@@ -30,6 +30,7 @@ export 'package:ssi/ssi.dart' show DidManager;
 
 export 'src/entity/entity.dart';
 export 'src/event_handler/control_plane_stream_event.dart';
+export 'src/event_handler/control_plane_event_handler_manager_options.dart';
 export 'src/loggers/default_meeting_place_core_sdk_logger.dart';
 export 'src/loggers/meeting_place_core_sdk_logger.dart';
 export 'src/meeting_place_core_sdk.dart';

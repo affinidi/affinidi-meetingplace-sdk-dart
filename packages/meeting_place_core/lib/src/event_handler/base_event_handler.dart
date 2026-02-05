@@ -50,6 +50,9 @@ abstract class BaseEventHandler {
   final ControlPlaneEventHandlerManagerOptions _options;
 
   @internal
+  ControlPlaneEventHandlerManagerOptions get options => _options;
+
+  @internal
   Future<ConnectionOffer> findConnectionByDid(String did) async {
     return await connectionOfferRepository
             .getConnectionOfferByPermanentChannelDid(did) ??

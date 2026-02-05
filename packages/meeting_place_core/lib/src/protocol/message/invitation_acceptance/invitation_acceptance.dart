@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../utils/attachment.dart';
 import '../../protocol.dart';
 import '../../contact_card/contact_card_helper.dart';
 import 'invitation_acceptance_body.dart';
@@ -12,6 +13,7 @@ class InvitationAcceptance {
     required String parentThreadId,
     required String channelDid,
     ContactCard? contactCard,
+    List<Attachment>? attachments,
   }) {
     return InvitationAcceptance(
       id: const Uuid().v4(),
@@ -20,24 +22,21 @@ class InvitationAcceptance {
       parentThreadId: parentThreadId,
       body: InvitationAcceptanceBody(channelDid: channelDid),
       contactCard: contactCard,
+      attachments: attachments,
     );
   }
 
   factory InvitationAcceptance.fromPlainTextMessage(PlainTextMessage message) {
-    ContactCard? contactCard;
-    if (message.attachments != null && message.attachments!.isNotEmpty) {
-      final base64 = message.attachments!.first.data?.base64;
-      if (base64 != null) {
-        contactCard = ContactCard.fromBase64(base64);
-      }
-    }
+    final parsed = parseMessageAttachments(message.attachments);
+
     return InvitationAcceptance(
       id: message.id,
       from: message.from!,
       to: message.to!,
       parentThreadId: message.parentThreadId!,
       body: InvitationAcceptanceBody.fromJson(message.body!),
-      contactCard: contactCard,
+      contactCard: parsed.contactCard,
+      attachments: parsed.attachments,
       createdTime: message.createdTime,
     );
   }
@@ -49,6 +48,7 @@ class InvitationAcceptance {
     required this.parentThreadId,
     required this.body,
     this.contactCard,
+    this.attachments,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -58,9 +58,18 @@ class InvitationAcceptance {
   final String parentThreadId;
   final InvitationAcceptanceBody body;
   final ContactCard? contactCard;
+  final List<Attachment>? attachments;
   final DateTime createdTime;
 
   PlainTextMessage toPlainTextMessage() {
+    final attachmentsList = <Attachment>[];
+    if (contactCard != null) {
+      attachmentsList.add(ContactCardHelper.vCardToAttachment(contactCard!));
+    }
+    if (attachments != null) {
+      attachmentsList.addAll(attachments!);
+    }
+
     return PlainTextMessage(
       id: id,
       type: Uri.parse(MeetingPlaceProtocol.invitationAcceptance.value),
@@ -69,9 +78,7 @@ class InvitationAcceptance {
       parentThreadId: parentThreadId,
       body: body.toJson(),
       createdTime: createdTime,
-      attachments: contactCard == null
-          ? null
-          : [ContactCardHelper.vCardToAttachment(contactCard!)],
+      attachments: attachmentsList.isEmpty ? null : attachmentsList,
     );
   }
 }

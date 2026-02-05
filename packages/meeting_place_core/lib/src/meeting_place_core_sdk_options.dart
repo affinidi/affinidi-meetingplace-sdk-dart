@@ -1,6 +1,23 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
+import 'entity/channel.dart';
+
+/// Callback to build attachments for outgoing connection messages
+/// during the channel inauguration process.
+///
+/// Called by the SDK when processing connection events that require
+/// sending attachments to the other party.
+typedef OnBuildAttachmentsCallback =
+    Future<List<Attachment>?> Function(Channel channel);
+
+/// Callback invoked when attachments are received from the other party
+/// during connection establishment.
+///
+/// The app should process these attachments when this callback is invoked.
+typedef OnAttachmentsReceivedCallback =
+    void Function(Channel channel, List<Attachment> attachments);
+
 class MeetingPlaceCoreSDKOptions {
   const MeetingPlaceCoreSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
@@ -18,6 +35,8 @@ class MeetingPlaceCoreSDKOptions {
     this.expectedMessageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
+    this.onBuildAttachments,
+    this.onAttachmentsReceived,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -84,4 +103,22 @@ class MeetingPlaceCoreSDKOptions {
   /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
   /// (e.g., chat + VDIP) that use different message signing configurations.
   final List<MessageWrappingType> expectedMessageWrappingTypes;
+
+  /// Callback to build attachments for outgoing connection messages
+  /// during the channel inauguration process.
+  ///
+  /// When provided, this callback is invoked by event handlers when they need
+  /// to send attachments to the other party (e.g., during OfferFinalised).
+  ///
+  /// The callback receives the [Channel] being processed and should return
+  /// a list of [Attachment] objects to include in the outgoing message.
+  /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments or onBuildInaugurationMessageAttachments
+  final OnBuildAttachmentsCallback? onBuildAttachments;
+
+  /// Callback invoked when attachments are received from the other party
+  /// during connection establishment.
+  ///
+  /// When provided, this callback is invoked by event handlers after they
+  /// receive and process incoming attachments from connection messages.
+  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 }

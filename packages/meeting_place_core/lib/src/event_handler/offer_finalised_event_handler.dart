@@ -1,4 +1,5 @@
 import '../entity/channel.dart';
+import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
@@ -26,7 +27,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
 
-  // TODO: move to service?
   Future<List<Channel>> process(OfferFinalised event) async {
     final methodName = 'process';
     try {
@@ -75,12 +75,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         messageType: MeetingPlaceProtocol.connectionRequestApproval,
       );
 
-      // TODO: handle duplicates
       for (final result in messages) {
         final message = result.plainTextMessage;
 
         logger.info(
-          'Found ConnectionInvitationAccepted. Their channel is ${message.body!['channel_did']}',
+          'Found ConnectionRequestApproval. Their channel is ${message.body!['channel_did']}',
           name: methodName,
         );
 
@@ -118,12 +117,18 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         final otherPartyPermanentChannelDidDocument = await _didResolver
             .resolveDid(otherPartyPermanentChannelDid);
 
+        List<Attachment>? outgoingAttachments;
+        if (options.onBuildAttachments != null) {
+          outgoingAttachments = await options.onBuildAttachments!(channel);
+        }
+
         await mediatorService.sendMessage(
           ChannelInauguration.create(
             from: permanentChannelDidDocument.id,
             to: [otherPartyPermanentChannelDid],
             did: otherPartyPermanentChannelDid,
             notificationToken: notificationToken,
+            attachments: outgoingAttachments,
           ).toPlainTextMessage(),
           senderDidManager: permenantChannelDid,
           recipientDidDocument: otherPartyPermanentChannelDidDocument,
@@ -137,6 +142,12 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.otherPartyContactCard = otherPartyCard;
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
+
+        if (message.attachments != null &&
+            message.attachments!.isNotEmpty &&
+            options.onAttachmentsReceived != null) {
+          options.onAttachmentsReceived!(channel, message.attachments!);
+        }
 
         final approvedConnection = connection.finalised(
           outboundMessageId: message.id,

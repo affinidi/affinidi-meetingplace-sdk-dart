@@ -12,6 +12,7 @@ class ChannelInauguration {
       to: message.to!,
       body: ChannelInaugurationBody.fromJson(message.body!),
       createdTime: message.createdTime,
+      attachments: message.attachments,
     );
   }
 
@@ -20,6 +21,7 @@ class ChannelInauguration {
     required List<String> to,
     required String notificationToken,
     required String did,
+    List<Attachment>? attachments,
   }) {
     return ChannelInauguration(
       id: const Uuid().v4(),
@@ -29,6 +31,7 @@ class ChannelInauguration {
         notificationToken: notificationToken,
         did: did,
       ),
+      attachments: attachments,
     );
   }
 
@@ -37,6 +40,7 @@ class ChannelInauguration {
     required this.from,
     required this.to,
     required this.body,
+    this.attachments,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -45,6 +49,7 @@ class ChannelInauguration {
   final List<String> to;
   final ChannelInaugurationBody body;
   final DateTime createdTime;
+  final List<Attachment>? attachments;
 
   PlainTextMessage toPlainTextMessage() {
     return PlainTextMessage(
@@ -54,6 +59,7 @@ class ChannelInauguration {
       to: to,
       body: body.toJson(),
       createdTime: createdTime,
+      attachments: attachments,
     );
   }
 }

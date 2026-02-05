@@ -109,13 +109,12 @@ abstract class BaseChatSDK {
       unawaited(sendProfileHash());
     }
 
-    unawaited(fetchNewMessages());
-
     final messages = await messagesFuture;
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
       mediatorStreamFuture!.then((subscription) {
+        unawaited(fetchNewMessages());
         _mediatorStreamSubscription = subscription;
         subscription.listen((data) async {
           if (!await handleMessage(data, [])) {
@@ -490,6 +489,7 @@ abstract class BaseChatSDK {
       options: MediatorStreamSubscriptionOptions(
         expectedMessageWrappingTypes:
             coreSDK.options.expectedMessageWrappingTypes,
+        fetchMessagesOnConnect: false,
       ),
     );
   }

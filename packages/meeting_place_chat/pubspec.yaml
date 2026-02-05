@@ -11,7 +11,7 @@ dependencies:
   affinidi_tdk_vdip: ^1.0.0
   collection: ^1.19.1
   crypto: ^3.0.6
-  didcomm: ^2.3.2
+  didcomm: ^2.3.3
   json_annotation: ^4.9.0
   meeting_place_core: ^0.0.1-dev.26
   meta: ^1.17.0

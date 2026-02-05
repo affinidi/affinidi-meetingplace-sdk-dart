@@ -225,7 +225,13 @@ void main() async {
       stream!.listen((data) {
         if (data.plainTextMessage?.type.toString() ==
             ChatProtocol.chatMessage.value) {
-          bobChatCompleter.complete(data.plainTextMessage!);
+          final chatMessage = ChatMessage.fromPlainTextMessage(
+            data.plainTextMessage!,
+          );
+          if (chatMessage.body.text == 'Hello Group!' &&
+              !bobChatCompleter.isCompleted) {
+            bobChatCompleter.complete(data.plainTextMessage!);
+          }
         }
       });
     });
@@ -235,7 +241,13 @@ void main() async {
       stream!.listen((data) {
         if (data.plainTextMessage?.type.toString() ==
             ChatProtocol.chatMessage.value) {
-          charlieChatCompleter.complete(data.plainTextMessage!);
+          final chatMessage = ChatMessage.fromPlainTextMessage(
+            data.plainTextMessage!,
+          );
+          if (chatMessage.body.text == 'Hello Group!' &&
+              !charlieChatCompleter.isCompleted) {
+            charlieChatCompleter.complete(data.plainTextMessage!);
+          }
         }
       });
     });

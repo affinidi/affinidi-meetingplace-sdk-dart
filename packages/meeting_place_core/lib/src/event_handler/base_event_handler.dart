@@ -13,7 +13,6 @@ import '../service/connection_offer/connection_offer_exception.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../service/mediator/mediator_message.dart';
 import '../service/mediator/mediator_service.dart';
-import '../utils/string.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'exceptions/empty_message_list_exception.dart';
 import 'exceptions/event_handler_exception.dart';

@@ -558,29 +558,36 @@ abstract class BaseChatSDK {
       Message.fromSentMessage(message: chatMessage, chatId: chatId),
     );
 
-    chatStream.pushData(
-      StreamData(plainTextMessage: plainTextMessage, chatItem: createdMessage),
-    );
+    try {
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: plainTextMessage,
+          chatItem: createdMessage,
+        ),
+      );
 
-    // send message and update channel asynchronously
-    unawaited(
-      _sendMessageWithNotification(plainTextMessage)
-          .then((_) async {
-            await coreSDK.updateChannel(channel);
-            _logger.info('Completed sending text message', name: methodName);
-          })
-          .catchError((Object e, StackTrace stackTrace) async {
-            await _handleSendMessageError(
-              createdMessage: createdMessage,
-              chatMessage: plainTextMessage,
-              error: e,
-              stackTrace: stackTrace,
-              methodName: methodName,
-            );
-          }),
-    );
+      await _sendMessageWithNotification(plainTextMessage);
 
-    return createdMessage as Message;
+      await coreSDK.updateChannel(channel);
+
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: plainTextMessage,
+          chatItem: createdMessage,
+        ),
+      );
+
+      _logger.info('Completed sending text message', name: methodName);
+      return createdMessage as Message;
+    } catch (e, stackTrace) {
+      return await _handleSendMessageError(
+        createdMessage: createdMessage,
+        chatMessage: plainTextMessage,
+        error: e,
+        stackTrace: stackTrace,
+        methodName: methodName,
+      );
+    }
   }
 
   /// Sends a chat presence signal to the other party.

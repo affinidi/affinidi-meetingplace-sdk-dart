@@ -568,22 +568,17 @@ abstract class BaseChatSDK {
 
       await _sendMessageWithNotification(plainTextMessage);
 
-      final updatedMessage = await _updateMessageStatus(
-        chatId: chatId,
-        messageId: createdMessage.messageId,
-      );
-
       await coreSDK.updateChannel(channel);
 
       chatStream.pushData(
         StreamData(
           plainTextMessage: plainTextMessage,
-          chatItem: updatedMessage,
+          chatItem: createdMessage,
         ),
       );
 
       _logger.info('Completed sending text message', name: methodName);
-      return updatedMessage;
+      return createdMessage as Message;
     } catch (e, stackTrace) {
       return await _handleSendMessageError(
         createdMessage: createdMessage,
@@ -908,24 +903,6 @@ abstract class BaseChatSDK {
         name: '_sendMessageWithNotification',
       );
     }
-  }
-
-  Future<Message> _updateMessageStatus({
-    required String chatId,
-    required String messageId,
-  }) async {
-    // TODO: add optimistic locking
-    final message = await chatRepository.getMessage(
-      chatId: chatId,
-      messageId: messageId,
-    );
-
-    if (message!.status == ChatItemStatus.queued) {
-      message.status = ChatItemStatus.sent;
-      await chatRepository.updateMessage(message);
-    }
-
-    return message as Message;
   }
 
   Future<Message> _handleSendMessageError({

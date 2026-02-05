@@ -29,6 +29,7 @@ import 'command/register_device/register_device_handler.dart';
 import 'command/register_notification/register_notification_handler.dart';
 import 'command/register_offer/register_offer_handler.dart';
 import 'command/register_offer_group/register_offer_group_handler.dart';
+import 'command/update_offers_score/update_offers_score_handler.dart';
 import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
 import 'core/sdk_error_handler.dart';
@@ -303,6 +304,13 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       NotifyOutreachHandler(apiClient: _controlPlaneApiClient),
+    );
+
+    _dispatcher.registerHandler(
+      UpdateOffersScoreHandler(
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
     );
 
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(

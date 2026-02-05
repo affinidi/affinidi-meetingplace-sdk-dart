@@ -56,3 +56,5 @@ export 'register_offer_group/register_offer_group_output.dart';
 export 'validate_offer_phrase/validate_offer_phrase.dart';
 export 'validate_offer_phrase/validate_offer_phrase_output.dart';
 export 'validate_offer_phrase/validate_offer_phrase_exception.dart';
+export 'update_offers_score/update_offers_score.dart';
+export 'update_offers_score/update_offers_score_output.dart';

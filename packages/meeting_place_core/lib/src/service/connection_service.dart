@@ -494,7 +494,6 @@ class ConnectionService {
     required Wallet wallet,
     required Channel channel,
     List<Attachment>? attachments,
-    String? permanentDid,
   }) async {
     final methodName = 'approveConnectionRequest';
     _logger.info(
@@ -542,8 +541,11 @@ class ConnectionService {
       channel.publishOfferDid,
     );
 
-    final permanentChannelDid = permanentDid != null
-        ? await _connectionManager.getDidManagerForDid(wallet, permanentDid)
+    final permanentChannelDid = channel.permanentChannelDid != null
+        ? await _connectionManager.getDidManagerForDid(
+            wallet,
+            channel.permanentChannelDid!,
+          )
         : await _connectionManager.generateDid(wallet);
 
     final permanentChannelDidDocument = await permanentChannelDid

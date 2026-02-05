@@ -112,6 +112,7 @@ class MeetingPlaceCoreSDKOptions {
   ///
   /// The callback receives the [Channel] being processed and should return
   /// a list of [Attachment] objects to include in the outgoing message.
+  /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments or onBuildInaugurationMessageAttachments
   final OnBuildAttachmentsCallback? onBuildAttachments;
 
   /// Callback invoked when attachments are received from the other party

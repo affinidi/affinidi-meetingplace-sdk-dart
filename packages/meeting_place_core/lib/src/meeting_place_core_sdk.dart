@@ -1032,15 +1032,12 @@ class MeetingPlaceCoreSDK {
   /// - [channel] - DID of member requesting membership
   /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
   ///   to include in the connection approval message
-  /// - [permanentDid] - Optional pre-generated permanent DID. If not provided,
-  ///   a new DID will be generated. Use [generateDid] to pre-generate.
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
   Future<Channel> approveConnectionRequest({
     required Channel channel,
     List<Attachment>? attachments,
-    String? permanentDid,
   }) async {
     return withSdkExceptionHandling(() async {
       return channel.isGroup
@@ -1049,7 +1046,6 @@ class MeetingPlaceCoreSDK {
               wallet: wallet,
               channel: channel,
               attachments: attachments,
-              permanentDid: permanentDid,
             );
     });
   }

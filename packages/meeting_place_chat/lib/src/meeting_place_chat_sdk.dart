@@ -2,7 +2,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
 import 'sdk/chat.dart';
-import 'sdk/chat_sdk.dart';
 
 ///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
 ///
@@ -188,7 +187,8 @@ class MeetingPlaceChatSDK implements ChatSDK {
 
   /// Sends a "chat presence" signal (e.g., online status).
   @override
-  Future<void> sendChatPresence() => _sdk.sendChatPresence();
+  Future<void> sendChatPresence({bool notify = false}) =>
+      _sdk.sendChatPresence(notify: notify);
 
   /// Sends a special chat effect.
   ///

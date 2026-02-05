@@ -7,7 +7,6 @@ import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
-import 'chat_sdk.dart';
 
 /// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for handling
 /// **one-to-one (individual) chat sessions** in the Meeting Place SDK.
@@ -55,6 +54,10 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   @override
   Future<Chat> startChatSession() async {
     final chat = await super.startChatSession();
+    if (options.onChatSessionStart != null) {
+      options.onChatSessionStart!(this);
+    }
+
     unawaited(
       startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds),
     );

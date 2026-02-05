@@ -729,4 +729,42 @@ void main() async {
     final actual = await aliceChatSDK.sendTextMessage('Sample text message');
     expect(actual.status, ChatItemStatus.sent);
   });
+
+  test('executes onChatSessionStart callback', () async {
+    final chatSDKWithCallback = await initIndividualChatSDK(
+      coreSDK: aliceSDK,
+      did: aliceDidDocument.id,
+      otherPartyDid: bobDidDocument.id,
+      channelRepository: aliceChannelRepository,
+      options: ChatSDKOptions(
+        onChatSessionStart: (sdk) async {
+          await sdk.sendTextMessage('callback message');
+        },
+      ),
+    );
+
+    final waitForSubscription = Completer<ChatMessage>();
+    await bobChatSDK.startChatSession();
+
+    await bobChatSDK.chatStreamSubscription.then((stream) {
+      stream!.listen((data) {
+        if (MessageUtils.isType(
+          data.plainTextMessage!,
+          ChatProtocol.chatMessage,
+        )) {
+          final message = ChatMessage.fromPlainTextMessage(
+            data.plainTextMessage!,
+          );
+          if (message.body.text == 'callback message') {
+            waitForSubscription.complete(message);
+          }
+        }
+      });
+    });
+
+    await chatSDKWithCallback.startChatSession();
+    final receivedMessage = await waitForSubscription.future;
+
+    expect(receivedMessage.body.text, equals('callback message'));
+  });
 }

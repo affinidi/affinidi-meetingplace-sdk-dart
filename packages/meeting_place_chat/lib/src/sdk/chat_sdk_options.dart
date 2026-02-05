@@ -35,6 +35,7 @@ class ChatSDKOptions {
       ChatProtocol.chatReaction,
     ],
     this.sendProfileHashEnabled = true,
+    this.onChatSessionStart,
   });
 
   /// The list of message types that require delivery acknowledgement.
@@ -76,4 +77,7 @@ class ChatSDKOptions {
 
   /// Whether to send profile hash messages when starting chat session.
   final bool sendProfileHashEnabled;
+
+  /// Callback function invoked when a chat session starts.
+  final Function(ChatSDK sdk)? onChatSessionStart;
 }

@@ -14,7 +14,7 @@ class ConnectionRequestApproval {
     required String parentThreadId,
     required String channelDid,
     ContactCard? contactCard,
-    List<Attachment>? additionalAttachments,
+    List<Attachment>? attachments,
   }) {
     return ConnectionRequestApproval(
       id: const Uuid().v4(),
@@ -23,7 +23,7 @@ class ConnectionRequestApproval {
       parentThreadId: parentThreadId,
       body: ConnectionRequestApprovalBody(channelDid: channelDid),
       contactCard: contactCard,
-      additionalAttachments: additionalAttachments,
+      attachments: attachments,
     );
   }
 
@@ -31,7 +31,7 @@ class ConnectionRequestApproval {
     PlainTextMessage message,
   ) {
     ContactCard? contactCard;
-    final additionalAttachments = <Attachment>[];
+    final attachments = <Attachment>[];
 
     if (message.attachments != null && message.attachments!.isNotEmpty) {
       for (final attachment in message.attachments!) {
@@ -41,7 +41,7 @@ class ConnectionRequestApproval {
             contactCard = ContactCard.fromBase64(base64);
           }
         } else {
-          additionalAttachments.add(attachment);
+          attachments.add(attachment);
         }
       }
     }
@@ -53,9 +53,7 @@ class ConnectionRequestApproval {
       parentThreadId: message.parentThreadId!,
       body: ConnectionRequestApprovalBody.fromJson(message.body!),
       contactCard: contactCard,
-      additionalAttachments: additionalAttachments.isEmpty
-          ? null
-          : additionalAttachments,
+      attachments: attachments.isEmpty ? null : attachments,
       createdTime: message.createdTime,
     );
   }
@@ -67,7 +65,7 @@ class ConnectionRequestApproval {
     required this.parentThreadId,
     required this.body,
     this.contactCard,
-    this.additionalAttachments,
+    this.attachments,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -77,7 +75,7 @@ class ConnectionRequestApproval {
   final String parentThreadId;
   final ConnectionRequestApprovalBody body;
   final ContactCard? contactCard;
-  final List<Attachment>? additionalAttachments;
+  final List<Attachment>? attachments;
   final DateTime createdTime;
 
   PlainTextMessage toPlainTextMessage() {
@@ -85,8 +83,8 @@ class ConnectionRequestApproval {
     if (contactCard != null) {
       attachmentsList.add(ContactCardHelper.vCardToAttachment(contactCard!));
     }
-    if (additionalAttachments != null) {
-      attachmentsList.addAll(additionalAttachments!);
+    if (attachments != null) {
+      attachmentsList.addAll(attachments!);
     }
 
     return PlainTextMessage(

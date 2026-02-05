@@ -263,7 +263,6 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
-      attachmentProvider: options.attachmentProvider,
       logger: mpxLogger,
     );
 
@@ -307,7 +306,7 @@ class MeetingPlaceCoreSDK {
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
-        attachmentProvider: options.attachmentProvider,
+        onBuildAttachments: options.onBuildAttachments,
         onAttachmentsReceived: options.onAttachmentsReceived,
       ),
       logger: mpxLogger,
@@ -753,7 +752,6 @@ class MeetingPlaceCoreSDK {
     return AcceptOobFlowResult(streamSubscription: oobStream, channel: channel);
   }
 
-
   /// Validates whether a given offer phrase is already in use within the system.
   ///
   /// **Parameters:**
@@ -1033,12 +1031,15 @@ class MeetingPlaceCoreSDK {
   /// - [channel] - DID of member requesting membership
   /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
   ///   to include in the connection approval message
+  /// - [permanentDid] - Optional pre-generated permanent DID. If not provided,
+  ///   a new DID will be generated. Use [generateDid] to pre-generate.
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
   Future<Channel> approveConnectionRequest({
     required Channel channel,
     List<Attachment>? attachments,
+    String? permanentDid,
   }) async {
     return withSdkExceptionHandling(() async {
       return channel.isGroup
@@ -1047,6 +1048,7 @@ class MeetingPlaceCoreSDK {
               wallet: wallet,
               channel: channel,
               attachments: attachments,
+              permanentDid: permanentDid,
             );
     });
   }

@@ -91,12 +91,9 @@ class MediatorStreamSubscriptionWrapper
   }) {
     _listenerCount++;
 
-    final processingMessageIds = <String>{};
-
-    final inner = stream.listen(
+    return stream.listen(
       (message) async {
         final messageId = message.plainTextMessage.id;
-        processingMessageIds.add(messageId);
 
         try {
           final result = await onData(message);
@@ -118,28 +115,12 @@ class MediatorStreamSubscriptionWrapper
           _messageProcessingResults.putIfAbsent(messageId, () => []);
           _messageProcessingResults[messageId]!.add(false);
         } finally {
-          processingMessageIds.remove(messageId);
           _decrementActiveListenerCount(messageId);
         }
       },
       onError: onError,
       onDone: onDone,
       cancelOnError: cancelOnError,
-    );
-
-    return _ListenerCountedSubscription(
-      inner,
-      onCancel: () {
-        if (_listenerCount > 0) {
-          _listenerCount--;
-        }
-
-        for (final messageId in _activeListenerCounts.keys.toList()) {
-          if (!processingMessageIds.contains(messageId)) {
-            _decrementActiveListenerCount(messageId);
-          }
-        }
-      },
     );
   }
 
@@ -315,45 +296,4 @@ class MediatorStreamSubscriptionWrapper
       onDone: onDone,
     );
   }
-}
-
-class _ListenerCountedSubscription<T> implements StreamSubscription<T> {
-  _ListenerCountedSubscription(
-    this._inner, {
-    required void Function() onCancel,
-  }) : _onCancel = onCancel;
-
-  final StreamSubscription<T> _inner;
-  final void Function() _onCancel;
-  var _didCancel = false;
-
-  @override
-  Future<void> cancel() async {
-    if (!_didCancel) {
-      _didCancel = true;
-      _onCancel();
-    }
-    await _inner.cancel();
-  }
-
-  @override
-  Future<E> asFuture<E>([E? futureValue]) => _inner.asFuture(futureValue);
-
-  @override
-  bool get isPaused => _inner.isPaused;
-
-  @override
-  void onData(void Function(T data)? handleData) => _inner.onData(handleData);
-
-  @override
-  void onDone(void Function()? handleDone) => _inner.onDone(handleDone);
-
-  @override
-  void onError(Function? handleError) => _inner.onError(handleError);
-
-  @override
-  void pause([Future<void>? resumeSignal]) => _inner.pause(resumeSignal);
-
-  @override
-  void resume() => _inner.resume();
 }

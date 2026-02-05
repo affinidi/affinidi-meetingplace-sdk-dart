@@ -150,7 +150,8 @@ class Channel {
       status: status ?? this.status,
       contactCard: contactCard ?? this.contactCard,
       type: type ?? this.type,
-      otherPartyContactCard: otherPartyContactCard ?? this.otherPartyContactCard,
+      otherPartyContactCard:
+          otherPartyContactCard ?? this.otherPartyContactCard,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       acceptOfferDid: acceptOfferDid ?? this.acceptOfferDid,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,

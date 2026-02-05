@@ -1,13 +1,13 @@
 import '../meeting_place_core_sdk_options.dart';
 
 export '../meeting_place_core_sdk_options.dart'
-    show AttachmentProvider, AttachmentReceiver;
+    show OnBuildAttachmentsCallback, OnAttachmentsReceivedCallback;
 
 class ControlPlaneEventHandlerManagerOptions {
   const ControlPlaneEventHandlerManagerOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 5000),
-    this.attachmentProvider,
+    this.onBuildAttachments,
     this.onAttachmentsReceived,
   });
 
@@ -20,11 +20,11 @@ class ControlPlaneEventHandlerManagerOptions {
   /// This value sets the upper bound for the delay between retries.
   final Duration maxRetriesDelay;
 
-  /// Callback to provide attachments (e.g., R-Card credentials) to include
-  /// in outgoing connection messages during the channel inauguration process.
-  final AttachmentProvider? attachmentProvider;
+  /// Callback to build attachments (e.g., R-Card credentials) for outgoing
+  /// connection messages during the channel inauguration process.
+  final OnBuildAttachmentsCallback? onBuildAttachments;
 
   /// Callback invoked when attachments are received from the other party
   /// during connection establishment.
-  final AttachmentReceiver? onAttachmentsReceived;
+  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 }

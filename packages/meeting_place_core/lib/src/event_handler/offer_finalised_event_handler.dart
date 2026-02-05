@@ -87,8 +87,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           message.attachments,
         );
 
-        final incomingAttachments = message.attachments;
-
         final otherPartyPermanentChannelDid =
             message.body!['channel_did'] as String;
 
@@ -120,8 +118,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
             .resolveDid(otherPartyPermanentChannelDid);
 
         List<Attachment>? outgoingAttachments;
-        if (options.attachmentProvider != null) {
-          outgoingAttachments = await options.attachmentProvider!(channel);
+        if (options.onBuildAttachments != null) {
+          outgoingAttachments = await options.onBuildAttachments!(channel);
         }
 
         await mediatorService.sendMessage(
@@ -145,10 +143,10 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
-        if (incomingAttachments != null &&
-            incomingAttachments.isNotEmpty &&
+        if (message.attachments != null &&
+            message.attachments!.isNotEmpty &&
             options.onAttachmentsReceived != null) {
-          options.onAttachmentsReceived!(channel, incomingAttachments);
+          options.onAttachmentsReceived!(channel, message.attachments!);
         }
 
         final approvedConnection = connection.finalised(
@@ -201,7 +199,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       rethrow;
     }
   }
-
 
   Future<String> _registerNotificationToken(
     String myDid,

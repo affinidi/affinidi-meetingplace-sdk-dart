@@ -8,7 +8,6 @@ import '../utils/contact_card_converter.dart';
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
-import '../meeting_place_core_sdk_options.dart' show AttachmentProvider;
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/protocol.dart';
@@ -45,7 +44,6 @@ class ConnectionService {
     required MediatorAclService mediatorAclService,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
-    AttachmentProvider? attachmentProvider,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _channelRepository = channelRepository,
@@ -55,7 +53,6 @@ class ConnectionService {
        _mediatorAclService = mediatorAclService,
        _connectionOfferService = offerService,
        _didResolver = didResolver,
-       _attachmentProvider = attachmentProvider,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -69,7 +66,6 @@ class ConnectionService {
   final MediatorAclService _mediatorAclService;
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
-  final AttachmentProvider? _attachmentProvider;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
@@ -450,7 +446,7 @@ class ConnectionService {
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
       contactCard: acceptContactCard,
-      additionalAttachments: attachments,
+      attachments: attachments,
     );
 
     await _mediatorSDK.sendMessage(
@@ -498,6 +494,7 @@ class ConnectionService {
     required Wallet wallet,
     required Channel channel,
     List<Attachment>? attachments,
+    String? permanentDid,
   }) async {
     final methodName = 'approveConnectionRequest';
     _logger.info(
@@ -545,20 +542,12 @@ class ConnectionService {
       channel.publishOfferDid,
     );
 
-    final permanentChannelDid = await _connectionManager.generateDid(wallet);
+    final permanentChannelDid = permanentDid != null
+        ? await _connectionManager.getDidManagerForDid(wallet, permanentDid)
+        : await _connectionManager.generateDid(wallet);
 
     final permanentChannelDidDocument = await permanentChannelDid
         .getDidDocument();
-
-    final approvalChannel = channel.copyWith(
-      permanentChannelDid: permanentChannelDidDocument.id,
-    );
-
-    final effectiveAttachments =
-        attachments ??
-        (_attachmentProvider != null
-            ? await _attachmentProvider(approvalChannel)
-            : null);
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
@@ -568,7 +557,7 @@ class ConnectionService {
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
-      attachments: effectiveAttachments,
+      attachments: attachments,
     );
 
     final contactCard = channel.contactCard;
@@ -643,7 +632,7 @@ class ConnectionService {
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
       contactCard: contactCard,
-      additionalAttachments: attachments,
+      attachments: attachments,
     );
 
     final recipientDidDocument = await _didResolver.resolveDid(

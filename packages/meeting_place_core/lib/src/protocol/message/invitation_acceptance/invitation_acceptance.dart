@@ -12,7 +12,7 @@ class InvitationAcceptance {
     required String parentThreadId,
     required String channelDid,
     ContactCard? contactCard,
-    List<Attachment>? additionalAttachments,
+    List<Attachment>? attachments,
   }) {
     return InvitationAcceptance(
       id: const Uuid().v4(),
@@ -21,13 +21,13 @@ class InvitationAcceptance {
       parentThreadId: parentThreadId,
       body: InvitationAcceptanceBody(channelDid: channelDid),
       contactCard: contactCard,
-      additionalAttachments: additionalAttachments,
+      attachments: attachments,
     );
   }
 
   factory InvitationAcceptance.fromPlainTextMessage(PlainTextMessage message) {
     ContactCard? contactCard;
-    final additionalAttachments = <Attachment>[];
+    final attachments = <Attachment>[];
 
     if (message.attachments != null && message.attachments!.isNotEmpty) {
       for (final attachment in message.attachments!) {
@@ -37,7 +37,7 @@ class InvitationAcceptance {
             contactCard = ContactCard.fromBase64(base64);
           }
         } else {
-          additionalAttachments.add(attachment);
+          attachments.add(attachment);
         }
       }
     }
@@ -49,9 +49,7 @@ class InvitationAcceptance {
       parentThreadId: message.parentThreadId!,
       body: InvitationAcceptanceBody.fromJson(message.body!),
       contactCard: contactCard,
-      additionalAttachments: additionalAttachments.isEmpty
-          ? null
-          : additionalAttachments,
+      attachments: attachments.isEmpty ? null : attachments,
       createdTime: message.createdTime,
     );
   }
@@ -63,7 +61,7 @@ class InvitationAcceptance {
     required this.parentThreadId,
     required this.body,
     this.contactCard,
-    this.additionalAttachments,
+    this.attachments,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -73,7 +71,7 @@ class InvitationAcceptance {
   final String parentThreadId;
   final InvitationAcceptanceBody body;
   final ContactCard? contactCard;
-  final List<Attachment>? additionalAttachments;
+  final List<Attachment>? attachments;
   final DateTime createdTime;
 
   PlainTextMessage toPlainTextMessage() {
@@ -81,8 +79,8 @@ class InvitationAcceptance {
     if (contactCard != null) {
       attachmentsList.add(ContactCardHelper.vCardToAttachment(contactCard!));
     }
-    if (additionalAttachments != null) {
-      attachmentsList.addAll(additionalAttachments!);
+    if (attachments != null) {
+      attachmentsList.addAll(attachments!);
     }
 
     return PlainTextMessage(

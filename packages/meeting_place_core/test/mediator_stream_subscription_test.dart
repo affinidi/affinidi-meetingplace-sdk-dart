@@ -149,7 +149,7 @@ void main() async {
     final subscription = await aliceSDK.subscribeToMediator(
       aliceDidDoc.id,
       options: MediatorStreamSubscriptionOptions(
-        deleteMessageDelay: const Duration(milliseconds: 200),
+        deleteMessageDelay: const Duration(seconds: 2),
       ),
     );
 
@@ -172,7 +172,7 @@ void main() async {
     await waitForMessage.future.timeout(const Duration(seconds: 10));
     await subscription.dispose();
 
-    // Delay test execution to allow for message deletion to occur
+    // Wait for scheduled deletion to complete
     await Future.delayed(const Duration(seconds: 5));
     final messages = await aliceSDK.fetchMessages(
       did: aliceDidDoc.id,

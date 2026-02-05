@@ -963,6 +963,25 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  /// Updates the VRC score for a set of offers on the control plane.
+  ///
+  /// [vrcCount] – latest VRC score to set.
+  /// [offers] – offers whose score should be updated.
+  Future<void> updateVrcScoreForOffers({
+    required int vrcCount,
+    required List<ConnectionOffer> offers,
+  }) async {
+    return withSdkExceptionHandling(() async {
+      final mnemonics = offers.map((o) => o.mnemonic).toList();
+      await _controlPlaneSDK.execute(
+        UpdateOffersScoreCommand(
+          score: vrcCount,
+          offerLinksOrMnemonics: mnemonics,
+        ),
+      );
+    });
+  }
+
   /// Accepts an offer published by another party.
   ///
   /// **Parameters:**

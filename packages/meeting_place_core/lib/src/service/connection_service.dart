@@ -541,12 +541,7 @@ class ConnectionService {
       channel.publishOfferDid,
     );
 
-    final permanentChannelDid = channel.permanentChannelDid != null
-        ? await _connectionManager.getDidManagerForDid(
-            wallet,
-            channel.permanentChannelDid!,
-          )
-        : await _connectionManager.generateDid(wallet);
+    final permanentChannelDid = await _connectionManager.generateDid(wallet);
 
     final permanentChannelDidDocument = await permanentChannelDid
         .getDidDocument();

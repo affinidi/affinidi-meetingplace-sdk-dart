@@ -591,7 +591,7 @@ abstract class BaseChatSDK {
   }
 
   /// Sends a chat presence signal to the other party.
-  Future<void> sendChatPresence() async {
+  Future<void> sendChatPresence({bool notify = false}) async {
     final message = protocol.ChatPresence.create(
       from: did,
       to: [otherPartyDid],
@@ -603,6 +603,7 @@ abstract class BaseChatSDK {
       recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
       forwardExpiryInSeconds: options.chatPresenceExpiry.inSeconds,
+      notify: notify,
     );
   }
 

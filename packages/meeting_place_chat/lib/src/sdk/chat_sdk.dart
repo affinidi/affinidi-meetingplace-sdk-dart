@@ -17,7 +17,7 @@ abstract interface class ChatSDK {
   Future<void> sendMessage(PlainTextMessage message, {bool notify = false});
   Future<void> sendProfileHash();
   Future<void> sendChatActivity();
-  Future<void> sendChatPresence();
+  Future<void> sendChatPresence({bool notify = false});
   Future<void> sendEffect(Effect effect);
   Future<void> sendChatDeliveredMessage(PlainTextMessage message);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);

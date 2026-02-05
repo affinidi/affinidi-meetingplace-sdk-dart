@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../utils/attachment.dart';
 import '../../protocol.dart';
 import '../../contact_card/contact_card_helper.dart';
 import 'invitation_acceptance_body.dart';
@@ -26,21 +27,7 @@ class InvitationAcceptance {
   }
 
   factory InvitationAcceptance.fromPlainTextMessage(PlainTextMessage message) {
-    ContactCard? contactCard;
-    final attachments = <Attachment>[];
-
-    if (message.attachments != null && message.attachments!.isNotEmpty) {
-      for (final attachment in message.attachments!) {
-        if (attachment.format == AttachmentFormat.contactCard.value) {
-          final base64 = attachment.data?.base64;
-          if (base64 != null) {
-            contactCard = ContactCard.fromBase64(base64);
-          }
-        } else {
-          attachments.add(attachment);
-        }
-      }
-    }
+    final parsed = parseMessageAttachments(message.attachments);
 
     return InvitationAcceptance(
       id: message.id,
@@ -48,8 +35,8 @@ class InvitationAcceptance {
       to: message.to!,
       parentThreadId: message.parentThreadId!,
       body: InvitationAcceptanceBody.fromJson(message.body!),
-      contactCard: contactCard,
-      attachments: attachments.isEmpty ? null : attachments,
+      contactCard: parsed.contactCard,
+      attachments: parsed.attachments,
       createdTime: message.createdTime,
     );
   }

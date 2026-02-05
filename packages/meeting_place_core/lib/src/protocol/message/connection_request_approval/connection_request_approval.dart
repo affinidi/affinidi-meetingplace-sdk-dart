@@ -1,10 +1,10 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../utils/attachment.dart';
 import '../../contact_card/contact_card.dart';
 import '../../meeting_place_protocol.dart';
 import '../../contact_card/contact_card_helper.dart';
-import '../../attachment/attachment_format.dart';
 import 'connection_request_approval_body.dart';
 
 class ConnectionRequestApproval {
@@ -30,21 +30,7 @@ class ConnectionRequestApproval {
   factory ConnectionRequestApproval.fromPlainTextMessage(
     PlainTextMessage message,
   ) {
-    ContactCard? contactCard;
-    final attachments = <Attachment>[];
-
-    if (message.attachments != null && message.attachments!.isNotEmpty) {
-      for (final attachment in message.attachments!) {
-        if (attachment.format == AttachmentFormat.contactCard.value) {
-          final base64 = attachment.data?.base64;
-          if (base64 != null) {
-            contactCard = ContactCard.fromBase64(base64);
-          }
-        } else {
-          attachments.add(attachment);
-        }
-      }
-    }
+    final parsed = parseMessageAttachments(message.attachments);
 
     return ConnectionRequestApproval(
       id: message.id,
@@ -52,8 +38,8 @@ class ConnectionRequestApproval {
       to: message.to!,
       parentThreadId: message.parentThreadId!,
       body: ConnectionRequestApprovalBody.fromJson(message.body!),
-      contactCard: contactCard,
-      attachments: attachments.isEmpty ? null : attachments,
+      contactCard: parsed.contactCard,
+      attachments: parsed.attachments,
       createdTime: message.createdTime,
     );
   }

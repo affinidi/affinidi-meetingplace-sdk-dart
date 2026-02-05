@@ -703,18 +703,19 @@ class MeetingPlaceCoreSDK {
           plainTextMessage.attachments,
         );
 
-        final incomingAttachments = plainTextMessage.attachments;
-
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
         channel.otherPartyContactCard = otherPartyCard;
         channel.status = ChannelStatus.inaugurated;
 
         await _repositoryConfig.channelRepository.updateChannel(channel);
 
-        if (incomingAttachments != null &&
-            incomingAttachments.isNotEmpty &&
+        if (plainTextMessage.attachments != null &&
+            plainTextMessage.attachments!.isNotEmpty &&
             options.onAttachmentsReceived != null) {
-          options.onAttachmentsReceived!(channel, incomingAttachments);
+          options.onAttachmentsReceived!(
+            channel,
+            plainTextMessage.attachments!,
+          );
         }
 
         _controlPlaneEventStreamManager.pushEvent(

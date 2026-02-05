@@ -37,6 +37,7 @@ class MeetingPlaceCoreSDKOptions {
     ],
     this.onBuildAttachments,
     this.onAttachmentsReceived,
+    this.chatActivityMessageTypes = const [],
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -121,4 +122,10 @@ class MeetingPlaceCoreSDKOptions {
   /// When provided, this callback is invoked by event handlers after they
   /// receive and process incoming attachments from connection messages.
   final OnAttachmentsReceivedCallback? onAttachmentsReceived;
+
+  /// The list of message types that are considered relevant for chat activity.
+  /// When processing channel activity events, only messages with these types
+  /// will be considered for updating the channel's message synchronization
+  /// marker and sequence number.
+  final List<String> chatActivityMessageTypes;
 }

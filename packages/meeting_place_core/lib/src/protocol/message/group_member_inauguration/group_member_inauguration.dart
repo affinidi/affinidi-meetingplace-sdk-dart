@@ -81,7 +81,7 @@ class GroupMemberInauguration {
               Attachment(
                 id: const Uuid().v4(),
                 format: AttachmentFormat.contactCard.value,
-                mediaType: AttachmentMediaType.textContactCard.value,
+                mediaType: AttachmentMediaType.json.value,
                 description: 'Contact card info',
                 data: AttachmentData(base64: contactCard!.toBase64()),
               ),

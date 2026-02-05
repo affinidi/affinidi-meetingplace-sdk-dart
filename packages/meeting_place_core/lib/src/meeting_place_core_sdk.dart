@@ -308,6 +308,12 @@ class MeetingPlaceCoreSDK {
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
         onBuildAttachments: options.onBuildAttachments,
         onAttachmentsReceived: options.onAttachmentsReceived,
+        chatActivityMessageTypes: [
+          ...ControlPlaneEventHandlerManagerOptions
+              .defaults
+              .chatActivityMessageTypes,
+          ...options.chatActivityMessageTypes,
+        ],
       ),
       logger: mpxLogger,
     );

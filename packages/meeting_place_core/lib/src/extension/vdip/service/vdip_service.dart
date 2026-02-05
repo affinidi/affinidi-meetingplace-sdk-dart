@@ -7,6 +7,7 @@ import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../meeting_place_core.dart';
+import '../../../protocol/attachment/sequence_no_attachment.dart';
 import '../../../utils/error_handler_utils.dart';
 import '../meeting_place_core_sdk_vdip_exception.dart';
 
@@ -61,20 +62,27 @@ class VdipService {
       holderDidManager.assertionMethod.first,
     );
 
+    channel.increaseSeqNo();
+
     await retry(
       () async {
         final message = await vdipHolder.requestCredentialForHolder(
           holderDid,
           issuerDid: otherPartyPermanentChannelDid,
           assertionSigner: assertionSigner,
-          attachments: attachments,
           options: options,
+          attachments: [
+            ...?attachments,
+            SequenceNoAttachment.create(seqNo: channel.seqNo),
+          ],
         );
 
         _sdk.logger.info(
           'Sent credential request message with ID: ${jsonEncode(message.body)}',
           name: 'requestCredential',
         );
+
+        await _sdk.updateChannel(channel);
       },
       retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
       onRetry: (e) => _sdk.logger.warning(
@@ -83,7 +91,7 @@ class VdipService {
       ),
     );
 
-    // unawaited(_notifyChannel(channel));
+    unawaited(_notifyChannel(channel));
     return waitForCredential.future;
   }
 
@@ -139,18 +147,25 @@ class VdipService {
       featureDisclosures: [],
     );
 
+    channel.increaseSeqNo();
+
     await retry(
       () async {
         final message = await vdipIssuer.sendIssuedCredentials(
           holderDid: otherPartyPermanentChannelDid,
           verifiableCredential: verifiableCredential,
-          attachments: attachments,
+          attachments: [
+            ...?attachments,
+            SequenceNoAttachment.create(seqNo: channel.seqNo),
+          ],
         );
 
         _sdk.logger.info(
           'Issued credential message sent with ID: ${jsonEncode(message.body)}',
           name: 'issueCredential',
         );
+
+        await _sdk.updateChannel(channel);
       },
       retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
       onRetry: (e) => _sdk.logger.warning(
@@ -159,7 +174,7 @@ class VdipService {
       ),
     );
 
-    // unawaited(_notifyChannel(channel));
+    unawaited(_notifyChannel(channel));
   }
 
   Future<VdipHolder> _initVdipHolderClient({
@@ -206,33 +221,33 @@ class VdipService {
     );
   }
 
-  // Future<void> _notifyChannel(Channel channel) async {
-  //   try {
-  //     if (channel.otherPartyNotificationToken == null) return;
+  Future<void> _notifyChannel(Channel channel) async {
+    try {
+      if (channel.otherPartyNotificationToken == null) return;
 
-  //     await _sdk.discovery.notifyChannel(
-  //       notificationToken: channel.otherPartyNotificationToken!,
-  //       did: channel.otherPartyPermanentChannelDid!,
-  //       type: NotifyChannelType.chatActivity,
-  //     );
-  //   } on MeetingPlaceCoreSDKException catch (e) {
-  //     final isNotificationError =
-  //         e.code ==
-  //         MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
+      await _sdk.discovery.notifyChannel(
+        notificationToken: channel.otherPartyNotificationToken!,
+        did: channel.otherPartyPermanentChannelDid!,
+        type: NotifyChannelType.chatActivity,
+      );
+    } on MeetingPlaceCoreSDKException catch (e) {
+      final isNotificationError =
+          e.code ==
+          MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
 
-  //     if (!isNotificationError) {
-  //       _sdk.logger.error(
-  //         'Failed to send message with notification',
-  //         error: e,
-  //         name: '_notifyChannel',
-  //       );
-  //       rethrow;
-  //     }
+      if (!isNotificationError) {
+        _sdk.logger.error(
+          'Failed to send message with notification',
+          error: e,
+          name: '_notifyChannel',
+        );
+        rethrow;
+      }
 
-  //     _sdk.logger.warning(
-  //       'Failed to send notification ',
-  //       name: '_notifyChannel',
-  //     );
-  //   }
-  // }
+      _sdk.logger.warning(
+        'Failed to send notification ',
+        name: '_notifyChannel',
+      );
+    }
+  }
 }

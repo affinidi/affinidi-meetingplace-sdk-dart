@@ -154,12 +154,12 @@ void main() async {
     );
 
     var messageCount = 0;
-    final waitForMesage = Completer<void>();
+    final waitForMessage = Completer<void>();
     subscription.listen((message) {
-      messageCount++;
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
+        messageCount++;
         if (messageCount == 3) {
-          waitForMesage.complete();
+          waitForMessage.complete();
         }
       }
       return MediatorStreamProcessingResult(keepMessage: false);
@@ -169,7 +169,7 @@ void main() async {
     await sendMessageFromBobToAlice();
     await sendMessageFromBobToAlice();
 
-    await waitForMesage.future.timeout(const Duration(seconds: 10));
+    await waitForMessage.future.timeout(const Duration(seconds: 10));
     await subscription.dispose();
 
     // Delay test execution to allow for message deletion to occur

@@ -188,7 +188,7 @@ class $ChatItemsTable extends ChatItems
   static TypeConverter<ConciergeMessageType?, int?> $converterconciergeTypen =
       NullAwareTypeConverter.wrap($converterconciergeType);
   static TypeConverter<Map<String, dynamic>, String> $converterdata =
-      const _ConciergeDataConverter();
+      const _MessageBodyDataConverter();
   static TypeConverter<Map<String, dynamic>?, String?> $converterdatan =
       NullAwareTypeConverter.wrap($converterdata);
 }

@@ -133,6 +133,7 @@ class Message extends ChatItem {
   /// (default: empty list).
   /// - [reactions]: Optional list of reactions applied to the message
   /// (default: empty list).
+  ///  - [data]: Optional metadata associated with the message.
   Message({
     required super.chatId,
     required super.messageId,
@@ -142,6 +143,7 @@ class Message extends ChatItem {
     required super.status,
     super.type = ChatItemType.message,
     required this.value,
+    this.data = const {},
     this.attachments = const [],
     List<String> reactions = const [],
   }) : reactions = [...reactions];
@@ -154,6 +156,9 @@ class Message extends ChatItem {
 
   /// List of reactions applied to this message.
   List<String> reactions;
+
+  /// Metadata associated with the message.
+  final Map<String, dynamic>? data;
 
   /// Serializes this [Message] into a JSON object.
   ///

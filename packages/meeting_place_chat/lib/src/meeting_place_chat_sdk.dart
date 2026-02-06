@@ -240,4 +240,22 @@ class MeetingPlaceChatSDK implements ChatSDK {
   Future<void> createChatMessageFromIssuedCredential({
     required List<Attachment> attachments,
   }) => _sdk.createChatMessageFromIssuedCredential(attachments: attachments);
+
+  @override
+  Future<void> sendSurveyQuestion({
+    required String questionText,
+    required List<String> suggestions,
+  }) => _sdk.sendSurveyQuestion(
+    questionText: questionText,
+    suggestions: suggestions,
+  );
+
+  @override
+  Future<void> sendSurveyResponse({
+    required String response,
+    required String parentMessageId,
+  }) => _sdk.sendSurveyResponse(
+    response: response,
+    parentMessageId: parentMessageId,
+  );
 }

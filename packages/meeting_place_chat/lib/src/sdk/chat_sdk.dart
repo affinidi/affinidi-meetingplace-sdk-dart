@@ -18,6 +18,14 @@ abstract interface class ChatSDK {
   Future<void> sendProfileHash();
   Future<void> sendChatActivity();
   Future<void> sendChatPresence({bool notify = false});
+  Future<void> sendSurveyQuestion({
+    required String questionText,
+    required List<String> suggestions,
+  });
+  Future<void> sendSurveyResponse({
+    required String response,
+    required String parentMessageId,
+  });
   Future<void> sendEffect(Effect effect);
   Future<void> sendChatDeliveredMessage(PlainTextMessage message);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
+import 'package:collection/collection.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 
+import '../../meeting_place_core.dart';
 import 'base_event_handler.dart';
-import '../entity/channel.dart';
 import '../service/mediator/fetch_messages_options.dart';
 
 class ChatActivityEventHandler extends BaseEventHandler {
@@ -37,16 +40,13 @@ class ChatActivityEventHandler extends BaseEventHandler {
           startFrom: messageSyncMarker,
           batchSize: 100,
           deleteOnRetrieve: false,
-          // TODO: fix interdependency - make configurable via SDK options
-          filterByMessageTypes: [
-            'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
-          ],
+          filterByMessageTypes: options.chatActivityMessageTypes,
         ),
       );
 
       for (final message in messages) {
-        final messageSeqNumber =
-            message.seqNo ?? message.plainTextMessage.body?['seq_no'];
+        final messageSeqNumber = _getMessageSeqNumber(message);
+        if (messageSeqNumber == null) continue;
 
         if (messageSeqNumber > channel.seqNo) {
           channel.seqNo = messageSeqNumber;
@@ -78,5 +78,29 @@ class ChatActivityEventHandler extends BaseEventHandler {
       );
       rethrow;
     }
+  }
+
+  int? _getMessageSeqNumber(MediatorMessage message) {
+    if (message.seqNo != null) {
+      return message.seqNo!;
+    }
+
+    final seqNoFromBody = message.plainTextMessage.body?['seq_no'] as int?;
+    if (seqNoFromBody != null) {
+      return seqNoFromBody;
+    }
+
+    return _getSeqNoFromAttachment(message);
+  }
+
+  int? _getSeqNoFromAttachment(MediatorMessage message) {
+    final attachment = message.plainTextMessage.attachments?.firstWhereOrNull(
+      (attachment) => attachment.format == AttachmentFormat.seqNo.value,
+    );
+
+    if (attachment?.data?.json == null) return null;
+
+    final json = jsonDecode(attachment!.data!.json!);
+    return json['seq_no'] as int?;
   }
 }

@@ -9,7 +9,13 @@ class ControlPlaneEventHandlerManagerOptions {
     this.maxRetriesDelay = const Duration(milliseconds: 5000),
     this.onBuildAttachments,
     this.onAttachmentsReceived,
+    this.chatActivityMessageTypes = const [
+      'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
+    ],
   });
+
+  /// Default options instance
+  static const defaults = ControlPlaneEventHandlerManagerOptions();
 
   /// The number of retry attempts for a request when a network issue occurs.
   /// If a request fails due to a network error, it will be retried up to this
@@ -27,4 +33,10 @@ class ControlPlaneEventHandlerManagerOptions {
   /// Callback invoked when attachments are received from the other party
   /// during connection establishment.
   final OnAttachmentsReceivedCallback? onAttachmentsReceived;
+
+  /// The list of message types that are considered relevant for chat activity.
+  /// When processing channel activity events, only messages with these types
+  /// will be considered for updating the channel's message synchronization
+  /// marker and sequence number.
+  final List<String> chatActivityMessageTypes;
 }

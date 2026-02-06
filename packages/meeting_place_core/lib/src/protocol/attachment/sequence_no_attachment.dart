@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import 'package:didcomm/didcomm.dart';
 import 'attachment_media_type.dart';
 import 'attachment_format.dart';
 import 'package:uuid/uuid.dart';
 
-class ContactCardAttachment extends Attachment {
-  ContactCardAttachment({
+class SequenceNoAttachment extends Attachment {
+  SequenceNoAttachment({
     super.id,
     super.description,
     super.mediaType,
@@ -12,16 +14,14 @@ class ContactCardAttachment extends Attachment {
     super.data,
   });
 
-  factory ContactCardAttachment.create({
-    required AttachmentData data,
-    String? description,
-  }) {
-    return ContactCardAttachment(
+  factory SequenceNoAttachment.create({required int seqNo}) {
+    return SequenceNoAttachment(
       id: const Uuid().v4(),
-      format: AttachmentFormat.contactCard.value,
+      format: AttachmentFormat.seqNo.value,
       mediaType: AttachmentMediaType.json.value,
-      description: description,
-      data: data,
+      data: AttachmentData.fromJson({
+        'json': jsonEncode({'seq_no': seqNo}),
+      }),
     );
   }
 }

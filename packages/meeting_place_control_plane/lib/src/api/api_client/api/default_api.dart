@@ -2605,19 +2605,18 @@ class DefaultApi {
       'offerLinks': offerLinksOrMnemonics,
     };
 
-    Response<JsonObject> toSuccess(
-      Response<dynamic> r, [
-      RequestOptions? opts,
-    ]) => Response<JsonObject>(
-      data: null,
-      headers: r.headers,
-      isRedirect: r.isRedirect,
-      requestOptions: opts ?? r.requestOptions,
-      redirects: r.redirects,
-      statusCode: r.statusCode,
-      statusMessage: r.statusMessage,
-      extra: r.extra,
-    );
+    Response<JsonObject> toSuccess(Response<dynamic> r,
+            [RequestOptions? opts]) =>
+        Response<JsonObject>(
+          data: null,
+          headers: r.headers,
+          isRedirect: r.isRedirect,
+          requestOptions: opts ?? r.requestOptions,
+          redirects: r.redirects,
+          statusCode: r.statusCode,
+          statusMessage: r.statusMessage,
+          extra: r.extra,
+        );
 
     try {
       final res = await _dio.request<Object>(
@@ -2632,10 +2631,7 @@ class DefaultApi {
     } on DioException catch (e) {
       final r = e.response;
       final code = r?.statusCode ?? 0;
-      if (r != null &&
-          code >= 200 &&
-          code < 300 &&
-          e.error is FormatException) {
+      if (r != null && code >= 200 && code < 300 && e.error is FormatException) {
         return toSuccess(r, e.requestOptions);
       }
       rethrow;

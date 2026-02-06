@@ -14,6 +14,7 @@ class ChatActivityEventHandler extends BaseEventHandler {
     required super.connectionManager,
     required super.connectionOfferRepository,
     required super.channelRepository,
+    required super.options,
     required super.logger,
   });
 

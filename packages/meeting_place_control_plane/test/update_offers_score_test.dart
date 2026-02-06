@@ -28,90 +28,87 @@ void main() {
     registerFallbackValue(RequestOptions(path: '/v1/update-offers-score'));
   });
 
-  test('handle calls API with score and offer links and returns updatedOffers and failedOffers',
-      () async {
-    when(
-      () => mockDefaultApi.updateOffersScore(
-        score: any(named: 'score'),
-        offerLinksOrMnemonics: any(named: 'offerLinksOrMnemonics'),
-      ),
-    ).thenAnswer((_) async => Response<JsonObject>(
+  test(
+    'handle calls API with score and offer links and returns updatedOffers and failedOffers',
+    () async {
+      when(
+        () => mockDefaultApi.updateOffersScore(
+          score: any(named: 'score'),
+          mnemonics: any(named: 'mnemonics'),
+        ),
+      ).thenAnswer(
+        (_) async => Response<JsonObject>(
           requestOptions: RequestOptions(path: '/v1/update-offers-score'),
           statusCode: 200,
           data: JsonObject(<String, dynamic>{
             'updatedOffers': ['link1', 'mnemonic2'],
             'failedOffers': <Map<String, dynamic>>[],
           }),
-        ));
+        ),
+      );
 
-    final command = UpdateOffersScoreCommand(
-      score: 2,
-      offerLinksOrMnemonics: ['link1', 'mnemonic2'],
-    );
-
-    final result = await handler.handle(command);
-
-    expect(result.updatedOffers, ['link1', 'mnemonic2']);
-    expect(result.failedOffers, isEmpty);
-    verify(
-      () => mockDefaultApi.updateOffersScore(
+      final command = UpdateOffersScoreCommand(
         score: 2,
-        offerLinksOrMnemonics: ['link1', 'mnemonic2'],
-      ),
-    ).called(1);
-  });
+        mnemonics: ['link1', 'mnemonic2'],
+      );
+
+      final result = await handler.handle(command);
+
+      expect(result.updatedOffers, ['link1', 'mnemonic2']);
+      expect(result.failedOffers, isEmpty);
+      verify(
+        () => mockDefaultApi.updateOffersScore(
+          score: 2,
+          mnemonics: ['link1', 'mnemonic2'],
+        ),
+      ).called(1);
+    },
+  );
 
   test('handle parses failedOffers from response', () async {
     when(
       () => mockDefaultApi.updateOffersScore(
         score: any(named: 'score'),
-        offerLinksOrMnemonics: any(named: 'offerLinksOrMnemonics'),
+        mnemonics: any(named: 'mnemonics'),
       ),
-    ).thenAnswer((_) async => Response<JsonObject>(
-          requestOptions: RequestOptions(path: '/v1/update-offers-score'),
-          statusCode: 200,
-          data: JsonObject(<String, dynamic>{
-            'updatedOffers': ['ok1'],
-            'failedOffers': <Map<String, dynamic>>[
-              <String, dynamic>{
-                'mnemonic': 'fail1',
-                'reason': 'NOT_FOUND',
-              },
-            ],
-          }),
-        ));
+    ).thenAnswer(
+      (_) async => Response<JsonObject>(
+        requestOptions: RequestOptions(path: '/v1/update-offers-score'),
+        statusCode: 200,
+        data: JsonObject(<String, dynamic>{
+          'updatedOffers': ['ok1'],
+          'failedOffers': <Map<String, dynamic>>[
+            <String, dynamic>{'mnemonic': 'fail1'},
+          ],
+        }),
+      ),
+    );
 
-    final result = await handler.handle(UpdateOffersScoreCommand(
-      score: 1,
-      offerLinksOrMnemonics: ['ok1', 'fail1'],
-    ));
+    final result = await handler.handle(
+      UpdateOffersScoreCommand(score: 1, mnemonics: ['ok1', 'fail1']),
+    );
 
     expect(result.updatedOffers, ['ok1']);
     expect(result.failedOffers.length, 1);
     expect(result.failedOffers.first.mnemonic, 'fail1');
-    expect(result.failedOffers.first.reason, 'NOT_FOUND');
   });
 
   test('handle throws on non-2xx response', () async {
     when(
       () => mockDefaultApi.updateOffersScore(
         score: any(named: 'score'),
-        offerLinksOrMnemonics: any(named: 'offerLinksOrMnemonics'),
+        mnemonics: any(named: 'mnemonics'),
       ),
-    ).thenAnswer((_) async => Response<JsonObject>(
-          requestOptions: RequestOptions(path: '/v1/update-offers-score'),
-          statusCode: 400,
-          data: null,
-        ));
-
-    final command = UpdateOffersScoreCommand(
-      score: 1,
-      offerLinksOrMnemonics: ['offer1'],
+    ).thenAnswer(
+      (_) async => Response<JsonObject>(
+        requestOptions: RequestOptions(path: '/v1/update-offers-score'),
+        statusCode: 400,
+        data: null,
+      ),
     );
 
-    expect(
-      () => handler.handle(command),
-      throwsA(isA<DioException>()),
-    );
+    final command = UpdateOffersScoreCommand(score: 1, mnemonics: ['offer1']);
+
+    expect(() => handler.handle(command), throwsA(isA<DioException>()));
   });
 }

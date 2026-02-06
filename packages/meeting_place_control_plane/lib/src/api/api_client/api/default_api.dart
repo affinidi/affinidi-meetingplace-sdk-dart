@@ -2560,7 +2560,7 @@ class DefaultApi {
   ///
   /// Parameters:
   /// * [score] - Latest score (VRC count) to set.
-  /// * [offerLinksOrMnemonics] - List of offerLinks or mnemonics to update.
+  /// * [mnemonics] - List of offer mnemonics to update.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2572,7 +2572,7 @@ class DefaultApi {
   /// Throws [DioException] if API call or serialization fails
   Future<Response<JsonObject>> updateOffersScore({
     required int score,
-    required List<String> offerLinksOrMnemonics,
+    required List<String> mnemonics,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -2600,23 +2600,21 @@ class DefaultApi {
       validateStatus: validateStatus,
     );
 
-    final _bodyData = <String, dynamic>{
-      'score': score,
-      'offerLinks': offerLinksOrMnemonics,
-    };
+    final _bodyData = <String, dynamic>{'score': score, 'mnemonics': mnemonics};
 
-    Response<JsonObject> toSuccess(Response<dynamic> r,
-            [RequestOptions? opts]) =>
-        Response<JsonObject>(
-          data: null,
-          headers: r.headers,
-          isRedirect: r.isRedirect,
-          requestOptions: opts ?? r.requestOptions,
-          redirects: r.redirects,
-          statusCode: r.statusCode,
-          statusMessage: r.statusMessage,
-          extra: r.extra,
-        );
+    Response<JsonObject> toSuccess(
+      Response<dynamic> r, [
+      RequestOptions? opts,
+    ]) => Response<JsonObject>(
+      data: null,
+      headers: r.headers,
+      isRedirect: r.isRedirect,
+      requestOptions: opts ?? r.requestOptions,
+      redirects: r.redirects,
+      statusCode: r.statusCode,
+      statusMessage: r.statusMessage,
+      extra: r.extra,
+    );
 
     try {
       final res = await _dio.request<Object>(
@@ -2631,7 +2629,10 @@ class DefaultApi {
     } on DioException catch (e) {
       final r = e.response;
       final code = r?.statusCode ?? 0;
-      if (r != null && code >= 200 && code < 300 && e.error is FormatException) {
+      if (r != null &&
+          code >= 200 &&
+          code < 300 &&
+          e.error is FormatException) {
         return toSuccess(r, e.requestOptions);
       }
       rethrow;

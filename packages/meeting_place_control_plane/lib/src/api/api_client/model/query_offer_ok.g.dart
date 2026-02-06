@@ -39,6 +39,8 @@ class _$QueryOfferOK extends QueryOfferOK {
   final String? groupId;
   @override
   final String? groupDid;
+  @override
+  final int? reputation;
 
   factory _$QueryOfferOK([void Function(QueryOfferOKBuilder)? updates]) =>
       (QueryOfferOKBuilder()..update(updates))._build();
@@ -60,6 +62,7 @@ class _$QueryOfferOK extends QueryOfferOK {
     this.maximumUsage,
     this.groupId,
     this.groupDid,
+    this.reputation,
   }) : super._();
   @override
   QueryOfferOK rebuild(void Function(QueryOfferOKBuilder) updates) =>
@@ -87,7 +90,8 @@ class _$QueryOfferOK extends QueryOfferOK {
         didcommMessage == other.didcommMessage &&
         maximumUsage == other.maximumUsage &&
         groupId == other.groupId &&
-        groupDid == other.groupDid;
+        groupDid == other.groupDid &&
+        reputation == other.reputation;
   }
 
   @override
@@ -109,6 +113,7 @@ class _$QueryOfferOK extends QueryOfferOK {
     _$hash = $jc(_$hash, maximumUsage.hashCode);
     _$hash = $jc(_$hash, groupId.hashCode);
     _$hash = $jc(_$hash, groupDid.hashCode);
+    _$hash = $jc(_$hash, reputation.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -131,7 +136,8 @@ class _$QueryOfferOK extends QueryOfferOK {
           ..add('didcommMessage', didcommMessage)
           ..add('maximumUsage', maximumUsage)
           ..add('groupId', groupId)
-          ..add('groupDid', groupDid))
+          ..add('groupDid', groupDid)
+          ..add('reputation', reputation))
         .toString();
   }
 }
@@ -208,6 +214,10 @@ class QueryOfferOKBuilder
   String? get groupDid => _$this._groupDid;
   set groupDid(String? groupDid) => _$this._groupDid = groupDid;
 
+  int? _reputation;
+  int? get reputation => _$this._reputation;
+  set reputation(int? reputation) => _$this._reputation = reputation;
+
   QueryOfferOKBuilder() {
     QueryOfferOK._defaults(this);
   }
@@ -231,6 +241,7 @@ class QueryOfferOKBuilder
       _maximumUsage = $v.maximumUsage;
       _groupId = $v.groupId;
       _groupDid = $v.groupDid;
+      _reputation = $v.reputation;
       _$v = null;
     }
     return this;
@@ -309,6 +320,7 @@ class QueryOfferOKBuilder
           maximumUsage: maximumUsage,
           groupId: groupId,
           groupDid: groupDid,
+          reputation: reputation,
         );
     replace(_$result);
     return _$result;

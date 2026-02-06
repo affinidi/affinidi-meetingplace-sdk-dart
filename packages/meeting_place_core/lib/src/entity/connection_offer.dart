@@ -41,6 +41,7 @@ class ConnectionOffer {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.externalRef,
+    this.reputation,
   });
 
   factory ConnectionOffer.fromJson(Map<String, dynamic> json) {
@@ -79,6 +80,9 @@ class ConnectionOffer {
 
   final String? externalRef;
 
+  /// Publisher reputation (e.g. VRC count) at the time the offer was queried.
+  final int? reputation;
+
   Map<String, dynamic> toJson() {
     return _$ConnectionOfferToJson(this);
   }
@@ -100,6 +104,7 @@ class ConnectionOffer {
     int? maximumUsage,
     String? externalRef,
     DateTime? createdAt,
+    int? reputation,
   }) {
     return ConnectionOffer(
       offerLink: offerLink,
@@ -125,6 +130,7 @@ class ConnectionOffer {
       externalRef: externalRef ?? this.externalRef,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
+      reputation: reputation ?? this.reputation,
     );
   }
 

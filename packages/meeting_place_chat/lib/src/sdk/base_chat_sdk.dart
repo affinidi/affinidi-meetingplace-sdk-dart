@@ -205,6 +205,14 @@ abstract class BaseChatSDK {
       unawaited(sendChatDeliveredMessage(message.plainTextMessage));
     }
 
+    if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
+      final seqNo = message.messageSequenceNumber;
+      if (seqNo != null && seqNo > channel.seqNo) {
+        channel.seqNo = seqNo;
+        await coreSDK.updateChannel(channel);
+      }
+    }
+
     // TODO: pass all incoming messages to SDK consumer - this specific
     // handling is only used to make it work for now
     if (message.plainTextMessage.isOfType(
@@ -233,19 +241,11 @@ abstract class BaseChatSDK {
       ChatProtocol.chatMessage,
     )) {
       _logger.info('Handling chat message', name: methodName);
-      final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
-
       final chatMessage = Message.fromReceivedMessage(
         message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
         chatId: chatId,
       );
       await chatRepository.createMessage(chatMessage);
-
-      if (sequenceNumber > channel.seqNo) {
-        channel.seqNo = sequenceNumber;
-        await coreSDK.updateChannel(channel);
-      }
 
       chatStream.pushData(
         StreamData(
@@ -654,6 +654,12 @@ abstract class BaseChatSDK {
   bool _requiresAcknowledgement(PlainTextMessage message) {
     return options.requiresAcknowledgement.contains(
       ChatProtocol.byValue(message.type.toString()),
+    );
+  }
+
+  bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
+    return coreSDK.options.messageTypesForSequenceTracking.contains(
+      message.type.toString(),
     );
   }
 

@@ -37,7 +37,7 @@ class MeetingPlaceCoreSDKOptions {
     ],
     this.onBuildAttachments,
     this.onAttachmentsReceived,
-    this.chatActivityMessageTypes = const [],
+    this.messageTypesForSequenceTracking = const [],
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -123,9 +123,9 @@ class MeetingPlaceCoreSDKOptions {
   /// receive and process incoming attachments from connection messages.
   final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 
-  /// The list of message types that are considered relevant for chat activity.
-  /// When processing channel activity events, only messages with these types
-  /// will be considered for updating the channel's message synchronization
-  /// marker and sequence number.
-  final List<String> chatActivityMessageTypes;
+  /// List of message types for which the SDK should track sequence numbers
+  /// and update the channel's `seqNo` accordingly.
+  /// This is used to ensure that the channel's `seqNo` is updated for messages
+  /// that require sequence tracking.
+  final List<String> messageTypesForSequenceTracking;
 }

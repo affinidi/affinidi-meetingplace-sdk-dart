@@ -209,19 +209,11 @@ abstract class BaseChatSDK {
       ChatProtocol.chatMessage,
     )) {
       _logger.info('Handling chat message', name: methodName);
-      final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
-
       final chatMessage = Message.fromReceivedMessage(
         message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
         chatId: chatId,
       );
       await chatRepository.createMessage(chatMessage);
-
-      if (sequenceNumber > channel.seqNo) {
-        channel.seqNo = sequenceNumber;
-        await coreSDK.updateChannel(channel);
-      }
 
       chatStream.pushData(
         StreamData(
@@ -592,6 +584,12 @@ abstract class BaseChatSDK {
   bool _requiresAcknowledgement(PlainTextMessage message) {
     return options.requiresAcknowledgement.contains(
       ChatProtocol.byValue(message.type.toString()),
+    );
+  }
+
+  bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
+    return coreSDK.options.messageTypesForSequenceTracking.contains(
+      message.type.toString(),
     );
   }
 

@@ -37,16 +37,13 @@ class ChatActivityEventHandler extends BaseEventHandler {
           startFrom: messageSyncMarker,
           batchSize: 100,
           deleteOnRetrieve: false,
-          // TODO: fix interdependency - make configurable via SDK options
-          filterByMessageTypes: [
-            'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
-          ],
+          filterByMessageTypes: options.messageTypesForSequenceTracking,
         ),
       );
 
       for (final message in messages) {
-        final messageSeqNumber =
-            message.seqNo ?? message.plainTextMessage.body?['seq_no'];
+        final messageSeqNumber = message.messageSequenceNumber;
+        if (messageSeqNumber == null) continue;
 
         if (messageSeqNumber > channel.seqNo) {
           channel.seqNo = messageSeqNumber;

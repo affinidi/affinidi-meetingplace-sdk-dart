@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:didcomm/didcomm.dart';
 
 import '../../loggers/meeting_place_core_sdk_logger.dart';
+import '../../protocol/attachment/attachment_format.dart';
 import '../../protocol/message/plaintext_message_extension.dart';
 import '../../protocol/meeting_place_protocol.dart';
 import '../../protocol/protocol.dart' as protocol;
@@ -48,6 +50,30 @@ class MediatorMessage {
     }
 
     return MediatorMessage(plainTextMessage: message, messageHash: messageHash);
+  }
+
+  int? get messageSequenceNumber {
+    if (seqNo != null) {
+      return seqNo;
+    }
+
+    final seqNoFromBody = plainTextMessage.body?['seq_no'] as int?;
+    if (seqNoFromBody != null) {
+      return seqNoFromBody;
+    }
+
+    return _getSeqNoFromAttachment();
+  }
+
+  int? _getSeqNoFromAttachment() {
+    final attachment = plainTextMessage.attachments?.firstWhereOrNull(
+      (attachment) => attachment.format == AttachmentFormat.seqNo.value,
+    );
+
+    if (attachment?.data?.json == null) return null;
+
+    final json = jsonDecode(attachment!.data!.json!);
+    return json['seq_no'] as int?;
   }
 
   static Future<PlainTextMessage> _decryptGroupMessage(

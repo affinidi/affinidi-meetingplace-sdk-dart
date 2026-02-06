@@ -316,6 +316,14 @@ class MeetingPlaceCoreSDK {
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
+        onBuildAttachments: options.onBuildAttachments,
+        onAttachmentsReceived: options.onAttachmentsReceived,
+        messageTypesForSequenceTracking: [
+          ...ControlPlaneEventHandlerManagerOptions
+              .defaults
+              .messageTypesForSequenceTracking,
+          ...options.messageTypesForSequenceTracking,
+        ],
       ),
       logger: mpxLogger,
     );

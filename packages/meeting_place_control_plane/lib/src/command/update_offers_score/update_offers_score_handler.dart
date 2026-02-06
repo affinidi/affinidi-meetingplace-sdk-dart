@@ -12,17 +12,22 @@ import 'update_offers_score_output.dart';
 
 /// Handles the update offers score API call. Parses response body for
 /// [updatedOffers] and [failedOffers].
-class UpdateOffersScoreHandler extends CommandHandler<UpdateOffersScoreCommand,
-    UpdateOffersScoreCommandOutput> {
+class UpdateOffersScoreHandler
+    extends
+        CommandHandler<
+          UpdateOffersScoreCommand,
+          UpdateOffersScoreCommandOutput
+        > {
   UpdateOffersScoreHandler({
     required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  })  : _apiClient = apiClient,
-        _logger = logger ??
-            DefaultControlPlaneSDKLogger(
-              className: _className,
-              sdkName: sdkName,
-            );
+  }) : _apiClient = apiClient,
+       _logger =
+           logger ??
+           DefaultControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
 
   static const String _className = 'UpdateOffersScoreHandler';
 
@@ -36,13 +41,13 @@ class UpdateOffersScoreHandler extends CommandHandler<UpdateOffersScoreCommand,
     final methodName = 'handle';
     _logger.info(
       'Updating offers score to ${command.score} for '
-      '${command.offerLinksOrMnemonics.length} offers',
+      '${command.mnemonics.length} offers',
       name: methodName,
     );
 
     final response = await _apiClient.client.updateOffersScore(
       score: command.score,
-      offerLinksOrMnemonics: command.offerLinksOrMnemonics,
+      mnemonics: command.mnemonics,
     );
 
     final code = response.statusCode ?? 0;
@@ -85,11 +90,10 @@ class UpdateOffersScoreHandler extends CommandHandler<UpdateOffersScoreCommand,
             entry = Map<String, dynamic>.from(item.asMap);
           }
           if (entry != null) {
-            failedOffers.add(FailedOffer(
-              mnemonic: entry['mnemonic'] as String?,
-              offerLink: entry['offerLink'] as String?,
-              reason: entry['reason'] as String?,
-            ));
+            final mnemonic = entry['mnemonic'];
+            if (mnemonic is String) {
+              failedOffers.add(FailedOffer(mnemonic: mnemonic));
+            }
           }
         }
       }

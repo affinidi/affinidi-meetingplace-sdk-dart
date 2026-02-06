@@ -230,7 +230,7 @@ class VdipService {
         did: channel.otherPartyPermanentChannelDid!,
         type: NotifyChannelType.chatActivity,
       );
-    } on MeetingPlaceCoreSDKException catch (e) {
+    } on MeetingPlaceCoreSDKException catch (e, stackTrace) {
       final isNotificationError =
           e.code ==
           MeetingPlaceCoreSDKErrorCode.channelNotificationFailed.value;
@@ -240,6 +240,7 @@ class VdipService {
           'Failed to send message with notification',
           error: e,
           name: '_notifyChannel',
+          stackTrace: stackTrace,
         );
         rethrow;
       }

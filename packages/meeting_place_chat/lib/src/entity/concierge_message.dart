@@ -16,6 +16,9 @@ enum ConciergeMessageType {
 
   /// Requests permission to verify a relationship.
   permissionToVerifyRelationship,
+
+  /// Requests permission to share R Card.
+  permissionToShareRCard,
 }
 
 /// Represents the approval state of a concierge request.

@@ -294,6 +294,8 @@ extension _ConciergeMessageTypeValue on ConciergeMessageType {
         return 2;
       case ConciergeMessageType.permissionToVerifyRelationship:
         return 3;
+      case ConciergeMessageType.permissionToShareRCard:
+        return 4;
     }
   }
 }

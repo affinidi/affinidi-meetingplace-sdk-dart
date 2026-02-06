@@ -27,6 +27,7 @@ part 'query_offer_ok.g.dart';
 /// * [maximumUsage] - maximum number of times this offer can be claimed, or 0 for unlimited
 /// * [groupId]
 /// * [groupDid]
+/// * [reputation] - publisher reputation (e.g. VRC count)
 @BuiltValue()
 abstract class QueryOfferOK
     implements Built<QueryOfferOK, QueryOfferOKBuilder> {
@@ -86,6 +87,10 @@ abstract class QueryOfferOK
 
   @BuiltValueField(wireName: r'groupDid')
   String? get groupDid;
+
+  /// Publisher reputation (e.g. VRC count).
+  @BuiltValueField(wireName: r'reputation')
+  int? get reputation;
 
   QueryOfferOK._();
 

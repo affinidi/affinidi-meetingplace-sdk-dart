@@ -1,6 +1,3 @@
-import 'package:built_value/json_object.dart';
-import 'package:dio/dio.dart';
-
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
@@ -50,54 +47,14 @@ class UpdateOffersScoreHandler
       mnemonics: command.mnemonics,
     );
 
-    final code = response.statusCode ?? 0;
-    if (code < 200 || code >= 300) {
-      throw DioException(
-        requestOptions: response.requestOptions,
-        response: response,
-        type: DioExceptionType.badResponse,
-      );
-    }
+    final body = response.data!;
+    final map = Map<String, dynamic>.from(body.asMap);
 
-    final updatedOffers = <String>[];
-    final failedOffers = <FailedOffer>[];
+    final updatedOffers = List<String>.from(map['updatedOffers'] as List);
 
-    final data = response.data;
-    Map<String, dynamic>? map;
-    if (data is Map<String, dynamic>) {
-      map = data as Map<String, dynamic>;
-    } else if (data is JsonObject && data.isMap) {
-      map = Map<String, dynamic>.from(data.asMap);
-    }
-    if (map != null) {
-      final updated = map['updatedOffers'];
-      if (updated is List) {
-        for (final e in updated) {
-          if (e is String) {
-            updatedOffers.add(e);
-          } else if (e is JsonObject && e.isString) {
-            updatedOffers.add(e.asString);
-          }
-        }
-      }
-      final failed = map['failedOffers'];
-      if (failed is List) {
-        for (final item in failed) {
-          Map<String, dynamic>? entry;
-          if (item is Map<String, dynamic>) {
-            entry = item;
-          } else if (item is JsonObject && item.isMap) {
-            entry = Map<String, dynamic>.from(item.asMap);
-          }
-          if (entry != null) {
-            final mnemonic = entry['mnemonic'];
-            if (mnemonic is String) {
-              failedOffers.add(FailedOffer(mnemonic: mnemonic));
-            }
-          }
-        }
-      }
-    }
+    final failedOffers = (map['failedOffers'] as List)
+        .map((item) => FailedOffer(mnemonic: item['mnemonic'] as String))
+        .toList();
 
     _logger.info('Updated offers score', name: methodName);
     return UpdateOffersScoreCommandOutput(

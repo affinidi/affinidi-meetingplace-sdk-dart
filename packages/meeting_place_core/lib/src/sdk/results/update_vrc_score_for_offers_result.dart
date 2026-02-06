@@ -5,8 +5,8 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
 ///
 /// Exposes [updatedOffers] and [failedOffers] so the client can handle
 /// success and failure per offer.
-class UpdateVrcScoreForOffersResult {
-  UpdateVrcScoreForOffersResult({
+class UpdateScoreForOffersResult {
+  UpdateScoreForOffersResult({
     required this.updatedOffers,
     required this.failedOffers,
   });

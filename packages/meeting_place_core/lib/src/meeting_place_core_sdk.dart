@@ -968,9 +968,9 @@ class MeetingPlaceCoreSDK {
   /// [vrcScore] – latest VRC score to set.
   /// [offers] – offers whose score should be updated.
   ///
-  /// Returns [sdk.UpdateVrcScoreForOffersResult] with [updatedOffers] and
+  /// Returns [sdk.UpdateScoreForOffersResult] with [updatedOffers] and
   /// [failedOffers] so the client can handle success and failure per offer.
-  Future<sdk.UpdateVrcScoreForOffersResult> updateVrcScoreForOffers({
+  Future<sdk.UpdateScoreForOffersResult> updateVrcScoreForOffers({
     required int vrcScore,
     required List<ConnectionOffer> offers,
   }) async {
@@ -979,7 +979,7 @@ class MeetingPlaceCoreSDK {
       final output = await _controlPlaneSDK.execute(
         UpdateOffersScoreCommand(score: vrcScore, mnemonics: mnemonics),
       );
-      return sdk.UpdateVrcScoreForOffersResult(
+      return sdk.UpdateScoreForOffersResult(
         updatedOffers: output.updatedOffers,
         failedOffers: output.failedOffers,
       );

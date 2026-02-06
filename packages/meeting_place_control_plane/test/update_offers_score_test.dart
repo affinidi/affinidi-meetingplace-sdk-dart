@@ -99,11 +99,14 @@ void main() {
         score: any(named: 'score'),
         mnemonics: any(named: 'mnemonics'),
       ),
-    ).thenAnswer(
-      (_) async => Response<JsonObject>(
+    ).thenThrow(
+      DioException(
         requestOptions: RequestOptions(path: '/v1/update-offers-score'),
-        statusCode: 400,
-        data: null,
+        response: Response<JsonObject>(
+          requestOptions: RequestOptions(path: '/v1/update-offers-score'),
+          statusCode: 400,
+        ),
+        type: DioExceptionType.badResponse,
       ),
     );
 

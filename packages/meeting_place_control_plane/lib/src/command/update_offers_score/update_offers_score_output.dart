@@ -1,7 +1,15 @@
+import 'failed_offer.dart';
+
 /// Output model for [UpdateOffersScoreCommand].
 class UpdateOffersScoreCommandOutput {
-  UpdateOffersScoreCommandOutput({required this.updatedCount});
+  UpdateOffersScoreCommandOutput({
+    required this.updatedOffers,
+    required this.failedOffers,
+  });
 
-  /// Number of offers that were updated on the server.
-  final int updatedCount;
+  /// Mnemonics that were successfully updated.
+  final List<String> updatedOffers;
+
+  /// Offers that failed to update, with optional reason.
+  final List<FailedOffer> failedOffers;
 }

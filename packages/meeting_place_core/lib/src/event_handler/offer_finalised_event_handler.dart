@@ -117,7 +117,14 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         final otherPartyPermanentChannelDidDocument = await _didResolver
             .resolveDid(otherPartyPermanentChannelDid);
 
+        // Update all channel fields before onBuildAttachments to ensure
+        // the callback receives the complete channel state
+        channel.notificationToken = notificationToken;
+        channel.otherPartyNotificationToken = event.notificationToken;
         channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+        channel.outboundMessageId = message.id;
+        channel.otherPartyContactCard = otherPartyCard;
+        channel.status = ChannelStatus.inaugurated;
 
         List<Attachment>? outgoingAttachments;
         if (options.onBuildAttachments != null) {
@@ -137,11 +144,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           mediatorDid: connection.mediatorDid,
         );
 
-        channel.notificationToken = notificationToken;
-        channel.otherPartyNotificationToken = event.notificationToken;
-        channel.outboundMessageId = message.id;
-        channel.otherPartyContactCard = otherPartyCard;
-        channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
         if (message.attachments != null &&

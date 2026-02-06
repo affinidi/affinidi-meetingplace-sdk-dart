@@ -9,3 +9,5 @@ export 'message/chat_group_details_update/chat_group_details_update.dart';
 export 'message/chat_message/chat_message.dart';
 export 'message/chat_presence/chat_presence.dart';
 export 'message/chat_reaction/chat_reaction.dart';
+export 'message/chat_survey_question/chat_survey_question.dart';
+export 'message/chat_survey_response/chat_survey_response.dart';

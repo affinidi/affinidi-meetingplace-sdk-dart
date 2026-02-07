@@ -64,6 +64,8 @@ import '../model/register_offer_group_input.dart';
 import '../model/register_offer_group_ok.dart';
 import '../model/register_offer_input.dart';
 import '../model/register_offer_ok.dart';
+import '../model/update_offers_score_input.dart';
+import '../model/update_offers_score_ok.dart';
 
 class DefaultApi {
   final Dio _dio;
@@ -2570,9 +2572,8 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<JsonObject>> updateOffersScore({
-    required int score,
-    required List<String> mnemonics,
+  Future<Response<UpdateOffersScoreOK>> updateOffersScore({
+    required UpdateOffersScoreInput updateOffersScoreInput,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -2596,46 +2597,65 @@ class DefaultApi {
         ...?extra,
       },
       contentType: 'application/json',
-      responseType: ResponseType.plain,
       validateStatus: validateStatus,
     );
 
-    final _bodyData = <String, dynamic>{'score': score, 'mnemonics': mnemonics};
-
-    Response<JsonObject> toSuccess(
-      Response<dynamic> r, [
-      RequestOptions? opts,
-    ]) => Response<JsonObject>(
-      data: null,
-      headers: r.headers,
-      isRedirect: r.isRedirect,
-      requestOptions: opts ?? r.requestOptions,
-      redirects: r.redirects,
-      statusCode: r.statusCode,
-      statusMessage: r.statusMessage,
-      extra: r.extra,
-    );
+    dynamic _bodyData;
 
     try {
-      final res = await _dio.request<Object>(
-        _path,
-        data: _bodyData,
-        options: _options,
-        cancelToken: cancelToken,
-        onSendProgress: onSendProgress,
-        onReceiveProgress: onReceiveProgress,
+      const _type = FullType(UpdateOffersScoreInput);
+      _bodyData = _serializers.serialize(
+        updateOffersScoreInput,
+        specifiedType: _type,
       );
-      return toSuccess(res);
-    } on DioException catch (e) {
-      final r = e.response;
-      final code = r?.statusCode ?? 0;
-      if (r != null &&
-          code >= 200 &&
-          code < 300 &&
-          e.error is FormatException) {
-        return toSuccess(r, e.requestOptions);
-      }
-      rethrow;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    UpdateOffersScoreOK? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null
+          ? null
+          : _serializers.deserialize(
+                  rawResponse,
+                  specifiedType: const FullType(UpdateOffersScoreOK),
+                )
+                as UpdateOffersScoreOK;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<UpdateOffersScoreOK>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
   }
 }

@@ -19,6 +19,8 @@ import 'model/accept_offer_group_ok.dart';
 import 'model/accept_offer_input.dart';
 import 'model/accept_offer_ok.dart';
 import 'model/accept_offer_to_connect404_response.dart';
+import 'model/admin_deregister_offer_input.dart';
+import 'model/admin_deregister_offer_ok.dart';
 import 'model/check_offer_phrase_input.dart';
 import 'model/check_offer_phrase_ok.dart';
 import 'model/cors_register_device_ok.dart';
@@ -66,6 +68,7 @@ import 'model/notify_outreach_ok.dart';
 import 'model/offer_expired_error.dart';
 import 'model/offer_limit_exceeded_error.dart';
 import 'model/offer_phrase_in_use_error.dart';
+import 'model/offer_unprocessable_entity_error.dart';
 import 'model/query_offer404_response.dart';
 import 'model/query_offer_input.dart';
 import 'model/query_offer_ok.dart';
@@ -77,6 +80,10 @@ import 'model/register_offer_group_input.dart';
 import 'model/register_offer_group_ok.dart';
 import 'model/register_offer_input.dart';
 import 'model/register_offer_ok.dart';
+import 'model/update_offers_score_error.dart';
+import 'model/update_offers_score_input.dart';
+import 'model/update_offers_score_ok.dart';
+import 'model/update_offers_score_ok_failed_offers_inner.dart';
 
 part 'serializers.g.dart';
 
@@ -86,6 +93,8 @@ part 'serializers.g.dart';
   AcceptOfferInput,
   AcceptOfferOK,
   AcceptOfferToConnect404Response,
+  AdminDeregisterOfferInput,
+  AdminDeregisterOfferOK,
   CheckOfferPhraseInput,
   CheckOfferPhraseOK,
   CorsRegisterDeviceOK,
@@ -133,6 +142,7 @@ part 'serializers.g.dart';
   OfferExpiredError,
   OfferLimitExceededError,
   OfferPhraseInUseError,
+  OfferUnprocessableEntityError,
   QueryOffer404Response,
   QueryOfferInput,
   QueryOfferOK,
@@ -144,6 +154,10 @@ part 'serializers.g.dart';
   RegisterOfferGroupOK,
   RegisterOfferInput,
   RegisterOfferOK,
+  UpdateOffersScoreError,
+  UpdateOffersScoreInput,
+  UpdateOffersScoreOK,
+  UpdateOffersScoreOKFailedOffersInner,
 ])
 Serializers serializers =
     (_$serializers.toBuilder()

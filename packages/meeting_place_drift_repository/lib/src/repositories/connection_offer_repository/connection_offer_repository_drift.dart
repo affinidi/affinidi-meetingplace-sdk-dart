@@ -345,6 +345,40 @@ class ConnectionOfferRepositoryDrift
           ))
         .go();
   }
+
+  @override
+  Future<List<model.ConnectionOffer>> getPublishedOffersByExternalRef(
+    String externalRef,
+  ) async {
+    final offers = await (_database.select(_database.connectionOffers)
+          ..where((table) => table.externalRef.equals(externalRef))
+          ..where((table) =>
+              table.status.equals(model.ConnectionOfferStatus.published.value)))
+        .get();
+
+    final futures = offers.map((offer) async {
+      final contactCard =
+          await (_database.select(_database.connectionContactCards)
+                ..where((c) => c.connectionOfferId.equals(offer.id)))
+              .getSingleOrNull();
+
+      if (contactCard == null) {
+        return null;
+      }
+
+      return _ConnectionOfferMapper.fromDatabaseRecords(
+        offer,
+        null,
+        contactCard,
+      );
+    }).toList();
+
+    final results = await Future.wait(futures);
+    return results
+        .where((offer) => offer != null)
+        .cast<model.ConnectionOffer>()
+        .toList();
+  }
 }
 
 /// [_ConnectionOfferMapper] transforms raw Drift database records

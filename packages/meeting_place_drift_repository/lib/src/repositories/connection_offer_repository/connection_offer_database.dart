@@ -245,7 +245,7 @@ class _ConnectionOfferTypeConverter
   }
 }
 
-extension _ConnectionOfferStatusValue on ConnectionOfferStatus {
+extension ConnectionOfferStatusValue on ConnectionOfferStatus {
   int get value {
     switch (this) {
       case ConnectionOfferStatus.published:

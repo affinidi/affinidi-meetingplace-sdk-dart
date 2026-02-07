@@ -12,4 +12,8 @@ abstract interface class ConnectionOfferRepository {
   Future<void> createConnectionOffer(ConnectionOffer connectionOffer);
   Future<void> updateConnectionOffer(ConnectionOffer connectionOffer);
   Future<void> deleteConnectionOffer(ConnectionOffer connectionOffer);
+
+  Future<List<ConnectionOffer>> getPublishedOffersByExternalRef(
+    String externalRef,
+  );
 }

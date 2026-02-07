@@ -116,4 +116,26 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
     );
     return getConnectionOfferByOfferLink(offerLink);
   }
+
+  @override
+  Future<List<ConnectionOffer>> getPublishedOffersByExternalRef(
+    String externalRef,
+  ) async {
+    final connectionOffers = await _storage
+        .getCollection<MapEntry<String, dynamic>>(connectionPrefix);
+
+    final publishedOffers = <ConnectionOffer>[];
+    for (final connectionOffer in connectionOffers) {
+      final decodedOffer = _connectionOfferFromEncodedJson(
+        connectionOffer.value as String,
+      );
+
+      if (decodedOffer.externalRef == externalRef &&
+          decodedOffer.status == ConnectionOfferStatus.published) {
+        publishedOffers.add(decodedOffer);
+      }
+    }
+
+    return publishedOffers;
+  }
 }

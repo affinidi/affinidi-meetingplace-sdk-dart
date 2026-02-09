@@ -6,6 +6,6 @@ class FailedOffer {
   /// Mnemonic of the offer that failed.
   final String mnemonic;
 
-  /// Optional reason for the failure.
+  /// Reason why the offer update failed.
   final String? reason;
 }

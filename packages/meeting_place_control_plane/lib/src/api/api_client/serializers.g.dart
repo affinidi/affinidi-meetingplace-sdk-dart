@@ -15,6 +15,8 @@ Serializers _$serializers =
           ..add(AcceptOfferInputPlatformTypeEnum.serializer)
           ..add(AcceptOfferOK.serializer)
           ..add(AcceptOfferToConnect404Response.serializer)
+          ..add(AdminDeregisterOfferInput.serializer)
+          ..add(AdminDeregisterOfferOK.serializer)
           ..add(CheckOfferPhraseInput.serializer)
           ..add(CheckOfferPhraseOK.serializer)
           ..add(CorsRegisterDeviceOK.serializer)
@@ -89,6 +91,7 @@ Serializers _$serializers =
           ..add(OfferPhraseInUseErrorHttpStatusCodeEnum.serializer)
           ..add(OfferPhraseInUseErrorMessageEnum.serializer)
           ..add(OfferPhraseInUseErrorNameEnum.serializer)
+          ..add(OfferUnprocessableEntityError.serializer)
           ..add(QueryOffer404Response.serializer)
           ..add(QueryOfferInput.serializer)
           ..add(QueryOfferOK.serializer)
@@ -105,6 +108,10 @@ Serializers _$serializers =
           ..add(RegisterOfferInputOfferTypeEnum.serializer)
           ..add(RegisterOfferInputPlatformTypeEnum.serializer)
           ..add(RegisterOfferOK.serializer)
+          ..add(UpdateOffersScoreError.serializer)
+          ..add(UpdateOffersScoreInput.serializer)
+          ..add(UpdateOffersScoreOK.serializer)
+          ..add(UpdateOffersScoreOKFailedOffersInner.serializer)
           ..addBuilderFactory(
             const FullType(BuiltList, const [
               const FullType(GetPendingNotificationsOKNotificationsInner),
@@ -168,10 +175,24 @@ Serializers _$serializers =
             () => ListBuilder<String>(),
           )
           ..addBuilderFactory(
+            const FullType(BuiltList, const [const FullType(String)]),
+            () => ListBuilder<String>(),
+          )
+          ..addBuilderFactory(
             const FullType(BuiltList, const [
               const FullType(DeletePendingNotificationsOKNotificationsInner),
             ]),
             () => ListBuilder<DeletePendingNotificationsOKNotificationsInner>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [const FullType(String)]),
+            () => ListBuilder<String>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [
+              const FullType(UpdateOffersScoreOKFailedOffersInner),
+            ]),
+            () => ListBuilder<UpdateOffersScoreOKFailedOffersInner>(),
           ))
         .build();
 

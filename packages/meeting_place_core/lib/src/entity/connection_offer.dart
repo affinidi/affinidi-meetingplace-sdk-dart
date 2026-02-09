@@ -79,6 +79,7 @@ class ConnectionOffer {
   final String? otherPartyNotificationToken;
 
   final String? externalRef;
+  final int? score;
 
   final int? score;
 

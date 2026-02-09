@@ -16,6 +16,7 @@ part 'register_offer_ok.g.dart';
 /// * [validUntil]
 /// * [maximumUsage]
 /// * [offerLink]
+/// * [score]
 @BuiltValue()
 abstract class RegisterOfferOK
     implements Built<RegisterOfferOK, RegisterOfferOKBuilder> {
@@ -29,10 +30,13 @@ abstract class RegisterOfferOK
   String? get validUntil;
 
   @BuiltValueField(wireName: r'maximumUsage')
-  int? get maximumUsage;
+  num? get maximumUsage;
 
   @BuiltValueField(wireName: r'offerLink')
   String get offerLink;
+
+  @BuiltValueField(wireName: r'score')
+  int? get score;
 
   RegisterOfferOK._();
 
@@ -83,7 +87,7 @@ class _$RegisterOfferOKSerializer
       yield r'maximumUsage';
       yield serializers.serialize(
         object.maximumUsage,
-        specifiedType: const FullType(int),
+        specifiedType: const FullType(num),
       );
     }
     yield r'offerLink';
@@ -91,6 +95,13 @@ class _$RegisterOfferOKSerializer
       object.offerLink,
       specifiedType: const FullType(String),
     );
+    if (object.score != null) {
+      yield r'score';
+      yield serializers.serialize(
+        object.score,
+        specifiedType: const FullType(int),
+      );
+    }
   }
 
   @override
@@ -147,8 +158,8 @@ class _$RegisterOfferOKSerializer
           break;
         case r'maximumUsage':
           final valueDes =
-              serializers.deserialize(value, specifiedType: const FullType(int))
-                  as int;
+              serializers.deserialize(value, specifiedType: const FullType(num))
+                  as num;
           result.maximumUsage = valueDes;
           break;
         case r'offerLink':
@@ -159,6 +170,12 @@ class _$RegisterOfferOKSerializer
                   )
                   as String;
           result.offerLink = valueDes;
+          break;
+        case r'score':
+          final valueDes =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int;
+          result.score = valueDes;
           break;
         default:
           unhandled.add(key);

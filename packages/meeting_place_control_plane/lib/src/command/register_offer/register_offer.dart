@@ -22,6 +22,7 @@ class RegisterOfferCommand
     this.maximumUsage,
     this.customPhrase,
     this.mediatorDid,
+    this.score,
   });
 
   final String offerName;
@@ -36,4 +37,5 @@ class RegisterOfferCommand
   final String? customPhrase;
 
   final String? mediatorDid;
+  final int? score;
 }

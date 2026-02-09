@@ -13,7 +13,9 @@ class RegisterOfferCommandOutput {
     required this.expiresAt,
     required this.maximumUsage,
     this.offerDescription,
+    this.score,
   });
+
   final String mediatorDid;
   final String offerName;
   final String offerLink;
@@ -22,4 +24,5 @@ class RegisterOfferCommandOutput {
   final DateTime? expiresAt;
   final int? maximumUsage;
   final String? offerDescription;
+  final int? score;
 }

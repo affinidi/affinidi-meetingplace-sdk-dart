@@ -1,5 +1,7 @@
 import 'package:collection/collection.dart';
 
+import '../../meeting_place_chat.dart';
+
 /// [ChatProtocol] defines the supported **DIDComm message types**
 /// used by the chat system in the Meeting Place SDK.
 ///
@@ -63,7 +65,10 @@ enum ChatProtocol {
   /// Represents a reaction (emoji or similar) to a chat message.
   chatReaction(
     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/reaction',
-  );
+  ),
+
+  chatSurveyQuestion(ChatSurveyQuestion.type),
+  chatSurveyResponse(ChatSurveyResponse.type);
 
   /// Creates a [ChatProtocol] instance with the given URI [value].
   const ChatProtocol(this.value);

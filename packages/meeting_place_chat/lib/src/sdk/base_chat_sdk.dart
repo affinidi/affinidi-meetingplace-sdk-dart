@@ -712,6 +712,7 @@ abstract class BaseChatSDK {
   }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
+
     final chatSurveyQuestion = protocol.ChatSurveyQuestion.create(
       from: did,
       to: [otherPartyDid],

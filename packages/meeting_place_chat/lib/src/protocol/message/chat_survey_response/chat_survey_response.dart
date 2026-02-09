@@ -26,11 +26,18 @@ class ChatSurveyResponse {
   }
 
   factory ChatSurveyResponse.fromPlainTextMessage(PlainTextMessage message) {
+    final messageBody = message.body;
+
+    if (messageBody == null) {
+      throw ArgumentError(
+        'Message body is required to create ChatSurveyResponse',
+      );
+    }
     return ChatSurveyResponse(
       id: message.id,
       from: message.from!,
       to: message.to!,
-      body: ChatSurveyResponseBody.fromJson(message.body ?? const {}),
+      body: ChatSurveyResponseBody.fromJson(messageBody),
       createdTime: message.createdTime,
     );
   }

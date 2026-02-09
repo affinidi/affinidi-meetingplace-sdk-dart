@@ -33,11 +33,18 @@ class ChatSurveyQuestion {
   }
 
   factory ChatSurveyQuestion.fromPlainTextMessage(PlainTextMessage message) {
+    final messageBody = message.body;
+
+    if (messageBody == null) {
+      throw ArgumentError(
+        'Message body is required to create ChatSurveyQuestion',
+      );
+    }
     return ChatSurveyQuestion._(
       id: message.id,
       from: message.from!,
       to: message.to!,
-      body: ChatSurveyQuestionBody.fromJson(message.body ?? const {}),
+      body: ChatSurveyQuestionBody.fromJson(messageBody),
       createdTime:
           DateTime.tryParse(message.body?['timestamp'] as String? ?? '') ??
           DateTime.now().toUtc(),

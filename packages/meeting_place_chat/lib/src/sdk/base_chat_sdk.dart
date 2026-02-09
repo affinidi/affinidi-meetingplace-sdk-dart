@@ -712,18 +712,47 @@ abstract class BaseChatSDK {
   }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
-
-    await sendMessage(
-      protocol.ChatSurveyQuestion.create(
-        from: did,
-        to: [otherPartyDid],
-        question: questionText,
-        suggestions: suggestions,
-        seqNo: channel.seqNo,
-        messageId: const Uuid().v4(),
-      ).toPlainTextMessage(),
-      notify: true,
+    final chatSurveyQuestion = protocol.ChatSurveyQuestion.create(
+      from: did,
+      to: [otherPartyDid],
+      question: questionText,
+      suggestions: suggestions,
+      seqNo: channel.seqNo,
+      messageId: const Uuid().v4(),
     );
+    final plainTextMessage = chatSurveyQuestion.toPlainTextMessage();
+
+    // Persist and push locally so UIs can render the question immediately,
+    // matching the behavior of sendSurveyResponse.
+    try {
+      final createdMessage = await chatRepository.createMessage(
+        Message(
+          chatId: chatId,
+          messageId: plainTextMessage.id,
+          senderDid: did,
+          isFromMe: true,
+          dateCreated: chatSurveyQuestion.body.timestamp,
+          status: ChatItemStatus.sent,
+          value: chatSurveyQuestion.question,
+          data: chatSurveyQuestion.data,
+        ),
+      );
+
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: plainTextMessage,
+          chatItem: createdMessage,
+        ),
+      );
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to persist/push survey question before sending',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+
+    await sendMessage(plainTextMessage, notify: true);
   }
 
   /// Sends survey response

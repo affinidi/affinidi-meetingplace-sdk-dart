@@ -11,10 +11,11 @@ part 'admin_deregister_offer_ok.g.dart';
 /// AdminDeregisterOfferOK
 ///
 /// Properties:
-/// * [status] 
-/// * [message] 
+/// * [status]
+/// * [message]
 @BuiltValue()
-abstract class AdminDeregisterOfferOK implements Built<AdminDeregisterOfferOK, AdminDeregisterOfferOKBuilder> {
+abstract class AdminDeregisterOfferOK
+    implements Built<AdminDeregisterOfferOK, AdminDeregisterOfferOKBuilder> {
   @BuiltValueField(wireName: r'status')
   String? get status;
 
@@ -23,18 +24,25 @@ abstract class AdminDeregisterOfferOK implements Built<AdminDeregisterOfferOK, A
 
   AdminDeregisterOfferOK._();
 
-  factory AdminDeregisterOfferOK([void updates(AdminDeregisterOfferOKBuilder b)]) = _$AdminDeregisterOfferOK;
+  factory AdminDeregisterOfferOK([
+    void updates(AdminDeregisterOfferOKBuilder b),
+  ]) = _$AdminDeregisterOfferOK;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(AdminDeregisterOfferOKBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<AdminDeregisterOfferOK> get serializer => _$AdminDeregisterOfferOKSerializer();
+  static Serializer<AdminDeregisterOfferOK> get serializer =>
+      _$AdminDeregisterOfferOKSerializer();
 }
 
-class _$AdminDeregisterOfferOKSerializer implements PrimitiveSerializer<AdminDeregisterOfferOK> {
+class _$AdminDeregisterOfferOKSerializer
+    implements PrimitiveSerializer<AdminDeregisterOfferOK> {
   @override
-  final Iterable<Type> types = const [AdminDeregisterOfferOK, _$AdminDeregisterOfferOK];
+  final Iterable<Type> types = const [
+    AdminDeregisterOfferOK,
+    _$AdminDeregisterOfferOK,
+  ];
 
   @override
   final String wireName = r'AdminDeregisterOfferOK';
@@ -66,7 +74,11 @@ class _$AdminDeregisterOfferOKSerializer implements PrimitiveSerializer<AdminDer
     AdminDeregisterOfferOK object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -82,17 +94,21 @@ class _$AdminDeregisterOfferOKSerializer implements PrimitiveSerializer<AdminDer
       final value = serializedList[i + 1];
       switch (key) {
         case r'status':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.status = valueDes;
           break;
         case r'message':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.message = valueDes;
           break;
         default:
@@ -123,4 +139,3 @@ class _$AdminDeregisterOfferOKSerializer implements PrimitiveSerializer<AdminDer
     return result.build();
   }
 }
-

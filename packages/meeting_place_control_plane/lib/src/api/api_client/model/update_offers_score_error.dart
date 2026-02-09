@@ -11,10 +11,11 @@ part 'update_offers_score_error.g.dart';
 /// UpdateOffersScoreError
 ///
 /// Properties:
-/// * [errorCode] 
-/// * [errorMessage] 
+/// * [errorCode]
+/// * [errorMessage]
 @BuiltValue()
-abstract class UpdateOffersScoreError implements Built<UpdateOffersScoreError, UpdateOffersScoreErrorBuilder> {
+abstract class UpdateOffersScoreError
+    implements Built<UpdateOffersScoreError, UpdateOffersScoreErrorBuilder> {
   @BuiltValueField(wireName: r'errorCode')
   String get errorCode;
 
@@ -23,18 +24,25 @@ abstract class UpdateOffersScoreError implements Built<UpdateOffersScoreError, U
 
   UpdateOffersScoreError._();
 
-  factory UpdateOffersScoreError([void updates(UpdateOffersScoreErrorBuilder b)]) = _$UpdateOffersScoreError;
+  factory UpdateOffersScoreError([
+    void updates(UpdateOffersScoreErrorBuilder b),
+  ]) = _$UpdateOffersScoreError;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UpdateOffersScoreErrorBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<UpdateOffersScoreError> get serializer => _$UpdateOffersScoreErrorSerializer();
+  static Serializer<UpdateOffersScoreError> get serializer =>
+      _$UpdateOffersScoreErrorSerializer();
 }
 
-class _$UpdateOffersScoreErrorSerializer implements PrimitiveSerializer<UpdateOffersScoreError> {
+class _$UpdateOffersScoreErrorSerializer
+    implements PrimitiveSerializer<UpdateOffersScoreError> {
   @override
-  final Iterable<Type> types = const [UpdateOffersScoreError, _$UpdateOffersScoreError];
+  final Iterable<Type> types = const [
+    UpdateOffersScoreError,
+    _$UpdateOffersScoreError,
+  ];
 
   @override
   final String wireName = r'UpdateOffersScoreError';
@@ -62,7 +70,11 @@ class _$UpdateOffersScoreErrorSerializer implements PrimitiveSerializer<UpdateOf
     UpdateOffersScoreError object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -78,17 +90,21 @@ class _$UpdateOffersScoreErrorSerializer implements PrimitiveSerializer<UpdateOf
       final value = serializedList[i + 1];
       switch (key) {
         case r'errorCode':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.errorCode = valueDes;
           break;
         case r'errorMessage':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.errorMessage = valueDes;
           break;
         default:
@@ -119,4 +135,3 @@ class _$UpdateOffersScoreErrorSerializer implements PrimitiveSerializer<UpdateOf
     return result.build();
   }
 }
-

@@ -13,25 +13,34 @@ part 'admin_deregister_offer_input.g.dart';
 /// Properties:
 /// * [mnemonic] - A unique phrase used to publish and identify the offer.
 @BuiltValue()
-abstract class AdminDeregisterOfferInput implements Built<AdminDeregisterOfferInput, AdminDeregisterOfferInputBuilder> {
+abstract class AdminDeregisterOfferInput
+    implements
+        Built<AdminDeregisterOfferInput, AdminDeregisterOfferInputBuilder> {
   /// A unique phrase used to publish and identify the offer.
   @BuiltValueField(wireName: r'mnemonic')
   String get mnemonic;
 
   AdminDeregisterOfferInput._();
 
-  factory AdminDeregisterOfferInput([void updates(AdminDeregisterOfferInputBuilder b)]) = _$AdminDeregisterOfferInput;
+  factory AdminDeregisterOfferInput([
+    void updates(AdminDeregisterOfferInputBuilder b),
+  ]) = _$AdminDeregisterOfferInput;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(AdminDeregisterOfferInputBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<AdminDeregisterOfferInput> get serializer => _$AdminDeregisterOfferInputSerializer();
+  static Serializer<AdminDeregisterOfferInput> get serializer =>
+      _$AdminDeregisterOfferInputSerializer();
 }
 
-class _$AdminDeregisterOfferInputSerializer implements PrimitiveSerializer<AdminDeregisterOfferInput> {
+class _$AdminDeregisterOfferInputSerializer
+    implements PrimitiveSerializer<AdminDeregisterOfferInput> {
   @override
-  final Iterable<Type> types = const [AdminDeregisterOfferInput, _$AdminDeregisterOfferInput];
+  final Iterable<Type> types = const [
+    AdminDeregisterOfferInput,
+    _$AdminDeregisterOfferInput,
+  ];
 
   @override
   final String wireName = r'AdminDeregisterOfferInput';
@@ -54,7 +63,11 @@ class _$AdminDeregisterOfferInputSerializer implements PrimitiveSerializer<Admin
     AdminDeregisterOfferInput object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -70,10 +83,12 @@ class _$AdminDeregisterOfferInputSerializer implements PrimitiveSerializer<Admin
       final value = serializedList[i + 1];
       switch (key) {
         case r'mnemonic':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mnemonic = valueDes;
           break;
         default:
@@ -104,4 +119,3 @@ class _$AdminDeregisterOfferInputSerializer implements PrimitiveSerializer<Admin
     return result.build();
   }
 }
-

@@ -11,10 +11,15 @@ part 'update_offers_score_ok_failed_offers_inner.g.dart';
 /// UpdateOffersScoreOKFailedOffersInner
 ///
 /// Properties:
-/// * [mnemonic] 
-/// * [reason] 
+/// * [mnemonic]
+/// * [reason]
 @BuiltValue()
-abstract class UpdateOffersScoreOKFailedOffersInner implements Built<UpdateOffersScoreOKFailedOffersInner, UpdateOffersScoreOKFailedOffersInnerBuilder> {
+abstract class UpdateOffersScoreOKFailedOffersInner
+    implements
+        Built<
+          UpdateOffersScoreOKFailedOffersInner,
+          UpdateOffersScoreOKFailedOffersInnerBuilder
+        > {
   @BuiltValueField(wireName: r'mnemonic')
   String? get mnemonic;
 
@@ -23,18 +28,25 @@ abstract class UpdateOffersScoreOKFailedOffersInner implements Built<UpdateOffer
 
   UpdateOffersScoreOKFailedOffersInner._();
 
-  factory UpdateOffersScoreOKFailedOffersInner([void updates(UpdateOffersScoreOKFailedOffersInnerBuilder b)]) = _$UpdateOffersScoreOKFailedOffersInner;
+  factory UpdateOffersScoreOKFailedOffersInner([
+    void updates(UpdateOffersScoreOKFailedOffersInnerBuilder b),
+  ]) = _$UpdateOffersScoreOKFailedOffersInner;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(UpdateOffersScoreOKFailedOffersInnerBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<UpdateOffersScoreOKFailedOffersInner> get serializer => _$UpdateOffersScoreOKFailedOffersInnerSerializer();
+  static Serializer<UpdateOffersScoreOKFailedOffersInner> get serializer =>
+      _$UpdateOffersScoreOKFailedOffersInnerSerializer();
 }
 
-class _$UpdateOffersScoreOKFailedOffersInnerSerializer implements PrimitiveSerializer<UpdateOffersScoreOKFailedOffersInner> {
+class _$UpdateOffersScoreOKFailedOffersInnerSerializer
+    implements PrimitiveSerializer<UpdateOffersScoreOKFailedOffersInner> {
   @override
-  final Iterable<Type> types = const [UpdateOffersScoreOKFailedOffersInner, _$UpdateOffersScoreOKFailedOffersInner];
+  final Iterable<Type> types = const [
+    UpdateOffersScoreOKFailedOffersInner,
+    _$UpdateOffersScoreOKFailedOffersInner,
+  ];
 
   @override
   final String wireName = r'UpdateOffersScoreOKFailedOffersInner';
@@ -66,7 +78,11 @@ class _$UpdateOffersScoreOKFailedOffersInnerSerializer implements PrimitiveSeria
     UpdateOffersScoreOKFailedOffersInner object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -82,17 +98,21 @@ class _$UpdateOffersScoreOKFailedOffersInnerSerializer implements PrimitiveSeria
       final value = serializedList[i + 1];
       switch (key) {
         case r'mnemonic':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.mnemonic = valueDes;
           break;
         case r'reason':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.reason = valueDes;
           break;
         default:
@@ -123,4 +143,3 @@ class _$UpdateOffersScoreOKFailedOffersInnerSerializer implements PrimitiveSeria
     return result.build();
   }
 }
-

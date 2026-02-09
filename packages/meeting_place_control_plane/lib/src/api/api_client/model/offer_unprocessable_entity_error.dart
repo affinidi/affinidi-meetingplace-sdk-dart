@@ -11,10 +11,15 @@ part 'offer_unprocessable_entity_error.g.dart';
 /// The offer is no longer valid due to max usage or validity date expiration.
 ///
 /// Properties:
-/// * [errorCode] 
-/// * [errorMessage] 
+/// * [errorCode]
+/// * [errorMessage]
 @BuiltValue()
-abstract class OfferUnprocessableEntityError implements Built<OfferUnprocessableEntityError, OfferUnprocessableEntityErrorBuilder> {
+abstract class OfferUnprocessableEntityError
+    implements
+        Built<
+          OfferUnprocessableEntityError,
+          OfferUnprocessableEntityErrorBuilder
+        > {
   @BuiltValueField(wireName: r'errorCode')
   String get errorCode;
 
@@ -23,18 +28,25 @@ abstract class OfferUnprocessableEntityError implements Built<OfferUnprocessable
 
   OfferUnprocessableEntityError._();
 
-  factory OfferUnprocessableEntityError([void updates(OfferUnprocessableEntityErrorBuilder b)]) = _$OfferUnprocessableEntityError;
+  factory OfferUnprocessableEntityError([
+    void updates(OfferUnprocessableEntityErrorBuilder b),
+  ]) = _$OfferUnprocessableEntityError;
 
   @BuiltValueHook(initializeBuilder: true)
   static void _defaults(OfferUnprocessableEntityErrorBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<OfferUnprocessableEntityError> get serializer => _$OfferUnprocessableEntityErrorSerializer();
+  static Serializer<OfferUnprocessableEntityError> get serializer =>
+      _$OfferUnprocessableEntityErrorSerializer();
 }
 
-class _$OfferUnprocessableEntityErrorSerializer implements PrimitiveSerializer<OfferUnprocessableEntityError> {
+class _$OfferUnprocessableEntityErrorSerializer
+    implements PrimitiveSerializer<OfferUnprocessableEntityError> {
   @override
-  final Iterable<Type> types = const [OfferUnprocessableEntityError, _$OfferUnprocessableEntityError];
+  final Iterable<Type> types = const [
+    OfferUnprocessableEntityError,
+    _$OfferUnprocessableEntityError,
+  ];
 
   @override
   final String wireName = r'OfferUnprocessableEntityError';
@@ -62,7 +74,11 @@ class _$OfferUnprocessableEntityErrorSerializer implements PrimitiveSerializer<O
     OfferUnprocessableEntityError object, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+    return _serializeProperties(
+      serializers,
+      object,
+      specifiedType: specifiedType,
+    ).toList();
   }
 
   void _deserializeProperties(
@@ -78,17 +94,21 @@ class _$OfferUnprocessableEntityErrorSerializer implements PrimitiveSerializer<O
       final value = serializedList[i + 1];
       switch (key) {
         case r'errorCode':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.errorCode = valueDes;
           break;
         case r'errorMessage':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
           result.errorMessage = valueDes;
           break;
         default:
@@ -119,4 +139,3 @@ class _$OfferUnprocessableEntityErrorSerializer implements PrimitiveSerializer<O
     return result.build();
   }
 }
-

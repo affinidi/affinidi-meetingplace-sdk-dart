@@ -3,12 +3,12 @@
 //
 
 // ignore_for_file: unused_element
-// ignore_for_file: unused_import
-import '../model/invalid_acceptance_error.dart';
 import '../model/expired_acceptance_error.dart';
 import 'package:built_collection/built_collection.dart';
-import '../model/not_found_error_details_inner.dart';
+import '../model/invalid_acceptance_error.dart';
 import '../model/offer_limit_exceeded_error.dart';
+// ignore: unused_import
+import '../model/not_found_error_details_inner.dart';
 import '../model/invalid_offer_error.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -130,9 +130,9 @@ class QueryOffer404ResponseMessageEnum extends EnumClass {
 }
 
 class QueryOffer404ResponseHttpStatusCodeEnum extends EnumClass {
-  @BuiltValueEnumConst(wireNumber: 404)
-  static const QueryOffer404ResponseHttpStatusCodeEnum number404 =
-      _$queryOffer404ResponseHttpStatusCodeEnum_number404;
+  @BuiltValueEnumConst(wireName: r'404')
+  static const QueryOffer404ResponseHttpStatusCodeEnum n404 =
+      _$queryOffer404ResponseHttpStatusCodeEnum_n404;
 
   static Serializer<QueryOffer404ResponseHttpStatusCodeEnum> get serializer =>
       _$queryOffer404ResponseHttpStatusCodeEnumSerializer;

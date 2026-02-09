@@ -100,6 +100,7 @@ class QueryOfferHandler
         ),
         groupDid: response.groupDid,
         groupId: response.groupId,
+        score: response.score,
       );
     } catch (e, stackTrace) {
       if (e is DioException &&

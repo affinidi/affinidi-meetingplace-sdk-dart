@@ -27,6 +27,7 @@ part 'query_offer_ok.g.dart';
 /// * [maximumUsage] - maximum number of times this offer can be claimed, or 0 for unlimited
 /// * [groupId]
 /// * [groupDid]
+/// * [score] - publisher score
 @BuiltValue()
 abstract class QueryOfferOK
     implements Built<QueryOfferOK, QueryOfferOKBuilder> {
@@ -86,6 +87,9 @@ abstract class QueryOfferOK
 
   @BuiltValueField(wireName: r'groupDid')
   String? get groupDid;
+
+  @BuiltValueField(wireName: r'score')
+  int? get score;
 
   QueryOfferOK._();
 
@@ -200,6 +204,14 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
       yield serializers.serialize(
         object.groupDid,
         specifiedType: const FullType(String),
+      );
+    }
+
+    if (object.score != null) {
+      yield r'score';
+      yield serializers.serialize(
+        object.score,
+        specifiedType: const FullType(int),
       );
     }
   }
@@ -363,6 +375,12 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
                   )
                   as String;
           result.groupDid = valueDes;
+          break;
+        case r'score':
+          final valueDes =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int;
+          result.score = valueDes;
           break;
         default:
           unhandled.add(key);

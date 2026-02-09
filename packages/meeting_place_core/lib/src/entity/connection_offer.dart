@@ -81,8 +81,6 @@ class ConnectionOffer {
   final String? externalRef;
   final int? score;
 
-  final int? score;
-
   Map<String, dynamic> toJson() {
     return _$ConnectionOfferToJson(this);
   }

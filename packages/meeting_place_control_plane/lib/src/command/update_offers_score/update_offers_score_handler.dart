@@ -53,7 +53,12 @@ class UpdateOffersScoreHandler
     final updatedOffers = List<String>.from(map['updatedOffers'] as List);
 
     final failedOffers = (map['failedOffers'] as List)
-        .map((item) => FailedOffer(mnemonic: item['mnemonic'] as String))
+        .map(
+          (item) => FailedOffer(
+            mnemonic: item['mnemonic'] as String,
+            reason: item['reason'] as String?,
+          ),
+        )
         .toList();
 
     _logger.info('Updated offers score', name: methodName);

@@ -7,6 +7,7 @@ export 'package:didcomm/didcomm.dart'
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         Device,
+        FailedOffer,
         PlatformType,
         ControlPlaneEventType,
         ControlPlaneSDKException,

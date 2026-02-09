@@ -959,6 +959,29 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  /// Updates the score for a set of offers on the control plane.
+  ///
+  /// [score] – latest score to set.
+  /// [offers] – offers whose score should be updated.
+  ///
+  /// Returns [sdk.UpdateScoreForOffersResult] with [updatedOffers] and
+  /// [failedOffers] so the client can handle success and failure per offer.
+  Future<sdk.UpdateScoreForOffersResult> updateScoreForOffers({
+    required int score,
+    required List<ConnectionOffer> offers,
+  }) async {
+    return withSdkExceptionHandling(() async {
+      final mnemonics = offers.map((o) => o.mnemonic).toList();
+      final output = await _controlPlaneSDK.execute(
+        UpdateOffersScoreCommand(score: score, mnemonics: mnemonics),
+      );
+      return sdk.UpdateScoreForOffersResult(
+        updatedOffers: output.updatedOffers,
+        failedOffers: output.failedOffers,
+      );
+    });
+  }
+
   /// Accepts an offer published by another party.
   ///
   /// **Parameters:**
@@ -1387,6 +1410,14 @@ class MeetingPlaceCoreSDK {
   /// - list of objects with type [ConnectionOffer].
   Future<List<ConnectionOffer>> listConnectionOffers() {
     return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
+  }
+
+  /// Retrieves all published offers associated with the given external reference.
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
+    String externalRef,
+  ) async {
+    final repository = _repositoryConfig.connectionOfferRepository;
+    return await repository.getConnectionOffersByExternalRef(externalRef);
   }
 
   /// Fetches a channel entity from the repository by using repository method

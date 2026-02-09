@@ -1,6 +1,8 @@
 library;
 
 export 'src/command/command.dart';
+export 'src/command/update_offers_score/failed_offer.dart';
+export 'src/command/update_offers_score/update_offers_score_output.dart';
 export 'src/control_plane_sdk.dart';
 export 'src/control_plane_sdk_options.dart';
 export 'src/core/device/device.dart';

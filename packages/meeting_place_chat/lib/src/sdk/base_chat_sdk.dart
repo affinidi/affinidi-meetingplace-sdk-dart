@@ -714,6 +714,7 @@ abstract class BaseChatSDK {
   }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
+    await coreSDK.updateChannel(channel);
 
     final chatSurveyQuestion = protocol.ChatSurveyQuestion.create(
       from: did,
@@ -766,6 +767,7 @@ abstract class BaseChatSDK {
     final methodName = 'sendSurveyResponse';
     final channel = await getChannel();
     channel.increaseSeqNo();
+    await coreSDK.updateChannel(channel);
 
     // Mark the parent question as answered locally so UIs can update instantly.
 

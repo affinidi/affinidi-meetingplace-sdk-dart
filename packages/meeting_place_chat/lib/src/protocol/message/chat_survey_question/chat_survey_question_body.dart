@@ -32,7 +32,7 @@ class ChatSurveyQuestionBody {
   @JsonKey(name: 'seq_no')
   final int seqNo;
 
-  /// Human-readable question.
+  /// Human-readable suggestions.
   @JsonKey(name: 'suggestions')
   final List<String> suggestions;
 

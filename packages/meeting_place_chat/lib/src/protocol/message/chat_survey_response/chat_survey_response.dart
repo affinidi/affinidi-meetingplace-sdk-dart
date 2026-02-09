@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../protocol.dart';
 import 'chat_survey_response_body.dart';
 
 /// [ChatSurveyResponse] represents an answer to a [ChatSurveyQuestion].
@@ -42,9 +43,6 @@ class ChatSurveyResponse {
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
-  static const String type =
-      'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/survey-response';
-
   final String id;
   final String from;
   final List<String> to;
@@ -53,7 +51,7 @@ class ChatSurveyResponse {
   PlainTextMessage toPlainTextMessage() {
     return PlainTextMessage(
       id: id,
-      type: Uri.parse(ChatSurveyResponse.type),
+      type: Uri.parse(ChatProtocol.chatSurveyResponse.value),
       from: from,
       to: to,
       body: body.toJson(),

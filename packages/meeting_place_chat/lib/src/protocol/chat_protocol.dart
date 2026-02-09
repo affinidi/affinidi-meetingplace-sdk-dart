@@ -1,7 +1,5 @@
 import 'package:collection/collection.dart';
 
-import '../../meeting_place_chat.dart';
-
 /// [ChatProtocol] defines the supported **DIDComm message types**
 /// used by the chat system in the Meeting Place SDK.
 ///
@@ -67,8 +65,15 @@ enum ChatProtocol {
     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/reaction',
   ),
 
-  chatSurveyQuestion(ChatSurveyQuestion.type),
-  chatSurveyResponse(ChatSurveyResponse.type);
+  /// Represents a survey question message.
+  chatSurveyQuestion(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/survey-question',
+  ),
+
+  /// Represents a survey response message.
+  chatSurveyResponse(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/survey-response',
+  );
 
   /// Creates a [ChatProtocol] instance with the given URI [value].
   const ChatProtocol(this.value);

@@ -441,7 +441,8 @@ abstract class BaseChatSDK {
       return true;
     }
 
-    if (message.plainTextMessage.type.toString() == ChatSurveyQuestion.type) {
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatSurveyQuestion.value) {
       _logger.info('Handling survey question message', name: methodName);
 
       final surveyQuestion = ChatSurveyQuestion.fromPlainTextMessage(
@@ -472,7 +473,8 @@ abstract class BaseChatSDK {
       return true;
     }
 
-    if (message.plainTextMessage.type.toString() == ChatSurveyResponse.type) {
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatSurveyResponse.value) {
       _logger.info('Handling survey response message', name: methodName);
 
       final chatResponse = protocol.ChatSurveyResponse.fromPlainTextMessage(

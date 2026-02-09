@@ -130,8 +130,7 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
         connectionOffer.value as String,
       );
 
-      if (decodedOffer.externalRef == externalRef &&
-          decodedOffer.status == ConnectionOfferStatus.published) {
+      if (decodedOffer.externalRef == externalRef) {
         offers.add(decodedOffer);
       }
     }

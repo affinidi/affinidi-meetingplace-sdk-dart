@@ -1,7 +1,7 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show FailedOffer;
 
-/// Result of [MeetingPlaceCoreSDK.updateVrcScoreForOffers].
+/// Result of [MeetingPlaceCoreSDK.updateScoreForOffers].
 ///
 /// Exposes [updatedOffers] and [failedOffers] so the client can handle
 /// success and failure per offer.

@@ -13,7 +13,7 @@ abstract interface class ConnectionOfferRepository {
   Future<void> updateConnectionOffer(ConnectionOffer connectionOffer);
   Future<void> deleteConnectionOffer(ConnectionOffer connectionOffer);
 
-  Future<List<ConnectionOffer>> getPublishedOffersByExternalRef(
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
     String externalRef,
   );
 }

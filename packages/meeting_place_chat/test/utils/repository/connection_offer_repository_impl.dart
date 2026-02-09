@@ -114,24 +114,23 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
   }
 
   @override
-  Future<List<ConnectionOffer>> getPublishedOffersByExternalRef(
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
     String externalRef,
   ) async {
     final connectionOffers = await _storage
         .getCollection<MapEntry<String, dynamic>>(connectionPrefix);
 
-    final publishedOffers = <ConnectionOffer>[];
+    final offers = <ConnectionOffer>[];
     for (final connectionOffer in connectionOffers) {
       final decodedOffer = _connectionOfferFromEncodedJson(
         connectionOffer.value as String,
       );
 
-      if (decodedOffer.externalRef == externalRef &&
-          decodedOffer.status == ConnectionOfferStatus.published) {
-        publishedOffers.add(decodedOffer);
+      if (decodedOffer.externalRef == externalRef) {
+        offers.add(decodedOffer);
       }
     }
 
-    return publishedOffers;
+    return offers;
   }
 }

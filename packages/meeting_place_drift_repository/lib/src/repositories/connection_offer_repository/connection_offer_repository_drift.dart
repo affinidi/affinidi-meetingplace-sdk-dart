@@ -347,13 +347,11 @@ class ConnectionOfferRepositoryDrift
   }
 
   @override
-  Future<List<model.ConnectionOffer>> getPublishedOffersByExternalRef(
+  Future<List<model.ConnectionOffer>> getConnectionOffersByExternalRef(
     String externalRef,
   ) async {
     final offers = await (_database.select(_database.connectionOffers)
-          ..where((table) => table.externalRef.equals(externalRef))
-          ..where((table) =>
-              table.status.equals(model.ConnectionOfferStatus.published.value)))
+          ..where((table) => table.externalRef.equals(externalRef)))
         .get();
 
     final futures = offers.map((offer) async {

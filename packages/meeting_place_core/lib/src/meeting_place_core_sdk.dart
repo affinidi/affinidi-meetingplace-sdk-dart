@@ -1417,11 +1417,11 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Retrieves all published offers associated with the given external reference.
-  Future<List<ConnectionOffer>> getPublishedOffersByExternalRef(
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
     String externalRef,
   ) async {
     final repository = _repositoryConfig.connectionOfferRepository;
-    return await repository.getPublishedOffersByExternalRef(externalRef);
+    return await repository.getConnectionOffersByExternalRef(externalRef);
   }
 
   /// Fetches a channel entity from the repository by using repository method

@@ -131,7 +131,7 @@ class ConnectionService {
         status: ConnectionOfferStatus.published,
         ownedByMe: ownedByMe,
         createdAt: DateTime.now().toUtc(),
-        reputation: queryOfferResult.reputation,
+        score: queryOfferResult.score,
       );
 
       _logger.info('''
@@ -161,7 +161,7 @@ class ConnectionService {
         status: ConnectionOfferStatus.published,
         ownedByMe: ownedByMe,
         createdAt: DateTime.now().toUtc(),
-        reputation: queryOfferResult.reputation,
+        score: queryOfferResult.score,
       );
 
       _logger.info('''

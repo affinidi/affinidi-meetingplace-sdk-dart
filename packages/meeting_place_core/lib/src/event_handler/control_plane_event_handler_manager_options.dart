@@ -9,9 +9,7 @@ class ControlPlaneEventHandlerManagerOptions {
     this.maxRetriesDelay = const Duration(milliseconds: 5000),
     this.onBuildAttachments,
     this.onAttachmentsReceived,
-    this.messageTypesForSequenceTracking = const [
-      'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
-    ],
+    this.messageTypesForSequenceTracking = const [],
   });
 
   /// Default options instance

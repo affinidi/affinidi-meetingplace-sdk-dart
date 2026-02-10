@@ -59,7 +59,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
 
   /// Current schema version of the database.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Migration strategy applied before opening the database.
   /// Ensures foreign key constraints are enforced.
@@ -67,6 +67,11 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
+        },
+        onUpgrade: (m, from, to) async {
+          if (from == 1) {
+            await m.addColumn(connectionOffers, connectionOffers.score);
+          }
         },
       );
 }
@@ -140,6 +145,9 @@ class ConnectionOffers extends Table {
 
   /// External reference for the connection offer.
   TextColumn get externalRef => text().nullable()();
+
+  /// Score associated with the connection offer.
+  IntColumn get score => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

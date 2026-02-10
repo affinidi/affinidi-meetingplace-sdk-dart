@@ -182,6 +182,7 @@ class ConnectionOfferRepositoryDrift
               ),
               mediatorDid: Value(connectionOffer.mediatorDid),
               externalRef: Value(connectionOffer.externalRef),
+              score: Value(connectionOffer.score),
             ),
           );
 
@@ -276,6 +277,7 @@ class ConnectionOfferRepositoryDrift
           ),
           mediatorDid: Value(connectionOffer.mediatorDid),
           externalRef: Value(connectionOffer.externalRef),
+          score: Value(connectionOffer.score),
         ),
       );
 
@@ -467,6 +469,7 @@ class _ConnectionOfferMapper {
       notificationToken: connectionOffer.notificationToken,
       otherPartyNotificationToken: connectionOffer.otherPartyNotificationToken,
       externalRef: connectionOffer.externalRef,
+      score: connectionOffer.score,
     );
   }
 }

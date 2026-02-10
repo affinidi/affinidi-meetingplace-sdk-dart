@@ -52,14 +52,14 @@ _$queryOffer404ResponseMessageEnumValues =
     );
 
 const QueryOffer404ResponseHttpStatusCodeEnum
-_$queryOffer404ResponseHttpStatusCodeEnum_number404 =
-    const QueryOffer404ResponseHttpStatusCodeEnum._('number404');
+_$queryOffer404ResponseHttpStatusCodeEnum_n404 =
+    const QueryOffer404ResponseHttpStatusCodeEnum._('n404');
 
 QueryOffer404ResponseHttpStatusCodeEnum
 _$queryOffer404ResponseHttpStatusCodeEnumValueOf(String name) {
   switch (name) {
-    case 'number404':
-      return _$queryOffer404ResponseHttpStatusCodeEnum_number404;
+    case 'n404':
+      return _$queryOffer404ResponseHttpStatusCodeEnum_n404;
     default:
       throw ArgumentError(name);
   }
@@ -69,7 +69,7 @@ final BuiltSet<QueryOffer404ResponseHttpStatusCodeEnum>
 _$queryOffer404ResponseHttpStatusCodeEnumValues =
     BuiltSet<QueryOffer404ResponseHttpStatusCodeEnum>(
       const <QueryOffer404ResponseHttpStatusCodeEnum>[
-        _$queryOffer404ResponseHttpStatusCodeEnum_number404,
+        _$queryOffer404ResponseHttpStatusCodeEnum_n404,
       ],
     );
 
@@ -148,10 +148,10 @@ class _$QueryOffer404ResponseMessageEnumSerializer
 class _$QueryOffer404ResponseHttpStatusCodeEnumSerializer
     implements PrimitiveSerializer<QueryOffer404ResponseHttpStatusCodeEnum> {
   static const Map<String, Object> _toWire = const <String, Object>{
-    'number404': 404,
+    'n404': '404',
   };
   static const Map<Object, String> _fromWire = const <Object, String>{
-    404: 'number404',
+    '404': 'n404',
   };
 
   @override

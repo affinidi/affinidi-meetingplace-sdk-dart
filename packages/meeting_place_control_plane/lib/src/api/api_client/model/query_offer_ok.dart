@@ -27,7 +27,7 @@ part 'query_offer_ok.g.dart';
 /// * [maximumUsage] - maximum number of times this offer can be claimed, or 0 for unlimited
 /// * [groupId]
 /// * [groupDid]
-/// * [score] - publisher score
+/// * [score] - VRC score of the offer owner
 @BuiltValue()
 abstract class QueryOfferOK
     implements Built<QueryOfferOK, QueryOfferOKBuilder> {
@@ -56,11 +56,11 @@ abstract class QueryOfferOK
 
   /// A bitfield of contact attributes
   @BuiltValueField(wireName: r'contactAttributes')
-  int get contactAttributes;
+  num get contactAttributes;
 
   /// Offer type information
   @BuiltValueField(wireName: r'offerType')
-  int? get offerType;
+  num? get offerType;
 
   /// The mediator DID use to register the offer.
   @BuiltValueField(wireName: r'mediatorDid')
@@ -80,7 +80,7 @@ abstract class QueryOfferOK
 
   /// maximum number of times this offer can be claimed, or 0 for unlimited
   @BuiltValueField(wireName: r'maximumUsage')
-  int? get maximumUsage;
+  num? get maximumUsage;
 
   @BuiltValueField(wireName: r'groupId')
   String? get groupId;
@@ -88,6 +88,7 @@ abstract class QueryOfferOK
   @BuiltValueField(wireName: r'groupDid')
   String? get groupDid;
 
+  /// VRC score of the offer owner
   @BuiltValueField(wireName: r'score')
   int? get score;
 
@@ -156,13 +157,13 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
     yield r'contactAttributes';
     yield serializers.serialize(
       object.contactAttributes,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType(num),
     );
     if (object.offerType != null) {
       yield r'offerType';
       yield serializers.serialize(
         object.offerType,
-        specifiedType: const FullType(int),
+        specifiedType: const FullType(num),
       );
     }
     yield r'mediatorDid';
@@ -189,7 +190,7 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
       yield r'maximumUsage';
       yield serializers.serialize(
         object.maximumUsage,
-        specifiedType: const FullType(int),
+        specifiedType: const FullType(num),
       );
     }
     if (object.groupId != null) {
@@ -206,7 +207,6 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
         specifiedType: const FullType(String),
       );
     }
-
     if (object.score != null) {
       yield r'score';
       yield serializers.serialize(
@@ -306,14 +306,14 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
           break;
         case r'contactAttributes':
           final valueDes =
-              serializers.deserialize(value, specifiedType: const FullType(int))
-                  as int;
+              serializers.deserialize(value, specifiedType: const FullType(num))
+                  as num;
           result.contactAttributes = valueDes;
           break;
         case r'offerType':
           final valueDes =
-              serializers.deserialize(value, specifiedType: const FullType(int))
-                  as int;
+              serializers.deserialize(value, specifiedType: const FullType(num))
+                  as num;
           result.offerType = valueDes;
           break;
         case r'mediatorDid':
@@ -354,8 +354,8 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
           break;
         case r'maximumUsage':
           final valueDes =
-              serializers.deserialize(value, specifiedType: const FullType(int))
-                  as int;
+              serializers.deserialize(value, specifiedType: const FullType(num))
+                  as num;
           result.maximumUsage = valueDes;
           break;
         case r'groupId':

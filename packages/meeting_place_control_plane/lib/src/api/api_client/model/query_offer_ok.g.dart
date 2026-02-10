@@ -22,9 +22,9 @@ class _$QueryOfferOK extends QueryOfferOK {
   @override
   final String contactCard;
   @override
-  final int contactAttributes;
+  final num contactAttributes;
   @override
-  final int? offerType;
+  final num? offerType;
   @override
   final String mediatorDid;
   @override
@@ -34,7 +34,7 @@ class _$QueryOfferOK extends QueryOfferOK {
   @override
   final String didcommMessage;
   @override
-  final int? maximumUsage;
+  final num? maximumUsage;
   @override
   final String? groupId;
   @override
@@ -174,14 +174,14 @@ class QueryOfferOKBuilder
   String? get contactCard => _$this._contactCard;
   set contactCard(String? contactCard) => _$this._contactCard = contactCard;
 
-  int? _contactAttributes;
-  int? get contactAttributes => _$this._contactAttributes;
-  set contactAttributes(int? contactAttributes) =>
+  num? _contactAttributes;
+  num? get contactAttributes => _$this._contactAttributes;
+  set contactAttributes(num? contactAttributes) =>
       _$this._contactAttributes = contactAttributes;
 
-  int? _offerType;
-  int? get offerType => _$this._offerType;
-  set offerType(int? offerType) => _$this._offerType = offerType;
+  num? _offerType;
+  num? get offerType => _$this._offerType;
+  set offerType(num? offerType) => _$this._offerType = offerType;
 
   String? _mediatorDid;
   String? get mediatorDid => _$this._mediatorDid;
@@ -202,9 +202,9 @@ class QueryOfferOKBuilder
   set didcommMessage(String? didcommMessage) =>
       _$this._didcommMessage = didcommMessage;
 
-  int? _maximumUsage;
-  int? get maximumUsage => _$this._maximumUsage;
-  set maximumUsage(int? maximumUsage) => _$this._maximumUsage = maximumUsage;
+  num? _maximumUsage;
+  num? get maximumUsage => _$this._maximumUsage;
+  set maximumUsage(num? maximumUsage) => _$this._maximumUsage = maximumUsage;
 
   String? _groupId;
   String? get groupId => _$this._groupId;

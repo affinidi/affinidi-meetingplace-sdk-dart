@@ -86,14 +86,16 @@ class QueryOfferHandler
         offerLink: response.offerLink,
         offerName: response.name,
         offerDescription: response.description,
-        type: OfferType.fromContactAttributes(response.contactAttributes),
+        type: OfferType.fromContactAttributes(
+          response.contactAttributes as int,
+        ),
         mnemonic: command.mnemonic,
         mediatorDid: response.mediatorDid,
         status: response.status,
         expiresAt: response.validUntil != null
             ? DateTime.parse(response.validUntil!)
             : null,
-        maximumUsage: response.maximumUsage,
+        maximumUsage: response.maximumUsage as int?,
         contactCard: ContactCardImpl.fromBase64(response.contactCard),
         didcommMessage: OobInvitationMessage.fromBase64(
           response.didcommMessage,

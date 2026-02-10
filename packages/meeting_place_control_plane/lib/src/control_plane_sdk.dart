@@ -123,13 +123,7 @@ class ControlPlaneSDK {
   /// **Throws:**
   /// - [MissingDeviceException]: An exception thrown when device is null.
   Device get device {
-    final methodName = 'device';
-
     if (_device == null) {
-      _logger.error(
-        'Device not set, SDK did not receive FCM token',
-        name: methodName,
-      );
       throw MissingDeviceException();
     }
     return _device!;

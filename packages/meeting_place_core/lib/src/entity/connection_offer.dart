@@ -138,6 +138,7 @@ class ConnectionOffer {
     required ContactCard card,
     required DateTime createdAt,
     String? externalRef,
+    int? score,
   }) {
     return copyWith(
       acceptOfferDid: acceptOfferDid,
@@ -146,6 +147,7 @@ class ConnectionOffer {
       card: card,
       createdAt: createdAt,
       externalRef: externalRef,
+      score: score ?? this.score,
     );
   }
 

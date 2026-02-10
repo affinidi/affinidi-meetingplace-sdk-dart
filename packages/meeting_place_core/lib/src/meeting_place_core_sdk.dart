@@ -977,6 +977,17 @@ class MeetingPlaceCoreSDK {
       final output = await _controlPlaneSDK.execute(
         UpdateOffersScoreCommand(score: score, mnemonics: mnemonics),
       );
+
+      for (final mnemonic in output.updatedOffers) {
+        final offerIndex = offers.indexWhere((o) => o.mnemonic == mnemonic);
+        if (offerIndex != -1) {
+          final offer = offers[offerIndex];
+          final updatedOffer = offer.copyWith(score: score);
+          await _repositoryConfig.connectionOfferRepository
+              .updateConnectionOffer(updatedOffer);
+        }
+      }
+
       return sdk.UpdateScoreForOffersResult(
         updatedOffers: output.updatedOffers,
         failedOffers: output.failedOffers,

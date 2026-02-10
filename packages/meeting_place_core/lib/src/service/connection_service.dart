@@ -400,6 +400,7 @@ class ConnectionService {
         card: contactCard,
         externalRef: externalRef,
         createdAt: DateTime.now().toUtc(),
+        score: connectionOffer.score,
       );
 
       await _connectionOfferRepository.updateConnectionOffer(
@@ -415,6 +416,7 @@ class ConnectionService {
       card: contactCard,
       externalRef: externalRef,
       createdAt: DateTime.now().toUtc(),
+      score: connectionOffer.score,
     );
 
     await _connectionOfferRepository.createConnectionOffer(

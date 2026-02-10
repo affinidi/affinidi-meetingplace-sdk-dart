@@ -165,7 +165,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   @override
   final String offerName;
   @override
-  final String? offerDescription;
+  final String offerDescription;
   @override
   final RegisterOfferInputOfferTypeEnum? offerType;
   @override
@@ -175,13 +175,13 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   @override
   final String? validUntil;
   @override
-  final int? maximumUsage;
+  final num? maximumUsage;
   @override
   final String deviceToken;
   @override
   final RegisterOfferInputPlatformTypeEnum platformType;
   @override
-  final int contactAttributes;
+  final num contactAttributes;
   @override
   final String mediatorDid;
   @override
@@ -194,6 +194,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   final bool? isSearchable;
   @override
   final String? metadata;
+  @override
+  final int? score;
 
   factory _$RegisterOfferInput([
     void Function(RegisterOfferInputBuilder)? updates,
@@ -201,7 +203,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
 
   _$RegisterOfferInput._({
     required this.offerName,
-    this.offerDescription,
+    required this.offerDescription,
     this.offerType,
     required this.didcommMessage,
     required this.contactCard,
@@ -216,6 +218,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     this.customPhrase,
     this.isSearchable,
     this.metadata,
+    this.score,
   }) : super._();
   @override
   RegisterOfferInput rebuild(
@@ -245,7 +248,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
         mediatorWSSEndpoint == other.mediatorWSSEndpoint &&
         customPhrase == other.customPhrase &&
         isSearchable == other.isSearchable &&
-        metadata == other.metadata;
+        metadata == other.metadata &&
+        score == other.score;
   }
 
   @override
@@ -267,6 +271,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     _$hash = $jc(_$hash, customPhrase.hashCode);
     _$hash = $jc(_$hash, isSearchable.hashCode);
     _$hash = $jc(_$hash, metadata.hashCode);
+    _$hash = $jc(_$hash, score.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -289,7 +294,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
           ..add('mediatorWSSEndpoint', mediatorWSSEndpoint)
           ..add('customPhrase', customPhrase)
           ..add('isSearchable', isSearchable)
-          ..add('metadata', metadata))
+          ..add('metadata', metadata)
+          ..add('score', score))
         .toString();
   }
 }
@@ -325,9 +331,9 @@ class RegisterOfferInputBuilder
   String? get validUntil => _$this._validUntil;
   set validUntil(String? validUntil) => _$this._validUntil = validUntil;
 
-  int? _maximumUsage;
-  int? get maximumUsage => _$this._maximumUsage;
-  set maximumUsage(int? maximumUsage) => _$this._maximumUsage = maximumUsage;
+  num? _maximumUsage;
+  num? get maximumUsage => _$this._maximumUsage;
+  set maximumUsage(num? maximumUsage) => _$this._maximumUsage = maximumUsage;
 
   String? _deviceToken;
   String? get deviceToken => _$this._deviceToken;
@@ -338,9 +344,9 @@ class RegisterOfferInputBuilder
   set platformType(RegisterOfferInputPlatformTypeEnum? platformType) =>
       _$this._platformType = platformType;
 
-  int? _contactAttributes;
-  int? get contactAttributes => _$this._contactAttributes;
-  set contactAttributes(int? contactAttributes) =>
+  num? _contactAttributes;
+  num? get contactAttributes => _$this._contactAttributes;
+  set contactAttributes(num? contactAttributes) =>
       _$this._contactAttributes = contactAttributes;
 
   String? _mediatorDid;
@@ -369,6 +375,10 @@ class RegisterOfferInputBuilder
   String? get metadata => _$this._metadata;
   set metadata(String? metadata) => _$this._metadata = metadata;
 
+  int? _score;
+  int? get score => _$this._score;
+  set score(int? score) => _$this._score = score;
+
   RegisterOfferInputBuilder() {
     RegisterOfferInput._defaults(this);
   }
@@ -392,6 +402,7 @@ class RegisterOfferInputBuilder
       _customPhrase = $v.customPhrase;
       _isSearchable = $v.isSearchable;
       _metadata = $v.metadata;
+      _score = $v.score;
       _$v = null;
     }
     return this;
@@ -419,7 +430,11 @@ class RegisterOfferInputBuilder
             r'RegisterOfferInput',
             'offerName',
           ),
-          offerDescription: offerDescription,
+          offerDescription: BuiltValueNullFieldError.checkNotNull(
+            offerDescription,
+            r'RegisterOfferInput',
+            'offerDescription',
+          ),
           offerType: offerType,
           didcommMessage: BuiltValueNullFieldError.checkNotNull(
             didcommMessage,
@@ -466,6 +481,7 @@ class RegisterOfferInputBuilder
           customPhrase: customPhrase,
           isSearchable: isSearchable,
           metadata: metadata,
+          score: score,
         );
     replace(_$result);
     return _$result;

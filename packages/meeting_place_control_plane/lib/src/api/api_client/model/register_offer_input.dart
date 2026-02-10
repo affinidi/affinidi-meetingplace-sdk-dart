@@ -28,6 +28,7 @@ part 'register_offer_input.g.dart';
 /// * [customPhrase] - A custom phrase to find and claim the offer by another user.
 /// * [isSearchable] - Indicates whether the offer is searchable by other users.
 /// * [metadata] - Metadata containing additional information about the offer.
+/// * [score] - VRC score of the offer owner
 @BuiltValue()
 abstract class RegisterOfferInput
     implements Built<RegisterOfferInput, RegisterOfferInputBuilder> {
@@ -37,7 +38,7 @@ abstract class RegisterOfferInput
 
   /// Describes the purpose of the connection offer.
   @BuiltValueField(wireName: r'offerDescription')
-  String? get offerDescription;
+  String get offerDescription;
 
   /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
   @BuiltValueField(wireName: r'offerType')
@@ -58,7 +59,7 @@ abstract class RegisterOfferInput
 
   /// The maximum number of times other users can claim the offer. Set 0 for unlimited claims.
   @BuiltValueField(wireName: r'maximumUsage')
-  int? get maximumUsage;
+  num? get maximumUsage;
 
   /// The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
@@ -71,7 +72,7 @@ abstract class RegisterOfferInput
 
   /// A bitfield of contact attributes.
   @BuiltValueField(wireName: r'contactAttributes')
-  int get contactAttributes;
+  num get contactAttributes;
 
   /// The mediator DID use to register the offer.
   @BuiltValueField(wireName: r'mediatorDid')
@@ -96,6 +97,10 @@ abstract class RegisterOfferInput
   /// Metadata containing additional information about the offer.
   @BuiltValueField(wireName: r'metadata')
   String? get metadata;
+
+  /// VRC score of the offer owner
+  @BuiltValueField(wireName: r'score')
+  int? get score;
 
   RegisterOfferInput._();
 
@@ -128,13 +133,11 @@ class _$RegisterOfferInputSerializer
       object.offerName,
       specifiedType: const FullType(String),
     );
-    if (object.offerDescription != null) {
-      yield r'offerDescription';
-      yield serializers.serialize(
-        object.offerDescription,
-        specifiedType: const FullType(String),
-      );
-    }
+    yield r'offerDescription';
+    yield serializers.serialize(
+      object.offerDescription,
+      specifiedType: const FullType(String),
+    );
     if (object.offerType != null) {
       yield r'offerType';
       yield serializers.serialize(
@@ -163,7 +166,7 @@ class _$RegisterOfferInputSerializer
       yield r'maximumUsage';
       yield serializers.serialize(
         object.maximumUsage,
-        specifiedType: const FullType(int),
+        specifiedType: const FullType(num),
       );
     }
     yield r'deviceToken';
@@ -179,7 +182,7 @@ class _$RegisterOfferInputSerializer
     yield r'contactAttributes';
     yield serializers.serialize(
       object.contactAttributes,
-      specifiedType: const FullType(int),
+      specifiedType: const FullType(num),
     );
     yield r'mediatorDid';
     yield serializers.serialize(
@@ -215,6 +218,13 @@ class _$RegisterOfferInputSerializer
       yield serializers.serialize(
         object.metadata,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.score != null) {
+      yield r'score';
+      yield serializers.serialize(
+        object.score,
+        specifiedType: const FullType(int),
       );
     }
   }
@@ -302,8 +312,8 @@ class _$RegisterOfferInputSerializer
           break;
         case r'maximumUsage':
           final valueDes =
-              serializers.deserialize(value, specifiedType: const FullType(int))
-                  as int;
+              serializers.deserialize(value, specifiedType: const FullType(num))
+                  as num;
           result.maximumUsage = valueDes;
           break;
         case r'deviceToken':
@@ -328,8 +338,8 @@ class _$RegisterOfferInputSerializer
           break;
         case r'contactAttributes':
           final valueDes =
-              serializers.deserialize(value, specifiedType: const FullType(int))
-                  as int;
+              serializers.deserialize(value, specifiedType: const FullType(num))
+                  as num;
           result.contactAttributes = valueDes;
           break;
         case r'mediatorDid':
@@ -385,6 +395,12 @@ class _$RegisterOfferInputSerializer
                   )
                   as String;
           result.metadata = valueDes;
+          break;
+        case r'score':
+          final valueDes =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int;
+          result.score = valueDes;
           break;
         default:
           unhandled.add(key);

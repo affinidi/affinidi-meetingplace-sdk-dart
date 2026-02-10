@@ -63,6 +63,16 @@ enum ChatProtocol {
   /// Represents a reaction (emoji or similar) to a chat message.
   chatReaction(
     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/reaction',
+  ),
+
+  /// Represents a survey question message.
+  chatSurveyQuestion(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/survey-question',
+  ),
+
+  /// Represents a survey response message.
+  chatSurveyResponse(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/survey-response',
   );
 
   /// Creates a [ChatProtocol] instance with the given URI [value].

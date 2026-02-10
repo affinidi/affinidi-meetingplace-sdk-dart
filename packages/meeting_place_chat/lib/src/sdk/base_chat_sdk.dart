@@ -441,6 +441,74 @@ abstract class BaseChatSDK {
       return true;
     }
 
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatSurveyQuestion.value) {
+      _logger.info('Handling survey question message', name: methodName);
+
+      final surveyQuestion = ChatSurveyQuestion.fromPlainTextMessage(
+        message.plainTextMessage,
+      );
+
+      // Persist survey question as a normal chat message item so it appears in
+      // history like other messages.
+      final chatQuestionMessage = Message(
+        chatId: chatId,
+        messageId: message.plainTextMessage.id,
+        senderDid: message.plainTextMessage.from!,
+        isFromMe: false,
+        dateCreated: surveyQuestion.body.timestamp,
+        status: ChatItemStatus.received,
+        value: surveyQuestion.question,
+        data: surveyQuestion.data,
+      );
+
+      await chatRepository.createMessage(chatQuestionMessage);
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: message.plainTextMessage,
+          chatItem: chatQuestionMessage,
+        ),
+      );
+
+      return true;
+    }
+
+    if (message.plainTextMessage.type.toString() ==
+        ChatProtocol.chatSurveyResponse.value) {
+      _logger.info('Handling survey response message', name: methodName);
+
+      final chatResponse = protocol.ChatSurveyResponse.fromPlainTextMessage(
+        message.plainTextMessage,
+      );
+
+      final chatMessageResponse = Message(
+        chatId: chatId,
+        messageId: message.plainTextMessage.id,
+        senderDid: message.plainTextMessage.from!,
+        isFromMe: false,
+        dateCreated:
+            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        status: ChatItemStatus.sent,
+        value: chatResponse.body.text,
+        data: chatResponse.data,
+      );
+
+      await chatRepository.createMessage(chatMessageResponse);
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: message.plainTextMessage,
+          chatItem: chatMessageResponse,
+        ),
+      );
+
+      return true;
+    }
+
+    _logger.info(
+      'Completed handling message of type ${message.plainTextMessage.type}',
+      name: methodName,
+    );
+
     return false;
   }
 
@@ -637,6 +705,154 @@ abstract class BaseChatSDK {
     }
 
     _logger.info('Completed sending profile hash', name: methodName);
+  }
+
+  /// Sends survey question
+  Future<void> sendSurveyQuestion({
+    required String questionText,
+    required List<String> suggestions,
+  }) async {
+    final channel = await getChannel();
+    channel.increaseSeqNo();
+    await coreSDK.updateChannel(channel);
+
+    final chatSurveyQuestion = protocol.ChatSurveyQuestion.create(
+      from: did,
+      to: [otherPartyDid],
+      question: questionText,
+      suggestions: suggestions,
+      seqNo: channel.seqNo,
+      messageId: const Uuid().v4(),
+    );
+    final plainTextMessage = chatSurveyQuestion.toPlainTextMessage();
+
+    // Persist and push locally so UIs can render the question immediately,
+    // matching the behavior of sendSurveyResponse.
+    try {
+      final createdMessage = await chatRepository.createMessage(
+        Message(
+          chatId: chatId,
+          messageId: plainTextMessage.id,
+          senderDid: did,
+          isFromMe: true,
+          dateCreated: chatSurveyQuestion.body.timestamp,
+          status: ChatItemStatus.sent,
+          value: chatSurveyQuestion.question,
+          data: chatSurveyQuestion.data,
+        ),
+      );
+
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: plainTextMessage,
+          chatItem: createdMessage,
+        ),
+      );
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to persist/push survey question before sending',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+
+    await sendMessage(plainTextMessage, notify: true);
+  }
+
+  /// Sends survey response
+  Future<void> sendSurveyResponse({
+    required String response,
+    required String parentMessageId,
+  }) async {
+    final methodName = 'sendSurveyResponse';
+    final channel = await getChannel();
+    channel.increaseSeqNo();
+    await coreSDK.updateChannel(channel);
+
+    // Mark the parent question as answered locally so UIs can update instantly.
+
+    try {
+      final parent = await chatRepository.getMessage(
+        chatId: chatId,
+        messageId: parentMessageId,
+      );
+
+      if (parent is Message) {
+        final suggestions =
+            ((parent.data?['suggestions'] as List?) ?? const <dynamic>[])
+                .whereType<String>()
+                .toList();
+
+        // Recreate typed question and set isAnswered.
+        final chatSurveyQuestion = protocol.ChatSurveyQuestion.create(
+          from: parent.senderDid,
+          to: [did],
+          question: parent.value,
+          suggestions: suggestions,
+          seqNo: channel.seqNo,
+          messageId: parent.messageId,
+          isAnswered: true,
+        );
+
+        // Convert typed question back to repository message.
+        final updatedParent = Message(
+          chatId: parent.chatId,
+          messageId: parent.messageId,
+          senderDid: parent.senderDid,
+          isFromMe: parent.isFromMe,
+          dateCreated: parent.dateCreated,
+          status: parent.status,
+          type: parent.type,
+          value: chatSurveyQuestion.question,
+          attachments: parent.attachments,
+          reactions: parent.reactions,
+          data: chatSurveyQuestion.data,
+        );
+
+        await chatRepository.updateMessage(updatedParent);
+        chatStream.pushData(StreamData(chatItem: updatedParent));
+      } else {
+        _logger.warning(
+          'Parent survey question $parentMessageId not found or not a Message, skipping local update',
+          name: methodName,
+        );
+      }
+    } catch (e, stackTrace) {
+      // Don't block sending the response if updating the local question fails.
+      _logger.error(
+        'Failed to mark parent survey question as answered',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+    }
+    final responseMessage = protocol.ChatSurveyResponse.create(
+      from: did,
+      to: [otherPartyDid],
+      seqNo: channel.seqNo,
+      text: response,
+      parentMessageId: parentMessageId,
+    );
+
+    final plainTextMessage = responseMessage.toPlainTextMessage();
+    final createdMessage = await chatRepository.createMessage(
+      Message(
+        chatId: chatId,
+        messageId: plainTextMessage.id,
+        senderDid: did,
+        isFromMe: true,
+        dateCreated: responseMessage.body.timestamp,
+        status: ChatItemStatus.sent,
+        value: responseMessage.body.text,
+        data: responseMessage.data,
+      ),
+    );
+
+    chatStream.pushData(
+      StreamData(plainTextMessage: plainTextMessage, chatItem: createdMessage),
+    );
+
+    await sendMessage(plainTextMessage, notify: true);
   }
 
   /// Extracts message IDs from a delivered plain text message.

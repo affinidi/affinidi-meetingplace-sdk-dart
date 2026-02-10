@@ -105,7 +105,7 @@ class ChatItems extends Table {
 
   /// Additional data for concierge messages.
   TextColumn get data =>
-      text().nullable().map(const _ConciergeDataConverter())();
+      text().nullable().map(const _MessageBodyDataConverter())();
 
   /// DID of the sender.
   TextColumn get senderDid => text()();
@@ -317,9 +317,9 @@ class _ConciergeMessageTypeConverter
   }
 }
 
-class _ConciergeDataConverter
+class _MessageBodyDataConverter
     extends TypeConverter<Map<String, dynamic>, String> {
-  const _ConciergeDataConverter();
+  const _MessageBodyDataConverter();
 
   @override
   Map<String, dynamic> fromSql(String fromDb) {

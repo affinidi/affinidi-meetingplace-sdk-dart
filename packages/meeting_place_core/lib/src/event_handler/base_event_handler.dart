@@ -121,4 +121,25 @@ abstract class BaseEventHandler {
       maxDelay: _options.maxRetriesDelay,
     );
   }
+
+  @internal
+  doesChannelExists(String did) async {
+    final existingChannel = await channelRepository
+        .findChannelByOtherPartyPermanentChannelDid(did);
+
+    return existingChannel != null;
+  }
+
+  @internal
+  Future<void> deleteMessageFromMediator({
+    required DidManager publishedOfferDidManager,
+    required String mediatorDid,
+    required String messageHash,
+  }) {
+    return mediatorService.deletedMessages(
+      didManager: publishedOfferDidManager,
+      mediatorDid: mediatorDid,
+      messageHashes: [messageHash],
+    );
+  }
 }

@@ -205,10 +205,10 @@ class MediatorStreamSubscription {
       return;
     }
 
-    if (closeCode != null && webSocketNormalCloseCodes.contains(closeCode)) {
+    if (closeCode == webSocketCloseNormal) {
       _logger.info(
         'Normal closure detected (code: $closeCode), '
-        'connection ended intentionally - not reconnecting',
+        'session ended intentionally - not reconnecting',
         name: methodName,
       );
       return;

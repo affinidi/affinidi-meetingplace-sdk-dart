@@ -144,7 +144,9 @@ void main() async {
   test('deletes message from mediator after being processed', () async {
     final subscription = await aliceSDK.subscribeToMediator(
       aliceDidDoc.id,
-      options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null),
+      options: MediatorStreamSubscriptionOptions(
+        deleteMessageDelay: Duration(milliseconds: 200),
+      ),
     );
 
     var messageCount = 0;

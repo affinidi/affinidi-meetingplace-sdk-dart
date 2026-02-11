@@ -486,8 +486,7 @@ abstract class BaseChatSDK {
         messageId: message.plainTextMessage.id,
         senderDid: message.plainTextMessage.from!,
         isFromMe: false,
-        dateCreated:
-            message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+        dateCreated: chatResponse.body.timestamp,
         status: ChatItemStatus.sent,
         value: chatResponse.body.text,
         data: chatResponse.data,

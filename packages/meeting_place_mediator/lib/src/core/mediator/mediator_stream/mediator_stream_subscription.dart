@@ -188,22 +188,122 @@ class MediatorStreamSubscription {
   void _onDone({int? closeCode, String? closeReason}) async {
     final methodName = '_onDone';
 
-    _logger.info('Received web socket close code: $closeCode',
-        name: methodName);
+    final closeCodeDescription = _describeCloseCode(closeCode);
+    _logger.info(
+      'WebSocket disconnected - '
+      'code: ${closeCode ?? "null"} ($closeCodeDescription), '
+      'reason: ${closeReason ?? "none"}',
+      name: methodName,
+    );
 
-    if (closeCode == null) {
-      _logger.info('Close code is null, done', name: methodName);
+    if (isClosed) {
+      _logger.info(
+        'Stream controller already closed (dispose was called), '
+        'skipping reconnection attempt',
+        name: methodName,
+      );
       return;
     }
 
-    await _client.disconnect();
-    _client.listenForIncomingMessages(
-      _onIncomingMessage,
-      onDone: _onDone,
+    if (closeCode == webSocketCloseNormal) {
+      _logger.info(
+        'Normal closure detected (code: $closeCode), '
+        'session ended intentionally - not reconnecting',
+        name: methodName,
+      );
+      return;
+    }
+
+    _logger.info(
+      'Abnormal WebSocket closure detected - '
+      'initiating automatic reconnection...',
+      name: methodName,
     );
 
-    await ConnectionPool.instance.startConnections();
-    _logger.info('Re-subscribed to incoming messages', name: methodName);
+    try {
+      _logger.info('Disconnecting stale client...', name: methodName);
+      await _client.disconnect();
+      _logger.info('Stale client disconnected successfully', name: methodName);
+    } catch (e) {
+      _logger.warning(
+        'Non-fatal error during disconnect before reconnect: $e',
+        name: methodName,
+      );
+    }
+
+    if (isClosed) {
+      _logger.info(
+        'Stream controller closed during reconnect flow, aborting',
+        name: methodName,
+      );
+      return;
+    }
+
+    try {
+      _logger.info('Re-establishing WebSocket connection...', name: methodName);
+      _client.listenForIncomingMessages(
+        _onIncomingMessage,
+        onDone: _onDone,
+      );
+
+      await ConnectionPool.instance.startConnections();
+      _logger.info(
+        'WebSocket reconnection successful - '
+        'now listening for incoming messages',
+        name: methodName,
+      );
+    } on StateError catch (e, stackTrace) {
+      _logger.error(
+        'Reconnection failed: client already in connected state',
+        name: methodName,
+        error: e,
+        stackTrace: stackTrace,
+      );
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Reconnection failed unexpectedly: $e',
+        name: methodName,
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  //TODO: Remove this method when the connection issue has been resolved.
+  String _describeCloseCode(int? code) {
+    if (code == null) return 'TCP connection dropped without close frame';
+    switch (code) {
+      case webSocketCloseNormal:
+        return 'Normal Closure';
+      case webSocketCloseGoingAway:
+        return 'Going Away';
+      case 1002:
+        return 'Protocol Error';
+      case 1003:
+        return 'Unsupported Data';
+      case 1005:
+        return 'No Status Received';
+      case 1006:
+        return 'Abnormal Closure';
+      case 1007:
+        return 'Invalid Payload Data';
+      case 1008:
+        return 'Policy Violation';
+      case 1009:
+        return 'Message Too Big';
+      case 1010:
+        return 'Mandatory Extension';
+      case 1011:
+        return 'Internal Server Error';
+      case 1012:
+        return 'Service Restart';
+      case 1013:
+        return 'Try Again Later';
+      case 1015:
+        return 'TLS Handshake Failure';
+      default:
+        return 'Unknown ($code)';
+    }
   }
 
   String _hashMessage(Map<String, dynamic> message) {

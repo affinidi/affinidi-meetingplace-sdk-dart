@@ -1,4 +1,5 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import '../../meeting_place_core.dart';
 import '../entity/channel.dart';
 import '../protocol/meeting_place_protocol.dart';
 import '../entity/connection_offer.dart';
@@ -62,6 +63,16 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           message.attachments,
         );
 
+        if (await _doesChannelExists(otherPartyPermanentChannelDid)) {
+          await _deleteMessageFromMediator(
+            publishedOfferDidManager: publishedOfferDidManager,
+            mediatorDid: connection.mediatorDid,
+            messageHash: result.messageHash!,
+          );
+
+          continue;
+        }
+
         final acceptOfferDid = message.from!;
         final channel = Channel(
           offerLink: connection.offerLink,
@@ -79,10 +90,10 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
 
         await channelRepository.createChannel(channel);
 
-        await mediatorService.deletedMessages(
-          didManager: publishedOfferDidManager,
+        await _deleteMessageFromMediator(
+          publishedOfferDidManager: publishedOfferDidManager,
           mediatorDid: connection.mediatorDid,
-          messageHashes: [result.messageHash!],
+          messageHash: result.messageHash!,
         );
 
         logger.info(
@@ -109,5 +120,33 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       );
       rethrow;
     }
+  }
+
+  _doesChannelExists(String did) async {
+    final existingChannel = await channelRepository
+        .findChannelByOtherPartyPermanentChannelDid(did);
+
+    if (existingChannel == null) {
+      return false;
+    }
+
+    logger.warning(
+      'Duplicate acceptance for did $did. Skipping creation of new channel.',
+      name: '_doesChannelExists',
+    );
+
+    return true;
+  }
+
+  Future<void> _deleteMessageFromMediator({
+    required DidManager publishedOfferDidManager,
+    required String mediatorDid,
+    required String messageHash,
+  }) {
+    return mediatorService.deletedMessages(
+      didManager: publishedOfferDidManager,
+      mediatorDid: mediatorDid,
+      messageHashes: [messageHash],
+    );
   }
 }

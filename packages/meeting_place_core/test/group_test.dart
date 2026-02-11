@@ -707,5 +707,71 @@ void main() async {
     expect(expChannel, isNull);
   });
 
-  // TODO: Check if ephemeral messages getting deleted
+  test('duplicate group acceptance results in one channel only', () async {
+    await aliceSDK.deleteControlPlaneEvents();
+
+    final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
+      offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
+      contactCard: ContactCardFixture.getContactCardFixture(
+        did: 'did:test:alice',
+        contactInfo: {
+          'n': {'given': 'Alice'},
+        },
+      ),
+      type: SDKConnectionOfferType.groupInvitation,
+      metadata: 'foobar',
+    );
+
+    final bobContactCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
+
+    final acceptance = await bobSDK.acceptOffer(
+      connectionOffer: result.connectionOffer,
+      contactCard: bobContactCard,
+      senderInfo: 'Bob',
+    );
+
+    // Manually send a duplicate acceptance message to simulate the case where
+    // multiple acceptance messages are generated due to retries or other
+    // reasons.
+    final invitationAcceptanceMessage = InvitationAcceptanceGroup.create(
+      from: acceptance.connectionOffer.acceptOfferDid!,
+      to: [acceptance.connectionOffer.publishOfferDid],
+      parentThreadId: result.connectionOffer.offerLink,
+      channelDid: acceptance.connectionOffer.permanentChannelDid!,
+      publicKey: '',
+      contactCard: bobContactCard,
+    );
+
+    final recipientDidDocument = await bobSDK.didResolver.resolveDid(
+      acceptance.connectionOffer.publishOfferDid,
+    );
+
+    await bobSDK.mediator.sendMessage(
+      invitationAcceptanceMessage.toPlainTextMessage(),
+      senderDidManager: acceptance.acceptOfferDid,
+      recipientDidDocument: recipientDidDocument,
+      mediatorDid: acceptance.connectionOffer.mediatorDid,
+      next: acceptance.connectionOffer.publishOfferDid,
+    );
+
+    final completer = Completer<Channel>();
+    int receivedInvitationAcceptEvents = 0;
+
+    aliceSDK.controlPlaneEventsStream.listen((e) {
+      if (e.type == ControlPlaneEventType.InvitationGroupAccept) {
+        receivedInvitationAcceptEvents++;
+        completer.complete(e.channel);
+      }
+    });
+
+    await aliceSDK.processControlPlaneEvents();
+    expect(await completer.future, isA<Channel>());
+    expect(receivedInvitationAcceptEvents, equals(1));
+  });
 }

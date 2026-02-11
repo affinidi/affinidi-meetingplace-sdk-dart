@@ -9,7 +9,7 @@ jobs:
     secrets: inherit
     with:
       flutter-version: '3.35.3'
-      package: false
+      package: true
       pana_min_score: 160
       env_vars: |
         MEDIATOR_DID=${{ vars.MEDIATOR_DID }}

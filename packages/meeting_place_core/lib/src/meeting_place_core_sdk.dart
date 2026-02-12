@@ -1259,9 +1259,14 @@ class MeetingPlaceCoreSDK {
   /// for each processed update event.
   ///
   /// **Parameters:**
-  /// - [debounceDiscoveryEventsInSeconds] - Seconds to wait before fetching
-  /// discovery events from discovery API.
-  Future<void> processControlPlaneEvents({Function? onDone}) {
+  /// - [onDone] - A callback function that is called when the processing of
+  ///   control plane events is complete.
+  ///
+  ///   It receives a list of errors that occurred during the processing of
+  ///   control plane events.
+  Future<void> processControlPlaneEvents({
+    Function(List<Object> errors)? onDone,
+  }) {
     return withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
         debounceEvents: options.debounceControlPlaneEvents,

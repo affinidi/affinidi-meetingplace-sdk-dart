@@ -22,6 +22,7 @@ class CachedDidResolver implements DidResolver {
   @override
   Future<DidDocument> resolveDid(String did) async {
     if (cacheDIDDocs.containsKey(did)) {
+      _logger.info('Using DIDDocument from cache for $did', name: 'resolveDid');
       return cacheDIDDocs[did]!;
     }
 

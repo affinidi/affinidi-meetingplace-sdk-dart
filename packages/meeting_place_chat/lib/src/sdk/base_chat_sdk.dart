@@ -112,6 +112,7 @@ abstract class BaseChatSDK {
     final messages = await messagesFuture;
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
+    unawaited(fetchNewMessages());
     unawaited(
       mediatorStreamFuture!.then((subscription) {
         unawaited(fetchNewMessages());

@@ -572,6 +572,10 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
 
     return attachmentsWithLinksByMessage;
   }
+
+  @override
+  Future<void> warmup() =>
+      getMessage(chatId: 'warmup', messageId: 'warmup').then((_) => null);
 }
 
 /// [_ChatItemMapper] provides mapping utilities between

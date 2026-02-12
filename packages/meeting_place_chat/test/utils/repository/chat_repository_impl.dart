@@ -126,4 +126,7 @@ class ChatRepositoryImpl implements ChatRepository {
         ? Message.fromJson(jsonDecode(message) as Map<String, dynamic>)
         : null;
   }
+
+  @override
+  Future<void> warmup() => getMessage(chatId: 'warmup', messageId: 'warmup');
 }

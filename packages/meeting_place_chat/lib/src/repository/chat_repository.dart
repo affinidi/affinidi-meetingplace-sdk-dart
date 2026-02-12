@@ -8,4 +8,5 @@ abstract interface class ChatRepository {
     required String chatId,
     required String messageId,
   });
+  Future<void> warmup();
 }

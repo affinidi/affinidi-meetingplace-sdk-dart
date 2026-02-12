@@ -28,6 +28,7 @@ class ControlPlaneEventService {
   Future<void> processEvents({
     required Duration debounceEvents,
     Function? onDone,
+    Function(Object e)? onError,
   }) async {
     final methodName = 'processEvents';
     final processId = Uuid().v4();
@@ -44,6 +45,14 @@ class ControlPlaneEventService {
         await _process(processId: processId, onDone: onDone);
         _logger.info('Processing discovery events done..');
         _queued = false;
+      } catch (e, stackTrace) {
+        _logger.error(
+          'Error processing discovery events for process id $processId',
+          error: e,
+          stackTrace: stackTrace,
+          name: methodName,
+        );
+        if (onError is Function) onError(e);
       } finally {
         _queued = false;
       }

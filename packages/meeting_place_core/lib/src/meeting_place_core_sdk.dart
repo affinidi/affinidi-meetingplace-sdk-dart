@@ -1249,13 +1249,19 @@ class MeetingPlaceCoreSDK {
   /// for each processed update event.
   ///
   /// **Parameters:**
-  /// - [debounceDiscoveryEventsInSeconds] - Seconds to wait before fetching
+  /// - [onDone] - A callback function that is called when the stream is closed.
+  /// - [onError] - A callback function that is called when an error occurs
+  ///   while processing
   /// discovery events from discovery API.
-  Future<void> processControlPlaneEvents({Function? onDone}) {
+  Future<void> processControlPlaneEvents({
+    Function? onDone,
+    Function(Object e)? onError,
+  }) {
     return withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
         debounceEvents: options.debounceControlPlaneEvents,
         onDone: onDone,
+        onError: onError,
       ),
     );
   }

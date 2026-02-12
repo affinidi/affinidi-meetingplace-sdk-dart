@@ -123,7 +123,7 @@ abstract class BaseEventHandler {
   }
 
   @internal
-  doesChannelExists(String did) async {
+  Future<bool> doesChannelExists(String did) async {
     final existingChannel = await channelRepository
         .findChannelByOtherPartyPermanentChannelDid(did);
 

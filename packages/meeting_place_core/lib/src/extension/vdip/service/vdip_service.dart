@@ -63,6 +63,7 @@ class VdipService {
     );
 
     channel.increaseSeqNo();
+    await _sdk.updateChannel(channel);
 
     await retry(
       () async {
@@ -81,8 +82,6 @@ class VdipService {
           'Sent credential request message with ID: ${jsonEncode(message.body)}',
           name: 'requestCredential',
         );
-
-        await _sdk.updateChannel(channel);
       },
       retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
       onRetry: (e) => _sdk.logger.warning(
@@ -148,6 +147,7 @@ class VdipService {
     );
 
     channel.increaseSeqNo();
+    await _sdk.updateChannel(channel);
 
     await retry(
       () async {
@@ -164,8 +164,6 @@ class VdipService {
           'Issued credential message sent with ID: ${jsonEncode(message.body)}',
           name: 'issueCredential',
         );
-
-        await _sdk.updateChannel(channel);
       },
       retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
       onRetry: (e) => _sdk.logger.warning(

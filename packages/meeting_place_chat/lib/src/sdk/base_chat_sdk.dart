@@ -60,6 +60,7 @@ abstract class BaseChatSDK {
   ChatStream chatStream;
   CoreSDKStreamSubscription? _mediatorStreamSubscription;
   Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
@@ -595,6 +596,20 @@ abstract class BaseChatSDK {
     );
   }
 
+  Future<int> _increaseSequenceNumber() async {
+    final channel = await getChannel();
+    seqNo = (seqNo ?? channel.seqNo) + 1;
+
+    channel.seqNo = seqNo!;
+    await coreSDK.updateChannel(channel);
+    _logger.info(
+      'Increased sequence number to $seqNo',
+      name: '_increaseSequenceNumber',
+    );
+
+    return channel.seqNo;
+  }
+
   /// Sends a plain text message with optional attachments.
   ///
   /// **Parameters:**
@@ -609,15 +624,13 @@ abstract class BaseChatSDK {
   }) async {
     final methodName = 'sendTextMessage';
     _logger.info('Started sending text message', name: methodName);
-
-    final channel = await getChannel();
-    channel.increaseSeqNo();
+    final increasedSequenceNumber = await _increaseSequenceNumber();
 
     final chatMessage = protocol.ChatMessage.create(
       from: did,
       to: [otherPartyDid],
       text: text,
-      seqNo: channel.seqNo,
+      seqNo: increasedSequenceNumber,
       attachments: attachments ?? [],
     );
 
@@ -635,8 +648,6 @@ abstract class BaseChatSDK {
       );
 
       await _sendMessageWithNotification(plainTextMessage);
-
-      await coreSDK.updateChannel(channel);
 
       chatStream.pushData(
         StreamData(
@@ -712,16 +723,14 @@ abstract class BaseChatSDK {
     required String questionText,
     required List<String> suggestions,
   }) async {
-    final channel = await getChannel();
-    channel.increaseSeqNo();
-    await coreSDK.updateChannel(channel);
+    final increasedSequenceNumber = await _increaseSequenceNumber();
 
     final chatSurveyQuestion = protocol.ChatSurveyQuestion.create(
       from: did,
       to: [otherPartyDid],
       question: questionText,
       suggestions: suggestions,
-      seqNo: channel.seqNo,
+      seqNo: increasedSequenceNumber,
       messageId: const Uuid().v4(),
     );
     final plainTextMessage = chatSurveyQuestion.toPlainTextMessage();
@@ -765,9 +774,7 @@ abstract class BaseChatSDK {
     required String parentMessageId,
   }) async {
     final methodName = 'sendSurveyResponse';
-    final channel = await getChannel();
-    channel.increaseSeqNo();
-    await coreSDK.updateChannel(channel);
+    final increasedSequenceNumber = await _increaseSequenceNumber();
 
     // Mark the parent question as answered locally so UIs can update instantly.
 
@@ -784,12 +791,14 @@ abstract class BaseChatSDK {
                 .toList();
 
         // Recreate typed question and set isAnswered.
+        // TODO: remove DIDComm message as it's not being send and has invalid
+        // sequence number
         final chatSurveyQuestion = protocol.ChatSurveyQuestion.create(
           from: parent.senderDid,
           to: [did],
           question: parent.value,
           suggestions: suggestions,
-          seqNo: channel.seqNo,
+          seqNo: increasedSequenceNumber,
           messageId: parent.messageId,
           isAnswered: true,
         );
@@ -829,7 +838,7 @@ abstract class BaseChatSDK {
     final responseMessage = protocol.ChatSurveyResponse.create(
       from: did,
       to: [otherPartyDid],
-      seqNo: channel.seqNo,
+      seqNo: increasedSequenceNumber,
       text: response,
       parentMessageId: parentMessageId,
     );

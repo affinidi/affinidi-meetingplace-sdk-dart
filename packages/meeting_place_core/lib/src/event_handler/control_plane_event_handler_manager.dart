@@ -10,7 +10,6 @@ import '../repository/repository.dart';
 import 'package:ssi/ssi.dart';
 import '../service/connection_service.dart';
 import '../service/mediator/mediator_service.dart';
-import 'base_event_handler.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'control_plane_event_stream_manager.dart';

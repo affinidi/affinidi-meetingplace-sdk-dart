@@ -132,7 +132,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
       }
       return channels;
     } on EmptyMessageListException {
-      logger.error(
+      logger.warning(
         'No messages found to process for event of type ${cp.ControlPlaneEventType.InvitationGroupAccept}',
         name: methodName,
       );

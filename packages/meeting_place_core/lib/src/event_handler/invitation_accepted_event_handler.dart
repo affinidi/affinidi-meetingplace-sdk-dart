@@ -95,7 +95,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
 
       return channels;
     } on EmptyMessageListException {
-      logger.error(
+      logger.warning(
         'No messages found to process for event of type ${ControlPlaneEventType.InvitationAccept}',
         name: methodName,
       );

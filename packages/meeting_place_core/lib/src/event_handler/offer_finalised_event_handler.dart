@@ -187,7 +187,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
       );
       return [];
     } on EmptyMessageListException {
-      logger.error(
+      logger.warning(
         'No messages found to process for event of type ${ControlPlaneEventType.OfferFinalised}',
         name: methodName,
       );

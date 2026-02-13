@@ -418,10 +418,7 @@ abstract class BaseChatSDK {
 
       // Push to chat stream
       chatStream.pushData(
-        StreamData(
-          plainTextMessage: message.plainTextMessage,
-          attachments: message.plainTextMessage.attachments,
-        ),
+        StreamData(plainTextMessage: message.plainTextMessage),
       );
 
       return true;

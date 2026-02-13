@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../constants/sdk_constants.dart';
@@ -9,11 +8,10 @@ import '../loggers/meeting_place_chat_sdk_logger.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 
 class StreamData {
-  StreamData({this.plainTextMessage, this.chatItem, this.attachments});
+  StreamData({this.plainTextMessage, this.chatItem});
 
   final PlainTextMessage? plainTextMessage;
   final ChatItem? chatItem;
-  final List<Attachment>? attachments;
 }
 
 class ChatStream {

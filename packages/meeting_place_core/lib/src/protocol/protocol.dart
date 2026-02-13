@@ -2,6 +2,7 @@ export 'attachment/attachment_format.dart';
 export 'attachment/attachment_media_type.dart';
 export 'attachment/contact_card_attachment.dart';
 export 'message/channel_inauguration/channel_inauguration.dart';
+export 'message/oob_connection_message/oob_connection_message.dart';
 export 'message/connection_request_approval/connection_request_approval.dart';
 export 'message/invitation_acceptance/invitation_acceptance.dart';
 export 'message/invitation_acceptance_group/invitation_acceptance_group.dart';

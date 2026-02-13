@@ -35,6 +35,10 @@ enum MeetingPlaceProtocol {
 
   outreachInvitation(
     'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/outreach-invitation',
+  ),
+
+  oobConnectionMessage(
+    'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/oob-connection-message',
   );
 
   const MeetingPlaceProtocol(this.value);

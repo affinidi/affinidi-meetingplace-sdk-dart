@@ -397,6 +397,36 @@ abstract class BaseChatSDK {
       return true;
     }
 
+    // Handle OOB connection message (for direct connections like QR scanning)
+    // Handles attachments without updating channel status or notification tokens
+    if (message.plainTextMessage.type.toString() ==
+        MeetingPlaceProtocol.oobConnectionMessage.value) {
+      _logger.info(
+        'Handling OOB connection message (direct connection)',
+        name: methodName,
+      );
+
+      // Call attachments received callback if configured
+      if (message.plainTextMessage.attachments != null &&
+          message.plainTextMessage.attachments!.isNotEmpty &&
+          coreSDK.options.onAttachmentsReceived != null) {
+        coreSDK.options.onAttachmentsReceived!(
+          channel,
+          message.plainTextMessage.attachments!,
+        );
+      }
+
+      // Push to chat stream
+      chatStream.pushData(
+        StreamData(
+          plainTextMessage: message.plainTextMessage,
+          attachments: message.plainTextMessage.attachments,
+        ),
+      );
+
+      return true;
+    }
+
     if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatContactDetailsUpdate.value) {
       _logger.info(

@@ -42,7 +42,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
 
   static const String _className = 'IndividualChatSDK';
 
-  bool _sendChatPresence = false;
+  bool _isSendingChatPresence = false;
 
   /// Starts an individual chat session.
   ///
@@ -137,10 +137,10 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   ///
   /// Runs continuously in a loop until [stopChatPresenceInterval] is called.
   Future<void> _startChatPresenceInInterval(int intervalInSeconds) async {
-    if (_sendChatPresence) return;
+    if (_isSendingChatPresence) return;
 
-    _sendChatPresence = true;
-    while (_sendChatPresence) {
+    _isSendingChatPresence = true;
+    while (_isSendingChatPresence) {
       try {
         await sendChatPresence();
         await Future<void>.delayed(Duration(seconds: intervalInSeconds));
@@ -153,6 +153,6 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
 
   /// Stops the periodic sending of chat presence signals.
   void stopChatPresenceInterval() {
-    _sendChatPresence = false;
+    _isSendingChatPresence = false;
   }
 }

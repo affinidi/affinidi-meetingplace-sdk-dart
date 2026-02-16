@@ -50,6 +50,16 @@ void main() {
     },
   );
 
+  test(
+    'Reuse authorization provider for the same did and mediator combination',
+    () async {
+      final clientA = await sdk.authenticateWithDid(didManagerA);
+      final clientB = await sdk.authenticateWithDid(didManagerA);
+      expect(
+          clientA.authorizationProvider, equals(clientB.authorizationProvider));
+    },
+  );
+
   test('Uses new mediator session if did is not cached', () async {
     final sessionA = await sdk.authenticateWithDid(didManagerA);
     final sessionB = await sdk.authenticateWithDid(didManagerB);

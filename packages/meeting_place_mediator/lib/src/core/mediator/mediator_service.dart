@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:dio/dio.dart';
 import '../../constants/sdk_constants.dart';
@@ -40,6 +42,7 @@ class MediatorService {
 
   final MeetingPlaceMediatorSDKOptions _options;
   final MeetingPlaceMediatorSDKLogger _logger;
+  final Map<String, AuthorizationProvider> _authorizationProviders = {};
 
   MediatorStreamSubscription? stream;
 
@@ -65,6 +68,17 @@ class MediatorService {
 
         final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
             otherDidDocuments: [mediatorDidDocument]).first;
+
+        final cacheKey = _getCacheKey(mediatorDidDocument, didDocument.id);
+        AuthorizationProvider? cachedAuthorizationProvider;
+
+        if (_authorizationProviders.containsKey(cacheKey)) {
+          cachedAuthorizationProvider = _authorizationProviders[cacheKey];
+          _authorizationProviders[cacheKey];
+          _logger.info(
+              '''Reusing cached authorization provider for DID ${didDocument.id.topAndTail()} and mediator DID ${mediatorDid.topAndTail()}''',
+              name: methodName);
+        }
 
         final client = MediatorClient(
           mediatorDidDocument: mediatorDidDocument,
@@ -92,10 +106,11 @@ class MediatorService {
               shouldEncrypt: true,
             ),
           ),
-          authorizationProvider: await AffinidiAuthorizationProvider.init(
-            mediatorDidDocument: mediatorDidDocument,
-            didManager: didManager,
-          ),
+          authorizationProvider: cachedAuthorizationProvider ??
+              await AffinidiAuthorizationProvider.init(
+                mediatorDidDocument: mediatorDidDocument,
+                didManager: didManager,
+              ),
         );
 
         _logger.info(
@@ -103,6 +118,9 @@ class MediatorService {
           name: methodName,
         );
 
+        _authorizationProviders[
+                _getCacheKey(mediatorDidDocument, didDocument.id)] =
+            client.authorizationProvider!;
         return client;
       },
     );
@@ -615,5 +633,11 @@ class MediatorService {
       maxDelay: _options.maxRetriesDelay,
       maxAttempts: _options.maxRetries,
     );
+  }
+
+  String _getCacheKey(DidDocument mediatorDidDocument, String did) {
+    final mediatorDidDocumentHash =
+        md5.convert(utf8.encode(jsonEncode(mediatorDidDocument))).toString();
+    return '$mediatorDidDocumentHash-$did';
   }
 }

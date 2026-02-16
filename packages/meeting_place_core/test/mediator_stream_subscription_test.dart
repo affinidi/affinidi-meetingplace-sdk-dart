@@ -121,6 +121,48 @@ void main() async {
     await subscription.dispose();
   });
 
+  test('multiple subscriptions receive message', () async {
+    final messageToSend = PlainTextMessage(
+      id: Uuid().v4(),
+      type: Uri.parse('https://example.com/test'),
+      body: {'message': 'Hello World'},
+      to: [aliceDidDoc.id],
+      from: bobDidDoc.id,
+    );
+
+    final subscriptionA = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscriptionB = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+
+    final subscriptionAReceived = Completer<String>();
+    final subscriptionBReceived = Completer<String>();
+
+    subscriptionA.listen((message) {
+      if (message.plainTextMessage.isOfType('https://example.com/test')) {
+        subscriptionAReceived.complete(message.plainTextMessage.id);
+      }
+      return MediatorStreamProcessingResult(keepMessage: false);
+    });
+
+    subscriptionB.listen((message) {
+      if (message.plainTextMessage.isOfType('https://example.com/test')) {
+        subscriptionBReceived.complete(message.plainTextMessage.id);
+      }
+      return MediatorStreamProcessingResult(keepMessage: false);
+    });
+
+    await bobSDK.sendMessage(
+      messageToSend,
+      senderDid: bobDidDoc.id,
+      recipientDid: aliceDidDoc.id,
+    );
+
+    final receivedA = await subscriptionAReceived.future;
+    final receivedB = await subscriptionBReceived.future;
+
+    expect(receivedA, equals(messageToSend.id));
+    expect(receivedB, equals(messageToSend.id));
+  });
+
   test('processes multiple messages successfully', () async {
     final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
 

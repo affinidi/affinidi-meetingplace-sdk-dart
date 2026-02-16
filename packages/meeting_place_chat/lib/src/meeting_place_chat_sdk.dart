@@ -258,4 +258,8 @@ class MeetingPlaceChatSDK implements ChatSDK {
     response: response,
     parentMessageId: parentMessageId,
   );
+
+  /// Starts periodic chat presence updates to indicate the user is active in the chat.
+  @override
+  Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
 }

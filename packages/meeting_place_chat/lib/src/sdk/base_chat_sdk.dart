@@ -113,10 +113,13 @@ abstract class BaseChatSDK {
     final messages = await messagesFuture;
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
-    unawaited(fetchNewMessages());
     unawaited(
       mediatorStreamFuture!.then((subscription) {
+        // Execute fetchNewMessages after subscribing to ensure we don't miss
+        // any messages that arrive especially if there is another subscription
+        // which listens to the same mediator channel at the same time.
         unawaited(fetchNewMessages());
+
         _mediatorStreamSubscription = subscription;
         subscription.listen((data) async {
           if (!await handleMessage(data, [])) {

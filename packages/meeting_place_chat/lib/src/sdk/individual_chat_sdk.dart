@@ -42,7 +42,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
 
   static const String _className = 'IndividualChatSDK';
 
-  bool _sendChatPresence = true;
+  bool _isSendingChatPresence = false;
 
   /// Starts an individual chat session.
   ///
@@ -58,9 +58,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
       options.onChatSessionStart!(this);
     }
 
-    unawaited(
-      startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds),
-    );
+    unawaited(startChatPresenceUpdates());
     return chat;
   }
 
@@ -128,15 +126,21 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     );
   }
 
+  @override
+  Future<void> startChatPresenceUpdates() async =>
+      _startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds);
+
   /// Starts periodically sending chat presence signals (e.g., "online").
   ///
   /// **Parameters:**
   /// - [intervalInSeconds]: Interval in seconds between presence updates.
   ///
   /// Runs continuously in a loop until [stopChatPresenceInterval] is called.
-  Future<void> startChatPresenceInInterval(int intervalInSeconds) async {
-    _sendChatPresence = true;
-    while (_sendChatPresence) {
+  Future<void> _startChatPresenceInInterval(int intervalInSeconds) async {
+    if (_isSendingChatPresence) return;
+
+    _isSendingChatPresence = true;
+    while (_isSendingChatPresence) {
       try {
         await sendChatPresence();
         await Future<void>.delayed(Duration(seconds: intervalInSeconds));
@@ -149,6 +153,6 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
 
   /// Stops the periodic sending of chat presence signals.
   void stopChatPresenceInterval() {
-    _sendChatPresence = false;
+    _isSendingChatPresence = false;
   }
 }

@@ -72,7 +72,7 @@ class MediatorService {
         final cacheKey = _getCacheKey(mediatorDidDocument, didDocument.id);
         AuthorizationProvider? cachedAuthorizationProvider;
 
-        if (_authorizationProviders.containsKey(cacheKey)) {
+        if (!reauthenticate && _authorizationProviders.containsKey(cacheKey)) {
           cachedAuthorizationProvider = _authorizationProviders[cacheKey];
           _logger.info(
               '''Reusing cached authorization provider for DID ${didDocument.id.topAndTail()} and mediator DID ${mediatorDid.topAndTail()}''',

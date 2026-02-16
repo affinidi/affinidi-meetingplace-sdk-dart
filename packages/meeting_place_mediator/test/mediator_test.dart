@@ -60,6 +60,20 @@ void main() {
     },
   );
 
+  test(
+    'Don\'t reuse authorization provider if reauthentication is forced',
+    () async {
+      final clientA = await sdk.authenticateWithDid(didManagerA);
+      final clientB = await sdk.authenticateWithDid(
+        didManagerA,
+        reauthenticate: true,
+      );
+
+      expect(clientA.authorizationProvider,
+          isNot(equals(clientB.authorizationProvider)));
+    },
+  );
+
   test('Uses new mediator session if did is not cached', () async {
     final sessionA = await sdk.authenticateWithDid(didManagerA);
     final sessionB = await sdk.authenticateWithDid(didManagerB);

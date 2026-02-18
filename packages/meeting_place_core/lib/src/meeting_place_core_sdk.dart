@@ -36,7 +36,7 @@ import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_stream.dart';
 import 'service/outreach/outreach_service.dart';
-import 'utils/cached_did_resolver.dart';
+import 'utils/retry_did_resolver.dart';
 import 'utils/string.dart';
 
 /// # Meeting Place Core SDK
@@ -208,7 +208,7 @@ class MeetingPlaceCoreSDK {
       logger: logger ?? DefaultMeetingPlaceMediatorSDKLogger(),
     );
 
-    final didResolver = CachedDidResolver(
+    final didResolver = RetryDidResolver(
       resolverAddress: options.didResolverAddress,
       logger: mpxLogger,
     );

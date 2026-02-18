@@ -535,16 +535,6 @@ class MeetingPlaceCoreSDK {
         final permanentChannelDidDoc = await permanentChannelDidManager
             .getDidDocument();
 
-        await _connectionService.sendConnectionRequestApprovalToMediator(
-          offerPublishedDid: oobDidManager,
-          permanentChannelDid: permanentChannelDidManager,
-          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          otherPartyAcceptOfferDid: plainTextMessage.from!,
-          outboundMessageId: oobMessage.id,
-          contactCard: contactCard,
-          mediatorDid: mediatorDidTouse,
-        );
-
         final channel = Channel(
           offerLink: oobMessage.id,
           publishOfferDid: oobDidDoc.id,
@@ -561,6 +551,26 @@ class MeetingPlaceCoreSDK {
         );
 
         await _repositoryConfig.channelRepository.createChannel(channel);
+
+        final outgoingAttachments = await options.onBuildAttachments?.call(
+          channel,
+        );
+
+        await _connectionService.sendConnectionRequestApprovalToMediator(
+          offerPublishedDid: oobDidManager,
+          permanentChannelDid: permanentChannelDidManager,
+          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+          otherPartyAcceptOfferDid: plainTextMessage.from!,
+          outboundMessageId: oobMessage.id,
+          contactCard: contactCard,
+          mediatorDid: mediatorDidTouse,
+          attachments: outgoingAttachments,
+        );
+
+        final receivedAttachments = plainTextMessage.attachments;
+        if (receivedAttachments != null && receivedAttachments.isNotEmpty) {
+          options.onAttachmentsReceived?.call(channel, receivedAttachments);
+        }
 
         logger.info(
           'OOB invitation accepted, channel created with ID: ${channel.id}',

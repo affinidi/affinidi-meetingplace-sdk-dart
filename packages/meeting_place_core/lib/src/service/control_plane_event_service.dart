@@ -113,9 +113,11 @@ class ControlPlaneEventService {
       _queue.remove(processId);
       _errors.add(e);
 
-      // Use same process id to retry one more time, as it can be a
-      // temporary issue and we want to make sure that queue is processed
-      return _process(processId: processId, onDone: onDone);
+      if (_queue.isNotEmpty) {
+        return _process(processId: _queue.first, onDone: onDone);
+      }
+
+      _onDone(onDone);
     } finally {
       _queue.remove(processId);
     }

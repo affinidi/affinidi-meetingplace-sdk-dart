@@ -16,7 +16,7 @@ class ControlPlaneEventService {
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
-  static const String _className = 'DiscoveryEventService';
+  static const String _className = 'ControlPlaneEventService';
 
   final ControlPlaneSDK _controlPlaneSDK;
   final ControlPlaneEventManager _discoveryEventManager;
@@ -25,7 +25,7 @@ class ControlPlaneEventService {
   final List<String> _queue = [];
   final List<Object> _errors = [];
 
-  bool _queued = false;
+  Future<void>? _processing;
 
   Future<void> processEvents({
     required Duration debounceEvents,
@@ -37,23 +37,14 @@ class ControlPlaneEventService {
     _queue.add(processId);
     _logger.info('Process id $processId added to queue', name: methodName);
 
-    if (!_queued) {
-      try {
-        _queued = true;
-        await Future.delayed(debounceEvents);
-        _logger.info('Start processing discovery events..');
-        await _process(processId: processId, onDone: onDone);
-        _logger.info('Processing discovery events done..');
-        _queued = false;
-      } finally {
-        _queued = false;
-      }
-    } else {
-      _logger.info(
-        '''Queue processing in progress. Process id $processId is going to be executed by running process''',
-        name: methodName,
-      );
-    }
+    _processing = (_processing ?? Future.value()).then((_) async {
+      await Future.delayed(debounceEvents);
+      _logger.info('Start processing discovery events..');
+      await _process(processId: processId, onDone: onDone);
+      _logger.info('Processing discovery events done..');
+    });
+
+    await _processing;
   }
 
   Future<void> _process({
@@ -92,17 +83,12 @@ class ControlPlaneEventService {
         ),
       );
 
-      _queue.remove(processId);
       _logger.info(
         'Process $processId completed and removed from queue',
         name: methodName,
       );
 
-      if (_queue.isNotEmpty) {
-        return _process(processId: _queue.first, onDone: onDone);
-      }
-
-      _onDone(onDone);
+      return _next(processId, onDone);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to process queue item $processId -> ${e.toString()}',
@@ -113,16 +99,10 @@ class ControlPlaneEventService {
       _queue.remove(processId);
       _errors.add(e);
 
-      if (_queue.isNotEmpty) {
-        return _process(processId: _queue.first, onDone: onDone);
-      }
-
-      _onDone(onDone);
+      return _next(_queue.first, onDone);
     } finally {
       _queue.remove(processId);
     }
-
-    _logger.info('Completed processing control plane events', name: methodName);
   }
 
   Future<List<String>> deleteAll() async {
@@ -142,6 +122,18 @@ class ControlPlaneEventService {
     );
 
     return deleteResult.deletedNotificationIds;
+  }
+
+  Future<void> _next(
+    String processId,
+    Function(List<Object> errors)? onDone,
+  ) async {
+    if (_queue.isEmpty) {
+      _logger.info('Completed processing control plane events', name: '_next');
+      return _onDone(onDone);
+    }
+
+    return _process(processId: processId, onDone: onDone);
   }
 
   void _onDone(Function(List<Object> errors)? onDone) {

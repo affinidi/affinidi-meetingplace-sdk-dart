@@ -145,7 +145,7 @@ class ControlPlaneEventService {
   }
 
   void _onDone(Function(List<Object> errors)? onDone) {
-    onDone?.call(_errors);
+    onDone?.call([..._errors]);
     _errors.clear();
   }
 }

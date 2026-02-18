@@ -552,9 +552,9 @@ class MeetingPlaceCoreSDK {
 
         await _repositoryConfig.channelRepository.createChannel(channel);
 
-        final outgoingAttachments = options.onBuildAttachments != null
-            ? await options.onBuildAttachments!(channel)
-            : null;
+        final outgoingAttachments = await options.onBuildAttachments?.call(
+          channel,
+        );
 
         await _connectionService.sendConnectionRequestApprovalToMediator(
           offerPublishedDid: oobDidManager,
@@ -567,13 +567,9 @@ class MeetingPlaceCoreSDK {
           attachments: outgoingAttachments,
         );
 
-        if (plainTextMessage.attachments != null &&
-            plainTextMessage.attachments!.isNotEmpty &&
-            options.onAttachmentsReceived != null) {
-          options.onAttachmentsReceived!(
-            channel,
-            plainTextMessage.attachments!,
-          );
+        final receivedAttachments = plainTextMessage.attachments;
+        if (receivedAttachments != null && receivedAttachments.isNotEmpty) {
+          options.onAttachmentsReceived?.call(channel, receivedAttachments);
         }
 
         logger.info(

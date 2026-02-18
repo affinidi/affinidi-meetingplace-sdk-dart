@@ -5,7 +5,6 @@ import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
 import 'fixtures/contact_card_fixture.dart';
-import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
 
 void main() async {
@@ -65,11 +64,21 @@ void main() async {
       senderInfo: 'Bob',
     );
 
-    final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
-      aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
-      expectedNumberOfEvents: 2,
-    );
+    final aliceSDKCompleter = Completer();
+    int numberOfReceivedGroupAcceptedEvents = 0;
+
+    aliceSDK.controlPlaneEventsStream.listen((event) {
+      if (event.type == ControlPlaneEventType.InvitationGroupAccept) {
+        if (event.channel.otherPartyPermanentChannelDid ==
+            publishOfferResult.connectionOffer.groupDid) {
+          numberOfReceivedGroupAcceptedEvents++;
+        }
+
+        if (numberOfReceivedGroupAcceptedEvents == 2) {
+          aliceSDKCompleter.complete();
+        }
+      }
+    });
 
     // Execute event handlers in the background for Alice
     await aliceSDK.processControlPlaneEvents();
@@ -93,20 +102,22 @@ void main() async {
     await aliceSDK.approveConnectionRequest(channel: aliceToCharlieChannel!);
 
     // Run event handlers in background for Bob and Charlie -> ready to chat
-    final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
-      bobSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
-      expectedNumberOfEvents: 1,
-    );
+    final bobCompleter = Completer();
+    bobSDK.controlPlaneEventsStream.listen((event) {
+      if (event.type == ControlPlaneEventType.GroupMembershipFinalised) {
+        bobCompleter.complete();
+      }
+    });
 
     await bobSDK.processControlPlaneEvents();
     await bobCompleter.future;
 
-    final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
-      charlieSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
-      expectedNumberOfEvents: 1,
-    );
+    final charlieCompleter = Completer();
+    charlieSDK.controlPlaneEventsStream.listen((event) {
+      if (event.type == ControlPlaneEventType.GroupMembershipFinalised) {
+        charlieCompleter.complete();
+      }
+    });
 
     await charlieSDK.processControlPlaneEvents();
     await charlieCompleter.future;

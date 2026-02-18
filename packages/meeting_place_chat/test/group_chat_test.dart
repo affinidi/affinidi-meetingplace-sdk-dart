@@ -106,11 +106,21 @@ void main() async {
     charlieMemberDid =
         (charlieAcceptance.connectionOffer as GroupConnectionOffer).memberDid!;
 
-    final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
-      aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
-      expectedNumberOfEvents: 2,
-    );
+    final aliceSDKCompleter = Completer();
+    int numberOfReceivedGroupAcceptedEvents = 0;
+
+    aliceSDK.controlPlaneEventsStream.listen((event) {
+      if (event.type == ControlPlaneEventType.InvitationGroupAccept) {
+        if (event.channel.otherPartyPermanentChannelDid ==
+            publishOfferResult.connectionOffer.groupDid) {
+          numberOfReceivedGroupAcceptedEvents++;
+        }
+
+        if (numberOfReceivedGroupAcceptedEvents == 2) {
+          aliceSDKCompleter.complete();
+        }
+      }
+    });
 
     // Execute event handlers in the background for Alice
     await aliceSDK.processControlPlaneEvents();
@@ -221,35 +231,41 @@ void main() async {
     await charlieChatSDK.startChatSession();
 
     final bobChatCompleter = Completer<PlainTextMessage>();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          final chatMessage = ChatMessage.fromPlainTextMessage(
-            data.plainTextMessage!,
-          );
-          if (chatMessage.body.text == 'Hello Group!' &&
-              !bobChatCompleter.isCompleted) {
-            bobChatCompleter.complete(data.plainTextMessage!);
-          }
+    final charlieChatCompleter = Completer<PlainTextMessage>();
+
+    // Wait for both streams to be ready before sending the message
+    final streams = await Future.wait([
+      bobChatSDK.chatStreamSubscription,
+      charlieChatSDK.chatStreamSubscription,
+    ]);
+
+    final bobStream = streams[0]!;
+    final charlieStream = streams[1]!;
+
+    bobStream.listen((data) {
+      if (data.plainTextMessage?.type.toString() ==
+          ChatProtocol.chatMessage.value) {
+        final chatMessage = ChatMessage.fromPlainTextMessage(
+          data.plainTextMessage!,
+        );
+        if (chatMessage.body.text == 'Hello Group!' &&
+            !bobChatCompleter.isCompleted) {
+          bobChatCompleter.complete(data.plainTextMessage!);
         }
-      });
+      }
     });
 
-    final charlieChatCompleter = Completer<PlainTextMessage>();
-    await charlieChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          final chatMessage = ChatMessage.fromPlainTextMessage(
-            data.plainTextMessage!,
-          );
-          if (chatMessage.body.text == 'Hello Group!' &&
-              !charlieChatCompleter.isCompleted) {
-            charlieChatCompleter.complete(data.plainTextMessage!);
-          }
+    charlieStream.listen((data) {
+      if (data.plainTextMessage?.type.toString() ==
+          ChatProtocol.chatMessage.value) {
+        final chatMessage = ChatMessage.fromPlainTextMessage(
+          data.plainTextMessage!,
+        );
+        if (chatMessage.body.text == 'Hello Group!' &&
+            !charlieChatCompleter.isCompleted) {
+          charlieChatCompleter.complete(data.plainTextMessage!);
         }
-      });
+      }
     });
 
     await aliceChatSDK.sendTextMessage('Hello Group!');
@@ -346,7 +362,7 @@ void main() async {
     await charlieChatSDK.startChatSession();
 
     final messageReceivedCompleter = Completer<bool>();
-    await charlieChatSDK.chatStreamSubscription.then((stream) {
+    await charlieChatSDK.chatStreamSubscription.then((stream) async {
       stream!.listen((data) {
         if (data.plainTextMessage?.isOfType(ChatProtocol.chatActivity.value) ==
             true) {
@@ -356,11 +372,11 @@ void main() async {
           }
         }
       });
+
+      await bobChatSDK.sendChatActivity();
     });
 
-    await bobChatSDK.sendChatActivity();
     final messageReceived = await messageReceivedCompleter.future;
-
     expect(messageReceived, isTrue);
   });
 

@@ -277,11 +277,21 @@ void main() async {
       );
       // --- [OK] ACLs not set
 
-      final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
-        aliceSDK,
-        eventType: ControlPlaneEventType.InvitationGroupAccept,
-        expectedNumberOfEvents: 2,
-      );
+      final aliceCompleter = Completer();
+      int numberOfReceivedGroupAcceptedEvents = 0;
+
+      aliceSDK.controlPlaneEventsStream.listen((event) {
+        if (event.type == ControlPlaneEventType.InvitationGroupAccept) {
+          if (event.channel.otherPartyPermanentChannelDid ==
+              result.connectionOffer.groupDid) {
+            numberOfReceivedGroupAcceptedEvents++;
+          }
+
+          if (numberOfReceivedGroupAcceptedEvents == 2) {
+            aliceCompleter.complete();
+          }
+        }
+      });
 
       // Execute event handlers in the background
       await aliceSDK.processControlPlaneEvents();
@@ -326,10 +336,11 @@ void main() async {
 
       // Verify that ACLs are configured correctly
       expect(
-        bobSDK.sendMessage(
+        bobSDK.sendGroupMessage(
           useChatMessage(acceptResultBobChannelDid.id, groupDid),
           senderDid: acceptResultBobChannelDid.id,
           recipientDid: groupDid,
+          increaseSequenceNumber: false,
         ),
         completes,
       );
@@ -344,10 +355,11 @@ void main() async {
       );
 
       expect(
-        charlieSDK.sendMessage(
+        charlieSDK.sendGroupMessage(
           useChatMessage(charlieDidDoc.id, groupDid),
           senderDid: charlieDidDoc.id,
           recipientDid: groupDid,
+          increaseSequenceNumber: false,
         ),
         completes,
       );

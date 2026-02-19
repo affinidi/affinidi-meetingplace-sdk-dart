@@ -6,12 +6,13 @@ import 'package:ssi/ssi.dart';
 import '../../meeting_place_core.dart';
 import 'error_handler_utils.dart';
 
-class RetryDidResolver implements DidResolver {
-  RetryDidResolver({
+class CachedDidResolver implements DidResolver {
+  CachedDidResolver({
     this.resolverAddress,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _logger = logger;
 
+  static final Map<String, DidDocument> cacheDIDDocs = {};
   static final int _maxRetryAttempts = 3;
   static final Duration _maxRetryDelay = const Duration(seconds: 2);
 
@@ -20,6 +21,11 @@ class RetryDidResolver implements DidResolver {
 
   @override
   Future<DidDocument> resolveDid(String did) async {
+    if (cacheDIDDocs.containsKey(did)) {
+      _logger.info('Using DIDDocument from cache for $did', name: 'resolveDid');
+      return cacheDIDDocs[did]!;
+    }
+
     final didDocument = await retry(
       () async {
         return await UniversalDIDResolver(
@@ -35,6 +41,7 @@ class RetryDidResolver implements DidResolver {
       maxDelay: _maxRetryDelay,
     );
 
+    cacheDIDDocs[didDocument.id] = didDocument;
     return didDocument;
   }
 }

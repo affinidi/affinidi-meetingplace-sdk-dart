@@ -212,9 +212,11 @@ abstract class BaseChatSDK {
       }
 
       if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
-        final seqNo = message.messageSequenceNumber;
-        if (seqNo != null && seqNo > channel.seqNo) {
-          channel.seqNo = seqNo;
+        final messageSequenceNumber = message.messageSequenceNumber;
+        if (messageSequenceNumber != null &&
+            messageSequenceNumber > channel.seqNo) {
+          channel.seqNo = messageSequenceNumber;
+          seqNo = messageSequenceNumber;
           await coreSDK.updateChannel(channel);
         }
       }

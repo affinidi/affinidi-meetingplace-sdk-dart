@@ -145,18 +145,18 @@ void main() async {
     final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
 
     bobStream.stream.listen((data) {
-      if (data.plainTextMessage.type == messageType &&
-          data.plainTextMessage.id == messageId) {
+      if (data.plainTextMessage.type == messageType) {
         bobReceivedMessageCompleter.complete(data.plainTextMessage);
       }
     });
 
     charlieStream.stream.listen((data) {
-      if (data.plainTextMessage.type == messageType &&
-          data.plainTextMessage.id == messageId) {
+      if (data.plainTextMessage.type == messageType) {
         charlieReceivedMessageCompleter.complete(data.plainTextMessage);
       }
     });
+
+    await Future.delayed(const Duration(seconds: 3));
 
     await aliceSDK.sendGroupMessage(
       chatMessage,

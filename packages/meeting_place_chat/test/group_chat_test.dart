@@ -268,6 +268,7 @@ void main() async {
       }
     });
 
+    await Future.delayed(const Duration(seconds: 2));
     await aliceChatSDK.sendTextMessage('Hello Group!');
 
     final messageForBob = await bobChatCompleter.future;
@@ -373,6 +374,7 @@ void main() async {
         }
       });
 
+      await Future.delayed(const Duration(seconds: 5));
       await bobChatSDK.sendChatActivity();
     });
 

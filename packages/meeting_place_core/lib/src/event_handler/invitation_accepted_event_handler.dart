@@ -1,7 +1,5 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import '../entity/channel.dart';
-import '../protocol/meeting_place_protocol.dart';
-import '../entity/connection_offer.dart';
+import '../../meeting_place_core.dart';
 import '../utils/attachment.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
@@ -62,6 +60,21 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           message.attachments,
         );
 
+        if (await doesChannelExists(otherPartyPermanentChannelDid)) {
+          logger.warning(
+            '''Duplicate acceptance for did $otherPartyPermanentChannelDid. Skipping creation of new channel.''',
+            name: 'process',
+          );
+
+          await deleteMessageFromMediator(
+            publishedOfferDidManager: publishedOfferDidManager,
+            mediatorDid: connection.mediatorDid,
+            messageHash: result.messageHash!,
+          );
+
+          continue;
+        }
+
         final acceptOfferDid = message.from!;
         final channel = Channel(
           offerLink: connection.offerLink,
@@ -79,10 +92,10 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
 
         await channelRepository.createChannel(channel);
 
-        await mediatorService.deletedMessages(
-          didManager: publishedOfferDidManager,
+        await deleteMessageFromMediator(
+          publishedOfferDidManager: publishedOfferDidManager,
           mediatorDid: connection.mediatorDid,
-          messageHashes: [result.messageHash!],
+          messageHash: result.messageHash!,
         );
 
         logger.info(

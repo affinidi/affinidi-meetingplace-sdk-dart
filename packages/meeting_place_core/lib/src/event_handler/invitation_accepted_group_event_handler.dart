@@ -83,6 +83,21 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           name: methodName,
         );
 
+        if (await doesChannelExists(otherPartyPermanentChannelDid)) {
+          logger.warning(
+            '''Duplicate group invitation acceptance for did $otherPartyPermanentChannelDid. Skipping creation of new channel.''',
+            name: 'process',
+          );
+
+          await deleteMessageFromMediator(
+            publishedOfferDidManager: publishedOfferDidManager,
+            mediatorDid: connection.mediatorDid,
+            messageHash: result.messageHash!,
+          );
+
+          continue;
+        }
+
         final contactCard = getContactCardDataOrEmptyFromAttachments(
           message.attachments,
         );
@@ -117,10 +132,11 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
         );
 
         await channelRepository.createChannel(channel);
-        await mediatorService.deletedMessages(
-          didManager: publishedOfferDidManager,
+
+        await deleteMessageFromMediator(
+          publishedOfferDidManager: publishedOfferDidManager,
           mediatorDid: connection.mediatorDid,
-          messageHashes: [result.messageHash!],
+          messageHash: result.messageHash!,
         );
 
         logger.info(

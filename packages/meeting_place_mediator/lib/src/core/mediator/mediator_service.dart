@@ -44,13 +44,14 @@ class MediatorService {
 
   MediatorStreamSubscription? stream;
 
-  Future<MediatorClient> _connectToMediator({
+  Future<MediatorClient> _initMediatorClient({
     required DidManager didManager,
     required String mediatorDid,
     required SignatureScheme signatureScheme,
     bool reauthenticate = false,
+    bool fetchMessagesOnConnect = true,
   }) async {
-    final methodName = '_connectToMediator';
+    final methodName = '_initMediatorClient';
     _logger.info('Started connecting to mediator: ${mediatorDid.topAndTail()}',
         name: methodName);
 
@@ -95,7 +96,7 @@ class MediatorService {
           ),
           webSocketOptions: WebSocketOptions(
             deleteOnReceive: false,
-            fetchMessagesOnConnect: false,
+            fetchMessagesOnConnect: fetchMessagesOnConnect,
             pingIntervalInSeconds: _options.websocketPingInterval,
             statusRequestMessageOptions: StatusRequestMessageOptions(
               shouldSend: true,
@@ -131,6 +132,7 @@ class MediatorService {
     required DidManager didManager,
     required String mediatorDid,
     bool reauthenticate = false,
+    bool fetchMessagesOnConnect = true,
   }) async {
     final methodName = 'authenticateWithDid';
 
@@ -139,11 +141,12 @@ class MediatorService {
         name: methodName);
     try {
       return retry(
-        () async => _connectToMediator(
+        () async => _initMediatorClient(
           didManager: didManager,
           mediatorDid: mediatorDid,
           signatureScheme: _options.signatureScheme,
           reauthenticate: reauthenticate,
+          fetchMessagesOnConnect: fetchMessagesOnConnect,
         ),
         maxAttempts: _options.maxRetries,
         maxDelay: _options.maxRetriesDelay,
@@ -311,6 +314,7 @@ class MediatorService {
     required String mediatorDid,
     required Duration? deleteMessageDelay,
     bool reauthenticate = false,
+    bool fetchMessagesOnConnect = true,
     List<MessageWrappingType> messageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
@@ -323,6 +327,7 @@ class MediatorService {
         didManager: didManager,
         mediatorDid: mediatorDid,
         reauthenticate: reauthenticate,
+        fetchMessagesOnConnect: fetchMessagesOnConnect,
       );
 
       final streamSubscription = MediatorStreamSubscription(

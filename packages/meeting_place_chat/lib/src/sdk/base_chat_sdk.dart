@@ -509,6 +509,9 @@ abstract class BaseChatSDK {
     }
   }
 
+  /// Starts periodic chat presence updates.
+  Future<void> startChatPresenceUpdates() async {}
+
   /// Sends a chat presence signal to the other party.
   Future<void> sendChatPresence() async {
     final message = protocol.ChatPresence.create(

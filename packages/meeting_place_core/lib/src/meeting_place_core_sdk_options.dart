@@ -18,8 +18,6 @@ class MeetingPlaceCoreSDKOptions {
     this.expectedMessageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
-    this.onBuildAttachments,
-    this.onAttachmentsReceived,
     this.messageTypesForSequenceTracking = const [],
   });
 
@@ -87,24 +85,6 @@ class MeetingPlaceCoreSDKOptions {
   /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
   /// (e.g., chat + VDIP) that use different message signing configurations.
   final List<MessageWrappingType> expectedMessageWrappingTypes;
-
-  /// Callback to build attachments for outgoing connection messages
-  /// during the channel inauguration process.
-  ///
-  /// When provided, this callback is invoked by event handlers when they need
-  /// to send attachments to the other party (e.g., during OfferFinalised).
-  ///
-  /// The callback receives the [Channel] being processed and should return
-  /// a list of [Attachment] objects to include in the outgoing message.
-  /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments or onBuildInaugurationMessageAttachments
-  final OnBuildAttachmentsCallback? onBuildAttachments;
-
-  /// Callback invoked when attachments are received from the other party
-  /// during connection establishment.
-  ///
-  /// When provided, this callback is invoked by event handlers after they
-  /// receive and process incoming attachments from connection messages.
-  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 
   /// List of message types for which the SDK should track sequence numbers
   /// and update the channel's `seqNo` accordingly.

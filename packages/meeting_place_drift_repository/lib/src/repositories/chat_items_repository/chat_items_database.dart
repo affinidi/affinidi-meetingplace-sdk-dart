@@ -48,6 +48,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
     required Directory directory,
     bool logStatements = false,
     bool inMemory = false,
+    bool lazy = true,
   }) : super(
           openConnection(
             databaseName: databaseName,
@@ -55,36 +56,11 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             directory: directory,
             logStatements: logStatements,
             inMemory: inMemory,
+            lazy: lazy,
           ),
         );
 
   ChatItemsDatabase.opened(super.executor);
-
-  static Future<ChatItemsDatabase> create({
-    required String databaseName,
-    required String passphrase,
-    required Directory directory,
-    bool logStatements = false,
-  }) async {
-    final executor = await DatabasePlatform.createDatabase(
-      databaseName: databaseName,
-      passphrase: passphrase,
-      directory: directory,
-      logStatements: logStatements,
-    );
-    return ChatItemsDatabase.opened(executor);
-  }
-
-  static Future<ChatItemsDatabase> createInMemory({
-    required String passphrase,
-    bool logStatements = false,
-  }) async {
-    final executor = await DatabasePlatform.createInMemoryDatabase(
-      passphrase: passphrase,
-      logStatements: logStatements,
-    );
-    return ChatItemsDatabase.opened(executor);
-  }
 
   @override
   int get schemaVersion => 1;

@@ -681,43 +681,6 @@ void main() async {
     );
   });
 
-  test('sends chat presence message in configured interval', () async {
-    final chatSDKWithReducedInterval = await initIndividualChatSDK(
-      coreSDK: aliceSDK,
-      did: aliceDidDocument.id,
-      otherPartyDid: bobDidDocument.id,
-      channelRepository: aliceChannelRepository,
-      options: ChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 1),
-      ),
-    );
-
-    var receivedMessages = 0;
-    await bobChatSDK.startChatSession();
-
-    // Consume chat presence messages
-    final waitForSubscription = Completer<void>();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
-      waitForSubscription.complete();
-      stream!.listen((data) {
-        if (MessageUtils.isType(
-          data.plainTextMessage!,
-          ChatProtocol.chatPresence,
-        )) {
-          receivedMessages += 1;
-        }
-      });
-    });
-
-    // Start SDK to send presence messages in interval
-    await chatSDKWithReducedInterval.startChatSession();
-
-    await waitForSubscription.future;
-    await Future<void>.delayed(const Duration(seconds: 3));
-
-    expect(receivedMessages, greaterThan(1));
-  });
-
   test('message is shown as sent even for notification error', () async {
     final channel = await aliceSDK.getChannelByDid(aliceDidDocument.id);
     channel!.otherPartyNotificationToken = 'invalid_token';

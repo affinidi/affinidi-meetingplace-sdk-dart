@@ -58,6 +58,8 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           ),
         );
 
+  ChatItemsDatabase.opened(super.executor);
+
   @override
   int get schemaVersion => 1;
 

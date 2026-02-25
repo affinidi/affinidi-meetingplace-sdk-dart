@@ -79,8 +79,8 @@ class DatabasePlatform {
 /// (default is false).
 ///
 /// **Returns:**
-/// - A [QueryExecutor] instance connected to the database.
-QueryExecutor openConnection({
+/// - A [LazyDatabase] instance that opens the database connection when needed.
+LazyDatabase openConnection({
   required String databaseName,
   required String passphrase,
   required Directory directory,
@@ -88,21 +88,22 @@ QueryExecutor openConnection({
   bool inMemory = false,
 }) {
   if (inMemory) {
-    final sqliteDb = sqlite3.openInMemory();
-    sqliteDb.execute("PRAGMA key = '$passphrase';");
-    return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
+    return LazyDatabase(() async {
+      final database = await DatabasePlatform.createInMemoryDatabase(
+        passphrase: passphrase,
+        logStatements: logStatements,
+      );
+      return database;
+    });
   }
 
-  final dbPath = p.join(directory.path, databaseName);
-  final sqliteDb = sqlite3.open(dbPath);
-  sqliteDb.execute("PRAGMA key = '$passphrase';");
-
-  final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
-  if (cipherVersion.isEmpty) {
-    throw UnsupportedError('SQLCipher not available');
-  }
-
-  sqliteDb.select('SELECT count(*) FROM sqlite_master;');
-
-  return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
+  return LazyDatabase(() async {
+    final database = await DatabasePlatform.createDatabase(
+      databaseName: databaseName,
+      passphrase: passphrase,
+      directory: directory,
+      logStatements: logStatements,
+    );
+    return database;
+  });
 }

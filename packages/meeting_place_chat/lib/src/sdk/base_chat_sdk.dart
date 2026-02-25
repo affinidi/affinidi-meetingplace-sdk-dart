@@ -59,6 +59,7 @@ abstract class BaseChatSDK {
   ChatStream chatStream;
   CoreSDKStreamSubscription? _mediatorStreamSubscription;
   Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
@@ -850,11 +851,5 @@ abstract class BaseChatSDK {
 
   String _contactHash(ContactCard card) {
     return sha256.convert(utf8.encode(jsonEncode(card.contactInfo))).toString();
-  }
-
-  bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
-    return coreSDK.options.messageTypesForSequenceTracking.contains(
-      message.type.toString(),
-    );
   }
 }

@@ -1,6 +1,7 @@
 enum AttachmentFormat {
   contactCard('https://affinidi.io/mpx/core-sdk/attachment/contact-card'),
   imageSelfie('https://affinidi.io/mpx/core-sdk/attachment/image-selfie'),
+  seqNo('https://affinidi.io/mpx/core-sdk/attachment/sequence-no'),
   verifiablePresentation(
     'https://affinidi.io/mpx/core-sdk/attachment/verifiable-presentation',
   );

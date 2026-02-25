@@ -39,7 +39,7 @@ class MediatorService {
   final DidResolver didResolver;
   final MeetingPlaceMediatorSDKOptions _options;
 
-  final Map<String, MediatorClient> _clients = {};
+  final Map<String, AuthorizationProvider> _authorizationProviders = {};
   final MeetingPlaceMediatorSDKLogger _logger;
 
   MediatorStreamSubscription? stream;
@@ -56,20 +56,27 @@ class MediatorService {
 
     final didDocument = await didManager.getDidDocument();
     final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
+    final mediatorDidDocument = await didResolver.resolveDid(mediatorDid);
 
-    if (!reauthenticate && _clients[cacheKey] != null) {
-      _logger.info('Reusing existing mediator session for cacheKey: $cacheKey',
-          name: methodName);
-
-      return Future.value(_clients[cacheKey]);
-    }
+    final authorizationProvider = reauthenticate
+        ? await AffinidiAuthorizationProvider.init(
+            didManager: didManager,
+            mediatorDidDocument: mediatorDidDocument,
+          )
+        : _authorizationProviders[cacheKey] ??
+            await AffinidiAuthorizationProvider.init(
+                    mediatorDidDocument: mediatorDidDocument,
+                    didManager: didManager)
+                .then((authorizationProvider) {
+              _authorizationProviders[cacheKey] = authorizationProvider;
+              return authorizationProvider;
+            });
 
     return retry(
       () async {
         _logger.info('Connect to mediator: ${mediatorDid.topAndTail()}',
             name: methodName);
 
-        final mediatorDidDocument = await didResolver.resolveDid(mediatorDid);
         final authenticationKeyId = didDocument.authentication.first.id;
 
         final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
@@ -77,7 +84,6 @@ class MediatorService {
 
         final client = MediatorClient(
           mediatorDidDocument: mediatorDidDocument,
-          // didManager: didManager,
           keyPair: await didManager.getKeyPairByDidKeyId(keyAgreementKeyId),
           didKeyId: keyAgreementKeyId,
           signer: await didManager.getSigner(authenticationKeyId),
@@ -89,6 +95,7 @@ class MediatorService {
           ),
           webSocketOptions: WebSocketOptions(
             deleteOnReceive: false,
+            fetchMessagesOnConnect: false,
             pingIntervalInSeconds: _options.websocketPingInterval,
             statusRequestMessageOptions: StatusRequestMessageOptions(
               shouldSend: true,
@@ -101,13 +108,9 @@ class MediatorService {
               shouldEncrypt: true,
             ),
           ),
-          authorizationProvider: await AffinidiAuthorizationProvider.init(
-            mediatorDidDocument: mediatorDidDocument,
-            didManager: didManager,
-          ),
+          authorizationProvider: authorizationProvider,
         );
 
-        _clients[cacheKey] = client;
         _logger.info('Connected to mediator: ${mediatorDid.topAndTail()}',
             name: methodName);
 
@@ -134,25 +137,14 @@ class MediatorService {
     _logger.info(
         'Started authenticating to mediator: ${mediatorDid.topAndTail()}',
         name: methodName);
-
     try {
-      final didDocument = await didManager.getDidDocument();
-      final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
-
       return retry(
-        () async {
-          final client = !reauthenticate && _clients[cacheKey] != null
-              ? _clients[cacheKey]!
-              : await _connectToMediator(
-                  didManager: didManager,
-                  mediatorDid: mediatorDid,
-                  signatureScheme: _options.signatureScheme,
-                  reauthenticate: reauthenticate,
-                );
-
-          _clients[cacheKey] = client;
-          return client;
-        },
+        () async => _connectToMediator(
+          didManager: didManager,
+          mediatorDid: mediatorDid,
+          signatureScheme: _options.signatureScheme,
+          reauthenticate: reauthenticate,
+        ),
         maxAttempts: _options.maxRetries,
         maxDelay: _options.maxRetriesDelay,
       );

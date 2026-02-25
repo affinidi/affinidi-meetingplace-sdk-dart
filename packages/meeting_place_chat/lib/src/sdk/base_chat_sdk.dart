@@ -104,17 +104,17 @@ abstract class BaseChatSDK {
     final messagesFuture = chatRepository.listMessages(chatId);
 
     unawaited(sendProfileHash());
-    unawaited(fetchNewMessages());
 
     final messages = await messagesFuture;
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
-      mediatorStreamFuture!.then((subscription) {
+      mediatorStreamFuture!.then((subscription) async {
         _mediatorStreamSubscription = subscription;
         subscription.stream.listen((data) {
           handleMessage(data, []);
         });
+        await fetchNewMessages();
       }),
     );
 

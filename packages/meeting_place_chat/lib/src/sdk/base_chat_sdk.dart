@@ -194,6 +194,16 @@ abstract class BaseChatSDK {
       unawaited(sendChatDeliveredMessage(message.plainTextMessage));
     }
 
+    if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
+      final messageSequenceNumber = message.messageSequenceNumber;
+      if (messageSequenceNumber != null &&
+          messageSequenceNumber > channel.seqNo) {
+        channel.seqNo = messageSequenceNumber;
+        seqNo = messageSequenceNumber;
+        await coreSDK.updateChannel(channel);
+      }
+    }
+
     if (MessageUtils.isType(
       message.plainTextMessage,
       ChatProtocol.chatMessage,
@@ -835,5 +845,11 @@ abstract class BaseChatSDK {
 
   String _contactHash(ContactCard card) {
     return sha256.convert(utf8.encode(jsonEncode(card.contactInfo))).toString();
+  }
+
+  bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
+    return coreSDK.options.messageTypesForSequenceTracking.contains(
+      message.type.toString(),
+    );
   }
 }

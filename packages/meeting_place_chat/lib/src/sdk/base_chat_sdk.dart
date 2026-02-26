@@ -59,6 +59,7 @@ abstract class BaseChatSDK {
   ChatStream chatStream;
   CoreSDKStreamSubscription? _mediatorStreamSubscription;
   Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
@@ -194,24 +195,26 @@ abstract class BaseChatSDK {
       unawaited(sendChatDeliveredMessage(message.plainTextMessage));
     }
 
+    if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
+      final messageSequenceNumber = message.messageSequenceNumber;
+      if (messageSequenceNumber != null &&
+          messageSequenceNumber > channel.seqNo) {
+        channel.seqNo = messageSequenceNumber;
+        seqNo = messageSequenceNumber;
+        await coreSDK.updateChannel(channel);
+      }
+    }
+
     if (MessageUtils.isType(
       message.plainTextMessage,
       ChatProtocol.chatMessage,
     )) {
       _logger.info('Handling chat message', name: methodName);
-      final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
-
       final chatMessage = Message.fromReceivedMessage(
         message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
         chatId: chatId,
       );
       await chatRepository.createMessage(chatMessage);
-
-      if (sequenceNumber > channel.seqNo) {
-        channel.seqNo = sequenceNumber;
-        await coreSDK.updateChannel(channel);
-      }
 
       chatStream.pushData(
         StreamData(
@@ -437,8 +440,15 @@ abstract class BaseChatSDK {
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
-  Future<CoreSDKStreamSubscription> subscribeToMediator() {
-    return coreSDK.subscribeToMediator(did, mediatorDid: mediatorDid);
+  Future<CoreSDKStreamSubscription> subscribeToMediator() async {
+    return coreSDK.subscribeToMediator(
+      did,
+      mediatorDid: mediatorDid,
+      options: MediatorStreamSubscriptionOptions(
+        expectedMessageWrappingTypes:
+            coreSDK.options.expectedMessageWrappingTypes,
+      ),
+    );
   }
 
   /// Sends a plain text message with optional attachments.
@@ -575,6 +585,12 @@ abstract class BaseChatSDK {
   bool _requiresAcknowledgement(PlainTextMessage message) {
     return options.requiresAcknowledgement.contains(
       ChatProtocol.byValue(message.type.toString()),
+    );
+  }
+
+  bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
+    return coreSDK.options.messageTypesForSequenceTracking.contains(
+      message.type.toString(),
     );
   }
 

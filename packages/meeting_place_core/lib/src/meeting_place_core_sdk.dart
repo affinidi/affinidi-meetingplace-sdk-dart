@@ -153,8 +153,8 @@ class MeetingPlaceCoreSDK {
        _didResolver = didResolver,
        _mediatorDid = mediatorDid,
        _options = options,
-       _sdkErrorHandler = sdkErrorHandler,
-       _logger = logger;
+       _logger = logger,
+       _sdkErrorHandler = sdkErrorHandler;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -319,6 +319,8 @@ class MeetingPlaceCoreSDK {
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
+        messageTypesForSequenceTracking:
+            options.messageTypesForSequenceTracking,
       ),
       logger: mpxLogger,
     );
@@ -382,6 +384,9 @@ class MeetingPlaceCoreSDK {
 
   /// Returns instance of used low level [ControlPlaneSDK].
   ControlPlaneSDK get discovery => _controlPlaneSDK;
+
+  /// Returns the [MeetingPlaceCoreSDKOptions] used to configure the SDK.
+  MeetingPlaceCoreSDKOptions get options => _options;
 
   /// Returns a stream of [ControlPlaneStreamEvent] events.
   ///
@@ -1198,7 +1203,7 @@ class MeetingPlaceCoreSDK {
   Future<void> processControlPlaneEvents({Function? onDone}) {
     return _withSdkExceptionHandling(
       () => _controlPlaneEventService.processEvents(
-        debounceEvents: _options.debounceControlPlaneEvents,
+        debounceEvents: options.debounceControlPlaneEvents,
         onDone: onDone,
       ),
     );
@@ -1248,7 +1253,7 @@ class MeetingPlaceCoreSDK {
         options: FetchMessagesOptions(
           deleteFailedMessages: deleteFailedMessages,
           deleteOnRetrieve: deleteOnRetrieve,
-          expectedMessageWrappingTypes: _options.expectedMessageWrappingTypes,
+          expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
         ),
       );
     });

@@ -18,6 +18,7 @@ class MeetingPlaceCoreSDKOptions {
     this.expectedMessageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
+    this.messageTypesForSequenceTracking = const [],
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -84,4 +85,10 @@ class MeetingPlaceCoreSDKOptions {
   /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
   /// (e.g., chat + VDIP) that use different message signing configurations.
   final List<MessageWrappingType> expectedMessageWrappingTypes;
+
+  /// List of message types for which the SDK should track sequence numbers
+  /// and update the channel's `seqNo` accordingly.
+  /// This is used to ensure that the channel's `seqNo` is updated for messages
+  /// that require sequence tracking.
+  final List<String> messageTypesForSequenceTracking;
 }

@@ -64,6 +64,7 @@ class ChannelActivityEventHandler {
         connectionManager: _connectionManager,
         connectionOfferRepository: _connectionOfferRepository,
         mediatorService: _mediatorService,
+        options: _options,
         logger: _logger,
       ).process(channelActivity);
     }

@@ -593,6 +593,7 @@ void main() async {
         if (data.plainTextMessage?.type.toString() ==
                 ChatProtocol.chatMessage.value &&
             message.messageId == data.plainTextMessage?.id) {
+          stream.dispose();
           bobWaitForAttachments.complete(
             data.plainTextMessage?.attachments ?? [],
           );

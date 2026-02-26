@@ -45,7 +45,7 @@ void main() async {
       otherPartyDid: bob.didDocument.id,
       channelRepository: alice.channelRepository,
       options: ChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 1),
+        chatPresenceSendInterval: const Duration(milliseconds: 200),
       ),
     );
 
@@ -87,12 +87,6 @@ void main() async {
         if (data.plainTextMessage?.isOfType(type) == true) {
           if (!bobReceivedPresenceFromFirstSession.isCompleted) {
             bobReceivedPresenceFromFirstSession.complete();
-            aliceChatSDK.endChatSession();
-
-            // Track time to verify that presence message received after
-            // restarting chat session is new presence message and not a delayed
-            // message from first session
-            endChatSessionTime = DateTime.now();
           }
         }
       });
@@ -103,6 +97,13 @@ void main() async {
     await bobReceivedPresenceFromFirstSession.future.timeout(
       const Duration(seconds: 10),
     );
+
+    aliceChatSDK.endChatSession();
+
+    // Track time to verify that presence message received after
+    // restarting chat session is new presence message and not a delayed
+    // message from first session
+    endChatSessionTime = DateTime.now();
 
     // Start Alice's second chat session and check if Bob receives presence
     // message

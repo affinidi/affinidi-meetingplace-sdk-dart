@@ -39,13 +39,14 @@ void main() async {
     await clearMessageQueue(bobDidDoc);
   });
 
-  Future<void> sendMessageFromBobToAlice([
+  Future<void> sendMessageFromBobToAlice({
     String message = 'Hello World',
-  ]) async {
+    String type = 'https://example.com/test',
+  }) async {
     await bobSDK.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
-        type: Uri.parse('https://example.com/test'),
+        type: Uri.parse(type),
         from: bobDidDoc.id,
         to: [aliceDidDoc.id],
         body: {'message': message},
@@ -133,8 +134,8 @@ void main() async {
       }
     });
 
-    await sendMessageFromBobToAlice('message#1');
-    await sendMessageFromBobToAlice('message#2');
+    await sendMessageFromBobToAlice(message: 'message#1');
+    await sendMessageFromBobToAlice(message: 'message#2');
     await messageCompleter.future.timeout(const Duration(seconds: 10));
 
     expect(messagesReceived, equals(2));
@@ -142,6 +143,10 @@ void main() async {
   });
 
   test('deletes message from mediator after being processed', () async {
+    // Use unique message type to avoid flakiness in case messages from other
+    // tests are received
+    final messageType = 'https://example.com/${Uuid().v4()}';
+
     final subscription = await aliceSDK.subscribeToMediator(
       aliceDidDoc.id,
       options: MediatorStreamSubscriptionOptions(
@@ -149,23 +154,24 @@ void main() async {
       ),
     );
 
-    var messageCount = 0;
+    int messageCount = 0;
     final waitForMesage = Completer<void>();
+
     subscription.listen((message) {
-      messageCount++;
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
+      if (message.plainTextMessage.isOfType(messageType)) {
+        messageCount++;
         if (messageCount == 3) {
           waitForMesage.complete();
+          subscription.dispose();
         }
       }
     });
 
-    await sendMessageFromBobToAlice();
-    await sendMessageFromBobToAlice();
-    await sendMessageFromBobToAlice();
+    await sendMessageFromBobToAlice(type: messageType);
+    await sendMessageFromBobToAlice(type: messageType);
+    await sendMessageFromBobToAlice(type: messageType);
 
     await waitForMesage.future.timeout(const Duration(seconds: 10));
-    await subscription.dispose();
 
     // Delay test execution to allow for message deletion to occur
     await Future.delayed(const Duration(seconds: 2));
@@ -259,8 +265,8 @@ void main() async {
         }
       });
 
-      await sendMessageFromBobToAlice('message#1');
-      await sendMessageFromBobToAlice('message#2');
+      await sendMessageFromBobToAlice(message: 'message#1');
+      await sendMessageFromBobToAlice(message: 'message#2');
 
       await waitForMessage.future.timeout(const Duration(seconds: 10));
 

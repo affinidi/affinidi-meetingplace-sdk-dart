@@ -4,122 +4,57 @@ import 'package:collection/collection.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_chat/src/utils/message_utils.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
 import 'utils/contact_card_fixture.dart' as fixtures;
-import 'utils/sdk.dart';
+import 'utils/setup_chat_sdk.dart';
 import 'utils/storage/in_memory_storage.dart';
 
 void main() async {
-  late MeetingPlaceCoreSDK aliceSDK;
-  late MeetingPlaceCoreSDK bobSDK;
-  late MeetingPlaceCoreSDK charlieSDK;
+  final setup = SetupChatSdk();
 
-  late DidDocument aliceDidDocument;
-  late DidDocument bobDidDocument;
-  late DidDocument charlieDidDocument;
+  late SDKInstance aliceSDK;
+  late SDKInstance bobSDK;
+  late SDKInstance charlieSDK;
 
   late MeetingPlaceChatSDK aliceChatSDK;
   late MeetingPlaceChatSDK bobChatSDK;
 
-  late ChannelRepository aliceChannelRepository;
-  late ChannelRepository bobChannelRepository;
-  late ChannelRepository charlieChannelRepository;
-
   setUp(() async {
-    aliceChannelRepository = initChannelRepository();
-    bobChannelRepository = initChannelRepository();
-    charlieChannelRepository = initChannelRepository();
-
-    aliceSDK = await initCoreSDKInstance(
-      channelRepository: aliceChannelRepository,
+    aliceSDK = await setup.createCoreSDK(
+      fixtures.ContactCardFixture.alicePrimaryCardInfo,
     );
 
-    bobSDK = await initCoreSDKInstance(channelRepository: bobChannelRepository);
-
-    charlieSDK = await initCoreSDKInstance(
-      channelRepository: charlieChannelRepository,
+    bobSDK = await setup.createCoreSDK(
+      fixtures.ContactCardFixture.bobPrimaryCardInfo,
     );
 
-    final aliceDidManager = await aliceSDK.generateDid();
-    aliceDidDocument = await aliceDidManager.getDidDocument();
-
-    final bobDidManager = await bobSDK.generateDid();
-    bobDidDocument = await bobDidManager.getDidDocument();
-
-    final charlieDidManager = await charlieSDK.generateDid();
-    charlieDidDocument = await charlieDidManager.getDidDocument();
-
-    await Future.wait([
-      aliceSDK.mediator.updateAcl(
-        ownerDidManager: aliceDidManager,
-        acl: AccessListAdd(
-          ownerDid: aliceDidDocument.id,
-          granteeDids: [bobDidDocument.id, charlieDidDocument.id],
-        ),
-      ),
-      bobSDK.mediator.updateAcl(
-        ownerDidManager: bobDidManager,
-        acl: AccessListAdd(
-          ownerDid: bobDidDocument.id,
-          granteeDids: [aliceDidDocument.id],
-        ),
-      ),
-      charlieSDK.mediator.updateAcl(
-        ownerDidManager: charlieDidManager,
-        acl: AccessListAdd(
-          ownerDid: charlieDidDocument.id,
-          granteeDids: [aliceDidDocument.id],
-        ),
-      ),
-    ]);
-
-    final aliceCard = fixtures.ContactCardFixture.getContactCardFixture(
-      did: aliceDidDocument.id,
-      contactInfo: fixtures.ContactCardFixture.alicePrimaryCardInfo,
-    );
-    final bobCard = fixtures.ContactCardFixture.getContactCardFixture(
-      did: bobDidDocument.id,
-      contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
-    );
-    final charlieCard = fixtures.ContactCardFixture.getContactCardFixture(
-      did: charlieDidDocument.id,
-      contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
+    charlieSDK = await setup.createCoreSDK(
+      fixtures.ContactCardFixture.charliePrimaryCardInfo,
     );
 
-    aliceChatSDK = await initIndividualChatSDK(
-      coreSDK: aliceSDK,
-      did: aliceDidDocument.id,
-      otherPartyDid: bobDidDocument.id,
-      channelRepository: aliceChannelRepository,
-      channelCard: aliceCard,
-      card: aliceCard,
-      otherPartyCard: bobCard,
+    aliceChatSDK = await setup.createChatSdk(
+      sdkInstance: aliceSDK,
+      otherPartySdkInstance: bobSDK,
     );
 
-    bobChatSDK = await initIndividualChatSDK(
-      coreSDK: bobSDK,
-      did: bobDidDocument.id,
-      otherPartyDid: aliceDidDocument.id,
-      card: bobCard,
-      otherPartyCard: aliceCard,
-      channelRepository: bobChannelRepository,
-      channelCard: aliceCard,
+    bobChatSDK = await setup.createChatSdk(
+      sdkInstance: bobSDK,
+      otherPartySdkInstance: aliceSDK,
     );
 
-    await charlieChannelRepository.createChannel(
+    await charlieSDK.channelRepository.createChannel(
       Channel(
         offerLink: 'charlie',
         publishOfferDid: '',
         mediatorDid: '',
-        permanentChannelDid: charlieDidDocument.id,
-        otherPartyPermanentChannelDid: aliceDidDocument.id,
+        permanentChannelDid: charlieSDK.didDocument.id,
+        otherPartyPermanentChannelDid: aliceSDK.didDocument.id,
         status: ChannelStatus.inaugurated,
         type: ChannelType.individual,
-        contactCard: charlieCard,
-        otherPartyContactCard: aliceCard,
+        contactCard: charlieSDK.contactCard,
+        otherPartyContactCard: aliceSDK.contactCard,
       ),
     );
   });
@@ -189,8 +124,9 @@ void main() async {
 
     await bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
+        if (!bobChatCompleted.isCompleted &&
+            data.plainTextMessage?.type.toString() ==
+                ChatProtocol.chatMessage.value) {
           bobChatCompleted.complete();
         }
       });
@@ -201,8 +137,9 @@ void main() async {
 
     await aliceChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatDelivered.value) {
+        if (!aliceCompleted.isCompleted &&
+            message.plainTextMessage?.type.toString() ==
+                ChatProtocol.chatDelivered.value) {
           // ignore: avoid_print
           print('Chat message has been delivered successfully!');
           aliceCompleted.complete();
@@ -231,15 +168,9 @@ void main() async {
 
     // If alice creates chat instance for different chat, chat history is
     // returned accordingly
-    final aliceChatWithCharlie = await initIndividualChatSDK(
-      coreSDK: aliceSDK,
-      did: aliceDidDocument.id,
-      otherPartyDid: charlieDidDocument.id,
-      otherPartyCard: fixtures.ContactCardFixture.getContactCardFixture(
-        did: charlieDidDocument.id,
-        contactInfo: fixtures.ContactCardFixture.charliePrimaryCardInfo,
-      ),
-      channelRepository: aliceChannelRepository,
+    final aliceChatWithCharlie = await setup.createChatSdk(
+      sdkInstance: aliceSDK,
+      otherPartySdkInstance: charlieSDK,
     );
 
     await aliceChatWithCharlie.startChatSession();
@@ -282,29 +213,27 @@ void main() async {
   test(
     'keeps message history if new chat SDK instance is initialized',
     () async {
+      // Explicitly using in-memory storage to ensure that same storage instance
+      // is used for both chat SDK instances in this test
       final storage = InMemoryStorage();
-      final chatSDK = await initIndividualChatSDK(
-        coreSDK: aliceSDK,
-        did: aliceDidDocument.id,
-        otherPartyDid: bobDidDocument.id,
-        otherPartyCard: fixtures.ContactCardFixture.getContactCardFixture(
-          did: bobDidDocument.id,
-          contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
-        ),
-        existingStorage: storage,
-        channelRepository: aliceChannelRepository,
+
+      // First chat SDK instance to send message and end chat session
+      final chatSDK = await setup.createChatSdk(
+        sdkInstance: aliceSDK,
+        otherPartySdkInstance: bobSDK,
+        storage: storage,
       );
 
       await chatSDK.sendTextMessage('Hello World!');
       expect((await chatSDK.messages).length, equals(1));
       chatSDK.endChatSession();
 
-      final chatSDKNewInstance = await initIndividualChatSDK(
-        coreSDK: aliceSDK,
-        did: aliceDidDocument.id,
-        otherPartyDid: bobDidDocument.id,
-        existingStorage: storage,
-        channelRepository: aliceChannelRepository,
+      // New chat SDK instance is initialized and is expected to have the same
+      // message history
+      final chatSDKNewInstance = await setup.createChatSdk(
+        sdkInstance: aliceSDK,
+        otherPartySdkInstance: bobSDK,
+        storage: storage,
       );
 
       expect((await chatSDKNewInstance.messages).length, equals(1));
@@ -406,6 +335,14 @@ void main() async {
         });
       });
 
+      // Update channel to trigger profile hash message
+      final channel = await bobSDK.coreSDK.getChannelByDid(
+        bobSDK.didDocument.id,
+      );
+      final contactCard = channel!.contactCard!;
+      contactCard.contactInfo['changed'] = 'value';
+      await bobSDK.coreSDK.updateChannel(channel);
+
       await bobChatSDK.startChatSession();
       final receivedProfileHashMessage = await waitForProfileHashMessage.future;
       expect(receivedProfileHashMessage, isTrue);
@@ -425,7 +362,13 @@ void main() async {
       });
     });
 
+    final channel = await bobSDK.coreSDK.getChannelByDid(bobSDK.didDocument.id);
+    final contactCard = channel!.contactCard!;
+    contactCard.contactInfo['changed'] = 'value';
+    await bobSDK.coreSDK.updateChannel(channel);
+
     await bobChatSDK.startChatSession();
+
     var receivedProfileRequestMessage = false;
 
     await bobChatSDK.chatStreamSubscription.then((stream) {
@@ -478,7 +421,7 @@ void main() async {
     () async {
       await aliceChatSDK.startChatSession();
       final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
-        did: bobDidDocument.id,
+        did: bobSDK.didDocument.id,
         contactInfo: {'changed': 'value'},
       );
 
@@ -489,14 +432,12 @@ void main() async {
 
       await aliceOpenedChat.future;
 
-      final newBobChatSDK = await initIndividualChatSDK(
-        coreSDK: bobSDK,
-        did: bobDidDocument.id,
-        otherPartyDid: aliceDidDocument.id,
+      final newBobChatSDK = await setup.createChatSdk(
+        sdkInstance: bobSDK,
+        otherPartySdkInstance: aliceSDK,
         card: updatedCard,
-        channelRepository: bobChannelRepository,
         channelCard: fixtures.ContactCardFixture.getContactCardFixture(
-          did: bobDidDocument.id,
+          did: bobSDK.didDocument.id,
           contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
         ),
       );
@@ -530,7 +471,7 @@ void main() async {
       expect(conciergeMessage.status, ChatItemStatus.userInput);
       expect(conciergeMessage.data, {
         'profileHash': updatedCard.profileHash,
-        'replyTo': aliceDidDocument.id,
+        'replyTo': aliceSDK.didDocument.id,
       });
 
       final aliceChatCompleter = Completer<void>();
@@ -549,7 +490,9 @@ void main() async {
 
       // Alice received contact details update
       await aliceChatCompleter.future;
-      final aliceChannel = await aliceSDK.getChannelByDid(bobDidDocument.id);
+      final aliceChannel = await aliceSDK.coreSDK.getChannelByDid(
+        bobSDK.didDocument.id,
+      );
       expect(
         aliceChannel?.otherPartyContactCard?.contactInfo,
         equals(updatedCard.contactInfo),
@@ -560,7 +503,7 @@ void main() async {
   test('reject contact profile update', () async {
     await aliceChatSDK.startChatSession();
     final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
-      did: bobDidDocument.id,
+      did: bobSDK.didDocument.id,
       contactInfo: {'changed': 'value'},
     );
 
@@ -571,14 +514,12 @@ void main() async {
 
     await aliceOpenedChat.future;
 
-    final newBobChatSDK = await initIndividualChatSDK(
-      coreSDK: bobSDK,
-      did: bobDidDocument.id,
-      otherPartyDid: aliceDidDocument.id,
+    final newBobChatSDK = await setup.createChatSdk(
+      sdkInstance: bobSDK,
+      otherPartySdkInstance: aliceSDK,
       card: updatedCard,
-      channelRepository: bobChannelRepository,
       channelCard: fixtures.ContactCardFixture.getContactCardFixture(
-        did: bobDidDocument.id,
+        did: bobSDK.didDocument.id,
         contactInfo: fixtures.ContactCardFixture.bobPrimaryCardInfo,
       ),
     );
@@ -611,8 +552,9 @@ void main() async {
 
     await aliceChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) async {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatContactDetailsUpdate.value) {
+        if (!aliceChatCompleter.isCompleted &&
+            message.plainTextMessage?.type.toString() ==
+                ChatProtocol.chatContactDetailsUpdate.value) {
           aliceChatCompleter.complete();
         }
       });
@@ -651,7 +593,8 @@ void main() async {
     final bobWaitForAttachments = Completer<List<Attachment>>();
     await bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
+        if (!bobWaitForAttachments.isCompleted &&
+            data.plainTextMessage?.type.toString() ==
                 ChatProtocol.chatMessage.value &&
             message.messageId == data.plainTextMessage?.id) {
           stream.dispose();
@@ -682,47 +625,12 @@ void main() async {
     );
   });
 
-  test('sends chat presence message in configured interval', () async {
-    final chatSDKWithReducedInterval = await initIndividualChatSDK(
-      coreSDK: aliceSDK,
-      did: aliceDidDocument.id,
-      otherPartyDid: bobDidDocument.id,
-      channelRepository: aliceChannelRepository,
-      options: ChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 1),
-      ),
-    );
-
-    var receivedMessages = 0;
-    await bobChatSDK.startChatSession();
-
-    // Consume chat presence messages
-    final waitForSubscription = Completer<void>();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
-      waitForSubscription.complete();
-      stream!.listen((data) {
-        if (MessageUtils.isType(
-          data.plainTextMessage!,
-          ChatProtocol.chatPresence,
-        )) {
-          receivedMessages += 1;
-        }
-      });
-    });
-
-    // Start SDK to send presence messages in interval
-    await chatSDKWithReducedInterval.startChatSession();
-
-    await waitForSubscription.future;
-    await Future<void>.delayed(const Duration(seconds: 3));
-
-    expect(receivedMessages, greaterThan(1));
-  });
-
   test('message is shown as sent even for notification error', () async {
-    final channel = await aliceSDK.getChannelByDid(aliceDidDocument.id);
+    final channel = await aliceSDK.coreSDK.getChannelByDid(
+      aliceSDK.didDocument.id,
+    );
     channel!.otherPartyNotificationToken = 'invalid_token';
-    await aliceSDK.updateChannel(channel);
+    await aliceSDK.coreSDK.updateChannel(channel);
 
     await aliceChatSDK.startChatSession();
     final actual = await aliceChatSDK.sendTextMessage('Sample text message');

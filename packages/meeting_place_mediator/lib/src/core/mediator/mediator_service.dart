@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:dio/dio.dart';
 import '../../constants/sdk_constants.dart';
@@ -56,8 +58,8 @@ class MediatorService {
         name: methodName);
 
     final didDocument = await didManager.getDidDocument();
-    final cacheKey = _cacheKey(mediatorDid: mediatorDid, did: didDocument.id);
     final mediatorDidDocument = await didResolver.resolveDid(mediatorDid);
+    final cacheKey = _getCacheKey(mediatorDidDocument, didDocument.id);
 
     final authorizationProvider = reauthenticate
         ? await AffinidiAuthorizationProvider.init(
@@ -612,7 +614,9 @@ class MediatorService {
     }
   }
 
-  String _cacheKey({required String mediatorDid, required String did}) {
-    return '$mediatorDid$did';
+  String _getCacheKey(DidDocument mediatorDidDocument, String did) {
+    final mediatorDidDocumentHash =
+        md5.convert(utf8.encode(jsonEncode(mediatorDidDocument))).toString();
+    return '$mediatorDidDocumentHash-$did';
   }
 }

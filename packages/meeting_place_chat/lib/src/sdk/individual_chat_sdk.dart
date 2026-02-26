@@ -5,7 +5,6 @@ import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
-import 'chat_sdk.dart';
 
 /// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for handling
 /// **one-to-one (individual) chat sessions** in the Meeting Place SDK.
@@ -41,7 +40,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
 
   static const String _className = 'IndividualChatSDK';
 
-  bool _sendChatPresence = false;
+  bool _isSendingChatPresence = false;
 
   /// Starts an individual chat session.
   ///
@@ -121,24 +120,6 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     );
   }
 
-  /// Starts the periodic sending of chat presence signals.
-  ///
-  /// This method initiates sending presence updates for the chat session,
-  /// allowing the application to track real-time status changes of participants
-  /// such as online/offline status.
-  ///
-  /// The updates will continue until [stopChatPresenceUpdates] is called or
-  /// the chat session is terminated.
-  ///
-  /// Interval can be configured via [options.chatPresenceSendInterval] in [ChatSDKOptions].
-  ///
-  /// **Example:**
-  /// ```dart
-  /// await chatSdk.startChatPresenceUpdates();
-  /// ```
-  ///
-  /// **See also:**
-  /// - [stopChatPresenceUpdates] to stop receiving presence updates
   @override
   Future<void> startChatPresenceUpdates() async =>
       _startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds);
@@ -150,10 +131,10 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   ///
   /// Runs continuously in a loop until [stopChatPresenceInterval] is called.
   Future<void> _startChatPresenceInInterval(int intervalInSeconds) async {
-    if (_sendChatPresence) return;
+    if (_isSendingChatPresence) return;
 
-    _sendChatPresence = true;
-    while (_sendChatPresence) {
+    _isSendingChatPresence = true;
+    while (_isSendingChatPresence) {
       try {
         await sendChatPresence();
         await Future<void>.delayed(Duration(seconds: intervalInSeconds));
@@ -166,6 +147,6 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
 
   /// Stops the periodic sending of chat presence signals.
   void stopChatPresenceInterval() {
-    _sendChatPresence = false;
+    _isSendingChatPresence = false;
   }
 }

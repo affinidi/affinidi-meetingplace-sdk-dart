@@ -2,9 +2,7 @@ class ControlPlaneEventHandlerManagerOptions {
   const ControlPlaneEventHandlerManagerOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 5000),
-    this.messageTypesForSequenceTracking = const [
-      'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
-    ],
+    this.messageTypesForSequenceTracking = const [],
   });
 
   /// The number of retry attempts for a request when a network issue occurs.

@@ -385,14 +385,8 @@ class MeetingPlaceCoreSDK {
   /// Returns instance of used low level [ControlPlaneSDK].
   ControlPlaneSDK get discovery => _controlPlaneSDK;
 
-  /// Returns the [DidResolver] used internally by the SDK.
-  DidResolver get didResolver => _didResolver;
-
   /// Returns the [MeetingPlaceCoreSDKOptions] used to configure the SDK.
   MeetingPlaceCoreSDKOptions get options => _options;
-
-  /// Returns the [MeetingPlaceCoreSDKLogger] used internally by the SDK.
-  MeetingPlaceCoreSDKLogger get logger => _logger;
 
   /// Returns a stream of [ControlPlaneStreamEvent] events.
   ///
@@ -486,14 +480,14 @@ class MeetingPlaceCoreSDK {
     String? externalRef,
   }) async {
     final methodName = 'createOobFlow';
-    logger.info('Started creating OOB invitation', name: methodName);
+    _logger.info('Started creating OOB invitation', name: methodName);
 
     final oobDidManager = await generateDid();
     final oobDidDoc = await oobDidManager.getDidDocument();
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
     final mediatorDidTouse = mediatorDid ?? _mediatorDid;
 
-    logger.info(
+    _logger.info(
       '''Setup OOB invitation for ${oobDidDoc.id.topAndTail()} on $mediatorDidTouse''',
       name: methodName,
     );
@@ -518,10 +512,10 @@ class MeetingPlaceCoreSDK {
 
     final oobStream = OobStream(
       onDispose: () => streamSubscription.dispose(),
-      logger: logger,
+      logger: _logger,
     );
 
-    logger.info(
+    _logger.info(
       '''OOB invitation created with URL: ${oobCommandOutput.oobUrl}''',
       name: methodName,
     );
@@ -571,7 +565,7 @@ class MeetingPlaceCoreSDK {
 
         await _repositoryConfig.channelRepository.createChannel(channel);
 
-        logger.info(
+        _logger.info(
           'OOB invitation accepted, channel created with ID: ${channel.id}',
           name: methodName,
         );
@@ -593,7 +587,7 @@ class MeetingPlaceCoreSDK {
       }
     });
 
-    logger.info(
+    _logger.info(
       ''''Listening for messages on mediator channel $mediatorDidTouse and OOB DID ${oobDidDoc.id.topAndTail()}''',
       name: methodName,
     );
@@ -626,7 +620,7 @@ class MeetingPlaceCoreSDK {
     String? did,
   }) async {
     final methodName = 'acceptOobFlow';
-    logger.info('Started accepting OOB invitation', name: methodName);
+    _logger.info('Started accepting OOB invitation', name: methodName);
 
     final acceptOfferDid = await generateDid();
     final acceptOfferDidDoc = await acceptOfferDid.getDidDocument();
@@ -640,7 +634,7 @@ class MeetingPlaceCoreSDK {
     String actualMediatorDid = _mediatorDid;
 
     try {
-      logger.info('Fetching OOB invitation', name: methodName);
+      _logger.info('Fetching OOB invitation', name: methodName);
       final oobInfo = await _controlPlaneSDK.execute(
         GetOobCommand(oobId: oobUrl.pathSegments.last),
       );
@@ -651,7 +645,7 @@ class MeetingPlaceCoreSDK {
 
       actualMediatorDid = oobInfo.mediatorDid;
     } catch (e, stackTrace) {
-      logger.error(
+      _logger.error(
         'Failed to fetch OOB invitation:',
         error: e,
         stackTrace: stackTrace,
@@ -683,10 +677,13 @@ class MeetingPlaceCoreSDK {
 
     final oobStream = OobStream(
       onDispose: () => streamSubscription.dispose(),
-      logger: logger,
+      logger: _logger,
     );
 
-    logger.info('Listening for messages on mediator channel', name: methodName);
+    _logger.info(
+      'Listening for messages on mediator channel',
+      name: methodName,
+    );
 
     streamSubscription.stream.listen((message) async {
       final plainTextMessage = message.plainTextMessage;
@@ -730,7 +727,7 @@ class MeetingPlaceCoreSDK {
           ),
         );
 
-        logger.info(
+        _logger.info(
           'OOB invitation accepted, channel created with ID: ${channel.id}',
           name: methodName,
         );
@@ -1119,7 +1116,7 @@ class MeetingPlaceCoreSDK {
   }) async {
     return _withSdkExceptionHandling(() async {
       final senderDidManager = await getDidManager(senderDid);
-      final recipientDidDocument = await didResolver.resolveDid(recipientDid);
+      final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       await _mediatorSDK.queueMessage(
         message,
@@ -1156,7 +1153,7 @@ class MeetingPlaceCoreSDK {
   }) async {
     return _withSdkExceptionHandling(() async {
       final senderDidManager = await getDidManager(senderDid);
-      final recipientDidDocument = await didResolver.resolveDid(recipientDid);
+      final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
       return _groupService.sendMessage(
         message,

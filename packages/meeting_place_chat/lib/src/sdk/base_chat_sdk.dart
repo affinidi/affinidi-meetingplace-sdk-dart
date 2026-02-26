@@ -745,7 +745,7 @@ abstract class BaseChatSDK {
   }
 
   /// Ends the chat session, disposing of the channel and stream manager.
-  void end() async {
+  Future<void> end() async {
     await _mediatorStreamSubscription?.dispose();
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;

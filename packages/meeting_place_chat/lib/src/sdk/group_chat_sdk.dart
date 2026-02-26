@@ -115,12 +115,12 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
   /// Ends the group chat session and cancels any discovery subscriptions.
   @override
-  void endChatSession() {
+  Future<void> endChatSession() async {
     final methodName = 'end';
     _controlPlaneSubscription?.cancel();
 
     logger.info('Ended group chat', name: methodName);
-    super.end();
+    await super.end();
   }
 
   /// Sends a group message via the mediator.

@@ -50,6 +50,7 @@ class MediatorMessage {
     return MediatorMessage(plainTextMessage: message, messageHash: messageHash);
   }
 
+  /// Returns the message sequence number if available.
   int? get messageSequenceNumber {
     if (seqNo != null) {
       return seqNo;

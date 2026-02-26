@@ -92,18 +92,23 @@ void main() async {
       });
     });
 
-    // Start Alice's first chat session and end chat session after Bob received
+    // Start Alice's first chat session and wait for Bob to receive presence
     await aliceChatSDK.startChatSession();
     await bobReceivedPresenceFromFirstSession.future.timeout(
       const Duration(seconds: 10),
     );
 
+    // End chat session after receiving presence (outside of listener callback)
     aliceChatSDK.endChatSession();
 
     // Track time to verify that presence message received after
     // restarting chat session is new presence message and not a delayed
     // message from first session
-    endChatSessionTime = DateTime.now();
+    endChatSessionTime = DateTime.now().toUtc();
+
+    // Delay to ensure that any presence message from first session that was
+    // in flight is received before starting new session
+    await Future.delayed(const Duration(seconds: 1));
 
     // Start Alice's second chat session and check if Bob receives presence
     // message

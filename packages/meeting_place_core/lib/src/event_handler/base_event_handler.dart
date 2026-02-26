@@ -9,12 +9,12 @@ import '../protocol/meeting_place_protocol.dart';
 import '../repository/channel_repository.dart';
 import '../repository/connection_offer_repository.dart';
 import '../service/connection_manager/connection_manager.dart';
-import '../service/connection_offer/connection_offer_exception.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../service/mediator/mediator_message.dart';
 import '../service/mediator/mediator_service.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'exceptions/empty_message_list_exception.dart';
+import 'exceptions/event_handler_exception.dart';
 
 abstract class BaseEventHandler {
   BaseEventHandler({
@@ -55,7 +55,7 @@ abstract class BaseEventHandler {
   Future<ConnectionOffer> findConnectionByDid(String did) async {
     return await connectionOfferRepository
             .getConnectionOfferByPermanentChannelDid(did) ??
-        (throw ConnectionOfferException.offerNotFoundError());
+        (throw EventHandlerException.offerNotFound());
   }
 
   @internal
@@ -63,20 +63,22 @@ abstract class BaseEventHandler {
     return await connectionOfferRepository.getConnectionOfferByOfferLink(
           offerLink,
         ) ??
-        (throw ConnectionOfferException.offerNotFoundError());
+        (throw EventHandlerException.offerNotFound());
   }
 
   @internal
   Future<Channel> findChannelByDid(String did) async {
     return await channelRepository.findChannelByDid(did) ??
-        (throw Exception('Channel not found'));
+        (throw EventHandlerException.channelNotFound(did: did));
   }
 
   @internal
   Future<DidManager> findDidManager(Channel channel) {
     final did =
         channel.permanentChannelDid ??
-        (throw ArgumentError('Channel must have a permanent DID'));
+        (throw EventHandlerException.missingPermanentChannelDid(
+          channelId: channel.id,
+        ));
 
     return connectionManager.getDidManagerForDid(wallet, did);
   }

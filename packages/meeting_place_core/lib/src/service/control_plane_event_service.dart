@@ -22,12 +22,13 @@ class ControlPlaneEventService {
   final ControlPlaneEventManager _discoveryEventManager;
   final MeetingPlaceCoreSDKLogger _logger;
   final List<String> _queue = [];
+  final List<Object> _errors = [];
 
   bool _queued = false;
 
   Future<void> processEvents({
     required Duration debounceEvents,
-    Function? onDone,
+    Function(List<Object> errors)? onDone,
   }) async {
     final methodName = 'processEvents';
     final processId = Uuid().v4();
@@ -55,7 +56,10 @@ class ControlPlaneEventService {
     }
   }
 
-  Future<void> _process({required String processId, Function? onDone}) async {
+  Future<void> _process({
+    required String processId,
+    Function(List<Object> errors)? onDone,
+  }) async {
     final methodName = '_process';
     _logger.info(
       'Processing process id $processId from queue',
@@ -73,7 +77,7 @@ class ControlPlaneEventService {
           'Notification check complete: no pending items detected, queue successfully cleared.',
           name: methodName,
         );
-        if (onDone is Function) onDone();
+        _onDone(onDone);
         return;
       }
 
@@ -89,25 +93,41 @@ class ControlPlaneEventService {
       );
 
       _queue.remove(processId);
-      _logger.info('Process $processId completed', name: methodName);
-      _logger.info('Process $processId removed from queue', name: methodName);
+      _logger.info(
+        'Process $processId completed and removed from queue',
+        name: methodName,
+      );
+
       if (_queue.isNotEmpty) {
-        return _process(processId: _queue.first);
+        return _process(processId: _queue.first, onDone: onDone);
       }
-      if (onDone is Function) onDone();
+
+      _onDone(onDone);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to process queue item $processId -> ${e.toString()}',
         error: e,
         stackTrace: stackTrace,
       );
+
       _queue.remove(processId);
-      return _process(processId: processId);
+      _errors.add(e);
+
+      if (_queue.isNotEmpty) {
+        return _process(processId: _queue.first, onDone: onDone);
+      }
+
+      _onDone(onDone);
     } finally {
       _queue.remove(processId);
     }
 
     _logger.info('Completed processing control plane events', name: methodName);
+  }
+
+  void _onDone(Function(List<Object> errors)? onDone) {
+    onDone?.call([..._errors]);
+    _errors.clear();
   }
 
   Future<List<String>> deleteAll() async {

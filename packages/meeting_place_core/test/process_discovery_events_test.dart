@@ -28,12 +28,8 @@ void main() async {
       ),
     );
 
-    unawaited(
-      aliceSDK.processControlPlaneEvents(onDone: onDoneFailed),
-    );
-    unawaited(
-      aliceSDK.processControlPlaneEvents(onDone: onDoneFailed),
-    );
+    unawaited(aliceSDK.processControlPlaneEvents(onDone: onDoneFailed));
+    unawaited(aliceSDK.processControlPlaneEvents(onDone: onDoneFailed));
 
     await completer.future;
     expect(completed, isTrue);

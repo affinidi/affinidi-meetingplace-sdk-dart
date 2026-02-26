@@ -59,31 +59,24 @@ class MediatorService {
 
     final didDocument = await didManager.getDidDocument();
     final mediatorDidDocument = await didResolver.resolveDid(mediatorDid);
-    final cacheKey = _getCacheKey(mediatorDidDocument, didDocument.id);
 
-    final authorizationProvider = reauthenticate
-        ? await AffinidiAuthorizationProvider.init(
-            didManager: didManager,
-            mediatorDidDocument: mediatorDidDocument,
-          )
-        : _authorizationProviders[cacheKey] ??
-            await AffinidiAuthorizationProvider.init(
-                    mediatorDidDocument: mediatorDidDocument,
-                    didManager: didManager)
-                .then((authorizationProvider) {
-              _authorizationProviders[cacheKey] = authorizationProvider;
-              return authorizationProvider;
-            });
+    final authenticationKeyId = didDocument.authentication.first.id;
+
+    final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
+        otherDidDocuments: [mediatorDidDocument]).first;
 
     return retry(
       () async {
-        _logger.info('Connect to mediator: ${mediatorDid.topAndTail()}',
-            name: methodName);
+        _logger.info(
+          'Initialize mediator client: ${mediatorDid.topAndTail()}',
+          name: methodName,
+        );
 
-        final authenticationKeyId = didDocument.authentication.first.id;
-
-        final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
-            otherDidDocuments: [mediatorDidDocument]).first;
+        final authorizationProvider = await _getAuthorizationProvider(
+          mediatorDidDocument: mediatorDidDocument,
+          didManager: didManager,
+          reauthenticate: reauthenticate,
+        );
 
         final client = MediatorClient(
           mediatorDidDocument: mediatorDidDocument,
@@ -111,10 +104,14 @@ class MediatorService {
               shouldEncrypt: true,
             ),
           ),
-          authorizationProvider: authorizationProvider,
+          authorizationProvider: await _getAuthorizationProvider(
+            mediatorDidDocument: mediatorDidDocument,
+            didManager: didManager,
+            reauthenticate: reauthenticate,
+          ),
         );
 
-        _logger.info('Connected to mediator: ${mediatorDid.topAndTail()}',
+        _logger.info('Mediator client initialized: ${mediatorDid.topAndTail()}',
             name: methodName);
 
         return client;
@@ -618,5 +615,28 @@ class MediatorService {
     final mediatorDidDocumentHash =
         md5.convert(utf8.encode(jsonEncode(mediatorDidDocument))).toString();
     return '$mediatorDidDocumentHash-$did';
+  }
+
+  Future<AuthorizationProvider> _getAuthorizationProvider({
+    required DidDocument mediatorDidDocument,
+    required DidManager didManager,
+    required bool reauthenticate,
+  }) async {
+    final didDocument = await didManager.getDidDocument();
+    final cacheKey = _getCacheKey(mediatorDidDocument, didDocument.id);
+
+    if (!reauthenticate && _authorizationProviders.containsKey(cacheKey)) {
+      _logger.info(
+          '''Reusing cached authorization provider for DID ${didDocument.id.topAndTail()} and mediator DID ${mediatorDidDocument.id.topAndTail()}''',
+          name: '_getAuthorizationProvider');
+      return _authorizationProviders[cacheKey]!;
+    }
+
+    final authorizationProvider = await AffinidiAuthorizationProvider.init(
+      mediatorDidDocument: mediatorDidDocument,
+      didManager: didManager,
+    );
+    _authorizationProviders[cacheKey] = authorizationProvider;
+    return authorizationProvider;
   }
 }

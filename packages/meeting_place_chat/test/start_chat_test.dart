@@ -159,12 +159,12 @@ void main() async {
       equals(ChatItemStatus.delivered),
     );
 
-    await aliceChatSDK.endChatSession();
+    aliceChatSDK.endChatSession();
 
     // On resume alice will receive her chat history
     await aliceChatSDK.startChatSession();
     expect((await aliceChatSDK.messages).length, equals(1));
-    await aliceChatSDK.endChatSession();
+    aliceChatSDK.endChatSession();
 
     // If alice creates chat instance for different chat, chat history is
     // returned accordingly
@@ -186,7 +186,7 @@ void main() async {
   test('returns new messages from mediator', () async {
     final bobChat = await bobChatSDK.startChatSession();
     expect(bobChat.messages.length, equals(0));
-    await bobChatSDK.endChatSession();
+    bobChatSDK.endChatSession();
 
     await aliceChatSDK.sendTextMessage('Hello Bob!');
     await bobChatSDK.startChatSession();
@@ -226,7 +226,7 @@ void main() async {
 
       await chatSDK.sendTextMessage('Hello World!');
       expect((await chatSDK.messages).length, equals(1));
-      await chatSDK.endChatSession();
+      chatSDK.endChatSession();
 
       // New chat SDK instance is initialized and is expected to have the same
       // message history

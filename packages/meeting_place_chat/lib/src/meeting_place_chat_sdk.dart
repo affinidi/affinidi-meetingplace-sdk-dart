@@ -101,7 +101,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
 
   /// Ends the active chat session.
   @override
-  Future<void> endChatSession() async {
+  void endChatSession() async {
     return _sdk.endChatSession();
   }
 

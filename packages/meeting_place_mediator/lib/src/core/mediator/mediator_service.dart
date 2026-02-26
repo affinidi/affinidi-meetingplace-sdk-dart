@@ -235,7 +235,7 @@ class MediatorService {
       ));
 
       _logger.info(
-        'Message sent from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
+        'Message sent of type ${message.type.toString()} from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {

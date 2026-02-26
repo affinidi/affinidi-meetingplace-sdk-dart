@@ -255,25 +255,32 @@ void main() {
       subscription = await sdk.subscribeToMessages(didManagerB,
           options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null));
 
-      final waitForError = Completer<void>();
-      subscription.listen((PlainTextMessage msg) {
-        if (msg.type.toString() == 'https://affinidi.com/test/1.0/message') {
-          throw Exception('Error while processing message');
-        }
-      }, onError: (e) {
-        if (e.toString().contains('Error while processing message')) {
-          waitForError.complete();
-        }
-      });
-
       final messageToBeProcessed = PlainTextMessage(
-        id: Uuid().v4(),
+        id: const Uuid().v4(),
         type:
             Uri.parse('https://affinidi.com/test/1.0/message-to-be-processed'),
         body: messageToSend.body,
         to: messageToSend.to,
         from: messageToSend.from,
       );
+
+      final waitForMessageToBeProcessed = Completer<void>();
+      final waitForError = Completer<void>();
+
+      subscription.listen((PlainTextMessage msg) {
+        if (msg.type == messageToSend.type) {
+          throw Exception('Error while processing message');
+        }
+
+        if (msg.type == messageToBeProcessed.type &&
+            msg.id == messageToBeProcessed.id) {
+          waitForMessageToBeProcessed.complete();
+        }
+      }, onError: (e) {
+        if (e.toString().contains('Error while processing message')) {
+          waitForError.complete();
+        }
+      });
 
       await sdk.sendMessage(
         messageToBeProcessed,
@@ -283,7 +290,7 @@ void main() {
 
       // Wait for error and add delay to ensure deletion would have happened
       await waitForError.future;
-      await Future.delayed(const Duration(seconds: 2));
+      await waitForMessageToBeProcessed.future;
 
       // Check that processed message is removed from queue
       final fetchResult = await sdk.fetchMessages(

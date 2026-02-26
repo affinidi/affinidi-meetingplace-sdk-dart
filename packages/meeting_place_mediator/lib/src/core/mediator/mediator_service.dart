@@ -72,12 +72,6 @@ class MediatorService {
           name: methodName,
         );
 
-        final authorizationProvider = await _getAuthorizationProvider(
-          mediatorDidDocument: mediatorDidDocument,
-          didManager: didManager,
-          reauthenticate: reauthenticate,
-        );
-
         final client = MediatorClient(
           mediatorDidDocument: mediatorDidDocument,
           keyPair: await didManager.getKeyPairByDidKeyId(keyAgreementKeyId),

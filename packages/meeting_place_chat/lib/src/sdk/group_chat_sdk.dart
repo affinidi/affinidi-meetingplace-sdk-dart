@@ -117,7 +117,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   @override
   Future<void> endChatSession() async {
     final methodName = 'end';
-    _controlPlaneSubscription?.cancel();
+    unawaited(_controlPlaneSubscription?.cancel());
 
     logger.info('Ended group chat', name: methodName);
     await super.end();

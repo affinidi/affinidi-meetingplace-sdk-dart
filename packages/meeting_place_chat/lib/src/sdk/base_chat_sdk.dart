@@ -438,7 +438,11 @@ abstract class BaseChatSDK {
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
   Future<CoreSDKStreamSubscription> subscribeToMediator() {
-    return coreSDK.subscribeToMediator(did, mediatorDid: mediatorDid);
+    return coreSDK.subscribeToMediator(
+      did,
+      mediatorDid: mediatorDid,
+      options: MediatorStreamSubscriptionOptions(fetchMessagesOnConnect: false),
+    );
   }
 
   /// Sends a plain text message with optional attachments.

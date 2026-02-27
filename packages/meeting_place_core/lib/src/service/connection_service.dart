@@ -425,6 +425,7 @@ class ConnectionService {
     required PlainTextMessage invitationMessage,
     String? mediatorDid,
     ContactCard? acceptContactCard,
+    List<Attachment>? attachments,
   }) async {
     final methodName = 'sendAcceptOfferToMediator';
     _logger.info('Sending accept offer to mediator', name: methodName);
@@ -445,6 +446,7 @@ class ConnectionService {
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
       contactCard: acceptContactCard,
+      attachments: attachments,
     );
 
     await _mediatorSDK.sendMessage(
@@ -491,8 +493,8 @@ class ConnectionService {
   Future<Channel> approveConnectionRequest({
     required Wallet wallet,
     required Channel channel,
+    List<Attachment>? attachments,
   }) async {
-    // If [did] is not provided, a new DID is generated for the permanent channel.
     final methodName = 'approveConnectionRequest';
     _logger.info(
       'Approving connection request for offer link: ${channel.offerLink}',
@@ -552,6 +554,7 @@ class ConnectionService {
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
+      attachments: attachments,
     );
 
     final contactCard = channel.contactCard;
@@ -601,6 +604,7 @@ class ConnectionService {
     required String outboundMessageId,
     required String mediatorDid,
     ContactCard? contactCard,
+    List<Attachment>? attachments,
   }) async {
     final methodName = 'sendConnectionRequestApprovalToMediator';
     _logger.info(
@@ -625,6 +629,7 @@ class ConnectionService {
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
       contactCard: contactCard,
+      attachments: attachments,
     );
 
     final recipientDidDocument = await _didResolver.resolveDid(

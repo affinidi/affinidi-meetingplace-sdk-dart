@@ -1281,18 +1281,30 @@ class MeetingPlaceCoreSDK {
   /// - [options]: Options for subscribing to mediator messages.
   ///
   /// **Returns: [CoreSDKStreamSubscription]**
-  Future<CoreSDKStreamSubscription<MediatorMessage>> subscribeToMediator(
+  Future<
+    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>
+  >
+  subscribeToMediator(
     String did, {
     String? mediatorDid,
-    MediatorStreamSubscriptionOptions options =
-        const MediatorStreamSubscriptionOptions(),
+    MediatorStreamSubscriptionOptions? options,
   }) async {
     return _withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
       return _mediatorService.subscribe(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
-        options: options,
+        options: MediatorStreamSubscriptionOptions(
+          deleteMessageDelay:
+              options?.deleteMessageDelay ??
+              MediatorStreamSubscriptionOptions.defaults.deleteMessageDelay,
+          fetchMessagesOnConnect:
+              options?.fetchMessagesOnConnect ??
+              MediatorStreamSubscriptionOptions.defaults.fetchMessagesOnConnect,
+          expectedMessageWrappingTypes:
+              options?.expectedMessageWrappingTypes ??
+              this.options.expectedMessageWrappingTypes,
+        ),
       );
     });
   }

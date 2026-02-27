@@ -64,6 +64,7 @@ void main() async {
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
         messageCompleter.complete(message);
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice();
@@ -96,12 +97,14 @@ void main() async {
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
         listener1Completer.complete(message);
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     subscription.listen((message) {
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
         listener2Completer.complete(message);
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice();
@@ -132,6 +135,7 @@ void main() async {
           messageCompleter.complete();
         }
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice(message: 'message#1');
@@ -165,6 +169,7 @@ void main() async {
           subscription.dispose();
         }
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     await sendMessageFromBobToAlice(type: messageType);
@@ -226,10 +231,9 @@ void main() async {
     final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
     final doneCompleter = Completer<bool>();
 
-    subscription.listen(
-      (message) {},
-      onDone: () => doneCompleter.complete(true),
-    );
+    subscription.listen((message) {
+      return MediatorStreamProcessingResult(keepMessage: false);
+    }, onDone: () => doneCompleter.complete(true));
 
     await subscription.dispose();
 
@@ -261,6 +265,7 @@ void main() async {
             waitForMessage.complete();
           }
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       });
 
       await sendMessageFromBobToAlice(message: 'message#1');
@@ -298,6 +303,7 @@ void main() async {
         if (message.plainTextMessage.isOfType('https://example.com/test')) {
           throw Exception('Test error');
         }
+        return MediatorStreamProcessingResult(keepMessage: false);
       },
       onError: (e) {
         waitForError.complete(true);
@@ -312,5 +318,172 @@ void main() async {
     );
 
     expect(onErrorExecuted, isTrue);
+  });
+
+  group('multiple subscriptions to same DID', () {
+    Future<
+      (
+        PlainTextMessage,
+        PlainTextMessage,
+        List<MediatorMessage>,
+        PlainTextMessage,
+      )
+    >
+    useMultipleSubscriptions({
+      required bool subscriptionAKeepAlive,
+      required bool subscriptionBKeepAlive,
+    }) async {
+      final subscriptionOptions = const MediatorStreamSubscriptionOptions(
+        deleteMessageDelay: null,
+      );
+
+      final subscriptionA = await aliceSDK.subscribeToMediator(
+        aliceDidDoc.id,
+        options: subscriptionOptions,
+      );
+
+      final subscriptionB = await aliceSDK.subscribeToMediator(
+        aliceDidDoc.id,
+        options: subscriptionOptions,
+      );
+
+      final subscriptionAReceived = Completer<PlainTextMessage>();
+      final subscriptionBReceived = Completer<PlainTextMessage>();
+
+      final testMessage = PlainTextMessage(
+        id: Uuid().v4(),
+        type: Uri.parse('https://example.com/${Uuid().v4()}'),
+        body: {'message': 'Hello World'},
+        to: [aliceDidDoc.id],
+        from: bobDidDoc.id,
+      );
+
+      subscriptionA.listen((message) {
+        if (message.plainTextMessage.type == testMessage.type) {
+          subscriptionAReceived.complete(message.plainTextMessage);
+        }
+        return MediatorStreamProcessingResult(
+          keepMessage: subscriptionAKeepAlive,
+        );
+      });
+
+      subscriptionB.listen((message) {
+        if (message.plainTextMessage.type == testMessage.type) {
+          subscriptionBReceived.complete(message.plainTextMessage);
+        }
+        return MediatorStreamProcessingResult(
+          keepMessage: subscriptionBKeepAlive,
+        );
+      });
+
+      await bobSDK.sendMessage(
+        testMessage,
+        senderDid: bobDidDoc.id,
+        recipientDid: aliceDidDoc.id,
+      );
+
+      final timeout = const Duration(seconds: 10);
+      final subscriptionAMessage = await subscriptionAReceived.future.timeout(
+        timeout,
+      );
+
+      final subscriptionBMessage = await subscriptionBReceived.future.timeout(
+        timeout,
+      );
+
+      await Future.delayed(const Duration(seconds: 5));
+      final messages = await aliceSDK.fetchMessages(did: aliceDidDoc.id);
+
+      return (
+        subscriptionAMessage,
+        subscriptionBMessage,
+        messages,
+        testMessage,
+      );
+    }
+
+    test(
+      '''
+    Multiple subscriptions to mediator for the same did receive messages and
+    all set keepMessage to false, messages are deleted after processing.
+    ''',
+      () async {
+        final (
+          subscriptionAMessage,
+          subscriptionBMessage,
+          messagesOnMediator,
+          testMessage,
+        ) = await useMultipleSubscriptions(
+          subscriptionAKeepAlive: false,
+          subscriptionBKeepAlive: false,
+        );
+
+        expect(subscriptionAMessage.id, equals(testMessage.id));
+        expect(subscriptionBMessage.id, equals(testMessage.id));
+
+        expect(
+          messagesOnMediator
+              .where((m) => m.plainTextMessage.id == testMessage.id)
+              .toList(),
+          isEmpty,
+        );
+      },
+    );
+
+    test(
+      '''
+    Multiple subscriptions to mediator for the same did receive messages and
+    one sets keepMessage to true, messages are deleted after processing.
+    ''',
+      () async {
+        final (
+          subscriptionAMessage,
+          subscriptionBMessage,
+          messagesOnMediator,
+          testMessage,
+        ) = await useMultipleSubscriptions(
+          subscriptionAKeepAlive: false,
+          subscriptionBKeepAlive: true,
+        );
+
+        expect(subscriptionAMessage.id, equals(testMessage.id));
+        expect(subscriptionBMessage.id, equals(testMessage.id));
+
+        expect(
+          messagesOnMediator
+              .where((m) => m.plainTextMessage.id == testMessage.id)
+              .toList(),
+          isEmpty,
+        );
+      },
+    );
+
+    test(
+      '''
+    Multiple subscriptions to mediator for the same did receive messages and
+    all set keepMessage to true, messages are retained after processing.
+    ''',
+      () async {
+        final (
+          subscriptionAMessage,
+          subscriptionBMessage,
+          messagesOnMediator,
+          testMessage,
+        ) = await useMultipleSubscriptions(
+          subscriptionAKeepAlive: true,
+          subscriptionBKeepAlive: true,
+        );
+
+        expect(subscriptionAMessage.id, equals(testMessage.id));
+        expect(subscriptionBMessage.id, equals(testMessage.id));
+
+        expect(
+          messagesOnMediator
+              .where((m) => m.plainTextMessage.id == testMessage.id)
+              .toList(),
+          isNotEmpty,
+        );
+      },
+    );
   });
 }

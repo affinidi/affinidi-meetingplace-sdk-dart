@@ -90,11 +90,13 @@ class MeetingPlaceMediatorSDK {
   Future<MediatorClient> authenticateWithDid(
     DidManager didManager, {
     String? mediatorDid,
+    bool forceNewSession = false,
   }) {
     return _withSdkExceptionHandling(
       () => _mediatorService.authenticateWithDid(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
+        forceNewSession: forceNewSession,
       ),
     );
   }

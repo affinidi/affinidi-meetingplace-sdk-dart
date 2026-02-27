@@ -50,7 +50,7 @@ class MediatorService {
     required DidManager didManager,
     required String mediatorDid,
     required SignatureScheme signatureScheme,
-    bool reauthenticate = false,
+    bool forceNewSession = false,
     bool fetchMessagesOnConnect = true,
   }) async {
     final methodName = '_initMediatorClient';
@@ -101,7 +101,7 @@ class MediatorService {
           authorizationProvider: await _getAuthorizationProvider(
             mediatorDidDocument: mediatorDidDocument,
             didManager: didManager,
-            reauthenticate: reauthenticate,
+            reauthenticate: forceNewSession,
           ),
         );
 
@@ -124,7 +124,7 @@ class MediatorService {
   Future<MediatorClient> authenticateWithDid({
     required DidManager didManager,
     required String mediatorDid,
-    bool reauthenticate = false,
+    bool forceNewSession = false,
     bool fetchMessagesOnConnect = true,
   }) async {
     final methodName = 'authenticateWithDid';
@@ -138,7 +138,7 @@ class MediatorService {
           didManager: didManager,
           mediatorDid: mediatorDid,
           signatureScheme: _options.signatureScheme,
-          reauthenticate: reauthenticate,
+          forceNewSession: forceNewSession,
           fetchMessagesOnConnect: fetchMessagesOnConnect,
         ),
         maxAttempts: _options.maxRetries,
@@ -319,7 +319,7 @@ class MediatorService {
       final client = await authenticateWithDid(
         didManager: didManager,
         mediatorDid: mediatorDid,
-        reauthenticate: reauthenticate,
+        forceNewSession: reauthenticate,
         fetchMessagesOnConnect: fetchMessagesOnConnect,
       );
 

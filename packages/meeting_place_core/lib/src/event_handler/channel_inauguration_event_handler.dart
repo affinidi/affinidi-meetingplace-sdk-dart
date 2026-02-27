@@ -51,13 +51,9 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
-        if (plainTextMessage.attachments != null &&
-            plainTextMessage.attachments!.isNotEmpty &&
-            options.onAttachmentsReceived != null) {
-          options.onAttachmentsReceived!(
-            channel,
-            plainTextMessage.attachments!,
-          );
+        final attachments = plainTextMessage.attachments;
+        if (attachments != null && attachments.isNotEmpty) {
+          options.onAttachmentsReceived?.call(channel, attachments);
         }
       }
 

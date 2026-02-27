@@ -173,8 +173,6 @@ void main() async {
 
     await waitForMessage.future.timeout(const Duration(seconds: 10));
 
-    // Wait for scheduled deletion to complete
-    await Future.delayed(const Duration(seconds: 5));
     final messages = await aliceSDK.fetchMessages(
       did: aliceDidDoc.id,
       deleteOnRetrieve: true,

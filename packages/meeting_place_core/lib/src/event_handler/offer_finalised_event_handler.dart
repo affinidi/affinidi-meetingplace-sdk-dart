@@ -117,10 +117,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         final otherPartyPermanentChannelDidDocument = await _didResolver
             .resolveDid(otherPartyPermanentChannelDid);
 
-        List<Attachment>? outgoingAttachments;
-        if (options.onBuildAttachments != null) {
-          outgoingAttachments = await options.onBuildAttachments!(channel);
-        }
+        List<Attachment>? outgoingAttachments = await options.onBuildAttachments
+            ?.call(channel);
 
         await mediatorService.sendMessage(
           ChannelInauguration.create(

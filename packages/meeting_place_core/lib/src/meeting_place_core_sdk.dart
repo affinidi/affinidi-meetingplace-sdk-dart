@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
@@ -13,21 +12,13 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MeetingPlaceMediatorSDKOptions;
 import 'package:ssi/ssi.dart';
 
+import '../meeting_place_core.dart';
 import 'constants/sdk_constants.dart';
-import 'entity/entity.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
-import 'event_handler/control_plane_event_handler_manager_options.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
-import 'event_handler/control_plane_stream_event.dart';
-import 'loggers/default_meeting_place_core_sdk_logger.dart';
 import 'loggers/logger_adapter.dart';
-import 'loggers/meeting_place_core_sdk_logger.dart';
-import 'meeting_place_core_sdk_options.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'utils/attachment.dart';
-import 'protocol/protocol.dart';
-import 'repository/repository.dart';
-import 'sdk/connection_offer_type.dart';
 import 'sdk/results/accept_oob_flow_result.dart';
 import 'sdk/results/create_oob_flow_result.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
@@ -37,15 +28,12 @@ import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
-import 'service/core_sdk_stream_subscription.dart';
 import 'service/group.dart';
 import 'service/mediator/fetch_messages_options.dart';
-import 'service/mediator/mediator_message.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_stream.dart';
-import 'service/oob/oob_stream_data.dart';
 import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
 import 'utils/string.dart';
@@ -321,6 +309,8 @@ class MeetingPlaceCoreSDK {
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
         messageTypesForSequenceTracking:
             options.messageTypesForSequenceTracking,
+        onBuildAttachments: options.onBuildAttachments,
+        onAttachmentsReceived: options.onAttachmentsReceived,
       ),
       logger: mpxLogger,
     );
@@ -612,12 +602,16 @@ class MeetingPlaceCoreSDK {
   ///   identification purposes. [externalRef] is accessible on the current
   ///   device only.
   ///
+  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
+  ///   to include in the invitation acceptance message.
+  ///
   /// Returns [AcceptOobFlowResult]
   Future<AcceptOobFlowResult> acceptOobFlow(
     Uri oobUrl, {
     required ContactCard contactCard,
     String? externalRef,
     String? did,
+    List<Attachment>? attachments,
   }) async {
     final methodName = 'acceptOobFlow';
     _logger.info('Started accepting OOB invitation', name: methodName);
@@ -712,6 +706,11 @@ class MeetingPlaceCoreSDK {
 
         await _repositoryConfig.channelRepository.updateChannel(channel);
 
+        final attachments = plainTextMessage.attachments;
+        if (attachments != null && attachments.isNotEmpty) {
+          options.onAttachmentsReceived?.call(channel, attachments);
+        }
+
         _controlPlaneEventStreamManager.pushEvent(
           ControlPlaneStreamEvent(
             channel: channel,
@@ -740,6 +739,7 @@ class MeetingPlaceCoreSDK {
       invitationMessage: invitationMessage,
       mediatorDid: actualMediatorDid,
       acceptContactCard: contactCard,
+      attachments: attachments,
     );
 
     await _repositoryConfig.channelRepository.createChannel(channel);
@@ -1023,16 +1023,22 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// - [channel] - DID of member requesting membership
+  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
+  ///   to include in the connection approval message
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({required Channel channel}) async {
+  Future<Channel> approveConnectionRequest({
+    required Channel channel,
+    List<Attachment>? attachments,
+  }) async {
     return _withSdkExceptionHandling(() async {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)
           : await _connectionService.approveConnectionRequest(
               wallet: wallet,
               channel: channel,
+              attachments: attachments,
             );
     });
   }

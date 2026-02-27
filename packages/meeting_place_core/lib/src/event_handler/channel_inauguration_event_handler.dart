@@ -34,7 +34,7 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
         messageType: MeetingPlaceProtocol.channelInauguration,
       );
 
-      logger.info('Found ${messages.length} in inbox', name: _logKey);
+      logger.info('Found ${messages.length} messages', name: _logKey);
       for (final message in messages) {
         final plainTextMessage = ChannelInauguration.fromPlainTextMessage(
           message.plainTextMessage,
@@ -50,6 +50,11 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
 
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
+
+        final attachments = plainTextMessage.attachments;
+        if (attachments != null && attachments.isNotEmpty) {
+          options.onAttachmentsReceived?.call(channel, attachments);
+        }
       }
 
       logger.info(

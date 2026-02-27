@@ -72,7 +72,7 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
       }
       return null;
     } on EmptyMessageListException {
-      logger.error(
+      logger.warning(
         'No messages found to process for event of type ${ControlPlaneEventType.InvitationOutreach}',
         name: methodName,
       );

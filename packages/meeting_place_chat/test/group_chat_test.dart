@@ -366,6 +366,7 @@ void main() async {
             true) {
           if (!messageReceivedCompleter.isCompleted) {
             messageReceivedCompleter.complete(true);
+            stream.dispose();
           }
         }
       });

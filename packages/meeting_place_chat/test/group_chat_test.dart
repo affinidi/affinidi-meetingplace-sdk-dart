@@ -108,7 +108,10 @@ void main() async {
 
     final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept &&
+          event.channel.otherPartyPermanentChannelDid ==
+              publishOfferResult.connectionOffer.groupDid,
       expectedNumberOfEvents: 2,
     );
 
@@ -127,7 +130,8 @@ void main() async {
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -136,7 +140,8 @@ void main() async {
 
     final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       charlieSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -221,23 +226,44 @@ void main() async {
     await charlieChatSDK.startChatSession();
 
     final bobChatCompleter = Completer<PlainTextMessage>();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          bobChatCompleter.complete(data.plainTextMessage!);
-        }
-      });
+    final charlieChatCompleter = Completer<PlainTextMessage>();
+
+    // Wait for both streams to be ready before sending the message
+    final streams = await Future.wait([
+      bobChatSDK.chatStreamSubscription,
+      charlieChatSDK.chatStreamSubscription,
+    ]);
+
+    final bobStream = streams[0]!;
+    final charlieStream = streams[1]!;
+
+    void handleMessage({
+      required Completer completer,
+      required PlainTextMessage? message,
+    }) {
+      if (message == null ||
+          !message.isOfType(ChatProtocol.chatMessage.value)) {
+        return;
+      }
+
+      final chatMessage = ChatMessage.fromPlainTextMessage(message);
+      if (chatMessage.body.text == 'Hello Group!' && !completer.isCompleted) {
+        completer.complete(message);
+      }
+    }
+
+    bobStream.listen((data) {
+      handleMessage(
+        completer: bobChatCompleter,
+        message: data.plainTextMessage,
+      );
     });
 
-    final charlieChatCompleter = Completer<PlainTextMessage>();
-    await charlieChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          charlieChatCompleter.complete(data.plainTextMessage!);
-        }
-      });
+    charlieStream.listen((data) {
+      handleMessage(
+        completer: charlieChatCompleter,
+        message: data.plainTextMessage,
+      );
     });
 
     await aliceChatSDK.sendTextMessage('Hello Group!');
@@ -334,18 +360,20 @@ void main() async {
     await charlieChatSDK.startChatSession();
 
     final messageReceivedCompleter = Completer<bool>();
-    await charlieChatSDK.chatStreamSubscription.then((stream) {
+    await charlieChatSDK.chatStreamSubscription.then((stream) async {
       stream!.listen((data) {
         if (data.plainTextMessage?.isOfType(ChatProtocol.chatActivity.value) ==
             true) {
-          messageReceivedCompleter.complete(true);
+          if (!messageReceivedCompleter.isCompleted) {
+            messageReceivedCompleter.complete(true);
+          }
         }
       });
+
+      await bobChatSDK.sendChatActivity();
     });
 
-    await bobChatSDK.sendChatActivity();
     final messageReceived = await messageReceivedCompleter.future;
-
     expect(messageReceived, isTrue);
   });
 

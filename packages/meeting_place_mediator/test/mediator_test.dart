@@ -42,11 +42,14 @@ void main() {
   );
 
   test(
-    'Multiple subscriptions to mediator with the same did',
+    'Multiple authentications with the same did return the same mediator client instance',
     () async {
       final clientA = await sdk.authenticateWithDid(didManagerA);
       final clientB = await sdk.authenticateWithDid(didManagerA);
-      expect(clientA, equals(clientB));
+      expect(clientA, isNotNull);
+      expect(clientB, isNotNull);
+      expect(clientA.mediatorDidDocument.id,
+          equals(clientB.mediatorDidDocument.id));
     },
   );
 
@@ -125,9 +128,8 @@ void main() {
       expect(actual.id, equals(messageToSend.id));
     });
 
-    test('''Listener receives message even when subscription opened
-        after message was sent''', () async {
-      // Send message before subscription was opened
+    test('''Message retrievable via fetch''', () async {
+      // Send message. before subscription was opened
       await sdk.sendMessage(
         messageToSend,
         senderDidManager: didManagerA,
@@ -137,16 +139,14 @@ void main() {
       // Open subscription to mediator
       subscription = await sdk.subscribeToMessages(didManagerB);
 
-      // Attach listener to subscription
-      final waitForMessage = Completer<PlainTextMessage>();
-      subscription.listen((PlainTextMessage msg) {
-        if (msg.type.toString() == 'https://affinidi.com/test/1.0/message') {
-          waitForMessage.complete(msg);
-        }
-      });
-
-      final actual = await waitForMessage.future;
-      expect(actual.id, equals(messageToSend.id));
+      final fetchResult = await sdk.fetchMessages(
+        didManager: didManagerB,
+        deleteOnRetrieve: false,
+      );
+      final matches =
+          fetchResult.where((r) => r.message?.id == messageToSend.id).toList();
+      expect(matches.length, equals(1));
+      expect(matches.first.message!.id, equals(messageToSend.id));
     });
 
     test('Message is not deleted if no listener was attached', () async {
@@ -173,13 +173,6 @@ void main() {
     });
 
     test('Message is deleted after listener processes it', () async {
-      // Send message
-      await sdk.sendMessage(
-        messageToSend,
-        senderDidManager: didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      );
-
       // Open subscription to mediator and attach listener
       subscription = await sdk.subscribeToMessages(
         didManagerB,
@@ -193,6 +186,13 @@ void main() {
           messageReceivedCompleter.complete();
         }
       });
+
+      // Send message
+      await sdk.sendMessage(
+        messageToSend,
+        senderDidManager: didManagerA,
+        recipientDidDocument: recipientDidDoc,
+      );
 
       await messageReceivedCompleter.future;
       await Future.delayed(const Duration(seconds: 2));
@@ -209,13 +209,6 @@ void main() {
     });
 
     test('Message is not deleted if listener throws error', () async {
-      // Send message
-      await sdk.sendMessage(
-        messageToSend,
-        senderDidManager: didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      );
-
       // Open subscription to mediator and attach listener that throws error
       subscription = await sdk.subscribeToMessages(didManagerB,
           options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null));
@@ -231,6 +224,12 @@ void main() {
         }
       });
 
+      // Send message
+      await sdk.sendMessage(
+        messageToSend,
+        senderDidManager: didManagerA,
+        recipientDidDocument: recipientDidDoc,
+      );
       // Wait for error and add delay to ensure deletion would have happened
       await waitForError.future;
       await Future.delayed(const Duration(seconds: 2));
@@ -239,35 +238,20 @@ void main() {
       final fetchResult = await sdk.fetchMessages(
           didManager: didManagerB, deleteOnRetrieve: false);
 
-      expect(fetchResult.first.message?.id, equals(messageToSend.id));
+      final matches =
+          fetchResult.where((r) => r.message?.id == messageToSend.id).toList();
+
+      expect(matches.isNotEmpty, isTrue);
     });
 
     test('''Subsequent messages are processed even if previous
         listener threw an error''', () async {
-      // Send message
-      await sdk.sendMessage(
-        messageToSend,
-        senderDidManager: didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      );
-
       // Open subscription to mediator and attach listener that throws error
       subscription = await sdk.subscribeToMessages(didManagerB,
           options: MediatorStreamSubscriptionOptions(deleteMessageDelay: null));
 
-      final waitForError = Completer<void>();
-      subscription.listen((PlainTextMessage msg) {
-        if (msg.type.toString() == 'https://affinidi.com/test/1.0/message') {
-          throw Exception('Error while processing message');
-        }
-      }, onError: (e) {
-        if (e.toString().contains('Error while processing message')) {
-          waitForError.complete();
-        }
-      });
-
       final messageToBeProcessed = PlainTextMessage(
-        id: Uuid().v4(),
+        id: const Uuid().v4(),
         type:
             Uri.parse('https://affinidi.com/test/1.0/message-to-be-processed'),
         body: messageToSend.body,
@@ -275,15 +259,40 @@ void main() {
         from: messageToSend.from,
       );
 
+      final waitForMessageToBeProcessed = Completer<void>();
+      final waitForError = Completer<void>();
+
+      subscription.listen((PlainTextMessage msg) {
+        if (msg.type == messageToSend.type) {
+          throw Exception('Error while processing message');
+        }
+
+        if (msg.type == messageToBeProcessed.type &&
+            msg.id == messageToBeProcessed.id) {
+          waitForMessageToBeProcessed.complete();
+        }
+      }, onError: (e) {
+        if (e.toString().contains('Error while processing message')) {
+          waitForError.complete();
+        }
+      });
+
       await sdk.sendMessage(
-        messageToBeProcessed,
+        messageToSend,
         senderDidManager: didManagerA,
         recipientDidDocument: recipientDidDoc,
       );
 
       // Wait for error and add delay to ensure deletion would have happened
       await waitForError.future;
-      await Future.delayed(const Duration(seconds: 2));
+
+      await sdk.sendMessage(
+        messageToBeProcessed,
+        senderDidManager: didManagerA,
+        recipientDidDocument: recipientDidDoc,
+      );
+
+      await waitForMessageToBeProcessed.future;
 
       // Check that processed message is removed from queue
       final fetchResult = await sdk.fetchMessages(

@@ -59,6 +59,7 @@ abstract class BaseChatSDK {
   ChatStream chatStream;
   CoreSDKStreamSubscription? _mediatorStreamSubscription;
   Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
@@ -104,13 +105,13 @@ abstract class BaseChatSDK {
     final messagesFuture = chatRepository.listMessages(chatId);
 
     unawaited(sendProfileHash());
-    unawaited(fetchNewMessages());
 
     final messages = await messagesFuture;
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
       mediatorStreamFuture!.then((subscription) {
+        unawaited(fetchNewMessages());
         _mediatorStreamSubscription = subscription;
         subscription.stream.listen((data) {
           handleMessage(data, []);
@@ -194,24 +195,26 @@ abstract class BaseChatSDK {
       unawaited(sendChatDeliveredMessage(message.plainTextMessage));
     }
 
+    if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
+      final messageSequenceNumber = message.messageSequenceNumber;
+      if (messageSequenceNumber != null &&
+          messageSequenceNumber > channel.seqNo) {
+        channel.seqNo = messageSequenceNumber;
+        seqNo = messageSequenceNumber;
+        await coreSDK.updateChannel(channel);
+      }
+    }
+
     if (MessageUtils.isType(
       message.plainTextMessage,
       ChatProtocol.chatMessage,
     )) {
       _logger.info('Handling chat message', name: methodName);
-      final sequenceNumber =
-          message.seqNo ?? message.plainTextMessage.body?['seq_no'] as int;
-
       final chatMessage = Message.fromReceivedMessage(
         message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
         chatId: chatId,
       );
       await chatRepository.createMessage(chatMessage);
-
-      if (sequenceNumber > channel.seqNo) {
-        channel.seqNo = sequenceNumber;
-        await coreSDK.updateChannel(channel);
-      }
 
       chatStream.pushData(
         StreamData(
@@ -438,7 +441,15 @@ abstract class BaseChatSDK {
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
   Future<CoreSDKStreamSubscription> subscribeToMediator() {
-    return coreSDK.subscribeToMediator(did, mediatorDid: mediatorDid);
+    return coreSDK.subscribeToMediator(
+      did,
+      mediatorDid: mediatorDid,
+      options: MediatorStreamSubscriptionOptions(
+        expectedMessageWrappingTypes:
+            coreSDK.options.expectedMessageWrappingTypes,
+        fetchMessagesOnConnect: false,
+      ),
+    );
   }
 
   /// Sends a plain text message with optional attachments.
@@ -509,6 +520,9 @@ abstract class BaseChatSDK {
     }
   }
 
+  /// Starts periodic chat presence updates.
+  Future<void> startChatPresenceUpdates() async {}
+
   /// Sends a chat presence signal to the other party.
   Future<void> sendChatPresence() async {
     final message = protocol.ChatPresence.create(
@@ -572,6 +586,12 @@ abstract class BaseChatSDK {
   bool _requiresAcknowledgement(PlainTextMessage message) {
     return options.requiresAcknowledgement.contains(
       ChatProtocol.byValue(message.type.toString()),
+    );
+  }
+
+  bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
+    return coreSDK.options.messageTypesForSequenceTracking.contains(
+      message.type.toString(),
     );
   }
 
@@ -742,7 +762,7 @@ abstract class BaseChatSDK {
   }
 
   /// Ends the chat session, disposing of the channel and stream manager.
-  void end() async {
+  Future<void> end() async {
     await _mediatorStreamSubscription?.dispose();
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;

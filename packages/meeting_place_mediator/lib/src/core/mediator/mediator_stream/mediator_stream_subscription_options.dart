@@ -7,7 +7,11 @@ class MediatorStreamSubscriptionOptions {
     this.expectedMessageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
+    this.fetchMessagesOnConnect = true,
   });
+
+  /// Default options instance
+  static const defaults = MediatorStreamSubscriptionOptions();
 
   /// Delay before deleting messages from the mediator after they have been
   /// processed by listeners on the WebSocket connection. If set to `null`,
@@ -22,4 +26,8 @@ class MediatorStreamSubscriptionOptions {
   /// [MessageWrappingType.authcryptSignPlaintext] if using multiple protocols
   /// (e.g., chat + VDIP) that use different message signing configurations.
   final List<MessageWrappingType> expectedMessageWrappingTypes;
+
+  /// Whether to fetch messages from the mediator when the WebSocket
+  /// connection is established.
+  final bool fetchMessagesOnConnect;
 }

@@ -154,7 +154,8 @@ void main() async {
 
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         aliceSDK,
-        eventType: ControlPlaneEventType.InvitationGroupAccept,
+        filter: (event) =>
+            event.type == ControlPlaneEventType.InvitationGroupAccept,
         expectedNumberOfEvents: 1,
       );
 
@@ -279,7 +280,10 @@ void main() async {
 
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         aliceSDK,
-        eventType: ControlPlaneEventType.InvitationGroupAccept,
+        filter: (event) =>
+            event.type == ControlPlaneEventType.InvitationGroupAccept &&
+            event.channel.otherPartyPermanentChannelDid ==
+                result.connectionOffer.groupDid,
         expectedNumberOfEvents: 2,
       );
 
@@ -295,7 +299,8 @@ void main() async {
 
       final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         charlieSDK,
-        eventType: ControlPlaneEventType.GroupMembershipFinalised,
+        filter: (event) =>
+            event.type == ControlPlaneEventType.GroupMembershipFinalised,
         expectedNumberOfEvents: 1,
       );
 
@@ -310,9 +315,17 @@ void main() async {
         acceptResultBobChannelDid.id,
       );
 
+      final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
+        bobSDK,
+        filter: (event) =>
+            event.type == ControlPlaneEventType.GroupMembershipFinalised,
+        expectedNumberOfEvents: 1,
+      );
+
       await aliceSDK.approveConnectionRequest(channel: bobChannel!);
 
       await bobSDK.processControlPlaneEvents();
+      await bobCompleter.future;
       // await charlieWaitForChatGroupDetailsUpdate.future;
 
       // Verify that chat group contacts details update was sent
@@ -326,10 +339,11 @@ void main() async {
 
       // Verify that ACLs are configured correctly
       expect(
-        bobSDK.sendMessage(
+        bobSDK.sendGroupMessage(
           useChatMessage(acceptResultBobChannelDid.id, groupDid),
           senderDid: acceptResultBobChannelDid.id,
           recipientDid: groupDid,
+          increaseSequenceNumber: false,
         ),
         completes,
       );
@@ -344,10 +358,11 @@ void main() async {
       );
 
       expect(
-        charlieSDK.sendMessage(
+        charlieSDK.sendGroupMessage(
           useChatMessage(charlieDidDoc.id, groupDid),
           senderDid: charlieDidDoc.id,
           recipientDid: groupDid,
+          increaseSequenceNumber: false,
         ),
         completes,
       );
@@ -413,7 +428,8 @@ void main() async {
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -456,7 +472,8 @@ void main() async {
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -509,7 +526,8 @@ void main() async {
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -571,7 +589,8 @@ void main() async {
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -586,7 +605,8 @@ void main() async {
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -654,7 +674,8 @@ void main() async {
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 

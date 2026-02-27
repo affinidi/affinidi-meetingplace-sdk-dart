@@ -7,6 +7,27 @@ import 'package:sqlite3/sqlite3.dart';
 
 /// Class with implementations specific to native platforms
 class DatabasePlatform {
+  static NativeDatabase _openDatabase({
+    required String databaseName,
+    required String passphrase,
+    required Directory directory,
+    bool logStatements = false,
+  }) {
+    final dbPath = p.join(directory.path, databaseName);
+
+    final sqliteDb = sqlite3.open(dbPath);
+    sqliteDb.execute("PRAGMA key = '$passphrase';");
+
+    final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
+    if (cipherVersion.isEmpty) {
+      throw UnsupportedError('SQLCipher not available');
+    }
+
+    sqliteDb.select('SELECT count(*) FROM sqlite_master;');
+
+    return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
+  }
+
   /// Creates a database for native platform using SQLite and SQLCipher.
   ///
   /// **Parameters:**
@@ -24,17 +45,20 @@ class DatabasePlatform {
     required Directory directory,
     bool logStatements = false,
   }) async {
-    final dbPath = p.join(directory.path, databaseName);
+    return _openDatabase(
+      databaseName: databaseName,
+      passphrase: passphrase,
+      directory: directory,
+      logStatements: logStatements,
+    );
+  }
 
-    final sqliteDb = sqlite3.open(dbPath);
+  static NativeDatabase _openInMemoryDatabase({
+    required String passphrase,
+    bool logStatements = false,
+  }) {
+    final sqliteDb = sqlite3.openInMemory();
     sqliteDb.execute("PRAGMA key = '$passphrase';");
-
-    final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
-    if (cipherVersion.isEmpty) {
-      throw UnsupportedError('SQLCipher not available');
-    }
-
-    sqliteDb.select('SELECT count(*) FROM sqlite_master;');
 
     return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
   }
@@ -54,10 +78,10 @@ class DatabasePlatform {
     required String passphrase,
     bool logStatements = false,
   }) async {
-    final sqliteDb = sqlite3.openInMemory();
-    sqliteDb.execute("PRAGMA key = '$passphrase';");
-
-    return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
+    return _openInMemoryDatabase(
+      passphrase: passphrase,
+      logStatements: logStatements,
+    );
   }
 
   /// Information about the database platform.
@@ -77,33 +101,50 @@ class DatabasePlatform {
 /// - [directory]: The directory where the database file is stored.
 /// - [logStatements]: A boolean indicating whether to log SQL statements
 /// (default is false).
+/// - [lazy]: When `true` (default), wraps the connection in a [LazyDatabase]
+/// that defers opening until the first query. When `false`, opens the
+/// database immediately and returns the executor directly.
 ///
 /// **Returns:**
-/// - A [LazyDatabase] instance that opens the database connection when needed.
-LazyDatabase openConnection({
+/// - A [QueryExecutor] — either a [LazyDatabase] or a ready-to-use executor.
+QueryExecutor openConnection({
   required String databaseName,
   required String passphrase,
   required Directory directory,
   bool logStatements = false,
   bool inMemory = false,
+  bool lazy = true,
 }) {
-  if (inMemory) {
-    return LazyDatabase(() async {
-      final database = await DatabasePlatform.createInMemoryDatabase(
+  if (!lazy) {
+    if (inMemory) {
+      return DatabasePlatform._openInMemoryDatabase(
         passphrase: passphrase,
         logStatements: logStatements,
       );
-      return database;
-    });
-  }
-
-  return LazyDatabase(() async {
-    final database = await DatabasePlatform.createDatabase(
+    }
+    return DatabasePlatform._openDatabase(
       databaseName: databaseName,
       passphrase: passphrase,
       directory: directory,
       logStatements: logStatements,
     );
-    return database;
+  }
+
+  if (inMemory) {
+    return LazyDatabase(() async {
+      return DatabasePlatform._openInMemoryDatabase(
+        passphrase: passphrase,
+        logStatements: logStatements,
+      );
+    });
+  }
+
+  return LazyDatabase(() async {
+    return DatabasePlatform._openDatabase(
+      databaseName: databaseName,
+      passphrase: passphrase,
+      directory: directory,
+      logStatements: logStatements,
+    );
   });
 }

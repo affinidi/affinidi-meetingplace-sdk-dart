@@ -25,4 +25,7 @@ abstract interface class ChatSDK {
   Future<void> rejectConnectionRequest(ConciergeMessage message);
 
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message);
+
+  /// Starts periodic chat presence updates.
+  Future<void> startChatPresenceUpdates();
 }

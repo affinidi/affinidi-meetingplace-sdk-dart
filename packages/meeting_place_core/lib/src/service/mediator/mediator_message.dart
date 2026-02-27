@@ -50,6 +50,19 @@ class MediatorMessage {
     return MediatorMessage(plainTextMessage: message, messageHash: messageHash);
   }
 
+  /// Returns the message sequence number if available.
+  int? get messageSequenceNumber {
+    if (seqNo != null) {
+      return seqNo;
+    }
+
+    final seqNoFromBody = plainTextMessage.body?['seq_no'] as int?;
+    if (seqNoFromBody != null) {
+      return seqNoFromBody;
+    }
+    return null;
+  }
+
   static Future<PlainTextMessage> _decryptGroupMessage(
     PlainTextMessage message,
     KeyRepository keyRepository,

@@ -665,8 +665,8 @@ void main() async {
 
     final received = await bobCompleter.future;
     expect(received.body!['text'], equals('Hello via sendMessage'));
-    expect(received.from, equals(aliceDidDocument.id));
-    expect(received.to?.first, equals(bobDidDocument.id));
+    expect(received.from, equals(aliceSDK.didDocument.id));
+    expect(received.to?.first, equals(bobSDK.didDocument.id));
   });
 
   test('sendMessage throws if from/to are set incorrectly', () async {
@@ -724,8 +724,8 @@ void main() async {
 
     final received = await bobCompleter.future;
     expect(received.body!['text'], equals('Notify test'));
-    expect(received.from, equals(aliceDidDocument.id));
-    expect(received.to?.first, equals(bobDidDocument.id));
+    expect(received.from, equals(aliceSDK.didDocument.id));
+    expect(received.to?.first, equals(bobSDK.didDocument.id));
     expect(received.id, equals('notify-id'));
 
     final bobMessages = await bobChatSDK.messages;

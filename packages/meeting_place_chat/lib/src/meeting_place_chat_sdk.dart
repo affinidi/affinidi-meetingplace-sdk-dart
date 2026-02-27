@@ -101,7 +101,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
 
   /// Ends the active chat session.
   @override
-  void endChatSession() {
+  void endChatSession() async {
     return _sdk.endChatSession();
   }
 
@@ -213,4 +213,8 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) =>
       _sdk.rejectChatContactDetailsUpdate(message);
+
+  /// Starts periodic chat presence updates to indicate the user is active in the chat.
+  @override
+  Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
 }

@@ -67,7 +67,10 @@ void main() async {
 
     final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
-      eventType: ControlPlaneEventType.InvitationGroupAccept,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept &&
+          event.channel.otherPartyPermanentChannelDid ==
+              publishOfferResult.connectionOffer.groupDid,
       expectedNumberOfEvents: 2,
     );
 
@@ -95,7 +98,8 @@ void main() async {
     // Run event handlers in background for Bob and Charlie -> ready to chat
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -104,7 +108,8 @@ void main() async {
 
     final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       charlieSDK,
-      eventType: ControlPlaneEventType.GroupMembershipFinalised,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.GroupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -133,19 +138,28 @@ void main() async {
     final bobReceivedMessageCompleter = Completer<PlainTextMessage>();
     final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
 
+    // Listeners filter for specific type and sequence number to avoid test
+    // flakiness in case messages from previous test are received because
+    // they run in parallel and use same group
     bobStream.stream.listen((data) {
       if (data.plainTextMessage.type == messageType &&
-          data.plainTextMessage.id == messageId) {
+          data.plainTextMessage.body?['seq_no'] == 1) {
         bobReceivedMessageCompleter.complete(data.plainTextMessage);
+        bobStream.dispose();
       }
     });
 
     charlieStream.stream.listen((data) {
       if (data.plainTextMessage.type == messageType &&
-          data.plainTextMessage.id == messageId) {
+          data.plainTextMessage.body?['seq_no'] == 1) {
         charlieReceivedMessageCompleter.complete(data.plainTextMessage);
+        charlieStream.dispose();
       }
     });
+
+    // Delay to ensure ACLs have been setup for the group before sending the
+    // message, otherwise message might not be delivered to members
+    await Future.delayed(const Duration(seconds: 3));
 
     await aliceSDK.sendGroupMessage(
       chatMessage,
@@ -163,57 +177,57 @@ void main() async {
     expect(charlieReceivedMessage.body!['seq_no'], equals(1));
   });
 
-  // test('group member sends group message', () async {
+  test('group member sends group message', () async {
+    final chatMessage = PlainTextMessage(
+      id: const Uuid().v4(),
+      type: messageType,
+      from: bobDid,
+      to: [groupDid],
+      body: {'text': 'Hello Group!', 'seq_no': 2},
+      attachments: [],
+    );
 
-  //   final chatMessage = PlainTextMessage(
-  //     id: const Uuid().v4(),
-  //     type: messageType,
-  //     from: bobDid,
-  //     to: [groupDid],
-  //     body: {'text': 'Hello Group!', 'seqNo': 2},
-  //     attachments: [
-  //     ],
-  //   );
+    // Subscribe Alice and Charlie to mediator WebSocket to receive group
+    // messages before sending the message, otherwise message might not be
+    // delivered to them
+    final aliceStream = await aliceSDK.subscribeToMediator(aliceDid);
+    final aliceReceivedMessageCompleter = Completer<PlainTextMessage>();
 
-  //   final aliceStream = await aliceSDK.subscribeToMediator(aliceDid);
-  //   final charlieStream = await charlieSDK.subscribeToMediator(charlieDid);
+    final charlieStream = await charlieSDK.subscribeToMediator(charlieDid);
+    final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
 
-  //   final aliceReceivedMessageCompleter = Completer<PlainTextMessage>();
-  //   final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
+    // Listeners filter for specific type and sequence number to avoid test
+    // flakiness in case messages from previous test are received because
+    // they run in parallel and use same group
+    aliceStream.stream.listen((data) {
+      if (data.plainTextMessage.type == messageType &&
+          data.plainTextMessage.body?['seq_no'] == 2) {
+        aliceReceivedMessageCompleter.complete(data.plainTextMessage);
+        aliceStream.dispose();
+      }
+    });
 
-  //   aliceStream.stream.listen((data) {
-  //     if (data.plainTextMessage.type == messageType) {
-  //       aliceReceivedMessageCompleter.complete(data.plainTextMessage);
-  //     }
-  //   });
+    charlieStream.stream.listen((data) {
+      if (data.plainTextMessage.type == messageType &&
+          data.plainTextMessage.body?['seq_no'] == 2) {
+        charlieReceivedMessageCompleter.complete(data.plainTextMessage);
+        charlieStream.dispose();
+      }
+    });
 
-  //   charlieStream.stream.listen((data) {
-  //     if (data.plainTextMessage.type == messageType) {
-  //       charlieReceivedMessageCompleter.complete(data.plainTextMessage);
-  //     }
-  //   });
+    await bobSDK.sendGroupMessage(
+      chatMessage,
+      senderDid: bobDid,
+      recipientDid: groupDid,
+      increaseSequenceNumber: true,
+    );
 
-  //   await bobSDK.sendGroupMessage(
-  //     chatMessage,
-  //     senderDid: bobDid,
-  //     recipientDid: groupDid,
-  //     increaseSequenceNumber: true,
-  //   );
+    final aliceReceivedMessage = await aliceReceivedMessageCompleter.future;
+    expect(aliceReceivedMessage.body!['text'], equals('Hello Group!'));
+    expect(aliceReceivedMessage.body!['seq_no'], equals(2));
 
-  //   final aliceReceivedMessage = await aliceReceivedMessageCompleter.future;
-  //   expect(aliceReceivedMessage.body!['text'], equals('Hello Group!'));
-  //   expect(aliceReceivedMessage.body!['seq_no'], equals(2));
-  //   expect(
-  //     aliceReceivedMessage.attachments?[0].data?.base64,
-  //     equals(vCardBase64),
-  //   );
-
-  //   final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
-  //   expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
-  //   expect(charlieReceivedMessage.body!['seq_no'], equals(2));
-  //   expect(
-  //     charlieReceivedMessage.attachments?[0].data?.base64,
-  //     equals(vCardBase64),
-  //   );
-  // });
+    final charlieReceivedMessage = await charlieReceivedMessageCompleter.future;
+    expect(charlieReceivedMessage.body!['text'], equals('Hello Group!'));
+    expect(charlieReceivedMessage.body!['seq_no'], equals(2));
+  });
 }

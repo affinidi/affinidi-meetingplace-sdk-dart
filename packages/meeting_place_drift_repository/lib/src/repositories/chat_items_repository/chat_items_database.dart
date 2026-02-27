@@ -48,6 +48,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
     required Directory directory,
     bool logStatements = false,
     bool inMemory = false,
+    bool lazy = true,
   }) : super(
           openConnection(
             databaseName: databaseName,
@@ -55,6 +56,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             directory: directory,
             logStatements: logStatements,
             inMemory: inMemory,
+            lazy: lazy,
           ),
         );
 

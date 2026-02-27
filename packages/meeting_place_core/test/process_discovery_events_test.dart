@@ -12,22 +12,24 @@ void main() async {
   });
 
   test('debounce calls to process discovery events', () async {
-    onDoneFailed() {
+    onDoneFailed(List<Object> errors) {
       fail('Debouncing failed');
     }
 
     final completer = Completer<void>();
     bool completed = false;
 
-    await aliceSDK.processControlPlaneEvents(
-      onDone: () {
-        completed = true;
-        completer.complete();
-      },
+    unawaited(
+      aliceSDK.processControlPlaneEvents(
+        onDone: (List<Object> errors) {
+          completed = true;
+          completer.complete();
+        },
+      ),
     );
 
-    await aliceSDK.processControlPlaneEvents(onDone: onDoneFailed);
-    await aliceSDK.processControlPlaneEvents(onDone: onDoneFailed);
+    unawaited(aliceSDK.processControlPlaneEvents(onDone: onDoneFailed));
+    unawaited(aliceSDK.processControlPlaneEvents(onDone: onDoneFailed));
 
     await completer.future;
     expect(completed, isTrue);

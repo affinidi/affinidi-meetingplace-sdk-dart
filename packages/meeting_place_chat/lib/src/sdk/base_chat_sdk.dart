@@ -105,13 +105,13 @@ abstract class BaseChatSDK {
     final messagesFuture = chatRepository.listMessages(chatId);
 
     unawaited(sendProfileHash());
-    unawaited(fetchNewMessages());
 
     final messages = await messagesFuture;
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
       mediatorStreamFuture!.then((subscription) {
+        unawaited(fetchNewMessages());
         _mediatorStreamSubscription = subscription;
         subscription.stream.listen((data) {
           handleMessage(data, []);
@@ -440,13 +440,14 @@ abstract class BaseChatSDK {
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
-  Future<CoreSDKStreamSubscription> subscribeToMediator() async {
+  Future<CoreSDKStreamSubscription> subscribeToMediator() {
     return coreSDK.subscribeToMediator(
       did,
       mediatorDid: mediatorDid,
       options: MediatorStreamSubscriptionOptions(
         expectedMessageWrappingTypes:
             coreSDK.options.expectedMessageWrappingTypes,
+        fetchMessagesOnConnect: false,
       ),
     );
   }
@@ -761,7 +762,7 @@ abstract class BaseChatSDK {
   }
 
   /// Ends the chat session, disposing of the channel and stream manager.
-  void end() async {
+  Future<void> end() async {
     await _mediatorStreamSubscription?.dispose();
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;

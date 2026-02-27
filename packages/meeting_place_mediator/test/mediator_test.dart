@@ -42,16 +42,24 @@ void main() {
   );
 
   test(
-    'Multiple authentications with the same did return the same mediator client instance',
-    () async {
-      final clientA = await sdk.authenticateWithDid(didManagerA);
-      final clientB = await sdk.authenticateWithDid(didManagerA);
-      expect(clientA, isNotNull);
-      expect(clientB, isNotNull);
-      expect(clientA.mediatorDidDocument.id,
-          equals(clientB.mediatorDidDocument.id));
-    },
-  );
+      '''Multiple authentications with the same did return the different mediator client instances''',
+      () async {
+    final clientA = await sdk.authenticateWithDid(didManagerA);
+    final clientB = await sdk.authenticateWithDid(didManagerA);
+
+    expect(clientA, isNot(equals(clientB)));
+  });
+
+  test('Multiple authentications with the same did use the same session',
+      () async {
+    final clientA = await sdk.authenticateWithDid(didManagerA);
+    final clientB = await sdk.authenticateWithDid(didManagerA);
+
+    expect(
+      clientA.authorizationProvider,
+      equals(clientB.authorizationProvider),
+    );
+  });
 
   test('Uses new mediator session if did is not cached', () async {
     final sessionA = await sdk.authenticateWithDid(didManagerA);

@@ -138,7 +138,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Future] that completes when the message is sent.
   @override
-  Future<void> sendMessage(
+  Future<void> sendChatMessage(
     PlainTextMessage message, {
     required String senderDid,
     required String recipientDid,
@@ -752,7 +752,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final methodName = 'sendChatGroupDetailsUpdate';
     logger.info('Started sending chat group details update', name: methodName);
     unawaited(
-      sendMessage(
+      sendChatMessage(
         ChatGroupDetailsUpdate.fromGroup(
           group,
           senderDid: did,

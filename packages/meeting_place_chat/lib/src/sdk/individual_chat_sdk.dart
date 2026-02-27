@@ -103,7 +103,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Future] that completes when the message has been sent.
   @override
-  Future<void> sendMessage(
+  Future<void> sendChatMessage(
     PlainTextMessage message, {
     required String senderDid,
     required String recipientDid,

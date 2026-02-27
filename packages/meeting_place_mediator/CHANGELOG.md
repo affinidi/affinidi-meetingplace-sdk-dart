@@ -1,3 +1,7 @@
+## 0.0.1-dev.14
+
+ - **FIX**: quality improvements and resolution of minor bugs (#108).
+
 ## 0.0.1-dev.13
 
  - **FIX**: improve handling of transient network issues (#58).

@@ -278,13 +278,20 @@ void main() {
       });
 
       await sdk.sendMessage(
-        messageToBeProcessed,
+        messageToSend,
         senderDidManager: didManagerA,
         recipientDidDocument: recipientDidDoc,
       );
 
       // Wait for error and add delay to ensure deletion would have happened
       await waitForError.future;
+
+      await sdk.sendMessage(
+        messageToBeProcessed,
+        senderDidManager: didManagerA,
+        recipientDidDocument: recipientDidDoc,
+      );
+
       await waitForMessageToBeProcessed.future;
 
       // Check that processed message is removed from queue

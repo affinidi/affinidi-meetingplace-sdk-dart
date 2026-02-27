@@ -1,3 +1,7 @@
+## 0.0.1-dev.30
+
+ - **FIX**: quality improvements and resolution of minor bugs (#108).
+
 ## 0.0.1-dev.29
 
  - Update a dependency to the latest release.

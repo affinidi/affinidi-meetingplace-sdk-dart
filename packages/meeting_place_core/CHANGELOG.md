@@ -1,3 +1,7 @@
+## 0.0.1-dev.28
+
+ - **FIX**: quality improvements and resolution of minor bugs (#108).
+
 ## 0.0.1-dev.27
 
  - **FIX**: prevent blocking by removing wait on notify channel (#66).

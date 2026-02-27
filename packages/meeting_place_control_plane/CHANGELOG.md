@@ -1,3 +1,7 @@
+## 0.0.1-dev.15
+
+ - **FIX**: quality improvements and resolution of minor bugs (#108).
+
 ## 0.0.1-dev.14
 
  - **FIX**: run network requests in parallel when setting up OOB invitation (#61).

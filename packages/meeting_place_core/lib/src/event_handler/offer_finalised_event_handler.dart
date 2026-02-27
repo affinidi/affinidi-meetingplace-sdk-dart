@@ -141,10 +141,9 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         channel.status = ChannelStatus.inaugurated;
         await channelRepository.updateChannel(channel);
 
-        if (message.attachments != null &&
-            message.attachments!.isNotEmpty &&
-            options.onAttachmentsReceived != null) {
-          options.onAttachmentsReceived!(channel, message.attachments!);
+        final attachments = message.attachments;
+        if (attachments != null && attachments.isNotEmpty) {
+          options.onAttachmentsReceived?.call(channel, attachments);
         }
 
         final approvedConnection = connection.finalised(

@@ -440,27 +440,27 @@ void main() async {
     await charlieChatSDK.startChatSession();
 
     final bobCompleter = Completer<PlainTextMessage>();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          if (!bobCompleter.isCompleted) {
-            bobCompleter.complete(data.plainTextMessage!);
-          }
+    final bobChatStream = await bobChatSDK.chatStreamSubscription;
+    bobChatStream!.listen((data) {
+      if (data.plainTextMessage?.type.toString() ==
+          ChatProtocol.chatMessage.value) {
+        if (!bobCompleter.isCompleted) {
+          bobCompleter.complete(data.plainTextMessage!);
+          bobChatStream.dispose();
         }
-      });
+      }
     });
 
     final charlieCompleter = Completer<PlainTextMessage>();
-    await charlieChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          if (!charlieCompleter.isCompleted) {
-            charlieCompleter.complete(data.plainTextMessage!);
-          }
+    final charlieChatStream = await charlieChatSDK.chatStreamSubscription;
+    charlieChatStream!.listen((data) {
+      if (data.plainTextMessage?.type.toString() ==
+          ChatProtocol.chatMessage.value) {
+        if (!charlieCompleter.isCompleted) {
+          charlieCompleter.complete(data.plainTextMessage!);
+          charlieChatStream.dispose();
         }
-      });
+      }
     });
 
     final message = PlainTextMessage(
@@ -526,15 +526,17 @@ void main() async {
     await bobChatSDK.startChatSession();
 
     final bobCompleter = Completer<PlainTextMessage>();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          if (!bobCompleter.isCompleted) {
-            bobCompleter.complete(data.plainTextMessage!);
-          }
+
+    final chatStream = await bobChatSDK.chatStreamSubscription;
+    chatStream!.listen((data) {
+      if (data.plainTextMessage?.type.toString() ==
+          ChatProtocol.chatMessage.value) {
+        if (data.plainTextMessage?.body?['text'] == 'Notify group test' &&
+            !bobCompleter.isCompleted) {
+          bobCompleter.complete(data.plainTextMessage!);
+          chatStream.dispose();
         }
-      });
+      }
     });
 
     final message = PlainTextMessage(

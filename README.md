@@ -131,7 +131,7 @@ void main() async {
          keyRepository: KeyRepositoryImpl(storage: storage),
       ),
       mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
-      controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io', 
+      controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
    );
 
    await aliceSDK.registerForPushNotifications(const Uuid().v4());
@@ -153,6 +153,18 @@ void main() async {
 ```
 
 For more examples and runnable scripts, go to the [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_core/example).
+
+## Git Hooks
+
+To ensure code quality before committing, set up the pre-commit hook:
+
+```sh
+cp templates/.example.pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+This will automatically run `melos run analyze` before every commit and block the commit if there are any issues.
+**Note:** The hook file must be named `pre-commit` (no extension) in `.git/hooks`.
 
 ## Support & feedback
 

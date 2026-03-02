@@ -29,6 +29,9 @@ melos:
           - pubspec.yaml
 
     analyze:
+      run: melos run _analyze --no-select
+      description: Run dart analyze on all packages
+    _analyze:
       exec: dart analyze .
       concurrency: 4
       failFast: true
@@ -38,7 +41,7 @@ melos:
           - analysis_options.yaml
         ignore:
           - "api_client"
-        includePrivatePackages: false
+        includePrivatePackages: true
         #diff: 'origin/main'
 
     test:

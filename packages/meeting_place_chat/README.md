@@ -123,6 +123,53 @@ void main() async {
 
 For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_chat/example).
 
+## Running tests locally
+
+### Option 1: Running tests via `melos` (recommended for CI and automation)
+
+This approach uses environment variables from your shell and does **not** require an `.env` file.
+
+To run tests in this package from the terminal:
+
+1. **Export your environment variables in your terminal:**
+
+   ```bash
+   export CONTROL_PLANE_DID="your:control-plane:did"
+   export MEDIATOR_DID="your:mediator:did"
+   ```
+
+   Replace these DIDs with your actual test values.
+
+2. **Run tests using Melos:**
+
+   ```bash
+   melos run test
+   ```
+
+---
+
+### Option 2: Running tests directly from VS Code (with `.env` file for local development)
+
+If you want to run tests directly from VS Code (using the `Run` button or `Test explorer`), you can use an `.env` file for local configuration:
+
+1. **Copy the example environment file:**
+
+   ```bash
+   cp test/templates/.example.env test/.env
+   ```
+
+   Edit `test/.env` and set your values for `CONTROL_PLANE_DID` and `MEDIATOR_DID`.
+
+2. **Run your test files directly in VS Code:**
+   - The test utilities will automatically load variables from `test/.env`.
+
+**Note:**
+
+- The `.env` file should be placed in the `test` folder as `test/.env`.
+- The template file is provided at `test/templates/.example.env` for convenience.
+
+---
+
 ## Support & feedback
 
 If you face any issues or have suggestions, please don't hesitate to contact us using [this link](https://share.hsforms.com/1i-4HKZRXSsmENzXtPdIG4g8oa2v).

@@ -466,6 +466,8 @@ void main() async {
     final message = PlainTextMessage(
       id: 'group-test-id',
       type: Uri.parse(ChatProtocol.chatMessage.value),
+      from: groupOwnerDidDocument.id,
+      to: [publishOfferResult.connectionOffer.groupDid!],
       body: {
         'text': 'Hello group via sendMessage',
         'seq_no': 1,
@@ -542,6 +544,8 @@ void main() async {
     final message = PlainTextMessage(
       id: 'group-notify-id',
       type: Uri.parse(ChatProtocol.chatMessage.value),
+      from: groupOwnerDidDocument.id,
+      to: [publishOfferResult.connectionOffer.groupDid!],
       body: {
         'text': 'Notify group test',
         'seq_no': 1,

@@ -654,6 +654,8 @@ void main() async {
     final message = PlainTextMessage(
       id: 'test-id',
       type: Uri.parse(ChatProtocol.chatMessage.value),
+      from: aliceSDK.didDocument.id,
+      to: [bobSDK.didDocument.id],
       body: {
         'text': 'Hello via sendMessage',
         'seq_no': 1,
@@ -713,6 +715,8 @@ void main() async {
     final message = PlainTextMessage(
       id: 'notify-id',
       type: Uri.parse(ChatProtocol.chatMessage.value),
+      from: aliceSDK.didDocument.id,
+      to: [bobSDK.didDocument.id],
       body: {
         'text': 'Notify test',
         'seq_no': 1,

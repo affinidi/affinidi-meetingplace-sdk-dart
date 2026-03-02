@@ -14,7 +14,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
   OfferFinalisedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -52,7 +52,9 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
         );
       }
 
-      final channel = await findChannelByDid(permanentChannelDid);
+      final channel = await channelService.findChannelByDid(
+        permanentChannelDid,
+      );
 
       final acceptOfferDidManager = await connectionManager.getDidManagerForDid(
         wallet,
@@ -134,13 +136,14 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
           mediatorDid: connection.mediatorDid,
         );
 
-        channel.notificationToken = notificationToken;
-        channel.otherPartyNotificationToken = event.notificationToken;
-        channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
-        channel.outboundMessageId = message.id;
-        channel.otherPartyContactCard = otherPartyCard;
-        channel.status = ChannelStatus.inaugurated;
-        await channelRepository.updateChannel(channel);
+        await channelService.markChannelInauguratedFromWaitingForApproval(
+          channel,
+          notificationToken: notificationToken,
+          otherPartyNotificationToken: event.notificationToken,
+          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+          outboundMessageId: message.id,
+          otherPartyCard: otherPartyCard,
+        );
 
         final attachments = message.attachments;
         if (attachments != null && attachments.isNotEmpty) {

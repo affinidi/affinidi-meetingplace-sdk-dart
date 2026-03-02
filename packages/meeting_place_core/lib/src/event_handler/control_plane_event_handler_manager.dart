@@ -5,6 +5,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import '../entity/channel.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
 import 'package:ssi/ssi.dart';
@@ -32,6 +33,7 @@ class ControlPlaneEventManager {
     required ConnectionOfferRepository connectionOfferRepository,
     required GroupRepository groupRepository,
     required ChannelRepository channelRepository,
+    required ChannelService channelService,
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
@@ -44,7 +46,7 @@ class ControlPlaneEventManager {
       wallet: wallet,
       mediatorService: mediatorService,
       connectionManager: connectionManager,
-      channelRepository: channelRepository,
+      channelService: channelService,
       connectionOfferRepository: connectionOfferRepository,
       options: options,
       logger: _logger,
@@ -55,7 +57,7 @@ class ControlPlaneEventManager {
       connectionManager: connectionManager,
       connectionOfferRepository: connectionOfferRepository,
       groupRepository: groupRepository,
-      channelRepository: channelRepository,
+      channelService: channelService,
       options: options,
       logger: _logger,
     );
@@ -64,7 +66,7 @@ class ControlPlaneEventManager {
       mediatorService: mediatorService,
       controlPlaneSDK: controlPlaneSDK,
       connectionOfferRepository: connectionOfferRepository,
-      channelRepository: channelRepository,
+      channelService: channelService,
       connectionManager: connectionManager,
       didResolver: didResolver,
       options: options,
@@ -74,7 +76,7 @@ class ControlPlaneEventManager {
       wallet: wallet,
       mediatorService: mediatorService,
       connectionOfferRepository: connectionOfferRepository,
-      channelRepository: channelRepository,
+      channelService: channelService,
       connectionManager: connectionManager,
       options: options,
       logger: _logger,
@@ -87,7 +89,7 @@ class ControlPlaneEventManager {
           connectionManager: connectionManager,
           connectionOfferRepository: connectionOfferRepository,
           groupRepository: groupRepository,
-          channelRepository: channelRepository,
+          channelService: channelService,
           options: options,
           logger: _logger,
         );
@@ -95,7 +97,7 @@ class ControlPlaneEventManager {
       wallet: wallet,
       mediatorService: mediatorService,
       connectionManager: connectionManager,
-      channelRepository: channelRepository,
+      channelService: channelService,
       connectionService: connectionService,
       connectionOfferRepository: connectionOfferRepository,
       options: options,

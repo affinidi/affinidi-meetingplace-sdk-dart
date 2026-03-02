@@ -10,7 +10,7 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
   InvitationAcceptedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.options,
@@ -70,14 +70,14 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
           mediatorDid: connection.mediatorDid,
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           outboundMessageId: message.id,
-          status: ChannelStatus.waitingForApproval,
+          status: ChannelStatus.approvalRequested,
           type: ChannelType.individual,
           contactCard: connection.contactCard,
           otherPartyContactCard: otherPartyContactCard,
           externalRef: connection.externalRef,
         );
 
-        await channelRepository.createChannel(channel);
+        await channelService.persistChannel(channel);
 
         await mediatorService.deletedMessages(
           didManager: publishedOfferDidManager,

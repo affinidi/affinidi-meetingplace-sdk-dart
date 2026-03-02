@@ -6,8 +6,8 @@ import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/meeting_place_protocol.dart';
-import '../repository/channel_repository.dart';
 import '../repository/connection_offer_repository.dart';
+import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../service/mediator/mediator_message.dart';
@@ -21,7 +21,7 @@ abstract class BaseEventHandler {
     required this.wallet,
     required this.mediatorService,
     required this.connectionOfferRepository,
-    required this.channelRepository,
+    required this.channelService,
     required this.connectionManager,
     required this.logger,
     ControlPlaneEventHandlerManagerOptions options =
@@ -38,7 +38,7 @@ abstract class BaseEventHandler {
   final ConnectionOfferRepository connectionOfferRepository;
 
   @internal
-  final ChannelRepository channelRepository;
+  final ChannelService channelService;
 
   @internal
   final ConnectionManager connectionManager;
@@ -64,12 +64,6 @@ abstract class BaseEventHandler {
           offerLink,
         ) ??
         (throw EventHandlerException.offerNotFound());
-  }
-
-  @internal
-  Future<Channel> findChannelByDid(String did) async {
-    return await channelRepository.findChannelByDid(did) ??
-        (throw EventHandlerException.channelNotFound(did: did));
   }
 
   @internal

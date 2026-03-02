@@ -14,7 +14,7 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
   InvitationGroupAcceptedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -53,11 +53,8 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
 
       final group = await _findGroupByOfferLink(event.offerLink);
 
-      final groupChannel =
-          await channelRepository.findChannelByOtherPartyPermanentChannelDid(
-            group.did,
-          ) ??
-          (throw Exception('Channel not found for group: ${group.did}'));
+      final groupChannel = await channelService
+          .findChannelByOtherPartyPermanentChannelDid(group.did);
 
       final publishedOfferDidManager = await connectionManager
           .getDidManagerForDid(wallet, connection.publishOfferDid);
@@ -116,7 +113,8 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
           externalRef: connection.externalRef,
         );
 
-        await channelRepository.createChannel(channel);
+        await channelService.persistChannel(channel);
+
         await mediatorService.deletedMessages(
           didManager: publishedOfferDidManager,
           mediatorDid: connection.mediatorDid,

@@ -1,7 +1,6 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
 import '../protocol/protocol.dart';
-import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 
@@ -9,7 +8,7 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
   ChannelInaugurationEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -25,7 +24,9 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
     );
 
     try {
-      final channel = await findChannelByDid(channelActivity.did);
+      final channel = await channelService.findChannelByDid(
+        channelActivity.did,
+      );
       final didManager = await findDidManager(channel);
 
       final messages = await fetchMessagesFromMediatorWithRetry(
@@ -36,22 +37,23 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
 
       logger.info('Found ${messages.length} messages', name: _logKey);
       for (final message in messages) {
-        final plainTextMessage = ChannelInauguration.fromPlainTextMessage(
-          message.plainTextMessage,
-        );
-
         logger.info(
-          'Peeked message ${message.plainTextMessage.type.toString().topAndTail(charCountTop: 8, charCountTail: 20)} from ${channel.permanentChannelDid!.topAndTail()}',
+          '''Processing message with id ${message.plainTextMessage.id} and 
+          type ${message.plainTextMessage.type} for
+          DID ${channelActivity.did}''',
           name: _logKey,
         );
 
-        channel.otherPartyNotificationToken =
-            plainTextMessage.body.notificationToken;
+        final channelInaugurationMessage =
+            ChannelInauguration.fromPlainTextMessage(message.plainTextMessage);
 
-        channel.status = ChannelStatus.inaugurated;
-        await channelRepository.updateChannel(channel);
+        await channelService.markChannelInauguratedFromApprovalRequested(
+          channel,
+          otherPartyNotificationToken:
+              channelInaugurationMessage.body.notificationToken,
+        );
 
-        final attachments = plainTextMessage.attachments;
+        final attachments = channelInaugurationMessage.attachments;
         if (attachments != null && attachments.isNotEmpty) {
           options.onAttachmentsReceived?.call(channel, attachments);
         }

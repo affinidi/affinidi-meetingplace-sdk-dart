@@ -8,7 +8,7 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
   OutreachInvitationEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,

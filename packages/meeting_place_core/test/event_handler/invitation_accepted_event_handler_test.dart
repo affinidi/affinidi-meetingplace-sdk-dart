@@ -2,6 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
+import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
@@ -24,6 +25,7 @@ void main() {
   late MockWallet mockWallet;
   late MockConnectionOfferRepository mockConnectionOfferRepository;
   late MockChannelRepository mockChannelRepository;
+  late MockChannelService mockChannelService;
   late MockConnectionManager mockConnectionManager;
   late MockMediatorService mockMediatorService;
   late MockDidManager mockDidManager;
@@ -80,6 +82,7 @@ void main() {
     mockWallet = MockWallet();
     mockConnectionOfferRepository = MockConnectionOfferRepository();
     mockChannelRepository = MockChannelRepository();
+    mockChannelService = MockChannelService();
     mockConnectionManager = MockConnectionManager();
     mockMediatorService = MockMediatorService();
     mockDidManager = MockDidManager(did: publishOfferDid);
@@ -87,7 +90,7 @@ void main() {
     handler = InvitationAcceptedEventHandler(
       wallet: mockWallet,
       connectionOfferRepository: mockConnectionOfferRepository,
-      channelRepository: mockChannelRepository,
+      channelService: mockChannelService,
       connectionManager: mockConnectionManager,
       mediatorService: mockMediatorService,
       options: const ControlPlaneEventHandlerManagerOptions(),
@@ -206,5 +209,7 @@ class MockConnectionOfferRepository extends Mock
     implements ConnectionOfferRepository {}
 
 class MockChannelRepository extends Mock implements ChannelRepository {}
+
+class MockChannelService extends Mock implements ChannelService {}
 
 class MockConnectionManager extends Mock implements ConnectionManager {}

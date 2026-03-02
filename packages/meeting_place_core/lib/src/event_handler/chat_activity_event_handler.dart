@@ -10,7 +10,7 @@ class ChatActivityEventHandler extends BaseEventHandler {
     required super.mediatorService,
     required super.connectionManager,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.options,
     required super.logger,
   });
@@ -24,7 +24,9 @@ class ChatActivityEventHandler extends BaseEventHandler {
     );
 
     try {
-      final channel = await findChannelByDid(channelActivity.did);
+      final channel = await channelService.findChannelByDid(
+        channelActivity.did,
+      );
       final didManager = await findDidManager(channel);
       var messageSyncMarker = channel.messageSyncMarker;
 
@@ -42,12 +44,13 @@ class ChatActivityEventHandler extends BaseEventHandler {
         ),
       );
 
+      int? updatedMessageSeqNumber;
       for (final message in messages) {
         final messageSeqNumber = message.messageSequenceNumber;
         if (messageSeqNumber == null) continue;
 
         if (messageSeqNumber > channel.seqNo) {
-          channel.seqNo = messageSeqNumber;
+          updatedMessageSeqNumber = messageSeqNumber;
         }
 
         final createdTime = message.plainTextMessage.createdTime?.toUtc();
@@ -58,8 +61,11 @@ class ChatActivityEventHandler extends BaseEventHandler {
         }
       }
 
-      channel.messageSyncMarker = messageSyncMarker;
-      await channelRepository.updateChannel(channel);
+      await channelService.updateChannelSequence(
+        channel,
+        sequenceNumber: updatedMessageSeqNumber ?? channel.seqNo,
+        messageSyncMarker: messageSyncMarker,
+      );
 
       logger.info(
         'Completed processing event of type ${channelActivity.type}',

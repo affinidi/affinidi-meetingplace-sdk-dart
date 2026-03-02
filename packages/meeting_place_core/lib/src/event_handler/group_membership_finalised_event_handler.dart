@@ -20,7 +20,7 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
   GroupMembershipFinalisedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -67,7 +67,9 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
       }
 
       final group = await _findGroupByOfferLink(connection.offerLink);
-      final channel = await findChannelByDid(permanentChannelDid);
+      final channel = await channelService.findChannelByDid(
+        permanentChannelDid,
+      );
 
       final didManager = await connectionManager.getDidManagerForDid(
         wallet,
@@ -142,9 +144,6 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
         await _groupRepository.createGroup(updatedGroup);
         await _groupRepository.removeGroup(group);
 
-        channel.otherPartyPermanentChannelDid = updatedGroup.did;
-        await channelRepository.updateChannel(channel);
-
         final finalisedConnection = connection.groupFinalise(
           groupId: updatedGroup.id,
           groupDid: updatedGroup.did,
@@ -156,11 +155,12 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
           finalisedConnection,
         );
 
-        channel.otherPartyPermanentChannelDid = updatedGroup.did;
-        channel.seqNo = event.startSeqNo;
-        channel.notificationToken = notificationToken;
-        channel.status = ChannelStatus.inaugurated;
-        await channelRepository.updateChannel(channel);
+        await channelService.markGroupChannelInauguratedFromWaitingForApproval(
+          channel,
+          notificationToken: notificationToken,
+          otherPartyPermanentChannelDid: updatedGroup.did,
+          sequenceNumber: event.startSeqNo,
+        );
 
         await mediatorService.deletedMessages(
           didManager: didManager,

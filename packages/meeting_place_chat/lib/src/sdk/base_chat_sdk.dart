@@ -468,7 +468,8 @@ abstract class BaseChatSDK {
       );
     }
 
-    if (message.to != null && message.to!.first != otherPartyDid) {
+    if (message.to?.firstOrNull != null &&
+        message.to!.firstOrNull != otherPartyDid) {
       throw Exception(
         'Message "to" DID ${message.to} does not match chat recipient DID $otherPartyDid.',
       );

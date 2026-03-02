@@ -1,12 +1,13 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import '../entity/channel.dart';
-import '../protocol/meeting_place_protocol.dart';
-import '../entity/connection_offer.dart';
+import '../../meeting_place_core.dart';
+import '../service/mediator/fetch_messages_options.dart';
 import '../utils/attachment.dart';
+import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
 
-class InvitationAcceptedEventHandler extends BaseEventHandler {
+class InvitationAcceptedEventHandler
+    extends BaseEventHandler<InvitationAccept> {
   InvitationAcceptedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
@@ -20,15 +21,18 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
   Future<List<Channel>> process(InvitationAccept event) async {
     final methodName = 'process';
     logger.info(
-      'Started processing InvitationAccept event with offerLink: ${event.offerLink}',
+      '''Started processing ${ControlPlaneEventType.InvitationAccept} event
+      with offerLink: ${event.offerLink}''',
       name: methodName,
     );
 
     try {
       final connection = await findConnectionByOfferLink(event.offerLink);
+
       if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
         logger.warning(
-          'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
+          '''Skipping processing: connection offer is not of type
+          ${ConnectionOfferType.meetingPlaceInvitation.name}''',
           name: methodName,
         );
         return [];
@@ -37,63 +41,17 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       final publishedOfferDidManager = await connectionManager
           .getDidManagerForDid(wallet, connection.publishOfferDid);
 
-      final messages = await fetchMessagesFromMediatorWithRetry(
+      return processEvent(
+        event: event,
         didManager: publishedOfferDidManager,
         mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.invitationAcceptance,
+        connection: connection,
+        fetchMessageOptions: FetchMessagesOptions(
+          filterByMessageTypes: [
+            MeetingPlaceProtocol.invitationAcceptance.value,
+          ],
+        ),
       );
-
-      final channels = <Channel>[];
-
-      // TODO: what if event with same offer link comes in?
-      // TODO: what if process dies after first message but others are left?
-      for (final result in messages) {
-        final message = result.plainTextMessage;
-
-        final otherPartyPermanentChannelDid =
-            message.body!['channel_did'] as String;
-
-        logger.info(
-          'Acceptor\'s permanent did is $otherPartyPermanentChannelDid',
-          name: methodName,
-        );
-
-        final otherPartyContactCard = getContactCardDataOrEmptyFromAttachments(
-          message.attachments,
-        );
-
-        final acceptOfferDid = message.from!;
-        final channel = Channel(
-          offerLink: connection.offerLink,
-          publishOfferDid: connection.publishOfferDid,
-          acceptOfferDid: acceptOfferDid,
-          mediatorDid: connection.mediatorDid,
-          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          outboundMessageId: message.id,
-          status: ChannelStatus.approvalRequested,
-          type: ChannelType.individual,
-          contactCard: connection.contactCard,
-          otherPartyContactCard: otherPartyContactCard,
-          externalRef: connection.externalRef,
-        );
-
-        await channelService.persistChannel(channel);
-
-        await mediatorService.deletedMessages(
-          didManager: publishedOfferDidManager,
-          mediatorDid: connection.mediatorDid,
-          messageHashes: [result.messageHash!],
-        );
-
-        logger.info(
-          'Completed processing InvitationAccept event and created channel with id: ${channel.id}',
-          name: methodName,
-        );
-
-        channels.add(channel);
-      }
-
-      return channels;
     } on EmptyMessageListException {
       logger.warning(
         'No messages found to process for event of type ${ControlPlaneEventType.InvitationAccept}',
@@ -109,5 +67,57 @@ class InvitationAcceptedEventHandler extends BaseEventHandler {
       );
       rethrow;
     }
+  }
+
+  @override
+  Future<Channel> processMessage(
+    PlainTextMessage message, {
+    required InvitationAccept event,
+    ConnectionOffer? connection,
+    Channel? channel,
+  }) async {
+    if (connection == null) {
+      throw ArgumentError(
+        'ConnectionOffer must be provided to process message',
+      );
+    }
+
+    final messageFrom = message.from;
+    if (messageFrom == null) {
+      throw ArgumentError(
+        'Message must have a "from" field to process invitation acceptance',
+      );
+    }
+
+    final invitationAcceptance = InvitationAcceptance.fromPlainTextMessage(
+      message,
+    );
+
+    logger.info(
+      '''Acceptor's permanent did is
+      ${invitationAcceptance.body.channelDid.topAndTail()}''',
+      name: 'processMessage',
+    );
+
+    final otherPartyContactCard = getContactCardDataOrEmptyFromAttachments(
+      message.attachments,
+    );
+
+    final channel = Channel(
+      offerLink: connection.offerLink,
+      publishOfferDid: connection.publishOfferDid,
+      acceptOfferDid: messageFrom,
+      mediatorDid: connection.mediatorDid,
+      otherPartyPermanentChannelDid: invitationAcceptance.body.channelDid,
+      outboundMessageId: message.id,
+      status: ChannelStatus.approvalRequested,
+      type: ChannelType.individual,
+      contactCard: connection.contactCard,
+      otherPartyContactCard: otherPartyContactCard,
+      externalRef: connection.externalRef,
+    );
+
+    await channelService.persistChannel(channel);
+    return channel;
   }
 }

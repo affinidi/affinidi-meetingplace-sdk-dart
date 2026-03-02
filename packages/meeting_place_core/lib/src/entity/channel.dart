@@ -5,7 +5,24 @@ import '../../meeting_place_core.dart';
 
 part 'channel.g.dart';
 
-enum ChannelStatus { waitingForApproval, inaugurated, approved }
+enum ChannelStatus {
+  /// Indicates that the accepting party has accepted the offer, and is waiting
+  /// for the offer owner to approve the acceptance request.
+  waitingForApproval,
+
+  /// Indicates that the accepting party requested for approval,
+  /// and the offer owner needs to approve the request before the channel
+  /// can be inaugurated.
+  approvalRequested,
+
+  /// Indicates that the channel has been approved by the offer owner, but has
+  /// not been inaugurated yet. This status can only be set by the offer owner.
+  approved,
+
+  /// Indicates that the channel has been inaugurated, and both parties can
+  /// start to exchange messages.
+  inaugurated,
+}
 
 enum ChannelType { individual, group, oob }
 
@@ -115,6 +132,10 @@ class Channel {
   bool get isInaugurated => status == ChannelStatus.inaugurated;
 
   bool get isApproved => status == ChannelStatus.approved;
+
+  bool get isApprovalRequested => status == ChannelStatus.approvalRequested;
+
+  bool get isWaitingForApproval => status == ChannelStatus.waitingForApproval;
 
   Map<String, dynamic> toJson() {
     return _$ChannelToJson(this);

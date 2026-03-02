@@ -191,6 +191,8 @@ extension _ChannelStatusValue on ChannelStatus {
         return 2;
       case ChannelStatus.waitingForApproval:
         return 3;
+      case ChannelStatus.approvalRequested:
+        return 4;
     }
   }
 }

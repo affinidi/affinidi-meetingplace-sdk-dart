@@ -57,8 +57,9 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
 
 const _$ChannelStatusEnumMap = {
   ChannelStatus.waitingForApproval: 'waitingForApproval',
-  ChannelStatus.inaugurated: 'inaugurated',
+  ChannelStatus.approvalRequested: 'approvalRequested',
   ChannelStatus.approved: 'approved',
+  ChannelStatus.inaugurated: 'inaugurated',
 };
 
 const _$ChannelTypeEnumMap = {

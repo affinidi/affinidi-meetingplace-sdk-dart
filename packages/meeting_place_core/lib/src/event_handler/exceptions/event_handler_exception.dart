@@ -8,17 +8,6 @@ class EventHandlerException implements SDKException {
     this.innerException,
   });
 
-  factory EventHandlerException.channelNotFound({
-    required String did,
-    Object? innerException,
-  }) {
-    return EventHandlerException(
-      message: 'EventHandlerException: Channel for $did not found',
-      code: MeetingPlaceCoreSDKErrorCode.channelNotFound,
-      innerException: innerException,
-    );
-  }
-
   factory EventHandlerException.missingPermanentChannelDid({
     required String channelId,
     Object? innerException,

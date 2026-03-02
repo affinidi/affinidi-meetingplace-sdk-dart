@@ -190,11 +190,9 @@ class ControlPlaneEventManager {
           return [];
         }
 
-        final channel = await _channelActivityEventHandler.process(
+        return _channelActivityEventHandler.process(
           event.data as ChannelActivity,
         );
-
-        return channel != null ? [channel] : [];
       case ControlPlaneEventType.GroupMembershipFinalised:
         return _groupMembershipFinalisedEventHandler.process(
           event.data as GroupMembershipFinalised,

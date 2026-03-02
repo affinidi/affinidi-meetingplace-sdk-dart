@@ -38,7 +38,7 @@ class ChannelActivityEventHandler {
 
   static final String _logKey = 'ChannelActivityEventHandler';
 
-  Future<Channel?> process(ChannelActivity channelActivity) async {
+  Future<List<Channel>> process(ChannelActivity channelActivity) async {
     _logger.info(
       'Starting processing event of type ${channelActivity.type}',
       name: _logKey,
@@ -75,7 +75,7 @@ class ChannelActivityEventHandler {
       name: _logKey,
     );
 
-    return null;
+    return [];
   }
 
   bool hasBeenProcessed(

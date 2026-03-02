@@ -73,7 +73,7 @@ abstract class BaseChatSDK {
   /// - [forwardExpiryInSeconds]: Optional duration (in seconds) after which
   ///     the forwarded message is considered expired.
   @internal
-  Future<void> sendProtocolMessage(
+  Future<void> sendPlainTextMessage(
     PlainTextMessage message, {
     required String senderDid,
     required String recipientDid,
@@ -272,7 +272,7 @@ abstract class BaseChatSDK {
             return;
           }
 
-          await sendProtocolMessage(
+          await sendPlainTextMessage(
             protocol.ChatAliasProfileRequest.create(
               from: did,
               to: [otherPartyDid],
@@ -475,7 +475,7 @@ abstract class BaseChatSDK {
       );
     }
 
-    return sendProtocolMessage(
+    return sendPlainTextMessage(
       PlainTextMessage.fromJson({
         ...message.toJson(),
         'from': did,
@@ -566,7 +566,7 @@ abstract class BaseChatSDK {
       to: [otherPartyDid],
     );
 
-    return sendProtocolMessage(
+    return sendPlainTextMessage(
       message.toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
@@ -589,7 +589,7 @@ abstract class BaseChatSDK {
 
     final channel = await getChannel();
     if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
-      await sendProtocolMessage(
+      await sendPlainTextMessage(
         protocol.ChatAliasProfileHash.create(
           from: did,
           to: [otherPartyDid],
@@ -635,7 +635,7 @@ abstract class BaseChatSDK {
   Future<void> sendChatDeliveredMessage(PlainTextMessage message) async {
     final methodName = 'sendChatDeliveredMessage';
     _logger.info('Started sending chat delivered message', name: methodName);
-    await sendProtocolMessage(
+    await sendPlainTextMessage(
       protocol.ChatDelivered.create(
         from: did,
         to: [otherPartyDid],
@@ -666,7 +666,7 @@ abstract class BaseChatSDK {
     }
 
     unawaited(
-      sendProtocolMessage(
+      sendPlainTextMessage(
         protocol.ChatContactDetailsUpdate.create(
           from: did,
           to: [otherPartyDid],
@@ -735,7 +735,7 @@ abstract class BaseChatSDK {
     );
 
     try {
-      await sendProtocolMessage(
+      await sendPlainTextMessage(
         chatReaction.toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
@@ -770,7 +770,7 @@ abstract class BaseChatSDK {
     chatStream.pushData(StreamData(plainTextMessage: chatEffect));
 
     // TODO: handle error case
-    await sendProtocolMessage(
+    await sendPlainTextMessage(
       chatEffect,
       senderDid: did,
       recipientDid: otherPartyDid,
@@ -783,7 +783,7 @@ abstract class BaseChatSDK {
   Future<void> sendChatActivity() async {
     final methodName = 'sendChatActivity';
     _logger.info('Started sending chat activity', name: methodName);
-    await sendProtocolMessage(
+    await sendPlainTextMessage(
       protocol.ChatActivity.create(
         from: did,
         to: [otherPartyDid],
@@ -816,7 +816,7 @@ abstract class BaseChatSDK {
   /// Sends a message with notification, ignoring notification failures.
   Future<void> _sendMessageWithNotification(PlainTextMessage message) async {
     try {
-      await sendProtocolMessage(
+      await sendPlainTextMessage(
         message,
         senderDid: did,
         recipientDid: otherPartyDid,

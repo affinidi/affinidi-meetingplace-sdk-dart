@@ -138,7 +138,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Future] that completes when the message is sent.
   @override
-  Future<void> sendProtocolMessage(
+  Future<void> sendPlainTextMessage(
     PlainTextMessage message, {
     required String senderDid,
     required String recipientDid,
@@ -147,7 +147,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
   }) {
-    final methodName = 'sendProtocolMessage';
+    final methodName = 'sendPlainTextMessage';
     logger.info(
       'Send group message of type=${message.type},'
       ' from=${message.from}, to=${message.to}',
@@ -752,7 +752,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final methodName = 'sendChatGroupDetailsUpdate';
     logger.info('Started sending chat group details update', name: methodName);
     unawaited(
-      sendProtocolMessage(
+      sendPlainTextMessage(
         ChatGroupDetailsUpdate.fromGroup(
           group,
           senderDid: did,

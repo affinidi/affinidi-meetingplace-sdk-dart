@@ -1,10 +1,12 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../../meeting_place_core.dart';
+import '../protocol/message/outreach_invitation/outreach_invitation.dart';
 import '../service/connection_service.dart';
+import '../service/mediator/fetch_messages_options.dart';
 import 'base_event_handler.dart';
-import 'exceptions/empty_message_list_exception.dart';
 
-class OutreachInvitationEventHandler extends BaseEventHandler {
+class OutreachInvitationEventHandler
+    extends BaseEventHandler<InvitationOutreach> {
   OutreachInvitationEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
@@ -19,74 +21,57 @@ class OutreachInvitationEventHandler extends BaseEventHandler {
   final ConnectionService _connectionService;
 
   Future<List<Channel>> process(InvitationOutreach event) async {
-    final methodName = 'process';
-    logger.info(
-      'Started processing OutreachInvitation event with offerLink: ${event.offerLink}',
-      name: methodName,
-    );
+    logger.info('''Started processing OutreachInvitation event with
+      offerLink: ${event.offerLink}''', name: 'process');
 
-    try {
-      final connection = await findConnectionByOfferLink(event.offerLink);
-      if (connection.type !=
-          ConnectionOfferType.meetingPlaceOutreachInvitation) {
-        logger.warning(
-          'Connection offer is not of type ${ConnectionOfferType.meetingPlaceOutreachInvitation.name}',
-          name: methodName,
-        );
-        return [];
-      }
-
-      final publishedOfferDidManager = await connectionManager
-          .getDidManagerForDid(wallet, connection.publishOfferDid);
-
-      final messages = await fetchMessagesFromMediatorWithRetry(
-        didManager: publishedOfferDidManager,
-        mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.outreachInvitation,
-      );
-
-      final channels = <Channel>[];
-      for (final result in messages) {
-        final message = result.plainTextMessage;
-
-        logger.info(
-          'Outreach invitation for mnemonic ${message.body!['mnemonic']}',
-          name: methodName,
-        );
-
-        final findOfferResult = await _connectionService.findOffer(
-          mnemonic: message.body!['mnemonic'],
-        );
-
-        final acceptance = await _connectionService.acceptOffer(
-          wallet: wallet,
-          connectionOffer: findOfferResult.$1!,
-          contactCard: connection.contactCard,
-          senderInfo: 'Somebody',
-        );
-
-        logger.info(
-          'Completed processing Outreach invitation event',
-          name: methodName,
-        );
-        channels.add(acceptance.channel);
-      }
-
-      return channels;
-    } on EmptyMessageListException {
+    final connection = await findConnectionByOfferLink(event.offerLink);
+    if (connection.type != ConnectionOfferType.meetingPlaceOutreachInvitation) {
       logger.warning(
-        'No messages found to process for event of type ${ControlPlaneEventType.InvitationOutreach}',
-        name: methodName,
+        '''Connection offer is not of
+          type ${ConnectionOfferType.meetingPlaceOutreachInvitation.name}''',
+        name: 'process',
       );
       return [];
-    } catch (e, stackTrace) {
-      logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.InvitationOutreach}',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      rethrow;
     }
+
+    final publishedOfferDidManager = await connectionManager
+        .getDidManagerForDid(wallet, connection.publishOfferDid);
+
+    return processEvent(
+      event: event,
+      didManager: publishedOfferDidManager,
+      mediatorDid: connection.mediatorDid,
+      fetchMessageOptions: FetchMessagesOptions(
+        filterByMessageTypes: [MeetingPlaceProtocol.outreachInvitation.value],
+      ),
+    );
+  }
+
+  @override
+  Future<Channel> processMessage(
+    PlainTextMessage message, {
+    required InvitationOutreach event,
+    ConnectionOffer? connection,
+    Channel? channel,
+  }) async {
+    if (connection == null) {
+      throw ArgumentError(
+        'ConnectionOffer must be provided to process message',
+      );
+    }
+
+    final outreachInvitation = OutreachInvitation.fromPlainTextMessage(message);
+    final findOfferResult = await _connectionService.findOffer(
+      mnemonic: outreachInvitation.body.mnemonic,
+    );
+
+    final acceptance = await _connectionService.acceptOffer(
+      wallet: wallet,
+      connectionOffer: findOfferResult.$1!,
+      contactCard: connection.contactCard,
+      senderInfo: 'Somebody',
+    );
+
+    return acceptance.channel;
   }
 }

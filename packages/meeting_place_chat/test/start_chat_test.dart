@@ -646,7 +646,9 @@ void main() async {
       stream!.listen((data) {
         if (data.plainTextMessage?.type.toString() ==
             ChatProtocol.chatMessage.value) {
-          bobCompleter.complete(data.plainTextMessage!);
+          if (!bobCompleter.isCompleted) {
+            bobCompleter.complete(data.plainTextMessage!);
+          }
         }
       });
     });

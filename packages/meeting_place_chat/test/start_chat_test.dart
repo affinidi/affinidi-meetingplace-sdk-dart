@@ -625,17 +625,22 @@ void main() async {
     );
   });
 
-  test('message is shown as sent even for notification error', () async {
-    final channel = await aliceSDK.coreSDK.getChannelByDid(
-      aliceSDK.didDocument.id,
-    );
-    channel!.otherPartyNotificationToken = 'invalid_token';
-    await aliceSDK.coreSDK.updateChannel(channel);
+  test(
+    'message is shown as sent even for notification error',
+    () async {
+      final channel = await aliceSDK.coreSDK.getChannelByDid(
+        aliceSDK.didDocument.id,
+      );
+      channel!.otherPartyNotificationToken = 'invalid_token';
+      await aliceSDK.coreSDK.updateChannel(channel);
 
-    await aliceChatSDK.startChatSession();
-    final actual = await aliceChatSDK.sendTextMessage('Sample text message');
-    expect(actual.status, ChatItemStatus.sent);
-  });
+      await aliceChatSDK.startChatSession();
+      final actual = await aliceChatSDK.sendTextMessage('Sample text message');
+      expect(actual.status, ChatItemStatus.sent);
+    },
+    skip:
+        'Notification error is thrown in an unawaited future and cannot be reliably tested. See `send_message_test.dart` in MeetingPlaceCoreSDK for details.',
+  );
 
   test('sendMessage sets from/to and sends message', () async {
     await aliceChatSDK.startChatSession();

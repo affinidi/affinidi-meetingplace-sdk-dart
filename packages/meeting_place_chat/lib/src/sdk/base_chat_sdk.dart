@@ -462,14 +462,15 @@ abstract class BaseChatSDK {
   ///
   /// Returns a [Future] that completes when the message has been sent.
   Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
-    if (message.from != null && message.from != did) {
+    final senderDid = message.from;
+    if (senderDid == null || senderDid != did) {
       throw Exception(
         'Message "from" DID ${message.from} does not match chat sender DID $did.',
       );
     }
 
-    if (message.to?.firstOrNull != null &&
-        message.to!.firstOrNull != otherPartyDid) {
+    final recipientDid = message.to?.firstOrNull;
+    if (recipientDid == null || recipientDid != otherPartyDid) {
       throw Exception(
         'Message "to" DID ${message.to} does not match chat recipient DID $otherPartyDid.',
       );
@@ -478,11 +479,11 @@ abstract class BaseChatSDK {
     return sendPlainTextMessage(
       PlainTextMessage.fromJson({
         ...message.toJson(),
-        'from': did,
-        'to': [otherPartyDid],
+        'from': senderDid,
+        'to': [recipientDid],
       }),
-      senderDid: did,
-      recipientDid: otherPartyDid,
+      senderDid: senderDid,
+      recipientDid: recipientDid,
       mediatorDid: mediatorDid,
       notify: notify,
     );

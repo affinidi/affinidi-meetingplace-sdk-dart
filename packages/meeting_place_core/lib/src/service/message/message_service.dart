@@ -4,6 +4,7 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
+import '../../utils/string.dart';
 import '../connection_manager/connection_manager.dart';
 import '../mediator/mediator_service.dart';
 import 'message_service_exception.dart';
@@ -54,7 +55,13 @@ class MessageService {
       _notifyChannel(
         recipientDid: recipientDid,
         notifyChannelType: notifyChannelType,
-      ),
+      ).catchError((e) {
+        _logger.error(
+          '''Failed to send notification for message to ${recipientDid.topAndTail()}''',
+          error: e,
+          name: 'sendMessage',
+        );
+      }),
     );
   }
 

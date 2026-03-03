@@ -756,7 +756,7 @@ class GroupService {
     );
 
     final channel = await _channelService
-        .findChannelByOtherPartyPermanentChannelDid(groupDidDocument.id);
+        .findChannelByOtherPartyPermanentChannelDidOrNull(groupDidDocument.id);
 
     if (channel == null) {
       _logger.error(

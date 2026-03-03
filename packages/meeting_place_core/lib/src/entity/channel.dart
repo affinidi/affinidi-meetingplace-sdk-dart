@@ -168,12 +168,22 @@ class Channel {
   /// to only fetch messages that have not been fetched before.
   DateTime? messageSyncMarker;
 
+  /// Check if the channel is of type individual.
+  bool get isIndividual => type == ChannelType.individual;
+
+  /// Check if the channel is of type out-of-band.
+  bool get isOob => type == ChannelType.oob;
+
+  /// Check if the channel is of type group.
   bool get isGroup => type == ChannelType.group;
 
+  /// Check if the channel is in the inaugurated status.
   bool get isInaugurated => status == ChannelStatus.inaugurated;
 
+  /// Check if the channel is in the approved status.
   bool get isApproved => status == ChannelStatus.approved;
 
+  /// Check if the channel is waiting for approval.
   bool get isWaitingForApproval => status == ChannelStatus.waitingForApproval;
 
   Map<String, dynamic> toJson() {

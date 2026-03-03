@@ -101,6 +101,7 @@ class MeetingPlaceCoreSDK {
   /// - `messageService` (`MessageService`): Handles message sending and receiving.
   /// - `didResolver` (`DidResolver`): Resolves DIDs to their corresponding DID Documents.
   /// - `mediatorDid` (`String`): The DID of the mediator agent.
+  /// - `channelService` (`ChannelService`): Handles channel-related operations.
   ///
   /// ### Notes
   /// - Parameters marked as `required` must be provided when creating an instance.
@@ -119,6 +120,7 @@ class MeetingPlaceCoreSDK {
     required GroupService groupService,
     required NotificationService notificationService,
     required OutreachService outreachService,
+    required ChannelService channelService,
     required MessageService messageService,
     required MediatorService mediatorService,
     required DidResolver didResolver,
@@ -137,6 +139,7 @@ class MeetingPlaceCoreSDK {
        _groupService = groupService,
        _notificationService = notificationService,
        _outreachService = outreachService,
+       _channelService = channelService,
        _mediatorService = mediatorService,
        _messageService = messageService,
        _didResolver = didResolver,
@@ -159,6 +162,7 @@ class MeetingPlaceCoreSDK {
   final MediatorService _mediatorService;
   final OutreachService _outreachService;
   final MessageService _messageService;
+  final ChannelService _channelService;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -215,9 +219,13 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    final channelService = ChannelService(
+      channelRepository: repositoryConfig.channelRepository,
+    );
+
     final offerService = ConnectionOfferService(
       connectionOfferRepository: repositoryConfig.connectionOfferRepository,
-      channelRepository: repositoryConfig.channelRepository,
+      channelService: channelService,
     );
 
     final connectionManager = ConnectionManager(
@@ -254,7 +262,7 @@ class MeetingPlaceCoreSDK {
 
     final connectionService = ConnectionService(
       connectionOfferRepository: repositoryConfig.connectionOfferRepository,
-      channelRepository: repositoryConfig.channelRepository,
+      channelService: channelService,
       connectionManager: connectionManager,
       controlPlaneSDK: controlPlaneSDK,
       mediatorAclService: MediatorAclService(
@@ -278,7 +286,7 @@ class MeetingPlaceCoreSDK {
       connectionOfferRepository: repositoryConfig.connectionOfferRepository,
       connectionService: connectionService,
       groupRepository: repositoryConfig.groupRepository,
-      channelRepository: repositoryConfig.channelRepository,
+      channelService: channelService,
       keyRepository: repositoryConfig.keyRepository,
       controlPlaneSDK: controlPlaneSDK,
       mediatorSDK: mediatorSDK,
@@ -291,10 +299,6 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       keyRepository: repositoryConfig.keyRepository,
       logger: mpxLogger,
-    );
-
-    final channelService = ChannelService(
-      channelRepository: repositoryConfig.channelRepository,
     );
 
     final discoveryEventManager = ControlPlaneEventManager(
@@ -346,7 +350,7 @@ class MeetingPlaceCoreSDK {
       connectionManager: connectionManager,
       didResolver: didResolver,
       mediatorService: mediatorService,
-      channelRepository: repositoryConfig.channelRepository,
+      channelService: channelService,
       controlPlaneSDK: controlPlaneSDK,
       logger: mpxLogger,
     );
@@ -367,6 +371,7 @@ class MeetingPlaceCoreSDK {
       mediatorService: mediatorService,
       messageService: messageService,
       outreachService: outreachService,
+      channelService: channelService,
       didResolver: didResolver,
       mediatorDid: mediatorDid,
       options: options,
@@ -566,7 +571,7 @@ class MeetingPlaceCoreSDK {
           externalRef: externalRef,
         );
 
-        await _repositoryConfig.channelRepository.createChannel(channel);
+        await _channelService.persistChannel(channel);
 
         _logger.info(
           'OOB invitation accepted, channel created with ID: ${channel.id}',
@@ -715,11 +720,13 @@ class MeetingPlaceCoreSDK {
           plainTextMessage.attachments,
         );
 
-        channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
-        channel.otherPartyContactCard = otherPartyCard;
-        channel.status = ChannelStatus.inaugurated;
-
-        await _repositoryConfig.channelRepository.updateChannel(channel);
+        await _channelService
+            .markOobChannelInauguratedForNonConnectionInitiator(
+              channel,
+              otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+              outboundMessageId: invitationMessage.id,
+              otherPartyCard: otherPartyCard,
+            );
 
         final attachments = plainTextMessage.attachments;
         if (attachments != null && attachments.isNotEmpty) {
@@ -757,7 +764,7 @@ class MeetingPlaceCoreSDK {
       attachments: attachments,
     );
 
-    await _repositoryConfig.channelRepository.createChannel(channel);
+    await _channelService.persistChannel(channel);
     return AcceptOobFlowResult(streamSubscription: oobStream, channel: channel);
   }
 
@@ -1433,7 +1440,7 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
   Future<Channel?> getChannelByDid(String did) {
-    return _repositoryConfig.channelRepository.findChannelByDid(did);
+    return _channelService.findChannelByDidOrNull(did);
   }
 
   /// Fetches a channel entity from the repository by using repository method
@@ -1445,8 +1452,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
   Future<Channel?> getChannelByOtherPartyPermanentDid(String did) {
-    return _repositoryConfig.channelRepository
-        .findChannelByOtherPartyPermanentChannelDid(did);
+    return _channelService.findChannelByOtherPartyPermanentChannelDidOrNull(
+      did,
+    );
   }
 
   /// Updates an existing channel in the repository.
@@ -1454,7 +1462,7 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// [channel] - Specifies the channel entity to update.
   Future<void> updateChannel(Channel channel) {
-    return _repositoryConfig.channelRepository.updateChannel(channel);
+    return _channelService.updateChannel(channel);
   }
 
   /// Updates an existing channel in the repository.

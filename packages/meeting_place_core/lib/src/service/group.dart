@@ -12,6 +12,7 @@ import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
+import 'channel/channel_service.dart';
 import 'connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
 import 'connection_offer/connection_offer_exception.dart';
@@ -35,7 +36,7 @@ class GroupService {
     required ConnectionOfferRepository connectionOfferRepository,
     required GroupRepository groupRepository,
     required KeyRepository keyRepository,
-    required ChannelRepository channelRepository,
+    required ChannelService channelService,
     required ConnectionOfferService offerService,
     required ConnectionService connectionService,
     required cp.ControlPlaneSDK controlPlaneSDK,
@@ -46,7 +47,7 @@ class GroupService {
        _connectionManager = connectionManager,
        _connectionOfferRepository = connectionOfferRepository,
        _groupRepository = groupRepository,
-       _channelRepository = channelRepository,
+       _channelService = channelService,
        _keyRepository = keyRepository,
        _connectionOfferService = offerService,
        _connectionService = connectionService,
@@ -64,7 +65,7 @@ class GroupService {
   final GroupRepository _groupRepository;
   final ConnectionOfferService _connectionOfferService;
   final ConnectionService _connectionService;
-  final ChannelRepository _channelRepository;
+  final ChannelService _channelService;
   final KeyRepository _keyRepository;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -211,7 +212,7 @@ class GroupService {
         externalRef: externalRef,
       );
 
-      await _channelRepository.createChannel(channel);
+      await _channelService.persistChannel(channel);
 
       _logger.info(
         'Successfully created group offer: ${result.offerLink}',
@@ -348,7 +349,7 @@ class GroupService {
         externalRef: externalRef,
       );
 
-      await _channelRepository.createChannel(channel);
+      await _channelService.persistChannel(channel);
 
       final acceptedConnectionOffer = await _acceptConnectionOffer(
         connectionOffer,
@@ -754,7 +755,7 @@ class GroupService {
       name: methodName,
     );
 
-    final channel = await _channelRepository
+    final channel = await _channelService
         .findChannelByOtherPartyPermanentChannelDid(groupDidDocument.id);
 
     if (channel == null) {
@@ -890,7 +891,7 @@ class GroupService {
       await _connectionService.markConnectionOfferAsDeleted(connectionOffer);
     }
 
-    await _channelRepository.deleteChannel(channel);
+    await _channelService.deleteChannel(channel);
     await _removePermissionToGetMessagesFromGroup(
       groupDid: group.did,
       mediatorDid: channel.mediatorDid,

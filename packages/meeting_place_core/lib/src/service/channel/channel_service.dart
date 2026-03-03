@@ -67,6 +67,71 @@ class ChannelService {
     return _channelRepository.createChannel(channel);
   }
 
+  /// Updates an existing [Channel].
+  ///
+  /// Parameters:
+  /// - [channel]: The [Channel] to update.
+  ///
+  /// Returns a [Future] that completes when the channel is updated.
+  Future<void> updateChannel(Channel channel) {
+    return _channelRepository.updateChannel(channel);
+  }
+
+  /// Deletes a [Channel].
+  ///
+  /// Parameters:
+  /// - [channel]: The [Channel] to delete.
+  ///
+  /// Returns a [Future] that completes when the channel is deleted.
+  Future<void> deleteChannel(Channel channel) {
+    return _channelRepository.deleteChannel(channel);
+  }
+
+  /// Marks a channel as approved for a connection initiator, updating its
+  /// permanent channel DID, other party's permanent channel DID, notification
+  /// token, and status, then persisting the changes.
+  ///
+  /// Parameters:
+  /// - [channel]: The [Channel] to update.
+  /// - [permanentChannelDid]: The permanent channel DID to set for the channel.
+  /// - [otherPartyPermanentChannelDid]: The permanent channel DID to set for
+  ///   the other party.
+  /// - [notificationToken]: The notification token to set for the channel.
+  ///
+  /// Returns a [Future] that completes when the update is done.
+  ///
+  /// Throws a [ChannelServiceException] if validation fails.
+  Future<void> markChannelApprovedForConnectionInitiator(
+    Channel channel, {
+    required String permanentChannelDid,
+    required String otherPartyPermanentChannelDid,
+    required String notificationToken,
+  }) async {
+    if (channel.isGroup) {
+      throw ChannelServiceException.invalidChannelType(
+        expected: [ChannelType.individual, ChannelType.oob],
+        actual: channel.type,
+      );
+    }
+
+    if (!channel.isConnectionInitiator) {
+      throw ChannelServiceException.actionNotAllowed(action: 'approveChannel');
+    }
+
+    if (!channel.isWaitingForApproval) {
+      throw ChannelServiceException.invalidChannelStatus(
+        expected: ChannelStatus.waitingForApproval,
+        actual: channel.status,
+      );
+    }
+
+    channel.permanentChannelDid = permanentChannelDid;
+    channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.notificationToken = notificationToken;
+    channel.status = ChannelStatus.approved;
+    return _channelRepository.updateChannel(channel);
+  }
+
   /// Sets the status of a channel to inaugurated, updating the notification
   /// token and persisting the changes.
   ///
@@ -126,9 +191,9 @@ class ChannelService {
     required String outboundMessageId,
     required ContactCard? otherPartyCard,
   }) {
-    if (channel.isGroup) {
+    if (!channel.isIndividual) {
       throw ChannelServiceException.invalidChannelType(
-        expected: [ChannelType.individual, ChannelType.oob],
+        expected: [ChannelType.individual],
         actual: channel.type,
       );
     }
@@ -141,6 +206,57 @@ class ChannelService {
 
     channel.notificationToken = notificationToken;
     channel.otherPartyNotificationToken = otherPartyNotificationToken;
+    channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.outboundMessageId = outboundMessageId;
+    channel.otherPartyContactCard = otherPartyCard;
+    channel.status = ChannelStatus.inaugurated;
+    return _channelRepository.updateChannel(channel);
+  }
+
+  /// Sets the status of a OOB channel to inaugurated for a non-connection
+  /// initiator, updating the other party's permanent channel DID,
+  /// outbound message ID, other party's contact card, and persisting the
+  /// changes. This method is specifically for OOB channels where notification
+  /// tokens are not used.
+  ///
+  /// Parameters:
+  /// - [channel]: The [Channel] to update.
+  /// - [otherPartyPermanentChannelDid]: The permanent channel DID to set for
+  ///  the other party.
+  /// - [outboundMessageId]: The outbound message ID to set for the channel.
+  /// - [otherPartyCard]: The contact card to set for the other party.
+  ///
+  /// Returns a [Future] that completes when the update is done.
+  ///
+  /// Throws a [ChannelServiceException] if the channel is not of type OOB, if
+  /// the channel is a connection initiator or if the channel is not in the
+  /// expected status.
+  Future<void> markOobChannelInauguratedForNonConnectionInitiator(
+    Channel channel, {
+    required String otherPartyPermanentChannelDid,
+    required String outboundMessageId,
+    required ContactCard? otherPartyCard,
+  }) {
+    if (!channel.isOob) {
+      throw ChannelServiceException.invalidChannelType(
+        expected: [ChannelType.oob],
+        actual: channel.type,
+      );
+    }
+
+    if (channel.isConnectionInitiator) {
+      throw ChannelServiceException.actionNotAllowed(
+        action: 'markChannelInaugurated',
+      );
+    }
+
+    if (!channel.isWaitingForApproval) {
+      throw ChannelServiceException.invalidChannelStatus(
+        expected: ChannelStatus.waitingForApproval,
+        actual: channel.status,
+      );
+    }
+
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
     channel.outboundMessageId = outboundMessageId;
     channel.otherPartyContactCard = otherPartyCard;

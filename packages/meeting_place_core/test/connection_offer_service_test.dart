@@ -1,4 +1,5 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -11,11 +12,11 @@ import 'fixtures/contact_card_fixture.dart';
 class MockConnectionOfferRepository extends Mock
     implements ConnectionOfferRepository {}
 
-class MockChannelRepository extends Mock implements ChannelRepository {}
+class MockChannelService extends Mock implements ChannelService {}
 
 void main() {
   late MockConnectionOfferRepository mockOfferRepo;
-  late MockChannelRepository mockChannelRepo;
+  late MockChannelService mockChannelService;
   late ConnectionOfferService service;
 
   const offerLink = 'test-offer';
@@ -39,10 +40,10 @@ void main() {
 
   setUp(() {
     mockOfferRepo = MockConnectionOfferRepository();
-    mockChannelRepo = MockChannelRepository();
+    mockChannelService = MockChannelService();
     service = ConnectionOfferService(
       connectionOfferRepository: mockOfferRepo,
-      channelRepository: mockChannelRepo,
+      channelService: mockChannelService,
     );
 
     registerFallbackValue(offer);
@@ -72,7 +73,7 @@ void main() {
       verify(
         () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
       ).called(1);
-      verifyNever(() => mockChannelRepo.findChannelByDid(any()));
+      verifyNever(() => mockChannelService.findChannelByDidOrNull(any()));
     });
 
     test('throws ownedByClaimingPartyError if offer is published', () async {
@@ -140,7 +141,9 @@ void main() {
           () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
         ).thenAnswer((_) async => finalisedOffer);
         when(
-          () => mockChannelRepo.findChannelByDid(offer.permanentChannelDid!),
+          () => mockChannelService.findChannelByDidOrNull(
+            offer.permanentChannelDid!,
+          ),
         ).thenAnswer((_) async => groupChannel);
 
         expect(
@@ -165,7 +168,9 @@ void main() {
         () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => deletedOffer);
       when(
-        () => mockChannelRepo.findChannelByDid(offer.permanentChannelDid!),
+        () => mockChannelService.findChannelByDidOrNull(
+          offer.permanentChannelDid!,
+        ),
       ).thenAnswer((_) async => channel);
 
       await service.ensureConnectionOfferIsClaimable(offerLink);
@@ -180,7 +185,9 @@ void main() {
         () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => finalisedOffer);
       when(
-        () => mockChannelRepo.findChannelByDid(offer.permanentChannelDid!),
+        () => mockChannelService.findChannelByDidOrNull(
+          offer.permanentChannelDid!,
+        ),
       ).thenAnswer((_) async => channel);
 
       await service.ensureConnectionOfferIsClaimable(offerLink);

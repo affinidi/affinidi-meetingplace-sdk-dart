@@ -475,28 +475,34 @@ class MeetingPlaceCoreSDK {
     final oobDidManager = await generateDid();
     final oobDidDoc = await oobDidManager.getDidDocument();
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
-    final mediatorDidTouse = mediatorDid ?? _mediatorDid;
+    final mediatorDidToUse = mediatorDid ?? _mediatorDid;
 
     _logger.info(
-      '''Setup OOB invitation for ${oobDidDoc.id.topAndTail()} on $mediatorDidTouse''',
+      '''Setup OOB invitation for ${oobDidDoc.id.topAndTail()} on $mediatorDidToUse''',
       name: methodName,
     );
 
-    final (_, oobCommandOutput, streamSubscription) = await (
+    // Authenticate on mediator before updating ACLs and subscribing to messages
+    // to ensure that authentication is done only once.
+    final (_, _, oobCommandOutput, streamSubscription) = await (
+      _mediatorSDK.authenticateWithDid(
+        oobDidManager,
+        mediatorDid: mediatorDidToUse,
+      ),
       _mediatorSDK.updateAcl(
         ownerDidManager: oobDidManager,
-        mediatorDid: mediatorDidTouse,
+        mediatorDid: mediatorDidToUse,
         acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
       ),
       _controlPlaneSDK.execute(
         CreateOobCommand(
           oobInvitationMessage: oobMessage.toPlainTextMessage(),
-          mediatorDid: mediatorDidTouse,
+          mediatorDid: mediatorDidToUse,
         ),
       ),
       _mediatorService.subscribe(
         didManager: oobDidManager,
-        mediatorDid: mediatorDidTouse,
+        mediatorDid: mediatorDidToUse,
       ),
     ).wait;
 
@@ -535,13 +541,13 @@ class MeetingPlaceCoreSDK {
           otherPartyAcceptOfferDid: plainTextMessage.from!,
           outboundMessageId: oobMessage.id,
           contactCard: contactCard,
-          mediatorDid: mediatorDidTouse,
+          mediatorDid: mediatorDidToUse,
         );
 
         final channel = Channel(
           offerLink: oobMessage.id,
           publishOfferDid: oobDidDoc.id,
-          mediatorDid: mediatorDidTouse,
+          mediatorDid: mediatorDidToUse,
           outboundMessageId: oobMessage.id,
           acceptOfferDid: plainTextMessage.from!,
           permanentChannelDid: permanentChannelDidDoc.id,
@@ -578,7 +584,7 @@ class MeetingPlaceCoreSDK {
     });
 
     _logger.info(
-      ''''Listening for messages on mediator channel $mediatorDidTouse and OOB DID ${oobDidDoc.id.topAndTail()}''',
+      ''''Listening for messages on mediator channel $mediatorDidToUse and OOB DID ${oobDidDoc.id.topAndTail()}''',
       name: methodName,
     );
 
@@ -690,6 +696,7 @@ class MeetingPlaceCoreSDK {
 
         await _mediatorSDK.updateAcl(
           ownerDidManager: permanentChannelDid,
+          mediatorDid: actualMediatorDid,
           acl: AccessListAdd(
             ownerDid: didDoc.id,
             granteeDids: [otherPartyPermanentChannelDid],

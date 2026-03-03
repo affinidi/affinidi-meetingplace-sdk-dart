@@ -120,6 +120,24 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     );
   }
 
+  /// Starts the periodic sending of chat presence signals.
+  ///
+  /// This method initiates sending presence updates for the chat session,
+  /// allowing the application to track real-time status changes of participants
+  /// such as online/offline status.
+  ///
+  /// The updates will continue until [stopChatPresenceUpdates] is called or
+  /// the chat session is terminated.
+  ///
+  /// Interval can be configured via [options.chatPresenceSendInterval] in [ChatSDKOptions].
+  ///
+  /// **Example:**
+  /// ```dart
+  /// await chatSdk.startChatPresenceUpdates();
+  /// ```
+  ///
+  /// **See also:**
+  /// - [stopChatPresenceUpdates] to stop receiving presence updates
   @override
   Future<void> startChatPresenceUpdates() async =>
       _startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds);

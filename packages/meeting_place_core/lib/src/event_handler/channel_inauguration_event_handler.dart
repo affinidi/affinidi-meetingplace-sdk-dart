@@ -33,6 +33,7 @@ class ChannelInaugurationEventHandler
       event: event,
       didManager: didManager,
       mediatorDid: channel.mediatorDid,
+      channel: channel,
       fetchMessageOptions: FetchMessagesOptions(
         filterByMessageTypes: [MeetingPlaceProtocol.channelInauguration.value],
       ),

@@ -41,6 +41,7 @@ class OutreachInvitationEventHandler
       event: event,
       didManager: publishedOfferDidManager,
       mediatorDid: connection.mediatorDid,
+      connection: connection,
       fetchMessageOptions: FetchMessagesOptions(
         filterByMessageTypes: [MeetingPlaceProtocol.outreachInvitation.value],
       ),

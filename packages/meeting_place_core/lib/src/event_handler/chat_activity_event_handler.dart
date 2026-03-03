@@ -32,6 +32,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       event: event,
       didManager: didManager,
       mediatorDid: channel.mediatorDid,
+      channel: channel,
       fetchMessageOptions: FetchMessagesOptions(
         startFrom: channel.messageSyncMarker,
         batchSize: 100,

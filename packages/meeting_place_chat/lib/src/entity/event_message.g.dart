@@ -13,25 +13,28 @@ EventMessage _$EventMessageFromJson(Map<String, dynamic> json) => EventMessage(
   isFromMe: json['isFromMe'] as bool,
   dateCreated: DateTime.parse(json['dateCreated'] as String),
   status: $enumDecode(_$ChatItemStatusEnumMap, json['status']),
-  eventType: $enumDecode(_$EventMessageTypeEnumMap, json['eventType']),
+  eventType: const _EventMessageTypeConverter().fromJson(
+    json['eventType'] as String,
+  ),
   data: json['data'] as Map<String, dynamic>,
   type:
       $enumDecodeNullable(_$ChatItemTypeEnumMap, json['type']) ??
       ChatItemType.eventMessage,
 );
 
-Map<String, dynamic> _$EventMessageToJson(EventMessage instance) =>
-    <String, dynamic>{
-      'chatId': instance.chatId,
-      'messageId': instance.messageId,
-      'senderDid': instance.senderDid,
-      'isFromMe': instance.isFromMe,
-      'dateCreated': instance.dateCreated.toIso8601String(),
-      'type': _$ChatItemTypeEnumMap[instance.type]!,
-      'status': _$ChatItemStatusEnumMap[instance.status]!,
-      'eventType': _$EventMessageTypeEnumMap[instance.eventType]!,
-      'data': instance.data,
-    };
+Map<String, dynamic> _$EventMessageToJson(
+  EventMessage instance,
+) => <String, dynamic>{
+  'chatId': instance.chatId,
+  'messageId': instance.messageId,
+  'senderDid': instance.senderDid,
+  'isFromMe': instance.isFromMe,
+  'dateCreated': instance.dateCreated.toIso8601String(),
+  'type': _$ChatItemTypeEnumMap[instance.type]!,
+  'status': _$ChatItemStatusEnumMap[instance.status]!,
+  'eventType': const _EventMessageTypeConverter().toJson(instance.eventType),
+  'data': instance.data,
+};
 
 const _$ChatItemStatusEnumMap = {
   ChatItemStatus.queued: 'queued',
@@ -41,13 +44,6 @@ const _$ChatItemStatusEnumMap = {
   ChatItemStatus.error: 'error',
   ChatItemStatus.userInput: 'userInput',
   ChatItemStatus.confirmed: 'confirmed',
-};
-
-const _$EventMessageTypeEnumMap = {
-  EventMessageType.awaitingGroupMemberToJoin: 'awaitingGroupMemberToJoin',
-  EventMessageType.groupDeleted: 'groupDeleted',
-  EventMessageType.groupMemberJoinedGroup: 'groupMemberJoinedGroup',
-  EventMessageType.groupMemberLeftGroup: 'groupMemberLeftGroup',
 };
 
 const _$ChatItemTypeEnumMap = {

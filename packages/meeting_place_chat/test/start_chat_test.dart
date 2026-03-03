@@ -742,4 +742,43 @@ void main() async {
           'Message with notify flag should be persisted in Bob\'s repository',
     );
   });
+
+  test('unhandled message is pushed to chat stream', () async {
+    final unhandledMessage = PlainTextMessage(
+      id: const Uuid().v4(),
+      type: Uri.parse('https://example.com/${Uuid().v4()}'),
+      from: bobSDK.didDocument.id,
+      to: [aliceSDK.didDocument.id],
+      body: {'text': 'Hello Alice!'},
+    );
+
+    final pushedToChatStream = Completer<StreamData>();
+
+    await aliceChatSDK.startChatSession();
+    await aliceChatSDK.chatStreamSubscription.then((stream) {
+      stream!.listen((message) async {
+        if (message.plainTextMessage?.type == unhandledMessage.type) {
+          pushedToChatStream.complete(message);
+          stream.dispose();
+        }
+      });
+    });
+
+    await bobSDK.coreSDK.sendMessage(
+      unhandledMessage,
+      senderDid: bobSDK.didDocument.id,
+      recipientDid: aliceSDK.didDocument.id,
+    );
+
+    final receivedStreamData = await pushedToChatStream.future.timeout(
+      const Duration(seconds: 10),
+    );
+
+    expect(receivedStreamData, isA<StreamData>());
+
+    expect(
+      receivedStreamData.plainTextMessage?.id,
+      equals(unhandledMessage.id),
+    );
+  });
 }

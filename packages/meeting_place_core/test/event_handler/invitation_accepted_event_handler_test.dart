@@ -24,7 +24,6 @@ void main() {
   late InvitationAcceptedEventHandler handler;
   late MockWallet mockWallet;
   late MockConnectionOfferRepository mockConnectionOfferRepository;
-  late MockChannelRepository mockChannelRepository;
   late MockChannelService mockChannelService;
   late MockConnectionManager mockConnectionManager;
   late MockMediatorService mockMediatorService;
@@ -82,7 +81,6 @@ void main() {
   setUpAll(() {
     mockWallet = MockWallet();
     mockConnectionOfferRepository = MockConnectionOfferRepository();
-    mockChannelRepository = MockChannelRepository();
     mockChannelService = MockChannelService();
     mockConnectionManager = MockConnectionManager();
     mockMediatorService = MockMediatorService();
@@ -115,7 +113,7 @@ void main() {
     ).thenAnswer((_) async => mockDidManager);
 
     when(
-      () => mockChannelRepository.createChannel(any()),
+      () => mockChannelService.persistChannel(any()),
     ).thenAnswer((_) async => {});
 
     when(

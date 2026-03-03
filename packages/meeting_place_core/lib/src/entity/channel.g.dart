@@ -16,6 +16,7 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       ? null
       : ContactCard.fromJson(json['contactCard'] as Map<String, dynamic>),
   type: $enumDecode(_$ChannelTypeEnumMap, json['type']),
+  isConnectionInitiator: json['isConnectionInitiator'] as bool,
   otherPartyContactCard: json['otherPartyContactCard'] == null
       ? null
       : ContactCard.fromJson(
@@ -41,6 +42,7 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'mediatorDid': instance.mediatorDid,
   'offerLink': instance.offerLink,
   'type': _$ChannelTypeEnumMap[instance.type]!,
+  'isConnectionInitiator': instance.isConnectionInitiator,
   'contactCard': ?instance.contactCard?.toJson(),
   'otherPartyContactCard': ?instance.otherPartyContactCard?.toJson(),
   'status': _$ChannelStatusEnumMap[instance.status]!,
@@ -57,7 +59,6 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
 
 const _$ChannelStatusEnumMap = {
   ChannelStatus.waitingForApproval: 'waitingForApproval',
-  ChannelStatus.approvalRequested: 'approvalRequested',
   ChannelStatus.approved: 'approved',
   ChannelStatus.inaugurated: 'inaugurated',
 };

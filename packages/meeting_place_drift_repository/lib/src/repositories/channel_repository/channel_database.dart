@@ -81,6 +81,10 @@ class Channels extends Table {
   /// Type of the channel.
   IntColumn get type => integer().map(const _ChannelTypeConverter())();
 
+  /// Indicates whether the channel was initiated by the local party or the
+  /// other party.
+  BoolColumn get isConnectionInitiator => boolean()();
+
   /// ID of the outbound message.
   TextColumn get outboundMessageId => text().nullable()();
 
@@ -191,8 +195,6 @@ extension _ChannelStatusValue on ChannelStatus {
         return 2;
       case ChannelStatus.waitingForApproval:
         return 3;
-      case ChannelStatus.approvalRequested:
-        return 4;
     }
   }
 }

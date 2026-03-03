@@ -205,6 +205,7 @@ class GroupService {
         status: ChannelStatus.inaugurated,
         contactCard: card,
         type: ChannelType.group,
+        isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
         externalRef: externalRef,

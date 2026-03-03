@@ -54,6 +54,7 @@ void main() {
       publishOfferDid: 'did:key:1234',
       mediatorDid: 'did:key:mediator',
       status: ChannelStatus.inaugurated,
+      isConnectionInitiator: false,
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test',
         contactInfo: const {},
@@ -123,6 +124,7 @@ void main() {
           publishOfferDid: 'did:key:1234',
           mediatorDid: 'did:key:mediator',
           status: ChannelStatus.inaugurated,
+          isConnectionInitiator: false,
           contactCard: ContactCardFixture.getContactCardFixture(
             did: 'did:test',
             contactInfo: const {},

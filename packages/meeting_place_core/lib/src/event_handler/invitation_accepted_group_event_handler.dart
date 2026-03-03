@@ -122,6 +122,7 @@ class InvitationGroupAcceptedEventHandler
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
+      isConnectionInitiator: true,
       contactCard: connection.contactCard,
       otherPartyContactCard: contactCard,
       externalRef: connection.externalRef,

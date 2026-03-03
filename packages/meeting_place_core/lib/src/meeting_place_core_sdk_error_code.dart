@@ -49,6 +49,7 @@ enum MeetingPlaceCoreSDKErrorCode {
   groupChannelDoesNotExistError('group_offer_channel_does_not_exist_error'),
 
   // channels
+  channelActionNotAllowed('channel_action_not_allowed'),
   channelNotificationFailed('channel_notification_failed'),
   channelNotFound('channel_not_found'),
   channelInvalidStatus('channel_invalid_status'),

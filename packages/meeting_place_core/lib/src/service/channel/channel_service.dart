@@ -78,7 +78,7 @@ class ChannelService {
   ///
   /// Throws a [ChannelServiceException] if the channel is not in the
   /// expected status.
-  Future<void> markChannelInauguratedFromApprovalRequested(
+  Future<void> markChannelInauguratedForConnectionInitiator(
     Channel channel, {
     required String otherPartyNotificationToken,
   }) {
@@ -89,10 +89,9 @@ class ChannelService {
       );
     }
 
-    if (!channel.isApprovalRequested) {
-      throw ChannelServiceException.invalidChannelStatus(
-        expected: ChannelStatus.approvalRequested,
-        actual: channel.status,
+    if (!channel.isConnectionInitiator) {
+      throw ChannelServiceException.actionNotAllowed(
+        action: 'markChannelInauguratedForConnectionInitiator',
       );
     }
 
@@ -119,7 +118,7 @@ class ChannelService {
   ///
   /// Throws a [ChannelServiceException] if the channel is not in the
   /// expected status.
-  Future<void> markChannelInauguratedFromWaitingForApproval(
+  Future<void> markChannelInauguratedForNonConnectionInitiator(
     Channel channel, {
     required String notificationToken,
     required String otherPartyNotificationToken,
@@ -134,10 +133,9 @@ class ChannelService {
       );
     }
 
-    if (!channel.isWaitingForApproval) {
-      throw ChannelServiceException.invalidChannelStatus(
-        expected: ChannelStatus.waitingForApproval,
-        actual: channel.status,
+    if (channel.isConnectionInitiator) {
+      throw ChannelServiceException.actionNotAllowed(
+        action: 'markChannelInauguratedForNonConnectionInitiator',
       );
     }
 

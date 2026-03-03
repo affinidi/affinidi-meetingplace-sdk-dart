@@ -54,7 +54,7 @@ class ChannelInaugurationEventHandler
       message,
     );
 
-    await channelService.markChannelInauguratedFromApprovalRequested(
+    await channelService.markChannelInauguratedForConnectionInitiator(
       channel,
       otherPartyNotificationToken:
           channelInaugurationMessage.body.notificationToken,

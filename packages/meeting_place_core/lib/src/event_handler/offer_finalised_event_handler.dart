@@ -129,7 +129,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       notificationToken: notificationToken,
     );
 
-    await channelService.markChannelInauguratedFromWaitingForApproval(
+    await channelService.markChannelInauguratedForNonConnectionInitiator(
       channel,
       notificationToken: notificationToken,
       otherPartyNotificationToken: event.notificationToken,

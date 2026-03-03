@@ -89,6 +89,22 @@ class ChannelServiceException implements SDKException {
     );
   }
 
+  /// Factory constructor for creating a [ChannelServiceException] when an
+  /// action is not allowed on a channel. Includes the action in the message.
+  ///
+  /// Parameters:
+  ///
+  factory ChannelServiceException.actionNotAllowed({
+    required String action,
+    Object? innerException,
+  }) {
+    return ChannelServiceException(
+      message: '''Channel service exception: Action not allowed: $action.''',
+      code: MeetingPlaceCoreSDKErrorCode.channelActionNotAllowed,
+      innerException: innerException,
+    );
+  }
+
   @override
   final String message;
 

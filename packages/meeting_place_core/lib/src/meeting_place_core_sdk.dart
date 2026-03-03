@@ -560,6 +560,7 @@ class MeetingPlaceCoreSDK {
           otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
           status: ChannelStatus.inaugurated,
           type: ChannelType.oob,
+          isConnectionInitiator: true,
           contactCard: contactCard,
           otherPartyContactCard: otherPartyCard,
           externalRef: externalRef,
@@ -672,6 +673,7 @@ class MeetingPlaceCoreSDK {
       acceptOfferDid: acceptOfferDidDoc.id,
       permanentChannelDid: didDoc.id,
       type: ChannelType.oob,
+      isConnectionInitiator: false,
       contactCard: contactCard,
       externalRef: externalRef,
     );

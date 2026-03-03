@@ -317,6 +317,7 @@ class _ChannelMapper {
       mediatorDid: channel.mediatorDid,
       status: channel.status,
       type: channel.type,
+      isConnectionInitiator: channel.isConnectionInitiator,
       contactCard: _makeContactCardFromDb(contactCard),
       otherPartyContactCard: _makeContactCardFromDb(otherContactCard),
       acceptOfferDid: channel.acceptOfferDid,

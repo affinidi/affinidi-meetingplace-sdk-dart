@@ -53,6 +53,7 @@ void main() async {
         otherPartyPermanentChannelDid: aliceSDK.didDocument.id,
         status: ChannelStatus.inaugurated,
         type: ChannelType.individual,
+        isConnectionInitiator: false,
         contactCard: charlieSDK.contactCard,
         otherPartyContactCard: aliceSDK.contactCard,
       ),

@@ -70,6 +70,7 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     status: ChannelStatus.approved,
+    isConnectionInitiator: true,
     contactCard: ContactCard(
       did: 'did:key:contact-card-did',
       type: 'individual',

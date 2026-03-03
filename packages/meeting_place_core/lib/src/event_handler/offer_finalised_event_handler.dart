@@ -38,6 +38,14 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       );
     }
 
+    final permanentChannelDid = connection.permanentChannelDid;
+    if (permanentChannelDid == null) {
+      throw Exception('''Connection offer ${connection.offerLink} is missing
+        permanentChannelDid''');
+    }
+
+    final channel = await channelService.findChannelByDid(permanentChannelDid);
+
     final acceptOfferDid = connection.acceptOfferDid;
     if (acceptOfferDid == null) {
       throw Exception(
@@ -55,6 +63,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       didManager: acceptOfferDidManager,
       mediatorDid: connection.mediatorDid,
       connection: connection,
+      channel: channel,
       fetchMessageOptions: FetchMessagesOptions(
         filterByMessageTypes: [
           MeetingPlaceProtocol.connectionRequestApproval.value,

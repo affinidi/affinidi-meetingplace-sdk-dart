@@ -442,21 +442,22 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// Subscribes to the mediator channel for group events.
   ///
   /// **Returns:**
-  /// - A [MediatorStream] subscription stream for group messages.
+  /// - A [SDKStreamSubscription] subscription stream for group messages.
   @override
-  Future<CoreSDKStreamSubscription> subscribeToMediator() async {
+  Future<SDKStreamSubscription> subscribeToMediator() async {
     final methodName = 'subscribeToChannel';
     logger.info('Started subscribing to mediator channel', name: methodName);
 
     final subscription = await super.subscribeToMediator();
     logger.info('Completed subscribing to group channel', name: methodName);
 
-    subscription.stream.listen((data) async {
+    subscription.listen((data) async {
       if (!await _handleMessage(data.plainTextMessage)) {
         chatStream.pushData(
           StreamData(plainTextMessage: data.plainTextMessage),
         );
       }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     return subscription;

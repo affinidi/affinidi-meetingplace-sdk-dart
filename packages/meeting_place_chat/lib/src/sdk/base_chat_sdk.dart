@@ -14,6 +14,9 @@ import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 
+typedef SDKStreamSubscription =
+    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>;
+
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.
 ///
@@ -57,8 +60,8 @@ abstract class BaseChatSDK {
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
-  CoreSDKStreamSubscription? _mediatorStreamSubscription;
-  Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  SDKStreamSubscription? _mediatorStreamSubscription;
+  Future<SDKStreamSubscription>? mediatorStreamFuture;
   int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
@@ -454,12 +457,12 @@ abstract class BaseChatSDK {
   /// Subscribes to mediator channel for real-time updates.
   ///
   /// **Returns:**
-  /// - A [MediatorStream] subscription.
+  /// - A [SDKStreamSubscription] subscription.
   ///
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
-  Future<CoreSDKStreamSubscription> subscribeToMediator() {
+  Future<SDKStreamSubscription> subscribeToMediator() {
     return coreSDK.subscribeToMediator(
       did,
       mediatorDid: mediatorDid,

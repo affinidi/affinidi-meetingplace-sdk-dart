@@ -150,17 +150,19 @@ To run tests in this package from the terminal:
 
 ### Option 2: Running tests directly from VS Code (with `.env` file for local development)
 
-If you want to run tests directly from VS Code (using the `Run` button or `Test explorer`), you can use an `.env` file for local configuration:
+If you want to run tests directly from VS Code (using the `Run` button or `Test Explorer`), you can use an `.env` file for local configuration:
 
-1. **Copy the example environment file:**
+1. **Create your local environment file:**
+
+   _(Run this command in your terminal to copy the template and create `test/.env` for your tests.)_
 
    ```bash
    cp test/templates/.example.env test/.env
    ```
 
-   Edit `test/.env` and set your values for `CONTROL_PLANE_DID` and `MEDIATOR_DID`.
+2. **Edit `test/.env`** and update the values for `CONTROL_PLANE_DID` and `MEDIATOR_DID` to match your test environment.
 
-2. **Run your test files directly in VS Code:**
+3. **Run your test files directly in VS Code:**
    - The test utilities will automatically load variables from `test/.env`.
 
 **Note:**

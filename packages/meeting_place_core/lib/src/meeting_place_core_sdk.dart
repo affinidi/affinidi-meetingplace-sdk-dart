@@ -17,8 +17,6 @@ import 'constants/sdk_constants.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
-import 'service/mediator/mediator_acl_service.dart';
-import 'utils/attachment.dart';
 import 'sdk/results/accept_oob_flow_result.dart';
 import 'sdk/results/create_oob_flow_result.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
@@ -30,11 +28,13 @@ import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 import 'service/mediator/fetch_messages_options.dart';
+import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_stream.dart';
 import 'service/outreach/outreach_service.dart';
+import 'utils/attachment.dart';
 import 'utils/cached_did_resolver.dart';
 import 'utils/string.dart';
 
@@ -1273,6 +1273,30 @@ class MeetingPlaceCoreSDK {
           deleteOnRetrieve: deleteOnRetrieve,
           expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
         ),
+      );
+    });
+  }
+
+  /// Deletes messages from the mediator identified by their [messageHashes].
+  ///
+  /// **Parameters:**
+  /// - [did] - DID used to authenticate with the mediator.
+  ///
+  /// - [mediatorDid] - Optional mediator DID. Falls back to the SDK instance's
+  /// default mediator DID if not provided.
+  ///
+  /// - [messageHashes] - Cryptographic hashes of the messages to delete.
+  Future<void> deleteMessages({
+    required String did,
+    String? mediatorDid,
+    required List<String> messageHashes,
+  }) {
+    return _withSdkExceptionHandling(() async {
+      final didManager = await getDidManager(did);
+      return _mediatorService.deletedMessages(
+        didManager: didManager,
+        mediatorDid: mediatorDid ?? _mediatorDid,
+        messageHashes: messageHashes,
       );
     });
   }

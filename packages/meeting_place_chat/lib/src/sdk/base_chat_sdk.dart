@@ -14,6 +14,9 @@ import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 
+typedef SDKStreamSubscription =
+    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>;
+
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.
 ///
@@ -57,8 +60,8 @@ abstract class BaseChatSDK {
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
-  CoreSDKStreamSubscription? _mediatorStreamSubscription;
-  Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  SDKStreamSubscription? _mediatorStreamSubscription;
+  Future<SDKStreamSubscription>? mediatorStreamFuture;
   int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
@@ -115,7 +118,11 @@ abstract class BaseChatSDK {
         unawaited(fetchNewMessages());
         _mediatorStreamSubscription = subscription;
         subscription.listen((data) async {
-          await handleMessage(data, []);
+          if (!await handleMessage(data, [])) {
+            chatStream.pushData(
+              StreamData(plainTextMessage: data.plainTextMessage),
+            );
+          }
           return MediatorStreamProcessingResult(keepMessage: false);
         });
       }),
@@ -181,8 +188,10 @@ abstract class BaseChatSDK {
   /// **Parameters:**
   /// - [MediatorMessage]: The incoming [MediatorMessage] to process.
   /// - [messages]: A list to collect new [Message] instances.
+  ///
+  /// Returns a boolean indicating whether the message was handled.
   @internal
-  Future<void> handleMessage(
+  Future<bool> handleMessage(
     MediatorMessage message,
     List<Message> messages,
   ) async {
@@ -224,6 +233,7 @@ abstract class BaseChatSDK {
           chatItem: chatMessage,
         ),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -253,6 +263,7 @@ abstract class BaseChatSDK {
           chatItem: repositoryMessage,
         ),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -269,7 +280,7 @@ abstract class BaseChatSDK {
             chatStream.pushData(
               StreamData(plainTextMessage: message.plainTextMessage),
             );
-            return;
+            return true;
           }
 
           await sendPlainTextMessage(
@@ -294,6 +305,7 @@ abstract class BaseChatSDK {
           );
         }
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -328,6 +340,7 @@ abstract class BaseChatSDK {
           ),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -359,6 +372,7 @@ abstract class BaseChatSDK {
           ),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -377,6 +391,7 @@ abstract class BaseChatSDK {
           StreamData(plainTextMessage: message.plainTextMessage),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.isOfType(ChatProtocol.chatActivity.value)) {
@@ -384,6 +399,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -392,6 +408,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -400,12 +417,11 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+
+      return true;
     }
 
-    _logger.info(
-      'Completed handling message of type ${message.plainTextMessage.type}',
-      name: methodName,
-    );
+    return false;
   }
 
   /// Fetch new messages from the mediator and process them via [handleMessage].
@@ -424,7 +440,11 @@ abstract class BaseChatSDK {
     final newMessages = <Message>[];
 
     for (final message in messagesFromMediator) {
-      await handleMessage(message, newMessages);
+      if (!await handleMessage(message, newMessages)) {
+        chatStream.pushData(
+          StreamData(plainTextMessage: message.plainTextMessage),
+        );
+      }
     }
 
     _logger.info(
@@ -437,12 +457,12 @@ abstract class BaseChatSDK {
   /// Subscribes to mediator channel for real-time updates.
   ///
   /// **Returns:**
-  /// - A [MediatorStream] subscription.
+  /// - A [SDKStreamSubscription] subscription.
   ///
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
-  Future<CoreSDKStreamSubscription> subscribeToMediator() {
+  Future<SDKStreamSubscription> subscribeToMediator() {
     return coreSDK.subscribeToMediator(
       did,
       mediatorDid: mediatorDid,

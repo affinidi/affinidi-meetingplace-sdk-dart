@@ -138,9 +138,10 @@ void main() {
           // Second attempt: one message
           MediatorMessage(
             plainTextMessage: PlainTextMessage(
-              id: Uuid().v4(),
+              id: const Uuid().v4(),
               from: acceptOfferDid,
               to: [publishOfferDid],
+              parentThreadId: const Uuid().v4(),
               type: Uri.parse(MeetingPlaceProtocol.invitationAcceptance.value),
               body: {'channel_did': 'permanent-permanent-did'},
             ),

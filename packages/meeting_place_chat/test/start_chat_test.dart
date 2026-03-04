@@ -59,6 +59,11 @@ void main() async {
     );
   });
 
+  tearDown(() {
+    aliceChatSDK.endChatSession();
+    bobChatSDK.endChatSession();
+  });
+
   test('alice sends multiple messages', () async {
     await aliceChatSDK.startChatSession();
     await bobChatSDK.startChatSession();

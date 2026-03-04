@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
+import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../../meeting_place_mediator.dart';
@@ -31,6 +32,7 @@ class MediatorStreamSubscription {
             );
 
   static const String _className = 'MediatorStreamSubscription';
+  static final Mutex _reconnectMutex = Mutex();
 
   final MediatorClient _client;
   final DidManager _didManager;
@@ -220,53 +222,61 @@ class MediatorStreamSubscription {
       name: methodName,
     );
 
-    try {
-      _logger.info('Disconnecting stale client...', name: methodName);
-      await _client.disconnect();
-      _logger.info('Stale client disconnected successfully', name: methodName);
-    } catch (e) {
-      _logger.warning(
-        'Non-fatal error during disconnect before reconnect: $e',
-        name: methodName,
-      );
-    }
+    await _reconnectMutex.protect(() async {
+      try {
+        _logger.info('Disconnecting stale client...', name: methodName);
+        await _client.disconnect();
+        _logger.info(
+          'Stale client disconnected successfully',
+          name: methodName,
+        );
+      } catch (e) {
+        _logger.warning(
+          'Non-fatal error during disconnect before reconnect: $e',
+          name: methodName,
+        );
+      }
 
-    if (isClosed) {
-      _logger.info(
-        'Stream controller closed during reconnect flow, aborting',
-        name: methodName,
-      );
-      return;
-    }
+      if (isClosed) {
+        _logger.info(
+          'Stream controller closed during reconnect flow, aborting',
+          name: methodName,
+        );
+        return;
+      }
 
-    try {
-      _logger.info('Re-establishing WebSocket connection...', name: methodName);
-      _client.listenForIncomingMessages(
-        _onIncomingMessage,
-        onDone: _onDone,
-      );
+      try {
+        _logger.info(
+          'Re-establishing WebSocket connection...',
+          name: methodName,
+        );
+        _client.listenForIncomingMessages(
+          _onIncomingMessage,
+          onDone: _onDone,
+        );
 
-      await ConnectionPool.instance.startConnections();
-      _logger.info(
-        'WebSocket reconnection successful - '
-        'now listening for incoming messages',
-        name: methodName,
-      );
-    } on StateError catch (e, stackTrace) {
-      _logger.error(
-        'Reconnection failed: client already in connected state',
-        name: methodName,
-        error: e,
-        stackTrace: stackTrace,
-      );
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Reconnection failed unexpectedly: $e',
-        name: methodName,
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
+        await ConnectionPool.instance.startConnections();
+        _logger.info(
+          'WebSocket reconnection successful - '
+          'now listening for incoming messages',
+          name: methodName,
+        );
+      } on StateError catch (e, stackTrace) {
+        _logger.error(
+          'Reconnection failed: client already in connected state',
+          name: methodName,
+          error: e,
+          stackTrace: stackTrace,
+        );
+      } catch (e, stackTrace) {
+        _logger.error(
+          'Reconnection failed unexpectedly: $e',
+          name: methodName,
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    });
   }
 
   //TODO: Remove this method when the connection issue has been resolved.

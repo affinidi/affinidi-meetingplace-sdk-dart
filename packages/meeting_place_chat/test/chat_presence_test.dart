@@ -38,6 +38,11 @@ void main() async {
     );
   });
 
+  tearDown(() {
+    aliceChatSDK.endChatSession();
+    bobChatSDK.endChatSession();
+  });
+
   test('sends chat presence message in configured interval', () async {
     final chatSDKWithReducedInterval = await initIndividualChatSDK(
       coreSDK: alice.coreSDK,
@@ -73,6 +78,7 @@ void main() async {
     await Future<void>.delayed(const Duration(seconds: 3));
 
     expect(receivedMessages, greaterThan(1));
+    chatSDKWithReducedInterval.endChatSession();
   });
 
   test('start chat presence updates after restarting chat session', () async {

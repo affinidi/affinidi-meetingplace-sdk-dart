@@ -1,6 +1,6 @@
 import 'package:didcomm/didcomm.dart';
 
-import '../../entity/channel.dart';
+import '../../../entity/channel.dart';
 
 /// Represents the type of OOB event that can occur.
 /// Used by [OobStreamData] to indicate the reason why the event

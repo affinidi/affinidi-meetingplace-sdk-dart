@@ -123,4 +123,16 @@ class MediatorService {
       mediatorDid: mediatorDid,
     );
   }
+
+  Future<void> authenticate({
+    required DidManager didManager,
+    required String mediatorDid,
+    bool forceNewSession = false,
+  }) {
+    return _mediatorSDK.authenticateWithDid(
+      didManager,
+      mediatorDid: mediatorDid,
+      forceNewSession: forceNewSession,
+    );
+  }
 }

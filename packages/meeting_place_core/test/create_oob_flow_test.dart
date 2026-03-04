@@ -58,11 +58,11 @@ void main() async {
         },
       );
 
-      final createOobFlowResult = await aliceSDK.createOobFlow(
+      final oobOfferSession = await aliceSDK.createOobFlow(
         contactCard: aliceCard,
       );
 
-      createOobFlowResult.streamSubscription.listen((data) {
+      oobOfferSession.stream.listen((data) {
         aliceChannel = data.channel;
         aliceOnDoneCompleter.complete();
       });
@@ -73,12 +73,12 @@ void main() async {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
       );
-      final acceptOobFlowResult = await bobSDK.acceptOobFlow(
-        createOobFlowResult.oobUrl,
+      final oobAcceptanceSession = await bobSDK.acceptOobFlow(
+        oobOfferSession.oobUrl,
         contactCard: bobCard,
       );
 
-      acceptOobFlowResult.streamSubscription.listen((data) {
+      oobAcceptanceSession.stream.listen((data) {
         bobChannel = data.channel;
         bobOnDoneCompleter.complete();
       });
@@ -153,7 +153,7 @@ void main() async {
           'n': {'given': 'Alice'},
         },
       );
-      final createOobFlowResult = await aliceSDK.createOobFlow(
+      final oobOfferSession = await aliceSDK.createOobFlow(
         contactCard: aliceCard,
       );
 
@@ -163,12 +163,12 @@ void main() async {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
       );
-      final acceptOobFlowResult = await bobSDK.acceptOobFlow(
-        createOobFlowResult.oobUrl,
+      final oobAcceptanceSession = await bobSDK.acceptOobFlow(
+        oobOfferSession.oobUrl,
         contactCard: bobCard,
       );
 
-      bobChannel = acceptOobFlowResult.channel;
+      bobChannel = oobAcceptanceSession.channel;
     });
 
     test('status is waiting for approval', () {
@@ -206,7 +206,7 @@ void main() async {
           'n': {'given': 'Alice'},
         },
       );
-      final createOobFlowResult = await aliceSDK.createOobFlow(
+      final oobOfferSession = await aliceSDK.createOobFlow(
         contactCard: aliceCard,
       );
 
@@ -216,17 +216,17 @@ void main() async {
           'n': {'given': 'Bob', 'surname': 'A.'},
         },
       );
-      final acceptOobFlowResult = await bobSDK.acceptOobFlow(
-        createOobFlowResult.oobUrl,
+      final oobAcceptanceSession = await bobSDK.acceptOobFlow(
+        oobOfferSession.oobUrl,
         contactCard: bobCard,
       );
 
       final bobCompleter = Completer<Channel>();
-      acceptOobFlowResult.streamSubscription.listen((data) {
+      oobAcceptanceSession.stream.listen((data) {
         bobCompleter.complete(data.channel);
       });
 
-      channelBefore = acceptOobFlowResult.channel;
+      channelBefore = oobAcceptanceSession.channel;
       bobChannel = await bobCompleter.future;
     });
 
@@ -270,10 +270,7 @@ void main() async {
 
     final resultB = await aliceSDK.createOobFlow(contactCard: aliceCard);
 
-    expect(
-      resultA.streamSubscription,
-      isNot(equals(resultB.streamSubscription)),
-    );
+    expect(resultA.stream, isNot(equals(resultB.stream)));
   });
 
   test('uses separate stream for each acceptOobFlow call', () async {
@@ -283,7 +280,7 @@ void main() async {
         'n': {'given': 'Alice'},
       },
     );
-    final createOobFlowResult = await aliceSDK.createOobFlow(
+    final oobOfferSession = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
     );
 
@@ -294,19 +291,16 @@ void main() async {
       },
     );
     final resultA = await bobSDK.acceptOobFlow(
-      createOobFlowResult.oobUrl,
+      oobOfferSession.oobUrl,
       contactCard: bobCard,
     );
 
     final resultB = await bobSDK.acceptOobFlow(
-      createOobFlowResult.oobUrl,
+      oobOfferSession.oobUrl,
       contactCard: bobCard,
     );
 
-    expect(
-      resultA.streamSubscription,
-      isNot(equals(resultB.streamSubscription)),
-    );
+    expect(resultA.stream, isNot(equals(resultB.stream)));
   });
 
   test('uses given did as permanent channel did for OOB flow', () async {
@@ -319,13 +313,13 @@ void main() async {
         'n': {'given': 'Alice'},
       },
     );
-    final createOobFlowResult = await aliceSDK.createOobFlow(
+    final session = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
       did: didDoc.id,
     );
 
     await bobSDK.acceptOobFlow(
-      createOobFlowResult.oobUrl,
+      session.oobUrl,
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
         contactInfo: {
@@ -335,7 +329,7 @@ void main() async {
     );
 
     final aliceCompleter = Completer<Channel>();
-    createOobFlowResult.streamSubscription.listen((data) {
+    session.stream.listen((data) {
       aliceCompleter.complete(data.channel);
     });
 
@@ -355,13 +349,13 @@ void main() async {
         'n': {'given': 'Alice'},
       },
     );
-    final createOobFlowResult = await aliceSDK.createOobFlow(
+    final session = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
       did: didDoc.id,
     );
 
     await bobSDK.acceptOobFlow(
-      createOobFlowResult.oobUrl,
+      session.oobUrl,
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
         contactInfo: {
@@ -371,7 +365,7 @@ void main() async {
     );
 
     final aliceCompleter = Completer<Channel>();
-    createOobFlowResult.streamSubscription.listen((data) {
+    session.stream.listen((data) {
       aliceCompleter.complete(data.channel);
     });
 
@@ -388,14 +382,17 @@ void main() async {
         'n': {'given': 'Alice'},
       },
     );
-    final createOobFlowResult = await aliceSDK.createOobFlow(
+    final oobOfferSession = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
     );
 
     final aliceCompleter = Completer<String>();
 
-    createOobFlowResult.streamSubscription.listen((data) => data);
-    createOobFlowResult.streamSubscription.timeout(
+    oobOfferSession.stream.listen((data) {
+      return;
+    });
+
+    oobOfferSession.stream.timeout(
       const Duration(milliseconds: 200),
       () => aliceCompleter.complete('timeout'),
     );
@@ -410,12 +407,10 @@ void main() async {
         'n': {'given': 'Alice'},
       },
     );
-    final createOobFlowResult = await aliceSDK.createOobFlow(
-      contactCard: aliceCard,
-    );
+    final session = await aliceSDK.createOobFlow(contactCard: aliceCard);
 
     await bobSDK.acceptOobFlow(
-      createOobFlowResult.oobUrl,
+      session.oobUrl,
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
         contactInfo: {
@@ -424,8 +419,11 @@ void main() async {
       ),
     );
 
-    createOobFlowResult.streamSubscription.listen((data) => data);
-    createOobFlowResult.streamSubscription.timeout(
+    session.stream.listen((data) {
+      return;
+    });
+
+    session.stream.timeout(
       const Duration(seconds: 1),
       () => fail('timeout executed'),
     );
@@ -443,13 +441,13 @@ void main() async {
         'n': {'given': 'Alice'},
       },
     );
-    final createOobFlowResult = await aliceSDK.createOobFlow(
+    final oobOfferSession = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
       did: didDoc.id,
     );
 
-    final acceptOobFlowResult = await bobSDK.acceptOobFlow(
-      createOobFlowResult.oobUrl,
+    final oobAcceptanceSession = await bobSDK.acceptOobFlow(
+      oobOfferSession.oobUrl,
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:bob',
         contactInfo: {
@@ -459,12 +457,12 @@ void main() async {
     );
 
     final aliceCompleter = Completer<Channel>();
-    createOobFlowResult.streamSubscription.listen((data) {
+    oobOfferSession.stream.listen((data) {
       aliceCompleter.complete(data.channel);
     });
 
     final bobCompleter = Completer<Channel>();
-    acceptOobFlowResult.streamSubscription.listen((data) {
+    oobAcceptanceSession.stream.listen((data) {
       bobCompleter.complete(data.channel);
     });
 

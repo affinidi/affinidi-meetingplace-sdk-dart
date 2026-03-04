@@ -235,6 +235,7 @@ class ChannelService {
     Channel channel, {
     required String otherPartyPermanentChannelDid,
     required String outboundMessageId,
+    // TODO: rename to otherPartyContactCard
     required ContactCard? otherPartyCard,
   }) {
     if (!channel.isOob) {

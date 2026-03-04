@@ -28,14 +28,14 @@ void main() async {
 
   // Bob listens for approval
   prettyPrintYellow('Listening on OOB stream...');
-  acceptance.streamSubscription.listen((data) {
+  acceptance.stream.listen((data) {
     prettyPrintYellow('Received event type: ${data.eventType.name}');
     prettyJsonPrintYellow('Received message', data.message.toJson());
     prettyJsonPrintYellow('Received channel:', data.channel.toJson());
     bobWaitFor.complete(data.channel);
   });
 
-  acceptance.streamSubscription.timeout(
+  acceptance.stream.timeout(
     const Duration(seconds: 300),
     () => prettyPrint('OOB stream timeout'),
   );
@@ -45,7 +45,7 @@ void main() async {
 
   // Close stream
   prettyPrint('Disposing OOB stream...');
-  await acceptance.streamSubscription.dispose();
+  await acceptance.stream.dispose();
 
   await bobSDK.sendMessage(
       PlainTextMessage(

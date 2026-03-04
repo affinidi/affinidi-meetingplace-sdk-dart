@@ -6,7 +6,6 @@ import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
 import '../service/mediator/fetch_messages_options.dart';
-import '../utils/attachment.dart';
 import 'base_event_handler.dart';
 import 'exceptions/invitation_accepted_group_exception.dart';
 
@@ -96,11 +95,8 @@ class InvitationGroupAcceptedEventHandler
       name: 'processMessage',
     );
 
-    final contactCard = getContactCardDataOrEmptyFromAttachments(
-      message.attachments,
-    );
-
-    if (contactCard == null) {
+    final otherPartyContactCard = invitationAcceptance.contactCard;
+    if (otherPartyContactCard == null) {
       throw InvitationAcceptedGroupException.contactCardNotPresent();
     }
 
@@ -108,7 +104,7 @@ class InvitationGroupAcceptedEventHandler
       GroupMember.pendingMember(
         did: otherPartyPermanentChannelDid,
         publicKey: invitationAcceptance.body.publicKey,
-        contactCard: contactCard,
+        contactCard: otherPartyContactCard,
       ),
     );
 
@@ -125,7 +121,7 @@ class InvitationGroupAcceptedEventHandler
       type: ChannelType.group,
       isConnectionInitiator: true,
       contactCard: connection.contactCard,
-      otherPartyContactCard: contactCard,
+      otherPartyContactCard: otherPartyContactCard,
       externalRef: connection.externalRef,
     );
 

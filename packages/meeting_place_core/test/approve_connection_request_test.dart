@@ -14,6 +14,20 @@ void main() async {
   late Channel aliceApprovedChannel;
   late Channel bobOfferFinalisedChannel;
 
+  final aliceContactCard = ContactCardFixture.getContactCardFixture(
+    did: 'did:test:alice',
+    contactInfo: {
+      'n': {'given': 'Alice'},
+    },
+  );
+
+  final bobContactCard = ContactCardFixture.getContactCardFixture(
+    did: 'did:test:bob',
+    contactInfo: {
+      'n': {'given': 'Bob', 'surname': 'A.'},
+    },
+  );
+
   setUpAll(() async {
     aliceSDK = await initSDKInstance();
     bobSDK = await initSDKInstance();
@@ -21,12 +35,7 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
-      ),
+      contactCard: aliceContactCard,
       type: SDKConnectionOfferType.invitation,
     );
 
@@ -36,12 +45,7 @@ void main() async {
 
     await bobSDK.acceptOffer(
       connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      ),
+      contactCard: bobContactCard,
       senderInfo: 'Bob',
     );
 
@@ -104,6 +108,14 @@ void main() async {
     });
 
     test(
+      'channel contact card has been updated with other party contact card',
+      () {
+        final actual = aliceApprovedChannel.otherPartyContactCard;
+        expect(actual?.toJson(), equals(bobContactCard.toJson()));
+      },
+    );
+
+    test(
       'connection offer has been updated with permanent channel DIDs',
       () async {
         expect(
@@ -157,6 +169,14 @@ void main() async {
         equals(ChannelStatus.inaugurated),
       );
     });
+
+    test(
+      'channel contact card has been updated with other party contact card',
+      () {
+        final actual = bobOfferFinalisedChannel.otherPartyContactCard;
+        expect(actual?.toJson(), equals(aliceContactCard.toJson()));
+      },
+    );
 
     test('connection offer status has been updated to finalised', () {
       expect(connectionOffer.status, equals(ConnectionOfferStatus.finalised));

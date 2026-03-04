@@ -6,7 +6,6 @@ import 'package:ssi/ssi.dart';
 import '../../../meeting_place_core.dart';
 import '../../event_handler/control_plane_event_stream_manager.dart';
 import '../channel/channel_service.dart';
-import '../../utils/attachment.dart';
 import '../../utils/string.dart';
 import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
@@ -261,9 +260,6 @@ class OobService {
     String? externalRef,
   }) async {
     final otherPartyPermanentChannelDid = message.body.channelDid;
-    final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
-      message.attachments,
-    );
 
     final permanentChannelDidManager = existingPermanentChannelDid != null
         ? await _connectionManager.getDidManagerForDid(
@@ -297,7 +293,7 @@ class OobService {
       type: ChannelType.oob,
       isConnectionInitiator: true,
       contactCard: session.contactCard,
-      otherPartyContactCard: otherPartyCard,
+      otherPartyContactCard: message.contactCard,
       externalRef: externalRef,
     );
 
@@ -342,15 +338,11 @@ class OobService {
       ),
     );
 
-    final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
-      message.attachments,
-    );
-
     await _channelService.markOobChannelInauguratedForNonConnectionInitiator(
       session.channel,
       outboundMessageId: message.parentThreadId,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-      otherPartyContactCard: otherPartyCard,
+      otherPartyContactCard: message.contactCard,
     );
 
     final attachments = message.attachments;

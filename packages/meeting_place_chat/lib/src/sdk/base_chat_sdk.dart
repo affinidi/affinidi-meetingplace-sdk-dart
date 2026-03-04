@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
@@ -431,13 +430,13 @@ abstract class BaseChatSDK {
   Future<List<Message>> fetchNewMessages() async {
     final methodName = 'fetchNewMessages';
     _logger.info('Started fetching new messages', name: methodName);
-    // TODO: delete after processing?
     final messagesFromMediator = await coreSDK.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      deleteOnRetrieve: true,
+      deleteOnRetrieve: false,
     );
     final newMessages = <Message>[];
+    final processedHashes = <String>[];
 
     for (final message in messagesFromMediator) {
       if (!await handleMessage(message, newMessages)) {
@@ -445,6 +444,15 @@ abstract class BaseChatSDK {
           StreamData(plainTextMessage: message.plainTextMessage),
         );
       }
+      processedHashes.add(message.messageHash!);
+    }
+
+    if (processedHashes.isNotEmpty) {
+      await coreSDK.deleteMessages(
+        did: did,
+        mediatorDid: mediatorDid,
+        messageHashes: processedHashes,
+      );
     }
 
     _logger.info(

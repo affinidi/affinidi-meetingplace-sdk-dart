@@ -414,10 +414,10 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final messagesFromMediator = await coreSDK.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      // TODO: delete after message has been successfully processed
-      deleteOnRetrieve: true,
+      deleteOnRetrieve: false,
     );
     final newMessages = <entity_chat_message.Message>[];
+    final processedHashes = <String>[];
 
     for (final message in messagesFromMediator) {
       final messageHandled = await handleMessage(message, newMessages);
@@ -430,6 +430,15 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           StreamData(plainTextMessage: message.plainTextMessage),
         );
       }
+      processedHashes.add(message.messageHash!);
+    }
+
+    if (processedHashes.isNotEmpty) {
+      await coreSDK.deleteMessages(
+        did: did,
+        mediatorDid: mediatorDid,
+        messageHashes: processedHashes,
+      );
     }
 
     logger.info(

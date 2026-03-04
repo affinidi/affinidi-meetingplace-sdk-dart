@@ -33,7 +33,7 @@ class InvitationAcceptance {
       id: message.id,
       from: message.from!,
       to: message.to!,
-      parentThreadId: message.parentThreadId!,
+      parentThreadId: message.parentThreadId,
       body: InvitationAcceptanceBody.fromJson(message.body!),
       contactCard: parsed.contactCard,
       attachments: parsed.attachments,
@@ -55,7 +55,7 @@ class InvitationAcceptance {
   final String id;
   final String from;
   final List<String> to;
-  final String parentThreadId;
+  final String? parentThreadId;
   final InvitationAcceptanceBody body;
   final ContactCard? contactCard;
   final List<Attachment>? attachments;

@@ -1,15 +1,16 @@
 import '../../entity/connection_offer.dart';
 import '../../repository/repository.dart';
+import '../channel/channel_service.dart';
 import 'connection_offer_exception.dart';
 
 class ConnectionOfferService {
   ConnectionOfferService({
     required ConnectionOfferRepository connectionOfferRepository,
-    required ChannelRepository channelRepository,
+    required ChannelService channelService,
   }) : _connectionOfferRepository = connectionOfferRepository,
-       _channelRepository = channelRepository;
+       _channelService = channelService;
   final ConnectionOfferRepository _connectionOfferRepository;
-  final ChannelRepository _channelRepository;
+  final ChannelService _channelService;
 
   Future<void> ensureConnectionOfferIsClaimable(String offerLink) async {
     final connectionOffer = await _connectionOfferRepository
@@ -32,7 +33,7 @@ class ConnectionOfferService {
       return;
     }
 
-    final channel = await _channelRepository.findChannelByDid(
+    final channel = await _channelService.findChannelByDidOrNull(
       permanentChannelDid,
     );
 

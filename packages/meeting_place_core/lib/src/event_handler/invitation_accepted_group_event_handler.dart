@@ -1,20 +1,21 @@
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    as cp;
+import 'package:didcomm/didcomm.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/entity.dart';
 import '../protocol/protocol.dart';
 import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
+import '../service/mediator/fetch_messages_options.dart';
 import '../utils/attachment.dart';
 import 'base_event_handler.dart';
-import 'exceptions/empty_message_list_exception.dart';
 import 'exceptions/invitation_accepted_group_exception.dart';
 
-class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
+class InvitationGroupAcceptedEventHandler
+    extends BaseEventHandler<InvitationGroupAccept> {
   InvitationGroupAcceptedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -26,128 +27,110 @@ class InvitationGroupAcceptedEventHandler extends BaseEventHandler {
 
   // This event is handled on the device of the group admin after a potential
   // new member accepted the group offer.
-  Future<Channel?> process(cp.InvitationGroupAccept event) async {
-    final methodName = 'process';
-    try {
-      logger.info(
-        'Started processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
-        name: methodName,
-      );
+  Future<List<Channel>> process(InvitationGroupAccept event) async {
+    logger.info('''Started processing InvitationGroupAccept event
+      for offerLink: ${event.offerLink}''', name: 'process');
 
-      final connection = await findConnectionByOfferLink(event.offerLink);
-      if (connection.permanentChannelDid != null) {
-        logger.info(
-          'InvitationGroupAccept event ignored: connection is already associated with a permanent channel DID',
-          name: methodName,
-        );
-        return null;
-      }
-
-      if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
-        logger.info(
-          'Skipping processing: connection offer is not of type ${ConnectionOfferType.meetingPlaceInvitation.name}',
-          name: methodName,
-        );
-        return null;
-      }
-
-      final group = await _findGroupByOfferLink(event.offerLink);
-
-      final groupChannel =
-          await channelRepository.findChannelByOtherPartyPermanentChannelDid(
-            group.did,
-          ) ??
-          (throw Exception('Channel not found for group: ${group.did}'));
-
-      final publishedOfferDidManager = await connectionManager
-          .getDidManagerForDid(wallet, connection.publishOfferDid);
-
-      final messages = await fetchMessagesFromMediatorWithRetry(
-        didManager: publishedOfferDidManager,
-        mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.invitationAcceptanceGroup,
-      );
-
-      // TODO: ensure duplicate requests are handled correctly
-      for (final result in messages) {
-        final message = result.plainTextMessage;
-
-        final publicKey = message.body!['public_key'] as String;
-        final otherPartyPermanentChannelDid =
-            message.body!['channel_did'] as String;
-
-        logger.info(
-          'Acceptor\'s permanent did is $otherPartyPermanentChannelDid',
-          name: methodName,
-        );
-
-        final contactCard = getContactCardDataOrEmptyFromAttachments(
-          message.attachments,
-        );
-
-        if (contactCard == null) {
-          throw InvitationAcceptedGroupException.contactCardNotPresent();
-        }
-
-        final acceptOfferDid = message.from!;
-        group.members.add(
-          GroupMember.pendingMember(
-            did: otherPartyPermanentChannelDid,
-            publicKey: publicKey,
-            contactCard: contactCard,
-          ),
-        );
-
-        await _groupRepository.updateGroup(group);
-
-        final channel = Channel(
-          offerLink: connection.offerLink,
-          publishOfferDid: connection.publishOfferDid,
-          acceptOfferDid: acceptOfferDid,
-          mediatorDid: connection.mediatorDid,
-          permanentChannelDid: group.did,
-          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          status: ChannelStatus.waitingForApproval,
-          type: ChannelType.group,
-          contactCard: connection.contactCard,
-          otherPartyContactCard: contactCard,
-          externalRef: connection.externalRef,
-        );
-
-        await channelRepository.createChannel(channel);
-        await mediatorService.deletedMessages(
-          didManager: publishedOfferDidManager,
-          mediatorDid: connection.mediatorDid,
-          messageHashes: [result.messageHash!],
-        );
-
-        logger.info(
-          'Completed processing InvitationGroupAccept event for offerLink: ${event.offerLink}',
-          name: methodName,
-        );
-        return groupChannel;
-      }
-
-      logger.warning(
-        'No valid ConnectionSetupGroup message found for offerLink: ${event.offerLink}',
-        name: methodName,
-      );
-      return null;
-    } on EmptyMessageListException {
-      logger.warning(
-        'No messages found to process for event of type ${cp.ControlPlaneEventType.InvitationGroupAccept}',
-        name: methodName,
-      );
-      return null;
-    } catch (e, stackTrace) {
-      logger.error(
-        'Failed to process event of type ${cp.ControlPlaneEventType.InvitationGroupAccept}',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      rethrow;
+    final connection = await findConnectionByOfferLink(event.offerLink);
+    if (connection.permanentChannelDid != null) {
+      logger.info('''InvitationGroupAccept event ignored: connection is already
+        associated with a permanent channel DID''', name: 'process');
+      return [];
     }
+
+    if (connection.type != ConnectionOfferType.meetingPlaceInvitation) {
+      logger.info(
+        '''Skipping processing: connection offer is not of
+        type ${ConnectionOfferType.meetingPlaceInvitation.name}''',
+        name: 'process',
+      );
+      return [];
+    }
+
+    final publishedOfferDidManager = await connectionManager
+        .getDidManagerForDid(wallet, connection.publishOfferDid);
+
+    return processEvent(
+      event: event,
+      didManager: publishedOfferDidManager,
+      mediatorDid: connection.mediatorDid,
+      connection: connection,
+      fetchMessageOptions: FetchMessagesOptions(
+        filterByMessageTypes: [
+          MeetingPlaceProtocol.invitationAcceptanceGroup.value,
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<Channel> processMessage(
+    PlainTextMessage message, {
+    required InvitationGroupAccept event,
+    ConnectionOffer? connection,
+    Channel? channel,
+  }) async {
+    if (connection == null) {
+      throw ArgumentError(
+        'ConnectionOffer must be provided to process message',
+      );
+    }
+
+    final messageFrom = message.from;
+    if (messageFrom == null) {
+      throw ArgumentError('''Message must have a sender (from) to process
+        InvitationGroupAccept message''');
+    }
+
+    final group = await _findGroupByOfferLink(event.offerLink);
+    final groupChannel = await channelService
+        .findChannelByOtherPartyPermanentChannelDid(group.did);
+
+    final InvitationAcceptanceGroup invitationAcceptance =
+        InvitationAcceptanceGroup.fromPlainTextMessage(message);
+
+    final otherPartyPermanentChannelDid = invitationAcceptance.body.channelDid;
+
+    logger.info(
+      'Acceptor\'s permanent did is $otherPartyPermanentChannelDid',
+      name: 'processMessage',
+    );
+
+    final contactCard = getContactCardDataOrEmptyFromAttachments(
+      message.attachments,
+    );
+
+    if (contactCard == null) {
+      throw InvitationAcceptedGroupException.contactCardNotPresent();
+    }
+
+    group.members.add(
+      GroupMember.pendingMember(
+        did: otherPartyPermanentChannelDid,
+        publicKey: invitationAcceptance.body.publicKey,
+        contactCard: contactCard,
+      ),
+    );
+
+    await _groupRepository.updateGroup(group);
+
+    final channel = Channel(
+      offerLink: connection.offerLink,
+      publishOfferDid: connection.publishOfferDid,
+      acceptOfferDid: messageFrom,
+      mediatorDid: connection.mediatorDid,
+      permanentChannelDid: group.did,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      status: ChannelStatus.waitingForApproval,
+      type: ChannelType.group,
+      isConnectionInitiator: true,
+      contactCard: connection.contactCard,
+      otherPartyContactCard: contactCard,
+      externalRef: connection.externalRef,
+    );
+
+    await channelService.persistChannel(channel);
+    return groupChannel;
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {

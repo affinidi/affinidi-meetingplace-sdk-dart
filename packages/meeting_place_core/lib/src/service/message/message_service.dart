@@ -5,6 +5,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
 import '../../utils/string.dart';
+import '../channel/channel_service.dart';
 import '../connection_manager/connection_manager.dart';
 import '../mediator/mediator_service.dart';
 import 'message_service_exception.dart';
@@ -14,18 +15,18 @@ class MessageService {
     required ConnectionManager connectionManager,
     required DidResolver didResolver,
     required MediatorService mediatorService,
-    required ChannelRepository channelRepository,
+    required ChannelService channelService,
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _didResolver = didResolver,
        _mediatorService = mediatorService,
-       _channelRepository = channelRepository,
+       _channelService = channelService,
        _controlPlaneSDK = controlPlaneSDK,
        _logger = logger;
 
   final DidResolver _didResolver;
   final MediatorService _mediatorService;
-  final ChannelRepository _channelRepository;
+  final ChannelService _channelService;
   final ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceCoreSDKLogger _logger;
 
@@ -69,7 +70,7 @@ class MessageService {
     required String recipientDid,
     required String notifyChannelType,
   }) async {
-    final channel = await _channelRepository.findChannelByDid(recipientDid);
+    final channel = await _channelService.findChannelByDidOrNull(recipientDid);
 
     final otherPartyNotificationToken = channel?.otherPartyNotificationToken;
     if (otherPartyNotificationToken == null) return;

@@ -76,6 +76,7 @@ void main() {
         permanentChannelDid: permanentChannelDid,
         otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
         status: ChannelStatus.approved,
+        isConnectionInitiator: true,
         contactCard: ContactCardFixture.getContactCardFixture(
           did: 'did:test',
           contactInfo: const {},
@@ -141,6 +142,7 @@ void main() {
         permanentChannelDid: permanentDid,
         otherPartyPermanentChannelDid: otherPartyDid,
         status: ChannelStatus.approved,
+        isConnectionInitiator: true,
         contactCard: ContactCardFixture.getContactCardFixture(
           did: 'did:test',
           contactInfo: const {},

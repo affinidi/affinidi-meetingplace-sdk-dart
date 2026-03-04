@@ -18,6 +18,7 @@ void main() async {
     publishOfferDid: '',
     mediatorDid: '',
     status: ChannelStatus.inaugurated,
+    isConnectionInitiator: false,
     contactCard: ContactCardFixture.getContactCardFixture(
       did: 'did:test',
       contactInfo: {},

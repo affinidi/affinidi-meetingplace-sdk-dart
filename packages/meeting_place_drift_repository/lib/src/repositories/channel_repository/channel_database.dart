@@ -81,6 +81,10 @@ class Channels extends Table {
   /// Type of the channel.
   IntColumn get type => integer().map(const _ChannelTypeConverter())();
 
+  /// Indicates whether the channel was initiated by the local party or the
+  /// other party.
+  BoolColumn get isConnectionInitiator => boolean()();
+
   /// ID of the outbound message.
   TextColumn get outboundMessageId => text().nullable()();
 

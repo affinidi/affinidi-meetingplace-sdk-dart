@@ -65,6 +65,7 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
     contactCard: channelCard,
     otherPartyContactCard: otherPartyCard,
     type: ChannelType.individual,
+    isConnectionInitiator: false,
     permanentChannelDid: did,
     otherPartyPermanentChannelDid: otherPartyDid,
   );
@@ -103,6 +104,7 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
     status: ChannelStatus.inaugurated,
     contactCard: card,
     type: ChannelType.group,
+    isConnectionInitiator: false,
     permanentChannelDid: did,
     otherPartyPermanentChannelDid: otherPartyDid,
   );

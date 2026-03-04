@@ -2,6 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
+import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
@@ -23,7 +24,7 @@ void main() {
   late InvitationAcceptedEventHandler handler;
   late MockWallet mockWallet;
   late MockConnectionOfferRepository mockConnectionOfferRepository;
-  late MockChannelRepository mockChannelRepository;
+  late MockChannelService mockChannelService;
   late MockConnectionManager mockConnectionManager;
   late MockMediatorService mockMediatorService;
   late MockDidManager mockDidManager;
@@ -68,6 +69,7 @@ void main() {
     publishOfferDid: publishOfferDid,
     mediatorDid: mediatorDid,
     status: ChannelStatus.approved,
+    isConnectionInitiator: true,
     contactCard: ContactCard(
       did: 'did:key:contact-card-did',
       type: 'individual',
@@ -79,7 +81,7 @@ void main() {
   setUpAll(() {
     mockWallet = MockWallet();
     mockConnectionOfferRepository = MockConnectionOfferRepository();
-    mockChannelRepository = MockChannelRepository();
+    mockChannelService = MockChannelService();
     mockConnectionManager = MockConnectionManager();
     mockMediatorService = MockMediatorService();
     mockDidManager = MockDidManager(did: publishOfferDid);
@@ -87,7 +89,7 @@ void main() {
     handler = InvitationAcceptedEventHandler(
       wallet: mockWallet,
       connectionOfferRepository: mockConnectionOfferRepository,
-      channelRepository: mockChannelRepository,
+      channelService: mockChannelService,
       connectionManager: mockConnectionManager,
       mediatorService: mockMediatorService,
       options: const ControlPlaneEventHandlerManagerOptions(),
@@ -111,7 +113,7 @@ void main() {
     ).thenAnswer((_) async => mockDidManager);
 
     when(
-      () => mockChannelRepository.createChannel(any()),
+      () => mockChannelService.persistChannel(any()),
     ).thenAnswer((_) async => {});
 
     when(
@@ -124,7 +126,7 @@ void main() {
   });
 
   group('retry behavior', () {
-    late Channel? processResult;
+    final List<Channel> processResult = [];
 
     setUpAll(() async {
       // Mediator returns message on second attempt
@@ -153,11 +155,11 @@ void main() {
         ),
       ).thenAnswer((_) async => fetchMessagesResponses.removeAt(0));
 
-      processResult = await handler.process(event);
+      processResult.addAll(await handler.process(event));
     });
 
     test('succeed on second attempt to fetch messages', () async {
-      expect(processResult, isA<Channel>());
+      expect(processResult, isA<List<Channel>>());
     });
 
     test('fetchMessages called twice', () async {
@@ -194,9 +196,9 @@ void main() {
       ).called(3);
     });
 
-    test('returns null', () async {
+    test('returns empty list', () async {
       final result = await handler.process(event);
-      expect(result, isNull);
+      expect(result, isEmpty);
     });
   });
 }
@@ -206,5 +208,7 @@ class MockConnectionOfferRepository extends Mock
     implements ConnectionOfferRepository {}
 
 class MockChannelRepository extends Mock implements ChannelRepository {}
+
+class MockChannelService extends Mock implements ChannelService {}
 
 class MockConnectionManager extends Mock implements ConnectionManager {}

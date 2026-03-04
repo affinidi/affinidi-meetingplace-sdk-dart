@@ -1,20 +1,18 @@
-import '../entity/channel.dart';
-import 'package:didcomm/didcomm.dart';
+import '../../meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import '../service/mediator/fetch_messages_options.dart';
 import '../utils/attachment.dart';
-import '../protocol/protocol.dart';
+import '../protocol/protocol.dart' as protocol;
 import '../utils/string.dart';
 import 'base_event_handler.dart';
-import 'exceptions/empty_message_list_exception.dart';
 
-class OfferFinalisedEventHandler extends BaseEventHandler {
+class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
   OfferFinalisedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -27,174 +25,227 @@ class OfferFinalisedEventHandler extends BaseEventHandler {
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
 
-  Future<Channel?> process(OfferFinalised event) async {
-    final methodName = 'process';
-    try {
-      logger.info(
-        'Started processing OfferFinalised event for offerLink: ${event.offerLink}',
-        name: methodName,
+  Future<List<Channel>> process(OfferFinalised event) async {
+    logger.info(
+      'Started processing OfferFinalised event for offerLink: ${event.offerLink}',
+      name: 'process',
+    );
+
+    final connection = await findConnectionByOfferLink(event.offerLink);
+    if (connection.isFinalised) {
+      throw Exception(
+        'Connection offer ${connection.offerLink} already finalised',
       );
-
-      final connection = await findConnectionByOfferLink(event.offerLink);
-      if (connection.isFinalised) {
-        throw Exception(
-          'Connection offer ${connection.offerLink} already finalised',
-        );
-      }
-
-      final acceptOfferDid = connection.acceptOfferDid;
-      final permanentChannelDid = connection.permanentChannelDid;
-
-      if (acceptOfferDid == null || permanentChannelDid == null) {
-        throw Exception(
-          'Connection offer ${connection.offerLink} is missing acceptOfferDid or permanentChannelDid',
-        );
-      }
-
-      final channel = await findChannelByDid(permanentChannelDid);
-
-      final acceptOfferDidManager = await connectionManager.getDidManagerForDid(
-        wallet,
-        acceptOfferDid,
-      );
-
-      final acceptOfferDidDocument = await acceptOfferDidManager
-          .getDidDocument();
-
-      final permenantChannelDid = await connectionManager.getDidManagerForDid(
-        wallet,
-        permanentChannelDid,
-      );
-
-      final permanentChannelDidDocument = await permenantChannelDid
-          .getDidDocument();
-
-      final messages = await fetchMessagesFromMediatorWithRetry(
-        didManager: acceptOfferDidManager,
-        mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.connectionRequestApproval,
-      );
-
-      for (final result in messages) {
-        final message = result.plainTextMessage;
-
-        logger.info(
-          'Found ConnectionRequestApproval. Their channel is ${message.body!['channel_did']}',
-          name: methodName,
-        );
-
-        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
-          message.attachments,
-        );
-
-        final otherPartyPermanentChannelDid =
-            message.body!['channel_did'] as String;
-
-        final notificationToken = await _registerNotificationToken(
-          connection.permanentChannelDid!,
-          otherPartyPermanentChannelDid,
-        );
-
-        await Future.wait([
-          mediatorService.updateAcl(
-            ownerDidManager: permenantChannelDid,
-            mediatorDid: connection.mediatorDid,
-            acl: AccessListAdd(
-              ownerDid: permanentChannelDidDocument.id,
-              granteeDids: [otherPartyPermanentChannelDid],
-            ),
-          ),
-          mediatorService.updateAcl(
-            ownerDidManager: acceptOfferDidManager,
-            mediatorDid: connection.mediatorDid,
-            acl: AccessListRemove(
-              ownerDid: acceptOfferDidDocument.id,
-              granteeDids: [message.from!],
-            ),
-          ),
-        ]);
-
-        final otherPartyPermanentChannelDidDocument = await _didResolver
-            .resolveDid(otherPartyPermanentChannelDid);
-
-        List<Attachment>? outgoingAttachments = await options.onBuildAttachments
-            ?.call(channel);
-
-        await mediatorService.sendMessage(
-          ChannelInauguration.create(
-            from: permanentChannelDidDocument.id,
-            to: [otherPartyPermanentChannelDid],
-            did: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-            attachments: outgoingAttachments,
-          ).toPlainTextMessage(),
-          senderDidManager: permenantChannelDid,
-          recipientDidDocument: otherPartyPermanentChannelDidDocument,
-          mediatorDid: connection.mediatorDid,
-        );
-
-        channel.notificationToken = notificationToken;
-        channel.otherPartyNotificationToken = event.notificationToken;
-        channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
-        channel.outboundMessageId = message.id;
-        channel.otherPartyContactCard = otherPartyCard;
-        channel.status = ChannelStatus.inaugurated;
-        await channelRepository.updateChannel(channel);
-
-        final attachments = message.attachments;
-        if (attachments != null && attachments.isNotEmpty) {
-          options.onAttachmentsReceived?.call(channel, attachments);
-        }
-
-        final approvedConnection = connection.finalised(
-          outboundMessageId: message.id,
-          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          notificationToken: notificationToken,
-          otherPartyNotificationToken: event.notificationToken,
-        );
-
-        await connectionOfferRepository.updateConnectionOffer(
-          approvedConnection,
-        );
-
-        await _notifyChannel(
-          notificationToken: event.notificationToken,
-          did: otherPartyPermanentChannelDid,
-        );
-
-        await mediatorService.deletedMessages(
-          didManager: acceptOfferDidManager,
-          mediatorDid: connection.mediatorDid,
-          messageHashes: [result.messageHash!],
-        );
-
-        logger.info(
-          'Completed processing OfferFinalised event for offerLink: ${event.offerLink}',
-          name: methodName,
-        );
-        return channel;
-      }
-
-      logger.warning(
-        'No valid ConnectionInvitationAccepted message found for offerLink: ${event.offerLink}',
-        name: methodName,
-      );
-      return null;
-    } on EmptyMessageListException {
-      logger.warning(
-        'No messages found to process for event of type ${ControlPlaneEventType.OfferFinalised}',
-        name: methodName,
-      );
-      return null;
-    } catch (e, stackTrace) {
-      logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.OfferFinalised}',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      rethrow;
     }
+
+    final permanentChannelDid = connection.permanentChannelDid;
+    if (permanentChannelDid == null) {
+      throw Exception('''Connection offer ${connection.offerLink} is missing
+        permanentChannelDid''');
+    }
+
+    final channel = await channelService.findChannelByDid(permanentChannelDid);
+
+    final acceptOfferDid = connection.acceptOfferDid;
+    if (acceptOfferDid == null) {
+      throw Exception(
+        'Connection offer ${connection.offerLink} is missing acceptOfferDid',
+      );
+    }
+
+    final acceptOfferDidManager = await connectionManager.getDidManagerForDid(
+      wallet,
+      acceptOfferDid,
+    );
+
+    return processEvent(
+      event: event,
+      didManager: acceptOfferDidManager,
+      mediatorDid: connection.mediatorDid,
+      connection: connection,
+      channel: channel,
+      fetchMessageOptions: FetchMessagesOptions(
+        filterByMessageTypes: [
+          MeetingPlaceProtocol.connectionRequestApproval.value,
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<Channel> processMessage(
+    PlainTextMessage message, {
+    required OfferFinalised event,
+    ConnectionOffer? connection,
+    Channel? channel,
+  }) async {
+    if (connection == null) {
+      throw ArgumentError('''Connection offer must be provided to process
+        ConnectionRequestApproval message''');
+    }
+
+    if (channel == null) {
+      throw ArgumentError('''Channel must be provided to process
+        ConnectionRequestApproval message''');
+    }
+
+    final messageFrom = message.from;
+    if (messageFrom == null) {
+      throw ArgumentError('''Message must have a sender (from) to process
+        ConnectionRequestApproval message''');
+    }
+
+    final acceptOfferDid = channel.acceptOfferDid;
+    final permanentChannelDid = channel.permanentChannelDid;
+
+    if (acceptOfferDid == null || permanentChannelDid == null) {
+      throw ArgumentError('''Channel must have acceptOfferDid and
+        permanentChannelDid to process ConnectionRequestApproval message''');
+    }
+
+    final acceptOfferDidManager = await connectionManager.getDidManagerForDid(
+      wallet,
+      acceptOfferDid,
+    );
+
+    final permanentChannelDidManager = await connectionManager
+        .getDidManagerForDid(wallet, permanentChannelDid);
+
+    final (otherPartyPermanentChannelDid, otherPartyCard) = _extractFromMessage(
+      message,
+    );
+
+    final notificationToken = await _registerNotificationToken(
+      permanentChannelDid,
+      otherPartyPermanentChannelDid,
+    );
+
+    await _updateMediatorAcls(
+      permanentChannelDidManager: permanentChannelDidManager,
+      permanentChannelDid: permanentChannelDid,
+      acceptOfferDidManager: acceptOfferDidManager,
+      acceptOfferDid: acceptOfferDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      messageFrom: messageFrom,
+      mediatorDid: channel.mediatorDid,
+    );
+
+    await _sendChannelInaugurationMessage(
+      channel: channel,
+      permanentChannelDidManager: permanentChannelDidManager,
+      permanentChannelDid: permanentChannelDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      notificationToken: notificationToken,
+    );
+
+    await channelService.markChannelInauguratedForNonConnectionInitiator(
+      channel,
+      notificationToken: notificationToken,
+      otherPartyNotificationToken: event.notificationToken,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      outboundMessageId: message.id,
+      otherPartyCard: otherPartyCard,
+    );
+
+    final attachments = message.attachments;
+    if (attachments != null && attachments.isNotEmpty) {
+      options.onAttachmentsReceived?.call(channel, attachments);
+    }
+
+    final approvedConnection = connection.finalised(
+      outboundMessageId: message.id,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      notificationToken: notificationToken,
+      otherPartyNotificationToken: event.notificationToken,
+    );
+
+    await connectionOfferRepository.updateConnectionOffer(approvedConnection);
+
+    await _notifyChannel(
+      notificationToken: event.notificationToken,
+      did: otherPartyPermanentChannelDid,
+    );
+
+    return channel;
+  }
+
+  (String, protocol.ContactCard?) _extractFromMessage(
+    PlainTextMessage message,
+  ) {
+    final connectionRequestApprovalMessage =
+        protocol.ConnectionRequestApproval.fromPlainTextMessage(message);
+
+    final otherPartyPermanentChannelDid =
+        connectionRequestApprovalMessage.body.channelDid;
+
+    logger.info(
+      '''Found ConnectionRequestApproval. Their channel
+      is ${connectionRequestApprovalMessage.body.channelDid}''',
+      name: 'processMessage',
+    );
+
+    final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
+      connectionRequestApprovalMessage.attachments,
+    );
+
+    return (otherPartyPermanentChannelDid, otherPartyCard);
+  }
+
+  Future<void> _sendChannelInaugurationMessage({
+    required Channel channel,
+    required DidManager permanentChannelDidManager,
+    required String permanentChannelDid,
+    required String otherPartyPermanentChannelDid,
+    required String notificationToken,
+  }) async {
+    final otherPartyPermanentChannelDidDocument = await _didResolver.resolveDid(
+      otherPartyPermanentChannelDid,
+    );
+
+    List<Attachment>? outgoingAttachments = await options.onBuildAttachments
+        ?.call(channel);
+
+    return mediatorService.sendMessage(
+      ChannelInauguration.create(
+        from: permanentChannelDid,
+        to: [otherPartyPermanentChannelDid],
+        did: otherPartyPermanentChannelDid,
+        notificationToken: notificationToken,
+        attachments: outgoingAttachments,
+      ).toPlainTextMessage(),
+      senderDidManager: permanentChannelDidManager,
+      recipientDidDocument: otherPartyPermanentChannelDidDocument,
+      mediatorDid: channel.mediatorDid,
+    );
+  }
+
+  Future<void> _updateMediatorAcls({
+    required DidManager permanentChannelDidManager,
+    required String permanentChannelDid,
+    required DidManager acceptOfferDidManager,
+    required String acceptOfferDid,
+    required String otherPartyPermanentChannelDid,
+    required String messageFrom,
+    required String mediatorDid,
+  }) {
+    return Future.wait([
+      mediatorService.updateAcl(
+        ownerDidManager: permanentChannelDidManager,
+        mediatorDid: mediatorDid,
+        acl: AccessListAdd(
+          ownerDid: permanentChannelDid,
+          granteeDids: [otherPartyPermanentChannelDid],
+        ),
+      ),
+      mediatorService.updateAcl(
+        ownerDidManager: acceptOfferDidManager,
+        mediatorDid: mediatorDid,
+        acl: AccessListRemove(
+          ownerDid: acceptOfferDid,
+          granteeDids: [messageFrom],
+        ),
+      ),
+    ]);
   }
 
   Future<String> _registerNotificationToken(

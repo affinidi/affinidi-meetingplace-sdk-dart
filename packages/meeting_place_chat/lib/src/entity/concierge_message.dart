@@ -21,12 +21,14 @@ class ConciergeMessageType {
   final String value;
 
   /// Requests permission from the user to update their profile.
-  static const permissionToUpdateProfile =
-      ConciergeMessageType('permissionToUpdateProfile');
+  static const permissionToUpdateProfile = ConciergeMessageType(
+    'permissionToUpdateProfile',
+  );
 
   /// Requests permission to join a group chat.
-  static const permissionToJoinGroup =
-      ConciergeMessageType('permissionToJoinGroup');
+  static const permissionToJoinGroup = ConciergeMessageType(
+    'permissionToJoinGroup',
+  );
 
   @override
   bool operator ==(Object other) =>

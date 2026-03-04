@@ -17,11 +17,13 @@ class EventMessageType {
   /// The string identifier for this type.
   final String value;
 
-  static const awaitingGroupMemberToJoin =
-      EventMessageType('awaitingGroupMemberToJoin');
+  static const awaitingGroupMemberToJoin = EventMessageType(
+    'awaitingGroupMemberToJoin',
+  );
   static const groupDeleted = EventMessageType('groupDeleted');
-  static const groupMemberJoinedGroup =
-      EventMessageType('groupMemberJoinedGroup');
+  static const groupMemberJoinedGroup = EventMessageType(
+    'groupMemberJoinedGroup',
+  );
   static const groupMemberLeftGroup = EventMessageType('groupMemberLeftGroup');
 
   @override

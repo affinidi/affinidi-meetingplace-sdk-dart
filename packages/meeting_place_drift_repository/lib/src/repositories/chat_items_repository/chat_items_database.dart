@@ -293,7 +293,6 @@ class _ChatItemTypeConverter extends TypeConverter<ChatItemType, int> {
   }
 }
 
-
 class _ConciergeDataConverter
     extends TypeConverter<Map<String, dynamic>, String> {
   const _ConciergeDataConverter();

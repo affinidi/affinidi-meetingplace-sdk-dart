@@ -224,7 +224,7 @@ class ChannelService {
   /// - [otherPartyPermanentChannelDid]: The permanent channel DID to set for
   ///  the other party.
   /// - [outboundMessageId]: The outbound message ID to set for the channel.
-  /// - [otherPartyCard]: The contact card to set for the other party.
+  /// - [otherPartyContactCard]: The contact card to set for the other party.
   ///
   /// Returns a [Future] that completes when the update is done.
   ///
@@ -235,8 +235,7 @@ class ChannelService {
     Channel channel, {
     required String otherPartyPermanentChannelDid,
     required String outboundMessageId,
-    // TODO: rename to otherPartyContactCard
-    required ContactCard? otherPartyCard,
+    required ContactCard? otherPartyContactCard,
   }) {
     if (!channel.isOob) {
       throw ChannelServiceException.invalidChannelType(
@@ -260,7 +259,7 @@ class ChannelService {
 
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
     channel.outboundMessageId = outboundMessageId;
-    channel.otherPartyContactCard = otherPartyCard;
+    channel.otherPartyContactCard = otherPartyContactCard;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);
   }

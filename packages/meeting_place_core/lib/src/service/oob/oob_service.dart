@@ -350,7 +350,7 @@ class OobService {
       session.channel,
       outboundMessageId: message.parentThreadId,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-      otherPartyCard: otherPartyCard,
+      otherPartyContactCard: otherPartyCard,
     );
 
     final attachments = message.attachments;

@@ -56,6 +56,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
               messageSyncMarker: Value(channel.messageSyncMarker),
               mediatorDid: Value(channel.mediatorDid),
               externalRef: Value(channel.externalRef),
+              isConnectionInitiator: Value(channel.isConnectionInitiator),
             ),
           );
 
@@ -145,6 +146,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           messageSyncMarker: Value(channel.messageSyncMarker),
           mediatorDid: Value(channel.mediatorDid),
           externalRef: Value(channel.externalRef),
+          isConnectionInitiator: Value(channel.isConnectionInitiator),
         ),
       );
 

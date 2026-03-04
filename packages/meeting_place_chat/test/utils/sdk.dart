@@ -94,6 +94,7 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
   required ChannelRepository channelRepository,
   ContactCard? card,
   Storage? existingStorage,
+  ChatSDKOptions? options,
 }) async {
   final storage = existingStorage ?? InMemoryStorage();
   final channel = Channel(
@@ -118,9 +119,9 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
       mediatorDid: getMediatorDid(),
       card: card,
       chatRepository: ChatRepositoryImpl(storage: storage),
-      options: ChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 3),
-      ),
+      options:
+          options ??
+          ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
     ),
   );
 }

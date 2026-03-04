@@ -50,6 +50,7 @@ class SetupChatSdk {
     Storage? storage,
     ContactCard? card,
     ContactCard? channelCard,
+    ChatSDKOptions? options,
   }) async {
     await sdkInstance.coreSDK.mediator.updateAcl(
       ownerDidManager: sdkInstance.didManager,
@@ -76,6 +77,7 @@ class SetupChatSdk {
       card: card ?? sdkInstance.contactCard,
       otherPartyCard: otherPartySdkInstance.contactCard,
       existingStorage: storage,
+      options: options,
     );
   }
 }

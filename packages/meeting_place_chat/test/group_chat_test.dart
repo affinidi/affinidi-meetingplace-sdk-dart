@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import 'utils/contact_card_fixture.dart';
 import 'utils/control_plane_test_utils.dart';
 import 'utils/sdk.dart';
+import 'utils/storage/in_memory_storage.dart';
 
 void main() async {
   late final MeetingPlaceCoreSDK aliceSDK;
@@ -564,4 +565,51 @@ void main() async {
     );
     expect(received.id, equals('group-notify-id'));
   });
+
+  test(
+    'group chat sent message status is sent when skipQueueMessageStatus is true',
+    () async {
+      final chatSDK = await initGroupChatSDK(
+        coreSDK: aliceSDK,
+        did: groupOwnerDidDocument.id,
+        otherPartyDid: publishOfferResult.connectionOffer.groupDid!,
+        group: aliceGroup,
+        channelRepository: aliceChannelRepository,
+        card: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+        ),
+        existingStorage: InMemoryStorage(),
+        options: ChatSDKOptions(skipQueueMessageStatus: true),
+      );
+      await chatSDK.startChatSession();
+      final message = await chatSDK.sendTextMessage('Optimistic group message');
+      expect(message.status, ChatItemStatus.sent);
+    },
+  );
+
+  test(
+    'group chat sent message status is queued then sent when skipQueueMessageStatus is false',
+    () async {
+      final chatSDK = await initGroupChatSDK(
+        coreSDK: aliceSDK,
+        did: groupOwnerDidDocument.id,
+        otherPartyDid: publishOfferResult.connectionOffer.groupDid!,
+        group: aliceGroup,
+        channelRepository: aliceChannelRepository,
+        card: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+        ),
+        existingStorage: InMemoryStorage(),
+        options: ChatSDKOptions(skipQueueMessageStatus: false),
+      );
+      await chatSDK.startChatSession();
+      final message = await chatSDK.sendTextMessage('Queued group message');
+      expect(message.status, anyOf(ChatItemStatus.queued, ChatItemStatus.sent));
+      final updatedMessage =
+          await chatSDK.getMessageById(message.messageId) as Message;
+      expect(updatedMessage.status, ChatItemStatus.sent);
+    },
+  );
 }

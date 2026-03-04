@@ -781,4 +781,37 @@ void main() async {
       equals(unhandledMessage.id),
     );
   });
+
+  test(
+    'sent message status is sent when skipQueueMessageStatus is true',
+    () async {
+      final chatSDK = await setup.createChatSdk(
+        sdkInstance: aliceSDK,
+        otherPartySdkInstance: bobSDK,
+        options: ChatSDKOptions(skipQueueMessageStatus: true),
+      );
+      await chatSDK.startChatSession();
+      final message = await chatSDK.sendTextMessage('Optimistic message');
+      expect(message.status, ChatItemStatus.sent);
+    },
+  );
+
+  test(
+    'sent message status is queued then sent when skipQueueMessageStatus is false',
+    () async {
+      final chatSDK = await setup.createChatSdk(
+        sdkInstance: aliceSDK,
+        otherPartySdkInstance: bobSDK,
+        options: ChatSDKOptions(skipQueueMessageStatus: false),
+      );
+      await chatSDK.startChatSession();
+      final message = await chatSDK.sendTextMessage('Queued message');
+
+      expect(message.status, anyOf(ChatItemStatus.queued, ChatItemStatus.sent));
+
+      final updatedMessage =
+          await chatSDK.getMessageById(message.messageId) as Message;
+      expect(updatedMessage.status, ChatItemStatus.sent);
+    },
+  );
 }

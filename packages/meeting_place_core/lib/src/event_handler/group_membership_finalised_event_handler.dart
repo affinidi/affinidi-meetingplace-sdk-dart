@@ -155,7 +155,7 @@ class GroupMembershipFinalisedEventHandler
       didManager: didManager,
       permanentChannelDid: permanentChannelDid,
       adminDid: admin.did,
-      groupDid: group.did,
+      groupDid: groupMemberInaugurationMessage.body.groupDid,
       messageFrom: messageFrom,
       mediatorDid: connection.mediatorDid,
     );

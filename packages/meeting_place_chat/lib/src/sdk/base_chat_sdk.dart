@@ -536,9 +536,18 @@ abstract class BaseChatSDK {
     );
 
     final plainTextMessage = chatMessage.toPlainTextMessage();
-    final createdMessage = await chatRepository.createMessage(
-      Message.fromSentMessage(message: chatMessage, chatId: chatId),
-    );
+    final status = options.skipQueueMessageStatus
+        ? ChatItemStatus.sent
+        : ChatItemStatus.queued;
+    final createdMessage =
+        await chatRepository.createMessage(
+              Message.fromSentMessage(
+                message: chatMessage,
+                chatId: chatId,
+                status: status,
+              ),
+            )
+            as Message;
 
     try {
       chatStream.pushData(
@@ -550,17 +559,22 @@ abstract class BaseChatSDK {
 
       await _sendMessageWithNotification(plainTextMessage);
 
+      Message resultMessage = createdMessage;
+      if (!options.skipQueueMessageStatus) {
+        resultMessage = await _updateMessageStatus(
+          chatId: chatId,
+          messageId: createdMessage.messageId,
+        );
+      }
+
       await coreSDK.updateChannel(channel);
 
       chatStream.pushData(
-        StreamData(
-          plainTextMessage: plainTextMessage,
-          chatItem: createdMessage,
-        ),
+        StreamData(plainTextMessage: plainTextMessage, chatItem: resultMessage),
       );
 
       _logger.info('Completed sending text message', name: methodName);
-      return createdMessage as Message;
+      return resultMessage;
     } catch (e, stackTrace) {
       return await _handleSendMessageError(
         createdMessage: createdMessage,
@@ -858,6 +872,24 @@ abstract class BaseChatSDK {
         name: '_sendMessageWithNotification',
       );
     }
+  }
+
+  Future<Message> _updateMessageStatus({
+    required String chatId,
+    required String messageId,
+  }) async {
+    // TODO: add optimistic locking
+    final message = await chatRepository.getMessage(
+      chatId: chatId,
+      messageId: messageId,
+    );
+
+    if (message!.status == ChatItemStatus.queued) {
+      message.status = ChatItemStatus.sent;
+      await chatRepository.updateMesssage(message);
+    }
+
+    return message as Message;
   }
 
   Future<Message> _handleSendMessageError({

@@ -59,7 +59,7 @@ class Message extends ChatItem {
   /// Factory constructor to create a [Message] from a locally sent
   ///  chat message.
   ///
-  /// This sets the status to [ChatItemStatus.sent] for optimistic UI display
+  /// This sets the status to the provided [status] value for UI display
 
   /// and marks the message as created by the current user
   ///  (`createdByMe = true`).
@@ -72,13 +72,14 @@ class Message extends ChatItem {
   factory Message.fromSentMessage({
     required ChatMessage message,
     required String chatId,
+    required ChatItemStatus status,
   }) {
     return Message.fromPlaintextMessage(
       chatId: chatId,
       message,
       senderDid: message.from,
       attachments: message.attachments,
-      status: ChatItemStatus.sent,
+      status: status,
       createdByMe: true,
     );
   }

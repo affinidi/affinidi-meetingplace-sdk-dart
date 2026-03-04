@@ -18,6 +18,8 @@ class ChatSDKOptions {
   ///  (default: `[ChatProtocol.chatMessage]`).
   /// - [memberJoinedIndicator]: List of [ChatProtocol] message types
   ///   that indicate that new group member opened chat screen the first time.
+  /// - [skipQueueMessageStatus]: If true, messages are marked as 'sent' immediately for snappier UI.
+  ///   If false, messages are first 'queued', then updated to 'sent' after delivery.
   ChatSDKOptions({
     this.chatPresenceSendInterval = const Duration(seconds: 10),
     this.chatPresenceExpiry = const Duration(seconds: 15),
@@ -34,6 +36,7 @@ class ChatSDKOptions {
       ChatProtocol.chatMessage,
       ChatProtocol.chatReaction,
     ],
+    this.skipQueueMessageStatus = false,
   });
 
   /// The list of message types that require delivery acknowledgement.
@@ -72,4 +75,8 @@ class ChatSDKOptions {
   /// - ChatProtocol.chatMessage,
   /// - ChatProtocol.chatReaction,
   final List<ChatProtocol> memberJoinedIndicator;
+
+  /// If true, messages are marked as 'sent' immediately for snappier UI.
+  /// If false, messages are first 'queued', then updated to 'sent' after delivery.
+  final bool skipQueueMessageStatus;
 }

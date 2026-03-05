@@ -4,7 +4,7 @@ import 'package:ssi/ssi.dart';
 class MeetingPlaceMediatorSDKOptions {
   const MeetingPlaceMediatorSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
-    this.websocketPingInterval = 30,
+    this.websocketPingInterval = 10,
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.signatureScheme = SignatureScheme.ecdsa_p256_sha256,

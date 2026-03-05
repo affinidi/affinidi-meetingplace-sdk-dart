@@ -31,6 +31,7 @@ class CachedDidResolver implements DidResolver {
       ).resolveDid(did),
       retryIf: (e) =>
           e is SsiException && e.code == SsiExceptionType.invalidDidWeb.code ||
+          e is SocketException ||
           e is TimeoutException ||
           e is HttpException ||
           e is HandshakeException ||

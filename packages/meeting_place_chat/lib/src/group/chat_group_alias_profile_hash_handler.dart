@@ -23,6 +23,9 @@ class ChatGroupAliasProfileHashHandler {
     if (profileHash != null && profileHash is String) {
       final member = group.members.firstWhere(
         (member) => member.did == message.from!,
+        orElse: () => throw Exception(
+          'Group member ${message.from} not found',
+        ),
       );
 
       if (member.contactCard.profileHash != profileHash) {

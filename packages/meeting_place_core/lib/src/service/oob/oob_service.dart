@@ -1,10 +1,5 @@
-import 'dart:convert';
-
-import 'package:didcomm/didcomm.dart';
-import 'package:dio/dio.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
-import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';

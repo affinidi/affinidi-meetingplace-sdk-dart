@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:didcomm/didcomm.dart';
+import 'package:dio/dio.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
@@ -10,6 +14,7 @@ import '../../utils/string.dart';
 import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
 import '../mediator/mediator_service.dart';
+import 'oob_service_exception.dart';
 import 'session/oob_acceptance_session.dart';
 import 'session/oob_offer_session.dart';
 
@@ -22,16 +27,14 @@ class OobService {
     required ChannelService channelService,
     required ControlPlaneSDK controlPlaneSDK,
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
-    required MeetingPlaceMediatorSDK mediatorSDK,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _wallet = wallet,
        _mediatorService = mediatorService,
        _connectionService = connectionService,
        _connectionManager = connectionManager,
        _channelService = channelService,
-       _controlPlaneSDK = controlPlaneSDK,
        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
-       _mediatorSDK = mediatorSDK,
+       _controlPlaneSDK = controlPlaneSDK,
        _logger = logger;
 
   final Wallet _wallet;
@@ -39,9 +42,8 @@ class OobService {
   final ConnectionService _connectionService;
   final ConnectionManager _connectionManager;
   final ChannelService _channelService;
-  final ControlPlaneSDK _controlPlaneSDK;
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
-  final MeetingPlaceMediatorSDK _mediatorSDK;
+  final ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceCoreSDKLogger _logger;
 
   static final String _logKey = 'OobService';
@@ -49,6 +51,7 @@ class OobService {
   Future<OobOfferSession> createOobFlow({
     required ContactCard contactCard,
     required String mediatorDid,
+    String? type,
     String? did,
     String? externalRef,
   }) async {
@@ -57,7 +60,10 @@ class OobService {
     // Create OOB data
     final oobDidManager = await _connectionManager.generateDid(_wallet);
     final oobDidDoc = await oobDidManager.getDidDocument();
-    final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
+    final oobMessage = OobInvitationMessage.create(
+      from: oobDidDoc.id,
+      type: type,
+    );
 
     _logger.info('''Setup OOB invitation for ${oobDidDoc.id.topAndTail()} on
       $mediatorDid''', name: _logKey);
@@ -70,7 +76,7 @@ class OobService {
       mediatorDid: mediatorDid,
     );
 
-    final (_, oobCommandOutput, subscription) = await (
+    final (_, oobOutput, subscription) = await (
       _mediatorService.updateAcl(
         ownerDidManager: oobDidManager,
         mediatorDid: mediatorDid,
@@ -89,7 +95,7 @@ class OobService {
     ).wait;
 
     _logger.info(
-      'OOB invitation created with URL: ${oobCommandOutput.oobUrl}',
+      'OOB invitation created with URL: ${oobOutput.oobUrl}',
       name: _logKey,
     );
 
@@ -97,7 +103,7 @@ class OobService {
       didManager: oobDidManager,
       didDocument: oobDidDoc,
       oobInvitationMessage: oobMessage,
-      oobUrl: Uri.parse(oobCommandOutput.oobUrl),
+      oobUrl: Uri.parse(oobOutput.oobUrl),
       contactCard: contactCard,
       mediatorDid: mediatorDid,
       subscription: subscription,
@@ -136,15 +142,15 @@ class OobService {
   }
 
   Future<OobAcceptanceSession> acceptOobFlow(
-    Uri oobUrl, {
+    Uri oobUri, {
     required ContactCard contactCard,
     required String mediatorDid,
+    String? type,
     String? externalRef,
     String? did,
     List<Attachment>? attachments,
   }) async {
-    final methodName = 'acceptOobFlow';
-    _logger.info('Started accepting OOB invitation', name: methodName);
+    _logger.info('Started accepting OOB invitation', name: _logKey);
 
     final acceptOfferDid = await _connectionManager.generateDid(_wallet);
     final acceptOfferDidDoc = await acceptOfferDid.getDidDocument();
@@ -155,39 +161,15 @@ class OobService {
 
     final permanentChannelDidDoc = await permanentChannelDid.getDidDocument();
 
-    PlainTextMessage invitationMessage;
-    String actualMediatorDid;
-
-    try {
-      _logger.info('Fetching OOB invitation', name: methodName);
-      final oobInfo = await _controlPlaneSDK.execute(
-        GetOobCommand(oobId: oobUrl.pathSegments.last),
-      );
-
-      invitationMessage = OobInvitationMessage.fromBase64(
-        oobInfo.invitationMessage,
-      ).toPlainTextMessage();
-
-      actualMediatorDid = oobInfo.mediatorDid;
-    } catch (e, stackTrace) {
-      _logger.error(
-        '''Failed to fetch OOB invitation. Trying to fetch from mediator directly
-        as fallback.''',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      invitationMessage = await _mediatorSDK.getOob(
-        oobUrl,
-        didManager: acceptOfferDid,
-      );
-      actualMediatorDid = '';
-    }
+    final (invitationMessage, mediatorDid) = await _fetchOobInvitation(
+      oobUri: oobUri,
+      type: type,
+    );
 
     final channel = Channel(
       offerLink: invitationMessage.id,
-      publishOfferDid: invitationMessage.from!,
-      mediatorDid: actualMediatorDid,
+      publishOfferDid: invitationMessage.from,
+      mediatorDid: mediatorDid,
       status: ChannelStatus.waitingForApproval,
       outboundMessageId: invitationMessage.id,
       acceptOfferDid: acceptOfferDidDoc.id,
@@ -200,12 +182,7 @@ class OobService {
 
     final streamSubscription = await _mediatorService.subscribe(
       didManager: acceptOfferDid,
-      mediatorDid: actualMediatorDid,
-    );
-
-    _logger.info(
-      'Listening for messages on mediator channel',
-      name: methodName,
+      mediatorDid: mediatorDid,
     );
 
     final session = OobAcceptanceSession(
@@ -213,8 +190,13 @@ class OobService {
       permanentChannelDidManager: permanentChannelDid,
       permanentChannelDidDocument: permanentChannelDidDoc,
       subscription: streamSubscription,
-      mediatorDid: actualMediatorDid,
+      mediatorDid: mediatorDid,
       logger: _logger,
+    );
+
+    _logger.info(
+      'Listening for messages on mediator $mediatorDid',
+      name: _logKey,
     );
 
     streamSubscription.listen((mediatorMessage) async {
@@ -243,8 +225,8 @@ class OobService {
     await _connectionService.sendAcceptOfferToMediator(
       acceptOfferDid: acceptOfferDid,
       permanentChannelDidDocument: permanentChannelDidDoc,
-      invitationMessage: invitationMessage,
-      mediatorDid: actualMediatorDid,
+      invitationMessage: invitationMessage.toPlainTextMessage(),
+      mediatorDid: mediatorDid,
       acceptContactCard: contactCard,
       attachments: attachments,
     );
@@ -369,5 +351,73 @@ class OobService {
       'OOB invitation accepted, channel created with ID: ${session.channel.id}',
       name: _logKey,
     );
+  }
+
+  Future<(OobInvitationMessage, String)> _fetchOobInvitation({
+    required Uri oobUri,
+    String? type,
+  }) async {
+    _logger.info('Fetching OOB invitation via HTTP GET', name: _logKey);
+
+    try {
+      // TODO: handle errors here
+      final oobId = oobUri.pathSegments.last;
+      final oob = await _controlPlaneSDK.execute(GetOobCommand(oobId: oobId));
+
+      final invitationMessage = OobInvitationMessage.fromBase64(
+        oob.invitationMessage,
+      );
+
+      _validateOobInvitation(invitationMessage, oobUri, type);
+      return (invitationMessage, oob.mediatorDid);
+    } on ControlPlaneSDKException catch (e) {
+      if (e.code == ControlPlaneSDKErrorCode.oobNotFound.value) {
+        throw OobServiceException.notFound(oobUri: oobUri, innerException: e);
+      }
+
+      if (e.code == ControlPlaneSDKErrorCode.networkError.value) {
+        throw OobServiceException.networkError(
+          oobUri: oobUri,
+          innerException: e,
+        );
+      }
+
+      throw OobServiceException.invalidOobResponse(innerException: e);
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to fetch OOB invitation from $oobUri, error: $e',
+        name: _logKey,
+        stackTrace: stackTrace,
+      );
+
+      if (e is OobServiceException) {
+        rethrow;
+      }
+
+      Error.throwWithStackTrace(
+        OobServiceException.generic(oobUri: oobUri),
+        stackTrace,
+      );
+    }
+  }
+
+  void _validateOobInvitation(
+    OobInvitationMessage invitationMessage,
+    Uri oobUri,
+    String? type,
+  ) {
+    if (type != null && invitationMessage.body.goalCode != type) {
+      _logger.error(
+        '''OOB invitation type ${invitationMessage.body.goalCode} does not
+        match expected type $type''',
+        name: _logKey,
+      );
+
+      throw OobServiceException.invalidOobType(
+        oobUri: oobUri,
+        expectedType: type,
+        actualType: invitationMessage.body.goalCode,
+      );
+    }
   }
 }

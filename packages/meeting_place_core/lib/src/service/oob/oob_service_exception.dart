@@ -53,7 +53,7 @@ class OobServiceException implements SDKException {
     return OobServiceException(
       message: '''OOB Service exception: Network error while fetching OOB
         invitation from URL: ${oobUri.toString()}.''',
-      code: MeetingPlaceCoreSDKErrorCode.oobNetworkError,
+      code: MeetingPlaceCoreSDKErrorCode.networkError,
       innerException: innerException,
     );
   }
@@ -65,7 +65,7 @@ class OobServiceException implements SDKException {
     return OobServiceException(
       message: '''OOB Service exception: An error occurred while fetching OOB
         invitation from URL: ${oobUri.toString()}.''',
-      code: MeetingPlaceCoreSDKErrorCode.oobGenericError,
+      code: MeetingPlaceCoreSDKErrorCode.generic,
       innerException: innerException,
     );
   }

@@ -361,7 +361,6 @@ class MeetingPlaceCoreSDK {
       channelService: channelService,
       controlPlaneSDK: controlPlaneSDK,
       controlPlaneEventStreamManager: discoveryEventStreamManager,
-      mediatorSDK: mediatorSDK,
       logger: mpxLogger,
     );
 
@@ -487,6 +486,7 @@ class MeetingPlaceCoreSDK {
   /// Returns [OobOfferSession]
   Future<OobOfferSession> createOobFlow({
     required ContactCard contactCard,
+    String? type,
     String? did,
     String? mediatorDid,
     String? externalRef,
@@ -494,6 +494,7 @@ class MeetingPlaceCoreSDK {
     return _withSdkExceptionHandling(() {
       return _oobService.createOobFlow(
         contactCard: contactCard,
+        type: type,
         did: did,
         mediatorDid: mediatorDid ?? _mediatorDid,
         externalRef: externalRef,
@@ -522,6 +523,7 @@ class MeetingPlaceCoreSDK {
   Future<OobAcceptanceSession> acceptOobFlow(
     Uri oobUrl, {
     required ContactCard contactCard,
+    String? type,
     String? externalRef,
     String? did,
     List<Attachment>? attachments,
@@ -530,6 +532,7 @@ class MeetingPlaceCoreSDK {
       return _oobService.acceptOobFlow(
         oobUrl,
         did: did,
+        type: type,
         contactCard: contactCard,
         externalRef: externalRef,
         mediatorDid: _mediatorDid,

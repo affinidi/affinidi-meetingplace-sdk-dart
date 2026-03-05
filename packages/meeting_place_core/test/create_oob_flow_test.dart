@@ -12,6 +12,20 @@ void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
   late MeetingPlaceCoreSDK bobSDK;
 
+  final aliceCard = ContactCardFixture.getContactCardFixture(
+    did: 'did:test:alice',
+    contactInfo: {
+      'n': {'given': 'Alice'},
+    },
+  );
+
+  final bobCard = ContactCardFixture.getContactCardFixture(
+    did: 'did:test:bob',
+    contactInfo: {
+      'n': {'given': 'Bob', 'surname': 'A.'},
+    },
+  );
+
   setUpAll(() async {
     aliceSDK = await initSDKInstance();
     bobSDK = await initSDKInstance();
@@ -34,8 +48,8 @@ void main() async {
       Uri.parse('https://didcomm.org/out-of-band/2.0/invitation'),
     );
 
-    final oobActual = await aliceSDK.mediator.getOob(oobUrl, didManager: did);
-    expect(oobActual.id, actual.id);
+    final oobActual = await aliceSDK.mediator.getOob(oobUrl);
+    expect(oobActual, actual.id);
   });
 
   // TEST CASES:
@@ -51,13 +65,6 @@ void main() async {
       final aliceOnDoneCompleter = Completer();
       final bobOnDoneCompleter = Completer();
 
-      final aliceCard = ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
-      );
-
       final oobOfferSession = await aliceSDK.createOobFlow(
         contactCard: aliceCard,
       );
@@ -67,12 +74,6 @@ void main() async {
         aliceOnDoneCompleter.complete();
       });
 
-      final bobCard = ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      );
       final oobAcceptanceSession = await bobSDK.acceptOobFlow(
         oobOfferSession.oobUrl,
         contactCard: bobCard,
@@ -147,22 +148,10 @@ void main() async {
     Channel? bobChannel;
 
     setUpAll(() async {
-      final aliceCard = ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
-      );
       final oobOfferSession = await aliceSDK.createOobFlow(
         contactCard: aliceCard,
       );
 
-      final bobCard = ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      );
       final oobAcceptanceSession = await bobSDK.acceptOobFlow(
         oobOfferSession.oobUrl,
         contactCard: bobCard,
@@ -200,22 +189,10 @@ void main() async {
     Channel? channelBefore;
 
     setUpAll(() async {
-      final aliceCard = ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
-      );
       final oobOfferSession = await aliceSDK.createOobFlow(
         contactCard: aliceCard,
       );
 
-      final bobCard = ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      );
       final oobAcceptanceSession = await bobSDK.acceptOobFlow(
         oobOfferSession.oobUrl,
         contactCard: bobCard,
@@ -260,36 +237,17 @@ void main() async {
   });
 
   test('uses separate stream for each createOobFlow call', () async {
-    final aliceCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:alice',
-      contactInfo: {
-        'n': {'given': 'Alice'},
-      },
-    );
     final resultA = await aliceSDK.createOobFlow(contactCard: aliceCard);
-
     final resultB = await aliceSDK.createOobFlow(contactCard: aliceCard);
 
     expect(resultA.stream, isNot(equals(resultB.stream)));
   });
 
   test('uses separate stream for each acceptOobFlow call', () async {
-    final aliceCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:alice',
-      contactInfo: {
-        'n': {'given': 'Alice'},
-      },
-    );
     final oobOfferSession = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
     );
 
-    final bobCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:bob',
-      contactInfo: {
-        'n': {'given': 'Bob', 'surname': 'A.'},
-      },
-    );
     final resultA = await bobSDK.acceptOobFlow(
       oobOfferSession.oobUrl,
       contactCard: bobCard,
@@ -307,26 +265,12 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
-    final aliceCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:alice',
-      contactInfo: {
-        'n': {'given': 'Alice'},
-      },
-    );
     final session = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
       did: didDoc.id,
     );
 
-    await bobSDK.acceptOobFlow(
-      session.oobUrl,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      ),
-    );
+    await bobSDK.acceptOobFlow(session.oobUrl, contactCard: bobCard);
 
     final aliceCompleter = Completer<Channel>();
     session.stream.listen((data) {
@@ -343,26 +287,12 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
-    final aliceCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:alice',
-      contactInfo: {
-        'n': {'given': 'Alice'},
-      },
-    );
     final session = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
       did: didDoc.id,
     );
 
-    await bobSDK.acceptOobFlow(
-      session.oobUrl,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      ),
-    );
+    await bobSDK.acceptOobFlow(session.oobUrl, contactCard: bobCard);
 
     final aliceCompleter = Completer<Channel>();
     session.stream.listen((data) {
@@ -376,12 +306,6 @@ void main() async {
   });
 
   test('executes callback on timeout', () async {
-    final aliceCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:alice',
-      contactInfo: {
-        'n': {'given': 'Alice'},
-      },
-    );
     final oobOfferSession = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
     );
@@ -401,23 +325,9 @@ void main() async {
   });
 
   test('cancels timeout after receiving first event', () async {
-    final aliceCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:alice',
-      contactInfo: {
-        'n': {'given': 'Alice'},
-      },
-    );
     final session = await aliceSDK.createOobFlow(contactCard: aliceCard);
 
-    await bobSDK.acceptOobFlow(
-      session.oobUrl,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      ),
-    );
+    await bobSDK.acceptOobFlow(session.oobUrl, contactCard: bobCard);
 
     session.stream.listen((data) {
       return;
@@ -435,12 +345,6 @@ void main() async {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
-    final aliceCard = ContactCardFixture.getContactCardFixture(
-      did: 'did:test:alice',
-      contactInfo: {
-        'n': {'given': 'Alice'},
-      },
-    );
     final oobOfferSession = await aliceSDK.createOobFlow(
       contactCard: aliceCard,
       did: didDoc.id,
@@ -448,12 +352,7 @@ void main() async {
 
     final oobAcceptanceSession = await bobSDK.acceptOobFlow(
       oobOfferSession.oobUrl,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
-      ),
+      contactCard: bobCard,
     );
 
     final aliceCompleter = Completer<Channel>();
@@ -493,4 +392,54 @@ void main() async {
       recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
     );
   });
+
+  test('creates oob with custom goal_code based on type', () async {
+    final session = await aliceSDK.createOobFlow(
+      contactCard: aliceCard,
+      type: 'test',
+    );
+
+    expect(session.oobInvitationMessage.body.goalCode, equals('test'));
+  });
+
+  test('Throws not found error if OOB invitation is not found', () async {
+    final oob = await aliceSDK.createOobFlow(contactCard: aliceCard);
+    final notFoundUri = Uri.parse('${oob.oobUrl}non-existing-path');
+
+    expect(
+      () async => await bobSDK.acceptOobFlow(notFoundUri, contactCard: bobCard),
+      throwsA(
+        isA<MeetingPlaceCoreSDKException>().having(
+          (e) => e.code,
+          'code',
+          MeetingPlaceCoreSDKErrorCode.oobNotFound.value,
+        ),
+      ),
+    );
+  });
+
+  test(
+    'Throws invalid type error if OOB invitation type doesn\'t match',
+    () async {
+      final oob = await aliceSDK.createOobFlow(
+        contactCard: aliceCard,
+        type: 'one',
+      );
+
+      expect(
+        () async => await bobSDK.acceptOobFlow(
+          oob.oobUrl,
+          contactCard: bobCard,
+          type: 'two',
+        ),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode.oobInvalidType.value,
+          ),
+        ),
+      );
+    },
+  );
 }

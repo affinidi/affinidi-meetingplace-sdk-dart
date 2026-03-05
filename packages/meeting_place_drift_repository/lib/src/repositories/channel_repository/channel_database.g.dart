@@ -49,9 +49,10 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
   late final GeneratedColumn<bool> isConnectionInitiator =
       GeneratedColumn<bool>('is_connection_initiator', aliasedName, false,
           type: DriftSqlType.bool,
-          requiredDuringInsert: true,
+          requiredDuringInsert: false,
           defaultConstraints: GeneratedColumn.constraintIsAlways(
-              'CHECK ("is_connection_initiator" IN (0, 1))'));
+              'CHECK ("is_connection_initiator" IN (0, 1))'),
+          defaultValue: const Constant(false));
   static const VerificationMeta _outboundMessageIdMeta =
       const VerificationMeta('outboundMessageId');
   @override
@@ -166,8 +167,6 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           _isConnectionInitiatorMeta,
           isConnectionInitiator.isAcceptableOrUnknown(
               data['is_connection_initiator']!, _isConnectionInitiatorMeta));
-    } else if (isInserting) {
-      context.missing(_isConnectionInitiatorMeta);
     }
     if (data.containsKey('outbound_message_id')) {
       context.handle(
@@ -689,7 +688,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     required String offerLink,
     required ChannelStatus status,
     required ChannelType type,
-    required bool isConnectionInitiator,
+    this.isConnectionInitiator = const Value.absent(),
     this.outboundMessageId = const Value.absent(),
     this.acceptOfferDid = const Value.absent(),
     this.permanentChannelDid = const Value.absent(),
@@ -705,7 +704,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
         offerLink = Value(offerLink),
         status = Value(status),
         type = Value(type),
-        isConnectionInitiator = Value(isConnectionInitiator),
         seqNo = Value(seqNo);
   static Insertable<Channel> custom({
     Expression<String>? id,
@@ -1499,7 +1497,7 @@ typedef $$ChannelsTableCreateCompanionBuilder = ChannelsCompanion Function({
   required String offerLink,
   required ChannelStatus status,
   required ChannelType type,
-  required bool isConnectionInitiator,
+  Value<bool> isConnectionInitiator,
   Value<String?> outboundMessageId,
   Value<String?> acceptOfferDid,
   Value<String?> permanentChannelDid,
@@ -1864,7 +1862,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             required String offerLink,
             required ChannelStatus status,
             required ChannelType type,
-            required bool isConnectionInitiator,
+            Value<bool> isConnectionInitiator = const Value.absent(),
             Value<String?> outboundMessageId = const Value.absent(),
             Value<String?> acceptOfferDid = const Value.absent(),
             Value<String?> permanentChannelDid = const Value.absent(),

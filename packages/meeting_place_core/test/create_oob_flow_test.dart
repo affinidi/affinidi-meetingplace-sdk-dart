@@ -38,18 +38,18 @@ void main() async {
     final oobUrl = await aliceSDK.mediator.createOob(did, getMediatorDid());
 
     final response = await Dio().get(oobUrl.toString());
-
     expect(response.data!['message'], equals('Success'));
 
     final actual = OobInvitationMessage.fromBase64(response.data['data']);
+    final oobActual = await aliceSDK.mediator.getOob(oobUrl);
+
     expect(actual.from, didDoc.id);
     expect(
       actual.toPlainTextMessage().type,
       Uri.parse('https://didcomm.org/out-of-band/2.0/invitation'),
     );
 
-    final oobActual = await aliceSDK.mediator.getOob(oobUrl);
-    expect(oobActual, actual.id);
+    expect(oobActual?.id, actual.id);
   });
 
   // TEST CASES:

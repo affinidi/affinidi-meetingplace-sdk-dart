@@ -40,5 +40,8 @@ export 'src/repository/repository.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/mediator/mediator_message.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
+export 'src/service/oob/session/oob_acceptance_session.dart';
+export 'src/service/oob/session/oob_offer_session.dart';
+export 'src/service/oob/stream/oob_stream.dart';
 export 'src/service/oob/stream/oob_stream_data.dart';
 export 'src/utils/contact_card_utils.dart';

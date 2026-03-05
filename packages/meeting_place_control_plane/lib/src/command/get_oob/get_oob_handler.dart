@@ -1,13 +1,19 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../../meeting_place_control_plane.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
+import '../../control_plane_sdk_exception.dart';
 import '../../core/command/command_handler.dart';
+import '../../core/exception/control_plane_exception.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import 'get_oob.dart';
+import 'get_oob_exception.dart';
 import 'get_oob_output.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
@@ -63,19 +69,58 @@ class GetOobHandler
       '[MPX API] Calling /get-oob for oobId: ${command.oobId}',
       name: methodName,
     );
-    final response = await _apiClient.client.getOOB(oobId: command.oobId);
 
-    _logger.info(
-      'Completed getting OOB: '
-      'oobId: ${command.oobId}, '
-      'mediatorDid: ${response.data?.mediatorDid}, '
-      'mediatorEndpoint: ${response.data?.mediatorEndpoint}, '
-      'mediatorWSSEndpoint: ${response.data?.mediatorWSSEndpoint}',
-      name: methodName,
-    );
-    return GetOobCommandOutput(
-      invitationMessage: response.data!.didcommMessage,
-      mediatorDid: response.data!.mediatorDid,
-    );
+    try {
+      final response = await _apiClient.client.getOOB(oobId: command.oobId);
+
+      _logger.info(
+        'Completed getting OOB: '
+        'oobId: ${command.oobId}, '
+        'mediatorDid: ${response.data?.mediatorDid}, '
+        'mediatorEndpoint: ${response.data?.mediatorEndpoint}, '
+        'mediatorWSSEndpoint: ${response.data?.mediatorWSSEndpoint}',
+        name: methodName,
+      );
+
+      return GetOobCommandOutput(
+        invitationMessage: response.data!.didcommMessage,
+        mediatorDid: response.data!.mediatorDid,
+      );
+    } on DioException catch (e, stackTrace) {
+      if (e.response?.statusCode == HttpStatus.notFound) {
+        _logger.warning(
+          'OOB not found for oobId: ${command.oobId}, error: ${e.message}',
+          name: methodName,
+        );
+
+        Error.throwWithStackTrace(
+          GetOobException.oobNotFound(innerException: e),
+          stackTrace,
+        );
+      }
+
+      _logger.error(
+        'Failed to get OOB for oobId: ${command.oobId}, error: ${e.message}',
+        name: methodName,
+        stackTrace: stackTrace,
+      );
+
+      Error.throwWithStackTrace(
+        ControlPlaneSDKException(
+          message:
+              'OOB not found for oobId: ${command.oobId}, error: ${e.message}',
+          code: ControlPlaneSDKErrorCode.oobNotFound.value,
+          innerException: e,
+        ),
+        stackTrace,
+      );
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Error getting OOB for oobId: ${command.oobId}, error: $e',
+        name: methodName,
+        stackTrace: stackTrace,
+      );
+      Error.throwWithStackTrace(e, stackTrace);
+    }
   }
 }

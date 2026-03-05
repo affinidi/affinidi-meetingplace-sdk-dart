@@ -8,9 +8,15 @@ import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
 import '../core/chat_history_service.dart';
 import '../entity/message.dart' as entity_chat_message;
+import '../group/chat_group_alias_profile_hash_handler.dart';
+import '../group/chat_group_alias_profile_request_handler.dart';
+import '../group/chat_group_contact_details_update_handler.dart';
+import '../group/chat_group_deletion_handler.dart';
 import '../group/chat_group_details_update_handler.dart';
 import '../group/chat_group_member_deregistered_message_handler.dart';
+import '../group/chat_group_member_joined_handler.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
+import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
@@ -191,6 +197,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// such as:
   /// - Member deregistration
   /// - Group details updates
+  /// - Group deletion
   /// - Profile hash updates
   /// - Contact details updates
   /// - Alias profile requests
@@ -206,42 +213,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         '${message.from?.topAndTail()}',
         name: methodName,
       );
-      // TODO: keep target list in memory to not always iterate through all
-      // messages
-      final eventMessages = (await messages).whereType<EventMessage>().toList();
-      final matchingMessage = eventMessages.firstWhereOrNull(
-        (eventMessage) =>
-            eventMessage.status != ChatItemStatus.confirmed &&
-            eventMessage.eventType ==
-                EventMessageType.awaitingGroupMemberToJoin &&
-            (eventMessage.data['memberDid'] == message.from! ||
-                eventMessage.data['memberDid'] == message.body?['from_did']),
-      );
-
-      if (matchingMessage != null) {
-        logger.info(
-          'Matching event message found: '
-          'id=${matchingMessage.messageId}, '
-          'status=${matchingMessage.status}, '
-          'eventType=${matchingMessage.eventType}',
-          name: methodName,
-        );
-        matchingMessage.status = ChatItemStatus.confirmed;
-        await chatRepository.updateMesssage(matchingMessage);
-        chatStream.pushData(StreamData(chatItem: matchingMessage));
-
-        final chatItem = await _chatHistoryService
-            .createGroupMemberJoinedGroupEventMessage(
-              chatId: chatId,
-              groupDid: group.did,
-              memberDid: matchingMessage.data['memberDid'] as String,
-              memberCard: ContactCard.fromJson(
-                matchingMessage.data['contactCard'] as Map<String, dynamic>,
-              ),
-            );
-
-        chatStream.pushData(StreamData(chatItem: chatItem));
-      }
+      await ChatGroupMemberJoinedHandler(
+        chatRepository: chatRepository,
+        chatHistoryService: _chatHistoryService,
+        streamManager: chatStream,
+      ).handle(chatId: chatId, groupDid: group.did, message: message);
     }
 
     if (message.type.toString() ==
@@ -259,7 +235,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       return true;
     }
 
-    if (message.type.toString() == ChatProtocol.chatGroupDetailsUpdate.value) {
+    if (MessageUtils.isType(message, ChatProtocol.chatGroupDetailsUpdate)) {
       logger.info(
         'Handling message for group details update',
         name: methodName,
@@ -269,7 +245,6 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         chatHistoryService: _chatHistoryService,
         streamManager: chatStream,
       ).handle(group: group, message: message, chatId: chatId);
-
       return true;
     }
 
@@ -278,122 +253,54 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         'Handling message for group deleted for group ${group.id}',
         name: methodName,
       );
-      if (!group.isDeleted) {
-        group.markAsDeleted();
-        await coreSDK.updateGroup(group);
-
-        final chatItem = await _chatHistoryService
-            .createGroupDeletedEventMessage(
-              chatId: chatId,
-              groupDid: group.did,
-            );
-
-        chatStream.pushData(StreamData(chatItem: chatItem));
-      }
+      group = await ChatGroupDeletionHandler(
+        coreSDK: coreSDK,
+        chatHistoryService: _chatHistoryService,
+        streamManager: chatStream,
+      ).handle(group: group, message: message, chatId: chatId);
       return true;
     }
 
-    if (message.type.toString() == ChatProtocol.chatAliasProfileHash.value) {
+    if (MessageUtils.isType(message, ChatProtocol.chatAliasProfileHash)) {
       logger.info(
         'Handling message for alias profile hash from'
         ' ${message.from?.topAndTail()}',
         name: methodName,
       );
-      final profileHash = message.body?['profile_hash'];
-      if (profileHash != null && profileHash is String) {
-        final member = group.members.firstWhere(
-          (member) => member.did == message.from!,
-        );
-
-        if (member.contactCard.profileHash == profileHash) {
-          chatStream.pushData(StreamData(plainTextMessage: message));
-        } else {
-          await coreSDK.sendMessage(
-            ChatAliasProfileRequest.create(
-              from: did,
-              to: [message.from!],
-              profileHash: profileHash,
-            ).toPlainTextMessage(),
-            senderDid: did,
-            recipientDid: message.from!,
-            mediatorDid: mediatorDid,
-          );
-        }
-
-        chatStream.pushData(StreamData(plainTextMessage: message));
-      } else {
-        logger.warning(
-          'Skip processing chatAliasProfileHash message '
-          'because of empty profile hash',
-          name: methodName,
-        );
-      }
+      await ChatGroupAliasProfileHashHandler(
+        coreSDK: coreSDK,
+        streamManager: chatStream,
+      ).handle(
+        group: group,
+        message: message,
+        did: did,
+        mediatorDid: mediatorDid,
+      );
       return true;
     }
 
-    if (message.type.toString() ==
-        ChatProtocol.chatContactDetailsUpdate.value) {
+    if (MessageUtils.isType(message, ChatProtocol.chatContactDetailsUpdate)) {
       logger.info(
         'Handling message for contact details update',
         name: methodName,
       );
-      final member = group.members.firstWhere(
-        (member) => member.did == message.from!,
-        orElse: () {
-          final message = 'Group member not found';
-          logger.error(message, name: methodName);
-          throw Exception(message);
-        },
-      );
-
-      member.contactCard = ContactCard.fromJson(message.body!);
-      await coreSDK.updateGroup(group);
+      group = await ChatGroupContactDetailsUpdateHandler(
+        coreSDK: coreSDK,
+        streamManager: chatStream,
+      ).handle(group: group, message: message);
       await sendChatGroupDetailsUpdate();
-      chatStream.pushData(StreamData(plainTextMessage: message));
       return true;
     }
 
-    if (message.type.toString() == ChatProtocol.chatAliasProfileRequest.value) {
+    if (MessageUtils.isType(message, ChatProtocol.chatAliasProfileRequest)) {
       logger.info(
         'Handling message for alias profile request',
         name: methodName,
       );
-      // Update existing concierge messages -
-      // TODO: add concierge message handler
-      final targets = (await messages).where(
-        (message) =>
-            message is ConciergeMessage &&
-            message.conciergeType ==
-                ConciergeMessageType.permissionToUpdateProfile &&
-            message.status == ChatItemStatus.userInput,
-      );
-
-      await Future.wait(
-        targets.map((t) async {
-          t.status = ChatItemStatus.confirmed;
-          await chatRepository.updateMesssage(t);
-          chatStream.pushData(StreamData(chatItem: t));
-        }),
-      );
-
-      final conciergeMessage = ConciergeMessage(
-        chatId: chatId,
-        messageId: const Uuid().v4(),
-        senderDid: message.from!,
-        isFromMe: false,
-        dateCreated: message.createdTime ?? DateTime.now().toUtc(),
-        status: ChatItemStatus.userInput,
-        conciergeType: ConciergeMessageType.permissionToUpdateProfile,
-        data: {
-          'profileHash': message.body?['profile_hash'],
-          'replyTo': message.from!,
-        },
-      );
-
-      await chatRepository.createMessage(conciergeMessage);
-      chatStream.pushData(
-        StreamData(plainTextMessage: message, chatItem: conciergeMessage),
-      );
+      await ChatGroupAliasProfileRequestHandler(
+        chatRepository: chatRepository,
+        streamManager: chatStream,
+      ).handle(message: message, chatId: chatId);
       return true;
     }
 

@@ -9,11 +9,11 @@ class ChatGroupDetailsUpdateHandler {
     required ChatStream streamManager,
   }) : _coreSDK = coreSDK,
        _chatHistoryService = chatHistoryService,
-       _chatStreamManager = streamManager;
+       _streamManager = streamManager;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final ChatHistoryService _chatHistoryService;
-  final ChatStream _chatStreamManager;
+  final ChatStream _streamManager;
 
   Future<Group> handle({
     required Group group,
@@ -57,7 +57,7 @@ class ChatGroupDetailsUpdateHandler {
             memberDid: newMember['did'] as String,
             memberCard: _cardFromMessage(newMember),
           );
-      _chatStreamManager.pushData(StreamData(chatItem: chatItem));
+      _streamManager.pushData(StreamData(chatItem: chatItem));
     }
 
     final updatedGroup = group.copyWith(
@@ -75,7 +75,7 @@ class ChatGroupDetailsUpdateHandler {
       }).toList(),
     );
 
-    _chatStreamManager.pushData(StreamData(plainTextMessage: message));
+    _streamManager.pushData(StreamData(plainTextMessage: message));
     return updatedGroup;
   }
 

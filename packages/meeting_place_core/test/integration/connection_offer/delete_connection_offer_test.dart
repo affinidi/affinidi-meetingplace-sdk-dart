@@ -3,8 +3,8 @@ import 'package:meeting_place_core/src/service/connection_offer/connection_offer
 
 import 'package:test/test.dart';
 
-import 'fixtures/contact_card_fixture.dart';
-import 'utils/sdk.dart';
+import '../../fixtures/contact_card_fixture.dart';
+import '../../utils/sdk.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;

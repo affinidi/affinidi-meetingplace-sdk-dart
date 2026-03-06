@@ -3,12 +3,12 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/contact_card_fixture.dart';
-import 'utils/repository/channel_repository_impl.dart';
-import 'utils/repository/connection_offer_repository_impl.dart';
-import 'utils/repository/key_repository_impl.dart';
-import 'utils/sdk.dart';
-import 'utils/storage/in_memory_storage.dart';
+import '../fixtures/contact_card_fixture.dart';
+import '../utils/repository/channel_repository_impl.dart';
+import '../utils/repository/connection_offer_repository_impl.dart';
+import '../utils/repository/key_repository_impl.dart';
+import '../utils/sdk.dart';
+import '../utils/storage/in_memory_storage.dart';
 
 void main() async {
   final aliceSDK = await initSDKInstance();
@@ -104,5 +104,25 @@ void main() async {
     expect(didDoc1.id, isNot(equals(didDoc2.id)));
     expect(didDoc1.id, isNot(equals(didDoc3.id)));
     expect(didDoc2.id, isNot(equals(didDoc3.id)));
+  });
+
+  test('generates DID and retrieves it from wallet', () async {
+    final generatedDidManager = await aliceSDK.generateDid();
+    final generatedDidDoc = await generatedDidManager.getDidDocument();
+
+    final receivedDidManager = await aliceSDK.getDidManager(generatedDidDoc.id);
+    final receivedDidDoc = await receivedDidManager.getDidDocument();
+
+    expect(generatedDidDoc.id, equals(receivedDidDoc.id));
+  });
+
+  test('getDidManager with non-owned DID throws exception', () async {
+    const nonOwnedDid =
+        'did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH';
+
+    expect(
+      () async => await aliceSDK.getDidManager(nonOwnedDid),
+      throwsA(isA<MeetingPlaceCoreSDKException>()),
+    );
   });
 }

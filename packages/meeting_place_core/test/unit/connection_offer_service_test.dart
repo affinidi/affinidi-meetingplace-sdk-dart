@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_service.dart';
 
-import 'fixtures/contact_card_fixture.dart';
+import '../fixtures/contact_card_fixture.dart';
 
 // Mock classes
 class MockConnectionOfferRepository extends Mock

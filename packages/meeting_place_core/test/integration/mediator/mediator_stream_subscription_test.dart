@@ -4,7 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
-import 'utils/sdk.dart';
+import '../../utils/sdk.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;

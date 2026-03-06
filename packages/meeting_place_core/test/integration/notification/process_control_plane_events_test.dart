@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
-import 'utils/sdk.dart';
+import '../../utils/sdk.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
@@ -11,7 +11,7 @@ void main() async {
     aliceSDK = await initSDKInstance();
   });
 
-  test('debounce calls to process discovery events', () async {
+  test('debounce calls to process control plane events', () async {
     onDoneFailed(List<Object> errors) {
       fail('Debouncing failed');
     }

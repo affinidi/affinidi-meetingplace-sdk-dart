@@ -6,9 +6,9 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixtures/contact_card_fixture.dart';
-import 'utils/control_plane_test_utils.dart';
-import 'utils/sdk.dart';
+import '../../fixtures/contact_card_fixture.dart';
+import '../../utils/control_plane_test_utils.dart';
+import '../../utils/sdk.dart';
 
 void main() async {
   /**

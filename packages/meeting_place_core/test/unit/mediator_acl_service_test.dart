@@ -9,7 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/contact_card_fixture.dart';
+import '../fixtures/contact_card_fixture.dart';
 
 // Mock classes
 class MockMeetingPlaceMediatorSDK extends Mock

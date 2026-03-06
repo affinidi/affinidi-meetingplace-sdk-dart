@@ -4,7 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import 'fixtures/contact_card_fixture.dart';
+import '../fixtures/contact_card_fixture.dart';
 
 class MockChannelRepository extends Mock implements ChannelRepository {}
 

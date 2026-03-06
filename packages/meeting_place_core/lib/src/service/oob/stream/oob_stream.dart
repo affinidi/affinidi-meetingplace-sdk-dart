@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '../../../meeting_place_core.dart';
+import '../../../../meeting_place_core.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();
 

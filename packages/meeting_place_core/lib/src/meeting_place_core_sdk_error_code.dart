@@ -56,8 +56,14 @@ enum MeetingPlaceCoreSDKErrorCode {
   channelInvalidType('channel_invalid_type'),
   channelMissingPermanentChannelDid('channel_missing_permanent_channel_did'),
 
+  // oob
+  oobInvalidData('oob_invalid_data'),
+  oobNotFound('oob_not_found'),
+  oobInvalidType('oob_invalid_type'),
+
   // others
   mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),
+  networkError('network_error'),
   generic('generic');
 
   const MeetingPlaceCoreSDKErrorCode(this.value);

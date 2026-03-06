@@ -3,7 +3,6 @@ import 'package:ssi/ssi.dart';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../service/mediator/fetch_messages_options.dart';
-import '../utils/attachment.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/string.dart';
 import 'base_event_handler.dart';
@@ -111,9 +110,14 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     final permanentChannelDidManager = await connectionManager
         .getDidManagerForDid(wallet, permanentChannelDid);
 
-    final (otherPartyPermanentChannelDid, otherPartyCard) = _extractFromMessage(
-      message,
-    );
+    final connectionRequestApprovalMessage =
+        protocol.ConnectionRequestApproval.fromPlainTextMessage(message);
+
+    final otherPartyPermanentChannelDid =
+        connectionRequestApprovalMessage.body.channelDid;
+
+    logger.info('''Found ConnectionRequestApproval. Their channel
+      is $otherPartyPermanentChannelDid''', name: 'processMessage');
 
     final notificationToken = await _registerNotificationToken(
       permanentChannelDid,
@@ -144,7 +148,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyNotificationToken: event.notificationToken,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       outboundMessageId: message.id,
-      otherPartyCard: otherPartyCard,
+      otherPartyCard: connectionRequestApprovalMessage.contactCard,
     );
 
     final attachments = message.attachments;
@@ -167,28 +171,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     );
 
     return channel;
-  }
-
-  (String, protocol.ContactCard?) _extractFromMessage(
-    PlainTextMessage message,
-  ) {
-    final connectionRequestApprovalMessage =
-        protocol.ConnectionRequestApproval.fromPlainTextMessage(message);
-
-    final otherPartyPermanentChannelDid =
-        connectionRequestApprovalMessage.body.channelDid;
-
-    logger.info(
-      '''Found ConnectionRequestApproval. Their channel
-      is ${connectionRequestApprovalMessage.body.channelDid}''',
-      name: 'processMessage',
-    );
-
-    final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
-      connectionRequestApprovalMessage.attachments,
-    );
-
-    return (otherPartyPermanentChannelDid, otherPartyCard);
   }
 
   Future<void> _sendChannelInaugurationMessage({

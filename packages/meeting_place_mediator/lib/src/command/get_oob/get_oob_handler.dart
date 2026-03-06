@@ -14,13 +14,12 @@ class GetOobHandler
 
   @override
   Future<GetOobOutput> handle(GetOobCommand command) async {
-    final oobMessageBase64 = await _mediatorService.getOob(
-      oobUrl: command.oobUrl,
-      didManager: command.didManager,
-    );
+    final oobMessageBase64 = await _mediatorService.getOob(command.oobUrl);
 
     return GetOobOutput(
-      oobInvitationMessage: OobInvitationMessage.fromBase64(oobMessageBase64),
+      oobInvitationMessage: oobMessageBase64 == null
+          ? null
+          : OobInvitationMessage.fromBase64(oobMessageBase64),
     );
   }
 }

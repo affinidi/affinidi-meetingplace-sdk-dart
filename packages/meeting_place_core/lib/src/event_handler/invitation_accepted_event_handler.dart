@@ -1,7 +1,6 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../../meeting_place_core.dart';
 import '../service/mediator/fetch_messages_options.dart';
-import '../utils/attachment.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/empty_message_list_exception.dart';
@@ -99,10 +98,6 @@ class InvitationAcceptedEventHandler
       name: 'processMessage',
     );
 
-    final otherPartyContactCard = getContactCardDataOrEmptyFromAttachments(
-      message.attachments,
-    );
-
     final channel = Channel(
       offerLink: connection.offerLink,
       publishOfferDid: connection.publishOfferDid,
@@ -114,7 +109,7 @@ class InvitationAcceptedEventHandler
       type: ChannelType.individual,
       isConnectionInitiator: true,
       contactCard: connection.contactCard,
-      otherPartyContactCard: otherPartyContactCard,
+      otherPartyContactCard: invitationAcceptance.contactCard,
       externalRef: connection.externalRef,
     );
 

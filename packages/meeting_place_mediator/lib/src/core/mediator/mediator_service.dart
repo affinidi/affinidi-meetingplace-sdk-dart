@@ -564,61 +564,6 @@ class MediatorService {
     );
   }
 
-  Future<String> getMediatorDidFromUrl(String mediatorEndpoint) async {
-    final methodName = 'getMediatorDidFromUrl';
-    _logger.info(
-      'Started resolving mediator DID from URL: $mediatorEndpoint',
-      name: methodName,
-    );
-
-    if (mediatorEndpoint.endsWith('/')) {
-      mediatorEndpoint = mediatorEndpoint.substring(
-        0,
-        mediatorEndpoint.length - 1,
-      );
-    }
-
-    try {
-      final dio = Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-        ),
-      );
-
-      final mediatorDid = await _retry(
-        () async {
-          final response = await dio.get(
-            '$mediatorEndpoint/.well-known/did',
-            options: Options(headers: {'CONTENT-TYPE': 'application/json'}),
-          );
-
-          return response.data['data'] as String;
-        },
-      );
-
-      _logger.info(
-        'Completed resolving mediator DID is $mediatorDid',
-        name: methodName,
-      );
-      return mediatorDid;
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to resolve mediator DID from URL: $mediatorEndpoint',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      Error.throwWithStackTrace(
-        MediatorException.getMediatorDidError(
-          mediatorEndpoint: mediatorEndpoint,
-          innerException: e,
-        ),
-        stackTrace,
-      );
-    }
-  }
-
   String _getCacheKey(DidDocument mediatorDidDocument, String did) {
     final mediatorDidDocumentHash =
         md5.convert(utf8.encode(jsonEncode(mediatorDidDocument))).toString();

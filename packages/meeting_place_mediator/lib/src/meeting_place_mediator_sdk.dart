@@ -320,7 +320,7 @@ class MeetingPlaceMediatorSDK {
   /// used to verify and track messages without exposing their content.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   /// If not provided, the SDK instance’s default mediator DID will be used.
-  Future<void> deletedMessages({
+  Future<void> deleteMessages({
     required DidManager didManager,
     required List<String> messageHashes,
     String? mediatorDid,

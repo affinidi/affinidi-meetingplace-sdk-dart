@@ -117,7 +117,7 @@ void main() {
     ).thenAnswer((_) async => {});
 
     when(
-      () => mockMediatorService.deletedMessages(
+      () => mockMediatorService.deleteMessages(
         didManager: mockDidManager,
         mediatorDid: mediatorDid,
         messageHashes: [messageHash],

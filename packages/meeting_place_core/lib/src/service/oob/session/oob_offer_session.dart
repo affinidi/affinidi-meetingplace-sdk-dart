@@ -1,6 +1,5 @@
 import 'package:ssi/ssi.dart';
 
-import '../../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../../protocol/protocol.dart';
 import '../../core_sdk_stream_subscription.dart';
 import '../stream/oob_stream_data.dart';

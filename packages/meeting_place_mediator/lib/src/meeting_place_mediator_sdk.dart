@@ -154,17 +154,17 @@ class MeetingPlaceMediatorSDK {
 
   /// Allows a client to retrieve the OOB details from the mediator.
   ///
-  /// - [didManager]: The DidManager instance used for authentication with the mediator
-  /// and contains the identity credentials needed for the session.
   /// - [oobUrl]: Carries an out-of-band invitation used to initiate DIDComm interactions
   /// outside the normal communication channel, often shared via QR code.
-  Future<OobInvitationMessage> getOob(
-    Uri oobUrl, {
-    required DidManager didManager,
-  }) {
+  ///
+  /// Returns the OOB invitation message details if found, or null if no OOB
+  /// invitation is associated with the provided URL.
+  ///
+  /// Throws a [MediatorException] if there is an error during retrieval.
+  Future<OobInvitationMessage?> getOob(Uri oobUrl) {
     return _withSdkExceptionHandling(() async {
       final output = await _execute(
-        GetOobCommand(oobUrl: oobUrl, didManager: didManager),
+        GetOobCommand(oobUrl: oobUrl),
       );
       return output.oobInvitationMessage;
     });

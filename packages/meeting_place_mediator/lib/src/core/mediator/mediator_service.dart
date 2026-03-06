@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
@@ -165,13 +166,49 @@ class MediatorService {
     return mediatorClient.createOob(message);
   }
 
-  Future<String> getOob({
-    required Uri oobUrl,
-    required DidManager didManager,
-  }) async {
-    final methodName = 'getOob';
-    final response = await Dio().get(oobUrl.toString());
-    _logger.info('Fetched OOB invitation from $oobUrl', name: methodName);
+  Future<String?> getOob(Uri oobUrl) async {
+    late Response response;
+
+    try {
+      response = await retry(
+        () => Dio().get(oobUrl.toString()),
+        retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+        maxAttempts: _options.maxRetries,
+        maxDelay: _options.maxRetriesDelay,
+      );
+    } catch (e, stackTrace) {
+      _logger.error('Failed to fetch OOB invitation from $oobUrl after retries',
+          error: e, stackTrace: stackTrace, name: 'getOob');
+      if (ErrorHandlerUtils.isRetryableError(e)) {
+        _logger.error(
+          'Network error while fetching OOB invitation from $oobUrl. ',
+          name: 'getOob',
+        );
+        Error.throwWithStackTrace(
+          MediatorException.oobNetworkError(
+            oobUrl: oobUrl.toString(),
+            innerException: e,
+          ),
+          stackTrace,
+        );
+      }
+
+      Error.throwWithStackTrace(
+        MediatorException.oobError(
+          oobUrl: oobUrl.toString(),
+          innerException: e,
+        ),
+        stackTrace,
+      );
+    }
+
+    if (response.data?['data'] == null ||
+        response.statusCode != HttpStatus.ok) {
+      _logger.warning('OOB invitation not found at $oobUrl', name: 'getOob');
+      return null;
+    }
+
+    _logger.info('Fetched OOB invitation from $oobUrl', name: 'getOob');
     return response.data['data'];
   }
 

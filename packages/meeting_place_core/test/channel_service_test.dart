@@ -317,7 +317,7 @@ void main() {
           oobChannel,
           otherPartyPermanentChannelDid: 'otherDid',
           outboundMessageId: 'msgId',
-          otherPartyCard: null,
+          otherPartyContactCard: null,
         );
         verify(() => repository.updateChannel(oobChannel)).called(1);
         expect(oobChannel.status, ChannelStatus.inaugurated);
@@ -337,7 +337,7 @@ void main() {
             notOobChannel,
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
-            otherPartyCard: null,
+            otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -357,7 +357,7 @@ void main() {
             initiatorOobChannel,
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
-            otherPartyCard: null,
+            otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -377,7 +377,7 @@ void main() {
             wrongStatusOobChannel,
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
-            otherPartyCard: null,
+            otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
         );

@@ -4,8 +4,6 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
-        AccessListAdd,
-        AclSet,
         DefaultMeetingPlaceMediatorSDKLogger,
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,
@@ -19,9 +17,7 @@ import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
 import 'service/channel/channel_service.dart';
 import 'service/mediator/mediator_acl_service.dart';
-import 'utils/attachment.dart';
-import 'sdk/results/accept_oob_flow_result.dart';
-import 'sdk/results/create_oob_flow_result.dart';
+import 'service/oob/oob_service.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
@@ -34,10 +30,8 @@ import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
-import 'service/oob/oob_stream.dart';
 import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
-import 'utils/string.dart';
 
 /// # Meeting Place Core SDK
 /// The Affinidi Meeting Place - Core SDK provides a high-level interface for coordinating connection setup using the discovery control plane API and mediator. This SDK acts as an orchestrator, applying business logic on top of underlying APIs to simplify integration.
@@ -120,6 +114,7 @@ class MeetingPlaceCoreSDK {
     required GroupService groupService,
     required NotificationService notificationService,
     required OutreachService outreachService,
+    required OobService oobService,
     required ChannelService channelService,
     required MessageService messageService,
     required MediatorService mediatorService,
@@ -139,13 +134,13 @@ class MeetingPlaceCoreSDK {
        _groupService = groupService,
        _notificationService = notificationService,
        _outreachService = outreachService,
+       _oobService = oobService,
        _channelService = channelService,
        _mediatorService = mediatorService,
        _messageService = messageService,
        _didResolver = didResolver,
        _mediatorDid = mediatorDid,
        _options = options,
-       _logger = logger,
        _sdkErrorHandler = sdkErrorHandler;
 
   final Wallet wallet;
@@ -161,11 +156,11 @@ class MeetingPlaceCoreSDK {
   final NotificationService _notificationService;
   final MediatorService _mediatorService;
   final OutreachService _outreachService;
+  final OobService _oobService;
   final MessageService _messageService;
   final ChannelService _channelService;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
-  final MeetingPlaceCoreSDKLogger _logger;
   final SDKErrorHandler _sdkErrorHandler;
 
   String _mediatorDid;
@@ -276,6 +271,7 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    // TODO: rename
     final discoveryEventStreamManager = ControlPlaneEventStreamManager(
       logger: mpxLogger,
     );
@@ -355,6 +351,17 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    final oobService = OobService(
+      wallet: wallet,
+      mediatorService: mediatorService,
+      connectionService: connectionService,
+      connectionManager: connectionManager,
+      channelService: channelService,
+      controlPlaneSDK: controlPlaneSDK,
+      controlPlaneEventStreamManager: discoveryEventStreamManager,
+      logger: mpxLogger,
+    );
+
     mpxLogger.info('Completed initializing CoreSDK', name: methodName);
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
@@ -371,6 +378,7 @@ class MeetingPlaceCoreSDK {
       mediatorService: mediatorService,
       messageService: messageService,
       outreachService: outreachService,
+      oobService: oobService,
       channelService: channelService,
       didResolver: didResolver,
       mediatorDid: mediatorDid,
@@ -473,137 +481,23 @@ class MeetingPlaceCoreSDK {
   ///   identification purposes. [externalRef] is accessible on the current
   ///   device only.
   ///
-  /// Returns [CreateOobFlowResult]
-  Future<CreateOobFlowResult> createOobFlow({
+  /// Returns [OobOfferSession]
+  Future<OobOfferSession> createOobFlow({
     required ContactCard contactCard,
+    String? type,
     String? did,
     String? mediatorDid,
     String? externalRef,
   }) async {
-    final methodName = 'createOobFlow';
-    _logger.info('Started creating OOB invitation', name: methodName);
-
-    final oobDidManager = await generateDid();
-    final oobDidDoc = await oobDidManager.getDidDocument();
-    final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
-    final mediatorDidToUse = mediatorDid ?? _mediatorDid;
-
-    _logger.info(
-      '''Setup OOB invitation for ${oobDidDoc.id.topAndTail()} on $mediatorDidToUse''',
-      name: methodName,
-    );
-
-    // Authenticate on mediator before updating ACLs and subscribing to messages
-    // to ensure that authentication is done only once.
-    final (_, _, oobCommandOutput, streamSubscription) = await (
-      _mediatorSDK.authenticateWithDid(
-        oobDidManager,
-        mediatorDid: mediatorDidToUse,
-      ),
-      _mediatorSDK.updateAcl(
-        ownerDidManager: oobDidManager,
-        mediatorDid: mediatorDidToUse,
-        acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
-      ),
-      _controlPlaneSDK.execute(
-        CreateOobCommand(
-          oobInvitationMessage: oobMessage.toPlainTextMessage(),
-          mediatorDid: mediatorDidToUse,
-        ),
-      ),
-      _mediatorService.subscribe(
-        didManager: oobDidManager,
-        mediatorDid: mediatorDidToUse,
-      ),
-    ).wait;
-
-    final oobStream = OobStream(
-      onDispose: () => streamSubscription.dispose(),
-      logger: _logger,
-    );
-
-    _logger.info(
-      '''OOB invitation created with URL: ${oobCommandOutput.oobUrl}''',
-      name: methodName,
-    );
-
-    streamSubscription.stream.listen((message) async {
-      final plainTextMessage = message.plainTextMessage;
-
-      if (plainTextMessage.type.toString() ==
-          MeetingPlaceProtocol.invitationAcceptance.value) {
-        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
-          plainTextMessage.attachments,
-        );
-
-        final otherPartyPermanentChannelDid =
-            plainTextMessage.body!['channel_did'];
-
-        final permanentChannelDidManager = did != null
-            ? await _connectionManager.getDidManagerForDid(wallet, did)
-            : await generateDid();
-        final permanentChannelDidDoc = await permanentChannelDidManager
-            .getDidDocument();
-
-        await _connectionService.sendConnectionRequestApprovalToMediator(
-          offerPublishedDid: oobDidManager,
-          permanentChannelDid: permanentChannelDidManager,
-          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          otherPartyAcceptOfferDid: plainTextMessage.from!,
-          outboundMessageId: oobMessage.id,
-          contactCard: contactCard,
-          mediatorDid: mediatorDidToUse,
-        );
-
-        final channel = Channel(
-          offerLink: oobMessage.id,
-          publishOfferDid: oobDidDoc.id,
-          mediatorDid: mediatorDidToUse,
-          outboundMessageId: oobMessage.id,
-          acceptOfferDid: plainTextMessage.from!,
-          permanentChannelDid: permanentChannelDidDoc.id,
-          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-          status: ChannelStatus.inaugurated,
-          type: ChannelType.oob,
-          isConnectionInitiator: true,
-          contactCard: contactCard,
-          otherPartyContactCard: otherPartyCard,
-          externalRef: externalRef,
-        );
-
-        await _channelService.persistChannel(channel);
-
-        _logger.info(
-          'OOB invitation accepted, channel created with ID: ${channel.id}',
-          name: methodName,
-        );
-
-        _controlPlaneEventStreamManager.pushEvent(
-          ControlPlaneStreamEvent(
-            channel: channel,
-            type: ControlPlaneEventType.ChannelActivity,
-          ),
-        );
-
-        oobStream.pushEvent(
-          OobStreamData(
-            eventType: EventType.connectionSetup,
-            message: plainTextMessage,
-            channel: channel,
-          ),
-        );
-      }
+    return _withSdkExceptionHandling(() {
+      return _oobService.createOobFlow(
+        contactCard: contactCard,
+        type: type,
+        did: did,
+        mediatorDid: mediatorDid ?? _mediatorDid,
+        externalRef: externalRef,
+      );
     });
-
-    _logger.info(
-      ''''Listening for messages on mediator channel $mediatorDidToUse and OOB DID ${oobDidDoc.id.topAndTail()}''',
-      name: methodName,
-    );
-
-    return CreateOobFlowResult(
-      streamSubscription: oobStream,
-      oobUrl: Uri.parse(oobCommandOutput.oobUrl),
-    );
   }
 
   /// Accepts an Out-Of-Band invitation created by a User.
@@ -623,149 +517,26 @@ class MeetingPlaceCoreSDK {
   /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
   ///   to include in the invitation acceptance message.
   ///
-  /// Returns [AcceptOobFlowResult]
-  Future<AcceptOobFlowResult> acceptOobFlow(
+  /// Returns [OobAcceptanceSession]
+  Future<OobAcceptanceSession> acceptOobFlow(
     Uri oobUrl, {
     required ContactCard contactCard,
+    String? type,
     String? externalRef,
     String? did,
     List<Attachment>? attachments,
   }) async {
-    final methodName = 'acceptOobFlow';
-    _logger.info('Started accepting OOB invitation', name: methodName);
-
-    final acceptOfferDid = await generateDid();
-    final acceptOfferDidDoc = await acceptOfferDid.getDidDocument();
-
-    final permanentChannelDid = did != null
-        ? await _connectionManager.getDidManagerForDid(wallet, did)
-        : await generateDid();
-    final didDoc = await permanentChannelDid.getDidDocument();
-
-    PlainTextMessage invitationMessage;
-    String actualMediatorDid = _mediatorDid;
-
-    try {
-      _logger.info('Fetching OOB invitation', name: methodName);
-      final oobInfo = await _controlPlaneSDK.execute(
-        GetOobCommand(oobId: oobUrl.pathSegments.last),
-      );
-
-      invitationMessage = OobInvitationMessage.fromBase64(
-        oobInfo.invitationMessage,
-      ).toPlainTextMessage();
-
-      actualMediatorDid = oobInfo.mediatorDid;
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to fetch OOB invitation:',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      invitationMessage = await _mediatorSDK.getOob(
+    return _withSdkExceptionHandling(() {
+      return _oobService.acceptOobFlow(
         oobUrl,
-        didManager: acceptOfferDid,
+        did: did,
+        type: type,
+        contactCard: contactCard,
+        externalRef: externalRef,
+        mediatorDid: _mediatorDid,
+        attachments: attachments,
       );
-    }
-
-    final channel = Channel(
-      offerLink: invitationMessage.id,
-      publishOfferDid: invitationMessage.from!,
-      mediatorDid: actualMediatorDid,
-      status: ChannelStatus.waitingForApproval,
-      outboundMessageId: invitationMessage.id,
-      acceptOfferDid: acceptOfferDidDoc.id,
-      permanentChannelDid: didDoc.id,
-      type: ChannelType.oob,
-      isConnectionInitiator: false,
-      contactCard: contactCard,
-      externalRef: externalRef,
-    );
-
-    final streamSubscription = await _mediatorService.subscribe(
-      didManager: acceptOfferDid,
-      mediatorDid: actualMediatorDid,
-    );
-
-    final oobStream = OobStream(
-      onDispose: () => streamSubscription.dispose(),
-      logger: _logger,
-    );
-
-    _logger.info(
-      'Listening for messages on mediator channel',
-      name: methodName,
-    );
-
-    streamSubscription.stream.listen((message) async {
-      final plainTextMessage = message.plainTextMessage;
-
-      if (plainTextMessage.type.toString() ==
-              MeetingPlaceProtocol.connectionRequestApproval.value &&
-          plainTextMessage.parentThreadId == invitationMessage.id) {
-        final otherPartyPermanentChannelDid =
-            plainTextMessage.body!['channel_did'];
-
-        await _mediatorSDK.updateAcl(
-          ownerDidManager: permanentChannelDid,
-          mediatorDid: actualMediatorDid,
-          acl: AccessListAdd(
-            ownerDid: didDoc.id,
-            granteeDids: [otherPartyPermanentChannelDid],
-          ),
-        );
-
-        final otherPartyCard = getContactCardDataOrEmptyFromAttachments(
-          plainTextMessage.attachments,
-        );
-
-        await _channelService
-            .markOobChannelInauguratedForNonConnectionInitiator(
-              channel,
-              otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-              outboundMessageId: invitationMessage.id,
-              otherPartyCard: otherPartyCard,
-            );
-
-        final attachments = plainTextMessage.attachments;
-        if (attachments != null && attachments.isNotEmpty) {
-          options.onAttachmentsReceived?.call(channel, attachments);
-        }
-
-        _controlPlaneEventStreamManager.pushEvent(
-          ControlPlaneStreamEvent(
-            channel: channel,
-            type: ControlPlaneEventType.ChannelActivity,
-          ),
-        );
-
-        oobStream.pushEvent(
-          OobStreamData(
-            eventType: EventType.connectionAccepted,
-            message: plainTextMessage,
-            channel: channel,
-          ),
-        );
-
-        _logger.info(
-          'OOB invitation accepted, channel created with ID: ${channel.id}',
-          name: methodName,
-        );
-      }
     });
-
-    await _connectionService.sendAcceptOfferToMediator(
-      acceptOfferDid: acceptOfferDid,
-      permanentChannelDidDocument: didDoc,
-      invitationMessage: invitationMessage,
-      mediatorDid: actualMediatorDid,
-      acceptContactCard: contactCard,
-      attachments: attachments,
-    );
-
-    await _channelService.persistChannel(channel);
-    return AcceptOobFlowResult(streamSubscription: oobStream, channel: channel);
   }
 
   /// Validates whether a given offer phrase is already in use within the system.

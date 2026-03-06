@@ -1308,7 +1308,7 @@ class MeetingPlaceCoreSDK {
   }) {
     return _withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
-      return _mediatorService.deletedMessages(
+      return _mediatorService.deleteMessages(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         messageHashes: messageHashes,

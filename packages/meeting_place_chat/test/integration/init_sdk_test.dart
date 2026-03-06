@@ -9,7 +9,7 @@ import '../utils/repository/connection_group_offer_repository_impl.dart';
 import '../utils/sdk.dart';
 import '../utils/storage/in_memory_storage.dart';
 
-void main() async {
+void main() {
   late final MeetingPlaceCoreSDK coreSDK;
   late final GroupRepository groupRepository;
 

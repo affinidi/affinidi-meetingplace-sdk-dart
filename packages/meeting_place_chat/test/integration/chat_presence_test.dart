@@ -5,61 +5,37 @@ import 'package:meeting_place_chat/src/utils/message_utils.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
-import '../utils/contact_card_fixture.dart' as fixtures;
 import '../utils/sdk.dart';
-import '../utils/setup_chat_sdk.dart';
+import 'utils/individual_chat_fixture.dart';
 
-void main() async {
-  final setup = SetupChatSdk();
-
-  late SDKInstance alice;
-  late SDKInstance bob;
-
-  late MeetingPlaceChatSDK aliceChatSDK;
-  late MeetingPlaceChatSDK bobChatSDK;
+void main() {
+  late IndividualChatFixture fixture;
 
   setUp(() async {
-    alice = await setup.createCoreSDK(
-      fixtures.ContactCardFixture.alicePrimaryCardInfo,
-    );
-
-    bob = await setup.createCoreSDK(
-      fixtures.ContactCardFixture.bobPrimaryCardInfo,
-    );
-
-    aliceChatSDK = await setup.createChatSdk(
-      sdkInstance: alice,
-      otherPartySdkInstance: bob,
-    );
-
-    bobChatSDK = await setup.createChatSdk(
-      sdkInstance: bob,
-      otherPartySdkInstance: alice,
-    );
+    fixture = await IndividualChatFixture.create();
   });
 
   tearDown(() {
-    aliceChatSDK.endChatSession();
-    bobChatSDK.endChatSession();
+    fixture.dispose();
   });
 
   test('sends chat presence message in configured interval', () async {
     final chatSDKWithReducedInterval = await initIndividualChatSDK(
-      coreSDK: alice.coreSDK,
-      did: alice.didDocument.id,
-      otherPartyDid: bob.didDocument.id,
-      channelRepository: alice.channelRepository,
+      coreSDK: fixture.aliceSDK.coreSDK,
+      did: fixture.aliceSDK.didDocument.id,
+      otherPartyDid: fixture.bobSDK.didDocument.id,
+      channelRepository: fixture.aliceSDK.channelRepository,
       options: ChatSDKOptions(
         chatPresenceSendInterval: const Duration(milliseconds: 200),
       ),
     );
 
     var receivedMessages = 0;
-    await bobChatSDK.startChatSession();
+    await fixture.bobChatSDK.startChatSession();
 
     // Consume chat presence messages
     final waitForSubscription = Completer<void>();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
+    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       waitForSubscription.complete();
       stream!.listen((data) {
         if (MessageUtils.isType(
@@ -87,8 +63,8 @@ void main() async {
     final bobReceivedPresenceFromFirstSession = Completer<void>();
     final type = ChatProtocol.chatPresence.value;
 
-    await bobChatSDK.startChatSession();
-    await bobChatSDK.chatStreamSubscription.then((stream) {
+    await fixture.bobChatSDK.startChatSession();
+    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
         if (data.plainTextMessage?.isOfType(type) == true) {
           if (!bobReceivedPresenceFromFirstSession.isCompleted) {
@@ -99,13 +75,13 @@ void main() async {
     });
 
     // Start Alice's first chat session and wait for Bob to receive presence
-    await aliceChatSDK.startChatSession();
+    await fixture.aliceChatSDK.startChatSession();
     await bobReceivedPresenceFromFirstSession.future.timeout(
       const Duration(seconds: 10),
     );
 
     // End chat session after receiving presence (outside of listener callback)
-    aliceChatSDK.endChatSession();
+    fixture.aliceChatSDK.endChatSession();
 
     // Track time to verify that presence message received after
     // restarting chat session is new presence message and not a delayed
@@ -118,11 +94,11 @@ void main() async {
 
     // Start Alice's second chat session and check if Bob receives presence
     // message
-    await aliceChatSDK.startChatSession();
+    await fixture.aliceChatSDK.startChatSession();
     await Future.delayed(const Duration(seconds: 3));
 
-    final bobMessages = await bob.coreSDK.fetchMessages(
-      did: bob.didDocument.id,
+    final bobMessages = await fixture.bobSDK.coreSDK.fetchMessages(
+      did: fixture.bobSDK.didDocument.id,
       deleteOnRetrieve: true,
     );
 

@@ -1,5 +1,3 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
-
 import '../../meeting_place_chat.dart';
 
 class ChatDeliveredHandler {
@@ -16,8 +14,10 @@ class ChatDeliveredHandler {
     required MediatorMessage message,
     required String chatId,
   }) async {
-    final messageIds = _getMessageIds(message.plainTextMessage);
-    for (final messageId in messageIds) {
+    final deliveredMessage =
+        ChatDelivered.fromPlainTextMessage(message.plainTextMessage);
+
+    for (final messageId in deliveredMessage.body.messages) {
       final targetMessage = await _chatRepository.getMessage(
         chatId: chatId,
         messageId: messageId,
@@ -35,9 +35,5 @@ class ChatDeliveredHandler {
         ),
       );
     }
-  }
-
-  List<String> _getMessageIds(PlainTextMessage message) {
-    return List<String>.from(message.body!['messages'] as List<dynamic>);
   }
 }

@@ -535,7 +535,7 @@ abstract class BaseChatSDK {
         protocol.ChatAliasProfileHash.create(
           from: did,
           to: [otherPartyDid],
-          profileHash: ChatUtils.contactHash(card!),
+          profileHash: card!.profileHash,
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,

@@ -1,45 +1,38 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_chat.dart';
-import '../utils/chat_utils.dart';
+import '../sdk/base_chat_sdk.dart';
 
 class ChatAliasProfileHashHandler {
   ChatAliasProfileHashHandler({
-    required MeetingPlaceCoreSDK coreSDK,
+    required BaseChatSDK chatSDK,
     required ChatStream streamManager,
-  }) : _coreSDK = coreSDK,
+  }) : _chatSDK = chatSDK,
        _streamManager = streamManager;
 
-  final MeetingPlaceCoreSDK _coreSDK;
+  final BaseChatSDK _chatSDK;
   final ChatStream _streamManager;
 
   Future<void> handle({
     required PlainTextMessage message,
     required Channel channel,
-    required String did,
-    required String otherPartyDid,
-    required String mediatorDid,
   }) async {
-    final profileHash = message.body?['profile_hash'];
-    if (profileHash == null || profileHash is! String) {
-      return;
-    }
+    final profileHashMessage =
+        ChatAliasProfileHash.fromPlainTextMessage(message);
+    final profileHash = profileHashMessage.body.profileHash;
 
     if (channel.otherPartyContactCard != null &&
-        ChatUtils.contactHash(channel.otherPartyContactCard!) == profileHash) {
+        channel.otherPartyContactCard!.profileHash == profileHash) {
       _streamManager.pushData(StreamData(plainTextMessage: message));
       return;
     }
 
-    await _coreSDK.sendMessage(
+    await _chatSDK.sendMessage(
       ChatAliasProfileRequest.create(
-        from: did,
-        to: [otherPartyDid],
+        from: _chatSDK.did,
+        to: [_chatSDK.otherPartyDid],
         profileHash: profileHash,
       ).toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
     );
 
     _streamManager.pushData(StreamData(plainTextMessage: message));

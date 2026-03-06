@@ -16,6 +16,9 @@ class ChatGroupAliasProfileRequestHandler {
     required PlainTextMessage message,
     required String chatId,
   }) async {
+    final profileRequestMessage =
+        ChatAliasProfileRequest.fromPlainTextMessage(message);
+
     // TODO: add concierge message handler
     final existingMessages = await _chatRepository.listMessages(chatId);
     final targets = existingMessages.where(
@@ -36,14 +39,14 @@ class ChatGroupAliasProfileRequestHandler {
     final conciergeMessage = ConciergeMessage(
       chatId: chatId,
       messageId: const Uuid().v4(),
-      senderDid: message.from!,
+      senderDid: profileRequestMessage.from,
       isFromMe: false,
       dateCreated: message.createdTime ?? DateTime.now().toUtc(),
       status: ChatItemStatus.userInput,
       conciergeType: ConciergeMessageType.permissionToUpdateProfile,
       data: {
-        'profileHash': message.body?['profile_hash'],
-        'replyTo': message.from!,
+        'profileHash': profileRequestMessage.body.profileHash,
+        'replyTo': profileRequestMessage.from,
       },
     );
 

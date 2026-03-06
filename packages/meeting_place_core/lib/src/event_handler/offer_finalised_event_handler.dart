@@ -148,7 +148,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyNotificationToken: event.notificationToken,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       outboundMessageId: message.id,
-      otherPartyCard: connectionRequestApprovalMessage.contactCard,
+      otherPartyContactCard: connectionRequestApprovalMessage.contactCard,
     );
 
     final attachments = message.attachments;

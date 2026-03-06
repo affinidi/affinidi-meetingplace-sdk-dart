@@ -38,17 +38,17 @@ class OobFlowFixture {
     return fixture;
   }
 
-  Future<dynamic> createOobFlow({String? did}) {
+  Future<OobOfferSession> createOobFlow({String? did}) {
     return aliceSDK.createOobFlow(contactCard: aliceContactCard(), did: did);
   }
 
-  Future<dynamic> acceptOobFlow(Uri oobUrl) {
+  Future<OobAcceptanceSession> acceptOobFlow(Uri oobUrl) {
     return bobSDK.acceptOobFlow(oobUrl, contactCard: bobContactCard());
   }
 
-  static Future<Channel> waitForFirstChannelFromCreate(dynamic result) {
+  static Future<Channel> waitForFirstChannelFromCreate(OobOfferSession result) {
     final completer = Completer<Channel>();
-    result.streamSubscription.listen((data) {
+    result.stream.listen((data) {
       if (!completer.isCompleted) {
         completer.complete(data.channel);
       }
@@ -57,9 +57,11 @@ class OobFlowFixture {
     return completer.future;
   }
 
-  static Future<Channel> waitForFirstChannelFromAccept(dynamic result) {
+  static Future<Channel> waitForFirstChannelFromAccept(
+    OobAcceptanceSession result,
+  ) {
     final completer = Completer<Channel>();
-    result.streamSubscription.listen((data) {
+    result.stream.listen((data) {
       if (!completer.isCompleted) {
         completer.complete(data.channel);
       }

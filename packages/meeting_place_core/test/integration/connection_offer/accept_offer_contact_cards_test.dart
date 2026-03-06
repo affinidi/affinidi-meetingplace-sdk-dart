@@ -69,7 +69,7 @@ void main() {
   });
 
   test(
-    'connection offer contains ContactCard of accepter after accepting',
+    'connection offer contains ContactCard of the accepter after acceptance',
     () async {
       final aliceCard = ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
@@ -103,6 +103,4 @@ void main() {
       );
     },
   );
-
-  
 }

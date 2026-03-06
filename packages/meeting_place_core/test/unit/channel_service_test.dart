@@ -250,7 +250,7 @@ void main() {
           otherPartyNotificationToken: 'otherToken',
           otherPartyPermanentChannelDid: 'otherDid',
           outboundMessageId: 'msgId',
-          otherPartyCard: null,
+          otherPartyContactCard: null,
         );
         verify(() => repository.updateChannel(nonInitiatorChannel)).called(1);
         expect(nonInitiatorChannel.status, ChannelStatus.inaugurated);
@@ -272,7 +272,7 @@ void main() {
             otherPartyNotificationToken: 'otherToken',
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
-            otherPartyCard: null,
+            otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -294,7 +294,7 @@ void main() {
             otherPartyNotificationToken: 'otherToken',
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
-            otherPartyCard: null,
+            otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
         );

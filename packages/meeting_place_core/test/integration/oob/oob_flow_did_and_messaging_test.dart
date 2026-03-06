@@ -54,12 +54,12 @@ void main() {
     );
 
     final aliceCompleter = Completer<Channel>();
-    createOobFlowResult.streamSubscription.listen((data) {
+    createOobFlowResult.stream.listen((data) {
       aliceCompleter.complete(data.channel);
     });
 
     final bobCompleter = Completer<Channel>();
-    acceptOobFlowResult.streamSubscription.listen((data) {
+    acceptOobFlowResult.stream.listen((data) {
       bobCompleter.complete(data.channel);
     });
 

@@ -16,10 +16,7 @@ void main() {
       final resultA = await fixture.createOobFlow();
       final resultB = await fixture.createOobFlow();
 
-      expect(
-        resultA.streamSubscription,
-        isNot(equals(resultB.streamSubscription)),
-      );
+      expect(resultA.stream, isNot(equals(resultB.stream)));
     });
 
     test('uses separate stream for each acceptOobFlow call', () async {
@@ -28,10 +25,7 @@ void main() {
       final resultA = await fixture.acceptOobFlow(createOobFlowResult.oobUrl);
       final resultB = await fixture.acceptOobFlow(createOobFlowResult.oobUrl);
 
-      expect(
-        resultA.streamSubscription,
-        isNot(equals(resultB.streamSubscription)),
-      );
+      expect(resultA.stream, isNot(equals(resultB.stream)));
     });
 
     test('executes callback on timeout', () async {
@@ -39,8 +33,8 @@ void main() {
 
       final aliceCompleter = Completer<String>();
 
-      createOobFlowResult.streamSubscription.listen((data) => data);
-      createOobFlowResult.streamSubscription.timeout(
+      createOobFlowResult.stream.listen((data) => data);
+      createOobFlowResult.stream.timeout(
         const Duration(milliseconds: 200),
         () => aliceCompleter.complete('timeout'),
       );
@@ -53,8 +47,8 @@ void main() {
 
       await fixture.acceptOobFlow(createOobFlowResult.oobUrl);
 
-      createOobFlowResult.streamSubscription.listen((data) => data);
-      createOobFlowResult.streamSubscription.timeout(
+      createOobFlowResult.stream.listen((data) => data);
+      createOobFlowResult.stream.timeout(
         const Duration(seconds: 1),
         () => fail('timeout executed'),
       );

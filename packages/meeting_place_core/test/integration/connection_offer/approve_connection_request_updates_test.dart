@@ -52,6 +52,17 @@ void main() {
     });
 
     test(
+      'channel contact card has been updated with other party contact card',
+      () {
+        final actual = fixture.aliceApprovedChannel.otherPartyContactCard;
+        expect(
+          actual?.toJson(),
+          equals(fixture.bobOfferFinalisedChannel.contactCard?.toJson()),
+        );
+      },
+    );
+
+    test(
       'connection offer has been updated with permanent channel DIDs',
       () async {
         expect(
@@ -110,6 +121,17 @@ void main() {
         equals(ChannelStatus.inaugurated),
       );
     });
+
+    test(
+      'channel contact card has been updated with other party contact card',
+      () {
+        final actual = fixture.bobOfferFinalisedChannel.otherPartyContactCard;
+        expect(
+          actual?.toJson(),
+          equals(fixture.aliceApprovedChannel.contactCard?.toJson()),
+        );
+      },
+    );
 
     test('connection offer status has been updated to finalised', () {
       expect(connectionOffer.status, equals(ConnectionOfferStatus.finalised));

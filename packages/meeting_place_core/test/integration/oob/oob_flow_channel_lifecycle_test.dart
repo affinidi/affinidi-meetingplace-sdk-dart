@@ -11,16 +11,16 @@ void main() {
     setUpAll(() async {
       final fixture = await OobFlowFixture.create();
 
-      final createOobFlowResult = await fixture.createOobFlow();
-      final acceptOobFlowResult = await fixture.acceptOobFlow(
-        createOobFlowResult.oobUrl,
+      final oobOfferSession = await fixture.createOobFlow();
+      final oobAcceptanceSession = await fixture.acceptOobFlow(
+        oobOfferSession.oobUrl,
       );
 
       final aliceFuture = OobFlowFixture.waitForFirstChannelFromCreate(
-        createOobFlowResult,
+        oobOfferSession,
       );
       final bobFuture = OobFlowFixture.waitForFirstChannelFromAccept(
-        acceptOobFlowResult,
+        oobAcceptanceSession,
       );
 
       final channels = await Future.wait([aliceFuture, bobFuture]);

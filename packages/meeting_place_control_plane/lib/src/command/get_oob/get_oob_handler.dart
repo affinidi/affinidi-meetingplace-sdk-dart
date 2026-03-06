@@ -8,6 +8,7 @@ import '../../../meeting_place_control_plane.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
+import '../../core/sdk_error_handler.dart';
 import 'get_oob_exception.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
@@ -82,32 +83,13 @@ class GetOobHandler
       );
     } on DioException catch (e, stackTrace) {
       if (e.response?.statusCode == HttpStatus.notFound) {
-        _logger.warning(
-          'OOB not found for oobId: ${command.oobId}, error: ${e.message}',
-          name: methodName,
-        );
-
         Error.throwWithStackTrace(
           GetOobException.oobNotFound(innerException: e),
           stackTrace,
         );
       }
 
-      _logger.error(
-        'Failed to get OOB for oobId: ${command.oobId}, error: ${e.message}',
-        name: methodName,
-        stackTrace: stackTrace,
-      );
-
-      Error.throwWithStackTrace(
-        ControlPlaneSDKException(
-          message:
-              'OOB not found for oobId: ${command.oobId}, error: ${e.message}',
-          code: ControlPlaneSDKErrorCode.oobNotFound.value,
-          innerException: e,
-        ),
-        stackTrace,
-      );
+      rethrow;
     } catch (e, stackTrace) {
       _logger.error(
         'Error getting OOB for oobId: ${command.oobId}, error: $e',

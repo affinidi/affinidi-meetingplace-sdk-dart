@@ -5,7 +5,7 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'fixture/sdk_fixture.dart';
+import '../fixture/sdk_fixture.dart';
 
 void main() async {
   final aliceWallet = PersistentWallet(InMemoryKeyStore());

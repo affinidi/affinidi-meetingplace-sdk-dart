@@ -3,11 +3,11 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
-import 'utils/contact_card_fixture.dart';
-import 'utils/repository/chat_repository_impl.dart';
-import 'utils/repository/connection_group_offer_repository_impl.dart';
-import 'utils/sdk.dart';
-import 'utils/storage/in_memory_storage.dart';
+import '../utils/contact_card_fixture.dart';
+import '../utils/repository/chat_repository_impl.dart';
+import '../utils/repository/connection_group_offer_repository_impl.dart';
+import '../utils/sdk.dart';
+import '../utils/storage/in_memory_storage.dart';
 
 void main() async {
   late final MeetingPlaceCoreSDK coreSDK;

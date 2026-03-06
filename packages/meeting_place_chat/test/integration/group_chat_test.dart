@@ -6,9 +6,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'utils/contact_card_fixture.dart';
-import 'utils/control_plane_test_utils.dart';
-import 'utils/sdk.dart';
+import '../utils/contact_card_fixture.dart';
+import '../utils/control_plane_test_utils.dart';
+import '../utils/sdk.dart';
 
 void main() async {
   late final MeetingPlaceCoreSDK aliceSDK;

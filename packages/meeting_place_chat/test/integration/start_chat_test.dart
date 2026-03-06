@@ -7,9 +7,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'utils/contact_card_fixture.dart' as fixtures;
-import 'utils/setup_chat_sdk.dart';
-import 'utils/storage/in_memory_storage.dart';
+import '../utils/contact_card_fixture.dart' as fixtures;
+import '../utils/setup_chat_sdk.dart';
+import '../utils/storage/in_memory_storage.dart';
 
 void main() async {
   final setup = SetupChatSdk();

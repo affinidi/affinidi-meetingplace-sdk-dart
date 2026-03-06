@@ -3,11 +3,49 @@ import 'chat_item.dart';
 
 part 'event_message.g.dart';
 
-enum EventMessageType {
-  awaitingGroupMemberToJoin,
-  groupDeleted,
-  groupMemberJoinedGroup,
-  groupMemberLeftGroup,
+/// Defines the type of event message sent in a group chat.
+///
+/// The SDK provides built-in types as named constants, but consumers
+/// can define their own by constructing instances:
+/// ```dart
+/// const myType = EventMessageType('myCustomType');
+/// ```
+class EventMessageType {
+  /// Creates an [EventMessageType] with the given string [value].
+  const EventMessageType(this.value);
+
+  /// The string identifier for this type.
+  final String value;
+
+  static const awaitingGroupMemberToJoin = EventMessageType(
+    'awaitingGroupMemberToJoin',
+  );
+  static const groupDeleted = EventMessageType('groupDeleted');
+  static const groupMemberJoinedGroup = EventMessageType(
+    'groupMemberJoinedGroup',
+  );
+  static const groupMemberLeftGroup = EventMessageType('groupMemberLeftGroup');
+
+  @override
+  bool operator ==(Object other) =>
+      other is EventMessageType && other.value == value;
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => value;
+}
+
+class _EventMessageTypeConverter
+    extends JsonConverter<EventMessageType, String> {
+  const _EventMessageTypeConverter();
+
+  @override
+  EventMessageType fromJson(String json) => EventMessageType(json);
+
+  @override
+  String toJson(EventMessageType object) => object.value;
 }
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
@@ -28,6 +66,7 @@ class EventMessage extends ChatItem {
     super.type = ChatItemType.eventMessage,
   });
 
+  @_EventMessageTypeConverter()
   final EventMessageType eventType;
   final Map<String, dynamic> data;
 

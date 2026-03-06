@@ -61,10 +61,57 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
         );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // SQLite does not support changing column types in-place.
+            // Recreate chat_items with event_type and concierge_type as TEXT,
+            // converting the old integer values to their string equivalents.
+            await customStatement('''
+              CREATE TABLE IF NOT EXISTS chat_items_new (
+                chat_id TEXT NOT NULL,
+                message_id TEXT NOT NULL,
+                value TEXT,
+                is_from_me INTEGER NOT NULL DEFAULT 0,
+                date_created INTEGER NOT NULL,
+                status INTEGER NOT NULL,
+                "type" INTEGER NOT NULL,
+                event_type TEXT,
+                concierge_type TEXT,
+                data TEXT,
+                sender_did TEXT NOT NULL,
+                PRIMARY KEY (message_id)
+              )
+            ''');
+            await customStatement('''
+              INSERT INTO chat_items_new
+              SELECT
+                chat_id, message_id, value, is_from_me, date_created,
+                status, "type",
+                CASE event_type
+                  WHEN 1 THEN 'groupMemberJoinedGroup'
+                  WHEN 2 THEN 'groupMemberLeftGroup'
+                  WHEN 3 THEN 'awaitingGroupMemberToJoin'
+                  WHEN 4 THEN 'groupDeleted'
+                  ELSE NULL
+                END,
+                CASE concierge_type
+                  WHEN 1 THEN 'permissionToUpdateProfile'
+                  WHEN 2 THEN 'permissionToJoinGroup'
+                  ELSE NULL
+                END,
+                data, sender_did
+              FROM chat_items
+            ''');
+            await customStatement('DROP TABLE chat_items');
+            await customStatement(
+              'ALTER TABLE chat_items_new RENAME TO chat_items',
+            );
+          }
+        },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
@@ -98,12 +145,10 @@ class ChatItems extends Table {
   IntColumn get type => integer().map(const _ChatItemTypeConverter())();
 
   /// Event message type, if applicable.
-  IntColumn get eventType =>
-      integer().nullable().map(const _EventMessageTypeConverter())();
+  TextColumn get eventType => text().nullable()();
 
   /// Concierge message type, if applicable.
-  IntColumn get conciergeType =>
-      integer().nullable().map(const _ConciergeMessageTypeConverter())();
+  TextColumn get conciergeType => text().nullable()();
 
   /// Additional data for concierge messages.
   TextColumn get data =>
@@ -244,63 +289,6 @@ class _ChatItemTypeConverter extends TypeConverter<ChatItemType, int> {
 
   @override
   int toSql(ChatItemType value) {
-    return value.value;
-  }
-}
-
-extension _EventMessageTypeValue on EventMessageType {
-  int get value {
-    switch (this) {
-      case EventMessageType.groupMemberJoinedGroup:
-        return 1;
-      case EventMessageType.groupMemberLeftGroup:
-        return 2;
-      case EventMessageType.awaitingGroupMemberToJoin:
-        return 3;
-      case EventMessageType.groupDeleted:
-        return 4;
-    }
-  }
-}
-
-class _EventMessageTypeConverter extends TypeConverter<EventMessageType, int> {
-  const _EventMessageTypeConverter();
-
-  @override
-  EventMessageType fromSql(int fromDb) {
-    return EventMessageType.values.firstWhere((type) => type.value == fromDb);
-  }
-
-  @override
-  int toSql(EventMessageType value) {
-    return value.value;
-  }
-}
-
-extension _ConciergeMessageTypeValue on ConciergeMessageType {
-  int get value {
-    switch (this) {
-      case ConciergeMessageType.permissionToUpdateProfile:
-        return 1;
-      case ConciergeMessageType.permissionToJoinGroup:
-        return 2;
-    }
-  }
-}
-
-class _ConciergeMessageTypeConverter
-    extends TypeConverter<ConciergeMessageType, int> {
-  const _ConciergeMessageTypeConverter();
-
-  @override
-  ConciergeMessageType fromSql(int fromDb) {
-    return ConciergeMessageType.values.firstWhere(
-      (type) => type.value == fromDb,
-    );
-  }
-
-  @override
-  int toSql(ConciergeMessageType value) {
     return value.value;
   }
 }

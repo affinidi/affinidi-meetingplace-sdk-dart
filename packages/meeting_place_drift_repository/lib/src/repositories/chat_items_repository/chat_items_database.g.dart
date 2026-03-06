@@ -53,18 +53,18 @@ class $ChatItemsTable extends ChatItems
       GeneratedColumn<int>('type', aliasedName, false,
               type: DriftSqlType.int, requiredDuringInsert: true)
           .withConverter<ChatItemType>($ChatItemsTable.$convertertype);
+  static const VerificationMeta _eventTypeMeta =
+      const VerificationMeta('eventType');
   @override
-  late final GeneratedColumnWithTypeConverter<EventMessageType?, int>
-      eventType = GeneratedColumn<int>('event_type', aliasedName, true,
-              type: DriftSqlType.int, requiredDuringInsert: false)
-          .withConverter<EventMessageType?>(
-              $ChatItemsTable.$convertereventTypen);
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
+      'event_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _conciergeTypeMeta =
+      const VerificationMeta('conciergeType');
   @override
-  late final GeneratedColumnWithTypeConverter<ConciergeMessageType?, int>
-      conciergeType = GeneratedColumn<int>('concierge_type', aliasedName, true,
-              type: DriftSqlType.int, requiredDuringInsert: false)
-          .withConverter<ConciergeMessageType?>(
-              $ChatItemsTable.$converterconciergeTypen);
+  late final GeneratedColumn<String> conciergeType = GeneratedColumn<String>(
+      'concierge_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   late final GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String>
       data = GeneratedColumn<String>('data', aliasedName, true,
@@ -127,6 +127,16 @@ class $ChatItemsTable extends ChatItems
           dateCreated.isAcceptableOrUnknown(
               data['date_created']!, _dateCreatedMeta));
     }
+    if (data.containsKey('event_type')) {
+      context.handle(_eventTypeMeta,
+          eventType.isAcceptableOrUnknown(data['event_type']!, _eventTypeMeta));
+    }
+    if (data.containsKey('concierge_type')) {
+      context.handle(
+          _conciergeTypeMeta,
+          conciergeType.isAcceptableOrUnknown(
+              data['concierge_type']!, _conciergeTypeMeta));
+    }
     if (data.containsKey('sender_did')) {
       context.handle(_senderDidMeta,
           senderDid.isAcceptableOrUnknown(data['sender_did']!, _senderDidMeta));
@@ -157,12 +167,10 @@ class $ChatItemsTable extends ChatItems
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
       type: $ChatItemsTable.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}type'])!),
-      eventType: $ChatItemsTable.$convertereventTypen.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}event_type'])),
-      conciergeType: $ChatItemsTable.$converterconciergeTypen.fromSql(
-          attachedDatabase.typeMapping.read(
-              DriftSqlType.int, data['${effectivePrefix}concierge_type'])),
+      eventType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}event_type']),
+      conciergeType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}concierge_type']),
       data: $ChatItemsTable.$converterdatan.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}data'])),
       senderDid: attachedDatabase.typeMapping
@@ -179,14 +187,6 @@ class $ChatItemsTable extends ChatItems
       const _ChatItemStatusConverter();
   static TypeConverter<ChatItemType, int> $convertertype =
       const _ChatItemTypeConverter();
-  static TypeConverter<EventMessageType, int> $convertereventType =
-      const _EventMessageTypeConverter();
-  static TypeConverter<EventMessageType?, int?> $convertereventTypen =
-      NullAwareTypeConverter.wrap($convertereventType);
-  static TypeConverter<ConciergeMessageType, int> $converterconciergeType =
-      const _ConciergeMessageTypeConverter();
-  static TypeConverter<ConciergeMessageType?, int?> $converterconciergeTypen =
-      NullAwareTypeConverter.wrap($converterconciergeType);
   static TypeConverter<Map<String, dynamic>, String> $converterdata =
       const _ConciergeDataConverter();
   static TypeConverter<Map<String, dynamic>?, String?> $converterdatan =
@@ -216,10 +216,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
   final ChatItemType type;
 
   /// Event message type, if applicable.
-  final EventMessageType? eventType;
+  final String? eventType;
 
   /// Concierge message type, if applicable.
-  final ConciergeMessageType? conciergeType;
+  final String? conciergeType;
 
   /// Additional data for concierge messages.
   final Map<String, dynamic>? data;
@@ -256,12 +256,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       map['type'] = Variable<int>($ChatItemsTable.$convertertype.toSql(type));
     }
     if (!nullToAbsent || eventType != null) {
-      map['event_type'] =
-          Variable<int>($ChatItemsTable.$convertereventTypen.toSql(eventType));
+      map['event_type'] = Variable<String>(eventType);
     }
     if (!nullToAbsent || conciergeType != null) {
-      map['concierge_type'] = Variable<int>(
-          $ChatItemsTable.$converterconciergeTypen.toSql(conciergeType));
+      map['concierge_type'] = Variable<String>(conciergeType);
     }
     if (!nullToAbsent || data != null) {
       map['data'] =
@@ -303,9 +301,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       dateCreated: serializer.fromJson<DateTime>(json['dateCreated']),
       status: serializer.fromJson<ChatItemStatus>(json['status']),
       type: serializer.fromJson<ChatItemType>(json['type']),
-      eventType: serializer.fromJson<EventMessageType?>(json['eventType']),
-      conciergeType:
-          serializer.fromJson<ConciergeMessageType?>(json['conciergeType']),
+      eventType: serializer.fromJson<String?>(json['eventType']),
+      conciergeType: serializer.fromJson<String?>(json['conciergeType']),
       data: serializer.fromJson<Map<String, dynamic>?>(json['data']),
       senderDid: serializer.fromJson<String>(json['senderDid']),
     );
@@ -321,8 +318,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       'dateCreated': serializer.toJson<DateTime>(dateCreated),
       'status': serializer.toJson<ChatItemStatus>(status),
       'type': serializer.toJson<ChatItemType>(type),
-      'eventType': serializer.toJson<EventMessageType?>(eventType),
-      'conciergeType': serializer.toJson<ConciergeMessageType?>(conciergeType),
+      'eventType': serializer.toJson<String?>(eventType),
+      'conciergeType': serializer.toJson<String?>(conciergeType),
       'data': serializer.toJson<Map<String, dynamic>?>(data),
       'senderDid': serializer.toJson<String>(senderDid),
     };
@@ -336,8 +333,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           DateTime? dateCreated,
           ChatItemStatus? status,
           ChatItemType? type,
-          Value<EventMessageType?> eventType = const Value.absent(),
-          Value<ConciergeMessageType?> conciergeType = const Value.absent(),
+          Value<String?> eventType = const Value.absent(),
+          Value<String?> conciergeType = const Value.absent(),
           Value<Map<String, dynamic>?> data = const Value.absent(),
           String? senderDid}) =>
       ChatItem(
@@ -419,8 +416,8 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
   final Value<DateTime> dateCreated;
   final Value<ChatItemStatus> status;
   final Value<ChatItemType> type;
-  final Value<EventMessageType?> eventType;
-  final Value<ConciergeMessageType?> conciergeType;
+  final Value<String?> eventType;
+  final Value<String?> conciergeType;
   final Value<Map<String, dynamic>?> data;
   final Value<String> senderDid;
   final Value<int> rowid;
@@ -464,8 +461,8 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     Expression<DateTime>? dateCreated,
     Expression<int>? status,
     Expression<int>? type,
-    Expression<int>? eventType,
-    Expression<int>? conciergeType,
+    Expression<String>? eventType,
+    Expression<String>? conciergeType,
     Expression<String>? data,
     Expression<String>? senderDid,
     Expression<int>? rowid,
@@ -494,8 +491,8 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       Value<DateTime>? dateCreated,
       Value<ChatItemStatus>? status,
       Value<ChatItemType>? type,
-      Value<EventMessageType?>? eventType,
-      Value<ConciergeMessageType?>? conciergeType,
+      Value<String?>? eventType,
+      Value<String?>? conciergeType,
       Value<Map<String, dynamic>?>? data,
       Value<String>? senderDid,
       Value<int>? rowid}) {
@@ -542,12 +539,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
           Variable<int>($ChatItemsTable.$convertertype.toSql(type.value));
     }
     if (eventType.present) {
-      map['event_type'] = Variable<int>(
-          $ChatItemsTable.$convertereventTypen.toSql(eventType.value));
+      map['event_type'] = Variable<String>(eventType.value);
     }
     if (conciergeType.present) {
-      map['concierge_type'] = Variable<int>(
-          $ChatItemsTable.$converterconciergeTypen.toSql(conciergeType.value));
+      map['concierge_type'] = Variable<String>(conciergeType.value);
     }
     if (data.present) {
       map['data'] =
@@ -1693,8 +1688,8 @@ typedef $$ChatItemsTableCreateCompanionBuilder = ChatItemsCompanion Function({
   Value<DateTime> dateCreated,
   required ChatItemStatus status,
   required ChatItemType type,
-  Value<EventMessageType?> eventType,
-  Value<ConciergeMessageType?> conciergeType,
+  Value<String?> eventType,
+  Value<String?> conciergeType,
   Value<Map<String, dynamic>?> data,
   required String senderDid,
   Value<int> rowid,
@@ -1707,8 +1702,8 @@ typedef $$ChatItemsTableUpdateCompanionBuilder = ChatItemsCompanion Function({
   Value<DateTime> dateCreated,
   Value<ChatItemStatus> status,
   Value<ChatItemType> type,
-  Value<EventMessageType?> eventType,
-  Value<ConciergeMessageType?> conciergeType,
+  Value<String?> eventType,
+  Value<String?> conciergeType,
   Value<Map<String, dynamic>?> data,
   Value<String> senderDid,
   Value<int> rowid,
@@ -1785,16 +1780,11 @@ class $$ChatItemsTableFilterComposer
           column: $table.type,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
-  ColumnWithTypeConverterFilters<EventMessageType?, EventMessageType, int>
-      get eventType => $composableBuilder(
-          column: $table.eventType,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  ColumnFilters<String> get eventType => $composableBuilder(
+      column: $table.eventType, builder: (column) => ColumnFilters(column));
 
-  ColumnWithTypeConverterFilters<ConciergeMessageType?, ConciergeMessageType,
-          int>
-      get conciergeType => $composableBuilder(
-          column: $table.conciergeType,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  ColumnFilters<String> get conciergeType => $composableBuilder(
+      column: $table.conciergeType, builder: (column) => ColumnFilters(column));
 
   ColumnWithTypeConverterFilters<Map<String, dynamic>?, Map<String, dynamic>,
           String>
@@ -1878,10 +1868,10 @@ class $$ChatItemsTableOrderingComposer
   ColumnOrderings<int> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get eventType => $composableBuilder(
+  ColumnOrderings<String> get eventType => $composableBuilder(
       column: $table.eventType, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get conciergeType => $composableBuilder(
+  ColumnOrderings<String> get conciergeType => $composableBuilder(
       column: $table.conciergeType,
       builder: (column) => ColumnOrderings(column));
 
@@ -1922,12 +1912,11 @@ class $$ChatItemsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<ChatItemType, int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<EventMessageType?, int> get eventType =>
+  GeneratedColumn<String> get eventType =>
       $composableBuilder(column: $table.eventType, builder: (column) => column);
 
-  GeneratedColumnWithTypeConverter<ConciergeMessageType?, int>
-      get conciergeType => $composableBuilder(
-          column: $table.conciergeType, builder: (column) => column);
+  GeneratedColumn<String> get conciergeType => $composableBuilder(
+      column: $table.conciergeType, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<Map<String, dynamic>?, String> get data =>
       $composableBuilder(column: $table.data, builder: (column) => column);
@@ -2008,8 +1997,8 @@ class $$ChatItemsTableTableManager extends RootTableManager<
             Value<DateTime> dateCreated = const Value.absent(),
             Value<ChatItemStatus> status = const Value.absent(),
             Value<ChatItemType> type = const Value.absent(),
-            Value<EventMessageType?> eventType = const Value.absent(),
-            Value<ConciergeMessageType?> conciergeType = const Value.absent(),
+            Value<String?> eventType = const Value.absent(),
+            Value<String?> conciergeType = const Value.absent(),
             Value<Map<String, dynamic>?> data = const Value.absent(),
             Value<String> senderDid = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -2036,8 +2025,8 @@ class $$ChatItemsTableTableManager extends RootTableManager<
             Value<DateTime> dateCreated = const Value.absent(),
             required ChatItemStatus status,
             required ChatItemType type,
-            Value<EventMessageType?> eventType = const Value.absent(),
-            Value<ConciergeMessageType?> conciergeType = const Value.absent(),
+            Value<String?> eventType = const Value.absent(),
+            Value<String?> conciergeType = const Value.absent(),
             Value<Map<String, dynamic>?> data = const Value.absent(),
             required String senderDid,
             Value<int> rowid = const Value.absent(),

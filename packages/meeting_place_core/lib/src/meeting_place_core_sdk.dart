@@ -1308,7 +1308,7 @@ class MeetingPlaceCoreSDK {
   }) {
     return _withSdkExceptionHandling(() async {
       final didManager = await getDidManager(did);
-      return _mediatorService.deletedMessages(
+      return _mediatorService.deleteMessages(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         messageHashes: messageHashes,
@@ -1465,10 +1465,13 @@ class MeetingPlaceCoreSDK {
     return _channelService.updateChannel(channel);
   }
 
-  /// Updates an existing channel in the repository.
+  /// Resolves mediator DID from the given mediator endpoint URL.
   ///
   /// **Parameters:**
-  /// [channel] - Specifies the channel entity to update.
+  /// - [mediatorEndpoint] - The URL of the mediator endpoint to resolve the DID
+  ///
+  /// **Returns:**
+  /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
   }

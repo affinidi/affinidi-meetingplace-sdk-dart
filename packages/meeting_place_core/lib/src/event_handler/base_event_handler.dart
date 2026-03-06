@@ -193,7 +193,7 @@ abstract class BaseEventHandler<T> {
           channel: channel,
         );
 
-        await mediatorService.deletedMessages(
+        await mediatorService.deleteMessages(
           didManager: didManager,
           mediatorDid: mediatorDid,
           messageHashes: [result.messageHash!],

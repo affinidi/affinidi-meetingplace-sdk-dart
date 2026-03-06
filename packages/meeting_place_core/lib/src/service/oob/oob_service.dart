@@ -115,7 +115,6 @@ class OobService {
       contactCard: contactCard,
       mediatorDid: mediatorDid,
       stream: oobStream,
-      logger: _logger,
     );
 
     subscription.listen((mediatorMessage) async {
@@ -194,13 +193,17 @@ class OobService {
       mediatorDid: mediatorDid,
     );
 
+    final oobStream = OobStream(
+      onDispose: () => streamSubscription.dispose(),
+      logger: _logger,
+    );
+
     final session = OobAcceptanceSession(
       channel: channel,
       permanentChannelDidManager: permanentChannelDid,
       permanentChannelDidDocument: permanentChannelDidDoc,
-      subscription: streamSubscription,
+      stream: oobStream,
       mediatorDid: mediatorDid,
-      logger: _logger,
     );
 
     _logger.info(
@@ -224,6 +227,7 @@ class OobService {
       await _processConnectionRequestApproval(
         message,
         session: session,
+        stream: oobStream,
         existingPermanentChannelDid: did,
         externalRef: externalRef,
       );
@@ -315,6 +319,7 @@ class OobService {
   _processConnectionRequestApproval(
     ConnectionRequestApproval message, {
     required OobAcceptanceSession session,
+    required OobStream stream,
     String? existingPermanentChannelDid,
     String? externalRef,
     OnAttachmentsReceivedCallback? onAttachmentsReceived,
@@ -349,7 +354,7 @@ class OobService {
       ),
     );
 
-    session.stream.pushEvent(
+    stream.pushEvent(
       OobStreamData(
         eventType: EventType.connectionAccepted,
         message: message.toPlainTextMessage(),

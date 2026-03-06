@@ -17,7 +17,6 @@ class OobOfferSession {
     required this.contactCard,
     required this.mediatorDid,
     required this.stream,
-    required MeetingPlaceCoreSDKLogger logger,
   });
 
   /// The DID manager used for the connection setup.

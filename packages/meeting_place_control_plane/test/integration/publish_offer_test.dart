@@ -3,12 +3,12 @@ import 'package:meeting_place_control_plane/src/core/protocol/message/oob_invita
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'utils/sdk.dart';
+import '../utils/sdk.dart';
 
 void main() async {
   final sdk = await initSDKInstance();
 
-  test('register offer group fails using existing mnemonic', () async {
+  test('register offer fails using existing mnemonic', () async {
     final device = Device(
       deviceToken: 'sample',
       platformType: PlatformType.didcomm,
@@ -22,7 +22,7 @@ void main() async {
     );
 
     final mnemonic = Uuid().v4();
-    final command = RegisterOfferGroupCommand(
+    final command = RegisterOfferCommand(
       offerName: 'Offer name',
       offerDescription: 'Offer description',
       contactCard: ContactCardImpl(
@@ -34,9 +34,7 @@ void main() async {
       ),
       device: device,
       customPhrase: mnemonic,
-      adminDid: 'did:key:1234',
-      adminPublicKey: 'sample-public-key',
-      adminReencryptionKey: 'sample-reencryption-key',
+      type: OfferType.invitation,
       oobInvitationMessage: OobInvitationMessage(
         id: Uuid().v4(),
         from: 'did:key:1234',
@@ -51,7 +49,7 @@ void main() async {
         isA<ControlPlaneSDKException>().having(
           (e) => e.code,
           'code',
-          'register_offer_group_mnemonic_in_use',
+          'register_offer_mnemonic_in_use',
         ),
       ),
     );

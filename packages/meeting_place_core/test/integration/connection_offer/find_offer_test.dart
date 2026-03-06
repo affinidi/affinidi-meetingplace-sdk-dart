@@ -18,7 +18,7 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
-      maximumUsage: 5,
+      validUntil: DateTime.now().add(const Duration(minutes: 5)),
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
         contactInfo: const {},

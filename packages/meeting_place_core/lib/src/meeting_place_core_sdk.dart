@@ -18,8 +18,6 @@ import 'loggers/logger_adapter.dart';
 import 'service/channel/channel_service.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/oob/oob_service.dart';
-import 'service/oob/session/oob_acceptance_session.dart';
-import 'service/oob/session/oob_offer_session.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';

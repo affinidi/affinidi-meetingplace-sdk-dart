@@ -18,6 +18,7 @@ import '../mediator/mediator_service.dart';
 import 'oob_service_exception.dart';
 import 'session/oob_acceptance_session.dart';
 import 'session/oob_offer_session.dart';
+import 'stream/oob_stream.dart';
 import 'stream/oob_stream_data.dart';
 
 class OobService {
@@ -101,6 +102,11 @@ class OobService {
       name: _logKey,
     );
 
+    final oobStream = OobStream(
+      onDispose: () => subscription.dispose(),
+      logger: _logger,
+    );
+
     final session = OobOfferSession(
       didManager: oobDidManager,
       didDocument: oobDidDoc,
@@ -108,7 +114,7 @@ class OobService {
       oobUrl: Uri.parse(oobOutput.oobUrl),
       contactCard: contactCard,
       mediatorDid: mediatorDid,
-      subscription: subscription,
+      stream: oobStream,
       logger: _logger,
     );
 
@@ -127,6 +133,7 @@ class OobService {
       await _processInvitationAcceptance(
         message,
         session: session,
+        stream: oobStream,
         existingPermanentChannelDid: did,
         externalRef: externalRef,
       );
@@ -240,6 +247,7 @@ class OobService {
   Future<void> _processInvitationAcceptance(
     InvitationAcceptance message, {
     required OobOfferSession session,
+    required OobStream stream,
     String? existingPermanentChannelDid,
     String? externalRef,
   }) async {
@@ -295,7 +303,7 @@ class OobService {
       ),
     );
 
-    session.stream.pushEvent(
+    stream.pushEvent(
       OobStreamData(
         eventType: EventType.connectionSetup,
         message: message.toPlainTextMessage(),

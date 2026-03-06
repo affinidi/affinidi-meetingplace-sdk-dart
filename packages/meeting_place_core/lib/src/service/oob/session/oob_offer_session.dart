@@ -3,7 +3,7 @@ import 'package:ssi/ssi.dart';
 import '../../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../../protocol/protocol.dart';
 import '../../core_sdk_stream_subscription.dart';
-import '../stream/oob_stream.dart';
+import '../stream/oob_stream_data.dart';
 
 /// Represents an active OOB offer session, created when starting an OOB flow
 /// as the offerer.
@@ -16,12 +16,9 @@ class OobOfferSession {
     required this.oobUrl,
     required this.contactCard,
     required this.mediatorDid,
-    required CoreSDKStreamSubscription subscription,
+    required this.stream,
     required MeetingPlaceCoreSDKLogger logger,
-  }) : stream = OobStream(
-         onDispose: () => subscription.dispose(),
-         logger: logger,
-       );
+  });
 
   /// The DID manager used for the connection setup.
   final DidManager didManager;
@@ -34,7 +31,7 @@ class OobOfferSession {
 
   /// The OOB stream that emits events related to the OOB session,
   /// such as acceptance by the invitee.
-  final OobStream stream;
+  final CoreSDKStreamSubscription<OobStreamData, void> stream;
 
   /// The OOB URL that can be shared with the invitee to accept the OOB offer.
   final Uri oobUrl;

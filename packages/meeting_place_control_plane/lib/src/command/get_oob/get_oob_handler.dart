@@ -8,7 +8,6 @@ import '../../../meeting_place_control_plane.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../core/sdk_error_handler.dart';
 import 'get_oob_exception.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.

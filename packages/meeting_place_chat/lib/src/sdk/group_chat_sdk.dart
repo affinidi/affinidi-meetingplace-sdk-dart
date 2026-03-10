@@ -253,14 +253,16 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// - Alias profile requests
   ///
   /// Updates the group state, repository, and stream manager accordingly.
-  Future<bool> _handleMessage(PlainTextMessage message) async {
+  Future<bool> _handleMessage(MediatorMessage message) async {
     final methodName = '_handleMessage';
     logger.info('Started handling of group message', name: methodName);
 
-    if (_isGroupOwner() && _memberJoinedIndicator(message)) {
+    final plainTextMessage = message.plainTextMessage;
+
+    if (_isGroupOwner() && _memberJoinedIndicator(plainTextMessage)) {
       logger.info(
         'Handling message for member joined event for group owner: '
-        '${message.from?.topAndTail()}',
+        '${plainTextMessage.from?.topAndTail()}',
         name: methodName,
       );
       await ChatGroupMemberJoinedHandler(
@@ -270,14 +272,14 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ).handle(chatId: chatId, groupDid: group.did, message: message);
     }
 
-    final messageType = message.type.toString();
+    final messageType = plainTextMessage.type.toString();
     final handler = _groupMessageHandlers[messageType];
     if (handler != null) {
       logger.info(
         'Handling group message of type $messageType',
         name: methodName,
       );
-      return handler(message);
+      return handler(plainTextMessage);
     }
 
     logger.info('Completed handling of group message', name: methodName);
@@ -303,9 +305,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
     for (final message in messagesFromMediator) {
       final messageHandled = await handleMessage(message, newMessages);
-      final messageHandledInternal = await _handleMessage(
-        message.plainTextMessage,
-      );
+      final messageHandledInternal = await _handleMessage(message);
 
       if (!messageHandledInternal && !messageHandled) {
         chatStream.pushData(
@@ -343,7 +343,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Completed subscribing to group channel', name: methodName);
 
     subscription.listen((data) async {
-      if (!await _handleMessage(data.plainTextMessage)) {
+      if (!await _handleMessage(data)) {
         chatStream.pushData(
           StreamData(plainTextMessage: data.plainTextMessage),
         );

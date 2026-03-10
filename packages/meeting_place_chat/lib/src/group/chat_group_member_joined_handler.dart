@@ -18,11 +18,11 @@ class ChatGroupMemberJoinedHandler {
   final ChatStream _streamManager;
 
   Future<void> handle({
-    required PlainTextMessage message,
+    required MediatorMessage message,
     required String chatId,
     required String groupDid,
   }) async {
-    final senderDid = message.from;
+    final senderDid = message.fromDid ?? message.plainTextMessage.from;
     if (senderDid == null) return;
 
     // TODO: keep target list in memory to not always iterate through all
@@ -35,8 +35,7 @@ class ChatGroupMemberJoinedHandler {
               eventMessage.status != ChatItemStatus.confirmed &&
               eventMessage.eventType ==
                   EventMessageType.awaitingGroupMemberToJoin &&
-              (eventMessage.data['memberDid'] == senderDid ||
-                  eventMessage.data['memberDid'] == message.body?['from_did']),
+              eventMessage.data['memberDid'] == senderDid,
         );
 
     if (matchingMessage == null) return;

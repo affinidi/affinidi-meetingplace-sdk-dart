@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'contact_card.g.dart';
@@ -38,6 +40,9 @@ class ContactCard {
     if (!removePadding) return encoded;
     return encoded.replaceAll('=', '');
   }
+
+  String get profileHash =>
+      sha256.convert(utf8.encode(jsonEncode(contactInfo))).toString();
 
   bool equals(ContactCard other) {
     return did == other.did &&

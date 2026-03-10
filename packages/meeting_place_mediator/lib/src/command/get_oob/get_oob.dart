@@ -1,10 +1,7 @@
-import 'package:ssi/ssi.dart';
-
 import '../../core/command/command.dart';
 import 'get_oob_output.dart';
 
 class GetOobCommand implements MediatorCommand<GetOobOutput> {
-  GetOobCommand({required this.oobUrl, required this.didManager});
+  GetOobCommand({required this.oobUrl});
   final Uri oobUrl;
-  final DidManager didManager;
 }

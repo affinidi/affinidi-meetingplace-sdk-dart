@@ -12,6 +12,7 @@ import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/protocol.dart';
 import '../repository/repository.dart';
+import 'channel/channel_service.dart';
 import 'connection_manager/connection_manager.dart';
 import '../sdk/results/results.dart' hide AcceptOfferResult;
 import 'connection_offer/connection_offer_exception.dart';
@@ -38,15 +39,15 @@ class ConnectionService {
   ConnectionService({
     required ConnectionManager connectionManager,
     required ConnectionOfferRepository connectionOfferRepository,
-    required ChannelRepository channelRepository,
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MediatorAclService mediatorAclService,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
+    required ChannelService channelService,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
-       _channelRepository = channelRepository,
+       _channelService = channelService,
        _connectionOfferRepository = connectionOfferRepository,
        _controlPlaneSDK = controlPlaneSDK,
        _mediatorSDK = mediatorSDK,
@@ -61,7 +62,7 @@ class ConnectionService {
   final ConnectionManager _connectionManager;
   final ConnectionOfferRepository _connectionOfferRepository;
   final ConnectionOfferService _connectionOfferService;
-  final ChannelRepository _channelRepository;
+  final ChannelService _channelService;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final MediatorAclService _mediatorAclService;
   final ControlPlaneSDK _controlPlaneSDK;
@@ -347,7 +348,7 @@ class ConnectionService {
       externalRef: externalRef,
     );
 
-    await _channelRepository.createChannel(channel);
+    await _channelService.persistChannel(channel);
 
     unawaited(
       _notifyAcceptance(
@@ -425,6 +426,7 @@ class ConnectionService {
     required PlainTextMessage invitationMessage,
     String? mediatorDid,
     ContactCard? acceptContactCard,
+    List<Attachment>? attachments,
   }) async {
     final methodName = 'sendAcceptOfferToMediator';
     _logger.info('Sending accept offer to mediator', name: methodName);
@@ -445,6 +447,7 @@ class ConnectionService {
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
       contactCard: acceptContactCard,
+      attachments: attachments,
     );
 
     await _mediatorSDK.sendMessage(
@@ -491,8 +494,8 @@ class ConnectionService {
   Future<Channel> approveConnectionRequest({
     required Wallet wallet,
     required Channel channel,
+    List<Attachment>? attachments,
   }) async {
-    // If [did] is not provided, a new DID is generated for the permanent channel.
     final methodName = 'approveConnectionRequest';
     _logger.info(
       'Approving connection request for offer link: ${channel.offerLink}',
@@ -552,6 +555,7 @@ class ConnectionService {
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
+      attachments: attachments,
     );
 
     final contactCard = channel.contactCard;
@@ -579,11 +583,12 @@ class ConnectionService {
     );
     await _connectionOfferRepository.updateConnectionOffer(finalisedConnection);
 
-    channel.permanentChannelDid = permanentChannelDidDocument.id;
-    channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
-    channel.notificationToken = finaliseAcceptanceOutput.notificationToken;
-    channel.status = ChannelStatus.approved;
-    await _channelRepository.updateChannel(channel);
+    await _channelService.markChannelApprovedForConnectionInitiator(
+      channel,
+      permanentChannelDid: permanentChannelDidDocument.id,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      notificationToken: finaliseAcceptanceOutput.notificationToken,
+    );
 
     _logger.info(
       'Connection request approved for offer: ${connectionOffer.offerName}',
@@ -601,6 +606,7 @@ class ConnectionService {
     required String outboundMessageId,
     required String mediatorDid,
     ContactCard? contactCard,
+    List<Attachment>? attachments,
   }) async {
     final methodName = 'sendConnectionRequestApprovalToMediator';
     _logger.info(
@@ -625,6 +631,7 @@ class ConnectionService {
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
       contactCard: contactCard,
+      attachments: attachments,
     );
 
     final recipientDidDocument = await _didResolver.resolveDid(
@@ -671,7 +678,8 @@ class ConnectionService {
     );
 
     await Future.wait(networkRequests);
-    await _channelRepository.deleteChannel(channel);
+    await _channelService.deleteChannel(channel);
+
     if (connectionOffer != null && !connectionOffer.ownedByMe) {
       await _connectionOfferService.markAsDeleted(connectionOffer);
     }

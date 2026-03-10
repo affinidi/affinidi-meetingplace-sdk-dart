@@ -1,0 +1,9 @@
+#!/bin/sh
+echo "🔍 Running melos analyze before commit..."
+melos run analyze
+if [ $? -ne 0 ]; then
+  echo "❌ Melos analyze failed! Commit aborted."
+  echo "Please fix the issues above before committing."
+  exit 1
+fi
+echo "✅ Melos analyze passed. Proceeding with commit."

@@ -20,12 +20,14 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AclSet,
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDKErrorCode,
-        MeetingPlaceMediatorSDKException;
+        MeetingPlaceMediatorSDKException,
+        MediatorStreamProcessingResult;
 
 export 'package:ssi/ssi.dart' show DidManager;
 
 export 'src/entity/entity.dart';
 export 'src/event_handler/control_plane_stream_event.dart';
+export 'src/event_handler/control_plane_event_handler_manager_options.dart';
 export 'src/loggers/default_meeting_place_core_sdk_logger.dart';
 export 'src/loggers/meeting_place_core_sdk_logger.dart';
 export 'src/meeting_place_core_sdk.dart';
@@ -38,5 +40,8 @@ export 'src/repository/repository.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/mediator/mediator_message.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
-export 'src/service/oob/oob_stream_data.dart';
+export 'src/service/oob/session/oob_acceptance_session.dart';
+export 'src/service/oob/session/oob_offer_session.dart';
+export 'src/service/oob/stream/oob_stream.dart';
+export 'src/service/oob/stream/oob_stream_data.dart';
 export 'src/utils/contact_card_utils.dart';

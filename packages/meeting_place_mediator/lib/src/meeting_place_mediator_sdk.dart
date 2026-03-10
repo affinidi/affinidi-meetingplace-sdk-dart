@@ -90,11 +90,13 @@ class MeetingPlaceMediatorSDK {
   Future<MediatorClient> authenticateWithDid(
     DidManager didManager, {
     String? mediatorDid,
+    bool forceNewSession = false,
   }) {
     return _withSdkExceptionHandling(
       () => _mediatorService.authenticateWithDid(
         didManager: didManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
+        forceNewSession: forceNewSession,
       ),
     );
   }
@@ -152,17 +154,17 @@ class MeetingPlaceMediatorSDK {
 
   /// Allows a client to retrieve the OOB details from the mediator.
   ///
-  /// - [didManager]: The DidManager instance used for authentication with the mediator
-  /// and contains the identity credentials needed for the session.
   /// - [oobUrl]: Carries an out-of-band invitation used to initiate DIDComm interactions
   /// outside the normal communication channel, often shared via QR code.
-  Future<OobInvitationMessage> getOob(
-    Uri oobUrl, {
-    required DidManager didManager,
-  }) {
+  ///
+  /// Returns the OOB invitation message details if found, or null if no OOB
+  /// invitation is associated with the provided URL.
+  ///
+  /// Throws a [MediatorException] if there is an error during retrieval.
+  Future<OobInvitationMessage?> getOob(Uri oobUrl) {
     return _withSdkExceptionHandling(() async {
       final output = await _execute(
-        GetOobCommand(oobUrl: oobUrl, didManager: didManager),
+        GetOobCommand(oobUrl: oobUrl),
       );
       return output.oobInvitationMessage;
     });
@@ -318,7 +320,7 @@ class MeetingPlaceMediatorSDK {
   /// used to verify and track messages without exposing their content.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   /// If not provided, the SDK instance’s default mediator DID will be used.
-  Future<void> deletedMessages({
+  Future<void> deleteMessages({
     required DidManager didManager,
     required List<String> messageHashes,
     String? mediatorDid,

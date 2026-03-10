@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../utils/attachment.dart';
 import '../../contact_card/contact_card.dart';
 import '../../meeting_place_protocol.dart';
 import '../../contact_card/contact_card_helper.dart';
@@ -13,6 +14,7 @@ class ConnectionRequestApproval {
     required String parentThreadId,
     required String channelDid,
     ContactCard? contactCard,
+    List<Attachment>? attachments,
   }) {
     return ConnectionRequestApproval(
       id: const Uuid().v4(),
@@ -21,19 +23,14 @@ class ConnectionRequestApproval {
       parentThreadId: parentThreadId,
       body: ConnectionRequestApprovalBody(channelDid: channelDid),
       contactCard: contactCard,
+      attachments: attachments,
     );
   }
 
   factory ConnectionRequestApproval.fromPlainTextMessage(
     PlainTextMessage message,
   ) {
-    ContactCard? contactCard;
-    if (message.attachments != null && message.attachments!.isNotEmpty) {
-      final base64 = message.attachments!.first.data?.base64;
-      if (base64 != null) {
-        contactCard = ContactCard.fromBase64(base64);
-      }
-    }
+    final parsed = parseMessageAttachments(message.attachments);
 
     return ConnectionRequestApproval(
       id: message.id,
@@ -41,7 +38,8 @@ class ConnectionRequestApproval {
       to: message.to!,
       parentThreadId: message.parentThreadId!,
       body: ConnectionRequestApprovalBody.fromJson(message.body!),
-      contactCard: contactCard,
+      contactCard: parsed.contactCard,
+      attachments: parsed.attachments,
       createdTime: message.createdTime,
     );
   }
@@ -53,6 +51,7 @@ class ConnectionRequestApproval {
     required this.parentThreadId,
     required this.body,
     this.contactCard,
+    this.attachments,
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -62,9 +61,18 @@ class ConnectionRequestApproval {
   final String parentThreadId;
   final ConnectionRequestApprovalBody body;
   final ContactCard? contactCard;
+  final List<Attachment>? attachments;
   final DateTime createdTime;
 
   PlainTextMessage toPlainTextMessage() {
+    final attachmentsList = <Attachment>[];
+    if (contactCard != null) {
+      attachmentsList.add(ContactCardHelper.vCardToAttachment(contactCard!));
+    }
+    if (attachments != null) {
+      attachmentsList.addAll(attachments!);
+    }
+
     return PlainTextMessage(
       id: id,
       type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
@@ -73,9 +81,7 @@ class ConnectionRequestApproval {
       parentThreadId: parentThreadId,
       body: body.toJson(),
       createdTime: createdTime,
-      attachments: contactCard == null
-          ? null
-          : [ContactCardHelper.vCardToAttachment(contactCard!)],
+      attachments: attachmentsList.isEmpty ? null : attachmentsList,
     );
   }
 }

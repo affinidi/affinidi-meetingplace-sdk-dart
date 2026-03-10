@@ -79,13 +79,13 @@ class MediatorService {
     );
   }
 
-  Future<void> deletedMessages({
+  Future<void> deleteMessages({
     required DidManager didManager,
     required List<String> messageHashes,
     required String mediatorDid,
   }) {
     // TODO: queue deletion
-    return _mediatorSDK.deletedMessages(
+    return _mediatorSDK.deleteMessages(
       didManager: didManager,
       messageHashes: messageHashes,
       mediatorDid: mediatorDid,
@@ -121,6 +121,18 @@ class MediatorService {
       ownerDidManager: ownerDidManager,
       acl: acl,
       mediatorDid: mediatorDid,
+    );
+  }
+
+  Future<void> authenticate({
+    required DidManager didManager,
+    required String mediatorDid,
+    bool forceNewSession = false,
+  }) {
+    return _mediatorSDK.authenticateWithDid(
+      didManager,
+      mediatorDid: mediatorDid,
+      forceNewSession: forceNewSession,
     );
   }
 }

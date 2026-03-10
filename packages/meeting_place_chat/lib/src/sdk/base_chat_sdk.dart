@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
@@ -13,6 +12,9 @@ import '../utils/chat_utils.dart';
 import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
+
+typedef SDKStreamSubscription =
+    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>;
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.
@@ -57,8 +59,8 @@ abstract class BaseChatSDK {
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
-  CoreSDKStreamSubscription? _mediatorStreamSubscription;
-  Future<CoreSDKStreamSubscription>? mediatorStreamFuture;
+  SDKStreamSubscription? _mediatorStreamSubscription;
+  Future<SDKStreamSubscription>? mediatorStreamFuture;
   int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
@@ -72,7 +74,8 @@ abstract class BaseChatSDK {
   /// - [ephemeral]: Whether the message should be ephemeral (default: `false`).
   /// - [forwardExpiryInSeconds]: Optional duration (in seconds) after which
   ///     the forwarded message is considered expired.
-  Future<void> sendMessage(
+  @internal
+  Future<void> sendPlainTextMessage(
     PlainTextMessage message, {
     required String senderDid,
     required String recipientDid,
@@ -113,8 +116,13 @@ abstract class BaseChatSDK {
       mediatorStreamFuture!.then((subscription) {
         unawaited(fetchNewMessages());
         _mediatorStreamSubscription = subscription;
-        subscription.stream.listen((data) {
-          handleMessage(data, []);
+        subscription.listen((data) async {
+          if (!await handleMessage(data, [])) {
+            chatStream.pushData(
+              StreamData(plainTextMessage: data.plainTextMessage),
+            );
+          }
+          return MediatorStreamProcessingResult(keepMessage: false);
         });
       }),
     );
@@ -179,8 +187,10 @@ abstract class BaseChatSDK {
   /// **Parameters:**
   /// - [MediatorMessage]: The incoming [MediatorMessage] to process.
   /// - [messages]: A list to collect new [Message] instances.
+  ///
+  /// Returns a boolean indicating whether the message was handled.
   @internal
-  Future<void> handleMessage(
+  Future<bool> handleMessage(
     MediatorMessage message,
     List<Message> messages,
   ) async {
@@ -222,6 +232,7 @@ abstract class BaseChatSDK {
           chatItem: chatMessage,
         ),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -251,6 +262,7 @@ abstract class BaseChatSDK {
           chatItem: repositoryMessage,
         ),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -267,10 +279,10 @@ abstract class BaseChatSDK {
             chatStream.pushData(
               StreamData(plainTextMessage: message.plainTextMessage),
             );
-            return;
+            return true;
           }
 
-          await sendMessage(
+          await sendPlainTextMessage(
             protocol.ChatAliasProfileRequest.create(
               from: did,
               to: [otherPartyDid],
@@ -292,6 +304,7 @@ abstract class BaseChatSDK {
           );
         }
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -326,6 +339,7 @@ abstract class BaseChatSDK {
           ),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -357,6 +371,7 @@ abstract class BaseChatSDK {
           ),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -375,6 +390,7 @@ abstract class BaseChatSDK {
           StreamData(plainTextMessage: message.plainTextMessage),
         );
       }
+      return true;
     }
 
     if (message.plainTextMessage.isOfType(ChatProtocol.chatActivity.value)) {
@@ -382,6 +398,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -390,6 +407,7 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+      return true;
     }
 
     if (message.plainTextMessage.type.toString() ==
@@ -398,12 +416,11 @@ abstract class BaseChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
+
+      return true;
     }
 
-    _logger.info(
-      'Completed handling message of type ${message.plainTextMessage.type}',
-      name: methodName,
-    );
+    return false;
   }
 
   /// Fetch new messages from the mediator and process them via [handleMessage].
@@ -413,16 +430,29 @@ abstract class BaseChatSDK {
   Future<List<Message>> fetchNewMessages() async {
     final methodName = 'fetchNewMessages';
     _logger.info('Started fetching new messages', name: methodName);
-    // TODO: delete after processing?
     final messagesFromMediator = await coreSDK.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      deleteOnRetrieve: true,
+      deleteOnRetrieve: false,
     );
     final newMessages = <Message>[];
+    final processedHashes = <String>[];
 
     for (final message in messagesFromMediator) {
-      await handleMessage(message, newMessages);
+      if (!await handleMessage(message, newMessages)) {
+        chatStream.pushData(
+          StreamData(plainTextMessage: message.plainTextMessage),
+        );
+      }
+      processedHashes.add(message.messageHash!);
+    }
+
+    if (processedHashes.isNotEmpty) {
+      await coreSDK.deleteMessages(
+        did: did,
+        mediatorDid: mediatorDid,
+        messageHashes: processedHashes,
+      );
     }
 
     _logger.info(
@@ -435,12 +465,12 @@ abstract class BaseChatSDK {
   /// Subscribes to mediator channel for real-time updates.
   ///
   /// **Returns:**
-  /// - A [MediatorStream] subscription.
+  /// - A [SDKStreamSubscription] subscription.
   ///
   /// **Throws:**
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
-  Future<CoreSDKStreamSubscription> subscribeToMediator() {
+  Future<SDKStreamSubscription> subscribeToMediator() {
     return coreSDK.subscribeToMediator(
       did,
       mediatorDid: mediatorDid,
@@ -449,6 +479,41 @@ abstract class BaseChatSDK {
             coreSDK.options.expectedMessageWrappingTypes,
         fetchMessagesOnConnect: false,
       ),
+    );
+  }
+
+  /// Sends a custom [PlainTextMessage] using the chat's sender and recipient
+  /// DIDs. No chat item is created or persisted for this type of operation.
+  ///
+  /// **Parameters:**
+  /// - [message]: The [PlainTextMessage] to send.
+  ///
+  /// Returns a [Future] that completes when the message has been sent.
+  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
+    final senderDid = message.from;
+    if (senderDid == null || senderDid != did) {
+      throw Exception(
+        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+      );
+    }
+
+    final recipientDid = message.to?.firstOrNull;
+    if (recipientDid == null || recipientDid != otherPartyDid) {
+      throw Exception(
+        'Message "to" DID ${message.to} does not match chat recipient DID $otherPartyDid.',
+      );
+    }
+
+    return sendPlainTextMessage(
+      PlainTextMessage.fromJson({
+        ...message.toJson(),
+        'from': senderDid,
+        'to': [recipientDid],
+      }),
+      senderDid: senderDid,
+      recipientDid: recipientDid,
+      mediatorDid: mediatorDid,
+      notify: notify,
     );
   }
 
@@ -530,7 +595,7 @@ abstract class BaseChatSDK {
       to: [otherPartyDid],
     );
 
-    return sendMessage(
+    return sendPlainTextMessage(
       message.toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
@@ -553,7 +618,7 @@ abstract class BaseChatSDK {
 
     final channel = await getChannel();
     if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
-      await sendMessage(
+      await sendPlainTextMessage(
         protocol.ChatAliasProfileHash.create(
           from: did,
           to: [otherPartyDid],
@@ -599,7 +664,7 @@ abstract class BaseChatSDK {
   Future<void> sendChatDeliveredMessage(PlainTextMessage message) async {
     final methodName = 'sendChatDeliveredMessage';
     _logger.info('Started sending chat delivered message', name: methodName);
-    await sendMessage(
+    await sendPlainTextMessage(
       protocol.ChatDelivered.create(
         from: did,
         to: [otherPartyDid],
@@ -630,7 +695,7 @@ abstract class BaseChatSDK {
     }
 
     unawaited(
-      sendMessage(
+      sendPlainTextMessage(
         protocol.ChatContactDetailsUpdate.create(
           from: did,
           to: [otherPartyDid],
@@ -699,7 +764,7 @@ abstract class BaseChatSDK {
     );
 
     try {
-      await sendMessage(
+      await sendPlainTextMessage(
         chatReaction.toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
@@ -734,7 +799,7 @@ abstract class BaseChatSDK {
     chatStream.pushData(StreamData(plainTextMessage: chatEffect));
 
     // TODO: handle error case
-    await sendMessage(
+    await sendPlainTextMessage(
       chatEffect,
       senderDid: did,
       recipientDid: otherPartyDid,
@@ -747,7 +812,7 @@ abstract class BaseChatSDK {
   Future<void> sendChatActivity() async {
     final methodName = 'sendChatActivity';
     _logger.info('Started sending chat activity', name: methodName);
-    await sendMessage(
+    await sendPlainTextMessage(
       protocol.ChatActivity.create(
         from: did,
         to: [otherPartyDid],
@@ -780,7 +845,7 @@ abstract class BaseChatSDK {
   /// Sends a message with notification, ignoring notification failures.
   Future<void> _sendMessageWithNotification(PlainTextMessage message) async {
     try {
-      await sendMessage(
+      await sendPlainTextMessage(
         message,
         senderDid: did,
         recipientDid: otherPartyDid,

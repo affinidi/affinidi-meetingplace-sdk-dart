@@ -48,13 +48,21 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Migration strategy to handle database version upgrades.
   @override
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
+        },
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            await migrator.addColumn(
+              channels,
+              channels.isConnectionInitiator,
+            );
+          }
         },
       );
 }
@@ -80,6 +88,11 @@ class Channels extends Table {
 
   /// Type of the channel.
   IntColumn get type => integer().map(const _ChannelTypeConverter())();
+
+  /// Indicates whether the channel was initiated by the local party or the
+  /// other party.
+  BoolColumn get isConnectionInitiator =>
+      boolean().withDefault(const Constant(false))();
 
   /// ID of the outbound message.
   TextColumn get outboundMessageId => text().nullable()();

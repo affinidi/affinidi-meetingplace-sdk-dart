@@ -13,6 +13,7 @@ enum ControlPlaneSDKErrorCode {
   authenticateGeneric('authenticate_generic'),
 
   // oob codes
+  oobNotFound('oob_not_found'),
   createOobGeneric('create_oob_generic'),
 
   // delete pending notifications codes

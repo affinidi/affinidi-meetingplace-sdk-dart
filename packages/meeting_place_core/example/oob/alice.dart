@@ -26,7 +26,7 @@ void main() async {
 
   // Alice listens on acceptance
   prettyPrintYellow('Listening on OOB stream...');
-  oob.streamSubscription.listen((data) {
+  oob.stream.listen((data) {
     prettyPrintYellow('Received event type: ${data.eventType.name}');
     prettyJsonPrintYellow('Received message:', data.message.toJson());
     prettyJsonPrintYellow('Received channel:', data.channel.toJson());
@@ -37,7 +37,7 @@ void main() async {
 
   // Close stream
   prettyPrint('Disposing OOB stream...');
-  await oob.streamSubscription.dispose();
+  await oob.stream.dispose();
 
   final messageSubscription = await aliceSDK.subscribeToMediator(
     channel.permanentChannelDid!,

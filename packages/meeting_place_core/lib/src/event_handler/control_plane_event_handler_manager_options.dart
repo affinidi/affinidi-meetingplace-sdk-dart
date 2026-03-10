@@ -1,8 +1,15 @@
+import '../meeting_place_core_sdk_options.dart';
+
+export '../meeting_place_core_sdk_options.dart'
+    show OnBuildAttachmentsCallback, OnAttachmentsReceivedCallback;
+
 class ControlPlaneEventHandlerManagerOptions {
   const ControlPlaneEventHandlerManagerOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 5000),
     this.messageTypesForSequenceTracking = const [],
+    this.onBuildAttachments,
+    this.onAttachmentsReceived,
   });
 
   /// The number of retry attempts for a request when a network issue occurs.
@@ -19,4 +26,12 @@ class ControlPlaneEventHandlerManagerOptions {
   /// will be considered for updating the channel's message synchronization
   /// marker and sequence number.
   final List<String> messageTypesForSequenceTracking;
+
+  /// Callback to build attachments (e.g., R-Card credentials) for outgoing
+  /// connection messages during the channel inauguration process.
+  final OnBuildAttachmentsCallback? onBuildAttachments;
+
+  /// Callback invoked when attachments are received from the other party
+  /// during connection establishment.
+  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 }

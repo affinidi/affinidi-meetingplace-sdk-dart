@@ -8,6 +8,8 @@ enum MeetingPlaceMediatorSDKErrorCode {
   websocketError('mediator_websocket_error'),
   getMediatorDidError('mediator_get_did_error'),
   keyAgreementMismatch('mediator_key_agreement_mismatch'),
+  oobError('mediator_oob_error'),
+  networkError('mediator_network_error'),
 
   // others
   generic('generic');

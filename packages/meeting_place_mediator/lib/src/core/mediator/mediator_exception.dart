@@ -143,6 +143,42 @@ class MediatorException implements IMediatorException {
       innerException: innerException,
     );
   }
+
+  /// Represents an error that occurs when fetching an OOB invitation fails.
+  ///
+  /// **Parameters:**
+  /// - [oobUrl]: The URL of the OOB invitation that failed to be fetched.
+  /// - [innerException]: Holds the original exception or error object.
+  factory MediatorException.oobError({
+    required String oobUrl,
+    Object? innerException,
+  }) {
+    return MediatorException(
+      message: 'Mediator Error: Failed to fetch OOB invitation from $oobUrl.',
+      code: MeetingPlaceMediatorSDKErrorCode.oobError,
+      innerException: innerException,
+    );
+  }
+
+  /// Indicates a network error occurred while fetching the OOB invitation.
+  ///
+  /// **Parameters:**
+  /// - [oobUrl]: The URL of the OOB invitation that failed to be
+  ///   fetched due to a network error.
+  /// - [innerException]: Holds the original exception or error object.
+  factory MediatorException.oobNetworkError({
+    required String oobUrl,
+    Object? innerException,
+  }) {
+    return MediatorException(
+      message:
+          '''Mediator Error: Network error while fetching OOB invitation from
+          $oobUrl.''',
+      code: MeetingPlaceMediatorSDKErrorCode.networkError,
+      innerException: innerException,
+    );
+  }
+
   @override
   final String message;
 

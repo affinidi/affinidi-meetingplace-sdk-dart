@@ -5,13 +5,12 @@ part 'contact_card.g.dart';
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ContactCard {
-  factory ContactCard.fromBase64(String base64, {bool addPadding = false}) {
-    final base64Padded = addPadding ? 'base64=' : base64;
-    final json =
-        jsonDecode(utf8.decode(base64Decode(base64Padded)))
-            as Map<String, dynamic>;
+  factory ContactCard.fromBase64(String base64) {
+    final base64Codec = const Base64Codec();
 
-    return ContactCard.fromJson(json);
+    final normalized = base64Url.decode(base64Codec.normalize(base64));
+    final jsonMap = jsonDecode(utf8.decode(normalized)) as Map<String, dynamic>;
+    return ContactCard.fromJson(jsonMap);
   }
 
   factory ContactCard.fromJson(Map<String, dynamic> json) {

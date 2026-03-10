@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../service/channel/channel_service.dart';
 import '../service/mediator/mediator_service.dart';
 import 'chat_activity_event_handler.dart';
 import '../service/connection_manager/connection_manager.dart';
@@ -15,13 +16,13 @@ class ChannelActivityEventHandler {
     required Wallet wallet,
     required MediatorService mediatorService,
     required ConnectionManager connectionManager,
-    required ChannelRepository channelRepository,
+    required ChannelService channelService,
     required ConnectionOfferRepository connectionOfferRepository,
     required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _wallet = wallet,
        _connectionManager = connectionManager,
-       _channelRepository = channelRepository,
+       _channelService = channelService,
        _connectionOfferRepository = connectionOfferRepository,
        _mediatorService = mediatorService,
        _options = options,
@@ -30,14 +31,14 @@ class ChannelActivityEventHandler {
   final Wallet _wallet;
   final MediatorService _mediatorService;
   final ConnectionOfferRepository _connectionOfferRepository;
-  final ChannelRepository _channelRepository;
+  final ChannelService _channelService;
   final ConnectionManager _connectionManager;
   final ControlPlaneEventHandlerManagerOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
 
   static final String _logKey = 'ChannelActivityEventHandler';
 
-  Future<Channel?> process(ChannelActivity channelActivity) async {
+  Future<List<Channel>> process(ChannelActivity channelActivity) async {
     _logger.info(
       'Starting processing event of type ${channelActivity.type}',
       name: _logKey,
@@ -49,7 +50,7 @@ class ChannelActivityEventHandler {
         wallet: _wallet,
         mediatorService: _mediatorService,
         connectionOfferRepository: _connectionOfferRepository,
-        channelRepository: _channelRepository,
+        channelService: _channelService,
         connectionManager: _connectionManager,
         options: _options,
         logger: _logger,
@@ -60,9 +61,9 @@ class ChannelActivityEventHandler {
       _logger.info('Processing chat activity event', name: _logKey);
       return ChatActivityEventHandler(
         wallet: _wallet,
-        channelRepository: _channelRepository,
         connectionManager: _connectionManager,
         connectionOfferRepository: _connectionOfferRepository,
+        channelService: _channelService,
         mediatorService: _mediatorService,
         options: _options,
         logger: _logger,
@@ -74,7 +75,7 @@ class ChannelActivityEventHandler {
       name: _logKey,
     );
 
-    return null;
+    return [];
   }
 
   bool hasBeenProcessed(

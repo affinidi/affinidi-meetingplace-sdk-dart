@@ -1,10 +1,12 @@
+import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import '../entity/channel.dart';
+import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
+import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
-import 'exceptions/empty_message_list_exception.dart';
 import 'exceptions/group_membership_finalised_exception.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
 import '../protocol/meeting_place_protocol.dart';
@@ -16,11 +18,12 @@ import '../entity/group_member.dart';
 
 class MemberDidMismatchException implements Exception {}
 
-class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
+class GroupMembershipFinalisedEventHandler
+    extends BaseEventHandler<GroupMembershipFinalised> {
   GroupMembershipFinalisedEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -33,178 +36,167 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
 
-  Future<Channel?> process(GroupMembershipFinalised event) async {
-    final methodName = 'process';
-    logger.info(
-      'Starting processing event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
-      name: methodName,
+  Future<List<Channel>> process(GroupMembershipFinalised event) async {
+    logger.info('''Starting processing event of type
+      ${ControlPlaneEventType.GroupMembershipFinalised}''', name: 'process');
+
+    final connection = await findConnectionByOfferLink(event.offerLink);
+    final permanentChannelDid = connection.permanentChannelDid;
+
+    if (permanentChannelDid == null) {
+      throw Exception(
+        'Connection offer ${connection.offerLink} is missing permanentChannelDid',
+      );
+    }
+
+    if (connection is! GroupConnectionOffer) {
+      logger.error('''Connection offer is not a GroupConnectionOffer for offer
+          link: ${event.offerLink}''', name: 'process');
+
+      throw GroupMembershipFinalisedException.groupConnectionOfferRequired(
+        offerLink: event.offerLink,
+      );
+    }
+
+    if (connection.isFinalised) {
+      logger.error('''Connection offer is already finalised for offer
+          link: ${event.offerLink}''', name: 'process');
+
+      throw GroupMembershipFinalisedException.connectionOfferAlreadyFinalizedException(
+        offerLink: event.offerLink,
+      );
+    }
+
+    final channel = await channelService.findChannelByDid(permanentChannelDid);
+    final didManager = await connectionManager.getDidManagerForDid(
+      wallet,
+      permanentChannelDid,
     );
 
-    try {
-      final connection = await findConnectionByOfferLink(event.offerLink);
-      final permanentChannelDid = connection.permanentChannelDid;
+    return processEvent(
+      event: event,
+      didManager: didManager,
+      mediatorDid: connection.mediatorDid,
+      connection: connection,
+      channel: channel,
+      fetchMessageOptions: FetchMessagesOptions(
+        filterByMessageTypes: [
+          MeetingPlaceProtocol.groupMemberInauguration.value,
+        ],
+      ),
+    );
+  }
 
-      if (permanentChannelDid == null) {
-        throw Exception(
-          'Connection offer ${connection.offerLink} is missing permanentChannelDid',
-        );
-      }
-
-      if (connection is! GroupConnectionOffer) {
-        logger.error(
-          'Connection offer is not a GroupConnectionOffer for offer link: ${event.offerLink}',
-          name: methodName,
-        );
-        throw GroupMembershipFinalisedException.groupConnectionOfferRequired(
-          offerLink: event.offerLink,
-        );
-      }
-
-      if (connection.isFinalised) {
-        throw GroupMembershipFinalisedException.connectionOfferAlreadyFinalizedException(
-          offerLink: event.offerLink,
-        );
-      }
-
-      final group = await _findGroupByOfferLink(connection.offerLink);
-      final channel = await findChannelByDid(permanentChannelDid);
-
-      final didManager = await connectionManager.getDidManagerForDid(
-        wallet,
-        permanentChannelDid,
+  @override
+  Future<Channel> processMessage(
+    PlainTextMessage message, {
+    required GroupMembershipFinalised event,
+    ConnectionOffer? connection,
+    Channel? channel,
+  }) async {
+    if (connection == null || connection is! GroupConnectionOffer) {
+      throw ArgumentError(
+        'GroupConnectionOffer must be provided to process message',
       );
-
-      final messages = await fetchMessagesFromMediatorWithRetry(
-        didManager: didManager,
-        mediatorDid: connection.mediatorDid,
-        messageType: MeetingPlaceProtocol.groupMemberInauguration,
-      );
-
-      // TODO: handle duplicates
-      for (final result in messages) {
-        final message = result.plainTextMessage;
-        final groupMemberInaugurationMessage =
-            GroupMemberInauguration.fromPlainTextMessage(message);
-
-        if (groupMemberInaugurationMessage.body.memberDid !=
-            connection.permanentChannelDid!) {
-          logger.error(
-            'Member DID mismatch: expected ${connection.permanentChannelDid?.topAndTail()}, found ${groupMemberInaugurationMessage.body.memberDid.topAndTail()}',
-            name: methodName,
-          );
-          throw MemberDidMismatchException();
-        }
-
-        final notificationToken = await _registerNotificationToken(
-          permanentChannelDid,
-          groupMemberInaugurationMessage.body.groupDid,
-        );
-
-        final admin = groupMemberInaugurationMessage.body.members.firstWhere(
-          (member) => member.membershipType == GroupMembershipType.admin.name,
-        );
-
-        await Future.wait([
-          mediatorService.updateAcl(
-            ownerDidManager: didManager,
-            mediatorDid: connection.mediatorDid,
-            acl: AccessListRemove(
-              ownerDid: permanentChannelDid,
-              granteeDids: [message.from!],
-            ),
-          ),
-
-          // allow group admin to send messages to member directly for profile
-          // request
-          mediatorService.updateAcl(
-            ownerDidManager: didManager,
-            mediatorDid: connection.mediatorDid,
-            acl: AccessListAdd(
-              ownerDid: permanentChannelDid,
-              granteeDids: [admin.did],
-            ),
-          ),
-
-          _allowGroupToSendMessagesToPermanetChannelDid(
-            permanentChannelDid: didManager,
-            mediatorDid: connection.mediatorDid,
-            groupDid: groupMemberInaugurationMessage.body.groupDid,
-          ),
-        ]);
-
-        // TODO: improve update logic
-        final updatedGroup = _updateLocalCopyOfGroupMembers(
-          group: group,
-          selfMemberDid: permanentChannelDid,
-          message: groupMemberInaugurationMessage,
-        );
-
-        await _groupRepository.createGroup(updatedGroup);
-        await _groupRepository.removeGroup(group);
-
-        channel.otherPartyPermanentChannelDid = updatedGroup.did;
-        await channelRepository.updateChannel(channel);
-
-        final finalisedConnection = connection.groupFinalise(
-          groupId: updatedGroup.id,
-          groupDid: updatedGroup.did,
-          seqNo: event.startSeqNo,
-          notificationToken: notificationToken,
-        );
-
-        await connectionOfferRepository.updateConnectionOffer(
-          finalisedConnection,
-        );
-
-        channel.otherPartyPermanentChannelDid = updatedGroup.did;
-        channel.seqNo = event.startSeqNo;
-        channel.notificationToken = notificationToken;
-        channel.status = ChannelStatus.inaugurated;
-        await channelRepository.updateChannel(channel);
-
-        await mediatorService.deletedMessages(
-          didManager: didManager,
-          mediatorDid: connection.mediatorDid,
-          messageHashes: [result.messageHash!],
-        );
-
-        logger.info(
-          'Completely successfully processed ${MeetingPlaceProtocol.groupMemberInauguration.value} message for group DID: ${updatedGroup.did.topAndTail()}',
-          name: methodName,
-        );
-        return channel;
-      }
-
-      logger.warning(
-        'No ${MeetingPlaceProtocol.groupMemberInauguration.value} message found for processing',
-        name: methodName,
-      );
-      return null;
-    } on EmptyMessageListException {
-      logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
-        name: methodName,
-      );
-      return null;
-    } catch (e, stackTrace) {
-      logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.GroupMembershipFinalised}',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      rethrow;
     }
+
+    if (channel == null) {
+      throw ArgumentError(
+        '''Channel must be provided to process group member inauguration
+        message''',
+      );
+    }
+
+    final permanentChannelDid = connection.permanentChannelDid;
+    if (permanentChannelDid == null) {
+      throw ArgumentError(
+        '''Connection offer must have a permanentChannelDid to process group
+        member inauguration message''',
+      );
+    }
+
+    final messageFrom = message.from;
+    if (messageFrom == null) {
+      throw ArgumentError(
+        '''Message must have a sender (from) to process group member
+        inauguration message''',
+      );
+    }
+
+    final groupMemberInaugurationMessage =
+        GroupMemberInauguration.fromPlainTextMessage(message);
+
+    if (groupMemberInaugurationMessage.body.memberDid != permanentChannelDid) {
+      logger.error(
+        '''Member DID mismatch: expected
+        ${permanentChannelDid.topAndTail()}, found
+        ${groupMemberInaugurationMessage.body.memberDid.topAndTail()}''',
+        name: 'processMessage',
+      );
+      throw MemberDidMismatchException();
+    }
+
+    final notificationToken = await _registerNotificationToken(
+      permanentChannelDid,
+      groupMemberInaugurationMessage.body.groupDid,
+    );
+
+    final group = await _findGroupByOfferLink(connection.offerLink);
+    final admin = groupMemberInaugurationMessage.body.members.firstWhere(
+      (member) => member.membershipType == GroupMembershipType.admin.name,
+    );
+
+    final didManager = await connectionManager.getDidManagerForDid(
+      wallet,
+      permanentChannelDid,
+    );
+
+    await _updateMediatorAcls(
+      didManager: didManager,
+      permanentChannelDid: permanentChannelDid,
+      adminDid: admin.did,
+      groupDid: groupMemberInaugurationMessage.body.groupDid,
+      messageFrom: messageFrom,
+      mediatorDid: connection.mediatorDid,
+    );
+
+    // TODO: improve update logic
+    final updatedGroup = _updateLocalCopyOfGroupMembers(
+      group: group,
+      selfMemberDid: permanentChannelDid,
+      message: groupMemberInaugurationMessage,
+    );
+
+    await _groupRepository.createGroup(updatedGroup);
+    await _groupRepository.removeGroup(group);
+
+    final finalisedConnection = connection.groupFinalise(
+      groupId: updatedGroup.id,
+      groupDid: updatedGroup.did,
+      seqNo: event.startSeqNo,
+      notificationToken: notificationToken,
+    );
+
+    await connectionOfferRepository.updateConnectionOffer(finalisedConnection);
+
+    await channelService.markGroupChannelInauguratedFromWaitingForApproval(
+      channel,
+      notificationToken: notificationToken,
+      otherPartyPermanentChannelDid: updatedGroup.did,
+      sequenceNumber: event.startSeqNo,
+    );
+
+    return channel;
   }
 
   Future<String> _registerNotificationToken(
     String myDid,
     String theirDid,
   ) async {
-    final methodName = '_registerNotificationToken';
     logger.info(
-      'Registering notification token for myDid: ${myDid.topAndTail()}, theirDid: ${theirDid.topAndTail()}',
-      name: methodName,
+      '''Registering notification token for myDid: ${myDid.topAndTail()},
+      theirDid: ${theirDid.topAndTail()}''',
+      name: '_registerNotificationToken',
     );
 
     final result = await _controlPlaneSDK.execute(
@@ -216,16 +208,51 @@ class GroupMembershipFinalisedEventHandler extends BaseEventHandler {
     );
 
     final notificationToken = result.notificationToken;
-
     if (notificationToken == null) {
       throw Exception('Error registering notification token');
     }
 
-    logger.info(
-      'Successfully registered notification token: ${notificationToken.topAndTail()}',
-      name: methodName,
-    );
+    logger.info('''Successfully registered notification token:
+      ${notificationToken.topAndTail()}''', name: '_registerNotificationToken');
+
     return notificationToken;
+  }
+
+  Future<void> _updateMediatorAcls({
+    required DidManager didManager,
+    required String permanentChannelDid,
+    required String adminDid,
+    required String groupDid,
+    required String messageFrom,
+    required String mediatorDid,
+  }) async {
+    await Future.wait([
+      mediatorService.updateAcl(
+        ownerDidManager: didManager,
+        mediatorDid: mediatorDid,
+        acl: AccessListRemove(
+          ownerDid: permanentChannelDid,
+          granteeDids: [messageFrom],
+        ),
+      ),
+
+      // Allow group admin to send messages to member directly for profile
+      // requests.
+      mediatorService.updateAcl(
+        ownerDidManager: didManager,
+        mediatorDid: mediatorDid,
+        acl: AccessListAdd(
+          ownerDid: permanentChannelDid,
+          granteeDids: [adminDid],
+        ),
+      ),
+
+      _allowGroupToSendMessagesToPermanetChannelDid(
+        permanentChannelDid: didManager,
+        mediatorDid: mediatorDid,
+        groupDid: groupDid,
+      ),
+    ]);
   }
 
   Future<void> _allowGroupToSendMessagesToPermanetChannelDid({

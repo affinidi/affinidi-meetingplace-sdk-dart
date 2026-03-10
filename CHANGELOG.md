@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-03-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.31`](#meeting_place_chat---v001-dev31)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.16`](#meeting_place_control_plane---v001-dev16)
+ - [`meeting_place_core` - `v0.0.1-dev.29`](#meeting_place_core---v001-dev29)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.32`](#meeting_place_drift_repository---v001-dev32)
+ - [`meeting_place_mediator` - `v0.0.1-dev.15`](#meeting_place_mediator---v001-dev15)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.31`
+
+ - **FIX**: improvements and bug fixes (#131).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.16`
+
+ - **FIX**: improvements and bug fixes (#131).
+
+#### `meeting_place_core` - `v0.0.1-dev.29`
+
+ - **FIX**: improvements and bug fixes (#131).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.32`
+
+ - **FIX**: improvements and bug fixes (#131).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.15`
+
+ - **FIX**: improvements and bug fixes (#131).
+
+
 ## 2026-02-27
 
 ### Changes

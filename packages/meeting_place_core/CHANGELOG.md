@@ -1,3 +1,7 @@
+## 0.0.1-dev.30
+
+ - **FIX**: add missing return type info (#142).
+
 ## 0.0.1-dev.29
 
  - **FIX**: improvements and bug fixes (#131).

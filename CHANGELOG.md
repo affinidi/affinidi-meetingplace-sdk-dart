@@ -15,6 +15,36 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_core` - `v0.0.1-dev.30`](#meeting_place_core---v001-dev30)
+ - [`meeting_place_chat` - `v0.0.1-dev.32`](#meeting_place_chat---v001-dev32)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.33`](#meeting_place_drift_repository---v001-dev33)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.32`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.33`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.30`
+
+ - **FIX**: add missing return type info (#142).
+
+
+## 2026-03-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_chat` - `v0.0.1-dev.31`](#meeting_place_chat---v001-dev31)
  - [`meeting_place_control_plane` - `v0.0.1-dev.16`](#meeting_place_control_plane---v001-dev16)
  - [`meeting_place_core` - `v0.0.1-dev.29`](#meeting_place_core---v001-dev29)

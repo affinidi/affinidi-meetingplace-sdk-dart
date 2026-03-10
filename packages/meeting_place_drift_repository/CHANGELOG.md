@@ -1,3 +1,7 @@
+## 0.0.1-dev.32
+
+ - **FIX**: improvements and bug fixes (#131).
+
 ## 0.0.1-dev.31
 
  - **FIX**: quality improvements and resolution of minor bugs (#108).

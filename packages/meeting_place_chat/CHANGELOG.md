@@ -1,3 +1,7 @@
+## 0.0.1-dev.32
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.31
 
  - **FIX**: improvements and bug fixes (#131).

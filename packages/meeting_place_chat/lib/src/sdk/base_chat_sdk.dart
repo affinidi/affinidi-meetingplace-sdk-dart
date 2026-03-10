@@ -13,7 +13,6 @@ import '../handlers/chat_reaction_handler.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
-import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 
@@ -184,6 +183,47 @@ abstract class BaseChatSDK {
     return chatStream.stream;
   }
 
+  /// Map of [ChatProtocol] to handler callbacks for message dispatch.
+  Map<String, Future<void> Function(MediatorMessage, Channel)>
+  get _messageHandlers => {
+    ChatProtocol.chatMessage.value: (msg, _) => ChatMessageHandler(
+      chatRepository: chatRepository,
+      streamManager: chatStream,
+    ).handle(message: msg, chatId: chatId),
+    ChatProtocol.chatReaction.value: (msg, _) => ChatReactionHandler(
+      chatRepository: chatRepository,
+      streamManager: chatStream,
+    ).handle(message: msg, chatId: chatId),
+    ChatProtocol.chatAliasProfileHash.value: (msg, ch) async {
+      if (ch.type != ChannelType.group) {
+        await ChatAliasProfileHashHandler(
+          chatSDK: this,
+          streamManager: chatStream,
+        ).handle(message: msg.plainTextMessage, channel: ch);
+      }
+    },
+    ChatProtocol.chatAliasProfileRequest.value: (msg, ch) async {
+      if (ch.type != ChannelType.group) {
+        await ChatAliasProfileRequestHandler(
+          chatRepository: chatRepository,
+          streamManager: chatStream,
+        ).handle(message: msg.plainTextMessage, chatId: chatId);
+      }
+    },
+    ChatProtocol.chatDelivered.value: (msg, _) => ChatDeliveredHandler(
+      chatRepository: chatRepository,
+      streamManager: chatStream,
+    ).handle(message: msg, chatId: chatId),
+    ChatProtocol.chatContactDetailsUpdate.value: (msg, ch) async {
+      if (ch.type != ChannelType.group) {
+        await ChatContactDetailsUpdateHandler(
+          coreSDK: coreSDK,
+          streamManager: chatStream,
+        ).handle(message: msg.plainTextMessage, channel: ch);
+      }
+    },
+  };
+
   /// Handles an incoming [PlainTextMessage].
   ///
   /// Supported message types:
@@ -225,102 +265,15 @@ abstract class BaseChatSDK {
       }
     }
 
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatMessage,
-    )) {
-      _logger.info('Handling chat message', name: methodName);
-      await ChatMessageHandler(
-        chatRepository: chatRepository,
-        streamManager: chatStream,
-      ).handle(message: message, chatId: chatId);
+    final messageType = message.plainTextMessage.type.toString();
+    final handler = _messageHandlers[messageType];
+    if (handler != null) {
+      _logger.info('Handling $messageType message', name: methodName);
+      await handler(message, channel);
       return true;
     }
 
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatReaction,
-    )) {
-      _logger.info('Handling chat reaction message', name: methodName);
-      await ChatReactionHandler(
-        chatRepository: chatRepository,
-        streamManager: chatStream,
-      ).handle(message: message, chatId: chatId);
-      return true;
-    }
-
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatAliasProfileHash,
-    )) {
-      _logger.info(
-        'Handling chat alias profile hash message',
-        name: methodName,
-      );
-      if (channel.type != ChannelType.group) {
-        await ChatAliasProfileHashHandler(
-          coreSDK: coreSDK,
-          streamManager: chatStream,
-        ).handle(
-          message: message.plainTextMessage,
-          channel: channel,
-          did: did,
-          otherPartyDid: otherPartyDid,
-          mediatorDid: mediatorDid,
-        );
-      }
-      return true;
-    }
-
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatAliasProfileRequest,
-    )) {
-      _logger.info(
-        'Handling chat alias profile request message',
-        name: methodName,
-      );
-      if (channel.type != ChannelType.group) {
-        await ChatAliasProfileRequestHandler(
-          chatRepository: chatRepository,
-          streamManager: chatStream,
-        ).handle(message: message.plainTextMessage, chatId: chatId);
-      }
-      return true;
-    }
-
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatDelivered,
-    )) {
-      _logger.info('Handling chat delivered message', name: methodName);
-      await ChatDeliveredHandler(
-        chatRepository: chatRepository,
-        streamManager: chatStream,
-      ).handle(message: message, chatId: chatId);
-      return true;
-    }
-
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatContactDetailsUpdate,
-    )) {
-      _logger.info(
-        'Handling chat contact details update message',
-        name: methodName,
-      );
-      if (channel.type != ChannelType.group) {
-        await ChatContactDetailsUpdateHandler(
-          coreSDK: coreSDK,
-          streamManager: chatStream,
-        ).handle(message: message.plainTextMessage, channel: channel);
-      }
-      return true;
-    }
-
-    final streamOnlyProtocol = ChatProtocol.byValue(
-      message.plainTextMessage.type.toString(),
-    );
+    final streamOnlyProtocol = ChatProtocol.byValue(messageType);
     if (streamOnlyProtocol != null &&
         _streamOnlyTypes.contains(streamOnlyProtocol)) {
       _logger.info(

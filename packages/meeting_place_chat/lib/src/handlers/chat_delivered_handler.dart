@@ -1,3 +1,5 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import '../../meeting_place_chat.dart';
 
 class ChatDeliveredHandler {
@@ -14,8 +16,9 @@ class ChatDeliveredHandler {
     required MediatorMessage message,
     required String chatId,
   }) async {
-    final deliveredMessage =
-        ChatDelivered.fromPlainTextMessage(message.plainTextMessage);
+    final deliveredMessage = ChatDelivered.fromPlainTextMessage(
+      message.plainTextMessage,
+    );
 
     for (final messageId in deliveredMessage.body.messages) {
       final targetMessage = await _chatRepository.getMessage(

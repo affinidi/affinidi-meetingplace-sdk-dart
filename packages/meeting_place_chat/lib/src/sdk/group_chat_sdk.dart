@@ -16,7 +16,6 @@ import '../group/chat_group_details_update_handler.dart';
 import '../group/chat_group_member_deregistered_message_handler.dart';
 import '../group/chat_group_member_joined_handler.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
-import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
@@ -193,6 +192,57 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     );
   }
 
+  /// Map of protocol type to handler callbacks for group message dispatch.
+  Map<String, Future<bool> Function(PlainTextMessage)>
+  get _groupMessageHandlers => {
+    MeetingPlaceProtocol.groupMemberDeregistration.value: (msg) async {
+      group = await ChatGroupMemberDeregisteredMessageHandler(
+        coreSDK: coreSDK,
+        chatHistoryService: _chatHistoryService,
+        streamManager: chatStream,
+      ).handle(chatId: chatId, group: group, message: msg);
+      chatStream.pushData(StreamData(plainTextMessage: msg));
+      return true;
+    },
+    ChatProtocol.chatGroupDetailsUpdate.value: (msg) async {
+      group = await ChatGroupDetailsUpdateHandler(
+        coreSDK: coreSDK,
+        chatHistoryService: _chatHistoryService,
+        streamManager: chatStream,
+      ).handle(group: group, message: msg, chatId: chatId);
+      return true;
+    },
+    MeetingPlaceProtocol.groupDeletion.value: (msg) async {
+      group = await ChatGroupDeletionHandler(
+        coreSDK: coreSDK,
+        chatHistoryService: _chatHistoryService,
+        streamManager: chatStream,
+      ).handle(group: group, message: msg, chatId: chatId);
+      return true;
+    },
+    ChatProtocol.chatAliasProfileHash.value: (msg) async {
+      await ChatGroupAliasProfileHashHandler(
+        chatSDK: this,
+        streamManager: chatStream,
+      ).handle(group: group, message: msg);
+      return true;
+    },
+    ChatProtocol.chatContactDetailsUpdate.value: (msg) async {
+      group = await ChatGroupContactDetailsUpdateHandler(
+        chatSDK: this,
+        streamManager: chatStream,
+      ).handle(group: group, message: msg);
+      return true;
+    },
+    ChatProtocol.chatAliasProfileRequest.value: (msg) async {
+      await ChatGroupAliasProfileRequestHandler(
+        chatRepository: chatRepository,
+        streamManager: chatStream,
+      ).handle(message: msg, chatId: chatId);
+      return true;
+    },
+  };
+
   /// Handles incoming [PlainTextMessage]s that are specific to group chat,
   /// such as:
   /// - Member deregistration
@@ -220,88 +270,14 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ).handle(chatId: chatId, groupDid: group.did, message: message);
     }
 
-    if (message.type.toString() ==
-        MeetingPlaceProtocol.groupMemberDeregistration.value) {
+    final messageType = message.type.toString();
+    final handler = _groupMessageHandlers[messageType];
+    if (handler != null) {
       logger.info(
-        'Handling message for group member deregistered',
+        'Handling group message of type $messageType',
         name: methodName,
       );
-      group = await ChatGroupMemberDeregisteredMessageHandler(
-        coreSDK: coreSDK,
-        chatHistoryService: _chatHistoryService,
-        streamManager: chatStream,
-      ).handle(chatId: chatId, group: group, message: message);
-      chatStream.pushData(StreamData(plainTextMessage: message));
-      return true;
-    }
-
-    if (MessageUtils.isType(message, ChatProtocol.chatGroupDetailsUpdate)) {
-      logger.info(
-        'Handling message for group details update',
-        name: methodName,
-      );
-      group = await ChatGroupDetailsUpdateHandler(
-        coreSDK: coreSDK,
-        chatHistoryService: _chatHistoryService,
-        streamManager: chatStream,
-      ).handle(group: group, message: message, chatId: chatId);
-      return true;
-    }
-
-    if (message.type.toString() == MeetingPlaceProtocol.groupDeletion.value) {
-      logger.info(
-        'Handling message for group deleted for group ${group.id}',
-        name: methodName,
-      );
-      group = await ChatGroupDeletionHandler(
-        coreSDK: coreSDK,
-        chatHistoryService: _chatHistoryService,
-        streamManager: chatStream,
-      ).handle(group: group, message: message, chatId: chatId);
-      return true;
-    }
-
-    if (MessageUtils.isType(message, ChatProtocol.chatAliasProfileHash)) {
-      logger.info(
-        'Handling message for alias profile hash from'
-        ' ${message.from?.topAndTail()}',
-        name: methodName,
-      );
-      await ChatGroupAliasProfileHashHandler(
-        coreSDK: coreSDK,
-        streamManager: chatStream,
-      ).handle(
-        group: group,
-        message: message,
-        did: did,
-        mediatorDid: mediatorDid,
-      );
-      return true;
-    }
-
-    if (MessageUtils.isType(message, ChatProtocol.chatContactDetailsUpdate)) {
-      logger.info(
-        'Handling message for contact details update',
-        name: methodName,
-      );
-      group = await ChatGroupContactDetailsUpdateHandler(
-        coreSDK: coreSDK,
-        streamManager: chatStream,
-      ).handle(group: group, message: message);
-      await sendChatGroupDetailsUpdate();
-      return true;
-    }
-
-    if (MessageUtils.isType(message, ChatProtocol.chatAliasProfileRequest)) {
-      logger.info(
-        'Handling message for alias profile request',
-        name: methodName,
-      );
-      await ChatGroupAliasProfileRequestHandler(
-        chatRepository: chatRepository,
-        streamManager: chatStream,
-      ).handle(message: message, chatId: chatId);
-      return true;
+      return handler(message);
     }
 
     logger.info('Completed handling of group message', name: methodName);

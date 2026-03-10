@@ -16,7 +16,13 @@ class ChatContactDetailsUpdateHandler {
     required PlainTextMessage message,
     required Channel channel,
   }) async {
-    channel.otherPartyContactCard = ContactCard.fromJson(message.body!);
+    final contactDetailsUpdate = ChatContactDetailsUpdate.fromPlainTextMessage(
+      message,
+    );
+
+    channel.otherPartyContactCard = ContactCard.fromJson(
+      contactDetailsUpdate.profileDetails,
+    );
     await _coreSDK.updateChannel(channel);
     _streamManager.pushData(StreamData(plainTextMessage: message));
   }

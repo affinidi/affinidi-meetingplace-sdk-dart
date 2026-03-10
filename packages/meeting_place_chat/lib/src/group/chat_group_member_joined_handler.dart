@@ -22,35 +22,39 @@ class ChatGroupMemberJoinedHandler {
     required String chatId,
     required String groupDid,
   }) async {
+    final senderDid = message.from;
+    if (senderDid == null) return;
+
     // TODO: keep target list in memory to not always iterate through all
     // messages
     final allMessages = await _chatRepository.listMessages(chatId);
-    final eventMessages = allMessages.whereType<EventMessage>().toList();
-    final matchingMessage = eventMessages.firstWhereOrNull(
-      (eventMessage) =>
-          eventMessage.status != ChatItemStatus.confirmed &&
-          eventMessage.eventType ==
-              EventMessageType.awaitingGroupMemberToJoin &&
-          (eventMessage.data['memberDid'] == message.from! ||
-              eventMessage.data['memberDid'] == message.body?['from_did']),
-    );
+    final matchingMessage = allMessages
+        .whereType<EventMessage>()
+        .firstWhereOrNull(
+          (eventMessage) =>
+              eventMessage.status != ChatItemStatus.confirmed &&
+              eventMessage.eventType ==
+                  EventMessageType.awaitingGroupMemberToJoin &&
+              (eventMessage.data['memberDid'] == senderDid ||
+                  eventMessage.data['memberDid'] == message.body?['from_did']),
+        );
 
-    if (matchingMessage != null) {
-      matchingMessage.status = ChatItemStatus.confirmed;
-      await _chatRepository.updateMesssage(matchingMessage);
-      _streamManager.pushData(StreamData(chatItem: matchingMessage));
+    if (matchingMessage == null) return;
 
-      final chatItem = await _chatHistoryService
-          .createGroupMemberJoinedGroupEventMessage(
-            chatId: chatId,
-            groupDid: groupDid,
-            memberDid: matchingMessage.data['memberDid'] as String,
-            memberCard: ContactCard.fromJson(
-              matchingMessage.data['contactCard'] as Map<String, dynamic>,
-            ),
-          );
+    matchingMessage.status = ChatItemStatus.confirmed;
+    await _chatRepository.updateMesssage(matchingMessage);
+    _streamManager.pushData(StreamData(chatItem: matchingMessage));
 
-      _streamManager.pushData(StreamData(chatItem: chatItem));
-    }
+    final chatItem = await _chatHistoryService
+        .createGroupMemberJoinedGroupEventMessage(
+          chatId: chatId,
+          groupDid: groupDid,
+          memberDid: matchingMessage.data['memberDid'] as String,
+          memberCard: ContactCard.fromJson(
+            matchingMessage.data['contactCard'] as Map<String, dynamic>,
+          ),
+        );
+
+    _streamManager.pushData(StreamData(chatItem: chatItem));
   }
 }

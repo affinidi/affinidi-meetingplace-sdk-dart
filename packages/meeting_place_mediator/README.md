@@ -95,7 +95,7 @@ void main() async {
       senderDidManager: ownerDidManager,
       recipientDidDocument: recipientDidDocument,
    );
-  
+
    print('Message sent');
 
    // Fetch pending messages from mediator
@@ -103,7 +103,7 @@ void main() async {
       didManager: ownerDidManager,
       deleteOnRetrieve: true,
    );
-  
+
    for (final m in messages) {
       print('Fetched message hash=${m.messageHash}, message=${m.message}');
    }
@@ -111,6 +111,54 @@ void main() async {
 ```
 
 For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_mediator/example).
+
+## Running tests locally
+
+### Option 1: Running tests via `melos` (recommended for CI and automation)
+
+This approach uses environment variables from your shell and does **not** require an `.env` file.
+
+To run tests in this package from the terminal:
+
+1. **Export your environment variables in your terminal:**
+
+   ```bash
+   export MEDIATOR_DID="your:mediator:did"
+   ```
+
+   Replace this DID with your actual test value.
+
+2. **Run tests using Melos:**
+
+   ```bash
+   melos run test
+   ```
+
+---
+
+### Option 2: Running tests directly from VS Code (with `.env` file for local development)
+
+If you want to run tests directly from VS Code (using the `Run` button or `Test Explorer`), you can use an `.env` file for local configuration:
+
+1. **Create your local environment file:**
+
+   _(Run this command in your terminal to copy the template and create `test/.env` for your tests.)_
+
+   ```bash
+   cp test/templates/.example.env test/.env
+   ```
+
+2. **Edit `test/.env`** and update the value for `MEDIATOR_DID` to match your test environment.
+
+3. **Run your test files directly in VS Code:**
+   - The test utilities will automatically load variables from `test/.env`.
+
+**Note:**
+
+- The `.env` file should be placed in the `test` folder as `test/.env`.
+- The template file is provided at `test/templates/.example.env` for convenience.
+
+---
 
 ## Support & feedback
 

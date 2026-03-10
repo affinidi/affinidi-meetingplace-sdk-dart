@@ -14,7 +14,6 @@ import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
-import 'chat_sdk.dart';
 
 /// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for handling
 /// **group chat functionality** in the Meeting Place SDK.
@@ -138,7 +137,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Future] that completes when the message is sent.
   @override
-  Future<void> sendMessage(
+  Future<void> sendPlainTextMessage(
     PlainTextMessage message, {
     required String senderDid,
     required String recipientDid,
@@ -147,7 +146,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
   }) {
-    final methodName = 'sendMessage';
+    final methodName = 'sendPlainTextMessage';
     logger.info(
       'Send group message of type=${message.type},'
       ' from=${message.from}, to=${message.to}',
@@ -197,7 +196,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// - Alias profile requests
   ///
   /// Updates the group state, repository, and stream manager accordingly.
-  Future<void> _handleMessage(PlainTextMessage message) async {
+  Future<bool> _handleMessage(PlainTextMessage message) async {
     final methodName = '_handleMessage';
     logger.info('Started handling of group message', name: methodName);
 
@@ -257,6 +256,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         streamManager: chatStream,
       ).handle(chatId: chatId, group: group, message: message);
       chatStream.pushData(StreamData(plainTextMessage: message));
+      return true;
     }
 
     if (message.type.toString() == ChatProtocol.chatGroupDetailsUpdate.value) {
@@ -269,6 +269,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         chatHistoryService: _chatHistoryService,
         streamManager: chatStream,
       ).handle(group: group, message: message, chatId: chatId);
+
+      return true;
     }
 
     if (message.type.toString() == MeetingPlaceProtocol.groupDeletion.value) {
@@ -288,6 +290,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
         chatStream.pushData(StreamData(chatItem: chatItem));
       }
+      return true;
     }
 
     if (message.type.toString() == ChatProtocol.chatAliasProfileHash.value) {
@@ -325,6 +328,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           name: methodName,
         );
       }
+      return true;
     }
 
     if (message.type.toString() ==
@@ -346,6 +350,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       await coreSDK.updateGroup(group);
       await sendChatGroupDetailsUpdate();
       chatStream.pushData(StreamData(plainTextMessage: message));
+      return true;
     }
 
     if (message.type.toString() == ChatProtocol.chatAliasProfileRequest.value) {
@@ -389,9 +394,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       chatStream.pushData(
         StreamData(plainTextMessage: message, chatItem: conciergeMessage),
       );
+      return true;
     }
 
     logger.info('Completed handling of group message', name: methodName);
+    return false;
   }
 
   /// Fetches new messages from the mediator, processes them,
@@ -406,14 +413,31 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final messagesFromMediator = await coreSDK.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      // TODO: delete after message has been successfully processed
-      deleteOnRetrieve: true,
+      deleteOnRetrieve: false,
     );
     final newMessages = <entity_chat_message.Message>[];
+    final processedHashes = <String>[];
 
     for (final message in messagesFromMediator) {
-      await handleMessage(message, newMessages);
-      await _handleMessage(message.plainTextMessage);
+      final messageHandled = await handleMessage(message, newMessages);
+      final messageHandledInternal = await _handleMessage(
+        message.plainTextMessage,
+      );
+
+      if (!messageHandledInternal && !messageHandled) {
+        chatStream.pushData(
+          StreamData(plainTextMessage: message.plainTextMessage),
+        );
+      }
+      processedHashes.add(message.messageHash!);
+    }
+
+    if (processedHashes.isNotEmpty) {
+      await coreSDK.deleteMessages(
+        did: did,
+        mediatorDid: mediatorDid,
+        messageHashes: processedHashes,
+      );
     }
 
     logger.info(
@@ -426,17 +450,22 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// Subscribes to the mediator channel for group events.
   ///
   /// **Returns:**
-  /// - A [MediatorStream] subscription stream for group messages.
+  /// - A [SDKStreamSubscription] subscription stream for group messages.
   @override
-  Future<CoreSDKStreamSubscription> subscribeToMediator() async {
+  Future<SDKStreamSubscription> subscribeToMediator() async {
     final methodName = 'subscribeToChannel';
     logger.info('Started subscribing to mediator channel', name: methodName);
 
     final subscription = await super.subscribeToMediator();
     logger.info('Completed subscribing to group channel', name: methodName);
 
-    subscription.stream.listen((data) async {
-      await _handleMessage(data.plainTextMessage);
+    subscription.listen((data) async {
+      if (!await _handleMessage(data.plainTextMessage)) {
+        chatStream.pushData(
+          StreamData(plainTextMessage: data.plainTextMessage),
+        );
+      }
+      return MediatorStreamProcessingResult(keepMessage: false);
     });
 
     return subscription;
@@ -752,7 +781,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final methodName = 'sendChatGroupDetailsUpdate';
     logger.info('Started sending chat group details update', name: methodName);
     unawaited(
-      sendMessage(
+      sendPlainTextMessage(
         ChatGroupDetailsUpdate.fromGroup(
           group,
           senderDid: did,

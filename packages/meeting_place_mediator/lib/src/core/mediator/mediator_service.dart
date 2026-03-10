@@ -11,6 +11,7 @@ import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 import '../../protocol/message/oob_invitation_message.dart';
 import '../../meeting_place_mediator_sdk_options.dart';
 import '../../utils/didcomm.dart';
+import '../../utils/error_handler_utils.dart';
 import '../../utils/string.dart';
 import 'forward_message_builder.dart';
 import 'mediator_stream/mediator_stream_subscription.dart';
@@ -50,7 +51,7 @@ class MediatorService {
     required DidManager didManager,
     required String mediatorDid,
     required SignatureScheme signatureScheme,
-    bool reauthenticate = false,
+    bool forceNewSession = false,
     bool fetchMessagesOnConnect = true,
   }) async {
     final methodName = '_initMediatorClient';
@@ -101,7 +102,7 @@ class MediatorService {
           authorizationProvider: await _getAuthorizationProvider(
             mediatorDidDocument: mediatorDidDocument,
             didManager: didManager,
-            reauthenticate: reauthenticate,
+            reauthenticate: forceNewSession,
           ),
         );
 
@@ -110,21 +111,13 @@ class MediatorService {
 
         return client;
       },
-      retryIf: (e) {
-        _logger.warning('Retrying due to error: $e', name: methodName);
-        return e is SocketException || e is TimeoutException;
-      },
-      onRetry: (e) =>
-          _logger.warning('Retry attempt due to: $e', name: methodName),
-      maxDelay: _options.maxRetriesDelay,
-      maxAttempts: _options.maxRetries,
     );
   }
 
   Future<MediatorClient> authenticateWithDid({
     required DidManager didManager,
     required String mediatorDid,
-    bool reauthenticate = false,
+    bool forceNewSession = false,
     bool fetchMessagesOnConnect = true,
   }) async {
     final methodName = 'authenticateWithDid';
@@ -138,7 +131,7 @@ class MediatorService {
           didManager: didManager,
           mediatorDid: mediatorDid,
           signatureScheme: _options.signatureScheme,
-          reauthenticate: reauthenticate,
+          forceNewSession: forceNewSession,
           fetchMessagesOnConnect: fetchMessagesOnConnect,
         ),
         maxAttempts: _options.maxRetries,
@@ -173,13 +166,49 @@ class MediatorService {
     return mediatorClient.createOob(message);
   }
 
-  Future<String> getOob({
-    required Uri oobUrl,
-    required DidManager didManager,
-  }) async {
-    final methodName = 'getOob';
-    final response = await Dio().get(oobUrl.toString());
-    _logger.info('Fetched OOB invitation from $oobUrl', name: methodName);
+  Future<String?> getOob(Uri oobUrl) async {
+    late Response response;
+
+    try {
+      response = await retry(
+        () => Dio().get(oobUrl.toString()),
+        retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+        maxAttempts: _options.maxRetries,
+        maxDelay: _options.maxRetriesDelay,
+      );
+    } catch (e, stackTrace) {
+      _logger.error('Failed to fetch OOB invitation from $oobUrl after retries',
+          error: e, stackTrace: stackTrace, name: 'getOob');
+      if (ErrorHandlerUtils.isRetryableError(e)) {
+        _logger.error(
+          'Network error while fetching OOB invitation from $oobUrl. ',
+          name: 'getOob',
+        );
+        Error.throwWithStackTrace(
+          MediatorException.oobNetworkError(
+            oobUrl: oobUrl.toString(),
+            innerException: e,
+          ),
+          stackTrace,
+        );
+      }
+
+      Error.throwWithStackTrace(
+        MediatorException.oobError(
+          oobUrl: oobUrl.toString(),
+          innerException: e,
+        ),
+        stackTrace,
+      );
+    }
+
+    if (response.data?['data'] == null ||
+        response.statusCode != HttpStatus.ok) {
+      _logger.warning('OOB invitation not found at $oobUrl', name: 'getOob');
+      return null;
+    }
+
+    _logger.info('Fetched OOB invitation from $oobUrl', name: 'getOob');
     return response.data['data'];
   }
 
@@ -213,14 +242,18 @@ class MediatorService {
         name: methodName,
       );
 
-      await mediatorClient.sendMessage(ForwardMessageBuilder.build(
-        encryptedMessage,
-        senderDidDocument: senderDidDocument,
-        mediatorClient: mediatorClient,
-        next: next,
-        ephemeral: ephemeral,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
-      ));
+      await _retry(
+        () async {
+          await mediatorClient.sendMessage(ForwardMessageBuilder.build(
+            encryptedMessage,
+            senderDidDocument: senderDidDocument,
+            mediatorClient: mediatorClient,
+            next: next,
+            ephemeral: ephemeral,
+            forwardExpiryInSeconds: forwardExpiryInSeconds,
+          ));
+        },
+      );
 
       _logger.info(
         'Message sent of type ${message.type.toString()} from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
@@ -319,7 +352,7 @@ class MediatorService {
       final client = await authenticateWithDid(
         didManager: didManager,
         mediatorDid: mediatorDid,
-        reauthenticate: reauthenticate,
+        forceNewSession: reauthenticate,
         fetchMessagesOnConnect: fetchMessagesOnConnect,
       );
 
@@ -366,12 +399,17 @@ class MediatorService {
       );
 
       final ownerDidDocument = await ownerDidManager.getDidDocument();
-      await client.sendAclManagementMessage(
-        AclManagement(
-          from: ownerDidDocument.id,
-          to: [client.mediatorDidDocument.id],
-          body: acl,
-        ),
+
+      await _retry(
+        () async {
+          await client.sendAclManagementMessage(
+            AclManagement(
+              from: ownerDidDocument.id,
+              to: [client.mediatorDidDocument.id],
+              body: acl,
+            ),
+          );
+        },
       );
 
       _logger.info(
@@ -528,10 +566,14 @@ class MediatorService {
     DateTime? startFrom,
     int? maxResults,
   }) async {
-    return await client.fetchMessages(
-      deleteOnMediator: deleteOnRetrieve,
-      batchSize: fetchMessagesBatchSize,
-      startFrom: startFrom,
+    return _retry(
+      () async {
+        return await client.fetchMessages(
+          deleteOnMediator: deleteOnRetrieve,
+          batchSize: fetchMessagesBatchSize,
+          startFrom: startFrom,
+        );
+      },
     );
   }
 
@@ -547,62 +589,16 @@ class MediatorService {
       mediatorDid: mediatorDid,
     );
 
-    await client.deleteMessages(messageIds: messageHashes);
+    await _retry(
+      () async {
+        await client.deleteMessages(messageIds: messageHashes);
+      },
+    );
 
     _logger.info(
       'Completed deleting ${messageHashes.length} message(s) from mediator ${mediatorDid.topAndTail()}',
       name: methodName,
     );
-  }
-
-  Future<String> getMediatorDidFromUrl(String mediatorEndpoint) async {
-    final methodName = 'getMediatorDidFromUrl';
-    _logger.info(
-      'Started resolving mediator DID from URL: $mediatorEndpoint',
-      name: methodName,
-    );
-
-    if (mediatorEndpoint.endsWith('/')) {
-      mediatorEndpoint = mediatorEndpoint.substring(
-        0,
-        mediatorEndpoint.length - 1,
-      );
-    }
-
-    try {
-      final dio = Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-        ),
-      );
-
-      final response = await dio.get(
-        '$mediatorEndpoint/.well-known/did',
-        options: Options(headers: {'CONTENT-TYPE': 'application/json'}),
-      );
-
-      final mediatorDid = response.data['data'] as String;
-      _logger.info(
-        'Completed resolving mediator DID is $mediatorDid',
-        name: methodName,
-      );
-      return mediatorDid;
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to resolve mediator DID from URL: $mediatorEndpoint',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      Error.throwWithStackTrace(
-        MediatorException.getMediatorDidError(
-          mediatorEndpoint: mediatorEndpoint,
-          innerException: e,
-        ),
-        stackTrace,
-      );
-    }
   }
 
   String _getCacheKey(DidDocument mediatorDidDocument, String did) {
@@ -632,5 +628,17 @@ class MediatorService {
     );
     _authorizationProviders[cacheKey] = authorizationProvider;
     return authorizationProvider;
+  }
+
+  /// Helper method to execute operations with retry logic and consistent error handling
+  Future<T> _retry<T>(Future<T> Function() operation) async {
+    return retry(
+      operation,
+      retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+      onRetry: (e) =>
+          _logger.warning('Retry attempt due to: $e', name: '_retry'),
+      maxDelay: _options.maxRetriesDelay,
+      maxAttempts: _options.maxRetries,
+    );
   }
 }

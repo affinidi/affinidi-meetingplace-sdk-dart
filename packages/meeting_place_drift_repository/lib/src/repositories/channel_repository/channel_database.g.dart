@@ -43,6 +43,16 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
       GeneratedColumn<int>('type', aliasedName, false,
               type: DriftSqlType.int, requiredDuringInsert: true)
           .withConverter<ChannelType>($ChannelsTable.$convertertype);
+  static const VerificationMeta _isConnectionInitiatorMeta =
+      const VerificationMeta('isConnectionInitiator');
+  @override
+  late final GeneratedColumn<bool> isConnectionInitiator =
+      GeneratedColumn<bool>('is_connection_initiator', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: false,
+          defaultConstraints: GeneratedColumn.constraintIsAlways(
+              'CHECK ("is_connection_initiator" IN (0, 1))'),
+          defaultValue: const Constant(false));
   static const VerificationMeta _outboundMessageIdMeta =
       const VerificationMeta('outboundMessageId');
   @override
@@ -106,6 +116,7 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         offerLink,
         status,
         type,
+        isConnectionInitiator,
         outboundMessageId,
         acceptOfferDid,
         permanentChannelDid,
@@ -150,6 +161,12 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           offerLink.isAcceptableOrUnknown(data['offer_link']!, _offerLinkMeta));
     } else if (isInserting) {
       context.missing(_offerLinkMeta);
+    }
+    if (data.containsKey('is_connection_initiator')) {
+      context.handle(
+          _isConnectionInitiatorMeta,
+          isConnectionInitiator.isAcceptableOrUnknown(
+              data['is_connection_initiator']!, _isConnectionInitiatorMeta));
     }
     if (data.containsKey('outbound_message_id')) {
       context.handle(
@@ -229,6 +246,9 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
       type: $ChannelsTable.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}type'])!),
+      isConnectionInitiator: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool,
+          data['${effectivePrefix}is_connection_initiator'])!,
       outboundMessageId: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}outbound_message_id']),
       acceptOfferDid: attachedDatabase.typeMapping.read(
@@ -282,6 +302,10 @@ class Channel extends DataClass implements Insertable<Channel> {
   /// Type of the channel.
   final ChannelType type;
 
+  /// Indicates whether the channel was initiated by the local party or the
+  /// other party.
+  final bool isConnectionInitiator;
+
   /// ID of the outbound message.
   final String? outboundMessageId;
 
@@ -316,6 +340,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       required this.offerLink,
       required this.status,
       required this.type,
+      required this.isConnectionInitiator,
       this.outboundMessageId,
       this.acceptOfferDid,
       this.permanentChannelDid,
@@ -339,6 +364,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     {
       map['type'] = Variable<int>($ChannelsTable.$convertertype.toSql(type));
     }
+    map['is_connection_initiator'] = Variable<bool>(isConnectionInitiator);
     if (!nullToAbsent || outboundMessageId != null) {
       map['outbound_message_id'] = Variable<String>(outboundMessageId);
     }
@@ -377,6 +403,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink: Value(offerLink),
       status: Value(status),
       type: Value(type),
+      isConnectionInitiator: Value(isConnectionInitiator),
       outboundMessageId: outboundMessageId == null && nullToAbsent
           ? const Value.absent()
           : Value(outboundMessageId),
@@ -417,6 +444,8 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink: serializer.fromJson<String>(json['offerLink']),
       status: serializer.fromJson<ChannelStatus>(json['status']),
       type: serializer.fromJson<ChannelType>(json['type']),
+      isConnectionInitiator:
+          serializer.fromJson<bool>(json['isConnectionInitiator']),
       outboundMessageId:
           serializer.fromJson<String?>(json['outboundMessageId']),
       acceptOfferDid: serializer.fromJson<String?>(json['acceptOfferDid']),
@@ -444,6 +473,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       'offerLink': serializer.toJson<String>(offerLink),
       'status': serializer.toJson<ChannelStatus>(status),
       'type': serializer.toJson<ChannelType>(type),
+      'isConnectionInitiator': serializer.toJson<bool>(isConnectionInitiator),
       'outboundMessageId': serializer.toJson<String?>(outboundMessageId),
       'acceptOfferDid': serializer.toJson<String?>(acceptOfferDid),
       'permanentChannelDid': serializer.toJson<String?>(permanentChannelDid),
@@ -465,6 +495,7 @@ class Channel extends DataClass implements Insertable<Channel> {
           String? offerLink,
           ChannelStatus? status,
           ChannelType? type,
+          bool? isConnectionInitiator,
           Value<String?> outboundMessageId = const Value.absent(),
           Value<String?> acceptOfferDid = const Value.absent(),
           Value<String?> permanentChannelDid = const Value.absent(),
@@ -481,6 +512,8 @@ class Channel extends DataClass implements Insertable<Channel> {
         offerLink: offerLink ?? this.offerLink,
         status: status ?? this.status,
         type: type ?? this.type,
+        isConnectionInitiator:
+            isConnectionInitiator ?? this.isConnectionInitiator,
         outboundMessageId: outboundMessageId.present
             ? outboundMessageId.value
             : this.outboundMessageId,
@@ -515,6 +548,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink: data.offerLink.present ? data.offerLink.value : this.offerLink,
       status: data.status.present ? data.status.value : this.status,
       type: data.type.present ? data.type.value : this.type,
+      isConnectionInitiator: data.isConnectionInitiator.present
+          ? data.isConnectionInitiator.value
+          : this.isConnectionInitiator,
       outboundMessageId: data.outboundMessageId.present
           ? data.outboundMessageId.value
           : this.outboundMessageId,
@@ -551,6 +587,7 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('offerLink: $offerLink, ')
           ..write('status: $status, ')
           ..write('type: $type, ')
+          ..write('isConnectionInitiator: $isConnectionInitiator, ')
           ..write('outboundMessageId: $outboundMessageId, ')
           ..write('acceptOfferDid: $acceptOfferDid, ')
           ..write('permanentChannelDid: $permanentChannelDid, ')
@@ -573,6 +610,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink,
       status,
       type,
+      isConnectionInitiator,
       outboundMessageId,
       acceptOfferDid,
       permanentChannelDid,
@@ -592,6 +630,7 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.offerLink == this.offerLink &&
           other.status == this.status &&
           other.type == this.type &&
+          other.isConnectionInitiator == this.isConnectionInitiator &&
           other.outboundMessageId == this.outboundMessageId &&
           other.acceptOfferDid == this.acceptOfferDid &&
           other.permanentChannelDid == this.permanentChannelDid &&
@@ -612,6 +651,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String> offerLink;
   final Value<ChannelStatus> status;
   final Value<ChannelType> type;
+  final Value<bool> isConnectionInitiator;
   final Value<String?> outboundMessageId;
   final Value<String?> acceptOfferDid;
   final Value<String?> permanentChannelDid;
@@ -629,6 +669,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.offerLink = const Value.absent(),
     this.status = const Value.absent(),
     this.type = const Value.absent(),
+    this.isConnectionInitiator = const Value.absent(),
     this.outboundMessageId = const Value.absent(),
     this.acceptOfferDid = const Value.absent(),
     this.permanentChannelDid = const Value.absent(),
@@ -647,6 +688,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     required String offerLink,
     required ChannelStatus status,
     required ChannelType type,
+    this.isConnectionInitiator = const Value.absent(),
     this.outboundMessageId = const Value.absent(),
     this.acceptOfferDid = const Value.absent(),
     this.permanentChannelDid = const Value.absent(),
@@ -670,6 +712,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? offerLink,
     Expression<int>? status,
     Expression<int>? type,
+    Expression<bool>? isConnectionInitiator,
     Expression<String>? outboundMessageId,
     Expression<String>? acceptOfferDid,
     Expression<String>? permanentChannelDid,
@@ -688,6 +731,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       if (offerLink != null) 'offer_link': offerLink,
       if (status != null) 'status': status,
       if (type != null) 'type': type,
+      if (isConnectionInitiator != null)
+        'is_connection_initiator': isConnectionInitiator,
       if (outboundMessageId != null) 'outbound_message_id': outboundMessageId,
       if (acceptOfferDid != null) 'accept_offer_did': acceptOfferDid,
       if (permanentChannelDid != null)
@@ -711,6 +756,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       Value<String>? offerLink,
       Value<ChannelStatus>? status,
       Value<ChannelType>? type,
+      Value<bool>? isConnectionInitiator,
       Value<String?>? outboundMessageId,
       Value<String?>? acceptOfferDid,
       Value<String?>? permanentChannelDid,
@@ -728,6 +774,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       offerLink: offerLink ?? this.offerLink,
       status: status ?? this.status,
       type: type ?? this.type,
+      isConnectionInitiator:
+          isConnectionInitiator ?? this.isConnectionInitiator,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
       acceptOfferDid: acceptOfferDid ?? this.acceptOfferDid,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
@@ -765,6 +813,10 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     if (type.present) {
       map['type'] =
           Variable<int>($ChannelsTable.$convertertype.toSql(type.value));
+    }
+    if (isConnectionInitiator.present) {
+      map['is_connection_initiator'] =
+          Variable<bool>(isConnectionInitiator.value);
     }
     if (outboundMessageId.present) {
       map['outbound_message_id'] = Variable<String>(outboundMessageId.value);
@@ -811,6 +863,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('offerLink: $offerLink, ')
           ..write('status: $status, ')
           ..write('type: $type, ')
+          ..write('isConnectionInitiator: $isConnectionInitiator, ')
           ..write('outboundMessageId: $outboundMessageId, ')
           ..write('acceptOfferDid: $acceptOfferDid, ')
           ..write('permanentChannelDid: $permanentChannelDid, ')
@@ -1444,6 +1497,7 @@ typedef $$ChannelsTableCreateCompanionBuilder = ChannelsCompanion Function({
   required String offerLink,
   required ChannelStatus status,
   required ChannelType type,
+  Value<bool> isConnectionInitiator,
   Value<String?> outboundMessageId,
   Value<String?> acceptOfferDid,
   Value<String?> permanentChannelDid,
@@ -1462,6 +1516,7 @@ typedef $$ChannelsTableUpdateCompanionBuilder = ChannelsCompanion Function({
   Value<String> offerLink,
   Value<ChannelStatus> status,
   Value<ChannelType> type,
+  Value<bool> isConnectionInitiator,
   Value<String?> outboundMessageId,
   Value<String?> acceptOfferDid,
   Value<String?> permanentChannelDid,
@@ -1528,6 +1583,10 @@ class $$ChannelsTableFilterComposer
       $composableBuilder(
           column: $table.type,
           builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<bool> get isConnectionInitiator => $composableBuilder(
+      column: $table.isConnectionInitiator,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get outboundMessageId => $composableBuilder(
       column: $table.outboundMessageId,
@@ -1613,6 +1672,10 @@ class $$ChannelsTableOrderingComposer
   ColumnOrderings<int> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get isConnectionInitiator => $composableBuilder(
+      column: $table.isConnectionInitiator,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get outboundMessageId => $composableBuilder(
       column: $table.outboundMessageId,
       builder: (column) => ColumnOrderings(column));
@@ -1675,6 +1738,9 @@ class $$ChannelsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<ChannelType, int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<bool> get isConnectionInitiator => $composableBuilder(
+      column: $table.isConnectionInitiator, builder: (column) => column);
 
   GeneratedColumn<String> get outboundMessageId => $composableBuilder(
       column: $table.outboundMessageId, builder: (column) => column);
@@ -1758,6 +1824,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             Value<String> offerLink = const Value.absent(),
             Value<ChannelStatus> status = const Value.absent(),
             Value<ChannelType> type = const Value.absent(),
+            Value<bool> isConnectionInitiator = const Value.absent(),
             Value<String?> outboundMessageId = const Value.absent(),
             Value<String?> acceptOfferDid = const Value.absent(),
             Value<String?> permanentChannelDid = const Value.absent(),
@@ -1776,6 +1843,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             offerLink: offerLink,
             status: status,
             type: type,
+            isConnectionInitiator: isConnectionInitiator,
             outboundMessageId: outboundMessageId,
             acceptOfferDid: acceptOfferDid,
             permanentChannelDid: permanentChannelDid,
@@ -1794,6 +1862,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             required String offerLink,
             required ChannelStatus status,
             required ChannelType type,
+            Value<bool> isConnectionInitiator = const Value.absent(),
             Value<String?> outboundMessageId = const Value.absent(),
             Value<String?> acceptOfferDid = const Value.absent(),
             Value<String?> permanentChannelDid = const Value.absent(),
@@ -1812,6 +1881,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             offerLink: offerLink,
             status: status,
             type: type,
+            isConnectionInitiator: isConnectionInitiator,
             outboundMessageId: outboundMessageId,
             acceptOfferDid: acceptOfferDid,
             permanentChannelDid: permanentChannelDid,

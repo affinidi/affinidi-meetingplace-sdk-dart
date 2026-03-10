@@ -2,8 +2,7 @@
 
 When contributing to this repository, please first discuss the change you wish to make by creating a new [GitHub issue](https://github.com/affinidi/affinidi-mpx-sdk/issues/new).
 
-## Developement Requirements
-
+## Development Requirements
 
 ### Code quality expectations
 
@@ -12,6 +11,18 @@ When contributing to this repository, please first discuss the change you wish t
 3. Ensure your code is covered with unit and integration tests (NOTE: no mocks/stubs in integration tests).
 4. Avoid adding comments to explain what code does, code should be self-explanatory and clean.
 5. Avoid using variable names like `i` or abbreviations - names should be simple and unambiguous.
+
+### Git Hooks
+
+To ensure code quality before committing, set up the pre-commit hook:
+
+```sh
+cp templates/.example.pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+This will automatically run `melos run analyze` before every commit and block the commit if there are any issues.
+**Note:** The hook file must be named `pre-commit` (no extension) in `.git/hooks`.
 
 ## Code of Conduct
 

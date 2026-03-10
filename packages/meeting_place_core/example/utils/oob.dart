@@ -23,7 +23,7 @@ void main() async {
   );
 
   // Alice listens on acceptance
-  oob.streamSubscription.listen((data) {
+  oob.stream.listen((data) {
     prettyPrint('Alice received: ${data.eventType.name}');
     aliceWaitFor.complete();
   });
@@ -39,7 +39,7 @@ void main() async {
   );
 
   // Bob listens for approval
-  acceptance.streamSubscription.listen((data) {
+  acceptance.stream.listen((data) {
     prettyPrint('Bob received: ${data.eventType.name}');
     bobWaitFor.complete();
   });
@@ -47,6 +47,6 @@ void main() async {
   await Future.wait([aliceWaitFor.future, bobWaitFor.future]);
 
   // Close stream
-  await oob.streamSubscription.dispose();
-  await acceptance.streamSubscription.dispose();
+  await oob.stream.dispose();
+  await acceptance.stream.dispose();
 }

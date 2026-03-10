@@ -56,6 +56,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
               messageSyncMarker: Value(channel.messageSyncMarker),
               mediatorDid: Value(channel.mediatorDid),
               externalRef: Value(channel.externalRef),
+              isConnectionInitiator: Value(channel.isConnectionInitiator),
             ),
           );
 
@@ -145,6 +146,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           messageSyncMarker: Value(channel.messageSyncMarker),
           mediatorDid: Value(channel.mediatorDid),
           externalRef: Value(channel.externalRef),
+          isConnectionInitiator: Value(channel.isConnectionInitiator),
         ),
       );
 
@@ -317,6 +319,7 @@ class _ChannelMapper {
       mediatorDid: channel.mediatorDid,
       status: channel.status,
       type: channel.type,
+      isConnectionInitiator: channel.isConnectionInitiator,
       contactCard: _makeContactCardFromDb(contactCard),
       otherPartyContactCard: _makeContactCardFromDb(otherContactCard),
       acceptOfferDid: channel.acceptOfferDid,

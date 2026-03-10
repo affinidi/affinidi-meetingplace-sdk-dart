@@ -1,15 +1,17 @@
+import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import '../entity/channel.dart';
+import '../entity/connection_offer.dart';
 import '../protocol/protocol.dart';
-import '../utils/string.dart';
+import '../service/mediator/fetch_messages_options.dart';
 import 'base_event_handler.dart';
-import 'exceptions/empty_message_list_exception.dart';
 
-class ChannelInaugurationEventHandler extends BaseEventHandler {
+class ChannelInaugurationEventHandler
+    extends BaseEventHandler<ChannelActivity> {
   ChannelInaugurationEventHandler({
     required super.wallet,
     required super.connectionOfferRepository,
-    required super.channelRepository,
+    required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
     required super.logger,
@@ -18,58 +20,52 @@ class ChannelInaugurationEventHandler extends BaseEventHandler {
 
   static final String _logKey = 'ChannelInaugurationEventHandler';
 
-  Future<Channel?> process(ChannelActivity channelActivity) async {
+  Future<List<Channel>> process(ChannelActivity event) async {
     logger.info(
-      'Started processing event of type ${channelActivity.type}',
+      'Started processing event of type ${event.type}',
       name: _logKey,
     );
 
-    try {
-      final channel = await findChannelByDid(channelActivity.did);
-      final didManager = await findDidManager(channel);
+    final channel = await channelService.findChannelByDid(event.did);
+    final didManager = await findDidManager(channel);
 
-      final messages = await fetchMessagesFromMediatorWithRetry(
-        didManager: didManager,
-        mediatorDid: channel.mediatorDid,
-        messageType: MeetingPlaceProtocol.channelInauguration,
-      );
+    return processEvent(
+      event: event,
+      didManager: didManager,
+      mediatorDid: channel.mediatorDid,
+      channel: channel,
+      fetchMessageOptions: FetchMessagesOptions(
+        filterByMessageTypes: [MeetingPlaceProtocol.channelInauguration.value],
+      ),
+    );
+  }
 
-      logger.info('Found ${messages.length} in inbox', name: _logKey);
-      for (final message in messages) {
-        final plainTextMessage = ChannelInauguration.fromPlainTextMessage(
-          message.plainTextMessage,
-        );
-
-        logger.info(
-          'Peeked message ${message.plainTextMessage.type.toString().topAndTail(charCountTop: 8, charCountTail: 20)} from ${channel.permanentChannelDid!.topAndTail()}',
-          name: _logKey,
-        );
-
-        channel.otherPartyNotificationToken =
-            plainTextMessage.body.notificationToken;
-
-        channel.status = ChannelStatus.inaugurated;
-        await channelRepository.updateChannel(channel);
-      }
-
-      logger.info(
-        'Completed processing event of type ${channelActivity.type}',
-        name: _logKey,
-      );
-      return channel;
-    } on EmptyMessageListException {
-      logger.error(
-        'No messages found to process for event of type ${ControlPlaneEventType.ChannelActivity}',
-        name: _logKey,
-      );
-      return null;
-    } catch (e, stackTrace) {
-      logger.error(
-        '''Failed to process event of type ${ControlPlaneEventType.ChannelActivity} -> ${e.toString()}''',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
+  @override
+  Future<Channel> processMessage(
+    PlainTextMessage message, {
+    required ChannelActivity event,
+    ConnectionOffer? connection,
+    Channel? channel,
+  }) async {
+    if (channel == null) {
+      throw ArgumentError('Channel not found for did ${event.did}');
     }
+
+    final channelInaugurationMessage = ChannelInauguration.fromPlainTextMessage(
+      message,
+    );
+
+    await channelService.markChannelInauguratedForConnectionInitiator(
+      channel,
+      otherPartyNotificationToken:
+          channelInaugurationMessage.body.notificationToken,
+    );
+
+    final attachments = channelInaugurationMessage.attachments;
+    if (attachments != null && attachments.isNotEmpty) {
+      options.onAttachmentsReceived?.call(channel, attachments);
+    }
+
+    return channel;
   }
 }

@@ -2,7 +2,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
 import 'sdk/chat.dart';
-import 'sdk/chat_sdk.dart';
 
 ///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
 ///
@@ -139,6 +138,17 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) {
     return _sdk.sendChatContactDetailsUpdate(message);
+  }
+
+  /// Sends a plain text message.
+  ///
+  /// **Parameters:**
+  /// - [message]: The [PlainTextMessage] to send.
+  ///
+  /// Returns a [Future] that completes when the message has been sent.
+  @override
+  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
+    return _sdk.sendMessage(message, notify: notify);
   }
 
   /// Sends a plain text message (optionally with attachments).

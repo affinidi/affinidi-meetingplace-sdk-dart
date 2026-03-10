@@ -6,20 +6,24 @@ import 'package:uuid/uuid.dart';
 import 'oob_invitation_message_body.dart';
 
 class OobInvitationMessage {
-  factory OobInvitationMessage.create({
-    required String from,
-    OobInvitationMessageBody? body,
-  }) {
+  factory OobInvitationMessage.fromBase64(
+    String base64, [
+    Map<String, dynamic> additionalProps = const {},
+  ]) {
+    final bytes = base64Url.decode(const Base64Codec().normalize(base64));
+    final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+    return OobInvitationMessage.fromJson({...json, ...additionalProps});
+  }
+
+  factory OobInvitationMessage.create({required String from, String? type}) {
     return OobInvitationMessage(
       id: const Uuid().v4(),
       from: from,
-      body:
-          body ??
-          OobInvitationMessageBody(
-            goalCode: 'connect',
-            goal: 'Start relationship',
-            accept: ['didcomm/v2'],
-          ),
+      body: OobInvitationMessageBody(
+        goalCode: type ?? 'connect',
+        goal: 'Start relationship',
+        accept: ['didcomm/v2'],
+      ),
     );
   }
 
@@ -76,15 +80,6 @@ class OobInvitationMessage {
       'body': body.toJson(),
       'created_time': createdTime.toIso8601String(),
     };
-  }
-
-  static OobInvitationMessage fromBase64(
-    String base64, [
-    Map<String, dynamic> additionalProps = const {},
-  ]) {
-    final bytes = base64Url.decode(const Base64Codec().normalize(base64));
-    final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
-    return OobInvitationMessage.fromJson({...json, ...additionalProps});
   }
 
   String toBase64() {

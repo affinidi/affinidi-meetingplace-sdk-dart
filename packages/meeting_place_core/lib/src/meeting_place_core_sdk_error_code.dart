@@ -48,9 +48,22 @@ enum MeetingPlaceCoreSDKErrorCode {
   groupOfferDoesNotExistError('group_offer_does_not_exist_error'),
   groupChannelDoesNotExistError('group_offer_channel_does_not_exist_error'),
 
-  // others
+  // channels
+  channelActionNotAllowed('channel_action_not_allowed'),
   channelNotificationFailed('channel_notification_failed'),
+  channelNotFound('channel_not_found'),
+  channelInvalidStatus('channel_invalid_status'),
+  channelInvalidType('channel_invalid_type'),
+  channelMissingPermanentChannelDid('channel_missing_permanent_channel_did'),
+
+  // oob
+  oobInvalidData('oob_invalid_data'),
+  oobNotFound('oob_not_found'),
+  oobInvalidType('oob_invalid_type'),
+
+  // others
   mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),
+  networkError('network_error'),
   generic('generic');
 
   const MeetingPlaceCoreSDKErrorCode(this.value);

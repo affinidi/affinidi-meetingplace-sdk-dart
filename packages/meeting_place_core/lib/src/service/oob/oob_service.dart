@@ -316,7 +316,7 @@ class OobService {
     );
   }
 
-  _processConnectionRequestApproval(
+  Future<void> _processConnectionRequestApproval(
     ConnectionRequestApproval message, {
     required OobAcceptanceSession session,
     required OobStream stream,

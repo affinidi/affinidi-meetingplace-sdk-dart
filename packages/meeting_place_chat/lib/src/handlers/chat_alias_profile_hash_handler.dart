@@ -17,8 +17,9 @@ class ChatAliasProfileHashHandler {
     required PlainTextMessage message,
     required Channel channel,
   }) async {
-    final profileHashMessage =
-        ChatAliasProfileHash.fromPlainTextMessage(message);
+    final profileHashMessage = ChatAliasProfileHash.fromPlainTextMessage(
+      message,
+    );
     final profileHash = profileHashMessage.body.profileHash;
 
     if (channel.otherPartyContactCard != null &&

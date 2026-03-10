@@ -185,13 +185,6 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     );
   }
 
-  /// Checks whether the message type exists in `options.memberJoinedIndicator`.
-  bool _memberJoinedIndicator(PlainTextMessage message) {
-    return options.memberJoinedIndicator.contains(
-      ChatProtocol.byValue(message.type.toString()),
-    );
-  }
-
   /// Map of protocol type to handler callbacks for group message dispatch.
   Map<String, Future<bool> Function(PlainTextMessage)>
   get _groupMessageHandlers => {
@@ -259,18 +252,17 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
     final plainTextMessage = message.plainTextMessage;
 
-    if (_isGroupOwner() && _memberJoinedIndicator(plainTextMessage)) {
-      logger.info(
-        'Handling message for member joined event for group owner: '
-        '${plainTextMessage.from?.topAndTail()}',
-        name: methodName,
-      );
-      await ChatGroupMemberJoinedHandler(
-        chatRepository: chatRepository,
-        chatHistoryService: _chatHistoryService,
-        streamManager: chatStream,
-      ).handle(chatId: chatId, groupDid: group.did, message: message);
-    }
+    await ChatGroupMemberJoinedHandler(
+      chatRepository: chatRepository,
+      chatHistoryService: _chatHistoryService,
+      streamManager: chatStream,
+    ).handle(
+      chatId: chatId,
+      groupDid: group.did,
+      isGroupOwner: _isGroupOwner(),
+      memberJoinedIndicator: options.memberJoinedIndicator,
+      message: message,
+    );
 
     final messageType = plainTextMessage.type.toString();
     final handler = _groupMessageHandlers[messageType];
@@ -515,15 +507,13 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     if (!_isGroupOwner()) {
-      await coreSDK.sendMessage(
+      await sendDirectMessage(
         ChatAliasProfileHash.create(
           from: did,
           to: [group.ownerDid!],
           profileHash: card!.profileHash,
         ).toPlainTextMessage(),
-        senderDid: did,
         recipientDid: group.ownerDid!,
-        mediatorDid: mediatorDid,
       );
 
       channel.contactCard = card;
@@ -634,16 +624,15 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       await coreSDK.updateGroup(group);
       unawaited(sendChatGroupDetailsUpdate());
     } else {
+      final replyTo = message.data['replyTo'] as String;
       unawaited(
-        coreSDK.sendMessage(
+        sendDirectMessage(
           ChatContactDetailsUpdate.create(
             from: did,
-            to: [message.data['replyTo'] as String],
+            to: [replyTo],
             profileDetails: card!.toJson(),
           ).toPlainTextMessage(),
-          senderDid: did,
-          recipientDid: message.data['replyTo'] as String,
-          mediatorDid: mediatorDid,
+          recipientDid: replyTo,
         ),
       );
     }

@@ -16,8 +16,9 @@ class ChatGroupAliasProfileRequestHandler {
     required PlainTextMessage message,
     required String chatId,
   }) async {
-    final profileRequestMessage =
-        ChatAliasProfileRequest.fromPlainTextMessage(message);
+    final profileRequestMessage = ChatAliasProfileRequest.fromPlainTextMessage(
+      message,
+    );
 
     // TODO: add concierge message handler
     final existingMessages = await _chatRepository.listMessages(chatId);

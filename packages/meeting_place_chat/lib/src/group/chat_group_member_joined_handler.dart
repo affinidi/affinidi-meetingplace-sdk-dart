@@ -21,7 +21,18 @@ class ChatGroupMemberJoinedHandler {
     required MediatorMessage message,
     required String chatId,
     required String groupDid,
+    required bool isGroupOwner,
+    required List<ChatProtocol> memberJoinedIndicator,
   }) async {
+    if (!isGroupOwner) return;
+
+    final messageType = ChatProtocol.byValue(
+      message.plainTextMessage.type.toString(),
+    );
+    if (messageType == null || !memberJoinedIndicator.contains(messageType)) {
+      return;
+    }
+
     final senderDid = message.fromDid ?? message.plainTextMessage.from;
     if (senderDid == null) return;
 
@@ -40,6 +51,20 @@ class ChatGroupMemberJoinedHandler {
 
     if (matchingMessage == null) return;
 
+    final memberDid = matchingMessage.data['memberDid'];
+    if (memberDid is! String) {
+      throw StateError(
+        'Expected awaitingGroupMemberToJoin event to include memberDid.',
+      );
+    }
+
+    final contactCardData = matchingMessage.data['contactCard'];
+    if (contactCardData is! Map<String, dynamic>) {
+      throw StateError(
+        'Expected awaitingGroupMemberToJoin event to include contactCard data.',
+      );
+    }
+
     matchingMessage.status = ChatItemStatus.confirmed;
     await _chatRepository.updateMesssage(matchingMessage);
     _streamManager.pushData(StreamData(chatItem: matchingMessage));
@@ -48,10 +73,8 @@ class ChatGroupMemberJoinedHandler {
         .createGroupMemberJoinedGroupEventMessage(
           chatId: chatId,
           groupDid: groupDid,
-          memberDid: matchingMessage.data['memberDid'] as String,
-          memberCard: ContactCard.fromJson(
-            matchingMessage.data['contactCard'] as Map<String, dynamic>,
-          ),
+          memberDid: memberDid,
+          memberCard: ContactCard.fromJson(contactCardData),
         );
 
     _streamManager.pushData(StreamData(chatItem: chatItem));

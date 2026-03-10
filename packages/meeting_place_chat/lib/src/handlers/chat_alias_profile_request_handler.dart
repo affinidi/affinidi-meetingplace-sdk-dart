@@ -14,8 +14,9 @@ class ChatAliasProfileRequestHandler {
     required PlainTextMessage message,
     required String chatId,
   }) async {
-    final profileRequestMessage =
-        ChatAliasProfileRequest.fromPlainTextMessage(message);
+    final profileRequestMessage = ChatAliasProfileRequest.fromPlainTextMessage(
+      message,
+    );
 
     // TODO: delete old concierge messages
     final conciergeMessage = ConciergeMessage(

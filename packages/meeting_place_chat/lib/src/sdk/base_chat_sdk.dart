@@ -370,7 +370,29 @@ abstract class BaseChatSDK {
       );
     }
 
-    return sendPlainTextMessage(
+    return sendDirectMessage(
+      message,
+      recipientDid: recipientDid,
+      notify: notify,
+    );
+  }
+
+  @internal
+  Future<void> sendDirectMessage(
+    PlainTextMessage message, {
+    required String recipientDid,
+    bool notify = false,
+    bool ephemeral = false,
+    int? forwardExpiryInSeconds,
+  }) {
+    final senderDid = message.from;
+    if (senderDid == null || senderDid != did) {
+      throw Exception(
+        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+      );
+    }
+
+    return coreSDK.sendMessage(
       PlainTextMessage.fromJson({
         ...message.toJson(),
         'from': senderDid,
@@ -379,7 +401,9 @@ abstract class BaseChatSDK {
       senderDid: senderDid,
       recipientDid: recipientDid,
       mediatorDid: mediatorDid,
-      notify: notify,
+      notifyChannelType: notify ? 'chat-activity' : null,
+      ephemeral: ephemeral,
+      forwardExpiryInSeconds: forwardExpiryInSeconds,
     );
   }
 

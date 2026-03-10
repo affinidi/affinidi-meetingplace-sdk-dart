@@ -29,15 +29,13 @@ class ChatGroupAliasProfileHashHandler {
     );
 
     if (member.contactCard.profileHash != profileHash) {
-      await _chatSDK.sendPlainTextMessage(
+      await _chatSDK.sendDirectMessage(
         protocol.ChatAliasProfileRequest.create(
           from: _chatSDK.did,
           to: [profileHashMessage.from],
           profileHash: profileHash,
         ).toPlainTextMessage(),
-        senderDid: _chatSDK.did,
         recipientDid: profileHashMessage.from,
-        mediatorDid: _chatSDK.mediatorDid,
       );
     }
 

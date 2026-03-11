@@ -142,6 +142,33 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - A [Future] that completes when the message is sent.
   @override
+  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
+    final senderDid = message.from;
+    if (senderDid == null || senderDid != did) {
+      throw Exception(
+        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+      );
+    }
+
+    final recipientDid = message.to?.firstOrNull;
+    if (recipientDid == null || recipientDid != otherPartyDid) {
+      throw Exception(
+        'Message "to" DID ${message.to} does not match chat recipient DID $otherPartyDid.',
+      );
+    }
+
+    return sendPlainTextMessage(
+      message,
+      senderDid: senderDid,
+      recipientDid: recipientDid,
+      mediatorDid: mediatorDid,
+      notify: notify,
+    );
+  }
+
+  /// **Returns:**
+  /// - A [Future] that completes when the message is sent.
+  @override
   Future<void> sendPlainTextMessage(
     PlainTextMessage message, {
     required String senderDid,
@@ -164,6 +191,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       increaseSequenceNumber:
           message.type.toString() == ChatProtocol.chatMessage.value,
       notify: notify,
+      ephemeral: ephemeral,
       forwardExpiryInSeconds: forwardExpiryInSeconds,
     );
   }

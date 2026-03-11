@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
@@ -79,7 +77,6 @@ void main() async {
   });
 
   test('alice receives notification about acceptance for group', () async {
-    var receivedEvent = false;
     await aliceSDK.deleteControlPlaneEvents();
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
@@ -106,18 +103,15 @@ void main() async {
       senderInfo: 'Bob',
     );
 
-    final completer = Completer<void>();
-
-    aliceSDK.controlPlaneEventsStream.listen((e) {
-      if (e.type == ControlPlaneEventType.InvitationGroupAccept) {
-        receivedEvent = true;
-        completer.complete();
-      }
-    });
+    final completer = ControlPlaneTestUtils.waitForControlPlaneEvent(
+      aliceSDK,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept,
+      expectedNumberOfEvents: 1,
+    );
 
     await aliceSDK.processControlPlaneEvents();
     await completer.future;
-    expect(receivedEvent, equals(true));
   });
 
   test(

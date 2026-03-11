@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 import '../utils/oob_flow_fixture.dart';
@@ -44,16 +45,22 @@ void main() {
 
     test('cancels timeout after receiving first event', () async {
       final createOobFlowResult = await fixture.createOobFlow();
-
       await fixture.acceptOobFlow(createOobFlowResult.oobUrl);
 
-      createOobFlowResult.stream.listen((data) => data);
+      final firstEventReceived = Completer<OobStreamData>();
+      createOobFlowResult.stream.listen((data) {
+        firstEventReceived.complete(data);
+      });
+
       createOobFlowResult.stream.timeout(
-        const Duration(seconds: 1),
+        const Duration(seconds: 3),
         () => fail('timeout executed'),
       );
 
-      await Future.delayed(const Duration(seconds: 2));
-    }, skip: 'flaky test on CI');
+      final event = await firstEventReceived.future.timeout(
+        const Duration(seconds: 10),
+      );
+      expect(event, isA<OobStreamData>());
+    });
   });
 }

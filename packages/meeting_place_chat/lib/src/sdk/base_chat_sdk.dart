@@ -1,15 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../meeting_place_chat.dart';
+import '../handlers/chat_alias_profile_hash_handler.dart';
+import '../handlers/chat_alias_profile_request_handler.dart';
+import '../handlers/chat_contact_details_update_handler.dart';
+import '../handlers/chat_delivered_handler.dart';
+import '../handlers/chat_message_handler.dart';
+import '../handlers/chat_reaction_handler.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
-import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 
@@ -46,6 +49,12 @@ abstract class BaseChatSDK {
        chatStream = ChatStream();
 
   static const String _className = 'BaseChatSDK';
+
+  static const _streamOnlyTypes = {
+    ChatProtocol.chatActivity,
+    ChatProtocol.chatPresence,
+    ChatProtocol.chatEffect,
+  };
 
   final MeetingPlaceCoreSDK coreSDK;
   final String did;
@@ -174,6 +183,47 @@ abstract class BaseChatSDK {
     return chatStream.stream;
   }
 
+  /// Map of [ChatProtocol] to handler callbacks for message dispatch.
+  Map<String, Future<void> Function(MediatorMessage, Channel)>
+  get _messageHandlers => {
+    ChatProtocol.chatMessage.value: (msg, _) => ChatMessageHandler(
+      chatRepository: chatRepository,
+      streamManager: chatStream,
+    ).handle(message: msg, chatId: chatId),
+    ChatProtocol.chatReaction.value: (msg, _) => ChatReactionHandler(
+      chatRepository: chatRepository,
+      streamManager: chatStream,
+    ).handle(message: msg, chatId: chatId),
+    ChatProtocol.chatAliasProfileHash.value: (msg, ch) async {
+      if (ch.type != ChannelType.group) {
+        await ChatAliasProfileHashHandler(
+          chatSDK: this,
+          streamManager: chatStream,
+        ).handle(message: msg.plainTextMessage, channel: ch);
+      }
+    },
+    ChatProtocol.chatAliasProfileRequest.value: (msg, ch) async {
+      if (ch.type != ChannelType.group) {
+        await ChatAliasProfileRequestHandler(
+          chatRepository: chatRepository,
+          streamManager: chatStream,
+        ).handle(message: msg.plainTextMessage, chatId: chatId);
+      }
+    },
+    ChatProtocol.chatDelivered.value: (msg, _) => ChatDeliveredHandler(
+      chatRepository: chatRepository,
+      streamManager: chatStream,
+    ).handle(message: msg, chatId: chatId),
+    ChatProtocol.chatContactDetailsUpdate.value: (msg, ch) async {
+      if (ch.type != ChannelType.group) {
+        await ChatContactDetailsUpdateHandler(
+          coreSDK: coreSDK,
+          streamManager: chatStream,
+        ).handle(message: msg.plainTextMessage, channel: ch);
+      }
+    },
+  };
+
   /// Handles an incoming [PlainTextMessage].
   ///
   /// Supported message types:
@@ -215,208 +265,24 @@ abstract class BaseChatSDK {
       }
     }
 
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatMessage,
-    )) {
-      _logger.info('Handling chat message', name: methodName);
-      final chatMessage = Message.fromReceivedMessage(
-        message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
-        chatId: chatId,
-      );
-      await chatRepository.createMessage(chatMessage);
-
-      chatStream.pushData(
-        StreamData(
-          plainTextMessage: message.plainTextMessage,
-          chatItem: chatMessage,
-        ),
-      );
+    final messageType = message.plainTextMessage.type.toString();
+    final handler = _messageHandlers[messageType];
+    if (handler != null) {
+      _logger.info('Handling $messageType message', name: methodName);
+      await handler(message, channel);
       return true;
     }
 
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatReaction.value) {
-      _logger.info('Handling chat reaction message', name: methodName);
-      final chatReactionMessage = ChatReaction.fromPlainTextMessage(
-        message.plainTextMessage,
-      );
-
-      final repositoryMessage = await chatRepository.getMessage(
-        chatId: chatId,
-        messageId: chatReactionMessage.body.messageId,
-      );
-
-      if (repositoryMessage is! Message) {
-        final message = 'Reactions only supported for chat messages';
-        _logger.error(message, name: methodName);
-        throw Exception(message);
-      }
-
-      repositoryMessage.reactions = chatReactionMessage.body.reactions;
-      await chatRepository.updateMesssage(repositoryMessage);
-
-      chatStream.pushData(
-        StreamData(
-          plainTextMessage: message.plainTextMessage,
-          chatItem: repositoryMessage,
-        ),
-      );
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatAliasProfileHash.value) {
+    final streamOnlyProtocol = ChatProtocol.byValue(messageType);
+    if (streamOnlyProtocol != null &&
+        _streamOnlyTypes.contains(streamOnlyProtocol)) {
       _logger.info(
-        'Handling chat alias profile hash message',
+        'Handling ${streamOnlyProtocol.name} message',
         name: methodName,
       );
-      if (channel.type != ChannelType.group) {
-        final profileHash = message.plainTextMessage.body?['profile_hash'];
-        if (profileHash != null && profileHash is String) {
-          if (channel.otherPartyContactCard != null &&
-              _contactHash(channel.otherPartyContactCard!) == profileHash) {
-            chatStream.pushData(
-              StreamData(plainTextMessage: message.plainTextMessage),
-            );
-            return true;
-          }
-
-          await sendPlainTextMessage(
-            protocol.ChatAliasProfileRequest.create(
-              from: did,
-              to: [otherPartyDid],
-              profileHash: profileHash,
-            ).toPlainTextMessage(),
-            senderDid: did,
-            recipientDid: otherPartyDid,
-            mediatorDid: mediatorDid,
-          );
-
-          chatStream.pushData(
-            StreamData(plainTextMessage: message.plainTextMessage),
-          );
-        } else {
-          _logger.warning(
-            'Skip processing chatAliasProfileHash message '
-            'because of empty profile hash',
-            name: methodName,
-          );
-        }
-      }
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatAliasProfileRequest.value) {
-      _logger.info(
-        'Handling chat alias profile request message',
-        name: methodName,
-      );
-      if (channel.type != ChannelType.group) {
-        // TODO: delete old concierge messages
-
-        final conciergeMessage = ConciergeMessage(
-          chatId: chatId,
-          messageId: message.plainTextMessage.id,
-          senderDid: message.plainTextMessage.from!,
-          isFromMe: false,
-          dateCreated:
-              message.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
-          status: ChatItemStatus.userInput,
-          conciergeType: ConciergeMessageType.permissionToUpdateProfile,
-          data: {
-            'profileHash': message.plainTextMessage.body?['profile_hash'],
-            'replyTo': message.plainTextMessage.from,
-          },
-        );
-
-        await chatRepository.createMessage(conciergeMessage);
-        chatStream.pushData(
-          StreamData(
-            plainTextMessage: message.plainTextMessage,
-            chatItem: conciergeMessage,
-          ),
-        );
-      }
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatDelivered.value) {
-      _logger.info('Handling chat delivered message', name: methodName);
-      final messageIds = _getMessageIdsFromChatDelivered(
-        message.plainTextMessage,
-      );
-      for (final messageId in messageIds) {
-        final targetMessage = await chatRepository.getMessage(
-          chatId: chatId,
-          messageId: messageId,
-        );
-
-        if (targetMessage == null) {
-          final message = 'Message not found';
-          _logger.error(message, name: methodName);
-          // throw Exception('Message not found');
-          continue;
-        }
-
-        targetMessage.status = ChatItemStatus.delivered;
-        await chatRepository.updateMesssage(targetMessage);
-
-        chatStream.pushData(
-          StreamData(
-            plainTextMessage: message.plainTextMessage,
-            chatItem: targetMessage,
-          ),
-        );
-      }
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatContactDetailsUpdate.value) {
-      _logger.info(
-        'Handling chat contact details update message',
-        name: methodName,
-      );
-      if (channel.type != ChannelType.group) {
-        channel.otherPartyContactCard = ContactCard.fromJson(
-          message.plainTextMessage.body!,
-        );
-
-        await coreSDK.updateChannel(channel);
-        chatStream.pushData(
-          StreamData(plainTextMessage: message.plainTextMessage),
-        );
-      }
-      return true;
-    }
-
-    if (message.plainTextMessage.isOfType(ChatProtocol.chatActivity.value)) {
-      _logger.info('Handling chat activity message', name: methodName);
       chatStream.pushData(
         StreamData(plainTextMessage: message.plainTextMessage),
       );
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatPresence.value) {
-      _logger.info('Handling chat presence message', name: methodName);
-      chatStream.pushData(
-        StreamData(plainTextMessage: message.plainTextMessage),
-      );
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatEffect.value) {
-      _logger.info('Handling chat effect message', name: methodName);
-      chatStream.pushData(
-        StreamData(plainTextMessage: message.plainTextMessage),
-      );
-
       return true;
     }
 
@@ -504,7 +370,29 @@ abstract class BaseChatSDK {
       );
     }
 
-    return sendPlainTextMessage(
+    return sendDirectMessage(
+      message,
+      recipientDid: recipientDid,
+      notify: notify,
+    );
+  }
+
+  @internal
+  Future<void> sendDirectMessage(
+    PlainTextMessage message, {
+    required String recipientDid,
+    bool notify = false,
+    bool ephemeral = false,
+    int? forwardExpiryInSeconds,
+  }) {
+    final senderDid = message.from;
+    if (senderDid == null || senderDid != did) {
+      throw Exception(
+        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+      );
+    }
+
+    return coreSDK.sendMessage(
       PlainTextMessage.fromJson({
         ...message.toJson(),
         'from': senderDid,
@@ -513,7 +401,9 @@ abstract class BaseChatSDK {
       senderDid: senderDid,
       recipientDid: recipientDid,
       mediatorDid: mediatorDid,
-      notify: notify,
+      notifyChannelType: notify ? 'chat-activity' : null,
+      ephemeral: ephemeral,
+      forwardExpiryInSeconds: forwardExpiryInSeconds,
     );
   }
 
@@ -622,7 +512,7 @@ abstract class BaseChatSDK {
         protocol.ChatAliasProfileHash.create(
           from: did,
           to: [otherPartyDid],
-          profileHash: _contactHash(card!),
+          profileHash: card!.profileHash,
         ).toPlainTextMessage(),
         senderDid: did,
         recipientDid: otherPartyDid,
@@ -634,18 +524,6 @@ abstract class BaseChatSDK {
     }
 
     _logger.info('Completed sending profile hash', name: methodName);
-  }
-
-  /// Extracts message IDs from a delivered plain text message.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] containing a list of message IDs
-  ///   in its body.
-  ///
-  /// **Returns:**
-  /// - A list of [String] message IDs.
-  List<String> _getMessageIdsFromChatDelivered(PlainTextMessage message) {
-    return List<String>.from(message.body!['messages'] as List<dynamic>);
   }
 
   bool _requiresAcknowledgement(PlainTextMessage message) {
@@ -913,9 +791,5 @@ abstract class BaseChatSDK {
     );
 
     return createdMessage as Message;
-  }
-
-  String _contactHash(ContactCard card) {
-    return sha256.convert(utf8.encode(jsonEncode(card.contactInfo))).toString();
   }
 }

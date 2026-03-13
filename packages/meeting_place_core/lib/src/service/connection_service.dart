@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
@@ -350,26 +348,19 @@ class ConnectionService {
 
     await _channelService.persistChannel(channel);
 
-    unawaited(
-      _notifyAcceptance(
-            connectionOffer: acceptedConnectionOffer,
-            senderInfo: senderInfo,
-          )
-          .then((_) {
-            _logger.info(
-              'Acceptance notification sent for offer: ${acceptedConnectionOffer.offerName}',
-              name: methodName,
-            );
-          })
-          .catchError((error, stackTrace) {
-            _logger.error(
-              'Failed to notify acceptance',
-              error: error,
-              stackTrace: stackTrace,
-              name: methodName,
-            );
-          }),
-    );
+    try {
+      await _notifyAcceptance(
+        connectionOffer: acceptedConnectionOffer,
+        senderInfo: senderInfo,
+      );
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Failed to notify acceptance',
+        error: error,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+    }
 
     return AcceptOfferResult(
       connectionOffer: acceptedConnectionOffer,

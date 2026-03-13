@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
@@ -365,19 +364,19 @@ class GroupService {
         name: methodName,
       );
 
-      unawaited(
-        _notifyAcceptance(
+      try {
+        await _notifyAcceptance(
           connectionOffer: acceptedConnectionOffer,
           senderInfo: senderInfo,
-        ).catchError((error, stackTrace) {
-          _logger.error(
-            'Failed to notify acceptance',
-            error: error,
-            stackTrace: stackTrace,
-            name: methodName,
-          );
-        }),
-      );
+        );
+      } catch (error, stackTrace) {
+        _logger.error(
+          'Failed to notify acceptance',
+          error: error,
+          stackTrace: stackTrace,
+          name: methodName,
+        );
+      }
 
       return AcceptGroupOfferResult(
         connectionOffer: acceptedConnectionOffer,

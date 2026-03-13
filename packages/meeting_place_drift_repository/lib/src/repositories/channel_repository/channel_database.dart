@@ -106,6 +106,12 @@ class Channels extends Table {
   /// Permanent DID of the other party in the channel.
   TextColumn get otherPartyPermanentChannelDid => text().nullable()();
 
+  /// Matrix user ID associated with the channel.
+  TextColumn get matrixUserId => text().nullable()();
+
+  /// Other party's Matrix user ID associated with the channel.
+  TextColumn get otherPartyMatrixUserId => text().nullable()();
+
   /// Notification token for the channel.
   TextColumn get notificationToken => text().nullable()();
 

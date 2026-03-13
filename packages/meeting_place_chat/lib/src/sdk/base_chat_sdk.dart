@@ -12,6 +12,7 @@ import '../utils/chat_utils.dart';
 import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
+import 'package:matrix/matrix.dart' as matrix;
 
 typedef SDKStreamSubscription =
     CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>;
@@ -61,6 +62,7 @@ abstract class BaseChatSDK {
   ChatStream chatStream;
   SDKStreamSubscription? _mediatorStreamSubscription;
   Future<SDKStreamSubscription>? mediatorStreamFuture;
+  Stream<matrix.MatrixEvent>? matrixSubscription;
   int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
@@ -127,8 +129,33 @@ abstract class BaseChatSDK {
       }),
     );
 
-    // TODO: sort messages
-    _logger.info('Completed chat start', name: methodName);
+    final userId = await coreSDK.loginToMatrixServer(did);
+
+    matrixSubscription = coreSDK.subscribeToMatrixTimeline();
+    matrixSubscription!.listen((event) async {
+      if (event.type == 'm.room.message' && event.senderId != userId) {
+        _logger.info(
+          'Handling Matrix chat message event ${event.eventId}',
+          name: methodName,
+        );
+
+        final chatMessage = Message(
+          chatId: chatId,
+          messageId: event.eventId,
+          senderDid: otherPartyDid,
+          value: event.content['body'] as String,
+          isFromMe: false,
+          dateCreated: event.originServerTs,
+          status: ChatItemStatus.received,
+          attachments: [],
+        );
+
+        await chatRepository.createMessage(chatMessage);
+
+        chatStream.pushData(StreamData(chatItem: chatMessage));
+      }
+    });
+
     return chat;
   }
 
@@ -832,6 +859,7 @@ abstract class BaseChatSDK {
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;
     chatStream.dispose();
+    matrixSubscription = null;
   }
 
   @internal

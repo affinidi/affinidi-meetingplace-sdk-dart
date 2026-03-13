@@ -125,7 +125,7 @@ class MeetingPlaceCoreSDK {
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
     required MeetingPlaceCoreSDKLogger logger,
-    required matrix.Client matrixClient,
+    required MatrixService matrixService,
   }) : _repositoryConfig = repositoryConfig,
        _controlPlaneDid = controlPlaneDid,
        _mediatorSDK = mediatorSDK,
@@ -145,7 +145,7 @@ class MeetingPlaceCoreSDK {
        _mediatorDid = mediatorDid,
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
-       _matrixClient = matrixClient;
+       _matrixService = matrixService;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -166,7 +166,7 @@ class MeetingPlaceCoreSDK {
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
-  final matrix.Client _matrixClient;
+  final MatrixService _matrixService;
 
   String _mediatorDid;
 
@@ -322,6 +322,7 @@ class MeetingPlaceCoreSDK {
       channelService: channelService,
       streamManager: discoveryEventStreamManager,
       didResolver: didResolver,
+      matrixService: matrixService,
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
@@ -394,7 +395,7 @@ class MeetingPlaceCoreSDK {
       channelService: channelService,
       didResolver: didResolver,
       mediatorDid: mediatorDid,
-      matrixClient: matrixClient,
+      matrixService: matrixService,
       options: options,
       sdkErrorHandler: SDKErrorHandler(logger: mpxLogger),
       logger: mpxLogger,
@@ -979,6 +980,18 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  Future<String> sendGroupMessageOverMatrix({
+    required String roomId,
+    required String message,
+  }) {
+    return _withSdkExceptionHandling(() async {
+      return _groupService.sendGroupMessageOverMatrix(
+        roomId: roomId,
+        message: message,
+      );
+    });
+  }
+
   /// Sends outreach invitation to owner of [outreachConnectionOffer].
   ///
   /// **Parameters:**
@@ -1137,6 +1150,17 @@ class MeetingPlaceCoreSDK {
         ),
       );
     });
+  }
+
+  Future<String> loginToMatrixServer(String did) {
+    return _matrixService.login(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+    );
+  }
+
+  Stream<matrix.Event> subscribeToMatrixTimeline() {
+    return _matrixService.timelineEventStream;
   }
 
   /// Returns connection offer identified by [offerLink] from storage.

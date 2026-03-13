@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
-import 'package:uuid/uuid.dart';
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
@@ -12,6 +11,8 @@ import '../utils/sdk.dart';
 void main() async {
   // Bob approves offer
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+
+  late String roomId;
 
   // Bob registers for DIDComm notifications
   prettyPrintGray('▶ Register for DIDComm notifications');
@@ -23,11 +24,11 @@ void main() async {
 
   // Listen on control plane events stream to receive updates about
   // published offer
-  final waitForOfferFinalised = Completer<ControlPlaneStreamEvent>();
+  final waitForGroupMembershipFinalised = Completer<ControlPlaneStreamEvent>();
 
   bobSDK.controlPlaneEventsStream.listen((event) {
     if (event.type == ControlPlaneEventType.GroupMembershipFinalised) {
-      waitForOfferFinalised.complete(event);
+      waitForGroupMembershipFinalised.complete(event);
     }
   });
 
@@ -112,6 +113,7 @@ void main() async {
       prettyPrintYellow('⭐ Received Matrix room ID: ${msg.body.matrixRoomId}');
       prettyPrintBoxDevider();
 
+      roomId = msg.body.matrixRoomId;
       await bobSDK.processControlPlaneEvents();
     }
     return MediatorStreamProcessingResult(keepMessage: true);
@@ -125,34 +127,41 @@ void main() async {
   prettyPrintGray('⏰ Waiting for invite / approval...');
   prettyPrintBoxDevider();
 
-  final offerFinalisedEvent = await waitForOfferFinalised.future;
+  final offerFinalisedEvent = await waitForGroupMembershipFinalised.future;
   prettyPrintGreen('''✓ Received approval for group for member DID
     ${offerFinalisedEvent.channel.permanentChannelDid}''');
+  prettyPrintGreen('''⭐ Joined Matrix room $roomId
+    with Matrix user ID ${channelCreated.matrixUserId}''');
   prettyPrintBoxDevider();
 
-  final groupMessage = PlainTextMessage(
-    id: const Uuid().v4(),
-    from: offerFinalisedEvent.channel.permanentChannelDid!,
-    to: [offerFinalisedEvent.channel.otherPartyPermanentChannelDid!],
-    type: Uri.parse(
-      'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
-    ),
-    body: {
-      'text': 'Hello Alice! This is Bob.',
-      'seq_no': 1,
-      'timestamp': DateTime.now().toUtc().toIso8601String(),
-    },
+  // final groupMessage = PlainTextMessage(
+  //   id: const Uuid().v4(),
+  //   from: offerFinalisedEvent.channel.permanentChannelDid!,
+  //   to: [offerFinalisedEvent.channel.otherPartyPermanentChannelDid!],
+  //   type: Uri.parse(
+  //     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
+  //   ),
+  //   body: {
+  //     'text': 'Hello Alice! This is Bob.',
+  //     'seq_no': 1,
+  //     'timestamp': DateTime.now().toUtc().toIso8601String(),
+  //   },
+  // );
+
+  // await bobSDK.sendGroupMessage(
+  //   groupMessage,
+  //   senderDid: offerFinalisedEvent.channel.permanentChannelDid!,
+  //   recipientDid: offerFinalisedEvent.channel.otherPartyPermanentChannelDid!,
+  //   increaseSequenceNumber: true,
+  // );
+
+  final eventId = await bobSDK.sendGroupMessageOverMatrix(
+    roomId: roomId,
+    message: 'Hello World!',
   );
 
-  await bobSDK.sendGroupMessage(
-    groupMessage,
-    senderDid: offerFinalisedEvent.channel.permanentChannelDid!,
-    recipientDid: offerFinalisedEvent.channel.otherPartyPermanentChannelDid!,
-    increaseSequenceNumber: true,
-  );
-
-  prettyPrintGreen('✓ Group message sent');
-  prettyJsonPrintGray('', groupMessage.toJson());
+  prettyPrintGreen('✓ Group message sent with event id $eventId');
+  // prettyJsonPrintGray('', groupMessage.toJson());
   prettyPrintBoxDevider();
 
   await notificationStream.dispose();

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:matrix/matrix.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
@@ -182,12 +183,26 @@ void main() async {
     return MediatorStreamProcessingResult(keepMessage: false);
   });
 
+  final waitForGroupMessage = Completer<Event>();
+  final timelineSubscription = aliceSDK.subscribeToMatrixTimeline();
+  timelineSubscription.listen((event) {
+    if (event.type == 'm.room.member' &&
+        event.content['membership'] == 'join') {
+      prettyPrintGreen('✓ User ${event.stateKey} joined room ${event.roomId}');
+      prettyJsonPrintGray('Matrix payload :: m.room.member', event.toJson());
+    } else {
+      waitForGroupMessage.complete(event);
+    }
+  });
+
   prettyPrintGray('⏰ Waiting to receive group message...');
   prettyPrintBoxDevider();
-  final receivedGroupMessage = await waitForChannelActivity.future;
+  final receivedGroupMessage = await waitForGroupMessage.future;
   prettyPrintGreen('✓ Received group message');
   prettyJsonPrintGray('Group message', receivedGroupMessage.toJson());
   prettyPrintBoxDevider();
 
   await notificationSubscription.dispose();
+  await subscription.dispose();
+  await publishOfferSubscription.dispose();
 }

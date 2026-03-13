@@ -48,6 +48,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
               status: Value(group.status),
               created: Value(group.created),
               publicKey: Value(group.publicKey),
+              matrixRoomId: Value(group.matrixRoomId),
               ownerDid: Value(group.ownerDid),
             ),
           );
@@ -178,6 +179,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           offerLink: Value(group.offerLink),
           created: Value(group.created),
           publicKey: Value(group.publicKey),
+          matrixRoomId: Value(group.matrixRoomId),
           ownerDid: Value(group.ownerDid),
         ),
       );
@@ -230,6 +232,7 @@ class _GroupMapper {
       created: group.created,
       ownerDid: group.ownerDid,
       publicKey: group.publicKey,
+      matrixRoomId: group.matrixRoomId,
     );
   }
 }

@@ -49,6 +49,12 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
   late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
       'public_key', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _matrixRoomIdMeta =
+      const VerificationMeta('matrixRoomId');
+  @override
+  late final GeneratedColumn<String> matrixRoomId = GeneratedColumn<String>(
+      'matrix_room_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _ownerDidMeta =
       const VerificationMeta('ownerDid');
   @override
@@ -56,8 +62,17 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
       'owner_did', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, did, offerLink, status, created, groupKeyPair, publicKey, ownerDid];
+  List<GeneratedColumn> get $columns => [
+        id,
+        did,
+        offerLink,
+        status,
+        created,
+        groupKeyPair,
+        publicKey,
+        matrixRoomId,
+        ownerDid
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -101,6 +116,12 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
       context.handle(_publicKeyMeta,
           publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta));
     }
+    if (data.containsKey('matrix_room_id')) {
+      context.handle(
+          _matrixRoomIdMeta,
+          matrixRoomId.isAcceptableOrUnknown(
+              data['matrix_room_id']!, _matrixRoomIdMeta));
+    }
     if (data.containsKey('owner_did')) {
       context.handle(_ownerDidMeta,
           ownerDid.isAcceptableOrUnknown(data['owner_did']!, _ownerDidMeta));
@@ -129,6 +150,8 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
           .read(DriftSqlType.string, data['${effectivePrefix}group_key_pair']),
       publicKey: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}public_key']),
+      matrixRoomId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}matrix_room_id']),
       ownerDid: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}owner_did']),
     );
@@ -166,6 +189,9 @@ class MeetingPlaceGroup extends DataClass
   /// The public key of the group.
   final String? publicKey;
 
+  /// The matrix room ID associated with the group.
+  final String? matrixRoomId;
+
   /// The DID of the owner of the group.
   final String? ownerDid;
   const MeetingPlaceGroup(
@@ -176,6 +202,7 @@ class MeetingPlaceGroup extends DataClass
       required this.created,
       this.groupKeyPair,
       this.publicKey,
+      this.matrixRoomId,
       this.ownerDid});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -193,6 +220,9 @@ class MeetingPlaceGroup extends DataClass
     }
     if (!nullToAbsent || publicKey != null) {
       map['public_key'] = Variable<String>(publicKey);
+    }
+    if (!nullToAbsent || matrixRoomId != null) {
+      map['matrix_room_id'] = Variable<String>(matrixRoomId);
     }
     if (!nullToAbsent || ownerDid != null) {
       map['owner_did'] = Variable<String>(ownerDid);
@@ -213,6 +243,9 @@ class MeetingPlaceGroup extends DataClass
       publicKey: publicKey == null && nullToAbsent
           ? const Value.absent()
           : Value(publicKey),
+      matrixRoomId: matrixRoomId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(matrixRoomId),
       ownerDid: ownerDid == null && nullToAbsent
           ? const Value.absent()
           : Value(ownerDid),
@@ -230,6 +263,7 @@ class MeetingPlaceGroup extends DataClass
       created: serializer.fromJson<DateTime>(json['created']),
       groupKeyPair: serializer.fromJson<String?>(json['groupKeyPair']),
       publicKey: serializer.fromJson<String?>(json['publicKey']),
+      matrixRoomId: serializer.fromJson<String?>(json['matrixRoomId']),
       ownerDid: serializer.fromJson<String?>(json['ownerDid']),
     );
   }
@@ -244,6 +278,7 @@ class MeetingPlaceGroup extends DataClass
       'created': serializer.toJson<DateTime>(created),
       'groupKeyPair': serializer.toJson<String?>(groupKeyPair),
       'publicKey': serializer.toJson<String?>(publicKey),
+      'matrixRoomId': serializer.toJson<String?>(matrixRoomId),
       'ownerDid': serializer.toJson<String?>(ownerDid),
     };
   }
@@ -256,6 +291,7 @@ class MeetingPlaceGroup extends DataClass
           DateTime? created,
           Value<String?> groupKeyPair = const Value.absent(),
           Value<String?> publicKey = const Value.absent(),
+          Value<String?> matrixRoomId = const Value.absent(),
           Value<String?> ownerDid = const Value.absent()}) =>
       MeetingPlaceGroup(
         id: id ?? this.id,
@@ -266,6 +302,8 @@ class MeetingPlaceGroup extends DataClass
         groupKeyPair:
             groupKeyPair.present ? groupKeyPair.value : this.groupKeyPair,
         publicKey: publicKey.present ? publicKey.value : this.publicKey,
+        matrixRoomId:
+            matrixRoomId.present ? matrixRoomId.value : this.matrixRoomId,
         ownerDid: ownerDid.present ? ownerDid.value : this.ownerDid,
       );
   MeetingPlaceGroup copyWithCompanion(MeetingPlaceGroupsCompanion data) {
@@ -279,6 +317,9 @@ class MeetingPlaceGroup extends DataClass
           ? data.groupKeyPair.value
           : this.groupKeyPair,
       publicKey: data.publicKey.present ? data.publicKey.value : this.publicKey,
+      matrixRoomId: data.matrixRoomId.present
+          ? data.matrixRoomId.value
+          : this.matrixRoomId,
       ownerDid: data.ownerDid.present ? data.ownerDid.value : this.ownerDid,
     );
   }
@@ -293,14 +334,15 @@ class MeetingPlaceGroup extends DataClass
           ..write('created: $created, ')
           ..write('groupKeyPair: $groupKeyPair, ')
           ..write('publicKey: $publicKey, ')
+          ..write('matrixRoomId: $matrixRoomId, ')
           ..write('ownerDid: $ownerDid')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, did, offerLink, status, created, groupKeyPair, publicKey, ownerDid);
+  int get hashCode => Object.hash(id, did, offerLink, status, created,
+      groupKeyPair, publicKey, matrixRoomId, ownerDid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -312,6 +354,7 @@ class MeetingPlaceGroup extends DataClass
           other.created == this.created &&
           other.groupKeyPair == this.groupKeyPair &&
           other.publicKey == this.publicKey &&
+          other.matrixRoomId == this.matrixRoomId &&
           other.ownerDid == this.ownerDid);
 }
 
@@ -323,6 +366,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
   final Value<DateTime> created;
   final Value<String?> groupKeyPair;
   final Value<String?> publicKey;
+  final Value<String?> matrixRoomId;
   final Value<String?> ownerDid;
   final Value<int> rowid;
   const MeetingPlaceGroupsCompanion({
@@ -333,6 +377,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     this.created = const Value.absent(),
     this.groupKeyPair = const Value.absent(),
     this.publicKey = const Value.absent(),
+    this.matrixRoomId = const Value.absent(),
     this.ownerDid = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -344,6 +389,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     required DateTime created,
     this.groupKeyPair = const Value.absent(),
     this.publicKey = const Value.absent(),
+    this.matrixRoomId = const Value.absent(),
     this.ownerDid = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -359,6 +405,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     Expression<DateTime>? created,
     Expression<String>? groupKeyPair,
     Expression<String>? publicKey,
+    Expression<String>? matrixRoomId,
     Expression<String>? ownerDid,
     Expression<int>? rowid,
   }) {
@@ -370,6 +417,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
       if (created != null) 'created': created,
       if (groupKeyPair != null) 'group_key_pair': groupKeyPair,
       if (publicKey != null) 'public_key': publicKey,
+      if (matrixRoomId != null) 'matrix_room_id': matrixRoomId,
       if (ownerDid != null) 'owner_did': ownerDid,
       if (rowid != null) 'rowid': rowid,
     });
@@ -383,6 +431,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
       Value<DateTime>? created,
       Value<String?>? groupKeyPair,
       Value<String?>? publicKey,
+      Value<String?>? matrixRoomId,
       Value<String?>? ownerDid,
       Value<int>? rowid}) {
     return MeetingPlaceGroupsCompanion(
@@ -393,6 +442,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
       created: created ?? this.created,
       groupKeyPair: groupKeyPair ?? this.groupKeyPair,
       publicKey: publicKey ?? this.publicKey,
+      matrixRoomId: matrixRoomId ?? this.matrixRoomId,
       ownerDid: ownerDid ?? this.ownerDid,
       rowid: rowid ?? this.rowid,
     );
@@ -423,6 +473,9 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     if (publicKey.present) {
       map['public_key'] = Variable<String>(publicKey.value);
     }
+    if (matrixRoomId.present) {
+      map['matrix_room_id'] = Variable<String>(matrixRoomId.value);
+    }
     if (ownerDid.present) {
       map['owner_did'] = Variable<String>(ownerDid.value);
     }
@@ -442,6 +495,7 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
           ..write('created: $created, ')
           ..write('groupKeyPair: $groupKeyPair, ')
           ..write('publicKey: $publicKey, ')
+          ..write('matrixRoomId: $matrixRoomId, ')
           ..write('ownerDid: $ownerDid, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1443,6 +1497,7 @@ typedef $$MeetingPlaceGroupsTableCreateCompanionBuilder
   required DateTime created,
   Value<String?> groupKeyPair,
   Value<String?> publicKey,
+  Value<String?> matrixRoomId,
   Value<String?> ownerDid,
   Value<int> rowid,
 });
@@ -1455,6 +1510,7 @@ typedef $$MeetingPlaceGroupsTableUpdateCompanionBuilder
   Value<DateTime> created,
   Value<String?> groupKeyPair,
   Value<String?> publicKey,
+  Value<String?> matrixRoomId,
   Value<String?> ownerDid,
   Value<int> rowid,
 });
@@ -1512,6 +1568,9 @@ class $$MeetingPlaceGroupsTableFilterComposer
   ColumnFilters<String> get publicKey => $composableBuilder(
       column: $table.publicKey, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get matrixRoomId => $composableBuilder(
+      column: $table.matrixRoomId, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get ownerDid => $composableBuilder(
       column: $table.ownerDid, builder: (column) => ColumnFilters(column));
 
@@ -1568,6 +1627,10 @@ class $$MeetingPlaceGroupsTableOrderingComposer
   ColumnOrderings<String> get publicKey => $composableBuilder(
       column: $table.publicKey, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get matrixRoomId => $composableBuilder(
+      column: $table.matrixRoomId,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get ownerDid => $composableBuilder(
       column: $table.ownerDid, builder: (column) => ColumnOrderings(column));
 }
@@ -1601,6 +1664,9 @@ class $$MeetingPlaceGroupsTableAnnotationComposer
 
   GeneratedColumn<String> get publicKey =>
       $composableBuilder(column: $table.publicKey, builder: (column) => column);
+
+  GeneratedColumn<String> get matrixRoomId => $composableBuilder(
+      column: $table.matrixRoomId, builder: (column) => column);
 
   GeneratedColumn<String> get ownerDid =>
       $composableBuilder(column: $table.ownerDid, builder: (column) => column);
@@ -1659,6 +1725,7 @@ class $$MeetingPlaceGroupsTableTableManager extends RootTableManager<
             Value<DateTime> created = const Value.absent(),
             Value<String?> groupKeyPair = const Value.absent(),
             Value<String?> publicKey = const Value.absent(),
+            Value<String?> matrixRoomId = const Value.absent(),
             Value<String?> ownerDid = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -1670,6 +1737,7 @@ class $$MeetingPlaceGroupsTableTableManager extends RootTableManager<
             created: created,
             groupKeyPair: groupKeyPair,
             publicKey: publicKey,
+            matrixRoomId: matrixRoomId,
             ownerDid: ownerDid,
             rowid: rowid,
           ),
@@ -1681,6 +1749,7 @@ class $$MeetingPlaceGroupsTableTableManager extends RootTableManager<
             required DateTime created,
             Value<String?> groupKeyPair = const Value.absent(),
             Value<String?> publicKey = const Value.absent(),
+            Value<String?> matrixRoomId = const Value.absent(),
             Value<String?> ownerDid = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -1692,6 +1761,7 @@ class $$MeetingPlaceGroupsTableTableManager extends RootTableManager<
             created: created,
             groupKeyPair: groupKeyPair,
             publicKey: publicKey,
+            matrixRoomId: matrixRoomId,
             ownerDid: ownerDid,
             rowid: rowid,
           ),

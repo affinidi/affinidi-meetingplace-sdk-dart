@@ -4,6 +4,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
+import '../service/matrix/matrix_service.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
@@ -30,11 +31,14 @@ class GroupMembershipFinalisedEventHandler
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required GroupRepository groupRepository,
+    required MatrixService matrixService,
   }) : _groupRepository = groupRepository,
-       _controlPlaneSDK = controlPlaneSDK;
+       _controlPlaneSDK = controlPlaneSDK,
+       _matrixService = matrixService;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
+  final MatrixService _matrixService;
 
   Future<List<Channel>> process(GroupMembershipFinalised event) async {
     logger.info('''Starting processing event of type
@@ -158,6 +162,11 @@ class GroupMembershipFinalisedEventHandler
       groupDid: groupMemberInaugurationMessage.body.groupDid,
       messageFrom: messageFrom,
       mediatorDid: connection.mediatorDid,
+    );
+
+    // TODO: make sure to register with correct user before
+    await _matrixService.joinRoom(
+      groupMemberInaugurationMessage.body.matrixRoomId,
     );
 
     // TODO: improve update logic

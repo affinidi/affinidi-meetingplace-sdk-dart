@@ -152,6 +152,14 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ' from=${message.from}, to=${message.to}',
       name: methodName,
     );
+
+    if (message.isOfType(ChatProtocol.chatMessage.value)) {
+      return coreSDK.sendGroupMessageOverMatrix(
+        roomId: group.matrixRoomId!,
+        message: message.body?['text'] ?? '',
+      );
+    }
+
     return coreSDK.sendGroupMessage(
       message,
       senderDid: senderDid,

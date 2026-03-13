@@ -690,6 +690,11 @@ class GroupService {
           .toList(),
     );
 
+    await _matrixService.inviteUserToRoom(
+      userId: channel.otherPartyMatrixUserId!,
+      roomId: group.matrixRoomId!,
+    );
+
     await _mediatorSDK.sendMessage(
       groupMemberInauguration.toPlainTextMessage(),
       senderDidManager: senderDid,
@@ -719,11 +724,6 @@ class GroupService {
 
     group.approveMember(member);
     await _groupRepository.updateGroup(group);
-
-    await _matrixService.inviteUserToRoom(
-      userId: channel.otherPartyMatrixUserId!,
-      roomId: group.matrixRoomId!,
-    );
 
     _logger.info(
       'Successfully approved membership request for offer: ${channel.offerLink}',
@@ -952,6 +952,13 @@ class GroupService {
       'Successfully deleted group with ID: $groupId',
       name: methodName,
     );
+  }
+
+  Future<String> sendGroupMessageOverMatrix({
+    required String roomId,
+    required String message,
+  }) {
+    return _matrixService.sendMessage(roomId: roomId, message: message);
   }
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {

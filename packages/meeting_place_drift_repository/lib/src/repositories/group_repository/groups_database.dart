@@ -83,6 +83,9 @@ class MeetingPlaceGroups extends Table {
   /// The public key of the group.
   TextColumn get publicKey => text().nullable()();
 
+  /// The matrix room ID associated with the group.
+  TextColumn get matrixRoomId => text().nullable()();
+
   /// The DID of the owner of the group.
   TextColumn get ownerDid => text().nullable()();
 

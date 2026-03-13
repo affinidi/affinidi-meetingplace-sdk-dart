@@ -1,5 +1,4 @@
 import '../../meeting_place_chat.dart';
-import 'chat.dart';
 
 abstract interface class ChatSDK {
   Future<List<ChatItem>> get messages;

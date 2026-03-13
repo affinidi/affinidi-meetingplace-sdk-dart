@@ -1,3 +1,7 @@
+## 0.0.1-dev.33
+
+ - **REFACTOR**: extract ChatSDK message handlers into dedicated classes (#138).
+
 ## 0.0.1-dev.32
 
  - Update a dependency to the latest release.

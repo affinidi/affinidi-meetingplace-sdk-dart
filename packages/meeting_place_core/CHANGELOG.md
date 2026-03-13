@@ -1,3 +1,7 @@
+## 0.0.1-dev.31
+
+ - **REFACTOR**: extract ChatSDK message handlers into dedicated classes (#138).
+
 ## 0.0.1-dev.30
 
  - **FIX**: add missing return type info (#142).

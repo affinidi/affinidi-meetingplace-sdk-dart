@@ -13,6 +13,7 @@ class GroupMemberInauguration {
     required String groupDid,
     required String groupId,
     required String groupPublicKey,
+    required String matrixRoomId,
     required List<String> adminDids,
     required List<GroupMemberInaugurationMember> members,
   }) {
@@ -25,6 +26,7 @@ class GroupMemberInauguration {
         groupDid: groupDid,
         groupId: groupId,
         groupPublicKey: groupPublicKey,
+        matrixRoomId: matrixRoomId,
         adminDids: adminDids,
         members: members,
       ),

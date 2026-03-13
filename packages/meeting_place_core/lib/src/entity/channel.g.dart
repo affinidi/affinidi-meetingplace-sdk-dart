@@ -27,6 +27,8 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
   permanentChannelDid: json['permanentChannelDid'] as String?,
   otherPartyPermanentChannelDid:
       json['otherPartyPermanentChannelDid'] as String?,
+  matrixUserId: json['matrixUserId'] as String?,
+  otherPartyMatrixUserId: json['otherPartyMatrixUserId'] as String?,
   notificationToken: json['notificationToken'] as String?,
   otherPartyNotificationToken: json['otherPartyNotificationToken'] as String?,
   messageSyncMarker: json['messageSyncMarker'] == null
@@ -50,6 +52,8 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'acceptOfferDid': ?instance.acceptOfferDid,
   'permanentChannelDid': ?instance.permanentChannelDid,
   'otherPartyPermanentChannelDid': ?instance.otherPartyPermanentChannelDid,
+  'matrixUserId': ?instance.matrixUserId,
+  'otherPartyMatrixUserId': ?instance.otherPartyMatrixUserId,
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
   'externalRef': ?instance.externalRef,

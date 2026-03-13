@@ -5,12 +5,15 @@ publish_to: "none"
 resolution: workspace
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.8.0
 
 dependencies:
+  matrix: ^6.1.1
   meeting_place_core:
     path: ../../../packages/meeting_place_core
   pretty_json: ^2.0.0
+  sqflite_common_ffi: ^2.3.7+1
+  sqlite3: ^2.9.4
   ssi: ^3.3.0
   uuid: ^4.5.1
 dev_dependencies:

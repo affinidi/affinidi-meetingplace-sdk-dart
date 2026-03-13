@@ -13,6 +13,7 @@ dependencies:
   crypto_keys_plus: ^0.5.0
   didcomm: ^2.3.3
   json_annotation: ^4.9.0
+  matrix: ^6.1.1
   meeting_place_control_plane: ^0.0.1-dev.16
   meeting_place_mediator: ^0.0.1-dev.15
   meta: ^1.17.0

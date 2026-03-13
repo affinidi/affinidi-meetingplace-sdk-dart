@@ -6,6 +6,7 @@ import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
 import '../service/mediator/fetch_messages_options.dart';
+import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/invitation_accepted_group_exception.dart';
 
@@ -89,11 +90,11 @@ class InvitationGroupAcceptedEventHandler
         InvitationAcceptanceGroup.fromPlainTextMessage(message);
 
     final otherPartyPermanentChannelDid = invitationAcceptance.body.channelDid;
+    final matrixUserId = invitationAcceptance.body.matrixUserId;
 
-    logger.info(
-      'Acceptor\'s permanent did is $otherPartyPermanentChannelDid',
-      name: 'processMessage',
-    );
+    logger.info('''Acceptor's permanent did is
+      ${otherPartyPermanentChannelDid.topAndTail()} and matrix user id is
+      ${matrixUserId.topAndTail()}''', name: 'processMessage');
 
     final otherPartyContactCard = invitationAcceptance.contactCard;
     if (otherPartyContactCard == null) {
@@ -117,6 +118,7 @@ class InvitationGroupAcceptedEventHandler
       mediatorDid: connection.mediatorDid,
       permanentChannelDid: group.did,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyMatrixUserId: matrixUserId,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
       isConnectionInitiator: true,

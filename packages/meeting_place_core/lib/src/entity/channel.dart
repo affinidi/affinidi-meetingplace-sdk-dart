@@ -37,6 +37,8 @@ class Channel {
     this.acceptOfferDid,
     this.permanentChannelDid,
     this.otherPartyPermanentChannelDid,
+    this.matrixUserId,
+    this.otherPartyMatrixUserId,
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.messageSyncMarker,
@@ -74,6 +76,7 @@ class Channel {
     GroupConnectionOffer connectionOffer, {
     required String permanentChannelDid,
     required String acceptOfferDid,
+    required String matrixUserId,
     required ContactCard card,
     required String? externalRef,
   }) {
@@ -82,6 +85,7 @@ class Channel {
       publishOfferDid: connectionOffer.publishOfferDid,
       permanentChannelDid: permanentChannelDid,
       acceptOfferDid: acceptOfferDid,
+      matrixUserId: matrixUserId,
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
@@ -136,6 +140,12 @@ class Channel {
 
   /// Permanent DID of the other party that is used for message exchange.
   String? otherPartyPermanentChannelDid;
+
+  /// Matrix user id of the other party that is used for message exchange.
+  String? matrixUserId;
+
+  /// Matrix user id of the other party that is used for message exchange.
+  String? otherPartyMatrixUserId;
 
   /// Notification token that is used to notify the party that owns the channel.
   ///

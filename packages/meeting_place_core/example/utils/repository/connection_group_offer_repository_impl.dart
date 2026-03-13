@@ -33,10 +33,11 @@ class GroupRepositoryImpl implements GroupRepository {
 
   @override
   Future<Group?> getGroupByOfferLink(String offerLink) async {
-    final groupId = await _storage.get(
+    final groupId = await _storage.get<String>(
       '$connectionGroupRelationPrefix$offerLink',
     );
 
+    if (groupId == null) return null;
     return getGroupById(groupId);
   }
 

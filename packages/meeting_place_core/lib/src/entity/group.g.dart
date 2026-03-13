@@ -21,6 +21,7 @@ Group _$GroupFromJson(Map<String, dynamic> json) => Group(
       GroupStatus.created,
   ownerDid: json['ownerDid'] as String?,
   publicKey: json['publicKey'] as String?,
+  matrixRoomId: json['matrixRoomId'] as String?,
   externalRef: json['externalRef'] as String?,
 );
 
@@ -32,6 +33,7 @@ Map<String, dynamic> _$GroupToJson(Group instance) => <String, dynamic>{
   'externalRef': ?instance.externalRef,
   'publicKey': ?instance.publicKey,
   'ownerDid': ?instance.ownerDid,
+  'matrixRoomId': ?instance.matrixRoomId,
   'status': _$GroupStatusEnumMap[instance.status]!,
   'members': instance.members.map((e) => e.toJson()).toList(),
 };

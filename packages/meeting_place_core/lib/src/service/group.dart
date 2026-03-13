@@ -28,6 +28,7 @@ import '../entity/group.dart';
 import '../entity/group_connection_offer.dart';
 import '../entity/group_member.dart';
 import 'group/group_message.dart' as group_message;
+import 'matrix/matrix_service.dart';
 
 class GroupService {
   GroupService({
@@ -42,6 +43,7 @@ class GroupService {
     required cp.ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required DidResolver didResolver,
+    required MatrixService matrixService,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _wallet = wallet,
        _connectionManager = connectionManager,
@@ -54,6 +56,7 @@ class GroupService {
        _controlPlaneSDK = controlPlaneSDK,
        _mediatorSDK = mediatorSDK,
        _didResolver = didResolver,
+       _matrixService = matrixService,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -68,6 +71,7 @@ class GroupService {
   final ChannelService _channelService;
   final KeyRepository _keyRepository;
   final DidResolver _didResolver;
+  final MatrixService _matrixService;
   final MeetingPlaceCoreSDKLogger _logger;
 
   final cp.ControlPlaneSDK _controlPlaneSDK;
@@ -121,6 +125,15 @@ class GroupService {
       acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
+    // Register matrix user id for group owner
+    final matrixUserId = await _matrixService.register(
+      permanentChannelDid: ownerDidDocument.id,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+    );
+
+    // Create room
+    final matrixRoomId = await _matrixService.createRoomForGroup();
+
     final result = await _controlPlaneSDK.execute(
       cp.RegisterOfferGroupCommand(
         offerName: offerName,
@@ -149,6 +162,7 @@ class GroupService {
       offerLink: result.offerLink,
       publicKey: groupKeyPair.publicKeyToBase64(),
       ownerDid: ownerDidDocument.id,
+      matrixRoomId: matrixRoomId,
       created: DateTime.now().toUtc(),
       externalRef: externalRef,
       members: [
@@ -209,6 +223,7 @@ class GroupService {
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
+        matrixUserId: matrixUserId,
         externalRef: externalRef,
       );
 
@@ -291,6 +306,11 @@ class GroupService {
       name: methodName,
     );
 
+    final matrixUserId = await _matrixService.register(
+      permanentChannelDid: permanentChannelDidDocument.id,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+    );
+
     final result = await _controlPlaneSDK.execute(
       cp.AcceptOfferGroupCommand(
         mnemonic: connectionOffer.mnemonic,
@@ -338,6 +358,7 @@ class GroupService {
         permanentChannelDid: permanentChannelDidManager,
         invitationMessage: invitationMessage,
         groupMemberPublicKey: memberPublicKeyBase64,
+        matrixUserId: matrixUserId,
         contactCard: card,
       );
 
@@ -345,6 +366,7 @@ class GroupService {
         connectionOffer,
         permanentChannelDid: permanentChannelDidDocument.id,
         acceptOfferDid: acceptOfferDidDocument.id,
+        matrixUserId: matrixUserId,
         card: card,
         externalRef: externalRef,
       );
@@ -499,6 +521,7 @@ class GroupService {
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
     required String groupMemberPublicKey,
+    required String matrixUserId,
     ContactCard? contactCard,
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
@@ -531,6 +554,7 @@ class GroupService {
       channelDid: permanentChannelDidDocument.id,
       publicKey: groupMemberPublicKey,
       contactCard: contactCard,
+      matrixUserId: matrixUserId,
     );
 
     await _mediatorSDK.sendMessage(
@@ -649,6 +673,7 @@ class GroupService {
       memberDid: memberDid,
       groupDid: group.did,
       groupId: group.id,
+      matrixRoomId: group.matrixRoomId!,
       adminDids: [group.ownerDid!],
       groupPublicKey: group.publicKey!,
       members: group.members
@@ -694,6 +719,11 @@ class GroupService {
 
     group.approveMember(member);
     await _groupRepository.updateGroup(group);
+
+    await _matrixService.inviteUserToRoom(
+      userId: channel.otherPartyMatrixUserId!,
+      roomId: group.matrixRoomId!,
+    );
 
     _logger.info(
       'Successfully approved membership request for offer: ${channel.offerLink}',

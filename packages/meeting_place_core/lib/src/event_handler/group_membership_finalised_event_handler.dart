@@ -165,6 +165,7 @@ class GroupMembershipFinalisedEventHandler
       group: group,
       selfMemberDid: permanentChannelDid,
       message: groupMemberInaugurationMessage,
+      matrixRoomId: groupMemberInaugurationMessage.body.matrixRoomId,
     );
 
     await _groupRepository.createGroup(updatedGroup);
@@ -286,6 +287,7 @@ class GroupMembershipFinalisedEventHandler
     required Group group,
     required String selfMemberDid,
     required GroupMemberInauguration message,
+    required String matrixRoomId,
   }) {
     final methodName = '_updateLocalCopyOfGroupMembers';
     logger.info(
@@ -299,6 +301,7 @@ class GroupMembershipFinalisedEventHandler
       publicKey: message.body.groupPublicKey,
       ownerDid: message.body.adminDids[0],
       created: DateTime.now().toUtc(),
+      matrixRoomId: matrixRoomId,
     );
 
     _updateSelfMemberStatusToApproved(updatedGroup, selfMemberDid);

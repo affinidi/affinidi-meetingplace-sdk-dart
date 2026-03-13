@@ -8,6 +8,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_core.dart';
@@ -16,6 +17,7 @@ import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
 import 'service/channel/channel_service.dart';
+import 'service/matrix/matrix_service.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/oob/oob_service.dart';
 import 'sdk/results/register_for_didcomm_notifications_result.dart';
@@ -123,6 +125,7 @@ class MeetingPlaceCoreSDK {
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
     required MeetingPlaceCoreSDKLogger logger,
+    required matrix.Client matrixClient,
   }) : _repositoryConfig = repositoryConfig,
        _controlPlaneDid = controlPlaneDid,
        _mediatorSDK = mediatorSDK,
@@ -141,7 +144,8 @@ class MeetingPlaceCoreSDK {
        _didResolver = didResolver,
        _mediatorDid = mediatorDid,
        _options = options,
-       _sdkErrorHandler = sdkErrorHandler;
+       _sdkErrorHandler = sdkErrorHandler,
+       _matrixClient = matrixClient;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -162,6 +166,7 @@ class MeetingPlaceCoreSDK {
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
+  final matrix.Client _matrixClient;
 
   String _mediatorDid;
 
@@ -185,6 +190,7 @@ class MeetingPlaceCoreSDK {
     required RepositoryConfig repositoryConfig,
     required String mediatorDid,
     required String controlPlaneDid,
+    required matrix.Client matrixClient,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -276,6 +282,11 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    final matrixService = MatrixService(
+      matrixClient: matrixClient,
+      logger: mpxLogger,
+    );
+
     final groupService = GroupService(
       wallet: wallet,
       connectionManager: connectionManager,
@@ -288,6 +299,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
+      matrixService: matrixService,
       logger: mpxLogger,
     );
 
@@ -382,6 +394,7 @@ class MeetingPlaceCoreSDK {
       channelService: channelService,
       didResolver: didResolver,
       mediatorDid: mediatorDid,
+      matrixClient: matrixClient,
       options: options,
       sdkErrorHandler: SDKErrorHandler(logger: mpxLogger),
       logger: mpxLogger,

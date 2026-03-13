@@ -21,6 +21,7 @@ class Group {
     this.status = GroupStatus.created,
     this.ownerDid,
     this.publicKey,
+    this.matrixRoomId,
     this.externalRef,
   });
 
@@ -33,6 +34,7 @@ class Group {
   // For members added later
   final String? publicKey;
   final String? ownerDid;
+  final String? matrixRoomId;
 
   GroupStatus status;
 
@@ -52,6 +54,7 @@ class Group {
     String? id,
     String? did,
     String? offerLink,
+    String? matrixRoomId,
     List<GroupMember>? members,
     DateTime? created,
     String? ownerDid,
@@ -62,6 +65,7 @@ class Group {
     return Group(
       id: id ?? this.id,
       did: did ?? this.did,
+      matrixRoomId: matrixRoomId ?? this.matrixRoomId,
       status: status,
       offerLink: offerLink ?? this.offerLink,
       members: members ?? this.members,

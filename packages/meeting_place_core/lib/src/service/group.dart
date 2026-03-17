@@ -703,24 +703,33 @@ class GroupService {
     );
 
     final otherPartyContactCard = channel.otherPartyContactCard;
-    await _controlPlaneSDK.execute(
-      cp.GroupAddMemberCommand(
-        mnemonic: connectionOffer.mnemonic,
-        groupId: group.id,
-        memberDid: member.did,
-        acceptOfferDid: channel.acceptOfferDid!,
-        offerLink: channel.offerLink,
-        contactCard: otherPartyContactCard != null
-            ? cp.ContactCardImpl(
-                did: otherPartyContactCard.did,
-                type: otherPartyContactCard.type,
-                contactInfo: otherPartyContactCard.contactInfo,
-              )
-            : null,
-        publicKey: member.publicKey,
-        reencryptionKey: reencryptionKey.toBase64(),
-      ),
-    );
+    try {
+      await _controlPlaneSDK.execute(
+        cp.GroupAddMemberCommand(
+          mnemonic: connectionOffer.mnemonic,
+          groupId: group.id,
+          memberDid: member.did,
+          acceptOfferDid: channel.acceptOfferDid!,
+          offerLink: channel.offerLink,
+          contactCard: otherPartyContactCard != null
+              ? cp.ContactCardImpl(
+                  did: otherPartyContactCard.did,
+                  type: otherPartyContactCard.type,
+                  contactInfo: otherPartyContactCard.contactInfo,
+                )
+              : null,
+          publicKey: member.publicKey,
+          reencryptionKey: reencryptionKey.toBase64(),
+        ),
+      );
+    } catch (e) {
+      // TODO: quick fix - do not merge
+      _logger.error(
+        'Failed to execute GroupAddMemberCommand',
+        error: e,
+        name: methodName,
+      );
+    }
 
     group.approveMember(member);
     await _groupRepository.updateGroup(group);

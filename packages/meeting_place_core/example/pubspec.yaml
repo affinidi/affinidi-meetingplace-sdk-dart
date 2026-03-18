@@ -16,5 +16,6 @@ dependencies:
   sqlite3: ^2.9.4
   ssi: ^3.3.0
   uuid: ^4.5.1
+  vodozemac: ^0.5.0
 dev_dependencies:
   dotenv: ^4.2.0

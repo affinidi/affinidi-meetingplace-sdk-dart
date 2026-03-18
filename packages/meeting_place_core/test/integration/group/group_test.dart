@@ -21,9 +21,9 @@ void main() async {
   late MeetingPlaceCoreSDK charlieSDK;
 
   setUp(() async {
-    aliceSDK = await initSDKInstance();
-    bobSDK = await initSDKInstance();
-    charlieSDK = await initSDKInstance();
+    aliceSDK = await initSDKInstance(enableMatrixEncryption: true);
+    bobSDK = await initSDKInstance(enableMatrixEncryption: true);
+    charlieSDK = await initSDKInstance(enableMatrixEncryption: true);
   });
 
   test('offer creation for group', () async {

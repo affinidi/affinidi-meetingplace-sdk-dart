@@ -15,13 +15,15 @@ class GroupChatFixture {
   late final String bobDid;
   late final String charlieDid;
   late final String groupDid;
+  late final String groupId;
+  late final String matrixRoomId;
 
   static Future<GroupChatFixture> create() async {
     final fixture = GroupChatFixture._();
 
-    fixture.aliceSDK = await initSDKInstance();
-    fixture.bobSDK = await initSDKInstance();
-    fixture.charlieSDK = await initSDKInstance();
+    fixture.aliceSDK = await initSDKInstance(enableMatrixEncryption: true);
+    fixture.bobSDK = await initSDKInstance(enableMatrixEncryption: true);
+    fixture.charlieSDK = await initSDKInstance(enableMatrixEncryption: true);
 
     final aliceCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',
@@ -116,6 +118,10 @@ class GroupChatFixture {
     fixture.bobDid = bobAcceptance.connectionOffer.permanentChannelDid!;
     fixture.charlieDid = charlieAcceptance.connectionOffer.permanentChannelDid!;
     fixture.groupDid = publishOfferResult.connectionOffer.groupDid!;
+    fixture.groupId = publishOfferResult.connectionOffer.groupId;
+
+    final group = await fixture.aliceSDK.getGroupById(fixture.groupId);
+    fixture.matrixRoomId = group!.matrixRoomId!;
 
     return fixture;
   }

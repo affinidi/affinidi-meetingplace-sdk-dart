@@ -10,6 +10,7 @@ workspace:
   - packages/meeting_place_core/example
   - packages/meeting_place_mediator
   - packages/meeting_place_drift_repository
+  - packages/meeting_place_matrix
 
 environment:
   sdk: ">=3.9.0 <4.0.0"

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -14,6 +15,7 @@ import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 
 /// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for handling
 /// **group chat functionality** in the Meeting Place SDK.
@@ -39,6 +41,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     required super.options,
     required this.group,
     super.card,
+    this.matrixContentRepository,
     MeetingPlaceChatSDKLogger? logger,
   }) : _chatHistoryService = ChatHistoryService(
          chatRepository: chatRepository,
@@ -61,6 +64,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   static const String _className = 'GroupChatSDK';
 
   final ChatHistoryService _chatHistoryService;
+  final MatrixContentRepository? matrixContentRepository;
 
   Chat? chat;
   Group group;
@@ -189,6 +193,137 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       increaseSequenceNumber: false,
       forwardExpiryInSeconds: options.chatActivityExpiry.inSeconds,
     );
+  }
+
+  /// Sends a plain text message with optional attachments to the group.
+  ///
+  /// If Matrix Content Repository is configured and attachments contain base64 data,
+  /// they will be uploaded to Matrix and replaced with mxcUri references before sending.
+  ///
+  /// **Parameters:**
+  /// - [text]: The plain text content of the message (default: empty string for media-only messages).
+  /// - [attachments]: Optional list of [Attachment]s included with the message.
+  ///
+  /// **Returns:**
+  /// - The sent [Message] object persisted in the repository.
+  @override
+  Future<Message> sendTextMessageWithAttachments({
+    String text = '',
+    List<Attachment>? attachments,
+  }) async {
+    final methodName = 'sendTextMessage';
+    logger.info('Started sending group text message', name: methodName);
+
+    // Upload attachments to Matrix if available
+    List<Attachment>? processedAttachments = attachments;
+    if (attachments != null && attachments.isNotEmpty && matrixContentRepository != null) {
+      try {
+        processedAttachments = await uploadAttachmentsToMatrix(
+          attachments,
+          // TODO: Get Matrix access token from the SDK/group context
+        );
+        logger.info(
+          'Processed ${processedAttachments.length} attachments for group message',
+          name: methodName,
+        );
+      } catch (e) {
+        logger.error(
+          'Failed to upload attachments to Matrix, sending with base64 data: $e',
+          name: methodName,
+        );
+        // Fall back to original attachments if upload fails
+        processedAttachments = attachments;
+      }
+    }
+
+    // Call parent implementation with processed attachments
+    final result = await super.sendTextMessageWithAttachments(
+      text: text,
+      attachments: processedAttachments,
+    );
+    
+    logger.info('Completed sending group text message', name: methodName);
+    return result;
+  }
+
+  /// Uploads attachments with base64 data to Matrix Content Repository.
+  ///
+  /// This method processes a list of attachments and uploads any that contain
+  /// base64 data but no mxcUri to the Matrix Content Repository.
+  ///
+  /// **Parameters:**
+  /// - [attachments]: List of attachments to process
+  /// - [accessToken]: Optional Matrix access token for upload authentication
+  ///
+  /// **Returns:**
+  /// - List of attachments with mxcUri references for uploaded content
+  Future<List<Attachment>> uploadAttachmentsToMatrix(
+    List<Attachment> attachments, {
+    String? accessToken,
+  }) async {
+    final methodName = 'uploadAttachmentsToMatrix';
+    
+    if (matrixContentRepository == null) {
+      logger.warning(
+        'MatrixContentRepository not configured, attachments will be sent as base64',
+        name: methodName,
+      );
+      return attachments;
+    }
+
+    final uploaded = <Attachment>[];
+    
+    for (final attachment in attachments) {
+      // Only upload if there's base64 data and no existing mxcUri
+      if (attachment.data?.base64 != null && 
+          (attachment is! MatrixAttachment || 
+           (attachment).mxcUri == null)) {
+        try {
+          // Decode base64 data
+          final bytes = base64Decode(attachment.data!.base64!);
+          
+          // Upload to Matrix
+          final mxcUri = await matrixContentRepository!.uploadMedia(
+            data: bytes,
+            filename: attachment.filename ?? 'file',
+            contentType: attachment.mediaType ?? 'application/octet-stream',
+            accessToken: accessToken,
+          );
+          
+          logger.info(
+            'Uploaded attachment to Matrix: ${attachment.filename} -> $mxcUri',
+            name: methodName,
+          );
+          
+          // Create MatrixAttachment with mxcUri instead of base64 data
+          uploaded.add(
+            MatrixAttachment.fromUpload(
+              mxcUri: mxcUri,
+              filename: attachment.filename ?? 'file',
+              contentType: attachment.mediaType ?? 'application/octet-stream',
+              format: attachment.format,
+              byteCount: bytes.length,
+              description: attachment.description,
+              // Don't include data to reduce message size
+            ),
+          );
+        } catch (e, stackTrace) {
+          logger.error(
+            'Failed to upload attachment ${attachment.filename} to Matrix',
+            error: e,
+            stackTrace: stackTrace,
+            name: methodName,
+          );
+          // Keep original attachment if upload fails
+          uploaded.add(attachment);
+        }
+      } else {
+        // Keep attachment as-is if it doesn't need uploading
+        uploaded.add(attachment);
+      }
+    }
+    
+    return uploaded;
   }
 
   /// Checks whether the message type exists in `options.memberJoinedIndicator`.

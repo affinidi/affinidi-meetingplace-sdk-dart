@@ -1,0 +1,15 @@
+name: meeting_place_matrix
+description: Matrix Content Repository implementation for Meeting Place SDK media handling
+version: 0.0.1-dev.1
+repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
+resolution: workspace
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  dio: ^5.9.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  test: ^1.26.2

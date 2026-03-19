@@ -71,7 +71,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
           otherPartyDid: channel.otherPartyPermanentChannelDid!,
           mediatorDid: channel.mediatorDid,
           chatRepository: chatRepository,
-          matrixContentRepository: matrixContentRepository,
           options: options,
           card: card,
           logger: logger,

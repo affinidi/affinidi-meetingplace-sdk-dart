@@ -4,26 +4,17 @@ import 'package:uuid/uuid.dart';
 /// Attachment for Matrix Content Repository media
 /// Supports Matrix mxc:// URIs and additional metadata
 class MatrixAttachment extends Attachment {
-  /// Matrix Content Repository URI (mxc://server/mediaId)
-  final String? mxcUri;
-  
-  /// Size of the file in bytes
-  final int? byteCount;
-  
-  /// Hash of the file content
-  final String? hash;
-
   MatrixAttachment({
     super.id,
     super.description,
     super.mediaType,
     super.format,
     super.data,
-    String? filename,
+    super.filename,
+    super.byteCount,
     this.mxcUri,
-    this.byteCount,
     this.hash,
-  }) : super(filename: filename);
+  });
 
   /// Create a MatrixAttachment for uploaded content
   factory MatrixAttachment.fromUpload({
@@ -70,6 +61,12 @@ class MatrixAttachment extends Attachment {
       description: description,
     );
   }
+
+  /// Matrix Content Repository URI (mxc://server/mediaId)
+  final String? mxcUri;
+
+  /// Hash of the file content
+  final String? hash;
 
   /// Copy with new data (e.g., after downloading)
   MatrixAttachment copyWith({

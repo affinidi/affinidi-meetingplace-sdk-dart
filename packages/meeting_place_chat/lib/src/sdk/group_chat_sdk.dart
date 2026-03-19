@@ -207,8 +207,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// **Returns:**
   /// - The sent [Message] object persisted in the repository.
   @override
-  Future<Message> sendTextMessageWithAttachments({
-    String text = '',
+  Future<Message> sendTextMessage(
+    String text, {
     List<Attachment>? attachments,
   }) async {
     final methodName = 'sendTextMessage';
@@ -216,9 +216,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
     // Upload attachments to Matrix if available
     List<Attachment>? processedAttachments = attachments;
-    if (attachments != null && attachments.isNotEmpty && matrixContentRepository != null) {
+    if (attachments != null &&
+        attachments.isNotEmpty &&
+        matrixContentRepository != null) {
       try {
-        processedAttachments = await uploadAttachmentsToMatrix(
+        processedAttachments = await _uploadAttachmentsToMatrix(
           attachments,
           // TODO: Get Matrix access token from the SDK/group context
         );
@@ -232,16 +234,16 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           name: methodName,
         );
         // Fall back to original attachments if upload fails
-        processedAttachments = attachments;
+        processedAttachments = matrixAttachments;
       }
     }
 
     // Call parent implementation with processed attachments
-    final result = await super.sendTextMessageWithAttachments(
-      text: text,
+    final result = await super.sendTextMessage(
+      text,
       attachments: processedAttachments,
     );
-    
+
     logger.info('Completed sending group text message', name: methodName);
     return result;
   }
@@ -257,12 +259,12 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   ///
   /// **Returns:**
   /// - List of attachments with mxcUri references for uploaded content
-  Future<List<Attachment>> uploadAttachmentsToMatrix(
+  Future<List<Attachment>> _uploadAttachmentsToMatrix(
     List<Attachment> attachments, {
     String? accessToken,
   }) async {
     final methodName = 'uploadAttachmentsToMatrix';
-    
+
     if (matrixContentRepository == null) {
       logger.warning(
         'MatrixContentRepository not configured, attachments will be sent as base64',
@@ -272,16 +274,15 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     final uploaded = <Attachment>[];
-    
+
     for (final attachment in attachments) {
       // Only upload if there's base64 data and no existing mxcUri
-      if (attachment.data?.base64 != null && 
-          (attachment is! MatrixAttachment || 
-           (attachment).mxcUri == null)) {
+      if (attachment.data?.base64 != null &&
+          (attachment is! MatrixAttachment || (attachment).mxcUri == null)) {
         try {
           // Decode base64 data
           final bytes = base64Decode(attachment.data!.base64!);
-          
+
           // Upload to Matrix
           final mxcUri = await matrixContentRepository!.uploadMedia(
             data: bytes,
@@ -289,12 +290,12 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
             contentType: attachment.mediaType ?? 'application/octet-stream',
             accessToken: accessToken,
           );
-          
+
           logger.info(
             'Uploaded attachment to Matrix: ${attachment.filename} -> $mxcUri',
             name: methodName,
           );
-          
+
           // Create MatrixAttachment with mxcUri instead of base64 data
           uploaded.add(
             MatrixAttachment.fromUpload(
@@ -322,7 +323,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         uploaded.add(attachment);
       }
     }
-    
+
     return uploaded;
   }
 

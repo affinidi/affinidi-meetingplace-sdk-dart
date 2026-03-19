@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
@@ -1039,6 +1040,13 @@ class GroupService {
     }
 
     return eventId;
+  }
+
+  Future<String> sendGroupFileOverMatrix({
+    required String roomId,
+    required matrix.MatrixFile file,
+  }) {
+    return _matrixService.sendFile(roomId: roomId, file: file);
   }
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {

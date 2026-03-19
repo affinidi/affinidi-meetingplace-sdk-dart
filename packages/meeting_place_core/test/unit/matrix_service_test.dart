@@ -79,7 +79,9 @@ void main() {
         when(
           () => matrixClient.login(
             matrix.LoginType.mLoginPassword,
-            user: any(named: 'user'),
+            identifier: matrix.AuthenticationUserIdentifier(
+              user: any(named: 'user'),
+            ),
             password: any(named: 'password'),
             deviceId: any(named: 'deviceId'),
           ),
@@ -100,7 +102,9 @@ void main() {
         verify(
           () => matrixClient.login(
             matrix.LoginType.mLoginPassword,
-            user: any(named: 'user'),
+            identifier: matrix.AuthenticationUserIdentifier(
+              user: any(named: 'user'),
+            ),
             password: any(named: 'password'),
             deviceId: expectedMatrixDeviceId,
           ),

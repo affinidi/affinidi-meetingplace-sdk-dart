@@ -16,6 +16,7 @@ class MatrixService {
 
   final matrix.Client _matrixClient;
   final MeetingPlaceCoreSDKLogger? _logger;
+  matrix.VoIP? _voip;
 
   // TODO: generate and persist password securely - this is just for testing
   static final String _passwordPlaceholder = 'dummy_password';
@@ -90,6 +91,15 @@ class MatrixService {
     }
 
     return room;
+  }
+
+  /// Injects the [matrix.VoIP] instance required for MatrixRTC call management.
+  /// Must be called before [startCall], [leaveCall], or [watchCall].
+  /// The VoIP instance must be created in the Flutter layer with a real
+  /// [matrix.WebRTCDelegate] implementation.
+  void initializeVoIP(matrix.VoIP voip) {
+    _voip = voip;
+    _logger?.info('VoIP initialized for MatrixRTC', name: _logKey);
   }
 
   Future<String> register({
@@ -217,5 +227,85 @@ class MatrixService {
       to MATRIX room ${roomId.topAndTail()}''', name: _logKey);
 
     return eventId;
+  }
+
+  /// Creates or joins a MatrixRTC group call in `roomId` using LiveKit SFU backend.
+  ///
+  /// - `livekitServiceUrl` — WebSocket URL of LiveKit server, e.g. "ws://localhost:7880"
+  /// - `livekitAlias` — unique call identifier within the LiveKit server.
+  /// - `callId` — stable MatrixRTC call ID; defaults to `roomId`.
+  ///
+  /// Requires `initializeVoIP` to have been called first.
+  /// Returns the active `matrix.GroupCallSession`.
+  Future<matrix.GroupCallSession> startCall({
+    required String roomId,
+    required String livekitServiceUrl,
+    required String livekitAlias,
+    String? callId,
+  }) async {
+    final voip = _voip;
+    if (voip == null) {
+      throw StateError(
+        'VoIP not initialized. Call initMatrixRTC() on MeetingPlaceCoreSDK first.',
+      );
+    }
+
+    final room = _matrixClient.getRoomById(roomId);
+    if (room == null) throw Exception('Matrix room not found: $roomId');
+
+    final backend = matrix.LiveKitBackend(
+      livekitServiceUrl: livekitServiceUrl,
+      livekitAlias: livekitAlias,
+      // TODO (Earl): what does it take to enable E2EE with LiveKit backend?
+      e2eeEnabled: false,
+    );
+
+    final session = await voip.fetchOrCreateGroupCall(
+      callId ?? roomId,
+      room,
+      backend,
+      'm.call',
+      'm.room',
+      preShareKey: false,
+    );
+
+    try {
+      await session.enter();
+    } catch (e) {
+      // GroupCallState.entered means we're already in this call — safe to continue.
+      if (!e.toString().contains('entered')) rethrow;
+    }
+
+    _logger?.info(
+      '''Started MatrixRTC call in room ${roomId.topAndTail()}''',
+      name: _logKey,
+    );
+
+    return session;
+  }
+
+  /// Leaves the active MatrixRTC group call in `roomId` with the given `callId`.
+  Future<void> leaveCall({
+    required String roomId,
+    required String callId,
+  }) async {
+    final session = _voip?.getGroupCallById(roomId, callId);
+    if (session == null) return;
+
+    await session.leave();
+
+    _logger?.info(
+      '''Left MatrixRTC call in room ${roomId.topAndTail()}''',
+      name: _logKey,
+    );
+  }
+
+  /// Returns a stream of `matrix.MatrixRTCCallEvent`s for the given call.
+  /// Returns null if VoIP is not initialized or no session exists for the IDs.
+  Stream<matrix.MatrixRTCCallEvent>? watchCall({
+    required String roomId,
+    required String callId,
+  }) {
+    return _voip?.getGroupCallById(roomId, callId)?.matrixRTCEventStream.stream;
   }
 }

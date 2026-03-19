@@ -228,6 +228,19 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           'Processed ${processedAttachments.length} attachments for group message',
           name: methodName,
         );
+
+        // Matrix Attachments
+        final matrixAttachments = processedAttachments
+            .whereType<MatrixAttachment>()
+            .where((att) => att.mxcUri != null)
+            .toList();
+
+        for (final matrixAttachment in matrixAttachments) {
+          await coreSDK.sendGroupImageOverMatrixByMxcUri(
+            roomId: group.matrixRoomId!,
+            mxcUri: matrixAttachment.mxcUri!,
+          );
+        }
       } catch (e) {
         logger.error(
           'Failed to upload attachments to Matrix, sending with base64 data: $e',

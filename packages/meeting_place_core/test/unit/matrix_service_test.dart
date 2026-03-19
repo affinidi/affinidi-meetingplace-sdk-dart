@@ -16,6 +16,12 @@ void main() {
     late MockMatrixRoom room;
     late MatrixService service;
 
+    setUpAll(() {
+      registerFallbackValue(
+        matrix.AuthenticationUserIdentifier(user: 'fallback-user'),
+      );
+    });
+
     setUp(() {
       matrixClient = MockMatrixClient();
       room = MockMatrixRoom();
@@ -72,39 +78,43 @@ void main() {
       'login hashes the device token before using it as Matrix deviceId',
       () async {
         const deviceToken = 'push-device-token';
+        const did = 'did:test:alice';
         final expectedMatrixDeviceId = md5
             .convert(utf8.encode(deviceToken))
             .toString();
+        final expectedHashedUsername = md5.convert(utf8.encode(did)).toString();
+
+        matrix.AuthenticationIdentifier? capturedIdentifier;
 
         when(
           () => matrixClient.login(
             matrix.LoginType.mLoginPassword,
-            identifier: matrix.AuthenticationUserIdentifier(
-              user: any(named: 'user'),
-            ),
+            identifier: any(named: 'identifier'),
             password: any(named: 'password'),
             deviceId: any(named: 'deviceId'),
           ),
-        ).thenAnswer(
-          (_) async => matrix.LoginResponse(
+        ).thenAnswer((invocation) async {
+          capturedIdentifier =
+              invocation.namedArguments[#identifier]
+                  as matrix.AuthenticationIdentifier?;
+          return matrix.LoginResponse(
             accessToken: 'token',
             deviceId: expectedMatrixDeviceId,
             userId: '@alice:example.com',
-          ),
-        );
+          );
+        });
 
-        final userId = await service.login(
-          did: 'did:test:alice',
-          deviceId: deviceToken,
-        );
+        final userId = await service.login(did: did, deviceId: deviceToken);
 
         expect(userId, '@alice:example.com');
+        expect(capturedIdentifier, isA<matrix.AuthenticationUserIdentifier>());
+        final identifier =
+            capturedIdentifier as matrix.AuthenticationUserIdentifier;
+        expect(identifier.user, expectedHashedUsername);
         verify(
           () => matrixClient.login(
             matrix.LoginType.mLoginPassword,
-            identifier: matrix.AuthenticationUserIdentifier(
-              user: any(named: 'user'),
-            ),
+            identifier: any(named: 'identifier'),
             password: any(named: 'password'),
             deviceId: expectedMatrixDeviceId,
           ),
@@ -205,6 +215,63 @@ void main() {
             addMentions: false,
           ),
         ).called(1);
+      },
+    );
+
+    test(
+      'sendImageByMxcUri sends m.image with url referencing the provided mxc URI',
+      () async {
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
+        when(
+          () => matrixClient.getRoomById('!room:example.com'),
+        ).thenReturn(room);
+
+        Map<String, dynamic>? capturedContent;
+        when(
+          () => room.sendEvent(
+            any(),
+            txid: any(named: 'txid'),
+            inReplyTo: any(named: 'inReplyTo'),
+            editEventId: any(named: 'editEventId'),
+            threadRootEventId: any(named: 'threadRootEventId'),
+            threadLastEventId: any(named: 'threadLastEventId'),
+            displayPendingEvent: any(named: 'displayPendingEvent'),
+            type: any(named: 'type'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedContent = Map<String, dynamic>.from(
+            invocation.positionalArguments.first,
+          );
+          return r'$event:example.com';
+        });
+
+        final eventId = await service.sendImageByMxcUri(
+          roomId: '!room:example.com',
+          mxcUri: 'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
+          filename: 'photo.jpg',
+          mimeType: 'image/jpeg',
+          size: 1234,
+          width: 640,
+          height: 480,
+        );
+
+        expect(eventId, r'$event:example.com');
+        expect(capturedContent, isNotNull);
+        expect(capturedContent!['msgtype'], matrix.MessageTypes.Image);
+        expect(
+          capturedContent!['url'],
+          'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
+        );
+        expect(capturedContent!['body'], 'photo.jpg');
+        expect(capturedContent!['filename'], 'photo.jpg');
+        expect(capturedContent!['info'], isA<Map>());
+        final info = Map<String, dynamic>.from(capturedContent!['info']);
+        expect(info['mimetype'], 'image/jpeg');
+        expect(info['size'], 1234);
+        expect(info['w'], 640);
+        expect(info['h'], 480);
+
+        verify(() => room.sendEvent(any(), txid: any(named: 'txid'))).called(1);
       },
     );
   });

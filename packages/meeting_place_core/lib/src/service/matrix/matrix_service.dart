@@ -441,6 +441,56 @@ class MatrixService {
     return eventId;
   }
 
+  /// Sends an image message to a Matrix room by referencing an existing
+  /// `mxc://...` media URI.
+  ///
+  /// This does **not** upload or encrypt the media itself. In encrypted rooms
+  /// the message event will be encrypted by the Matrix SDK, but the media
+  /// remains plaintext on the homeserver.
+  Future<String> sendImageByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    String? filename,
+    String? mimeType,
+    int? size,
+    int? width,
+    int? height,
+  }) async {
+    _requireEncryptionReady();
+
+    final room = await _getRoom(roomId);
+    final body = filename?.isNotEmpty == true ? filename! : 'image';
+
+    final content = <String, dynamic>{
+      'msgtype': matrix.MessageTypes.Image,
+      'body': body,
+      'url': mxcUri,
+      if (filename != null && filename.isNotEmpty) 'filename': filename,
+      'info': {
+        if (mimeType != null && mimeType.isNotEmpty) 'mimetype': mimeType,
+        if (size != null) 'size': size,
+        if (width != null) 'w': width,
+        if (height != null) 'h': height,
+      },
+    };
+
+    final eventId = await room.sendEvent(content, txid: const Uuid().v4());
+
+    if (eventId == null) {
+      throw StateError(
+        'Matrix did not return an event ID when sending to room $roomId.',
+      );
+    }
+
+    _logger?.info(
+      '''Sent image mxcUri=${mxcUri.toString().topAndTail()}
+      with event id $eventId to MATRIX room ${roomId.topAndTail()}''',
+      name: _logKey,
+    );
+
+    return eventId;
+  }
+
   Future<String> sendMessage({
     required String roomId,
     required String message,

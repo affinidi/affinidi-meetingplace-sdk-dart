@@ -1049,6 +1049,26 @@ class GroupService {
     return _matrixService.sendFile(roomId: roomId, file: file);
   }
 
+  Future<String> sendGroupImageOverMatrixByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    String? filename,
+    String? mimeType,
+    int? size,
+    int? width,
+    int? height,
+  }) {
+    return _matrixService.sendImageByMxcUri(
+      roomId: roomId,
+      mxcUri: mxcUri,
+      filename: filename,
+      mimeType: mimeType,
+      size: size,
+      width: width,
+      height: height,
+    );
+  }
+
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
       GroupDeletion.create(groupId: group.id).toPlainTextMessage(),

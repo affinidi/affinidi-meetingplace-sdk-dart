@@ -222,7 +222,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       try {
         processedAttachments = await _uploadAttachmentsToMatrix(
           attachments,
-          // TODO: Get Matrix access token from the SDK/group context
+          accessToken: coreSDK.matrixAccessToken,
         );
         logger.info(
           'Processed ${processedAttachments.length} attachments for group message',

@@ -61,6 +61,8 @@ class MatrixService {
     return client;
   }
 
+  String? get accessToken => _matrixClient.accessToken;
+
   // TODO: generate and persist password securely - this is just for testing
   static final String _passwordPlaceholder = 'dummy_password';
   static final String _authenticationType = 'm.login.dummy';

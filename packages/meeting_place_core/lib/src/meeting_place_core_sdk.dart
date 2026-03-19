@@ -1179,6 +1179,8 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  String? get matrixAccessToken => _matrixService.accessToken;
+
   Future<Stream<matrix.Event>> subscribeToMatrixTimeline(String did) {
     return _matrixService.timelineEventStream(
       did: did,

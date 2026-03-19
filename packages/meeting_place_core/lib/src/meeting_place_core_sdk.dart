@@ -1163,6 +1163,60 @@ class MeetingPlaceCoreSDK {
     return _matrixService.timelineEventStream;
   }
 
+  /// Initializes MatrixRTC by injecting the `matrix.VoIP` instance.
+  ///
+  /// Must be called from the Flutter app layer after creating `matrix.VoIP`
+  /// with a real `matrix.WebRTCDelegate` implementation.
+  ///
+  /// Example (Flutter app):
+  /// ```dart
+  ///   import 'package:matrix/matrix.dart' as matrix;
+  ///   ...
+  ///   final voip = matrix.VoIP(matrixClient, MyFlutterWebRTCDelegate());
+  ///   sdk.initializeMatrixRTC(voip);
+  /// ```
+  void initializeMatrixRTC(matrix.VoIP voip) {
+    _matrixService.initializeVoIP(voip);
+  }
+
+  /// Creates or joins a MatrixRTC video call in `roomId` using LiveKit SFU backend.
+  ///
+  /// - `livekitServiceUrl` — WebSocket URL of LiveKit server, e.g. "ws://localhost:7880"
+  /// - `livekitAlias` — unique call identifier; defaults to `roomId`.
+  /// - `callId` — stable MatrixRTC call ID; defaults to `roomId`.
+  ///
+  /// Requires `initializeMatrixRTC` to have been called first.
+  Future<matrix.GroupCallSession> startVideoCall({
+    required String roomId,
+    required String livekitServiceUrl,
+    required String livekitAlias,
+    String? callId,
+  }) {
+    return _matrixService.startCall(
+      roomId: roomId,
+      livekitServiceUrl: livekitServiceUrl,
+      livekitAlias: livekitAlias,
+      callId: callId,
+    );
+  }
+
+  /// Leaves the active MatrixRTC video call in `roomId`.
+  Future<void> leaveVideoCall({
+    required String roomId,
+    required String callId,
+  }) {
+    return _matrixService.leaveCall(roomId: roomId, callId: callId);
+  }
+
+  /// Returns a stream of `matrix.MatrixRTCCallEvent`s for the video call.
+  /// Returns null if VoIP is not initialized or the session does not exist yet.
+  Stream<matrix.MatrixRTCCallEvent>? watchVideoCall({
+    required String roomId,
+    required String callId,
+  }) {
+    return _matrixService.watchCall(roomId: roomId, callId: callId);
+  }
+
   /// Returns connection offer identified by [offerLink] from storage.
   ///
   /// **Parameters:**

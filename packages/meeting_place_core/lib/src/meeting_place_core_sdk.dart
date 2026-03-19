@@ -181,6 +181,10 @@ class MeetingPlaceCoreSDK {
   /// group, key and channel repository objects.
   /// - [mediatorDid]: The mediator DID.
   /// - [controlPlaneDid]: The control plane DID.
+  /// - [matrixClientFactory]: A factory that returns a dedicated
+  ///   [matrix.Client] for each DID. The client must be backed by a
+  ///   DID-specific persistent database to ensure Olm identity keys are
+  ///   isolated per user and survive app restarts.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
   ///
   /// **Returns:**
@@ -190,7 +194,7 @@ class MeetingPlaceCoreSDK {
     required RepositoryConfig repositoryConfig,
     required String mediatorDid,
     required String controlPlaneDid,
-    required matrix.Client matrixClient,
+    required Future<matrix.Client> Function(String did) matrixClientFactory,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -283,7 +287,7 @@ class MeetingPlaceCoreSDK {
     );
 
     final matrixService = MatrixService(
-      matrixClient: matrixClient,
+      matrixClientFactory: matrixClientFactory,
       logger: mpxLogger,
     );
 
@@ -315,6 +319,7 @@ class MeetingPlaceCoreSDK {
       mediatorService: mediatorService,
       controlPlaneSDK: controlPlaneSDK,
       connectionService: connectionService,
+      groupService: groupService,
       connectionManager: connectionManager,
       connectionOfferRepository: repositoryConfig.connectionOfferRepository,
       groupRepository: repositoryConfig.groupRepository,
@@ -983,11 +988,17 @@ class MeetingPlaceCoreSDK {
   Future<String> sendGroupMessageOverMatrix({
     required String roomId,
     required String message,
+    required String senderDid,
+    required String recipientDid,
+    bool notify = true,
   }) {
     return _withSdkExceptionHandling(() async {
       return _groupService.sendGroupMessageOverMatrix(
         roomId: roomId,
         message: message,
+        senderDid: senderDid,
+        groupDid: recipientDid,
+        notify: notify,
       );
     });
   }
@@ -1159,24 +1170,27 @@ class MeetingPlaceCoreSDK {
     );
   }
 
-  Stream<matrix.Event> subscribeToMatrixTimeline() {
-    return _matrixService.timelineEventStream;
+  Future<Stream<matrix.Event>> subscribeToMatrixTimeline(String did) {
+    return _matrixService.timelineEventStream(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+    );
   }
 
-  /// Initializes MatrixRTC by injecting the `matrix.VoIP` instance.
+  /// Initializes MatrixRTC by injecting the `matrix.WebRTCDelegate`.
   ///
-  /// Must be called from the Flutter app layer after creating `matrix.VoIP`
-  /// with a real `matrix.WebRTCDelegate` implementation.
+  /// Must be called from the Flutter app layer. The SDK creates the
+  /// `matrix.VoIP` instance internally, bound to the currently active
+  /// per-user Matrix client, so the caller does not need a client reference.
   ///
   /// Example (Flutter app):
   /// ```dart
   ///   import 'package:matrix/matrix.dart' as matrix;
   ///   ...
-  ///   final voip = matrix.VoIP(matrixClient, MyFlutterWebRTCDelegate());
-  ///   sdk.initializeMatrixRTC(voip);
+  ///   sdk.initializeMatrixRTC(MyFlutterWebRTCDelegate());
   /// ```
-  void initializeMatrixRTC(matrix.VoIP voip) {
-    _matrixService.initializeVoIP(voip);
+  void initializeMatrixRTC(matrix.WebRTCDelegate delegate) {
+    _matrixService.initializeVoIP(delegate);
   }
 
   /// Creates or joins a MatrixRTC video call in `roomId` using LiveKit SFU backend.

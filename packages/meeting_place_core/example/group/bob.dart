@@ -158,6 +158,8 @@ void main() async {
   final eventId = await bobSDK.sendGroupMessageOverMatrix(
     roomId: roomId,
     message: 'Hello World!',
+    senderDid: offerFinalisedEvent.channel.permanentChannelDid!,
+    recipientDid: offerFinalisedEvent.channel.otherPartyPermanentChannelDid!,
   );
 
   prettyPrintGreen('✓ Group message sent with event id $eventId');

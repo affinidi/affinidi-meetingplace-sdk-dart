@@ -164,9 +164,10 @@ class GroupMembershipFinalisedEventHandler
       mediatorDid: connection.mediatorDid,
     );
 
-    // TODO: make sure to register with correct user before
     await _matrixService.joinRoom(
       groupMemberInaugurationMessage.body.matrixRoomId,
+      did: permanentChannelDid,
+      deviceId: _controlPlaneSDK.device.deviceToken,
     );
 
     // TODO: improve update logic

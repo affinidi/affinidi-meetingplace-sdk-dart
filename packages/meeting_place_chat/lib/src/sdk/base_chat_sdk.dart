@@ -131,7 +131,7 @@ abstract class BaseChatSDK {
 
     final userId = await coreSDK.loginToMatrixServer(did);
 
-    matrixSubscription = coreSDK.subscribeToMatrixTimeline();
+    matrixSubscription = await coreSDK.subscribeToMatrixTimeline(did);
     matrixSubscription!.listen((event) async {
       if (event.type == 'm.room.message' && event.senderId != userId) {
         _logger.info(
@@ -242,25 +242,25 @@ abstract class BaseChatSDK {
       }
     }
 
-    if (MessageUtils.isType(
-      message.plainTextMessage,
-      ChatProtocol.chatMessage,
-    )) {
-      _logger.info('Handling chat message', name: methodName);
-      final chatMessage = Message.fromReceivedMessage(
-        message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
-        chatId: chatId,
-      );
-      await chatRepository.createMessage(chatMessage);
+    // if (MessageUtils.isType(
+    //   message.plainTextMessage,
+    //   ChatProtocol.chatMessage,
+    // )) {
+    //   _logger.info('Handling chat message', name: methodName);
+    //   final chatMessage = Message.fromReceivedMessage(
+    //     message: ChatMessage.fromPlainTextMessage(message.plainTextMessage),
+    //     chatId: chatId,
+    //   );
+    //   await chatRepository.createMessage(chatMessage);
 
-      chatStream.pushData(
-        StreamData(
-          plainTextMessage: message.plainTextMessage,
-          chatItem: chatMessage,
-        ),
-      );
-      return true;
-    }
+    //   chatStream.pushData(
+    //     StreamData(
+    //       plainTextMessage: message.plainTextMessage,
+    //       chatItem: chatMessage,
+    //     ),
+    //   );
+    //   return true;
+    // }
 
     if (message.plainTextMessage.type.toString() ==
         ChatProtocol.chatReaction.value) {

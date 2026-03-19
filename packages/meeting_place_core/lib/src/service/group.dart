@@ -132,7 +132,10 @@ class GroupService {
     );
 
     // Create room
-    final matrixRoomId = await _matrixService.createRoomForGroup();
+    final matrixRoomId = await _matrixService.createRoomForGroup(
+      did: ownerDidDocument.id,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+    );
 
     final result = await _controlPlaneSDK.execute(
       cp.RegisterOfferGroupCommand(
@@ -693,6 +696,8 @@ class GroupService {
     await _matrixService.inviteUserToRoom(
       userId: channel.otherPartyMatrixUserId!,
       roomId: group.matrixRoomId!,
+      did: group.ownerDid!,
+      deviceId: _controlPlaneSDK.device.deviceToken,
     );
 
     await _mediatorSDK.sendMessage(
@@ -966,8 +971,74 @@ class GroupService {
   Future<String> sendGroupMessageOverMatrix({
     required String roomId,
     required String message,
-  }) {
-    return _matrixService.sendMessage(roomId: roomId, message: message);
+    required String senderDid,
+    required String groupDid,
+    bool notify = true,
+  }) async {
+    final methodName = 'sendGroupMessageOverMatrix';
+    _logger.info(
+      'Sending matrix message to group DID: ${groupDid.topAndTail()}',
+      name: methodName,
+    );
+
+    final eventId = await _matrixService.sendMessage(
+      roomId: roomId,
+      message: message,
+      did: senderDid,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+    );
+
+    if (notify) {
+      final channel = await _channelService
+          .findChannelByOtherPartyPermanentChannelDidOrNull(groupDid);
+      if (channel != null) {
+        final group = await getGroupByOfferLink(channel.offerLink);
+        if (group?.publicKey != null) {
+          final plainTextMessage = PlainTextMessage(
+            id: const Uuid().v4(),
+            type: Uri.parse(
+              'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
+            ),
+            from: senderDid,
+            to: [groupDid],
+            body: {'text': message},
+          );
+          final encryptedMessage = group_message.GroupMessage.encrypt(
+            plainTextMessage,
+            publicKeyBytes: recrypt.PublicKey.fromBase64(
+              group!.publicKey!,
+            ).point.toBytes(),
+          );
+          unawaited(
+            _controlPlaneSDK
+                .execute(
+                  cp.GroupSendMessageCommand(
+                    offerLink: channel.offerLink,
+                    fromDid: senderDid,
+                    groupDid: groupDid,
+                    messageBase64: _encodeEncryptedMessagePayload(
+                      encryptedMessage,
+                    ),
+                    increaseSequenceNumber: false,
+                    notify: true,
+                    ephemeral: false,
+                  ),
+                )
+                .catchError((Object e, StackTrace st) {
+                  _logger.error(
+                    'Failed to send group notification',
+                    error: e,
+                    stackTrace: st,
+                    name: methodName,
+                  );
+                  return cp.GroupSendMessageCommandOutput(success: false);
+                }),
+          );
+        }
+      }
+    }
+
+    return eventId;
   }
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {

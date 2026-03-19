@@ -55,6 +55,8 @@ void main() {
       await fixture.aliceSDK.sendGroupMessageOverMatrix(
         roomId: fixture.matrixRoomId,
         message: message,
+        senderDid: fixture.aliceDid,
+        recipientDid: fixture.groupDid,
       );
 
       final receivedEvent = await eventCompleter.future.timeout(

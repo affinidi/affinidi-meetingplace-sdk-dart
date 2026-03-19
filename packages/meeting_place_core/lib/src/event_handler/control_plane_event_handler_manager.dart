@@ -10,6 +10,7 @@ import '../service/connection_manager/connection_manager.dart';
 import '../repository/repository.dart';
 import 'package:ssi/ssi.dart';
 import '../service/connection_service.dart';
+import '../service/group.dart';
 import '../service/matrix/matrix_service.dart';
 import '../service/mediator/mediator_service.dart';
 import 'channel_activity_event_handler.dart';
@@ -30,6 +31,7 @@ class ControlPlaneEventManager {
     required MediatorService mediatorService,
     required ControlPlaneSDK controlPlaneSDK,
     required ConnectionService connectionService,
+    required GroupService groupService,
     required ConnectionManager connectionManager,
     required ConnectionOfferRepository connectionOfferRepository,
     required GroupRepository groupRepository,
@@ -102,6 +104,7 @@ class ControlPlaneEventManager {
       connectionManager: connectionManager,
       channelService: channelService,
       connectionService: connectionService,
+      groupService: groupService,
       connectionOfferRepository: connectionOfferRepository,
       options: options,
       logger: _logger,

@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
@@ -35,20 +37,11 @@ getRepositoryConfig() {
 }
 
 Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
-  var databaseFactory = databaseFactoryFfi;
-  var db = await databaseFactory.openDatabase('./data/database.sqlite');
+  sqfliteFfiInit();
 
   if (!vod.isInitialized()) {
     await vod.init();
   }
-
-  final database = await matrix.MatrixSdkDatabase.init(
-    'matrix_client',
-    database: db,
-  );
-
-  final matrixClient = matrix.Client('myapp', database: database);
-  matrixClient.homeserver = Uri.parse('http://localhost:9000');
 
   return MeetingPlaceCoreSDK.create(
     wallet: wallet,
@@ -56,6 +49,19 @@ Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
     mediatorDid: getMediatorDid(),
     controlPlaneDid: getControlPlaneDid(),
     logger: DefaultMeetingPlaceCoreSDKLogger(),
-    matrixClient: matrixClient,
+    matrixClientFactory: (did) async {
+      // Each DID gets its own SQLite file so Olm identity keys are never
+      // shared or overwritten between users on the same device.
+      final key = md5.convert(utf8.encode(did)).toString();
+      final database = await matrix.MatrixSdkDatabase.init(
+        'matrix_$key',
+        database: await databaseFactoryFfi.openDatabase(
+          './data/matrix_$key.sqlite',
+        ),
+      );
+      final client = matrix.Client('myapp_$key', database: database);
+      client.homeserver = Uri.parse('http://localhost:9000');
+      return client;
+    },
   );
 }

@@ -172,6 +172,8 @@ abstract class BaseEventHandler<T> {
       ',',
     );
 
+    // Use try-catch-finally to ensure deletion always happens
+
     try {
       final messages = await fetchMessagesFromMediatorWithRetry(
         didManager: didManager,
@@ -186,26 +188,42 @@ abstract class BaseEventHandler<T> {
       );
 
       for (final result in messages) {
-        final channelResult = await processMessage(
-          result.plainTextMessage,
-          event: event,
-          connection: connection,
-          channel: channel,
-        );
-
-        await mediatorService.deleteMessages(
-          didManager: didManager,
-          mediatorDid: mediatorDid,
-          messageHashes: [result.messageHash!],
-        );
-
-        logger.info(
-          '''Completed processing message types $filterByMessageTypes and DID
-          ${didDocument.id.topAndTail()}''',
-          name: 'processEvent',
-        );
-
-        channels.add(channelResult);
+        bool success = false;
+        Object? error;
+        StackTrace? stackTrace;
+        Channel? channelResult;
+        try {
+          channelResult = await processMessage(
+            result.plainTextMessage,
+            event: event,
+            connection: connection,
+            channel: channel,
+          );
+          success = true;
+        } catch (e, st) {
+          error = e;
+          stackTrace = st;
+        } finally {
+          await mediatorService.deleteMessages(
+            didManager: didManager,
+            mediatorDid: mediatorDid,
+            messageHashes: [result.messageHash!],
+          );
+          if (success) {
+            logger.info(
+              '''Completed processing message types $filterByMessageTypes and DID ${didDocument.id.topAndTail()}''',
+              name: 'processEvent',
+            );
+            channels.add(channelResult!);
+          } else {
+            logger.error(
+              '''Failed to process message for DID ${didDocument.id.topAndTail()} and message type $filterByMessageTypes. Message deleted.''',
+              error: error,
+              stackTrace: stackTrace,
+              name: 'processEvent',
+            );
+          }
+        }
       }
 
       return channels;

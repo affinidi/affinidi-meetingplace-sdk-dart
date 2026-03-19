@@ -157,6 +157,9 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       return coreSDK.sendGroupMessageOverMatrix(
         roomId: group.matrixRoomId!,
         message: message.body?['text'] ?? '',
+        senderDid: senderDid,
+        recipientDid: recipientDid,
+        notify: notify,
       );
     }
 

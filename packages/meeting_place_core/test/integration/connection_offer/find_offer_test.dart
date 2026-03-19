@@ -49,7 +49,11 @@ void main() async {
   });
 
   test('returns offer group connection', () async {
-    final result = await aliceSDK.publishOffer(
+    final matrixEnabledAliceSDK = await initSDKInstance(
+      enableMatrixEncryption: true,
+    );
+
+    final result = await matrixEnabledAliceSDK.publishOffer(
       offerName: 'Sample Offer',
       offerDescription: 'Sample offer description',
       type: SDKConnectionOfferType.groupInvitation,

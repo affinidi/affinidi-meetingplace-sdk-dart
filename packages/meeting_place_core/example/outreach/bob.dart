@@ -13,8 +13,8 @@ void main() async {
   // Bob registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await bobSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+  final notificationDidDocument = await notification.recipientDid
+      .getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
@@ -32,10 +32,13 @@ void main() async {
 
   final file = File('./storage.txt');
   file.writeAsBytesSync(
-      utf8.encode(publishOfferResult.connectionOffer.mnemonic));
+    utf8.encode(publishOfferResult.connectionOffer.mnemonic),
+  );
 
   prettyJsonPrintYellow(
-      'Connection offer', publishOfferResult.connectionOffer.toJson());
+    'Connection offer',
+    publishOfferResult.connectionOffer.toJson(),
+  );
 
   // Listen on control plane events stream to wait for outreach invitation
   prettyPrintYellow('Listen on new events...');
@@ -50,8 +53,9 @@ void main() async {
 
   // Listen to mediator stream using notification DID
   prettyPrintGreen('>>> Calling SDK.subscribeToMediator.listen');
-  final notificationStream =
-      await bobSDK.subscribeToMediator(notificationDidDocument.id);
+  final notificationStream = await bobSDK.subscribeToMediator(
+    notificationDidDocument.id,
+  );
 
   prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream.listen((data) async {

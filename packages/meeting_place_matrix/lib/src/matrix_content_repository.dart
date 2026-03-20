@@ -5,7 +5,7 @@ class MatrixContentRepository {
   final String homeserverUrl;
   final Dio _dio;
 
-  MatrixContentRepository({required this.homeserverUrl}) 
+  MatrixContentRepository({required this.homeserverUrl})
     : _dio = Dio(BaseOptions(baseUrl: homeserverUrl));
 
   /// Upload file to Matrix Content Repository
@@ -30,18 +30,18 @@ class MatrixContentRepository {
     return response.data['content_uri'] as String; // Returns mxc:// URI
   }
 
-/// Download file from Matrix Content Repository
+  /// Download file from Matrix Content Repository
   /// GET /_matrix/client/v1/media/download/{serverName}/{mediaId}/{fileName}
   /// The fileName parameter is optional and provides a hint for the download filename
   Future<Uint8List> downloadMedia(String mxcUri, {String? fileName}) async {
     final uri = Uri.parse(mxcUri);
     final serverName = uri.host;
     final mediaId = uri.pathSegments.last;
-    
+
     final path = fileName != null
         ? '/_matrix/client/v1/media/download/$serverName/$mediaId/$fileName'
         : '/_matrix/client/v1/media/download/$serverName/$mediaId';
-    
+
     final response = await _dio.get(
       path,
       options: Options(responseType: ResponseType.bytes),
@@ -60,7 +60,7 @@ class MatrixContentRepository {
     final uri = Uri.parse(mxcUri);
     final serverName = uri.host;
     final mediaId = uri.pathSegments.last;
-    
+
     final response = await _dio.get(
       '/_matrix/client/v1/media/thumbnail/$serverName/$mediaId',
       queryParameters: {

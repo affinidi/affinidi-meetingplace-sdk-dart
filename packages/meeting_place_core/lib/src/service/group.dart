@@ -2,33 +2,33 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
-import 'package:matrix/matrix.dart' as matrix;
-import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
+import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
+import 'package:uuid/uuid.dart';
+
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
+import '../entity/group.dart';
+import '../entity/group_connection_offer.dart';
+import '../entity/group_member.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
+import '../repository/repository.dart';
+import '../utils/string.dart';
 import 'channel/channel_service.dart';
 import 'connection_manager/connection_manager.dart';
-import '../repository/repository.dart';
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
 import 'connection_service.dart';
 import 'group/group_admin.dart';
 import 'group/group_exception.dart';
-import 'group_service/accept_group_offer_result.dart';
-import '../utils/string.dart';
-import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
-import 'package:uuid/uuid.dart';
-import '../entity/group.dart';
-import '../entity/group_connection_offer.dart';
-import '../entity/group_member.dart';
 import 'group/group_message.dart' as group_message;
+import 'group_service/accept_group_offer_result.dart';
 import 'matrix/matrix_service.dart';
 
 class GroupService {
@@ -1040,13 +1040,6 @@ class GroupService {
     }
 
     return eventId;
-  }
-
-  Future<String> sendGroupFileOverMatrix({
-    required String roomId,
-    required matrix.MatrixFile file,
-  }) {
-    return _matrixService.sendFile(roomId: roomId, file: file);
   }
 
   Future<String> sendGroupImageOverMatrixByMxcUri({

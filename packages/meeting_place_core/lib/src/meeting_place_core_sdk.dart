@@ -1003,15 +1003,6 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  Future<String> sendGroupFileOverMatrix({
-    required String roomId,
-    required matrix.MatrixFile file,
-  }) {
-    return _withSdkExceptionHandling(() async {
-      return _groupService.sendGroupFileOverMatrix(roomId: roomId, file: file);
-    });
-  }
-
   Future<String> sendGroupImageOverMatrixByMxcUri({
     required String roomId,
     required String mxcUri,

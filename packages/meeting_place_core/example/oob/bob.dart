@@ -48,15 +48,18 @@ void main() async {
   await acceptance.stream.dispose();
 
   await bobSDK.sendMessage(
-      PlainTextMessage(
-          id: Uuid().v4(),
-          type: Uri.parse(
-              'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example'),
-          from: channel.permanentChannelDid,
-          to: [channel.otherPartyPermanentChannelDid!],
-          body: {'hello': 'world'}),
-      senderDid: channel.permanentChannelDid!,
-      recipientDid: channel.otherPartyPermanentChannelDid!);
+    PlainTextMessage(
+      id: Uuid().v4(),
+      type: Uri.parse(
+        'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example',
+      ),
+      from: channel.permanentChannelDid,
+      to: [channel.otherPartyPermanentChannelDid!],
+      body: {'hello': 'world'},
+    ),
+    senderDid: channel.permanentChannelDid!,
+    recipientDid: channel.otherPartyPermanentChannelDid!,
+  );
 
   prettyPrint('Message sent to Alice');
 }

@@ -420,27 +420,6 @@ class MatrixService {
     );
   }
 
-  Future<String> sendFile({
-    required String roomId,
-    required matrix.MatrixFile file,
-  }) async {
-    _requireEncryptionReady();
-
-    final room = await _getRoom(roomId);
-    final eventId = await room.sendFileEvent(file, txid: const Uuid().v4());
-
-    if (eventId == null) {
-      throw StateError(
-        'Matrix did not return an event ID when sending to room $roomId.',
-      );
-    }
-
-    _logger?.info('''Sent file with event id $eventId
-      to MATRIX room ${roomId.topAndTail()}''', name: _logKey);
-
-    return eventId;
-  }
-
   Future<String> _sendFileByMxcUri({
     required String roomId,
     required String mxcUri,

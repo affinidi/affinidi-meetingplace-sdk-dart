@@ -15,8 +15,8 @@ void main() async {
   // Bob registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await bobSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+  final notificationDidDocument = await notification.recipientDid
+      .getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   final file = File('./storage.txt');
@@ -61,8 +61,9 @@ void main() async {
 
   // Listen to mediator stream using notification DID
   prettyPrintGreen('>>> Calling SDK.subscribeToMediator');
-  final notificationStream =
-      await bobSDK.subscribeToMediator(notificationDidDocument.id);
+  final notificationStream = await bobSDK.subscribeToMediator(
+    notificationDidDocument.id,
+  );
 
   prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream.listen((data) async {

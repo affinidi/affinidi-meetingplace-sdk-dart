@@ -1042,23 +1042,64 @@ class GroupService {
     return eventId;
   }
 
-  Future<String> sendGroupImageOverMatrixByMxcUri({
+  Future<MatrixAttachment> sendGroupImageOverMatrixByMxcUri({
     required String roomId,
-    required String mxcUri,
-    String? filename,
-    String? mimeType,
-    int? size,
-    int? width,
-    int? height,
-  }) {
-    return _matrixService.sendImageByMxcUri(
-      roomId: roomId,
-      mxcUri: mxcUri,
+    required MatrixAttachment attachment,
+  }) async {
+    final filename = attachment.filename ?? 'image';
+    final contentType = attachment.mediaType ?? 'application/octet-stream';
+
+    final existingMxcUri = attachment.mxcUri;
+    if (existingMxcUri != null && existingMxcUri.isNotEmpty) {
+      await _matrixService.sendImageByMxcUri(
+        roomId: roomId,
+        mxcUri: existingMxcUri,
+        filename: filename,
+        mimeType: contentType,
+        size: attachment.byteCount,
+      );
+
+      return MatrixAttachment.reference(
+        mxcUri: existingMxcUri,
+        filename: filename,
+        contentType: contentType,
+        format: attachment.format,
+        byteCount: attachment.byteCount,
+        hash: attachment.hash,
+        description: attachment.description,
+      );
+    }
+
+    final base64 = attachment.data?.base64;
+    if (base64 == null || base64.isEmpty) {
+      throw StateError(
+        'MatrixAttachment is missing base64 data and mxcUri; cannot upload to Matrix media repository.',
+      );
+    }
+
+    final bytes = base64Decode(base64);
+    final uploadedMxcUri = await _matrixService.uploadMedia(
+      bytes,
       filename: filename,
-      mimeType: mimeType,
-      size: size,
-      width: width,
-      height: height,
+      contentType: contentType,
+    );
+
+    await _matrixService.sendImageByMxcUri(
+      roomId: roomId,
+      mxcUri: uploadedMxcUri,
+      filename: filename,
+      mimeType: contentType,
+      size: bytes.length,
+    );
+
+    return MatrixAttachment.reference(
+      mxcUri: uploadedMxcUri,
+      filename: filename,
+      contentType: contentType,
+      format: attachment.format,
+      byteCount: bytes.length,
+      hash: attachment.hash,
+      description: attachment.description,
     );
   }
 

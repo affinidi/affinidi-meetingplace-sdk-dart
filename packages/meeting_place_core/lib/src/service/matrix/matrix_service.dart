@@ -1,4 +1,5 @@
 import "dart:convert";
+import 'dart:typed_data';
 
 import "package:crypto/crypto.dart";
 import "package:matrix/matrix.dart" as matrix;
@@ -61,7 +62,26 @@ class MatrixService {
     return client;
   }
 
-  String? get accessToken => _activeClient?.accessToken;
+  Future<String> uploadMedia(
+    Uint8List data, {
+    String? filename,
+    String? contentType,
+  }) async {
+    final client = _activeClient;
+    if (client == null) {
+      throw StateError(
+        'No active Matrix session. Ensure a user is logged in before uploading media.',
+      );
+    }
+
+    final mxcUri = await client.uploadContent(
+      data,
+      filename: filename,
+      contentType: contentType,
+    );
+
+    return mxcUri.toString();
+  }
 
   // TODO: generate and persist password securely - this is just for testing
   static final String _passwordPlaceholder = 'dummy_password';

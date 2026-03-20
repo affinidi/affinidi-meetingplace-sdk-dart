@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:matrix/matrix.dart' as matrix;
@@ -20,6 +21,7 @@ void main() {
       registerFallbackValue(
         matrix.AuthenticationUserIdentifier(user: 'fallback-user'),
       );
+      registerFallbackValue(Uint8List(0));
     });
 
     setUp(() {
@@ -406,6 +408,61 @@ void main() {
         verify(() => room.sendEvent(any(), txid: any(named: 'txid'))).called(1);
       },
     );
+
+    test('uploadMedia uploads bytes via the active Matrix client', () async {
+      const did = 'did:test:alice';
+      const deviceToken = 'push-device-token';
+      final expectedMatrixDeviceId = md5
+          .convert(utf8.encode(deviceToken))
+          .toString();
+
+      when(
+        () => matrixClient.login(
+          matrix.LoginType.mLoginPassword,
+          identifier: any(named: 'identifier'),
+          password: any(named: 'password'),
+          deviceId: any(named: 'deviceId'),
+        ),
+      ).thenAnswer(
+        (_) async => matrix.LoginResponse(
+          accessToken: 'token',
+          deviceId: expectedMatrixDeviceId,
+          userId: '@alice:example.com',
+        ),
+      );
+
+      await service.login(did: did, deviceId: deviceToken);
+
+      when(
+        () => matrixClient.uploadContent(
+          any(),
+          filename: any(named: 'filename'),
+          contentType: any(named: 'contentType'),
+        ),
+      ).thenAnswer((_) async => Uri.parse('mxc://example.com/media123'));
+
+      final result = await service.uploadMedia(
+        Uint8List.fromList([1, 2, 3]),
+        filename: 'photo.jpg',
+        contentType: 'image/jpeg',
+      );
+
+      expect(result, 'mxc://example.com/media123');
+      verify(
+        () => matrixClient.uploadContent(
+          any(),
+          filename: 'photo.jpg',
+          contentType: 'image/jpeg',
+        ),
+      ).called(1);
+    });
+
+    test('uploadMedia throws when there is no active Matrix session', () async {
+      expect(
+        () => service.uploadMedia(Uint8List.fromList([1, 2, 3])),
+        throwsA(isA<StateError>()),
+      );
+    });
   });
 
   group('MatrixService.ensureLoggedIn', () {

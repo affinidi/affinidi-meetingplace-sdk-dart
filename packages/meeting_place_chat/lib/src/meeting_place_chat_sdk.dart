@@ -1,5 +1,4 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 
 import '../meeting_place_chat.dart';
 import 'sdk/chat.dart';
@@ -26,7 +25,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// - [coreSDK]: Instance of [MeetingPlaceCoreSDK] to retrieve group information if needed.
   /// - [chatRepository]: The [ChatRepository] used for persisting messages.
   /// - [options]: Configuration options for the chat.
-  /// - [matrixContentRepository]: Optional Matrix Content Repository for media uploads.
   /// - [card]: Optional [ContactCard] representing the user profile.
   /// - [logger]: Optional logger implementation for custom logging behavior.
   ///   If not provided, uses DefaultChatSdkLogger.
@@ -40,7 +38,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
     required ChatSDKOptions options,
-    MatrixContentRepository? matrixContentRepository,
     ContactCard? card,
     MeetingPlaceChatSDKLogger? logger,
   }) async {
@@ -57,7 +54,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
           otherPartyDid: channel.otherPartyPermanentChannelDid!,
           mediatorDid: channel.mediatorDid,
           chatRepository: chatRepository,
-          matrixContentRepository: matrixContentRepository,
           options: options,
           card: card,
           logger: logger,

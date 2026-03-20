@@ -1003,24 +1003,14 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  Future<String> sendGroupImageOverMatrixByMxcUri({
+  Future<MatrixAttachment> sendGroupImageOverMatrixByMxcUri({
     required String roomId,
-    required String mxcUri,
-    String? filename,
-    String? mimeType,
-    int? size,
-    int? width,
-    int? height,
+    required MatrixAttachment attachment,
   }) {
     return _withSdkExceptionHandling(() async {
       return _groupService.sendGroupImageOverMatrixByMxcUri(
         roomId: roomId,
-        mxcUri: mxcUri,
-        filename: filename,
-        mimeType: mimeType,
-        size: size,
-        width: width,
-        height: height,
+        attachment: attachment,
       );
     });
   }
@@ -1211,8 +1201,6 @@ class MeetingPlaceCoreSDK {
       deviceId: _controlPlaneSDK.device.deviceToken,
     );
   }
-
-  String? get matrixAccessToken => _matrixService.accessToken;
 
   Future<Stream<matrix.Event>> subscribeToMatrixTimeline(String did) {
     return _matrixService.timelineEventStream(

@@ -184,8 +184,10 @@ void main() async {
   });
 
   final waitForGroupMessage = Completer<Event>();
-  final timelineSubscription = aliceSDK.subscribeToMatrixTimeline();
-  timelineSubscription.listen((event) {
+  final timelineStream = await aliceSDK.subscribeToMatrixTimeline(
+    'did:test:alice',
+  );
+  timelineStream.listen((event) {
     if (event.type == 'm.room.member' &&
         event.content['membership'] == 'join') {
       prettyPrintGreen('✓ User ${event.stateKey} joined room ${event.roomId}');

@@ -36,9 +36,10 @@ void main() {
         'encrypted-group-message-${DateTime.now().microsecondsSinceEpoch}';
     final eventCompleter = Completer<matrix.Event>();
 
-    final subscription = fixture.bobSDK.subscribeToMatrixTimeline().listen((
-      event,
-    ) {
+    final timelineStream = await fixture.bobSDK.subscribeToMatrixTimeline(
+      'did:test:bob',
+    );
+    final subscription = timelineStream.listen((event) {
       final cameFromEncryptedEvent =
           event.originalSource?.type == matrix.EventTypes.Encrypted ||
           event.type == matrix.EventTypes.Encrypted;

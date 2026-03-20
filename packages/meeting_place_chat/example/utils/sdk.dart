@@ -59,6 +59,6 @@ Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
       repositoryConfig: getRepositoryConfig(),
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
-      matrixClient: matrixClient,
+      matrixClientFactory: (_) async => matrixClient,
       logger: DefaultMeetingPlaceCoreSDKLogger());
 }

@@ -1,6 +1,6 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+
 import '../../meeting_place_core.dart';
-import '../entity/group_connection_offer.dart';
 import '../protocol/message/outreach_invitation/outreach_invitation.dart';
 import '../service/connection_service.dart';
 import '../service/group.dart';

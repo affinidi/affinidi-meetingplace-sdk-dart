@@ -9,7 +9,6 @@ import '../../meeting_place_chat.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
-import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 import 'package:matrix/matrix.dart' as matrix;

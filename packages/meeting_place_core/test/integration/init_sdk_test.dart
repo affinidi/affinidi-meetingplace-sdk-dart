@@ -74,7 +74,7 @@ void main() async {
       ),
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
-      matrixClient: await initMatrixClient(),
+      matrixClientFactory: (_) => initMatrixClient(),
     );
 
     await minimumSDK.registerForPushNotifications(Uuid().v4());

@@ -38,7 +38,7 @@ Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
     ),
     mediatorDid: getMediatorDid(),
     controlPlaneDid: getControlPlaneDid(),
-    matrixClient: await initMatrixClient(),
+    matrixClientFactory: (_) => initMatrixClient(),
   );
 
   await sdk.registerForPushNotifications(const Uuid().v4());

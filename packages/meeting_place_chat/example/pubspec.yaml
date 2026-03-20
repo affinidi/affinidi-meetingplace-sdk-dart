@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   crypto: ^3.0.6
-  matrix: ^6.1.1
+  matrix: ^6.2.0
   meeting_place_chat: ^0.0.1-dev.32
   meeting_place_core: ^0.0.1-dev.30
   pretty_json: ^2.0.0

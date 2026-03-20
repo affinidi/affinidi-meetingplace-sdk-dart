@@ -12,7 +12,7 @@ dependencies:
   crypto: ^3.0.6
   didcomm: ^2.3.3
   json_annotation: ^4.9.0
-  matrix: ^6.1.1
+  matrix: ^6.2.0
   meeting_place_core: ^0.0.1-dev.30
   meeting_place_matrix: ^0.0.1-dev.1
   meta: ^1.17.0

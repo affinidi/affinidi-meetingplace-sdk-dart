@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import "package:crypto/crypto.dart";
 import "package:matrix/matrix.dart" as matrix;
+import 'package:matrix/matrix_api_lite/generated/fixed_model.dart'
+    as matrix_api;
 import "package:matrix/src/utils/client_init_exception.dart";
 import "package:uuid/uuid.dart";
 import "package:vodozemac/vodozemac.dart" as vod;
@@ -81,6 +83,38 @@ class MatrixService {
     );
 
     return mxcUri.toString();
+  }
+
+  /// Downloads media from the Matrix content repository for an `mxc://...` URI.
+  ///
+  /// Returns a [matrix.FileResponse] containing the raw bytes and (if available)
+  /// the detected content type.
+  Future<matrix_api.FileResponse> downloadMediaByMxcUri({
+    required String did,
+    required String deviceId,
+    required String mxcUri,
+    bool allowRemote = true,
+    int? timeoutMs,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+
+    final uri = Uri.parse(mxcUri);
+    if (uri.scheme != 'mxc' ||
+        uri.authority.isEmpty ||
+        uri.pathSegments.isEmpty) {
+      throw FormatException('Invalid mxc URI: $mxcUri');
+    }
+
+    final serverName = uri.authority;
+    final mediaId = uri.pathSegments.first;
+
+    final client = _clients[did]!;
+    return client.getContent(
+      serverName,
+      mediaId,
+      allowRemote: allowRemote,
+      timeoutMs: timeoutMs,
+    );
   }
 
   // TODO: generate and persist password securely - this is just for testing
@@ -490,6 +524,7 @@ class MatrixService {
     required String mxcUri,
     String? filename,
     String? mimeType,
+    String? format,
     int? size,
     int? width,
     int? height,
@@ -506,6 +541,7 @@ class MatrixService {
         if (size != null) 'size': size,
         if (width != null) 'w': width,
         if (height != null) 'h': height,
+        if (format != null && format.isNotEmpty) 'format': format,
       },
     );
   }
@@ -523,6 +559,7 @@ class MatrixService {
     String? mimeType,
     int? size,
     int? durationMs,
+    String? format,
   }) async {
     return _sendFileByMxcUri(
       roomId: roomId,
@@ -535,6 +572,7 @@ class MatrixService {
         if (mimeType != null && mimeType.isNotEmpty) 'mimetype': mimeType,
         if (size != null) 'size': size,
         if (durationMs != null) 'duration': durationMs,
+        if (format != null && format.isNotEmpty) 'format': format,
       },
     );
   }

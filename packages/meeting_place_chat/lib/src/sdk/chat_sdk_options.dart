@@ -23,6 +23,7 @@ class ChatSDKOptions {
     this.chatPresenceExpiry = const Duration(seconds: 15),
     this.chatActivityExpiry = const Duration(seconds: 3),
     this.requiresAcknowledgement = const [ChatProtocol.chatMessage],
+    this.onlyHandleMentionedMatrixMessages = false,
     this.memberJoinedIndicator = const [
       ChatProtocol.chatPresence,
       ChatProtocol.chatMessage,
@@ -58,6 +59,14 @@ class ChatSDKOptions {
   ///
   /// Defaults to `3` seconds.
   final Duration chatActivityExpiry;
+
+  /// When `true`, Matrix group-chat messages are only forwarded to the chat
+  /// stream if the local user is explicitly mentioned in `m.mentions.user_ids`.
+  ///
+  /// Set to `true` for agent/bot use-cases where the agent must only react
+  /// when directly addressed. Regular users should leave this `false` (the
+  /// default) so they receive all messages in the group room.
+  final bool onlyHandleMentionedMatrixMessages;
 
   /// List of ChatProtocol message types used to determine whether a member
   /// has opened the chat screen for the first time after joining the group.

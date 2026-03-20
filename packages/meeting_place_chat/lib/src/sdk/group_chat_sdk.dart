@@ -145,6 +145,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     bool notify = false,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
+    List<String>? mentionUserIds,
   }) {
     final methodName = 'sendPlainTextMessage';
     logger.info(
@@ -160,6 +161,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         senderDid: senderDid,
         recipientDid: recipientDid,
         notify: notify,
+        mentionUserIds: mentionUserIds,
       );
     }
 

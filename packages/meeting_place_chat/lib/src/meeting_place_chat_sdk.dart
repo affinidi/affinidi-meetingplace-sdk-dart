@@ -163,8 +163,13 @@ class MeetingPlaceChatSDK implements ChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<Attachment>? attachments,
+    List<String>? mentionUserIds,
   }) {
-    return _sdk.sendTextMessage(text, attachments: attachments);
+    return _sdk.sendTextMessage(
+      text,
+      attachments: attachments,
+      mentionUserIds: mentionUserIds,
+    );
   }
 
   /// Reacts to a given message.

@@ -9,7 +9,6 @@ import '../../meeting_place_chat.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
-import '../utils/message_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
 import 'package:matrix/matrix.dart' as matrix;
@@ -85,6 +84,7 @@ abstract class BaseChatSDK {
     bool notify = false,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
+    List<String>? mentionUserIds,
   });
 
   /// Unique chat ID derived from [did] and [otherPartyDid].
@@ -133,7 +133,10 @@ abstract class BaseChatSDK {
 
     matrixSubscription = await coreSDK.subscribeToMatrixTimeline(did);
     matrixSubscription!.listen((event) async {
-      if (event.type == 'm.room.message' && event.senderId != userId) {
+      if (event.type == 'm.room.message' &&
+          event.senderId != userId &&
+          (!options.onlyHandleMentionedMatrixMessages ||
+              _mentionsUserId(event, userId))) {
         _logger.info(
           'Handling Matrix chat message event ${event.eventId}',
           name: methodName,
@@ -157,6 +160,20 @@ abstract class BaseChatSDK {
     });
 
     return chat;
+  }
+
+  bool _mentionsUserId(matrix.MatrixEvent event, String userId) {
+    final mentions = event.content['m.mentions'];
+    if (mentions is! Map) {
+      return false;
+    }
+
+    final mentionedUserIds = mentions['user_ids'];
+    if (mentionedUserIds is! List) {
+      return false;
+    }
+
+    return mentionedUserIds.whereType<String>().contains(userId);
   }
 
   /// Waits until the mediator channel subscription is ready. Stream of live
@@ -555,6 +572,7 @@ abstract class BaseChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<Attachment>? attachments,
+    List<String>? mentionUserIds,
   }) async {
     final methodName = 'sendTextMessage';
     _logger.info('Started sending text message', name: methodName);
@@ -583,7 +601,10 @@ abstract class BaseChatSDK {
         ),
       );
 
-      await _sendMessageWithNotification(plainTextMessage);
+      await _sendMessageWithNotification(
+        plainTextMessage,
+        mentionUserIds: mentionUserIds,
+      );
 
       final updatedMessage = await _updateMessageStatus(
         chatId: chatId,
@@ -871,7 +892,10 @@ abstract class BaseChatSDK {
   }
 
   /// Sends a message with notification, ignoring notification failures.
-  Future<void> _sendMessageWithNotification(PlainTextMessage message) async {
+  Future<void> _sendMessageWithNotification(
+    PlainTextMessage message, {
+    List<String>? mentionUserIds,
+  }) async {
     try {
       await sendPlainTextMessage(
         message,
@@ -879,6 +903,7 @@ abstract class BaseChatSDK {
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
         notify: true,
+        mentionUserIds: mentionUserIds,
       );
     } on MeetingPlaceCoreSDKException catch (e) {
       final isNotificationError =

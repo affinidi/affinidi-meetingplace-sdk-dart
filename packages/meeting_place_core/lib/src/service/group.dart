@@ -974,6 +974,7 @@ class GroupService {
     required String senderDid,
     required String groupDid,
     bool notify = true,
+    List<String>? mentionUserIds,
   }) async {
     final methodName = 'sendGroupMessageOverMatrix';
     _logger.info(
@@ -986,6 +987,7 @@ class GroupService {
       message: message,
       did: senderDid,
       deviceId: _controlPlaneSDK.device.deviceToken,
+      mentionUserIds: mentionUserIds,
     );
 
     if (notify) {

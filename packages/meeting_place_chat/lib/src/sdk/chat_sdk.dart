@@ -11,7 +11,11 @@ abstract interface class ChatSDK {
   Future<ChatItem?> getMessageById(String messageId);
   Future<List<Message>> fetchNewMessages();
 
-  Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
+  Future<Message> sendTextMessage(
+    String text, {
+    List<Attachment>? attachments,
+    List<String>? mentionUserIds,
+  });
 
   Future<void> sendMessage(PlainTextMessage message, {bool notify = false});
   Future<void> sendProfileHash();

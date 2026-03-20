@@ -423,19 +423,30 @@ class MatrixService {
     required String message,
     required String did,
     required String deviceId,
-    bool notify = false,
+    List<String>? mentionUserIds,
   }) async {
     await ensureLoggedIn(did: did, deviceId: deviceId);
     _requireEncryptionReady();
 
     final room = await _getRoom(roomId);
-    final eventId = await room.sendTextEvent(
-      message,
-      txid: const Uuid().v4(),
-      parseCommands: false,
-      parseMarkdown: false,
-      addMentions: notify,
-    );
+
+    final String? eventId;
+    if (mentionUserIds != null && mentionUserIds.isNotEmpty) {
+      final content = <String, dynamic>{
+        'msgtype': 'm.text',
+        'body': message,
+        'm.mentions': {'user_ids': mentionUserIds},
+      };
+      eventId = await room.sendEvent(content, txid: const Uuid().v4());
+    } else {
+      eventId = await room.sendTextEvent(
+        message,
+        txid: const Uuid().v4(),
+        parseCommands: false,
+        parseMarkdown: false,
+        addMentions: false,
+      );
+    }
 
     if (eventId == null) {
       throw StateError(

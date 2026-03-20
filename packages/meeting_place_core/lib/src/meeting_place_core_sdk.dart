@@ -991,6 +991,7 @@ class MeetingPlaceCoreSDK {
     required String senderDid,
     required String recipientDid,
     bool notify = true,
+    List<String>? mentionUserIds,
   }) {
     return _withSdkExceptionHandling(() async {
       return _groupService.sendGroupMessageOverMatrix(
@@ -999,6 +1000,7 @@ class MeetingPlaceCoreSDK {
         senderDid: senderDid,
         groupDid: recipientDid,
         notify: notify,
+        mentionUserIds: mentionUserIds,
       );
     });
   }

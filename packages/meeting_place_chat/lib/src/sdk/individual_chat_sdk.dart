@@ -108,6 +108,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     bool notify = false,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
+    List<String>? mentionUserIds,
   }) {
     return coreSDK.sendMessage(
       message,

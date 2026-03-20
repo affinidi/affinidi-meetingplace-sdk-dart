@@ -14,8 +14,8 @@ void main() async {
   // Alice registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+  final notificationDidDocument = await notification.recipientDid
+      .getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
@@ -33,7 +33,8 @@ void main() async {
 
   final file = File('./storage.txt');
   file.writeAsBytesSync(
-      utf8.encode(publishOfferResult.connectionOffer.mnemonic));
+    utf8.encode(publishOfferResult.connectionOffer.mnemonic),
+  );
 
   prettyJsonPrintYellow(
     'Connection offer',
@@ -61,8 +62,9 @@ void main() async {
 
   // Alice listens to mediator stream using notification DID
   prettyPrintGreen('>>> Calling SDK.subscribeToMediator');
-  final notificationStream =
-      await aliceSDK.subscribeToMediator(notificationDidDocument.id);
+  final notificationStream = await aliceSDK.subscribeToMediator(
+    notificationDidDocument.id,
+  );
 
   prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream.listen((data) async {

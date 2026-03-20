@@ -2,32 +2,33 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
-import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
+import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
+import 'package:uuid/uuid.dart';
+
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
+import '../entity/group.dart';
+import '../entity/group_connection_offer.dart';
+import '../entity/group_member.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
+import '../repository/repository.dart';
+import '../utils/string.dart';
 import 'channel/channel_service.dart';
 import 'connection_manager/connection_manager.dart';
-import '../repository/repository.dart';
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
 import 'connection_service.dart';
 import 'group/group_admin.dart';
 import 'group/group_exception.dart';
-import 'group_service/accept_group_offer_result.dart';
-import '../utils/string.dart';
-import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
-import 'package:uuid/uuid.dart';
-import '../entity/group.dart';
-import '../entity/group_connection_offer.dart';
-import '../entity/group_member.dart';
 import 'group/group_message.dart' as group_message;
+import 'group_service/accept_group_offer_result.dart';
 import 'matrix/matrix_service.dart';
 
 class GroupService {
@@ -1039,6 +1040,85 @@ class GroupService {
     }
 
     return eventId;
+  }
+
+  Future<MatrixAttachment> sendGroupImageOverMatrixByMxcUri({
+    required String roomId,
+    required MatrixAttachment attachment,
+  }) async {
+    final filename = attachment.filename ?? 'image';
+    final contentType = attachment.mediaType ?? 'application/octet-stream';
+
+    final existingMxcUri = attachment.mxcUri;
+    if (existingMxcUri != null && existingMxcUri.isNotEmpty) {
+      await _matrixService.sendImageByMxcUri(
+        roomId: roomId,
+        mxcUri: existingMxcUri,
+        filename: filename,
+        mimeType: contentType,
+        size: attachment.byteCount,
+      );
+
+      return MatrixAttachment.reference(
+        mxcUri: existingMxcUri,
+        filename: filename,
+        contentType: contentType,
+        format: attachment.format,
+        byteCount: attachment.byteCount,
+        hash: attachment.hash,
+        description: attachment.description,
+      );
+    }
+
+    final base64 = attachment.data?.base64;
+    if (base64 == null || base64.isEmpty) {
+      throw StateError(
+        'MatrixAttachment is missing base64 data and mxcUri; cannot upload to Matrix media repository.',
+      );
+    }
+
+    final bytes = base64Decode(base64);
+    final uploadedMxcUri = await _matrixService.uploadMedia(
+      bytes,
+      filename: filename,
+      contentType: contentType,
+    );
+
+    await _matrixService.sendImageByMxcUri(
+      roomId: roomId,
+      mxcUri: uploadedMxcUri,
+      filename: filename,
+      mimeType: contentType,
+      size: bytes.length,
+    );
+
+    return MatrixAttachment.reference(
+      mxcUri: uploadedMxcUri,
+      filename: filename,
+      contentType: contentType,
+      format: attachment.format,
+      byteCount: bytes.length,
+      hash: attachment.hash,
+      description: attachment.description,
+    );
+  }
+
+  Future<String> sendGroupAudioOverMatrixByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    String? filename,
+    String? mimeType,
+    int? size,
+    int? durationMs,
+  }) {
+    return _matrixService.sendAudioByMxcUri(
+      roomId: roomId,
+      mxcUri: mxcUri,
+      filename: filename,
+      mimeType: mimeType,
+      size: size,
+      durationMs: durationMs,
+    );
   }
 
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {

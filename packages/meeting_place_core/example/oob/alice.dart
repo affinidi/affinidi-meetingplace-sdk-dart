@@ -46,14 +46,17 @@ void main() async {
   final waitForBobsMessage = Completer<PlainTextMessage>();
   messageSubscription.stream.listen((message) {
     if (message.plainTextMessage.isOfType(
-        'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example')) {
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example',
+    )) {
       waitForBobsMessage.complete(message.plainTextMessage);
     }
   });
 
   prettyPrintYellow('Waiting for Bob\'s message...');
   prettyJsonPrintYellow(
-      'Received Bob\'s message', (await waitForBobsMessage.future).toJson());
+    'Received Bob\'s message',
+    (await waitForBobsMessage.future).toJson(),
+  );
 
   // Close stream
   prettyPrint('Disposing message stream...');

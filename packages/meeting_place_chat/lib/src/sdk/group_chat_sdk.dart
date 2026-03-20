@@ -191,6 +191,82 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     );
   }
 
+  /// Sends a plain text message with optional attachments to the group.
+  ///
+  /// If attachments include base64 payloads, they will be uploaded to Matrix and
+  /// replaced with `MatrixAttachment` references before sending.
+  ///
+  /// **Parameters:**
+  /// - [text]: The plain text content of the message (default: empty string for media-only messages).
+  /// - [attachments]: Optional list of [Attachment]s included with the message.
+  ///
+  /// **Returns:**
+  /// - The sent [Message] object persisted in the repository.
+  @override
+  Future<Message> sendTextMessage(
+    String text, {
+    List<Attachment>? attachments,
+  }) async {
+    final methodName = 'sendTextMessage';
+    logger.info('Started sending group text message', name: methodName);
+
+    final matrixRoomId = group.matrixRoomId;
+    if (attachments != null &&
+        attachments.any((a) => a.data?.base64 != null) &&
+        matrixRoomId == null) {
+      throw StateError(
+        'Group does not have a Matrix room ID; cannot upload attachments to Matrix.',
+      );
+    }
+
+    // Upload + send Matrix events for attachments (no fallback).
+    List<Attachment>? processedAttachments = attachments;
+    if (attachments != null && attachments.isNotEmpty) {
+      final updated = <Attachment>[];
+
+      for (final attachment in attachments) {
+        final matrixAttachment = attachment is MatrixAttachment
+            ? attachment
+            : MatrixAttachment(
+                id: attachment.id,
+                description: attachment.description,
+                mediaType: attachment.mediaType,
+                format: attachment.format,
+                data: attachment.data,
+                filename: attachment.filename,
+                byteCount: attachment.byteCount,
+              );
+
+        if (matrixAttachment.mxcUri != null ||
+            matrixAttachment.data?.base64 != null) {
+          final uploaded = await coreSDK.sendGroupImageOverMatrixByMxcUri(
+            roomId: matrixRoomId!,
+            attachment: matrixAttachment,
+          );
+          updated.add(uploaded);
+        } else {
+          updated.add(attachment);
+        }
+      }
+
+      processedAttachments = updated;
+
+      logger.info(
+        'Processed ${processedAttachments.length} attachments for group message',
+        name: methodName,
+      );
+    }
+
+    // Call parent implementation with processed attachments
+    final result = await super.sendTextMessage(
+      text,
+      attachments: processedAttachments,
+    );
+
+    logger.info('Completed sending group text message', name: methodName);
+    return result;
+  }
+
   /// Checks whether the message type exists in `options.memberJoinedIndicator`.
   bool _memberJoinedIndicator(PlainTextMessage message) {
     return options.memberJoinedIndicator.contains(

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:matrix/matrix.dart' as matrix;
@@ -16,10 +17,33 @@ void main() {
     late MockMatrixRoom room;
     late MatrixService service;
 
+    setUpAll(() {
+      registerFallbackValue(
+        matrix.AuthenticationUserIdentifier(user: 'fallback-user'),
+      );
+      registerFallbackValue(Uint8List(0));
+    });
+
     setUp(() {
       matrixClient = MockMatrixClient();
       room = MockMatrixRoom();
-      service = MatrixService(matrixClient: matrixClient);
+      service = MatrixService(matrixClientFactory: (_) async => matrixClient);
+
+      when(
+        () => matrixClient.init(
+          waitForFirstSync: any(named: 'waitForFirstSync'),
+          waitUntilLoadCompletedLoaded: any(
+            named: 'waitUntilLoadCompletedLoaded',
+          ),
+          newToken: any(named: 'newToken'),
+          newHomeserver: any(named: 'newHomeserver'),
+          newUserID: any(named: 'newUserID'),
+          newDeviceID: any(named: 'newDeviceID'),
+          newOlmAccount: any(named: 'newOlmAccount'),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(() => matrixClient.logout()).thenAnswer((_) async {});
       when(() => matrixClient.accessToken).thenReturn(null);
       when(() => matrixClient.userID).thenReturn(null);
       when(() => matrixClient.deviceID).thenReturn(null);
@@ -72,35 +96,43 @@ void main() {
       'login hashes the device token before using it as Matrix deviceId',
       () async {
         const deviceToken = 'push-device-token';
+        const did = 'did:test:alice';
         final expectedMatrixDeviceId = md5
             .convert(utf8.encode(deviceToken))
             .toString();
+        final expectedHashedUsername = md5.convert(utf8.encode(did)).toString();
+
+        matrix.AuthenticationIdentifier? capturedIdentifier;
 
         when(
           () => matrixClient.login(
             matrix.LoginType.mLoginPassword,
-            user: any(named: 'user'),
+            identifier: any(named: 'identifier'),
             password: any(named: 'password'),
             deviceId: any(named: 'deviceId'),
           ),
-        ).thenAnswer(
-          (_) async => matrix.LoginResponse(
+        ).thenAnswer((invocation) async {
+          capturedIdentifier =
+              invocation.namedArguments[#identifier]
+                  as matrix.AuthenticationIdentifier?;
+          return matrix.LoginResponse(
             accessToken: 'token',
             deviceId: expectedMatrixDeviceId,
             userId: '@alice:example.com',
-          ),
-        );
+          );
+        });
 
-        final userId = await service.login(
-          did: 'did:test:alice',
-          deviceId: deviceToken,
-        );
+        final userId = await service.login(did: did, deviceId: deviceToken);
 
         expect(userId, '@alice:example.com');
+        expect(capturedIdentifier, isA<matrix.AuthenticationUserIdentifier>());
+        final identifier =
+            capturedIdentifier as matrix.AuthenticationUserIdentifier;
+        expect(identifier.user, expectedHashedUsername);
         verify(
           () => matrixClient.login(
             matrix.LoginType.mLoginPassword,
-            user: any(named: 'user'),
+            identifier: any(named: 'identifier'),
             password: any(named: 'password'),
             deviceId: expectedMatrixDeviceId,
           ),
@@ -144,13 +176,31 @@ void main() {
     });
 
     test('createRoomForGroup requires matrix encryption support', () async {
+      const did = 'did:test:alice';
+      const deviceToken = 'push-device-token';
+      final expectedMatrixDeviceId = md5
+          .convert(utf8.encode(deviceToken))
+          .toString();
+
       when(() => matrixClient.encryptionEnabled).thenReturn(false);
+      when(() => matrixClient.accessToken).thenReturn(null);
+      when(
+        () => matrixClient.login(
+          matrix.LoginType.mLoginPassword,
+          identifier: any(named: 'identifier'),
+          password: any(named: 'password'),
+          deviceId: any(named: 'deviceId'),
+        ),
+      ).thenAnswer(
+        (_) async => matrix.LoginResponse(
+          accessToken: 'token',
+          deviceId: expectedMatrixDeviceId,
+          userId: '@alice:example.com',
+        ),
+      );
 
       expect(
-        service.createRoomForGroup(
-          did: 'did:test:alice',
-          deviceId: 'push-device-token',
-        ),
+        service.createRoomForGroup(did: did, deviceId: deviceToken),
         throwsA(isA<StateError>()),
       );
     });
@@ -203,6 +253,216 @@ void main() {
         ).called(1);
       },
     );
+
+    test(
+      'sendImageByMxcUri sends m.image with url referencing the provided mxc URI',
+      () async {
+        const did = 'did:test:alice';
+        const deviceToken = 'push-device-token';
+        final expectedMatrixDeviceId = md5
+            .convert(utf8.encode(deviceToken))
+            .toString();
+
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
+        when(
+          () => matrixClient.getRoomById('!room:example.com'),
+        ).thenReturn(room);
+
+        when(
+          () => matrixClient.login(
+            matrix.LoginType.mLoginPassword,
+            identifier: any(named: 'identifier'),
+            password: any(named: 'password'),
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer(
+          (_) async => matrix.LoginResponse(
+            accessToken: 'token',
+            deviceId: expectedMatrixDeviceId,
+            userId: '@alice:example.com',
+          ),
+        );
+
+        await service.login(did: did, deviceId: deviceToken);
+
+        Map<String, dynamic>? capturedContent;
+        when(
+          () => room.sendEvent(
+            any(),
+            txid: any(named: 'txid'),
+            inReplyTo: any(named: 'inReplyTo'),
+            editEventId: any(named: 'editEventId'),
+            threadRootEventId: any(named: 'threadRootEventId'),
+            threadLastEventId: any(named: 'threadLastEventId'),
+            displayPendingEvent: any(named: 'displayPendingEvent'),
+            type: any(named: 'type'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedContent = Map<String, dynamic>.from(
+            invocation.positionalArguments.first,
+          );
+          return r'$event:example.com';
+        });
+
+        final eventId = await service.sendImageByMxcUri(
+          roomId: '!room:example.com',
+          mxcUri: 'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
+          filename: 'photo.jpg',
+          mimeType: 'image/jpeg',
+          size: 1234,
+          width: 640,
+          height: 480,
+        );
+
+        expect(eventId, r'$event:example.com');
+        expect(capturedContent, isNotNull);
+        expect(capturedContent!['msgtype'], matrix.MessageTypes.Image);
+        expect(
+          capturedContent!['url'],
+          'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
+        );
+        expect(capturedContent!['body'], 'photo.jpg');
+        expect(capturedContent!['filename'], 'photo.jpg');
+        expect(capturedContent!['info'], isA<Map>());
+        final info = Map<String, dynamic>.from(capturedContent!['info']);
+        expect(info['mimetype'], 'image/jpeg');
+        expect(info['size'], 1234);
+        expect(info['w'], 640);
+        expect(info['h'], 480);
+
+        verify(() => room.sendEvent(any(), txid: any(named: 'txid'))).called(1);
+      },
+    );
+
+    test(
+      'sendAudioByMxcUri sends m.audio with url referencing the provided mxc URI',
+      () async {
+        const did = 'did:test:alice';
+        const deviceToken = 'push-device-token';
+        final expectedMatrixDeviceId = md5
+            .convert(utf8.encode(deviceToken))
+            .toString();
+
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
+        when(
+          () => matrixClient.getRoomById('!room:example.com'),
+        ).thenReturn(room);
+
+        when(
+          () => matrixClient.login(
+            matrix.LoginType.mLoginPassword,
+            identifier: any(named: 'identifier'),
+            password: any(named: 'password'),
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer(
+          (_) async => matrix.LoginResponse(
+            accessToken: 'token',
+            deviceId: expectedMatrixDeviceId,
+            userId: '@alice:example.com',
+          ),
+        );
+
+        await service.login(did: did, deviceId: deviceToken);
+
+        Map<String, dynamic>? capturedContent;
+        when(
+          () => room.sendEvent(
+            any(),
+            txid: any(named: 'txid'),
+            inReplyTo: any(named: 'inReplyTo'),
+            editEventId: any(named: 'editEventId'),
+            threadRootEventId: any(named: 'threadRootEventId'),
+            threadLastEventId: any(named: 'threadLastEventId'),
+            displayPendingEvent: any(named: 'displayPendingEvent'),
+            type: any(named: 'type'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedContent = Map<String, dynamic>.from(
+            invocation.positionalArguments.first,
+          );
+          return r'$event:example.com';
+        });
+
+        final eventId = await service.sendAudioByMxcUri(
+          roomId: '!room:example.com',
+          mxcUri: 'mxc://localhost:9000/AudioId123',
+          filename: 'voice.m4a',
+          mimeType: 'audio/mp4',
+          size: 4242,
+          durationMs: 1000,
+        );
+
+        expect(eventId, r'$event:example.com');
+        expect(capturedContent, isNotNull);
+        expect(capturedContent!['msgtype'], matrix.MessageTypes.Audio);
+        expect(capturedContent!['url'], 'mxc://localhost:9000/AudioId123');
+        expect(capturedContent!['body'], 'voice.m4a');
+        expect(capturedContent!['filename'], 'voice.m4a');
+        expect(capturedContent!['info'], isA<Map>());
+        final info = Map<String, dynamic>.from(capturedContent!['info']);
+        expect(info['mimetype'], 'audio/mp4');
+        expect(info['size'], 4242);
+        expect(info['duration'], 1000);
+
+        verify(() => room.sendEvent(any(), txid: any(named: 'txid'))).called(1);
+      },
+    );
+
+    test('uploadMedia uploads bytes via the active Matrix client', () async {
+      const did = 'did:test:alice';
+      const deviceToken = 'push-device-token';
+      final expectedMatrixDeviceId = md5
+          .convert(utf8.encode(deviceToken))
+          .toString();
+
+      when(
+        () => matrixClient.login(
+          matrix.LoginType.mLoginPassword,
+          identifier: any(named: 'identifier'),
+          password: any(named: 'password'),
+          deviceId: any(named: 'deviceId'),
+        ),
+      ).thenAnswer(
+        (_) async => matrix.LoginResponse(
+          accessToken: 'token',
+          deviceId: expectedMatrixDeviceId,
+          userId: '@alice:example.com',
+        ),
+      );
+
+      await service.login(did: did, deviceId: deviceToken);
+
+      when(
+        () => matrixClient.uploadContent(
+          any(),
+          filename: any(named: 'filename'),
+          contentType: any(named: 'contentType'),
+        ),
+      ).thenAnswer((_) async => Uri.parse('mxc://example.com/media123'));
+
+      final result = await service.uploadMedia(
+        Uint8List.fromList([1, 2, 3]),
+        filename: 'photo.jpg',
+        contentType: 'image/jpeg',
+      );
+
+      expect(result, 'mxc://example.com/media123');
+      verify(
+        () => matrixClient.uploadContent(
+          any(),
+          filename: 'photo.jpg',
+          contentType: 'image/jpeg',
+        ),
+      ).called(1);
+    });
+
+    test('uploadMedia throws when there is no active Matrix session', () async {
+      expect(
+        () => service.uploadMedia(Uint8List.fromList([1, 2, 3])),
+        throwsA(isA<StateError>()),
+      );
+    });
   });
 
   group('MatrixService.ensureLoggedIn', () {
@@ -211,7 +471,22 @@ void main() {
 
     setUp(() {
       matrixClient = MockMatrixClient();
-      service = MatrixService(matrixClient: matrixClient);
+      service = MatrixService(matrixClientFactory: (_) async => matrixClient);
+
+      when(
+        () => matrixClient.init(
+          waitForFirstSync: any(named: 'waitForFirstSync'),
+          waitUntilLoadCompletedLoaded: any(
+            named: 'waitUntilLoadCompletedLoaded',
+          ),
+          newToken: any(named: 'newToken'),
+          newHomeserver: any(named: 'newHomeserver'),
+          newUserID: any(named: 'newUserID'),
+          newDeviceID: any(named: 'newDeviceID'),
+          newOlmAccount: any(named: 'newOlmAccount'),
+        ),
+      ).thenAnswer((_) async {});
+      when(() => matrixClient.logout()).thenAnswer((_) async {});
       when(() => matrixClient.accessToken).thenReturn(null);
       when(() => matrixClient.userID).thenReturn(null);
       when(() => matrixClient.deviceID).thenReturn(null);
@@ -227,7 +502,7 @@ void main() {
       when(
         () => matrixClient.login(
           matrix.LoginType.mLoginPassword,
-          user: any(named: 'user'),
+          identifier: any(named: 'identifier'),
           password: any(named: 'password'),
           deviceId: any(named: 'deviceId'),
         ),
@@ -248,7 +523,7 @@ void main() {
       verify(
         () => matrixClient.login(
           matrix.LoginType.mLoginPassword,
-          user: any(named: 'user'),
+          identifier: any(named: 'identifier'),
           password: any(named: 'password'),
           deviceId: expectedMatrixDeviceId,
         ),
@@ -271,6 +546,7 @@ void main() {
           () => matrixClient.userID,
         ).thenReturn('@$expectedLocalpart:example.com');
         when(() => matrixClient.deviceID).thenReturn(expectedMatrixDeviceId);
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
 
         final userId = await service.ensureLoggedIn(
           did: 'did:test:alice',
@@ -281,7 +557,7 @@ void main() {
         verifyNever(
           () => matrixClient.login(
             matrix.LoginType.mLoginPassword,
-            user: any(named: 'user'),
+            identifier: any(named: 'identifier'),
             password: any(named: 'password'),
             deviceId: any(named: 'deviceId'),
           ),
@@ -302,7 +578,7 @@ void main() {
       when(
         () => matrixClient.login(
           matrix.LoginType.mLoginPassword,
-          user: any(named: 'user'),
+          identifier: any(named: 'identifier'),
           password: any(named: 'password'),
           deviceId: any(named: 'deviceId'),
         ),
@@ -323,7 +599,7 @@ void main() {
       verify(
         () => matrixClient.login(
           matrix.LoginType.mLoginPassword,
-          user: any(named: 'user'),
+          identifier: any(named: 'identifier'),
           password: any(named: 'password'),
           deviceId: expectedMatrixDeviceId,
         ),

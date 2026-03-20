@@ -24,9 +24,6 @@ Future<MeetingPlaceCoreSDK> initSDKInstance({
   bool enableMatrixEncryption = false,
 }) async {
   final storage = InMemoryStorage();
-  final matrixClient = await initMatrixClient(
-    enableEncryptionRuntime: enableMatrixEncryption,
-  );
   final sdk = await MeetingPlaceCoreSDK.create(
     wallet: wallet ?? PersistentWallet(InMemoryKeyStore()),
     repositoryConfig: RepositoryConfig(
@@ -40,7 +37,8 @@ Future<MeetingPlaceCoreSDK> initSDKInstance({
     ),
     mediatorDid: getMediatorDid(),
     controlPlaneDid: getControlPlaneDid(),
-    matrixClient: matrixClient,
+    matrixClientFactory: (_) =>
+        initMatrixClient(enableEncryptionRuntime: enableMatrixEncryption),
   );
 
   if (!withoutDevice) {

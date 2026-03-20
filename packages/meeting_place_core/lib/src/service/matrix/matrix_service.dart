@@ -1,4 +1,5 @@
 import "dart:convert";
+import 'dart:typed_data';
 
 import "package:crypto/crypto.dart";
 import "package:matrix/matrix.dart" as matrix;
@@ -59,6 +60,27 @@ class MatrixService {
     }
     _clients[did] = client;
     return client;
+  }
+
+  Future<String> uploadMedia(
+    Uint8List data, {
+    String? filename,
+    String? contentType,
+  }) async {
+    final client = _activeClient;
+    if (client == null) {
+      throw StateError(
+        'No active Matrix session. Ensure a user is logged in before uploading media.',
+      );
+    }
+
+    final mxcUri = await client.uploadContent(
+      data,
+      filename: filename,
+      contentType: contentType,
+    );
+
+    return mxcUri.toString();
   }
 
   // TODO: generate and persist password securely - this is just for testing
@@ -415,6 +437,105 @@ class MatrixService {
     _logger?.info(
       '''Joined MATRIX room ${roomId.topAndTail()}''',
       name: _logKey,
+    );
+  }
+
+  Future<String> _sendFileByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    required String msgType,
+    required String fallbackBody,
+    required String logLabel,
+    String? filename,
+    Map<String, dynamic>? info,
+  }) async {
+    _requireEncryptionReady();
+
+    final room = await _getRoom(roomId);
+    final body = filename?.isNotEmpty == true ? filename! : fallbackBody;
+
+    final content = <String, dynamic>{
+      'msgtype': msgType,
+      'body': body,
+      'url': mxcUri,
+      if (filename != null && filename.isNotEmpty) 'filename': filename,
+      'info': info ?? <String, dynamic>{},
+    };
+
+    final eventId = await room.sendEvent(content, txid: const Uuid().v4());
+
+    if (eventId == null) {
+      throw StateError(
+        'Matrix did not return an event ID when sending to room $roomId.',
+      );
+    }
+
+    _logger?.info(
+      '''Sent $logLabel mxcUri=${mxcUri.toString().topAndTail()}
+      with event id $eventId to MATRIX room ${roomId.topAndTail()}''',
+      name: _logKey,
+    );
+
+    return eventId;
+  }
+
+  /// Sends an image message to a Matrix room by referencing an existing
+  /// `mxc://...` media URI.
+  ///
+  /// This does **not** upload or encrypt the media itself. In encrypted rooms
+  /// the message event will be encrypted by the Matrix SDK, but the media
+  /// remains plaintext on the homeserver.
+  Future<String> sendImageByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    String? filename,
+    String? mimeType,
+    int? size,
+    int? width,
+    int? height,
+  }) async {
+    return _sendFileByMxcUri(
+      roomId: roomId,
+      mxcUri: mxcUri,
+      msgType: matrix.MessageTypes.Image,
+      fallbackBody: 'image',
+      logLabel: 'image',
+      filename: filename,
+      info: {
+        if (mimeType != null && mimeType.isNotEmpty) 'mimetype': mimeType,
+        if (size != null) 'size': size,
+        if (width != null) 'w': width,
+        if (height != null) 'h': height,
+      },
+    );
+  }
+
+  /// Sends an audio message to a Matrix room by referencing an existing
+  /// `mxc://...` media URI.
+  ///
+  /// This does **not** upload or encrypt the media itself. In encrypted rooms
+  /// the message event will be encrypted by the Matrix SDK, but the media
+  /// remains plaintext on the homeserver.
+  Future<String> sendAudioByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    String? filename,
+    String? mimeType,
+    int? size,
+    int? durationMs,
+  }) async {
+    return _sendFileByMxcUri(
+      roomId: roomId,
+      mxcUri: mxcUri,
+      msgType: matrix.MessageTypes.Audio,
+      fallbackBody: 'audio',
+      logLabel: 'audio',
+      filename: filename,
+      info: {
+        if (mimeType != null && mimeType.isNotEmpty) 'mimetype': mimeType,
+        if (size != null) 'size': size,
+        if (durationMs != null) 'duration': durationMs,
+      },
     );
   }
 

@@ -8,7 +8,8 @@ environment:
   sdk: ^3.8.0
 
 dependencies:
-  matrix: ^6.1.1
+  crypto: ^3.0.6
+  matrix: ^6.2.0
   meeting_place_core:
     path: ../../../packages/meeting_place_core
   pretty_json: ^2.0.0

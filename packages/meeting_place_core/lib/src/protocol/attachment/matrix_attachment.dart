@@ -49,6 +49,7 @@ class MatrixAttachment extends Attachment {
     int? byteCount,
     String? hash,
     String? description,
+    AttachmentData? data,
   }) {
     return MatrixAttachment(
       id: const Uuid().v4(),
@@ -59,6 +60,7 @@ class MatrixAttachment extends Attachment {
       byteCount: byteCount,
       hash: hash,
       description: description,
+      data: data,
     );
   }
 

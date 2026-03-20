@@ -1057,6 +1057,7 @@ class GroupService {
         filename: filename,
         mimeType: contentType,
         size: attachment.byteCount,
+        format: attachment.format,
       );
 
       return MatrixAttachment.reference(
@@ -1090,6 +1091,7 @@ class GroupService {
       filename: filename,
       mimeType: contentType,
       size: bytes.length,
+      format: attachment.format,
     );
 
     return MatrixAttachment.reference(
@@ -1100,6 +1102,7 @@ class GroupService {
       byteCount: bytes.length,
       hash: attachment.hash,
       description: attachment.description,
+      data: AttachmentData(base64: base64),
     );
   }
 

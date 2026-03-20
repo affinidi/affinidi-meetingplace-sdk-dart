@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../loggers/logger_formatter.dart';
@@ -132,30 +133,112 @@ abstract class BaseChatSDK {
 
     matrixSubscription = await coreSDK.subscribeToMatrixTimeline(did);
     matrixSubscription!.listen((event) async {
-      if (event.type == 'm.room.message' && event.senderId != userId) {
-        _logger.info(
-          'Handling Matrix chat message event ${event.eventId}',
-          name: methodName,
-        );
+      if (event.senderId == userId) return;
+      if (event.type != 'm.room.message') return;
 
-        final chatMessage = Message(
-          chatId: chatId,
-          messageId: event.eventId,
-          senderDid: otherPartyDid,
-          value: event.content['body'] as String,
-          isFromMe: false,
-          dateCreated: event.originServerTs,
-          status: ChatItemStatus.received,
-          attachments: [],
-        );
+      _logger.info(
+        'Handling Matrix chat message event ${event.eventId}',
+        name: methodName,
+      );
 
-        await chatRepository.createMessage(chatMessage);
+      final attachments = await _extractAttachmentsIfNeeded(
+        event,
+        methodName: methodName,
+      );
 
-        chatStream.pushData(StreamData(chatItem: chatMessage));
-      }
+      final chatMessage = Message(
+        chatId: chatId,
+        messageId: event.eventId,
+        senderDid: otherPartyDid,
+        value: attachments.isNotEmpty
+            ? ''
+            : (event.content['body'] as String?) ?? '',
+        isFromMe: false,
+        dateCreated: event.originServerTs,
+        status: ChatItemStatus.received,
+        attachments: attachments,
+      );
+
+      await chatRepository.createMessage(chatMessage);
+
+      chatStream.pushData(StreamData(chatItem: chatMessage));
     });
 
     return chat;
+  }
+
+  Future<List<Attachment>> _extractAttachmentsIfNeeded(
+    matrix.MatrixEvent event, {
+    required String methodName,
+  }) async {
+    final msgType = event.content['msgtype'] as String?;
+    final mxcUrl = event.content['url'] as String?;
+    final isImageMessage = msgType == matrix.MessageTypes.Image;
+
+    if (!isImageMessage || mxcUrl == null || !mxcUrl.startsWith('mxc://')) {
+      return const [];
+    }
+
+    final filenameRaw = event.content['filename'] as String?;
+    final bodyRaw = event.content['body'] as String?;
+    final filename = (filenameRaw != null && filenameRaw.trim().isNotEmpty)
+        ? filenameRaw.trim()
+        : (bodyRaw != null && bodyRaw.trim().isNotEmpty)
+        ? bodyRaw.trim()
+        : 'image';
+
+    final info = event.content['info'];
+    final infoMap = info is Map ? Map<String, dynamic>.from(info) : null;
+    final infoMimeType = infoMap?['mimetype'] as String?;
+    final format = infoMap?['format'] as String?;
+
+    final attachmentId = const Uuid().v4();
+
+    try {
+      final file = await coreSDK.downloadMatrixMediaByMxcUri(
+        did: did,
+        mxcUri: mxcUrl,
+      );
+
+      final mimeType = (infoMimeType?.trim().isNotEmpty == true)
+          ? infoMimeType!.trim()
+          : (file.contentType?.trim().isNotEmpty == true)
+          ? file.contentType!.trim()
+          : AttachmentMediaType.applicationOctetStream.value;
+
+      return [
+        Attachment(
+          id: attachmentId,
+          format: format,
+          filename: filename,
+          mediaType: mimeType,
+          byteCount: file.data.length,
+          data: AttachmentData(
+            base64: base64Encode(file.data),
+            links: [Uri.parse(mxcUrl)],
+          ),
+        ),
+      ];
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Failed to download Matrix media for $mxcUrl',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+
+      return [
+        Attachment(
+          id: attachmentId,
+          format: format,
+          filename: filename,
+          mediaType: (infoMimeType?.trim().isNotEmpty == true)
+              ? infoMimeType!.trim()
+              : AttachmentMediaType.applicationOctetStream.value,
+          data: AttachmentData(links: [Uri.parse(mxcUrl)]),
+        ),
+      ];
+    }
   }
 
   /// Waits until the mediator channel subscription is ready. Stream of live

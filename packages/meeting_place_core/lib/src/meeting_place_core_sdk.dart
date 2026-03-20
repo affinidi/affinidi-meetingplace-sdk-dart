@@ -9,6 +9,8 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:matrix/matrix_api_lite/generated/fixed_model.dart'
+    as matrix_api;
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_core.dart';
@@ -1206,6 +1208,25 @@ class MeetingPlaceCoreSDK {
     return _matrixService.timelineEventStream(
       did: did,
       deviceId: _controlPlaneSDK.device.deviceToken,
+    );
+  }
+
+  /// Downloads media bytes from the Matrix content repository for an `mxc://...` URI.
+  ///
+  /// Returns a [matrix.FileResponse] with the raw bytes and (if available)
+  /// the detected content type.
+  Future<matrix_api.FileResponse> downloadMatrixMediaByMxcUri({
+    required String did,
+    required String mxcUri,
+    bool allowRemote = true,
+    int? timeoutMs,
+  }) {
+    return _matrixService.downloadMediaByMxcUri(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      mxcUri: mxcUri,
+      allowRemote: allowRemote,
+      timeoutMs: timeoutMs,
     );
   }
 

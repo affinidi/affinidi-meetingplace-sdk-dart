@@ -160,6 +160,17 @@ class MatrixService {
     });
   }
 
+  /// The Matrix-format identity for the local participant: `userId:deviceId`.
+  ///
+  /// This must be used as the LiveKit JWT `sub` so the LiveKit FrameCryptor
+  /// can look up the encryption key by participant identity.
+  String? get localMatrixIdentity {
+    final userId = _activeClient?.userID;
+    final deviceId = _activeClient?.deviceID;
+    if (userId == null || deviceId == null) return null;
+    return '$userId:$deviceId';
+  }
+
   void _logEncryptionDetails(matrix.Event event) {
     final encryptedSource = event.originalSource;
     final cameFromEncryptedEvent =
@@ -704,8 +715,7 @@ class MatrixService {
     final backend = matrix.LiveKitBackend(
       livekitServiceUrl: livekitServiceUrl,
       livekitAlias: livekitAlias,
-      // TODO (Earl): what does it take to enable E2EE with LiveKit backend?
-      e2eeEnabled: false,
+      e2eeEnabled: true,
     );
 
     final session = await voip.fetchOrCreateGroupCall(

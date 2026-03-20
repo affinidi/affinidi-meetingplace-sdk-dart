@@ -1069,6 +1069,24 @@ class GroupService {
     );
   }
 
+  Future<String> sendGroupAudioOverMatrixByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    String? filename,
+    String? mimeType,
+    int? size,
+    int? durationMs,
+  }) {
+    return _matrixService.sendAudioByMxcUri(
+      roomId: roomId,
+      mxcUri: mxcUri,
+      filename: filename,
+      mimeType: mimeType,
+      size: size,
+      durationMs: durationMs,
+    );
+  }
+
   Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
       GroupDeletion.create(groupId: group.id).toPlainTextMessage(),

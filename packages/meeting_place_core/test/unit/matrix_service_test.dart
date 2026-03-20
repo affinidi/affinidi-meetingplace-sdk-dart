@@ -274,6 +274,58 @@ void main() {
         verify(() => room.sendEvent(any(), txid: any(named: 'txid'))).called(1);
       },
     );
+
+    test(
+      'sendAudioByMxcUri sends m.audio with url referencing the provided mxc URI',
+      () async {
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
+        when(
+          () => matrixClient.getRoomById('!room:example.com'),
+        ).thenReturn(room);
+
+        Map<String, dynamic>? capturedContent;
+        when(
+          () => room.sendEvent(
+            any(),
+            txid: any(named: 'txid'),
+            inReplyTo: any(named: 'inReplyTo'),
+            editEventId: any(named: 'editEventId'),
+            threadRootEventId: any(named: 'threadRootEventId'),
+            threadLastEventId: any(named: 'threadLastEventId'),
+            displayPendingEvent: any(named: 'displayPendingEvent'),
+            type: any(named: 'type'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedContent = Map<String, dynamic>.from(
+            invocation.positionalArguments.first,
+          );
+          return r'$event:example.com';
+        });
+
+        final eventId = await service.sendAudioByMxcUri(
+          roomId: '!room:example.com',
+          mxcUri: 'mxc://localhost:9000/AudioId123',
+          filename: 'voice.m4a',
+          mimeType: 'audio/mp4',
+          size: 4242,
+          durationMs: 1000,
+        );
+
+        expect(eventId, r'$event:example.com');
+        expect(capturedContent, isNotNull);
+        expect(capturedContent!['msgtype'], matrix.MessageTypes.Audio);
+        expect(capturedContent!['url'], 'mxc://localhost:9000/AudioId123');
+        expect(capturedContent!['body'], 'voice.m4a');
+        expect(capturedContent!['filename'], 'voice.m4a');
+        expect(capturedContent!['info'], isA<Map>());
+        final info = Map<String, dynamic>.from(capturedContent!['info']);
+        expect(info['mimetype'], 'audio/mp4');
+        expect(info['size'], 4242);
+        expect(info['duration'], 1000);
+
+        verify(() => room.sendEvent(any(), txid: any(named: 'txid'))).called(1);
+      },
+    );
   });
 
   group('MatrixService.ensureLoggedIn', () {

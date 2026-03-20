@@ -1034,6 +1034,26 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  Future<String> sendGroupAudioOverMatrixByMxcUri({
+    required String roomId,
+    required String mxcUri,
+    String? filename,
+    String? mimeType,
+    int? size,
+    int? durationMs,
+  }) {
+    return _withSdkExceptionHandling(() async {
+      return _groupService.sendGroupAudioOverMatrixByMxcUri(
+        roomId: roomId,
+        mxcUri: mxcUri,
+        filename: filename,
+        mimeType: mimeType,
+        size: size,
+        durationMs: durationMs,
+      );
+    });
+  }
+
   /// Sends outreach invitation to owner of [outreachConnectionOffer].
   ///
   /// **Parameters:**

@@ -247,7 +247,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
           name: methodName,
         );
         // Fall back to original attachments if upload fails
-        processedAttachments = matrixAttachments;
+        processedAttachments = attachments;
       }
     }
 

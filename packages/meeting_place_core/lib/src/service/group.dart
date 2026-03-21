@@ -1042,71 +1042,85 @@ class GroupService {
     return eventId;
   }
 
-  Future<MatrixAttachment> sendGroupImageOverMatrixByMxcUri({
+  Future<Attachment> sendGroupImageByUri({
     required String roomId,
-    required MatrixAttachment attachment,
+    required Attachment attachment,
   }) async {
     final filename = attachment.filename ?? 'image';
-    final contentType = attachment.mediaType ?? 'application/octet-stream';
+    final mediaType = attachment.mediaType ?? 'application/octet-stream';
+    final existingData = attachment.data;
 
-    final existingMxcUri = attachment.mxcUri;
-    if (existingMxcUri != null && existingMxcUri.isNotEmpty) {
-      await _matrixService.sendImageByMxcUri(
+    final existingUri = attachment.data?.links?.firstOrNull?.toString();
+    if (existingUri != null && existingUri.isNotEmpty) {
+      await _matrixService.sendImageByUri(
         roomId: roomId,
-        mxcUri: existingMxcUri,
+        uri: existingUri,
         filename: filename,
-        mimeType: contentType,
+        mimeType: mediaType,
         size: attachment.byteCount,
         format: attachment.format,
       );
 
-      return MatrixAttachment.reference(
-        mxcUri: existingMxcUri,
-        filename: filename,
-        contentType: contentType,
-        format: attachment.format,
-        byteCount: attachment.byteCount,
-        hash: attachment.hash,
+      return Attachment(
+        id: attachment.id,
         description: attachment.description,
+        filename: filename,
+        mediaType: mediaType,
+        format: attachment.format,
+        lastModifiedTime: attachment.lastModifiedTime,
+        data: AttachmentData(
+          base64: existingData?.base64,
+          jws: existingData?.jws,
+          hash: existingData?.hash,
+          json: existingData?.json,
+          links: [Uri.parse(existingUri)],
+        ),
+        byteCount: attachment.byteCount,
       );
     }
 
     final base64 = attachment.data?.base64;
     if (base64 == null || base64.isEmpty) {
       throw StateError(
-        'MatrixAttachment is missing base64 data and mxcUri; cannot upload to Matrix media repository.',
+        'Attachment is missing base64 data and Matrix media link; cannot upload to Matrix media repository.',
       );
     }
 
     final bytes = base64Decode(base64);
-    final uploadedMxcUri = await _matrixService.uploadMedia(
+    final uploadedUri = await _matrixService.uploadMedia(
       bytes,
       filename: filename,
-      contentType: contentType,
+      contentType: mediaType,
     );
 
-    await _matrixService.sendImageByMxcUri(
+    await _matrixService.sendImageByUri(
       roomId: roomId,
-      mxcUri: uploadedMxcUri,
+      uri: uploadedUri,
       filename: filename,
-      mimeType: contentType,
+      mimeType: mediaType,
       size: bytes.length,
       format: attachment.format,
     );
 
-    return MatrixAttachment.reference(
-      mxcUri: uploadedMxcUri,
-      filename: filename,
-      contentType: contentType,
-      format: attachment.format,
-      byteCount: bytes.length,
-      hash: attachment.hash,
+    return Attachment(
+      id: attachment.id,
       description: attachment.description,
-      data: AttachmentData(base64: base64),
+      filename: filename,
+      mediaType: mediaType,
+      format: attachment.format,
+      lastModifiedTime: attachment.lastModifiedTime,
+      data: AttachmentData(
+        base64: base64,
+        jws: existingData?.jws,
+        hash: existingData?.hash,
+        json: existingData?.json,
+        links: [Uri.parse(uploadedUri)],
+      ),
+      byteCount: bytes.length,
     );
   }
 
-  Future<String> sendGroupAudioOverMatrixByMxcUri({
+  Future<String> sendGroupAudioByUri({
     required String roomId,
     required String mxcUri,
     String? filename,
@@ -1114,7 +1128,7 @@ class GroupService {
     int? size,
     int? durationMs,
   }) {
-    return _matrixService.sendAudioByMxcUri(
+    return _matrixService.sendAudioByUri(
       roomId: roomId,
       mxcUri: mxcUri,
       filename: filename,

@@ -63,6 +63,16 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     stopChatPresenceInterval();
   }
 
+  @override
+  Future<Message> downloadAttachment({
+    required String messageId,
+    required String attachmentId,
+  }) {
+    throw UnimplementedError(
+      'Matrix attachment download is only supported for group chats.',
+    );
+  }
+
   /// Approves a pending connection request.
   ///
   /// ⚠️ Currently not implemented for individual chats.

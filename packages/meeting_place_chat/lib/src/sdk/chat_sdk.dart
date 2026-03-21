@@ -10,6 +10,10 @@ abstract interface class ChatSDK {
 
   Future<ChatItem?> getMessageById(String messageId);
   Future<List<Message>> fetchNewMessages();
+  Future<Message> downloadAttachment({
+    required String messageId,
+    required String attachmentId,
+  });
 
   Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
 

@@ -11,6 +11,7 @@ import '../entity/message.dart' as entity_chat_message;
 import '../group/chat_group_details_update_handler.dart';
 import '../group/chat_group_member_deregistered_message_handler.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
+import '../utils/attachment_extension.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
@@ -122,6 +123,90 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     await super.end();
   }
 
+  @override
+  Future<Message> downloadAttachment({
+    required String messageId,
+    required String attachmentId,
+  }) async {
+    final methodName = 'downloadAttachment';
+    logger.info(
+      'Started downloading attachment $attachmentId for message $messageId',
+      name: methodName,
+    );
+
+    final chatItem = await chatRepository.getMessage(
+      chatId: chatId,
+      messageId: messageId,
+    );
+
+    if (chatItem is! Message) {
+      final message = 'Message $messageId not found or is not a chat message';
+      logger.error(message, name: methodName);
+      throw StateError(message);
+    }
+
+    final attachmentIndex = chatItem.attachments.indexWhere(
+      (attachment) => attachment.id == attachmentId,
+    );
+    if (attachmentIndex < 0) {
+      final message =
+          'Attachment $attachmentId not found in message $messageId';
+      logger.error(message, name: methodName);
+      throw StateError(message);
+    }
+
+    final existingAttachment = chatItem.attachments[attachmentIndex];
+    final existingBase64 = existingAttachment.data?.base64;
+    if (existingBase64 != null && existingBase64.trim().isNotEmpty) {
+      chatStream.pushData(StreamData(chatItem: chatItem));
+      logger.info(
+        'Attachment $attachmentId already has base64 data; emitted stream event without downloading',
+        name: methodName,
+      );
+      return chatItem;
+    }
+
+    try {
+      final updatedAttachment = await coreSDK.downloadAttachment(
+        did: did,
+        attachment: existingAttachment,
+      );
+
+      final updatedAttachments = [...chatItem.attachments];
+      updatedAttachments[attachmentIndex] = updatedAttachment;
+
+      final updatedMessage = Message(
+        chatId: chatItem.chatId,
+        messageId: chatItem.messageId,
+        senderDid: chatItem.senderDid,
+        value: chatItem.value,
+        isFromMe: chatItem.isFromMe,
+        dateCreated: chatItem.dateCreated,
+        status: chatItem.status,
+        type: chatItem.type,
+        attachments: updatedAttachments,
+        reactions: chatItem.reactions,
+      );
+
+      await chatRepository.updateMesssage(updatedMessage);
+      chatStream.pushData(StreamData(chatItem: updatedMessage));
+
+      logger.info(
+        'Completed downloading attachment $attachmentId for message $messageId',
+        name: methodName,
+      );
+      return updatedMessage;
+    } catch (e, stackTrace) {
+      logger.error(
+        'Failed to download attachment $attachmentId for message $messageId',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      Error.throwWithStackTrace(e, stackTrace);
+    }
+  }
+
   /// Sends a group message via the mediator.
   ///
   /// **Parameters:**
@@ -193,8 +278,9 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
   /// Sends a plain text message with optional attachments to the group.
   ///
-  /// If attachments include base64 payloads, they will be uploaded to Matrix and
-  /// replaced with `MatrixAttachment` references before sending.
+  /// If attachments include base64 payloads or Matrix `mxc://` links, they will
+  /// be sent over Matrix and normalised as attachments whose `data.links`
+  /// contain the Matrix media URI.
   ///
   /// **Parameters:**
   /// - [text]: The plain text content of the message (default: empty string for media-only messages).
@@ -225,23 +311,10 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       final updated = <Attachment>[];
 
       for (final attachment in attachments) {
-        final matrixAttachment = attachment is MatrixAttachment
-            ? attachment
-            : MatrixAttachment(
-                id: attachment.id,
-                description: attachment.description,
-                mediaType: attachment.mediaType,
-                format: attachment.format,
-                data: attachment.data,
-                filename: attachment.filename,
-                byteCount: attachment.byteCount,
-              );
-
-        if (matrixAttachment.mxcUri != null ||
-            matrixAttachment.data?.base64 != null) {
-          final uploaded = await coreSDK.sendGroupImageOverMatrixByMxcUri(
+        if (attachment.hasLink || attachment.data?.base64 != null) {
+          final uploaded = await coreSDK.sendGroupImageByUri(
             roomId: matrixRoomId!,
-            attachment: matrixAttachment,
+            attachment: attachment,
           );
           updated.add(uploaded);
         } else {

@@ -1005,12 +1005,12 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  Future<MatrixAttachment> sendGroupImageOverMatrixByMxcUri({
+  Future<Attachment> sendGroupImageByUri({
     required String roomId,
-    required MatrixAttachment attachment,
+    required Attachment attachment,
   }) {
     return _withSdkExceptionHandling(() async {
-      return _groupService.sendGroupImageOverMatrixByMxcUri(
+      return _groupService.sendGroupImageByUri(
         roomId: roomId,
         attachment: attachment,
       );
@@ -1026,7 +1026,7 @@ class MeetingPlaceCoreSDK {
     int? durationMs,
   }) {
     return _withSdkExceptionHandling(() async {
-      return _groupService.sendGroupAudioOverMatrixByMxcUri(
+      return _groupService.sendGroupAudioByUri(
         roomId: roomId,
         mxcUri: mxcUri,
         filename: filename,
@@ -1221,10 +1221,25 @@ class MeetingPlaceCoreSDK {
     bool allowRemote = true,
     int? timeoutMs,
   }) {
-    return _matrixService.downloadMediaByMxcUri(
+    return _matrixService.downloadMediaByUri(
       did: did,
       deviceId: _controlPlaneSDK.device.deviceToken,
-      mxcUri: mxcUri,
+      uri: mxcUri,
+      allowRemote: allowRemote,
+      timeoutMs: timeoutMs,
+    );
+  }
+
+  Future<Attachment> downloadAttachment({
+    required String did,
+    required Attachment attachment,
+    bool allowRemote = true,
+    int? timeoutMs,
+  }) {
+    return _matrixService.downloadAttachment(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      attachment: attachment,
       allowRemote: allowRemote,
       timeoutMs: timeoutMs,
     );

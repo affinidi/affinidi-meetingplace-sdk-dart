@@ -172,10 +172,10 @@ abstract class BaseChatSDK {
     required String methodName,
   }) async {
     final msgType = event.content['msgtype'] as String?;
-    final mxcUrl = event.content['url'] as String?;
+    final uri = event.content['url'] as String?;
     final isImageMessage = msgType == matrix.MessageTypes.Image;
 
-    if (!isImageMessage || mxcUrl == null || !mxcUrl.startsWith('mxc://')) {
+    if (!isImageMessage || uri == null) {
       return const [];
     }
 
@@ -193,35 +193,26 @@ abstract class BaseChatSDK {
     final format = infoMap?['format'] as String?;
 
     final attachmentId = const Uuid().v4();
+    final attachment = Attachment(
+      id: attachmentId,
+      format: format,
+      filename: filename,
+      mediaType: (infoMimeType != null && infoMimeType.trim().isNotEmpty)
+          ? infoMimeType.trim()
+          : null,
+      data: AttachmentData(links: [Uri.parse(uri)]),
+    );
 
     try {
-      final file = await coreSDK.downloadMatrixMediaByMxcUri(
+      final hydratedAttachment = await coreSDK.downloadAttachment(
         did: did,
-        mxcUri: mxcUrl,
+        attachment: attachment,
       );
 
-      final mimeType = (infoMimeType?.trim().isNotEmpty == true)
-          ? infoMimeType!.trim()
-          : (file.contentType?.trim().isNotEmpty == true)
-          ? file.contentType!.trim()
-          : AttachmentMediaType.applicationOctetStream.value;
-
-      return [
-        Attachment(
-          id: attachmentId,
-          format: format,
-          filename: filename,
-          mediaType: mimeType,
-          byteCount: file.data.length,
-          data: AttachmentData(
-            base64: base64Encode(file.data),
-            links: [Uri.parse(mxcUrl)],
-          ),
-        ),
-      ];
+      return [hydratedAttachment];
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to download Matrix media for $mxcUrl',
+        'Failed to download Matrix media for $uri',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -229,13 +220,13 @@ abstract class BaseChatSDK {
 
       return [
         Attachment(
-          id: attachmentId,
-          format: format,
-          filename: filename,
+          id: attachment.id,
+          format: attachment.format,
+          filename: attachment.filename,
           mediaType: (infoMimeType?.trim().isNotEmpty == true)
               ? infoMimeType!.trim()
               : AttachmentMediaType.applicationOctetStream.value,
-          data: AttachmentData(links: [Uri.parse(mxcUrl)]),
+          data: attachment.data,
         ),
       ];
     }

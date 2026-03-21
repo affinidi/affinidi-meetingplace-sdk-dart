@@ -2,6 +2,7 @@ import "dart:convert";
 import 'dart:typed_data';
 
 import "package:crypto/crypto.dart";
+import 'package:didcomm/didcomm.dart' show Attachment, AttachmentData;
 import "package:matrix/matrix.dart" as matrix;
 import 'package:matrix/matrix_api_lite/generated/fixed_model.dart'
     as matrix_api;
@@ -89,24 +90,22 @@ class MatrixService {
   ///
   /// Returns a [matrix.FileResponse] containing the raw bytes and (if available)
   /// the detected content type.
-  Future<matrix_api.FileResponse> downloadMediaByMxcUri({
+  Future<matrix_api.FileResponse> downloadMediaByUri({
     required String did,
     required String deviceId,
-    required String mxcUri,
+    required String uri,
     bool allowRemote = true,
     int? timeoutMs,
   }) async {
     await ensureLoggedIn(did: did, deviceId: deviceId);
 
-    final uri = Uri.parse(mxcUri);
-    if (uri.scheme != 'mxc' ||
-        uri.authority.isEmpty ||
-        uri.pathSegments.isEmpty) {
-      throw FormatException('Invalid mxc URI: $mxcUri');
+    final mediaUri = Uri.parse(uri);
+    if (mediaUri.authority.isEmpty || mediaUri.pathSegments.isEmpty) {
+      throw FormatException('Invalid URI: $uri');
     }
 
-    final serverName = uri.authority;
-    final mediaId = uri.pathSegments.first;
+    final serverName = mediaUri.authority;
+    final mediaId = mediaUri.pathSegments.first;
 
     final client = _clients[did]!;
     return client.getContent(
@@ -115,6 +114,31 @@ class MatrixService {
       allowRemote: allowRemote,
       timeoutMs: timeoutMs,
     );
+  }
+
+  Future<Attachment> downloadAttachment({
+    required String did,
+    required String deviceId,
+    required Attachment attachment,
+    bool allowRemote = true,
+    int? timeoutMs,
+  }) async {
+    final uri = attachment.data?.links?.firstOrNull?.toString();
+    if (uri == null) {
+      throw StateError(
+        'Attachment ${attachment.id} does not have base64 data or a Matrix media link.',
+      );
+    }
+
+    final file = await downloadMediaByUri(
+      did: did,
+      deviceId: deviceId,
+      uri: uri,
+      allowRemote: allowRemote,
+      timeoutMs: timeoutMs,
+    );
+
+    return _attachmentWithDownloadedData(attachment, file);
   }
 
   // TODO: generate and persist password securely - this is just for testing
@@ -196,6 +220,38 @@ class MatrixService {
 
   String _toMatrixDeviceId(String deviceToken) =>
       md5.convert(utf8.encode(deviceToken)).toString();
+
+  Attachment _attachmentWithDownloadedData(
+    Attachment attachment,
+    matrix_api.FileResponse file,
+  ) {
+    final existingData = attachment.data;
+    final contentType = attachment.mediaType?.trim();
+    final downloadedContentType = file.contentType?.trim();
+    final mediaType = (contentType != null && contentType.isNotEmpty)
+        ? contentType
+        : (downloadedContentType != null && downloadedContentType.isNotEmpty)
+        ? downloadedContentType
+        : 'application/octet-stream';
+    final updatedData = AttachmentData(
+      base64: base64Encode(file.data),
+      jws: existingData?.jws,
+      hash: existingData?.hash,
+      json: existingData?.json,
+      links: existingData?.links ?? const <Uri>[],
+    );
+
+    return Attachment(
+      id: attachment.id,
+      description: attachment.description,
+      filename: attachment.filename,
+      mediaType: mediaType,
+      format: attachment.format,
+      lastModifiedTime: attachment.lastModifiedTime,
+      data: updatedData,
+      byteCount: file.data.length,
+    );
+  }
 
   Future<matrix.Room> _getRoom(String roomId) async {
     final client = _activeClient;
@@ -519,9 +575,9 @@ class MatrixService {
   /// This does **not** upload or encrypt the media itself. In encrypted rooms
   /// the message event will be encrypted by the Matrix SDK, but the media
   /// remains plaintext on the homeserver.
-  Future<String> sendImageByMxcUri({
+  Future<String> sendImageByUri({
     required String roomId,
-    required String mxcUri,
+    required String uri,
     String? filename,
     String? mimeType,
     String? format,
@@ -531,7 +587,7 @@ class MatrixService {
   }) async {
     return _sendFileByMxcUri(
       roomId: roomId,
-      mxcUri: mxcUri,
+      mxcUri: uri,
       msgType: matrix.MessageTypes.Image,
       fallbackBody: 'image',
       logLabel: 'image',
@@ -552,7 +608,7 @@ class MatrixService {
   /// This does **not** upload or encrypt the media itself. In encrypted rooms
   /// the message event will be encrypted by the Matrix SDK, but the media
   /// remains plaintext on the homeserver.
-  Future<String> sendAudioByMxcUri({
+  Future<String> sendAudioByUri({
     required String roomId,
     required String mxcUri,
     String? filename,

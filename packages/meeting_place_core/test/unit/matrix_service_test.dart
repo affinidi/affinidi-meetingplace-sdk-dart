@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:matrix/matrix_api_lite/generated/fixed_model.dart'
     as matrix_api;
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -306,9 +307,9 @@ void main() {
           return r'$event:example.com';
         });
 
-        final eventId = await service.sendImageByMxcUri(
+        final eventId = await service.sendImageByUri(
           roomId: '!room:example.com',
-          mxcUri: 'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
+          uri: 'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
           filename: 'photo.jpg',
           mimeType: 'image/jpeg',
           size: 1234,
@@ -386,7 +387,7 @@ void main() {
           return r'$event:example.com';
         });
 
-        final eventId = await service.sendAudioByMxcUri(
+        final eventId = await service.sendAudioByUri(
           roomId: '!room:example.com',
           mxcUri: 'mxc://localhost:9000/AudioId123',
           filename: 'voice.m4a',
@@ -466,8 +467,63 @@ void main() {
       );
     });
 
+    test('downloadMediaByUri downloads bytes via matrix getContent', () async {
+      const did = 'did:test:alice';
+      const deviceToken = 'push-device-token';
+      final expectedMatrixDeviceId = md5
+          .convert(utf8.encode(deviceToken))
+          .toString();
+
+      when(
+        () => matrixClient.login(
+          matrix.LoginType.mLoginPassword,
+          identifier: any(named: 'identifier'),
+          password: any(named: 'password'),
+          deviceId: any(named: 'deviceId'),
+        ),
+      ).thenAnswer(
+        (_) async => matrix.LoginResponse(
+          accessToken: 'token',
+          deviceId: expectedMatrixDeviceId,
+          userId: '@alice:example.com',
+        ),
+      );
+
+      when(
+        () => matrixClient.getContent(
+          'localhost:9000',
+          'FkQfmXCmuDlXmYDKPuvWsCrg',
+          allowRemote: any(named: 'allowRemote'),
+          timeoutMs: any(named: 'timeoutMs'),
+        ),
+      ).thenAnswer(
+        (_) async => matrix_api.FileResponse(
+          contentType: 'image/jpeg',
+          data: Uint8List.fromList([1, 2, 3]),
+        ),
+      );
+
+      final response = await service.downloadMediaByUri(
+        did: did,
+        deviceId: deviceToken,
+        uri: 'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
+      );
+
+      expect(response.contentType, 'image/jpeg');
+      expect(response.data, Uint8List.fromList([1, 2, 3]));
+
+      verify(
+        () => matrixClient.getContent(
+          'localhost:9000',
+          'FkQfmXCmuDlXmYDKPuvWsCrg',
+          allowRemote: true,
+          timeoutMs: null,
+        ),
+      ).called(1);
+    });
+
     test(
-      'downloadMediaByMxcUri downloads bytes via matrix getContent',
+      'downloadAttachment hydrates a plain attachment from its mxc link',
       () async {
         const did = 'did:test:alice';
         const deviceToken = 'push-device-token';
@@ -504,57 +560,131 @@ void main() {
           ),
         );
 
-        final response = await service.downloadMediaByMxcUri(
-          did: did,
-          deviceId: deviceToken,
-          mxcUri: 'mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg',
+        final attachment = Attachment(
+          id: 'attachment-1',
+          filename: 'photo.jpg',
+          data: AttachmentData(
+            links: [Uri.parse('mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg')],
+          ),
         );
 
-        expect(response.contentType, 'image/jpeg');
-        expect(response.data, Uint8List.fromList([1, 2, 3]));
+        final result = await service.downloadAttachment(
+          did: did,
+          deviceId: deviceToken,
+          attachment: attachment,
+        );
 
-        verify(
-          () => matrixClient.getContent(
-            'localhost:9000',
-            'FkQfmXCmuDlXmYDKPuvWsCrg',
-            allowRemote: true,
-            timeoutMs: null,
-          ),
-        ).called(1);
+        expect(result, isA<Attachment>());
+        expect(result.id, 'attachment-1');
+        expect(result.filename, 'photo.jpg');
+        expect(result.mediaType, 'image/jpeg');
+        expect(result.byteCount, 3);
+        expect(result.data?.base64, base64Encode([1, 2, 3]));
+        expect(result.data?.links, [
+          Uri.parse('mxc://localhost:9000/FkQfmXCmuDlXmYDKPuvWsCrg'),
+        ]);
       },
     );
 
-    test('downloadMediaByMxcUri throws for invalid mxc URI', () async {
-      const did = 'did:test:alice';
-      const deviceToken = 'push-device-token';
-      final expectedMatrixDeviceId = md5
-          .convert(utf8.encode(deviceToken))
-          .toString();
+    test(
+      'downloadAttachment preserves attachment metadata while hydrating from an mxc link',
+      () async {
+        const did = 'did:test:alice';
+        const deviceToken = 'push-device-token';
+        final expectedMatrixDeviceId = md5
+            .convert(utf8.encode(deviceToken))
+            .toString();
 
-      when(
-        () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
-          identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
-          deviceId: any(named: 'deviceId'),
-        ),
-      ).thenAnswer(
-        (_) async => matrix.LoginResponse(
-          accessToken: 'token',
-          deviceId: expectedMatrixDeviceId,
-          userId: '@alice:example.com',
-        ),
-      );
+        when(
+          () => matrixClient.login(
+            matrix.LoginType.mLoginPassword,
+            identifier: any(named: 'identifier'),
+            password: any(named: 'password'),
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer(
+          (_) async => matrix.LoginResponse(
+            accessToken: 'token',
+            deviceId: expectedMatrixDeviceId,
+            userId: '@alice:example.com',
+          ),
+        );
 
-      expect(
-        () => service.downloadMediaByMxcUri(
+        when(
+          () => matrixClient.getContent(
+            'localhost:9000',
+            'media123',
+            allowRemote: any(named: 'allowRemote'),
+            timeoutMs: any(named: 'timeoutMs'),
+          ),
+        ).thenAnswer(
+          (_) async => matrix_api.FileResponse(
+            contentType: 'image/png',
+            data: Uint8List.fromList([4, 5, 6, 7]),
+          ),
+        );
+
+        final attachment = Attachment(
+          id: 'matrix-attachment-1',
+          filename: 'diagram.png',
+          mediaType: 'image/custom',
+          data: AttachmentData(
+            jws: 'jws-token',
+            hash: 'hash-123',
+            links: [Uri.parse('mxc://localhost:9000/media123')],
+          ),
+        );
+
+        final result = await service.downloadAttachment(
           did: did,
           deviceId: deviceToken,
-          mxcUri: 'https://example.com/not-mxc',
-        ),
-        throwsA(isA<FormatException>()),
-      );
-    });
+          attachment: attachment,
+        );
+
+        expect(result, isA<Attachment>());
+        expect(result.id, 'matrix-attachment-1');
+        expect(result.filename, 'diagram.png');
+        expect(result.mediaType, 'image/custom');
+        expect(result.byteCount, 4);
+        expect(result.data?.jws, 'jws-token');
+        expect(result.data?.hash, 'hash-123');
+        expect(result.data?.links, [
+          Uri.parse('mxc://localhost:9000/media123'),
+        ]);
+        expect(result.data?.base64, base64Encode([4, 5, 6, 7]));
+      },
+    );
+
+    test(
+      'downloadAttachment throws when attachment has no mxc link or mxcUri',
+      () async {
+        const did = 'did:test:alice';
+        const deviceToken = 'push-device-token';
+
+        final attachment = Attachment(
+          id: 'attachment-without-source',
+          filename: 'photo.jpg',
+        );
+
+        await expectLater(
+          service.downloadAttachment(
+            did: did,
+            deviceId: deviceToken,
+            attachment: attachment,
+          ),
+          throwsA(isA<StateError>()),
+        );
+
+        verifyNever(
+          () => matrixClient.getContent(
+            any(),
+            any(),
+            allowRemote: any(named: 'allowRemote'),
+            timeoutMs: any(named: 'timeoutMs'),
+          ),
+        );
+      },
+    );
   });
 
   group('MatrixService.ensureLoggedIn', () {

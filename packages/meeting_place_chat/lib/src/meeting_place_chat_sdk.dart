@@ -125,6 +125,17 @@ class MeetingPlaceChatSDK implements ChatSDK {
     return _sdk.fetchNewMessages();
   }
 
+  @override
+  Future<Message> downloadAttachment({
+    required String messageId,
+    required String attachmentId,
+  }) {
+    return _sdk.downloadAttachment(
+      messageId: messageId,
+      attachmentId: attachmentId,
+    );
+  }
+
   /// Sends the profile hash to the channel.
   @override
   Future<void> sendProfileHash() {

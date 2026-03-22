@@ -1204,6 +1204,15 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  /// Returns the local participant's Matrix identity string: `userId:deviceId`.
+  ///
+  /// Use this as the LiveKit JWT `sub` / `participantId` so the LiveKit frame
+  /// cryptor can match incoming keys (stored under this identity by the Matrix
+  /// `EncryptionKeyProvider`) to the correct participant.
+  ///
+  /// Returns `null` before [loginToMatrixServer] completes.
+  String? get matrixParticipantId => _matrixService.localMatrixIdentity;
+
   Future<Stream<matrix.Event>> subscribeToMatrixTimeline(String did) {
     return _matrixService.timelineEventStream(
       did: did,

@@ -2,6 +2,23 @@ import '../../meeting_place_chat.dart';
 import 'chat.dart';
 
 abstract interface class ChatSDK {
+  static bool _automaticDownloadEnabled = true;
+
+  /// Enables automatic download of incoming Matrix media attachments.
+  static void enableAutomaticDownload() {
+    _automaticDownloadEnabled = true;
+  }
+
+  /// Disables automatic download of incoming Matrix media attachments.
+  static void disableAutomaticDownload() {
+    _automaticDownloadEnabled = false;
+  }
+
+  /// Returns whether incoming Matrix media attachments are auto-downloaded.
+  static bool isAutomaticDownloadEnabled() {
+    return _automaticDownloadEnabled;
+  }
+
   Future<List<ChatItem>> get messages;
   Future<ChatStream?> get chatStreamSubscription;
 

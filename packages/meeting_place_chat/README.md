@@ -123,6 +123,27 @@ void main() async {
 
 For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_chat/example).
 
+## Matrix attachment downloads
+
+Automatic download of incoming Matrix image attachments is enabled by default.
+
+If you want to keep incoming attachments as Matrix media links and download the
+binary data later on demand, disable it globally before starting or resuming
+chat sessions:
+
+```dart
+ChatSDK.disableAutomaticDownload();
+
+final enabled = ChatSDK.isAutomaticDownloadEnabled();
+
+// Re-enable the default behavior when needed.
+ChatSDK.enableAutomaticDownload();
+```
+
+When automatic download is disabled, incoming attachments are still emitted and
+persisted with their Matrix URL in `AttachmentData.links`. Group chats can then
+hydrate the attachment later via `downloadAttachment(messageId, attachmentId)`.
+
 ## Running tests locally
 
 ### Option 1: Running tests via `melos` (recommended for CI and automation)

@@ -193,15 +193,20 @@ abstract class BaseChatSDK {
     final format = infoMap?['format'] as String?;
 
     final attachmentId = const Uuid().v4();
+    final attachmentMediaType = (infoMimeType?.trim().isNotEmpty == true)
+        ? infoMimeType!.trim()
+        : AttachmentMediaType.applicationOctetStream.value;
     final attachment = Attachment(
       id: attachmentId,
       format: format,
       filename: filename,
-      mediaType: (infoMimeType != null && infoMimeType.trim().isNotEmpty)
-          ? infoMimeType.trim()
-          : null,
+      mediaType: attachmentMediaType,
       data: AttachmentData(links: [Uri.parse(uri)]),
     );
+
+    if (!ChatSDK.isAutomaticDownloadEnabled()) {
+      return [attachment];
+    }
 
     try {
       final hydratedAttachment = await coreSDK.downloadAttachment(
@@ -223,9 +228,7 @@ abstract class BaseChatSDK {
           id: attachment.id,
           format: attachment.format,
           filename: attachment.filename,
-          mediaType: (infoMimeType?.trim().isNotEmpty == true)
-              ? infoMimeType!.trim()
-              : AttachmentMediaType.applicationOctetStream.value,
+          mediaType: attachment.mediaType,
           data: attachment.data,
         ),
       ];

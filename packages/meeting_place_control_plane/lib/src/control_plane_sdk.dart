@@ -22,6 +22,7 @@ import 'command/finalise_acceptance/finalise_acceptance_handler.dart';
 import 'command/get_pending_notifications/get_pending_notifications_handler.dart';
 import 'command/group_add_member/group_add_member_handler.dart';
 import 'command/group_send_message/group_send_message_handler.dart';
+import 'command/matrix_registration_credential/matrix_registration_credential_handler.dart';
 import 'command/notify_acceptance/notify_acceptance_handler.dart';
 import 'command/notify_acceptance_group/notify_acceptance_handler.dart';
 import 'command/notify_channel/notify_channel_handler.dart';
@@ -311,6 +312,13 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       NotifyOutreachHandler(apiClient: _controlPlaneApiClient),
+    );
+
+    _dispatcher.registerHandler(
+      MatrixRegistrationCredentialHandler(
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
     );
 
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(

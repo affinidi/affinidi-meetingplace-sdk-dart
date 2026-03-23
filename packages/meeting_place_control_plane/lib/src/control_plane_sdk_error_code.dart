@@ -91,6 +91,12 @@ enum ControlPlaneSDKErrorCode {
   validateOfferPhraseTimeout('validate_offer_phrase_timeout'),
   validateOfferPhraseGeneric('validate_offer_phrase_generic'),
 
+  // matrix registration credential codes
+  matrixRegistrationCredentialInvalidResponse(
+    'matrix_registration_credential_invalid_response',
+  ),
+  matrixRegistrationCredentialGeneric('matrix_registration_credential_generic'),
+
   // others
   networkError('network_error'),
   generic('generic');

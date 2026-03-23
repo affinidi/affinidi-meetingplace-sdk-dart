@@ -20,7 +20,8 @@ class ControlPlaneApiClient {
     required ControlPlaneSDK controlPlaneSDK,
     required String controlPlaneDid,
     required ControlPlaneSDKLogger logger,
-  }) : _mpxClient = api_client.ControlPlaneApi(
+  }) : _dio = dio,
+       _mpxClient = api_client.ControlPlaneApi(
          basePath: basePath,
          dio: dio,
          interceptors: [
@@ -38,9 +39,14 @@ class ControlPlaneApiClient {
   static const String _className = 'DiscoveryApiClient';
 
   final api_client.ControlPlaneApi _mpxClient;
+  final Dio _dio;
   final ControlPlaneSDKLogger _logger;
 
   api_client.DefaultApi get client => _mpxClient.getDefaultApi();
+
+  /// Low-level HTTP client, configured with the same interceptors as the
+  /// generated API client.
+  Dio get dio => _dio;
 
   /// Creates and initializes an instance of [ControlPlaneApiClient].
   ///

@@ -5,6 +5,9 @@ abstract interface class ChatSDK {
   Future<List<ChatItem>> get messages;
   Future<ChatStream?> get chatStreamSubscription;
 
+  /// The current user's own Matrix user ID, available after [startChatSession].
+  String? get ownMatrixUserId;
+
   Future<Chat> startChatSession();
   void endChatSession();
 
@@ -15,7 +18,11 @@ abstract interface class ChatSDK {
     required String attachmentId,
   });
 
-  Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
+  Future<Message> sendTextMessage(
+    String text, {
+    List<Attachment>? attachments,
+    List<String>? mentionUserIds,
+  });
 
   Future<void> sendMessage(PlainTextMessage message, {bool notify = false});
   Future<void> sendProfileHash();

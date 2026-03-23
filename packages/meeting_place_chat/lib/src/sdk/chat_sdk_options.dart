@@ -23,6 +23,7 @@ class ChatSDKOptions {
     this.chatPresenceExpiry = const Duration(seconds: 15),
     this.chatActivityExpiry = const Duration(seconds: 3),
     this.requiresAcknowledgement = const [ChatProtocol.chatMessage],
+    this.onlyHandleMentionedMatrixMessages = false,
     this.memberJoinedIndicator = const [
       ChatProtocol.chatPresence,
       ChatProtocol.chatMessage,
@@ -58,6 +59,13 @@ class ChatSDKOptions {
   ///
   /// Defaults to `3` seconds.
   final Duration chatActivityExpiry;
+
+  /// When `true`, incoming Matrix room messages are only processed and surfaced
+  /// to the consumer if the local user's Matrix ID appears in the event's
+  /// `m.mentions.user_ids` list.
+  ///
+  /// Defaults to `false` (all messages are delivered regardless of mentions).
+  final bool onlyHandleMentionedMatrixMessages;
 
   /// List of ChatProtocol message types used to determine whether a member
   /// has opened the chat screen for the first time after joining the group.

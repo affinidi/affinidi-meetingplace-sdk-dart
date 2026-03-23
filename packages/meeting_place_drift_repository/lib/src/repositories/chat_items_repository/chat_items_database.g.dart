@@ -77,6 +77,12 @@ class $ChatItemsTable extends ChatItems
   late final GeneratedColumn<String> senderDid = GeneratedColumn<String>(
       'sender_did', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _mentionedUserIdsMeta =
+      const VerificationMeta('mentionedUserIds');
+  @override
+  late final GeneratedColumn<String> mentionedUserIds = GeneratedColumn<String>(
+      'mentioned_user_ids', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         chatId,
@@ -89,7 +95,8 @@ class $ChatItemsTable extends ChatItems
         eventType,
         conciergeType,
         data,
-        senderDid
+        senderDid,
+        mentionedUserIds
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -133,6 +140,12 @@ class $ChatItemsTable extends ChatItems
     } else if (isInserting) {
       context.missing(_senderDidMeta);
     }
+    if (data.containsKey('mentioned_user_ids')) {
+      context.handle(
+          _mentionedUserIdsMeta,
+          mentionedUserIds.isAcceptableOrUnknown(
+              data['mentioned_user_ids']!, _mentionedUserIdsMeta));
+    }
     return context;
   }
 
@@ -167,6 +180,8 @@ class $ChatItemsTable extends ChatItems
           .read(DriftSqlType.string, data['${effectivePrefix}data'])),
       senderDid: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sender_did'])!,
+      mentionedUserIds: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}mentioned_user_ids']),
     );
   }
 
@@ -226,6 +241,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
 
   /// DID of the sender.
   final String senderDid;
+
+  /// JSON-encoded list of Matrix user IDs mentioned in this message.
+  final String? mentionedUserIds;
   const ChatItem(
       {required this.chatId,
       required this.messageId,
@@ -237,7 +255,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       this.eventType,
       this.conciergeType,
       this.data,
-      required this.senderDid});
+      required this.senderDid,
+      this.mentionedUserIds});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -268,6 +287,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           Variable<String>($ChatItemsTable.$converterdatan.toSql(data));
     }
     map['sender_did'] = Variable<String>(senderDid);
+    if (!nullToAbsent || mentionedUserIds != null) {
+      map['mentioned_user_ids'] = Variable<String>(mentionedUserIds);
+    }
     return map;
   }
 
@@ -289,6 +311,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           : Value(conciergeType),
       data: data == null && nullToAbsent ? const Value.absent() : Value(data),
       senderDid: Value(senderDid),
+      mentionedUserIds: mentionedUserIds == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mentionedUserIds),
     );
   }
 
@@ -308,6 +333,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           serializer.fromJson<ConciergeMessageType?>(json['conciergeType']),
       data: serializer.fromJson<Map<String, dynamic>?>(json['data']),
       senderDid: serializer.fromJson<String>(json['senderDid']),
+      mentionedUserIds: serializer.fromJson<String?>(json['mentionedUserIds']),
     );
   }
   @override
@@ -325,6 +351,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       'conciergeType': serializer.toJson<ConciergeMessageType?>(conciergeType),
       'data': serializer.toJson<Map<String, dynamic>?>(data),
       'senderDid': serializer.toJson<String>(senderDid),
+      'mentionedUserIds': serializer.toJson<String?>(mentionedUserIds),
     };
   }
 
@@ -339,7 +366,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           Value<EventMessageType?> eventType = const Value.absent(),
           Value<ConciergeMessageType?> conciergeType = const Value.absent(),
           Value<Map<String, dynamic>?> data = const Value.absent(),
-          String? senderDid}) =>
+          String? senderDid,
+          Value<String?> mentionedUserIds = const Value.absent()}) =>
       ChatItem(
         chatId: chatId ?? this.chatId,
         messageId: messageId ?? this.messageId,
@@ -353,6 +381,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
             conciergeType.present ? conciergeType.value : this.conciergeType,
         data: data.present ? data.value : this.data,
         senderDid: senderDid ?? this.senderDid,
+        mentionedUserIds: mentionedUserIds.present
+            ? mentionedUserIds.value
+            : this.mentionedUserIds,
       );
   ChatItem copyWithCompanion(ChatItemsCompanion data) {
     return ChatItem(
@@ -370,6 +401,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           : this.conciergeType,
       data: data.data.present ? data.data.value : this.data,
       senderDid: data.senderDid.present ? data.senderDid.value : this.senderDid,
+      mentionedUserIds: data.mentionedUserIds.present
+          ? data.mentionedUserIds.value
+          : this.mentionedUserIds,
     );
   }
 
@@ -386,14 +420,26 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           ..write('eventType: $eventType, ')
           ..write('conciergeType: $conciergeType, ')
           ..write('data: $data, ')
-          ..write('senderDid: $senderDid')
+          ..write('senderDid: $senderDid, ')
+          ..write('mentionedUserIds: $mentionedUserIds')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(chatId, messageId, value, isFromMe,
-      dateCreated, status, type, eventType, conciergeType, data, senderDid);
+  int get hashCode => Object.hash(
+      chatId,
+      messageId,
+      value,
+      isFromMe,
+      dateCreated,
+      status,
+      type,
+      eventType,
+      conciergeType,
+      data,
+      senderDid,
+      mentionedUserIds);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -408,7 +454,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           other.eventType == this.eventType &&
           other.conciergeType == this.conciergeType &&
           other.data == this.data &&
-          other.senderDid == this.senderDid);
+          other.senderDid == this.senderDid &&
+          other.mentionedUserIds == this.mentionedUserIds);
 }
 
 class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
@@ -423,6 +470,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
   final Value<ConciergeMessageType?> conciergeType;
   final Value<Map<String, dynamic>?> data;
   final Value<String> senderDid;
+  final Value<String?> mentionedUserIds;
   final Value<int> rowid;
   const ChatItemsCompanion({
     this.chatId = const Value.absent(),
@@ -436,6 +484,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     this.conciergeType = const Value.absent(),
     this.data = const Value.absent(),
     this.senderDid = const Value.absent(),
+    this.mentionedUserIds = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChatItemsCompanion.insert({
@@ -450,6 +499,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     this.conciergeType = const Value.absent(),
     this.data = const Value.absent(),
     required String senderDid,
+    this.mentionedUserIds = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : chatId = Value(chatId),
         messageId = Value(messageId),
@@ -468,6 +518,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     Expression<int>? conciergeType,
     Expression<String>? data,
     Expression<String>? senderDid,
+    Expression<String>? mentionedUserIds,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -482,6 +533,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       if (conciergeType != null) 'concierge_type': conciergeType,
       if (data != null) 'data': data,
       if (senderDid != null) 'sender_did': senderDid,
+      if (mentionedUserIds != null) 'mentioned_user_ids': mentionedUserIds,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -498,6 +550,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       Value<ConciergeMessageType?>? conciergeType,
       Value<Map<String, dynamic>?>? data,
       Value<String>? senderDid,
+      Value<String?>? mentionedUserIds,
       Value<int>? rowid}) {
     return ChatItemsCompanion(
       chatId: chatId ?? this.chatId,
@@ -511,6 +564,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       conciergeType: conciergeType ?? this.conciergeType,
       data: data ?? this.data,
       senderDid: senderDid ?? this.senderDid,
+      mentionedUserIds: mentionedUserIds ?? this.mentionedUserIds,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -556,6 +610,9 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     if (senderDid.present) {
       map['sender_did'] = Variable<String>(senderDid.value);
     }
+    if (mentionedUserIds.present) {
+      map['mentioned_user_ids'] = Variable<String>(mentionedUserIds.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -576,6 +633,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
           ..write('conciergeType: $conciergeType, ')
           ..write('data: $data, ')
           ..write('senderDid: $senderDid, ')
+          ..write('mentionedUserIds: $mentionedUserIds, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1697,6 +1755,7 @@ typedef $$ChatItemsTableCreateCompanionBuilder = ChatItemsCompanion Function({
   Value<ConciergeMessageType?> conciergeType,
   Value<Map<String, dynamic>?> data,
   required String senderDid,
+  Value<String?> mentionedUserIds,
   Value<int> rowid,
 });
 typedef $$ChatItemsTableUpdateCompanionBuilder = ChatItemsCompanion Function({
@@ -1711,6 +1770,7 @@ typedef $$ChatItemsTableUpdateCompanionBuilder = ChatItemsCompanion Function({
   Value<ConciergeMessageType?> conciergeType,
   Value<Map<String, dynamic>?> data,
   Value<String> senderDid,
+  Value<String?> mentionedUserIds,
   Value<int> rowid,
 });
 
@@ -1805,6 +1865,10 @@ class $$ChatItemsTableFilterComposer
   ColumnFilters<String> get senderDid => $composableBuilder(
       column: $table.senderDid, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get mentionedUserIds => $composableBuilder(
+      column: $table.mentionedUserIds,
+      builder: (column) => ColumnFilters(column));
+
   Expression<bool> reactionsRefs(
       Expression<bool> Function($$ReactionsTableFilterComposer f) f) {
     final $$ReactionsTableFilterComposer composer = $composerBuilder(
@@ -1890,6 +1954,10 @@ class $$ChatItemsTableOrderingComposer
 
   ColumnOrderings<String> get senderDid => $composableBuilder(
       column: $table.senderDid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mentionedUserIds => $composableBuilder(
+      column: $table.mentionedUserIds,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$ChatItemsTableAnnotationComposer
@@ -1934,6 +2002,9 @@ class $$ChatItemsTableAnnotationComposer
 
   GeneratedColumn<String> get senderDid =>
       $composableBuilder(column: $table.senderDid, builder: (column) => column);
+
+  GeneratedColumn<String> get mentionedUserIds => $composableBuilder(
+      column: $table.mentionedUserIds, builder: (column) => column);
 
   Expression<T> reactionsRefs<T extends Object>(
       Expression<T> Function($$ReactionsTableAnnotationComposer a) f) {
@@ -2012,6 +2083,7 @@ class $$ChatItemsTableTableManager extends RootTableManager<
             Value<ConciergeMessageType?> conciergeType = const Value.absent(),
             Value<Map<String, dynamic>?> data = const Value.absent(),
             Value<String> senderDid = const Value.absent(),
+            Value<String?> mentionedUserIds = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChatItemsCompanion(
@@ -2026,6 +2098,7 @@ class $$ChatItemsTableTableManager extends RootTableManager<
             conciergeType: conciergeType,
             data: data,
             senderDid: senderDid,
+            mentionedUserIds: mentionedUserIds,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2040,6 +2113,7 @@ class $$ChatItemsTableTableManager extends RootTableManager<
             Value<ConciergeMessageType?> conciergeType = const Value.absent(),
             Value<Map<String, dynamic>?> data = const Value.absent(),
             required String senderDid,
+            Value<String?> mentionedUserIds = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChatItemsCompanion.insert(
@@ -2054,6 +2128,7 @@ class $$ChatItemsTableTableManager extends RootTableManager<
             conciergeType: conciergeType,
             data: data,
             senderDid: senderDid,
+            mentionedUserIds: mentionedUserIds,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart' as model;
 import 'package:synchronized/synchronized.dart';
@@ -38,6 +40,22 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         messageId: message.messageId,
       );
       if (exitingMessage != null) {
+        // If the stored record lacks mentionedUserIds (e.g. stored before this
+        // feature was added) but the incoming message has them, persist them
+        // now so they survive future controller recreations.
+        if (exitingMessage is model.Message &&
+            exitingMessage.mentionedUserIds.isEmpty &&
+            message.mentionedUserIds.isNotEmpty) {
+          await (_database.update(_database.chatItems)
+                ..where((m) => m.messageId.equals(message.messageId)))
+              .write(
+            db.ChatItemsCompanion(
+              mentionedUserIds: Value(
+                jsonEncode(message.mentionedUserIds),
+              ),
+            ),
+          );
+        }
         addedEntry = exitingMessage;
         return addedEntry as model.Message;
       }
@@ -53,6 +71,11 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                 status: Value(message.status),
                 type: Value(message.type),
                 senderDid: Value(message.senderDid),
+                mentionedUserIds: Value(
+                  message.mentionedUserIds.isNotEmpty
+                      ? jsonEncode(message.mentionedUserIds)
+                      : null,
+                ),
               ),
             );
         final newMessage = await (_database.select(_database.chatItems)
@@ -335,6 +358,11 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             status: Value(message.status),
             type: Value(message.type),
             senderDid: Value(message.senderDid),
+            mentionedUserIds: Value(
+              message.mentionedUserIds.isNotEmpty
+                  ? jsonEncode(message.mentionedUserIds)
+                  : null,
+            ),
           ),
         );
 
@@ -593,6 +621,7 @@ class _ChatItemMapper {
         status: message.status,
         reactions: reactions.map((r) => r.value).toList(),
         senderDid: message.senderDid,
+        mentionedUserIds: _parseMentionedUserIds(message.mentionedUserIds),
         attachments: attachments.entries
             .map(
               (a) => model.Attachment(
@@ -646,5 +675,13 @@ class _ChatItemMapper {
       'Unsupported message type',
       code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
     );
+  }
+
+  static List<String> _parseMentionedUserIds(String? value) {
+    if (value == null || value.isEmpty) return const [];
+    final decoded = jsonDecode(value);
+    return decoded is List
+        ? List<String>.from(decoded.whereType<String>())
+        : const [];
   }
 }

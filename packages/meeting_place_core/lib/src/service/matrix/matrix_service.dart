@@ -649,19 +649,36 @@ class MatrixService {
     required String message,
     required String did,
     required String deviceId,
-    bool notify = false,
+    List<String>? mentionUserIds,
   }) async {
     await ensureLoggedIn(did: did, deviceId: deviceId);
     _requireEncryptionReady();
 
     final room = await _getRoom(roomId);
-    final eventId = await room.sendTextEvent(
-      message,
-      txid: const Uuid().v4(),
-      parseCommands: false,
-      parseMarkdown: false,
-      addMentions: notify,
-    );
+
+    // When explicit mention targets are supplied, we build the event directly
+    // so that `m.mentions.user_ids` is populated per the Matrix spec.
+    // Relying on sendTextEvent + addMentions would only work if the IDs were
+    // already embedded as @user:server patterns inside the message body.
+    final String? eventId;
+    if (mentionUserIds != null && mentionUserIds.isNotEmpty) {
+      eventId = await room.sendEvent(
+        {
+          'msgtype': matrix.MessageTypes.Text,
+          'body': message,
+          'm.mentions': {'user_ids': mentionUserIds},
+        },
+        txid: const Uuid().v4(),
+      );
+    } else {
+      eventId = await room.sendTextEvent(
+        message,
+        txid: const Uuid().v4(),
+        parseCommands: false,
+        parseMarkdown: false,
+        addMentions: true,
+      );
+    }
 
     if (eventId == null) {
       throw StateError(

@@ -61,10 +61,15 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
         );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(chatItems, chatItems.mentionedUserIds);
+          }
+        },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
@@ -111,6 +116,9 @@ class ChatItems extends Table {
 
   /// DID of the sender.
   TextColumn get senderDid => text()();
+
+  /// JSON-encoded list of Matrix user IDs mentioned in this message.
+  TextColumn get mentionedUserIds => text().nullable()();
 
   /// Table primary key definition.
   @override

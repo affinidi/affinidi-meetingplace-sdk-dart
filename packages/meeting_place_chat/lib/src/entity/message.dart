@@ -145,6 +145,7 @@ class Message extends ChatItem {
     required this.value,
     this.attachments = const [],
     List<String> reactions = const [],
+    this.mentionedUserIds = const [],
   }) : reactions = [...reactions];
 
   /// The plain text content of the message.
@@ -155,6 +156,10 @@ class Message extends ChatItem {
 
   /// List of reactions applied to this message.
   List<String> reactions;
+
+  /// Matrix user IDs that were explicitly mentioned in this message
+  /// via the `m.mentions` event content.
+  final List<String> mentionedUserIds;
 
   /// Serializes this [Message] into a JSON object.
   ///

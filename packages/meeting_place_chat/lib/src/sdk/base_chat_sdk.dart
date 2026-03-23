@@ -65,6 +65,10 @@ abstract class BaseChatSDK {
   Stream<matrix.MatrixEvent>? matrixSubscription;
   int? seqNo;
 
+  /// The current user's own Matrix user ID, set once [startChatSession] logs
+  /// in to the Matrix server. Used to match against `m.mentions.user_ids`.
+  String? ownMatrixUserId;
+
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
   /// **Parameters:**
@@ -85,6 +89,7 @@ abstract class BaseChatSDK {
     bool notify = false,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
+    List<String>? mentionUserIds,
   });
 
   /// Unique chat ID derived from [did] and [otherPartyDid].
@@ -130,16 +135,31 @@ abstract class BaseChatSDK {
     );
 
     final userId = await coreSDK.loginToMatrixServer(did);
+    ownMatrixUserId = userId;
 
     matrixSubscription = await coreSDK.subscribeToMatrixTimeline(did);
     matrixSubscription!.listen((event) async {
       if (event.senderId == userId) return;
       if (event.type != 'm.room.message') return;
 
+      if (options.onlyHandleMentionedMatrixMessages) {
+        final mentions = event.content['m.mentions'];
+        final userIds = mentions is Map ? mentions['user_ids'] : null;
+        if (userIds is! List || !userIds.contains(userId)) return;
+      }
+
       _logger.info(
         'Handling Matrix chat message event ${event.eventId}',
         name: methodName,
       );
+
+      final mentions = event.content['m.mentions'];
+      final mentionedUserIds = mentions is Map
+          ? List<String>.from(
+              (mentions['user_ids'] as List<dynamic>? ?? [])
+                  .whereType<String>(),
+            )
+          : <String>[];
 
       final attachments = await _extractAttachmentsIfNeeded(
         event,
@@ -157,6 +177,7 @@ abstract class BaseChatSDK {
         dateCreated: event.originServerTs,
         status: ChatItemStatus.received,
         attachments: attachments,
+        mentionedUserIds: mentionedUserIds,
       );
 
       await chatRepository.createMessage(chatMessage);
@@ -628,6 +649,7 @@ abstract class BaseChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<Attachment>? attachments,
+    List<String>? mentionUserIds,
   }) async {
     final methodName = 'sendTextMessage';
     _logger.info('Started sending text message', name: methodName);
@@ -656,7 +678,10 @@ abstract class BaseChatSDK {
         ),
       );
 
-      await _sendMessageWithNotification(plainTextMessage);
+      await _sendMessageWithNotification(
+        plainTextMessage,
+        mentionUserIds: mentionUserIds,
+      );
 
       final updatedMessage = await _updateMessageStatus(
         chatId: chatId,
@@ -944,7 +969,10 @@ abstract class BaseChatSDK {
   }
 
   /// Sends a message with notification, ignoring notification failures.
-  Future<void> _sendMessageWithNotification(PlainTextMessage message) async {
+  Future<void> _sendMessageWithNotification(
+    PlainTextMessage message, {
+    List<String>? mentionUserIds,
+  }) async {
     try {
       await sendPlainTextMessage(
         message,
@@ -952,6 +980,7 @@ abstract class BaseChatSDK {
         recipientDid: otherPartyDid,
         mediatorDid: mediatorDid,
         notify: true,
+        mentionUserIds: mentionUserIds,
       );
     } on MeetingPlaceCoreSDKException catch (e) {
       final isNotificationError =

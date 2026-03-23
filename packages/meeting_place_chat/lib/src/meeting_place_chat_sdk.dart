@@ -77,6 +77,9 @@ class MeetingPlaceChatSDK implements ChatSDK {
 
   final ChatSDK _sdk;
 
+  @override
+  String? get ownMatrixUserId => _sdk.ownMatrixUserId;
+
   /// Retrieves the list of existing messages in the channel.
   ///
   /// **Returns:**
@@ -174,8 +177,13 @@ class MeetingPlaceChatSDK implements ChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<Attachment>? attachments,
+    List<String>? mentionUserIds,
   }) {
-    return _sdk.sendTextMessage(text, attachments: attachments);
+    return _sdk.sendTextMessage(
+      text,
+      attachments: attachments,
+      mentionUserIds: mentionUserIds,
+    );
   }
 
   /// Reacts to a given message.

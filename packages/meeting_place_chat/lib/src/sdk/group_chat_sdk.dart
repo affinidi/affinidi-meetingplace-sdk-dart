@@ -230,6 +230,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     bool notify = false,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
+    List<String>? mentionUserIds,
   }) {
     final methodName = 'sendPlainTextMessage';
     logger.info(
@@ -245,6 +246,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         senderDid: senderDid,
         recipientDid: recipientDid,
         notify: notify,
+        mentionUserIds: mentionUserIds,
       );
     }
 
@@ -292,6 +294,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<Attachment>? attachments,
+    List<String>? mentionUserIds,
   }) async {
     final methodName = 'sendTextMessage';
     logger.info('Started sending group text message', name: methodName);
@@ -334,6 +337,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final result = await super.sendTextMessage(
       text,
       attachments: processedAttachments,
+      mentionUserIds: mentionUserIds,
     );
 
     logger.info('Completed sending group text message', name: methodName);

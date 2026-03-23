@@ -160,6 +160,172 @@ class MatrixService {
     });
   }
 
+  /// Returns the Matrix userId for a DID on the currently configured homeserver.
+  ///
+  /// Meeting Place uses `md5(did)` as the Matrix localpart. The server name is
+  /// derived from the currently logged-in user's Matrix ID.
+  Future<String> matrixUserIdForDid({
+    required String did,
+    required String deviceId,
+    required String targetDid,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+    final selfUserId = client.userID;
+    if (selfUserId == null) {
+      throw StateError('Matrix userId is not available after login.');
+    }
+
+    final colonIndex = selfUserId.indexOf(':');
+    if (colonIndex < 0 || colonIndex == selfUserId.length - 1) {
+      throw StateError('Invalid Matrix userId format: $selfUserId');
+    }
+    final serverName = selfUserId.substring(colonIndex + 1);
+    final localpart = md5.convert(utf8.encode(targetDid)).toString();
+    return '@$localpart:$serverName';
+  }
+
+  /// Returns the joined/invited direct-chat roomId for the given Matrix user ID,
+  /// if present in the local account data (`m.direct`).
+  ///
+  /// Does not create a new room.
+  Future<String?> getExistingDirectChatRoomId({
+    required String did,
+    required String deviceId,
+    required String otherMatrixUserId,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+    return client.getDirectChatFromUserId(otherMatrixUserId);
+  }
+
+  /// Returns an existing direct room ID with `otherMatrixUserId` or creates a
+  /// new one if none exists.
+  Future<String> ensureDirectChatRoom({
+    required String did,
+    required String deviceId,
+    required String otherMatrixUserId,
+    bool waitForSync = true,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+    return client.startDirectChat(otherMatrixUserId, waitForSync: waitForSync);
+  }
+
+  /// Sends a Matrix typing notification (`m.typing`) for `roomId`.
+  ///
+  /// `timeoutMs` is how long the server should consider the user typing.
+  Future<void> setTyping({
+    required String did,
+    required String deviceId,
+    required String roomId,
+    required bool isTyping,
+    int? timeoutMs,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final room = await _getRoom(roomId);
+    await room.setTyping(isTyping, timeout: timeoutMs);
+  }
+
+  /// Emits the current list of typing Matrix user IDs whenever the server sends
+  /// an `m.typing` ephemeral update for `roomId`.
+  Stream<List<String>> typingUserIdsStream({
+    required String did,
+    required String deviceId,
+    required String roomId,
+    bool excludeSelf = true,
+  }) async* {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+
+    // Ensure room is present in the local sync state.
+    await client.waitForRoomInSync(roomId, join: true);
+    final room = client.getRoomById(roomId);
+    if (room == null) {
+      throw StateError('Matrix room not found after sync: $roomId');
+    }
+
+    Set<String>? lastEmitted;
+
+    List<String> currentTypingUserIds() {
+      final ids = room.typingUsers.map((u) => u.id).whereType<String>();
+      final filtered = excludeSelf && client.userID != null
+          ? ids.where((id) => id != client.userID)
+          : ids;
+      final unique = filtered.toSet();
+      return unique.toList()..sort();
+    }
+
+    // Emit the current state immediately (helps consumers initialise UI).
+    final initial = currentTypingUserIds();
+    lastEmitted = initial.toSet();
+    yield initial;
+
+    await for (final sync in client.onSync.stream) {
+      final joinedRoomUpdate = sync.rooms?.join?[roomId];
+      if (joinedRoomUpdate == null) continue;
+
+      final ephemerals = joinedRoomUpdate.ephemeral;
+      if (ephemerals == null || ephemerals.isEmpty) continue;
+      final hasTypingUpdate = ephemerals.any((e) => e.type == 'm.typing');
+      if (!hasTypingUpdate) continue;
+
+      final next = currentTypingUserIds();
+      final nextSet = next.toSet();
+      if (lastEmitted != null && lastEmitted.length == nextSet.length) {
+        bool equal = true;
+        for (final id in nextSet) {
+          if (!lastEmitted.contains(id)) {
+            equal = false;
+            break;
+          }
+        }
+        if (equal) continue;
+      }
+
+      lastEmitted = nextSet;
+      yield next;
+    }
+  }
+
+  /// Sets the local user's Matrix presence state.
+  ///
+  /// This uses the standard Matrix presence API:
+  /// `PUT /_matrix/client/v3/presence/{userId}/status`.
+  Future<void> setPresence({
+    required String did,
+    required String deviceId,
+    required matrix.PresenceType presence,
+    String? statusMsg,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+    final userId = client.userID;
+    if (userId == null) {
+      throw StateError('Matrix userId is not available after login.');
+    }
+
+    await client.setPresence(userId, presence, statusMsg: statusMsg);
+  }
+
+  /// Emits Matrix presence updates observed via `/sync`.
+  ///
+  /// If [userIds] is provided, only presence updates for those MXIDs are
+  /// forwarded.
+  Stream<matrix.CachedPresence> presenceStream({
+    required String did,
+    required String deviceId,
+    Set<String>? userIds,
+  }) async* {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+
+    await for (final presence in client.onPresenceChanged.stream) {
+      if (userIds != null && !userIds.contains(presence.userid)) continue;
+      yield presence;
+    }
+  }
+
   /// The Matrix-format identity for the local participant: `userId:deviceId`.
   ///
   /// This must be used as the LiveKit JWT `sub` so the LiveKit FrameCryptor
@@ -662,14 +828,11 @@ class MatrixService {
     // already embedded as @user:server patterns inside the message body.
     final String? eventId;
     if (mentionUserIds != null && mentionUserIds.isNotEmpty) {
-      eventId = await room.sendEvent(
-        {
-          'msgtype': matrix.MessageTypes.Text,
-          'body': message,
-          'm.mentions': {'user_ids': mentionUserIds},
-        },
-        txid: const Uuid().v4(),
-      );
+      eventId = await room.sendEvent({
+        'msgtype': matrix.MessageTypes.Text,
+        'body': message,
+        'm.mentions': {'user_ids': mentionUserIds},
+      }, txid: const Uuid().v4());
     } else {
       eventId = await room.sendTextEvent(
         message,

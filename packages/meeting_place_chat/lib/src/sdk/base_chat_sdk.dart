@@ -63,6 +63,8 @@ abstract class BaseChatSDK {
   SDKStreamSubscription? _mediatorStreamSubscription;
   Future<SDKStreamSubscription>? mediatorStreamFuture;
   Stream<matrix.MatrixEvent>? matrixSubscription;
+  StreamSubscription<List<String>>? _matrixTypingSubscription;
+  StreamSubscription<matrix.CachedPresence>? _matrixPresenceSubscription;
   int? seqNo;
 
   /// The current user's own Matrix user ID, set once [startChatSession] logs
@@ -184,6 +186,84 @@ abstract class BaseChatSDK {
 
       chatStream.pushData(StreamData(chatItem: chatMessage));
     });
+
+    // Subscribe to Matrix typing notifications for 1:1 chats when we can
+    // locate an existing direct-chat room.
+    try {
+      final otherMatrixUserId = await coreSDK.matrixUserIdForDid(
+        did: did,
+        targetDid: otherPartyDid,
+      );
+      final directRoomId = await coreSDK.getExistingDirectChatRoomId(
+        did: did,
+        otherMatrixUserId: otherMatrixUserId,
+      );
+
+      if (directRoomId != null) {
+        _matrixTypingSubscription = coreSDK
+            .subscribeToMatrixTyping(did: did, roomId: directRoomId)
+            .listen((typingUserIds) {
+              final now = DateTime.now().toUtc();
+              chatStream.pushData(
+                StreamData(
+                  plainTextMessage: PlainTextMessage(
+                    id: const Uuid().v4(),
+                    type: Uri.parse(ChatProtocol.chatActivity.value),
+                    from: typingUserIds.isEmpty ? null : otherPartyDid,
+                    to: [did],
+                    body: {'timestamp': now.toIso8601String()},
+                    createdTime: now,
+                  ),
+                ),
+              );
+            });
+      }
+    } catch (e) {
+      _logger.warning(
+        'Failed to subscribe to Matrix typing notifications: $e',
+        name: methodName,
+      );
+    }
+
+    // Subscribe to Matrix presence updates for 1:1 chats.
+    try {
+      final otherMatrixUserId = await coreSDK.matrixUserIdForDid(
+        did: did,
+        targetDid: otherPartyDid,
+      );
+      _matrixPresenceSubscription = coreSDK
+          .subscribeToMatrixPresence(did: did, userIds: {otherMatrixUserId})
+          .listen((presence) {
+            final now = DateTime.now().toUtc();
+            chatStream.pushData(
+              StreamData(
+                plainTextMessage: PlainTextMessage(
+                  id: const Uuid().v4(),
+                  type: Uri.parse(ChatProtocol.chatPresence.value),
+                  from: otherPartyDid,
+                  to: [did],
+                  body: {
+                    'timestamp': now.toIso8601String(),
+                    'presence': presence.presence.name,
+                    if (presence.statusMsg != null)
+                      'statusMsg': presence.statusMsg,
+                    if (presence.currentlyActive != null)
+                      'currentlyActive': presence.currentlyActive,
+                    if (presence.lastActiveTimestamp != null)
+                      'lastActiveTimestamp': presence.lastActiveTimestamp!
+                          .toIso8601String(),
+                  },
+                  createdTime: now,
+                ),
+              ),
+            );
+          });
+    } catch (e) {
+      _logger.warning(
+        'Failed to subscribe to Matrix presence notifications: $e',
+        name: methodName,
+      );
+    }
 
     return chat;
   }
@@ -718,18 +798,16 @@ abstract class BaseChatSDK {
 
   /// Sends a chat presence signal to the other party.
   Future<void> sendChatPresence() async {
-    final message = protocol.ChatPresence.create(
-      from: did,
-      to: [otherPartyDid],
-    );
-
-    return sendPlainTextMessage(
-      message.toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
-      forwardExpiryInSeconds: options.chatPresenceExpiry.inSeconds,
-    );
+    final methodName = 'sendChatPresence';
+    try {
+      // Presence is per Matrix user, not per chat/channel.
+      await coreSDK.setMatrixPresence(
+        did: did,
+        presence: matrix.PresenceType.online,
+      );
+    } catch (e) {
+      _logger.warning('Failed to set Matrix presence: $e', name: methodName);
+    }
   }
 
   /// Sends a profile hash update if the contact card has changed.
@@ -940,17 +1018,27 @@ abstract class BaseChatSDK {
   Future<void> sendChatActivity() async {
     final methodName = 'sendChatActivity';
     _logger.info('Started sending chat activity', name: methodName);
-    await sendPlainTextMessage(
-      protocol.ChatActivity.create(
-        from: did,
-        to: [otherPartyDid],
-      ).toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
-      ephemeral: true,
-      forwardExpiryInSeconds: options.chatActivityExpiry.inSeconds,
-    );
+    try {
+      final otherMatrixUserId = await coreSDK.matrixUserIdForDid(
+        did: did,
+        targetDid: otherPartyDid,
+      );
+      final roomId = await coreSDK.ensureDirectChatRoom(
+        did: did,
+        otherMatrixUserId: otherMatrixUserId,
+      );
+      await coreSDK.setMatrixTyping(
+        did: did,
+        roomId: roomId,
+        isTyping: true,
+        timeoutMs: options.chatActivityExpiry.inMilliseconds,
+      );
+    } catch (e) {
+      _logger.warning(
+        'Failed to send Matrix typing notification: $e',
+        name: methodName,
+      );
+    }
     _logger.info('Completed sending chat activity', name: methodName);
   }
 
@@ -959,6 +1047,10 @@ abstract class BaseChatSDK {
     await _mediatorStreamSubscription?.dispose();
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;
+    await _matrixTypingSubscription?.cancel();
+    _matrixTypingSubscription = null;
+    await _matrixPresenceSubscription?.cancel();
+    _matrixPresenceSubscription = null;
     chatStream.dispose();
     matrixSubscription = null;
   }

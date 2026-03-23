@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
@@ -66,6 +67,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   Chat? chat;
   Group group;
   StreamSubscription<ControlPlaneStreamEvent>? _controlPlaneSubscription;
+  StreamSubscription<List<String>>? _matrixTypingSubscription;
+  StreamSubscription<matrix.CachedPresence>? _matrixPresenceSubscription;
 
   /// Starts a group chat session.
   ///
@@ -91,6 +94,87 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
     final chat = await super.startChatSession();
     unawaited(sendChatPresence());
+
+    final matrixRoomId = group.matrixRoomId;
+
+    // Build mxid→DID map first so both typing and presence events carry DIDs.
+    unawaited(() async {
+      try {
+        final mxidToDid = <String, String>{};
+        for (final member in group.members) {
+          if (member.did == did) continue;
+          final mxid = await coreSDK.matrixUserIdForDid(
+            did: did,
+            targetDid: member.did,
+          );
+          mxidToDid[mxid] = member.did;
+        }
+
+        if (matrixRoomId != null && matrixRoomId.trim().isNotEmpty) {
+          _matrixTypingSubscription = coreSDK
+              .subscribeToMatrixTyping(did: did, roomId: matrixRoomId)
+              .listen((typingUserIds) {
+                final now = DateTime.now().toUtc();
+                // Skip own/unknown mxids; use first that resolves to a known DID.
+                final senderDid = typingUserIds
+                    .map((mxid) => mxidToDid[mxid])
+                    .whereType<String>()
+                    .firstOrNull;
+                chatStream.pushData(
+                  StreamData(
+                    plainTextMessage: PlainTextMessage(
+                      id: const Uuid().v4(),
+                      type: Uri.parse(ChatProtocol.chatActivity.value),
+                      from: typingUserIds.isEmpty ? null : senderDid,
+                      to: [group.did],
+                      body: {'timestamp': now.toIso8601String()},
+                      createdTime: now,
+                    ),
+                  ),
+                );
+              });
+        }
+
+        if (mxidToDid.isEmpty) return;
+
+        _matrixPresenceSubscription = coreSDK
+            .subscribeToMatrixPresence(
+              did: did,
+              userIds: mxidToDid.keys.toSet(),
+            )
+            .listen((presence) {
+              final memberDid = mxidToDid[presence.userid] ?? presence.userid;
+              final now = DateTime.now().toUtc();
+              chatStream.pushData(
+                StreamData(
+                  plainTextMessage: PlainTextMessage(
+                    id: const Uuid().v4(),
+                    type: Uri.parse(ChatProtocol.chatPresence.value),
+                    from: memberDid,
+                    to: [group.did],
+                    body: {
+                      'timestamp': now.toIso8601String(),
+                      'presence': presence.presence.name,
+                      if (presence.statusMsg != null)
+                        'statusMsg': presence.statusMsg,
+                      if (presence.currentlyActive != null)
+                        'currentlyActive': presence.currentlyActive,
+                      if (presence.lastActiveTimestamp != null)
+                        'lastActiveTimestamp': presence.lastActiveTimestamp!
+                            .toIso8601String(),
+                    },
+                    createdTime: now,
+                  ),
+                ),
+              );
+            });
+      } catch (e) {
+        logger.warning(
+          'Failed to subscribe to Matrix presence notifications: $e',
+          name: methodName,
+        );
+      }
+    }());
 
     if (_isGroupOwner()) {
       await _createConciergeMessagesForPendingApprovals(chat);
@@ -118,6 +202,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   Future<void> endChatSession() async {
     final methodName = 'end';
     unawaited(_controlPlaneSubscription?.cancel());
+    unawaited(_matrixTypingSubscription?.cancel());
+    unawaited(_matrixPresenceSubscription?.cancel());
 
     logger.info('Ended group chat', name: methodName);
     await super.end();
@@ -265,17 +351,30 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   @override
   Future<void> sendChatActivity() async {
     final methodName = 'sendChatActivity';
-    logger.info('Send group chat activity', name: methodName);
+    logger.info('Set MATRIX typing', name: methodName);
 
-    await coreSDK.sendGroupMessage(
-      ChatActivity.create(from: did, to: [otherPartyDid]).toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      notify: false,
-      ephemeral: true,
-      increaseSequenceNumber: false,
-      forwardExpiryInSeconds: options.chatActivityExpiry.inSeconds,
-    );
+    final matrixRoomId = group.matrixRoomId;
+    if (matrixRoomId == null || matrixRoomId.trim().isEmpty) {
+      logger.warning(
+        'Group does not have a Matrix room ID; skipping Matrix typing notification.',
+        name: methodName,
+      );
+      return;
+    }
+
+    try {
+      await coreSDK.setMatrixTyping(
+        did: did,
+        roomId: matrixRoomId,
+        isTyping: true,
+        timeoutMs: options.chatActivityExpiry.inMilliseconds,
+      );
+    } catch (e) {
+      logger.warning(
+        'Failed to send Matrix typing notification: $e',
+        name: methodName,
+      );
+    }
   }
 
   /// Sends a plain text message with optional attachments to the group.

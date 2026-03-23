@@ -233,7 +233,7 @@ void main() {
             txid: any(named: 'txid'),
             parseCommands: false,
             parseMarkdown: false,
-            addMentions: false,
+            addMentions: true,
           ),
         ).thenAnswer((_) async => r'$event:example.com');
 
@@ -251,7 +251,7 @@ void main() {
             txid: any(named: 'txid'),
             parseCommands: false,
             parseMarkdown: false,
-            addMentions: false,
+            addMentions: true,
           ),
         ).called(1);
       },

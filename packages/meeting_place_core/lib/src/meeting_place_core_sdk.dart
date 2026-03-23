@@ -1222,6 +1222,108 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  /// Returns the Matrix user ID for a DID on the configured homeserver.
+  ///
+  /// Meeting Place uses `md5(did)` as the Matrix localpart.
+  Future<String> matrixUserIdForDid({
+    required String did,
+    required String targetDid,
+  }) {
+    return _matrixService.matrixUserIdForDid(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      targetDid: targetDid,
+    );
+  }
+
+  /// Returns the roomId of an existing direct chat with `otherMatrixUserId`,
+  /// or null if none exists in local `m.direct` account data.
+  Future<String?> getExistingDirectChatRoomId({
+    required String did,
+    required String otherMatrixUserId,
+  }) {
+    return _matrixService.getExistingDirectChatRoomId(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      otherMatrixUserId: otherMatrixUserId,
+    );
+  }
+
+  /// Returns an existing direct chat roomId with `otherMatrixUserId` or creates
+  /// a new one.
+  Future<String> ensureDirectChatRoom({
+    required String did,
+    required String otherMatrixUserId,
+    bool waitForSync = true,
+  }) {
+    return _matrixService.ensureDirectChatRoom(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      otherMatrixUserId: otherMatrixUserId,
+      waitForSync: waitForSync,
+    );
+  }
+
+  /// Sends a Matrix typing notification (`m.typing`) to a room.
+  Future<void> setMatrixTyping({
+    required String did,
+    required String roomId,
+    required bool isTyping,
+    int? timeoutMs,
+  }) {
+    return _matrixService.setTyping(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      roomId: roomId,
+      isTyping: isTyping,
+      timeoutMs: timeoutMs,
+    );
+  }
+
+  /// Emits typing Matrix user IDs for `roomId` when the server sends `m.typing`
+  /// ephemerals.
+  Stream<List<String>> subscribeToMatrixTyping({
+    required String did,
+    required String roomId,
+    bool excludeSelf = true,
+  }) {
+    return _matrixService.typingUserIdsStream(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      roomId: roomId,
+      excludeSelf: excludeSelf,
+    );
+  }
+
+  /// Sets the local user's Matrix presence state.
+  Future<void> setMatrixPresence({
+    required String did,
+    required matrix.PresenceType presence,
+    String? statusMsg,
+  }) {
+    return _matrixService.setPresence(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      presence: presence,
+      statusMsg: statusMsg,
+    );
+  }
+
+  /// Emits Matrix presence updates observed via `/sync`.
+  ///
+  /// If [userIds] is provided, only presence updates for those MXIDs are
+  /// forwarded.
+  Stream<matrix.CachedPresence> subscribeToMatrixPresence({
+    required String did,
+    Set<String>? userIds,
+  }) {
+    return _matrixService.presenceStream(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      userIds: userIds,
+    );
+  }
+
   /// Downloads media bytes from the Matrix content repository for an `mxc://...` URI.
   ///
   /// Returns a [matrix.FileResponse] with the raw bytes and (if available)

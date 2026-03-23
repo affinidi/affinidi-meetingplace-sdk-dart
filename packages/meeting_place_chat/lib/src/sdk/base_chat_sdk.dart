@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:matrix/matrix.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -10,9 +11,9 @@ import '../../meeting_place_chat.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
+import '../utils/matrix_room_message_event.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'chat.dart';
-import 'package:matrix/matrix.dart' as matrix;
 
 typedef SDKStreamSubscription =
     CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>;
@@ -62,9 +63,10 @@ abstract class BaseChatSDK {
   ChatStream chatStream;
   SDKStreamSubscription? _mediatorStreamSubscription;
   Future<SDKStreamSubscription>? mediatorStreamFuture;
-  Stream<matrix.MatrixEvent>? matrixSubscription;
+
+  MatrixTimelineEventStream? matrixSubscription;
   StreamSubscription<List<String>>? _matrixTypingSubscription;
-  StreamSubscription<matrix.CachedPresence>? _matrixPresenceSubscription;
+  StreamSubscription<CachedPresence>? _matrixPresenceSubscription;
   int? seqNo;
 
   /// The current user's own Matrix user ID, set once [startChatSession] logs
@@ -141,45 +143,34 @@ abstract class BaseChatSDK {
 
     matrixSubscription = await coreSDK.subscribeToMatrixTimeline(did);
     matrixSubscription!.listen((event) async {
-      if (event.senderId == userId) return;
-      if (event.type != 'm.room.message') return;
+      final roomMessageEvent = MatrixRoomMessageEvent.fromTimelineEvent(event);
+      if (roomMessageEvent.senderId == userId) return;
+      if (!roomMessageEvent.isRoomMessage) return;
 
       if (options.onlyHandleMentionedMatrixMessages) {
-        final mentions = event.content['m.mentions'];
-        final userIds = mentions is Map ? mentions['user_ids'] : null;
-        if (userIds is! List || !userIds.contains(userId)) return;
+        if (!roomMessageEvent.mentionsUser(userId)) return;
       }
 
       _logger.info(
-        'Handling Matrix chat message event ${event.eventId}',
+        'Handling Matrix chat message event ${roomMessageEvent.eventId}',
         name: methodName,
       );
 
-      final mentions = event.content['m.mentions'];
-      final mentionedUserIds = mentions is Map
-          ? List<String>.from(
-              (mentions['user_ids'] as List<dynamic>? ?? [])
-                  .whereType<String>(),
-            )
-          : <String>[];
-
       final attachments = await _extractAttachmentsIfNeeded(
-        event,
+        roomMessageEvent.attachment,
         methodName: methodName,
       );
 
       final chatMessage = Message(
         chatId: chatId,
-        messageId: event.eventId,
+        messageId: roomMessageEvent.eventId,
         senderDid: otherPartyDid,
-        value: attachments.isNotEmpty
-            ? ''
-            : (event.content['body'] as String?) ?? '',
+        value: attachments.isNotEmpty ? '' : roomMessageEvent.body,
         isFromMe: false,
-        dateCreated: event.originServerTs,
+        dateCreated: roomMessageEvent.originServerTs,
         status: ChatItemStatus.received,
         attachments: attachments,
-        mentionedUserIds: mentionedUserIds,
+        mentionedUserIds: roomMessageEvent.mentionedUserIds,
       );
 
       await chatRepository.createMessage(chatMessage);
@@ -269,40 +260,23 @@ abstract class BaseChatSDK {
   }
 
   Future<List<Attachment>> _extractAttachmentsIfNeeded(
-    matrix.MatrixEvent event, {
+    MatrixRoomMessageAttachment? roomMessageAttachment, {
     required String methodName,
   }) async {
-    final msgType = event.content['msgtype'] as String?;
-    final uri = event.content['url'] as String?;
-    final isImageMessage = msgType == matrix.MessageTypes.Image;
-
-    if (!isImageMessage || uri == null) {
+    if (roomMessageAttachment == null) {
       return const [];
     }
 
-    final filenameRaw = event.content['filename'] as String?;
-    final bodyRaw = event.content['body'] as String?;
-    final filename = (filenameRaw != null && filenameRaw.trim().isNotEmpty)
-        ? filenameRaw.trim()
-        : (bodyRaw != null && bodyRaw.trim().isNotEmpty)
-        ? bodyRaw.trim()
-        : 'image';
-
-    final info = event.content['info'];
-    final infoMap = info is Map ? Map<String, dynamic>.from(info) : null;
-    final infoMimeType = infoMap?['mimetype'] as String?;
-    final format = infoMap?['format'] as String?;
-
     final attachmentId = const Uuid().v4();
-    final attachmentMediaType = (infoMimeType?.trim().isNotEmpty == true)
-        ? infoMimeType!.trim()
-        : AttachmentMediaType.applicationOctetStream.value;
     final attachment = Attachment(
       id: attachmentId,
-      format: format,
-      filename: filename,
-      mediaType: attachmentMediaType,
-      data: AttachmentData(links: [Uri.parse(uri)]),
+      format: roomMessageAttachment.format,
+      filename: roomMessageAttachment.filename,
+      mediaType: roomMessageAttachment.mediaType,
+      data: AttachmentData(
+        links: [Uri.parse(roomMessageAttachment.uri)],
+        json: roomMessageAttachment.metadataJson,
+      ),
     );
 
     if (!ChatSDK.isAutomaticDownloadEnabled()) {
@@ -318,7 +292,7 @@ abstract class BaseChatSDK {
       return [hydratedAttachment];
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to download Matrix media for $uri',
+        'Failed to download Matrix media for ${roomMessageAttachment.uri}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -801,10 +775,7 @@ abstract class BaseChatSDK {
     final methodName = 'sendChatPresence';
     try {
       // Presence is per Matrix user, not per chat/channel.
-      await coreSDK.setMatrixPresence(
-        did: did,
-        presence: matrix.PresenceType.online,
-      );
+      await coreSDK.setMatrixPresence(did: did, presence: PresenceType.online);
     } catch (e) {
       _logger.warning('Failed to set Matrix presence: $e', name: methodName);
     }

@@ -10,8 +10,11 @@ import "package:matrix/src/utils/client_init_exception.dart";
 import "package:uuid/uuid.dart";
 import "package:vodozemac/vodozemac.dart" as vod;
 
+import '../../protocol/attachment/attachment_format.dart';
 import "../../loggers/meeting_place_core_sdk_logger.dart";
 import "../../utils/string.dart";
+
+enum _MatrixAttachmentKind { image, audio }
 
 /// Creates (or retrieves) a [matrix.Client] for the given DID.
 /// Each DID must receive a dedicated client backed by its own persistent
@@ -84,6 +87,68 @@ class MatrixService {
     );
 
     return mxcUri.toString();
+  }
+
+  Future<Attachment> sendAttachment({
+    required String roomId,
+    required Attachment attachment,
+  }) async {
+    final attachmentKind = _attachmentKindFrom(attachment);
+    if (attachmentKind == null) {
+      throw StateError(
+        'Unsupported Matrix attachment type format=${attachment.format} mediaType=${attachment.mediaType}.',
+      );
+    }
+
+    final filename =
+        attachment.filename ?? _defaultAttachmentFilename(attachmentKind);
+    final mediaType = attachment.mediaType ?? 'application/octet-stream';
+    final format = _attachmentFormatForKind(
+      attachment: attachment,
+      attachmentKind: attachmentKind,
+    );
+    final existingData = attachment.data;
+    final existingLinks = existingData?.links;
+    final existingUri = existingLinks != null && existingLinks.isNotEmpty
+        ? existingLinks.first.toString()
+        : null;
+    final matrixUri = (existingUri != null && existingUri.isNotEmpty)
+        ? existingUri
+        : await _uploadAttachmentToMatrix(
+            attachment: attachment,
+            filename: filename,
+            mediaType: mediaType,
+          );
+    final byteCount =
+        attachment.byteCount ?? _byteCountFromBase64(attachment.data?.base64);
+
+    await _dispatchAttachmentByKind(
+      attachmentKind: attachmentKind,
+      roomId: roomId,
+      uri: matrixUri,
+      filename: filename,
+      mediaType: mediaType,
+      format: format,
+      byteCount: byteCount,
+      durationMs: _attachmentDurationMs(attachment),
+    );
+
+    return Attachment(
+      id: attachment.id,
+      description: attachment.description,
+      filename: filename,
+      mediaType: mediaType,
+      format: format,
+      lastModifiedTime: attachment.lastModifiedTime,
+      data: AttachmentData(
+        base64: existingData?.base64,
+        jws: existingData?.jws,
+        hash: existingData?.hash,
+        json: existingData?.json,
+        links: [Uri.parse(matrixUri)],
+      ),
+      byteCount: byteCount,
+    );
   }
 
   /// Downloads media from the Matrix content repository for an `mxc://...` URI.
@@ -808,6 +873,208 @@ class MatrixService {
         if (format != null && format.isNotEmpty) 'format': format,
       },
     );
+  }
+
+  Future<String> _uploadAttachmentToMatrix({
+    required Attachment attachment,
+    required String filename,
+    required String mediaType,
+  }) async {
+    final base64 = attachment.data?.base64;
+    if (base64 == null || base64.isEmpty) {
+      throw StateError(
+        'Attachment is missing base64 data and Matrix media link; cannot upload to Matrix media repository.',
+      );
+    }
+
+    final bytes = base64Decode(base64);
+    return uploadMedia(bytes, filename: filename, contentType: mediaType);
+  }
+
+  Future<void> _dispatchAttachmentByKind({
+    required _MatrixAttachmentKind attachmentKind,
+    required String roomId,
+    required String uri,
+    required String filename,
+    required String mediaType,
+    required String format,
+    required int? byteCount,
+    required int? durationMs,
+  }) {
+    switch (attachmentKind) {
+      case _MatrixAttachmentKind.image:
+        return sendImageByUri(
+          roomId: roomId,
+          uri: uri,
+          filename: filename,
+          mimeType: mediaType,
+          size: byteCount,
+          format: format,
+        );
+      case _MatrixAttachmentKind.audio:
+        return sendAudioByUri(
+          roomId: roomId,
+          mxcUri: uri,
+          filename: filename,
+          mimeType: mediaType,
+          size: byteCount,
+          durationMs: durationMs,
+          format: format,
+        );
+    }
+  }
+
+  _MatrixAttachmentKind? _attachmentKindFrom(Attachment attachment) {
+    final format = attachment.format?.trim();
+    if (format == AttachmentFormat.matrixImage.value) {
+      return _MatrixAttachmentKind.image;
+    }
+    if (format == AttachmentFormat.matrixAudio.value) {
+      return _MatrixAttachmentKind.audio;
+    }
+
+    final attachmentMetadata = _attachmentMetadata(attachment);
+    final metadataFormat = _attachmentMetadataValue(
+      attachmentMetadata,
+      'format',
+    );
+    if (metadataFormat == AttachmentFormat.matrixImage.value) {
+      return _MatrixAttachmentKind.image;
+    }
+    if (metadataFormat == AttachmentFormat.matrixAudio.value) {
+      return _MatrixAttachmentKind.audio;
+    }
+
+    final messageType = _attachmentMetadataValue(attachmentMetadata, 'msgtype');
+    if (messageType == matrix.MessageTypes.Image) {
+      return _MatrixAttachmentKind.image;
+    }
+    if (messageType == matrix.MessageTypes.Audio) {
+      return _MatrixAttachmentKind.audio;
+    }
+
+    final metadataMediaType = _attachmentMetadataValue(
+      attachmentMetadata,
+      'mimetype',
+    )?.toLowerCase();
+    if (metadataMediaType != null && metadataMediaType.isNotEmpty) {
+      if (metadataMediaType.startsWith('image/')) {
+        return _MatrixAttachmentKind.image;
+      }
+      if (metadataMediaType.startsWith('audio/')) {
+        return _MatrixAttachmentKind.audio;
+      }
+    }
+
+    final mediaType = attachment.mediaType?.trim().toLowerCase();
+    if (mediaType == null || mediaType.isEmpty) {
+      return null;
+    }
+    if (mediaType.startsWith('image/')) {
+      return _MatrixAttachmentKind.image;
+    }
+    if (mediaType.startsWith('audio/')) {
+      return _MatrixAttachmentKind.audio;
+    }
+
+    return null;
+  }
+
+  Map<String, dynamic>? _attachmentMetadata(Attachment attachment) {
+    final attachmentJson = attachment.data?.json;
+    if (attachmentJson == null || attachmentJson.isEmpty) {
+      return null;
+    }
+
+    final decodedJson = jsonDecode(attachmentJson);
+    if (decodedJson is! Map) {
+      return null;
+    }
+
+    return Map<String, dynamic>.from(decodedJson);
+  }
+
+  String? _attachmentMetadataValue(
+    Map<String, dynamic>? attachmentMetadata,
+    String key,
+  ) {
+    final value = attachmentMetadata?[key];
+    if (value is! String) {
+      return null;
+    }
+
+    final trimmedValue = value.trim();
+    return trimmedValue.isEmpty ? null : trimmedValue;
+  }
+
+  String _attachmentFormatForKind({
+    required Attachment attachment,
+    required _MatrixAttachmentKind attachmentKind,
+  }) {
+    final format = attachment.format?.trim();
+    if (format != null && format.isNotEmpty) {
+      return format;
+    }
+
+    return _matrixAttachmentFormatValue(
+      _attachmentFormatForKindEnum(attachmentKind),
+    );
+  }
+
+  AttachmentFormat _attachmentFormatForKindEnum(
+    _MatrixAttachmentKind attachmentKind,
+  ) {
+    switch (attachmentKind) {
+      case _MatrixAttachmentKind.image:
+        return AttachmentFormat.matrixImage;
+      case _MatrixAttachmentKind.audio:
+        return AttachmentFormat.matrixAudio;
+    }
+  }
+
+  String _matrixAttachmentFormatValue(AttachmentFormat attachmentFormat) {
+    return attachmentFormat.value;
+  }
+
+  String _defaultAttachmentFilename(_MatrixAttachmentKind attachmentKind) {
+    switch (attachmentKind) {
+      case _MatrixAttachmentKind.image:
+        return 'image';
+      case _MatrixAttachmentKind.audio:
+        return 'audio';
+    }
+  }
+
+  int? _byteCountFromBase64(String? base64) {
+    if (base64 == null || base64.isEmpty) {
+      return null;
+    }
+
+    return base64Decode(base64).length;
+  }
+
+  int? _attachmentDurationMs(Attachment attachment) {
+    final attachmentMetadata = _attachmentMetadata(attachment);
+    if (attachmentMetadata == null) {
+      return null;
+    }
+
+    final durationValue =
+        attachmentMetadata['durationMs'] ??
+        attachmentMetadata['duration_ms'] ??
+        attachmentMetadata['duration'];
+
+    if (durationValue is int) {
+      return durationValue;
+    }
+    if (durationValue is num) {
+      return durationValue.toInt();
+    }
+    if (durationValue is String) {
+      return int.tryParse(durationValue);
+    }
+
+    return null;
   }
 
   Future<String> sendMessage({

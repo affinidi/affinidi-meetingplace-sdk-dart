@@ -412,6 +412,280 @@ void main() {
       },
     );
 
+    test(
+      'sendAttachment uploads base64 audio and dispatches m.audio',
+      () async {
+        const did = 'did:test:alice';
+        const deviceToken = 'push-device-token';
+        final expectedMatrixDeviceId = md5
+            .convert(utf8.encode(deviceToken))
+            .toString();
+
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
+        when(
+          () => matrixClient.getRoomById('!room:example.com'),
+        ).thenReturn(room);
+
+        when(
+          () => matrixClient.login(
+            matrix.LoginType.mLoginPassword,
+            identifier: any(named: 'identifier'),
+            password: any(named: 'password'),
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer(
+          (_) async => matrix.LoginResponse(
+            accessToken: 'token',
+            deviceId: expectedMatrixDeviceId,
+            userId: '@alice:example.com',
+          ),
+        );
+
+        await service.login(did: did, deviceId: deviceToken);
+
+        when(
+          () => matrixClient.uploadContent(
+            any(),
+            filename: any(named: 'filename'),
+            contentType: any(named: 'contentType'),
+          ),
+        ).thenAnswer((_) async => Uri.parse('mxc://example.com/audio123'));
+
+        Map<String, dynamic>? capturedContent;
+        when(
+          () => room.sendEvent(
+            any(),
+            txid: any(named: 'txid'),
+            inReplyTo: any(named: 'inReplyTo'),
+            editEventId: any(named: 'editEventId'),
+            threadRootEventId: any(named: 'threadRootEventId'),
+            threadLastEventId: any(named: 'threadLastEventId'),
+            displayPendingEvent: any(named: 'displayPendingEvent'),
+            type: any(named: 'type'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedContent = Map<String, dynamic>.from(
+            invocation.positionalArguments.first,
+          );
+          return r'$event:example.com';
+        });
+
+        final attachment = Attachment(
+          id: 'attachment-1',
+          filename: 'voice.m4a',
+          mediaType: 'audio/mp4',
+          data: AttachmentData(
+            base64: base64Encode([1, 2, 3, 4]),
+            json: jsonEncode({'durationMs': 1000}),
+          ),
+        );
+
+        final result = await service.sendAttachment(
+          roomId: '!room:example.com',
+          attachment: attachment,
+        );
+
+        expect(result.format, AttachmentFormat.matrixAudio.value);
+        expect(result.byteCount, 4);
+        expect(result.data?.links, [Uri.parse('mxc://example.com/audio123')]);
+        expect(capturedContent, isNotNull);
+        expect(capturedContent!['msgtype'], matrix.MessageTypes.Audio);
+        expect(capturedContent!['url'], 'mxc://example.com/audio123');
+        final info = Map<String, dynamic>.from(capturedContent!['info']);
+        expect(info['mimetype'], 'audio/mp4');
+        expect(info['size'], 4);
+        expect(info['duration'], 1000);
+
+        verify(
+          () => matrixClient.uploadContent(
+            any(),
+            filename: 'voice.m4a',
+            contentType: 'audio/mp4',
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'sendAttachment infers audio kind from attachment metadata when format is absent',
+      () async {
+        const did = 'did:test:alice';
+        const deviceToken = 'push-device-token';
+        final expectedMatrixDeviceId = md5
+            .convert(utf8.encode(deviceToken))
+            .toString();
+
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
+        when(
+          () => matrixClient.getRoomById('!room:example.com'),
+        ).thenReturn(room);
+
+        when(
+          () => matrixClient.login(
+            matrix.LoginType.mLoginPassword,
+            identifier: any(named: 'identifier'),
+            password: any(named: 'password'),
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer(
+          (_) async => matrix.LoginResponse(
+            accessToken: 'token',
+            deviceId: expectedMatrixDeviceId,
+            userId: '@alice:example.com',
+          ),
+        );
+
+        await service.login(did: did, deviceId: deviceToken);
+
+        when(
+          () => matrixClient.uploadContent(
+            any(),
+            filename: any(named: 'filename'),
+            contentType: any(named: 'contentType'),
+          ),
+        ).thenAnswer((_) async => Uri.parse('mxc://example.com/audio999'));
+
+        Map<String, dynamic>? capturedContent;
+        when(
+          () => room.sendEvent(
+            any(),
+            txid: any(named: 'txid'),
+            inReplyTo: any(named: 'inReplyTo'),
+            editEventId: any(named: 'editEventId'),
+            threadRootEventId: any(named: 'threadRootEventId'),
+            threadLastEventId: any(named: 'threadLastEventId'),
+            displayPendingEvent: any(named: 'displayPendingEvent'),
+            type: any(named: 'type'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedContent = Map<String, dynamic>.from(
+            invocation.positionalArguments.first,
+          );
+          return r'$event:example.com';
+        });
+
+        final attachment = Attachment(
+          id: 'attachment-metadata-audio',
+          filename: 'voice-message',
+          data: AttachmentData(
+            base64: base64Encode([1, 2, 3]),
+            json: jsonEncode({
+              'msgtype': matrix.MessageTypes.Audio,
+              'durationMs': 640,
+            }),
+          ),
+        );
+
+        final result = await service.sendAttachment(
+          roomId: '!room:example.com',
+          attachment: attachment,
+        );
+
+        expect(result.format, AttachmentFormat.matrixAudio.value);
+        expect(capturedContent, isNotNull);
+        expect(capturedContent!['msgtype'], matrix.MessageTypes.Audio);
+        final info = Map<String, dynamic>.from(capturedContent!['info']);
+        expect(info['duration'], 640);
+      },
+    );
+
+    test(
+      'sendAttachment reuses existing image links and dispatches m.image',
+      () async {
+        const did = 'did:test:alice';
+        const deviceToken = 'push-device-token';
+        final expectedMatrixDeviceId = md5
+            .convert(utf8.encode(deviceToken))
+            .toString();
+
+        when(() => matrixClient.encryptionEnabled).thenReturn(true);
+        when(
+          () => matrixClient.getRoomById('!room:example.com'),
+        ).thenReturn(room);
+
+        when(
+          () => matrixClient.login(
+            matrix.LoginType.mLoginPassword,
+            identifier: any(named: 'identifier'),
+            password: any(named: 'password'),
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer(
+          (_) async => matrix.LoginResponse(
+            accessToken: 'token',
+            deviceId: expectedMatrixDeviceId,
+            userId: '@alice:example.com',
+          ),
+        );
+
+        await service.login(did: did, deviceId: deviceToken);
+
+        Map<String, dynamic>? capturedContent;
+        when(
+          () => room.sendEvent(
+            any(),
+            txid: any(named: 'txid'),
+            inReplyTo: any(named: 'inReplyTo'),
+            editEventId: any(named: 'editEventId'),
+            threadRootEventId: any(named: 'threadRootEventId'),
+            threadLastEventId: any(named: 'threadLastEventId'),
+            displayPendingEvent: any(named: 'displayPendingEvent'),
+            type: any(named: 'type'),
+          ),
+        ).thenAnswer((invocation) async {
+          capturedContent = Map<String, dynamic>.from(
+            invocation.positionalArguments.first,
+          );
+          return r'$event:example.com';
+        });
+
+        final attachment = Attachment(
+          id: 'attachment-2',
+          filename: 'photo.jpg',
+          mediaType: 'image/jpeg',
+          data: AttachmentData(
+            links: [Uri.parse('mxc://example.com/image123')],
+          ),
+        );
+
+        final result = await service.sendAttachment(
+          roomId: '!room:example.com',
+          attachment: attachment,
+        );
+
+        expect(result.format, AttachmentFormat.matrixImage.value);
+        expect(result.data?.links, [Uri.parse('mxc://example.com/image123')]);
+        expect(capturedContent, isNotNull);
+        expect(capturedContent!['msgtype'], matrix.MessageTypes.Image);
+        expect(capturedContent!['url'], 'mxc://example.com/image123');
+
+        verifyNever(
+          () => matrixClient.uploadContent(
+            any(),
+            filename: any(named: 'filename'),
+            contentType: any(named: 'contentType'),
+          ),
+        );
+      },
+    );
+
+    test('sendAttachment throws for unsupported attachments', () async {
+      final attachment = Attachment(
+        id: 'attachment-3',
+        filename: 'document.pdf',
+        mediaType: 'application/pdf',
+        data: AttachmentData(base64: base64Encode([9, 8, 7])),
+      );
+
+      await expectLater(
+        () => service.sendAttachment(
+          roomId: '!room:example.com',
+          attachment: attachment,
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+
     test('uploadMedia uploads bytes via the active Matrix client', () async {
       const did = 'did:test:alice';
       const deviceToken = 'push-device-token';

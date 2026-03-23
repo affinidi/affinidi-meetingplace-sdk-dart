@@ -1025,99 +1025,13 @@ class GroupService {
     return eventId;
   }
 
-  Future<Attachment> sendGroupImageByUri({
+  Future<Attachment> sendGroupAttachment({
     required String roomId,
     required Attachment attachment,
   }) async {
-    final filename = attachment.filename ?? 'image';
-    final mediaType = attachment.mediaType ?? 'application/octet-stream';
-    final existingData = attachment.data;
-
-    final existingUri = attachment.data?.links?.firstOrNull?.toString();
-    if (existingUri != null && existingUri.isNotEmpty) {
-      await _matrixService.sendImageByUri(
-        roomId: roomId,
-        uri: existingUri,
-        filename: filename,
-        mimeType: mediaType,
-        size: attachment.byteCount,
-        format: attachment.format,
-      );
-
-      return Attachment(
-        id: attachment.id,
-        description: attachment.description,
-        filename: filename,
-        mediaType: mediaType,
-        format: attachment.format,
-        lastModifiedTime: attachment.lastModifiedTime,
-        data: AttachmentData(
-          base64: existingData?.base64,
-          jws: existingData?.jws,
-          hash: existingData?.hash,
-          json: existingData?.json,
-          links: [Uri.parse(existingUri)],
-        ),
-        byteCount: attachment.byteCount,
-      );
-    }
-
-    final base64 = attachment.data?.base64;
-    if (base64 == null || base64.isEmpty) {
-      throw StateError(
-        'Attachment is missing base64 data and Matrix media link; cannot upload to Matrix media repository.',
-      );
-    }
-
-    final bytes = base64Decode(base64);
-    final uploadedUri = await _matrixService.uploadMedia(
-      bytes,
-      filename: filename,
-      contentType: mediaType,
-    );
-
-    await _matrixService.sendImageByUri(
+    return _matrixService.sendAttachment(
       roomId: roomId,
-      uri: uploadedUri,
-      filename: filename,
-      mimeType: mediaType,
-      size: bytes.length,
-      format: attachment.format,
-    );
-
-    return Attachment(
-      id: attachment.id,
-      description: attachment.description,
-      filename: filename,
-      mediaType: mediaType,
-      format: attachment.format,
-      lastModifiedTime: attachment.lastModifiedTime,
-      data: AttachmentData(
-        base64: base64,
-        jws: existingData?.jws,
-        hash: existingData?.hash,
-        json: existingData?.json,
-        links: [Uri.parse(uploadedUri)],
-      ),
-      byteCount: bytes.length,
-    );
-  }
-
-  Future<String> sendGroupAudioByUri({
-    required String roomId,
-    required String mxcUri,
-    String? filename,
-    String? mimeType,
-    int? size,
-    int? durationMs,
-  }) {
-    return _matrixService.sendAudioByUri(
-      roomId: roomId,
-      mxcUri: mxcUri,
-      filename: filename,
-      mimeType: mimeType,
-      size: size,
-      durationMs: durationMs,
+      attachment: attachment,
     );
   }
 

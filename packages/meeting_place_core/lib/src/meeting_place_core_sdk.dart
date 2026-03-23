@@ -1007,34 +1007,14 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  Future<Attachment> sendGroupImageByUri({
+  Future<Attachment> sendGroupAttachment({
     required String roomId,
     required Attachment attachment,
   }) {
     return _withSdkExceptionHandling(() async {
-      return _groupService.sendGroupImageByUri(
+      return _groupService.sendGroupAttachment(
         roomId: roomId,
         attachment: attachment,
-      );
-    });
-  }
-
-  Future<String> sendGroupAudioOverMatrixByMxcUri({
-    required String roomId,
-    required String mxcUri,
-    String? filename,
-    String? mimeType,
-    int? size,
-    int? durationMs,
-  }) {
-    return _withSdkExceptionHandling(() async {
-      return _groupService.sendGroupAudioByUri(
-        roomId: roomId,
-        mxcUri: mxcUri,
-        filename: filename,
-        mimeType: mimeType,
-        size: size,
-        durationMs: durationMs,
       );
     });
   }

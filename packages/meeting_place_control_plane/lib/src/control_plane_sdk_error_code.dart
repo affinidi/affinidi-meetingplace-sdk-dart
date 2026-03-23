@@ -60,6 +60,9 @@ enum ControlPlaneSDKErrorCode {
   // notify channel codes
   notifyChannelGeneric('notify_channel_generic'),
 
+  // notify channel group codes
+  notifyChannelGroupGeneric('notify_channel_group_generic'),
+
   // notify outreach codes
   notifyOutreachGeneric('notify_outreach_generic'),
 

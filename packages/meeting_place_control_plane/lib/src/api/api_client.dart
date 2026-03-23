@@ -57,6 +57,8 @@ export 'api_client/model/notify_accept_offer_group_input.dart';
 export 'api_client/model/notify_accept_offer_group_ok.dart';
 export 'api_client/model/notify_accept_offer_input.dart';
 export 'api_client/model/notify_accept_offer_ok.dart';
+export 'api_client/model/notify_channel_group_input.dart';
+export 'api_client/model/notify_channel_group_ok.dart';
 export 'api_client/model/notify_channel_input.dart';
 export 'api_client/model/notify_channel_ok.dart';
 export 'api_client/model/notify_outreach_input.dart';

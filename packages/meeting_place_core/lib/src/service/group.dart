@@ -994,35 +994,13 @@ class GroupService {
           .findChannelByOtherPartyPermanentChannelDidOrNull(groupDid);
       if (channel != null) {
         final group = await getGroupByOfferLink(channel.offerLink);
-        if (group?.publicKey != null) {
-          final plainTextMessage = PlainTextMessage(
-            id: const Uuid().v4(),
-            type: Uri.parse(
-              'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/message',
-            ),
-            from: senderDid,
-            to: [groupDid],
-            body: {'text': message},
-          );
-          final encryptedMessage = group_message.GroupMessage.encrypt(
-            plainTextMessage,
-            publicKeyBytes: recrypt.PublicKey.fromBase64(
-              group!.publicKey!,
-            ).point.toBytes(),
-          );
+        if (group != null) {
           unawaited(
             _controlPlaneSDK
                 .execute(
-                  cp.GroupSendMessageCommand(
-                    offerLink: channel.offerLink,
-                    fromDid: senderDid,
-                    groupDid: groupDid,
-                    messageBase64: _encodeEncryptedMessagePayload(
-                      encryptedMessage,
-                    ),
-                    increaseSequenceNumber: false,
-                    notify: true,
-                    ephemeral: false,
+                  cp.NotifyChannelGroupCommand(
+                    groupId: group.id,
+                    type: 'chat-activity',
                   ),
                 )
                 .catchError((Object e, StackTrace st) {
@@ -1032,7 +1010,10 @@ class GroupService {
                     stackTrace: st,
                     name: methodName,
                   );
-                  return cp.GroupSendMessageCommandOutput(success: false);
+                  return cp.NotifyChannelGroupCommandOutput(
+                    success: false,
+                    notifiedCount: 0,
+                  );
                 }),
           );
         }

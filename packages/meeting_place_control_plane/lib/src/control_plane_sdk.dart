@@ -25,6 +25,7 @@ import 'command/group_send_message/group_send_message_handler.dart';
 import 'command/notify_acceptance/notify_acceptance_handler.dart';
 import 'command/notify_acceptance_group/notify_acceptance_handler.dart';
 import 'command/notify_channel/notify_channel_handler.dart';
+import 'command/notify_channel_group/notify_channel_group_handler.dart';
 import 'command/query_offer/query_offer_handler.dart';
 import 'command/register_device/register_device_handler.dart';
 import 'command/register_notification/register_notification_handler.dart';
@@ -246,6 +247,13 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       NotifyChannelHandler(apiClient: _controlPlaneApiClient, logger: _logger),
+    );
+
+    _dispatcher.registerHandler(
+      NotifyChannelGroupHandler(
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
     );
 
     _dispatcher.registerHandler(

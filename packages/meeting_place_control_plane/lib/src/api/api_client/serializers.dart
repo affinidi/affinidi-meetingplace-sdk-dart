@@ -59,6 +59,8 @@ import 'model/notify_accept_offer_group_input.dart';
 import 'model/notify_accept_offer_group_ok.dart';
 import 'model/notify_accept_offer_input.dart';
 import 'model/notify_accept_offer_ok.dart';
+import 'model/notify_channel_group_input.dart';
+import 'model/notify_channel_group_ok.dart';
 import 'model/notify_channel_input.dart';
 import 'model/notify_channel_ok.dart';
 import 'model/notify_outreach_input.dart';
@@ -126,6 +128,8 @@ part 'serializers.g.dart';
   NotifyAcceptOfferGroupOK,
   NotifyAcceptOfferInput,
   NotifyAcceptOfferOK,
+  NotifyChannelGroupInput,
+  NotifyChannelGroupOK,
   NotifyChannelInput,
   NotifyChannelOK,
   NotifyOutreachInput,

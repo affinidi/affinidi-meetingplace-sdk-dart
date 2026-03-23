@@ -73,6 +73,8 @@ Serializers _$serializers =
           ..add(NotifyAcceptOfferGroupOK.serializer)
           ..add(NotifyAcceptOfferInput.serializer)
           ..add(NotifyAcceptOfferOK.serializer)
+          ..add(NotifyChannelGroupInput.serializer)
+          ..add(NotifyChannelGroupOK.serializer)
           ..add(NotifyChannelInput.serializer)
           ..add(NotifyChannelOK.serializer)
           ..add(NotifyOutreachInput.serializer)

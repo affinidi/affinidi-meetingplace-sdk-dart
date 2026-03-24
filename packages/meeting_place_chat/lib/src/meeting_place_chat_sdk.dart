@@ -204,6 +204,9 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> sendChatPresence() => _sdk.sendChatPresence();
 
+  @override
+  Future<void> sendOfflinePresence() => _sdk.sendOfflinePresence();
+
   /// Sends a special chat effect.
   ///
   /// **Parameters:**

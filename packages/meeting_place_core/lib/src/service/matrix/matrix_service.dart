@@ -370,6 +370,16 @@ class MatrixService {
       throw StateError('Matrix userId is not available after login.');
     }
 
+    // The Matrix /sync request omits `set_presence` by default, which causes
+    // the server to automatically mark the user as online on every sync poll.
+    // This overrides an explicit setPresence(offline) call within ~30 seconds.
+    // To prevent that, we keep `client.syncPresence` aligned with the explicit
+    // presence: setting offline here also makes subsequent syncs send
+    // `set_presence=offline`, locking in the offline state. Setting online
+    // resets it to null so the server's default (online) behaviour returns.
+    client.syncPresence =
+        presence == matrix.PresenceType.online ? null : presence;
+
     await client.setPresence(userId, presence, statusMsg: statusMsg);
   }
 
@@ -389,6 +399,28 @@ class MatrixService {
       if (userIds != null && !userIds.contains(presence.userid)) continue;
       yield presence;
     }
+  }
+
+  /// Returns the currently cached [matrix.CachedPresence] for each of the
+  /// given [userIds], reading directly from the in-memory `client.presences`
+  /// map that is populated by the Matrix `/sync` loop.
+  ///
+  /// Only entries that are already cached are returned (no network call is
+  /// made). Use this to seed the initial presence state when opening a chat
+  /// screen, avoiding the wait for the next sync cycle.
+  Future<List<matrix.CachedPresence>> getCachedPresences({
+    required String did,
+    required String deviceId,
+    required Set<String> userIds,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+    // ignore: deprecated_member_use
+    final presenceMap = client.presences;
+    return userIds
+        .map((id) => presenceMap[id])
+        .whereType<matrix.CachedPresence>()
+        .toList();
   }
 
   /// The Matrix-format identity for the local participant: `userId:deviceId`.

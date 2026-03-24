@@ -770,6 +770,22 @@ abstract class BaseChatSDK {
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}
 
+  /// Sends an offline presence signal to Matrix.
+  Future<void> sendOfflinePresence() async {
+    final methodName = 'sendOfflinePresence';
+    try {
+      await coreSDK.setMatrixPresence(
+        did: did,
+        presence: matrix.PresenceType.offline,
+      );
+    } catch (e) {
+      _logger.warning(
+        'Failed to set Matrix offline presence: $e',
+        name: methodName,
+      );
+    }
+  }
+
   /// Sends a chat presence signal to the other party.
   Future<void> sendChatPresence() async {
     final methodName = 'sendChatPresence';

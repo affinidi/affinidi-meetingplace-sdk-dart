@@ -1304,6 +1304,23 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  /// Returns the currently cached [matrix.CachedPresence] for [userIds] by
+  /// reading directly from the in-memory presence map populated by `/sync`.
+  ///
+  /// No network call is made. Entries not yet seen in a sync are omitted.
+  /// Use this to seed the initial presence state immediately after opening a
+  /// chat screen, before the next sync cycle carries new presence events.
+  Future<List<matrix.CachedPresence>> getMatrixPresenceForUsers({
+    required String did,
+    required Set<String> userIds,
+  }) {
+    return _matrixService.getCachedPresences(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      userIds: userIds,
+    );
+  }
+
   /// Downloads media bytes from the Matrix content repository for an `mxc://...` URI.
   ///
   /// Returns a [matrix.FileResponse] with the raw bytes and (if available)

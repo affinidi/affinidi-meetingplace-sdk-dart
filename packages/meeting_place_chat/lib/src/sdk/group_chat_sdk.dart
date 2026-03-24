@@ -69,6 +69,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   StreamSubscription<ControlPlaneStreamEvent>? _controlPlaneSubscription;
   StreamSubscription<List<String>>? _matrixTypingSubscription;
   StreamSubscription<matrix.CachedPresence>? _matrixPresenceSubscription;
+  bool _isSendingChatPresence = false;
 
   /// Starts a group chat session.
   ///
@@ -93,7 +94,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     final chat = await super.startChatSession();
-    unawaited(sendChatPresence());
+    // Keep Matrix presence fresh while the group chat is open.
+    unawaited(startChatPresenceUpdates());
 
     final matrixRoomId = group.matrixRoomId;
 
@@ -168,6 +170,41 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
                 ),
               );
             });
+
+        // Seed the initial presence state from the client's in-memory cache.
+        // `onPresenceChanged` only fires on NEW events, so without this seed
+        // any member who was already online before this screen opened would
+        // never be shown as online until the next sync cycle.
+        final cached = await coreSDK.getMatrixPresenceForUsers(
+          did: did,
+          userIds: mxidToDid.keys.toSet(),
+        );
+        for (final presence in cached) {
+          final memberDid = mxidToDid[presence.userid] ?? presence.userid;
+          final now = DateTime.now().toUtc();
+          chatStream.pushData(
+            StreamData(
+              plainTextMessage: PlainTextMessage(
+                id: const Uuid().v4(),
+                type: Uri.parse(ChatProtocol.chatPresence.value),
+                from: memberDid,
+                to: [group.did],
+                body: {
+                  'timestamp': now.toIso8601String(),
+                  'presence': presence.presence.name,
+                  if (presence.statusMsg != null)
+                    'statusMsg': presence.statusMsg,
+                  if (presence.currentlyActive != null)
+                    'currentlyActive': presence.currentlyActive,
+                  if (presence.lastActiveTimestamp != null)
+                    'lastActiveTimestamp': presence.lastActiveTimestamp!
+                        .toIso8601String(),
+                },
+                createdTime: now,
+              ),
+            ),
+          );
+        }
       } catch (e) {
         logger.warning(
           'Failed to subscribe to Matrix presence notifications: $e',
@@ -205,8 +242,58 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     unawaited(_matrixTypingSubscription?.cancel());
     unawaited(_matrixPresenceSubscription?.cancel());
 
+    stopChatPresenceInterval();
+
     logger.info('Ended group chat', name: methodName);
+    await sendOfflinePresence();
+
+    // Send a "not typing" ephemeral event to the group room.
+    // This breaks other members' long-poll /sync requests (up to 30s) causing
+    // them to immediately receive the above offline presence update rather than
+    // waiting for the next sync cycle.
+    final matrixRoomId = group.matrixRoomId;
+    if (matrixRoomId != null && matrixRoomId.trim().isNotEmpty) {
+      try {
+        await coreSDK.setMatrixTyping(
+          did: did,
+          roomId: matrixRoomId,
+          isTyping: false,
+        );
+      } catch (e) {
+        logger.warning(
+          'Failed to send typing-stop signal on chat exit: $e',
+          name: methodName,
+        );
+      }
+    }
+
     await super.end();
+  }
+
+  /// Starts the periodic sending of chat presence signals.
+  ///
+  /// Interval can be configured via [options.chatPresenceSendInterval] in [ChatSDKOptions].
+  @override
+  Future<void> startChatPresenceUpdates() async =>
+      _startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds);
+
+  Future<void> _startChatPresenceInInterval(int intervalInSeconds) async {
+    if (_isSendingChatPresence) return;
+
+    _isSendingChatPresence = true;
+    while (_isSendingChatPresence) {
+      try {
+        await sendChatPresence();
+        await Future<void>.delayed(Duration(seconds: intervalInSeconds));
+      } catch (e) {
+        logger.error('Error sending chat presence signal: $e');
+        stopChatPresenceInterval();
+      }
+    }
+  }
+
+  void stopChatPresenceInterval() {
+    _isSendingChatPresence = false;
   }
 
   @override

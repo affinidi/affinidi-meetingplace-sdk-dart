@@ -59,8 +59,10 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// Ends the chat session and stops periodic chat presence updates.
   @override
   Future<void> endChatSession() async {
-    await super.end();
+    // Stop the online heartbeat first, otherwise it can overwrite offline.
     stopChatPresenceInterval();
+    await sendOfflinePresence();
+    await super.end();
   }
 
   @override

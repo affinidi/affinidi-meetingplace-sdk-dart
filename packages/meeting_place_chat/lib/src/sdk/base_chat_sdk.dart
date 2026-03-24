@@ -774,10 +774,7 @@ abstract class BaseChatSDK {
   Future<void> sendOfflinePresence() async {
     final methodName = 'sendOfflinePresence';
     try {
-      await coreSDK.setMatrixPresence(
-        did: did,
-        presence: matrix.PresenceType.offline,
-      );
+      await coreSDK.setMatrixPresence(did: did, presence: PresenceType.offline);
     } catch (e) {
       _logger.warning(
         'Failed to set Matrix offline presence: $e',

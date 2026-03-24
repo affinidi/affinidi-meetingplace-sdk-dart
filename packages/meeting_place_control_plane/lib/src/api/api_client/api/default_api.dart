@@ -10,7 +10,6 @@ import 'package:built_value/json_object.dart';
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart';
 
-import '../../api_client.dart';
 import '../api_util.dart';
 import '../model/accept_offer_group_input.dart';
 import '../model/accept_offer_group_ok.dart';
@@ -49,6 +48,8 @@ import '../model/notify_accept_offer_group_input.dart';
 import '../model/notify_accept_offer_group_ok.dart';
 import '../model/notify_accept_offer_input.dart';
 import '../model/notify_accept_offer_ok.dart';
+import '../model/notify_channel_group_input.dart';
+import '../model/notify_channel_group_ok.dart';
 import '../model/notify_channel_input.dart';
 import '../model/notify_channel_ok.dart';
 import '../model/notify_outreach_input.dart';

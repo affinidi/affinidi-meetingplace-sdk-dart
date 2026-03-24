@@ -414,7 +414,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
       for (final attachment in attachments) {
         if (attachment.hasLink || attachment.data?.base64 != null) {
-          final uploaded = await coreSDK.sendGroupImageByUri(
+          final uploaded = await coreSDK.sendGroupAttachment(
             roomId: matrixRoomId!,
             attachment: attachment,
           );

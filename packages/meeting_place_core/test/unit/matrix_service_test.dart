@@ -5,32 +5,84 @@ import 'package:crypto/crypto.dart';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:matrix/matrix_api_lite/generated/fixed_model.dart'
     as matrix_api;
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    hide ContactCard;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 class MockMatrixClient extends Mock implements matrix.Client {}
 
 class MockMatrixRoom extends Mock implements matrix.Room {}
 
+class MockKeyRepository extends Mock implements KeyRepository {}
+
+class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+
+class MockDidManager extends Mock implements DidManager {}
+
+class MockDidDocument extends Mock implements DidDocument {}
+
+const didAuthLoginType = 'org.affinidi.login.did_auth';
+const matrixCredentialJwt = 'matrix-jwt';
+final matrixHomeserver = Uri.parse('http://localhost:9000');
+
 void main() {
   group('MatrixService', () {
     late MockMatrixClient matrixClient;
     late MockMatrixRoom room;
+    late MockKeyRepository keyRepository;
+    late MockControlPlaneSDK controlPlaneSDK;
+    late MockDidManager rootDidManager;
+    late MockDidDocument rootDidDoc;
     late MatrixService service;
+    late String requestedCredentialHomeserver;
 
     setUpAll(() {
       registerFallbackValue(
         matrix.AuthenticationUserIdentifier(user: 'fallback-user'),
       );
       registerFallbackValue(Uint8List(0));
+      registerFallbackValue(
+        MatrixRegistrationCredentialCommand(homeserver: ''),
+      );
     });
 
     setUp(() {
       matrixClient = MockMatrixClient();
       room = MockMatrixRoom();
-      service = MatrixService(matrixClientFactory: (_) async => matrixClient);
+      keyRepository = MockKeyRepository();
+      controlPlaneSDK = MockControlPlaneSDK();
+      rootDidManager = MockDidManager();
+      rootDidDoc = MockDidDocument();
+      requestedCredentialHomeserver = '';
+      service = MatrixService(
+        matrixClientFactory: (_) async => matrixClient,
+        keyRepository: keyRepository,
+        controlPlaneSDK: controlPlaneSDK,
+      );
+
+      when(() => controlPlaneSDK.didManager).thenReturn(rootDidManager);
+      when(() => rootDidDoc.id).thenReturn('did:test:alice');
+      when(
+        () => rootDidManager.getDidDocument(),
+      ).thenAnswer((_) async => rootDidDoc);
+
+      when(
+        () => controlPlaneSDK
+            .execute<MatrixRegistrationCredentialCommandOutput>(any()),
+      ).thenAnswer((invocation) async {
+        final cmd =
+            invocation.positionalArguments[0]
+                as MatrixRegistrationCredentialCommand;
+        requestedCredentialHomeserver = cmd.homeserver;
+        return MatrixRegistrationCredentialCommandOutput(
+          credential: matrixCredentialJwt,
+          did: 'did:test:alice',
+        );
+      });
 
       when(
         () => matrixClient.init(
@@ -47,6 +99,16 @@ void main() {
       ).thenAnswer((_) async {});
 
       when(() => matrixClient.logout()).thenAnswer((_) async {});
+      when(() => matrixClient.homeserver).thenReturn(matrixHomeserver);
+      when(
+        () => keyRepository.saveMatrixLoginCredential(jwt: any(named: 'jwt')),
+      ).thenAnswer((_) async {});
+      when(
+        () => keyRepository.getMatrixLoginCredential(),
+      ).thenAnswer((_) async => matrixCredentialJwt);
+      when(
+        () => keyRepository.removeMatrixLoginCredential(),
+      ).thenAnswer((_) async {});
       when(() => matrixClient.accessToken).thenReturn(null);
       when(() => matrixClient.userID).thenReturn(null);
       when(() => matrixClient.deviceID).thenReturn(null);
@@ -54,43 +116,14 @@ void main() {
     });
 
     test(
-      'register hashes the device token before using it as Matrix deviceId',
+      'refreshStoredLoginCredential fetches and stores a JWT after registration',
       () async {
-        const deviceToken = 'push-device-token';
-        final expectedMatrixDeviceId = md5
-            .convert(utf8.encode(deviceToken))
-            .toString();
+        await service.refreshStoredLoginCredential();
 
-        when(
-          () => matrixClient.register(
-            username: any(named: 'username'),
-            password: any(named: 'password'),
-            deviceId: any(named: 'deviceId'),
-            initialDeviceDisplayName: any(named: 'initialDeviceDisplayName'),
-            auth: any(named: 'auth'),
-          ),
-        ).thenAnswer(
-          (_) async => matrix.RegisterResponse(
-            accessToken: 'token',
-            deviceId: expectedMatrixDeviceId,
-            userId: '@alice:example.com',
-          ),
-        );
-
-        final userId = await service.register(
-          permanentChannelDid: 'did:test:alice',
-          deviceId: deviceToken,
-        );
-
-        expect(userId, '@alice:example.com');
+        expect(requestedCredentialHomeserver, 'localhost:9000');
         verify(
-          () => matrixClient.register(
-            username: any(named: 'username'),
-            password: any(named: 'password'),
-            deviceId: expectedMatrixDeviceId,
-            initialDeviceDisplayName: 'did:test:alice',
-            auth: any(named: 'auth'),
-          ),
+          () =>
+              keyRepository.saveMatrixLoginCredential(jwt: matrixCredentialJwt),
         ).called(1);
       },
     );
@@ -109,9 +142,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer((invocation) async {
@@ -134,12 +167,13 @@ void main() {
         expect(identifier.user, expectedHashedUsername);
         verify(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: matrixCredentialJwt,
             deviceId: expectedMatrixDeviceId,
           ),
         ).called(1);
+        verify(() => keyRepository.getMatrixLoginCredential()).called(1);
       },
     );
 
@@ -189,9 +223,9 @@ void main() {
       when(() => matrixClient.accessToken).thenReturn(null);
       when(
         () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
+          didAuthLoginType,
           identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
+          token: any(named: 'token'),
           deviceId: any(named: 'deviceId'),
         ),
       ).thenAnswer(
@@ -273,9 +307,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer(
@@ -353,9 +387,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer(
@@ -428,9 +462,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer(
@@ -522,9 +556,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer(
@@ -605,9 +639,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer(
@@ -695,9 +729,9 @@ void main() {
 
       when(
         () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
+          didAuthLoginType,
           identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
+          token: any(named: 'token'),
           deviceId: any(named: 'deviceId'),
         ),
       ).thenAnswer(
@@ -750,9 +784,9 @@ void main() {
 
       when(
         () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
+          didAuthLoginType,
           identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
+          token: any(named: 'token'),
           deviceId: any(named: 'deviceId'),
         ),
       ).thenAnswer(
@@ -807,9 +841,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer(
@@ -871,9 +905,9 @@ void main() {
 
         when(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer(
@@ -963,11 +997,19 @@ void main() {
 
   group('MatrixService.ensureLoggedIn', () {
     late MockMatrixClient matrixClient;
+    late MockKeyRepository keyRepository;
+    late MockControlPlaneSDK controlPlaneSDK;
     late MatrixService service;
 
     setUp(() {
       matrixClient = MockMatrixClient();
-      service = MatrixService(matrixClientFactory: (_) async => matrixClient);
+      keyRepository = MockKeyRepository();
+      controlPlaneSDK = MockControlPlaneSDK();
+      service = MatrixService(
+        matrixClientFactory: (_) async => matrixClient,
+        keyRepository: keyRepository,
+        controlPlaneSDK: controlPlaneSDK,
+      );
 
       when(
         () => matrixClient.init(
@@ -983,6 +1025,16 @@ void main() {
         ),
       ).thenAnswer((_) async {});
       when(() => matrixClient.logout()).thenAnswer((_) async {});
+      when(() => matrixClient.homeserver).thenReturn(matrixHomeserver);
+      when(
+        () => keyRepository.getMatrixLoginCredential(),
+      ).thenAnswer((_) async => matrixCredentialJwt);
+      when(
+        () => keyRepository.saveMatrixLoginCredential(jwt: any(named: 'jwt')),
+      ).thenAnswer((_) async {});
+      when(
+        () => keyRepository.removeMatrixLoginCredential(),
+      ).thenAnswer((_) async {});
       when(() => matrixClient.accessToken).thenReturn(null);
       when(() => matrixClient.userID).thenReturn(null);
       when(() => matrixClient.deviceID).thenReturn(null);
@@ -997,9 +1049,9 @@ void main() {
 
       when(
         () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
+          didAuthLoginType,
           identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
+          token: any(named: 'token'),
           deviceId: any(named: 'deviceId'),
         ),
       ).thenAnswer(
@@ -1018,9 +1070,9 @@ void main() {
       expect(userId, '@alice:example.com');
       verify(
         () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
+          didAuthLoginType,
           identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
+          token: matrixCredentialJwt,
           deviceId: expectedMatrixDeviceId,
         ),
       ).called(1);
@@ -1052,9 +1104,9 @@ void main() {
         expect(userId, '@$expectedLocalpart:example.com');
         verifyNever(
           () => matrixClient.login(
-            matrix.LoginType.mLoginPassword,
+            didAuthLoginType,
             identifier: any(named: 'identifier'),
-            password: any(named: 'password'),
+            token: any(named: 'token'),
             deviceId: any(named: 'deviceId'),
           ),
         );
@@ -1073,9 +1125,9 @@ void main() {
 
       when(
         () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
+          didAuthLoginType,
           identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
+          token: any(named: 'token'),
           deviceId: any(named: 'deviceId'),
         ),
       ).thenAnswer(
@@ -1094,9 +1146,9 @@ void main() {
       expect(userId, '@alice:example.com');
       verify(
         () => matrixClient.login(
-          matrix.LoginType.mLoginPassword,
+          didAuthLoginType,
           identifier: any(named: 'identifier'),
-          password: any(named: 'password'),
+          token: matrixCredentialJwt,
           deviceId: expectedMatrixDeviceId,
         ),
       ).called(1);

@@ -126,9 +126,9 @@ class GroupService {
       acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
-    // Register matrix user id for group owner
-    final matrixUserId = await _matrixService.register(
-      permanentChannelDid: ownerDidDocument.id,
+    // Log in to Matrix for group owner
+    final matrixUserId = await _matrixService.login(
+      did: ownerDidDocument.id,
       deviceId: _controlPlaneSDK.device.deviceToken,
     );
 
@@ -310,8 +310,8 @@ class GroupService {
       name: methodName,
     );
 
-    final matrixUserId = await _matrixService.register(
-      permanentChannelDid: permanentChannelDidDocument.id,
+    final matrixUserId = await _matrixService.login(
+      did: permanentChannelDidDocument.id,
       deviceId: _controlPlaneSDK.device.deviceToken,
     );
 

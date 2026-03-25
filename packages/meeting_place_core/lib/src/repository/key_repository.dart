@@ -36,4 +36,10 @@ abstract interface class KeyRepository {
   });
 
   Future<KeyPair?> getKeyPair(String did);
+
+  Future<void> saveMatrixLoginCredential({required String jwt});
+
+  Future<String?> getMatrixLoginCredential();
+
+  Future<void> removeMatrixLoginCredential();
 }

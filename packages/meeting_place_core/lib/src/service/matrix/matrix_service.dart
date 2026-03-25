@@ -556,6 +556,109 @@ class MatrixService {
     return room;
   }
 
+
+  /// Returns the current user's power level in the given Matrix [roomId].
+  Future<int> getOwnPowerLevel({required String roomId}) async {
+    final room = await _getRoom(roomId);
+    return room.ownPowerLevel;
+  }
+
+  /// Returns the power level of [targetDid] in [roomId].
+  Future<int> getMemberPowerLevel({
+    required String roomId,
+    required String targetDid,
+  }) async {
+    final client = _activeClient;
+    if (client == null) {
+      throw StateError('No active Matrix session.');
+    }
+    final room = await _getRoom(roomId);
+    final targetMatrixUserId = await _resolveTargetMatrixUserId(
+      room: room,
+      client: client,
+      targetDid: targetDid,
+    );
+    return room.getPowerLevelByUserId(targetMatrixUserId);
+  }
+
+  /// Sets the power level of [targetDid] in [roomId] to [powerLevel].
+  ///
+  /// Derives the target Matrix user ID from the DID using the MD5 localpart
+  /// convention. The caller must have sufficient power level to modify others.
+  Future<void> setMemberPowerLevel({
+    required String roomId,
+    required String targetDid,
+    required int powerLevel,
+  }) async {
+    final client = _activeClient;
+    if (client == null) {
+      throw StateError('No active Matrix session.');
+    }
+    final room = await _getRoom(roomId);
+    final targetMatrixUserId = await _resolveTargetMatrixUserId(
+      room: room,
+      client: client,
+      targetDid: targetDid,
+    );
+    await room.setPower(targetMatrixUserId, powerLevel);
+    // Ensure local room state is refreshed so immediate follow-up reads
+    // (e.g. getMemberPowerLevel/getOwnPowerLevel) do not see stale cache.
+    await client.oneShotSync();
+    await client.waitForRoomInSync(roomId, join: true);
+    _logger?.info(
+      'Set power level of $targetMatrixUserId to $powerLevel in room ${roomId.topAndTail()}',
+      name: _logKey,
+    );
+  }
+
+  Future<String> _resolveTargetMatrixUserId({
+    required matrix.Room room,
+    required matrix.Client client,
+    required String targetDid,
+  }) async {
+    final localpart = md5.convert(utf8.encode(targetDid)).toString();
+    final prefix = '@$localpart:';
+
+    String? findIn(Iterable<matrix.User> users) {
+      for (final user in users) {
+        final userId = user.id;
+        if (userId.startsWith(prefix)) {
+          return userId;
+        }
+      }
+      return null;
+    }
+
+    final knownParticipants = room.getParticipants([
+      matrix.Membership.join,
+      matrix.Membership.invite,
+    ]);
+    final fromKnown = findIn(knownParticipants);
+    if (fromKnown != null) return fromKnown;
+
+    final requestedParticipants = await room.requestParticipants([
+      matrix.Membership.join,
+      matrix.Membership.invite,
+    ], true);
+    final fromRequested = findIn(requestedParticipants);
+    if (fromRequested != null) return fromRequested;
+
+    final selfUserId = client.userID;
+    if (selfUserId == null) {
+      throw StateError('Matrix userId is not available after login.');
+    }
+    final colonIndex = selfUserId.indexOf(':');
+    final serverName = selfUserId.substring(colonIndex + 1);
+    final fallbackUserId = '@$localpart:$serverName';
+
+    _logger?.warning(
+      'Could not resolve target user in room participants, falling back to $fallbackUserId',
+      name: _logKey,
+    );
+
+    return fallbackUserId;
+  }
+
   /// Stores the [matrix.WebRTCDelegate] to be used for MatrixRTC calls.
   /// The [matrix.VoIP] instance is created lazily per active client when
   /// a call is started, since [matrix.VoIP] is bound to a specific client.

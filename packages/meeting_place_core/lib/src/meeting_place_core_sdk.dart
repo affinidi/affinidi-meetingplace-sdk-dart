@@ -1260,6 +1260,22 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  /// Sends a Matrix reaction (`m.reaction`) to `targetEventId` in `roomId`.
+  Future<String> sendMatrixReaction({
+    required String did,
+    required String roomId,
+    required String targetEventId,
+    required String key,
+  }) {
+    return _matrixService.sendReaction(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      roomId: roomId,
+      targetEventId: targetEventId,
+      key: key,
+    );
+  }
+
   /// Emits typing Matrix user IDs for `roomId` when the server sends `m.typing`
   /// ephemerals.
   Stream<List<String>> subscribeToMatrixTyping({

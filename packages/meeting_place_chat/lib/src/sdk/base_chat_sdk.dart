@@ -65,13 +65,37 @@ abstract class BaseChatSDK {
   Future<SDKStreamSubscription>? mediatorStreamFuture;
 
   MatrixTimelineEventStream? matrixSubscription;
+  StreamSubscription<Event>? _matrixTimelineSubscription;
   StreamSubscription<List<String>>? _matrixTypingSubscription;
   StreamSubscription<CachedPresence>? _matrixPresenceSubscription;
   int? seqNo;
 
+  String? _matrixRoomIdForThisChat;
   /// The current user's own Matrix user ID, set once [startChatSession] logs
   /// in to the Matrix server. Used to match against `m.mentions.user_ids`.
   String? ownMatrixUserId;
+
+  /// Buffer for incoming Matrix reactions that arrive before the target
+  /// `m.room.message` event has been persisted locally.
+  ///
+  /// Key: target Matrix eventId (the message), Value: unique emoji keys.
+  final Map<String, Set<String>> _pendingMatrixReactionsByTargetEventId = {};
+
+  /// Returns the Matrix roomId that this chat instance should listen to.
+  ///
+  /// - For 1:1 chats this is the direct room with the other party.
+  /// - Subclasses (e.g. group chat) should override to return their room.
+  @protected
+  Future<String?> matrixRoomIdForTimelineFiltering() async {
+    final otherMatrixUserId = await coreSDK.matrixUserIdForDid(
+      did: did,
+      targetDid: otherPartyDid,
+    );
+    return coreSDK.ensureDirectChatRoom(
+      did: did,
+      otherMatrixUserId: otherMatrixUserId,
+    );
+  }
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
   ///
@@ -141,11 +165,29 @@ abstract class BaseChatSDK {
     final userId = await coreSDK.loginToMatrixServer(did);
     ownMatrixUserId = userId;
 
+    // Determine which Matrix room this chat instance should handle.
+    try {
+      _matrixRoomIdForThisChat = await matrixRoomIdForTimelineFiltering();
+    } catch (e) {
+      _logger.warning(
+        'Failed to resolve Matrix room for timeline filtering: $e',
+        name: methodName,
+      );
+      _matrixRoomIdForThisChat = null;
+    }
+
     matrixSubscription = await coreSDK.subscribeToMatrixTimeline(did);
-    matrixSubscription!.listen((event) async {
+    await _matrixTimelineSubscription?.cancel();
+    _matrixTimelineSubscription = matrixSubscription!.listen((event) async {
+      // Only process events for this chat's room (direct chat or group room).
+      final roomFilter = _matrixRoomIdForThisChat;
+      if (roomFilter != null && event.roomId != roomFilter) return;
+
+      if (event.type == 'm.room.message') {
+        // We persist and stream our own outbound messages locally at send time.
+        // Skipping self-sent message events avoids duplicates.
+        if (event.senderId == userId) return;
       final roomMessageEvent = MatrixRoomMessageEvent.fromTimelineEvent(event);
-      if (roomMessageEvent.senderId == userId) return;
-      if (!roomMessageEvent.isRoomMessage) return;
 
       if (options.onlyHandleMentionedMatrixMessages) {
         if (!roomMessageEvent.mentionsUser(userId)) return;
@@ -161,6 +203,12 @@ abstract class BaseChatSDK {
         methodName: methodName,
       );
 
+      final pendingReactions =
+            _pendingMatrixReactionsByTargetEventId.remove(
+              roomMessageEvent.eventId,
+            ) ??
+            <String>{};
+
       final chatMessage = Message(
         chatId: chatId,
         messageId: roomMessageEvent.eventId,
@@ -171,28 +219,65 @@ abstract class BaseChatSDK {
         status: ChatItemStatus.received,
         attachments: attachments,
         mentionedUserIds: roomMessageEvent.mentionedUserIds,
+        reactions: pendingReactions.toList(),
       );
 
       await chatRepository.createMessage(chatMessage);
-
       chatStream.pushData(StreamData(chatItem: chatMessage));
+    return;
+      }
+
+      if (event.type == 'm.reaction') {
+        final relatesTo = event.content['m.relates_to'];
+        if (relatesTo is! Map) return;
+        final relType = relatesTo['rel_type'];
+        if (relType != 'm.annotation') return;
+
+        final targetEventId = relatesTo['event_id'];
+        final key = relatesTo['key'];
+        if (targetEventId is! String || key is! String) return;
+
+        final chatItem = await chatRepository.getMessage(
+          chatId: chatId,
+          messageId: targetEventId,
+          );
+      if (chatItem is! Message) {
+          _pendingMatrixReactionsByTargetEventId
+              .putIfAbsent(targetEventId, () => <String>{})
+              .add(key);
+          _logger.info(
+            'Buffered Matrix reaction key=$key for missing target=${targetEventId.topAndTail()}',
+            name: methodName,
+          );
+          return;
+        }
+
+        if (!chatItem.reactions.contains(key)) {
+          chatItem.reactions.add(key);
+          await chatRepository.updateMesssage(chatItem);
+        }
+
+        chatStream.pushData(StreamData(chatItem: chatItem));
+      }
     });
 
     // Subscribe to Matrix typing notifications for 1:1 chats when we can
     // locate an existing direct-chat room.
-    try {
-      final otherMatrixUserId = await coreSDK.matrixUserIdForDid(
-        did: did,
-        targetDid: otherPartyDid,
-      );
-      final directRoomId = await coreSDK.getExistingDirectChatRoomId(
-        did: did,
-        otherMatrixUserId: otherMatrixUserId,
-      );
+    // try {
+    //   final otherMatrixUserId = await coreSDK.matrixUserIdForDid(
+    //     did: did,
+    //     targetDid: otherPartyDid,
+    //   );
+    //   final directRoomId = await coreSDK.getExistingDirectChatRoomId(
+    //     did: did,
+    //     otherMatrixUserId: otherMatrixUserId,
+    //   );
 
-      if (directRoomId != null) {
+    try {
+      final roomId = _matrixRoomIdForThisChat;
+      if (roomId != null) {
         _matrixTypingSubscription = coreSDK
-            .subscribeToMatrixTyping(did: did, roomId: directRoomId)
+            .subscribeToMatrixTyping(did: did, roomId: roomId)
             .listen((typingUserIds) {
               final now = DateTime.now().toUtc();
               chatStream.pushData(
@@ -377,6 +462,17 @@ abstract class BaseChatSDK {
       '''Starting to handle incoming message of type ${message.plainTextMessage.type}''',
       name: methodName,
     );
+
+    // Ignore non-chat DIDComm messages (e.g., messagepickup status) to avoid
+    // failing on channel resolution for unrelated traffic.
+    final typeValue = message.plainTextMessage.type.toString();
+    if (ChatProtocol.byValue(typeValue) == null) {
+      _logger.info(
+        'Ignoring non-chat message type=$typeValue',
+        name: methodName,
+      );
+      return true;
+    }
 
     final channel = await getChannel();
     if (_requiresAcknowledgement(message.plainTextMessage)) {
@@ -937,43 +1033,66 @@ abstract class BaseChatSDK {
     required String reaction,
   }) async {
     final methodName = 'reactOnMessage';
-    _logger.info('Started reacting on message', name: methodName);
-    if (message.reactions.contains(reaction)) {
-      message.reactions.remove(reaction);
-    } else {
-      message.reactions.add(reaction);
-    }
+    _logger.info('Started reacting on message (Matrix)', name: methodName);
 
-    await chatRepository.updateMesssage(message);
-
-    final chatReaction = protocol.ChatReaction.create(
-      from: did,
-      to: [otherPartyDid],
-      reactions: message.reactions,
-      messageId: message.messageId,
-    );
-
-    try {
-      await sendPlainTextMessage(
-        chatReaction.toPlainTextMessage(),
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-      );
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to send reaction message',
-        error: e,
-        stackTrace: stackTrace,
+    // Reactions are Matrix-based and require Matrix event IDs.
+    if (!message.messageId.startsWith(r'$')) {
+      _logger.warning(
+        'Skipping reaction for non-Matrix messageId=${message.messageId.topAndTail()} '
+        '(expected Matrix event IDs to start with \$).',
         name: methodName,
       );
-      // rollback
-      message.reactions.remove(reaction);
-      await chatRepository.updateMesssage(message);
-      Error.throwWithStackTrace(e, stackTrace);
+      return;
     }
 
-    _logger.info('Completed reacting on message', name: methodName);
+    final ownMxid = ownMatrixUserId;
+    if (ownMxid == null || ownMxid.trim().isEmpty) {
+      _logger.warning(
+        'Skipping reaction because ownMatrixUserId is not available yet.',
+        name: methodName,
+    );
+    return;
+    }
+
+    final roomId =
+        _matrixRoomIdForThisChat ??
+        await matrixRoomIdForTimelineFiltering();
+
+    if (roomId == null || roomId.trim().isEmpty) {
+      _logger.warning(
+        'Skipping reaction because Matrix roomId is not available for this chat.',
+        name: methodName,
+      );
+      return;
+    }
+
+    await sendMatrixReaction(
+      message: message,
+      reaction: reaction,
+      roomId: roomId,
+    );
+
+    _logger.info('Completed reacting on message (Matrix)', name: methodName);
+  }
+
+  @protected
+  Future<void> sendMatrixReaction({
+    required Message message,
+    required String reaction,
+    required String roomId,
+  }) async {
+    await coreSDK.sendMatrixReaction(
+      did: did,
+      roomId: roomId,
+      targetEventId: message.messageId,
+      key: reaction,
+    );
+
+    if (!message.reactions.contains(reaction)) {
+      message.reactions.add(reaction);
+    }
+    await chatRepository.updateMesssage(message);
+    chatStream.pushData(StreamData(chatItem: message));
   }
 
   /// Sends a chat effect (visual/animated signal).
@@ -1003,14 +1122,16 @@ abstract class BaseChatSDK {
     final methodName = 'sendChatActivity';
     _logger.info('Started sending chat activity', name: methodName);
     try {
-      final otherMatrixUserId = await coreSDK.matrixUserIdForDid(
-        did: did,
-        targetDid: otherPartyDid,
+      final roomId =
+          _matrixRoomIdForThisChat ??
+          await matrixRoomIdForTimelineFiltering();
+      if (roomId == null || roomId.trim().isEmpty) {
+        _logger.warning(
+          'Skipping Matrix typing notification because roomId is not available for this chat.',
+          name: methodName,
       );
-      final roomId = await coreSDK.ensureDirectChatRoom(
-        did: did,
-        otherMatrixUserId: otherMatrixUserId,
-      );
+      return;
+      }
       await coreSDK.setMatrixTyping(
         did: did,
         roomId: roomId,
@@ -1031,10 +1152,13 @@ abstract class BaseChatSDK {
     await _mediatorStreamSubscription?.dispose();
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;
+    await _matrixTimelineSubscription?.cancel();
+    _matrixTimelineSubscription = null;
     await _matrixTypingSubscription?.cancel();
     _matrixTypingSubscription = null;
     await _matrixPresenceSubscription?.cancel();
     _matrixPresenceSubscription = null;
+     _matrixRoomIdForThisChat = null;
     chatStream.dispose();
     matrixSubscription = null;
   }

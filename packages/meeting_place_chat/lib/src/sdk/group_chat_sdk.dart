@@ -234,6 +234,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     return chat;
   }
 
+  @override
+  Future<String?> matrixRoomIdForTimelineFiltering() async {
+    return group.matrixRoomId;
+  }
+
   /// Ends the group chat session and cancels any discovery subscriptions.
   @override
   Future<void> endChatSession() async {
@@ -464,6 +469,48 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
   }
 
+  /// Reacts on a message using Matrix `m.reaction` events.
+  ///
+  /// Group chats have a stable Matrix room ID, so we can send reactions
+  /// directly to that room.
+  @override
+  Future<void> reactOnMessage(
+    Message message, {
+    required String reaction,
+  }) async {
+    final methodName = 'reactOnMessage';
+    logger.info('Started reacting on message (Matrix/group)', name: methodName);
+
+    final matrixRoomId = group.matrixRoomId;
+    if (matrixRoomId == null || matrixRoomId.trim().isEmpty) {
+      logger.warning(
+        'Group does not have a Matrix room ID; cannot send Matrix reaction.',
+        name: methodName,
+      );
+      return;
+    }
+
+    if (!message.messageId.startsWith(r'$')) {
+      logger.warning(
+        'Skipping reaction for non-Matrix messageId=${message.messageId.topAndTail()} '
+        '(expected Matrix event IDs to start with \$).',
+        name: methodName,
+      );
+      return;
+    }
+
+    await sendMatrixReaction(
+      message: message,
+      reaction: reaction,
+      roomId: matrixRoomId,
+    );
+
+    logger.info(
+      'Completed reacting on message (Matrix/group)',
+      name: methodName,
+    );
+  }
+
   /// Sends a plain text message with optional attachments to the group.
   ///
   /// If attachments include base64 payloads or Matrix `mxc://` links, they will
@@ -486,11 +533,9 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Started sending group text message', name: methodName);
 
     final matrixRoomId = group.matrixRoomId;
-    if (attachments != null &&
-        attachments.any((a) => a.data?.base64 != null) &&
-        matrixRoomId == null) {
+    if (matrixRoomId == null || matrixRoomId.trim().isEmpty) {
       throw StateError(
-        'Group does not have a Matrix room ID; cannot upload attachments to Matrix.',
+        'Group does not have a Matrix room ID; cannot send group messages over Matrix.',
       );
     }
 
@@ -502,7 +547,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       for (final attachment in attachments) {
         if (attachment.hasLink || attachment.data?.base64 != null) {
           final uploaded = await coreSDK.sendGroupAttachment(
-            roomId: matrixRoomId!,
+            roomId: matrixRoomId,
             attachment: attachment,
           );
           updated.add(uploaded);
@@ -519,15 +564,44 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       );
     }
 
-    // Call parent implementation with processed attachments
-    final result = await super.sendTextMessage(
-      text,
-      attachments: processedAttachments,
+    // IMPORTANT:
+    // Group messages are sent over Matrix. Matrix reactions (`m.reaction`) link
+    // to the *Matrix eventId* of the target message. The base implementation
+    // persists outbound messages using the DIDComm message ID (UUID), which
+    // causes cross-device reactions to never match on the sender device.
+    // Persist with the Matrix eventId so reactions sync correctly.
+
+    final channel = await getChannel();
+    channel.increaseSeqNo();
+
+    final eventId = await coreSDK.sendGroupMessageOverMatrix(
+      roomId: matrixRoomId,
+      message: text,
+      senderDid: did,
+      recipientDid: otherPartyDid,
+      notify: true,
       mentionUserIds: mentionUserIds,
     );
+    final now = DateTime.now().toUtc();
+    final createdChatItem = await chatRepository.createMessage(
+      Message(
+        chatId: chatId,
+        messageId: eventId,
+        senderDid: did,
+        value: text,
+        isFromMe: true,
+        dateCreated: now,
+        status: ChatItemStatus.sent,
+        attachments: processedAttachments ?? const <Attachment>[],
+        mentionedUserIds: mentionUserIds ?? const <String>[],
+      ),
+    );
+
+    await coreSDK.updateChannel(channel);
+    chatStream.pushData(StreamData(chatItem: createdChatItem));
 
     logger.info('Completed sending group text message', name: methodName);
-    return result;
+    return createdChatItem as Message;
   }
 
   /// Checks whether the message type exists in `options.memberJoinedIndicator`.

@@ -1154,6 +1154,49 @@ class MatrixService {
     return eventId;
   }
 
+  /// Sends a Matrix reaction (`m.reaction`) to `targetEventId` in `roomId`.
+  ///
+  /// Uses an `m.annotation` relation with a `key` (emoji).
+  Future<String> sendReaction({
+    required String roomId,
+    required String targetEventId,
+    required String key,
+    required String did,
+    required String deviceId,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    _requireEncryptionReady();
+
+    final room = await _getRoom(roomId);
+    final content = <String, dynamic>{
+      'm.relates_to': <String, dynamic>{
+        'rel_type': 'm.annotation',
+        'event_id': targetEventId,
+        'key': key,
+      },
+    };
+
+    final eventId = await room.sendEvent(
+      content,
+      txid: const Uuid().v4(),
+      type: 'm.reaction',
+    );
+
+    if (eventId == null) {
+      throw StateError(
+        'Matrix did not return an event ID when sending reaction to room $roomId.',
+      );
+    }
+
+    _logger?.info(
+      'Sent Matrix reaction key=$key to target=${targetEventId.topAndTail()} '
+      'with event id ${eventId.topAndTail()} in room ${roomId.topAndTail()}',
+      name: _logKey,
+    );
+
+    return eventId;
+  }
+
   /// Creates or joins a MatrixRTC group call in `roomId` using LiveKit SFU backend.
   ///
   /// - `livekitServiceUrl` — WebSocket URL of LiveKit server, e.g. "ws://localhost:7880"

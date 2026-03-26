@@ -72,39 +72,48 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   bool _isSendingChatPresence = false;
 
   Future<void> _refreshGroupOwnerState({required String trigger}) async {
-    logger.info(
-      'Refreshing group owner state after $trigger for group=${group.id}',
-      name: _className,
-    );
-    final refreshedGroup = await coreSDK.getGroupById(group.id);
-    if (refreshedGroup == null) {
-      logger.warning(
-        'Group owner state refresh after $trigger skipped because the group was not found for group=${group.id}',
+    try {
+      logger.info(
+        'Refreshing group owner state after $trigger for group=${group.id}',
         name: _className,
       );
-      return;
-    }
+      final refreshedGroup = await coreSDK.getGroupById(group.id);
+      if (refreshedGroup == null) {
+        logger.warning(
+          'Group owner state refresh after $trigger skipped because the group was not found for group=${group.id}',
+          name: _className,
+        );
+        return;
+      }
 
-    group = refreshedGroup;
+      group = refreshedGroup;
 
-    final matrixRoomId = group.matrixRoomId;
-    if (matrixRoomId == null || matrixRoomId.trim().isEmpty) {
-      logger.warning(
-        'Group owner state refresh after $trigger skipped Matrix sync because matrixRoomId is empty for group=${group.id}',
+      final matrixRoomId = group.matrixRoomId;
+      if (matrixRoomId == null || matrixRoomId.trim().isEmpty) {
+        logger.warning(
+          'Group owner state refresh after $trigger skipped Matrix sync because matrixRoomId is empty for group=${group.id}',
+          name: _className,
+        );
+        return;
+      }
+
+      logger.info(
+        'Refreshing Matrix room state after $trigger for room=${matrixRoomId.topAndTail()} group=${group.id}',
         name: _className,
       );
-      return;
+      await coreSDK.syncMatrixRoom(did: did, roomId: matrixRoomId);
+      logger.info(
+        'Completed Matrix room refresh after $trigger for room=${matrixRoomId.topAndTail()} group=${group.id}',
+        name: _className,
+      );
+    } catch (e, st) {
+      logger.error(
+        'Failed to refresh group owner state after $trigger. Continuing with existing group state.',
+        error: e,
+        stackTrace: st,
+        name: _className,
+      );
     }
-
-    logger.info(
-      'Refreshing Matrix room state after $trigger for room=${matrixRoomId.topAndTail()} group=${group.id}',
-      name: _className,
-    );
-    await coreSDK.syncMatrixRoom(did: did, roomId: matrixRoomId);
-    logger.info(
-      'Completed Matrix room refresh after $trigger for room=${matrixRoomId.topAndTail()} group=${group.id}',
-      name: _className,
-    );
   }
 
   /// Starts a group chat session.
@@ -132,7 +141,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final chat = await super.startChatSession();
 
     if (_isGroupOwner()) {
-      await _refreshGroupOwnerState(trigger: 'group chat startup');
+      unawaited(_refreshGroupOwnerState(trigger: 'group chat startup'));
     }
 
     // Keep Matrix presence fresh while the group chat is open.
@@ -255,7 +264,13 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }());
 
     if (_isGroupOwner()) {
-      await _createConciergeMessagesForPendingApprovals(chat);
+      unawaited(() async {
+        final conciergeMessages =
+            await _createConciergeMessagesForPendingApprovals(chat);
+        for (final message in conciergeMessages) {
+          chatStream.pushData(StreamData(chatItem: message));
+        }
+      }());
 
       _controlPlaneSubscription = coreSDK.controlPlaneEventsStream.listen((
         event,

@@ -71,6 +71,42 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   StreamSubscription<matrix.CachedPresence>? _matrixPresenceSubscription;
   bool _isSendingChatPresence = false;
 
+  Future<void> _refreshGroupOwnerState({required String trigger}) async {
+    logger.info(
+      'Refreshing group owner state after $trigger for group=${group.id}',
+      name: _className,
+    );
+    final refreshedGroup = await coreSDK.getGroupById(group.id);
+    if (refreshedGroup == null) {
+      logger.warning(
+        'Group owner state refresh after $trigger skipped because the group was not found for group=${group.id}',
+        name: _className,
+      );
+      return;
+    }
+
+    group = refreshedGroup;
+
+    final matrixRoomId = group.matrixRoomId;
+    if (matrixRoomId == null || matrixRoomId.trim().isEmpty) {
+      logger.warning(
+        'Group owner state refresh after $trigger skipped Matrix sync because matrixRoomId is empty for group=${group.id}',
+        name: _className,
+      );
+      return;
+    }
+
+    logger.info(
+      'Refreshing Matrix room state after $trigger for room=${matrixRoomId.topAndTail()} group=${group.id}',
+      name: _className,
+    );
+    await coreSDK.syncMatrixRoom(did: did, roomId: matrixRoomId);
+    logger.info(
+      'Completed Matrix room refresh after $trigger for room=${matrixRoomId.topAndTail()} group=${group.id}',
+      name: _className,
+    );
+  }
+
   /// Starts a group chat session.
   ///
   /// If the current user is the group owner, it:
@@ -94,6 +130,11 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     final chat = await super.startChatSession();
+
+    if (_isGroupOwner()) {
+      await _refreshGroupOwnerState(trigger: 'group chat startup');
+    }
+
     // Keep Matrix presence fresh while the group chat is open.
     unawaited(startChatPresenceUpdates());
 
@@ -221,7 +262,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ) async {
         if (event.type == ControlPlaneEventType.InvitationGroupAccept) {
           if (group.did == event.channel.otherPartyPermanentChannelDid) {
-            group = (await coreSDK.getGroupById(group.id))!;
+            await _refreshGroupOwnerState(trigger: 'InvitationGroupAccept');
             final conciegeMessages =
                 await _createConciergeMessagesForPendingApprovals(chat);
             for (final mes in conciegeMessages) {

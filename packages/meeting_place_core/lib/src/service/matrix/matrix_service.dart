@@ -534,14 +534,10 @@ class MatrixService {
     );
   }
 
-  Future<matrix.Room> _getRoom(String roomId, {bool forceSync = false}) async {
+  Future<matrix.Room> _getRoom(String roomId) async {
     final client = _activeClient;
     if (client == null) {
       throw StateError('No active Matrix session when fetching room $roomId.');
-    }
-
-    if (forceSync) {
-      await client.oneShotSync();
     }
 
     var room = client.getRoomById(roomId);
@@ -558,6 +554,182 @@ class MatrixService {
     }
 
     return room;
+  }
+
+  Future<void> _refreshRoomMembers({
+    required matrix.Client client,
+    required matrix.Room room,
+  }) async {
+    _logger?.info(
+      'Refreshing Matrix room members for ${room.id.topAndTail()} '
+      'with currentLocalParticipantCount=${room.getParticipants([matrix.Membership.join, matrix.Membership.invite]).length}',
+      name: _logKey,
+    );
+    final matrixEvents = await client.getMembersByRoom(room.id);
+    if (matrixEvents == null || matrixEvents.isEmpty) {
+      _logger?.warning(
+        'Matrix /members returned no events for room ${room.id.topAndTail()}',
+        name: _logKey,
+      );
+      return;
+    }
+
+    final refreshedMemberIds = <String>[];
+
+    for (final matrixEvent in matrixEvents) {
+      final member = matrix.Event.fromMatrixEvent(matrixEvent, room).asUser;
+      refreshedMemberIds.add(member.id);
+      room.setState(member);
+      await client.database.storeEventUpdate(
+        room.id,
+        member,
+        matrix.EventUpdateType.state,
+        client,
+      );
+    }
+
+    _logger?.info(
+      'Refreshed Matrix room members for ${room.id.topAndTail()} '
+      'serverMemberEventCount=${matrixEvents.length} '
+      'serverMembers=[${refreshedMemberIds.map((id) => id.topAndTail()).join(', ')}] '
+      'localParticipantCountAfter=${room.getParticipants([matrix.Membership.join, matrix.Membership.invite]).length}',
+      name: _logKey,
+    );
+  }
+
+  Future<void> _refreshRoomParticipantDeviceKeys({
+    required matrix.Client client,
+    required matrix.Room room,
+  }) async {
+    final participantIds = room
+        .getParticipants([matrix.Membership.join, matrix.Membership.invite])
+        .map((user) => user.id)
+        .where((userId) => userId.isNotEmpty)
+        .toSet();
+
+    if (participantIds.isEmpty) {
+      _logger?.warning(
+        'Skipping Matrix device-key refresh for room ${room.id.topAndTail()} because no participants were found locally.',
+        name: _logKey,
+      );
+      return;
+    }
+
+    final beforeCounts = participantIds
+        .map((userId) {
+          final count = client.userDeviceKeys[userId]?.deviceKeys.length ?? 0;
+          return '${userId.topAndTail()}:$count';
+        })
+        .join(', ');
+
+    _logger?.info(
+      'Refreshing Matrix device keys for room ${room.id.topAndTail()} '
+      'participants=[${participantIds.map((id) => id.topAndTail()).join(', ')}] '
+      'deviceCountsBefore=[$beforeCounts]',
+      name: _logKey,
+    );
+
+    await client.updateUserDeviceKeys(additionalUsers: participantIds);
+
+    final afterCounts = participantIds
+        .map((userId) {
+          final count = client.userDeviceKeys[userId]?.deviceKeys.length ?? 0;
+          return '${userId.topAndTail()}:$count';
+        })
+        .join(', ');
+
+    _logger?.info(
+      'Refreshed Matrix device keys for room ${room.id.topAndTail()} '
+      'deviceCountsAfter=[$afterCounts]',
+      name: _logKey,
+    );
+  }
+
+  void _logOutboundMegolmSessionState({
+    required matrix.Client client,
+    required matrix.Room room,
+    required String stage,
+  }) {
+    final session = client.encryption?.keyManager.getOutboundGroupSession(
+      room.id,
+    );
+    final sessionId = session?.outboundGroupSession?.sessionId;
+    final trackedUsers = session?.devices.keys.length;
+    _logger?.info(
+      'Matrix outbound session [$stage] for room ${room.id.topAndTail()} '
+      'encrypted=${room.encrypted} '
+      'sessionPresent=${session != null} '
+      'sessionValid=${session?.isValid} '
+      'sessionId=${sessionId?.topAndTail()} '
+      'trackedUsers=$trackedUsers '
+      'localParticipantCount=${room.getParticipants([matrix.Membership.join, matrix.Membership.invite]).length}',
+      name: _logKey,
+    );
+  }
+
+  bool _roomNeedsEncryptedSendRefresh({
+    required matrix.Client client,
+    required matrix.Room room,
+  }) {
+    if (!room.encrypted) {
+      return false;
+    }
+
+    final participantIds = room
+        .getParticipants([matrix.Membership.join, matrix.Membership.invite])
+        .map((user) => user.id)
+        .where((userId) => userId.isNotEmpty)
+        .toSet();
+    final outboundSession = client.encryption?.keyManager
+        .getOutboundGroupSession(room.id);
+    final trackedUsers = outboundSession?.devices.keys.toSet() ?? <String>{};
+
+    if (participantIds.any(
+      (userId) => (client.userDeviceKeys[userId]?.deviceKeys.length ?? 0) == 0,
+    )) {
+      return true;
+    }
+
+    return trackedUsers.length < participantIds.length;
+  }
+
+  Future<void> _refreshRoomIfNeededForEncryptedSend({
+    required matrix.Client client,
+    required matrix.Room room,
+  }) async {
+    if (!_roomNeedsEncryptedSendRefresh(client: client, room: room)) {
+      return;
+    }
+
+    final participantIds = room
+        .getParticipants([matrix.Membership.join, matrix.Membership.invite])
+        .map((user) => user.id)
+        .where((userId) => userId.isNotEmpty)
+        .toList();
+    final deviceCountsBefore = participantIds
+        .map((userId) {
+          final count = client.userDeviceKeys[userId]?.deviceKeys.length ?? 0;
+          return '${userId.topAndTail()}:$count';
+        })
+        .join(', ');
+    final outboundSession = client.encryption?.keyManager
+        .getOutboundGroupSession(room.id);
+
+    _logger?.info(
+      'Matrix room ${room.id.topAndTail()} needs encrypted-send refresh '
+      'trackedUsers=${outboundSession?.devices.keys.length ?? 0} '
+      'localParticipantCount=${participantIds.length} '
+      'deviceCountsBefore=[$deviceCountsBefore]',
+      name: _logKey,
+    );
+
+    await _refreshRoomMembers(client: client, room: room);
+    await _refreshRoomParticipantDeviceKeys(client: client, room: room);
+    _logOutboundMegolmSessionState(
+      client: client,
+      room: room,
+      stage: 'after-conditional-send-refresh',
+    );
   }
 
   /// Returns the current user's power level in the given Matrix [roomId].
@@ -1078,6 +1250,33 @@ class MatrixService {
     );
   }
 
+  Future<void> syncRoom(
+    String roomId, {
+    required String did,
+    required String deviceId,
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _activeClient!;
+    final room = await _getRoom(roomId);
+    _logOutboundMegolmSessionState(
+      client: client,
+      room: room,
+      stage: 'before-syncRoom',
+    );
+    await _refreshRoomMembers(client: client, room: room);
+    await _refreshRoomParticipantDeviceKeys(client: client, room: room);
+    _logOutboundMegolmSessionState(
+      client: client,
+      room: room,
+      stage: 'after-syncRoom',
+    );
+
+    _logger?.info(
+      '''Refreshed MATRIX room members and device keys for ${roomId.topAndTail()}''',
+      name: _logKey,
+    );
+  }
+
   Future<String> _sendFileByMxcUri({
     required String roomId,
     required String mxcUri,
@@ -1394,6 +1593,34 @@ class MatrixService {
     _requireEncryptionReady();
 
     final room = await _getRoom(roomId);
+    await _refreshRoomIfNeededForEncryptedSend(
+      client: _activeClient!,
+      room: room,
+    );
+    _logOutboundMegolmSessionState(
+      client: _activeClient!,
+      room: room,
+      stage: 'before-sendMessage',
+    );
+    final participantIds = room
+        .getParticipants([matrix.Membership.join, matrix.Membership.invite])
+        .map((user) => user.id)
+        .where((userId) => userId.isNotEmpty)
+        .toList();
+    final deviceCounts = participantIds
+        .map((userId) {
+          final count =
+              _activeClient!.userDeviceKeys[userId]?.deviceKeys.length ?? 0;
+          return '${userId.topAndTail()}:$count';
+        })
+        .join(', ');
+    _logger?.info(
+      'Sending Matrix message to room ${roomId.topAndTail()} '
+      'participants=[${participantIds.map((id) => id.topAndTail()).join(', ')}] '
+      'deviceCounts=[$deviceCounts] '
+      'mentionUserIds=[${mentionUserIds?.map((id) => id.topAndTail()).join(', ')}]',
+      name: _logKey,
+    );
 
     // When explicit mention targets are supplied, we build the event directly
     // so that `m.mentions.user_ids` is populated per the Matrix spec.
@@ -1424,6 +1651,11 @@ class MatrixService {
 
     _logger?.info('''Sent message with event id $eventId
       to MATRIX room ${roomId.topAndTail()}''', name: _logKey);
+    _logOutboundMegolmSessionState(
+      client: _activeClient!,
+      room: room,
+      stage: 'after-sendMessage',
+    );
 
     return eventId;
   }

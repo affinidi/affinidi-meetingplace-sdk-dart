@@ -1289,6 +1289,18 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  /// Refreshes local Matrix room state from the server for the given [roomId].
+  ///
+  /// This is useful after membership changes so subsequent sends use up-to-date
+  /// room state without requiring an app restart.
+  Future<void> syncMatrixRoom({required String did, required String roomId}) {
+    return _matrixService.syncRoom(
+      roomId,
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+    );
+  }
+
   /// Sets the local user's Matrix presence state.
   Future<void> setMatrixPresence({
     required String did,

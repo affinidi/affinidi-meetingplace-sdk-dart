@@ -10,6 +10,7 @@ class KeyRepositoryImpl implements KeyRepository {
   static final String _didPrefix = 'did_';
   static final String _indexPrefix = 'index_';
   static final String _keyPairIndex = 'keyPair_';
+  static final String _matrixLoginCredentialPrefix = 'matrixLoginCredential_';
 
   final Storage _storage;
 
@@ -60,5 +61,20 @@ class KeyRepositoryImpl implements KeyRepository {
       publicKeyBytes: keyPair['publicKeyBytes']!,
       privateKeyBytes: keyPair['privateKeyBytes']!,
     );
+  }
+
+  @override
+  Future<void> saveMatrixLoginCredential({required String jwt}) {
+    return _storage.put(_matrixLoginCredentialPrefix, jwt);
+  }
+
+  @override
+  Future<String?> getMatrixLoginCredential() {
+    return _storage.get(_matrixLoginCredentialPrefix);
+  }
+
+  @override
+  Future<void> removeMatrixLoginCredential() {
+    return _storage.remove(_matrixLoginCredentialPrefix);
   }
 }

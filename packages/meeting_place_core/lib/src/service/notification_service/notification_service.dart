@@ -12,10 +12,12 @@ class NotificationService {
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required ConnectionManager connectionManager,
+    Future<void> Function()? onDeviceRegistered,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _controlPlaneSDK = controlPlaneSDK,
        _mediatorSDK = mediatorSDK,
        _connectionManager = connectionManager,
+       _onDeviceRegistered = onDeviceRegistered,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -24,13 +26,13 @@ class NotificationService {
   final ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final ConnectionManager _connectionManager;
+  final Future<void> Function()? _onDeviceRegistered;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<RegisterForDidcommNotificationsResult>
   registerForDIDCommNotifications({
     required Wallet wallet,
     required String mediatorDid,
-    required String controlPlaneDid,
     String? recipientDid,
   }) async {
     final methodName = 'registerForDIDCommNotifications';
@@ -49,11 +51,7 @@ class NotificationService {
 
     await Future.wait([
       _registerDeviceOnControlPlaneAPI(deviceToken, PlatformType.didcomm),
-      _allowServiceToSendMessages(
-        didManager: didManager,
-        didDoc: didDoc,
-        controlPlaneDid: controlPlaneDid,
-      ),
+      _allowServiceToSendMessages(didManager: didManager, didDoc: didDoc),
     ]);
 
     final device = Device(
@@ -113,23 +111,26 @@ class NotificationService {
   Future<void> _registerDeviceOnControlPlaneAPI(
     String deviceToken,
     PlatformType platformType,
-  ) {
-    return _controlPlaneSDK.execute(
+  ) async {
+    await _controlPlaneSDK.execute(
       RegisterDeviceCommand(
         deviceToken: deviceToken,
         platformType: platformType,
       ),
     );
+    await _onDeviceRegistered?.call();
   }
 
   Future<void> _allowServiceToSendMessages({
     required DidManager didManager,
     required DidDocument didDoc,
-    required String controlPlaneDid,
   }) {
     return _mediatorSDK.updateAcl(
       ownerDidManager: didManager,
-      acl: AccessListAdd(ownerDid: didDoc.id, granteeDids: [controlPlaneDid]),
+      acl: AccessListAdd(
+        ownerDid: didDoc.id,
+        granteeDids: [_controlPlaneSDK.controlPlaneDid],
+      ),
     );
   }
 }

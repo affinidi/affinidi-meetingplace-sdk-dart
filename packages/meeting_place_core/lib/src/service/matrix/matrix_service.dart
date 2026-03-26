@@ -7,11 +7,14 @@ import "package:matrix/matrix.dart" as matrix;
 import 'package:matrix/matrix_api_lite/generated/fixed_model.dart'
     as matrix_api;
 import "package:matrix/src/utils/client_init_exception.dart";
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    hide ContactCard;
 import "package:uuid/uuid.dart";
 import "package:vodozemac/vodozemac.dart" as vod;
 
-import '../../protocol/attachment/attachment_format.dart';
 import "../../loggers/meeting_place_core_sdk_logger.dart";
+import '../../protocol/attachment/attachment_format.dart';
+import '../../repository/key_repository.dart';
 import "../../utils/string.dart";
 
 enum _MatrixAttachmentKind { image, audio }
@@ -24,11 +27,17 @@ typedef MatrixClientFactory = Future<matrix.Client> Function(String did);
 class MatrixService {
   MatrixService({
     required MatrixClientFactory matrixClientFactory,
+    required KeyRepository keyRepository,
+    required ControlPlaneSDK controlPlaneSDK,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _matrixClientFactory = matrixClientFactory,
+       _keyRepository = keyRepository,
+       _controlPlaneSDK = controlPlaneSDK,
        _logger = logger;
 
   final MatrixClientFactory _matrixClientFactory;
+  final KeyRepository _keyRepository;
+  final ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceCoreSDKLogger? _logger;
   matrix.VoIP? _voip;
   matrix.WebRTCDelegate? _webRTCDelegate;
@@ -206,11 +215,8 @@ class MatrixService {
     return _attachmentWithDownloadedData(attachment, file);
   }
 
-  // TODO: generate and persist password securely - this is just for testing
-  static final String _passwordPlaceholder = 'dummy_password';
-  static final String _authenticationType = 'm.login.dummy';
+  static const String _didAuthLoginType = 'org.affinidi.login.did_auth';
   static const String _roomEncryptionAlgorithm = 'm.megolm.v1.aes-sha2';
-
   static final String _logKey = 'MatrixService';
 
   Future<Stream<matrix.Event>> timelineEventStream({
@@ -377,8 +383,9 @@ class MatrixService {
     // presence: setting offline here also makes subsequent syncs send
     // `set_presence=offline`, locking in the offline state. Setting online
     // resets it to null so the server's default (online) behaviour returns.
-    client.syncPresence =
-        presence == matrix.PresenceType.online ? null : presence;
+    client.syncPresence = presence == matrix.PresenceType.online
+        ? null
+        : presence;
 
     await client.setPresence(userId, presence, statusMsg: statusMsg);
   }
@@ -560,46 +567,39 @@ class MatrixService {
     _logger?.info('WebRTC delegate set for MatrixRTC', name: _logKey);
   }
 
-  Future<String> register({
-    required String permanentChannelDid,
-    required String deviceId,
-  }) async {
-    final client = await _clientFor(permanentChannelDid);
-    final hashedUsername = md5
-        .convert(utf8.encode(permanentChannelDid))
-        .toString();
-    final matrixDeviceId = _toMatrixDeviceId(deviceId);
-
-    // Logout first to ensure a clean state for (re-)registration.
-    if (client.accessToken != null) {
-      final keepHomeserver = client.homeserver;
-      _logger?.info(
-        'Logging out from MATRIX homeserver to ensure clean state for registration',
-        name: _logKey,
+  Future<void> refreshStoredLoginCredential() async {
+    final rootDidDoc = await _controlPlaneSDK.didManager.getDidDocument();
+    final rootDid = rootDidDoc.id;
+    final client = await _clientFor(rootDid);
+    final homeserver = client.homeserver;
+    if (homeserver == null) {
+      throw StateError(
+        'Matrix homeserver is not configured on the Matrix client.',
       );
-      await client.logout();
-      client.homeserver = keepHomeserver;
     }
 
-    await _ensureVodozemacInitialized();
-
-    final response = await client.register(
-      username: hashedUsername,
-      password: _passwordPlaceholder,
-      deviceId: matrixDeviceId,
-      initialDeviceDisplayName: permanentChannelDid,
-      auth: matrix.AuthenticationData(type: _authenticationType),
+    final result = await _controlPlaneSDK.execute(
+      MatrixRegistrationCredentialCommand(
+        homeserver: client.homeserver.toString(),
+      ),
     );
+    final responseDid = result.did.trim();
 
-    _activeClient = client;
-    _logger?.info('''Device registered on MATRIX homeserver for
-        DID: ${permanentChannelDid.topAndTail()}, using id
-        ${response.userId.topAndTail()} and
-      deviceId ${matrixDeviceId.topAndTail()}''', name: _logKey);
+    if (responseDid.isEmpty) {
+      throw StateError(
+        'Control Plane returned an empty Matrix credential DID.',
+      );
+    }
 
-    _warnIfEncryptionUnavailable('Matrix registration');
+    if (responseDid != rootDid) {
+      throw StateError(
+        'Control Plane returned Matrix login credential for ${responseDid.topAndTail()} when ${rootDid.topAndTail()} was requested.',
+      );
+    }
 
-    return response.userId;
+    await _keyRepository.saveMatrixLoginCredential(
+      jwt: result.credential,
+    );
   }
 
   Future<String> login({required String did, required String deviceId}) async {
@@ -647,10 +647,17 @@ class MatrixService {
     await _ensureVodozemacInitialized();
 
     try {
+      final loginToken = await _keyRepository.getMatrixLoginCredential();
+      if (loginToken == null || loginToken.trim().isEmpty) {
+        throw StateError(
+          'Matrix login credential is not available for DID ${did.topAndTail()}. Register the device before logging in to Matrix.',
+        );
+      }
+
       final response = await client.login(
-        matrix.LoginType.mLoginPassword,
+        _didAuthLoginType,
         identifier: matrix.AuthenticationUserIdentifier(user: hashedUsername),
-        password: _passwordPlaceholder,
+        token: loginToken,
         deviceId: matrixDeviceId,
       );
       _activeClient = client;

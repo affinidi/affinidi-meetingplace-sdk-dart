@@ -108,7 +108,6 @@ class MeetingPlaceCoreSDK {
   MeetingPlaceCoreSDK._({
     required this.wallet,
     required RepositoryConfig repositoryConfig,
-    required String controlPlaneDid,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required ControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
@@ -129,7 +128,6 @@ class MeetingPlaceCoreSDK {
     required MeetingPlaceCoreSDKLogger logger,
     required MatrixService matrixService,
   }) : _repositoryConfig = repositoryConfig,
-       _controlPlaneDid = controlPlaneDid,
        _mediatorSDK = mediatorSDK,
        _controlPlaneSDK = controlPlaneSDK,
        _connectionManager = connectionManager,
@@ -151,7 +149,6 @@ class MeetingPlaceCoreSDK {
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
-  final String _controlPlaneDid;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;
   final ConnectionManager _connectionManager;
@@ -290,6 +287,8 @@ class MeetingPlaceCoreSDK {
 
     final matrixService = MatrixService(
       matrixClientFactory: matrixClientFactory,
+      keyRepository: repositoryConfig.keyRepository,
+      controlPlaneSDK: controlPlaneSDK,
       logger: mpxLogger,
     );
 
@@ -352,6 +351,7 @@ class MeetingPlaceCoreSDK {
       controlPlaneSDK: controlPlaneSDK,
       mediatorSDK: mediatorSDK,
       connectionManager: connectionManager,
+      onDeviceRegistered: () => matrixService.refreshStoredLoginCredential(),
       logger: mpxLogger,
     );
 
@@ -386,7 +386,6 @@ class MeetingPlaceCoreSDK {
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
       repositoryConfig: repositoryConfig,
-      controlPlaneDid: controlPlaneDid,
       mediatorSDK: mediatorSDK,
       controlPlaneSDK: controlPlaneSDK,
       connectionManager: connectionManager,
@@ -629,7 +628,6 @@ class MeetingPlaceCoreSDK {
     return _withSdkExceptionHandling(() async {
       final result = await _notificationService.registerForDIDCommNotifications(
         wallet: wallet,
-        controlPlaneDid: _controlPlaneDid,
         recipientDid: recipientDid,
         mediatorDid: mediatorDid ?? _mediatorDid,
       );

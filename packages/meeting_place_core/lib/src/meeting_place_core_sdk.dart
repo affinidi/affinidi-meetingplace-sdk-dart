@@ -1303,6 +1303,34 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  Future<int> getOwnPowerLevel({required String roomId}) {
+    return _matrixService.getOwnPowerLevel(roomId: roomId, forceSync: true);
+  }
+
+  Future<int> getMemberPowerLevel({
+    required String roomId,
+    required String targetDid,
+    bool forceSync = false,
+  }) {
+    return _matrixService.getMemberPowerLevel(
+      roomId: roomId,
+      targetDid: targetDid,
+      forceSync: forceSync,
+    );
+  }
+
+  Future<void> setMemberPowerLevel({
+    required String roomId,
+    required String targetDid,
+    required int powerLevel,
+  }) {
+    return _matrixService.setMemberPowerLevel(
+      roomId: roomId,
+      targetDid: targetDid,
+      powerLevel: powerLevel,
+    );
+  }
+
   /// Emits Matrix presence updates observed via `/sync`.
   ///
   /// If [userIds] is provided, only presence updates for those MXIDs are

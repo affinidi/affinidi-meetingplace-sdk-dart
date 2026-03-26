@@ -534,10 +534,14 @@ class MatrixService {
     );
   }
 
-  Future<matrix.Room> _getRoom(String roomId) async {
+  Future<matrix.Room> _getRoom(String roomId, {bool forceSync = false}) async {
     final client = _activeClient;
     if (client == null) {
       throw StateError('No active Matrix session when fetching room $roomId.');
+    }
+
+    if (forceSync) {
+      await client.oneShotSync();
     }
 
     var room = client.getRoomById(roomId);
@@ -554,6 +558,258 @@ class MatrixService {
     }
 
     return room;
+  }
+
+  /// Returns the current user's power level in the given Matrix [roomId].
+  ///
+  /// Set [forceSync] to `true` to fetch only the latest
+  /// `m.room.power_levels` state event from the server before reading.
+  /// This avoids a full `/sync` while still returning up-to-date power levels.
+  Future<int> getOwnPowerLevel({
+    required String roomId,
+    bool forceSync = false,
+  }) async {
+    _logger?.info(
+      'Getting own power level in room ${roomId.topAndTail()}',
+      name: _logKey,
+    );
+    final client = _activeClient;
+    if (client == null) {
+      throw StateError('No active Matrix session.');
+    }
+    final room = await _getRoom(roomId);
+    final powerLevelsContent = forceSync
+        ? await _fetchRoomPowerLevelsContent(roomId: roomId, client: client)
+        : null;
+    final powerLevel = _powerLevelForUser(
+      room: room,
+      userId: client.userID!,
+      powerLevelsContent: powerLevelsContent,
+    );
+    _logger?.info(
+      'Own power level in room ${roomId.topAndTail()} is $powerLevel',
+      name: _logKey,
+    );
+    return powerLevel;
+  }
+
+  /// Returns the power level of [targetDid] in [roomId].
+  ///
+  /// Set [forceSync] to `true` to fetch only the latest
+  /// `m.room.power_levels` state event from the server before reading.
+  /// This avoids a full `/sync` while still returning up-to-date power levels.
+  Future<int> getMemberPowerLevel({
+    required String roomId,
+    required String targetDid,
+    bool forceSync = false,
+  }) async {
+    _logger?.info(
+      'Getting power level of ${targetDid.topAndTail()} in room ${roomId.topAndTail()}',
+      name: _logKey,
+    );
+    final client = _activeClient;
+    if (client == null) {
+      throw StateError('No active Matrix session.');
+    }
+    final room = await _getRoom(roomId);
+    final targetMatrixUserId = await _resolveTargetMatrixUserId(
+      room: room,
+      client: client,
+      targetDid: targetDid,
+    );
+    final powerLevelsContent = forceSync
+        ? await _fetchRoomPowerLevelsContent(roomId: roomId, client: client)
+        : null;
+    final powerLevel = _powerLevelForUser(
+      room: room,
+      userId: targetMatrixUserId,
+      powerLevelsContent: powerLevelsContent,
+    );
+    _logger?.info(
+      'Power level of $targetMatrixUserId in room ${roomId.topAndTail()} is $powerLevel with fetchedPowerLevelsState=${powerLevelsContent != null}',
+      name: _logKey,
+    );
+    return powerLevel;
+  }
+
+  /// Sets the power level of [targetDid] in [roomId] to [powerLevel].
+  ///
+  /// Derives the target Matrix user ID from the DID using the MD5 localpart
+  /// convention. The caller must have sufficient power level to modify others.
+  Future<void> setMemberPowerLevel({
+    required String roomId,
+    required String targetDid,
+    required int powerLevel,
+  }) async {
+    _logger?.info(
+      'Setting power level of ${targetDid.topAndTail()} to $powerLevel in room ${roomId.topAndTail()}',
+      name: _logKey,
+    );
+    final client = _activeClient;
+    if (client == null) {
+      throw StateError('No active Matrix session.');
+    }
+    final room = await _getRoom(roomId);
+    final targetMatrixUserId = await _resolveTargetMatrixUserId(
+      room: room,
+      client: client,
+      targetDid: targetDid,
+    );
+    final senderMatrixUserId = client.userID;
+    if (senderMatrixUserId == null) {
+      throw StateError('Matrix userId is not available after login.');
+    }
+
+    final powerLevelsState = room.getState(matrix.EventTypes.RoomPowerLevels);
+    final powerLevelContent =
+        powerLevelsState?.content.copy() ??
+        <String, Object?>{
+          'users': <String, Object?>{},
+          'users_default': 0,
+          'events_default': 0,
+          'state_default': 50,
+          'ban': 50,
+          'kick': 50,
+          'redact': 50,
+          'invite': 0,
+        };
+
+    var users = powerLevelContent['users'];
+    if (users is! Map<String, Object?>) {
+      users = <String, Object?>{};
+      powerLevelContent['users'] = users;
+    }
+
+    final senderPowerLevel = room.getPowerLevelByUserId(senderMatrixUserId);
+    users[senderMatrixUserId] ??= senderPowerLevel > 0 ? senderPowerLevel : 100;
+    users[targetMatrixUserId] = powerLevel;
+
+    _logger?.info(
+      'Updating m.room.power_levels in room ${roomId.topAndTail()} as $senderMatrixUserId with senderLevel=${users[senderMatrixUserId]} target=$targetMatrixUserId targetLevel=$powerLevel hasExistingState=${powerLevelsState != null}',
+      name: _logKey,
+    );
+
+    await client.setRoomStateWithKey(
+      roomId,
+      matrix.EventTypes.RoomPowerLevels,
+      '',
+      powerLevelContent,
+    );
+    final updatedPowerLevelsContent = await _fetchRoomPowerLevelsContent(
+      roomId: roomId,
+      client: client,
+    );
+    final updatedPowerLevel = _powerLevelForUser(
+      room: room,
+      userId: targetMatrixUserId,
+      powerLevelsContent: updatedPowerLevelsContent,
+    );
+    _logger?.info(
+      'Set power level of $targetMatrixUserId to $powerLevel in room ${roomId.topAndTail()} and fetched back $updatedPowerLevel',
+      name: _logKey,
+    );
+  }
+
+  Future<Map<String, Object?>?> _fetchRoomPowerLevelsContent({
+    required String roomId,
+    required matrix.Client client,
+  }) async {
+    try {
+      return await client.getRoomStateWithKey(
+        roomId,
+        matrix.EventTypes.RoomPowerLevels,
+        '',
+      );
+    } on matrix.MatrixException catch (e) {
+      if (e.errcode == 'M_NOT_FOUND') {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  int _powerLevelForUser({
+    required matrix.Room room,
+    required String userId,
+    Map<String, Object?>? powerLevelsContent,
+  }) {
+    if (powerLevelsContent == null) {
+      return room.getPowerLevelByUserId(userId);
+    }
+
+    if (room.creatorUserIds.contains(userId) &&
+        !((int.tryParse(room.roomVersion ?? '') ?? 0) < 12)) {
+      return 9007199254740991;
+    }
+
+    final users = powerLevelsContent['users'];
+    if (users is Map<String, Object?>) {
+      final userSpecificPowerLevel = users[userId];
+      if (userSpecificPowerLevel is int) {
+        return userSpecificPowerLevel;
+      }
+      if (userSpecificPowerLevel is num) {
+        return userSpecificPowerLevel.toInt();
+      }
+    }
+
+    final defaultUserPowerLevel = powerLevelsContent['users_default'];
+    if (defaultUserPowerLevel is int) {
+      return defaultUserPowerLevel;
+    }
+    if (defaultUserPowerLevel is num) {
+      return defaultUserPowerLevel.toInt();
+    }
+
+    return room.getPowerLevelByUserId(userId);
+  }
+
+  Future<String> _resolveTargetMatrixUserId({
+    required matrix.Room room,
+    required matrix.Client client,
+    required String targetDid,
+  }) async {
+    final localpart = md5.convert(utf8.encode(targetDid)).toString();
+    final prefix = '@$localpart:';
+
+    String? findIn(Iterable<matrix.User> users) {
+      for (final user in users) {
+        final userId = user.id;
+        if (userId.startsWith(prefix)) {
+          return userId;
+        }
+      }
+      return null;
+    }
+
+    final knownParticipants = room.getParticipants([
+      matrix.Membership.join,
+      matrix.Membership.invite,
+    ]);
+    final fromKnown = findIn(knownParticipants);
+    if (fromKnown != null) return fromKnown;
+
+    final requestedParticipants = await room.requestParticipants([
+      matrix.Membership.join,
+      matrix.Membership.invite,
+    ], true);
+    final fromRequested = findIn(requestedParticipants);
+    if (fromRequested != null) return fromRequested;
+
+    final selfUserId = client.userID;
+    if (selfUserId == null) {
+      throw StateError('Matrix userId is not available after login.');
+    }
+    final colonIndex = selfUserId.indexOf(':');
+    final serverName = selfUserId.substring(colonIndex + 1);
+    final fallbackUserId = '@$localpart:$serverName';
+
+    _logger?.warning(
+      'Could not resolve target user in room participants, falling back to $fallbackUserId',
+      name: _logKey,
+    );
+
+    return fallbackUserId;
   }
 
   /// Stores the [matrix.WebRTCDelegate] to be used for MatrixRTC calls.
@@ -597,9 +853,7 @@ class MatrixService {
       );
     }
 
-    await _keyRepository.saveMatrixLoginCredential(
-      jwt: result.credential,
-    );
+    await _keyRepository.saveMatrixLoginCredential(jwt: result.credential);
   }
 
   Future<String> login({required String did, required String deviceId}) async {
@@ -768,9 +1022,22 @@ class MatrixService {
     await ensureLoggedIn(did: did, deviceId: deviceId);
     _requireEncryptionReady();
 
+    // Explicitly set the creator at PL 100 and state_default at 50.
+    // Without powerLevelContentOverride the homeserver uses implicit defaults,
+    // which may not produce a local m.room.power_levels state event. When
+    // room.powerLevels is null the SDK's setPower() sends a minimal content
+    // that omits the creator, triggering M_FORBIDDEN on subsequent power-level
+    // changes.
+    final creatorMxid = _activeClient!.userID!;
     final roomId = await _activeClient!.createGroupChat(
       enableEncryption: true,
       waitForSync: true,
+      powerLevelContentOverride: {
+        'users': {creatorMxid: 100},
+        'users_default': 0,
+        'state_default': 50,
+        'events_default': 0,
+      },
     );
 
     _logger?.info(

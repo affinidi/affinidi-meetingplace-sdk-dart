@@ -49,6 +49,33 @@ class MatrixService {
   // carry a DID (timeline stream, VoIP calls).
   matrix.Client? _activeClient;
 
+  /// Returns the Matrix access token for the given DID, or null if not logged in.
+  String? accessTokenForDid(String did) => _clients[did]?.accessToken;
+
+  /// Returns the homeserver URI for the given DID, or null if not configured.
+  Uri? homeserverForDid(String did) => _clients[did]?.homeserver;
+
+  /// Returns the homeserver URI from configuration without performing a login.
+  ///
+  /// Uses any already-initialized client if available, otherwise creates a
+  /// disposable one via the factory to read the configured homeserver URL.
+  Future<Uri> peekHomeserver() async {
+    for (final client in _clients.values) {
+      if (client.homeserver != null) return client.homeserver!;
+    }
+    // Create a disposable client just to read the configured homeserver URL.
+    // The factory string is fixed — it is only used for DB naming and is never
+    // stored in _clients.
+    final client = await _matrixClientFactory('_mpx_homeserver_peek_');
+    final hs = client.homeserver;
+    if (hs == null) {
+      throw StateError(
+        'Matrix homeserver is not configured on the Matrix client.',
+      );
+    }
+    return hs;
+  }
+
   Future<matrix.Client> _clientFor(String did) async {
     if (_clients.containsKey(did)) return _clients[did]!;
     final client = await _matrixClientFactory(did);

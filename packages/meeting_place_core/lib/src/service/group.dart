@@ -25,6 +25,7 @@ import 'connection_manager/connection_manager.dart';
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
 import 'connection_service.dart';
+import 'did_web/did_web_binding_service.dart';
 import 'group/group_admin.dart';
 import 'group/group_exception.dart';
 import 'group/group_message.dart' as group_message;
@@ -79,6 +80,7 @@ class GroupService {
   final MeetingPlaceMediatorSDK _mediatorSDK;
 
   final _recrypt = recrypt.Recrypt();
+  late final _didWebBindingService = DidWebBindingService(wallet: _wallet);
 
   Future<
     (
@@ -104,17 +106,7 @@ class GroupService {
       name: methodName,
     );
 
-    final ownerDid = await _connectionManager.generateDid(_wallet);
-    final ownerDidDocument = await ownerDid.getDidDocument();
-
     final groupKeyPair = _recrypt.generateKeyPair();
-    final recryptKeyPair = await generateRecryptKeyPair(ownerDidDocument.id);
-
-    final groupAdmin = createGroupAdmin(
-      groupPrivateKey: groupKeyPair.privateKey,
-      memberPublicKey: recryptKeyPair.publicKey,
-    );
-
     final oobDidManager = await _connectionManager.generateDid(_wallet);
     final oobDidDoc = await oobDidManager.getDidDocument();
 
@@ -126,15 +118,40 @@ class GroupService {
       acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
-    // Log in to Matrix for group owner
+    // Create a DidWebManager for the group owner. The manager derives
+    // opaqueId = base32(sha256(pubKey)) and sets did:web:<hs>:connections:<id>.
+    final homeserver = await _matrixService.peekHomeserver();
+    final ownerDid = await _connectionManager.generateDidWeb(
+      _wallet,
+      homeserver,
+    );
+    final ownerWebDid = (await ownerDid.getDidDocument()).id;
+
+    // Log in to Matrix as did:web so the Matrix account lives under that identity.
     final matrixUserId = await _matrixService.login(
-      did: ownerDidDocument.id,
+      did: ownerWebDid,
       deviceId: _controlPlaneSDK.device.deviceToken,
+    );
+
+    // Bind did:web to this pairwise Matrix account.
+    final accessToken = _matrixService.accessTokenForDid(ownerWebDid)!;
+    await _didWebBindingService.bindDid(
+      ownerDidManager: ownerDid,
+      matrixUserId: matrixUserId,
+      accessToken: accessToken,
+      homeserverBaseUrl: homeserver,
+      mediatorDid: mediatorDid,
+    );
+
+    final recryptKeyPair = await generateRecryptKeyPair(ownerWebDid);
+    final groupAdmin = createGroupAdmin(
+      groupPrivateKey: groupKeyPair.privateKey,
+      memberPublicKey: recryptKeyPair.publicKey,
     );
 
     // Create room
     final matrixRoomId = await _matrixService.createRoomForGroup(
-      did: ownerDidDocument.id,
+      did: ownerWebDid,
       deviceId: _controlPlaneSDK.device.deviceToken,
     );
 
@@ -152,7 +169,7 @@ class GroupService {
         validUntil: validUntil,
         maximumUsage: maximumUsage,
         customPhrase: customPhrase,
-        adminDid: ownerDidDocument.id,
+        adminDid: ownerWebDid,
         adminPublicKey: recryptKeyPair.publicKeyToBase64(),
         adminReencryptionKey: groupAdmin.memberReencryptionKey,
         mediatorDid: mediatorDid,
@@ -165,13 +182,13 @@ class GroupService {
       did: result.groupDid,
       offerLink: result.offerLink,
       publicKey: groupKeyPair.publicKeyToBase64(),
-      ownerDid: ownerDidDocument.id,
+      ownerDid: ownerWebDid,
       matrixRoomId: matrixRoomId,
       created: DateTime.now().toUtc(),
       externalRef: externalRef,
       members: [
         GroupMember.admin(
-          did: ownerDidDocument.id,
+          did: ownerWebDid,
           publicKey: recryptKeyPair.publicKeyToBase64(),
           contactCard: card,
         ),
@@ -196,8 +213,8 @@ class GroupService {
       final connectionOffer = GroupConnectionOffer(
         groupId: result.groupId,
         groupDid: result.groupDid,
-        groupOwnerDid: ownerDidDocument.id,
-        memberDid: ownerDidDocument.id,
+        groupOwnerDid: ownerWebDid,
+        memberDid: ownerWebDid,
         metadata: metadata,
         offerName: offerName,
         offerLink: result.offerLink,
@@ -225,7 +242,7 @@ class GroupService {
         contactCard: card,
         type: ChannelType.group,
         isConnectionInitiator: true,
-        permanentChannelDid: ownerDidDocument.id,
+        permanentChannelDid: ownerWebDid,
         otherPartyPermanentChannelDid: result.groupDid,
         matrixUserId: matrixUserId,
         externalRef: externalRef,

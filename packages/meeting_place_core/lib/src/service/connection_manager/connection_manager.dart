@@ -5,6 +5,7 @@ import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../utils/string.dart';
 import 'connection_manager_exception.dart';
 import '../../repository/key_repository.dart';
+import '../did_web/did_web_utils.dart';
 
 class ConnectionManager {
   ConnectionManager({
@@ -67,6 +68,54 @@ class ConnectionManager {
     }
   }
 
+  /// Generates a new HD wallet key and wraps it in a [DidWebManager] whose
+  /// `did:web` path encodes `base32(sha256(pubKey))` under
+  /// `/connections/<opaqueId>` using the canonical host-only domain form.
+  ///
+  /// The keyId is saved under `manager.did` (the `did:web`) in the repository.
+  Future<DidManager> generateDidWeb(Wallet wallet, Uri homeserver) async {
+    final methodName = 'generateDidWeb';
+    _logger.info('Generating new did:web DID...', name: methodName);
+
+    await _mutex.acquire();
+
+    try {
+      final lastIndex = await _keyRepository.getLastAccountIndex();
+      final currentIndex = lastIndex + 1;
+      final keyId = _buildKeyId(currentIndex);
+
+      await wallet.generateKey(keyId: keyId);
+      final pk = await wallet.getPublicKey(keyId);
+      final opaqueId = opaqueIdFromPublicKey(pk);
+
+      final domain = Uri(host: homeserver.host, path: '/connections/$opaqueId');
+
+      final manager = DidWebManager(
+        store: InMemoryDidStore(),
+        wallet: wallet,
+        domain: domain,
+      );
+      await manager.addVerificationMethod(
+        keyId,
+        relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement,
+        },
+      );
+
+      await _keyRepository.setLastAccountIndex(currentIndex);
+      await _keyRepository.saveKeyIdForDid(keyId: keyId, did: manager.did);
+
+      _logger.info(
+        'Generated did:web DID: ${manager.did.topAndTail()} with index: $currentIndex',
+        name: methodName,
+      );
+      return manager;
+    } finally {
+      _mutex.release();
+    }
+  }
+
   Future<DidManager> getDidManagerForDid(Wallet wallet, String did) async {
     final methodName = 'getKeyPairForConnectionDid';
     final keyId = await _keyRepository.getKeyIdByDid(did: did);
@@ -82,6 +131,32 @@ class ConnectionManager {
       'Retrieved key pair for DID: ${did.topAndTail()}',
       name: methodName,
     );
+
+    if (did.startsWith('did:web:')) {
+      // Reconstruct the DidWebManager domain from the canonical did:web string.
+      final didJsonUri = didWebToUri(did);
+      final domain = Uri(
+        host: didJsonUri.host,
+        path: didJsonUri.pathSegments
+            .take(didJsonUri.pathSegments.length - 1)
+            .join('/'),
+      );
+      await wallet.generateKey(keyId: keyId);
+      final manager = DidWebManager(
+        store: InMemoryDidStore(),
+        wallet: wallet,
+        domain: domain,
+      );
+      await manager.addVerificationMethod(
+        keyId,
+        relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement,
+        },
+      );
+      return manager;
+    }
+
     return _initDidManager(wallet: wallet, keyId: keyId);
   }
 

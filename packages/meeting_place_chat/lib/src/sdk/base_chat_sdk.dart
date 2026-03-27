@@ -68,6 +68,7 @@ abstract class BaseChatSDK {
   StreamSubscription<Event>? _matrixTimelineSubscription;
   StreamSubscription<List<String>>? _matrixTypingSubscription;
   StreamSubscription<CachedPresence>? _matrixPresenceSubscription;
+  StreamSubscription<Map<String, dynamic>>? _matrixReceiptSubscription;
   int? seqNo;
 
   String? _matrixRoomIdForThisChat;
@@ -224,6 +225,15 @@ abstract class BaseChatSDK {
 
       await chatRepository.createMessage(chatMessage);
       chatStream.pushData(StreamData(chatItem: chatMessage));
+
+      // Automatically send read receipt to acknowledge message delivery
+      if (options.autoSendMatrixReceipts && event.roomId != null) {
+        await _sendReadReceiptForMessage(
+          roomId: event.roomId!,
+          eventId: roomMessageEvent.eventId,
+          methodName: methodName,
+        );
+      }
     return;
       }
 
@@ -258,6 +268,7 @@ abstract class BaseChatSDK {
         }
 
         chatStream.pushData(StreamData(chatItem: chatItem));
+        return;
       }
     });
 
@@ -297,6 +308,23 @@ abstract class BaseChatSDK {
     } catch (e) {
       _logger.warning(
         'Failed to subscribe to Matrix typing notifications: $e',
+        name: methodName,
+      );
+    }
+
+    // Subscribe to Matrix read receipts for delivery tracking.
+    try {
+      final roomId = _matrixRoomIdForThisChat;
+      if (roomId != null && options.trackMatrixReceipts) {
+        _matrixReceiptSubscription = coreSDK
+            .subscribeToMatrixReceipts(did: did, roomId: roomId)
+            .listen((receiptContent) {
+              unawaited(_handleMatrixReceipt(receiptContent));
+            });
+      }
+    } catch (e) {
+      _logger.warning(
+        'Failed to subscribe to Matrix receipt notifications: $e',
         name: methodName,
       );
     }
@@ -443,7 +471,6 @@ abstract class BaseChatSDK {
   /// - **Chat message**: Persisted and pushed downstream.
   /// - **Reaction**: Updates existing message reactions.
   /// - **AliasProfileHash / AliasProfileRequest**: Validates or creates concierge messages.
-  /// - **Delivered**: Marks referenced messages as delivered.
   /// - **ContactDetailsUpdate**: Updates channel contact card.
   /// - **Activity / Presence / Effect**: Pushed downstream as events.
   ///
@@ -475,10 +502,6 @@ abstract class BaseChatSDK {
     }
 
     final channel = await getChannel();
-    if (_requiresAcknowledgement(message.plainTextMessage)) {
-      unawaited(sendChatDeliveredMessage(message.plainTextMessage));
-    }
-
     if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
       final messageSequenceNumber = message.messageSequenceNumber;
       if (messageSequenceNumber != null &&
@@ -610,38 +633,6 @@ abstract class BaseChatSDK {
           StreamData(
             plainTextMessage: message.plainTextMessage,
             chatItem: conciergeMessage,
-          ),
-        );
-      }
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatDelivered.value) {
-      _logger.info('Handling chat delivered message', name: methodName);
-      final messageIds = _getMessageIdsFromChatDelivered(
-        message.plainTextMessage,
-      );
-      for (final messageId in messageIds) {
-        final targetMessage = await chatRepository.getMessage(
-          chatId: chatId,
-          messageId: messageId,
-        );
-
-        if (targetMessage == null) {
-          final message = 'Message not found';
-          _logger.error(message, name: methodName);
-          // throw Exception('Message not found');
-          continue;
-        }
-
-        targetMessage.status = ChatItemStatus.delivered;
-        await chatRepository.updateMesssage(targetMessage);
-
-        chatStream.pushData(
-          StreamData(
-            plainTextMessage: message.plainTextMessage,
-            chatItem: targetMessage,
           ),
         );
       }
@@ -922,46 +913,10 @@ abstract class BaseChatSDK {
     _logger.info('Completed sending profile hash', name: methodName);
   }
 
-  /// Extracts message IDs from a delivered plain text message.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] containing a list of message IDs
-  ///   in its body.
-  ///
-  /// **Returns:**
-  /// - A list of [String] message IDs.
-  List<String> _getMessageIdsFromChatDelivered(PlainTextMessage message) {
-    return List<String>.from(message.body!['messages'] as List<dynamic>);
-  }
-
-  bool _requiresAcknowledgement(PlainTextMessage message) {
-    return options.requiresAcknowledgement.contains(
-      ChatProtocol.byValue(message.type.toString()),
-    );
-  }
-
   bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
     return coreSDK.options.messageTypesForSequenceTracking.contains(
       message.type.toString(),
     );
-  }
-
-  /// Sends a "delivered" acknowledgement for a received message.
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message) async {
-    final methodName = 'sendChatDeliveredMessage';
-    _logger.info('Started sending chat delivered message', name: methodName);
-    await sendPlainTextMessage(
-      protocol.ChatDelivered.create(
-        from: did,
-        to: [otherPartyDid],
-        messages: [message.id],
-      ).toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
-    );
-
-    _logger.info('Completed sending chat delivered message', name: methodName);
   }
 
   /// Sends updated contact details from the current contact card.
@@ -1095,6 +1050,151 @@ abstract class BaseChatSDK {
     chatStream.pushData(StreamData(chatItem: message));
   }
 
+  /// Sends a read receipt for a received message.
+  ///
+  /// This notifies the sender that we've received their message.
+  Future<void> _sendReadReceiptForMessage({
+    required String roomId,
+    required String eventId,
+    required String methodName,
+  }) async {
+    try {
+      await coreSDK.sendMatrixReadReceipt(
+        did: did,
+        roomId: roomId,
+        eventId: eventId,
+        receiptType: 'm.read',
+      );
+      _logger.info(
+        'Sent read receipt for message=${eventId.topAndTail()}',
+        name: methodName,
+      );
+    } catch (e) {
+      _logger.warning(
+        'Failed to send read receipt for message=${eventId.topAndTail()}: $e',
+        name: methodName,
+      );
+    }
+  }
+
+  /// Handles Matrix read receipt events (`m.receipt`).
+  ///
+  /// When other users send read receipts for messages we sent, this updates
+  /// the message status from `sent` to `delivered`.
+  ///
+  /// Only processes receipts from other users (filters out self-receipts).
+  ///
+  /// The [receiptContent] parameter is the content map from the `m.receipt`
+  /// ephemeral event with the structure:
+  /// ```
+  /// {
+  ///   eventId: {
+  ///     receiptType: {
+  ///       userId: { ts: timestamp }
+  ///     }
+  ///   }
+  /// }
+  /// ```
+  Future<void> _handleMatrixReceipt(Map<String, dynamic> receiptContent) async {
+    final methodName = '_handleMatrixReceipt';
+
+    // Skip if receipt tracking is disabled
+    if (!options.trackMatrixReceipts) return;
+
+    final ownUserId = ownMatrixUserId;
+    if (ownUserId == null || ownUserId.trim().isEmpty) {
+      _logger.warning(
+        'Skipping receipt processing because ownMatrixUserId is not available',
+        name: methodName,
+      );
+      return;
+    }
+
+    // Process each receipted event ID
+    for (final eventId in receiptContent.keys) {
+      // Event IDs in Matrix start with '$'
+      if (!eventId.startsWith(r'$')) {
+        continue; // Skip non-event-ID keys
+      }
+
+      final receiptTypes = receiptContent[eventId];
+      if (receiptTypes is! Map) continue;
+
+      // Collect all users who sent receipts (from both m.read and m.read.private)
+      final receiptingUsers = <String>{};
+
+      for (final receiptType in options.honoredReceiptTypes) {
+        final usersForType = receiptTypes[receiptType];
+        if (usersForType is Map) {
+          receiptingUsers.addAll(
+            usersForType.keys.whereType<String>(),
+          );
+        }
+      }
+
+      // Skip if no receipts from other users
+      if (!receiptingUsers.any((userId) => userId != ownUserId)) {
+        _logger.info(
+          'Skipping receipt for event=${eventId.topAndTail()} '
+          '(only self-receipts or no receipts)',
+          name: methodName,
+        );
+        continue;
+      }
+
+      // Find the message in our repository
+      final message = await chatRepository.getMessage(
+        chatId: chatId,
+        messageId: eventId,
+      );
+
+      if (message is! Message) {
+        _logger.info(
+          'Receipt for event=${eventId.topAndTail()} '
+          'but message not found or not a Message type',
+          name: methodName,
+        );
+        continue;
+      }
+
+      // Only update if this is our outbound message and it's in 'sent' state
+      if (!message.isFromMe) {
+        _logger.info(
+          'Receipt for event=${eventId.topAndTail()} '
+          'but message is not from current user',
+          name: methodName,
+        );
+        continue;
+      }
+
+      if (message.status != ChatItemStatus.sent) {
+        _logger.info(
+          'Receipt for event=${eventId.topAndTail()} '
+          'but message status is ${message.status.name}, not sent',
+          name: methodName,
+        );
+        continue;
+      }
+
+      // Update to delivered
+      _logger.info(
+        'Updating message=${eventId.topAndTail()} '
+        'status from sent to delivered based on receipt from '
+        '${receiptingUsers.where((u) => u != ownUserId).map((u) => u.topAndTail()).join(", ")}',
+        name: methodName,
+      );
+
+      message.status = ChatItemStatus.delivered;
+      await chatRepository.updateMesssage(message);
+
+      chatStream.pushData(
+        StreamData(
+          chatItem: message,
+        ),
+      );
+    }
+  }
+
   /// Sends a chat effect (visual/animated signal).
   Future<void> sendEffect(Effect effect) async {
     final methodName = 'sendEffect';
@@ -1158,6 +1258,8 @@ abstract class BaseChatSDK {
     _matrixTypingSubscription = null;
     await _matrixPresenceSubscription?.cancel();
     _matrixPresenceSubscription = null;
+    await _matrixReceiptSubscription?.cancel();
+    _matrixReceiptSubscription = null;
      _matrixRoomIdForThisChat = null;
     chatStream.dispose();
     matrixSubscription = null;

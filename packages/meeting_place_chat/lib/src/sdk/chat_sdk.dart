@@ -47,11 +47,11 @@ abstract interface class ChatSDK {
   Future<void> sendChatPresence();
   Future<void> sendOfflinePresence();
   Future<void> sendEffect(Effect effect);
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message);
+
+  Future<void> approveConnectionRequest(ConciergeMessage message);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
   Future<void> reactOnMessage(Message message, {required String reaction});
 
-  Future<void> approveConnectionRequest(ConciergeMessage message);
   Future<void> rejectConnectionRequest(ConciergeMessage message);
 
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message);

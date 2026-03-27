@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:convert";
 import 'dart:typed_data';
 
@@ -1701,6 +1702,92 @@ class MatrixService {
     );
 
     return eventId;
+  }
+
+  /// Sends a Matrix read receipt (`m.receipt`) for `eventId` in `roomId`.
+  ///
+  /// This marks the event (and all events before it in the timeline) as read.
+  /// The receipt type can be either `m.read` (public) or `m.read.private`.
+  Future<void> sendReadReceipt({
+    required String did,
+    required String deviceId,
+    required String roomId,
+    required String eventId,
+    String receiptType = 'm.read',
+  }) async {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final room = await _getRoom(roomId);
+
+    // Use the Room's postReceipt method to send m.read receipt
+    // Note: postReceipt defaults to m.read type
+    if (receiptType == 'm.read') {
+      await room.postReceipt(eventId);
+    } else {
+      // For other receipt types, we'd need to use setReadMarker or direct API call
+      // For now, log and use m.read as fallback
+      _logger?.warning(
+        'Receipt type $receiptType not fully supported, sending m.read instead',
+        name: _logKey,
+      );
+      await room.postReceipt(eventId);
+    }
+
+    _logger?.info(
+      'Sent Matrix read receipt type=$receiptType for event=${eventId.topAndTail()} '
+      'in room ${roomId.topAndTail()}',
+      name: _logKey,
+    );
+  }
+
+  /// Emits Matrix read receipt events for `roomId` whenever the server sends
+  /// an `m.receipt` ephemeral update.
+  ///
+  /// Each emitted map contains the receipt data structure:
+  /// ```
+  /// {
+  ///   eventId: {
+  ///     receiptType: {
+  ///       userId: { ts: timestamp }
+  ///     }
+  ///   }
+  /// }
+  /// ```
+  Stream<Map<String, dynamic>> receiptStream({
+    required String did,
+    required String deviceId,
+    required String roomId,
+  }) async* {
+    await ensureLoggedIn(did: did, deviceId: deviceId);
+    final client = _clients[did]!;
+
+    // Ensure room is present in the local sync state.
+    await client.waitForRoomInSync(roomId, join: true);
+    final room = client.getRoomById(roomId);
+    if (room == null) {
+      throw StateError('Matrix room not found after sync: $roomId');
+    }
+
+    await for (final sync in client.onSync.stream) {
+      final joinedRoomUpdate = sync.rooms?.join?[roomId];
+      if (joinedRoomUpdate == null) continue;
+
+      final ephemerals = joinedRoomUpdate.ephemeral;
+      if (ephemerals == null || ephemerals.isEmpty) continue;
+
+      for (final ephemeral in ephemerals) {
+        if (ephemeral.type == 'm.receipt') {
+          final content = ephemeral.content;
+          if (content.isNotEmpty) {
+            _logger?.info(
+              'Matrix receipt event received in room ${roomId.topAndTail()}: '
+              '${content.keys.length} events receipted',
+              name: _logKey,
+            );
+            yield content;
+          }
+        }
+      }
+    }
   }
 
   /// Creates or joins a MatrixRTC group call in `roomId` using LiveKit SFU backend.

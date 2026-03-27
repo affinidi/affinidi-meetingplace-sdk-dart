@@ -13,9 +13,6 @@ class ChatSDKOptions {
   ///   presence signals (default: `10` seconds).
   /// - [chatActivityExpiresInSeconds]: Expiry time in seconds for
   ///   chat activity signals such as "typing" (default: `3` seconds).
-  /// - [requiresAcknowledgement]: List of [ChatProtocol] message types
-  ///   that require delivery acknowledgement
-  ///  (default: `[ChatProtocol.chatMessage]`).
   /// - [memberJoinedIndicator]: List of [ChatProtocol] message types
   ///   that indicate that new group member opened chat screen the first time.
   /// - [trackMatrixReceipts]: Whether to track message delivery via
@@ -28,7 +25,6 @@ class ChatSDKOptions {
     this.chatPresenceSendInterval = const Duration(seconds: 10),
     this.chatPresenceExpiry = const Duration(seconds: 15),
     this.chatActivityExpiry = const Duration(seconds: 3),
-    this.requiresAcknowledgement = const [ChatProtocol.chatMessage],
     this.onlyHandleMentionedMatrixMessages = false,
     this.trackMatrixReceipts = true,
     this.autoSendMatrixReceipts = true,
@@ -39,17 +35,10 @@ class ChatSDKOptions {
       ChatProtocol.chatActivity,
       ChatProtocol.chatAliasProfileHash,
       ChatProtocol.chatAttachmentsVerifiablePresentation,
-      ChatProtocol.chatDelivered,
       ChatProtocol.chatEffect,
-      ChatProtocol.chatMessage,
       ChatProtocol.chatReaction,
     ],
   });
-
-  /// The list of message types that require delivery acknowledgement.
-  ///
-  /// Defaults to `[ChatProtocol.chatMessage]`.
-  final List<ChatProtocol> requiresAcknowledgement;
 
   /// The interval (in seconds) at which presence signals
   /// (e.g., "online") are sent to the other party.
@@ -84,9 +73,7 @@ class ChatSDKOptions {
   /// - ChatProtocol.chatActivity,
   /// - ChatProtocol.chatAliasProfileHash,
   /// - ChatProtocol.chatAttachmentsVerifiablePresentation,
-  /// - ChatProtocol.chatDelivered,
   /// - ChatProtocol.chatEffect,
-  /// - ChatProtocol.chatMessage,
   /// - ChatProtocol.chatReaction,
   final List<ChatProtocol> memberJoinedIndicator;
 

@@ -214,14 +214,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> sendEffect(Effect effect) => _sdk.sendEffect(effect);
 
-  /// Sends a "delivered" receipt for a plain text message.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] that was delivered.
-  @override
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message) =>
-      _sdk.sendChatDeliveredMessage(message);
-
   /// Approves an incoming connection request.
   ///
   /// **Parameters:**

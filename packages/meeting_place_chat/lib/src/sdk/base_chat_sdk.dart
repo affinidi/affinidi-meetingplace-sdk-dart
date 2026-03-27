@@ -471,7 +471,6 @@ abstract class BaseChatSDK {
   /// - **Chat message**: Persisted and pushed downstream.
   /// - **Reaction**: Updates existing message reactions.
   /// - **AliasProfileHash / AliasProfileRequest**: Validates or creates concierge messages.
-  /// - **Delivered**: Marks referenced messages as delivered.
   /// - **ContactDetailsUpdate**: Updates channel contact card.
   /// - **Activity / Presence / Effect**: Pushed downstream as events.
   ///
@@ -503,10 +502,6 @@ abstract class BaseChatSDK {
     }
 
     final channel = await getChannel();
-    if (_requiresAcknowledgement(message.plainTextMessage)) {
-      unawaited(sendChatDeliveredMessage(message.plainTextMessage));
-    }
-
     if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
       final messageSequenceNumber = message.messageSequenceNumber;
       if (messageSequenceNumber != null &&
@@ -638,38 +633,6 @@ abstract class BaseChatSDK {
           StreamData(
             plainTextMessage: message.plainTextMessage,
             chatItem: conciergeMessage,
-          ),
-        );
-      }
-      return true;
-    }
-
-    if (message.plainTextMessage.type.toString() ==
-        ChatProtocol.chatDelivered.value) {
-      _logger.info('Handling chat delivered message', name: methodName);
-      final messageIds = _getMessageIdsFromChatDelivered(
-        message.plainTextMessage,
-      );
-      for (final messageId in messageIds) {
-        final targetMessage = await chatRepository.getMessage(
-          chatId: chatId,
-          messageId: messageId,
-        );
-
-        if (targetMessage == null) {
-          final message = 'Message not found';
-          _logger.error(message, name: methodName);
-          // throw Exception('Message not found');
-          continue;
-        }
-
-        targetMessage.status = ChatItemStatus.delivered;
-        await chatRepository.updateMesssage(targetMessage);
-
-        chatStream.pushData(
-          StreamData(
-            plainTextMessage: message.plainTextMessage,
-            chatItem: targetMessage,
           ),
         );
       }
@@ -950,46 +913,10 @@ abstract class BaseChatSDK {
     _logger.info('Completed sending profile hash', name: methodName);
   }
 
-  /// Extracts message IDs from a delivered plain text message.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] containing a list of message IDs
-  ///   in its body.
-  ///
-  /// **Returns:**
-  /// - A list of [String] message IDs.
-  List<String> _getMessageIdsFromChatDelivered(PlainTextMessage message) {
-    return List<String>.from(message.body!['messages'] as List<dynamic>);
-  }
-
-  bool _requiresAcknowledgement(PlainTextMessage message) {
-    return options.requiresAcknowledgement.contains(
-      ChatProtocol.byValue(message.type.toString()),
-    );
-  }
-
   bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
     return coreSDK.options.messageTypesForSequenceTracking.contains(
       message.type.toString(),
     );
-  }
-
-  /// Sends a "delivered" acknowledgement for a received message.
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message) async {
-    final methodName = 'sendChatDeliveredMessage';
-    _logger.info('Started sending chat delivered message', name: methodName);
-    await sendPlainTextMessage(
-      protocol.ChatDelivered.create(
-        from: did,
-        to: [otherPartyDid],
-        messages: [message.id],
-      ).toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
-    );
-
-    _logger.info('Completed sending chat delivered message', name: methodName);
   }
 
   /// Sends updated contact details from the current contact card.

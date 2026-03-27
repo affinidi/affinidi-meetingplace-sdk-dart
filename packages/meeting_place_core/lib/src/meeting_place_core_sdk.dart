@@ -1274,6 +1274,41 @@ class MeetingPlaceCoreSDK {
     );
   }
 
+  /// Sends a Matrix read receipt (`m.receipt`) for [eventId] in [roomId].
+  ///
+  /// This marks the event as read and triggers delivery status updates for
+  /// group chat messages. The [receiptType] can be either `m.read` (public)
+  /// or `m.read.private` (default: `m.read`).
+  Future<void> sendMatrixReadReceipt({
+    required String did,
+    required String roomId,
+    required String eventId,
+    String receiptType = 'm.read',
+  }) {
+    return _matrixService.sendReadReceipt(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      roomId: roomId,
+      eventId: eventId,
+      receiptType: receiptType,
+    );
+  }
+
+  /// Emits Matrix read receipt events for `roomId` when the server sends
+  /// `m.receipt` ephemeral updates.
+  ///
+  /// Each emitted map contains the receipt data structure from Matrix.
+  Stream<Map<String, dynamic>> subscribeToMatrixReceipts({
+    required String did,
+    required String roomId,
+  }) {
+    return _matrixService.receiptStream(
+      did: did,
+      deviceId: _controlPlaneSDK.device.deviceToken,
+      roomId: roomId,
+    );
+  }
+
   /// Emits typing Matrix user IDs for `roomId` when the server sends `m.typing`
   /// ephemerals.
   Stream<List<String>> subscribeToMatrixTyping({

@@ -4,7 +4,7 @@ import 'exception/sdk_exception.dart' show SDKException;
 /// The exception that is thrown when an error occurs in the
 /// MeetingPlaceCoreSDKException.
 ///
-/// The [SDKException] is intended to provide more context about thhe error.
+/// The [SDKException] is intended to provide more context about the error.
 ///
 /// Example:
 /// ```dart

@@ -10,6 +10,7 @@ export 'src/protocol/protocol.dart';
 export 'src/repository/chat_repository.dart';
 export 'src/service/chat_stream.dart';
 export 'src/sdk/chat_sdk.dart';
+export 'src/sdk/chat.dart';
 export 'src/sdk/chat_sdk_options.dart';
 export 'src/sdk/group_chat_sdk.dart';
 export 'src/sdk/individual_chat_sdk.dart';

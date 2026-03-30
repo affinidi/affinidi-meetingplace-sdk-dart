@@ -1,7 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
-import 'sdk/chat.dart';
 
 ///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
 ///

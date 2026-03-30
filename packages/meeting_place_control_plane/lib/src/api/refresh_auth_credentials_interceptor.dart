@@ -47,9 +47,11 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   ) async {
     final methodName = 'onRequest';
     _logger.info('Started processing request', name: methodName);
-    final isSecure = options.extra['secure'] == true;
 
-    if (!isSecure) {
+    final extra = options.extra as Map<String, dynamic>?;
+
+    if (extra?['secure'] == null ||
+        (extra!['secure'] as String).isEmpty == true) {
       _logger.info(
         'Public endpoint, authentication handling not required',
         name: methodName,
@@ -82,12 +84,10 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   ) async {
     final shouldRetryAuth = err.requestOptions.extra['retry_auth'] ?? true;
     final isUnauthorized = err.response?.statusCode == HttpStatus.unauthorized;
-    final responseData = err.response?.data;
-    final errorCode = responseData is Map<String, dynamic>
-        ? responseData['errorCode'] as String?
-        : null;
+    final data = err.response?.data as Map<String, dynamic>?;
+
     final isTokenExpired =
-        isUnauthorized && errorCode == _errorCodeTokenExpired;
+        isUnauthorized && data?['errorCode'] == _errorCodeTokenExpired;
 
     if (isUnauthorized && isTokenExpired && shouldRetryAuth == true) {
       try {

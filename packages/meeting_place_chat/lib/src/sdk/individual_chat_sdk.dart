@@ -4,7 +4,6 @@ import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
-import 'chat.dart';
 
 /// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for
 /// handling

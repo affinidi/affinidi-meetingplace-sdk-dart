@@ -30,9 +30,14 @@ void main() async {
     type: SDKConnectionOfferType.outreachInvitation,
   );
 
-  final file = File('./storage.txt');
+  final outputDirectory = Directory('.example-output')
+    ..createSync(recursive: true);
+  final file = File(
+    '${outputDirectory.path}${Platform.pathSeparator}storage.txt',
+  );
   file.writeAsBytesSync(
-      utf8.encode(publishOfferResult.connectionOffer.mnemonic));
+    utf8.encode(publishOfferResult.connectionOffer.mnemonic),
+  );
 
   prettyJsonPrintYellow(
       'Connection offer', publishOfferResult.connectionOffer.toJson());

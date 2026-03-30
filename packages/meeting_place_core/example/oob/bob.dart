@@ -9,7 +9,10 @@ import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
-  final oobUrlBytes = File('./oob-url.txt').readAsBytesSync();
+  final outputDirectory = Directory('.example-output');
+  final oobUrlBytes = File(
+    '${outputDirectory.path}${Platform.pathSeparator}oob-url.txt',
+  ).readAsBytesSync();
 
   final oobUri = Uri.parse(utf8.decode(oobUrlBytes));
   prettyPrintYellow('OOB uri: ${oobUri.toString()}');

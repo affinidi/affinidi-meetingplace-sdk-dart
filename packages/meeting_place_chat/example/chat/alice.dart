@@ -35,7 +35,11 @@ void main() async {
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
   );
 
-  final file = File('./storage.txt');
+  final outputDirectory = Directory('.example-output')
+    ..createSync(recursive: true);
+  final file = File(
+    '${outputDirectory.path}${Platform.pathSeparator}storage.txt',
+  );
   file.writeAsBytesSync(
     utf8.encode(publishOfferResult.connectionOffer.mnemonic),
   );

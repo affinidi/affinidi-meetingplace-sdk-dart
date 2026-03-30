@@ -18,7 +18,6 @@ import '../group/chat_group_member_joined_handler.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
-import 'chat.dart';
 
 /// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for
 /// handling

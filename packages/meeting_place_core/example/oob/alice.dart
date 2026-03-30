@@ -22,7 +22,11 @@ void main() async {
   );
 
   prettyPrintYellow('OOB URL: ${oob.oobUrl.toString()}');
-  File('./oob-url.txt').writeAsBytesSync(utf8.encode(oob.oobUrl.toString()));
+  final outputDirectory = Directory('.example-output')
+    ..createSync(recursive: true);
+  File(
+    '${outputDirectory.path}${Platform.pathSeparator}oob-url.txt',
+  ).writeAsBytesSync(utf8.encode(oob.oobUrl.toString()));
 
   // Alice listens on acceptance
   prettyPrintYellow('Listening on OOB stream...');

@@ -85,8 +85,9 @@ class InvitationGroupAcceptedEventHandler
     final groupChannel = await channelService
         .findChannelByOtherPartyPermanentChannelDid(group.did);
 
-    final invitationAcceptance =
-        InvitationAcceptanceGroup.fromPlainTextMessage(message);
+    final invitationAcceptance = InvitationAcceptanceGroup.fromPlainTextMessage(
+      message,
+    );
 
     final otherPartyPermanentChannelDid = invitationAcceptance.body.channelDid;
 

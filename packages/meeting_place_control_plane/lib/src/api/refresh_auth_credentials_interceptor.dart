@@ -51,7 +51,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
     final extra = options.extra as Map<String, dynamic>?;
 
     if (extra?['secure'] == null ||
-        (extra!['secure'] as String).isEmpty == true) {
+        (extra!['secure'] as dynamic).isEmpty == true) {
       _logger.info(
         'Public endpoint, authentication handling not required',
         name: methodName,

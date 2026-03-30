@@ -211,7 +211,7 @@ void main() async {
 
       PlainTextMessage useChatMessage(String from, String to) =>
           PlainTextMessage(
-            id: Uuid().v4(),
+            id: const Uuid().v4(),
             type: Uri.parse('https://affinidi.io/mpx/core-sdk/test'),
             from: from,
             to: [to],
@@ -323,7 +323,8 @@ void main() async {
       // await charlieWaitForChatGroupDetailsUpdate.future;
 
       // Verify that chat group contacts details update was sent
-      // TODO: move this test case to chat SDK because responsibility has changed
+      // TODO: move this test case to chat SDK because responsibility has
+      // changed
       // expect(receivedChatGroupDetailsUpdateMessage, isNotNull);
       // expect(
       //   receivedChatGroupDetailsUpdateMessage
@@ -400,7 +401,7 @@ void main() async {
         .getDidDocument();
 
     final chatMessage = PlainTextMessage(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       type: Uri.parse('https://affinidi.io/mpx/core-sdk/test'),
       from: senderDidDocument.id,
       to: [groupDidDocument.id],
@@ -625,7 +626,7 @@ void main() async {
     expect(
       () => aliceSDK.sendMessage(
         PlainTextMessage(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           type: Uri.parse('https://affinidi.io/mpx/core-sdk/test'),
           from: result.connectionOffer.groupDid,
           to: [acceptConnectionOffer.memberDid!],

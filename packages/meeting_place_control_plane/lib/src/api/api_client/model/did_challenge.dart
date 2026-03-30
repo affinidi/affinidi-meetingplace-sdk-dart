@@ -11,11 +11,13 @@ part 'did_challenge.g.dart';
 /// List of required parameters to initiate authentication process.
 ///
 /// Properties:
-/// * [did] - Decentralised Identifier (DID) of the user to initialise the  authentication process and generate the challenge token.
+/// * [did] - Decentralised Identifier (DID) of the user to initialise the
+///   authentication process and generate the challenge token.
 @BuiltValue()
 abstract class DidChallenge
     implements Built<DidChallenge, DidChallengeBuilder> {
-  /// Decentralised Identifier (DID) of the user to initialise the  authentication process and generate the challenge token.
+  /// Decentralised Identifier (DID) of the user to initialise the
+  /// authentication process and generate the challenge token.
   @BuiltValueField(wireName: r'did')
   String? get did;
 

@@ -1,7 +1,8 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
-/// A concrete implementation of the [ControlPlaneException] interface for throwing
+/// A concrete implementation of the [ControlPlaneException] interface for
+/// throwing
 /// specific exceptions related to get pending notifications command/operation.
 class GetPendingNotificationsException implements ControlPlaneException {
   GetPendingNotificationsException._({
@@ -10,7 +11,8 @@ class GetPendingNotificationsException implements ControlPlaneException {
     this.innerException,
   });
 
-  /// Creates a `notificationPayloadError` [GetPendingNotificationsException] instance.
+  /// Creates a `notificationPayloadError` [GetPendingNotificationsException]
+  /// instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
@@ -22,7 +24,8 @@ class GetPendingNotificationsException implements ControlPlaneException {
   }) {
     return GetPendingNotificationsException._(
       message:
-          'Get pending notifications exception: Invalid or empty notification payload.',
+          'Get pending notifications exception: Invalid or empty '
+          'notification payload.',
       code: ControlPlaneSDKErrorCode
           .getPendingNotificationsNotificationPayloadError,
       innerException: innerException,

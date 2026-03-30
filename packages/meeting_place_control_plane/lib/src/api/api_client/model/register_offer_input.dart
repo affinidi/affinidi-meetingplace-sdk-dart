@@ -14,18 +14,26 @@ part 'register_offer_input.g.dart';
 /// Properties:
 /// * [offerName] - Name of the offer.
 /// * [offerDescription] - Describes the purpose of the connection offer.
-/// * [offerType] - Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
-/// * [didcommMessage] - A plaintext DIDComm message containing the offer encoded in base64 format.
-/// * [contactCard] - A ContactCard of the user who registered the offer encoded in base64 format.
-/// * [validUntil] - The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
-/// * [maximumUsage] - The maximum number of times other users can claim the offer. Set 0 for unlimited claims.
-/// * [deviceToken] - The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
+/// * [offerType] - Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group
+///   Chat, and 4-Outreach.
+/// * [didcommMessage] - A plaintext DIDComm message containing the offer
+///   encoded in base64 format.
+/// * [contactCard] - A ContactCard of the user who registered the offer encoded
+///   in base64 format.
+/// * [validUntil] - The validity date and time in ISO-8601 format, e.g.,
+///   2023-09-20T07:12:13  or an empty string for no expiry.
+/// * [maximumUsage] - The maximum number of times other users can claim the
+///   offer. Set 0 for unlimited claims.
+/// * [deviceToken] - The device token for push notification when the offer is
+///   accessed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
 /// * [contactAttributes] - A bitfield of contact attributes.
 /// * [mediatorDid] - The mediator DID use to register the offer.
 /// * [mediatorEndpoint] - The mediator endpoint to register the offer.
-/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register the offer.
-/// * [customPhrase] - A custom phrase to find and claim the offer by another user.
+/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register
+///   the offer.
+/// * [customPhrase] - A custom phrase to find and claim the offer by another
+///   user.
 /// * [isSearchable] - Indicates whether the offer is searchable by other users.
 /// * [metadata] - Metadata containing additional information about the offer.
 @BuiltValue()
@@ -39,7 +47,8 @@ abstract class RegisterOfferInput
   @BuiltValueField(wireName: r'offerDescription')
   String? get offerDescription;
 
-  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
+  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and
+  /// 4-Outreach.
   @BuiltValueField(wireName: r'offerType')
   RegisterOfferInputOfferTypeEnum? get offerType;
   // enum offerTypeEnum {  1,  2,  3,  4,  };
@@ -48,19 +57,23 @@ abstract class RegisterOfferInput
   @BuiltValueField(wireName: r'didcommMessage')
   String get didcommMessage;
 
-  /// A ContactCard of the user who registered the offer encoded in base64 format.
+  /// A ContactCard of the user who registered the offer encoded in base64
+  /// format.
   @BuiltValueField(wireName: r'contactCard')
   String get contactCard;
 
-  /// The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
+  /// The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13
+  /// or an empty string for no expiry.
   @BuiltValueField(wireName: r'validUntil')
   String? get validUntil;
 
-  /// The maximum number of times other users can claim the offer. Set 0 for unlimited claims.
+  /// The maximum number of times other users can claim the offer. Set 0 for
+  /// unlimited claims.
   @BuiltValueField(wireName: r'maximumUsage')
   int? get maximumUsage;
 
-  /// The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
+  /// The device token for push notification when the offer is accessed.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
 
@@ -416,22 +429,26 @@ class _$RegisterOfferInputSerializer
 }
 
 class RegisterOfferInputOfferTypeEnum extends EnumClass {
-  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
+  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and
+  /// 4-Outreach.
   @BuiltValueEnumConst(wireNumber: 1)
   static const RegisterOfferInputOfferTypeEnum number1 =
       _$registerOfferInputOfferTypeEnum_number1;
 
-  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
+  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and
+  /// 4-Outreach.
   @BuiltValueEnumConst(wireNumber: 2)
   static const RegisterOfferInputOfferTypeEnum number2 =
       _$registerOfferInputOfferTypeEnum_number2;
 
-  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
+  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and
+  /// 4-Outreach.
   @BuiltValueEnumConst(wireNumber: 3)
   static const RegisterOfferInputOfferTypeEnum number3 =
       _$registerOfferInputOfferTypeEnum_number3;
 
-  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and 4-Outreach.
+  /// Specifies the type of the offer: 1-Chat, 2-Poll, 3-Group Chat, and
+  /// 4-Outreach.
   @BuiltValueEnumConst(wireNumber: 4)
   static const RegisterOfferInputOfferTypeEnum number4 =
       _$registerOfferInputOfferTypeEnum_number4;

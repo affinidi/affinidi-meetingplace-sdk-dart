@@ -13,7 +13,8 @@ part 'register_device_ok.g.dart';
 /// Properties:
 /// * [status]
 /// * [message]
-/// * [deviceToken] - A unique, platform-specific device token used to register the device.
+/// * [deviceToken] - A unique, platform-specific device token used to register
+///   the device.
 /// * [platformType] - Platform type for sending notification.
 @BuiltValue()
 abstract class RegisterDeviceOK

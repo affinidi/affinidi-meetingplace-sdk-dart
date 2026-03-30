@@ -20,7 +20,8 @@ import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 import 'chat.dart';
 
-/// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for handling
+/// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for
+/// handling
 /// **group chat functionality** in the Meeting Place SDK.
 ///
 /// Built on top of [BaseChatSDK], it leverages:
@@ -131,13 +132,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   ///
   /// **Parameters:**
   /// - [message]: The [PlainTextMessage] to send.
-  /// - [senderDid]: DID of the user who sent the message.
-  /// - [recipientDid]: DID of the recipient of the message.
-  /// - [mediatorDid]: DID of the mediator.
   /// - [notify]: Whether to notify group members (default: `false`).
-  /// - [ephemeral]: Whether the message is ephemeral (default: `false`).
-  /// - [forwardExpiryInSeconds]: Optional duration (in seconds) after which
-  /// the forwarded message is considered expired.
   ///
   /// **Returns:**
   /// - A [Future] that completes when the message is sent.
@@ -146,14 +141,16 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final senderDid = message.from;
     if (senderDid == null || senderDid != did) {
       throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+        'Message "from" DID ${message.from} does not match chat sender DID '
+        '$did.',
       );
     }
 
     final recipientDid = message.to?.firstOrNull;
     if (recipientDid == null || recipientDid != otherPartyDid) {
       throw Exception(
-        'Message "to" DID ${message.to} does not match chat recipient DID $otherPartyDid.',
+        'Message "to" DID ${message.to} does not match chat recipient DID '
+        '$otherPartyDid.',
       );
     }
 
@@ -515,7 +512,8 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     chatStream.pushData(StreamData(chatItem: chatItem));
   }
 
-  /// Sends a profile hash message to the group owner if the current contact card
+  /// Sends a profile hash message to the group owner if the current contact
+  /// card
   /// has changed since the last update.
   @override
   Future<void> sendProfileHash() async {

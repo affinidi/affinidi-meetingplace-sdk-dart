@@ -101,7 +101,7 @@ void main() {
       }
     });
 
-    await Future.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
 
     await fixture.aliceSDK.sendGroupMessage(
       chatMessage,

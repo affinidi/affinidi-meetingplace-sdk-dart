@@ -229,7 +229,8 @@ abstract class BaseChatSDK {
   /// Supported message types:
   /// - **Chat message**: Persisted and pushed downstream.
   /// - **Reaction**: Updates existing message reactions.
-  /// - **AliasProfileHash / AliasProfileRequest**: Validates or creates concierge messages.
+  /// - **AliasProfileHash / AliasProfileRequest**: Validates or creates
+  ///   concierge messages.
   /// - **Delivered**: Marks referenced messages as delivered.
   /// - **ContactDetailsUpdate**: Updates channel contact card.
   /// - **Activity / Presence / Effect**: Pushed downstream as events.
@@ -359,14 +360,16 @@ abstract class BaseChatSDK {
     final senderDid = message.from;
     if (senderDid == null || senderDid != did) {
       throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+        'Message "from" DID ${message.from} does not match chat sender DID '
+        '$did.',
       );
     }
 
     final recipientDid = message.to?.firstOrNull;
     if (recipientDid == null || recipientDid != otherPartyDid) {
       throw Exception(
-        'Message "to" DID ${message.to} does not match chat recipient DID $otherPartyDid.',
+        'Message "to" DID ${message.to} does not match chat recipient DID '
+        '$otherPartyDid.',
       );
     }
 
@@ -388,7 +391,8 @@ abstract class BaseChatSDK {
     final senderDid = message.from;
     if (senderDid == null || senderDid != did) {
       throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID $did.',
+        'Message "from" DID ${message.from} does not match chat sender DID '
+        '$did.',
       );
     }
 
@@ -716,7 +720,8 @@ abstract class BaseChatSDK {
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
-          'Channel with other party DID ${otherPartyDid.topAndTail()} not found',
+          'Channel with other party DID ${otherPartyDid.topAndTail()} not '
+          'found',
         ));
   }
 

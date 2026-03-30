@@ -20,7 +20,8 @@ class GetOobHandler
   /// Returns an instance of [GetOobHandler].
   ///
   /// **Parameters:**
-  /// - [mpxClient] - An instance of discovery api client object.
+  /// - [ControlPlaneApiClient] - An instance of control plane api client
+  ///   object.
   /// - [mediatorDid] - The mediator did string.
   /// - [didResolver] - The did resolver object.
   GetOobHandler({

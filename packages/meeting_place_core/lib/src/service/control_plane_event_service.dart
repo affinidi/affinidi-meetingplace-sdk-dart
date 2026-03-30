@@ -28,10 +28,10 @@ class ControlPlaneEventService {
 
   Future<void> processEvents({
     required Duration debounceEvents,
-    Function(List<Object> errors)? onDone,
+    void Function(List<Object> errors)? onDone,
   }) async {
     final methodName = 'processEvents';
-    final processId = Uuid().v4();
+    final processId = const Uuid().v4();
 
     _queue.add(processId);
     _logger.info('Process id $processId added to queue', name: methodName);
@@ -40,7 +40,7 @@ class ControlPlaneEventService {
       try {
         _queued = true;
         _logger.info('Debounce...');
-        await Future.delayed(debounceEvents);
+        await Future<void>.delayed(debounceEvents);
         _logger.info('Start processing discovery events..');
         await _process(processId: processId, onDone: onDone);
         _logger.info('Processing discovery events done..');
@@ -58,7 +58,7 @@ class ControlPlaneEventService {
 
   Future<void> _process({
     required String processId,
-    Function(List<Object> errors)? onDone,
+    void Function(List<Object> errors)? onDone,
   }) async {
     final methodName = '_process';
     _logger.info(
@@ -74,7 +74,8 @@ class ControlPlaneEventService {
       if (result.events.isEmpty) {
         _queue.clear();
         _logger.info(
-          'Notification check complete: no pending items detected, queue successfully cleared.',
+          'Notification check complete: no pending items detected, queue '
+          'successfully cleared.',
           name: methodName,
         );
         _onDone(onDone);
@@ -125,7 +126,7 @@ class ControlPlaneEventService {
     _logger.info('Completed processing control plane events', name: methodName);
   }
 
-  void _onDone(Function(List<Object> errors)? onDone) {
+  void _onDone(void Function(List<Object> errors)? onDone) {
     onDone?.call([..._errors]);
     _errors.clear();
   }

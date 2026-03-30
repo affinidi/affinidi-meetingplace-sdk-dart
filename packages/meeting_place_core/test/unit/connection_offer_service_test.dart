@@ -1,10 +1,9 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
+import 'package:meeting_place_core/src/service/connection_offer/connection_offer_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
-
-import 'package:meeting_place_core/src/service/connection_offer/connection_offer_service.dart';
 
 import '../fixtures/contact_card_fixture.dart';
 
@@ -118,7 +117,8 @@ void main() {
     );
 
     test(
-      'throws alreadyClaimedByClaimingPartyError if channel is of type group and inaugurated',
+      'throws alreadyClaimedByClaimingPartyError if channel is of type group '
+      'and inaugurated',
       () async {
         final groupChannel = Channel(
           offerLink: offerLink,

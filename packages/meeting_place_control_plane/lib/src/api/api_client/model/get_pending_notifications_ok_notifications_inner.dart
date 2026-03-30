@@ -14,7 +14,8 @@ part 'get_pending_notifications_ok_notifications_inner.g.dart';
 /// * [id] - The notification identifier
 /// * [type] - The type of notification
 /// * [payload] - The raw payload that was sent via push notification
-/// * [notificationDate] - date and time the refresh token expires in ISO-8601 format
+/// * [notificationDate] - date and time the refresh token expires in ISO-8601
+///   format
 @BuiltValue()
 abstract class GetPendingNotificationsOKNotificationsInner
     implements

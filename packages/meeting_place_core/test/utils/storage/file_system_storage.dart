@@ -6,7 +6,8 @@ import 'package:ssi/ssi.dart';
 
 /// An in-memory implementation of the [KeyStore] interface.
 ///
-/// This implementation stores all keys and seeds in memory and does not persist them.
+/// This implementation stores all keys and seeds in memory and does not persist
+/// them.
 /// It is primarily used for testing purposes.
 class FileSystemStore implements KeyStore {
   final fileName = '${Directory.current.path}/storage.json';
@@ -27,11 +28,12 @@ class FileSystemStore implements KeyStore {
     final jsonString = file.readAsStringSync();
     final records = jsonDecode(jsonString) as Map<String, dynamic>;
     if (records[key] == null) return null;
+    final record = records[key] as Map<String, dynamic>;
 
     return StoredKey(
-      keyType: KeyType.values.byName(records[key]['keyType']),
+      keyType: KeyType.values.byName(record['keyType'] as String),
       privateKeyBytes: Uint8List.fromList(
-        records[key]['privateKeyBytes'].cast<int>(),
+        (record['privateKeyBytes'] as List<dynamic>).cast<int>(),
       ),
     );
   }

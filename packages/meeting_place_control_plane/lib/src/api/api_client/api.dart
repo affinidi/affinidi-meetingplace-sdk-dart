@@ -149,7 +149,8 @@ class ControlPlaneApi {
     }
   }
 
-  /// Get DefaultApi instance, base route and serializer can be overridden by a given but be careful,
+  /// Get DefaultApi instance, base route and serializer can be overridden by a
+  /// given but be careful,
   /// by doing that all interceptors will not be executed
   DefaultApi getDefaultApi() {
     return DefaultApi(dio, serializers);

@@ -1,8 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/event_handler/exceptions/group_membership_finalised_exception.dart';
 import 'package:meeting_place_core/src/sdk/sdk_error_handler.dart';
-import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
 
 class MockLogger extends Mock implements MeetingPlaceCoreSDKLogger {}
 
@@ -66,27 +66,25 @@ void main() {
       },
     );
 
-    test(
-      'throws MeetingPlaceCoreSDKException for MeetingPlaceMediatorSDKException',
-      () async {
-        final mediatorException = MeetingPlaceMediatorSDKException(
-          message: 'Mediator error',
-          code: 'MED_ERR',
-          innerException: Exception('Inner exception'),
-        );
+    test('throws MeetingPlaceCoreSDKException for '
+        'MeetingPlaceMediatorSDKException', () async {
+      final mediatorException = MeetingPlaceMediatorSDKException(
+        message: 'Mediator error',
+        code: 'MED_ERR',
+        innerException: Exception('Inner exception'),
+      );
 
-        expect(
-          () => errorHandler.handleError(() async => throw mediatorException),
-          throwsA(
-            isA<MeetingPlaceCoreSDKException>().having(
-              (e) => e.code,
-              'code',
-              'MED_ERR',
-            ),
+      expect(
+        () => errorHandler.handleError(() async => throw mediatorException),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            'MED_ERR',
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
 
     test('throws MeetingPlaceCoreSDKException for generic exception', () async {
       final genericException = Exception('Generic failure');

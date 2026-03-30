@@ -13,7 +13,8 @@ part 'delete_pending_notifications_input.g.dart';
 ///
 /// Properties:
 /// * [notificationIds]
-/// * [deviceToken] - The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+/// * [deviceToken] - The device token for push notification when the offer is
+///   processed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
 @BuiltValue()
 abstract class DeletePendingNotificationsInput
@@ -25,7 +26,8 @@ abstract class DeletePendingNotificationsInput
   @BuiltValueField(wireName: r'notificationIds')
   BuiltList<String> get notificationIds;
 
-  /// The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+  /// The device token for push notification when the offer is processed.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
 

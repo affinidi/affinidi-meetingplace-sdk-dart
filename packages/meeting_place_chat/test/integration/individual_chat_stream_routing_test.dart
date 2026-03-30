@@ -20,7 +20,7 @@ void main() {
   test('unhandled message is pushed to chat stream', () async {
     final unhandledMessage = PlainTextMessage(
       id: const Uuid().v4(),
-      type: Uri.parse('https://example.com/${Uuid().v4()}'),
+      type: Uri.parse('https://example.com/${const Uuid().v4()}'),
       from: fixture.bobSDK.didDocument.id,
       to: [fixture.aliceSDK.didDocument.id],
       body: {'text': 'Hello Alice!'},

@@ -14,5 +14,5 @@ String toBase64(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> fromBase64(String base64) {
-  return jsonDecode(utf8.decode(base64Decode(base64)));
+  return jsonDecode(utf8.decode(base64Decode(base64))) as Map<String, dynamic>;
 }

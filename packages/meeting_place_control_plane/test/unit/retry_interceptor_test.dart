@@ -1,7 +1,7 @@
-import 'package:meeting_place_control_plane/src/api/retry_interceptor.dart';
-import 'package:test/test.dart';
 import 'package:dio/dio.dart';
+import 'package:meeting_place_control_plane/src/api/retry_interceptor.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
 
 class MockDio extends Mock implements Dio {}
 
@@ -19,7 +19,7 @@ void main() {
       interceptor = RetryInterceptor(
         dio: mockDio,
         maxRetries: 3,
-        retryDelay: Duration(milliseconds: 10),
+        retryDelay: const Duration(milliseconds: 10),
       );
       mockHandler = MockErrorInterceptorHandler();
 
@@ -104,7 +104,8 @@ void main() {
               ),
             ).called(1);
 
-            // Verify that handler.resolve was called with the successful response
+            // Verify that handler.resolve was called with the successful
+            // response
             verify(() => mockHandler.resolve(fakeResponse)).called(1);
           },
         );

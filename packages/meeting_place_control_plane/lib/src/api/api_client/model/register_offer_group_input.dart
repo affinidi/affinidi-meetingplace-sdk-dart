@@ -9,27 +9,36 @@ import 'package:built_value/serializer.dart';
 
 part 'register_offer_group_input.g.dart';
 
-/// List of required and optional parameters to register a connection offer for group chat.
+/// List of required and optional parameters to register a connection offer for
+/// group chat.
 ///
 /// Properties:
 /// * [offerName] - Name of the offer.
 /// * [offerDescription] - Describes the purpose of the connection offer.
-/// * [didcommMessage] - A plaintext DIDComm message containing the offer encoded in base64 format.
-/// * [contactCard] - A ContactCard of the user who registered the offer encoded in base64 format.
-/// * [validUntil] - The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
-/// * [maximumUsage] - The maximum number of times other users can claim the offer. Set 0 for unlimited claims.
-/// * [deviceToken] - The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
+/// * [didcommMessage] - A plaintext DIDComm message containing the offer
+///   encoded in base64 format.
+/// * [contactCard] - A ContactCard of the user who registered the offer encoded
+///   in base64 format.
+/// * [validUntil] - The validity date and time in ISO-8601 format, e.g.,
+///   2023-09-20T07:12:13  or an empty string for no expiry.
+/// * [maximumUsage] - The maximum number of times other users can claim the
+///   offer. Set 0 for unlimited claims.
+/// * [deviceToken] - The device token for push notification when the offer is
+///   accessed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
 /// * [mediatorDid] - The mediator DID use to register the offer.
 /// * [mediatorEndpoint] - The mediator endpoint to register the offer.
-/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register the offer.
-/// * [customPhrase] - A custom phrase to find and claim the offer by another user.
+/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register
+///   the offer.
+/// * [customPhrase] - A custom phrase to find and claim the offer by another
+///   user.
 /// * [isSearchable] - Indicates whether the offer is searchable by other users.
 /// * [metadata] - Metadata containing additional information about the offer.
 /// * [adminReencryptionKey] - Reencryption key for the group chat admin.
 /// * [adminDid] - The Decentralised Identifier (DUD) of the group chat admin.
 /// * [adminPublicKey] - The public key information of the group chat admin.
-/// * [memberContactCard] - A ContactCard of the group chat member encoded in base64 format.
+/// * [memberContactCard] - A ContactCard of the group chat member encoded in
+///   base64 format.
 @BuiltValue()
 abstract class RegisterOfferGroupInput
     implements Built<RegisterOfferGroupInput, RegisterOfferGroupInputBuilder> {
@@ -45,19 +54,23 @@ abstract class RegisterOfferGroupInput
   @BuiltValueField(wireName: r'didcommMessage')
   String get didcommMessage;
 
-  /// A ContactCard of the user who registered the offer encoded in base64 format.
+  /// A ContactCard of the user who registered the offer encoded in base64
+  /// format.
   @BuiltValueField(wireName: r'contactCard')
   String get contactCard;
 
-  /// The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13  or an empty string for no expiry.
+  /// The validity date and time in ISO-8601 format, e.g., 2023-09-20T07:12:13
+  /// or an empty string for no expiry.
   @BuiltValueField(wireName: r'validUntil')
   String? get validUntil;
 
-  /// The maximum number of times other users can claim the offer. Set 0 for unlimited claims.
+  /// The maximum number of times other users can claim the offer. Set 0 for
+  /// unlimited claims.
   @BuiltValueField(wireName: r'maximumUsage')
   int? get maximumUsage;
 
-  /// The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
+  /// The device token for push notification when the offer is accessed.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
 

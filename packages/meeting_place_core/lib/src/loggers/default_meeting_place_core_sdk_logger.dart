@@ -7,10 +7,12 @@ import 'meeting_place_core_sdk_logger.dart';
 ///
 /// This logger outputs logs to the console with a consistent format.
 class DefaultMeetingPlaceCoreSDKLogger implements MeetingPlaceCoreSDKLogger {
-  /// Creates a logger with an optional [className] identifying the logging source.
+  /// Creates a logger with an optional [className] identifying the logging
+  /// source.
   ///
   /// [className] defaults to [DefaultMeetingPlaceCoreSDKLogger].
-  /// [sdkName] is used as the log name in `dart:developer` and defaults to 'MPX_SDK'.
+  /// [sdkName] is used as the log name in `dart:developer` and defaults to
+  /// 'MPX_SDK'.
   DefaultMeetingPlaceCoreSDKLogger({
     this.className = 'DefaultMeetingPlaceCoreSDKLogger',
     this.sdkName = constants.coreSDKName,

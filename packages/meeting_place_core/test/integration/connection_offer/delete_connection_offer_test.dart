@@ -19,7 +19,7 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
+      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
         contactInfo: {
@@ -48,7 +48,7 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
+      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
         contactInfo: {
@@ -75,7 +75,7 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
+      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
         contactInfo: {
@@ -97,7 +97,7 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
+      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
         contactInfo: {
@@ -127,7 +127,7 @@ void main() async {
     final offer = await aliceSDK.publishOffer(
       offerName: 'Sample Offer 123',
       offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(Duration(seconds: 60)),
+      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
       contactCard: ContactCardFixture.getContactCardFixture(
         did: 'did:test:alice',
         contactInfo: {

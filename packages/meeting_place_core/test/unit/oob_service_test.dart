@@ -1,12 +1,6 @@
-import 'package:mocktail/mocktail.dart';
-import 'package:ssi/ssi.dart';
-import 'package:test/test.dart';
-
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
-
 import 'package:meeting_place_control_plane/src/core/command/command.dart';
-
 import 'package:meeting_place_core/src/event_handler/control_plane_event_stream_manager.dart';
 import 'package:meeting_place_core/src/loggers/meeting_place_core_sdk_logger.dart';
 import 'package:meeting_place_core/src/meeting_place_core_sdk_error_code.dart';
@@ -19,6 +13,9 @@ import 'package:meeting_place_core/src/service/connection_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:meeting_place_core/src/service/oob/oob_service.dart';
 import 'package:meeting_place_core/src/service/oob/oob_service_exception.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
+import 'package:test/test.dart';
 
 class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
 
@@ -57,10 +54,10 @@ class _OobServiceMocks {
     when(() => permanentChannelDidDoc.id).thenReturn('did:test:permanent');
 
     when(
-      () => acceptOfferDidManager.getDidDocument(),
+      acceptOfferDidManager.getDidDocument,
     ).thenAnswer((_) async => acceptOfferDidDoc);
     when(
-      () => permanentChannelDidManager.getDidDocument(),
+      permanentChannelDidManager.getDidDocument,
     ).thenAnswer((_) async => permanentChannelDidDoc);
 
     var generateDidCallCount = 0;
@@ -127,29 +124,27 @@ void main() {
   });
 
   group('OobService', () {
-    test(
-      'throws invalidOobResponse when ControlPlaneSDKException has unknown code',
-      () async {
-        final exception = ControlPlaneSDKException(
-          message: 'Unknown error',
-          code: 'some_unknown_code',
-          innerException: Exception('inner'),
-        );
-        final oobServiceMocks = _OobServiceMocks()..stubGetOobThrows(exception);
-        final oobService = oobServiceMocks.buildService();
+    test('throws invalidOobResponse when ControlPlaneSDKException has unknown '
+        'code', () async {
+      final exception = ControlPlaneSDKException(
+        message: 'Unknown error',
+        code: 'some_unknown_code',
+        innerException: Exception('inner'),
+      );
+      final oobServiceMocks = _OobServiceMocks()..stubGetOobThrows(exception);
+      final oobService = oobServiceMocks.buildService();
 
-        expect(
-          () => oobServiceMocks.callAcceptOobFlow(oobService),
-          throwsA(
-            isA<OobServiceException>().having(
-              (e) => e.code,
-              'code',
-              MeetingPlaceCoreSDKErrorCode.oobInvalidData,
-            ),
+      expect(
+        () => oobServiceMocks.callAcceptOobFlow(oobService),
+        throwsA(
+          isA<OobServiceException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode.oobInvalidData,
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
 
     test(
       'throws networkError when ControlPlaneSDKException is networkError',

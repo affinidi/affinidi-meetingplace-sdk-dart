@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import '../../api/api_client.dart';
 import '../../../meeting_place_control_plane.dart';
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';

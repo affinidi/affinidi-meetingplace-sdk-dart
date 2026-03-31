@@ -13,9 +13,6 @@ import 'repository/connection_offer_repository_impl.dart';
 import 'repository/key_repository_impl.dart';
 import 'storage/in_memory_storage.dart';
 import 'storage/storage.dart';
-import 'package:dotenv/dotenv.dart';
-
-final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 

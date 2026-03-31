@@ -143,7 +143,7 @@ Meaning:
 
 Handler behavior:
 
-The handler fetches `GroupMemberInauguration`, validates that it targets the expected member DID, replaces placeholder group data with authoritative group metadata, updates ACL and notification state, and marks the local group offer and channel finalised or inaugurated.
+The handler fetches `GroupMemberInauguration`, checks that it targets the expected member DID, replaces placeholder group data with authoritative group metadata, updates ACL and notification state, and marks the local group offer and channel finalised or inaugurated.
 
 What the event means in practice:
 

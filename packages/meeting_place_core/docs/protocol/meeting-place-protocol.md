@@ -279,3 +279,4 @@ For individual connections, the important design point is that control-plane eve
 
 - the control plane tells a participant that there is protocol work to do
 - the mediator carries the actual DIDComm handshake payloads between participants
+

@@ -197,7 +197,7 @@ The candidate member receives a `GroupMembershipFinalised` control-plane event a
 
 The member then:
 
-- verifies that the inauguration message is for its permanent member DID
+- uses the inauguration message for its permanent member DID
 - registers notification state for `memberDid -> groupDid`
 - updates mediator ACLs
 - replaces the placeholder local group with the real group metadata
@@ -339,3 +339,4 @@ For groups, the important distinction is:
 
 - the control plane signals that membership state changed
 - the mediator carries the actual DIDComm payload that gives the member the group data needed to participate
+

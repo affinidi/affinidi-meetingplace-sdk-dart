@@ -149,16 +149,16 @@ void main() async {
   test('deletes message from mediator after being processed', () async {
     // Use unique message type to avoid flakiness in case messages from other
     // tests are received
-    final messageType = 'https://example.com/${Uuid().v4()}';
+    final messageType = 'https://example.com/${const Uuid().v4()}';
 
     final subscription = await aliceSDK.subscribeToMediator(
       aliceDidDoc.id,
-      options: MediatorStreamSubscriptionOptions(
+      options: const MediatorStreamSubscriptionOptions(
         deleteMessageDelay: Duration(milliseconds: 200),
       ),
     );
 
-    int messageCount = 0;
+    var messageCount = 0;
     final waitForMessage = Completer<void>();
 
     subscription.listen((message) {
@@ -250,8 +250,8 @@ void main() async {
     () async {
       final subscription = await aliceSDK.subscribeToMediator(
         aliceDidDoc.id,
-        options: MediatorStreamSubscriptionOptions(
-          deleteMessageDelay: const Duration(seconds: 3),
+        options: const MediatorStreamSubscriptionOptions(
+          deleteMessageDelay: Duration(seconds: 3),
         ),
       );
 
@@ -277,7 +277,7 @@ void main() async {
       await subscription.dispose();
 
       // Wait for scheduled deletion to complete
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
 
       // Verify messages were deleted even though subscription was disposed
       final messages = await aliceSDK.fetchMessages(
@@ -292,8 +292,8 @@ void main() async {
   test('invokes onError callback when listener throws exception', () async {
     final subscription = await aliceSDK.subscribeToMediator(
       aliceDidDoc.id,
-      options: MediatorStreamSubscriptionOptions(
-        deleteMessageDelay: const Duration(seconds: 3),
+      options: const MediatorStreamSubscriptionOptions(
+        deleteMessageDelay: Duration(seconds: 3),
       ),
     );
 
@@ -351,8 +351,8 @@ void main() async {
       final subscriptionBReceived = Completer<PlainTextMessage>();
 
       final testMessage = PlainTextMessage(
-        id: Uuid().v4(),
-        type: Uri.parse('https://example.com/${Uuid().v4()}'),
+        id: const Uuid().v4(),
+        type: Uri.parse('https://example.com/${const Uuid().v4()}'),
         body: {'message': 'Hello World'},
         to: [aliceDidDoc.id],
         from: bobDidDoc.id,
@@ -391,7 +391,7 @@ void main() async {
         timeout,
       );
 
-      await Future.delayed(const Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
       final messages = await aliceSDK.fetchMessages(did: aliceDidDoc.id);
 
       return (

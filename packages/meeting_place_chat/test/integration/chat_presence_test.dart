@@ -90,12 +90,12 @@ void main() {
 
     // Delay to ensure that any presence message from first session that was
     // in flight is received before starting new session
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     // Start Alice's second chat session and check if Bob receives presence
     // message
     await fixture.aliceChatSDK.startChatSession();
-    await Future.delayed(const Duration(seconds: 3));
+    await Future<void>.delayed(const Duration(seconds: 3));
 
     final bobMessages = await fixture.bobSDK.coreSDK.fetchMessages(
       did: fixture.bobSDK.didDocument.id,

@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import '../../api/api_client.dart';
 import 'package:built_collection/built_collection.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../core/device/device.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'delete_pending_notifications.dart';
 import 'delete_pending_notifications_exception.dart';
 import 'delete_pending_notifications_output.dart';
-import '../../core/device/device.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///

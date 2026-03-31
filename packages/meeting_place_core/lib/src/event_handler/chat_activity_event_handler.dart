@@ -1,10 +1,10 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 
-import '../entity/connection_offer.dart';
-import 'base_event_handler.dart';
 import '../entity/channel.dart';
+import '../entity/connection_offer.dart';
 import '../service/mediator/fetch_messages_options.dart';
+import 'base_event_handler.dart';
 
 class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
   ChatActivityEventHandler({

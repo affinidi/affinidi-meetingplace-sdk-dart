@@ -15,7 +15,8 @@ class ConnectionManagerException implements SDKException {
   }) {
     return ConnectionManagerException(
       message:
-          'Connection manager exception: DidManager could not be created for ${did.topAndTail()}',
+          'Connection manager exception: DidManager could not be '
+          'created for ${did.topAndTail()}',
       code: MeetingPlaceCoreSDKErrorCode.keyPairNotFoundError,
       innerException: innerException,
     );

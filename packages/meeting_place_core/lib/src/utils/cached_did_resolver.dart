@@ -31,7 +31,7 @@ class CachedDidResolver implements DidResolver {
           resolverAddress: resolverAddress,
         ).resolveDid(did);
       },
-      retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+      retryIf: ErrorHandlerUtils.isRetryableError,
       onRetry: (e) => _logger.warning(
         'Retrying unpacking message due to error: $e',
         name: 'resolveDid',

@@ -41,13 +41,16 @@ void main() {
         final controlPlaneException = AcceptOfferException.limitExceededError();
 
         expect(
-          () => errorHandler.handleError(() => throw controlPlaneException),
+          () => errorHandler.handleError<void>(
+            () async => throw controlPlaneException,
+          ),
           throwsA(
             isA<ControlPlaneSDKException>()
                 .having(
                   (e) => e.message,
                   'message',
-                  'Offer acceptance failed: the maximum number of allowed offer usages has been reached.',
+                  'Offer acceptance failed: the maximum number of allowed '
+                      'offer usages has been reached.',
                 )
                 .having(
                   (e) => e.code,
@@ -73,33 +76,32 @@ void main() {
       ];
 
       for (final errorType in networkErrorTypes) {
-        test(
-          'should handle DioException with $errorType and set network error code',
-          () async {
-            final dioException = DioException(
-              requestOptions: RequestOptions(path: '/test'),
-              type: errorType,
-              message: 'Network error occurred',
-            );
+        test('should handle DioException with $errorType and set network error '
+            'code', () async {
+          final dioException = DioException(
+            requestOptions: RequestOptions(path: '/test'),
+            type: errorType,
+            message: 'Network error occurred',
+          );
 
-            expect(
-              () => errorHandler.handleError(() => throw dioException),
-              throwsA(
-                isA<ControlPlaneSDKException>()
-                    .having(
-                      (e) => e.code,
-                      'code',
-                      ControlPlaneSDKErrorCode.networkError.value,
-                    )
-                    .having(
-                      (e) => e.innerException,
-                      'innerException',
-                      dioException,
-                    ),
-              ),
-            );
-          },
-        );
+          expect(
+            () =>
+                errorHandler.handleError<void>(() async => throw dioException),
+            throwsA(
+              isA<ControlPlaneSDKException>()
+                  .having(
+                    (e) => e.code,
+                    'code',
+                    ControlPlaneSDKErrorCode.networkError.value,
+                  )
+                  .having(
+                    (e) => e.innerException,
+                    'innerException',
+                    dioException,
+                  ),
+            ),
+          );
+        });
       }
     });
 
@@ -112,7 +114,7 @@ void main() {
       );
 
       expect(
-        () => errorHandler.handleError(() => throw dioException),
+        () => errorHandler.handleError<void>(() async => throw dioException),
         throwsA(
           isA<ControlPlaneSDKException>()
               .having(
@@ -133,7 +135,9 @@ void main() {
 
         // Act & Assert
         expect(
-          () => errorHandler.handleError(() => throw genericException),
+          () => errorHandler.handleError<void>(
+            () async => throw genericException,
+          ),
           throwsA(
             isA<ControlPlaneSDKException>()
                 .having(

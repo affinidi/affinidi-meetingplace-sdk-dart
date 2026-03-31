@@ -7,7 +7,8 @@ import 'chat_activity_body.dart';
 /// [ChatActivity] represents a "user is active" indicator in the chat,
 /// similar to typing notifications or activity pings.
 ///
-/// It includes a timestamp in the body indicating when the activity was triggered.
+/// It includes a timestamp in the body indicating when the activity was
+/// triggered.
 ///
 /// This message is temporary and is not stored long-term.
 class ChatActivity {

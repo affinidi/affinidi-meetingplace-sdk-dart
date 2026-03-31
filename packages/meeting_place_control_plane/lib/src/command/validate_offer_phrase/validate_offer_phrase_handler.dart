@@ -1,12 +1,12 @@
-import '../../api/api_client.dart';
 import 'package:dio/dio.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_dispatcher.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'validate_offer_phrase.dart';
 import 'validate_offer_phrase_exception.dart';
 import 'validate_offer_phrase_output.dart';
@@ -98,7 +98,8 @@ class ValidateOfferPhraseHandler
         DioExceptionType.receiveTimeout,
       ].contains(exceptionType)) {
         _logger.error(
-          '[MPX API] Timeout occurred while validating offer phrase: ${command.phrase}',
+          '[MPX API] Timeout occurred while validating offer phrase: '
+          '${command.phrase}',
           error: dioException,
           stackTrace: stackTrace,
           name: methodName,
@@ -109,7 +110,8 @@ class ValidateOfferPhraseHandler
       } else if (exceptionType == DioExceptionType.badResponse) {
         if (statusCode == 429) {
           _logger.error(
-            '[MPX API] Rate limit exceeded while validating offer phrase: ${command.phrase}',
+            '[MPX API] Rate limit exceeded while validating offer phrase: '
+            '${command.phrase}',
             error: dioException,
             stackTrace: stackTrace,
             name: methodName,
@@ -119,7 +121,8 @@ class ValidateOfferPhraseHandler
           );
         } else if (statusCode == 401 || statusCode == 403) {
           _logger.error(
-            '[MPX API] Authentication error while validating offer phrase: ${command.phrase}',
+            '[MPX API] Authentication error while validating offer phrase: '
+            '${command.phrase}',
             error: dioException,
             stackTrace: stackTrace,
             name: methodName,

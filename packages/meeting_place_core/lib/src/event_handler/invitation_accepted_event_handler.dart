@@ -53,13 +53,15 @@ class InvitationAcceptedEventHandler
       );
     } on EmptyMessageListException {
       logger.warning(
-        'No messages found to process for event of type ${ControlPlaneEventType.InvitationAccept}',
+        'No messages found to process for event of type '
+        '${ControlPlaneEventType.InvitationAccept}',
         name: methodName,
       );
       return [];
     } catch (e, stackTrace) {
       logger.error(
-        'Failed to process event of type ${ControlPlaneEventType.InvitationAccept}',
+        'Failed to process event of type '
+        '${ControlPlaneEventType.InvitationAccept}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,

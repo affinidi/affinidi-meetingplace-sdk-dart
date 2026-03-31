@@ -1,5 +1,7 @@
-/// [ControlPlaneApiClientOptions] is a class that defines options when initialising
-/// the [DiscoveryApiClient].
+import 'control_plane_api_client.dart';
+
+/// [ControlPlaneApiClientOptions] is a class that defines options when
+/// initialising the [ControlPlaneApiClient].
 class ControlPlaneApiClientOptions {
   /// Create an instance of the [ControlPlaneApiClientOptions] class.
   ControlPlaneApiClientOptions({

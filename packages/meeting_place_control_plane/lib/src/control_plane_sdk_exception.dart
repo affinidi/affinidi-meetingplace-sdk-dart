@@ -21,7 +21,7 @@ class ControlPlaneSDKException implements Exception {
     final buffer = StringBuffer()..writeln('$message (code: $code)');
     Object? current = innerException;
 
-    int depth = 1;
+    var depth = 1;
     while (current != null) {
       buffer.writeln('Caused by [$depth]: ${current.toString()}');
 

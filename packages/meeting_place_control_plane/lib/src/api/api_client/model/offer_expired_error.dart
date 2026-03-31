@@ -10,7 +10,8 @@ import 'package:built_value/serializer.dart';
 
 part 'offer_expired_error.g.dart';
 
-/// The details to identify the offer may be valid, but it may  have exceeded its usage limit or already expired.
+/// The details to identify the offer may be valid, but it may  have exceeded
+/// its usage limit or already expired.
 ///
 /// Properties:
 /// * [name]

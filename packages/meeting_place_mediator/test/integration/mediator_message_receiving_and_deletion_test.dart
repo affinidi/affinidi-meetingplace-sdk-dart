@@ -93,7 +93,7 @@ void main() {
       );
 
       subscription = await fixture.sdk.subscribeToMessages(fixture.didManagerB);
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
 
       final fetchResult = await fixture.sdk.fetchMessages(
         didManager: fixture.didManagerB,
@@ -131,7 +131,7 @@ void main() {
       );
 
       await messageReceivedCompleter.future;
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
 
       final fetchResult = await fixture.sdk.fetchMessages(
         didManager: fixture.didManagerB,
@@ -157,7 +157,7 @@ void main() {
         }
 
         return MediatorStreamProcessingResult(keepMessage: false);
-      }, onError: (e) {
+      }, onError: (Object e) {
         if (e.toString().contains('Error while processing message')) {
           waitForError.complete();
         }
@@ -170,7 +170,7 @@ void main() {
       );
 
       await waitForError.future;
-      await Future.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 2));
 
       final fetchResult = await fixture.sdk.fetchMessages(
         didManager: fixture.didManagerB,
@@ -184,7 +184,8 @@ void main() {
     });
 
     test(
-      'Subsequent messages are processed even if previous listener threw an error',
+      'Subsequent messages are processed even if previous listener threw an '
+      'error',
       () async {
         subscription = await fixture.sdk.subscribeToMessages(
           fixture.didManagerB,
@@ -215,7 +216,7 @@ void main() {
           }
 
           return MediatorStreamProcessingResult(keepMessage: false);
-        }, onError: (e) {
+        }, onError: (Object e) {
           if (e.toString().contains('Error while processing message')) {
             waitForError.complete();
           }

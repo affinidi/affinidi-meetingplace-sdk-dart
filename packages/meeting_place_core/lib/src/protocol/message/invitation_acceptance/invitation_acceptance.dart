@@ -2,8 +2,8 @@ import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../utils/attachment.dart';
-import '../../protocol.dart';
 import '../../contact_card/contact_card_helper.dart';
+import '../../protocol.dart';
 import 'invitation_acceptance_body.dart';
 
 class InvitationAcceptance {

@@ -1,7 +1,8 @@
-import '../../core/exception/control_plane_exception.dart';
 import '../../control_plane_sdk_error_code.dart';
+import '../../core/exception/control_plane_exception.dart';
 
-/// A concrete implementation of the [ControlPlaneException] interface for throwing
+/// A concrete implementation of the [ControlPlaneException] interface for
+/// throwing
 /// specific exceptions related to Register Offer Group command/operation.
 class RegisterOfferGroupException implements ControlPlaneException {
   RegisterOfferGroupException._({
@@ -49,7 +50,8 @@ class RegisterOfferGroupException implements ControlPlaneException {
   factory RegisterOfferGroupException.mnemonicInUse() {
     return RegisterOfferGroupException._(
       message:
-          'Register offer group exception: Offer with the same mnemonic already exists.',
+          'Register offer group exception: Offer with the same mnemonic '
+          'already exists.',
       code: ControlPlaneSDKErrorCode.registerOfferGroupMnemonicInUse,
     );
   }

@@ -10,8 +10,8 @@ import '../../event_handler/control_plane_event_stream_manager.dart';
 import '../../event_handler/control_plane_stream_event.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../protocol/protocol.dart';
-import '../channel/channel_service.dart';
 import '../../utils/string.dart';
+import '../channel/channel_service.dart';
 import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
 import '../mediator/mediator_service.dart';
@@ -103,7 +103,7 @@ class OobService {
     );
 
     final oobStream = OobStream(
-      onDispose: () => subscription.dispose(),
+      onDispose: subscription.dispose,
       logger: _logger,
     );
 
@@ -194,7 +194,7 @@ class OobService {
     );
 
     final oobStream = OobStream(
-      onDispose: () => streamSubscription.dispose(),
+      onDispose: streamSubscription.dispose,
       logger: _logger,
     );
 

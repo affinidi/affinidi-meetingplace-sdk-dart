@@ -107,7 +107,7 @@ void main() async {
         senderDid: bobChannel.permanentChannelDid!,
         recipientDid: bobChannel.otherPartyPermanentChannelDid!,
       ),
-      throwsA(predicate((e) => assertMediatorClientException(e))),
+      throwsA(predicate(assertMediatorClientException)),
     );
   });
 
@@ -137,7 +137,7 @@ void main() async {
         senderDid: aliceChannel.permanentChannelDid!,
         recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
       ),
-      throwsA(predicate((e) => assertMediatorClientException(e))),
+      throwsA(predicate(assertMediatorClientException)),
     );
   });
 }

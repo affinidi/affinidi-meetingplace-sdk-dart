@@ -137,7 +137,8 @@ class ChannelService {
   ///
   /// Parameters:
   /// - [channel]: The [Channel] to update.
-  /// - [otherPartyNotificationToken]: The notification token to set for the other party.
+  /// - [otherPartyNotificationToken]: The notification token to set for the
+  ///   other party.
   ///
   /// Returns a [Future] that completes when the update is done.
   ///

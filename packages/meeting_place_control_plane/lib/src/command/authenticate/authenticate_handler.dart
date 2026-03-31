@@ -1,15 +1,15 @@
 import 'dart:convert';
 
 import 'package:ssi/ssi.dart';
-import '../../api/api_client.dart';
 
-import '../../api/control_plane_api_client.dart';
+import '../../api/api_client.dart';
 import '../../api/auth_credentials.dart';
+import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
 import '../../core/protocol/message/auth_challenge.dart';
+import '../../loggers/control_plane_sdk_logger.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../utils/didcomm.dart';
 import '../../utils/string.dart';
 import 'authenticate.dart';
@@ -26,7 +26,8 @@ class AuthenticateHandler
   /// Returns an instance of [AuthenticateHandler].
   ///
   /// **Parameters:**
-  /// - [discoveryApiClient] - An instance of discovery api client object.
+  /// - [ControlPlaneApiClient] - An instance of control plane API client
+  ///   object.
   /// - [didManager]: The did manager object.
   /// - [didResolver]: The did resolver object.
   AuthenticateHandler({
@@ -106,7 +107,8 @@ class AuthenticateHandler
       );
 
     _logger.info(
-      '[MPX API] Sending authentication request to /did-authenticate for DID: ${senderDidDocument.id.topAndTail()}',
+      '[MPX API] Sending authentication request to /did-authenticate '
+      'for DID: ${senderDidDocument.id.topAndTail()}',
       name: methodName,
     );
     final response = await _apiClient.client.didAuthenticate(
@@ -116,7 +118,8 @@ class AuthenticateHandler
     final authCredentials = parseAthenticationResponse(response.data);
 
     _logger.info(
-      'Completed getting authentication credentials. Access token expires at ${authCredentials.accessExpiresAt.toIso8601String()}',
+      'Completed getting authentication credentials. Access token expires '
+      'at ${authCredentials.accessExpiresAt.toIso8601String()}',
     );
 
     return authCredentials;
@@ -128,7 +131,7 @@ class AuthenticateHandler
   /// - [data]: The DID Authentication response data.
   ///
   /// **Returns:**
-  /// - [authCredentials]: The auth credentials data.
+  /// - [AuthCredentials]: The auth credentials data.
   AuthCredentials parseAthenticationResponse(DidAuthenticateOK? data) {
     final methodName = 'parseAuthenticationResponse';
     if (data == null) {
@@ -195,7 +198,8 @@ class AuthenticateHandler
   Future<AuthenticateCommandOutput> handle(AuthenticateCommand command) async {
     final methodName = 'handle';
     _logger.info(
-      'Started authentication for service DID: ${command.controlPlaneDid.topAndTail()}',
+      'Started authentication for service DID: '
+      '${command.controlPlaneDid.topAndTail()}',
       name: methodName,
     );
 
@@ -209,7 +213,8 @@ class AuthenticateHandler
 
     _apiClient.setApiKey(authCredentials.accessToken);
     _logger.info(
-      'Completed authentication for service DID: ${command.controlPlaneDid.topAndTail()}',
+      'Completed authentication for service DID: '
+      '${command.controlPlaneDid.topAndTail()}',
       name: methodName,
     );
     return AuthenticateCommandOutput(credentials: authCredentials);

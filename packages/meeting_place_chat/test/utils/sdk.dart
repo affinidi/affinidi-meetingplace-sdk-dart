@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dotenv/dotenv.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
@@ -12,7 +13,6 @@ import 'repository/connection_offer_repository_impl.dart';
 import 'repository/key_repository_impl.dart';
 import 'storage/in_memory_storage.dart';
 import 'storage/storage.dart';
-import 'package:dotenv/dotenv.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 

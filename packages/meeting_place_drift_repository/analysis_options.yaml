@@ -13,7 +13,6 @@ linter:
   rules:
     - avoid_print
     - sort_constructors_first
-    - unawaited_futures
 
 analyzer:
   errors:

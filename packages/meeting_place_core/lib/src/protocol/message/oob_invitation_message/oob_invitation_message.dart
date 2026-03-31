@@ -45,7 +45,7 @@ class OobInvitationMessage {
       ),
       createdTime: json['created_time'] != null
           ? DateTime.fromMillisecondsSinceEpoch(
-              json['created_time'] * 1000,
+              (json['created_time'] as int) * 1000,
               isUtc: true,
             )
           : null,

@@ -1,4 +1,5 @@
-/// Model that represents the request sent for the [GroupSendMessageCommandOutput]
+/// Model that represents the request sent for the
+/// [GroupSendMessageCommandOutput]
 /// operation.
 class GroupSendMessageCommandOutput {
   /// Creates a new instance of [GroupSendMessageCommandOutput].

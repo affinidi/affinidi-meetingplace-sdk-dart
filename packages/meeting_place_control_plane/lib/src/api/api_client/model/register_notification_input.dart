@@ -14,7 +14,8 @@ part 'register_notification_input.g.dart';
 /// Properties:
 /// * [myDid] - Current user's DID for the channel.
 /// * [theirDid] - Other user's DID for the channel.
-/// * [deviceToken] - The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
+/// * [deviceToken] - The device token for push notification when the offer is
+///   accessed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
 @BuiltValue()
 abstract class RegisterNotificationInput
@@ -28,7 +29,8 @@ abstract class RegisterNotificationInput
   @BuiltValueField(wireName: r'theirDid')
   String get theirDid;
 
-  /// The device token for push notification when the offer is accessed.  Maximum length of 2048 characters.
+  /// The device token for push notification when the offer is accessed.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
 

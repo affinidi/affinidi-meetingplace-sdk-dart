@@ -75,7 +75,7 @@ void main() async {
   });
 
   test('send message', () async {
-    final messageId = Uuid().v4();
+    final messageId = const Uuid().v4();
 
     await aliceSDK.sendMessage(
       PlainTextMessage(
@@ -89,7 +89,7 @@ void main() async {
       recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
     );
 
-    await Future.delayed(const Duration(seconds: 4));
+    await Future<void>.delayed(const Duration(seconds: 4));
     final messages = await bobSDK.fetchMessages(
       did: bobOfferFinalisedChannel.permanentChannelDid!,
     );
@@ -104,7 +104,7 @@ void main() async {
   test(
     'throws exception if notification fails',
     () async {
-      final messageId = Uuid().v4();
+      final messageId = const Uuid().v4();
 
       aliceApprovedChannel.otherPartyNotificationToken =
           'invalid_notification_token';

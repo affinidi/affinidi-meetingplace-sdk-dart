@@ -150,7 +150,8 @@ void main() {
                     MeetingPlaceCoreSDKErrorCode
                         .connectionOfferOwnedByClaimingParty &&
                 (e.innerException as ConnectionOfferException).message ==
-                    'Failed to claim offer because claiming party is the owner.',
+                    'Failed to claim offer because claiming party is the '
+                        'owner.',
           ),
         ),
       );

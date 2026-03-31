@@ -64,7 +64,7 @@ void main() {
 
     await fixture.bobChatSDK.startChatSession();
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 2));
     await fixture.aliceSDK.processControlPlaneEvents();
     await completer.future;
 
@@ -79,7 +79,7 @@ void main() {
 
     final chat = await newAliceChatSDK.startChatSession();
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 2));
 
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);

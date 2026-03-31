@@ -21,12 +21,12 @@ void main() async {
       ),
     );
 
-    final mnemonic = Uuid().v4();
+    final mnemonic = const Uuid().v4();
     final command = RegisterOfferCommand(
       offerName: 'Offer name',
       offerDescription: 'Offer description',
       contactCard: ContactCardImpl(
-        did: 'did:key:offer-${Uuid().v4()}',
+        did: 'did:key:offer-${const Uuid().v4()}',
         type: 'offer',
         contactInfo: {
           'n': {'given': 'Alice'},
@@ -36,7 +36,7 @@ void main() async {
       customPhrase: mnemonic,
       type: OfferType.invitation,
       oobInvitationMessage: OobInvitationMessage(
-        id: Uuid().v4(),
+        id: const Uuid().v4(),
         from: 'did:key:1234',
       ),
     );

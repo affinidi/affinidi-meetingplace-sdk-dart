@@ -57,7 +57,10 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
   });
 
-  final file = File('./storage.txt');
+  final outputDirectory = Directory('.example-output');
+  final file = File(
+    '${outputDirectory.path}${Platform.pathSeparator}storage.txt',
+  );
   final mnemonicBytes = file.readAsBytesSync();
 
   prettyPrintGreen('>>> Calling SDK.findOffer');

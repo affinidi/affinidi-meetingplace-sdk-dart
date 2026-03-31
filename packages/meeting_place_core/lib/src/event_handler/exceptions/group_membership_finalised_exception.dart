@@ -8,13 +8,14 @@ class GroupMembershipFinalisedException implements SDKException {
     this.innerException,
   });
 
-  factory GroupMembershipFinalisedException.connectionOfferAlreadyFinalizedException({
+  factory GroupMembershipFinalisedException.connectionOfferAlreadyFinalized({
     required String offerLink,
     Object? innerException,
   }) {
     return GroupMembershipFinalisedException(
       message:
-          '''GroupMembershipFinalised exception: Connection offer $offerLink already finalized''',
+          'GroupMembershipFinalised exception: Connection offer '
+          '$offerLink already finalized',
       code: MeetingPlaceCoreSDKErrorCode
           .groupMembershipFinalisedConnectionOfferGroupNotFound,
       innerException: innerException,
@@ -27,7 +28,8 @@ class GroupMembershipFinalisedException implements SDKException {
   }) {
     return GroupMembershipFinalisedException(
       message:
-          '''GroupMembershipFinalized exception: channel not found for offer link $offerLink''',
+          'GroupMembershipFinalized exception: channel not found for '
+          'offer link $offerLink',
       code:
           MeetingPlaceCoreSDKErrorCode.groupMembershipFinalisedChannelNotFound,
       innerException: innerException,

@@ -14,11 +14,16 @@ part 'group_send_message.g.dart';
 /// * [offerLink] - The Offer link associated with the group chat.
 /// * [fromDid] - The Decentralised Identifier (DID) of the message sender.
 /// * [groupDid] - The channel DID for the group chat.
-/// * [payload] - Input payload containing the message to send to the group chat.
-/// * [ephemeral] - Indicates whether the message is ephemeral and should not be stored persistently.
-/// * [expiresTime] - The date and time of when the message expires in ISO-8601 format, e.g., 2023-09-20T07:12:13.
-/// * [notify] - Indicates whether to send a notification to the group chat members using push notification.
-/// * [incSeqNo] - Indicates whether to increment the sequence number of the message in the group chat.
+/// * [payload] - Input payload containing the message to send to the group
+///   chat.
+/// * [ephemeral] - Indicates whether the message is ephemeral and should not be
+///   stored persistently.
+/// * [expiresTime] - The date and time of when the message expires in ISO-8601
+///   format, e.g., 2023-09-20T07:12:13.
+/// * [notify] - Indicates whether to send a notification to the group chat
+///   members using push notification.
+/// * [incSeqNo] - Indicates whether to increment the sequence number of the
+///   message in the group chat.
 @BuiltValue()
 abstract class GroupSendMessage
     implements Built<GroupSendMessage, GroupSendMessageBuilder> {
@@ -38,19 +43,23 @@ abstract class GroupSendMessage
   @BuiltValueField(wireName: r'payload')
   String get payload;
 
-  /// Indicates whether the message is ephemeral and should not be stored persistently.
+  /// Indicates whether the message is ephemeral and should not be stored
+  /// persistently.
   @BuiltValueField(wireName: r'ephemeral')
   bool? get ephemeral;
 
-  /// The date and time of when the message expires in ISO-8601 format, e.g., 2023-09-20T07:12:13.
+  /// The date and time of when the message expires in ISO-8601 format, e.g.,
+  /// 2023-09-20T07:12:13.
   @BuiltValueField(wireName: r'expiresTime')
   String? get expiresTime;
 
-  /// Indicates whether to send a notification to the group chat members using push notification.
+  /// Indicates whether to send a notification to the group chat members using
+  /// push notification.
   @BuiltValueField(wireName: r'notify')
   bool? get notify;
 
-  /// Indicates whether to increment the sequence number of the message in the group chat.
+  /// Indicates whether to increment the sequence number of the message in the
+  /// group chat.
   @BuiltValueField(wireName: r'incSeqNo')
   bool? get incSeqNo;
 

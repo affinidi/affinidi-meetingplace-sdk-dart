@@ -4,9 +4,9 @@ import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
-import 'chat.dart';
 
-/// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for handling
+/// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for
+/// handling
 /// **one-to-one (individual) chat sessions** in the Meeting Place SDK.
 ///
 /// Built on top of [BaseChatSDK], it leverages:
@@ -126,10 +126,10 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// allowing the application to track real-time status changes of participants
   /// such as online/offline status.
   ///
-  /// The updates will continue until [stopChatPresenceUpdates] is called or
+  /// The updates will continue until [stopChatPresenceInterval] is called or
   /// the chat session is terminated.
   ///
-  /// Interval can be configured via [options.chatPresenceSendInterval] in [ChatSDKOptions].
+  /// Interval can be configured via [ChatSDKOptions].
   ///
   /// **Example:**
   /// ```dart
@@ -137,7 +137,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// ```
   ///
   /// **See also:**
-  /// - [stopChatPresenceUpdates] to stop receiving presence updates
+  /// - [stopChatPresenceInterval] to stop receiving presence updates
   @override
   Future<void> startChatPresenceUpdates() async =>
       _startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds);

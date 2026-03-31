@@ -11,11 +11,15 @@ part 'did_authenticate.g.dart';
 /// List of required parameters to authenticate the user.
 ///
 /// Properties:
-/// * [challengeResponse] - A base64 encoded string containing the encrypted DIDComm  message signed with the user's private key associated with  their Decentralised Identifier (DID).
+/// * [challengeResponse] - A base64 encoded string containing the encrypted
+///   DIDComm  message signed with the user's private key associated with  their
+///   Decentralised Identifier (DID).
 @BuiltValue()
 abstract class DidAuthenticate
     implements Built<DidAuthenticate, DidAuthenticateBuilder> {
-  /// A base64 encoded string containing the encrypted DIDComm  message signed with the user's private key associated with  their Decentralised Identifier (DID).
+  /// A base64 encoded string containing the encrypted DIDComm  message signed
+  /// with the user's private key associated with  their Decentralised
+  /// Identifier (DID).
   @BuiltValueField(wireName: r'challenge_response')
   String? get challengeResponse;
 

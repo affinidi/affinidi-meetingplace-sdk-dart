@@ -15,7 +15,8 @@ enum ChatProtocol {
     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/chat-activity',
   ),
 
-  /// Represents a hash of the user's profile (contact card) for identity validation.
+  /// Represents a hash of the user's profile (contact card) for identity
+  /// validation.
   chatAliasProfileHash(
     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/alias-profile-hash',
   ),

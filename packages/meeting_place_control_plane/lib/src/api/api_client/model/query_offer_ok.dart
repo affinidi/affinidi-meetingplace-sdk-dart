@@ -16,15 +16,19 @@ part 'query_offer_ok.g.dart';
 /// * [offerLink]
 /// * [name]
 /// * [description]
-/// * [validUntil] - validity date and time in ISO-8601 format, e.g. 2023-09-20T07:12:13
-/// * [contactCard] - A ContactCard containing the details of the offer encoded in base64 format.
+/// * [validUntil] - validity date and time in ISO-8601 format, e.g.
+///   2023-09-20T07:12:13
+/// * [contactCard] - A ContactCard containing the details of the offer encoded
+///   in base64 format.
 /// * [contactAttributes] - A bitfield of contact attributes
 /// * [offerType] - Offer type information
 /// * [mediatorDid] - The mediator DID use to register the offer.
 /// * [mediatorEndpoint] - The mediator endpoint to register the offer.
-/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register the offer.
+/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register
+///   the offer.
 /// * [didcommMessage] - The didcomm message connected to this offer
-/// * [maximumUsage] - maximum number of times this offer can be claimed, or 0 for unlimited
+/// * [maximumUsage] - maximum number of times this offer can be claimed, or 0
+///   for unlimited
 /// * [groupId]
 /// * [groupDid]
 @BuiltValue()
@@ -49,7 +53,8 @@ abstract class QueryOfferOK
   @BuiltValueField(wireName: r'validUntil')
   String? get validUntil;
 
-  /// A ContactCard containing the details of the offer encoded in base64 format.
+  /// A ContactCard containing the details of the offer encoded in base64
+  /// format.
   @BuiltValueField(wireName: r'contactCard')
   String get contactCard;
 

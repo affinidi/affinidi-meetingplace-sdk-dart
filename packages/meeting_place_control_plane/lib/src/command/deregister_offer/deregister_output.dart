@@ -1,4 +1,5 @@
-/// Model that represents the request sent for the [DeregisterOfferCommandOutput]
+/// Model that represents the request sent for the
+/// [DeregisterOfferCommandOutput]
 /// operation.
 class DeregisterOfferCommandOutput {
   /// Creates a new instance of [DeregisterOfferCommandOutput].

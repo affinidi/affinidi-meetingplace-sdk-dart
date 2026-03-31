@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:didcomm/didcomm.dart';
 
 import '../../loggers/meeting_place_core_sdk_logger.dart';
-import '../../protocol/message/plaintext_message_extension.dart';
 import '../../protocol/meeting_place_protocol.dart';
+import '../../protocol/message/plaintext_message_extension.dart';
 import '../../protocol/protocol.dart' as protocol;
 import '../../repository/repository.dart';
 import '../../service/group/group_message.dart';

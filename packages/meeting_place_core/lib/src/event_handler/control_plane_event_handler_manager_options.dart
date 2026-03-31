@@ -1,7 +1,7 @@
 import '../meeting_place_core_sdk_options.dart';
 
 export '../meeting_place_core_sdk_options.dart'
-    show OnBuildAttachmentsCallback, OnAttachmentsReceivedCallback;
+    show OnAttachmentsReceivedCallback, OnBuildAttachmentsCallback;
 
 class ControlPlaneEventHandlerManagerOptions {
   const ControlPlaneEventHandlerManagerOptions({

@@ -1,20 +1,21 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:ssi/ssi.dart';
+
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
+import '../entity/group.dart';
 import '../entity/group_connection_offer.dart';
+import '../entity/group_member.dart';
+import '../protocol/meeting_place_protocol.dart';
+import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
+import '../repository/repository.dart';
+import '../service/group/group_exception.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/group_membership_finalised_exception.dart';
-import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
-import '../protocol/meeting_place_protocol.dart';
-import '../repository/repository.dart';
-import '../service/group/group_exception.dart';
-import 'package:ssi/ssi.dart';
-import '../entity/group.dart';
-import '../entity/group_member.dart';
 
 class MemberDidMismatchException implements Exception {}
 
@@ -45,7 +46,8 @@ class GroupMembershipFinalisedEventHandler
 
     if (permanentChannelDid == null) {
       throw Exception(
-        'Connection offer ${connection.offerLink} is missing permanentChannelDid',
+        'Connection offer ${connection.offerLink} is missing '
+        'permanentChannelDid',
       );
     }
 
@@ -62,7 +64,7 @@ class GroupMembershipFinalisedEventHandler
       logger.error('''Connection offer is already finalised for offer
           link: ${event.offerLink}''', name: 'process');
 
-      throw GroupMembershipFinalisedException.connectionOfferAlreadyFinalizedException(
+      throw GroupMembershipFinalisedException.connectionOfferAlreadyFinalized(
         offerLink: event.offerLink,
       );
     }
@@ -265,7 +267,9 @@ class GroupMembershipFinalisedEventHandler
         .getDidDocument();
 
     logger.info(
-      'Allowing group DID: ${groupDid.topAndTail()} to send messages to permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
+      'Allowing group DID: ${groupDid.topAndTail()} to send messages to '
+      'permanent channel DID: '
+      '${permanentChannelDidDocument.id.topAndTail()}',
       name: methodName,
     );
     return mediatorService.updateAcl(
@@ -289,7 +293,8 @@ class GroupMembershipFinalisedEventHandler
   }) {
     final methodName = '_updateLocalCopyOfGroupMembers';
     logger.info(
-      'Updating local copy of group members for group DID: ${group.did.topAndTail()}',
+      'Updating local copy of group members for group DID: '
+      '${group.did.topAndTail()}',
       name: methodName,
     );
 
@@ -338,7 +343,8 @@ class GroupMembershipFinalisedEventHandler
     }
 
     logger.info(
-      'Successfully updated local copy of group members for group DID: ${updatedGroup.did.topAndTail()}',
+      'Successfully updated local copy of group members for group DID: '
+      '${updatedGroup.did.topAndTail()}',
       name: methodName,
     );
     return updatedGroup;
@@ -348,7 +354,8 @@ class GroupMembershipFinalisedEventHandler
     final selfMember = group.members.firstWhere(
       (member) => member.did == selfMemberDid,
       orElse: () => throw Exception(
-        'Self member with DID: ${selfMemberDid.topAndTail()} not found in group members list',
+        'Self member with DID: ${selfMemberDid.topAndTail()} not found in '
+        'group members list',
       ),
     );
     selfMember.status = GroupMemberStatus.approved;

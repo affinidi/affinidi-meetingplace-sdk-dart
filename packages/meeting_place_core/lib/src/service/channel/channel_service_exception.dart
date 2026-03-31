@@ -2,6 +2,7 @@ import '../../entity/entity.dart';
 import '../../exception/sdk_exception.dart';
 import '../../meeting_place_core_sdk_error_code.dart';
 import '../../utils/string.dart';
+import 'channel_service.dart' show ChannelService;
 
 /// Exception class for errors thrown by [ChannelService].
 class ChannelServiceException implements SDKException {
@@ -35,7 +36,8 @@ class ChannelServiceException implements SDKException {
   }) {
     return ChannelServiceException(
       message:
-          'Channel service exception: Channel not found for ${did.topAndTail()}',
+          'Channel service exception: Channel not found for '
+          '${did.topAndTail()}',
       code: MeetingPlaceCoreSDKErrorCode.channelNotFound,
       innerException: innerException,
     );

@@ -1,8 +1,8 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service_exception.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../fixtures/contact_card_fixture.dart';
 
@@ -65,18 +65,15 @@ void main() {
       verify(() => repository.deleteChannel(channel)).called(1);
     });
 
-    test(
-      'findChannelByOtherPartyPermanentChannelDidOrNull returns channel if found',
-      () async {
-        when(
-          () =>
-              repository.findChannelByOtherPartyPermanentChannelDid('otherDid'),
-        ).thenAnswer((_) async => channel);
-        final found = await service
-            .findChannelByOtherPartyPermanentChannelDidOrNull('otherDid');
-        expect(found, equals(channel));
-      },
-    );
+    test('findChannelByOtherPartyPermanentChannelDidOrNull returns channel if '
+        'found', () async {
+      when(
+        () => repository.findChannelByOtherPartyPermanentChannelDid('otherDid'),
+      ).thenAnswer((_) async => channel);
+      final found = await service
+          .findChannelByOtherPartyPermanentChannelDidOrNull('otherDid');
+      expect(found, equals(channel));
+    });
 
     test(
       'findChannelByOtherPartyPermanentChannelDid throws if not found',

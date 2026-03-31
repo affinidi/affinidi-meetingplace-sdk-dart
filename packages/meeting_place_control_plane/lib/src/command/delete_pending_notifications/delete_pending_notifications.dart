@@ -2,7 +2,8 @@ import '../../core/command/command.dart';
 import '../../core/device/device.dart';
 import 'delete_pending_notifications_output.dart';
 
-/// Model that represents the request sent for the [DeletePendingNotificationsCommand]
+/// Model that represents the request sent for the
+/// [DeletePendingNotificationsCommand]
 /// operation.
 class DeletePendingNotificationsCommand
     extends DiscoveryCommand<DeletePendingNotificationsCommandOutput> {

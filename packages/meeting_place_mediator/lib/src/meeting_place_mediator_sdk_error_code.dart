@@ -10,6 +10,7 @@ enum MeetingPlaceMediatorSDKErrorCode {
   keyAgreementMismatch('mediator_key_agreement_mismatch'),
   oobError('mediator_oob_error'),
   networkError('mediator_network_error'),
+  missingHandlerError('mediator_missing_handler_error'),
 
   // others
   generic('generic');

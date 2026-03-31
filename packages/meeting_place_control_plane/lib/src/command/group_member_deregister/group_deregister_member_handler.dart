@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'dart:io';
 
-import '../../api/api_client.dart';
 import 'package:dio/dio.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
-import 'group_deregister_member_exception.dart';
+import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'group_deregister_member.dart';
+import 'group_deregister_member_exception.dart';
 import 'group_deregister_member_output.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
@@ -83,10 +83,13 @@ class GroupDeregisterMemberHandler
       _logger.info('Completed deregistering member', name: methodName);
       return GroupDeregisterMemberCommandOutput(success: true);
     } on DioException catch (e) {
+      final data = e.response?.data as Map<String, dynamic>?;
+
       if (e.response?.statusCode == HttpStatus.gone &&
-          e.response?.data['errorCode'] == 'group_deleted') {
+          data?['errorCode'] == 'group_deleted') {
         _logger.warning(
-          '[MPX API] Group already deleted: member ${command.memberId} could not be deregistered from group ${command.groupId}',
+          '[MPX API] Group already deleted: member ${command.memberId} could '
+          'not be deregistered from group ${command.groupId}',
           name: methodName,
         );
         // Return success as group has been deleted already.

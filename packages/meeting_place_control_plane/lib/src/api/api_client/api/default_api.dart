@@ -76,13 +76,17 @@ class DefaultApi {
   /// Accepts an Out-of-Band (OOB) offer to connect.
   ///
   /// Parameters:
-  /// * [acceptOfferInput] - List of required and optional parameters to accept an offer.
+  /// * [acceptOfferInput] - List of required and optional parameters to accept
+  ///   an offer.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
   /// Returns a [Future] containing a [Response] with a [AcceptOfferOK] as data
   /// Throws [DioException] if API call or serialization fails
@@ -177,15 +181,20 @@ class DefaultApi {
   /// Accepts an offer to connect to a group chat.
   ///
   /// Parameters:
-  /// * [acceptOfferGroupInput] - List of required and optional parameters to accept group chat offer.
+  /// * [acceptOfferGroupInput] - List of required and optional parameters to
+  ///   accept group chat offer.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [AcceptOfferGroupOK] as data
+  /// Returns a [Future] containing a [Response] with a [AcceptOfferGroupOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<AcceptOfferGroupOK>> acceptOfferToConnectGroup({
     required AcceptOfferGroupInput acceptOfferGroupInput,
@@ -278,15 +287,20 @@ class DefaultApi {
   /// Checks whether an offer phrase is still valid and available for use.
   ///
   /// Parameters:
-  /// * [checkOfferPhraseInput] - List of required parameters to check the availability of the phrase.
+  /// * [checkOfferPhraseInput] - List of required parameters to check the
+  ///   availability of the phrase.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [CheckOfferPhraseOK] as data
+  /// Returns a [Future] containing a [Response] with a [CheckOfferPhraseOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<CheckOfferPhraseOK>> checkOfferPhrase({
     required CheckOfferPhraseInput checkOfferPhraseInput,
@@ -379,13 +393,17 @@ class DefaultApi {
   /// Creates an Out-of-Band (OOB) record for interactive connection.
   ///
   /// Parameters:
-  /// * [createOobInput] - List of required and optional parameters to create an Out-of-Band (OOB) offer.
+  /// * [createOobInput] - List of required and optional parameters to create an
+  ///   Out-of-Band (OOB) offer.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
   /// Returns a [Future] containing a [Response] with a [CreateOobOK] as data
   /// Throws [DioException] if API call or serialization fails
@@ -477,15 +495,20 @@ class DefaultApi {
   /// Deletes the given list of pending notifications for the target device.
   ///
   /// Parameters:
-  /// * [deletePendingNotificationsInput] - List of required and optional parameters to delete the given list of pending notifications.
+  /// * [deletePendingNotificationsInput] - List of required and optional
+  ///   parameters to delete the given list of pending notifications.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [DeletePendingNotificationsOK] as data
+  /// Returns a [Future] containing a [Response] with a
+  /// [DeletePendingNotificationsOK] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<DeletePendingNotificationsOK>> deletePendingNotifications({
     required DeletePendingNotificationsInput deletePendingNotificationsInput,
@@ -578,13 +601,17 @@ class DefaultApi {
   /// Deregisters a notification for the target device.
   ///
   /// Parameters:
-  /// * [deregisterNotificationInput] - List of required and optional parameters to deregister a notification.
+  /// * [deregisterNotificationInput] - List of required and optional parameters
+  ///   to deregister a notification.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
   /// Returns a [Future] containing a [Response] with a [JsonObject] as data
   /// Throws [DioException] if API call or serialization fails
@@ -679,15 +706,20 @@ class DefaultApi {
   /// Deregisters an Out-of-Band (OOB) offer.
   ///
   /// Parameters:
-  /// * [deregisterOfferInput] - List of required and optional parameters to deregister a connection offer.
+  /// * [deregisterOfferInput] - List of required and optional parameters to
+  ///   deregister a connection offer.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [DeregisterOfferOK] as data
+  /// Returns a [Future] containing a [Response] with a [DeregisterOfferOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<DeregisterOfferOK>> deregisterOfferToConnect({
     required DeregisterOfferInput deregisterOfferInput,
@@ -777,18 +809,25 @@ class DefaultApi {
   }
 
   /// didAuthenticate
-  /// Authenticates a user and generates an access token by validating an encrypted DIDComm message signed with the user&#39;s private key associated with their Decentralised Identifier (DID).
+  /// Authenticates a user and generates an access token by validating an
+  /// encrypted DIDComm message signed with the user&#39;s private key
+  /// associated with their Decentralised Identifier (DID).
   ///
   /// Parameters:
-  /// * [didAuthenticate] - List of required parameters to authenticate the user.
+  /// * [didAuthenticate] - List of required parameters to authenticate the
+  ///   user.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [DidAuthenticateOK] as data
+  /// Returns a [Future] containing a [Response] with a [DidAuthenticateOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<DidAuthenticateOK>> didAuthenticate({
     required DidAuthenticate didAuthenticate,
@@ -865,16 +904,21 @@ class DefaultApi {
   }
 
   /// didChallenge
-  /// Initiates the authentication process by generating an auth challenge token for the specified Decentralised Identifier (DID).
+  /// Initiates the authentication process by generating an auth challenge token
+  /// for the specified Decentralised Identifier (DID).
   ///
   /// Parameters:
-  /// * [didChallenge] - List of required parameters to initiate authentication process.
+  /// * [didChallenge] - List of required parameters to initiate authentication
+  ///   process.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
   /// Returns a [Future] containing a [Response] with a [DidChallengeOK] as data
   /// Throws [DioException] if API call or serialization fails
@@ -956,15 +1000,20 @@ class DefaultApi {
   /// Finalises the acceptance of the Out-of-Band (OOB) offer.
   ///
   /// Parameters:
-  /// * [finaliseOfferInput] - List of required and optional parameters to finalise the acceptance of an offer.
+  /// * [finaliseOfferInput] - List of required and optional parameters to
+  ///   finalise the acceptance of an offer.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [FinaliseOfferOK] as data
+  /// Returns a [Future] containing a [Response] with a [FinaliseOfferOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<FinaliseOfferOK>> finaliseOfferAcceptance({
     required FinaliseOfferInput finaliseOfferInput,
@@ -1061,9 +1110,12 @@ class DefaultApi {
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
   /// Returns a [Future] containing a [Response] with a [GetOobOK] as data
   /// Throws [DioException] if API call or serialization fails
@@ -1148,15 +1200,20 @@ class DefaultApi {
   /// Retrieves all pending notifications queued for the target device.
   ///
   /// Parameters:
-  /// * [getPendingNotificationsInput] - List of required and optional parameters to retrieve pending notifications.
+  /// * [getPendingNotificationsInput] - List of required and optional
+  ///   parameters to retrieve pending notifications.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [GetPendingNotificationsOK] as data
+  /// Returns a [Future] containing a [Response] with a
+  /// [GetPendingNotificationsOK] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GetPendingNotificationsOK>> getPendingNotifications({
     required GetPendingNotificationsInput getPendingNotificationsInput,
@@ -1249,15 +1306,20 @@ class DefaultApi {
   /// Adds a member to a group chat.
   ///
   /// Parameters:
-  /// * [groupAddMemberInput] - List of required and optional parameters to add a member to the group chat.
+  /// * [groupAddMemberInput] - List of required and optional parameters to add
+  ///   a member to the group chat.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [GroupAddMemberOK] as data
+  /// Returns a [Future] containing a [Response] with a [GroupAddMemberOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GroupAddMemberOK>> groupAddMember({
     required GroupAddMemberInput groupAddMemberInput,
@@ -1354,9 +1416,12 @@ class DefaultApi {
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
   /// Returns a [Future] containing a [Response] with a [GroupDeleteOK] as data
   /// Throws [DioException] if API call or serialization fails
@@ -1451,15 +1516,20 @@ class DefaultApi {
   /// Removes a member from the group chat.
   ///
   /// Parameters:
-  /// * [groupDeregisterMemberInput] - List of required and optional parameters to remove a member from the group chat.
+  /// * [groupDeregisterMemberInput] - List of required and optional parameters
+  ///   to remove a member from the group chat.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [GroupMemberDeregisterOK] as data
+  /// Returns a [Future] containing a [Response] with a
+  /// [GroupMemberDeregisterOK] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GroupMemberDeregisterOK>> groupMemberDeregister({
     required GroupDeregisterMemberInput groupDeregisterMemberInput,
@@ -1552,15 +1622,20 @@ class DefaultApi {
   /// Sends a message to the group chat.
   ///
   /// Parameters:
-  /// * [groupSendMessage] - List of required and optional parameters to send a group chat message.
+  /// * [groupSendMessage] - List of required and optional parameters to send a
+  ///   group chat message.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [GroupSendMessageOK] as data
+  /// Returns a [Future] containing a [Response] with a [GroupSendMessageOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<GroupSendMessageOK>> groupSendMessage({
     required GroupSendMessage groupSendMessage,
@@ -1653,15 +1728,20 @@ class DefaultApi {
   /// Notifies the user who registered the offer when another user accepts it.
   ///
   /// Parameters:
-  /// * [notifyAcceptOfferInput] - List of required and optional parameters for notifying the user of offer acceptance.
+  /// * [notifyAcceptOfferInput] - List of required and optional parameters for
+  ///   notifying the user of offer acceptance.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [NotifyAcceptOfferOK] as data
+  /// Returns a [Future] containing a [Response] with a [NotifyAcceptOfferOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<NotifyAcceptOfferOK>> notifyAcceptance({
     required NotifyAcceptOfferInput notifyAcceptOfferInput,
@@ -1751,18 +1831,24 @@ class DefaultApi {
   }
 
   /// notifyAcceptanceGroup
-  /// Notifies the user who registered the group chat offer when another user accepts it.
+  /// Notifies the user who registered the group chat offer when another user
+  /// accepts it.
   ///
   /// Parameters:
-  /// * [notifyAcceptOfferGroupInput] - List of required and optional parameters for notifying the user of group chat offer acceptance.
+  /// * [notifyAcceptOfferGroupInput] - List of required and optional parameters
+  ///   for notifying the user of group chat offer acceptance.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [NotifyAcceptOfferGroupOK] as data
+  /// Returns a [Future] containing a [Response] with a
+  /// [NotifyAcceptOfferGroupOK] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<NotifyAcceptOfferGroupOK>> notifyAcceptanceGroup({
     required NotifyAcceptOfferGroupInput notifyAcceptOfferGroupInput,
@@ -1855,15 +1941,20 @@ class DefaultApi {
   /// Sends a notification using a channel.
   ///
   /// Parameters:
-  /// * [notifyChannelInput] - List of required and optional parameters to send notification using a channel.
+  /// * [notifyChannelInput] - List of required and optional parameters to send
+  ///   notification using a channel.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [NotifyChannelOK] as data
+  /// Returns a [Future] containing a [Response] with a [NotifyChannelOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<NotifyChannelOK>> notifyChannel({
     required NotifyChannelInput notifyChannelInput,
@@ -1956,15 +2047,20 @@ class DefaultApi {
   /// Sends a notification using a channel.
   ///
   /// Parameters:
-  /// * [notifyOutreachInput] - List of required and optional parameters to send outreach notification.
+  /// * [notifyOutreachInput] - List of required and optional parameters to send
+  ///   outreach notification.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [NotifyOutreachOK] as data
+  /// Returns a [Future] containing a [Response] with a [NotifyOutreachOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<NotifyOutreachOK>> notifyOutreach({
     required NotifyOutreachInput notifyOutreachInput,
@@ -2057,13 +2153,17 @@ class DefaultApi {
   /// Finds a published connection offer.
   ///
   /// Parameters:
-  /// * [queryOfferInput] - List of required and optional parameters to find an offer.
+  /// * [queryOfferInput] - List of required and optional parameters to find an
+  ///   offer.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
   /// Returns a [Future] containing a [Response] with a [QueryOfferOK] as data
   /// Throws [DioException] if API call or serialization fails
@@ -2155,15 +2255,20 @@ class DefaultApi {
   /// Registers the device for push notifications.
   ///
   /// Parameters:
-  /// * [registerDeviceInput] - List of required parameters to register a device.
+  /// * [registerDeviceInput] - List of required parameters to register a
+  ///   device.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [RegisterDeviceOK] as data
+  /// Returns a [Future] containing a [Response] with a [RegisterDeviceOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<RegisterDeviceOK>> registerDevice({
     required RegisterDeviceInput registerDeviceInput,
@@ -2256,15 +2361,20 @@ class DefaultApi {
   /// Registers a notification for the target device.
   ///
   /// Parameters:
-  /// * [registerNotificationInput] - List of required and optional parameters to register a notification.
+  /// * [registerNotificationInput] - List of required and optional parameters
+  ///   to register a notification.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [RegisterNotificationOK] as data
+  /// Returns a [Future] containing a [Response] with a [RegisterNotificationOK]
+  /// as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<RegisterNotificationOK>> registerNotification({
     required RegisterNotificationInput registerNotificationInput,
@@ -2354,18 +2464,24 @@ class DefaultApi {
   }
 
   /// registerOfferToConnect
-  /// Registers an Out-of-Band (OOB) offer, and the device for push notification when the offer is accessed.
+  /// Registers an Out-of-Band (OOB) offer, and the device for push notification
+  /// when the offer is accessed.
   ///
   /// Parameters:
-  /// * [registerOfferInput] - List of required and optional parameters to register a connection offer.
+  /// * [registerOfferInput] - List of required and optional parameters to
+  ///   register a connection offer.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [RegisterOfferOK] as data
+  /// Returns a [Future] containing a [Response] with a [RegisterOfferOK] as
+  /// data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<RegisterOfferOK>> registerOfferToConnect({
     required RegisterOfferInput registerOfferInput,
@@ -2458,15 +2574,20 @@ class DefaultApi {
   /// Registers an offer to connect to a group chat.
   ///
   /// Parameters:
-  /// * [registerOfferGroupInput] - List of required and optional parameters to register a connection offer for group chat.
+  /// * [registerOfferGroupInput] - List of required and optional parameters to
+  ///   register a connection offer for group chat.
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [RegisterOfferGroupOK] as data
+  /// Returns a [Future] containing a [Response] with a [RegisterOfferGroupOK]
+  /// as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<RegisterOfferGroupOK>> registerOfferToConnectGroup({
     required RegisterOfferGroupInput registerOfferGroupInput,

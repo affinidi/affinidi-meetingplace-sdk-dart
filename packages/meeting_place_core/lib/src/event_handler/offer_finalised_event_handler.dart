@@ -1,9 +1,9 @@
-import '../../meeting_place_core.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import '../service/mediator/fetch_messages_options.dart';
+import '../../meeting_place_core.dart';
 import '../protocol/protocol.dart' as protocol;
+import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 
@@ -26,7 +26,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
 
   Future<List<Channel>> process(OfferFinalised event) async {
     logger.info(
-      'Started processing OfferFinalised event for offerLink: ${event.offerLink}',
+      'Started processing OfferFinalised event for offerLink: '
+      '${event.offerLink}',
       name: 'process',
     );
 
@@ -184,8 +185,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
-    List<Attachment>? outgoingAttachments = await options.onBuildAttachments
-        ?.call(channel);
+    var outgoingAttachments = await options.onBuildAttachments?.call(channel);
 
     return mediatorService.sendMessage(
       ChannelInauguration.create(
@@ -236,7 +236,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
   ) async {
     final methodName = '_registerNotificationToken';
     logger.info(
-      'Started registering notification token for myDid: ${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
+      'Started registering notification token for myDid: '
+      '${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
       name: methodName,
     );
 
@@ -252,13 +253,15 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
 
     if (notificationToken == null) {
       final message =
-          'Error registering notification token for ${myDid.topAndTail()} and ${theirDid.topAndTail()}';
+          'Error registering notification token for ${myDid.topAndTail()} '
+          'and ${theirDid.topAndTail()}';
       logger.error(message, name: methodName);
       throw Exception(message);
     }
 
     logger.info(
-      'Completed registering notification token for myDid: ${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
+      'Completed registering notification token for myDid: '
+      '${myDid.topAndTail()} and theirDid: ${theirDid.topAndTail()}',
       name: methodName,
     );
     return notificationToken;

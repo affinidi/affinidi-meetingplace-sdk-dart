@@ -10,7 +10,8 @@ import 'package:built_value/serializer.dart';
 
 part 'invalid_acceptance_error.g.dart';
 
-/// The details to identify the offer may be valid, but it may  have already expired, or the offerLink provided is invalid.
+/// The details to identify the offer may be valid, but it may  have already
+/// expired, or the offerLink provided is invalid.
 ///
 /// Properties:
 /// * [name]
@@ -27,7 +28,8 @@ abstract class InvalidAcceptanceError
 
   @BuiltValueField(wireName: r'message')
   InvalidAcceptanceErrorMessageEnum get message;
-  // enum messageEnum {  No valid acceptance found that matches the details provided.,  };
+  // enum messageEnum {  No valid acceptance found that matches the details
+  // provided.,  };
 
   @BuiltValueField(wireName: r'httpStatusCode')
   InvalidAcceptanceErrorHttpStatusCodeEnum get httpStatusCode;

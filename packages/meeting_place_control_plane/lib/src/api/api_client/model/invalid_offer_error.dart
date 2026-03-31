@@ -10,7 +10,8 @@ import 'package:built_value/serializer.dart';
 
 part 'invalid_offer_error.g.dart';
 
-/// The details to identify the offer may be valid,  but it may have exceeded its usage limit or already expired.
+/// The details to identify the offer may be valid,  but it may have exceeded
+/// its usage limit or already expired.
 ///
 /// Properties:
 /// * [name]
@@ -27,7 +28,8 @@ abstract class InvalidOfferError
 
   @BuiltValueField(wireName: r'message')
   InvalidOfferErrorMessageEnum get message;
-  // enum messageEnum {  No valid offer found that matches the details provided.,  };
+  // enum messageEnum {  No valid offer found that matches the details
+  // provided.,  };
 
   @BuiltValueField(wireName: r'httpStatusCode')
   InvalidOfferErrorHttpStatusCodeEnum get httpStatusCode;

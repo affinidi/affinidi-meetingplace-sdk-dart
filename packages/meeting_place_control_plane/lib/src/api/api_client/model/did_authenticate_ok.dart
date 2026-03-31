@@ -12,23 +12,27 @@ part 'did_authenticate_ok.g.dart';
 ///
 /// Properties:
 /// * [accessToken]
-/// * [accessExpiresAt] - date and time the access token expires in ISO-8601 format, e.g. 2023-09-20T07:12:13
+/// * [accessExpiresAt] - date and time the access token expires in ISO-8601
+///   format, e.g. 2023-09-20T07:12:13
 /// * [refreshToken]
-/// * [refreshExpiresAt] - date and time the refresh token expires in ISO-8601 format, e.g. 2023-09-20T07:12:13
+/// * [refreshExpiresAt] - date and time the refresh token expires in ISO-8601
+///   format, e.g. 2023-09-20T07:12:13
 @BuiltValue()
 abstract class DidAuthenticateOK
     implements Built<DidAuthenticateOK, DidAuthenticateOKBuilder> {
   @BuiltValueField(wireName: r'access_token')
   String? get accessToken;
 
-  /// date and time the access token expires in ISO-8601 format, e.g. 2023-09-20T07:12:13
+  /// date and time the access token expires in ISO-8601 format, e.g.
+  /// 2023-09-20T07:12:13
   @BuiltValueField(wireName: r'access_expires_at')
   String? get accessExpiresAt;
 
   @BuiltValueField(wireName: r'refresh_token')
   String? get refreshToken;
 
-  /// date and time the refresh token expires in ISO-8601 format, e.g. 2023-09-20T07:12:13
+  /// date and time the refresh token expires in ISO-8601 format, e.g.
+  /// 2023-09-20T07:12:13
   @BuiltValueField(wireName: r'refresh_expires_at')
   String? get refreshExpiresAt;
 

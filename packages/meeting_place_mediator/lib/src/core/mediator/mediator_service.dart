@@ -5,24 +5,24 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:dio/dio.dart';
-import '../../constants/sdk_constants.dart';
-import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
-import '../../loggers/meeting_place_mediator_sdk_logger.dart';
-import '../../protocol/message/oob_invitation_message.dart';
-import '../../meeting_place_mediator_sdk_options.dart';
-import '../../utils/didcomm.dart';
-import '../../utils/error_handler_utils.dart';
-import '../../utils/string.dart';
-import 'forward_message_builder.dart';
-import 'mediator_stream/mediator_stream_subscription.dart';
-import 'mediator_exception.dart';
 import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 
-import '../acl/acl_management.dart';
+import '../../constants/sdk_constants.dart';
+import '../../loggers/default_meeting_place_mediator_sdk_logger.dart';
+import '../../loggers/meeting_place_mediator_sdk_logger.dart';
+import '../../meeting_place_mediator_sdk_options.dart';
+import '../../protocol/message/oob_invitation_message.dart';
+import '../../utils/didcomm.dart';
+import '../../utils/error_handler_utils.dart';
+import '../../utils/string.dart';
 import '../acl/acl_body.dart';
+import '../acl/acl_management.dart';
 import '../message/send_message_queue.dart';
 import 'fetch_message_result.dart';
+import 'forward_message_builder.dart';
+import 'mediator_exception.dart';
+import 'mediator_stream/mediator_stream_subscription.dart';
 import 'unpack_message_exception.dart';
 
 typedef OnMessageCallback = Future<bool> Function(PlainTextMessage message);
@@ -88,12 +88,13 @@ class MediatorService {
             deleteOnReceive: false,
             fetchMessagesOnConnect: fetchMessagesOnConnect,
             pingIntervalInSeconds: _options.websocketPingInterval,
-            statusRequestMessageOptions: StatusRequestMessageOptions(
+            statusRequestMessageOptions: const StatusRequestMessageOptions(
               shouldSend: true,
               shouldSign: true,
               shouldEncrypt: true,
             ),
-            liveDeliveryChangeMessageOptions: LiveDeliveryChangeMessageOptions(
+            liveDeliveryChangeMessageOptions:
+                const LiveDeliveryChangeMessageOptions(
               shouldSend: true,
               shouldSign: true,
               shouldEncrypt: true,
@@ -167,12 +168,12 @@ class MediatorService {
   }
 
   Future<String?> getOob(Uri oobUrl) async {
-    late Response response;
+    late Response<Map<String, dynamic>> response;
 
     try {
       response = await retry(
-        () => Dio().get(oobUrl.toString()),
-        retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+        () => Dio().get<Map<String, dynamic>>(oobUrl.toString()),
+        retryIf: ErrorHandlerUtils.isRetryableError,
         maxAttempts: _options.maxRetries,
         maxDelay: _options.maxRetriesDelay,
       );
@@ -209,7 +210,7 @@ class MediatorService {
     }
 
     _logger.info('Fetched OOB invitation from $oobUrl', name: 'getOob');
-    return response.data['data'];
+    return response.data!['data'] as String;
   }
 
   Future<void> sendMessage(
@@ -238,7 +239,10 @@ class MediatorService {
 
       final senderDidDocument = await senderDidManager.getDidDocument();
       _logger.info(
-        'Sending message ${message.type.toString()} from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
+        'Sending message ${message.type.toString()} from '
+        '${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. '
+        'Forwarding via '
+        '${mediatorClient.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
 
@@ -256,12 +260,16 @@ class MediatorService {
       );
 
       _logger.info(
-        'Message sent of type ${message.type.toString()} from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${mediatorClient.mediatorDidDocument.id.topAndTail()}',
+        'Message sent of type ${message.type.toString()} from '
+        '${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. '
+        'Forwarding via '
+        '${mediatorClient.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to send message from ${message.from?.topAndTail()} to ${next.topAndTail()}',
+        'Failed to send message from ${message.from?.topAndTail()} to '
+        '${next.topAndTail()}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -293,7 +301,9 @@ class MediatorService {
       );
 
       _logger.info(
-        'Queuing message from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${client.mediatorDidDocument.id.topAndTail()}',
+        'Queuing message from ${senderDidDocument.id.topAndTail()} to '
+        '${next.topAndTail()}. Forwarding via '
+        '${client.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
 
@@ -318,12 +328,15 @@ class MediatorService {
         );
       }, 3);
       _logger.info(
-        'Message queued from ${senderDidDocument.id.topAndTail()} to ${next.topAndTail()}. Forwarding via ${client.mediatorDidDocument.id.topAndTail()}',
+        'Message queued from ${senderDidDocument.id.topAndTail()} to '
+        '${next.topAndTail()}. Forwarding via '
+        '${client.mediatorDidDocument.id.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to queue message from ${message.from?.topAndTail()} to ${next.topAndTail()}',
+        'Failed to queue message from ${message.from?.topAndTail()} to '
+        '${next.topAndTail()}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -372,7 +385,8 @@ class MediatorService {
       return streamSubscription;
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to subscribe to websocket for mediator: ${mediatorDid.topAndTail()}',
+        'Failed to subscribe to websocket for mediator: '
+        '${mediatorDid.topAndTail()}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,
@@ -413,7 +427,8 @@ class MediatorService {
       );
 
       _logger.info(
-        'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on resource ${mediatorDid.topAndTail()}',
+        'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on '
+        'resource ${mediatorDid.topAndTail()}',
         name: methodName,
       );
     } catch (e, stackTrace) {
@@ -490,7 +505,8 @@ class MediatorService {
           return result;
         } on UnpackMessageException catch (e, stackTrace) {
           _logger.error(
-            'Failed to unpack message from ${client.mediatorDidDocument.id.topAndTail()}',
+            'Failed to unpack message from '
+            '${client.mediatorDidDocument.id.topAndTail()}',
             error: e,
             stackTrace: stackTrace,
             name: methodName,
@@ -535,7 +551,7 @@ class MediatorService {
     List<FetchMessageResult> messages,
     DateTime? startFrom,
   ) {
-    DateTime? nextStartFrom = startFrom;
+    var nextStartFrom = startFrom;
 
     for (final result in messages) {
       final messageCreatedTime = result.message?.createdTime;
@@ -596,7 +612,8 @@ class MediatorService {
     );
 
     _logger.info(
-      'Completed deleting ${messageHashes.length} message(s) from mediator ${mediatorDid.topAndTail()}',
+      'Completed deleting ${messageHashes.length} message(s) from mediator '
+      '${mediatorDid.topAndTail()}',
       name: methodName,
     );
   }
@@ -630,11 +647,12 @@ class MediatorService {
     return authorizationProvider;
   }
 
-  /// Helper method to execute operations with retry logic and consistent error handling
+  /// Helper method to execute operations with retry logic and consistent error
+  /// handling
   Future<T> _retry<T>(Future<T> Function() operation) async {
     return retry(
       operation,
-      retryIf: (e) => ErrorHandlerUtils.isRetryableError(e),
+      retryIf: ErrorHandlerUtils.isRetryableError,
       onRetry: (e) =>
           _logger.warning('Retry attempt due to: $e', name: '_retry'),
       maxDelay: _options.maxRetriesDelay,

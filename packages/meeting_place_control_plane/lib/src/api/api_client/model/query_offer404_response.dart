@@ -27,7 +27,8 @@ part 'query_offer404_response.g.dart';
 @BuiltValue()
 abstract class QueryOffer404Response
     implements Built<QueryOffer404Response, QueryOffer404ResponseBuilder> {
-  /// One Of [ExpiredAcceptanceError], [InvalidAcceptanceError], [InvalidOfferError], [OfferLimitExceededError]
+  /// One Of [ExpiredAcceptanceError], [InvalidAcceptanceError],
+  /// [InvalidOfferError], [OfferLimitExceededError]
   OneOf get oneOf;
 
   QueryOffer404Response._();

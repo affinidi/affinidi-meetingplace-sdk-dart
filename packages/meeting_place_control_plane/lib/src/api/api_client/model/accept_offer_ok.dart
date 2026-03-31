@@ -17,12 +17,15 @@ part 'accept_offer_ok.g.dart';
 /// * [offerLink]
 /// * [name]
 /// * [description]
-/// * [validUntil] - validity date and time in ISO-8601 format, e.g. 2023-09-20T07:12:13
+/// * [validUntil] - validity date and time in ISO-8601 format, e.g.
+///   2023-09-20T07:12:13
 /// * [maximumUsage]
-/// * [contactCard] - A ContactCard containing the details of the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard containing the details of the offer encoded
+///   in base64 format.
 /// * [mediatorDid] - The mediator DID use to register the offer.
 /// * [mediatorEndpoint] - The mediator endpoint to register the offer.
-/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register the offer.
+/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register
+///   the offer.
 @BuiltValue()
 abstract class AcceptOfferOK
     implements Built<AcceptOfferOK, AcceptOfferOKBuilder> {
@@ -51,7 +54,8 @@ abstract class AcceptOfferOK
   @BuiltValueField(wireName: r'maximumUsage')
   int? get maximumUsage;
 
-  /// A ContactCard containing the details of the offer encoded in base64 format.
+  /// A ContactCard containing the details of the offer encoded in base64
+  /// format.
   @BuiltValueField(wireName: r'contactCard')
   String get contactCard;
 

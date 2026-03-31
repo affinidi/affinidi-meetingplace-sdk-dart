@@ -1,8 +1,9 @@
 import 'package:didcomm/didcomm.dart';
-import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
-import '../utils/contact_card_converter.dart';
+import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:ssi/ssi.dart';
+
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
@@ -10,13 +11,13 @@ import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/protocol.dart';
 import '../repository/repository.dart';
+import '../sdk/results/results.dart' hide AcceptOfferResult;
+import '../utils/contact_card_converter.dart';
+import '../utils/string.dart';
 import 'channel/channel_service.dart';
 import 'connection_manager/connection_manager.dart';
-import '../sdk/results/results.dart' hide AcceptOfferResult;
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
-import '../utils/string.dart';
-import 'package:ssi/ssi.dart';
 import 'connection_offer/offer_already_claimed_exception.dart';
 import 'connection_offer/offer_owner_exception.dart';
 import 'connection_service/accept_offer_result.dart';
@@ -92,7 +93,7 @@ class ConnectionService {
     }
 
     FindOfferErrorCodes? errorCode;
-    bool ownedByMe = false;
+    var ownedByMe = false;
 
     final queryOfferResult = response as SuccessQueryOfferCommandOutput;
 
@@ -687,7 +688,8 @@ class ConnectionService {
 
     if (connectionOffer.isDeleted) {
       _logger.warning(
-        'Connection offer already marked as deleted: ${connectionOffer.offerName}',
+        'Connection offer already marked as deleted: '
+        '${connectionOffer.offerName}',
         name: methodName,
       );
       return Future.value(connectionOffer);
@@ -736,13 +738,15 @@ class ConnectionService {
   ) async {
     final methodName = '_deregisterOfferFromControlPlane';
     _logger.info(
-      'Deregistering offer from control plane API: ${connectionOffer.offerName}',
+      'Deregistering offer from control plane API: '
+      '${connectionOffer.offerName}',
       name: methodName,
     );
 
     if (!connectionOffer.ownedByMe) {
       _logger.warning(
-        'Offer is not owned by me, skipping deregistration: ${connectionOffer.offerName}',
+        'Offer is not owned by me, skipping deregistration: '
+        '${connectionOffer.offerName}',
         name: methodName,
       );
       return;

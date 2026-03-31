@@ -136,11 +136,13 @@ abstract class BaseEventHandler<T> {
   /// processing of messages across different event types.
   ///
   /// Parameters:
-  /// - [didManager]: The [DidManager] instance to use for fetching and deleting messages from the mediator.
+  /// - [didManager]: The [DidManager] instance to use for fetching and deleting
+  ///   messages from the mediator.
   /// - [mediatorDid]: The DID of the mediator to fetch messages from.
-  /// - [messageType]: The type of messages to fetch from the mediator, which should correspond to the specific event being processed.
-  /// - [connection]: Optional parameter that can be used by event handlers that require connection details to process the message.
-  /// - [channel]: Optional parameter that can be used by event handlers that require channel details to process the message.
+  /// - [connection]: Optional parameter that can be used by event handlers that
+  ///   require connection details to process the message.
+  /// - [channel]: Optional parameter that can be used by event handlers that
+  ///   require channel details to process the message.
   ///
   /// Returns a [Future] that resolves to a list of [Channel] objects
   /// associated with the processed messages. The method will fetch messages of
@@ -158,7 +160,7 @@ abstract class BaseEventHandler<T> {
   /// Rethrows any exceptions that occur during processing after logging the
   /// error.
   Future<List<Channel>> processEvent({
-    required dynamic event,
+    required T event,
     required DidManager didManager,
     required String mediatorDid,
     required FetchMessagesOptions fetchMessageOptions,

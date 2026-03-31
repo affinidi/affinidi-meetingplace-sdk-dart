@@ -9,9 +9,9 @@ class ChatSDKOptions {
   /// Creates a new [ChatSDKOptions] instance.
   ///
   /// **Parameters:**
-  /// - [chatPresenceSendInterval]: Interval in seconds for sending
+  /// - [chatPresenceSendInterval]: Interval for sending
   ///   presence signals (default: `10` seconds).
-  /// - [chatActivityExpiresInSeconds]: Expiry time in seconds for
+  /// - [chatActivityExpiry]: Expiry time for
   ///   chat activity signals such as "typing" (default: `3` seconds).
   /// - [requiresAcknowledgement]: List of [ChatProtocol] message types
   ///   that require delivery acknowledgement

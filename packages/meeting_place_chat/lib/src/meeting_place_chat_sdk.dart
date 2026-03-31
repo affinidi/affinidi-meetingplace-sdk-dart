@@ -1,7 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
-import 'sdk/chat.dart';
 
 ///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
 ///
@@ -15,14 +14,16 @@ import 'sdk/chat.dart';
 ///  depending on the channel type, and delegates all SDK calls
 ///  to the underlying implementation.
 class MeetingPlaceChatSDK implements ChatSDK {
-  /// Creates a new [MeetingPlaceChatSDK] instance with the given [ChatSDK] implementation.
+  /// Creates a new [MeetingPlaceChatSDK] instance with the given [ChatSDK]
+  /// implementation.
   MeetingPlaceChatSDK({required ChatSDK sdk}) : _sdk = sdk;
 
   /// A constructor that initializes a [MeetingPlaceChatSDK] from a [Channel].
   ///
   /// **Parameters:**
   /// - [channel]: The [Channel] entity representing the chat.
-  /// - [coreSDK]: Instance of [MeetingPlaceCoreSDK] to retrieve group information if needed.
+  /// - [coreSDK]: Instance of [MeetingPlaceCoreSDK] to retrieve group
+  ///   information if needed.
   /// - [chatRepository]: The [ChatRepository] used for persisting messages.
   /// - [options]: Configuration options for the chat.
   /// - [card]: Optional [ContactCard] representing the user profile.
@@ -30,8 +31,8 @@ class MeetingPlaceChatSDK implements ChatSDK {
   ///   If not provided, uses DefaultChatSdkLogger.
   ///
   /// **Returns:**
-  /// - A [MeetingPlaceChatSDK] that wraps either a [GroupChatSDK] (if `channel.type` is
-  /// `group`)
+  /// - A [MeetingPlaceChatSDK] that wraps either a [GroupChatSDK] (if
+  ///   `channel.type` is `group`)
   ///   or an [IndividualChatSDK].
   static Future<MeetingPlaceChatSDK> initialiseFromChannel(
     Channel channel, {
@@ -224,7 +225,8 @@ class MeetingPlaceChatSDK implements ChatSDK {
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) =>
       _sdk.rejectChatContactDetailsUpdate(message);
 
-  /// Starts periodic chat presence updates to indicate the user is active in the chat.
+  /// Starts periodic chat presence updates to indicate the user is active in
+  /// the chat.
   @override
   Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
 }

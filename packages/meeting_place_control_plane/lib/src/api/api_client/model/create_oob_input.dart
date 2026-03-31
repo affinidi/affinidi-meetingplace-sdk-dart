@@ -11,10 +11,12 @@ part 'create_oob_input.g.dart';
 /// CreateOobInput
 ///
 /// Properties:
-/// * [didcommMessage] - A plaintext DIDComm message containing the offer encoded in base64.
+/// * [didcommMessage] - A plaintext DIDComm message containing the offer
+///   encoded in base64.
 /// * [mediatorDid] - The mediator DID use to register the offer.
 /// * [mediatorEndpoint] - The mediator endpoint to register the offer.
-/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register the offer.
+/// * [mediatorWSSEndpoint] - The websocket endpoint of the mediator to register
+///   the offer.
 @BuiltValue()
 abstract class CreateOobInput
     implements Built<CreateOobInput, CreateOobInputBuilder> {

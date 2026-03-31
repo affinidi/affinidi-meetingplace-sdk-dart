@@ -1,13 +1,14 @@
 import 'dart:convert';
-import 'package:didcomm/didcomm.dart';
 
 import 'package:crypto/crypto.dart';
+import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
 import '../message/message_unpacker.dart';
 import 'unpack_message_exception.dart';
 
-/// A [FetchMessageResult] object returned after fetching messages from the mediator.
+/// A [FetchMessageResult] object returned after fetching messages from the
+/// mediator.
 ///
 /// **Parameters:**
 /// - [messageHash]: List of cryptographic hashes representing stored messages,

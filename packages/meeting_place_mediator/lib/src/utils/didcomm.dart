@@ -8,10 +8,13 @@ import '../core/mediator/mediator_exception.dart';
 ///
 /// **Parameters**
 /// - [message]: The [PlainTextMessage] that was delivered.
-/// - [senderDidManager]: The DidManager instance used for authentication with the mediator
+/// - [senderDidManager]: The DidManager instance used for authentication with
+///   the mediator
 /// and contains the identity credentials needed for the session.
-/// - [recipientDidDocument]: DID document that contains the recipient agent’s public keys,
-/// service endpoints, and routing information required to securely receive, decrypt,
+/// - [recipientDidDocument]: DID document that contains the recipient agent’s
+///   public keys,
+/// service endpoints, and routing information required to securely receive,
+/// decrypt,
 /// and respond to DIDComm messages.
 Future<EncryptedMessage> signAndEncryptMessage(
   PlainTextMessage message, {

@@ -1,7 +1,8 @@
 import '../../core/command/command.dart';
 import 'notify_acceptance_output.dart';
 
-/// Model that represents the request sent for the [NotifyAcceptanceGroupCommand]
+/// Model that represents the request sent for the
+/// [NotifyAcceptanceGroupCommand]
 /// operation.
 class NotifyAcceptanceGroupCommand
     extends DiscoveryCommand<NotifyAcceptanceGroupCommandOutput> {

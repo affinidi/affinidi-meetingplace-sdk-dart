@@ -48,9 +48,7 @@ void main() {
       await fixture.acceptOobFlow(createOobFlowResult.oobUrl);
 
       final firstEventReceived = Completer<OobStreamData>();
-      createOobFlowResult.stream.listen((data) {
-        firstEventReceived.complete(data);
-      });
+      createOobFlowResult.stream.listen(firstEventReceived.complete);
 
       createOobFlowResult.stream.timeout(
         const Duration(seconds: 3),

@@ -14,7 +14,8 @@ part 'delete_pending_notifications_ok_notifications_inner.g.dart';
 /// * [id] - The notification identifier
 /// * [offerLink] - offer link for the notification
 /// * [deviceHash] - Hash of the device identifier/owner
-/// * [did] - The consumer did that registered the device, and confirms ownership of the deviceId
+/// * [did] - The consumer did that registered the device, and confirms
+///   ownership of the deviceId
 /// * [payload] - The raw payload that was sent via push notification
 @BuiltValue()
 abstract class DeletePendingNotificationsOKNotificationsInner
@@ -35,7 +36,8 @@ abstract class DeletePendingNotificationsOKNotificationsInner
   @BuiltValueField(wireName: r'deviceHash')
   String? get deviceHash;
 
-  /// The consumer did that registered the device, and confirms ownership of the deviceId
+  /// The consumer did that registered the device, and confirms ownership of the
+  /// deviceId
   @BuiltValueField(wireName: r'did')
   String? get did;
 

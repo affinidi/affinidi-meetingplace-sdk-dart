@@ -1,12 +1,7 @@
-enum CommandDispatcherExceptionCodes {
-  missingHandlerError('command_handler_missing_handler_error');
+import '../../../meeting_place_mediator.dart';
+import '../exception/i_mediator_exception.dart';
 
-  const CommandDispatcherExceptionCodes(this.code);
-
-  final String code;
-}
-
-class CommandDispatcherException {
+class CommandDispatcherException implements IMediatorException {
   CommandDispatcherException({
     required this.message,
     required this.code,
@@ -18,14 +13,17 @@ class CommandDispatcherException {
   }) {
     return CommandDispatcherException(
       message: 'CommandDispatcher Error: No handler registered for command',
-      code: CommandDispatcherExceptionCodes.missingHandlerError,
+      code: MeetingPlaceMediatorSDKErrorCode.missingHandlerError,
       innerException: innerException,
     );
   }
 
+  @override
   final String message;
 
-  final CommandDispatcherExceptionCodes code;
+  @override
+  final MeetingPlaceMediatorSDKErrorCode code;
 
+  @override
   final Exception? innerException;
 }

@@ -26,8 +26,6 @@ class MockDidManager extends Mock implements DidManager {}
 
 class MockDidDocument extends Mock implements DidDocument {}
 
-class MockAccessListRemove extends Mock implements AccessListRemove {}
-
 void main() {
   late MockMeetingPlaceMediatorSDK mockMediatorSDK;
   late MockConnectionManager mockConnectionManager;
@@ -258,56 +256,52 @@ void main() {
       },
     );
 
-    test(
-      'rethrows MeetingPlaceMediatorSDKException when it is not an invalid did:web error',
-      () async {
-        stubGetDidManagerForDid();
+    test('rethrows MeetingPlaceMediatorSDKException when it is not an invalid '
+        'did:web error', () async {
+      stubGetDidManagerForDid();
 
-        final ssiException = SsiException(
+      final ssiException = SsiException(
+        code: 'other_error',
+        message: 'Some other error',
+      );
+
+      stubUpdateAclThrows(
+        MeetingPlaceMediatorSDKException(
+          message: 'Mediator error',
           code: 'other_error',
-          message: 'Some other error',
-        );
+          innerException: ssiException,
+        ),
+      );
 
-        stubUpdateAclThrows(
-          MeetingPlaceMediatorSDKException(
-            message: 'Mediator error',
-            code: 'other_error',
-            innerException: ssiException,
-          ),
-        );
+      await expectLater(
+        service.removePermissionFromChannel(
+          wallet: mockWallet,
+          channel: channel,
+        ),
+        throwsA(isA<MeetingPlaceMediatorSDKException>()),
+      );
+    });
 
-        await expectLater(
-          service.removePermissionFromChannel(
-            wallet: mockWallet,
-            channel: channel,
-          ),
-          throwsA(isA<MeetingPlaceMediatorSDKException>()),
-        );
-      },
-    );
+    test('rethrows MeetingPlaceMediatorSDKException when innerException is not '
+        'SsiException', () async {
+      stubGetDidManagerForDid();
 
-    test(
-      'rethrows MeetingPlaceMediatorSDKException when innerException is not SsiException',
-      () async {
-        stubGetDidManagerForDid();
+      stubUpdateAclThrows(
+        MeetingPlaceMediatorSDKException(
+          message: 'Mediator error',
+          code: 'generic_error',
+          innerException: Exception('Some other exception'),
+        ),
+      );
 
-        stubUpdateAclThrows(
-          MeetingPlaceMediatorSDKException(
-            message: 'Mediator error',
-            code: 'generic_error',
-            innerException: Exception('Some other exception'),
-          ),
-        );
-
-        await expectLater(
-          service.removePermissionFromChannel(
-            wallet: mockWallet,
-            channel: channel,
-          ),
-          throwsA(isA<MeetingPlaceMediatorSDKException>()),
-        );
-      },
-    );
+      await expectLater(
+        service.removePermissionFromChannel(
+          wallet: mockWallet,
+          channel: channel,
+        ),
+        throwsA(isA<MeetingPlaceMediatorSDKException>()),
+      );
+    });
 
     test('rethrows generic exceptions from updateAcl', () async {
       stubGetDidManagerForDid();

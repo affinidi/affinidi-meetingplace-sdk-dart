@@ -27,7 +27,8 @@ abstract class OfferPhraseInUseError
 
   @BuiltValueField(wireName: r'message')
   OfferPhraseInUseErrorMessageEnum get message;
-  // enum messageEnum {  The offer phrase is already in use by another offer,  };
+  // enum messageEnum {  The offer phrase is already in use by another offer,
+  // };
 
   @BuiltValueField(wireName: r'httpStatusCode')
   OfferPhraseInUseErrorHttpStatusCodeEnum get httpStatusCode;

@@ -13,9 +13,12 @@ part 'group_add_member_input.g.dart';
 /// Properties:
 /// * [mnemonic] - A unique phrase used to publish and identify the offer.
 /// * [offerLink] - The offer link
-/// * [groupId] - Unique identifier of the group chat to which the member will be added.
-/// * [memberDid] - Decentralised Identifier (DID) of the member to add to the group chat.
-/// * [acceptOfferAsDid] - Decentralised Identifier (DID) of when the member accepted the offer.
+/// * [groupId] - Unique identifier of the group chat to which the member will
+///   be added.
+/// * [memberDid] - Decentralised Identifier (DID) of the member to add to the
+///   group chat.
+/// * [acceptOfferAsDid] - Decentralised Identifier (DID) of when the member
+///   accepted the offer.
 /// * [reencryptionKey] - The reencryption key for the group chat member.
 /// * [publicKey] - The public key information of the group chat member.
 /// * [contactCard] - The ContactCard of the member to add to the group chat.

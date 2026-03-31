@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:didcomm/didcomm.dart' show PlainTextMessage;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+
+import '../../../meeting_place_core.dart' show PlainTextMessage;
 import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../repository/key_repository.dart';
-import 'mediator_message.dart';
 import '../core_sdk_stream_subscription.dart';
+import 'mediator_message.dart';
 
 /// Wrapper around MediatorStreamSubscription that provides transformed
 /// mediator messages like decrypting group messages.
@@ -209,9 +212,9 @@ class MediatorStreamSubscriptionWrapper
           keepMessage: processingResults.every((keepMessage) => keepMessage),
         );
       },
-      onError: (e) {
+      onError: (Object e, StackTrace stackTrace) {
         if (!_controller!.isClosed) {
-          _controller!.addError(e);
+          _controller!.addError(e, stackTrace);
         }
       },
       onDone: () {

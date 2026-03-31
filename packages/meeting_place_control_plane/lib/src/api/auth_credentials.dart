@@ -1,3 +1,5 @@
+import '../control_plane_sdk.dart';
+
 /// A model class that holds the authentication tokens used by [ControlPlaneSDK]
 /// to authenticate API calls.
 class AuthCredentials {

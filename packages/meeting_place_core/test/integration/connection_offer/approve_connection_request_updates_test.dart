@@ -141,15 +141,13 @@ void main() {
       },
     );
 
-    test(
-      'connection offer has been updated with other party permanent channel did',
-      () {
-        expect(
-          connectionOffer.otherPartyPermanentChannelDid,
-          equals(fixture.aliceApprovedChannel.permanentChannelDid),
-        );
-      },
-    );
+    test('connection offer has been updated with other party permanent channel '
+        'did', () {
+      expect(
+        connectionOffer.otherPartyPermanentChannelDid,
+        equals(fixture.aliceApprovedChannel.permanentChannelDid),
+      );
+    });
 
     test('connection offer has been updated with notification tokens', () {
       expect(

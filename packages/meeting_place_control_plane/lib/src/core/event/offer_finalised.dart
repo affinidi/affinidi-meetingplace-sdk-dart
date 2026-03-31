@@ -2,7 +2,8 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'offer_finalised.g.dart';
 
-/// Notification event indicating that an invitation or offer has been finalized,
+/// Notification event indicating that an invitation or offer has been
+/// finalized,
 /// such as when both parties have accepted.
 ///
 /// Typical handling:

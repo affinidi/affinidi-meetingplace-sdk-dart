@@ -10,7 +10,8 @@ void main() {
   });
 
   test(
-    'handles multiple subscriptions to mediator gracefully returning a new instance',
+    'handles multiple subscriptions to mediator gracefully returning a new '
+    'instance',
     () async {
       final subscriptionA = await fixture.sdk.subscribeToMessages(
         fixture.didManagerA,
@@ -24,7 +25,8 @@ void main() {
   );
 
   test(
-    'Multiple authentications with the same did return the different mediator client instances',
+    'Multiple authentications with the same did return the different '
+    'mediator client instances',
     () async {
       final clientA =
           await fixture.sdk.authenticateWithDid(fixture.didManagerA);

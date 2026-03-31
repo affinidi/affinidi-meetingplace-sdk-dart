@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import '../meeting_place_mediator.dart';
-import 'package:ssi/ssi.dart';
 import 'package:didcomm/didcomm.dart';
+import 'package:ssi/ssi.dart';
+
+import '../meeting_place_mediator.dart';
 import 'command/get_oob/get_oob.dart';
 import 'command/get_oob/get_oob_handler.dart';
 import 'command/get_oob/get_oob_output.dart';
@@ -14,6 +15,7 @@ import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
 import 'core/exception/i_mediator_exception.dart';
 import 'core/mediator/fetch_message_result.dart';
+import 'core/mediator/mediator_exception.dart' show MediatorException;
 import 'core/mediator/mediator_resolver.dart';
 import 'core/mediator/mediator_service.dart';
 import 'protocol/message/oob_invitation_message.dart';
@@ -64,8 +66,9 @@ class MeetingPlaceMediatorSDK {
   /// Updates the default mediator DID for this mediator SDK instance.
   ///
   /// The default mediator DID serves as a fallback value for method calls that
-  /// accept a mediator DID parameter. When a method supports specifying a mediator
-  /// DID but none is explicitly provided, this default value will be used instead.
+  /// accept a mediator DID parameter. When a method supports specifying a
+  /// mediator DID but none is explicitly provided, this default value will be
+  /// used instead.
   ///
   /// - [mediatorDid]: The new default mediator DID to set for this instance.
   ///   Must be a valid DID format.
@@ -134,10 +137,12 @@ class MeetingPlaceMediatorSDK {
     });
   }
 
-  /// Allows a client to create an Out-Of-Band invitation in the mediator, resulting not only in an OOB ID
-  /// but also returning a URI containing the OOB ID for ease of sharing and connection establishment.
+  /// Allows a client to create an Out-Of-Band invitation in the mediator,
+  /// resulting not only in an OOB ID but also returning a URI containing the
+  /// OOB ID for ease of sharing and connection establishment.
   ///
-  /// - [oobDidManager]: Responsible for managing out-of-band (OOB) DID exchanges.
+  /// - [oobDidManager]: Responsible for managing out-of-band (OOB) DID
+  ///   exchanges.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   /// If not provided, the SDK instance’s default mediator DID will be used.
   Future<Uri> createOob(DidManager oobDidManager, String? mediatorDid) {
@@ -154,8 +159,9 @@ class MeetingPlaceMediatorSDK {
 
   /// Allows a client to retrieve the OOB details from the mediator.
   ///
-  /// - [oobUrl]: Carries an out-of-band invitation used to initiate DIDComm interactions
-  /// outside the normal communication channel, often shared via QR code.
+  /// - [oobUrl]: Carries an out-of-band invitation used to initiate DIDComm
+  ///   interactions outside the normal communication channel, often shared via
+  ///   QR code.
   ///
   /// Returns the OOB invitation message details if found, or null if no OOB
   /// invitation is associated with the provided URL.
@@ -196,13 +202,15 @@ class MeetingPlaceMediatorSDK {
     );
   }
 
-  /// Encrypts and signs the message using the sender’ s DID, then sends it to [recipientDidDocument] via DIDComm.
+  /// Encrypts and signs the message using the sender's DID, then sends it to
+  /// [recipientDidDocument] via DIDComm.
   ///
-  /// - [recipientDidDocument]: DID document that contains the recipient agent’s public keys,
-  /// service endpoints, and routing information required to securely receive, decrypt,
-  /// and respond to DIDComm messages.
-  /// - [senderDidManager]: The DidManager instance used for authentication with the mediator
-  /// and contains the identity credentials needed for the session.
+  /// - [recipientDidDocument]: DID document that contains the recipient
+  ///   agent's public keys, service endpoints, and routing information
+  ///   required to securely receive, decrypt, and respond to DIDComm messages.
+  /// - [senderDidManager]: The [DidManager] instance used for authentication
+  ///   with the mediator and contains the identity credentials needed for the
+  ///   session.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   /// If not provided, the SDK instance’s default mediator DID will be used.
   Future<void> sendMessage(
@@ -227,14 +235,16 @@ class MeetingPlaceMediatorSDK {
     );
   }
 
-  /// Stores incoming DIDComm messages to manage the sending process efficiently,
+  /// Stores incoming DIDComm messages to manage the sending process
+  /// efficiently,
   /// ensuring messages are properly handled and dispatched.
   ///
-  /// - [recipientDidDocument]:  DID document that contains the recipient agent’s public keys,
-  /// service endpoints, and routing information required to securely receive, decrypt,
-  /// and respond to DIDComm messages.
-  /// - [senderDidManager]: The DidManager instance used for authentication with the mediator
-  /// and contains the identity credentials needed for the session.
+  /// - [recipientDidDocument]: DID document that contains the recipient
+  ///   agent's public keys, service endpoints, and routing information
+  ///   required to securely receive, decrypt, and respond to DIDComm messages.
+  /// - [senderDidManager]: The [DidManager] instance used for authentication
+  ///   with the mediator and contains the identity credentials needed for the
+  ///   session.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   /// If not provided, the SDK instance’s default mediator DID will be used.
   Future<void> queueMessage(
@@ -261,11 +271,13 @@ class MeetingPlaceMediatorSDK {
 
   /// Fetches messages from the mediator.
   ///
-  /// - [didManager]: The DidManager instance used for authentication with the mediator
-  /// and contains the identity credentials needed for the session.
+  /// - [didManager]: The [DidManager] instance used for authentication with
+  ///   the mediator and contains the identity credentials needed for the
+  ///   session.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   /// If not provided, the SDK instance’s default mediator DID will be used.
-  /// - [deleteOnRetrieve]: Boolean flag indicating whether messages should be deleted upon retrieval.
+  /// - [deleteOnRetrieve]: Boolean flag indicating whether messages should be
+  ///   deleted upon retrieval.
   Future<List<FetchMessageResult>> fetchMessages({
     required DidManager didManager,
     String? mediatorDid,
@@ -311,13 +323,15 @@ class MeetingPlaceMediatorSDK {
     });
   }
 
-  /// Deletes stored messages from the mediator’s queue,
-  /// removing them permanently after they have been retrieved or are no longer needed.
+  /// Deletes stored messages from the mediator's queue, removing them
+  /// permanently after they have been retrieved or are no longer needed.
   ///
-  /// - [didManager]: The DidManager instance used for authentication with the mediator
-  /// and contains the identity credentials needed for the session.
-  /// - [messageHashes]: List of cryptographic hashes representing stored messages,
-  /// used to verify and track messages without exposing their content.
+  /// - [didManager]: The [DidManager] instance used for authentication with
+  ///   the mediator and contains the identity credentials needed for the
+  ///   session.
+  /// - [messageHashes]: List of cryptographic hashes representing stored
+  ///   messages, used to verify and track messages without exposing their
+  ///   content.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
   /// If not provided, the SDK instance’s default mediator DID will be used.
   Future<void> deleteMessages({

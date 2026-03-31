@@ -13,7 +13,8 @@ part 'register_device_input.g.dart';
 ///
 /// Properties:
 /// * [platformType] - Platform type for sending notification.
-/// * [deviceToken] - A unique, platform-specific device token used to register the device. Maximum length of 2048 characters.
+/// * [deviceToken] - A unique, platform-specific device token used to register
+///   the device. Maximum length of 2048 characters.
 @BuiltValue()
 abstract class RegisterDeviceInput
     implements Built<RegisterDeviceInput, RegisterDeviceInputBuilder> {
@@ -22,7 +23,8 @@ abstract class RegisterDeviceInput
   RegisterDeviceInputPlatformTypeEnum get platformType;
   // enum platformTypeEnum {  DIDCOMM,  PUSH_NOTIFICATION,  NONE,  };
 
-  /// A unique, platform-specific device token used to register the device. Maximum length of 2048 characters.
+  /// A unique, platform-specific device token used to register the device.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
 

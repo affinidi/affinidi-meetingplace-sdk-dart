@@ -56,7 +56,7 @@ class MessageService {
       _notifyChannel(
         recipientDid: recipientDid,
         notifyChannelType: notifyChannelType,
-      ).catchError((e) {
+      ).catchError((Object e, StackTrace _) {
         _logger.error(
           '''Failed to send notification for message to ${recipientDid.topAndTail()}''',
           error: e,

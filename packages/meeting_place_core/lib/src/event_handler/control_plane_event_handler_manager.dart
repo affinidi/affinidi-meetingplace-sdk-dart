@@ -2,13 +2,14 @@ import 'dart:async';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
+import 'package:ssi/ssi.dart';
+
 import '../entity/channel.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../repository/repository.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
-import '../repository/repository.dart';
-import 'package:ssi/ssi.dart';
 import '../service/connection_service.dart';
 import '../service/mediator/mediator_service.dart';
 import 'channel_activity_event_handler.dart';
@@ -181,10 +182,11 @@ class ControlPlaneEventManager {
       case ControlPlaneEventType.ChannelActivity:
         final processedChannelActivities = processedEvents
             .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
+            .cast<DiscoveryEvent<ChannelActivity>>()
             .toList();
 
-        if (_channelActivityEventHandler.hasBeenProcessed(
-          event.data,
+        if (_channelActivityEventHandler.hasChannelActivityBeenProcessed(
+          event.data as ChannelActivity,
           processedChannelActivities,
         )) {
           return [];

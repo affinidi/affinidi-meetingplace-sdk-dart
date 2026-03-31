@@ -1,15 +1,18 @@
 import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
-import '../constants/sdk_constants.dart';
-import 'api_client.dart' as api_client;
 import 'package:ssi/ssi.dart';
 
-import '../../meeting_place_control_plane.dart';
+import '../constants/sdk_constants.dart';
+import '../control_plane_sdk.dart';
+import '../loggers/control_plane_sdk_logger.dart';
+import '../loggers/default_control_plane_sdk_logger.dart';
+import 'api_client.dart' as api_client;
 import 'control_plane_api_client_options.dart';
 import 'refresh_auth_credentials_interceptor.dart';
 import 'retry_interceptor.dart';
 
-/// A class that is used to handle the API calls for [ControlPlaneSDK] using [Dio].
+/// A class that is used to handle the API calls for [ControlPlaneSDK] using
+/// [Dio].
 class ControlPlaneApiClient {
   /// Create an instance of the [ControlPlaneApiClient] class.
   ///
@@ -35,7 +38,7 @@ class ControlPlaneApiClient {
        ),
        _logger = logger;
   static final String _apiKeyName = 'DidCommTokenAuth';
-  static const String _className = 'DiscoveryApiClient';
+  static const String _className = 'ControlPlaneApiClient';
 
   final api_client.ControlPlaneApi _mpxClient;
   final ControlPlaneSDKLogger _logger;
@@ -44,7 +47,8 @@ class ControlPlaneApiClient {
 
   /// Creates and initializes an instance of [ControlPlaneApiClient].
   ///
-  /// This static method sets up all necessary member variables and configurations
+  /// This static method sets up all necessary member variables and
+  /// configurations
   /// required for a fully functional [ControlPlaneApiClient] instance.
   static Future<ControlPlaneApiClient> init({
     required ControlPlaneApiClientOptions options,
@@ -58,7 +62,8 @@ class ControlPlaneApiClient {
         DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
 
     effectiveLogger.info(
-      'Started initializing DiscoveryApiClient with options: ${options.toJson()}',
+      'Started initializing ControlPlaneApiClient with options: '
+      '${options.toJson()}',
       name: methodName,
     );
 
@@ -84,7 +89,7 @@ class ControlPlaneApiClient {
     );
 
     effectiveLogger.info(
-      'Completed initializing DiscoveryApiClient with basePath: $basePath',
+      'Completed initializing ControlPlaneApiClient with basePath: $basePath',
       name: methodName,
     );
     return ControlPlaneApiClient._(
@@ -109,7 +114,7 @@ class ControlPlaneApiClient {
   /// - [didResolver]: THe didResolver object.
   ///
   /// **Returns:**
-  /// - [apiBasePath]: the base api path as string.
+  /// - the base api path as string.
   static Future<String> _getApiBasePath(
     String controlPlaneDid,
     DidResolver didResolver,

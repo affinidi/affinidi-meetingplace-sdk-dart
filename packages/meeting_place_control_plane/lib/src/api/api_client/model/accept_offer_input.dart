@@ -13,10 +13,13 @@ part 'accept_offer_input.g.dart';
 ///
 /// Properties:
 /// * [mnemonic] - A unique phrase used to publish and identify the offer.
-/// * [did] - Permanent channel DID of the user upon approval of the connection request.
-/// * [deviceToken] - The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+/// * [did] - Permanent channel DID of the user upon approval of the connection
+///   request.
+/// * [deviceToken] - The device token for push notification when the offer is
+///   processed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
-/// * [contactCard] - A ContactCard containing the details of the offer encoded in base64 format.
+/// * [contactCard] - A ContactCard containing the details of the offer encoded
+///   in base64 format.
 /// * [offerLink]
 @BuiltValue()
 abstract class AcceptOfferInput
@@ -29,7 +32,8 @@ abstract class AcceptOfferInput
   @BuiltValueField(wireName: r'did')
   String get did;
 
-  /// The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+  /// The device token for push notification when the offer is processed.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
 
@@ -38,7 +42,8 @@ abstract class AcceptOfferInput
   AcceptOfferInputPlatformTypeEnum get platformType;
   // enum platformTypeEnum {  DIDCOMM,  PUSH_NOTIFICATION,  NONE,  };
 
-  /// A ContactCard containing the details of the offer encoded in base64 format.
+  /// A ContactCard containing the details of the offer encoded in base64
+  /// format.
   @BuiltValueField(wireName: r'contactCard')
   String get contactCard;
 

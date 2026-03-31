@@ -30,7 +30,8 @@ abstract class AcceptOfferToConnect404Response
           AcceptOfferToConnect404Response,
           AcceptOfferToConnect404ResponseBuilder
         > {
-  /// One Of [InvalidAcceptanceError], [InvalidOfferError], [OfferLimitExceededError]
+  /// One Of [InvalidAcceptanceError], [InvalidOfferError],
+  /// [OfferLimitExceededError]
   OneOf get oneOf;
 
   AcceptOfferToConnect404Response._();

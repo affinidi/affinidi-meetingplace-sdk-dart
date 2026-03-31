@@ -12,7 +12,8 @@ part 'group_delete_input.g.dart';
 ///
 /// Properties:
 /// * [groupId] - Unique identifier of the group chat to delete.
-/// * [messageToRelay] - Message to send to the group chat members upon deletion.
+/// * [messageToRelay] - Message to send to the group chat members upon
+///   deletion.
 @BuiltValue()
 abstract class GroupDeleteInput
     implements Built<GroupDeleteInput, GroupDeleteInputBuilder> {

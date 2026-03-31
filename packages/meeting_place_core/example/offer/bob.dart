@@ -19,7 +19,10 @@ void main() async {
       await notification.recipientDid.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
-  final file = File('./storage.txt');
+  final outputDirectory = Directory('.example-output');
+  final file = File(
+    '${outputDirectory.path}${Platform.pathSeparator}storage.txt',
+  );
   final mnemonicBytes = file.readAsBytesSync();
 
   prettyPrintGreen('>>> Calling SDK.findOffer');

@@ -9,14 +9,17 @@ import 'package:built_value/serializer.dart';
 
 part 'finalise_offer_input.g.dart';
 
-/// List of required and optional parameters to finalise the acceptance of an offer.
+/// List of required and optional parameters to finalise the acceptance of an
+/// offer.
 ///
 /// Properties:
 /// * [mnemonic] - A unique phrase used to publish and identify the offer.
 /// * [did] - Channel DID to use to finalise the acceptance of an offer.
 /// * [offerLink] - Offer link associated with the channel.
-/// * [theirDid] - Decentralised Identifier (DID) of the user who accepted the offer.
-/// * [deviceToken] - The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+/// * [theirDid] - Decentralised Identifier (DID) of the user who accepted the
+///   offer.
+/// * [deviceToken] - The device token for push notification when the offer is
+///   processed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
 @BuiltValue()
 abstract class FinaliseOfferInput
@@ -37,7 +40,8 @@ abstract class FinaliseOfferInput
   @BuiltValueField(wireName: r'theirDid')
   String get theirDid;
 
-  /// The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+  /// The device token for push notification when the offer is processed.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String? get deviceToken;
 

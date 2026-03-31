@@ -1,5 +1,5 @@
-import '../../core/device/device_platform.dart';
 import '../../core/command/command.dart';
+import '../../core/device/device_platform.dart';
 import 'register_device_output.dart';
 
 /// Model that represents the request sent for the [RegisterDeviceCommand]

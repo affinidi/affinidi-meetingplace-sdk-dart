@@ -12,7 +12,8 @@ part 'get_pending_notifications_input.g.dart';
 /// GetPendingNotificationsInput
 ///
 /// Properties:
-/// * [deviceToken] - The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+/// * [deviceToken] - The device token for push notification when the offer is
+///   processed.  Maximum length of 2048 characters.
 /// * [platformType] - Platform type for sending notification.
 @BuiltValue()
 abstract class GetPendingNotificationsInput
@@ -21,7 +22,8 @@ abstract class GetPendingNotificationsInput
           GetPendingNotificationsInput,
           GetPendingNotificationsInputBuilder
         > {
-  /// The device token for push notification when the offer is processed.  Maximum length of 2048 characters.
+  /// The device token for push notification when the offer is processed.
+  /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;
 

@@ -36,11 +36,13 @@ void main() {
 
     final oobUrl = await aliceSDK.mediator.createOob(did, getMediatorDid());
 
-    final response = await Dio().get(oobUrl.toString());
+    final response = await Dio().get<Map<String, dynamic>>(oobUrl.toString());
 
     expect(response.data!['message'], equals('Success'));
 
-    final actual = OobInvitationMessage.fromBase64(response.data['data']);
+    final actual = OobInvitationMessage.fromBase64(
+      response.data!['data'] as String,
+    );
     expect(actual.from, didDoc.id);
     expect(
       actual.toPlainTextMessage().type,
@@ -56,8 +58,8 @@ void main() {
     Channel? bobChannel;
 
     setUpAll(() async {
-      final aliceOnDoneCompleter = Completer();
-      final bobOnDoneCompleter = Completer();
+      final aliceOnDoneCompleter = Completer<void>();
+      final bobOnDoneCompleter = Completer<void>();
 
       final oobOfferSession = await aliceSDK.createOobFlow(
         contactCard: aliceCard,

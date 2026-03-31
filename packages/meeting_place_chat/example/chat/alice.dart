@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:ssi/ssi.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:ssi/ssi.dart';
 
 import '../utils/print.dart';
 import '../utils/repository/chat_repository_impl.dart';
@@ -34,7 +35,11 @@ void main() async {
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
   );
 
-  final file = File('./storage.txt');
+  final outputDirectory = Directory('.example-output')
+    ..createSync(recursive: true);
+  final file = File(
+    '${outputDirectory.path}${Platform.pathSeparator}storage.txt',
+  );
   file.writeAsBytesSync(
     utf8.encode(publishOfferResult.connectionOffer.mnemonic),
   );

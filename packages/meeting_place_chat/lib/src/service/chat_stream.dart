@@ -4,8 +4,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../constants/sdk_constants.dart';
 import '../entity/chat_item.dart';
-import '../loggers/meeting_place_chat_sdk_logger.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
+import '../loggers/meeting_place_chat_sdk_logger.dart';
 
 class StreamData {
   StreamData({this.plainTextMessage, this.chatItem});

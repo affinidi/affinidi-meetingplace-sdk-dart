@@ -9,7 +9,10 @@ import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
-  final oobUrlBytes = File('./oob-url.txt').readAsBytesSync();
+  final outputDirectory = Directory('.example-output');
+  final oobUrlBytes = File(
+    '${outputDirectory.path}${Platform.pathSeparator}oob-url.txt',
+  ).readAsBytesSync();
 
   final oobUri = Uri.parse(utf8.decode(oobUrlBytes));
   prettyPrintYellow('OOB uri: ${oobUri.toString()}');
@@ -49,7 +52,7 @@ void main() async {
 
   await bobSDK.sendMessage(
       PlainTextMessage(
-          id: Uuid().v4(),
+          id: const Uuid().v4(),
           type: Uri.parse(
               'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example'),
           from: channel.permanentChannelDid,

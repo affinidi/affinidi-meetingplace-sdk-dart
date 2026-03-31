@@ -1,8 +1,7 @@
 import 'channel_repository.dart';
-
 import 'connection_offer_repository.dart';
-import 'group_repository.dart';
 import 'group_not_implemented_repository.dart';
+import 'group_repository.dart';
 import 'key_repository.dart';
 
 class RepositoryConfig {

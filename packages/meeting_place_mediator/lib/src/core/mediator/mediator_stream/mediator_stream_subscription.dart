@@ -76,16 +76,20 @@ class MediatorStreamSubscription {
   void _pushMessage(MediatorStreamData data) {
     final methodName = 'pushMessage';
     if (_controller.isClosed) {
-      _logger.warning('Stream is closed: data not pushed - ${data.message.id}',
-          name: methodName);
+      _logger.warning(
+        'Stream is closed: data not pushed - ${data.message.id}',
+        name: methodName,
+      );
       return;
     }
 
     if (!_controller.hasListener) {
       _eventBuffer.add(data);
       _logger.info(
-          'No listener detected. Event buffered (total: ${_eventBuffer.length})',
-          name: methodName);
+        'No listener detected. Event buffered (total: '
+        '${_eventBuffer.length})',
+        name: methodName,
+      );
       return;
     }
 

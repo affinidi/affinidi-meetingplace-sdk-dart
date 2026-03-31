@@ -8,12 +8,15 @@ import 'package:built_value/serializer.dart';
 
 part 'group_deregister_member_input.g.dart';
 
-/// List of required and optional parameters to remove a member from the group chat.
+/// List of required and optional parameters to remove a member from the group
+/// chat.
 ///
 /// Properties:
 /// * [memberDid] - Decentralised Identifier (DID) of the member to remove.
-/// * [groupId] - The unique identifier of the group chat to remove the member from.
-/// * [messageToRelay] - An encrypted DIDComm message to send to the remaining group chat members in base64 format.
+/// * [groupId] - The unique identifier of the group chat to remove the member
+///   from.
+/// * [messageToRelay] - An encrypted DIDComm message to send to the remaining
+///   group chat members in base64 format.
 @BuiltValue()
 abstract class GroupDeregisterMemberInput
     implements
@@ -26,7 +29,8 @@ abstract class GroupDeregisterMemberInput
   @BuiltValueField(wireName: r'groupId')
   String get groupId;
 
-  /// An encrypted DIDComm message to send to the remaining group chat members in base64 format.
+  /// An encrypted DIDComm message to send to the remaining group chat members
+  /// in base64 format.
   @BuiltValueField(wireName: r'messageToRelay')
   String? get messageToRelay;
 

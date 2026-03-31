@@ -12,7 +12,8 @@ part 'notify_accept_offer_input.g.dart';
 ///
 /// Properties:
 /// * [mnemonic] - A unique phrase used to publish and identify the offer.
-/// * [did] - Permanent channel DID of the user upon approval of the connection request.
+/// * [did] - Permanent channel DID of the user upon approval of the connection
+///   request.
 /// * [offerLink] - The offer link associated with the published offer.
 /// * [senderInfo] - Sender info to be shown in notification message.
 @BuiltValue()

@@ -186,23 +186,8 @@ class ConnectionContactCards extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  /// First name of the contact.
-  TextColumn get firstName => text()();
-
-  /// Last name of the contact.
-  TextColumn get lastName => text()();
-
-  /// Email address of the contact.
-  TextColumn get email => text()();
-
-  /// Mobile number of the contact.
-  TextColumn get mobile => text()();
-
-  /// Profile picture of the contact.
-  TextColumn get profilePic => text()();
-
-  /// MeetingPlace identity card color of the contact.
-  TextColumn get meetingplaceIdentityCardColor => text()();
+  /// Flexible JSON payload for contact information.
+  TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
 }
 
 extension _ConnectionOfferTypeValue on ConnectionOfferType {

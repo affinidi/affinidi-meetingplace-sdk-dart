@@ -144,23 +144,8 @@ class ChannelContactCards extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  /// First name of the contact.
-  TextColumn get firstName => text()();
-
-  /// Last name of the contact.
-  TextColumn get lastName => text()();
-
-  /// Email address of the contact.
-  TextColumn get email => text()();
-
-  /// Mobile number of the contact.
-  TextColumn get mobile => text()();
-
-  /// Profile picture of the contact.
-  TextColumn get profilePic => text()();
-
-  /// Identity card color of the contact.
-  TextColumn get meetingplaceIdentityCardColor => text()();
+  /// Flexible JSON payload for contact information.
+  TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
 
   /// Type of the contact card.
   IntColumn get cardType => integer().map(const _ContactCardTypeConverter())();

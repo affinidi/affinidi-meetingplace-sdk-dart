@@ -3,7 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../extensions/contact_card_extensions.dart';
+import '../../utils/contact_info_json.dart';
 import 'channel_database.dart' as db;
 
 /// Repository implementation for managing [model.Channel] entities
@@ -201,14 +201,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             channelId: Value(channelId),
             did: Value(card.did),
             type: Value(card.type),
-            firstName: Value(card.firstName),
-            lastName: Value(card.lastName),
-            email: Value(card.email),
-            mobile: Value(card.mobile),
-            profilePic: Value(card.profilePic),
-            meetingplaceIdentityCardColor: Value(
-              card.meetingplaceIdentityCardColor,
-            ),
+            contactInfoJson: Value(encodeContactInfoJson(card)),
             cardType: Value(type),
           ),
         );
@@ -232,14 +225,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
         db.ChannelContactCardsCompanion(
           did: Value(card.did),
           type: Value(card.type),
-          firstName: Value(card.firstName),
-          lastName: Value(card.lastName),
-          email: Value(card.email),
-          mobile: Value(card.mobile),
-          profilePic: Value(card.profilePic),
-          meetingplaceIdentityCardColor: Value(
-            card.meetingplaceIdentityCardColor,
-          ),
+          contactInfoJson: Value(encodeContactInfoJson(card)),
           cardType: Value(type),
         ),
       );
@@ -341,16 +327,8 @@ class _ChannelMapper {
     final card = model.ContactCard(
       did: contactCard.did,
       type: contactCard.type,
-      contactInfo: {},
+      contactInfo: decodeContactInfoJson(contactCard.contactInfoJson),
     );
-
-    card.firstName = contactCard.firstName;
-    card.lastName = contactCard.lastName;
-    card.email = contactCard.email;
-    card.mobile = contactCard.mobile;
-    card.profilePic = contactCard.profilePic;
-    card.meetingplaceIdentityCardColor =
-        contactCard.meetingplaceIdentityCardColor;
 
     return card;
   }

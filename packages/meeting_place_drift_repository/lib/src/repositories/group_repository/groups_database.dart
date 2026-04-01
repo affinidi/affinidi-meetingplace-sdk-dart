@@ -135,23 +135,8 @@ class GroupMembers extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  /// The first name of the group member.
-  TextColumn get firstName => text()();
-
-  /// The last name of the group member.
-  TextColumn get lastName => text()();
-
-  /// The email of the group member.
-  TextColumn get email => text()();
-
-  /// The mobile number of the group member.
-  TextColumn get mobile => text()();
-
-  /// The profile picture of the group member.
-  TextColumn get profilePic => text()();
-
-  /// The MeetingPlace identity card color of the group member.
-  TextColumn get meetingplaceIdentityCardColor => text()();
+  /// Flexible JSON payload for contact information.
+  TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
 }
 
 extension _GroupStatusValue on GroupStatus {

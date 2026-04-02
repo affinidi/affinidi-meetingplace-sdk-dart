@@ -110,6 +110,7 @@ void main() async {
 
 For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_core/example).
 
+
 ## Running tests locally
 
 ### Option 1: Running tests via `melos` (recommended for CI and automation)

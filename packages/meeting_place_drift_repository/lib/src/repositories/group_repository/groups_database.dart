@@ -49,12 +49,20 @@ class GroupsDatabase extends _$GroupsDatabase {
         );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
+        },
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            await migrator.addColumn(
+              groupMembers,
+              groupMembers.profilePic,
+            );
+          }
         },
       );
 }
@@ -137,6 +145,9 @@ class GroupMembers extends Table {
 
   /// Flexible JSON payload for contact information.
   TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
+
+  /// Profile picture of the contact.
+  TextColumn get profilePic => text().nullable()();
 }
 
 extension _GroupStatusValue on GroupStatus {

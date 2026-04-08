@@ -59,7 +59,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
 
   /// Current schema version of the database.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Migration strategy applied before opening the database.
   /// Ensures foreign key constraints are enforced.
@@ -67,6 +67,14 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
+        },
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            await migrator.addColumn(
+              connectionContactCards,
+              connectionContactCards.profilePic,
+            );
+          }
         },
       );
 }
@@ -188,6 +196,9 @@ class ConnectionContactCards extends Table {
 
   /// Flexible JSON payload for contact information.
   TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
+
+  /// Profile picture of the contact.
+  TextColumn get profilePic => text().nullable()();
 }
 
 extension _ConnectionOfferTypeValue on ConnectionOfferType {

@@ -202,6 +202,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
             did: Value(card.did),
             type: Value(card.type),
             contactInfoJson: Value(encodeContactInfoJson(card)),
+            profilePic: Value(extractProfilePic(card)),
             cardType: Value(type),
           ),
         );
@@ -226,6 +227,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           did: Value(card.did),
           type: Value(card.type),
           contactInfoJson: Value(encodeContactInfoJson(card)),
+          profilePic: Value(extractProfilePic(card)),
           cardType: Value(type),
         ),
       );
@@ -327,7 +329,10 @@ class _ChannelMapper {
     final card = model.ContactCard(
       did: contactCard.did,
       type: contactCard.type,
-      contactInfo: decodeContactInfoJson(contactCard.contactInfoJson),
+      contactInfo: decodeContactInfoJson(
+        contactCard.contactInfoJson,
+        profilePic: contactCard.profilePic,
+      ),
     );
 
     return card;

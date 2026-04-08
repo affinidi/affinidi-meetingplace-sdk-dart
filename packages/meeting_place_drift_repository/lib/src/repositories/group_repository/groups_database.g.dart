@@ -546,6 +546,12 @@ class $GroupMembersTable extends GroupMembers
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('{}'));
+  static const VerificationMeta _profilePicMeta =
+      const VerificationMeta('profilePic');
+  @override
+  late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
+      'profile_pic', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         groupId,
@@ -561,7 +567,8 @@ class $GroupMembersTable extends GroupMembers
         status,
         identityDid,
         type,
-        contactInfoJson
+        contactInfoJson,
+        profilePic
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -641,6 +648,12 @@ class $GroupMembersTable extends GroupMembers
           contactInfoJson.isAcceptableOrUnknown(
               data['contact_info_json']!, _contactInfoJsonMeta));
     }
+    if (data.containsKey('profile_pic')) {
+      context.handle(
+          _profilePicMeta,
+          profilePic.isAcceptableOrUnknown(
+              data['profile_pic']!, _profilePicMeta));
+    }
     return context;
   }
 
@@ -680,6 +693,8 @@ class $GroupMembersTable extends GroupMembers
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       contactInfoJson: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}contact_info_json'])!,
+      profilePic: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic']),
     );
   }
 
@@ -736,6 +751,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
 
   /// Flexible JSON payload for contact information.
   final String contactInfoJson;
+
+  /// Profile picture of the contact.
+  final String? profilePic;
   const GroupMember(
       {required this.groupId,
       required this.memberDid,
@@ -750,7 +768,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       required this.status,
       required this.identityDid,
       required this.type,
-      required this.contactInfoJson});
+      required this.contactInfoJson,
+      this.profilePic});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -784,6 +803,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     map['identity_did'] = Variable<String>(identityDid);
     map['type'] = Variable<String>(type);
     map['contact_info_json'] = Variable<String>(contactInfoJson);
+    if (!nullToAbsent || profilePic != null) {
+      map['profile_pic'] = Variable<String>(profilePic);
+    }
     return map;
   }
 
@@ -813,6 +835,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       identityDid: Value(identityDid),
       type: Value(type),
       contactInfoJson: Value(contactInfoJson),
+      profilePic: profilePic == null && nullToAbsent
+          ? const Value.absent()
+          : Value(profilePic),
     );
   }
 
@@ -835,6 +860,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       identityDid: serializer.fromJson<String>(json['identityDid']),
       type: serializer.fromJson<String>(json['type']),
       contactInfoJson: serializer.fromJson<String>(json['contactInfoJson']),
+      profilePic: serializer.fromJson<String?>(json['profilePic']),
     );
   }
   @override
@@ -855,6 +881,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       'identityDid': serializer.toJson<String>(identityDid),
       'type': serializer.toJson<String>(type),
       'contactInfoJson': serializer.toJson<String>(contactInfoJson),
+      'profilePic': serializer.toJson<String?>(profilePic),
     };
   }
 
@@ -872,7 +899,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           GroupMemberStatus? status,
           String? identityDid,
           String? type,
-          String? contactInfoJson}) =>
+          String? contactInfoJson,
+          Value<String?> profilePic = const Value.absent()}) =>
       GroupMember(
         groupId: groupId ?? this.groupId,
         memberDid: memberDid ?? this.memberDid,
@@ -893,6 +921,7 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
         identityDid: identityDid ?? this.identityDid,
         type: type ?? this.type,
         contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+        profilePic: profilePic.present ? profilePic.value : this.profilePic,
       );
   GroupMember copyWithCompanion(GroupMembersCompanion data) {
     return GroupMember(
@@ -921,6 +950,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       contactInfoJson: data.contactInfoJson.present
           ? data.contactInfoJson.value
           : this.contactInfoJson,
+      profilePic:
+          data.profilePic.present ? data.profilePic.value : this.profilePic,
     );
   }
 
@@ -940,7 +971,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('status: $status, ')
           ..write('identityDid: $identityDid, ')
           ..write('type: $type, ')
-          ..write('contactInfoJson: $contactInfoJson')
+          ..write('contactInfoJson: $contactInfoJson, ')
+          ..write('profilePic: $profilePic')
           ..write(')'))
         .toString();
   }
@@ -960,7 +992,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       status,
       identityDid,
       type,
-      contactInfoJson);
+      contactInfoJson,
+      profilePic);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -978,7 +1011,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.status == this.status &&
           other.identityDid == this.identityDid &&
           other.type == this.type &&
-          other.contactInfoJson == this.contactInfoJson);
+          other.contactInfoJson == this.contactInfoJson &&
+          other.profilePic == this.profilePic);
 }
 
 class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
@@ -996,6 +1030,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<String> identityDid;
   final Value<String> type;
   final Value<String> contactInfoJson;
+  final Value<String?> profilePic;
   final Value<int> rowid;
   const GroupMembersCompanion({
     this.groupId = const Value.absent(),
@@ -1012,6 +1047,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.identityDid = const Value.absent(),
     this.type = const Value.absent(),
     this.contactInfoJson = const Value.absent(),
+    this.profilePic = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GroupMembersCompanion.insert({
@@ -1029,6 +1065,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     required String identityDid,
     required String type,
     this.contactInfoJson = const Value.absent(),
+    this.profilePic = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : groupId = Value(groupId),
         memberDid = Value(memberDid),
@@ -1052,6 +1089,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<String>? identityDid,
     Expression<String>? type,
     Expression<String>? contactInfoJson,
+    Expression<String>? profilePic,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1069,6 +1107,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (identityDid != null) 'identity_did': identityDid,
       if (type != null) 'type': type,
       if (contactInfoJson != null) 'contact_info_json': contactInfoJson,
+      if (profilePic != null) 'profile_pic': profilePic,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1088,6 +1127,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       Value<String>? identityDid,
       Value<String>? type,
       Value<String>? contactInfoJson,
+      Value<String?>? profilePic,
       Value<int>? rowid}) {
     return GroupMembersCompanion(
       groupId: groupId ?? this.groupId,
@@ -1104,6 +1144,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       identityDid: identityDid ?? this.identityDid,
       type: type ?? this.type,
       contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+      profilePic: profilePic ?? this.profilePic,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1156,6 +1197,9 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     if (contactInfoJson.present) {
       map['contact_info_json'] = Variable<String>(contactInfoJson.value);
     }
+    if (profilePic.present) {
+      map['profile_pic'] = Variable<String>(profilePic.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1179,6 +1223,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('identityDid: $identityDid, ')
           ..write('type: $type, ')
           ..write('contactInfoJson: $contactInfoJson, ')
+          ..write('profilePic: $profilePic, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1536,6 +1581,7 @@ typedef $$GroupMembersTableCreateCompanionBuilder = GroupMembersCompanion
   required String identityDid,
   required String type,
   Value<String> contactInfoJson,
+  Value<String?> profilePic,
   Value<int> rowid,
 });
 typedef $$GroupMembersTableUpdateCompanionBuilder = GroupMembersCompanion
@@ -1554,6 +1600,7 @@ typedef $$GroupMembersTableUpdateCompanionBuilder = GroupMembersCompanion
   Value<String> identityDid,
   Value<String> type,
   Value<String> contactInfoJson,
+  Value<String?> profilePic,
   Value<int> rowid,
 });
 
@@ -1633,6 +1680,9 @@ class $$GroupMembersTableFilterComposer
       column: $table.contactInfoJson,
       builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => ColumnFilters(column));
+
   $$MeetingPlaceGroupsTableFilterComposer get groupId {
     final $$MeetingPlaceGroupsTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -1707,6 +1757,9 @@ class $$GroupMembersTableOrderingComposer
       column: $table.contactInfoJson,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => ColumnOrderings(column));
+
   $$MeetingPlaceGroupsTableOrderingComposer get groupId {
     final $$MeetingPlaceGroupsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -1777,6 +1830,9 @@ class $$GroupMembersTableAnnotationComposer
   GeneratedColumn<String> get contactInfoJson => $composableBuilder(
       column: $table.contactInfoJson, builder: (column) => column);
 
+  GeneratedColumn<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => column);
+
   $$MeetingPlaceGroupsTableAnnotationComposer get groupId {
     final $$MeetingPlaceGroupsTableAnnotationComposer composer =
         $composerBuilder(
@@ -1836,6 +1892,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             Value<String> identityDid = const Value.absent(),
             Value<String> type = const Value.absent(),
             Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               GroupMembersCompanion(
@@ -1853,6 +1910,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             identityDid: identityDid,
             type: type,
             contactInfoJson: contactInfoJson,
+            profilePic: profilePic,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1870,6 +1928,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             required String identityDid,
             required String type,
             Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               GroupMembersCompanion.insert(
@@ -1887,6 +1946,7 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             identityDid: identityDid,
             type: type,
             contactInfoJson: contactInfoJson,
+            profilePic: profilePic,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

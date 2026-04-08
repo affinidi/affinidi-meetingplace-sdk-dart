@@ -921,6 +921,12 @@ class $ChannelContactCardsTable extends ChannelContactCards
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('{}'));
+  static const VerificationMeta _profilePicMeta =
+      const VerificationMeta('profilePic');
+  @override
+  late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
+      'profile_pic', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   late final GeneratedColumnWithTypeConverter<ContactCardType, int> cardType =
       GeneratedColumn<int>('card_type', aliasedName, false,
@@ -929,7 +935,7 @@ class $ChannelContactCardsTable extends ChannelContactCards
               $ChannelContactCardsTable.$convertercardType);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, channelId, did, type, contactInfoJson, cardType];
+      [id, channelId, did, type, contactInfoJson, profilePic, cardType];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -967,6 +973,12 @@ class $ChannelContactCardsTable extends ChannelContactCards
           contactInfoJson.isAcceptableOrUnknown(
               data['contact_info_json']!, _contactInfoJsonMeta));
     }
+    if (data.containsKey('profile_pic')) {
+      context.handle(
+          _profilePicMeta,
+          profilePic.isAcceptableOrUnknown(
+              data['profile_pic']!, _profilePicMeta));
+    }
     return context;
   }
 
@@ -990,6 +1002,8 @@ class $ChannelContactCardsTable extends ChannelContactCards
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       contactInfoJson: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}contact_info_json'])!,
+      profilePic: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic']),
       cardType: $ChannelContactCardsTable.$convertercardType.fromSql(
           attachedDatabase.typeMapping
               .read(DriftSqlType.int, data['${effectivePrefix}card_type'])!),
@@ -1022,6 +1036,9 @@ class ChannelContactCard extends DataClass
   /// Flexible JSON payload for contact information.
   final String contactInfoJson;
 
+  /// Profile picture of the contact.
+  final String? profilePic;
+
   /// Type of the contact card.
   final ContactCardType cardType;
   const ChannelContactCard(
@@ -1030,6 +1047,7 @@ class ChannelContactCard extends DataClass
       required this.did,
       required this.type,
       required this.contactInfoJson,
+      this.profilePic,
       required this.cardType});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1039,6 +1057,9 @@ class ChannelContactCard extends DataClass
     map['did'] = Variable<String>(did);
     map['type'] = Variable<String>(type);
     map['contact_info_json'] = Variable<String>(contactInfoJson);
+    if (!nullToAbsent || profilePic != null) {
+      map['profile_pic'] = Variable<String>(profilePic);
+    }
     {
       map['card_type'] = Variable<int>(
           $ChannelContactCardsTable.$convertercardType.toSql(cardType));
@@ -1053,6 +1074,9 @@ class ChannelContactCard extends DataClass
       did: Value(did),
       type: Value(type),
       contactInfoJson: Value(contactInfoJson),
+      profilePic: profilePic == null && nullToAbsent
+          ? const Value.absent()
+          : Value(profilePic),
       cardType: Value(cardType),
     );
   }
@@ -1066,6 +1090,7 @@ class ChannelContactCard extends DataClass
       did: serializer.fromJson<String>(json['did']),
       type: serializer.fromJson<String>(json['type']),
       contactInfoJson: serializer.fromJson<String>(json['contactInfoJson']),
+      profilePic: serializer.fromJson<String?>(json['profilePic']),
       cardType: serializer.fromJson<ContactCardType>(json['cardType']),
     );
   }
@@ -1078,6 +1103,7 @@ class ChannelContactCard extends DataClass
       'did': serializer.toJson<String>(did),
       'type': serializer.toJson<String>(type),
       'contactInfoJson': serializer.toJson<String>(contactInfoJson),
+      'profilePic': serializer.toJson<String?>(profilePic),
       'cardType': serializer.toJson<ContactCardType>(cardType),
     };
   }
@@ -1088,6 +1114,7 @@ class ChannelContactCard extends DataClass
           String? did,
           String? type,
           String? contactInfoJson,
+          Value<String?> profilePic = const Value.absent(),
           ContactCardType? cardType}) =>
       ChannelContactCard(
         id: id ?? this.id,
@@ -1095,6 +1122,7 @@ class ChannelContactCard extends DataClass
         did: did ?? this.did,
         type: type ?? this.type,
         contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+        profilePic: profilePic.present ? profilePic.value : this.profilePic,
         cardType: cardType ?? this.cardType,
       );
   ChannelContactCard copyWithCompanion(ChannelContactCardsCompanion data) {
@@ -1106,6 +1134,8 @@ class ChannelContactCard extends DataClass
       contactInfoJson: data.contactInfoJson.present
           ? data.contactInfoJson.value
           : this.contactInfoJson,
+      profilePic:
+          data.profilePic.present ? data.profilePic.value : this.profilePic,
       cardType: data.cardType.present ? data.cardType.value : this.cardType,
     );
   }
@@ -1118,14 +1148,15 @@ class ChannelContactCard extends DataClass
           ..write('did: $did, ')
           ..write('type: $type, ')
           ..write('contactInfoJson: $contactInfoJson, ')
+          ..write('profilePic: $profilePic, ')
           ..write('cardType: $cardType')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, channelId, did, type, contactInfoJson, cardType);
+  int get hashCode => Object.hash(
+      id, channelId, did, type, contactInfoJson, profilePic, cardType);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1135,6 +1166,7 @@ class ChannelContactCard extends DataClass
           other.did == this.did &&
           other.type == this.type &&
           other.contactInfoJson == this.contactInfoJson &&
+          other.profilePic == this.profilePic &&
           other.cardType == this.cardType);
 }
 
@@ -1144,6 +1176,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
   final Value<String> did;
   final Value<String> type;
   final Value<String> contactInfoJson;
+  final Value<String?> profilePic;
   final Value<ContactCardType> cardType;
   const ChannelContactCardsCompanion({
     this.id = const Value.absent(),
@@ -1151,6 +1184,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     this.did = const Value.absent(),
     this.type = const Value.absent(),
     this.contactInfoJson = const Value.absent(),
+    this.profilePic = const Value.absent(),
     this.cardType = const Value.absent(),
   });
   ChannelContactCardsCompanion.insert({
@@ -1159,6 +1193,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     required String did,
     required String type,
     this.contactInfoJson = const Value.absent(),
+    this.profilePic = const Value.absent(),
     required ContactCardType cardType,
   })  : channelId = Value(channelId),
         did = Value(did),
@@ -1170,6 +1205,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     Expression<String>? did,
     Expression<String>? type,
     Expression<String>? contactInfoJson,
+    Expression<String>? profilePic,
     Expression<int>? cardType,
   }) {
     return RawValuesInsertable({
@@ -1178,6 +1214,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
       if (did != null) 'did': did,
       if (type != null) 'type': type,
       if (contactInfoJson != null) 'contact_info_json': contactInfoJson,
+      if (profilePic != null) 'profile_pic': profilePic,
       if (cardType != null) 'card_type': cardType,
     });
   }
@@ -1188,6 +1225,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
       Value<String>? did,
       Value<String>? type,
       Value<String>? contactInfoJson,
+      Value<String?>? profilePic,
       Value<ContactCardType>? cardType}) {
     return ChannelContactCardsCompanion(
       id: id ?? this.id,
@@ -1195,6 +1233,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
       did: did ?? this.did,
       type: type ?? this.type,
       contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+      profilePic: profilePic ?? this.profilePic,
       cardType: cardType ?? this.cardType,
     );
   }
@@ -1217,6 +1256,9 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     if (contactInfoJson.present) {
       map['contact_info_json'] = Variable<String>(contactInfoJson.value);
     }
+    if (profilePic.present) {
+      map['profile_pic'] = Variable<String>(profilePic.value);
+    }
     if (cardType.present) {
       map['card_type'] = Variable<int>(
           $ChannelContactCardsTable.$convertercardType.toSql(cardType.value));
@@ -1232,6 +1274,7 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
           ..write('did: $did, ')
           ..write('type: $type, ')
           ..write('contactInfoJson: $contactInfoJson, ')
+          ..write('profilePic: $profilePic, ')
           ..write('cardType: $cardType')
           ..write(')'))
         .toString();
@@ -1724,6 +1767,7 @@ typedef $$ChannelContactCardsTableCreateCompanionBuilder
   required String did,
   required String type,
   Value<String> contactInfoJson,
+  Value<String?> profilePic,
   required ContactCardType cardType,
 });
 typedef $$ChannelContactCardsTableUpdateCompanionBuilder
@@ -1733,6 +1777,7 @@ typedef $$ChannelContactCardsTableUpdateCompanionBuilder
   Value<String> did,
   Value<String> type,
   Value<String> contactInfoJson,
+  Value<String?> profilePic,
   Value<ContactCardType> cardType,
 });
 
@@ -1778,6 +1823,9 @@ class $$ChannelContactCardsTableFilterComposer
   ColumnFilters<String> get contactInfoJson => $composableBuilder(
       column: $table.contactInfoJson,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => ColumnFilters(column));
 
   ColumnWithTypeConverterFilters<ContactCardType, ContactCardType, int>
       get cardType => $composableBuilder(
@@ -1827,6 +1875,9 @@ class $$ChannelContactCardsTableOrderingComposer
       column: $table.contactInfoJson,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get cardType => $composableBuilder(
       column: $table.cardType, builder: (column) => ColumnOrderings(column));
 
@@ -1871,6 +1922,9 @@ class $$ChannelContactCardsTableAnnotationComposer
 
   GeneratedColumn<String> get contactInfoJson => $composableBuilder(
       column: $table.contactInfoJson, builder: (column) => column);
+
+  GeneratedColumn<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<ContactCardType, int> get cardType =>
       $composableBuilder(column: $table.cardType, builder: (column) => column);
@@ -1927,6 +1981,7 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
             Value<String> did = const Value.absent(),
             Value<String> type = const Value.absent(),
             Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
             Value<ContactCardType> cardType = const Value.absent(),
           }) =>
               ChannelContactCardsCompanion(
@@ -1935,6 +1990,7 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
             did: did,
             type: type,
             contactInfoJson: contactInfoJson,
+            profilePic: profilePic,
             cardType: cardType,
           ),
           createCompanionCallback: ({
@@ -1943,6 +1999,7 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
             required String did,
             required String type,
             Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
             required ContactCardType cardType,
           }) =>
               ChannelContactCardsCompanion.insert(
@@ -1951,6 +2008,7 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
             did: did,
             type: type,
             contactInfoJson: contactInfoJson,
+            profilePic: profilePic,
             cardType: cardType,
           ),
           withReferenceMapper: (p0) => p0

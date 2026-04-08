@@ -205,6 +205,7 @@ class ConnectionOfferRepositoryDrift
               did: Value(card.did),
               type: Value(card.type),
               contactInfoJson: Value(encodeContactInfoJson(card)),
+              profilePic: Value(extractProfilePic(card)),
             ),
           );
     });
@@ -305,6 +306,7 @@ class ConnectionOfferRepositoryDrift
           did: Value(card.did),
           type: Value(card.type),
           contactInfoJson: Value(encodeContactInfoJson(card)),
+          profilePic: Value(extractProfilePic(card)),
         ),
       );
     });
@@ -345,7 +347,10 @@ class _ConnectionOfferMapper {
     final card = model.ContactCard(
       did: contactCard.did,
       type: contactCard.type,
-      contactInfo: decodeContactInfoJson(contactCard.contactInfoJson),
+      contactInfo: decodeContactInfoJson(
+        contactCard.contactInfoJson,
+        profilePic: contactCard.profilePic,
+      ),
     );
 
     if (groupConnectionOffer != null) {

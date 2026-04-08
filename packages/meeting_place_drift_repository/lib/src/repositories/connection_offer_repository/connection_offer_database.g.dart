@@ -1180,9 +1180,15 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('{}'));
+  static const VerificationMeta _profilePicMeta =
+      const VerificationMeta('profilePic');
+  @override
+  late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
+      'profile_pic', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, connectionOfferId, did, type, contactInfoJson];
+      [id, connectionOfferId, did, type, contactInfoJson, profilePic];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1223,6 +1229,12 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
           contactInfoJson.isAcceptableOrUnknown(
               data['contact_info_json']!, _contactInfoJsonMeta));
     }
+    if (data.containsKey('profile_pic')) {
+      context.handle(
+          _profilePicMeta,
+          profilePic.isAcceptableOrUnknown(
+              data['profile_pic']!, _profilePicMeta));
+    }
     return context;
   }
 
@@ -1242,6 +1254,8 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       contactInfoJson: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}contact_info_json'])!,
+      profilePic: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic']),
     );
   }
 
@@ -1267,12 +1281,16 @@ class ConnectionContactCard extends DataClass
 
   /// Flexible JSON payload for contact information.
   final String contactInfoJson;
+
+  /// Profile picture of the contact.
+  final String? profilePic;
   const ConnectionContactCard(
       {required this.id,
       required this.connectionOfferId,
       required this.did,
       required this.type,
-      required this.contactInfoJson});
+      required this.contactInfoJson,
+      this.profilePic});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1281,6 +1299,9 @@ class ConnectionContactCard extends DataClass
     map['did'] = Variable<String>(did);
     map['type'] = Variable<String>(type);
     map['contact_info_json'] = Variable<String>(contactInfoJson);
+    if (!nullToAbsent || profilePic != null) {
+      map['profile_pic'] = Variable<String>(profilePic);
+    }
     return map;
   }
 
@@ -1291,6 +1312,9 @@ class ConnectionContactCard extends DataClass
       did: Value(did),
       type: Value(type),
       contactInfoJson: Value(contactInfoJson),
+      profilePic: profilePic == null && nullToAbsent
+          ? const Value.absent()
+          : Value(profilePic),
     );
   }
 
@@ -1303,6 +1327,7 @@ class ConnectionContactCard extends DataClass
       did: serializer.fromJson<String>(json['did']),
       type: serializer.fromJson<String>(json['type']),
       contactInfoJson: serializer.fromJson<String>(json['contactInfoJson']),
+      profilePic: serializer.fromJson<String?>(json['profilePic']),
     );
   }
   @override
@@ -1314,6 +1339,7 @@ class ConnectionContactCard extends DataClass
       'did': serializer.toJson<String>(did),
       'type': serializer.toJson<String>(type),
       'contactInfoJson': serializer.toJson<String>(contactInfoJson),
+      'profilePic': serializer.toJson<String?>(profilePic),
     };
   }
 
@@ -1322,13 +1348,15 @@ class ConnectionContactCard extends DataClass
           String? connectionOfferId,
           String? did,
           String? type,
-          String? contactInfoJson}) =>
+          String? contactInfoJson,
+          Value<String?> profilePic = const Value.absent()}) =>
       ConnectionContactCard(
         id: id ?? this.id,
         connectionOfferId: connectionOfferId ?? this.connectionOfferId,
         did: did ?? this.did,
         type: type ?? this.type,
         contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+        profilePic: profilePic.present ? profilePic.value : this.profilePic,
       );
   ConnectionContactCard copyWithCompanion(
       ConnectionContactCardsCompanion data) {
@@ -1342,6 +1370,8 @@ class ConnectionContactCard extends DataClass
       contactInfoJson: data.contactInfoJson.present
           ? data.contactInfoJson.value
           : this.contactInfoJson,
+      profilePic:
+          data.profilePic.present ? data.profilePic.value : this.profilePic,
     );
   }
 
@@ -1352,14 +1382,15 @@ class ConnectionContactCard extends DataClass
           ..write('connectionOfferId: $connectionOfferId, ')
           ..write('did: $did, ')
           ..write('type: $type, ')
-          ..write('contactInfoJson: $contactInfoJson')
+          ..write('contactInfoJson: $contactInfoJson, ')
+          ..write('profilePic: $profilePic')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, connectionOfferId, did, type, contactInfoJson);
+  int get hashCode => Object.hash(
+      id, connectionOfferId, did, type, contactInfoJson, profilePic);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1368,7 +1399,8 @@ class ConnectionContactCard extends DataClass
           other.connectionOfferId == this.connectionOfferId &&
           other.did == this.did &&
           other.type == this.type &&
-          other.contactInfoJson == this.contactInfoJson);
+          other.contactInfoJson == this.contactInfoJson &&
+          other.profilePic == this.profilePic);
 }
 
 class ConnectionContactCardsCompanion
@@ -1378,12 +1410,14 @@ class ConnectionContactCardsCompanion
   final Value<String> did;
   final Value<String> type;
   final Value<String> contactInfoJson;
+  final Value<String?> profilePic;
   const ConnectionContactCardsCompanion({
     this.id = const Value.absent(),
     this.connectionOfferId = const Value.absent(),
     this.did = const Value.absent(),
     this.type = const Value.absent(),
     this.contactInfoJson = const Value.absent(),
+    this.profilePic = const Value.absent(),
   });
   ConnectionContactCardsCompanion.insert({
     this.id = const Value.absent(),
@@ -1391,6 +1425,7 @@ class ConnectionContactCardsCompanion
     required String did,
     required String type,
     this.contactInfoJson = const Value.absent(),
+    this.profilePic = const Value.absent(),
   })  : connectionOfferId = Value(connectionOfferId),
         did = Value(did),
         type = Value(type);
@@ -1400,6 +1435,7 @@ class ConnectionContactCardsCompanion
     Expression<String>? did,
     Expression<String>? type,
     Expression<String>? contactInfoJson,
+    Expression<String>? profilePic,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1407,6 +1443,7 @@ class ConnectionContactCardsCompanion
       if (did != null) 'did': did,
       if (type != null) 'type': type,
       if (contactInfoJson != null) 'contact_info_json': contactInfoJson,
+      if (profilePic != null) 'profile_pic': profilePic,
     });
   }
 
@@ -1415,13 +1452,15 @@ class ConnectionContactCardsCompanion
       Value<String>? connectionOfferId,
       Value<String>? did,
       Value<String>? type,
-      Value<String>? contactInfoJson}) {
+      Value<String>? contactInfoJson,
+      Value<String?>? profilePic}) {
     return ConnectionContactCardsCompanion(
       id: id ?? this.id,
       connectionOfferId: connectionOfferId ?? this.connectionOfferId,
       did: did ?? this.did,
       type: type ?? this.type,
       contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+      profilePic: profilePic ?? this.profilePic,
     );
   }
 
@@ -1443,6 +1482,9 @@ class ConnectionContactCardsCompanion
     if (contactInfoJson.present) {
       map['contact_info_json'] = Variable<String>(contactInfoJson.value);
     }
+    if (profilePic.present) {
+      map['profile_pic'] = Variable<String>(profilePic.value);
+    }
     return map;
   }
 
@@ -1453,7 +1495,8 @@ class ConnectionContactCardsCompanion
           ..write('connectionOfferId: $connectionOfferId, ')
           ..write('did: $did, ')
           ..write('type: $type, ')
-          ..write('contactInfoJson: $contactInfoJson')
+          ..write('contactInfoJson: $contactInfoJson, ')
+          ..write('profilePic: $profilePic')
           ..write(')'))
         .toString();
   }
@@ -2525,6 +2568,7 @@ typedef $$ConnectionContactCardsTableCreateCompanionBuilder
   required String did,
   required String type,
   Value<String> contactInfoJson,
+  Value<String?> profilePic,
 });
 typedef $$ConnectionContactCardsTableUpdateCompanionBuilder
     = ConnectionContactCardsCompanion Function({
@@ -2533,6 +2577,7 @@ typedef $$ConnectionContactCardsTableUpdateCompanionBuilder
   Value<String> did,
   Value<String> type,
   Value<String> contactInfoJson,
+  Value<String?> profilePic,
 });
 
 final class $$ConnectionContactCardsTableReferences extends BaseReferences<
@@ -2582,6 +2627,9 @@ class $$ConnectionContactCardsTableFilterComposer
       column: $table.contactInfoJson,
       builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => ColumnFilters(column));
+
   $$ConnectionOffersTableFilterComposer get connectionOfferId {
     final $$ConnectionOffersTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -2625,6 +2673,9 @@ class $$ConnectionContactCardsTableOrderingComposer
       column: $table.contactInfoJson,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => ColumnOrderings(column));
+
   $$ConnectionOffersTableOrderingComposer get connectionOfferId {
     final $$ConnectionOffersTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -2666,6 +2717,9 @@ class $$ConnectionContactCardsTableAnnotationComposer
 
   GeneratedColumn<String> get contactInfoJson => $composableBuilder(
       column: $table.contactInfoJson, builder: (column) => column);
+
+  GeneratedColumn<String> get profilePic => $composableBuilder(
+      column: $table.profilePic, builder: (column) => column);
 
   $$ConnectionOffersTableAnnotationComposer get connectionOfferId {
     final $$ConnectionOffersTableAnnotationComposer composer = $composerBuilder(
@@ -2720,6 +2774,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             Value<String> did = const Value.absent(),
             Value<String> type = const Value.absent(),
             Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
           }) =>
               ConnectionContactCardsCompanion(
             id: id,
@@ -2727,6 +2782,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             did: did,
             type: type,
             contactInfoJson: contactInfoJson,
+            profilePic: profilePic,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2734,6 +2790,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             required String did,
             required String type,
             Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
           }) =>
               ConnectionContactCardsCompanion.insert(
             id: id,
@@ -2741,6 +2798,7 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
             did: did,
             type: type,
             contactInfoJson: contactInfoJson,
+            profilePic: profilePic,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

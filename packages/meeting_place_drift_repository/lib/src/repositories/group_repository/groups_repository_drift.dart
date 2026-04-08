@@ -64,6 +64,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           identityDid: contactCard.did,
           type: contactCard.type,
           contactInfoJson: Value(encodeContactInfoJson(contactCard)),
+          profilePic: Value(extractProfilePic(contactCard)),
         );
       });
 
@@ -193,6 +194,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           identityDid: contactCard.did,
           type: contactCard.type,
           contactInfoJson: Value(encodeContactInfoJson(contactCard)),
+          profilePic: Value(extractProfilePic(contactCard)),
         );
       });
 
@@ -238,7 +240,10 @@ class _GroupMemberMapper {
     final card = model.ContactCard(
       did: groupMember.identityDid,
       type: groupMember.type,
-      contactInfo: decodeContactInfoJson(groupMember.contactInfoJson),
+      contactInfo: decodeContactInfoJson(
+        groupMember.contactInfoJson,
+        profilePic: groupMember.profilePic,
+      ),
     );
 
     return card;

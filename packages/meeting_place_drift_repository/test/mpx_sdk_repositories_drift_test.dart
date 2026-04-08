@@ -241,6 +241,7 @@ void main() {
             'n': {'given': 'Alice', 'surname': 'Jones'},
             'organization': 'Acme',
             'custom': {'tier': 'gold'},
+            'photo': 'mxc://server/alice-pic',
           },
         ),
         otherPartyContactCard: model.ContactCard(
@@ -249,6 +250,7 @@ void main() {
           contactInfo: {
             'n': {'given': 'Bob', 'surname': 'Smith'},
             'organization': 'Beta',
+            'photo': 'mxc://server/bob-pic',
           },
         ),
         permanentChannelDid: 'did:example:channel-self',
@@ -266,6 +268,14 @@ void main() {
       expect(
         stored.otherPartyContactCard!.contactInfo,
         equals(channel.otherPartyContactCard!.contactInfo),
+      );
+      expect(
+        stored.contactCard!.contactInfo['photo'],
+        equals('mxc://server/alice-pic'),
+      );
+      expect(
+        stored.otherPartyContactCard!.contactInfo['photo'],
+        equals('mxc://server/bob-pic'),
       );
     });
 
@@ -311,6 +321,10 @@ void main() {
       expect(stored, isNotNull);
       expect(stored!.contactCard.contactInfo,
           equals(connectionOffer.contactCard.contactInfo));
+      expect(
+        stored.contactCard.contactInfo['photo'],
+        equals('mxc://server/photo'),
+      );
     });
 
     test('group repository round-trips arbitrary contact info', () async {
@@ -341,6 +355,7 @@ void main() {
               contactInfo: {
                 'organization': 'Acme',
                 'n': {'given': 'Casey'},
+                'photo': 'mxc://server/casey-pic',
               },
             ),
           ),
@@ -355,6 +370,10 @@ void main() {
       expect(
         stored!.members.single.contactCard.contactInfo,
         equals(group.members.single.contactCard.contactInfo),
+      );
+      expect(
+        stored.members.single.contactCard.contactInfo['photo'],
+        equals('mxc://server/casey-pic'),
       );
     });
   });

@@ -216,7 +216,7 @@ class MatrixService {
     return _attachmentWithDownloadedData(attachment, file);
   }
 
-  static const String _didAuthLoginType = 'org.affinidi.login.did_auth';
+  static const String _didAuthLoginType = 'org.matrix.login.jwt';
   static const String _roomEncryptionAlgorithm = 'm.megolm.v1.aes-sha2';
   static final String _logKey = 'MatrixService';
 

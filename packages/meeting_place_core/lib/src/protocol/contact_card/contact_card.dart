@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -42,11 +43,27 @@ class ContactCard {
   }
 
   String get profileHash =>
-      sha256.convert(utf8.encode(jsonEncode(contactInfo))).toString();
+      sha256.convert(utf8.encode(_sortedJson(contactInfo))).toString();
+
+  static String _sortedJson(dynamic value) {
+    if (value is Map) {
+      final sortedKeys = value.keys.toList()
+        ..sort((a, b) => a.toString().compareTo(b.toString()));
+      final entries = sortedKeys
+          .map((k) => '"$k":${_sortedJson(value[k])}')
+          .join(',');
+      return '{$entries}';
+    }
+    if (value is List) {
+      return '[${value.map(_sortedJson).join(',')}]';
+    }
+    return jsonEncode(value);
+  }
 
   bool equals(ContactCard other) {
+    const eq = DeepCollectionEquality();
     return did == other.did &&
         type == other.type &&
-        jsonEncode(contactInfo) == jsonEncode(other.contactInfo);
+        eq.equals(contactInfo, other.contactInfo);
   }
 }

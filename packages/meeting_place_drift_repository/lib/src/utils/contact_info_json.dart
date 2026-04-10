@@ -10,7 +10,8 @@ String? extractProfilePic(model.ContactCard card) {
 }
 
 /// Encodes [card]'s contactInfo as JSON, excluding the 'photo' key so that
-/// the profile picture is persisted separately via [extractProfilePic].
+/// the profile picture is persisted separately in the dedicated [profilePic]
+/// column via [extractProfilePic].
 String encodeContactInfoJson(model.ContactCard card) {
   final info = Map<String, dynamic>.from(card.contactInfo)..remove('photo');
   return jsonEncode(info);

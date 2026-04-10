@@ -23,8 +23,8 @@ class ContactCard {
   ContactCard({
     required this.did,
     required this.type,
-    required this.contactInfo,
-  });
+    required Map<String, dynamic> contactInfo,
+  }) : contactInfo = _sortMap(contactInfo);
 
   final String did;
   final String type;
@@ -43,21 +43,24 @@ class ContactCard {
   }
 
   String get profileHash =>
-      sha256.convert(utf8.encode(_sortedJson(contactInfo))).toString();
+      sha256.convert(utf8.encode(jsonEncode(contactInfo))).toString();
 
-  static String _sortedJson(dynamic value) {
-    if (value is Map) {
-      final sortedKeys = value.keys.toList()
-        ..sort((a, b) => a.toString().compareTo(b.toString()));
-      final entries = sortedKeys
-          .map((k) => '"$k":${_sortedJson(value[k])}')
-          .join(',');
-      return '{$entries}';
+  static Map<String, dynamic> _sortMap(Map<String, dynamic> map) {
+    final sorted = <String, dynamic>{};
+    final keys = map.keys.toList()..sort();
+    for (final key in keys) {
+      final value = map[key];
+      if (value is Map<String, dynamic>) {
+        sorted[key] = _sortMap(value);
+      } else if (value is List) {
+        sorted[key] = value
+            .map((e) => e is Map<String, dynamic> ? _sortMap(e) : e)
+            .toList();
+      } else {
+        sorted[key] = value;
+      }
     }
-    if (value is List) {
-      return '[${value.map(_sortedJson).join(',')}]';
-    }
-    return jsonEncode(value);
+    return sorted;
   }
 
   bool equals(ContactCard other) {

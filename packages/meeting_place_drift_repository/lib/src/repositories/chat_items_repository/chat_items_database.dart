@@ -70,8 +70,15 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             // SQLite does not support changing column types in-place.
             // Recreate chat_items with event_type and concierge_type as TEXT,
             // converting the old integer values to their string equivalents.
+            //
+            // Drop any leftover chat_items_new first so the migration is
+            // idempotent: if a previous upgrade attempt was interrupted and
+            // left a partial table behind, we start clean on retry.
+            await customStatement(
+              'DROP TABLE IF EXISTS chat_items_temp',
+            );
             await customStatement('''
-              CREATE TABLE IF NOT EXISTS chat_items_new (
+              CREATE TABLE chat_items_temp (
                 chat_id TEXT NOT NULL,
                 message_id TEXT NOT NULL,
                 value TEXT,
@@ -86,8 +93,16 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
                 PRIMARY KEY (message_id)
               )
             ''');
+            // Explicit destination column list keeps the INSERT correct
+            // regardless of column order changes in future schema versions.
+            // Unknown legacy integer values are preserved as 'unknown:<n>'
+            // rather than NULL so that corrupted rows remain diagnosable and
+            // do not cause null-assert failures in the mapper.
             await customStatement('''
-              INSERT INTO chat_items_new
+              INSERT INTO chat_items_temp (
+                chat_id, message_id, value, is_from_me, date_created,
+                status, "type", event_type, concierge_type, data, sender_did
+              )
               SELECT
                 chat_id, message_id, value, is_from_me, date_created,
                 status, "type",
@@ -96,19 +111,21 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
                   WHEN 2 THEN 'groupMemberLeftGroup'
                   WHEN 3 THEN 'awaitingGroupMemberToJoin'
                   WHEN 4 THEN 'groupDeleted'
-                  ELSE NULL
+                  WHEN NULL THEN NULL
+                  ELSE 'unknown:' || CAST(event_type AS TEXT)
                 END,
                 CASE concierge_type
                   WHEN 1 THEN 'permissionToUpdateProfile'
                   WHEN 2 THEN 'permissionToJoinGroup'
-                  ELSE NULL
+                  WHEN NULL THEN NULL
+                  ELSE 'unknown:' || CAST(concierge_type AS TEXT)
                 END,
                 data, sender_did
               FROM chat_items
             ''');
             await customStatement('DROP TABLE chat_items');
             await customStatement(
-              'ALTER TABLE chat_items_new RENAME TO chat_items',
+              'ALTER TABLE chat_items_temp RENAME TO chat_items',
             );
           }
         },

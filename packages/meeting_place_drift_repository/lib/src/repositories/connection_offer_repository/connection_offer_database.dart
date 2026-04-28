@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -70,9 +71,69 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
         },
         onUpgrade: (migrator, from, to) async {
           if (from < 2) {
-            await migrator.addColumn(
-              connectionContactCards,
-              connectionContactCards.profilePic,
+            final cols = await customSelect(
+              'PRAGMA table_info(connection_contact_cards)',
+            ).get();
+            final colNames = cols.map((r) => r.data['name'] as String).toSet();
+
+            if (colNames.contains('first_name')) {
+              if (!colNames.contains('contact_info_json')) {
+                await migrator.addColumn(
+                  connectionContactCards,
+                  connectionContactCards.contactInfoJson,
+                );
+                colNames.add('contact_info_json');
+              }
+
+              final rows = await customSelect(
+                'SELECT id, first_name, last_name, email, mobile,'
+                ' meetingplace_identity_card_color'
+                ' FROM connection_contact_cards',
+              ).get();
+
+              for (final row in rows) {
+                final contactInfo = jsonEncode(<String, dynamic>{
+                  'n': {
+                    'given': row.data['first_name'] as String? ?? '',
+                    'surname': row.data['last_name'] as String? ?? '',
+                  },
+                  'email': {
+                    'type': {'work': row.data['email'] as String? ?? ''},
+                  },
+                  'tel': {
+                    'type': {'cell': row.data['mobile'] as String? ?? ''},
+                  },
+                  'x-meetingplace-identity-card-color':
+                      row.data['meetingplace_identity_card_color'] as String? ??
+                          '',
+                });
+
+                await (update(connectionContactCards)
+                      ..where((t) => t.id.equals(row.data['id'] as int)))
+                    .write(ConnectionContactCardsCompanion(
+                  contactInfoJson: Value(contactInfo),
+                ));
+              }
+            }
+
+            await migrator.alterTable(
+              // ignore: experimental_member_use
+              TableMigration(
+                connectionContactCards,
+                columnTransformer: {
+                  connectionContactCards.id: connectionContactCards.id,
+                  connectionContactCards.connectionOfferId:
+                      connectionContactCards.connectionOfferId,
+                  connectionContactCards.did: connectionContactCards.did,
+                  connectionContactCards.type: connectionContactCards.type,
+                  if (colNames.contains('contact_info_json'))
+                    connectionContactCards.contactInfoJson:
+                        connectionContactCards.contactInfoJson,
+                  if (colNames.contains('profile_pic'))
+                    connectionContactCards.profilePic:
+                        connectionContactCards.profilePic,
+                },
+              ),
             );
           }
         },

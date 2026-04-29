@@ -7,12 +7,49 @@ part 'concierge_message.g.dart';
 ///
 /// Concierge messages are **system-level prompts** that often
 /// require user confirmation or administrative approval.
-enum ConciergeMessageType {
+///
+/// The SDK provides built-in types as named constants, but consumers
+/// can define their own by constructing instances:
+/// ```dart
+/// const myType = ConciergeMessageType('myCustomType');
+/// ```
+class ConciergeMessageType {
+  /// Creates a [ConciergeMessageType] with the given string [value].
+  const ConciergeMessageType(this.value);
+
+  /// The string identifier for this type.
+  final String value;
+
   /// Requests permission from the user to update their profile.
-  permissionToUpdateProfile,
+  static const permissionToUpdateProfile = ConciergeMessageType(
+    'permissionToUpdateProfile',
+  );
 
   /// Requests permission to join a group chat.
-  permissionToJoinGroup,
+  static const permissionToJoinGroup = ConciergeMessageType(
+    'permissionToJoinGroup',
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is ConciergeMessageType && other.value == value;
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => value;
+}
+
+class _ConciergeMessageTypeConverter
+    extends JsonConverter<ConciergeMessageType, String> {
+  const _ConciergeMessageTypeConverter();
+
+  @override
+  ConciergeMessageType fromJson(String json) => ConciergeMessageType(json);
+
+  @override
+  String toJson(ConciergeMessageType object) => object.value;
 }
 
 /// Represents the approval state of a concierge request.
@@ -77,6 +114,7 @@ class ConciergeMessage extends ChatItem {
   final Map<String, dynamic> data;
 
   /// Type of concierge message
+  @_ConciergeMessageTypeConverter()
   final ConciergeMessageType conciergeType;
 
   /// Serializes the [ConciergeMessage] into a JSON object.

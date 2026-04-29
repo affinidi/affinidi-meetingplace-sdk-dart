@@ -38,7 +38,7 @@ class DidWebBindingService {
   }) async {
     // Resolve DID string and key material from the manager.
     final did = (await ownerDidManager.getDidDocument()).id;
-    final opaqueId = did.split(':').last;
+    final segment = did.split(':').last;
     final vmId = ownerDidManager.authentication.first;
     final walletKeyId = (await ownerDidManager.getWalletKeyId(vmId))!;
     final pk = await _wallet.getPublicKey(walletKeyId);
@@ -73,7 +73,7 @@ class DidWebBindingService {
     // Step 1 – request challenge nonce
     final challengeResp = await dio.post<Map<String, dynamic>>(
       '/_matrix/meetingplace/v1/did/bind/challenge',
-      data: {'did': did, 'opaqueId': opaqueId, 'matrixId': matrixUserId},
+      data: {'did': did, 'opaqueId': segment, 'matrixId': matrixUserId},
     );
     final nonce = challengeResp.data!['nonce'] as String;
     final aud = challengeResp.data!['aud'] as String;
@@ -100,7 +100,7 @@ class DidWebBindingService {
       '/_matrix/meetingplace/v1/did/bind',
       data: {
         'did': did,
-        'opaqueId': opaqueId,
+        'opaqueId': segment,
         'matrixId': matrixUserId,
         'didDocument': didDocument,
         'didProof': {

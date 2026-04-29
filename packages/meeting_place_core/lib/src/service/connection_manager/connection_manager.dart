@@ -1,5 +1,6 @@
 import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
 import '../../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../utils/string.dart';
@@ -69,8 +70,8 @@ class ConnectionManager {
   }
 
   /// Generates a new HD wallet key and wraps it in a [DidWebManager] whose
-  /// `did:web` path encodes `base32(sha256(pubKey))` under
-  /// `/connections/<opaqueId>` using the canonical host-only domain form.
+  /// `did:web` path uses a client-generated UUID segment under `/user/<segment>`
+  /// using the canonical host-only domain form.
   ///
   /// The keyId is saved under `manager.did` (the `did:web`) in the repository.
   Future<DidManager> generateDidWeb(Wallet wallet, Uri homeserver) async {
@@ -85,10 +86,9 @@ class ConnectionManager {
       final keyId = _buildKeyId(currentIndex);
 
       await wallet.generateKey(keyId: keyId);
-      final pk = await wallet.getPublicKey(keyId);
-      final opaqueId = opaqueIdFromPublicKey(pk);
+      final segment = const Uuid().v4();
 
-      final domain = Uri(host: homeserver.host, path: '/connections/$opaqueId');
+      final domain = Uri(host: homeserver.host, path: '/user/$segment');
 
       final manager = DidWebManager(
         store: InMemoryDidStore(),

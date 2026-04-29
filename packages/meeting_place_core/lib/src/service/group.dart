@@ -118,8 +118,8 @@ class GroupService {
       acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
-    // Create a DidWebManager for the group owner. The manager derives
-    // opaqueId = base32(sha256(pubKey)) and sets did:web:<hs>:connections:<id>.
+    // Create a DidWebManager for the group owner. The manager uses a
+    // client-generated UUID segment and sets did:web:<hs>:user:<segment>.
     final homeserver = await _matrixService.peekHomeserver();
     final ownerDid = await _connectionManager.generateDidWeb(
       _wallet,

@@ -53,7 +53,7 @@ class MatrixRegistrationCredentialHandler
         Map<String, dynamic>? headers,
       }) {
         return _apiClient.dio.post<Map<String, dynamic>>(
-          '/api/did/matrix-registration-credential',
+          '/v1/matrix/token',
           data: {'homeserver': command.homeserver},
           options: Options(
             // Trigger RefreshAuthCredentialsInterceptor to attach/refresh token.

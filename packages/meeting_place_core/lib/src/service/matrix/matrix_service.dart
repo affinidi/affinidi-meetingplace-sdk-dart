@@ -260,8 +260,8 @@ class MatrixService {
 
   /// Returns the Matrix userId for a DID on the currently configured homeserver.
   ///
-  /// Meeting Place uses `md5(did)` as the Matrix localpart. The server name is
-  /// derived from the currently logged-in user's Matrix ID.
+  /// Meeting Place derives Matrix localpart from `sha256("$did|$serverName")`.
+  /// The server name is derived from the currently logged-in user's Matrix ID.
   Future<String> matrixUserIdForDid({
     required String did,
     required String deviceId,
@@ -279,7 +279,10 @@ class MatrixService {
       throw StateError('Invalid Matrix userId format: $selfUserId');
     }
     final serverName = selfUserId.substring(colonIndex + 1);
-    final localpart = md5.convert(utf8.encode(targetDid)).toString();
+    final localpart = _deriveMatrixLocalpart(
+      did: targetDid,
+      serverName: serverName,
+    );
     return '@$localpart:$serverName';
   }
 
@@ -528,6 +531,14 @@ class MatrixService {
 
   String _toMatrixDeviceId(String deviceToken) =>
       md5.convert(utf8.encode(deviceToken)).toString();
+
+  String _deriveMatrixLocalpart({
+    required String did,
+    required String serverName,
+  }) {
+    final input = '$did|$serverName';
+    return sha256.convert(utf8.encode(input)).toString();
+  }
 
   Attachment _attachmentWithDownloadedData(
     Attachment attachment,
@@ -968,7 +979,14 @@ class MatrixService {
     required matrix.Client client,
     required String targetDid,
   }) async {
-    final localpart = md5.convert(utf8.encode(targetDid)).toString();
+    final homeserver = client.homeserver;
+    if (homeserver == null || homeserver.host.isEmpty) {
+      throw StateError('Matrix homeserver is not configured on the client.');
+    }
+    final localpart = _deriveMatrixLocalpart(
+      did: targetDid,
+      serverName: homeserver.host,
+    );
     final prefix = '@$localpart:';
 
     String? findIn(Iterable<matrix.User> users) {
@@ -1057,7 +1075,18 @@ class MatrixService {
 
   Future<String> login({required String did, required String deviceId}) async {
     final client = await _clientFor(did);
-    final hashedUsername = md5.convert(utf8.encode(did)).toString();
+    final homeserver = client.homeserver;
+    _logger?.info(
+      'Attempting Matrix login for DID ${did.topAndTail()} with homeserver: $homeserver',
+      name: _logKey,
+    );
+    if (homeserver == null || homeserver.host.isEmpty) {
+      throw StateError('Matrix homeserver is not configured on the client.');
+    }
+    final derivedLocalpart = _deriveMatrixLocalpart(
+      did: did,
+      serverName: homeserver.host,
+    );
     final matrixDeviceId = _toMatrixDeviceId(deviceId);
 
     // `_clientFor` already called `client.init()` which restored the full
@@ -1109,7 +1138,7 @@ class MatrixService {
 
       final response = await client.login(
         _didAuthLoginType,
-        identifier: matrix.AuthenticationUserIdentifier(user: hashedUsername),
+        identifier: matrix.AuthenticationUserIdentifier(user: derivedLocalpart),
         token: loginToken,
         deviceId: matrixDeviceId,
       );
@@ -1149,9 +1178,9 @@ class MatrixService {
         name: _logKey,
       );
       rethrow;
-    } catch (e) {
+    } catch (e, stackTrace) {
       _logger?.error(
-        'Matrix login failed for DID ${did.topAndTail()} with error: $e',
+        'Matrix login failed for DID ${did.topAndTail()} with error: $e\nHomeserver: $homeserver\nStack trace: $stackTrace',
         name: _logKey,
       );
       rethrow;
@@ -1163,7 +1192,14 @@ class MatrixService {
     required String deviceId,
   }) async {
     final client = await _clientFor(did);
-    final expectedLocalpart = md5.convert(utf8.encode(did)).toString();
+    final homeserver = client.homeserver;
+    if (homeserver == null || homeserver.host.isEmpty) {
+      throw StateError('Matrix homeserver is not configured on the client.');
+    }
+    final expectedLocalpart = _deriveMatrixLocalpart(
+      did: did,
+      serverName: homeserver.host,
+    );
     final expectedMatrixDeviceId = _toMatrixDeviceId(deviceId);
 
     final accessToken = client.accessToken;

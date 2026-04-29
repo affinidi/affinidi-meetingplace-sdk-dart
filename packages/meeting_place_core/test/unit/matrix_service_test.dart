@@ -136,7 +136,9 @@ void main() {
         final expectedMatrixDeviceId = md5
             .convert(utf8.encode(deviceToken))
             .toString();
-        final expectedHashedUsername = md5.convert(utf8.encode(did)).toString();
+        final expectedHashedUsername = sha256
+            .convert(utf8.encode('$did|localhost'))
+            .toString();
 
         matrix.AuthenticationIdentifier? capturedIdentifier;
 
@@ -180,7 +182,9 @@ void main() {
     test('createRoomForGroup creates an encrypted group chat', () async {
       const did = 'did:test:alice';
       const deviceToken = 'push-device-token';
-      final expectedLocalpart = md5.convert(utf8.encode(did)).toString();
+      final expectedLocalpart = sha256
+          .convert(utf8.encode('$did|localhost'))
+          .toString();
       final expectedMatrixDeviceId = md5
           .convert(utf8.encode(deviceToken))
           .toString();
@@ -247,7 +251,9 @@ void main() {
       () async {
         const did = 'did:test:alice';
         const deviceToken = 'push-device-token';
-        final expectedLocalpart = md5.convert(utf8.encode(did)).toString();
+        final expectedLocalpart = sha256
+            .convert(utf8.encode('$did|localhost'))
+            .toString();
         final expectedMatrixDeviceId = md5
             .convert(utf8.encode(deviceToken))
             .toString();
@@ -1085,8 +1091,8 @@ void main() {
         final expectedMatrixDeviceId = md5
             .convert(utf8.encode(deviceToken))
             .toString();
-        final expectedLocalpart = md5
-            .convert(utf8.encode('did:test:alice'))
+        final expectedLocalpart = sha256
+            .convert(utf8.encode('did:test:alice|localhost'))
             .toString();
 
         when(() => matrixClient.accessToken).thenReturn('token');

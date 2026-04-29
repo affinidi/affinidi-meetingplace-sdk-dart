@@ -538,41 +538,20 @@ class $GroupMembersTable extends GroupMembers
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
       'type', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _firstNameMeta =
-      const VerificationMeta('firstName');
+  static const VerificationMeta _contactInfoJsonMeta =
+      const VerificationMeta('contactInfoJson');
   @override
-  late final GeneratedColumn<String> firstName = GeneratedColumn<String>(
-      'first_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _lastNameMeta =
-      const VerificationMeta('lastName');
-  @override
-  late final GeneratedColumn<String> lastName = GeneratedColumn<String>(
-      'last_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _emailMeta = const VerificationMeta('email');
-  @override
-  late final GeneratedColumn<String> email = GeneratedColumn<String>(
-      'email', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _mobileMeta = const VerificationMeta('mobile');
-  @override
-  late final GeneratedColumn<String> mobile = GeneratedColumn<String>(
-      'mobile', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> contactInfoJson = GeneratedColumn<String>(
+      'contact_info_json', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('{}'));
   static const VerificationMeta _profilePicMeta =
       const VerificationMeta('profilePic');
   @override
   late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
-      'profile_pic', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _meetingplaceIdentityCardColorMeta =
-      const VerificationMeta('meetingplaceIdentityCardColor');
-  @override
-  late final GeneratedColumn<String> meetingplaceIdentityCardColor =
-      GeneratedColumn<String>(
-          'meetingplace_identity_card_color', aliasedName, false,
-          type: DriftSqlType.string, requiredDuringInsert: true);
+      'profile_pic', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         groupId,
@@ -588,12 +567,8 @@ class $GroupMembersTable extends GroupMembers
         status,
         identityDid,
         type,
-        firstName,
-        lastName,
-        email,
-        mobile,
-        profilePic,
-        meetingplaceIdentityCardColor
+        contactInfoJson,
+        profilePic
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -667,46 +642,17 @@ class $GroupMembersTable extends GroupMembers
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
-    if (data.containsKey('first_name')) {
-      context.handle(_firstNameMeta,
-          firstName.isAcceptableOrUnknown(data['first_name']!, _firstNameMeta));
-    } else if (isInserting) {
-      context.missing(_firstNameMeta);
-    }
-    if (data.containsKey('last_name')) {
-      context.handle(_lastNameMeta,
-          lastName.isAcceptableOrUnknown(data['last_name']!, _lastNameMeta));
-    } else if (isInserting) {
-      context.missing(_lastNameMeta);
-    }
-    if (data.containsKey('email')) {
+    if (data.containsKey('contact_info_json')) {
       context.handle(
-          _emailMeta, email.isAcceptableOrUnknown(data['email']!, _emailMeta));
-    } else if (isInserting) {
-      context.missing(_emailMeta);
-    }
-    if (data.containsKey('mobile')) {
-      context.handle(_mobileMeta,
-          mobile.isAcceptableOrUnknown(data['mobile']!, _mobileMeta));
-    } else if (isInserting) {
-      context.missing(_mobileMeta);
+          _contactInfoJsonMeta,
+          contactInfoJson.isAcceptableOrUnknown(
+              data['contact_info_json']!, _contactInfoJsonMeta));
     }
     if (data.containsKey('profile_pic')) {
       context.handle(
           _profilePicMeta,
           profilePic.isAcceptableOrUnknown(
               data['profile_pic']!, _profilePicMeta));
-    } else if (isInserting) {
-      context.missing(_profilePicMeta);
-    }
-    if (data.containsKey('meetingplace_identity_card_color')) {
-      context.handle(
-          _meetingplaceIdentityCardColorMeta,
-          meetingplaceIdentityCardColor.isAcceptableOrUnknown(
-              data['meetingplace_identity_card_color']!,
-              _meetingplaceIdentityCardColorMeta));
-    } else if (isInserting) {
-      context.missing(_meetingplaceIdentityCardColorMeta);
     }
     return context;
   }
@@ -745,19 +691,10 @@ class $GroupMembersTable extends GroupMembers
           .read(DriftSqlType.string, data['${effectivePrefix}identity_did'])!,
       type: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
-      firstName: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}first_name'])!,
-      lastName: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}last_name'])!,
-      email: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}email'])!,
-      mobile: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}mobile'])!,
+      contactInfoJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}contact_info_json'])!,
       profilePic: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic'])!,
-      meetingplaceIdentityCardColor: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}meetingplace_identity_card_color'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic']),
     );
   }
 
@@ -812,23 +749,11 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   /// Type of the contact.
   final String type;
 
-  /// The first name of the group member.
-  final String firstName;
+  /// Flexible JSON payload for contact information.
+  final String contactInfoJson;
 
-  /// The last name of the group member.
-  final String lastName;
-
-  /// The email of the group member.
-  final String email;
-
-  /// The mobile number of the group member.
-  final String mobile;
-
-  /// The profile picture of the group member.
-  final String profilePic;
-
-  /// The MeetingPlace identity card color of the group member.
-  final String meetingplaceIdentityCardColor;
+  /// Profile picture of the contact.
+  final String? profilePic;
   const GroupMember(
       {required this.groupId,
       required this.memberDid,
@@ -843,12 +768,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       required this.status,
       required this.identityDid,
       required this.type,
-      required this.firstName,
-      required this.lastName,
-      required this.email,
-      required this.mobile,
-      required this.profilePic,
-      required this.meetingplaceIdentityCardColor});
+      required this.contactInfoJson,
+      this.profilePic});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -881,13 +802,10 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     }
     map['identity_did'] = Variable<String>(identityDid);
     map['type'] = Variable<String>(type);
-    map['first_name'] = Variable<String>(firstName);
-    map['last_name'] = Variable<String>(lastName);
-    map['email'] = Variable<String>(email);
-    map['mobile'] = Variable<String>(mobile);
-    map['profile_pic'] = Variable<String>(profilePic);
-    map['meetingplace_identity_card_color'] =
-        Variable<String>(meetingplaceIdentityCardColor);
+    map['contact_info_json'] = Variable<String>(contactInfoJson);
+    if (!nullToAbsent || profilePic != null) {
+      map['profile_pic'] = Variable<String>(profilePic);
+    }
     return map;
   }
 
@@ -916,12 +834,10 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       status: Value(status),
       identityDid: Value(identityDid),
       type: Value(type),
-      firstName: Value(firstName),
-      lastName: Value(lastName),
-      email: Value(email),
-      mobile: Value(mobile),
-      profilePic: Value(profilePic),
-      meetingplaceIdentityCardColor: Value(meetingplaceIdentityCardColor),
+      contactInfoJson: Value(contactInfoJson),
+      profilePic: profilePic == null && nullToAbsent
+          ? const Value.absent()
+          : Value(profilePic),
     );
   }
 
@@ -943,13 +859,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       status: serializer.fromJson<GroupMemberStatus>(json['status']),
       identityDid: serializer.fromJson<String>(json['identityDid']),
       type: serializer.fromJson<String>(json['type']),
-      firstName: serializer.fromJson<String>(json['firstName']),
-      lastName: serializer.fromJson<String>(json['lastName']),
-      email: serializer.fromJson<String>(json['email']),
-      mobile: serializer.fromJson<String>(json['mobile']),
-      profilePic: serializer.fromJson<String>(json['profilePic']),
-      meetingplaceIdentityCardColor:
-          serializer.fromJson<String>(json['meetingplaceIdentityCardColor']),
+      contactInfoJson: serializer.fromJson<String>(json['contactInfoJson']),
+      profilePic: serializer.fromJson<String?>(json['profilePic']),
     );
   }
   @override
@@ -969,13 +880,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       'status': serializer.toJson<GroupMemberStatus>(status),
       'identityDid': serializer.toJson<String>(identityDid),
       'type': serializer.toJson<String>(type),
-      'firstName': serializer.toJson<String>(firstName),
-      'lastName': serializer.toJson<String>(lastName),
-      'email': serializer.toJson<String>(email),
-      'mobile': serializer.toJson<String>(mobile),
-      'profilePic': serializer.toJson<String>(profilePic),
-      'meetingplaceIdentityCardColor':
-          serializer.toJson<String>(meetingplaceIdentityCardColor),
+      'contactInfoJson': serializer.toJson<String>(contactInfoJson),
+      'profilePic': serializer.toJson<String?>(profilePic),
     };
   }
 
@@ -993,12 +899,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           GroupMemberStatus? status,
           String? identityDid,
           String? type,
-          String? firstName,
-          String? lastName,
-          String? email,
-          String? mobile,
-          String? profilePic,
-          String? meetingplaceIdentityCardColor}) =>
+          String? contactInfoJson,
+          Value<String?> profilePic = const Value.absent()}) =>
       GroupMember(
         groupId: groupId ?? this.groupId,
         memberDid: memberDid ?? this.memberDid,
@@ -1018,13 +920,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
         status: status ?? this.status,
         identityDid: identityDid ?? this.identityDid,
         type: type ?? this.type,
-        firstName: firstName ?? this.firstName,
-        lastName: lastName ?? this.lastName,
-        email: email ?? this.email,
-        mobile: mobile ?? this.mobile,
-        profilePic: profilePic ?? this.profilePic,
-        meetingplaceIdentityCardColor:
-            meetingplaceIdentityCardColor ?? this.meetingplaceIdentityCardColor,
+        contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+        profilePic: profilePic.present ? profilePic.value : this.profilePic,
       );
   GroupMember copyWithCompanion(GroupMembersCompanion data) {
     return GroupMember(
@@ -1050,15 +947,11 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       identityDid:
           data.identityDid.present ? data.identityDid.value : this.identityDid,
       type: data.type.present ? data.type.value : this.type,
-      firstName: data.firstName.present ? data.firstName.value : this.firstName,
-      lastName: data.lastName.present ? data.lastName.value : this.lastName,
-      email: data.email.present ? data.email.value : this.email,
-      mobile: data.mobile.present ? data.mobile.value : this.mobile,
+      contactInfoJson: data.contactInfoJson.present
+          ? data.contactInfoJson.value
+          : this.contactInfoJson,
       profilePic:
           data.profilePic.present ? data.profilePic.value : this.profilePic,
-      meetingplaceIdentityCardColor: data.meetingplaceIdentityCardColor.present
-          ? data.meetingplaceIdentityCardColor.value
-          : this.meetingplaceIdentityCardColor,
     );
   }
 
@@ -1078,13 +971,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('status: $status, ')
           ..write('identityDid: $identityDid, ')
           ..write('type: $type, ')
-          ..write('firstName: $firstName, ')
-          ..write('lastName: $lastName, ')
-          ..write('email: $email, ')
-          ..write('mobile: $mobile, ')
-          ..write('profilePic: $profilePic, ')
-          ..write(
-              'meetingplaceIdentityCardColor: $meetingplaceIdentityCardColor')
+          ..write('contactInfoJson: $contactInfoJson, ')
+          ..write('profilePic: $profilePic')
           ..write(')'))
         .toString();
   }
@@ -1104,12 +992,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       status,
       identityDid,
       type,
-      firstName,
-      lastName,
-      email,
-      mobile,
-      profilePic,
-      meetingplaceIdentityCardColor);
+      contactInfoJson,
+      profilePic);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1127,13 +1011,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.status == this.status &&
           other.identityDid == this.identityDid &&
           other.type == this.type &&
-          other.firstName == this.firstName &&
-          other.lastName == this.lastName &&
-          other.email == this.email &&
-          other.mobile == this.mobile &&
-          other.profilePic == this.profilePic &&
-          other.meetingplaceIdentityCardColor ==
-              this.meetingplaceIdentityCardColor);
+          other.contactInfoJson == this.contactInfoJson &&
+          other.profilePic == this.profilePic);
 }
 
 class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
@@ -1150,12 +1029,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<GroupMemberStatus> status;
   final Value<String> identityDid;
   final Value<String> type;
-  final Value<String> firstName;
-  final Value<String> lastName;
-  final Value<String> email;
-  final Value<String> mobile;
-  final Value<String> profilePic;
-  final Value<String> meetingplaceIdentityCardColor;
+  final Value<String> contactInfoJson;
+  final Value<String?> profilePic;
   final Value<int> rowid;
   const GroupMembersCompanion({
     this.groupId = const Value.absent(),
@@ -1171,12 +1046,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.status = const Value.absent(),
     this.identityDid = const Value.absent(),
     this.type = const Value.absent(),
-    this.firstName = const Value.absent(),
-    this.lastName = const Value.absent(),
-    this.email = const Value.absent(),
-    this.mobile = const Value.absent(),
+    this.contactInfoJson = const Value.absent(),
     this.profilePic = const Value.absent(),
-    this.meetingplaceIdentityCardColor = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   GroupMembersCompanion.insert({
@@ -1193,12 +1064,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     required GroupMemberStatus status,
     required String identityDid,
     required String type,
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String mobile,
-    required String profilePic,
-    required String meetingplaceIdentityCardColor,
+    this.contactInfoJson = const Value.absent(),
+    this.profilePic = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : groupId = Value(groupId),
         memberDid = Value(memberDid),
@@ -1206,13 +1073,7 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
         membershipType = Value(membershipType),
         status = Value(status),
         identityDid = Value(identityDid),
-        type = Value(type),
-        firstName = Value(firstName),
-        lastName = Value(lastName),
-        email = Value(email),
-        mobile = Value(mobile),
-        profilePic = Value(profilePic),
-        meetingplaceIdentityCardColor = Value(meetingplaceIdentityCardColor);
+        type = Value(type);
   static Insertable<GroupMember> custom({
     Expression<String>? groupId,
     Expression<String>? memberDid,
@@ -1227,12 +1088,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<int>? status,
     Expression<String>? identityDid,
     Expression<String>? type,
-    Expression<String>? firstName,
-    Expression<String>? lastName,
-    Expression<String>? email,
-    Expression<String>? mobile,
+    Expression<String>? contactInfoJson,
     Expression<String>? profilePic,
-    Expression<String>? meetingplaceIdentityCardColor,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1249,13 +1106,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (status != null) 'status': status,
       if (identityDid != null) 'identity_did': identityDid,
       if (type != null) 'type': type,
-      if (firstName != null) 'first_name': firstName,
-      if (lastName != null) 'last_name': lastName,
-      if (email != null) 'email': email,
-      if (mobile != null) 'mobile': mobile,
+      if (contactInfoJson != null) 'contact_info_json': contactInfoJson,
       if (profilePic != null) 'profile_pic': profilePic,
-      if (meetingplaceIdentityCardColor != null)
-        'meetingplace_identity_card_color': meetingplaceIdentityCardColor,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1274,12 +1126,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       Value<GroupMemberStatus>? status,
       Value<String>? identityDid,
       Value<String>? type,
-      Value<String>? firstName,
-      Value<String>? lastName,
-      Value<String>? email,
-      Value<String>? mobile,
-      Value<String>? profilePic,
-      Value<String>? meetingplaceIdentityCardColor,
+      Value<String>? contactInfoJson,
+      Value<String?>? profilePic,
       Value<int>? rowid}) {
     return GroupMembersCompanion(
       groupId: groupId ?? this.groupId,
@@ -1295,13 +1143,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       status: status ?? this.status,
       identityDid: identityDid ?? this.identityDid,
       type: type ?? this.type,
-      firstName: firstName ?? this.firstName,
-      lastName: lastName ?? this.lastName,
-      email: email ?? this.email,
-      mobile: mobile ?? this.mobile,
+      contactInfoJson: contactInfoJson ?? this.contactInfoJson,
       profilePic: profilePic ?? this.profilePic,
-      meetingplaceIdentityCardColor:
-          meetingplaceIdentityCardColor ?? this.meetingplaceIdentityCardColor,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1351,24 +1194,11 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     if (type.present) {
       map['type'] = Variable<String>(type.value);
     }
-    if (firstName.present) {
-      map['first_name'] = Variable<String>(firstName.value);
-    }
-    if (lastName.present) {
-      map['last_name'] = Variable<String>(lastName.value);
-    }
-    if (email.present) {
-      map['email'] = Variable<String>(email.value);
-    }
-    if (mobile.present) {
-      map['mobile'] = Variable<String>(mobile.value);
+    if (contactInfoJson.present) {
+      map['contact_info_json'] = Variable<String>(contactInfoJson.value);
     }
     if (profilePic.present) {
       map['profile_pic'] = Variable<String>(profilePic.value);
-    }
-    if (meetingplaceIdentityCardColor.present) {
-      map['meetingplace_identity_card_color'] =
-          Variable<String>(meetingplaceIdentityCardColor.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1392,13 +1222,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('status: $status, ')
           ..write('identityDid: $identityDid, ')
           ..write('type: $type, ')
-          ..write('firstName: $firstName, ')
-          ..write('lastName: $lastName, ')
-          ..write('email: $email, ')
-          ..write('mobile: $mobile, ')
+          ..write('contactInfoJson: $contactInfoJson, ')
           ..write('profilePic: $profilePic, ')
-          ..write(
-              'meetingplaceIdentityCardColor: $meetingplaceIdentityCardColor, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1755,12 +1580,8 @@ typedef $$GroupMembersTableCreateCompanionBuilder = GroupMembersCompanion
   required GroupMemberStatus status,
   required String identityDid,
   required String type,
-  required String firstName,
-  required String lastName,
-  required String email,
-  required String mobile,
-  required String profilePic,
-  required String meetingplaceIdentityCardColor,
+  Value<String> contactInfoJson,
+  Value<String?> profilePic,
   Value<int> rowid,
 });
 typedef $$GroupMembersTableUpdateCompanionBuilder = GroupMembersCompanion
@@ -1778,12 +1599,8 @@ typedef $$GroupMembersTableUpdateCompanionBuilder = GroupMembersCompanion
   Value<GroupMemberStatus> status,
   Value<String> identityDid,
   Value<String> type,
-  Value<String> firstName,
-  Value<String> lastName,
-  Value<String> email,
-  Value<String> mobile,
-  Value<String> profilePic,
-  Value<String> meetingplaceIdentityCardColor,
+  Value<String> contactInfoJson,
+  Value<String?> profilePic,
   Value<int> rowid,
 });
 
@@ -1859,24 +1676,12 @@ class $$GroupMembersTableFilterComposer
   ColumnFilters<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get firstName => $composableBuilder(
-      column: $table.firstName, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get lastName => $composableBuilder(
-      column: $table.lastName, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get email => $composableBuilder(
-      column: $table.email, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get mobile => $composableBuilder(
-      column: $table.mobile, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get contactInfoJson => $composableBuilder(
+      column: $table.contactInfoJson,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get profilePic => $composableBuilder(
       column: $table.profilePic, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get meetingplaceIdentityCardColor => $composableBuilder(
-      column: $table.meetingplaceIdentityCardColor,
-      builder: (column) => ColumnFilters(column));
 
   $$MeetingPlaceGroupsTableFilterComposer get groupId {
     final $$MeetingPlaceGroupsTableFilterComposer composer = $composerBuilder(
@@ -1948,25 +1753,12 @@ class $$GroupMembersTableOrderingComposer
   ColumnOrderings<String> get type => $composableBuilder(
       column: $table.type, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get firstName => $composableBuilder(
-      column: $table.firstName, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get lastName => $composableBuilder(
-      column: $table.lastName, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get email => $composableBuilder(
-      column: $table.email, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get mobile => $composableBuilder(
-      column: $table.mobile, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get contactInfoJson => $composableBuilder(
+      column: $table.contactInfoJson,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get profilePic => $composableBuilder(
       column: $table.profilePic, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get meetingplaceIdentityCardColor =>
-      $composableBuilder(
-          column: $table.meetingplaceIdentityCardColor,
-          builder: (column) => ColumnOrderings(column));
 
   $$MeetingPlaceGroupsTableOrderingComposer get groupId {
     final $$MeetingPlaceGroupsTableOrderingComposer composer = $composerBuilder(
@@ -2035,25 +1827,11 @@ class $$GroupMembersTableAnnotationComposer
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumn<String> get firstName =>
-      $composableBuilder(column: $table.firstName, builder: (column) => column);
-
-  GeneratedColumn<String> get lastName =>
-      $composableBuilder(column: $table.lastName, builder: (column) => column);
-
-  GeneratedColumn<String> get email =>
-      $composableBuilder(column: $table.email, builder: (column) => column);
-
-  GeneratedColumn<String> get mobile =>
-      $composableBuilder(column: $table.mobile, builder: (column) => column);
+  GeneratedColumn<String> get contactInfoJson => $composableBuilder(
+      column: $table.contactInfoJson, builder: (column) => column);
 
   GeneratedColumn<String> get profilePic => $composableBuilder(
       column: $table.profilePic, builder: (column) => column);
-
-  GeneratedColumn<String> get meetingplaceIdentityCardColor =>
-      $composableBuilder(
-          column: $table.meetingplaceIdentityCardColor,
-          builder: (column) => column);
 
   $$MeetingPlaceGroupsTableAnnotationComposer get groupId {
     final $$MeetingPlaceGroupsTableAnnotationComposer composer =
@@ -2113,12 +1891,8 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             Value<GroupMemberStatus> status = const Value.absent(),
             Value<String> identityDid = const Value.absent(),
             Value<String> type = const Value.absent(),
-            Value<String> firstName = const Value.absent(),
-            Value<String> lastName = const Value.absent(),
-            Value<String> email = const Value.absent(),
-            Value<String> mobile = const Value.absent(),
-            Value<String> profilePic = const Value.absent(),
-            Value<String> meetingplaceIdentityCardColor = const Value.absent(),
+            Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               GroupMembersCompanion(
@@ -2135,12 +1909,8 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             status: status,
             identityDid: identityDid,
             type: type,
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            mobile: mobile,
+            contactInfoJson: contactInfoJson,
             profilePic: profilePic,
-            meetingplaceIdentityCardColor: meetingplaceIdentityCardColor,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -2157,12 +1927,8 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             required GroupMemberStatus status,
             required String identityDid,
             required String type,
-            required String firstName,
-            required String lastName,
-            required String email,
-            required String mobile,
-            required String profilePic,
-            required String meetingplaceIdentityCardColor,
+            Value<String> contactInfoJson = const Value.absent(),
+            Value<String?> profilePic = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               GroupMembersCompanion.insert(
@@ -2179,12 +1945,8 @@ class $$GroupMembersTableTableManager extends RootTableManager<
             status: status,
             identityDid: identityDid,
             type: type,
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            mobile: mobile,
+            contactInfoJson: contactInfoJson,
             profilePic: profilePic,
-            meetingplaceIdentityCardColor: meetingplaceIdentityCardColor,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

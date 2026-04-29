@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../extensions/contact_card_extensions.dart';
+import '../../utils/contact_info_json.dart';
 import 'connection_offer_database.dart' as db;
 
 /// [ConnectionOfferRepositoryDrift] provides a Drift-based
@@ -204,14 +204,8 @@ class ConnectionOfferRepositoryDrift
               connectionOfferId: Value(connectionOfferId),
               did: Value(card.did),
               type: Value(card.type),
-              firstName: Value(card.firstName),
-              lastName: Value(card.lastName),
-              email: Value(card.email),
-              mobile: Value(card.mobile),
-              profilePic: Value(card.profilePic),
-              meetingplaceIdentityCardColor: Value(
-                card.meetingplaceIdentityCardColor,
-              ),
+              contactInfoJson: Value(encodeContactInfoJson(card)),
+              profilePic: Value(extractProfilePic(card)),
             ),
           );
     });
@@ -311,14 +305,8 @@ class ConnectionOfferRepositoryDrift
         db.ConnectionContactCardsCompanion(
           did: Value(card.did),
           type: Value(card.type),
-          firstName: Value(card.firstName),
-          lastName: Value(card.lastName),
-          email: Value(card.email),
-          mobile: Value(card.mobile),
-          profilePic: Value(card.profilePic),
-          meetingplaceIdentityCardColor: Value(
-            card.meetingplaceIdentityCardColor,
-          ),
+          contactInfoJson: Value(encodeContactInfoJson(card)),
+          profilePic: Value(extractProfilePic(card)),
         ),
       );
     });
@@ -357,15 +345,13 @@ class _ConnectionOfferMapper {
     db.ConnectionContactCard contactCard,
   ) {
     final card = model.ContactCard(
-        did: contactCard.did, type: contactCard.type, contactInfo: {});
-
-    card.firstName = contactCard.firstName;
-    card.lastName = contactCard.lastName;
-    card.email = contactCard.email;
-    card.mobile = contactCard.mobile;
-    card.profilePic = contactCard.profilePic;
-    card.meetingplaceIdentityCardColor =
-        contactCard.meetingplaceIdentityCardColor;
+      did: contactCard.did,
+      type: contactCard.type,
+      contactInfo: decodeContactInfoJson(
+        contactCard.contactInfoJson,
+        profilePic: contactCard.profilePic,
+      ),
+    );
 
     if (groupConnectionOffer != null) {
       return model.GroupConnectionOffer(

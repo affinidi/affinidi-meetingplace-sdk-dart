@@ -3,7 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart' as model;
 
 import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import '../../exceptions/meeting_place_core_repository_exception.dart';
-import '../../extensions/contact_card_extensions.dart';
+import '../../utils/contact_info_json.dart';
 import 'groups_database.dart' as db;
 
 /// Repository implementation for persisting and retrieving
@@ -63,13 +63,8 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           status: member.status,
           identityDid: contactCard.did,
           type: contactCard.type,
-          firstName: contactCard.firstName,
-          lastName: contactCard.lastName,
-          email: contactCard.email,
-          mobile: contactCard.mobile,
-          profilePic: contactCard.profilePic,
-          meetingplaceIdentityCardColor:
-              contactCard.meetingplaceIdentityCardColor,
+          contactInfoJson: Value(encodeContactInfoJson(contactCard)),
+          profilePic: Value(extractProfilePic(contactCard)),
         );
       });
 
@@ -198,13 +193,8 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           status: member.status,
           identityDid: contactCard.did,
           type: contactCard.type,
-          firstName: contactCard.firstName,
-          lastName: contactCard.lastName,
-          email: contactCard.email,
-          mobile: contactCard.mobile,
-          profilePic: contactCard.profilePic,
-          meetingplaceIdentityCardColor:
-              contactCard.meetingplaceIdentityCardColor,
+          contactInfoJson: Value(encodeContactInfoJson(contactCard)),
+          profilePic: Value(extractProfilePic(contactCard)),
         );
       });
 
@@ -250,16 +240,11 @@ class _GroupMemberMapper {
     final card = model.ContactCard(
       did: groupMember.identityDid,
       type: groupMember.type,
-      contactInfo: {},
+      contactInfo: decodeContactInfoJson(
+        groupMember.contactInfoJson,
+        profilePic: groupMember.profilePic,
+      ),
     );
-
-    card.firstName = groupMember.firstName;
-    card.lastName = groupMember.lastName;
-    card.email = groupMember.email;
-    card.mobile = groupMember.mobile;
-    card.profilePic = groupMember.profilePic;
-    card.meetingplaceIdentityCardColor =
-        groupMember.meetingplaceIdentityCardColor;
 
     return card;
   }

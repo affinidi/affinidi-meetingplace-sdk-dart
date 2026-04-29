@@ -48,7 +48,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -61,6 +61,12 @@ class ChannelDatabase extends _$ChannelDatabase {
             await migrator.addColumn(
               channels,
               channels.isConnectionInitiator,
+            );
+          }
+          if (from < 3) {
+            await migrator.addColumn(
+              channelContactCards,
+              channelContactCards.profilePic,
             );
           }
         },
@@ -144,23 +150,11 @@ class ChannelContactCards extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  /// First name of the contact.
-  TextColumn get firstName => text()();
-
-  /// Last name of the contact.
-  TextColumn get lastName => text()();
-
-  /// Email address of the contact.
-  TextColumn get email => text()();
-
-  /// Mobile number of the contact.
-  TextColumn get mobile => text()();
+  /// Flexible JSON payload for contact information.
+  TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
 
   /// Profile picture of the contact.
-  TextColumn get profilePic => text()();
-
-  /// Identity card color of the contact.
-  TextColumn get meetingplaceIdentityCardColor => text()();
+  TextColumn get profilePic => text().nullable()();
 
   /// Type of the contact card.
   IntColumn get cardType => integer().map(const _ContactCardTypeConverter())();

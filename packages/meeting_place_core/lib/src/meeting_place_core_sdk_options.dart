@@ -1,7 +1,9 @@
 import 'package:didcomm/didcomm.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 
 import 'entity/channel.dart';
+import 'trust/trust_runtime_orchestrator.dart';
 
 /// Callback to build attachments for outgoing connection messages
 /// during the channel inauguration process.
@@ -38,6 +40,8 @@ class MeetingPlaceCoreSDKOptions {
     this.messageTypesForSequenceTracking = const [],
     this.onBuildAttachments,
     this.onAttachmentsReceived,
+    this.trustPolicyEnforcer,
+    this.trustRuntimeOrchestrator,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -129,4 +133,16 @@ class MeetingPlaceCoreSDKOptions {
   /// When provided, this callback is invoked by event handlers after they
   /// receive and process incoming attachments from connection messages.
   final OnAttachmentsReceivedCallback? onAttachmentsReceived;
+
+  /// Optional trust policy enforcer to authorize group-sensitive control plane
+  /// actions (for example, send group message or remove group member).
+  ///
+  /// If null, control-plane SDK defaults to no-op enforcement.
+  final TrustPolicyEnforcer? trustPolicyEnforcer;
+
+  /// Optional SDK-side trust lifecycle orchestrator used for demo or hybrid
+  /// integrations where VTC/TR and VTA operations are initiated from the SDK.
+  ///
+  /// If null, SDK defaults to a no-op orchestrator.
+  final TrustRuntimeOrchestrator? trustRuntimeOrchestrator;
 }

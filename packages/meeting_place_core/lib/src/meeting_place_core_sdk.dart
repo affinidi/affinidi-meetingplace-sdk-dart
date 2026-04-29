@@ -267,6 +267,7 @@ class MeetingPlaceCoreSDK {
         maxRetriesDelay: options.maxRetriesDelay,
         connectTimeout: options.connectTimeout,
         receiveTimeout: options.receiveTimeout,
+        trustPolicyEnforcer: options.trustPolicyEnforcer,
       ),
       logger: controlPlaneLogger,
     );
@@ -316,6 +317,9 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
+      trustRuntimeOrchestrator:
+          options.trustRuntimeOrchestrator ??
+          const NoopTrustRuntimeOrchestrator(),
       logger: mpxLogger,
     );
 

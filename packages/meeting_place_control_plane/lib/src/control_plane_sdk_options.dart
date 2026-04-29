@@ -1,3 +1,5 @@
+import 'trust/trust_policy_enforcer.dart';
+
 /// Control Plane SDK configuration settings.
 class ControlPlaneSDKOptions {
   const ControlPlaneSDKOptions({
@@ -5,6 +7,7 @@ class ControlPlaneSDKOptions {
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
+    this.trustPolicyEnforcer,
   });
 
   /// The number of retry attempts for a request when a network issue occurs.
@@ -27,4 +30,10 @@ class ControlPlaneSDKOptions {
   /// If no data is received within this time frame, the request will be
   /// aborted and a timeout error will be triggered.
   final Duration receiveTimeout;
+
+  /// Optional trust policy enforcer used to authorize sensitive group actions.
+  ///
+  /// When null, SDK defaults to [NoopTrustPolicyEnforcer] for backwards
+  /// compatibility.
+  final TrustPolicyEnforcer? trustPolicyEnforcer;
 }

@@ -16,6 +16,11 @@ class GroupAddMemberCommand
     required this.publicKey,
     required this.reencryptionKey,
     this.contactCard,
+    this.trustCredentialProof,
+    this.trustScope,
+    this.trustIssuerDid,
+    this.trustActorDid,
+    this.trustGroupId,
   });
   final String mnemonic;
   final String groupId;
@@ -25,4 +30,9 @@ class GroupAddMemberCommand
   final String publicKey;
   final String reencryptionKey;
   final ContactCard? contactCard;
+  final String? trustCredentialProof;
+  final String? trustScope;
+  final String? trustIssuerDid;
+  final String? trustActorDid;
+  final String? trustGroupId;
 }

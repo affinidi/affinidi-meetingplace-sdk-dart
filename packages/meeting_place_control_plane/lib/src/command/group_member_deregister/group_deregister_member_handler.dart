@@ -9,6 +9,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../trust/trust_action.dart';
+import '../../trust/trust_authorization_request.dart';
+import '../../trust/trust_policy_enforcer.dart';
 import 'group_deregister_member.dart';
 import 'group_deregister_member_exception.dart';
 import 'group_deregister_member_output.dart';
@@ -30,8 +33,10 @@ class GroupDeregisterMemberHandler
   /// - [apiClient] - An instance of discovery api client object.
   GroupDeregisterMemberHandler({
     required ControlPlaneApiClient apiClient,
+    required TrustPolicyEnforcer trustPolicyEnforcer,
     ControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
+       _trustPolicyEnforcer = trustPolicyEnforcer,
        _logger =
            logger ??
            DefaultControlPlaneSDKLogger(
@@ -41,6 +46,7 @@ class GroupDeregisterMemberHandler
   static const String _className = 'GroupDeregisterMemberHandler';
 
   final ControlPlaneApiClient _apiClient;
+  final TrustPolicyEnforcer _trustPolicyEnforcer;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -65,6 +71,17 @@ class GroupDeregisterMemberHandler
   ) async {
     final methodName = 'handle';
     _logger.info('Started deregistering member', name: methodName);
+    await _trustPolicyEnforcer.enforceOrThrow(
+      TrustAuthorizationRequest(
+        action: TrustAction.removeGroupMember,
+        groupId: command.groupId,
+        actorDid: command.actorDid,
+        subjectDid: command.memberId,
+        credentialProof: command.trustCredentialProof,
+        scope: command.trustScope,
+        issuerDid: command.trustIssuerDid,
+      ),
+    );
 
     final builder = GroupDeregisterMemberInputBuilder()
       ..groupId = command.groupId

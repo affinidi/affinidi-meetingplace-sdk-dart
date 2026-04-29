@@ -18,6 +18,7 @@ import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
 import '../repository/repository.dart';
+import '../trust/trust_runtime_orchestrator.dart';
 import '../utils/string.dart';
 import 'channel/channel_service.dart';
 import 'connection_manager/connection_manager.dart';
@@ -42,6 +43,7 @@ class GroupService {
     required cp.ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required DidResolver didResolver,
+    this.trustRuntimeOrchestrator = const NoopTrustRuntimeOrchestrator(),
     MeetingPlaceCoreSDKLogger? logger,
   }) : _wallet = wallet,
        _connectionManager = connectionManager,
@@ -68,6 +70,7 @@ class GroupService {
   final ChannelService _channelService;
   final KeyRepository _keyRepository;
   final DidResolver _didResolver;
+  final TrustRuntimeOrchestrator trustRuntimeOrchestrator;
   final MeetingPlaceCoreSDKLogger _logger;
 
   final cp.ControlPlaneSDK _controlPlaneSDK;
@@ -166,6 +169,7 @@ class GroupService {
       did: result.groupDid,
     );
     await _groupRepository.createGroup(group);
+    await _onGroupCreatedTrustContext(group);
 
     try {
       await _allowGroupToMessageGroupOwner(
@@ -679,6 +683,11 @@ class GroupService {
     );
 
     final otherPartyContactCard = channel.otherPartyContactCard;
+    final trustProof = await trustRuntimeOrchestrator.buildProofForAction(
+      group: group,
+      actorDid: group.ownerDid!,
+      action: cp.TrustAction.addGroupMember.name,
+    );
     await _controlPlaneSDK.execute(
       cp.GroupAddMemberCommand(
         mnemonic: connectionOffer.mnemonic,
@@ -695,11 +704,17 @@ class GroupService {
             : null,
         publicKey: member.publicKey,
         reencryptionKey: reencryptionKey.toBase64(),
+        trustCredentialProof: trustProof?.credentialProof,
+        trustIssuerDid: trustProof?.issuerDid,
+        trustScope: trustProof?.scope,
+        trustActorDid: group.ownerDid,
+        trustGroupId: group.did,
       ),
     );
 
     group.approveMember(member);
     await _groupRepository.updateGroup(group);
+    await _onMembershipApprovedTrustCredential(group: group, member: member);
 
     _logger.info(
       'Successfully approved membership request for offer: '
@@ -783,6 +798,11 @@ class GroupService {
         group.publicKey!,
       ).point.toBytes(),
     );
+    final trustProof = await trustRuntimeOrchestrator.buildProofForAction(
+      group: group,
+      actorDid: message.from!,
+      action: cp.TrustAction.sendGroupMessage.name,
+    );
 
     await _controlPlaneSDK.execute(
       cp.GroupSendMessageCommand(
@@ -794,6 +814,9 @@ class GroupService {
         notify: notify,
         ephemeral: ephemeral,
         forwardExpiryInSeconds: forwardExpiryInSeconds,
+        trustCredentialProof: trustProof?.credentialProof,
+        trustIssuerDid: trustProof?.issuerDid,
+        trustScope: trustProof?.scope,
       ),
     );
     _logger.info(
@@ -801,6 +824,67 @@ class GroupService {
       '${groupDidDocument.id.topAndTail()}',
       name: methodName,
     );
+  }
+
+  Future<void> _onGroupCreatedTrustContext(Group group) async {
+    final methodName = '_onGroupCreatedTrustContext';
+    final context = await trustRuntimeOrchestrator.onGroupCreated(group);
+    if (context == null) return;
+
+    final updatedGroup = group.copyWith(
+      externalRef: _mergeExternalRef(group.externalRef, {
+        'trust': context.toJson(),
+      }),
+    );
+    await _groupRepository.updateGroup(updatedGroup);
+    _logger.info(
+      'Persisted trust context for group: ${group.id}',
+      name: methodName,
+    );
+  }
+
+  Future<void> _onMembershipApprovedTrustCredential({
+    required Group group,
+    required GroupMember member,
+  }) async {
+    final methodName = '_onMembershipApprovedTrustCredential';
+    final issuedCredential = await trustRuntimeOrchestrator
+        .onMembershipApproved(group: group, member: member);
+    if (issuedCredential == null) return;
+
+    final credentials = _readExternalRefMap(group.externalRef)['credentials'];
+    final credentialsMap = credentials is Map<String, dynamic>
+        ? Map<String, dynamic>.from(credentials)
+        : <String, dynamic>{};
+    credentialsMap[member.did] = issuedCredential.toJson();
+
+    final updatedGroup = group.copyWith(
+      externalRef: _mergeExternalRef(group.externalRef, {
+        'credentials': credentialsMap,
+      }),
+    );
+    await _groupRepository.updateGroup(updatedGroup);
+    _logger.info(
+      'Persisted issued credential reference for member: '
+      '${member.did.topAndTail()}',
+      name: methodName,
+    );
+  }
+
+  Map<String, dynamic> _readExternalRefMap(String? externalRef) {
+    if (externalRef == null || externalRef.isEmpty) return <String, dynamic>{};
+    try {
+      final decoded = jsonDecode(externalRef);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } catch (_) {
+      // Ignore malformed existing externalRef and overwrite with trust context.
+    }
+    return <String, dynamic>{};
+  }
+
+  String _mergeExternalRef(String? existing, Map<String, dynamic> patch) {
+    final merged = _readExternalRefMap(existing)..addAll(patch);
+    return jsonEncode(merged);
   }
 
   Future<void> _allowMemberToMessageGroupAdmin(

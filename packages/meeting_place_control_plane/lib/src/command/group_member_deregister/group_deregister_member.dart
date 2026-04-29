@@ -11,8 +11,16 @@ class GroupDeregisterMemberCommand
     required this.groupId,
     required this.memberId,
     required this.messageBase64,
+    this.actorDid,
+    this.trustCredentialProof,
+    this.trustScope,
+    this.trustIssuerDid,
   });
   final String groupId;
   final String memberId;
   final String messageBase64;
+  final String? actorDid;
+  final String? trustCredentialProof;
+  final String? trustScope;
+  final String? trustIssuerDid;
 }

@@ -15,6 +15,9 @@ class GroupSendMessageCommand
     required this.notify,
     required this.ephemeral,
     this.forwardExpiryInSeconds,
+    this.trustCredentialProof,
+    this.trustScope,
+    this.trustIssuerDid,
   });
   final String offerLink;
   final String fromDid;
@@ -24,4 +27,7 @@ class GroupSendMessageCommand
   final bool notify;
   final bool ephemeral;
   final int? forwardExpiryInSeconds;
+  final String? trustCredentialProof;
+  final String? trustScope;
+  final String? trustIssuerDid;
 }

@@ -40,6 +40,7 @@ import 'core/device/device.dart';
 import 'core/sdk_error_handler.dart';
 import 'loggers/control_plane_sdk_logger.dart';
 import 'loggers/default_control_plane_sdk_logger.dart';
+import 'trust/trust_policy_enforcer.dart';
 
 class MissingDeviceException implements Exception {}
 
@@ -150,6 +151,9 @@ class ControlPlaneSDK {
     );
 
     _dispatcher = CommandDispatcher();
+    final trustPolicyEnforcer =
+        controlPlaneSDKConfig.trustPolicyEnforcer ??
+        const NoopTrustPolicyEnforcer();
     _dispatcher.registerHandler(
       AuthenticateHandler(
         apiClient: _controlPlaneApiClient,
@@ -260,11 +264,16 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      GroupAddMemberHandler(apiClient: _controlPlaneApiClient, logger: _logger),
+      GroupAddMemberHandler(
+        apiClient: _controlPlaneApiClient,
+        trustPolicyEnforcer: trustPolicyEnforcer,
+        logger: _logger,
+      ),
     );
     _dispatcher.registerHandler(
       GroupSendMessageHandler(
         apiClient: _controlPlaneApiClient,
+        trustPolicyEnforcer: trustPolicyEnforcer,
         logger: _logger,
       ),
     );
@@ -272,12 +281,17 @@ class ControlPlaneSDK {
     _dispatcher.registerHandler(
       GroupDeregisterMemberHandler(
         apiClient: _controlPlaneApiClient,
+        trustPolicyEnforcer: trustPolicyEnforcer,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
-      GroupDeleteHandler(apiClient: _controlPlaneApiClient, logger: _logger),
+      GroupDeleteHandler(
+        apiClient: _controlPlaneApiClient,
+        trustPolicyEnforcer: trustPolicyEnforcer,
+        logger: _logger,
+      ),
     );
 
     _dispatcher.registerHandler(

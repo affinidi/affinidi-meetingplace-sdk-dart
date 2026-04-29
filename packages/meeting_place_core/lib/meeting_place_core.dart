@@ -39,4 +39,5 @@ export 'src/service/oob/session/oob_acceptance_session.dart';
 export 'src/service/oob/session/oob_offer_session.dart';
 export 'src/service/oob/stream/oob_stream.dart';
 export 'src/service/oob/stream/oob_stream_data.dart';
+export 'src/trust/trust_runtime_orchestrator.dart';
 export 'src/utils/contact_card_utils.dart';

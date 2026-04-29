@@ -10,3 +10,8 @@ export 'src/core/offer_type.dart';
 export 'src/core/protocol/protocol.dart';
 export 'src/loggers/control_plane_sdk_logger.dart';
 export 'src/loggers/default_control_plane_sdk_logger.dart';
+export 'src/trust/http_trust_policy_enforcer.dart';
+export 'src/trust/trust_action.dart';
+export 'src/trust/trust_authorization_request.dart';
+export 'src/trust/trust_policy_denied_exception.dart';
+export 'src/trust/trust_policy_enforcer.dart';

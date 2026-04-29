@@ -9,6 +9,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../trust/trust_action.dart';
+import '../../trust/trust_authorization_request.dart';
+import '../../trust/trust_policy_enforcer.dart';
 import 'group_delete.dart';
 import 'group_delete_exception.dart';
 import 'group_delete_output.dart';
@@ -26,8 +29,10 @@ class GroupDeleteHandler
   /// - [apiClient] - An instance of discovery api client object.
   GroupDeleteHandler({
     required ControlPlaneApiClient apiClient,
+    required TrustPolicyEnforcer trustPolicyEnforcer,
     ControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
+       _trustPolicyEnforcer = trustPolicyEnforcer,
        _logger =
            logger ??
            DefaultControlPlaneSDKLogger(
@@ -37,6 +42,7 @@ class GroupDeleteHandler
   static const String _className = 'GroupDeleteHandler';
 
   final ControlPlaneApiClient _apiClient;
+  final TrustPolicyEnforcer _trustPolicyEnforcer;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -57,6 +63,17 @@ class GroupDeleteHandler
   Future<GroupDeleteCommandOutput> handle(GroupDeleteCommand command) async {
     final methodName = 'handle';
     _logger.info('Started handling group delete', name: methodName);
+    await _trustPolicyEnforcer.enforceOrThrow(
+      TrustAuthorizationRequest(
+        action: TrustAction.deleteGroup,
+        groupId: command.groupId,
+        actorDid: command.actorDid,
+        subjectDid: command.actorDid,
+        credentialProof: command.trustCredentialProof,
+        scope: command.trustScope,
+        issuerDid: command.trustIssuerDid,
+      ),
+    );
 
     final builder = GroupDeleteInputBuilder()
       ..groupId = command.groupId

@@ -6,6 +6,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../trust/trust_action.dart';
+import '../../trust/trust_authorization_request.dart';
+import '../../trust/trust_policy_enforcer.dart';
 import '../../utils/string.dart';
 import 'group_add_member.dart';
 import 'group_add_member_exception.dart';
@@ -29,8 +32,10 @@ class GroupAddMemberHandler
   /// - [GroupAddMemberHandler]: An instance of GroupAddMemberHandler.
   GroupAddMemberHandler({
     required ControlPlaneApiClient apiClient,
+    required TrustPolicyEnforcer trustPolicyEnforcer,
     ControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
+       _trustPolicyEnforcer = trustPolicyEnforcer,
        _logger =
            logger ??
            DefaultControlPlaneSDKLogger(
@@ -40,6 +45,7 @@ class GroupAddMemberHandler
   static const String _className = 'GroupAddMemberHandler';
 
   final ControlPlaneApiClient _apiClient;
+  final TrustPolicyEnforcer _trustPolicyEnforcer;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -64,6 +70,17 @@ class GroupAddMemberHandler
   ) async {
     final methodName = 'handle';
     _logger.info('Started adding member to group', name: methodName);
+    await _trustPolicyEnforcer.enforceOrThrow(
+      TrustAuthorizationRequest(
+        action: TrustAction.addGroupMember,
+        groupId: command.trustGroupId ?? command.groupId,
+        actorDid: command.trustActorDid ?? command.acceptOfferDid,
+        subjectDid: command.memberDid,
+        credentialProof: command.trustCredentialProof,
+        scope: command.trustScope,
+        issuerDid: command.trustIssuerDid,
+      ),
+    );
 
     final builder = GroupAddMemberInputBuilder()
       ..mnemonic = command.mnemonic

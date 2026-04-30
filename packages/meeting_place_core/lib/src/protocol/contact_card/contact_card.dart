@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../extensions/canonicalized_map.dart';
+import '../../extensions/jcs_canonicalized.dart';
 
 part 'contact_card.g.dart';
 
@@ -33,7 +33,7 @@ class ContactCard {
 
   final Map<String, dynamic> contactInfo;
   late final String profileHash = sha256
-      .convert(utf8.encode(jsonEncode(contactInfo)))
+      .convert(utf8.encode(contactInfo.toCanonicalJson()))
       .toString();
 
   Map<String, dynamic> toJson() {

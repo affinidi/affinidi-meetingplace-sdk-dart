@@ -139,6 +139,7 @@ class GroupService {
       ownerDidManager: ownerDid,
       matrixUserId: matrixUserId,
       accessToken: accessToken,
+      controlPlaneSDK: _controlPlaneSDK,
       homeserverBaseUrl: homeserver,
       mediatorDid: mediatorDid,
     );

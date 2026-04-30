@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'dart:convert';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
@@ -47,13 +49,14 @@ class MatrixRegistrationCredentialHandler
     );
 
     try {
-      Response<Map<String, dynamic>> response;
+      Response<dynamic> response;
 
-      Future<Response<Map<String, dynamic>>> doRequest({
+      Future<Response<dynamic>> doRequest({
         Map<String, dynamic>? headers,
+        required String path,
       }) {
-        return _apiClient.dio.post<Map<String, dynamic>>(
-          '/v1/matrix/token',
+        return _apiClient.dio.post<dynamic>(
+          path,
           data: {'homeserver': command.homeserver},
           options: Options(
             // Trigger RefreshAuthCredentialsInterceptor to attach/refresh token.
@@ -69,33 +72,68 @@ class MatrixRegistrationCredentialHandler
             },
             headers: headers,
             contentType: Headers.jsonContentType,
+            responseType: ResponseType.plain,
           ),
         );
       }
 
       try {
-        response = await doRequest();
+        response = await doRequest(path: '/v1/matrix/token');
       } on DioException catch (e) {
         final status = e.response?.statusCode;
         final token =
             e.requestOptions.headers['authorization'] ??
             e.requestOptions.headers['Authorization'];
 
+        // Backward compatibility: older Control Plane servers expose the
+        // matrix credential endpoint under /api/did/matrix-registration-credential.
+        if (status == 404) {
+          response = await doRequest(
+            headers: token is String ? {'Authorization': 'Bearer $token'} : null,
+            path: '/api/did/matrix-registration-credential',
+          );
+          // Continue with common parsing/validation below.
+          return _parseResponse(response);
+        }
+
         // Upstream API prefers Bearer auth; retry once if we likely sent the
         // raw token (apiKey style) and were rejected.
         if ((status == 401 || status == 403) && token is String) {
           response = await doRequest(
             headers: {'Authorization': 'Bearer $token'},
+            path: '/v1/matrix/token',
           );
         } else {
           rethrow;
         }
       }
 
-      final data = response.data;
+      return _parseResponse(response);
+    } on MatrixRegistrationCredentialException {
+      rethrow;
+    } on DioException catch (e) {
+      throw MatrixRegistrationCredentialException.generic(
+        message:
+            'Failed to fetch Matrix registration credential. status=${e.response?.statusCode}, body=${e.response?.data}',
+        innerException: e,
+      );
+    } catch (e) {
+      throw MatrixRegistrationCredentialException.generic(
+        message: 'Failed to fetch Matrix registration credential',
+        innerException: e,
+      );
+    }
+  }
+
+  MatrixRegistrationCredentialCommandOutput _parseResponse(
+    Response<dynamic> response,
+  ) {
+    try {
+      final data = _toMap(response.data);
       if (data == null) {
         throw MatrixRegistrationCredentialException.invalidResponse(
-          message: 'Response data is null',
+          message:
+              'Response data is not valid JSON object. status=${response.statusCode}, body=${response.data}',
         );
       }
 
@@ -112,17 +150,48 @@ class MatrixRegistrationCredentialHandler
         );
       }
 
+      String? matrixLocalpart;
+      try {
+        final claims = JWT.decode(credential).payload;
+        final sub = claims['sub'];
+        if (sub is String && sub.trim().isNotEmpty) {
+          matrixLocalpart = sub.trim();
+        }
+      } catch (_) {
+        // Non-fatal: credential signature validation happens on Synapse side.
+      }
+
       return MatrixRegistrationCredentialCommandOutput(
         credential: credential,
         did: did,
+        matrixLocalpart: matrixLocalpart,
       );
     } on MatrixRegistrationCredentialException {
       rethrow;
     } catch (e) {
       throw MatrixRegistrationCredentialException.generic(
-        message: 'Failed to fetch Matrix registration credential',
+        message:
+            'Failed to parse Matrix registration credential response. status=${response.statusCode}, body=${response.data}',
         innerException: e,
       );
     }
+  }
+
+  Map<String, dynamic>? _toMap(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    if (data is String) {
+      final trimmed = data.trim();
+      if (trimmed.isEmpty) {
+        return null;
+      }
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      return null;
+    }
+    return null;
   }
 }

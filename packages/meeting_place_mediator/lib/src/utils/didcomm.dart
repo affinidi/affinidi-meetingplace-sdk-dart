@@ -2,8 +2,6 @@ import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
-import '../core/mediator/mediator_exception.dart';
-
 /// Utility function to sign and encrypt a message for a specific recipient.
 ///
 /// **Parameters**
@@ -21,13 +19,8 @@ Future<EncryptedMessage> signAndEncryptMessage(
   final senderDidDocument = await senderDidManager.getDidDocument();
   final authenticationKeyId = senderDidDocument.authentication.first.id;
 
-  final keyAgreements = senderDidDocument.matchKeysInKeyAgreement(
-    otherDidDocuments: [recipientDidDocument],
-  );
-
-  if (keyAgreements.isEmpty) {
-    throw MediatorException.keyAgreementMismatch();
-  }
+  // Keep sender `kid` anchored to sender DID document keyAgreement entry.
+  final senderKeyAgreementId = senderDidDocument.keyAgreement.first.id;
 
   final signedMessage = await SignedMessage.pack(
     message,
@@ -36,8 +29,8 @@ Future<EncryptedMessage> signAndEncryptMessage(
 
   return EncryptedMessage.packWithAuthentication(
     signedMessage,
-    didKeyId: keyAgreements.first,
-    keyPair: await senderDidManager.getKeyPairByDidKeyId(keyAgreements.first),
+    didKeyId: senderKeyAgreementId,
+    keyPair: await senderDidManager.getKeyPairByDidKeyId(senderKeyAgreementId),
     recipientDidDocuments: [recipientDidDocument],
   );
 }

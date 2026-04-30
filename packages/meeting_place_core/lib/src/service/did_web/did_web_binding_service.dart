@@ -1,153 +1,156 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
+import 'package:crypto/crypto.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    as cp;
 import 'package:ssi/ssi.dart'
-    show DidManager, JcsUtil, KeyType, PublicKey, Wallet, didWebToUri;
+    show DidManager, JcsUtil, KeyType, PublicKey, Wallet;
+import 'package:uuid/uuid.dart';
 
 import 'did_web_utils.dart';
 
-/// Binds a `did:web` DID Document to a pairwise Matrix account on the Synapse
-/// homeserver via the MeetingPlace v1 custom endpoints:
-///
-///   POST /_matrix/meetingplace/v1/did/bind/challenge
-///   PUT  /_matrix/meetingplace/v1/did/bind
-///
-/// The DID string and key material are taken from a [DidManager] (typically a
-/// `DidWebManager` created by [ConnectionManager.generateDidWeb]).
+/// Handles ADR-0103 did:web upload flow via Control Plane APIs.
 class DidWebBindingService {
   DidWebBindingService({required Wallet wallet}) : _wallet = wallet;
 
   final Wallet _wallet;
 
-  /// Performs the full challenge → sign → publish flow.
+  /// Builds and uploads the initial did:web DID document to Control Plane.
   ///
   /// [ownerDidManager] – A `DidWebManager` whose `did` is the `did:web` to bind.
-  /// [matrixUserId]    – Full Matrix user ID (`@<localpart>:<hs-domain>`).
-  /// [accessToken]     – Bearer token for the authenticated Matrix session.
-  /// [homeserverBaseUrl] – Optional explicit Matrix homeserver origin. When
-  /// provided, its scheme is preserved, allowing local `http://...`
-  /// homeservers in development.
+  /// [matrixUserId], [accessToken], and [homeserverBaseUrl] are kept for API
+  /// compatibility with existing callsites.
   /// [mediatorDid]     – Optional DIDComm mediator DID added as a service endpoint.
   Future<void> bindDid({
     required DidManager ownerDidManager,
     required String matrixUserId,
     required String accessToken,
+    required cp.ControlPlaneSDK controlPlaneSDK,
     Uri? homeserverBaseUrl,
     String? mediatorDid,
   }) async {
-    // Resolve DID string and key material from the manager.
-    final did = (await ownerDidManager.getDidDocument()).id;
-    final segment = did.split(':').last;
-    final vmId = ownerDidManager.authentication.first;
-    final walletKeyId = (await ownerDidManager.getWalletKeyId(vmId))!;
-    final pk = await _wallet.getPublicKey(walletKeyId);
+    final controlDidDocument = await controlPlaneSDK.didManager.getDidDocument();
+    final controlDid = controlDidDocument.id;
+    final controlVmId = controlPlaneSDK.didManager.authentication.first;
+    final controlWalletKeyId =
+        (await controlPlaneSDK.didManager.getWalletKeyId(controlVmId))!;
 
-    // Derive homeserver base URL from the did:web (strip /connections/<id>/did.json path).
-    final didJsonUri = didWebToUri(did);
-    final homeserver = _originFromUri(
-      homeserverBaseUrl ??
-          Uri(
-            scheme: didJsonUri.scheme,
-            host: didJsonUri.host,
-            port: didJsonUri.hasPort ? didJsonUri.port : null,
-          ),
-    );
+    final ownerDidDocument = await ownerDidManager.getDidDocument();
+    final did = ownerDidDocument.id;
+    final authVmId = ownerDidManager.authentication.first;
+    final authWalletKeyId = (await ownerDidManager.getWalletKeyId(authVmId))!;
+    final authPk = await _wallet.getPublicKey(authWalletKeyId);
+    final keyAgreementVmId = ownerDidManager.keyAgreement.first;
+    final keyAgreementWalletKeyId =
+        (await ownerDidManager.getWalletKeyId(keyAgreementVmId))!;
+    final keyAgreementPk = await _wallet.getPublicKey(keyAgreementWalletKeyId);
 
     final didDocument = _buildDidDocument(
       did: did,
-      pk: pk,
+      authVerificationMethodId: authVmId,
+      authPublicKey: authPk,
+      keyAgreementVerificationMethodId: keyAgreementVmId,
+      keyAgreementPublicKey: keyAgreementPk,
       mediatorDid: mediatorDid,
     );
 
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: homeserver.toString(),
+    final canonicalDidDocument = JcsUtil.canonicalize(didDocument);
+    final didDocumentHash = _base64UrlNoPadding(
+      Uint8List.fromList(sha256.convert(utf8.encode(canonicalDidDocument)).bytes),
+    );
 
-        headers: {'Authorization': 'Bearer $accessToken'},
-        connectTimeout: const Duration(seconds: 35),
-        receiveTimeout: const Duration(seconds: 35),
+    final nowSeconds = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+    final expiresSeconds = nowSeconds + 300;
+    final audienceDid = controlPlaneSDK.controlPlaneDid;
+    final operation = 'did-document/upload';
+
+    final controlProofPayload = _buildCanonicalProofPayload(
+      operation: operation,
+      didDocumentId: did,
+      didDocumentHash: didDocumentHash,
+      controlDid: controlDid,
+      aud: audienceDid,
+      iat: nowSeconds,
+      exp: expiresSeconds,
+      jti: const Uuid().v4(),
+    );
+    final authProofPayload = _buildCanonicalProofPayload(
+      operation: operation,
+      didDocumentId: did,
+      didDocumentHash: didDocumentHash,
+      controlDid: controlDid,
+      aud: audienceDid,
+      iat: nowSeconds,
+      exp: expiresSeconds,
+      jti: const Uuid().v4(),
+    );
+
+    final controlPublicKey = await _wallet.getPublicKey(controlWalletKeyId);
+    final authPublicKey = await _wallet.getPublicKey(authWalletKeyId);
+
+    final controlProof = _buildProofObject(
+      verificationMethod: controlVmId,
+      jws: await _buildDetachedJws(
+        payloadCanonicalJson: controlProofPayload,
+        keyId: controlWalletKeyId,
+        keyType: controlPublicKey.type,
+      ),
+    );
+    final proof = _buildProofObject(
+      verificationMethod: authVmId,
+      jws: await _buildDetachedJws(
+        payloadCanonicalJson: authProofPayload,
+        keyId: authWalletKeyId,
+        keyType: authPublicKey.type,
       ),
     );
 
-    // Step 1 – request challenge nonce
-    final challengeResp = await dio.post<Map<String, dynamic>>(
-      '/_matrix/meetingplace/v1/did/bind/challenge',
-      data: {'did': did, 'opaqueId': segment, 'matrixId': matrixUserId},
-    );
-    final nonce = challengeResp.data!['nonce'] as String;
-    final aud = challengeResp.data!['aud'] as String;
-
-    // Step 2 – sign canonical proof payload (keys sorted by JCS)
-    final canonicalJson = JcsUtil.canonicalize({
-      'aud': aud,
-      'did': did,
-      'matrixId': matrixUserId,
-      'nonce': nonce,
-    });
-    final rawSignature = await _wallet.sign(
-      Uint8List.fromList(utf8.encode(canonicalJson)),
-      keyId: walletKeyId,
-    );
-    // The server's verifier expects DER-encoded ASN.1 for P-256.
-    // The ssi wallet returns compact r||s (64 bytes); convert accordingly.
-    final signature = pk.type == KeyType.p256
-        ? _compactToDer(rawSignature)
-        : rawSignature;
-
-    // Step 3 – publish (bind)
-    await dio.put<void>(
-      '/_matrix/meetingplace/v1/did/bind',
-      data: {
-        'did': did,
-        'opaqueId': segment,
-        'matrixId': matrixUserId,
-        'didDocument': didDocument,
-        'didProof': {
-          'type': 'DIDKeySignature',
-          'created': DateTime.now().toUtc().toIso8601String(),
-          'nonce': nonce,
-          'aud': aud,
-          'verificationMethod': '#auth',
-          'signature': _base64UrlNoPadding(signature),
-        },
-      },
+    await controlPlaneSDK.execute(
+      cp.DidDocumentUploadCommand(
+        didDocument: didDocument,
+        controlProof: controlProof,
+        proof: proof,
+      ),
     );
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  Uri _originFromUri(Uri uri) {
-    return Uri(
-      scheme: uri.scheme,
-      host: uri.host,
-      port: uri.hasPort ? uri.port : null,
-    );
-  }
-
   Map<String, dynamic> _buildDidDocument({
     required String did,
-    required PublicKey pk,
+    required String authVerificationMethodId,
+    required PublicKey authPublicKey,
+    required String keyAgreementVerificationMethodId,
+    required PublicKey keyAgreementPublicKey,
     String? mediatorDid,
   }) {
-    final verificationMethodId = '$did#auth';
+    final verificationMethods = <Map<String, dynamic>>[
+      {
+        'id': authVerificationMethodId,
+        'type': 'JsonWebKey2020',
+        'controller': did,
+        'publicKeyJwk': _buildPublicKeyJwk(authPublicKey),
+      },
+    ];
+    if (keyAgreementVerificationMethodId != authVerificationMethodId) {
+      verificationMethods.add({
+        'id': keyAgreementVerificationMethodId,
+        'type': 'JsonWebKey2020',
+        'controller': did,
+        'publicKeyJwk': _buildPublicKeyJwk(keyAgreementPublicKey),
+      });
+    }
     final doc = <String, dynamic>{
       '@context': [
         'https://www.w3.org/ns/did/v1',
         'https://w3id.org/security/suites/jws-2020/v1',
       ],
       'id': did,
-      'verificationMethod': [
-        {
-          'id': verificationMethodId,
-          'type': 'JsonWebKey2020',
-          'controller': did,
-          'publicKeyJwk': _buildPublicKeyJwk(pk),
-        },
-      ],
-      'authentication': [verificationMethodId],
-      'assertionMethod': [verificationMethodId],
-      'keyAgreement': [verificationMethodId],
+      'verificationMethod': verificationMethods,
+      'authentication': [authVerificationMethodId],
+      'assertionMethod': [authVerificationMethodId],
+      'keyAgreement': [keyAgreementVerificationMethodId],
     };
     if (mediatorDid != null) {
       doc['service'] = [
@@ -159,6 +162,73 @@ class DidWebBindingService {
       ];
     }
     return doc;
+  }
+
+  String _buildCanonicalProofPayload({
+    required String operation,
+    required String didDocumentId,
+    required String didDocumentHash,
+    required String controlDid,
+    required String aud,
+    required int iat,
+    required int exp,
+    required String jti,
+  }) {
+    return JcsUtil.canonicalize({
+      'operation': operation,
+      'didDocumentId': didDocumentId,
+      'didDocumentHash': didDocumentHash,
+      'controlDid': controlDid,
+      'aud': aud,
+      'iat': iat,
+      'exp': exp,
+      'jti': jti,
+    });
+  }
+
+  Map<String, dynamic> _buildProofObject({
+    required String verificationMethod,
+    required String jws,
+  }) {
+    return {
+      'type': 'JsonWebSignature2020',
+      'created': DateTime.now().toUtc().toIso8601String(),
+      'verificationMethod': verificationMethod,
+      'proofPurpose': 'authentication',
+      'jws': jws,
+    };
+  }
+
+  Future<String> _buildDetachedJws({
+    required String payloadCanonicalJson,
+    required String keyId,
+    required KeyType keyType,
+  }) async {
+    final alg = _algForKeyType(keyType);
+    final headerJson = jsonEncode({'alg': alg, 'typ': 'JWT'});
+    final headerB64 =
+        _base64UrlNoPadding(Uint8List.fromList(utf8.encode(headerJson)));
+    final payloadB64 = _base64UrlNoPadding(
+      Uint8List.fromList(utf8.encode(payloadCanonicalJson)),
+    );
+    final signingInput = '$headerB64.$payloadB64';
+    final signature = await _wallet.sign(
+      Uint8List.fromList(utf8.encode(signingInput)),
+      keyId: keyId,
+    );
+    final signatureB64 = _base64UrlNoPadding(signature);
+    return '$headerB64..$signatureB64';
+  }
+
+  String _algForKeyType(KeyType keyType) {
+    switch (keyType) {
+      case KeyType.p256:
+        return 'ES256';
+      case KeyType.ed25519:
+        return 'EdDSA';
+      default:
+        throw UnsupportedError('Unsupported key type for detached JWS: $keyType');
+    }
   }
 
   Map<String, dynamic> _buildPublicKeyJwk(PublicKey pk) {
@@ -177,43 +247,4 @@ class DidWebBindingService {
   String _base64UrlNoPadding(Uint8List bytes) =>
       base64Url.encode(bytes).replaceAll('=', '');
 
-  /// Converts a compact ECDSA signature (r||s, 64 bytes for P-256) into
-  /// DER-encoded ASN.1 SEQUENCE { INTEGER r, INTEGER s } as expected by the
-  /// server's cryptography.hazmat verifier.
-  Uint8List _compactToDer(Uint8List compact) {
-    assert(compact.length == 64, 'Expected 64-byte compact P-256 signature');
-
-    // DER INTEGER: prepend 0x00 if high bit is set to avoid sign bit confusion.
-    Uint8List _derInt(Uint8List v) {
-      // Strip leading zeros but keep at least one byte.
-      int start = 0;
-      while (start < v.length - 1 && v[start] == 0) {
-        start++;
-      }
-      final trimmed = v.sublist(start);
-      if (trimmed[0] >= 0x80) {
-        final padded = Uint8List(trimmed.length + 1);
-        padded.setRange(1, padded.length, trimmed);
-        return padded;
-      }
-      return trimmed;
-    }
-
-    final rDer = _derInt(compact.sublist(0, 32));
-    final sDer = _derInt(compact.sublist(32, 64));
-    final seqContentLen = 2 + rDer.length + 2 + sDer.length;
-
-    final out = Uint8List(2 + seqContentLen);
-    int i = 0;
-    out[i++] = 0x30; // SEQUENCE
-    out[i++] = seqContentLen;
-    out[i++] = 0x02; // INTEGER r
-    out[i++] = rDer.length;
-    out.setRange(i, i + rDer.length, rDer);
-    i += rDer.length;
-    out[i++] = 0x02; // INTEGER s
-    out[i++] = sDer.length;
-    out.setRange(i, i + sDer.length, sDer);
-    return out;
-  }
 }

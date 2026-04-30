@@ -25,7 +25,7 @@ class MockDidManager extends Mock implements DidManager {}
 
 class MockDidDocument extends Mock implements DidDocument {}
 
-const didAuthLoginType = 'org.affinidi.login.did_auth';
+const didAuthLoginType = 'org.matrix.login.jwt';
 const matrixCredentialJwt = 'matrix-jwt';
 final matrixHomeserver = Uri.parse('http://localhost:9000');
 
@@ -120,7 +120,7 @@ void main() {
       () async {
         await service.refreshStoredLoginCredential();
 
-        expect(requestedCredentialHomeserver, 'localhost:9000');
+        expect(requestedCredentialHomeserver, 'http://localhost:9000');
         verify(
           () =>
               keyRepository.saveMatrixLoginCredential(jwt: matrixCredentialJwt),

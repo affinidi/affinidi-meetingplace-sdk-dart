@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 import '../../api/api_client.dart';
 
@@ -109,9 +110,26 @@ class AuthenticateHandler
       '[MPX API] Sending authentication request to /did-authenticate for DID: ${senderDidDocument.id.topAndTail()}',
       name: methodName,
     );
-    final response = await _apiClient.client.didAuthenticate(
-      didAuthenticate: didAuthenticateBuilder.build(),
-    );
+    final response = await _apiClient.client
+        .didAuthenticate(
+          didAuthenticate: didAuthenticateBuilder.build(),
+        )
+        .onError((error, stackTrace) {
+          if (error is DioException) {
+            final status = error.response?.statusCode;
+            final body = error.response?.data;
+            _logger.error(
+              'did-authenticate failed. status=$status, body=$body',
+              name: methodName,
+              error: error,
+              stackTrace: stackTrace,
+            );
+          }
+          if (error == null) {
+            throw StateError('did-authenticate failed with unknown error');
+          }
+          Error.throwWithStackTrace(error, stackTrace);
+        });
 
     final authCredentials = parseAthenticationResponse(response.data);
 
@@ -199,7 +217,7 @@ class AuthenticateHandler
       name: methodName,
     );
 
-    final meetingplaceDidDoc = await _didResolver.resolveDid(
+    final meetingplaceDidDoc = await _resolveControlPlaneDidDocument(
       command.controlPlaneDid,
     );
 
@@ -213,5 +231,27 @@ class AuthenticateHandler
       name: methodName,
     );
     return AuthenticateCommandOutput(credentials: authCredentials);
+  }
+
+  Future<DidDocument> _resolveControlPlaneDidDocument(String controlPlaneDid) async {
+    const localPrefix = 'did:localhost:';
+    if (controlPlaneDid.startsWith(localPrefix)) {
+      final port = int.tryParse(controlPlaneDid.substring(localPrefix.length));
+      if (port != null && port > 0 && port <= 65535) {
+        final response = await _apiClient.dio.get<Map<String, dynamic>>(
+          '/.well-known/did.json',
+          options: Options(responseType: ResponseType.json),
+        );
+        final body = response.data;
+        if (body is Map<String, dynamic>) {
+          return DidDocument.fromJson(body);
+        }
+        throw AuthenticateException.invalidResponseData(
+          message: 'Invalid DID document response for local control plane DID',
+        );
+      }
+    }
+
+    return _didResolver.resolveDid(controlPlaneDid);
   }
 }

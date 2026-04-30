@@ -152,6 +152,20 @@ class RegisterOfferGroupHandler
         );
         throw RegisterOfferGroupException.mnemonicInUse();
       }
+      if (e is DioException && e.response?.statusCode == HttpStatus.badRequest) {
+        final errorMessage = _extractErrorMessage(e);
+        if (errorMessage != null) {
+          _logger.error(
+            'Register offer group rejected by API: $errorMessage',
+            error: e,
+            stackTrace: stackTrace,
+            name: methodName,
+          );
+          throw RegisterOfferGroupException.generic(
+            innerException: errorMessage,
+          );
+        }
+      }
 
       _logger.error(
         'Failed to register offer group: ${command.offerName}',
@@ -165,5 +179,26 @@ class RegisterOfferGroupHandler
         stackTrace,
       );
     }
+  }
+
+  String? _extractErrorMessage(DioException error) {
+    final data = error.response?.data;
+    if (data is Map<String, dynamic>) {
+      return data['errorMessage']?.toString() ?? data['message']?.toString();
+    }
+    if (data is String && data.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is Map<String, dynamic>) {
+          return decoded['errorMessage']?.toString() ??
+              decoded['message']?.toString() ??
+              decoded['errorCode']?.toString();
+        }
+      } catch (_) {
+        return data;
+      }
+      return data;
+    }
+    return null;
   }
 }

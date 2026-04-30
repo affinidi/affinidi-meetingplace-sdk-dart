@@ -242,7 +242,7 @@ class MatrixService {
     return _attachmentWithDownloadedData(attachment, file);
   }
 
-  static const String _didAuthLoginType = 'org.affinidi.login.did_auth';
+  static const String _didAuthLoginType = 'org.matrix.login.jwt';
   static const String _roomEncryptionAlgorithm = 'm.megolm.v1.aes-sha2';
   static final String _logKey = 'MatrixService';
 
@@ -1051,9 +1051,10 @@ class MatrixService {
       );
     }
 
+    final credentialHomeserver = _toControlPlaneHomeserver(homeserver);
     final result = await _controlPlaneSDK.execute(
       MatrixRegistrationCredentialCommand(
-        homeserver: client.homeserver.toString(),
+        homeserver: credentialHomeserver,
       ),
     );
     final responseDid = result.did.trim();
@@ -1070,7 +1071,36 @@ class MatrixService {
       );
     }
 
+    final expectedLocalpart = _deriveMatrixLocalpart(
+      did: rootDid,
+      serverName: homeserver.host,
+    );
+    final returnedLocalpart = result.matrixLocalpart?.trim();
+    if (returnedLocalpart != null &&
+        returnedLocalpart.isNotEmpty &&
+        returnedLocalpart != expectedLocalpart) {
+      throw StateError(
+        'Control Plane returned credential for unexpected matrix localpart: $returnedLocalpart',
+      );
+    }
+
     await _keyRepository.saveMatrixLoginCredential(jwt: result.credential);
+  }
+
+  String _toControlPlaneHomeserver(Uri homeserver) {
+    if (homeserver.host.isEmpty) {
+      throw StateError('Matrix homeserver is not configured on the client.');
+    }
+
+    // Preserve scheme when available so Control Plane can mint JWT `aud`
+    // matching Synapse audience validation (e.g. https ngrok host).
+    final host = homeserver.host;
+    final authority = homeserver.hasPort ? '$host:${homeserver.port}' : host;
+    final scheme = homeserver.scheme.trim();
+    if (scheme.isNotEmpty) {
+      return '$scheme://$authority';
+    }
+    return authority;
   }
 
   Future<String> login({required String did, required String deviceId}) async {

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'api/control_plane_api_client.dart';
 import 'api/control_plane_api_client_options.dart';
 import 'command/create_oob/create_oob_handler.dart';
+import 'command/did_document_upload/did_document_upload_handler.dart';
 import 'command/deregister_notification/deregister_notification_handler.dart';
 import 'command/get_oob/get_oob_handler.dart';
 import 'command/group_delete/group_delete_handler.dart';
@@ -92,8 +93,8 @@ class ControlPlaneSDK {
   final ControlPlaneSDKLogger _logger;
 
   late final SDKErrorHandler _sdkErrorHandler;
-  late final ControlPlaneApiClient _controlPlaneApiClient;
-  late final CommandDispatcher _dispatcher;
+  late ControlPlaneApiClient _controlPlaneApiClient;
+  late CommandDispatcher _dispatcher;
 
   Device? _device;
   Future<void>? _initializing;
@@ -316,6 +317,12 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       MatrixRegistrationCredentialHandler(
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
+    );
+    _dispatcher.registerHandler(
+      DidDocumentUploadHandler(
         apiClient: _controlPlaneApiClient,
         logger: _logger,
       ),

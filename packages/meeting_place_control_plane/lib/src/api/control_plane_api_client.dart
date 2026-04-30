@@ -120,6 +120,12 @@ class ControlPlaneApiClient {
     String controlPlaneDid,
     DidResolver didResolver,
   ) async {
+    // Local development shortcut: avoid DID resolution for did:localhost:<port>.
+    final localhostBasePath = _basePathFromLocalDid(controlPlaneDid);
+    if (localhostBasePath != null) {
+      return localhostBasePath;
+    }
+
     final didDocument = await didResolver.resolveDid(controlPlaneDid);
     final apiBasePath = didDocument.service.firstWhereOrNull(
       (service) => service.type.toString() == 'RestAPI',
@@ -131,5 +137,19 @@ class ControlPlaneApiClient {
 
     final url = (apiBasePath.serviceEndpoint as StringEndpoint).url;
     return url.replaceFirst('/v1', '');
+  }
+
+  static String? _basePathFromLocalDid(String did) {
+    const prefix = 'did:localhost:';
+    if (!did.startsWith(prefix)) return null;
+
+    final port = did.substring(prefix.length).trim();
+    if (port.isEmpty) return null;
+    final parsedPort = int.tryParse(port);
+    if (parsedPort == null || parsedPort <= 0 || parsedPort > 65535) {
+      return null;
+    }
+
+    return 'http://localhost:$parsedPort';
   }
 }

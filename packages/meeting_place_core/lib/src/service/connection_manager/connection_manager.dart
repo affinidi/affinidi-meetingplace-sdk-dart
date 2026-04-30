@@ -6,7 +6,6 @@ import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../utils/string.dart';
 import 'connection_manager_exception.dart';
 import '../../repository/key_repository.dart';
-import '../did_web/did_web_utils.dart';
 
 class ConnectionManager {
   ConnectionManager({

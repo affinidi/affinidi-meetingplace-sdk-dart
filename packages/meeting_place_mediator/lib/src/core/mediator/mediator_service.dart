@@ -63,8 +63,9 @@ class MediatorService {
 
     final authenticationKeyId = didDocument.authentication.first.id;
 
-    final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
-        otherDidDocuments: [mediatorDidDocument]).first;
+    // Use the sender DID's declared keyAgreement id so mediator can resolve
+    // `kid` from the sender DID document (important for did:web).
+    final keyAgreementKeyId = didDocument.keyAgreement.first.id;
 
     return retry(
       () async {

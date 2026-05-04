@@ -6,8 +6,8 @@ in the [Meeting Place SDK](https://github.com/affinidi/affinidi-meetingplace-sdk
 
 ## Overview
 
-This package extracts the relationship credential domain from app-level code into a
-pure-Dart library that any Meeting Place SDK consumer can depend on.
+A pure-Dart library that any Meeting Place SDK consumer can depend on for
+relationship credential domain logic.
 
 ### What's included
 

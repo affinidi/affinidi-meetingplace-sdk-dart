@@ -3,16 +3,72 @@ import 'chat_item.dart';
 
 part 'concierge_message.g.dart';
 
-/// Defines the type of concierge message sent in the chat system.
+/// Defines the type of a concierge message.
 ///
-/// Concierge messages are **system-level prompts** that often
-/// require user confirmation or administrative approval.
-enum ConciergeMessageType {
+/// Concierge messages are system-level prompts that often require user
+/// confirmation or administrative approval.
+///
+/// Built-in types are exposed as named constants. Custom application-specific
+/// types can be created via [ConciergeMessageType.fromJson]:
+/// ```dart
+/// final myType = ConciergeMessageType.fromJson('myCustomType');
+/// ```
+sealed class ConciergeMessageType {
+  /// Creates a [ConciergeMessageType] with the given string [value].
+  const ConciergeMessageType(this.value);
+
+  /// Deserialises a [ConciergeMessageType] from a string.
+  ///
+  /// Returns the canonical constant for known values; unknown values are
+  /// wrapped in an opaque instance that preserves the original string.
+  factory ConciergeMessageType.fromJson(String json) => switch (json) {
+    'permissionToUpdateProfile' => permissionToUpdateProfile,
+    'permissionToJoinGroup' => permissionToJoinGroup,
+    _ => _CustomConciergeMessageType(json),
+  };
+
+  /// The string identifier for this type.
+  final String value;
+
   /// Requests permission from the user to update their profile.
-  permissionToUpdateProfile,
+  static const permissionToUpdateProfile = _PermissionToUpdateProfile();
 
   /// Requests permission to join a group chat.
-  permissionToJoinGroup,
+  static const permissionToJoinGroup = _PermissionToJoinGroup();
+
+  @override
+  bool operator ==(Object other) =>
+      other is ConciergeMessageType && other.value == value;
+
+  @override
+  int get hashCode => value.hashCode;
+
+  @override
+  String toString() => value;
+}
+
+final class _PermissionToUpdateProfile extends ConciergeMessageType {
+  const _PermissionToUpdateProfile() : super('permissionToUpdateProfile');
+}
+
+final class _PermissionToJoinGroup extends ConciergeMessageType {
+  const _PermissionToJoinGroup() : super('permissionToJoinGroup');
+}
+
+final class _CustomConciergeMessageType extends ConciergeMessageType {
+  const _CustomConciergeMessageType(super.value);
+}
+
+class _ConciergeMessageTypeConverter
+    extends JsonConverter<ConciergeMessageType, String> {
+  const _ConciergeMessageTypeConverter();
+
+  @override
+  ConciergeMessageType fromJson(String json) =>
+      ConciergeMessageType.fromJson(json);
+
+  @override
+  String toJson(ConciergeMessageType object) => object.value;
 }
 
 /// Represents the approval state of a concierge request.
@@ -77,6 +133,7 @@ class ConciergeMessage extends ChatItem {
   final Map<String, dynamic> data;
 
   /// Type of concierge message
+  @_ConciergeMessageTypeConverter()
   final ConciergeMessageType conciergeType;
 
   /// Serializes the [ConciergeMessage] into a JSON object.

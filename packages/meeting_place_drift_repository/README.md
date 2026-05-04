@@ -71,6 +71,62 @@ The package uses drift code generation. To regenerate database classes, run:
 dart run build_runner build --delete-conflicting-outputs
 ```
 
+## Schema Migrations
+
+This package uses [Drift schema snapshots](https://drift.simonbinder.eu/migrations/tests/)
+to verify that each migration produces the exact schema the Dart model expects.
+
+### Files
+
+| Path                                 | Description                                                                                                      |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `drift_schemas/drift_schema_vN.json` | JSON snapshot of the database schema at version `N`. Committed to source control.                                |
+| `test/utils/schema_versions.dart/`   | Dart helpers generated from the snapshots, used by `SchemaVerifier` in migration tests. **Do not edit by hand.** |
+
+`test/utils/schema_versions.dart/` contains three generated files:
+
+- `schema.dart` — exports `GeneratedHelper`, the entry point for `SchemaVerifier`.
+- `schema_vN.dart` — a minimal generated database class mirroring the table structure at version N (no app logic). `SchemaVerifier` uses these to create an in-memory database at any historical version, run the actual `onUpgrade` callback against it, then diff the result against the snapshot.
+
+### When to update
+
+Bump `schemaVersion` in `ChatItemsDatabase` whenever the table structure changes,
+then run the two commands below from the package root.
+
+**1. Dump the new snapshot:**
+
+```bash
+dart run drift_dev schema dump \
+  lib/src/repositories/chat_items_repository/chat_items_database.dart \
+  drift_schemas/drift_schema_v<new_version>.json
+```
+
+**2. Regenerate the test helpers:**
+
+```bash
+dart run drift_dev schema generate \
+  drift_schemas/ \
+  test/utils/schema_versions.dart/
+```
+
+Commit both the new `drift_schema_vN.json` and the regenerated
+`test/utils/schema_versions.dart/` files. Then add a migration test block
+in `test/chat_items_migration_test.dart` for the new version.
+
+### Canary test
+
+`test/chat_items_migration_test.dart` contains a canary test that verifies
+`GeneratedHelper.versions` includes the current `schemaVersion`. If the two
+commands above are not run after bumping the version, CI will fail immediately
+with a message like:
+
+```
+Expected: contains <3>
+  Actual: [1, 2]
+```
+
+This catches the missing snapshot steps before the migration tests even run.
+
 ## Workaround to open sqlcipher on old Android versions.
 
 On old Android versions, this method can help if you're having issues opening sqlite3 (e.g. if you're seeing crashes about libsqlcipher.so not being available). To be safe, call this method before using apis from package:sqlite3 or package:moor/ffi.dart.

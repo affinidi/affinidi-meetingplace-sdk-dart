@@ -71,7 +71,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             // Recreate chat_items with event_type and concierge_type as TEXT,
             // converting the old integer values to their string equivalents.
             //
-            // Drop any leftover chat_items_new first so the migration is
+            // Drop any leftover chat_items_temp first so the migration is
             // idempotent: if a previous upgrade attempt was interrupted and
             // left a partial table behind, we start clean on retry.
             await customStatement(

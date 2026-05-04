@@ -13,6 +13,7 @@ dependencies:
   drift: ^2.28.1
   meeting_place_chat: ^0.0.1-dev.33
   meeting_place_core: ^0.0.1-dev.31
+  meta: ^1.16.0
   path: ^1.9.1
   sqlite3: ^2.9.0
   synchronized: ^3.4.0

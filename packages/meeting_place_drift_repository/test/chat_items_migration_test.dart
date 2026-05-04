@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' show Variable;
+import 'package:drift_dev/api/migrations_native.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_drift_repository/meeting_place_drift_repository.dart';
-import 'package:sqlite3/sqlite3.dart';
 import 'package:test/test.dart';
+
+import 'utils/schema_versions.dart/schema.dart';
 
 ChatItemsDatabase _freshDatabase() => ChatItemsDatabase(
       databaseName: 'migration_test.db',
@@ -13,170 +16,121 @@ ChatItemsDatabase _freshDatabase() => ChatItemsDatabase(
       lazy: false,
     );
 
-Database _runMigrationSql() {
-  final db = sqlite3.openInMemory();
-  db.execute("PRAGMA key = 'test-passphrase';");
-
-  db.execute('''
-    CREATE TABLE chat_items (
-      chat_id TEXT NOT NULL,
-      message_id TEXT NOT NULL,
-      value TEXT,
-      is_from_me INTEGER NOT NULL DEFAULT 0,
-      date_created TEXT NOT NULL,
-      status INTEGER NOT NULL,
-      "type" INTEGER NOT NULL,
-      event_type INTEGER,
-      concierge_type INTEGER,
-      data TEXT,
-      sender_did TEXT NOT NULL,
-      PRIMARY KEY (message_id)
-    )
-  ''');
-
-  // status 4 = received, status 5 = userInput
-  // type   2 = conciergeMessage, type 3 = eventMessage
-  db.execute('''
-    INSERT INTO chat_items VALUES
-      ('c1','evt-joined','',0,'2026-01-01T00:00:00.000Z',4,3,1,NULL,NULL,'did:x:a'),
-      ('c1','evt-left',  '',0,'2026-01-01T00:00:00.000Z',4,3,2,NULL,NULL,'did:x:a'),
-      ('c1','evt-await', '',0,'2026-01-01T00:00:00.000Z',4,3,3,NULL,NULL,'did:x:a'),
-      ('c1','evt-del',   '',0,'2026-01-01T00:00:00.000Z',4,3,4,NULL,NULL,'did:x:a'),
-      ('c1','evt-null',  '',0,'2026-01-01T00:00:00.000Z',4,3,NULL,NULL,NULL,'did:x:a'),
-      ('c1','evt-unk',   '',0,'2026-01-01T00:00:00.000Z',4,3,99,NULL,NULL,'did:x:a'),
-      ('c1','con-prof',  '',0,'2026-01-01T00:00:00.000Z',5,2,NULL,1,'{}','did:x:a'),
-      ('c1','con-grp',   '',0,'2026-01-01T00:00:00.000Z',5,2,NULL,2,'{}','did:x:a'),
-      ('c1','con-null',  '',0,'2026-01-01T00:00:00.000Z',5,2,NULL,NULL,NULL,'did:x:a'),
-      ('c1','con-unk',   '',0,'2026-01-01T00:00:00.000Z',5,2,NULL,99,'{}','did:x:a')
-  ''');
-
-  db.execute('DROP TABLE IF EXISTS chat_items_temp');
-
-  db.execute('''
-    CREATE TABLE chat_items_temp (
-      chat_id TEXT NOT NULL,
-      message_id TEXT NOT NULL,
-      value TEXT,
-      is_from_me INTEGER NOT NULL DEFAULT 0,
-      date_created INTEGER NOT NULL,
-      status INTEGER NOT NULL,
-      "type" INTEGER NOT NULL,
-      event_type TEXT,
-      concierge_type TEXT,
-      data TEXT,
-      sender_did TEXT NOT NULL,
-      PRIMARY KEY (message_id)
-    )
-  ''');
-
-  db.execute('''
-    INSERT INTO chat_items_temp (
-      chat_id, message_id, value, is_from_me, date_created,
-      status, "type", event_type, concierge_type, data, sender_did
-    )
-    SELECT
-      chat_id, message_id, value, is_from_me, date_created,
-      status, "type",
-      CASE event_type
-        WHEN 1 THEN 'groupMemberJoinedGroup'
-        WHEN 2 THEN 'groupMemberLeftGroup'
-        WHEN 3 THEN 'awaitingGroupMemberToJoin'
-        WHEN 4 THEN 'groupDeleted'
-        WHEN NULL THEN NULL
-        ELSE 'unknown:' || CAST(event_type AS TEXT)
-      END,
-      CASE concierge_type
-        WHEN 1 THEN 'permissionToUpdateProfile'
-        WHEN 2 THEN 'permissionToJoinGroup'
-        WHEN NULL THEN NULL
-        ELSE 'unknown:' || CAST(concierge_type AS TEXT)
-      END,
-      data, sender_did
-    FROM chat_items
-  ''');
-
-  db.execute('DROP TABLE chat_items');
-  db.execute('ALTER TABLE chat_items_temp RENAME TO chat_items');
-
-  return db;
-}
-
-String? _field(Database db, String messageId, String column) {
-  final rows = db.select(
+// Queries a single nullable string column from chat_items via the Drift
+// database (available after migrateAndValidate and before close).
+Future<String?> _field(
+  ChatItemsDatabase db,
+  String messageId,
+  String column,
+) async {
+  final rows = await db.customSelect(
     'SELECT $column FROM chat_items WHERE message_id = ?',
-    [messageId],
-  );
-  return rows.isEmpty ? null : rows.first[column] as String?;
+    variables: [Variable(messageId)],
+  ).get();
+  return rows.isEmpty ? null : rows.first.read<String?>(column);
 }
 
 void main() {
-  group('ChatItemsDatabase schema v1→v2 migration SQL', () {
-    late Database db;
+  // SchemaVerifier uses the generated snapshots in `drift_schemas/` and
+  // exercises the actual ChatItemsDatabase.onUpgrade callback,
+  // not hand-rolled SQL. When a v3 schema is added, only a new snapshot
+  // file and a matching test block are needed; existing tests do not change.
+  late SchemaVerifier verifier;
 
-    setUpAll(() {
-      db = _runMigrationSql();
+  setUpAll(() {
+    verifier = SchemaVerifier(GeneratedHelper());
+  });
+
+  // Canary: fails immediately in CI when schemaVersion is bumped without
+  // running `drift_dev schema dump` + `drift_dev schema generate`.
+  // See README - Schema Migrations for the required commands.
+  test('schema snapshot exists for current schemaVersion', () {
+    final db = _freshDatabase();
+    expect(GeneratedHelper.versions, contains(db.schemaVersion));
+    db.close();
+  });
+
+  group('v1 → v2 schema migration', () {
+    test('produces the correct v2 schema', () async {
+      final connection = await verifier.startAt(1);
+      final db = ChatItemsDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 2);
+      await db.close();
     });
 
-    tearDownAll(() => db.dispose());
+    test('converts integer type columns to their string equivalents', () async {
+      // Use the v1 snapshot to create a real Drift-generated v1 database,
+      // then seed it with representative rows before migrating.
+      //
+      // status: 4 = received, 5 = userInput
+      // type:   2 = conciergeMessage, 3 = eventMessage
+      // event_type integers: 1=groupMemberJoinedGroup, 2=groupMemberLeftGroup,
+      //   3=awaitingGroupMemberToJoin, 4=groupDeleted, 99=unknown
+      // concierge_type integers: 1=permissionToUpdateProfile,
+      //   2=permissionToJoinGroup, 99=unknown
+      final schema = await verifier.schemaAt(1);
+      schema.rawDatabase.execute('''
+        INSERT INTO chat_items VALUES
+          ('c1','evt-joined','',0,'2026-01-01T00:00:00.000',4,3,1,NULL,NULL,'did:x:a'),
+          ('c1','evt-left',  '',0,'2026-01-01T00:00:00.000',4,3,2,NULL,NULL,'did:x:a'),
+          ('c1','evt-await', '',0,'2026-01-01T00:00:00.000',4,3,3,NULL,NULL,'did:x:a'),
+          ('c1','evt-del',   '',0,'2026-01-01T00:00:00.000',4,3,4,NULL,NULL,'did:x:a'),
+          ('c1','evt-null',  '',0,'2026-01-01T00:00:00.000',4,3,NULL,NULL,NULL,'did:x:a'),
+          ('c1','evt-unk',   '',0,'2026-01-01T00:00:00.000',4,3,99,NULL,NULL,'did:x:a'),
+          ('c1','con-prof',  '',0,'2026-01-01T00:00:00.000',5,2,NULL,1,'{}','did:x:a'),
+          ('c1','con-grp',   '',0,'2026-01-01T00:00:00.000',5,2,NULL,2,'{}','did:x:a'),
+          ('c1','con-null',  '',0,'2026-01-01T00:00:00.000',5,2,NULL,NULL,NULL,'did:x:a'),
+          ('c1','con-unk',   '',0,'2026-01-01T00:00:00.000',5,2,NULL,99,'{}','did:x:a')
+      ''');
 
-    group('event_type integer → string', () {
-      test('1 → groupMemberJoinedGroup', () {
-        expect(_field(db, 'evt-joined', 'event_type'),
-            equals('groupMemberJoinedGroup'));
-      });
+      final db = ChatItemsDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 2);
 
-      test('2 → groupMemberLeftGroup', () {
-        expect(_field(db, 'evt-left', 'event_type'),
-            equals('groupMemberLeftGroup'));
-      });
+      // Verify integer → string conversion via the live Drift connection.
+      expect(
+        await _field(db, 'evt-joined', 'event_type'),
+        equals('groupMemberJoinedGroup'),
+      );
+      expect(
+        await _field(db, 'evt-left', 'event_type'),
+        equals('groupMemberLeftGroup'),
+      );
+      expect(
+        await _field(db, 'evt-await', 'event_type'),
+        equals('awaitingGroupMemberToJoin'),
+      );
+      expect(
+        await _field(db, 'evt-del', 'event_type'),
+        equals('groupDeleted'),
+      );
+      expect(await _field(db, 'evt-null', 'event_type'), isNull);
+      expect(
+        await _field(db, 'evt-unk', 'event_type'),
+        equals('unknown:99'),
+      );
+      expect(
+        await _field(db, 'con-prof', 'concierge_type'),
+        equals('permissionToUpdateProfile'),
+      );
+      expect(
+        await _field(db, 'con-grp', 'concierge_type'),
+        equals('permissionToJoinGroup'),
+      );
+      expect(await _field(db, 'con-null', 'concierge_type'), isNull);
+      expect(
+        await _field(db, 'con-unk', 'concierge_type'),
+        equals('unknown:99'),
+      );
 
-      test('3 → awaitingGroupMemberToJoin', () {
-        expect(_field(db, 'evt-await', 'event_type'),
-            equals('awaitingGroupMemberToJoin'));
-      });
-
-      test('4 → groupDeleted', () {
-        expect(_field(db, 'evt-del', 'event_type'), equals('groupDeleted'));
-      });
-
-      test('NULL stays NULL', () {
-        expect(_field(db, 'evt-null', 'event_type'), isNull);
-      });
-
-      test('unknown integer → unknown:<n>', () {
-        expect(_field(db, 'evt-unk', 'event_type'), equals('unknown:99'));
-      });
-    });
-
-    group('concierge_type integer → string', () {
-      test('1 → permissionToUpdateProfile', () {
-        expect(_field(db, 'con-prof', 'concierge_type'),
-            equals('permissionToUpdateProfile'));
-      });
-
-      test('2 → permissionToJoinGroup', () {
-        expect(_field(db, 'con-grp', 'concierge_type'),
-            equals('permissionToJoinGroup'));
-      });
-
-      test('NULL stays NULL', () {
-        expect(_field(db, 'con-null', 'concierge_type'), isNull);
-      });
-
-      test('unknown integer → unknown:<n>', () {
-        expect(_field(db, 'con-unk', 'concierge_type'), equals('unknown:99'));
-      });
-    });
-
-    test('all 10 rows are preserved after migration', () {
-      final count =
-          db.select('SELECT COUNT(*) AS n FROM chat_items').first['n'] as int;
+      final count = (await db
+              .customSelect(
+                'SELECT COUNT(*) AS n FROM chat_items',
+              )
+              .getSingle())
+          .read<int>('n');
       expect(count, equals(10));
-    });
 
-    test('migration is idempotent (DROP IF EXISTS guard)', () {
-      // Running the migration a second time should not throw.
-      expect(_runMigrationSql, returnsNormally);
+      await db.close();
     });
   });
 

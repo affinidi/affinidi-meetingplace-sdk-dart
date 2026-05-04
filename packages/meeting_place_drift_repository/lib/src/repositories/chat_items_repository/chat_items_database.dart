@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meta/meta.dart';
 
 import '../../database/database_platform.dart';
 
@@ -60,6 +61,13 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           ),
         );
 
+  /// Opens a [ChatItemsDatabase] from an existing [connection].
+  ///
+  /// Intended for migration and schema verification tests only — avoids the
+  /// encryption setup performed by the primary constructor.
+  @visibleForTesting
+  ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
+
   @override
   int get schemaVersion => 2;
 
@@ -81,14 +89,15 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
               CREATE TABLE chat_items_temp (
                 chat_id TEXT NOT NULL,
                 message_id TEXT NOT NULL,
-                value TEXT,
-                is_from_me INTEGER NOT NULL DEFAULT 0,
-                date_created INTEGER NOT NULL,
+                value TEXT NULL,
+                is_from_me INTEGER NOT NULL DEFAULT 0
+                  CHECK ("is_from_me" IN (0, 1)),
+                date_created TEXT NOT NULL,
                 status INTEGER NOT NULL,
                 "type" INTEGER NOT NULL,
-                event_type TEXT,
-                concierge_type TEXT,
-                data TEXT,
+                event_type TEXT NULL,
+                concierge_type TEXT NULL,
+                data TEXT NULL,
                 sender_did TEXT NOT NULL,
                 PRIMARY KEY (message_id)
               )

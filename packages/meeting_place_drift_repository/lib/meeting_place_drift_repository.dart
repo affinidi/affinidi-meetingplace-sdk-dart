@@ -12,3 +12,7 @@ export 'src/repositories/connection_offer_repository/connection_offer_database.d
 export 'src/repositories/connection_offer_repository/connection_offer_repository_drift.dart';
 export 'src/repositories/group_repository/groups_database.dart';
 export 'src/repositories/group_repository/groups_repository_drift.dart';
+export 'src/repositories/r_card_repository/r_card_database.dart';
+export 'src/repositories/r_card_repository/r_card_repository_drift.dart';
+export 'src/repositories/vrc_repository/vrc_database.dart';
+export 'src/repositories/vrc_repository/vrc_repository_drift.dart';

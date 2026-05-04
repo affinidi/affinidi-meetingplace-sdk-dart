@@ -74,6 +74,8 @@ melos:
 
         remove_from_coverage -f coverage/lcov.info -r 'packages/meeting_place_control_plane/lib/src/api/api_client/.*' &&
 
+        remove_from_coverage -f coverage/lcov.info -r '\.g\.dart' &&
+
         echo "Coverage report generated at coverage/lcov.info"
 
     build-runner:

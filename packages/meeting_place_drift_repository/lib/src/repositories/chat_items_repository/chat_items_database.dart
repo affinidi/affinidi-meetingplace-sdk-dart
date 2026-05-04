@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:clock/clock.dart';
 import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meta/meta.dart';
 
 import '../../database/database_platform.dart';
 
@@ -60,11 +61,83 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           ),
         );
 
+  /// Opens a [ChatItemsDatabase] from an existing [connection].
+  ///
+  /// Intended for migration and schema verification tests only — avoids the
+  /// encryption setup performed by the primary constructor.
+  @visibleForTesting
+  ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
+
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // SQLite does not support changing column types in-place.
+            // Recreate chat_items with event_type and concierge_type as TEXT,
+            // converting the old integer values to their string equivalents.
+            //
+            // Drop any leftover chat_items_temp first so the migration is
+            // idempotent: if a previous upgrade attempt was interrupted and
+            // left a partial table behind, we start clean on retry.
+            await customStatement(
+              'DROP TABLE IF EXISTS chat_items_temp',
+            );
+            await customStatement('''
+              CREATE TABLE chat_items_temp (
+                chat_id TEXT NOT NULL,
+                message_id TEXT NOT NULL,
+                value TEXT NULL,
+                is_from_me INTEGER NOT NULL DEFAULT 0
+                  CHECK ("is_from_me" IN (0, 1)),
+                date_created TEXT NOT NULL,
+                status INTEGER NOT NULL,
+                "type" INTEGER NOT NULL,
+                event_type TEXT NULL,
+                concierge_type TEXT NULL,
+                data TEXT NULL,
+                sender_did TEXT NOT NULL,
+                PRIMARY KEY (message_id)
+              )
+            ''');
+            // Explicit destination column list keeps the INSERT correct
+            // regardless of column order changes in future schema versions.
+            // Unknown legacy integer values are preserved as 'unknown:<n>'
+            // rather than NULL so that corrupted rows remain diagnosable and
+            // do not cause null-assert failures in the mapper.
+            await customStatement('''
+              INSERT INTO chat_items_temp (
+                chat_id, message_id, value, is_from_me, date_created,
+                status, "type", event_type, concierge_type, data, sender_did
+              )
+              SELECT
+                chat_id, message_id, value, is_from_me, date_created,
+                status, "type",
+                CASE event_type
+                  WHEN 1 THEN 'groupMemberJoinedGroup'
+                  WHEN 2 THEN 'groupMemberLeftGroup'
+                  WHEN 3 THEN 'awaitingGroupMemberToJoin'
+                  WHEN 4 THEN 'groupDeleted'
+                  WHEN NULL THEN NULL
+                  ELSE 'unknown:' || CAST(event_type AS TEXT)
+                END,
+                CASE concierge_type
+                  WHEN 1 THEN 'permissionToUpdateProfile'
+                  WHEN 2 THEN 'permissionToJoinGroup'
+                  WHEN NULL THEN NULL
+                  ELSE 'unknown:' || CAST(concierge_type AS TEXT)
+                END,
+                data, sender_did
+              FROM chat_items
+            ''');
+            await customStatement('DROP TABLE chat_items');
+            await customStatement(
+              'ALTER TABLE chat_items_temp RENAME TO chat_items',
+            );
+          }
+        },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
@@ -98,12 +171,10 @@ class ChatItems extends Table {
   IntColumn get type => integer().map(const _ChatItemTypeConverter())();
 
   /// Event message type, if applicable.
-  IntColumn get eventType =>
-      integer().nullable().map(const _EventMessageTypeConverter())();
+  TextColumn get eventType => text().nullable()();
 
   /// Concierge message type, if applicable.
-  IntColumn get conciergeType =>
-      integer().nullable().map(const _ConciergeMessageTypeConverter())();
+  TextColumn get conciergeType => text().nullable()();
 
   /// Additional data for concierge messages.
   TextColumn get data =>
@@ -244,63 +315,6 @@ class _ChatItemTypeConverter extends TypeConverter<ChatItemType, int> {
 
   @override
   int toSql(ChatItemType value) {
-    return value.value;
-  }
-}
-
-extension _EventMessageTypeValue on EventMessageType {
-  int get value {
-    switch (this) {
-      case EventMessageType.groupMemberJoinedGroup:
-        return 1;
-      case EventMessageType.groupMemberLeftGroup:
-        return 2;
-      case EventMessageType.awaitingGroupMemberToJoin:
-        return 3;
-      case EventMessageType.groupDeleted:
-        return 4;
-    }
-  }
-}
-
-class _EventMessageTypeConverter extends TypeConverter<EventMessageType, int> {
-  const _EventMessageTypeConverter();
-
-  @override
-  EventMessageType fromSql(int fromDb) {
-    return EventMessageType.values.firstWhere((type) => type.value == fromDb);
-  }
-
-  @override
-  int toSql(EventMessageType value) {
-    return value.value;
-  }
-}
-
-extension _ConciergeMessageTypeValue on ConciergeMessageType {
-  int get value {
-    switch (this) {
-      case ConciergeMessageType.permissionToUpdateProfile:
-        return 1;
-      case ConciergeMessageType.permissionToJoinGroup:
-        return 2;
-    }
-  }
-}
-
-class _ConciergeMessageTypeConverter
-    extends TypeConverter<ConciergeMessageType, int> {
-  const _ConciergeMessageTypeConverter();
-
-  @override
-  ConciergeMessageType fromSql(int fromDb) {
-    return ConciergeMessageType.values.firstWhere(
-      (type) => type.value == fromDb,
-    );
-  }
-
-  @override
-  int toSql(ConciergeMessageType value) {
     return value.value;
   }
 }

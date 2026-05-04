@@ -15,9 +15,8 @@ ConciergeMessage _$ConciergeMessageFromJson(Map<String, dynamic> json) =>
       dateCreated: DateTime.parse(json['dateCreated'] as String),
       status: $enumDecode(_$ChatItemStatusEnumMap, json['status']),
       data: json['data'] as Map<String, dynamic>,
-      conciergeType: $enumDecode(
-        _$ConciergeMessageTypeEnumMap,
-        json['conciergeType'],
+      conciergeType: const _ConciergeMessageTypeConverter().fromJson(
+        json['conciergeType'] as String,
       ),
       type:
           $enumDecodeNullable(_$ChatItemTypeEnumMap, json['type']) ??
@@ -34,7 +33,9 @@ Map<String, dynamic> _$ConciergeMessageToJson(ConciergeMessage instance) =>
       'type': _$ChatItemTypeEnumMap[instance.type]!,
       'status': _$ChatItemStatusEnumMap[instance.status]!,
       'data': instance.data,
-      'conciergeType': _$ConciergeMessageTypeEnumMap[instance.conciergeType]!,
+      'conciergeType': const _ConciergeMessageTypeConverter().toJson(
+        instance.conciergeType,
+      ),
     };
 
 const _$ChatItemStatusEnumMap = {
@@ -45,11 +46,6 @@ const _$ChatItemStatusEnumMap = {
   ChatItemStatus.error: 'error',
   ChatItemStatus.userInput: 'userInput',
   ChatItemStatus.confirmed: 'confirmed',
-};
-
-const _$ConciergeMessageTypeEnumMap = {
-  ConciergeMessageType.permissionToUpdateProfile: 'permissionToUpdateProfile',
-  ConciergeMessageType.permissionToJoinGroup: 'permissionToJoinGroup',
 };
 
 const _$ChatItemTypeEnumMap = {

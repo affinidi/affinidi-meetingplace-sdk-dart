@@ -51,7 +51,7 @@ void main() {
       });
 
       test('persists and retrieves a custom concierge type', () async {
-        const meetingRequest = ConciergeMessageType('meetingRequest');
+        final meetingRequest = ConciergeMessageType.fromJson('meetingRequest');
 
         final message = ConciergeMessage(
           chatId: 'chat-1',
@@ -76,7 +76,7 @@ void main() {
       });
 
       test('listMessages returns custom concierge type', () async {
-        const supportTicket = ConciergeMessageType('supportTicket');
+        final supportTicket = ConciergeMessageType.fromJson('supportTicket');
 
         await repository.createMessage(
           ConciergeMessage(
@@ -98,7 +98,8 @@ void main() {
       });
 
       test('updates status while preserving a custom concierge type', () async {
-        const bookingApproval = ConciergeMessageType('bookingApproval');
+        final bookingApproval =
+            ConciergeMessageType.fromJson('bookingApproval');
 
         final message = ConciergeMessage(
           chatId: 'chat-1',
@@ -151,7 +152,7 @@ void main() {
       });
 
       test('persists and retrieves a custom event type', () async {
-        const fileShared = EventMessageType('fileShared');
+        final fileShared = EventMessageType.fromJson('fileShared');
 
         final message = EventMessage(
           chatId: 'chat-1',
@@ -176,7 +177,7 @@ void main() {
       });
 
       test('listMessages returns custom event type', () async {
-        const callStarted = EventMessageType('callStarted');
+        final callStarted = EventMessageType.fromJson('callStarted');
 
         await repository.createMessage(
           EventMessage(

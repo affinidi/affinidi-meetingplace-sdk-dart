@@ -625,7 +625,9 @@ class _ChatItemMapper {
         dateCreated: message.dateCreated,
         status: message.status,
         data: message.data!,
-        conciergeType: model.ConciergeMessageType(message.conciergeType!),
+        conciergeType: model.ConciergeMessageType.fromJson(
+          message.conciergeType!,
+        ),
       );
     }
 
@@ -634,7 +636,7 @@ class _ChatItemMapper {
         chatId: message.chatId,
         messageId: message.messageId,
         senderDid: message.senderDid,
-        eventType: model.EventMessageType(message.eventType!),
+        eventType: model.EventMessageType.fromJson(message.eventType!),
         isFromMe: message.isFromMe,
         dateCreated: message.dateCreated,
         status: message.status,

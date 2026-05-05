@@ -1,8 +1,9 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_chat.dart';
-import '../sdk/base_chat_sdk.dart';
 import '../core/chat_stream/chat_event_conversion.dart';
+import '../protocol/protocol.dart';
+import '../sdk/base_chat_sdk.dart';
 
 class ChatAliasProfileHashHandler {
   ChatAliasProfileHashHandler({

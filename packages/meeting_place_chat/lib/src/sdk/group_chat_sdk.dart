@@ -5,8 +5,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
-import '../core/constants.dart';
 import '../core/chat_history_service.dart';
+import '../core/chat_stream/chat_event_conversion.dart';
+import '../core/constants.dart';
 import '../entity/chat_attachment_conversion.dart';
 import '../entity/message.dart' as entity_chat_message;
 import '../group/chat_group_alias_profile_hash_handler.dart';
@@ -17,7 +18,7 @@ import '../group/chat_group_details_update_handler.dart';
 import '../group/chat_group_member_deregistered_message_handler.dart';
 import '../group/chat_group_member_joined_handler.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
-import '../core/chat_stream/chat_event_conversion.dart';
+import '../protocol/protocol.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 

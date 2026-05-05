@@ -4,6 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../meeting_place_chat.dart';
+import '../core/chat_stream/chat_event_conversion.dart';
 import '../entity/chat_attachment_conversion.dart';
 import '../handlers/chat_alias_profile_hash_handler.dart';
 import '../handlers/chat_alias_profile_request_handler.dart';
@@ -13,8 +14,6 @@ import '../handlers/chat_message_handler.dart';
 import '../handlers/chat_reaction_handler.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
-import '../core/chat_stream/chat_event_conversion.dart';
-import '../core/chat_stream/chat_event.dart';
 import '../utils/chat_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 

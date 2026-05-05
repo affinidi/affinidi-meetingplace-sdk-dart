@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../core/chat_stream/chat_event_conversion.dart';
+import '../protocol/protocol.dart';
 
 class ChatGroupAliasProfileRequestHandler {
   ChatGroupAliasProfileRequestHandler({

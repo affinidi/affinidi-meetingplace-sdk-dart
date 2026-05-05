@@ -130,33 +130,26 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// Sends a group message via the mediator.
   ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to send.
+  /// - [message]: The [CustomMessage] to send.
   /// - [notify]: Whether to notify group members (default: `false`).
   ///
   /// **Returns:**
   /// - A [Future] that completes when the message is sent.
   @override
-  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
-    final senderDid = message.from;
-    if (senderDid == null || senderDid != did) {
-      throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID '
-        '$did.',
-      );
-    }
-
-    final recipientDid = message.to?.firstOrNull;
-    if (recipientDid == null || recipientDid != otherPartyDid) {
-      throw Exception(
-        'Message "to" DID ${message.to} does not match chat recipient DID '
-        '$otherPartyDid.',
-      );
-    }
+  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
+    final plainTextMessage = PlainTextMessage(
+      id: message.id,
+      type: Uri.parse(message.type),
+      from: did,
+      to: [otherPartyDid],
+      body: message.body,
+      attachments: message.attachments,
+    );
 
     return sendPlainTextMessage(
-      message,
-      senderDid: senderDid,
-      recipientDid: recipientDid,
+      plainTextMessage,
+      senderDid: did,
+      recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
       notify: notify,
     );

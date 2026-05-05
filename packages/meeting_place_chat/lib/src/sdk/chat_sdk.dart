@@ -12,7 +12,7 @@ abstract interface class ChatSDK {
 
   Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
 
-  Future<void> sendMessage(PlainTextMessage message, {bool notify = false});
+  Future<void> sendMessage(CustomMessage message, {bool notify = false});
   Future<void> sendProfileHash();
   Future<void> sendChatActivity();
   Future<void> sendChatPresence();

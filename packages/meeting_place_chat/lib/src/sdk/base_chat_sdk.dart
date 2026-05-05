@@ -348,33 +348,28 @@ abstract class BaseChatSDK {
     );
   }
 
-  /// Sends a custom [PlainTextMessage] using the chat's sender and recipient
+  /// Sends a custom [CustomMessage] using the chat's sender and recipient
   /// DIDs. No chat item is created or persisted for this type of operation.
   ///
+  /// The SDK populates `from` and `to` from its own [did] and [otherPartyDid].
+  ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to send.
+  /// - [message]: The [CustomMessage] to send.
   ///
   /// Returns a [Future] that completes when the message has been sent.
-  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
-    final senderDid = message.from;
-    if (senderDid == null || senderDid != did) {
-      throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID '
-        '$did.',
-      );
-    }
-
-    final recipientDid = message.to?.firstOrNull;
-    if (recipientDid == null || recipientDid != otherPartyDid) {
-      throw Exception(
-        'Message "to" DID ${message.to} does not match chat recipient DID '
-        '$otherPartyDid.',
-      );
-    }
+  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
+    final plainTextMessage = PlainTextMessage(
+      id: message.id,
+      type: Uri.parse(message.type),
+      from: did,
+      to: [otherPartyDid],
+      body: message.body,
+      attachments: message.attachments,
+    );
 
     return sendDirectMessage(
-      message,
-      recipientDid: recipientDid,
+      plainTextMessage,
+      recipientDid: otherPartyDid,
       notify: notify,
     );
   }

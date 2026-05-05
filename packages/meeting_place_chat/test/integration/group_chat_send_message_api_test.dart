@@ -46,11 +46,9 @@ void main() {
       }
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'group-test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.groupOwnerDidDocument.id,
-      to: [fixture.publishOfferResult.connectionOffer.groupDid!],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Hello group via sendMessage',
         'seq_no': 1,
@@ -81,34 +79,6 @@ void main() {
     );
   });
 
-  test('group sendMessage throws if from/to are set incorrectly', () async {
-    await fixture.aliceChatSDK.startChatSession();
-
-    final wrongFrom = PlainTextMessage(
-      id: 'group-test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: 'did:wrong:alice',
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongFrom),
-      throwsA(isA<Exception>()),
-    );
-
-    final wrongTo = PlainTextMessage(
-      id: 'group-test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      to: ['did:wrong:group'],
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongTo),
-      throwsA(isA<Exception>()),
-    );
-  });
-
   test('group sendMessage with notify flag delivers message', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
@@ -127,11 +97,9 @@ void main() {
       }
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'group-notify-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.groupOwnerDidDocument.id,
-      to: [fixture.publishOfferResult.connectionOffer.groupDid!],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Notify group test',
         'seq_no': 1,

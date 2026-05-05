@@ -28,12 +28,13 @@ class ChatAliasProfileHashHandler {
       return;
     }
 
-    await _chatSDK.sendMessage(
+    await _chatSDK.sendDirectMessage(
       ChatAliasProfileRequest.create(
         from: _chatSDK.did,
         to: [_chatSDK.otherPartyDid],
         profileHash: profileHash,
       ).toPlainTextMessage(),
+      recipientDid: _chatSDK.otherPartyDid,
     );
 
     _streamManager.pushData(StreamData(plainTextMessage: message));

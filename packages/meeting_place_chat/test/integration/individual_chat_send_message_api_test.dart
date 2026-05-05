@@ -32,11 +32,9 @@ void main() {
       });
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.aliceSDK.didDocument.id,
-      to: [fixture.bobSDK.didDocument.id],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Hello via sendMessage',
         'seq_no': 1,
@@ -50,34 +48,6 @@ void main() {
     expect(received.body!['text'], equals('Hello via sendMessage'));
     expect(received.from, equals(fixture.aliceSDK.didDocument.id));
     expect(received.to?.first, equals(fixture.bobSDK.didDocument.id));
-  });
-
-  test('sendMessage throws if from/to are set incorrectly', () async {
-    await fixture.aliceChatSDK.startChatSession();
-
-    final wrongFrom = PlainTextMessage(
-      id: 'test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: 'did:wrong:alice',
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongFrom),
-      throwsA(isA<Exception>()),
-    );
-
-    final wrongTo = PlainTextMessage(
-      id: 'test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      to: ['did:wrong:bob'],
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongTo),
-      throwsA(isA<Exception>()),
-    );
   });
 
   test('sendMessage with notify flag sends notification', () async {
@@ -96,11 +66,9 @@ void main() {
       });
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'notify-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.aliceSDK.didDocument.id,
-      to: [fixture.bobSDK.didDocument.id],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Notify test',
         'seq_no': 1,

@@ -1,4 +1,4 @@
-import '../entity/chat_item.dart';
+import '../../entity/chat_item.dart';
 import 'chat_event.dart';
 
 class StreamData {

@@ -13,8 +13,8 @@ import '../handlers/chat_message_handler.dart';
 import '../handlers/chat_reaction_handler.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
-import '../service/chat_event_conversion.dart';
-import '../service/chat_event.dart';
+import '../core/chat_stream/chat_event_conversion.dart';
+import '../core/chat_stream/chat_event.dart';
 import '../utils/chat_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 

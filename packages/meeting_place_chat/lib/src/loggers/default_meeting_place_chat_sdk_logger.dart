@@ -1,6 +1,6 @@
 import 'dart:developer' as developer;
 
-import '../constants/sdk_constants.dart' as constants;
+import '../core/constants.dart' as constants;
 import 'meeting_place_chat_sdk_logger.dart';
 
 /// Default console logger implementation using `dart:developer`.

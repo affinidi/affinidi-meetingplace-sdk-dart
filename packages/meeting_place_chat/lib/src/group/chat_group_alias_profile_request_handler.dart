@@ -2,7 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
-import '../service/chat_event_conversion.dart';
+import '../core/chat_stream/chat_event_conversion.dart';
 
 class ChatGroupAliasProfileRequestHandler {
   ChatGroupAliasProfileRequestHandler({

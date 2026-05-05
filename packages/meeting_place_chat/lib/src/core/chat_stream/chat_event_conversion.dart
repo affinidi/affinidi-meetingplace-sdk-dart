@@ -1,7 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
-import '../protocol/protocol.dart' as protocol;
+import '../../protocol/protocol.dart' as protocol;
 import 'chat_event.dart';
 
 @internal

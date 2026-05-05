@@ -252,7 +252,7 @@ abstract class BaseChatSDK {
 
     final channel = await getChannel();
     if (_requiresAcknowledgement(message.plainTextMessage)) {
-      unawaited(sendChatDeliveredMessage(message.plainTextMessage));
+      unawaited(sendChatDeliveredMessage(message.plainTextMessage.id));
     }
 
     if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
@@ -542,14 +542,20 @@ abstract class BaseChatSDK {
   }
 
   /// Sends a "delivered" acknowledgement for a received message.
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message) async {
+  ///
+  /// **Parameters:**
+  /// - [messageId]: The ID of the message being acknowledged as delivered.
+  ///
+  /// **Returns:**
+  /// - A [Future] that completes when the acknowledgement has been sent.
+  Future<void> sendChatDeliveredMessage(String messageId) async {
     final methodName = 'sendChatDeliveredMessage';
     _logger.info('Started sending chat delivered message', name: methodName);
     await sendPlainTextMessage(
       protocol.ChatDelivered.create(
         from: did,
         to: [otherPartyDid],
-        messages: [message.id],
+        messages: [messageId],
       ).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,

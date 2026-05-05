@@ -196,10 +196,10 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// Sends a "delivered" receipt for a plain text message.
   ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] that was delivered.
+  /// - [messageId]: The ID of the message that was delivered.
   @override
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message) =>
-      _sdk.sendChatDeliveredMessage(message);
+  Future<void> sendChatDeliveredMessage(String messageId) =>
+      _sdk.sendChatDeliveredMessage(messageId);
 
   /// Approves an incoming connection request.
   ///

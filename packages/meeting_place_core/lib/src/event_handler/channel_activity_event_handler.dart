@@ -7,7 +7,10 @@ import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../repository/repository.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
+import '../service/mediator/fetch_messages_options.dart';
 import '../service/mediator/mediator_service.dart';
+import '../vdip/channel_activity_type.dart';
+import '../vdip/vdip_client.dart';
 import 'channel_inauguration_event_handler.dart';
 import 'chat_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
@@ -21,13 +24,15 @@ class ChannelActivityEventHandler {
     required ConnectionOfferRepository connectionOfferRepository,
     required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
+    required VdipClient vdipClient,
   }) : _wallet = wallet,
        _connectionManager = connectionManager,
        _channelService = channelService,
        _connectionOfferRepository = connectionOfferRepository,
        _mediatorService = mediatorService,
        _options = options,
-       _logger = logger;
+       _logger = logger,
+       _vdipClient = vdipClient;
 
   final Wallet _wallet;
   final MediatorService _mediatorService;
@@ -36,6 +41,7 @@ class ChannelActivityEventHandler {
   final ConnectionManager _connectionManager;
   final ControlPlaneEventHandlerManagerOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
+  final VdipClient _vdipClient;
 
   static final String _logKey = 'ChannelActivityEventHandler';
 
@@ -71,6 +77,15 @@ class ChannelActivityEventHandler {
       ).process(channelActivity);
     }
 
+    if (channelActivity.type == ChannelActivityType.vdipRequestIssuance ||
+        channelActivity.type == ChannelActivityType.vdipIssuedCredentials) {
+      _logger.info(
+        'Processing VDIP activity event: ${channelActivity.type}',
+        name: _logKey,
+      );
+      return _processVdipActivity(channelActivity);
+    }
+
     _logger.warning(
       'Unsupported channel activity type: ${channelActivity.type}',
       name: _logKey,
@@ -87,5 +102,33 @@ class ChannelActivityEventHandler {
           (event) => event.data.did == channelActivity.did,
         ) !=
         null;
+  }
+
+  Future<List<Channel>> _processVdipActivity(
+    ChannelActivity channelActivity,
+  ) async {
+    final channel = await _channelService.findChannelByDid(channelActivity.did);
+    final didManager = await _connectionManager.getDidManagerForDid(
+      _wallet,
+      channel.permanentChannelDid!,
+    );
+
+    final messages = await _mediatorService.fetchMessages(
+      didManager: didManager,
+      mediatorDid: channel.mediatorDid,
+      options: const FetchMessagesOptions(
+        deleteOnRetrieve: false,
+        filterByMessageTypes: [
+          ChannelActivityType.vdipRequestIssuance,
+          ChannelActivityType.vdipIssuedCredentials,
+        ],
+      ),
+    );
+
+    for (final message in messages) {
+      _vdipClient.dispatch(message.plainTextMessage);
+    }
+
+    return [];
   }
 }

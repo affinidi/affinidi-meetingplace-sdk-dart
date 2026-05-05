@@ -26,14 +26,10 @@ void main() {
 
     final receivedMessageIds = <String>[];
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) {
-        final isChatMessage =
-            message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value;
-
-        if (isChatMessage &&
-            !receivedMessageIds.contains(message.plainTextMessage!.id)) {
-          receivedMessageIds.add(message.plainTextMessage!.id);
+      stream!.listen((data) {
+        if (data.event is ChatMessageEvent &&
+            !receivedMessageIds.contains(data.chatItem!.messageId)) {
+          receivedMessageIds.add(data.chatItem!.messageId);
           if (receivedMessageIds.length == 2) {
             bobCompleter.complete();
           }
@@ -50,14 +46,12 @@ void main() {
     );
 
     await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatDelivered.value) {
-          final deliveredMessage = ChatDelivered.fromPlainTextMessage(
-            message.plainTextMessage!,
-          );
-
-          final removed = messageIds.remove(deliveredMessage.body.messages[0]);
+      stream!.listen((data) {
+        final event = data.event;
+        if (event is UnhandledChatEvent &&
+            event.type == ChatProtocol.chatDelivered.value) {
+          final deliveredIds = (event.body!['messages'] as List).cast<String>();
+          final removed = messageIds.remove(deliveredIds.first);
           if (messageIds.isEmpty && removed) {
             aliceCompleter.complete();
           }
@@ -88,9 +82,7 @@ void main() {
 
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (!bobChatCompleted.isCompleted &&
-            data.plainTextMessage?.type.toString() ==
-                ChatProtocol.chatMessage.value) {
+        if (!bobChatCompleted.isCompleted && data.event is ChatMessageEvent) {
           bobChatCompleted.complete();
         }
       });
@@ -100,10 +92,11 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
 
     await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) {
+      stream!.listen((data) {
+        final event = data.event;
         if (!aliceDelivered.isCompleted &&
-            message.plainTextMessage?.type.toString() ==
-                ChatProtocol.chatDelivered.value) {
+            event is UnhandledChatEvent &&
+            event.type == ChatProtocol.chatDelivered.value) {
           aliceDelivered.complete();
         }
       });

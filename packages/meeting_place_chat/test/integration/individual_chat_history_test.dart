@@ -26,9 +26,7 @@ void main() {
 
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (!bobChatCompleted.isCompleted &&
-            data.plainTextMessage?.type.toString() ==
-                ChatProtocol.chatMessage.value) {
+        if (!bobChatCompleted.isCompleted && data.event is ChatMessageEvent) {
           bobChatCompleted.complete();
         }
       });
@@ -38,10 +36,11 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
 
     await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) {
+      stream!.listen((data) {
+        final event = data.event;
         if (!aliceDelivered.isCompleted &&
-            message.plainTextMessage?.type.toString() ==
-                ChatProtocol.chatDelivered.value) {
+            event is UnhandledChatEvent &&
+            event.type == ChatProtocol.chatDelivered.value) {
           aliceDelivered.complete();
         }
       });
@@ -101,23 +100,19 @@ void main() {
     await fixture.aliceChatSDK.sendTextMessage('Hello Bob!');
     await fixture.bobChatSDK.startChatSession();
 
-    final completer = Completer<PlainTextMessage>();
+    final completer = Completer<Message>();
     await fixture.bobChatSDK.chatStreamSubscription.then(
       (stream) => {
         stream!.listen((data) {
-          final isChatMessage =
-              data.plainTextMessage?.type.toString() ==
-              ChatProtocol.chatMessage.value;
-
-          if (isChatMessage && !completer.isCompleted) {
-            completer.complete(data.plainTextMessage);
+          if (data.event is ChatMessageEvent && !completer.isCompleted) {
+            completer.complete(data.chatItem as Message);
           }
         }),
       },
     );
 
     final actual = await completer.future;
-    expect(actual.body!['text'], equals('Hello Bob!'));
+    expect(actual.value, equals('Hello Bob!'));
   });
 
   test(

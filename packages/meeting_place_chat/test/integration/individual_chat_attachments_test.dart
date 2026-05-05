@@ -47,14 +47,11 @@ void main() {
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
         if (!bobWaitForAttachments.isCompleted &&
-            data.plainTextMessage?.type.toString() ==
-                ChatProtocol.chatMessage.value &&
-            message.messageId == data.plainTextMessage?.id) {
+            data.event is ChatMessageEvent &&
+            message.messageId == data.chatItem?.messageId) {
           stream.dispose();
           bobWaitForAttachments.complete(
-            (data.plainTextMessage?.attachments ?? [])
-                .map((a) => ChatAttachment.fromJson(a.toJson()))
-                .toList(),
+            (data.chatItem as Message).attachments,
           );
         }
       });

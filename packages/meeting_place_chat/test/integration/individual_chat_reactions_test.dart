@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_chat/src/utils/message_utils.dart';
 import 'package:test/test.dart';
 
 import 'utils/individual_chat_fixture.dart';
@@ -24,8 +23,7 @@ void main() {
     final bobChatCompleted = Completer<void>();
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
+        if (message.event is ChatMessageEvent) {
           if (!bobChatCompleted.isCompleted) bobChatCompleted.complete();
         }
       });
@@ -42,10 +40,9 @@ void main() {
     await fixture.aliceChatSDK.chatStreamSubscription.then(
       (stream) => {
         stream!.listen((message) {
-          if (MessageUtils.isType(
-            message.plainTextMessage!,
-            ChatProtocol.chatReaction,
-          )) {
+          final event = message.event;
+          if (event is UnhandledChatEvent &&
+              event.type == ChatProtocol.chatReaction.value) {
             count++;
             if (count == 2) messageReceivedTwoReactions.complete();
             if (count == 3) oneReactionRemovedFromMessage.complete();

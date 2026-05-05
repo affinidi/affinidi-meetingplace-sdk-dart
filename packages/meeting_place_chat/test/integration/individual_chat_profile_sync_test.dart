@@ -25,8 +25,9 @@ void main() {
       final waitForProfileHashMessage = Completer<bool>();
       await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
         stream!.listen((message) {
-          if (message.plainTextMessage?.type.toString() ==
-              ChatProtocol.chatAliasProfileHash.value) {
+          final event = message.event;
+          if (event is UnhandledChatEvent &&
+              event.type == ChatProtocol.chatAliasProfileHash.value) {
             if (!waitForProfileHashMessage.isCompleted) {
               waitForProfileHashMessage.complete(true);
             }
@@ -53,8 +54,9 @@ void main() {
 
     await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatAliasProfileHash.value) {
+        final event = message.event;
+        if (event is UnhandledChatEvent &&
+            event.type == ChatProtocol.chatAliasProfileHash.value) {
           if (!aliceCompleter.isCompleted) aliceCompleter.complete();
         }
       });
@@ -72,8 +74,9 @@ void main() {
     var receivedProfileRequestMessage = false;
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatAliasProfileRequest.value) {
+        final event = message.event;
+        if (event is UnhandledChatEvent &&
+            event.type == ChatProtocol.chatAliasProfileRequest.value) {
           receivedProfileRequestMessage = true;
         }
       });
@@ -114,8 +117,9 @@ void main() {
       final bobProfileRequestCompleter = Completer<void>();
       await newBobChatSDK.chatStreamSubscription.then((stream) {
         stream!.listen((message) {
-          if (message.plainTextMessage?.type.toString() ==
-              ChatProtocol.chatAliasProfileRequest.value) {
+          final event = message.event;
+          if (event is UnhandledChatEvent &&
+              event.type == ChatProtocol.chatAliasProfileRequest.value) {
             if (bobProfileRequestCompleter.isCompleted) return;
             bobProfileRequestCompleter.complete();
           }
@@ -142,8 +146,7 @@ void main() {
       final aliceChatCompleter = Completer<void>();
       await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
         stream!.listen((message) async {
-          if (message.plainTextMessage?.type.toString() ==
-              ChatProtocol.chatContactDetailsUpdate.value) {
+          if (message.event is ChatContactDetailsUpdateEvent) {
             aliceChatCompleter.complete();
           }
         });
@@ -192,8 +195,9 @@ void main() {
     final bobProfileRequestCompleter = Completer<void>();
     await newBobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) {
-        if (message.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatAliasProfileRequest.value) {
+        final event = message.event;
+        if (event is UnhandledChatEvent &&
+            event.type == ChatProtocol.chatAliasProfileRequest.value) {
           if (bobProfileRequestCompleter.isCompleted) return;
           bobProfileRequestCompleter.complete();
         }

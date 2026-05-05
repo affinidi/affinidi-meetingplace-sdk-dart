@@ -20,14 +20,11 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<PlainTextMessage>();
+    final bobCompleter = Completer<Message>();
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          if (!bobCompleter.isCompleted) {
-            bobCompleter.complete(data.plainTextMessage!);
-          }
+        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
+          bobCompleter.complete(data.chatItem as Message);
         }
       });
     });
@@ -45,23 +42,20 @@ void main() {
     await fixture.aliceChatSDK.sendMessage(message);
 
     final received = await bobCompleter.future;
-    expect(received.body!['text'], equals('Hello via sendMessage'));
-    expect(received.from, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.to?.first, equals(fixture.bobSDK.didDocument.id));
+    expect(received.value, equals('Hello via sendMessage'));
+    expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
+    expect(received.messageId, equals('test-id'));
   });
 
   test('sendMessage with notify flag sends notification', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<PlainTextMessage>();
+    final bobCompleter = Completer<Message>();
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          if (!bobCompleter.isCompleted) {
-            bobCompleter.complete(data.plainTextMessage!);
-          }
+        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
+          bobCompleter.complete(data.chatItem as Message);
         }
       });
     });
@@ -79,10 +73,9 @@ void main() {
     await fixture.aliceChatSDK.sendMessage(message, notify: true);
 
     final received = await bobCompleter.future;
-    expect(received.body!['text'], equals('Notify test'));
-    expect(received.from, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.to?.first, equals(fixture.bobSDK.didDocument.id));
-    expect(received.id, equals('notify-id'));
+    expect(received.value, equals('Notify test'));
+    expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
+    expect(received.messageId, equals('notify-id'));
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(

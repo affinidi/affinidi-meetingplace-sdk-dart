@@ -14,6 +14,7 @@ import '../handlers/chat_reaction_handler.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../service/chat_event_conversion.dart';
+import '../service/chat_event.dart';
 import '../utils/chat_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 
@@ -129,7 +130,14 @@ abstract class BaseChatSDK {
         subscription.listen((data) async {
           if (!await handleMessage(data, [])) {
             chatStream.pushData(
-              StreamData(event: data.plainTextMessage.toChatEvent()),
+              StreamData(
+                event: UnhandledChatEvent(
+                  type: data.plainTextMessage.type.toString(),
+                  senderDid: data.plainTextMessage.from,
+                  body: data.plainTextMessage.body,
+                  createdTime: data.plainTextMessage.createdTime,
+                ),
+              ),
             );
           }
           return MediatorStreamProcessingResult(keepMessage: false);
@@ -309,7 +317,14 @@ abstract class BaseChatSDK {
     for (final message in messagesFromMediator) {
       if (!await handleMessage(message, newMessages)) {
         chatStream.pushData(
-          StreamData(event: message.plainTextMessage.toChatEvent()),
+          StreamData(
+            event: UnhandledChatEvent(
+              type: message.plainTextMessage.type.toString(),
+              senderDid: message.plainTextMessage.from,
+              body: message.plainTextMessage.body,
+              createdTime: message.plainTextMessage.createdTime,
+            ),
+          ),
         );
       }
       processedHashes.add(message.messageHash!);

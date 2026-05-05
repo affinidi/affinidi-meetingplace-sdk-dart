@@ -1,3 +1,8 @@
+## 0.0.1-dev.32
+
+ - **FIX**: rename docs to doc in meeting_place_core for pub.dev compliance (#167).
+ - **DOCS**: core package documentation (#156).
+
 ## 0.0.1-dev.31
 
  - **REFACTOR**: extract ChatSDK message handlers into dedicated classes (#138).

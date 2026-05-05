@@ -3,6 +3,38 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-05-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.34`](#meeting_place_chat---v001-dev34)
+ - [`meeting_place_core` - `v0.0.1-dev.32`](#meeting_place_core---v001-dev32)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.35`](#meeting_place_drift_repository---v001-dev35)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.34`
+
+ - **FEAT**: abstract concierge and event messages (#132).
+
+#### `meeting_place_core` - `v0.0.1-dev.32`
+
+ - **FIX**: rename docs to doc in meeting_place_core for pub.dev compliance (#167).
+ - **DOCS**: core package documentation (#156).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.35`
+
+ - **FEAT**: abstract concierge and event messages (#132).
+
+
 ## 2026-03-13
 
 ### Changes

@@ -1,3 +1,7 @@
+## 0.0.1-dev.34
+
+ - **FEAT**: abstract concierge and event messages (#132).
+
 ## 0.0.1-dev.33
 
  - **REFACTOR**: extract ChatSDK message handlers into dedicated classes (#138).

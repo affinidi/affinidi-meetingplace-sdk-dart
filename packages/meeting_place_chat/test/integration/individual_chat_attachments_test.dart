@@ -22,14 +22,14 @@ void main() {
     await fixture.bobChatSDK.startChatSession();
 
     final attachments = [
-      Attachment(
+      ChatAttachment(
         id: const Uuid().v4(),
         description: 'Sample attachment',
         filename: 'attachment.jpeg',
         mediaType: AttachmentMediaType.imageJpeg.value,
         format: AttachmentFormat.imageSelfie.value,
         lastModifiedTime: DateTime.now().toUtc(),
-        data: AttachmentData(
+        data: ChatAttachmentData(
           base64:
               'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
         ),
@@ -43,7 +43,7 @@ void main() {
       attachments: attachments,
     );
 
-    final bobWaitForAttachments = Completer<List<Attachment>>();
+    final bobWaitForAttachments = Completer<List<ChatAttachment>>();
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
         if (!bobWaitForAttachments.isCompleted &&
@@ -52,7 +52,9 @@ void main() {
             message.messageId == data.plainTextMessage?.id) {
           stream.dispose();
           bobWaitForAttachments.complete(
-            data.plainTextMessage?.attachments ?? [],
+            (data.plainTextMessage?.attachments ?? [])
+                .map((a) => ChatAttachment.fromJson(a.toJson()))
+                .toList(),
           );
         }
       });

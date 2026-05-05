@@ -1,8 +1,8 @@
-import 'package:didcomm/didcomm.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../protocol/message/chat_message/chat_message.dart';
-import '../protocol/protocol.dart' as protocol;
+import 'chat_attachment.dart';
+import 'chat_attachment_conversion.dart';
 import 'chat_item.dart';
 
 part 'message.g.dart';
@@ -15,9 +15,9 @@ part 'message.g.dart';
 /// - User reactions ([reactions])
 ///
 /// A [Message] can be created in three main ways:
-/// - From a **received** [PlainTextMessage]
-/// - From a **sent** `protocol.ChatMessage`
-/// - From any [PlainTextMessage] using the generic factory
+/// - From a received `PlainTextMessage`
+/// - From a sent `ChatMessage`
+/// - From any `PlainTextMessage` using the generic factory
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class Message extends ChatItem {
   /// Factory constructor to create a [Message] from JSON.
@@ -32,13 +32,13 @@ class Message extends ChatItem {
   }
 
   /// Factory constructor to create a [Message]
-  /// from a received [PlainTextMessage].
+  /// from a received `ChatMessage`.
   ///
   /// It sets the status to [ChatItemStatus.received] and marks
   /// the message as not created by the current user (`createdByMe = false`).
   ///
   /// **Parameters:**
-  /// - [message]: The received [PlainTextMessage].
+  /// - [message]: The received `ChatMessage`.
   ///
   /// **Returns:**
   /// - A new [Message] instance representing the received message.
@@ -50,7 +50,9 @@ class Message extends ChatItem {
       message,
       chatId: chatId,
       senderDid: message.from,
-      attachments: message.attachments,
+      attachments: message.attachments
+          .map((a) => a.toChatAttachment())
+          .toList(),
       status: ChatItemStatus.received,
       createdByMe: false,
     );
@@ -65,7 +67,7 @@ class Message extends ChatItem {
   ///  (`createdByMe = true`).
   ///
   /// **Parameters:**
-  /// - [message]: The sent [protocol.ChatMessage].
+  /// - [message]: The sent `ChatMessage`.
   ///
   /// **Returns:**
   /// - A new [Message] instance representing the sent message.
@@ -77,24 +79,25 @@ class Message extends ChatItem {
       chatId: chatId,
       message,
       senderDid: message.from,
-      attachments: message.attachments,
+      attachments: message.attachments
+          .map((a) => a.toChatAttachment())
+          .toList(),
       status: ChatItemStatus.queued,
       createdByMe: true,
     );
   }
 
   /// Generic factory constructor to create a [Message]
-  ///  from any [PlainTextMessage].
+  ///  from any `ChatMessage`.
   ///
   /// Handles both direct and group messages, mapping text and attachments.
-  ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to parse.
+  /// - [message]: The `ChatMessage` to parse.
   /// - [chatId]: The chat ID derived from DIDs.
   /// - [senderDid]: DID of the user who sent the message.
   /// - [createdByMe]: Whether the message was created by the current user.
   /// - [status]: The current status of the message.
-  /// - [attachments]: Optional list of [Attachment]s.
+  /// - [attachments]: Optional list of [ChatAttachment]s.
   ///
   /// **Returns:**
   /// - A new [Message] instance.
@@ -104,7 +107,7 @@ class Message extends ChatItem {
     required String senderDid,
     required bool createdByMe,
     required ChatItemStatus status,
-    List<Attachment>? attachments,
+    List<ChatAttachment>? attachments,
   }) {
     return Message(
       chatId: chatId,
@@ -130,8 +133,8 @@ class Message extends ChatItem {
   /// - [status]: Current status of the message.
   /// - [type]: Defaults to [ChatItemType.message].
   /// - [value]: The plain text content of the message.
-  /// - [attachments]: Optional list of [Attachment]s included with the message
-  /// (default: empty list).
+  /// - [attachments]: Optional list of [ChatAttachment]s included with the
+  /// message (default: empty list).
   /// - [reactions]: Optional list of reactions applied to the message
   /// (default: empty list).
   Message({
@@ -151,7 +154,7 @@ class Message extends ChatItem {
   final String value;
 
   /// Attachments included with the message (e.g., images, files).
-  final List<Attachment> attachments;
+  final List<ChatAttachment> attachments;
 
   /// List of reactions applied to this message.
   List<String> reactions;

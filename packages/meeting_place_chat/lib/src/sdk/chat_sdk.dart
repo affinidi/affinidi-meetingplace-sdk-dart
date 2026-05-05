@@ -10,7 +10,10 @@ abstract interface class ChatSDK {
   Future<ChatItem?> getMessageById(String messageId);
   Future<List<Message>> fetchNewMessages();
 
-  Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
+  Future<Message> sendTextMessage(
+    String text, {
+    List<ChatAttachment>? attachments,
+  });
 
   Future<void> sendMessage(CustomMessage message, {bool notify = false});
   Future<void> sendProfileHash();

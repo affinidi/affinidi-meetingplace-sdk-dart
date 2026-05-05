@@ -156,14 +156,14 @@ class MeetingPlaceChatSDK implements ChatSDK {
   ///
   /// **Parameters:**
   /// - [text]: The message content.
-  /// - [attachments]: An optional list of [Attachment]s.
+  /// - [attachments]: An optional list of [ChatAttachment]s.
   ///
   /// **Returns:**
   /// - The sent [Message].
   @override
   Future<Message> sendTextMessage(
     String text, {
-    List<Attachment>? attachments,
+    List<ChatAttachment>? attachments,
   }) {
     return _sdk.sendTextMessage(text, attachments: attachments);
   }

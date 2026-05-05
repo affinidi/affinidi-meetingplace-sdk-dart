@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../constants/sdk_constants.dart';
 import '../core/chat_history_service.dart';
+import '../entity/chat_attachment_conversion.dart';
 import '../entity/message.dart' as entity_chat_message;
 import '../group/chat_group_alias_profile_hash_handler.dart';
 import '../group/chat_group_alias_profile_request_handler.dart';
@@ -143,7 +144,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       from: did,
       to: [otherPartyDid],
       body: message.body,
-      attachments: message.attachments,
+      attachments: message.attachments?.map((a) => a.toDIDComm()).toList(),
     );
 
     return sendPlainTextMessage(

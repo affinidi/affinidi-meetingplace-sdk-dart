@@ -4,6 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../meeting_place_chat.dart';
+import '../entity/chat_attachment_conversion.dart';
 import '../handlers/chat_alias_profile_hash_handler.dart';
 import '../handlers/chat_alias_profile_request_handler.dart';
 import '../handlers/chat_contact_details_update_handler.dart';
@@ -364,7 +365,7 @@ abstract class BaseChatSDK {
       from: did,
       to: [otherPartyDid],
       body: message.body,
-      attachments: message.attachments,
+      attachments: message.attachments?.map((a) => a.toDIDComm()).toList(),
     );
 
     return sendDirectMessage(
@@ -409,13 +410,14 @@ abstract class BaseChatSDK {
   ///
   /// **Parameters:**
   /// - [text]: The plain text content of the message.
-  /// - [attachments]: Optional list of [Attachment]s included with the message.
+  /// - [attachments]: Optional list of [ChatAttachment]s included with
+  ///   the message.
   ///
   /// **Returns:**
   /// - The sent [Message] object persisted in the repository.
   Future<Message> sendTextMessage(
     String text, {
-    List<Attachment>? attachments,
+    List<ChatAttachment>? attachments,
   }) async {
     final methodName = 'sendTextMessage';
     _logger.info('Started sending text message', name: methodName);
@@ -428,7 +430,7 @@ abstract class BaseChatSDK {
       to: [otherPartyDid],
       text: text,
       seqNo: channel.seqNo,
-      attachments: attachments ?? [],
+      attachments: (attachments ?? []).map((a) => a.toDIDComm()).toList(),
     );
 
     final plainTextMessage = chatMessage.toPlainTextMessage();

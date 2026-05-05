@@ -1,5 +1,6 @@
-import 'package:didcomm/didcomm.dart' show Attachment;
 import 'package:uuid/uuid.dart';
+
+import '../entity/chat_attachment.dart';
 
 /// A transport-agnostic message used as input to `ChatSDK.sendMessage`.
 ///
@@ -12,7 +13,7 @@ import 'package:uuid/uuid.dart';
 ///   (e.g. `ChatProtocol.chatMessage.value`).
 /// - [id]: Optional message identifier. Defaults to a generated UUID v4.
 /// - [body]: Optional message body as a plain map.
-/// - [attachments]: Optional list of [Attachment]s.
+/// - [attachments]: Optional list of [ChatAttachment]s.
 class CustomMessage {
   CustomMessage({
     required this.type,
@@ -31,5 +32,5 @@ class CustomMessage {
   final Map<String, dynamic> body;
 
   /// Optional attachments.
-  final List<Attachment>? attachments;
+  final List<ChatAttachment>? attachments;
 }

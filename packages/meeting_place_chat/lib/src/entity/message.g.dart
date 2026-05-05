@@ -19,7 +19,7 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
   value: json['value'] as String,
   attachments:
       (json['attachments'] as List<dynamic>?)
-          ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => ChatAttachment.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   reactions:

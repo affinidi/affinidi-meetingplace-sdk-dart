@@ -149,6 +149,7 @@ class MeetingPlaceCoreSDK {
     required String mediatorDid,
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
+    required MeetingPlaceCoreSDKLogger logger,
     required StreamController<(Channel, List<Attachment>)>
     channelAttachmentsController,
   }) : _repositoryConfig = repositoryConfig,
@@ -422,6 +423,7 @@ class MeetingPlaceCoreSDK {
       mediatorDid: mediatorDid,
       options: options,
       sdkErrorHandler: SDKErrorHandler(logger: mpxLogger),
+      logger: mpxLogger,
       channelAttachmentsController: channelAttachmentsController,
     );
   }

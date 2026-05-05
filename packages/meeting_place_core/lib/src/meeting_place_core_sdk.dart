@@ -151,6 +151,7 @@ class MeetingPlaceCoreSDK {
     required SDKErrorHandler sdkErrorHandler,
     required StreamController<(Channel, List<Attachment>)>
     channelAttachmentsController,
+    required VdipClient vdipClient,
   }) : _repositoryConfig = repositoryConfig,
        _controlPlaneDid = controlPlaneDid,
        _mediatorSDK = mediatorSDK,
@@ -170,7 +171,8 @@ class MeetingPlaceCoreSDK {
        _mediatorDid = mediatorDid,
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
-       _channelAttachmentsController = channelAttachmentsController;
+       _channelAttachmentsController = channelAttachmentsController,
+       _vdipClient = vdipClient;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -193,6 +195,7 @@ class MeetingPlaceCoreSDK {
   final SDKErrorHandler _sdkErrorHandler;
   final StreamController<(Channel, List<Attachment>)>
   _channelAttachmentsController;
+  final VdipClient _vdipClient;
 
   String _mediatorDid;
 
@@ -332,6 +335,22 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    final messageService = MessageService(
+      connectionManager: connectionManager,
+      didResolver: didResolver,
+      mediatorService: mediatorService,
+      channelService: channelService,
+      controlPlaneSDK: controlPlaneSDK,
+      logger: mpxLogger,
+    );
+
+    final vdipClient = VdipClient(
+      messageService: messageService,
+      channelService: channelService,
+      connectionManager: connectionManager,
+      wallet: wallet,
+    );
+
     final discoveryEventManager = ControlPlaneEventManager(
       wallet: wallet,
       mediatorSDK: mediatorSDK,
@@ -345,6 +364,7 @@ class MeetingPlaceCoreSDK {
       channelService: channelService,
       streamManager: discoveryEventStreamManager,
       didResolver: didResolver,
+      vdipClient: vdipClient,
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
@@ -376,15 +396,6 @@ class MeetingPlaceCoreSDK {
       controlPlaneSDK: controlPlaneSDK,
       connectionManager: connectionManager,
       didResolver: didResolver,
-    );
-
-    final messageService = MessageService(
-      connectionManager: connectionManager,
-      didResolver: didResolver,
-      mediatorService: mediatorService,
-      channelService: channelService,
-      controlPlaneSDK: controlPlaneSDK,
-      logger: mpxLogger,
     );
 
     final oobService = OobService(
@@ -423,6 +434,7 @@ class MeetingPlaceCoreSDK {
       options: options,
       sdkErrorHandler: SDKErrorHandler(logger: mpxLogger),
       channelAttachmentsController: channelAttachmentsController,
+      vdipClient: vdipClient,
     );
   }
 
@@ -431,6 +443,10 @@ class MeetingPlaceCoreSDK {
 
   /// Returns instance of used low level [ControlPlaneSDK].
   ControlPlaneSDK get discovery => _controlPlaneSDK;
+
+  /// Returns the [VdipClient] for sending and receiving VRC credentials
+  /// over the shared DIDComm connection.
+  VdipClient get vdip => _vdipClient;
 
   /// Returns the [MeetingPlaceCoreSDKOptions] used to configure the SDK.
   MeetingPlaceCoreSDKOptions get options => _options;

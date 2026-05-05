@@ -11,13 +11,6 @@ import 'entity/channel.dart';
 typedef OnBuildAttachmentsCallback =
     Future<List<Attachment>?> Function(Channel channel);
 
-/// Callback invoked when attachments are received from the other party
-/// during connection establishment.
-///
-/// The app should process these attachments when this callback is invoked.
-typedef OnAttachmentsReceivedCallback =
-    void Function(Channel channel, List<Attachment> attachments);
-
 class MeetingPlaceCoreSDKOptions {
   const MeetingPlaceCoreSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
@@ -37,7 +30,6 @@ class MeetingPlaceCoreSDKOptions {
     ],
     this.messageTypesForSequenceTracking = const [],
     this.onBuildAttachments,
-    this.onAttachmentsReceived,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -122,11 +114,4 @@ class MeetingPlaceCoreSDKOptions {
   /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments
   /// or onBuildInaugurationMessageAttachments
   final OnBuildAttachmentsCallback? onBuildAttachments;
-
-  /// Callback invoked when attachments are received from the other party
-  /// during connection establishment.
-  ///
-  /// When provided, this callback is invoked by event handlers after they
-  /// receive and process incoming attachments from connection messages.
-  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 }

@@ -144,7 +144,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// Sends a plain text message.
   ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to send.
+  /// - [message]: The [CustomMessage] to send.
   ///
   /// Returns a [Future] that completes when the message has been sent.
   @override

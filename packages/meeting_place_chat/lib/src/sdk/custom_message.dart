@@ -12,7 +12,7 @@ import '../entity/chat_attachment.dart';
 /// - [type]: The protocol message type URI
 ///   (e.g. `ChatProtocol.chatMessage.value`).
 /// - [id]: Optional message identifier. Defaults to a generated UUID v4.
-/// - [body]: Optional message body as a plain map.
+/// - [body]: Message body as a plain map.
 /// - [attachments]: Optional list of [ChatAttachment]s.
 class CustomMessage {
   CustomMessage({

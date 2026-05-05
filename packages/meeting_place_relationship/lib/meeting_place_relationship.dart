@@ -11,3 +11,4 @@ export 'src/models/r_card/r_card_vcard_extensions.dart';
 export 'src/models/r_card/received_r_card.dart';
 export 'src/models/vrc/vrc_constants.dart';
 export 'src/models/vrc/vrc_party.dart';
+export 'src/parsers/r_card_attachment_parser.dart';

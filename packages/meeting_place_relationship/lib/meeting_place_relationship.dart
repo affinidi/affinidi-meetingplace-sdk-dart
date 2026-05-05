@@ -1,3 +1,9 @@
-library;
-
+export 'src/builders/credential_builder.dart';
+export 'src/builders/r_card_attachment_builder.dart';
 export 'src/meeting_place_relationship_sdk.dart';
+export 'src/models/credential_constants.dart';
+export 'src/models/persona_did.dart';
+export 'src/models/r_card/r_card_subject.dart';
+export 'src/models/r_card/r_card_vc.dart';
+export 'src/models/r_card/r_card_vcard_extensions.dart';
+export 'src/models/r_card/received_r_card.dart';

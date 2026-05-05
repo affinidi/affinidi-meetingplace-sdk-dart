@@ -2,6 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_chat.dart';
 import '../sdk/base_chat_sdk.dart';
+import '../service/chat_event_conversion.dart';
 
 class ChatAliasProfileHashHandler {
   ChatAliasProfileHashHandler({
@@ -24,7 +25,7 @@ class ChatAliasProfileHashHandler {
 
     if (channel.otherPartyContactCard != null &&
         channel.otherPartyContactCard!.profileHash == profileHash) {
-      _streamManager.pushData(StreamData(plainTextMessage: message));
+      _streamManager.pushData(StreamData(event: message.toChatEvent()));
       return;
     }
 
@@ -37,6 +38,6 @@ class ChatAliasProfileHashHandler {
       recipientDid: _chatSDK.otherPartyDid,
     );
 
-    _streamManager.pushData(StreamData(plainTextMessage: message));
+    _streamManager.pushData(StreamData(event: message.toChatEvent()));
   }
 }

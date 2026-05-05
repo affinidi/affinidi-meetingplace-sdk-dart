@@ -13,6 +13,7 @@ import '../handlers/chat_message_handler.dart';
 import '../handlers/chat_reaction_handler.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
+import '../service/chat_event_conversion.dart';
 import '../utils/chat_utils.dart';
 import '../utils/top_and_tail_extension.dart';
 
@@ -128,7 +129,7 @@ abstract class BaseChatSDK {
         subscription.listen((data) async {
           if (!await handleMessage(data, [])) {
             chatStream.pushData(
-              StreamData(plainTextMessage: data.plainTextMessage),
+              StreamData(event: data.plainTextMessage.toChatEvent()),
             );
           }
           return MediatorStreamProcessingResult(keepMessage: false);
@@ -282,7 +283,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       chatStream.pushData(
-        StreamData(plainTextMessage: message.plainTextMessage),
+        StreamData(event: message.plainTextMessage.toChatEvent()),
       );
       return true;
     }
@@ -308,7 +309,7 @@ abstract class BaseChatSDK {
     for (final message in messagesFromMediator) {
       if (!await handleMessage(message, newMessages)) {
         chatStream.pushData(
-          StreamData(plainTextMessage: message.plainTextMessage),
+          StreamData(event: message.plainTextMessage.toChatEvent()),
         );
       }
       processedHashes.add(message.messageHash!);
@@ -441,7 +442,7 @@ abstract class BaseChatSDK {
     try {
       chatStream.pushData(
         StreamData(
-          plainTextMessage: plainTextMessage,
+          event: plainTextMessage.toChatEvent(),
           chatItem: createdMessage,
         ),
       );
@@ -457,7 +458,7 @@ abstract class BaseChatSDK {
 
       chatStream.pushData(
         StreamData(
-          plainTextMessage: plainTextMessage,
+          event: plainTextMessage.toChatEvent(),
           chatItem: updatedMessage,
         ),
       );
@@ -680,7 +681,7 @@ abstract class BaseChatSDK {
       effect: effect.name,
     ).toPlainTextMessage();
 
-    chatStream.pushData(StreamData(plainTextMessage: chatEffect));
+    chatStream.pushData(StreamData(event: chatEffect.toChatEvent()));
 
     // TODO: handle error case
     await sendPlainTextMessage(
@@ -794,7 +795,7 @@ abstract class BaseChatSDK {
     );
 
     chatStream.pushData(
-      StreamData(plainTextMessage: chatMessage, chatItem: createdMessage),
+      StreamData(event: chatMessage.toChatEvent(), chatItem: createdMessage),
     );
 
     return createdMessage as Message;

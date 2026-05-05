@@ -17,6 +17,7 @@ import '../group/chat_group_details_update_handler.dart';
 import '../group/chat_group_member_deregistered_message_handler.dart';
 import '../group/chat_group_member_joined_handler.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
+import '../service/chat_event_conversion.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 
@@ -212,7 +213,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         chatHistoryService: _chatHistoryService,
         streamManager: chatStream,
       ).handle(chatId: chatId, group: group, message: msg);
-      chatStream.pushData(StreamData(plainTextMessage: msg));
+      chatStream.pushData(StreamData(event: msg.toChatEvent()));
       return true;
     },
     ChatProtocol.chatGroupDetailsUpdate.value: (msg) async {
@@ -319,7 +320,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
       if (!messageHandledInternal && !messageHandled) {
         chatStream.pushData(
-          StreamData(plainTextMessage: message.plainTextMessage),
+          StreamData(event: message.plainTextMessage.toChatEvent()),
         );
       }
       processedHashes.add(message.messageHash!);
@@ -355,7 +356,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     subscription.listen((data) async {
       if (!await _handleMessage(data)) {
         chatStream.pushData(
-          StreamData(plainTextMessage: data.plainTextMessage),
+          StreamData(event: data.plainTextMessage.toChatEvent()),
         );
       }
       return MediatorStreamProcessingResult(keepMessage: false);

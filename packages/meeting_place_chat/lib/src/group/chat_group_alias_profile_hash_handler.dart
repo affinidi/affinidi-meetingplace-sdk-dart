@@ -2,7 +2,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../protocol/protocol.dart' as protocol;
 import '../sdk/base_chat_sdk.dart';
+import '../service/chat_event_conversion.dart';
 import '../service/chat_stream.dart';
+import '../service/stream_data.dart';
 
 class ChatGroupAliasProfileHashHandler {
   ChatGroupAliasProfileHashHandler({
@@ -39,6 +41,6 @@ class ChatGroupAliasProfileHashHandler {
       );
     }
 
-    _streamManager.pushData(StreamData(plainTextMessage: message));
+    _streamManager.pushData(StreamData(event: message.toChatEvent()));
   }
 }

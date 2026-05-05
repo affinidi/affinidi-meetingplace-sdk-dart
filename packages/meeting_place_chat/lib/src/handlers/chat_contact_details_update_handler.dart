@@ -1,6 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_chat.dart';
+import '../service/chat_event_conversion.dart';
 
 class ChatContactDetailsUpdateHandler {
   ChatContactDetailsUpdateHandler({
@@ -24,6 +25,6 @@ class ChatContactDetailsUpdateHandler {
       contactDetailsUpdate.profileDetails,
     );
     await _coreSDK.updateChannel(channel);
-    _streamManager.pushData(StreamData(plainTextMessage: message));
+    _streamManager.pushData(StreamData(event: message.toChatEvent()));
   }
 }

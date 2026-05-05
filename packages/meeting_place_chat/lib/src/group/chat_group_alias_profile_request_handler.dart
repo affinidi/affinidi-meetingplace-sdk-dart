@@ -1,6 +1,8 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
+import '../service/chat_event_conversion.dart';
 
 class ChatGroupAliasProfileRequestHandler {
   ChatGroupAliasProfileRequestHandler({
@@ -53,7 +55,7 @@ class ChatGroupAliasProfileRequestHandler {
 
     await _chatRepository.createMessage(conciergeMessage);
     _streamManager.pushData(
-      StreamData(plainTextMessage: message, chatItem: conciergeMessage),
+      StreamData(event: message.toChatEvent(), chatItem: conciergeMessage),
     );
   }
 }

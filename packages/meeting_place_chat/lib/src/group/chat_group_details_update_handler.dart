@@ -1,6 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import '../core/chat_history_service.dart';
+import '../service/chat_event_conversion.dart';
 import '../service/chat_stream.dart';
+import '../service/stream_data.dart';
 
 class ChatGroupDetailsUpdateHandler {
   ChatGroupDetailsUpdateHandler({
@@ -75,7 +77,7 @@ class ChatGroupDetailsUpdateHandler {
       }).toList(),
     );
 
-    _streamManager.pushData(StreamData(plainTextMessage: message));
+    _streamManager.pushData(StreamData(event: message.toChatEvent()));
     return updatedGroup;
   }
 

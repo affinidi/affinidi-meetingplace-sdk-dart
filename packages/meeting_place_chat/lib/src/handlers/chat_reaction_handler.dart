@@ -1,6 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_chat.dart';
+import '../service/chat_event_conversion.dart';
 
 class ChatReactionHandler {
   ChatReactionHandler({
@@ -34,7 +35,7 @@ class ChatReactionHandler {
 
     _streamManager.pushData(
       StreamData(
-        plainTextMessage: message.plainTextMessage,
+        event: message.plainTextMessage.toChatEvent(),
         chatItem: repositoryMessage,
       ),
     );

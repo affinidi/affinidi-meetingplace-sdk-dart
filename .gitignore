@@ -63,3 +63,6 @@ pubspec.lock
 doc/
 coverage/
 examples/**/storage.txt
+
+# Package docs (hand-written, required for pub.dev layout convention)
+!packages/*/doc/

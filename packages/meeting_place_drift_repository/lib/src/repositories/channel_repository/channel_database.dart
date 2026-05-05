@@ -77,7 +77,8 @@ class ChannelDatabase extends _$ChannelDatabase {
             // migrate the existing data by folding the old columns into a
             // JSON object.  Using a temp-table approach keeps the migration
             // idempotent: a prior interrupted run leaves no partial state.
-            await customStatement('DROP TABLE IF EXISTS channel_contact_cards_temp');
+            await customStatement(
+                'DROP TABLE IF EXISTS channel_contact_cards_temp');
             await customStatement('''
               CREATE TABLE channel_contact_cards_temp (
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

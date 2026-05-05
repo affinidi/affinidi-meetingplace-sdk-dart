@@ -1,7 +1,9 @@
+import 'package:didcomm/didcomm.dart' show Attachment;
+
+import '../entity/channel.dart';
 import '../meeting_place_core_sdk_options.dart';
 
-export '../meeting_place_core_sdk_options.dart'
-    show OnAttachmentsReceivedCallback, OnBuildAttachmentsCallback;
+export '../meeting_place_core_sdk_options.dart' show OnBuildAttachmentsCallback;
 
 class ControlPlaneEventHandlerManagerOptions {
   const ControlPlaneEventHandlerManagerOptions({
@@ -31,7 +33,8 @@ class ControlPlaneEventHandlerManagerOptions {
   /// connection messages during the channel inauguration process.
   final OnBuildAttachmentsCallback? onBuildAttachments;
 
-  /// Callback invoked when attachments are received from the other party
-  /// during connection establishment.
-  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
+  /// Sink invoked when attachments are received from the other party
+  /// during connection establishment. Feeds into the SDK's
+  /// channelAttachments broadcast stream.
+  final void Function(Channel, List<Attachment>)? onAttachmentsReceived;
 }

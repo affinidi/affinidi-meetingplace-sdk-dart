@@ -66,9 +66,7 @@ class DatabasePlatform {
     required String passphrase,
     bool logStatements = false,
   }) {
-    final sqliteDb = sqlite3.openInMemory();
-
-    return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
+    return NativeDatabase.memory(logStatements: logStatements);
   }
 
   /// Creates an in-memory database for native platform using SQLite.

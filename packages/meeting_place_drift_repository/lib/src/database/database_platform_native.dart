@@ -7,6 +7,20 @@ import 'package:sqlite3/sqlite3.dart';
 
 /// Class with implementations specific to native platforms
 class DatabasePlatform {
+  static void _configureEncryptedDatabase(
+    Database sqliteDb,
+    String passphrase,
+  ) {
+    sqliteDb.execute("PRAGMA cipher = 'sqlcipher';");
+    sqliteDb.execute('PRAGMA legacy = 4;');
+    sqliteDb.execute("PRAGMA key = '$passphrase';");
+
+    final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
+    if (cipherVersion.isEmpty) {
+      throw UnsupportedError('Database encryption support not available');
+    }
+  }
+
   static NativeDatabase _openDatabase({
     required String databaseName,
     required String passphrase,
@@ -16,23 +30,18 @@ class DatabasePlatform {
     final dbPath = p.join(directory.path, databaseName);
 
     final sqliteDb = sqlite3.open(dbPath);
-    sqliteDb.execute("PRAGMA key = '$passphrase';");
-
-    final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
-    if (cipherVersion.isEmpty) {
-      throw UnsupportedError('SQLCipher not available');
-    }
+    _configureEncryptedDatabase(sqliteDb, passphrase);
 
     sqliteDb.select('SELECT count(*) FROM sqlite_master;');
 
     return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
   }
 
-  /// Creates a database for native platform using SQLite and SQLCipher.
+  /// Creates a database for native platform using SQLite with encryption.
   ///
   /// **Parameters:**
   /// - [databaseName]: The name of the database file.
-  /// - [passphrase]: The passphrase used to encrypt the database.
+  /// - [passphrase]: The passphrase used to open the encrypted database.
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
@@ -58,16 +67,17 @@ class DatabasePlatform {
     bool logStatements = false,
   }) {
     final sqliteDb = sqlite3.openInMemory();
-    sqliteDb.execute("PRAGMA key = '$passphrase';");
 
     return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
   }
 
-  /// Creates an in-memory database for native platform using SQLite and
-  /// SQLCipher.
+  /// Creates an in-memory database for native platform using SQLite.
+  ///
+  /// In-memory databases do not support encryption (sqlite3mc limitation), so
+  /// encryption configuration is skipped.
   ///
   /// **Parameters:**
-  /// - [passphrase]: The passphrase used to encrypt the database.
+  /// - [passphrase]: The passphrase used to open the encrypted database.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
   ///
@@ -97,7 +107,7 @@ class DatabasePlatform {
 ///
 /// **Parameters:**
 /// - [databaseName]: The name of the database file.
-/// - [passphrase]: The passphrase used to encrypt the database.
+/// - [passphrase]: The passphrase used to open the encrypted database.
 /// - [directory]: The directory where the database file is stored.
 /// - [logStatements]: A boolean indicating whether to log SQL statements
 /// (default is false).

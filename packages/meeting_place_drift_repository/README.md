@@ -127,15 +127,23 @@ Expected: contains <3>
 
 This catches the missing snapshot steps before the migration tests even run.
 
-## Workaround to open sqlcipher on old Android versions.
+## Encrypted databases with sqlite3 v3
 
-On old Android versions, this method can help if you're having issues opening sqlite3 (e.g. if you're seeing crashes about libsqlcipher.so not being available). To be safe, call this method before using apis from package:sqlite3 or package:moor/ffi.dart.
+`package:sqlite3` v3 no longer ships SQLCipher. To keep encrypted database
+support, configure `sqlite3` to use SQLite3MultipleCiphers in your `pubspec`:
 
-```dart
-Future<void> setupSqlCipher() async {
-  await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
-  open.overrideFor(OperatingSystem.android, openCipherOnAndroid);
-}
+```yaml
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
 ```
 
-Declared in `package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart`.
+Existing SQLCipher databases remain compatible when the database is opened with
+the SQLCipher compatibility pragmas before the key is applied:
+
+```sql
+PRAGMA cipher = 'sqlcipher';
+PRAGMA legacy = 4;
+PRAGMA key = '...';
+```

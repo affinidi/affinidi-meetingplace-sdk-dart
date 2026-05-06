@@ -19,7 +19,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   /// - [database]: The Drift [db.ChannelDatabase] instance used for
   ///   executing all channel-related persistence operations.
   ChannelRepositoryDrift({required db.ChannelDatabase database})
-      : _database = database;
+    : _database = database;
 
   final db.ChannelDatabase _database;
 
@@ -35,7 +35,9 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   Future<void> createChannel(model.Channel channel) async {
     await _database.transaction(() async {
       final channelId = channel.id;
-      await _database.into(_database.channels).insert(
+      await _database
+          .into(_database.channels)
+          .insert(
             db.ChannelsCompanion(
               id: Value(channelId),
               offerLink: Value(channel.offerLink),
@@ -86,9 +88,9 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   /// Returns a [model.Channel] if found, or `null` otherwise.
   @override
   Future<model.Channel?> findChannelByDid(String did) => _getChannelByPredicate(
-        _database.channels.permanentChannelDid.equals(did) |
-            _database.channels.otherPartyPermanentChannelDid.equals(did),
-      );
+    _database.channels.permanentChannelDid.equals(did) |
+        _database.channels.otherPartyPermanentChannelDid.equals(did),
+  );
 
   /// Retrieves a channel by the other party’s permanent channel DID.
   ///
@@ -98,10 +100,9 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   @override
   Future<model.Channel?> findChannelByOtherPartyPermanentChannelDid(
     String did,
-  ) =>
-      _getChannelByPredicate(
-        _database.channels.otherPartyPermanentChannelDid.equals(did),
-      );
+  ) => _getChannelByPredicate(
+    _database.channels.otherPartyPermanentChannelDid.equals(did),
+  );
 
   /// Updates a [model.Channel] and its associated contact cards.
   ///
@@ -125,8 +126,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
       final channelId = results.id;
       await (_database.update(
         _database.channels,
-      )..where((c) => c.id.equals(channelId)))
-          .write(
+      )..where((c) => c.id.equals(channelId))).write(
         db.ChannelsCompanion(
           offerLink: Value(channel.offerLink),
           publishOfferDid: Value(channel.publishOfferDid),
@@ -181,7 +181,10 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
 
     if (existingCard != null) {
       await _updateContactCardType(
-          channelId: channelId, card: card, type: type);
+        channelId: channelId,
+        card: card,
+        type: type,
+      );
       return;
     }
 
@@ -196,7 +199,9 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
     required model.ContactCard card,
     required db.ContactCardType type,
   }) async {
-    await _database.into(_database.channelContactCards).insert(
+    await _database
+        .into(_database.channelContactCards)
+        .insert(
           db.ChannelContactCardsCompanion(
             channelId: Value(channelId),
             did: Value(card.did),
@@ -216,28 +221,26 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
     required db.ContactCardType type,
   }) async {
     if (card != null) {
-      await (_database.update(_database.channelContactCards)
-            ..where(
-              (c) =>
-                  _database.channelContactCards.channelId.equals(channelId) &
-                  _database.channelContactCards.cardType.equals(type.value),
-            ))
+      await (_database.update(_database.channelContactCards)..where(
+            (c) =>
+                _database.channelContactCards.channelId.equals(channelId) &
+                _database.channelContactCards.cardType.equals(type.value),
+          ))
           .write(
-        db.ChannelContactCardsCompanion(
-          did: Value(card.did),
-          type: Value(card.type),
-          contactInfoJson: Value(encodeContactInfoJson(card)),
-          profilePic: Value(extractProfilePic(card)),
-          cardType: Value(type),
-        ),
-      );
+            db.ChannelContactCardsCompanion(
+              did: Value(card.did),
+              type: Value(card.type),
+              contactInfoJson: Value(encodeContactInfoJson(card)),
+              profilePic: Value(extractProfilePic(card)),
+              cardType: Value(type),
+            ),
+          );
     } else {
-      await (_database.delete(_database.channelContactCards)
-            ..where(
-              (filter) =>
-                  filter.channelId.equals(channelId) &
-                  filter.cardType.equals(type.value),
-            ))
+      await (_database.delete(_database.channelContactCards)..where(
+            (filter) =>
+                filter.channelId.equals(channelId) &
+                filter.cardType.equals(type.value),
+          ))
           .go();
     }
   }
@@ -250,8 +253,10 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   Future<model.Channel?> _getChannelByPredicate(
     Expression<bool> predicate,
   ) async {
-    final myCard =
-        _database.alias(_database.channelContactCards, 'contactCard');
+    final myCard = _database.alias(
+      _database.channelContactCards,
+      'contactCard',
+    );
     final otherPartyContactCard = _database.alias(
       _database.channelContactCards,
       'otherPartyContactCard',
@@ -266,11 +271,11 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
       leftOuterJoin(
         otherPartyContactCard,
         otherPartyContactCard.channelId.equalsExp(_database.channels.id) &
-            otherPartyContactCard.cardType
-                .equals(db.ContactCardType.other.value),
+            otherPartyContactCard.cardType.equals(
+              db.ContactCardType.other.value,
+            ),
       ),
-    ])
-      ..where(predicate);
+    ])..where(predicate);
 
     final results = await query.getSingleOrNull();
     if (results == null) return null;
@@ -289,8 +294,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   Future<void> deleteChannel(model.Channel channel) async {
     await (_database.delete(
       _database.channels,
-    )..where((filter) => filter.id.equals(channel.id)))
-        .go();
+    )..where((filter) => filter.id.equals(channel.id))).go();
   }
 }
 

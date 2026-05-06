@@ -8,4 +8,4 @@ jobs:
     uses: affinidi/pipeline-dart/.github/workflows/release.yaml@main
     secrets: inherit
     with:
-      flutter-version: '3.41.4'
+      flutter-version: '3.41.9'

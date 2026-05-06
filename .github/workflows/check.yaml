@@ -8,7 +8,7 @@ jobs:
     uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
     secrets: inherit
     with:
-      flutter-version: '3.35.3'
+      flutter-version: '3.41.4'
       package: true
       pana_min_score: 160
       env_vars: |

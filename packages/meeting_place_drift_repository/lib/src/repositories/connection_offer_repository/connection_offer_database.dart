@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../database/database_platform.dart';
@@ -58,6 +58,12 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
           ),
         );
 
+  /// Opens a [ConnectionOfferDatabase] from an existing [connection].
+  ///
+  /// Intended for migration and schema verification tests only.
+  @visibleForTesting
+  ConnectionOfferDatabase.forTesting(DatabaseConnection super.connection);
+
   /// Current schema version of the database.
   @override
   int get schemaVersion => 2;
@@ -71,69 +77,46 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
         },
         onUpgrade: (migrator, from, to) async {
           if (from < 2) {
-            final cols = await customSelect(
-              'PRAGMA table_info(connection_contact_cards)',
-            ).get();
-            final colNames = cols.map((r) => r.data['name'] as String).toSet();
-
-            if (colNames.contains('first_name')) {
-              if (!colNames.contains('contact_info_json')) {
-                await migrator.addColumn(
-                  connectionContactCards,
-                  connectionContactCards.contactInfoJson,
-                );
-                colNames.add('contact_info_json');
-              }
-
-              final rows = await customSelect(
-                'SELECT id, first_name, last_name, email, mobile,'
-                ' meetingplace_identity_card_color'
-                ' FROM connection_contact_cards',
-              ).get();
-
-              for (final row in rows) {
-                final contactInfo = jsonEncode(<String, dynamic>{
-                  'n': {
-                    'given': row.data['first_name'] as String? ?? '',
-                    'surname': row.data['last_name'] as String? ?? '',
-                  },
-                  'email': {
-                    'type': {'work': row.data['email'] as String? ?? ''},
-                  },
-                  'tel': {
-                    'type': {'cell': row.data['mobile'] as String? ?? ''},
-                  },
-                  'x-meetingplace-identity-card-color':
-                      row.data['meetingplace_identity_card_color'] as String? ??
-                          '',
-                });
-
-                await (update(connectionContactCards)
-                      ..where((t) => t.id.equals(row.data['id'] as int)))
-                    .write(ConnectionContactCardsCompanion(
-                  contactInfoJson: Value(contactInfo),
-                ));
-              }
-            }
-
-            await migrator.alterTable(
-              // ignore: experimental_member_use
-              TableMigration(
-                connectionContactCards,
-                columnTransformer: {
-                  connectionContactCards.id: connectionContactCards.id,
-                  connectionContactCards.connectionOfferId:
-                      connectionContactCards.connectionOfferId,
-                  connectionContactCards.did: connectionContactCards.did,
-                  connectionContactCards.type: connectionContactCards.type,
-                  if (colNames.contains('contact_info_json'))
-                    connectionContactCards.contactInfoJson:
-                        connectionContactCards.contactInfoJson,
-                  if (colNames.contains('profile_pic'))
-                    connectionContactCards.profilePic:
-                        connectionContactCards.profilePic,
-                },
-              ),
+            // v1 connection_contact_cards stored contact fields as individual
+            // columns (first_name, last_name, email, mobile, profile_pic
+            // [non-null], meetingplace_identity_card_color).  v2 replaces them
+            // with contact_info_json and profile_pic (nullable).
+            // SQLite cannot drop or change columns in-place, so we recreate
+            // the table via a temp-table rename.
+            await customStatement(
+              'DROP TABLE IF EXISTS connection_contact_cards_temp',
+            );
+            await customStatement("""
+              CREATE TABLE connection_contact_cards_temp (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                connection_offer_id TEXT REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL,
+                did TEXT NOT NULL,
+                type TEXT NOT NULL,
+                contact_info_json TEXT NOT NULL DEFAULT '{}',
+                profile_pic TEXT NULL
+              )
+            """);
+            await customStatement("""
+              INSERT INTO connection_contact_cards_temp (
+                id, connection_offer_id, did, type, contact_info_json, profile_pic
+              )
+              SELECT
+                id, connection_offer_id, did, type,
+                json_object(
+                  'n', json_object(
+                    'given', first_name,
+                    'surname', last_name
+                  ),
+                  'email', email,
+                  'mobile', mobile,
+                  'color', meetingplace_identity_card_color
+                ),
+                profile_pic
+              FROM connection_contact_cards
+            """);
+            await customStatement('DROP TABLE connection_contact_cards');
+            await customStatement(
+              'ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards',
             );
           }
         },

@@ -1,4 +1,7 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_core/src/repository/connection_offer_repository.dart';
+import 'package:meeting_place_core/src/service/channel/channel_service.dart';
+import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
@@ -19,3 +22,10 @@ class MockDidManager extends Mock implements DidManager {
 class MockWallet extends Mock implements Wallet {}
 
 class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+
+class MockConnectionOfferRepository extends Mock
+    implements ConnectionOfferRepository {}
+
+class MockChannelService extends Mock implements ChannelService {}
+
+class MockConnectionManager extends Mock implements ConnectionManager {}

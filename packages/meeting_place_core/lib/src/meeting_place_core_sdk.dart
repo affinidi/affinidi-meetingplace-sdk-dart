@@ -149,7 +149,6 @@ class MeetingPlaceCoreSDK {
     required String mediatorDid,
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
-    required MeetingPlaceCoreSDKLogger logger,
     required StreamController<(Channel, List<Attachment>)>
     channelAttachmentsController,
   }) : _repositoryConfig = repositoryConfig,
@@ -263,7 +262,20 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
-    final didManager = await connectionManager.generateRootDid(wallet);
+    final DidManager didManager;
+    try {
+      didManager = await connectionManager.generateRootDid(wallet);
+    } catch (e, stackTrace) {
+      mpxLogger.error(
+        'Failed to initialize CoreSDK, disposing resources',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      await channelAttachmentsController.close();
+      rethrow;
+    }
+
     final controlPlaneSDK = ControlPlaneSDK(
       didManager: didManager,
       controlPlaneDid: controlPlaneDid,
@@ -422,7 +434,6 @@ class MeetingPlaceCoreSDK {
       mediatorDid: mediatorDid,
       options: options,
       sdkErrorHandler: SDKErrorHandler(logger: mpxLogger),
-      logger: mpxLogger,
       channelAttachmentsController: channelAttachmentsController,
     );
   }
@@ -1071,11 +1082,14 @@ class MeetingPlaceCoreSDK {
     );
   }
 
-  /// A method that closes active discovery events stream. This result in not
-  /// pushing
-  /// events to the stream when calling [deleteControlPlaneEvents].
+  /// Closes all SDK-owned broadcast streams.
+  ///
+  /// After calling this, no further events will be emitted to any stream
+  /// exposed by this SDK instance. Call this when the SDK is no longer needed
+  /// (e.g. on sign-out) to release resources.
   void disposeControlPlaneEventsStream() {
     _controlPlaneEventStreamManager.dispose();
+    _channelAttachmentsController.close();
   }
 
   /// A method that deletes all pending discovery events.

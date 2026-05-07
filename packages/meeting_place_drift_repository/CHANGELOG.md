@@ -1,3 +1,7 @@
+## 0.0.1-dev.36
+
+ - **FEAT**: convert contact card fields to json blob (#157).
+
 ## 0.0.1-dev.35
 
  - **FEAT**: abstract concierge and event messages (#132).

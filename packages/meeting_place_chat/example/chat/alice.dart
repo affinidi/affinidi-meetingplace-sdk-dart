@@ -112,17 +112,10 @@ void main() async {
   await aliceChatSDK.startChatSession();
   await aliceChatSDK.chatStreamSubscription.then((stream) {
     stream?.listen((data) {
-      if (data.plainTextMessage != null) {
+      if (data.event is ChatMessageEvent) {
         prettyJsonPrintYellow(
-          'Received message on chat stream',
-          data.plainTextMessage!.toJson(),
-        );
-      }
-
-      if (data.chatItem != null) {
-        prettyJsonPrintYellow(
-          'Received chat item on chat stream',
-          data.chatItem!.toJson(),
+          'Received chat message event',
+          data.chatItem?.toJson() ?? {},
         );
       }
     });

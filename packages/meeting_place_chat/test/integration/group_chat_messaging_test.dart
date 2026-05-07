@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 import 'utils/group_chat_fixture.dart';
@@ -21,8 +20,8 @@ void main() {
     await fixture.bobChatSDK.startChatSession();
     await fixture.charlieChatSDK.startChatSession();
 
-    final bobChatCompleter = Completer<PlainTextMessage>();
-    final charlieChatCompleter = Completer<PlainTextMessage>();
+    final bobChatCompleter = Completer<Message>();
+    final charlieChatCompleter = Completer<Message>();
 
     final streams = await Future.wait([
       fixture.bobChatSDK.chatStreamSubscription,
@@ -32,33 +31,20 @@ void main() {
     final bobStream = streams[0]!;
     final charlieStream = streams[1]!;
 
-    void handleMessage({
-      required Completer<PlainTextMessage> completer,
-      required PlainTextMessage? message,
-    }) {
-      if (message == null ||
-          !message.isOfType(ChatProtocol.chatMessage.value)) {
-        return;
-      }
-
-      final chatMessage = ChatMessage.fromPlainTextMessage(message);
-      if (chatMessage.body.text == 'Hello Group!' && !completer.isCompleted) {
-        completer.complete(message);
-      }
-    }
-
     bobStream.listen((data) {
-      handleMessage(
-        completer: bobChatCompleter,
-        message: data.plainTextMessage,
-      );
+      if (data.event is ChatMessageEvent &&
+          (data.chatItem as Message?)?.value == 'Hello Group!' &&
+          !bobChatCompleter.isCompleted) {
+        bobChatCompleter.complete(data.chatItem as Message);
+      }
     });
 
     charlieStream.listen((data) {
-      handleMessage(
-        completer: charlieChatCompleter,
-        message: data.plainTextMessage,
-      );
+      if (data.event is ChatMessageEvent &&
+          (data.chatItem as Message?)?.value == 'Hello Group!' &&
+          !charlieChatCompleter.isCompleted) {
+        charlieChatCompleter.complete(data.chatItem as Message);
+      }
     });
 
     await fixture.aliceChatSDK.sendTextMessage('Hello Group!');
@@ -66,8 +52,8 @@ void main() {
     final messageForBob = await bobChatCompleter.future;
     final messageForCharlie = await charlieChatCompleter.future;
 
-    expect(messageForBob.body!['text'], equals('Hello Group!'));
-    expect(messageForCharlie.body!['text'], equals('Hello Group!'));
+    expect(messageForBob.value, equals('Hello Group!'));
+    expect(messageForCharlie.value, equals('Hello Group!'));
   });
 
   test('send activity message', () async {
@@ -78,8 +64,7 @@ void main() {
     final messageReceivedCompleter = Completer<bool>();
     await fixture.charlieChatSDK.chatStreamSubscription.then((stream) async {
       stream!.listen((data) {
-        if (data.plainTextMessage?.isOfType(ChatProtocol.chatActivity.value) ==
-            true) {
+        if (data.event is ChatActivityEvent) {
           if (!messageReceivedCompleter.isCompleted) {
             messageReceivedCompleter.complete(true);
             stream.dispose();

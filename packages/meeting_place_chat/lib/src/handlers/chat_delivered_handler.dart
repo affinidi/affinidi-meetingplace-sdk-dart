@@ -1,6 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_chat.dart';
+import '../core/chat_stream/chat_event_conversion.dart';
+import '../protocol/protocol.dart';
 
 class ChatDeliveredHandler {
   ChatDeliveredHandler({
@@ -33,7 +35,7 @@ class ChatDeliveredHandler {
 
       _streamManager.pushData(
         StreamData(
-          plainTextMessage: message.plainTextMessage,
+          event: message.plainTextMessage.toChatEvent(),
           chatItem: targetMessage,
         ),
       );

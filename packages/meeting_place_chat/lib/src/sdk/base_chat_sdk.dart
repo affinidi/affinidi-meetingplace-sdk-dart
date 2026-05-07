@@ -4,6 +4,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../meeting_place_chat.dart';
+import '../core/chat_stream/chat_event_conversion.dart';
+import '../entity/chat_attachment_conversion.dart';
 import '../handlers/chat_alias_profile_hash_handler.dart';
 import '../handlers/chat_alias_profile_request_handler.dart';
 import '../handlers/chat_contact_details_update_handler.dart';
@@ -127,7 +129,14 @@ abstract class BaseChatSDK {
         subscription.listen((data) async {
           if (!await handleMessage(data, [])) {
             chatStream.pushData(
-              StreamData(plainTextMessage: data.plainTextMessage),
+              StreamData(
+                event: UnhandledChatEvent(
+                  type: data.plainTextMessage.type.toString(),
+                  senderDid: data.plainTextMessage.from,
+                  body: data.plainTextMessage.body,
+                  createdTime: data.plainTextMessage.createdTime,
+                ),
+              ),
             );
           }
           return MediatorStreamProcessingResult(keepMessage: false);
@@ -252,7 +261,7 @@ abstract class BaseChatSDK {
 
     final channel = await getChannel();
     if (_requiresAcknowledgement(message.plainTextMessage)) {
-      unawaited(sendChatDeliveredMessage(message.plainTextMessage));
+      unawaited(sendChatDeliveredMessage(message.plainTextMessage.id));
     }
 
     if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
@@ -281,7 +290,7 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       chatStream.pushData(
-        StreamData(plainTextMessage: message.plainTextMessage),
+        StreamData(event: message.plainTextMessage.toChatEvent()),
       );
       return true;
     }
@@ -307,7 +316,14 @@ abstract class BaseChatSDK {
     for (final message in messagesFromMediator) {
       if (!await handleMessage(message, newMessages)) {
         chatStream.pushData(
-          StreamData(plainTextMessage: message.plainTextMessage),
+          StreamData(
+            event: UnhandledChatEvent(
+              type: message.plainTextMessage.type.toString(),
+              senderDid: message.plainTextMessage.from,
+              body: message.plainTextMessage.body,
+              createdTime: message.plainTextMessage.createdTime,
+            ),
+          ),
         );
       }
       processedHashes.add(message.messageHash!);
@@ -348,33 +364,28 @@ abstract class BaseChatSDK {
     );
   }
 
-  /// Sends a custom [PlainTextMessage] using the chat's sender and recipient
+  /// Sends a custom [CustomMessage] using the chat's sender and recipient
   /// DIDs. No chat item is created or persisted for this type of operation.
   ///
+  /// The SDK populates `from` and `to` from its own [did] and [otherPartyDid].
+  ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to send.
+  /// - [message]: The [CustomMessage] to send.
   ///
   /// Returns a [Future] that completes when the message has been sent.
-  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
-    final senderDid = message.from;
-    if (senderDid == null || senderDid != did) {
-      throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID '
-        '$did.',
-      );
-    }
-
-    final recipientDid = message.to?.firstOrNull;
-    if (recipientDid == null || recipientDid != otherPartyDid) {
-      throw Exception(
-        'Message "to" DID ${message.to} does not match chat recipient DID '
-        '$otherPartyDid.',
-      );
-    }
+  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
+    final plainTextMessage = PlainTextMessage(
+      id: message.id,
+      type: Uri.parse(message.type),
+      from: did,
+      to: [otherPartyDid],
+      body: message.body,
+      attachments: message.attachments?.map((a) => a.toDIDComm()).toList(),
+    );
 
     return sendDirectMessage(
-      message,
-      recipientDid: recipientDid,
+      plainTextMessage,
+      recipientDid: otherPartyDid,
       notify: notify,
     );
   }
@@ -414,13 +425,14 @@ abstract class BaseChatSDK {
   ///
   /// **Parameters:**
   /// - [text]: The plain text content of the message.
-  /// - [attachments]: Optional list of [Attachment]s included with the message.
+  /// - [attachments]: Optional list of [ChatAttachment]s included with
+  ///   the message.
   ///
   /// **Returns:**
   /// - The sent [Message] object persisted in the repository.
   Future<Message> sendTextMessage(
     String text, {
-    List<Attachment>? attachments,
+    List<ChatAttachment>? attachments,
   }) async {
     final methodName = 'sendTextMessage';
     _logger.info('Started sending text message', name: methodName);
@@ -433,7 +445,7 @@ abstract class BaseChatSDK {
       to: [otherPartyDid],
       text: text,
       seqNo: channel.seqNo,
-      attachments: attachments ?? [],
+      attachments: (attachments ?? []).map((a) => a.toDIDComm()).toList(),
     );
 
     final plainTextMessage = chatMessage.toPlainTextMessage();
@@ -444,7 +456,7 @@ abstract class BaseChatSDK {
     try {
       chatStream.pushData(
         StreamData(
-          plainTextMessage: plainTextMessage,
+          event: plainTextMessage.toChatEvent(),
           chatItem: createdMessage,
         ),
       );
@@ -460,7 +472,7 @@ abstract class BaseChatSDK {
 
       chatStream.pushData(
         StreamData(
-          plainTextMessage: plainTextMessage,
+          event: plainTextMessage.toChatEvent(),
           chatItem: updatedMessage,
         ),
       );
@@ -542,14 +554,20 @@ abstract class BaseChatSDK {
   }
 
   /// Sends a "delivered" acknowledgement for a received message.
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message) async {
+  ///
+  /// **Parameters:**
+  /// - [messageId]: The ID of the message being acknowledged as delivered.
+  ///
+  /// **Returns:**
+  /// - A [Future] that completes when the acknowledgement has been sent.
+  Future<void> sendChatDeliveredMessage(String messageId) async {
     final methodName = 'sendChatDeliveredMessage';
     _logger.info('Started sending chat delivered message', name: methodName);
     await sendPlainTextMessage(
       protocol.ChatDelivered.create(
         from: did,
         to: [otherPartyDid],
-        messages: [message.id],
+        messages: [messageId],
       ).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
@@ -677,7 +695,7 @@ abstract class BaseChatSDK {
       effect: effect.name,
     ).toPlainTextMessage();
 
-    chatStream.pushData(StreamData(plainTextMessage: chatEffect));
+    chatStream.pushData(StreamData(event: chatEffect.toChatEvent()));
 
     // TODO: handle error case
     await sendPlainTextMessage(
@@ -791,7 +809,7 @@ abstract class BaseChatSDK {
     );
 
     chatStream.pushData(
-      StreamData(plainTextMessage: chatMessage, chatItem: createdMessage),
+      StreamData(event: chatMessage.toChatEvent(), chatItem: createdMessage),
     );
 
     return createdMessage as Message;

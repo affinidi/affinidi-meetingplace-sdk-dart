@@ -20,23 +20,18 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<PlainTextMessage>();
+    final bobCompleter = Completer<Message>();
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          if (!bobCompleter.isCompleted) {
-            bobCompleter.complete(data.plainTextMessage!);
-          }
+        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
+          bobCompleter.complete(data.chatItem as Message);
         }
       });
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.aliceSDK.didDocument.id,
-      to: [fixture.bobSDK.didDocument.id],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Hello via sendMessage',
         'seq_no': 1,
@@ -47,60 +42,27 @@ void main() {
     await fixture.aliceChatSDK.sendMessage(message);
 
     final received = await bobCompleter.future;
-    expect(received.body!['text'], equals('Hello via sendMessage'));
-    expect(received.from, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.to?.first, equals(fixture.bobSDK.didDocument.id));
-  });
-
-  test('sendMessage throws if from/to are set incorrectly', () async {
-    await fixture.aliceChatSDK.startChatSession();
-
-    final wrongFrom = PlainTextMessage(
-      id: 'test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: 'did:wrong:alice',
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongFrom),
-      throwsA(isA<Exception>()),
-    );
-
-    final wrongTo = PlainTextMessage(
-      id: 'test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      to: ['did:wrong:bob'],
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongTo),
-      throwsA(isA<Exception>()),
-    );
+    expect(received.value, equals('Hello via sendMessage'));
+    expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
+    expect(received.messageId, equals('test-id'));
   });
 
   test('sendMessage with notify flag sends notification', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<PlainTextMessage>();
+    final bobCompleter = Completer<Message>();
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.type.toString() ==
-            ChatProtocol.chatMessage.value) {
-          if (!bobCompleter.isCompleted) {
-            bobCompleter.complete(data.plainTextMessage!);
-          }
+        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
+          bobCompleter.complete(data.chatItem as Message);
         }
       });
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'notify-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.aliceSDK.didDocument.id,
-      to: [fixture.bobSDK.didDocument.id],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Notify test',
         'seq_no': 1,
@@ -111,10 +73,9 @@ void main() {
     await fixture.aliceChatSDK.sendMessage(message, notify: true);
 
     final received = await bobCompleter.future;
-    expect(received.body!['text'], equals('Notify test'));
-    expect(received.from, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.to?.first, equals(fixture.bobSDK.didDocument.id));
-    expect(received.id, equals('notify-id'));
+    expect(received.value, equals('Notify test'));
+    expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
+    expect(received.messageId, equals('notify-id'));
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(

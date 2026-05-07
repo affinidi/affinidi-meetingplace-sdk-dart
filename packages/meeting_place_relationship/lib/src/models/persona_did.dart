@@ -3,10 +3,7 @@
 /// Replaces app-level wrappers such as `MinimalPersona` or `Identity` so that
 /// package APIs remain independent of any consumer app's internal types.
 class PersonaDid {
-  const PersonaDid({
-    required this.did,
-    required this.name,
-  });
+  const PersonaDid({required this.did, required this.name});
 
   /// The decentralised identifier (DID) of this persona.
   final String did;

@@ -262,19 +262,7 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
-    final DidManager didManager;
-    try {
-      didManager = await connectionManager.generateRootDid(wallet);
-    } catch (e, stackTrace) {
-      mpxLogger.error(
-        'Failed to initialize CoreSDK, disposing resources',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      await channelAttachmentsController.close();
-      rethrow;
-    }
+    final didManager = await connectionManager.generateRootDid(wallet);
 
     final controlPlaneSDK = ControlPlaneSDK(
       didManager: didManager,
@@ -1082,14 +1070,22 @@ class MeetingPlaceCoreSDK {
     );
   }
 
-  /// Closes all SDK-owned broadcast streams.
+  /// Closes the control plane events stream.
   ///
-  /// After calling this, no further events will be emitted to any stream
-  /// exposed by this SDK instance. Call this when the SDK is no longer needed
+  /// After calling this, no further events will be emitted on
+  /// [controlPlaneEventsStream]. Call this when the SDK is no longer needed
   /// (e.g. on sign-out) to release resources.
   void disposeControlPlaneEventsStream() {
     _controlPlaneEventStreamManager.dispose();
-    _channelAttachmentsController.close();
+  }
+
+  /// Closes the [channelAttachments] broadcast stream.
+  ///
+  /// After calling this, no further events will be emitted on
+  /// [channelAttachments]. Call this when the SDK is no longer needed
+  /// (e.g. on sign-out) to release resources.
+  Future<void> closeChannelAttachmentsStream() {
+    return _channelAttachmentsController.close();
   }
 
   /// A method that deletes all pending discovery events.

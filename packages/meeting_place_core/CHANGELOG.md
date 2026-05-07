@@ -1,3 +1,7 @@
+## 0.0.1-dev.33
+
+ - **FEAT**: convert contact card fields to json blob (#157).
+
 ## 0.0.1-dev.32
 
  - **FIX**: rename docs to doc in meeting_place_core for pub.dev compliance (#167).

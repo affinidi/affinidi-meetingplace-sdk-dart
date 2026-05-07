@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../database/database_platform.dart';
@@ -57,9 +58,15 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
           ),
         );
 
+  /// Opens a [ConnectionOfferDatabase] from an existing [connection].
+  ///
+  /// Intended for migration and schema verification tests only.
+  @visibleForTesting
+  ConnectionOfferDatabase.forTesting(DatabaseConnection super.connection);
+
   /// Current schema version of the database.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Migration strategy applied before opening the database.
   /// Ensures foreign key constraints are enforced.
@@ -67,6 +74,51 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
   MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
+        },
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            // v1 connection_contact_cards stored contact fields as individual
+            // columns (first_name, last_name, email, mobile, profile_pic
+            // [non-null], meetingplace_identity_card_color).  v2 replaces them
+            // with contact_info_json and profile_pic (nullable).
+            // SQLite cannot drop or change columns in-place, so we recreate
+            // the table via a temp-table rename.
+            await customStatement(
+              'DROP TABLE IF EXISTS connection_contact_cards_temp',
+            );
+            await customStatement("""
+              CREATE TABLE connection_contact_cards_temp (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                connection_offer_id TEXT REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL,
+                did TEXT NOT NULL,
+                type TEXT NOT NULL,
+                contact_info_json TEXT NOT NULL DEFAULT '{}',
+                profile_pic TEXT NULL
+              )
+            """);
+            await customStatement("""
+              INSERT INTO connection_contact_cards_temp (
+                id, connection_offer_id, did, type, contact_info_json, profile_pic
+              )
+              SELECT
+                id, connection_offer_id, did, type,
+                json_object(
+                  'n', json_object(
+                    'given', first_name,
+                    'surname', last_name
+                  ),
+                  'email', email,
+                  'mobile', mobile,
+                  'color', meetingplace_identity_card_color
+                ),
+                profile_pic
+              FROM connection_contact_cards
+            """);
+            await customStatement('DROP TABLE connection_contact_cards');
+            await customStatement(
+              'ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards',
+            );
+          }
         },
       );
 }
@@ -186,23 +238,11 @@ class ConnectionContactCards extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  /// First name of the contact.
-  TextColumn get firstName => text()();
-
-  /// Last name of the contact.
-  TextColumn get lastName => text()();
-
-  /// Email address of the contact.
-  TextColumn get email => text()();
-
-  /// Mobile number of the contact.
-  TextColumn get mobile => text()();
+  /// Flexible JSON payload for contact information.
+  TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
 
   /// Profile picture of the contact.
-  TextColumn get profilePic => text()();
-
-  /// MeetingPlace identity card color of the contact.
-  TextColumn get meetingplaceIdentityCardColor => text()();
+  TextColumn get profilePic => text().nullable()();
 }
 
 extension _ConnectionOfferTypeValue on ConnectionOfferType {

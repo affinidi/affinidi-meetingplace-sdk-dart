@@ -8,8 +8,15 @@ import 'entity/channel.dart';
 ///
 /// Called by the SDK when processing connection events that require
 /// sending attachments to the other party.
+///
+/// [getDidManager] is provided by the SDK and resolves a [DidManager] for
+/// any DID managed by the local wallet — use it instead of holding a
+/// reference to the SDK instance.
 typedef OnBuildAttachmentsCallback =
-    Future<List<Attachment>?> Function(Channel channel);
+    Future<List<Attachment>?> Function(
+      Channel channel,
+      Future<DidManager> Function(String did) getDidManager,
+    );
 
 class MeetingPlaceCoreSDKOptions {
   const MeetingPlaceCoreSDKOptions({

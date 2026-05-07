@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../database/database_platform.dart';
@@ -46,9 +47,16 @@ class ChannelDatabase extends _$ChannelDatabase {
           ),
         );
 
+  /// Opens a [ChannelDatabase] from an existing [connection].
+  ///
+  /// Intended for migration and schema verification tests only — avoids the
+  /// encryption setup performed by the primary constructor.
+  @visibleForTesting
+  ChannelDatabase.forTesting(DatabaseConnection super.connection);
+
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -61,6 +69,54 @@ class ChannelDatabase extends _$ChannelDatabase {
             await migrator.addColumn(
               channels,
               channels.isConnectionInitiator,
+            );
+            // The v1 channel_contact_cards table stored contact fields as
+            // individual columns (first_name, last_name, email, mobile,
+            // profile_pic, meetingplace_identity_card_color).  Recreate the
+            // table with the v2 shape (contact_info_json JSON blob) and
+            // migrate the existing data by folding the old columns into a
+            // JSON object.  Using a temp-table approach keeps the migration
+            // idempotent: a prior interrupted run leaves no partial state.
+            await customStatement(
+                'DROP TABLE IF EXISTS channel_contact_cards_temp');
+            await customStatement('''
+              CREATE TABLE channel_contact_cards_temp (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                channel_id TEXT REFERENCES channels(id) ON DELETE CASCADE NOT NULL,
+                did TEXT NOT NULL,
+                type TEXT NOT NULL,
+                contact_info_json TEXT NOT NULL DEFAULT '{}',
+                card_type INTEGER NOT NULL,
+                UNIQUE(channel_id, card_type)
+              )
+            ''');
+            await customStatement('''
+              INSERT INTO channel_contact_cards_temp
+                (id, channel_id, did, type, contact_info_json, card_type)
+              SELECT
+                id, channel_id, did, type,
+                json_object(
+                  'n', json_object(
+                    'given', first_name,
+                    'surname', last_name
+                  ),
+                  'email', email,
+                  'mobile', mobile,
+                  'photo', profile_pic,
+                  'color', meetingplace_identity_card_color
+                ),
+                card_type
+              FROM channel_contact_cards
+            ''');
+            await customStatement('DROP TABLE channel_contact_cards');
+            await customStatement(
+              'ALTER TABLE channel_contact_cards_temp RENAME TO channel_contact_cards',
+            );
+          }
+          if (from < 3 && to >= 3) {
+            await migrator.addColumn(
+              channelContactCards,
+              channelContactCards.profilePic,
             );
           }
         },
@@ -144,23 +200,11 @@ class ChannelContactCards extends Table {
   /// Type of the contact.
   TextColumn get type => text()();
 
-  /// First name of the contact.
-  TextColumn get firstName => text()();
-
-  /// Last name of the contact.
-  TextColumn get lastName => text()();
-
-  /// Email address of the contact.
-  TextColumn get email => text()();
-
-  /// Mobile number of the contact.
-  TextColumn get mobile => text()();
+  /// Flexible JSON payload for contact information.
+  TextColumn get contactInfoJson => text().withDefault(const Constant('{}'))();
 
   /// Profile picture of the contact.
-  TextColumn get profilePic => text()();
-
-  /// Identity card color of the contact.
-  TextColumn get meetingplaceIdentityCardColor => text()();
+  TextColumn get profilePic => text().nullable()();
 
   /// Type of the contact card.
   IntColumn get cardType => integer().map(const _ContactCardTypeConverter())();

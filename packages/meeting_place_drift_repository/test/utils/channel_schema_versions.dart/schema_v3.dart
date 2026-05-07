@@ -1,0 +1,239 @@
+// dart format width=80
+// GENERATED CODE, DO NOT EDIT BY HAND.
+// ignore_for_file: type=lint
+import 'package:drift/drift.dart';
+
+class Channels extends Table with TableInfo {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Channels(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> publishOfferDid = GeneratedColumn<String>(
+      'publish_offer_did', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> mediatorDid = GeneratedColumn<String>(
+      'mediator_did', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> offerLink = GeneratedColumn<String>(
+      'offer_link', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<int> type = GeneratedColumn<int>(
+      'type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<int> isConnectionInitiator = GeneratedColumn<int>(
+      'is_connection_initiator', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints:
+          'NOT NULL DEFAULT 0 CHECK (is_connection_initiator IN (0, 1))',
+      defaultValue: const CustomExpression('0'));
+  late final GeneratedColumn<String> outboundMessageId =
+      GeneratedColumn<String>('outbound_message_id', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
+  late final GeneratedColumn<String> acceptOfferDid = GeneratedColumn<String>(
+      'accept_offer_did', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
+  late final GeneratedColumn<String> permanentChannelDid =
+      GeneratedColumn<String>('permanent_channel_did', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
+  late final GeneratedColumn<String> otherPartyPermanentChannelDid =
+      GeneratedColumn<String>(
+          'other_party_permanent_channel_did', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
+  late final GeneratedColumn<String> notificationToken =
+      GeneratedColumn<String>('notification_token', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
+  late final GeneratedColumn<String> otherPartyNotificationToken =
+      GeneratedColumn<String>(
+          'other_party_notification_token', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
+  late final GeneratedColumn<String> externalRef = GeneratedColumn<String>(
+      'external_ref', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
+  late final GeneratedColumn<int> seqNo = GeneratedColumn<int>(
+      'seq_no', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> messageSyncMarker =
+      GeneratedColumn<String>('message_sync_marker', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        publishOfferDid,
+        mediatorDid,
+        offerLink,
+        status,
+        type,
+        isConnectionInitiator,
+        outboundMessageId,
+        acceptOfferDid,
+        permanentChannelDid,
+        otherPartyPermanentChannelDid,
+        notificationToken,
+        otherPartyNotificationToken,
+        externalRef,
+        seqNo,
+        messageSyncMarker
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'channels';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
+    throw UnsupportedError('TableInfo.map in schema verification code');
+  }
+
+  @override
+  Channels createAlias(String alias) {
+    return Channels(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ChannelContactCards extends Table with TableInfo {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ChannelContactCards(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT');
+  late final GeneratedColumn<String> channelId = GeneratedColumn<String>(
+      'channel_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'REFERENCES channels(id)ON DELETE CASCADE NOT NULL');
+  late final GeneratedColumn<String> did = GeneratedColumn<String>(
+      'did', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> contactInfoJson = GeneratedColumn<String>(
+      'contact_info_json', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT \'{}\'',
+      defaultValue: const CustomExpression('\'{}\''));
+  late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
+      'profile_pic', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
+  late final GeneratedColumn<int> cardType = GeneratedColumn<int>(
+      'card_type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, channelId, did, type, contactInfoJson, profilePic, cardType];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'channel_contact_cards';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {channelId, cardType},
+      ];
+  @override
+  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
+    throw UnsupportedError('TableInfo.map in schema verification code');
+  }
+
+  @override
+  ChannelContactCards createAlias(String alias) {
+    return ChannelContactCards(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['UNIQUE(channel_id, card_type)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DatabaseAtV3 extends GeneratedDatabase {
+  DatabaseAtV3(QueryExecutor e) : super(e);
+  late final Channels channels = Channels(this);
+  late final ChannelContactCards channelContactCards =
+      ChannelContactCards(this);
+  late final Index offerLink =
+      Index('offer_link', 'CREATE INDEX offer_link ON channels (offer_link)');
+  @override
+  Iterable<TableInfo<Table, Object?>> get allTables =>
+      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  @override
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [channels, channelContactCards, offerLink];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('channels',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('channel_contact_cards', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
+  @override
+  int get schemaVersion => 3;
+  @override
+  DriftDatabaseOptions get options =>
+      const DriftDatabaseOptions(storeDateTimeAsText: true);
+}

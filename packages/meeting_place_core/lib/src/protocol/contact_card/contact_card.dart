@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+import '../../extensions/jcs_canonicalized.dart';
 
 part 'contact_card.g.dart';
 
@@ -22,12 +25,16 @@ class ContactCard {
   ContactCard({
     required this.did,
     required this.type,
-    required this.contactInfo,
-  });
+    required Map<String, dynamic> contactInfo,
+  }) : contactInfo = contactInfo.canonicalized();
 
   final String did;
   final String type;
+
   final Map<String, dynamic> contactInfo;
+  late final String profileHash = sha256
+      .convert(utf8.encode(contactInfo.toCanonicalJson()))
+      .toString();
 
   Map<String, dynamic> toJson() {
     return _$ContactCardToJson(this);
@@ -41,12 +48,10 @@ class ContactCard {
     return encoded.replaceAll('=', '');
   }
 
-  String get profileHash =>
-      sha256.convert(utf8.encode(jsonEncode(contactInfo))).toString();
-
   bool equals(ContactCard other) {
+    const eq = DeepCollectionEquality();
     return did == other.did &&
         type == other.type &&
-        jsonEncode(contactInfo) == jsonEncode(other.contactInfo);
+        eq.equals(contactInfo, other.contactInfo);
   }
 }

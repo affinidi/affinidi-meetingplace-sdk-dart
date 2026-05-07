@@ -137,6 +137,7 @@ class OobService {
         stream: oobStream,
         existingPermanentChannelDid: did,
         externalRef: externalRef,
+        onAttachmentsReceived: _onAttachmentsReceived,
       );
 
       return MediatorStreamProcessingResult(keepMessage: false);
@@ -257,6 +258,7 @@ class OobService {
     required OobStream stream,
     String? existingPermanentChannelDid,
     String? externalRef,
+    void Function(Channel, List<Attachment>)? onAttachmentsReceived,
   }) async {
     final otherPartyPermanentChannelDid = message.body.channelDid;
 
@@ -309,6 +311,11 @@ class OobService {
         type: ControlPlaneEventType.ChannelActivity,
       ),
     );
+
+    final attachments = message.attachments;
+    if (attachments != null && attachments.isNotEmpty) {
+      onAttachmentsReceived?.call(channel, attachments);
+    }
 
     stream.pushEvent(
       OobStreamData(

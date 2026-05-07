@@ -1,3 +1,5 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import '../../meeting_place_chat.dart';
 
 class MessageUtils {

@@ -99,18 +99,7 @@ void main() async {
   await bobChatSDK.startChatSession();
   await bobChatSDK.chatStreamSubscription.then((stream) {
     stream!.listen((data) {
-      if (data.plainTextMessage?.from ==
-          offerFinalisedEvent.channel.permanentChannelDid) {
-        return;
-      }
-      if (data.plainTextMessage != null) {
-        prettyJsonPrintYellow(
-          'Received message on chat stream',
-          data.plainTextMessage!.toJson(),
-        );
-      }
-
-      if (data.chatItem != null) {
+      if (data.event is ChatMessageEvent) {
         prettyJsonPrintYellow(
           'Received chat item on chat stream',
           data.chatItem!.toJson(),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,7 +32,9 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((message) async {
-        if (message.plainTextMessage?.type == unhandledMessage.type) {
+        final event = message.event;
+        if (event is UnhandledChatEvent &&
+            event.type == unhandledMessage.type.toString()) {
           pushedToChatStream.complete(message);
           stream.dispose();
         }
@@ -50,8 +53,8 @@ void main() {
 
     expect(receivedStreamData, isA<StreamData>());
     expect(
-      receivedStreamData.plainTextMessage?.id,
-      equals(unhandledMessage.id),
+      (receivedStreamData.event as UnhandledChatEvent).type,
+      equals(unhandledMessage.type.toString()),
     );
   });
 }

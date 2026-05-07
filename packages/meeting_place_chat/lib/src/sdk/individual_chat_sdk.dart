@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import '../../meeting_place_chat.dart';
-import '../constants/sdk_constants.dart';
+import '../core/constants.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
 
@@ -88,7 +90,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// Sends a direct plain text message to another party.
   ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to send.
+  /// - [message]: The `PlainTextMessage` to send.
   /// - [senderDid]: DID of the user who sent the message.
   /// - [recipientDid]: DID of the recipient of the message.
   /// - [mediatorDid]: DID of the mediator used for routing.

@@ -144,11 +144,11 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// Sends a plain text message.
   ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to send.
+  /// - [message]: The [CustomMessage] to send.
   ///
   /// Returns a [Future] that completes when the message has been sent.
   @override
-  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
+  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
     return _sdk.sendMessage(message, notify: notify);
   }
 
@@ -156,14 +156,14 @@ class MeetingPlaceChatSDK implements ChatSDK {
   ///
   /// **Parameters:**
   /// - [text]: The message content.
-  /// - [attachments]: An optional list of [Attachment]s.
+  /// - [attachments]: An optional list of [ChatAttachment]s.
   ///
   /// **Returns:**
   /// - The sent [Message].
   @override
   Future<Message> sendTextMessage(
     String text, {
-    List<Attachment>? attachments,
+    List<ChatAttachment>? attachments,
   }) {
     return _sdk.sendTextMessage(text, attachments: attachments);
   }
@@ -196,10 +196,10 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// Sends a "delivered" receipt for a plain text message.
   ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] that was delivered.
+  /// - [messageId]: The ID of the message that was delivered.
   @override
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message) =>
-      _sdk.sendChatDeliveredMessage(message);
+  Future<void> sendChatDeliveredMessage(String messageId) =>
+      _sdk.sendChatDeliveredMessage(messageId);
 
   /// Approves an incoming connection request.
   ///

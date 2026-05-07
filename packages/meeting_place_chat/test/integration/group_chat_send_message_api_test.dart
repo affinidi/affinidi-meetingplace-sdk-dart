@@ -21,36 +21,32 @@ void main() {
     await fixture.bobChatSDK.startChatSession();
     await fixture.charlieChatSDK.startChatSession();
 
-    final bobCompleter = Completer<PlainTextMessage>();
+    final bobCompleter = Completer<Message>();
     final bobChatStream = await fixture.bobChatSDK.chatStreamSubscription;
     bobChatStream!.listen((data) {
-      if (data.plainTextMessage?.type.toString() ==
-          ChatProtocol.chatMessage.value) {
-        if (!bobCompleter.isCompleted) {
-          bobCompleter.complete(data.plainTextMessage!);
-          bobChatStream.dispose();
-        }
+      if (data.event is ChatMessageEvent &&
+          data.chatItem != null &&
+          !bobCompleter.isCompleted) {
+        bobCompleter.complete(data.chatItem as Message);
+        bobChatStream.dispose();
       }
     });
 
-    final charlieCompleter = Completer<PlainTextMessage>();
+    final charlieCompleter = Completer<Message>();
     final charlieChatStream =
         await fixture.charlieChatSDK.chatStreamSubscription;
     charlieChatStream!.listen((data) {
-      if (data.plainTextMessage?.type.toString() ==
-          ChatProtocol.chatMessage.value) {
-        if (!charlieCompleter.isCompleted) {
-          charlieCompleter.complete(data.plainTextMessage!);
-          charlieChatStream.dispose();
-        }
+      if (data.event is ChatMessageEvent &&
+          data.chatItem != null &&
+          !charlieCompleter.isCompleted) {
+        charlieCompleter.complete(data.chatItem as Message);
+        charlieChatStream.dispose();
       }
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'group-test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.groupOwnerDidDocument.id,
-      to: [fixture.publishOfferResult.connectionOffer.groupDid!],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Hello group via sendMessage',
         'seq_no': 1,
@@ -63,49 +59,13 @@ void main() {
     final receivedByBob = await bobCompleter.future;
     final receivedByCharlie = await charlieCompleter.future;
 
-    expect(receivedByBob.body!['text'], equals('Hello group via sendMessage'));
-    expect(receivedByBob.from, equals(fixture.groupOwnerDidDocument.id));
+    expect(receivedByBob.value, equals('Hello group via sendMessage'));
+    expect(receivedByBob.senderDid, equals(fixture.groupOwnerDidDocument.id));
+
+    expect(receivedByCharlie.value, equals('Hello group via sendMessage'));
     expect(
-      receivedByBob.to?.first,
-      equals(fixture.publishOfferResult.connectionOffer.groupDid!),
-    );
-
-    expect(
-      receivedByCharlie.body!['text'],
-      equals('Hello group via sendMessage'),
-    );
-    expect(receivedByCharlie.from, equals(fixture.groupOwnerDidDocument.id));
-    expect(
-      receivedByCharlie.to?.first,
-      equals(fixture.publishOfferResult.connectionOffer.groupDid!),
-    );
-  });
-
-  test('group sendMessage throws if from/to are set incorrectly', () async {
-    await fixture.aliceChatSDK.startChatSession();
-
-    final wrongFrom = PlainTextMessage(
-      id: 'group-test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: 'did:wrong:alice',
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongFrom),
-      throwsA(isA<Exception>()),
-    );
-
-    final wrongTo = PlainTextMessage(
-      id: 'group-test-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      to: ['did:wrong:group'],
-      body: {'text': 'Should fail'},
-    );
-
-    expect(
-      () => fixture.aliceChatSDK.sendMessage(wrongTo),
-      throwsA(isA<Exception>()),
+      receivedByCharlie.senderDid,
+      equals(fixture.groupOwnerDidDocument.id),
     );
   });
 
@@ -113,25 +73,21 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<PlainTextMessage>();
+    final bobCompleter = Completer<Message>();
 
     final chatStream = await fixture.bobChatSDK.chatStreamSubscription;
     chatStream!.listen((data) {
-      if (data.plainTextMessage?.type.toString() ==
-          ChatProtocol.chatMessage.value) {
-        if (data.plainTextMessage?.body?['text'] == 'Notify group test' &&
-            !bobCompleter.isCompleted) {
-          bobCompleter.complete(data.plainTextMessage!);
-          chatStream.dispose();
-        }
+      if (data.event is ChatMessageEvent &&
+          (data.chatItem as Message?)?.value == 'Notify group test' &&
+          !bobCompleter.isCompleted) {
+        bobCompleter.complete(data.chatItem as Message);
+        chatStream.dispose();
       }
     });
 
-    final message = PlainTextMessage(
+    final message = CustomMessage(
       id: 'group-notify-id',
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: fixture.groupOwnerDidDocument.id,
-      to: [fixture.publishOfferResult.connectionOffer.groupDid!],
+      type: ChatProtocol.chatMessage.value,
       body: {
         'text': 'Notify group test',
         'seq_no': 1,
@@ -142,12 +98,8 @@ void main() {
     await fixture.aliceChatSDK.sendMessage(message, notify: true);
 
     final received = await bobCompleter.future;
-    expect(received.body!['text'], equals('Notify group test'));
-    expect(received.from, equals(fixture.groupOwnerDidDocument.id));
-    expect(
-      received.to?.first,
-      equals(fixture.publishOfferResult.connectionOffer.groupDid!),
-    );
-    expect(received.id, equals('group-notify-id'));
+    expect(received.value, equals('Notify group test'));
+    expect(received.senderDid, equals(fixture.groupOwnerDidDocument.id));
+    expect(received.messageId, equals('group-notify-id'));
   });
 }

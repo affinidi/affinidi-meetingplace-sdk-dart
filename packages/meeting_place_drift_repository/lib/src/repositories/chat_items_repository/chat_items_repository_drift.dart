@@ -595,14 +595,14 @@ class _ChatItemMapper {
         senderDid: message.senderDid,
         attachments: attachments.entries
             .map(
-              (a) => model.Attachment(
+              (a) => model.ChatAttachment(
                 id: a.key.id,
                 description: a.key.description,
                 filename: a.key.filename,
                 mediaType: a.key.mediaType,
                 format: a.key.format,
                 lastModifiedTime: a.key.lastModifiedTime,
-                data: model.AttachmentData(
+                data: model.ChatAttachmentData(
                   jws: a.key.jws,
                   hash: a.key.hash,
                   links: a.value.map((l) => l.url).toList(),

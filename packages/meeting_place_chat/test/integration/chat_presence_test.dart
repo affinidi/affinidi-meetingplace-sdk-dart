@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_chat/src/utils/message_utils.dart';
+import 'package:meeting_place_chat/src/protocol/protocol.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
@@ -38,10 +38,7 @@ void main() {
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       waitForSubscription.complete();
       stream!.listen((data) {
-        if (MessageUtils.isType(
-          data.plainTextMessage!,
-          ChatProtocol.chatPresence,
-        )) {
+        if (data.event is ChatPresenceEvent) {
           receivedMessages += 1;
         }
       });
@@ -66,7 +63,7 @@ void main() {
     await fixture.bobChatSDK.startChatSession();
     await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
       stream!.listen((data) {
-        if (data.plainTextMessage?.isOfType(type) == true) {
+        if (data.event is ChatPresenceEvent) {
           if (!bobReceivedPresenceFromFirstSession.isCompleted) {
             bobReceivedPresenceFromFirstSession.complete();
           }

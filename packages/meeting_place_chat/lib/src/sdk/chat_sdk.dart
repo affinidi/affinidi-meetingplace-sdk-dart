@@ -10,14 +10,17 @@ abstract interface class ChatSDK {
   Future<ChatItem?> getMessageById(String messageId);
   Future<List<Message>> fetchNewMessages();
 
-  Future<Message> sendTextMessage(String text, {List<Attachment>? attachments});
+  Future<Message> sendTextMessage(
+    String text, {
+    List<ChatAttachment>? attachments,
+  });
 
-  Future<void> sendMessage(PlainTextMessage message, {bool notify = false});
+  Future<void> sendMessage(CustomMessage message, {bool notify = false});
   Future<void> sendProfileHash();
   Future<void> sendChatActivity();
   Future<void> sendChatPresence();
   Future<void> sendEffect(Effect effect);
-  Future<void> sendChatDeliveredMessage(PlainTextMessage message);
+  Future<void> sendChatDeliveredMessage(String messageId);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
   Future<void> reactOnMessage(Message message, {required String reaction});
 

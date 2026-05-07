@@ -5,8 +5,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
-import '../constants/sdk_constants.dart';
 import '../core/chat_history_service.dart';
+import '../core/chat_stream/chat_event_conversion.dart';
+import '../core/constants.dart';
+import '../entity/chat_attachment_conversion.dart';
 import '../entity/message.dart' as entity_chat_message;
 import '../group/chat_group_alias_profile_hash_handler.dart';
 import '../group/chat_group_alias_profile_request_handler.dart';
@@ -16,6 +18,7 @@ import '../group/chat_group_details_update_handler.dart';
 import '../group/chat_group_member_deregistered_message_handler.dart';
 import '../group/chat_group_member_joined_handler.dart';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
+import '../protocol/protocol.dart';
 import '../utils/top_and_tail_extension.dart';
 import 'base_chat_sdk.dart';
 
@@ -130,33 +133,26 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// Sends a group message via the mediator.
   ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to send.
+  /// - [message]: The [CustomMessage] to send.
   /// - [notify]: Whether to notify group members (default: `false`).
   ///
   /// **Returns:**
   /// - A [Future] that completes when the message is sent.
   @override
-  Future<void> sendMessage(PlainTextMessage message, {bool notify = false}) {
-    final senderDid = message.from;
-    if (senderDid == null || senderDid != did) {
-      throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID '
-        '$did.',
-      );
-    }
-
-    final recipientDid = message.to?.firstOrNull;
-    if (recipientDid == null || recipientDid != otherPartyDid) {
-      throw Exception(
-        'Message "to" DID ${message.to} does not match chat recipient DID '
-        '$otherPartyDid.',
-      );
-    }
+  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
+    final plainTextMessage = PlainTextMessage(
+      id: message.id,
+      type: Uri.parse(message.type),
+      from: did,
+      to: [otherPartyDid],
+      body: message.body,
+      attachments: message.attachments?.map((a) => a.toDIDComm()).toList(),
+    );
 
     return sendPlainTextMessage(
-      message,
-      senderDid: senderDid,
-      recipientDid: recipientDid,
+      plainTextMessage,
+      senderDid: did,
+      recipientDid: otherPartyDid,
       mediatorDid: mediatorDid,
       notify: notify,
     );
@@ -218,7 +214,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
         chatHistoryService: _chatHistoryService,
         streamManager: chatStream,
       ).handle(chatId: chatId, group: group, message: msg);
-      chatStream.pushData(StreamData(plainTextMessage: msg));
+      chatStream.pushData(StreamData(event: msg.toChatEvent()));
       return true;
     },
     ChatProtocol.chatGroupDetailsUpdate.value: (msg) async {
@@ -325,7 +321,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
 
       if (!messageHandledInternal && !messageHandled) {
         chatStream.pushData(
-          StreamData(plainTextMessage: message.plainTextMessage),
+          StreamData(event: message.plainTextMessage.toChatEvent()),
         );
       }
       processedHashes.add(message.messageHash!);
@@ -361,7 +357,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     subscription.listen((data) async {
       if (!await _handleMessage(data)) {
         chatStream.pushData(
-          StreamData(plainTextMessage: data.plainTextMessage),
+          StreamData(event: data.plainTextMessage.toChatEvent()),
         );
       }
       return MediatorStreamProcessingResult(keepMessage: false);

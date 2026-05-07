@@ -1,4 +1,4 @@
-import '../constants/sdk_constants.dart' as constants;
+import '../core/constants.dart' as constants;
 import 'default_meeting_place_chat_sdk_logger.dart';
 import 'meeting_place_chat_sdk_logger.dart';
 

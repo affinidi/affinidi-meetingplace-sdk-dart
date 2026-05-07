@@ -64,8 +64,8 @@ Map<String, dynamic>? extractCredentialSubjectMapFromVcBlob(String vcBlob) {
     return sub is Map
         ? Map<String, dynamic>.from(sub)
         : (sub is List && sub.isNotEmpty && sub.first is Map)
-            ? Map<String, dynamic>.from(sub.first as Map)
-            : null;
+        ? Map<String, dynamic>.from(sub.first as Map)
+        : null;
   } catch (_) {
     return null;
   }

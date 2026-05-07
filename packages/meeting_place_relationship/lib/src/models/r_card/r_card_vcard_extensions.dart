@@ -17,8 +17,9 @@ extension RCardVCardExtension on RCardSubject {
     final social = this.social?.trim();
     final vCardNotes = notes?.trim();
 
-    final safeFirst =
-        (firstName == null || firstName.isEmpty) ? null : firstName;
+    final safeFirst = (firstName == null || firstName.isEmpty)
+        ? null
+        : firstName;
     final safeLast = (lastName == null || lastName.isEmpty) ? null : lastName;
 
     final lines = <String>[
@@ -27,9 +28,7 @@ extension RCardVCardExtension on RCardSubject {
       if (safeFirst != null || safeLast != null)
         'N:${_escapeVCard(safeLast ?? '')};${_escapeVCard(safeFirst ?? '')};;;',
       if (safeFirst != null || safeLast != null)
-        'FN:${_escapeVCard(
-          [safeFirst, safeLast].whereType<String>().join(' ').trim(),
-        )}',
+        'FN:${_escapeVCard([safeFirst, safeLast].whereType<String>().join(' ').trim())}',
       if (profilePic != null && profilePic.isNotEmpty)
         ..._buildPhotoLines(profilePic),
       if (email != null && email.isNotEmpty) 'EMAIL:${_escapeVCard(email)}',

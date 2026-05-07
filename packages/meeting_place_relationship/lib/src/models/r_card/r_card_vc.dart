@@ -54,14 +54,14 @@ class RCardVC {
   final dynamic proof;
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        if (type != null) 'type': type,
-        if (context != null) '@context': context,
-        if (issuer != null) 'issuer': issuer,
-        if (issuanceDate != null) 'issuanceDate': issuanceDate,
-        'credentialSubject': credentialSubject.toJson(),
-        if (proof != null) 'proof': proof,
-      };
+    if (id != null) 'id': id,
+    if (type != null) 'type': type,
+    if (context != null) '@context': context,
+    if (issuer != null) 'issuer': issuer,
+    if (issuanceDate != null) 'issuanceDate': issuanceDate,
+    'credentialSubject': credentialSubject.toJson(),
+    if (proof != null) 'proof': proof,
+  };
 }
 
 /// The structured credential subject of an R-Card VC.
@@ -103,12 +103,12 @@ class RCardCredentialSubject {
   final Map<String, dynamic>? additionalFields;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        if (name != null) 'name': name,
-        if (profilePic != null) 'profilePic': profilePic,
-        if (email != null) 'email': email,
-        if (phone != null) 'phone': phone,
-        if (address != null) 'address': address,
-        if (additionalFields != null) ...additionalFields!,
-      };
+    'id': id,
+    if (name != null) 'name': name,
+    if (profilePic != null) 'profilePic': profilePic,
+    if (email != null) 'email': email,
+    if (phone != null) 'phone': phone,
+    if (address != null) 'address': address,
+    if (additionalFields != null) ...additionalFields!,
+  };
 }

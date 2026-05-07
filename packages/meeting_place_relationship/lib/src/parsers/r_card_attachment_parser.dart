@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
-import '../builders/r_card_attachment_builder.dart';
+import '../builders/r_card_didcomm_attachment_builder.dart';
 import '../models/credential_constants.dart';
+import '../models/r_card/r_card_constants.dart';
 import '../models/r_card/received_r_card.dart';
 
 /// Parses DIDComm [Attachment]s and extracts valid R-Card credentials.
@@ -41,7 +42,7 @@ class RCardAttachmentParser {
     required Attachment attachment,
     required String contactChannelDid,
   }) async {
-    if (attachment.format != RCardAttachmentBuilder.attachmentFormat) {
+    if (attachment.format != RCardDIDCommAttachmentBuilder.attachmentFormat) {
       return null;
     }
 
@@ -73,7 +74,7 @@ class RCardAttachmentParser {
         !types.contains(
           RelationshipCredentialConstants.typeVerifiableCredential,
         ) ||
-        !types.contains(RelationshipCredentialConstants.typeRCard)) {
+        !types.contains(RCardConstants.typeRCard)) {
       return null;
     }
 
@@ -82,7 +83,7 @@ class RCardAttachmentParser {
     final contextList = context is List
         ? context.map((e) => e.toString()).toList()
         : <String>[];
-    if (!contextList.contains(RelationshipCredentialConstants.contextRCard)) {
+    if (!contextList.contains(RCardConstants.contextRCard)) {
       return null;
     }
 

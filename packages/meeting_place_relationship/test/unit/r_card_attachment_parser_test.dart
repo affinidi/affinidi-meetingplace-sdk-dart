@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
-import 'package:meeting_place_relationship/src/parsers/r_card_attachment_parser.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/r_card_fixture.dart';
@@ -28,7 +27,7 @@ void main() {
       final result = await RCardAttachmentParser.parseFirst(
         attachments: [
           makeAttachment(
-            format: RCardAttachmentBuilder.attachmentFormat,
+            format: RCardDIDCommAttachmentBuilder.attachmentFormat,
             dataJson: null,
           ),
         ],

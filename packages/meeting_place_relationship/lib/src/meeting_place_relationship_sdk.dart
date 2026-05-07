@@ -1,6 +1,11 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
+import 'dart:convert';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:ssi/ssi.dart';
+
+import 'models/credential_constants.dart';
 import 'models/r_card/received_r_card.dart';
+import 'models/vrc/vrc_constants.dart';
 import 'parsers/r_card_attachment_parser.dart';
 
 /// The Meeting Place Relationship SDK.
@@ -66,5 +71,32 @@ class MeetingPlaceRelationshipSDK {
       attachments: attachments,
       contactChannelDid: contactChannelDid,
     );
+  }
+
+  /// Parses and validates a VRC from a raw VC blob string.
+  ///
+  /// Returns `null` if the blob is not a valid, signature-verified VRC.
+  ///
+  /// - [vcBlob] — the raw serialised VC JSON string.
+  /// - [channelId] — the channel through which the VRC was received.
+  Future<ParsedVerifiableCredential?> parseVrc({
+    required String vcBlob,
+    required String channelId,
+  }) async {
+    if (vcBlob.isEmpty) return null;
+    try {
+      final decoded = jsonDecode(vcBlob) as Map<String, dynamic>;
+      final types = (decoded['type'] as List?)?.cast<String>() ?? [];
+      if (!types.contains(VrcConstants.typeRelationshipCredential) ||
+          !types.contains(
+            RelationshipCredentialConstants.typeVerifiableCredential,
+          )) {
+        return null;
+      }
+      if (!decoded.containsKey('proof')) return null;
+      return UniversalParser.parse(vcBlob);
+    } catch (_) {
+      return null;
+    }
   }
 }

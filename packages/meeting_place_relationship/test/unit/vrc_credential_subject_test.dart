@@ -1,5 +1,4 @@
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
-import 'package:meeting_place_relationship/src/models/vrc/vrc_credential_subject.dart';
 import 'package:test/test.dart';
 
 void main() {

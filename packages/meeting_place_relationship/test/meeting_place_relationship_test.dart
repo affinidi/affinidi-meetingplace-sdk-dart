@@ -45,7 +45,8 @@ void main() {
 
     test('fromVcBlob parses a minimal valid blob', () {
       const blob =
-          '{"issuer": "did:example:issuer", "validFrom": "2024-01-01T00:00:00Z"}';
+          '{"issuer": "did:example:issuer",'
+          ' "validFrom": "2024-01-01T00:00:00Z"}';
       final card = ReceivedRCard.fromVcBlob('did:example:holder', blob);
       expect(card, isNotNull);
       expect(card!.issuerDid, 'did:example:issuer');
@@ -55,28 +56,11 @@ void main() {
 
   group('RelationshipCredentialConstants', () {
     test('typeRCard is correct', () {
-      expect(RelationshipCredentialConstants.typeRCard, 'RelationshipCard');
+      expect(RCardConstants.typeRCard, 'RelationshipCard');
     });
 
     test('typeRelationshipCredential is correct', () {
-      expect(
-        RelationshipCredentialConstants.typeRelationshipCredential,
-        'RelationshipCredential',
-      );
-    });
-  });
-
-  group('PersonaDid', () {
-    test('equality holds when did and name match', () {
-      const a = PersonaDid(did: 'did:example:1', name: 'Alice');
-      const b = PersonaDid(did: 'did:example:1', name: 'Alice');
-      expect(a, equals(b));
-    });
-
-    test('inequality when did differs', () {
-      const a = PersonaDid(did: 'did:example:1', name: 'Alice');
-      const b = PersonaDid(did: 'did:example:2', name: 'Alice');
-      expect(a, isNot(equals(b)));
+      expect(VrcConstants.typeRelationshipCredential, 'RelationshipCredential');
     });
   });
 

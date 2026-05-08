@@ -102,7 +102,7 @@ void main() {
       // is_connection_initiator must exist with its default value of 0.
       final rows = await db.customSelect(
         'SELECT is_connection_initiator FROM channels WHERE id = ?',
-        variables: [Variable('ch-1')],
+        variables: [const Variable('ch-1')],
       ).get();
       expect(rows.single.read<int>('is_connection_initiator'), equals(0));
 

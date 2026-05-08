@@ -1,3 +1,13 @@
-library;
-
+export 'src/builders/credential_builder.dart';
+export 'src/builders/r_card_didcomm_attachment_builder.dart';
 export 'src/meeting_place_relationship_sdk.dart';
+export 'src/models/credential_constants.dart';
+export 'src/models/r_card/j_card.dart';
+export 'src/models/r_card/r_card_constants.dart';
+export 'src/models/r_card/r_card_credential_subject.dart';
+export 'src/models/r_card/r_card_subject.dart';
+export 'src/models/r_card/r_card_vc.dart';
+export 'src/models/r_card/r_card_vcard_extensions.dart';
+export 'src/models/r_card/received_r_card.dart';
+export 'src/models/vrc/vrc_constants.dart';
+export 'src/models/vrc/vrc_party.dart';

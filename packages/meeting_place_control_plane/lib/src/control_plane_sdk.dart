@@ -313,7 +313,6 @@ class ControlPlaneSDK {
     _dispatcher.registerHandler(
       MatrixTokenHandler(
         apiClient: _controlPlaneApiClient,
-        didManager: didManager,
         didResolver: didResolver,
         controlPlaneDid: controlPlaneDid,
         logger: _logger,

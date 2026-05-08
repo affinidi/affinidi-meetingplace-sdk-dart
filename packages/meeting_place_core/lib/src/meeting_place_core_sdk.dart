@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
@@ -24,6 +25,7 @@ import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
+import 'service/identity/identity_service.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
@@ -213,6 +215,8 @@ class MeetingPlaceCoreSDK {
     required RepositoryConfig repositoryConfig,
     required String mediatorDid,
     required String controlPlaneDid,
+    required Uri homeserver,
+    required Future<dynamic> Function(String) matrixDatabaseProvider,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -283,10 +287,20 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
+    final matrixService = MatrixService(
+      homeserver: homeserver,
+      databaseProvider: matrixDatabaseProvider,
+    );
+
     final connectionService = ConnectionService(
       connectionOfferRepository: repositoryConfig.connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
+      identityService: IdentityService(
+        connectionManager: connectionManager,
+        controlPlaneSDK: controlPlaneSDK,
+        matrixService: matrixService,
+      ),
       controlPlaneSDK: controlPlaneSDK,
       mediatorAclService: MediatorAclService(
         mediatorSDK: mediatorSDK,

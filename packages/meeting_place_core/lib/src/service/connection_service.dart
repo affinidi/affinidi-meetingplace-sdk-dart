@@ -21,6 +21,7 @@ import 'connection_offer/connection_offer_service.dart';
 import 'connection_offer/offer_already_claimed_exception.dart';
 import 'connection_offer/offer_owner_exception.dart';
 import 'connection_service/accept_offer_result.dart';
+import 'identity/identity_service.dart';
 import 'mediator/mediator_acl_service.dart';
 
 class FindOfferException implements Exception {
@@ -41,6 +42,7 @@ class ConnectionService {
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MediatorAclService mediatorAclService,
+    required IdentityService identityService,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
     required ChannelService channelService,
@@ -51,6 +53,7 @@ class ConnectionService {
        _controlPlaneSDK = controlPlaneSDK,
        _mediatorSDK = mediatorSDK,
        _mediatorAclService = mediatorAclService,
+       _identityService = identityService,
        _connectionOfferService = offerService,
        _didResolver = didResolver,
        _logger =
@@ -59,6 +62,7 @@ class ConnectionService {
   static const String _className = 'ConnectionService';
 
   final ConnectionManager _connectionManager;
+  final IdentityService _identityService;
   final ConnectionOfferRepository _connectionOfferRepository;
   final ConnectionOfferService _connectionOfferService;
   final ChannelService _channelService;
@@ -284,24 +288,12 @@ class ConnectionService {
       connectionOffer.offerLink,
     );
 
-    final acceptOfferDidManager = await _connectionManager.generateDid(wallet);
-    final acceptOfferDidDocument = await acceptOfferDidManager.getDidDocument();
-
-    _logger.debug(
-      'Accept offer DID: ${acceptOfferDidDocument.id.topAndTail()}',
-      name: methodName,
-    );
-
-    final permanentChannelDidManager = await _connectionManager.generateDid(
+    final acceptOfferIdentity = await _identityService.createEphemeralIdentity(
       wallet,
     );
 
-    final permanentChannelDidDocument = await permanentChannelDidManager
-        .getDidDocument();
-
-    _logger.debug(
-      'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
-      name: methodName,
+    final permanentIdentity = await _identityService.createPermanentIdentity(
+      wallet,
     );
 
     final result = await _controlPlaneSDK.execute(
@@ -309,7 +301,7 @@ class ConnectionService {
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
-        acceptOfferDid: acceptOfferDidDocument.id,
+        acceptOfferDid: acceptOfferIdentity.didDocument.id,
         contactCard: ContactCardImpl(
           did: contactCard.did,
           type: contactCard.type,
@@ -324,8 +316,8 @@ class ConnectionService {
     );
 
     await sendAcceptOfferToMediator(
-      acceptOfferDid: acceptOfferDidManager,
-      permanentChannelDidDocument: permanentChannelDidDocument,
+      acceptOfferDid: acceptOfferIdentity.didManager,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: result.mediatorDid,
       acceptContactCard: contactCard,
@@ -333,16 +325,16 @@ class ConnectionService {
 
     final acceptedConnectionOffer = await _acceptConnectionOffer(
       connectionOffer,
-      acceptOfferDidDocument: acceptOfferDidDocument,
-      permanentChannelDidDocument: permanentChannelDidDocument,
+      acceptOfferDidDocument: acceptOfferIdentity.didDocument,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       contactCard: contactCard,
       externalRef: externalRef,
     );
 
     final channel = Channel.individualFromAcceptedConnectionOffer(
       acceptedConnectionOffer,
-      permanentChannelDid: permanentChannelDidDocument.id,
-      acceptOfferDid: acceptOfferDidDocument.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
+      acceptOfferDid: acceptOfferIdentity.didDocument.id,
       contactCard: contactCard,
       externalRef: externalRef,
     );
@@ -366,8 +358,8 @@ class ConnectionService {
     return AcceptOfferResult(
       connectionOffer: acceptedConnectionOffer,
       channel: channel,
-      acceptOfferDid: acceptOfferDidManager,
-      permanentChannelDid: permanentChannelDidManager,
+      acceptOfferDid: acceptOfferIdentity.didManager,
+      permanentChannelDid: permanentIdentity.didManager,
     );
   }
 

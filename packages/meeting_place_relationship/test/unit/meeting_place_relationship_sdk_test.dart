@@ -123,7 +123,7 @@ void main() {
         subject: const RCardSubject(firstName: 'Alice'),
         issuerDidManager: didManager,
       );
-      signedAttachments = RCardAttachmentBuilder.fromVcJson(vc.toJson());
+      signedAttachments = RCardDIDCommAttachmentBuilder.fromVcJson(vc.toJson());
     });
 
     setUp(() {
@@ -215,24 +215,21 @@ void main() {
 
     test('returns null for empty string', () async {
       final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
-      final result = await sdk.parseVrc(vcBlob: '', channelId: 'ch-1');
+      final result = await sdk.parseVrc(vcBlob: '');
       expect(result, isNull);
       await sdk.closeRelationshipStreams();
     });
 
     test('returns null for non-VRC blob', () async {
       final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
-      final result = await sdk.parseVrc(vcBlob: 'not-json', channelId: 'ch-1');
+      final result = await sdk.parseVrc(vcBlob: 'not-json');
       expect(result, isNull);
       await sdk.closeRelationshipStreams();
     });
 
     test('returns null for VRC without proof', () async {
       final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
-      final result = await sdk.parseVrc(
-        vcBlob: vrcBlobWithoutProof,
-        channelId: 'ch-1',
-      );
+      final result = await sdk.parseVrc(vcBlob: vrcBlobWithoutProof);
       expect(result, isNull);
       await sdk.closeRelationshipStreams();
     });

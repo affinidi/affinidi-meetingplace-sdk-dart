@@ -132,7 +132,7 @@ class RCardAttachmentParser {
       subjectDid: subjectDid,
       vcBlob: vcBlob,
       issuerDid: issuerDid,
-      version: RelationshipCredentialConstants.receivedRCardVersion,
+      version: RCardConstants.receivedRCardVersion,
       issuanceDate: issuanceDate ?? now,
       receivedAt: now,
       contactChannelDid: contactChannelDid.isEmpty ? null : contactChannelDid,

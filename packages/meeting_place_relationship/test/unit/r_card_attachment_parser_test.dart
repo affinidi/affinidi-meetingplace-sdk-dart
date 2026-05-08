@@ -183,7 +183,7 @@ void main() {
         subject: const RCardSubject(firstName: 'Test', lastName: 'User'),
         issuerDidManager: didManager,
       );
-      signedAttachments = RCardAttachmentBuilder.fromVcJson(vc.toJson());
+      signedAttachments = RCardDIDCommAttachmentBuilder.fromVcJson(vc.toJson());
     });
 
     test('valid signed R-Card returns a ReceivedRCard', () async {
@@ -194,10 +194,7 @@ void main() {
       expect(result, isNotNull);
       expect(result!.issuerDid, issuerDid);
       expect(result.subjectDid, issuerDid);
-      expect(
-        result.version,
-        RelationshipCredentialConstants.receivedRCardVersion,
-      );
+      expect(result.version, RCardConstants.receivedRCardVersion);
     });
   });
 }

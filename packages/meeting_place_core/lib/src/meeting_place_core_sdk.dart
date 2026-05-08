@@ -1088,15 +1088,6 @@ class MeetingPlaceCoreSDK {
     return _channelAttachmentsController.close();
   }
 
-  /// Closes the [channelAttachments] broadcast stream.
-  ///
-  /// After calling this, no further events will be emitted on
-  /// [channelAttachments]. Call this when the SDK is no longer needed
-  /// (e.g. on sign-out) to release resources.
-  Future<void> closeChannelAttachmentsStream() {
-    return _channelAttachmentsController.close();
-  }
-
   /// A method that deletes all pending discovery events.
   Future<List<String>> deleteControlPlaneEvents() {
     return _controlPlaneEventService.deleteAll();

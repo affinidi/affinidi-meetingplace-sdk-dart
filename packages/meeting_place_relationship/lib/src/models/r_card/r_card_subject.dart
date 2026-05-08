@@ -83,12 +83,13 @@ Map<String, dynamic>? _extractCredentialSubjectMapFromVcBlob(String vcBlob) {
 
 Map<String, dynamic>? _jCardToFlatMap(dynamic card, String? id) {
   if (card is! List || card.length < 2 || card[0] != 'vcard') return null;
-  final props = card[1] as List<dynamic>? ?? [];
+  final props = card[1];
+  if (props is! List) return null;
   return {
     'id': id,
     for (final p in props)
       if (p is List && p.length >= 4 && p[0] != null)
-        p[0] as String: _trim(p[3]),
+        p[0].toString(): _trim(p[3]),
   };
 }
 

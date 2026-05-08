@@ -31,7 +31,7 @@ class RCardVC {
       type: (json['type'] as List?)?.map((e) => e as String).toList(),
       context: json['@context'],
       issuer: json['issuer'],
-      issuanceDate: json['issuanceDate'] as String?,
+      issuanceDate: (json['validFrom'] ?? json['issuanceDate']) as String?,
       credentialSubject: RCardCredentialSubject.fromJson(subjectMap),
       proof: json['proof'],
     );

@@ -42,8 +42,10 @@ class ReceivedRCard {
           ? issuer['id'].toString()
           : null;
       if (issuerDid == null || issuerDid.isEmpty) return null;
-      final raw = decoded['validFrom'];
-      final issuanceDate = raw is String ? DateTime.tryParse(raw) : null;
+      final raw = decoded['validFrom'] ?? decoded['issuanceDate'];
+      final issuanceDate = raw is String
+          ? DateTime.tryParse(raw)?.toUtc()
+          : null;
       final now = DateTime.now().toUtc();
       return ReceivedRCard(
         subjectDid: subjectDid.trim(),

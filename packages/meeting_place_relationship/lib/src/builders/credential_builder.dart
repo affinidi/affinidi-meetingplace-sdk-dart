@@ -130,7 +130,7 @@ class CredentialBuilder {
 
     final entries = fields.entries
         .where((e) => (e.value ?? '').trim().isNotEmpty)
-        .map((e) => [e.key, const <String, dynamic>{}, 'text', e.value])
+        .map((e) => [e.key, const <String, dynamic>{}, 'text', e.value!.trim()])
         .toList(growable: false);
 
     return ['vcard', entries];

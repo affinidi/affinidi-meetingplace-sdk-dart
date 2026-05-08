@@ -8,41 +8,39 @@ import '../utils/oob_flow_fixture.dart';
 
 void main() {
   group('channelAttachments stream', () {
-    test(
-      'emits (channel, attachments) on Alice side when Bob accepts with attachments',
-      () async {
-        final fixture = await OobFlowFixture.create();
+    test('emits (channel, attachments) on Alice side when Bob accepts'
+        ' with attachments', () async {
+      final fixture = await OobFlowFixture.create();
 
-        final attachment = Attachment(
-          id: const Uuid().v4(),
-          data: AttachmentData(base64: 'dGVzdA=='),
-        );
+      final attachment = Attachment(
+        id: const Uuid().v4(),
+        data: AttachmentData(base64: 'dGVzdA=='),
+      );
 
-        final received = <(Channel, List<Attachment>)>[];
-        final completer = Completer<void>();
+      final received = <(Channel, List<Attachment>)>[];
+      final completer = Completer<void>();
 
-        fixture.aliceSDK.channelAttachments.listen((event) {
-          received.add(event);
-          if (!completer.isCompleted) completer.complete();
-        });
+      fixture.aliceSDK.channelAttachments.listen((event) {
+        received.add(event);
+        if (!completer.isCompleted) completer.complete();
+      });
 
-        final oobOfferSession = await fixture.createOobFlow();
+      final oobOfferSession = await fixture.createOobFlow();
 
-        await fixture.bobSDK.acceptOobFlow(
-          oobOfferSession.oobUrl,
-          contactCard: OobFlowFixture.bobContactCard(),
-          attachments: [attachment],
-        );
+      await fixture.bobSDK.acceptOobFlow(
+        oobOfferSession.oobUrl,
+        contactCard: OobFlowFixture.bobContactCard(),
+        attachments: [attachment],
+      );
 
-        await OobFlowFixture.waitForFirstChannelFromCreate(oobOfferSession);
+      await OobFlowFixture.waitForFirstChannelFromCreate(oobOfferSession);
 
-        await completer.future.timeout(const Duration(seconds: 10));
+      await completer.future.timeout(const Duration(seconds: 10));
 
-        expect(received, hasLength(1));
-        expect(received.first.$2, hasLength(1));
-        expect(received.first.$2.first.id, equals(attachment.id));
-      },
-    );
+      expect(received, hasLength(1));
+      expect(received.first.$2, hasLength(1));
+      expect(received.first.$2.first.id, equals(attachment.id));
+    });
 
     test('does not emit when Bob accepts without attachments', () async {
       final fixture = await OobFlowFixture.create();

@@ -23,14 +23,14 @@ extension RCardVCardExtension on RCardSubject {
         ? null
         : firstName;
     final safeLast = (lastName == null || lastName.isEmpty) ? null : lastName;
+    final fullName = [safeFirst, safeLast].whereType<String>().join(' ').trim();
 
     final lines = <String>[
       'BEGIN:VCARD',
       'VERSION:3.0',
       if (safeFirst != null || safeLast != null)
         'N:${_escapeVCard(safeLast ?? '')};${_escapeVCard(safeFirst ?? '')};;;',
-      if (safeFirst != null || safeLast != null)
-        'FN:${_escapeVCard([safeFirst, safeLast].whereType<String>().join(' ').trim())}',
+      if (safeFirst != null || safeLast != null) 'FN:${_escapeVCard(fullName)}',
       if (profilePic != null && profilePic.isNotEmpty)
         ..._buildPhotoLines(profilePic),
       if (email != null && email.isNotEmpty) 'EMAIL:${_escapeVCard(email)}',

@@ -23,10 +23,6 @@ class RCardSubject {
   factory RCardSubject.fromJson(Map<String, dynamic> json) =>
       _$RCardSubjectFromJson(json);
 
-  static final _log = DefaultMeetingPlaceCoreSDKLogger(
-    className: 'RCardSubject',
-  );
-
   final String? id;
   final String? firstName;
   final String? lastName;
@@ -44,15 +40,20 @@ class RCardSubject {
   ///
   /// Returns `null` if the blob cannot be decoded or does not contain a
   /// recognisable jCard credential subject.
-  static RCardSubject? fromVcBlob(String vcBlob) {
+  static RCardSubject? fromVcBlob(
+    String vcBlob, {
+    MeetingPlaceCoreSDKLogger? logger,
+  }) {
+    final log =
+        logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardSubject');
     final subject = _extractCredentialSubjectMapFromVcBlob(vcBlob);
     if (subject == null) {
-      _log.warning('Could not extract credentialSubject from VC blob');
+      log.warning('Could not extract credentialSubject from VC blob');
       return null;
     }
     final map = _jCardToFlatMap(subject['card'], subject['id']?.toString());
     if (map == null) {
-      _log.warning('Could not parse jCard from credentialSubject');
+      log.warning('Could not parse jCard from credentialSubject');
       return null;
     }
     return RCardSubject.fromJson(map);

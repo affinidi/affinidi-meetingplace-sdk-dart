@@ -21,15 +21,17 @@ class ReceivedRCard {
     this.notes,
   });
 
-  static final _log = DefaultMeetingPlaceCoreSDKLogger(
-    className: 'ReceivedRCard',
-  );
-
   /// Parses a [ReceivedRCard] from a raw VC blob string.
   ///
   /// Returns `null` if the blob cannot be decoded or required fields
   /// are missing.
-  static ReceivedRCard? fromVcBlob(String subjectDid, String vcBlob) {
+  static ReceivedRCard? fromVcBlob(
+    String subjectDid,
+    String vcBlob, {
+    MeetingPlaceCoreSDKLogger? logger,
+  }) {
+    final log =
+        logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'ReceivedRCard');
     try {
       final decoded = jsonDecode(vcBlob) as Map<String, dynamic>?;
       if (decoded == null) return null;
@@ -52,7 +54,7 @@ class ReceivedRCard {
         receivedAt: now,
       );
     } catch (e, st) {
-      _log.error(
+      log.error(
         'Failed to parse ReceivedRCard from VC blob',
         error: e,
         stackTrace: st,

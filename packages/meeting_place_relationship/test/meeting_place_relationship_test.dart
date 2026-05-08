@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -43,13 +46,29 @@ void main() {
       expect(ReceivedRCard.fromVcBlob('did:example:1', blob), isNull);
     });
 
-    test('fromVcBlob parses a minimal valid blob', () {
-      const blob =
-          '{"issuer": "did:example:issuer",'
-          ' "validFrom": "2024-01-01T00:00:00Z"}';
-      final card = ReceivedRCard.fromVcBlob('did:example:holder', blob);
+    test('fromVcBlob parses a minimal valid blob', () async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+      final didManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final keyPair = await wallet.generateKey();
+      await didManager.addVerificationMethod(keyPair.id);
+      final didDoc = await didManager.getDidDocument();
+      final issuerDid = didDoc.id;
+      final vc = await CredentialBuilder.buildRCard(
+        issuerDid: issuerDid,
+        subjectDid: 'did:example:holder',
+        subject: const RCardSubject(firstName: 'Alice'),
+        issuerDidManager: didManager,
+      );
+
+      final card = ReceivedRCard.fromVcBlob(
+        'did:example:holder',
+        jsonEncode(vc.toJson()),
+      );
       expect(card, isNotNull);
-      expect(card!.issuerDid, 'did:example:issuer');
+      expect(card!.issuerDid, issuerDid);
       expect(card.subjectDid, 'did:example:holder');
     });
   });

@@ -99,11 +99,7 @@ class MeetingPlaceRelationshipSDK {
   /// Returns `null` if the blob is not a valid, signature-verified VRC.
   ///
   /// - [vcBlob] — the raw serialised VC JSON string.
-  /// - [channelId] — the channel through which the VRC was received.
-  Future<ParsedVerifiableCredential?> parseVrc({
-    required String vcBlob,
-    required String channelId,
-  }) async {
+  Future<ParsedVerifiableCredential?> parseVrc({required String vcBlob}) async {
     if (vcBlob.isEmpty) return null;
     try {
       final decoded = jsonDecode(vcBlob) as Map<String, dynamic>;

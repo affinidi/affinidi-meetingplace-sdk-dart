@@ -8,8 +8,8 @@ import '../models/r_card/r_card_subject.dart';
 import 'credential_builder.dart';
 
 /// Builds DIDComm [Attachment]s carrying a signed R-Card VC payload.
-class RCardAttachmentBuilder {
-  RCardAttachmentBuilder._();
+class RCardDIDCommAttachmentBuilder {
+  RCardDIDCommAttachmentBuilder._();
 
   /// The DIDComm attachment format identifier for R-Card attachments.
   static const attachmentFormat = 'mpx_r_card_attachment_plugin';

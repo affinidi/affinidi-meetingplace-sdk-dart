@@ -1,17 +1,17 @@
-import '../persona_did.dart';
+import 'vrc_party.dart';
 
 /// The credential subject of a Verifiable Relationship Credential (VRC).
 ///
 /// Describes the two parties in the relationship: [from] (the issuer's
-/// persona) and [to] (the counterpart's persona).
+/// party) and [to] (the counterpart's party).
 class VrcCredentialSubject {
   const VrcCredentialSubject({required this.from, required this.to});
 
-  /// The persona of the party issuing the VRC.
-  final PersonaDid from;
+  /// The party issuing the VRC.
+  final VrcParty from;
 
-  /// The persona of the counterpart in the relationship.
-  final PersonaDid to;
+  /// The counterpart in the relationship.
+  final VrcParty to;
 
   Map<String, dynamic> toJson() => {
     'from': {'did': from.did, 'name': from.name},

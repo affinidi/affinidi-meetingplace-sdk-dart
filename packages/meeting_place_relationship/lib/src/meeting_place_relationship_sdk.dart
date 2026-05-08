@@ -10,6 +10,8 @@ class MeetingPlaceRelationshipSDK {
   MeetingPlaceRelationshipSDK({required MeetingPlaceCoreSDK coreSDK})
     : _coreSDK = coreSDK;
 
+  // TODO(earl): Wire up SDK calls — will be used by R-Card/VRC flow methods
+  // added in upcoming PRs.
   // ignore: unused_field
   final MeetingPlaceCoreSDK _coreSDK;
 }

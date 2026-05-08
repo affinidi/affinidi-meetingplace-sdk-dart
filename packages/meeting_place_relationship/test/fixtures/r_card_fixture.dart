@@ -29,7 +29,7 @@ Attachment rCardAttachment({String? overrideDataJson}) {
       overrideDataJson ??
       jsonEncode({'vcBlob': rCardVcBlob, 'isUpdate': false});
   return makeAttachment(
-    format: RCardAttachmentBuilder.attachmentFormat,
+    format: RCardDIDCommAttachmentBuilder.attachmentFormat,
     dataJson: data,
   );
 }

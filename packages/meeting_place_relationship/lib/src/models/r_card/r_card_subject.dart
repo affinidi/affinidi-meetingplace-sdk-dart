@@ -1,7 +1,8 @@
-import 'dart:convert';
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:ssi/ssi.dart';
+
+import 'j_card.dart';
 
 part 'r_card_subject.g.dart';
 
@@ -38,20 +39,27 @@ class RCardSubject {
 
   /// Parses an [RCardSubject] directly from a raw VC blob string.
   ///
-  /// Returns `null` if the blob cannot be decoded or does not contain a
-  /// recognisable jCard credential subject.
+  /// Uses the SSI package to decode and validate the VC structure before
+  /// extracting the jCard credential subject. Returns `null` if the blob
+  /// cannot be parsed as a signed DM v2 credential or does not contain a
+  /// recognisable jCard.
   static RCardSubject? fromVcBlob(
     String vcBlob, {
     MeetingPlaceCoreSDKLogger? logger,
   }) {
     final log =
         logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardSubject');
-    final subject = _extractCredentialSubjectMapFromVcBlob(vcBlob);
-    if (subject == null) {
-      log.warning('Could not extract credentialSubject from VC blob');
+    final vc = LdVcDm2Suite().tryParse(vcBlob);
+    if (vc == null) {
+      log.warning('Could not parse VC from blob as a signed DM v2 credential');
       return null;
     }
-    final map = _jCardToFlatMap(subject['card'], subject['id']?.toString());
+    final subject = vc.credentialSubject.firstOrNull;
+    if (subject == null) {
+      log.warning('Could not extract credentialSubject from VC');
+      return null;
+    }
+    final map = JCard.decode(subject['card'], subject.id?.toString());
     if (map == null) {
       log.warning('Could not parse jCard from credentialSubject');
       return null;
@@ -68,32 +76,3 @@ class RCardSubject {
       .trim();
 }
 
-Map<String, dynamic>? _extractCredentialSubjectMapFromVcBlob(String vcBlob) {
-  try {
-    final sub = (jsonDecode(vcBlob) as Map?)?['credentialSubject'];
-    return sub is Map
-        ? Map<String, dynamic>.from(sub)
-        : (sub is List && sub.isNotEmpty && sub.first is Map)
-        ? Map<String, dynamic>.from(sub.first as Map)
-        : null;
-  } catch (_) {
-    return null;
-  }
-}
-
-Map<String, dynamic>? _jCardToFlatMap(dynamic card, String? id) {
-  if (card is! List || card.length < 2 || card[0] != 'vcard') return null;
-  final props = card[1];
-  if (props is! List) return null;
-  return {
-    'id': id,
-    for (final p in props)
-      if (p is List && p.length >= 4 && p[0] != null)
-        p[0].toString(): _trim(p[3]),
-  };
-}
-
-String? _trim(dynamic v) {
-  final s = v?.toString().trim();
-  return s != null && s.isNotEmpty ? s : null;
-}

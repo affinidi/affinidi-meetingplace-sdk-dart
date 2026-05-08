@@ -1,4 +1,6 @@
-import 'dart:convert';
+import 'package:ssi/ssi.dart';
+
+import 'j_card.dart';
 
 /// A parsed Relationship Card (R-Card) Verifiable Credential.
 ///
@@ -15,34 +17,41 @@ class RCardVC {
   });
 
   factory RCardVC.fromJson(Map<String, dynamic> json) {
-    final subject = json['credentialSubject'];
-    Map<String, dynamic>? subjectMap;
-
-    if (subject is List && subject.isNotEmpty && subject.first is Map) {
-      subjectMap = Map<String, dynamic>.from(subject.first as Map);
-    } else if (subject is Map) {
-      subjectMap = Map<String, dynamic>.from(subject);
-    } else {
-      throw const FormatException('Invalid credentialSubject format');
+    // Use the SSI package to validate VC structure before extracting fields.
+    final vc = VcDataModelV2.fromJson(json);
+    final subject = vc.credentialSubject.firstOrNull;
+    if (subject == null) {
+      throw const FormatException('Missing credentialSubject');
     }
-
+    final subjectMap = Map<String, dynamic>.from(subject.toJson());
     return RCardVC(
-      id: json['id'] as String?,
-      type: (json['type'] as List?)?.map((e) => e as String).toList(),
+      id: vc.id?.toString(),
+      type: vc.type.toList(),
       context: json['@context'],
       issuer: json['issuer'],
-      issuanceDate: (json['validFrom'] ?? json['issuanceDate']) as String?,
+      issuanceDate: vc.validFrom?.toIso8601String(),
       credentialSubject: RCardCredentialSubject.fromJson(subjectMap),
       proof: json['proof'],
     );
   }
 
   factory RCardVC.fromVcBlob(String vcBlob) {
-    final decoded = jsonDecode(vcBlob);
-    if (decoded is! Map<String, dynamic>) {
-      throw const FormatException('Invalid VC blob format');
+    final vc = LdVcDm2Suite().parse(vcBlob);
+    final rawJson = vc.toJson();
+    final subject = vc.credentialSubject.firstOrNull;
+    if (subject == null) {
+      throw const FormatException('Missing credentialSubject');
     }
-    return RCardVC.fromJson(decoded);
+    final subjectMap = Map<String, dynamic>.from(subject.toJson());
+    return RCardVC(
+      id: vc.id?.toString(),
+      type: vc.type.toList(),
+      context: rawJson['@context'],
+      issuer: rawJson['issuer'],
+      issuanceDate: vc.validFrom?.toIso8601String(),
+      credentialSubject: RCardCredentialSubject.fromJson(subjectMap),
+      proof: rawJson['proof'],
+    );
   }
 
   final String? id;
@@ -76,18 +85,50 @@ class RCardCredentialSubject {
     this.additionalFields,
   });
 
+  /// Parses an [RCardCredentialSubject] from a credential subject JSON map.
+  ///
+  /// Handles both the current jCard-encoded format (where contact data is
+  /// stored as a `card` property following RFC 7095) and the legacy flat-field
+  /// format for backward compatibility.
   factory RCardCredentialSubject.fromJson(Map<String, dynamic> json) {
-    const knownKeys = {'id', 'name', 'profilePic', 'email', 'phone', 'address'};
-    final additionalFields = Map<String, dynamic>.from(json)
+    // Decode jCard if present; fall back to treating the map as flat fields.
+    final Map<String, dynamic> flat;
+    if (json['card'] != null) {
+      final decoded = JCard.decode(json['card'], json['id']?.toString());
+      if (decoded == null) {
+        throw const FormatException(
+          'Failed to decode jCard from credentialSubject.card',
+        );
+      }
+      flat = decoded;
+    } else {
+      flat = json;
+    }
+
+    final firstName = (flat['firstName'] as String?)?.trim();
+    final lastName = (flat['lastName'] as String?)?.trim();
+    final derivedName = [firstName, lastName]
+        .whereType<String>()
+        .where((s) => s.isNotEmpty)
+        .join(' ')
+        .trim();
+
+    const knownKeys = {
+      'id', 'firstName', 'lastName', 'name',
+      'profilePic', 'email', 'phone', 'address',
+    };
+    final additionalFields = Map<String, dynamic>.from(flat)
       ..removeWhere((key, _) => knownKeys.contains(key));
 
     return RCardCredentialSubject(
-      id: (json['id'] as String?)?.trim() ?? '',
-      name: (json['name'] as String?)?.trim(),
-      profilePic: (json['profilePic'] as String?)?.trim(),
-      email: (json['email'] as String?)?.trim(),
-      phone: (json['phone'] as String?)?.trim(),
-      address: (json['address'] as String?)?.trim(),
+      id: (flat['id'] as String?)?.trim() ?? '',
+      name: derivedName.isNotEmpty
+          ? derivedName
+          : (flat['name'] as String?)?.trim(),
+      profilePic: (flat['profilePic'] as String?)?.trim(),
+      email: (flat['email'] as String?)?.trim(),
+      phone: (flat['phone'] as String?)?.trim(),
+      address: (flat['address'] as String?)?.trim(),
       additionalFields: additionalFields.isEmpty ? null : additionalFields,
     );
   }

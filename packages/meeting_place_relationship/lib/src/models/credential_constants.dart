@@ -1,5 +1,7 @@
-/// Shared credential type constants and schema URIs for VRC and
-/// R-Card credentials.
+/// Shared credential type constants for all relationship credentials.
+///
+/// R-Card specific constants live in `RCardConstants`.
+/// VRC specific constants live in `VrcConstants`.
 class RelationshipCredentialConstants {
   RelationshipCredentialConstants._();
 
@@ -12,16 +14,4 @@ class RelationshipCredentialConstants {
   static Set<String> get supportedFormats => {w3cV1, w3cLdV1, w3cV2};
 
   static const typeVerifiableCredential = 'VerifiableCredential';
-  static const typeRCard = 'RelationshipCard';
-  static const typeRelationshipCredential = 'RelationshipCredential';
-
-  static const contextVrc =
-      'https://schema.affinidi.io/TRelationshipCredentialV1R0.jsonld';
-
-  static const contextRCard =
-      'https://schema.affinidi.io/TRelationshipCardV1R0.jsonld';
-  static const schemaRCard =
-      'https://schema.affinidi.io/TRelationshipCardV1R0.json';
-
-  static const receivedRCardVersion = 1;
 }

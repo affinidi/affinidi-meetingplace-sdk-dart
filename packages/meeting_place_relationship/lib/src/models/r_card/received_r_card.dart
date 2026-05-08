@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../credential_constants.dart';
+import 'r_card_constants.dart';
 
 /// An R-Card received from another party and ready for local storage.
 ///
@@ -51,7 +51,7 @@ class ReceivedRCard {
         subjectDid: subjectDid.trim(),
         vcBlob: vcBlob,
         issuerDid: issuerDid,
-        version: RelationshipCredentialConstants.receivedRCardVersion,
+        version: RCardConstants.receivedRCardVersion,
         issuanceDate: issuanceDate ?? now,
         receivedAt: now,
       );

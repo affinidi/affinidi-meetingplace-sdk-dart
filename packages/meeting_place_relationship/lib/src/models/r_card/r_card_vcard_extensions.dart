@@ -4,6 +4,8 @@ import 'r_card_subject.dart';
 extension RCardVCardExtension on RCardSubject {
   /// Serialises this R-Card subject to a vCard 3.0 string.
   ///
+  /// Follows [RFC 6350](https://datatracker.ietf.org/doc/html/rfc6350) for
+  /// property names and value encoding.
   /// The [notes] parameter is appended as the `NOTE` field when provided.
   String toVCard({String? notes}) {
     final firstName = this.firstName?.trim();
@@ -28,7 +30,10 @@ extension RCardVCardExtension on RCardSubject {
       if (safeFirst != null || safeLast != null)
         'N:${_escapeVCard(safeLast ?? '')};${_escapeVCard(safeFirst ?? '')};;;',
       if (safeFirst != null || safeLast != null)
-        'FN:${_escapeVCard([safeFirst, safeLast].whereType<String>().join(' ').trim())}',
+        'FN:${_escapeVCard([safeFirst, safeLast]
+            .whereType<String>()
+            .join(' ')
+            .trim())}',
       if (profilePic != null && profilePic.isNotEmpty)
         ..._buildPhotoLines(profilePic),
       if (email != null && email.isNotEmpty) 'EMAIL:${_escapeVCard(email)}',

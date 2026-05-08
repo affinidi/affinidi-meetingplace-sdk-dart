@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
+
+import '../credential_constants.dart';
+
 /// An R-Card received from another party and ready for local storage.
 ///
 /// This is the persistence/view model for an incoming R-Card. It stores the
@@ -17,9 +21,14 @@ class ReceivedRCard {
     this.notes,
   });
 
+  static final _log = DefaultMeetingPlaceCoreSDKLogger(
+    className: 'ReceivedRCard',
+  );
+
   /// Parses a [ReceivedRCard] from a raw VC blob string.
   ///
-  /// Returns `null` if the blob cannot be decoded or required fields are missing.
+  /// Returns `null` if the blob cannot be decoded or required fields
+  /// are missing.
   static ReceivedRCard? fromVcBlob(String subjectDid, String vcBlob) {
     try {
       final decoded = jsonDecode(vcBlob) as Map<String, dynamic>?;
@@ -38,11 +47,16 @@ class ReceivedRCard {
         subjectDid: subjectDid.trim(),
         vcBlob: vcBlob,
         issuerDid: issuerDid,
-        version: 2,
+        version: RelationshipCredentialConstants.receivedRCardVersion,
         issuanceDate: issuanceDate ?? now,
         receivedAt: now,
       );
-    } catch (_) {
+    } catch (e, st) {
+      _log.error(
+        'Failed to parse ReceivedRCard from VC blob',
+        error: e,
+        stackTrace: st,
+      );
       return null;
     }
   }

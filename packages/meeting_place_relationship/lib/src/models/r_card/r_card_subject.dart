@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 
 part 'r_card_subject.g.dart';
 
@@ -22,6 +23,10 @@ class RCardSubject {
   factory RCardSubject.fromJson(Map<String, dynamic> json) =>
       _$RCardSubjectFromJson(json);
 
+  static final _log = DefaultMeetingPlaceCoreSDKLogger(
+    className: 'RCardSubject',
+  );
+
   final String? id;
   final String? firstName;
   final String? lastName;
@@ -40,10 +45,17 @@ class RCardSubject {
   /// Returns `null` if the blob cannot be decoded or does not contain a
   /// recognisable jCard credential subject.
   static RCardSubject? fromVcBlob(String vcBlob) {
-    final subject = extractCredentialSubjectMapFromVcBlob(vcBlob);
-    if (subject == null) return null;
+    final subject = _extractCredentialSubjectMapFromVcBlob(vcBlob);
+    if (subject == null) {
+      _log.warning('Could not extract credentialSubject from VC blob');
+      return null;
+    }
     final map = _jCardToFlatMap(subject['card'], subject['id']?.toString());
-    return map != null ? RCardSubject.fromJson(map) : null;
+    if (map == null) {
+      _log.warning('Could not parse jCard from credentialSubject');
+      return null;
+    }
+    return RCardSubject.fromJson(map);
   }
 
   /// Returns the full display name, trimming any leading/trailing whitespace.
@@ -55,10 +67,7 @@ class RCardSubject {
       .trim();
 }
 
-/// Extracts the `credentialSubject` map from a raw VC blob JSON string.
-///
-/// Returns `null` if the blob cannot be decoded or the subject is absent.
-Map<String, dynamic>? extractCredentialSubjectMapFromVcBlob(String vcBlob) {
+Map<String, dynamic>? _extractCredentialSubjectMapFromVcBlob(String vcBlob) {
   try {
     final sub = (jsonDecode(vcBlob) as Map?)?['credentialSubject'];
     return sub is Map

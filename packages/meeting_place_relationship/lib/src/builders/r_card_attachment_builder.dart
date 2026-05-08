@@ -29,7 +29,7 @@ class RCardAttachmentBuilder {
         id: const Uuid().v4(),
         mediaType: 'application/json',
         format: attachmentFormat,
-        lastModifiedTime: DateTime.now(),
+        lastModifiedTime: DateTime.now().toUtc(),
         data: AttachmentData(json: payload),
       ),
     ];

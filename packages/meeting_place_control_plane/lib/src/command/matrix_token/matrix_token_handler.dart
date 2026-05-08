@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
@@ -23,12 +25,10 @@ class MatrixTokenHandler
   ///
   /// **Parameters:**
   /// - [apiClient] - An instance of control plane api client object.
-  /// - [didManager] - The did manager object.
   /// - [didResolver] - The did resolver object.
   /// - [controlPlaneDid] - The control plane DID string.
   MatrixTokenHandler({
     required this.apiClient,
-    required this.didManager,
     required this.didResolver,
     required this.controlPlaneDid,
     ControlPlaneSDKLogger? logger,
@@ -39,7 +39,6 @@ class MatrixTokenHandler
   static const String _logKey = 'MatrixTokenHandler';
 
   final ControlPlaneApiClient apiClient;
-  final DidManager didManager;
   final DidResolver didResolver;
   final String controlPlaneDid;
   final ControlPlaneSDKLogger _logger;
@@ -60,7 +59,7 @@ class MatrixTokenHandler
       );
     }
 
-    return MatrixTokenCommandOutput(token: token);
+    return MatrixTokenCommandOutput(token: MatrixLoginToken.fromJwt(token));
   }
 
   /// Overrides the method [CommandHandler.handle].
@@ -83,7 +82,7 @@ class MatrixTokenHandler
     try {
       final challengeResponse = await DidCommChallengeResponse.build(
         apiClient: apiClient,
-        didManager: didManager,
+        didManager: command.didManager,
         didResolver: didResolver,
         recipientDid: controlPlaneDid,
         onEmptyChallenge: (_) {

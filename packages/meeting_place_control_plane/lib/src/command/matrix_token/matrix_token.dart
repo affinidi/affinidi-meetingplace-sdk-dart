@@ -1,3 +1,5 @@
+import 'package:ssi/ssi.dart';
+
 import '../../core/command/command.dart';
 import 'matrix_token_output.dart';
 
@@ -5,7 +7,10 @@ import 'matrix_token_output.dart';
 /// operation.
 class MatrixTokenCommand extends DiscoveryCommand<MatrixTokenCommandOutput> {
   /// Creates a new instance of [MatrixTokenCommand].
-  MatrixTokenCommand({required this.homeserver});
+  MatrixTokenCommand({required this.didManager, required this.homeserver});
+
+  /// The [DidManager] that manages the DID for the matrix token request.
+  final DidManager didManager;
 
   /// Matrix homeserver host or base URI.
   final Uri homeserver;

@@ -61,6 +61,9 @@ enum MeetingPlaceCoreSDKErrorCode {
   oobNotFound('oob_not_found'),
   oobInvalidType('oob_invalid_type'),
 
+  // matrix
+  matrixLoginFailed('matrix_login_failed'),
+
   // others
   mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),
   networkError('network_error'),

@@ -21,6 +21,11 @@ String getMediatorDid() =>
     env['MEDIATOR_DID'] ??
     (throw Exception('MEDIATOR_DID not set in environment'));
 
+Uri getMatrixHomeserver() =>
+    Uri.tryParse(Platform.environment['MATRIX_HOMESERVER'] ?? '') ??
+    Uri.tryParse(env['MATRIX_HOMESERVER'] ?? '') ??
+    (throw Exception('MATRIX_HOMESERVER not set in environment'));
+
 RepositoryConfig getRepositoryConfig() {
   final storage = InMemoryStorage();
   return RepositoryConfig(
@@ -37,5 +42,10 @@ Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
       repositoryConfig: getRepositoryConfig(),
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
+      homeserver: getMatrixHomeserver(),
+      matrixDatabaseProvider: (userScope) async {
+        final path = './data/matrix_$userScope.sqlite';
+        return sqlite.openDatabase(path);
+      },
       logger: DefaultMeetingPlaceCoreSDKLogger());
 }

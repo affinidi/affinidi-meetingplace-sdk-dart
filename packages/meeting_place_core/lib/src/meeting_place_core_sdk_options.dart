@@ -8,15 +8,15 @@ import 'entity/channel.dart';
 ///
 /// Called by the SDK when processing connection events that require
 /// sending attachments to the other party.
-typedef OnBuildAttachmentsCallback =
-    Future<List<Attachment>?> Function(Channel channel);
-
-/// Callback invoked when attachments are received from the other party
-/// during connection establishment.
 ///
-/// The app should process these attachments when this callback is invoked.
-typedef OnAttachmentsReceivedCallback =
-    void Function(Channel channel, List<Attachment> attachments);
+/// [getDidManager] is provided by the SDK and resolves a [DidManager] for
+/// any DID managed by the local wallet — use it instead of holding a
+/// reference to the SDK instance.
+typedef OnBuildAttachmentsCallback =
+    Future<List<Attachment>?> Function(
+      Channel channel,
+      Future<DidManager> Function(String did) getDidManager,
+    );
 
 class MeetingPlaceCoreSDKOptions {
   const MeetingPlaceCoreSDKOptions({
@@ -37,7 +37,6 @@ class MeetingPlaceCoreSDKOptions {
     ],
     this.messageTypesForSequenceTracking = const [],
     this.onBuildAttachments,
-    this.onAttachmentsReceived,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -122,11 +121,4 @@ class MeetingPlaceCoreSDKOptions {
   /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments
   /// or onBuildInaugurationMessageAttachments
   final OnBuildAttachmentsCallback? onBuildAttachments;
-
-  /// Callback invoked when attachments are received from the other party
-  /// during connection establishment.
-  ///
-  /// When provided, this callback is invoked by event handlers after they
-  /// receive and process incoming attachments from connection messages.
-  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 }

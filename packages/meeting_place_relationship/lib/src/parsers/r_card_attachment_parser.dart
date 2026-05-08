@@ -14,7 +14,14 @@ import '../models/r_card/received_r_card.dart';
 /// verification, and constructs a [ReceivedRCard] from the verified VC.
 /// Storage is left entirely to the consumer.
 class RCardAttachmentParser {
-  RCardAttachmentParser._();
+  RCardAttachmentParser({MeetingPlaceCoreSDKLogger? logger})
+      : _logger =
+            logger ??
+            DefaultMeetingPlaceCoreSDKLogger(
+              className: 'RCardAttachmentParser',
+            );
+
+  final MeetingPlaceCoreSDKLogger _logger;
 
   /// Returns the first valid [ReceivedRCard] found in [attachments].
   ///
@@ -24,7 +31,7 @@ class RCardAttachmentParser {
   /// - [attachments] — DIDComm attachments to inspect.
   /// - [contactChannelDid] — The other party's permanent channel DID,
   ///   stored on the result for later lookup.
-  static Future<ReceivedRCard?> parseFirst({
+  Future<ReceivedRCard?> parseFirst({
     required List<Attachment> attachments,
     required String contactChannelDid,
   }) async {
@@ -38,7 +45,7 @@ class RCardAttachmentParser {
     return null;
   }
 
-  static Future<ReceivedRCard?> _tryParse({
+  Future<ReceivedRCard?> _tryParse({
     required Attachment attachment,
     required String contactChannelDid,
   }) async {
@@ -91,11 +98,15 @@ class RCardAttachmentParser {
     late ParsedVerifiableCredential parsedVc;
     try {
       parsedVc = UniversalParser.parse(vcBlob);
-    } catch (_) {
+    } catch (e, st) {
+      _logger.error('Failed to parse VC blob', error: e, stackTrace: st);
       return null;
     }
     final verification = await UniversalVerifier().verify(parsedVc);
-    if (!verification.isValid) return null;
+    if (!verification.isValid) {
+      _logger.warning('R-Card signature verification failed');
+      return null;
+    }
 
     // Extract required fields
     final subject = decoded['credentialSubject'];
@@ -123,7 +134,7 @@ class RCardAttachmentParser {
       subjectDid: subjectDid,
       vcBlob: vcBlob,
       issuerDid: issuerDid,
-      version: 2,
+      version: RelationshipCredentialConstants.receivedRCardVersion,
       issuanceDate: issuanceDate ?? now,
       receivedAt: now,
       contactChannelDid: contactChannelDid.isEmpty ? null : contactChannelDid,

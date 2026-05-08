@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -25,36 +26,56 @@ import 'parsers/r_card_attachment_parser.dart';
 /// ```
 class MeetingPlaceRelationshipSDK {
   /// Creates a `MeetingPlaceRelationshipSDK` backed by the given [coreSDK].
-  MeetingPlaceRelationshipSDK({required MeetingPlaceCoreSDK coreSDK})
-    : _coreSDK = coreSDK;
+  ///
+  /// The SDK subscribes to [MeetingPlaceCoreSDK.channelAttachments] eagerly
+  /// at construction time so no attachment events are missed, regardless of
+  /// when consumers first access [incomingRCards].
+  MeetingPlaceRelationshipSDK({
+    required MeetingPlaceCoreSDK coreSDK,
+    MeetingPlaceCoreSDKLogger? logger,
+  }) : _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
+    _parser = RCardAttachmentParser(logger: _logger);
+    _incomingRCardsController = StreamController.broadcast();
+    _incomingRCards = _incomingRCardsController.stream;
+    _channelAttachmentsSubscription = coreSDK.channelAttachments
+        .asyncExpand(_parseRCard)
+        .listen(
+          _incomingRCardsController.add,
+          onError: _incomingRCardsController.addError,
+        );
+  }
 
-  // TODO(earl): Wire up SDK calls — will be used by R-Card/VRC flow methods
-  // added in upcoming PRs.
-  // ignore: unused_field
-  final MeetingPlaceCoreSDK _coreSDK;
-  Stream<ReceivedRCard>? _incomingRCards;
+  static const _className = 'MeetingPlaceRelationshipSDK';
+
+  late final StreamController<ReceivedRCard> _incomingRCardsController;
+  late final Stream<ReceivedRCard> _incomingRCards;
+  late final StreamSubscription<ReceivedRCard> _channelAttachmentsSubscription;
+  late final RCardAttachmentParser _parser;
+  final MeetingPlaceCoreSDKLogger _logger;
+
+  /// Cancels the internal subscription and closes the [incomingRCards] stream.
+  ///
+  /// Call this when the SDK is no longer needed (e.g. on sign-out).
+  Future<void> closeRelationshipStreams() async {
+    await _channelAttachmentsSubscription.cancel();
+    await _incomingRCardsController.close();
+  }
+
+  Stream<ReceivedRCard> _parseRCard((Channel, List<Attachment>) record) async* {
+    final (channel, attachments) = record;
+    final rCard = await _parser.parseFirst(
+      attachments: attachments,
+      contactChannelDid: channel.otherPartyPermanentChannelDid ?? '',
+    );
+    if (rCard != null) yield rCard;
+  }
 
   /// A broadcast stream that emits a [ReceivedRCard] whenever a valid
-  /// R-Card attachment arrives during connection establishment.
+  /// R-Card attachment arrives via connection establishment or chat.
   ///
-  /// Subscribe to this stream at app startup to be notified of incoming
-  /// R-Cards. The stream filters and verifies the attachment payload;
-  /// only fully valid, signature-verified R-Cards are emitted.
-  ///
-  /// The stream is lazily initialised on first access and shared across
-  /// all subscribers.
-  Stream<ReceivedRCard> get incomingRCards {
-    return _incomingRCards ??= _coreSDK.channelAttachments.asyncExpand((
-      record,
-    ) async* {
-      final (channel, attachments) = record;
-      final rCard = await RCardAttachmentParser.parseFirst(
-        attachments: attachments,
-        contactChannelDid: channel.otherPartyPermanentChannelDid ?? '',
-      );
-      if (rCard != null) yield rCard;
-    }).asBroadcastStream();
-  }
+  /// Only fully valid, signature-verified R-Cards are emitted.
+  Stream<ReceivedRCard> get incomingRCards => _incomingRCards;
 
   /// Parses the first valid R-Card from a list of DIDComm [attachments].
   ///
@@ -67,7 +88,7 @@ class MeetingPlaceRelationshipSDK {
     required List<Attachment> attachments,
     required String contactChannelDid,
   }) {
-    return RCardAttachmentParser.parseFirst(
+    return _parser.parseFirst(
       attachments: attachments,
       contactChannelDid: contactChannelDid,
     );
@@ -94,8 +115,12 @@ class MeetingPlaceRelationshipSDK {
         return null;
       }
       if (!decoded.containsKey('proof')) return null;
-      return UniversalParser.parse(vcBlob);
-    } catch (_) {
+      final parsed = UniversalParser.parse(vcBlob);
+      final verification = await UniversalVerifier().verify(parsed);
+      if (!verification.isValid) return null;
+      return parsed;
+    } catch (e, st) {
+      _logger.error('Failed to parse VRC blob', error: e, stackTrace: st);
       return null;
     }
   }

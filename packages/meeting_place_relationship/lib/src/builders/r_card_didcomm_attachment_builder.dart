@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
-import '../models/persona_did.dart';
 import '../models/r_card/r_card_subject.dart';
 import 'credential_builder.dart';
 
@@ -37,17 +36,17 @@ class RCardDIDCommAttachmentBuilder {
 
   /// Builds and signs an R-Card and returns it as a DIDComm attachment list.
   ///
-  /// - [persona] — The identity of the user sharing their card.
+  /// - [issuerDid] — DID of the local party whose card is being shared.
   /// - [card] — The contact fields to embed in the R-Card VC.
   /// - [issuerDidManager] — [DidManager] used to sign the credential.
-  static Future<List<Attachment>> buildForPersona({
-    required PersonaDid persona,
+  static Future<List<Attachment>> buildForOwner({
+    required String issuerDid,
     required RCardSubject card,
     required DidManager issuerDidManager,
   }) async {
     final vc = await CredentialBuilder.buildRCard(
-      issuerDid: persona.did,
-      subjectDid: persona.did,
+      issuerDid: issuerDid,
+      subjectDid: issuerDid,
       subject: card,
       issuerDidManager: issuerDidManager,
     );

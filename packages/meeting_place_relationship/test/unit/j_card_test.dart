@@ -132,25 +132,25 @@ void main() {
     });
 
     test('sets id from the provided argument', () {
-      final encoded = JCard.encode(
-        const RCardSubject(firstName: 'Carol'),
-      );
+      final encoded = JCard.encode(const RCardSubject(firstName: 'Carol'));
       final decoded = JCard.decode(encoded, 'did:key:z2');
       expect(decoded!['id'], 'did:key:z2');
     });
 
     test(
-        'passes through unknown legacy camelCase keys for backward compat', () {
-      final legacyCard = [
-        'vcard',
-        [
-          ['version', const <String, dynamic>{}, 'text', '4.0'],
-          ['profilePic', const <String, dynamic>{}, 'text', 'https://pic.io'],
-        ],
-      ];
-      final decoded = JCard.decode(legacyCard, null);
-      expect(decoded!['profilePic'], 'https://pic.io');
-    });
+      'passes through unknown legacy camelCase keys for backward compat',
+      () {
+        final legacyCard = [
+          'vcard',
+          [
+            ['version', const <String, dynamic>{}, 'text', '4.0'],
+            ['profilePic', const <String, dynamic>{}, 'text', 'https://pic.io'],
+          ],
+        ];
+        final decoded = JCard.decode(legacyCard, null);
+        expect(decoded!['profilePic'], 'https://pic.io');
+      },
+    );
 
     test('ignores version and fn properties', () {
       final encoded = JCard.encode(

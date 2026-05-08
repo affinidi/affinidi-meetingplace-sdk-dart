@@ -15,11 +15,9 @@ import '../models/r_card/received_r_card.dart';
 /// Storage is left entirely to the consumer.
 class RCardAttachmentParser {
   RCardAttachmentParser({MeetingPlaceCoreSDKLogger? logger})
-      : _logger =
-            logger ??
-            DefaultMeetingPlaceCoreSDKLogger(
-              className: 'RCardAttachmentParser',
-            );
+    : _logger =
+          logger ??
+          DefaultMeetingPlaceCoreSDKLogger(className: 'RCardAttachmentParser');
 
   final MeetingPlaceCoreSDKLogger _logger;
 

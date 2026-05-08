@@ -46,15 +46,7 @@ class CredentialBuilder {
       ],
     );
 
-    final suite = LdVcDm2Suite();
-    final signer = await issuerDidManager.getSigner(
-      issuerDidManager.assertionMethod.first,
-    );
-
-    return suite.issue(
-      unsignedData: unsignedCredential,
-      proofGenerator: DataIntegrityEcdsaJcsGenerator(signer: signer),
-    );
+    return _sign(unsignedCredential, issuerDidManager);
   }
 
   /// Builds and signs a Verifiable Relationship Credential (VRC).
@@ -96,13 +88,25 @@ class CredentialBuilder {
       credentialSubject: [CredentialSubject.fromJson(subject.toJson())],
     );
 
-    final suite = LdVcDm2Suite();
-    final signer = await issuerDidManager.getSigner(
-      issuerDidManager.assertionMethod.first,
-    );
+    return _sign(unsignedCredential, issuerDidManager);
+  }
 
+  /// Signs [unsigned] using the first assertion method key from [manager].
+  ///
+  /// Throws [StateError] if [manager] has no assertion method keys.
+  static Future<VerifiableCredential> _sign(
+    VcDataModelV2 unsigned,
+    DidManager manager,
+  ) async {
+    if (manager.assertionMethod.isEmpty) {
+      throw StateError(
+        'DidManager has no assertionMethod keys available for signing',
+      );
+    }
+    final suite = LdVcDm2Suite();
+    final signer = await manager.getSigner(manager.assertionMethod.first);
     return suite.issue(
-      unsignedData: unsignedCredential,
+      unsignedData: unsigned,
       proofGenerator: DataIntegrityEcdsaJcsGenerator(signer: signer),
     );
   }

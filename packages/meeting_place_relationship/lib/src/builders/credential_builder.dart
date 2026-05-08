@@ -27,13 +27,12 @@ class CredentialBuilder {
     required String subjectDid,
     required RCardSubject subject,
     required DidManager issuerDidManager,
-  }) =>
-      RCardBuilder.build(
-        issuerDid: issuerDid,
-        subjectDid: subjectDid,
-        subject: subject,
-        issuerDidManager: issuerDidManager,
-      );
+  }) => RCardBuilder.build(
+    issuerDid: issuerDid,
+    subjectDid: subjectDid,
+    subject: subject,
+    issuerDidManager: issuerDidManager,
+  );
 
   /// Builds and signs a Verifiable Relationship Credential (VRC).
   ///
@@ -46,11 +45,9 @@ class CredentialBuilder {
     required String issuerDid,
     required VrcCredentialSubject subject,
     required DidManager issuerDidManager,
-  }) =>
-      VrcBuilder.build(
-        issuerDid: issuerDid,
-        subject: subject,
-        issuerDidManager: issuerDidManager,
-      );
+  }) => VrcBuilder.build(
+    issuerDid: issuerDid,
+    subject: subject,
+    issuerDidManager: issuerDidManager,
+  );
 }
-

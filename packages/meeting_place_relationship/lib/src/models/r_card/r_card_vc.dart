@@ -107,15 +107,20 @@ class RCardCredentialSubject {
 
     final firstName = (flat['firstName'] as String?)?.trim();
     final lastName = (flat['lastName'] as String?)?.trim();
-    final derivedName = [firstName, lastName]
-        .whereType<String>()
-        .where((s) => s.isNotEmpty)
-        .join(' ')
-        .trim();
+    final derivedName = [
+      firstName,
+      lastName,
+    ].whereType<String>().where((s) => s.isNotEmpty).join(' ').trim();
 
     const knownKeys = {
-      'id', 'firstName', 'lastName', 'name',
-      'profilePic', 'email', 'phone', 'address',
+      'id',
+      'firstName',
+      'lastName',
+      'name',
+      'profilePic',
+      'email',
+      'phone',
+      'address',
     };
     final additionalFields = Map<String, dynamic>.from(flat)
       ..removeWhere((key, _) => knownKeys.contains(key));

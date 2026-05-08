@@ -13,8 +13,9 @@ void main() {
     });
 
     test('fromVcJson returns a single-element list', () {
-      final attachments =
-          RCardDIDCommAttachmentBuilder.fromVcJson({'id': 'urn:test'});
+      final attachments = RCardDIDCommAttachmentBuilder.fromVcJson({
+        'id': 'urn:test',
+      });
       expect(attachments, hasLength(1));
     });
 
@@ -37,8 +38,7 @@ void main() {
         'type': ['VerifiableCredential'],
         'id': 'urn:x',
       };
-      final attachment =
-          RCardDIDCommAttachmentBuilder.fromVcJson(vcJson).first;
+      final attachment = RCardDIDCommAttachmentBuilder.fromVcJson(vcJson).first;
       final decoded = jsonDecode(attachment.data!.json!) as Map;
       expect(decoded['vcBlob'], isA<String>());
       expect(decoded['isUpdate'], isFalse);

@@ -75,4 +75,3 @@ class RCardSubject {
       .join(' ')
       .trim();
 }
-

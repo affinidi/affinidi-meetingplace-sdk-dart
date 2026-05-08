@@ -30,10 +30,7 @@ extension RCardVCardExtension on RCardSubject {
       if (safeFirst != null || safeLast != null)
         'N:${_escapeVCard(safeLast ?? '')};${_escapeVCard(safeFirst ?? '')};;;',
       if (safeFirst != null || safeLast != null)
-        'FN:${_escapeVCard([safeFirst, safeLast]
-            .whereType<String>()
-            .join(' ')
-            .trim())}',
+        'FN:${_escapeVCard([safeFirst, safeLast].whereType<String>().join(' ').trim())}',
       if (profilePic != null && profilePic.isNotEmpty)
         ..._buildPhotoLines(profilePic),
       if (email != null && email.isNotEmpty) 'EMAIL:${_escapeVCard(email)}',

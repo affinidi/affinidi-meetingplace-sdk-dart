@@ -1,6 +1,5 @@
-import 'dart:convert';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:ssi/ssi.dart';
 
 import 'r_card_constants.dart';
 
@@ -33,26 +32,31 @@ class ReceivedRCard {
     final log =
         logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'ReceivedRCard');
     try {
-      final decoded = jsonDecode(vcBlob) as Map<String, dynamic>?;
-      if (decoded == null) return null;
-      final issuer = decoded['issuer'];
-      final issuerDid = issuer is String
-          ? issuer
-          : (issuer is Map && issuer['id'] != null)
-          ? issuer['id'].toString()
+      final vc = LdVcDm2Suite().tryParse(vcBlob);
+      if (vc == null) {
+        log.warning(
+          'Could not parse VC from blob as a signed DM v2 credential',
+        );
+        return null;
+      }
+      final rawJson = vc.toJson();
+      final issuerRaw = rawJson['issuer'];
+      final issuerDid = issuerRaw is String
+          ? issuerRaw
+          : (issuerRaw is Map && issuerRaw['id'] != null)
+          ? issuerRaw['id'].toString()
           : null;
-      if (issuerDid == null || issuerDid.isEmpty) return null;
-      final raw = decoded['validFrom'] ?? decoded['issuanceDate'];
-      final issuanceDate = raw is String
-          ? DateTime.tryParse(raw)?.toUtc()
-          : null;
+      if (issuerDid == null || issuerDid.isEmpty) {
+        log.warning('Could not extract issuer DID from VC');
+        return null;
+      }
       final now = DateTime.now().toUtc();
       return ReceivedRCard(
         subjectDid: subjectDid.trim(),
         vcBlob: vcBlob,
         issuerDid: issuerDid,
         version: RCardConstants.receivedRCardVersion,
-        issuanceDate: issuanceDate ?? now,
+        issuanceDate: vc.validFrom?.toUtc() ?? now,
         receivedAt: now,
       );
     } catch (e, st) {
@@ -77,7 +81,10 @@ class ReceivedRCard {
   /// Monotonically increasing version counter used for idempotent upserts.
   final int version;
 
+  /// The UTC timestamp from the VC's `validFrom` field.
   final DateTime issuanceDate;
+
+  /// The UTC timestamp at which this card was received and stored locally.
   final DateTime receivedAt;
 
   /// The DIDComm channel DID through which this card was received, if known.

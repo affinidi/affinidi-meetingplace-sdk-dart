@@ -30,5 +30,13 @@ void main() {
       final result = await parser.parse(vcBlob: vrcBlobWithoutProof);
       expect(result, isNull);
     });
+
+    test('returns null for VRC blob without id', () async {
+      final result = await VrcParser.parse(
+        vcBlob: vrcBlobWithoutId,
+        channelId: 'ch-1',
+      );
+      expect(result, isNull);
+    });
   });
 }

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/vrc_fixture.dart';
@@ -37,6 +40,47 @@ void main() {
         channelId: 'ch-1',
       );
       expect(result, isNull);
+    });
+
+    group('happy path', () {
+      late DidKeyManager issuerManager;
+      late String issuerDid;
+
+      setUp(() async {
+        final wallet = PersistentWallet(InMemoryKeyStore());
+        final keyPair = await wallet.generateKey(keyType: KeyType.p256);
+        issuerManager = await DidManager.create(
+          () => DidKeyManager(store: InMemoryDidStore(), wallet: wallet),
+        );
+        final result = await issuerManager.addVerificationMethod(keyPair.id);
+        issuerDid = result.verificationMethodId.split('#').first;
+      });
+
+      test('returns RelationshipCredential for a valid signed VRC', () async {
+        const channelId = 'ch-happy';
+        const counterpartDid = 'did:key:z6MkTestCounterpart';
+        final subject = VrcCredentialSubject(
+          from: VrcParty(did: issuerDid, name: 'Alice'),
+          to: const VrcParty(did: counterpartDid, name: 'Bob'),
+        );
+        final signed = await CredentialBuilder.buildVrc(
+          issuerDid: issuerDid,
+          subject: subject,
+          issuerDidManager: issuerManager,
+        );
+        final vcBlob = jsonEncode(signed.toJson());
+
+        final result = await VrcParser.parse(
+          vcBlob: vcBlob,
+          channelId: channelId,
+        );
+
+        expect(result, isNotNull);
+        expect(result!.channelId, channelId);
+        expect(result.issuerPersonaDid, issuerDid);
+        expect(result.holderPersonaDid, counterpartDid);
+        expect(result.vc, vcBlob);
+      });
     });
   });
 }

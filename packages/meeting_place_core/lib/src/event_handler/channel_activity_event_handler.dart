@@ -1,3 +1,4 @@
+import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:collection/collection.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
@@ -14,6 +15,7 @@ import '../vdip/vdip_client.dart';
 import 'channel_inauguration_event_handler.dart';
 import 'chat_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
+import 'exceptions/event_handler_exception.dart';
 
 class ChannelActivityEventHandler {
   ChannelActivityEventHandler({
@@ -99,7 +101,9 @@ class ChannelActivityEventHandler {
     List<DiscoveryEvent<ChannelActivity>> processedEvents,
   ) {
     return processedEvents.firstWhereOrNull(
-          (event) => event.data.did == channelActivity.did,
+          (event) =>
+              event.data.did == channelActivity.did &&
+              event.data.type == channelActivity.type,
         ) !=
         null;
   }
@@ -108,25 +112,45 @@ class ChannelActivityEventHandler {
     ChannelActivity channelActivity,
   ) async {
     final channel = await _channelService.findChannelByDid(channelActivity.did);
+    final permanentChannelDid = channel.permanentChannelDid;
+    if (permanentChannelDid == null) {
+      throw EventHandlerException.missingPermanentChannelDid(
+        channelId: channel.id,
+      );
+    }
     final didManager = await _connectionManager.getDidManagerForDid(
       _wallet,
-      channel.permanentChannelDid!,
+      permanentChannelDid,
     );
 
     final messages = await _mediatorService.fetchMessages(
       didManager: didManager,
       mediatorDid: channel.mediatorDid,
-      options: const FetchMessagesOptions(
+      options: FetchMessagesOptions(
         deleteOnRetrieve: false,
         filterByMessageTypes: [
-          ChannelActivityType.vdipRequestIssuance,
-          ChannelActivityType.vdipIssuedCredentials,
+          VdipRequestIssuanceMessage.messageType.toString(),
+          VdipIssuedCredentialMessage.messageType.toString(),
         ],
       ),
     );
 
     for (final message in messages) {
       _vdipClient.dispatch(message.plainTextMessage);
+      final messageHash = message.messageHash;
+      if (messageHash != null) {
+        await _mediatorService.deleteMessages(
+          didManager: didManager,
+          mediatorDid: channel.mediatorDid,
+          messageHashes: [messageHash],
+        );
+      } else {
+        _logger.warning(
+          'Skipping VDIP mediator message deletion because message hash is '
+          'missing',
+          name: _logKey,
+        );
+      }
     }
 
     return [];

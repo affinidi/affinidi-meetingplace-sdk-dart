@@ -1,3 +1,9 @@
+const vrcBlobMissingType =
+    '{"@context":["https://www.w3.org/2018/credentials/v1"],'
+    '"type":["VerifiableCredential"],'
+    '"issuer":"did:example:issuer",'
+    '"credentialSubject":{}}';
+
 const vrcBlobWithoutProof =
     '{'
     '"@context":["https://www.w3.org/2018/credentials/v2",'

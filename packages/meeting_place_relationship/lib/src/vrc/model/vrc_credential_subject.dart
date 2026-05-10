@@ -7,6 +7,12 @@ import 'vrc_party.dart';
 class VrcCredentialSubject {
   const VrcCredentialSubject({required this.from, required this.to});
 
+  factory VrcCredentialSubject.fromJson(Map<String, dynamic> json) =>
+      VrcCredentialSubject(
+        from: VrcParty.fromJson(json['from'] as Map<String, dynamic>),
+        to: VrcParty.fromJson(json['to'] as Map<String, dynamic>),
+      );
+
   /// The party issuing the VRC.
   final VrcParty from;
 

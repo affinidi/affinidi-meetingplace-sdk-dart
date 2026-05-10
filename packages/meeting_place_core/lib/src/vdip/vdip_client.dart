@@ -33,6 +33,7 @@ class VdipClient {
   final Wallet _wallet;
 
   final _incomingController = StreamController<PlainTextMessage>.broadcast();
+  var _isDisposed = false;
 
   /// A broadcast stream that emits incoming VDIP [PlainTextMessage]s.
   ///
@@ -135,11 +136,14 @@ class VdipClient {
   /// Called internally by ChannelActivityEventHandler when a VDIP
   /// message arrives via the Control Plane push wake path.
   void dispatch(PlainTextMessage message) {
+    if (_isDisposed || _incomingController.isClosed) return;
     _incomingController.add(message);
   }
 
   /// Disposes the [VdipClient] and closes the [incomingMessages] stream.
   Future<void> dispose() async {
+    if (_isDisposed || _incomingController.isClosed) return;
+    _isDisposed = true;
     await _incomingController.close();
   }
 }

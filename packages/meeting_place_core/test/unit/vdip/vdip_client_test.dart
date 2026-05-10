@@ -185,6 +185,24 @@ void main() {
       await client.dispose();
       expect(await isEmpty, isTrue);
     });
+
+    test('dispatch after dispose is ignored', () async {
+      final message = PlainTextMessage(
+        id: const Uuid().v4(),
+        type: VdipRequestIssuanceMessage.messageType,
+        body: {},
+      );
+
+      await client.dispose();
+
+      expect(() => client.dispatch(message), returnsNormally);
+    });
+
+    test('dispose can be called more than once', () async {
+      await client.dispose();
+
+      expect(client.dispose, returnsNormally);
+    });
   });
 }
 

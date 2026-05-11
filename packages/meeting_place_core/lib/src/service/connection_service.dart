@@ -195,13 +195,13 @@ class ConnectionService {
     final methodName = 'publishOffer';
     _logger.info('Publishing connection offer: $offerName', name: methodName);
 
-    final oobDidManager = await _connectionManager.generateDid(wallet);
-    final oobDidDoc = await oobDidManager.getDidDocument();
-
-    final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
+    final oobIdentity = await _identityService.createEphemeralIdentity(wallet);
+    final oobMessage = OobInvitationMessage.create(
+      from: oobIdentity.didDocument.id,
+    );
 
     await _mediatorAclService.toPublic(
-      didManager: oobDidManager,
+      didManager: oobIdentity.didManager,
       mediatorDid: mediatorDid,
     );
 
@@ -227,7 +227,6 @@ class ConnectionService {
     );
 
     try {
-      final didDocument = await oobDidManager.getDidDocument();
       final connectionOffer = ConnectionOffer(
         offerName: registerOfferOutput.offerName,
         offerLink: registerOfferOutput.offerLink,
@@ -239,7 +238,7 @@ class ConnectionService {
         oobInvitationMessage: toBase64(
           registerOfferOutput.didcommMessage.toJson(),
         ),
-        publishOfferDid: didDocument.id,
+        publishOfferDid: oobIdentity.didDocument.id,
         maximumUsage: registerOfferOutput.maximumUsage,
         contactCard: contactCard,
         status: ConnectionOfferStatus.published,
@@ -250,7 +249,7 @@ class ConnectionService {
 
       await _connectionOfferRepository.createConnectionOffer(connectionOffer);
       _logger.info('Connection offer published: $offerName', name: methodName);
-      return (connectionOffer, oobDidManager);
+      return (connectionOffer, oobIdentity.didManager);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to publish connection offer',

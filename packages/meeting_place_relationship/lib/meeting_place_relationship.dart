@@ -15,3 +15,4 @@ export 'src/models/vrc/vrc_exchange_role.dart';
 export 'src/models/vrc/vrc_party.dart';
 export 'src/parsers/r_card_parser.dart';
 export 'src/parsers/vrc_parser.dart';
+export 'src/r_card_channel_stream_manager.dart';

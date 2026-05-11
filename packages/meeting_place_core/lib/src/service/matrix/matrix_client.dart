@@ -2,8 +2,6 @@ import 'package:matrix/matrix.dart' as matrix;
 
 import 'matrix_config.dart';
 
-/// Factory for creating and managing Matrix client instances,
-/// including database initialization and homeserver checks.
 class MatrixClient {
   /// A base name for the Matrix client, used in database naming and client
   /// identification. The actual client name will be suffixed with the user
@@ -45,17 +43,6 @@ class MatrixClient {
     return client;
   }
 
-  /// Adds a Matrix client instance to the cache for the given [did]. If a
-  /// client already exists in the cache for the same key, it will be returned
-  /// without adding the new client.
-  ///
-  /// Parameters:
-  /// - [did]: The DID of the user for whom the client is being added,
-  ///  used to derive the cache key.
-  /// - [client]: The authenticated Matrix client instance to be cached for the
-  /// user.
-  ///
-  /// Returns: The client database context with sanitized values.
   static MatrixDatabaseContext _buildDatabaseContext({
     required Uri homeserver,
     required String userScope,

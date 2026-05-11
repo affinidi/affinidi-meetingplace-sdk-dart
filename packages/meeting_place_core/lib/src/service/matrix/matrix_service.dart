@@ -1,11 +1,15 @@
-<<<<<<< HEAD
-=======
 import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
->>>>>>> 923ca04d (fix: core sdk multiple transport support)
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
+import 'package:matrix/matrix.dart' as matrix;
+import 'matrix_client.dart';
+import 'matrix_client_cache.dart';
+import 'matrix_config.dart';
+import 'matrix_service_exception.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
@@ -34,8 +38,9 @@ class MatrixService {
   /// Manages Matrix sessions, including client instances and token refresh.
   final MatrixSessionManager _sessionManager;
 
-  /// Exposes the homeserver URI from the session manager.
-  Uri get homeserver => _sessionManager.homeserver;
+  final MatrixConfig _config;
+
+  Uri get homeserver => _config.homeserver;
 
   /// Obtains a Matrix JWT from the control plane for [didManager], logs in,
   /// and returns the Matrix user ID.
@@ -136,5 +141,9 @@ class MatrixService {
       await loginWithDid(didManager);
       return _sessionManager.getAuthenticatedClient(did);
     }
+  }
+
+  Future<matrix.Client> _createClient({required String userScope}) {
+    return MatrixClient.init(config: _config, userScope: userScope);
   }
 }

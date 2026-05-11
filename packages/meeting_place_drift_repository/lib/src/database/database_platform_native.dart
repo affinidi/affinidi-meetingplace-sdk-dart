@@ -13,11 +13,17 @@ class DatabasePlatform {
   ) {
     sqliteDb.execute("PRAGMA cipher = 'sqlcipher';");
     sqliteDb.execute('PRAGMA legacy = 4;');
-    sqliteDb.execute("PRAGMA key = '$passphrase';");
+    final escapedPassphrase = passphrase.replaceAll("'", "''");
+    sqliteDb.execute("PRAGMA key = '$escapedPassphrase';");
 
     final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
     if (cipherVersion.isEmpty) {
-      throw UnsupportedError('Database encryption support not available');
+      throw UnsupportedError(
+        'Database encryption support is not available. '
+        'Ensure your app includes sqlcipher_flutter_libs as a dependency '
+        'and that the native SQLite build supports SQLCipher or sqlite3mc. '
+        'See: https://pub.dev/packages/sqlcipher_flutter_libs',
+      );
     }
   }
 
@@ -30,11 +36,14 @@ class DatabasePlatform {
     final dbPath = p.join(directory.path, databaseName);
 
     final sqliteDb = sqlite3.open(dbPath);
-    _configureEncryptedDatabase(sqliteDb, passphrase);
-
-    sqliteDb.select('SELECT count(*) FROM sqlite_master;');
-
-    return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
+    try {
+      _configureEncryptedDatabase(sqliteDb, passphrase);
+      sqliteDb.select('SELECT count(*) FROM sqlite_master;');
+      return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
+    } catch (_) {
+      sqliteDb.close();
+      rethrow;
+    }
   }
 
   /// Creates a database for native platform using SQLite with encryption.
@@ -62,10 +71,7 @@ class DatabasePlatform {
     );
   }
 
-  static NativeDatabase _openInMemoryDatabase({
-    required String passphrase,
-    bool logStatements = false,
-  }) {
+  static NativeDatabase _openInMemoryDatabase({bool logStatements = false}) {
     return NativeDatabase.memory(logStatements: logStatements);
   }
 
@@ -75,7 +81,8 @@ class DatabasePlatform {
   /// encryption configuration is skipped.
   ///
   /// **Parameters:**
-  /// - [passphrase]: The passphrase used to open the encrypted database.
+  /// - [passphrase]: Accepted for API consistency with [createDatabase] but
+  /// not applied; in-memory databases are always unencrypted.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
   ///
@@ -86,10 +93,7 @@ class DatabasePlatform {
     required String passphrase,
     bool logStatements = false,
   }) async {
-    return _openInMemoryDatabase(
-      passphrase: passphrase,
-      logStatements: logStatements,
-    );
+    return _openInMemoryDatabase(logStatements: logStatements);
   }
 
   /// Information about the database platform.
@@ -126,7 +130,6 @@ QueryExecutor openConnection({
   if (!lazy) {
     if (inMemory) {
       return DatabasePlatform._openInMemoryDatabase(
-        passphrase: passphrase,
         logStatements: logStatements,
       );
     }
@@ -141,7 +144,6 @@ QueryExecutor openConnection({
   if (inMemory) {
     return LazyDatabase(() async {
       return DatabasePlatform._openInMemoryDatabase(
-        passphrase: passphrase,
         logStatements: logStatements,
       );
     });

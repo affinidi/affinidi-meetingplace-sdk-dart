@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
@@ -78,6 +77,10 @@ import 'utils/cached_did_resolver.dart';
 ///   repositoryConfig: repositoryConfig,
 ///   mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
 ///   controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
+///   matrixConfig: MatrixConfig(
+///     homeserver: Uri.parse('https://matrix.example.com'),
+///     databaseFactory: const UnsupportedMatrixDatabaseFactory(),
+///   ),
 /// );
 /// ```
 ///
@@ -215,8 +218,7 @@ class MeetingPlaceCoreSDK {
     required RepositoryConfig repositoryConfig,
     required String mediatorDid,
     required String controlPlaneDid,
-    required Uri homeserver,
-    required Future<dynamic> Function(String) matrixDatabaseProvider,
+    required MatrixConfig matrixConfig,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -287,10 +289,7 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
-    final matrixService = MatrixService(
-      homeserver: homeserver,
-      databaseProvider: matrixDatabaseProvider,
-    );
+    final matrixService = MatrixService(config: matrixConfig);
 
     final identityService = IdentityService(
       connectionManager: connectionManager,

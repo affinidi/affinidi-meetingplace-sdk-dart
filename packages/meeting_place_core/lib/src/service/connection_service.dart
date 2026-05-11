@@ -534,7 +534,7 @@ class ConnectionService {
     );
 
     final roomId = await _matrixService.createRoom(
-      did: permanentIdentity.didDocument.id,
+      didManager: permanentIdentity.didManager,
       inviteUsers: [otherPartyPermanentChannelDid],
     );
 

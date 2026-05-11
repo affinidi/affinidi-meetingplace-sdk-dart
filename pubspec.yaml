@@ -12,7 +12,7 @@ workspace:
   - packages/meeting_place_drift_repository
 
 environment:
-  sdk: ">=3.9.0 <4.0.0"
+  sdk: ">=3.10.0 <4.0.0"
 
 dev_dependencies:
   coverage: ^1.11.1

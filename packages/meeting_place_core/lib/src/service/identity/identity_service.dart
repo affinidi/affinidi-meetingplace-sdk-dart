@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 

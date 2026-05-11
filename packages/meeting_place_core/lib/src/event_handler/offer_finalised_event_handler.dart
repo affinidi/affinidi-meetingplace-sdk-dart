@@ -134,7 +134,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
 
     await _matrixService.joinRoom(
       connectionRequestApprovalMessage.body.matrixRoomId,
-      did: permanentChannelIdentity.didDocument.id,
+      didManager: permanentChannelIdentity.didManager,
     );
 
     await _updateMediatorAcls(

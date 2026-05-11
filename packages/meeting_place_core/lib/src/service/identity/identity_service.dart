@@ -1,4 +1,3 @@
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
@@ -8,18 +7,15 @@ import 'model/permanent_identity.dart';
 
 class IdentityService {
   IdentityService({
-    required ControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
     required MatrixService matrixService,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
-       _controlPlaneSDK = controlPlaneSDK,
        _matrixService = matrixService,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   final ConnectionManager _connectionManager;
-  final ControlPlaneSDK _controlPlaneSDK;
   final MatrixService _matrixService;
   final MeetingPlaceCoreSDKLogger _logger;
 
@@ -46,17 +42,9 @@ class IdentityService {
       wallet,
     );
 
-    final matrixTokenCommandOutput = await _controlPlaneSDK.execute(
-      MatrixTokenCommand(
-        didManager: permanentChannelDidManager,
-        homeserver: _matrixService.homeserver,
-      ),
-    );
-
     final didDocument = await permanentChannelDidManager.getDidDocument();
-    final matrixUserId = await _matrixService.loginWithJwt(
-      jwt: matrixTokenCommandOutput.token.toJwt(),
-      did: didDocument.id,
+    final matrixUserId = await _matrixService.loginWithDid(
+      permanentChannelDidManager,
     );
 
     _logger.info(
@@ -78,16 +66,8 @@ class IdentityService {
     final permanentChannelDidManager = await _connectionManager
         .getDidManagerForDid(wallet, did);
 
-    final matrixTokenCommandOutput = await _controlPlaneSDK.execute(
-      MatrixTokenCommand(
-        didManager: permanentChannelDidManager,
-        homeserver: _matrixService.homeserver,
-      ),
-    );
-
-    final matrixUserId = await _matrixService.loginWithJwt(
-      jwt: matrixTokenCommandOutput.token.toJwt(),
-      did: did,
+    final matrixUserId = await _matrixService.loginWithDid(
+      permanentChannelDidManager,
     );
 
     _logger.info(

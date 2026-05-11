@@ -279,7 +279,7 @@ class OobService {
         .getDidDocument();
 
     await _matrixService.createRoom(
-      did: permanentChannelDidDoc.id,
+      didManager: permanentChannelDidManager,
       inviteUsers: [otherPartyPermanentChannelDid],
     );
 

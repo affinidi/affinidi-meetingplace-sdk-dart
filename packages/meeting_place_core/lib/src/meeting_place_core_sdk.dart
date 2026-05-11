@@ -289,11 +289,13 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
-    final matrixService = MatrixService(config: matrixConfig);
+    final matrixService = MatrixService(
+      config: matrixConfig,
+      controlPlaneSDK: controlPlaneSDK,
+    );
 
     final identityService = IdentityService(
       connectionManager: connectionManager,
-      controlPlaneSDK: controlPlaneSDK,
       matrixService: matrixService,
     );
 

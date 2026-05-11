@@ -46,6 +46,24 @@ MatrixConfig getMatrixConfig() => MatrixConfig(
       ),
     );
 
+Future<Database> _openMatrixDatabase(MatrixDatabaseContext context) async {
+  sqfliteFfiInit();
+  final directory = Directory(
+    '${Directory.systemTemp.path}/meeting_place_core_example_matrix',
+  );
+  await directory.create(recursive: true);
+  return databaseFactoryFfi.openDatabase(
+    '${directory.path}/${context.databaseName}.sqlite',
+  );
+}
+
+MatrixConfig getMatrixConfig() => MatrixConfig(
+      homeserver: getMatrixHomeserver(),
+      databaseFactory: const CallbackMatrixDatabaseFactory(
+        openDatabase: _openMatrixDatabase,
+      ),
+    );
+
 RepositoryConfig getRepositoryConfig() {
   final storage = InMemoryStorage();
   return RepositoryConfig(

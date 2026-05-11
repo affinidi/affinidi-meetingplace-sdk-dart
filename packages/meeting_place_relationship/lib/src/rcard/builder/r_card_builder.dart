@@ -1,47 +1,48 @@
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
-import '../models/credential_constants.dart';
-import '../models/vrc/vrc_constants.dart';
-import '../models/vrc/vrc_credential_subject.dart';
-import 'credential_signer.dart';
+import '../../shared/credential_constants.dart';
+import '../../shared/credential_signer.dart';
+import '../model/j_card.dart';
+import '../model/r_card_constants.dart';
+import '../model/r_card_subject.dart';
 
-/// Builds signed Verifiable Relationship Credentials (VRCs).
+/// Builds signed R-Card Verifiable Credentials.
 ///
 /// Uses W3C Data Model v2 with an ecdsa-jcs-2019 (Data Integrity) proof.
-abstract final class VrcBuilder {
-  /// Builds and signs a VRC.
+/// Contact data is embedded as an RFC 7095 jCard in the credential subject.
+abstract final class RCardBuilder {
+  /// Builds and signs an R-Card VC.
   ///
   /// - [issuerDid] — DID of the issuer.
-  /// - [subject] — The two-party relationship subject (`from` / `to`).
+  /// - [subjectDid] — DID of the credential subject.
+  /// - [subject] — Contact fields to embed as a jCard.
   /// - [issuerDidManager] — [DidManager] used to sign the credential.
   static Future<VerifiableCredential> build({
     required String issuerDid,
-    required VrcCredentialSubject subject,
+    required String subjectDid,
+    required RCardSubject subject,
     required DidManager issuerDidManager,
   }) async {
     final unsigned = VcDataModelV2(
       context: JsonLdContext.fromJson([
         dmV2ContextUrl,
         RelationshipCredentialConstants.dataIntegrityV2Context,
-        VrcConstants.contextVrc,
+        RCardConstants.contextRCard,
       ]),
-      credentialSchema: [
-        CredentialSchema(
-          id: Uri.parse(
-            VrcConstants.contextVrc.replaceFirst('.jsonld', '.json'),
-          ),
-          type: 'JsonSchemaValidator2018',
-        ),
-      ],
       id: Uri.parse('urn:uuid:${const Uuid().v4()}'),
       issuer: Issuer.uri(issuerDid),
       type: {
         RelationshipCredentialConstants.typeVerifiableCredential,
-        VrcConstants.typeRelationshipCredential,
+        RCardConstants.typeRCard,
       },
       validFrom: DateTime.now().toUtc(),
-      credentialSubject: [CredentialSubject.fromJson(subject.toJson())],
+      credentialSubject: [
+        CredentialSubject.fromJson({
+          'id': subjectDid,
+          'card': JCard.encode(subject),
+        }),
+      ],
     );
     return CredentialSigner.sign(unsigned, issuerDidManager);
   }

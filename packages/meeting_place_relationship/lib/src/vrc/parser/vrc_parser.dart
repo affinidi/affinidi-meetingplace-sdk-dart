@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
-import '../models/credential_constants.dart';
-import '../models/vrc/vrc_constants.dart';
+import '../../shared/credential_constants.dart';
+import '../model/vrc_constants.dart';
 
 /// Parses and verifies Verifiable Relationship Credential (VRC) blobs.
 class VrcParser {

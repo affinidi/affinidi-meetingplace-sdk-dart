@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
-import '../models/credential_constants.dart';
-import '../models/r_card/r_card_constants.dart';
-import '../models/r_card/received_r_card.dart';
+import '../../shared/credential_constants.dart';
+import '../model/r_card_constants.dart';
+import '../model/received_r_card.dart';
 
 /// Parses R-Card VC blobs and extracts verified [ReceivedRCard] instances.
 class RCardParser {

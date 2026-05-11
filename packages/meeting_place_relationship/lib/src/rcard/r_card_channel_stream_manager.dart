@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import 'builders/r_card_didcomm_attachment_builder.dart';
-import 'models/r_card/received_r_card.dart';
-import 'parsers/r_card_parser.dart';
+import 'builder/r_card_didcomm_attachment_builder.dart';
+import 'model/received_r_card.dart';
+import 'parser/r_card_parser.dart';
 
 /// Manages the [ReceivedRCard] broadcast stream sourced from
 /// [MeetingPlaceCoreSDK.channelAttachments].

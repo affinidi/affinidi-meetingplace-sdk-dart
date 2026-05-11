@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
-import '../models/r_card/r_card_subject.dart';
-import 'credential_builder.dart';
+import '../../shared/credential_builder.dart';
+import '../model/r_card_subject.dart';
 
 /// Builds DIDComm [Attachment]s carrying a signed R-Card VC payload.
 class RCardDIDCommAttachmentBuilder {

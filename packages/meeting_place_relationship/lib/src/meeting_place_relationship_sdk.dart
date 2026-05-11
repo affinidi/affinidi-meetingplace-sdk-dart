@@ -1,10 +1,10 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
-import 'models/r_card/received_r_card.dart';
-import 'parsers/r_card_parser.dart';
-import 'parsers/vrc_parser.dart';
-import 'r_card_channel_stream_manager.dart';
+import 'rcard/model/received_r_card.dart';
+import 'rcard/parser/r_card_parser.dart';
+import 'rcard/r_card_channel_stream_manager.dart';
+import 'vrc/parser/vrc_parser.dart';
 
 /// The Meeting Place Relationship SDK.
 ///

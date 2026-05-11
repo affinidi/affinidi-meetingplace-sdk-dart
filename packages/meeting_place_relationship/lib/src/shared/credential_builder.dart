@@ -1,9 +1,9 @@
 import 'package:ssi/ssi.dart';
 
-import '../models/r_card/r_card_subject.dart';
-import '../models/vrc/vrc_credential_subject.dart';
-import 'r_card_builder.dart';
-import 'vrc_builder.dart';
+import '../rcard/builder/r_card_builder.dart';
+import '../rcard/model/r_card_subject.dart';
+import '../vrc/builder/vrc_builder.dart';
+import '../vrc/model/vrc_credential_subject.dart';
 
 /// Builds and signs relationship credentials (R-Card and VRC).
 ///

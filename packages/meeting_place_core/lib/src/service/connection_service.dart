@@ -22,6 +22,7 @@ import 'connection_offer/offer_already_claimed_exception.dart';
 import 'connection_offer/offer_owner_exception.dart';
 import 'connection_service/accept_offer_result.dart';
 import 'identity/identity_service.dart';
+import 'matrix/matrix_service.dart';
 import 'mediator/mediator_acl_service.dart';
 
 class FindOfferException implements Exception {
@@ -46,6 +47,7 @@ class ConnectionService {
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
     required ChannelService channelService,
+    required MatrixService matrixService,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _channelService = channelService,
@@ -56,6 +58,7 @@ class ConnectionService {
        _identityService = identityService,
        _connectionOfferService = offerService,
        _didResolver = didResolver,
+       _matrixService = matrixService,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -70,6 +73,7 @@ class ConnectionService {
   final MediatorAclService _mediatorAclService;
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
+  final MatrixService _matrixService;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
@@ -527,6 +531,22 @@ class ConnectionService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+    );
+
+    // TODO: implement wrapper between here and matrix service that takes care of DID conversion and userScope handling?
+    final otherPartyMatrixUserId = await _matrixService.deriveUserId(
+      otherPartyPermanentChannelDid,
+      _matrixService.homeserver.host,
+    );
+
+    final roomId = await _matrixService.createRoom(
+      userScope: permanentIdentity.userScope,
+      inviteUsers: [otherPartyMatrixUserId],
+    );
+
+    _logger.info(
+      'Matrix room created with ID: ${roomId.topAndTail()}',
+      name: methodName,
     );
 
     await sendConnectionRequestApprovalToMediator(

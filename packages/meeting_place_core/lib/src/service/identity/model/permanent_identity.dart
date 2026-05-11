@@ -8,6 +8,7 @@ class PermanentIdentity {
     required this.didManager,
     required this.didDocument,
     required this.matrixUserId,
+    required this.userScope,
   });
 
   /// The [DidManager] that manages the permanent DID for this identity.
@@ -19,4 +20,8 @@ class PermanentIdentity {
   /// The Matrix user ID associated with the permanent identity.
   // TODO: Extend to its own object containing user id and homeserver?
   final String matrixUserId;
+
+  /// The user scope associated with this permanent identity,
+  /// used for Matrix client caching.
+  final String userScope;
 }

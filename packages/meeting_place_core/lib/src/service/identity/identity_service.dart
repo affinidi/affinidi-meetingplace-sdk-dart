@@ -71,6 +71,7 @@ class IdentityService {
       didManager: permanentChannelDidManager,
       didDocument: didDocument,
       matrixUserId: matrixUserId,
+      userScope: matrixTokenCommandOutput.token.sub,
     );
   }
 }

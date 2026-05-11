@@ -30,6 +30,6 @@ class MatrixClientCache {
   }
 
   String _getCacheKey({required String userScope}) {
-    return userScope.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_').toLowerCase();
+    return '${userScope.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_').toLowerCase()}_${homeserver.toString()}';
   }
 }

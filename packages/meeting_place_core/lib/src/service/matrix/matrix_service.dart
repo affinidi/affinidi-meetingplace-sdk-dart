@@ -2,6 +2,8 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'matrix_client.dart';
 import 'matrix_client_cache.dart';
 import 'matrix_service_exception.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class MatrixService {
   MatrixService({
@@ -33,6 +35,18 @@ class MatrixService {
         stackTrace,
       );
     }
+  }
+
+  Future<String> createRoom({
+    required String userScope,
+    List<String>? inviteUsers,
+  }) async {
+    final client = await _getClientForUser(userScope: userScope);
+    return client.createRoom(invite: inviteUsers);
+  }
+
+  Future<String> deriveUserId(String did, String serverName) async {
+    return '@${sha256.convert(utf8.encode('$did|$serverName')).toString()}:$serverName';
   }
 
   void dispose() {

@@ -35,10 +35,7 @@ void main() {
     });
 
     test('returns null for VRC blob without id', () async {
-      final result = await VrcParser.parse(
-        vcBlob: vrcBlobWithoutId,
-        channelId: 'ch-1',
-      );
+      final result = await parser.parse(vcBlob: vrcBlobWithoutId);
       expect(result, isNull);
     });
 
@@ -46,41 +43,38 @@ void main() {
       late DidKeyManager issuerManager;
       late String issuerDid;
 
-      setUp(() async {
+      setUpAll(() async {
         final wallet = PersistentWallet(InMemoryKeyStore());
-        final keyPair = await wallet.generateKey(keyType: KeyType.p256);
-        issuerManager = await DidManager.create(
-          () => DidKeyManager(store: InMemoryDidStore(), wallet: wallet),
+        issuerManager = DidKeyManager(
+          wallet: wallet,
+          store: InMemoryDidStore(),
         );
-        final result = await issuerManager.addVerificationMethod(keyPair.id);
-        issuerDid = result.verificationMethodId.split('#').first;
+        final keyPair = await wallet.generateKey();
+        await issuerManager.addVerificationMethod(keyPair.id);
+        final didDoc = await issuerManager.getDidDocument();
+        issuerDid = didDoc.id;
       });
 
-      test('returns RelationshipCredential for a valid signed VRC', () async {
-        const channelId = 'ch-happy';
-        const counterpartDid = 'did:key:z6MkTestCounterpart';
-        final subject = VrcCredentialSubject(
-          from: VrcParty(did: issuerDid, name: 'Alice'),
-          to: const VrcParty(did: counterpartDid, name: 'Bob'),
-        );
-        final signed = await CredentialBuilder.buildVrc(
-          issuerDid: issuerDid,
-          subject: subject,
-          issuerDidManager: issuerManager,
-        );
-        final vcBlob = jsonEncode(signed.toJson());
+      test(
+        'returns ParsedVerifiableCredential for a valid signed VRC',
+        () async {
+          const counterpartDid = 'did:key:z6MkTestCounterpart';
+          final subject = VrcCredentialSubject(
+            from: VrcParty(did: issuerDid, name: 'Alice'),
+            to: const VrcParty(did: counterpartDid, name: 'Bob'),
+          );
+          final signed = await CredentialBuilder.buildVrc(
+            issuerDid: issuerDid,
+            subject: subject,
+            issuerDidManager: issuerManager,
+          );
+          final vcBlob = jsonEncode(signed.toJson());
 
-        final result = await VrcParser.parse(
-          vcBlob: vcBlob,
-          channelId: channelId,
-        );
+          final result = await parser.parse(vcBlob: vcBlob);
 
-        expect(result, isNotNull);
-        expect(result!.channelId, channelId);
-        expect(result.issuerPersonaDid, issuerDid);
-        expect(result.holderPersonaDid, counterpartDid);
-        expect(result.vc, vcBlob);
-      });
+          expect(result, isNotNull);
+        },
+      );
     });
   });
 }

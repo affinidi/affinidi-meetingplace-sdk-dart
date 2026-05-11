@@ -14,7 +14,6 @@ const vrcBlobWithoutProof =
     '"issuer":"did:key:test-issuer",'
     '"validFrom":"2024-01-01T00:00:00.000Z",'
     '"credentialSubject":{'
-<<<<<<< HEAD
     '"from":{"did":"did:key:alice","name":"Alice"},'
     '"to":{"did":"did:key:bob","name":"Bob"}'
     '}'

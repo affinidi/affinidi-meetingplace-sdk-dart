@@ -106,6 +106,7 @@ void main() {
           permanentChannelDid: 'permanent',
           otherPartyPermanentChannelDid: 'other',
           notificationToken: 'token',
+          matrixRoomId: 'roomId',
         );
         verify(() => repository.updateChannel(initiatorChannel)).called(1);
         expect(initiatorChannel.status, ChannelStatus.approved);
@@ -126,6 +127,7 @@ void main() {
             permanentChannelDid: 'permanent',
             otherPartyPermanentChannelDid: 'other',
             notificationToken: 'token',
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -146,6 +148,7 @@ void main() {
             permanentChannelDid: 'permanent',
             otherPartyPermanentChannelDid: 'other',
             notificationToken: 'token',
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -166,6 +169,7 @@ void main() {
             permanentChannelDid: 'permanent',
             otherPartyPermanentChannelDid: 'other',
             notificationToken: 'token',
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -248,6 +252,7 @@ void main() {
           otherPartyPermanentChannelDid: 'otherDid',
           outboundMessageId: 'msgId',
           otherPartyContactCard: null,
+          matrixRoomId: 'roomId',
         );
         verify(() => repository.updateChannel(nonInitiatorChannel)).called(1);
         expect(nonInitiatorChannel.status, ChannelStatus.inaugurated);
@@ -270,6 +275,7 @@ void main() {
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
             otherPartyContactCard: null,
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -292,6 +298,7 @@ void main() {
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
             otherPartyContactCard: null,
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );

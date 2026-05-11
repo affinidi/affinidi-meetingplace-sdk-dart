@@ -22,10 +22,12 @@ String getMediatorDid() =>
     env['MEDIATOR_DID'] ??
     (throw Exception('MEDIATOR_DID not set in environment'));
 
-Uri getMatrixHomeserver() =>
-    Uri.tryParse(Platform.environment['MATRIX_HOMESERVER'] ?? '') ??
-    Uri.tryParse(env['MATRIX_HOMESERVER'] ?? '') ??
-    (throw Exception('MATRIX_HOMESERVER not set in environment'));
+Uri getMatrixHomeserver() {
+  final value = Platform.environment['MATRIX_HOMESERVER'] ??
+      env['MATRIX_HOMESERVER'] ??
+      (throw Exception('MATRIX_HOMESERVER not set in environment'));
+  return Uri.parse(value);
+}
 
 Future<Database> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();

@@ -8,16 +8,10 @@ import '../models/r_card/r_card_constants.dart';
 import '../models/r_card/received_r_card.dart';
 
 /// Parses R-Card VC blobs and extracts verified [ReceivedRCard] instances.
-///
-/// Transport-agnostic: accepts raw VC JSON blobs so the same parser can be
-/// used whether the blob arrived over DIDComm, Matrix, or any other transport.
-/// Extracting the blob from the transport envelope is the caller's
-/// responsibility (e.g. `MeetingPlaceRelationshipSDK`).
-class RCardAttachmentParser {
-  RCardAttachmentParser({MeetingPlaceCoreSDKLogger? logger})
+class RCardParser {
+  RCardParser({MeetingPlaceCoreSDKLogger? logger})
     : _logger =
-          logger ??
-          DefaultMeetingPlaceCoreSDKLogger(className: 'RCardAttachmentParser');
+          logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardParser');
 
   final MeetingPlaceCoreSDKLogger _logger;
 

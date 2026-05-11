@@ -154,7 +154,7 @@ void main() {
     });
   });
 
-  group('MeetingPlaceRelationshipSDK.parseRCardFromAttachments', () {
+  group('MeetingPlaceRelationshipSDK.parseRCard', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
 
@@ -168,32 +168,16 @@ void main() {
       await channelAttachmentsCtrl.close();
     });
 
-    test('returns null for empty attachment list', () async {
+    test('returns null for invalid JSON blob', () async {
       final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
-      final result = await sdk.parseRCardFromAttachments(
-        attachments: [],
-        contactChannelDid: 'did:example:other',
-      );
+      final result = await sdk.parseRCard(vcBlob: 'not-json');
       expect(result, isNull);
       await sdk.closeRelationshipStreams();
     });
 
-    test('returns null for wrong attachment format', () async {
+    test('returns null for R-Card without proof', () async {
       final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
-      final result = await sdk.parseRCardFromAttachments(
-        attachments: [makeAttachment(format: 'other_plugin', dataJson: '{}')],
-        contactChannelDid: 'did:example:other',
-      );
-      expect(result, isNull);
-      await sdk.closeRelationshipStreams();
-    });
-
-    test('returns null for invalid R-Card (no proof)', () async {
-      final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
-      final result = await sdk.parseRCardFromAttachments(
-        attachments: [rCardAttachment()],
-        contactChannelDid: 'did:example:other',
-      );
+      final result = await sdk.parseRCard(vcBlob: rCardVcBlob);
       expect(result, isNull);
       await sdk.closeRelationshipStreams();
     });

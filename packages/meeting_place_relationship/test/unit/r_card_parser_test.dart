@@ -9,7 +9,7 @@ import '../fixtures/r_card_fixture.dart';
 void main() {
   final parser = RCardParser();
 
-  group('RCardAttachmentParser', () {
+  group('RCardParser', () {
     test('invalid JSON vcBlob returns null', () async {
       final result = await parser.parse(
         vcBlob: 'not-json',
@@ -67,7 +67,7 @@ void main() {
     });
   });
 
-  group('RCardAttachmentParser happy path', () {
+  group('RCardParser happy path', () {
     late String vcBlob;
     late String issuerDid;
 

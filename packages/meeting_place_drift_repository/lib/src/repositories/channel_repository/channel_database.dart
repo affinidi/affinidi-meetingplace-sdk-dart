@@ -168,6 +168,9 @@ class Channels extends Table {
   /// Notification token for the other party in the channel.
   TextColumn get otherPartyNotificationToken => text().nullable()();
 
+  /// Matrix room ID associated with the channel.
+  TextColumn get matrixRoomId => text().nullable()();
+
   /// External reference for the channel.
   TextColumn get externalRef => text().nullable()();
 

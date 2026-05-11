@@ -586,6 +586,7 @@ class ConnectionService {
       permanentChannelDid: permanentIdentity.didDocument.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       notificationToken: finaliseAcceptanceOutput.notificationToken,
+      matrixRoomId: roomId,
     );
 
     _logger.info(

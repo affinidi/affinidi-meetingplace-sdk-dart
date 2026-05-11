@@ -162,6 +162,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       outboundMessageId: message.id,
       otherPartyContactCard: connectionRequestApprovalMessage.contactCard,
+      matrixRoomId: connectionRequestApprovalMessage.body.matrixRoomId,
     );
 
     final attachments = message.attachments;

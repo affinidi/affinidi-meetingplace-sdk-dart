@@ -12,6 +12,7 @@ class MatrixService {
       _clientCache =
           clientCache ?? MatrixClientCache(homeserver: config.homeserver);
 
+  /// The login type for JWT-based authentication with the Matrix homeserver.
   static const String jwtLoginType = 'org.matrix.login.jwt';
 
   final MatrixConfig _config;
@@ -23,10 +24,7 @@ class MatrixService {
     required String jwt,
     required String did,
   }) async {
-    final client = await _createClient(
-      did: did,
-      databaseProvider: _databaseProvider,
-    );
+    final client = await _createClient(did: did);
 
     _clientCache.add(did: did, client: client);
 
@@ -69,23 +67,16 @@ class MatrixService {
       return cached;
     }
 
-    final client = await _createClient(
-      did: did,
-      databaseProvider: _databaseProvider,
-    );
+    final client = await _createClient(did: did);
 
     _clientCache.add(did: did, client: client);
     return client;
   }
 
-  Future<matrix.Client> _createClient({
-    required String did,
-    required Future<dynamic> Function(String) databaseProvider,
-  }) {
+  Future<matrix.Client> _createClient({required String did}) {
     return MatrixClient.init(
-      homeserver: homeserver,
-      userScope: _deriveUserId(did, homeserver.host),
-      databaseProvider: databaseProvider,
+      config: _config,
+      userScope: _deriveUserId(did, _config.homeserver.host),
     );
   }
 

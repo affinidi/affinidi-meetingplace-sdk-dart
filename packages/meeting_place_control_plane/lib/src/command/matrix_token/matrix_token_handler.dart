@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
@@ -9,7 +7,6 @@ import '../../core/command/command_handler.dart';
 import '../../core/didcomm/didcomm_challenge_response.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
-import '../../utils/string.dart';
 import 'matrix_token.dart';
 import 'matrix_token_exception.dart';
 import 'matrix_token_output.dart';

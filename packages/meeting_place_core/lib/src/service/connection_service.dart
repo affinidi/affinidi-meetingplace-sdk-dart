@@ -525,14 +525,13 @@ class ConnectionService {
       channel.publishOfferDid,
     );
 
-    final permanentChannelDid = await _connectionManager.generateDid(wallet);
-
-    final permanentChannelDidDocument = await permanentChannelDid
-        .getDidDocument();
+    final permanentIdentity = await _identityService.createPermanentIdentity(
+      wallet,
+    );
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
-      permanentChannelDid: permanentChannelDid,
+      permanentChannelDid: permanentIdentity.didManager,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyAcceptOfferDid: acceptOfferDid,
       outboundMessageId: channel.offerLink,
@@ -561,14 +560,14 @@ class ConnectionService {
     );
 
     final finalisedConnection = connectionOffer.finalise(
-      permanentChannelDid: permanentChannelDidDocument.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
     );
     await _connectionOfferRepository.updateConnectionOffer(finalisedConnection);
 
     await _channelService.markChannelApprovedForConnectionInitiator(
       channel,
-      permanentChannelDid: permanentChannelDidDocument.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       notificationToken: finaliseAcceptanceOutput.notificationToken,
     );

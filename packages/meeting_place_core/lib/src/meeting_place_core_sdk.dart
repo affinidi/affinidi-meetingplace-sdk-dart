@@ -312,6 +312,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
+      matrixService: matrixService,
       logger: mpxLogger,
     );
 

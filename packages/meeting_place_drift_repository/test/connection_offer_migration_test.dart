@@ -112,4 +112,56 @@ void main() {
       await db.close();
     });
   });
+
+  group('v2 → v3 schema migration', () {
+    test('produces the correct v3 schema', () async {
+      final connection = await verifier.startAt(2);
+      final db = ConnectionOfferDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 3);
+      await db.close();
+    });
+
+    test('adds nullable score column, existing rows default to null', () async {
+      final schema = await verifier.schemaAt(2);
+
+      schema.rawDatabase.execute("""
+        INSERT INTO connection_offers VALUES (
+          'offer-v2',
+          'Offer Name',
+          'https://example.com/offer',
+          NULL,
+          'oob-msg',
+          'mnemonic words',
+          NULL,
+          '2026-01-01T00:00:00.000',
+          'did:example:publisher',
+          1,
+          1,
+          NULL,
+          0,
+          'did:example:mediator',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL
+        )
+      """);
+
+      final db = ConnectionOfferDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 3);
+
+      final rows = await db.customSelect(
+        'SELECT score FROM connection_offers WHERE id = ?',
+        variables: [const Variable('offer-v2')],
+      ).get();
+      expect(rows, hasLength(1));
+      expect(rows.first.read<int?>('score'), isNull);
+
+      await db.close();
+    });
+  });
 }

@@ -28,4 +28,16 @@ abstract interface class ChatSDK {
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates();
+
+  /// Creates a local chat message for a credential that was issued to the
+  /// other party, so the sender sees an attachment tile immediately.
+  Future<void> createChatMessageFromIssuedCredential({
+    required List<Attachment> attachments,
+  });
+
+  /// Creates a local chat message for a credential request received from the
+  /// other party, so the recipient sees an attachment tile immediately.
+  Future<void> createChatMessageFromRequestCredential({
+    required List<Attachment> attachments,
+  });
 }

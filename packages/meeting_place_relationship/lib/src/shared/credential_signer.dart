@@ -6,7 +6,7 @@ abstract final class CredentialSigner {
   /// Signs [unsigned] using the first assertion method key from [manager].
   ///
   /// Throws [StateError] if [manager] has no assertion method keys.
-  static Future<VerifiableCredential> sign(
+  static Future<VcDataModelV2> sign(
     VcDataModelV2 unsigned,
     DidManager manager,
   ) async {
@@ -18,9 +18,10 @@ abstract final class CredentialSigner {
     }
     final suite = LdVcDm2Suite();
     final signer = await manager.getSigner(assertionMethod);
-    return suite.issue(
-      unsignedData: unsigned,
-      proofGenerator: DataIntegrityEcdsaJcsGenerator(signer: signer),
-    );
+    return await suite.issue(
+          unsignedData: unsigned,
+          proofGenerator: DataIntegrityEcdsaJcsGenerator(signer: signer),
+        )
+        as VcDataModelV2;
   }
 }

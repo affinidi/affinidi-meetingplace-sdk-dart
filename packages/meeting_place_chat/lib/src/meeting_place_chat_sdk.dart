@@ -229,4 +229,25 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// the chat.
   @override
   Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
+
+  /// Creates a chat message from an issued credential (VDIP issuance flow).
+  ///
+  /// **Parameters:**
+  /// - [attachments]: The list of [Attachment]s containing the issued
+  ///   credential data.
+  @override
+  Future<void> createChatMessageFromIssuedCredential({
+    required List<Attachment> attachments,
+  }) => _sdk.createChatMessageFromIssuedCredential(attachments: attachments);
+
+  /// Creates a chat message from a credential issuance request (VDIP request
+  /// flow).
+  ///
+  /// **Parameters:**
+  /// - [attachments]: The list of [Attachment]s containing the credential
+  ///   request data.
+  @override
+  Future<void> createChatMessageFromRequestCredential({
+    required List<Attachment> attachments,
+  }) => _sdk.createChatMessageFromRequestCredential(attachments: attachments);
 }

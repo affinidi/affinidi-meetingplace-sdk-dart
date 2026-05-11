@@ -4,10 +4,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../shared/credential_constants.dart';
+import '../model/r_card.dart';
 import '../model/r_card_constants.dart';
-import '../model/received_r_card.dart';
 
-/// Parses R-Card VC blobs and extracts verified [ReceivedRCard] instances.
+/// Parses R-Card VC blobs and extracts verified [RCard] instances.
 class RCardParser {
   RCardParser({MeetingPlaceCoreSDKLogger? logger})
     : _logger =
@@ -15,18 +15,18 @@ class RCardParser {
 
   final MeetingPlaceCoreSDKLogger _logger;
 
-  /// Parses [vcBlob] and returns a [ReceivedRCard] if it is a valid,
+  /// Parses [vcBlob] and returns a [RCard] if it is a valid,
   /// signature-verified R-Card credential.
   ///
   /// Returns `null` if the blob cannot be decoded, type or context
   /// validation fails, or signature verification fails.
   ///
   /// - [vcBlob] — raw VC JSON string.
-  /// - [contactChannelDid] — the channel DID through which this card was
-  ///   received, stored on the result for later lookup.
-  Future<ReceivedRCard?> parse({
+  /// - [otherPartyPermanentChannelDid] — the permanent channel DID of the
+  ///   contact who sent this card, stored on the result for later lookup.
+  Future<RCard?> parse({
     required String vcBlob,
-    String? contactChannelDid,
+    String? otherPartyPermanentChannelDid,
   }) async {
     final dynamic decoded;
     try {
@@ -91,14 +91,14 @@ class RCardParser {
     final issuanceDate = rawDate is String ? DateTime.tryParse(rawDate) : null;
     final now = DateTime.now().toUtc();
 
-    return ReceivedRCard(
+    return RCard(
       subjectDid: subjectDid,
       vcBlob: vcBlob,
       issuerDid: issuerDid,
       version: RCardConstants.receivedRCardVersion,
       issuanceDate: issuanceDate ?? now,
       receivedAt: now,
-      contactChannelDid: contactChannelDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
     );
   }
 }

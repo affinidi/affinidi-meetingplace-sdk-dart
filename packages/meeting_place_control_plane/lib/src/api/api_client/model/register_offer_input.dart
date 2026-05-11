@@ -110,6 +110,10 @@ abstract class RegisterOfferInput
   @BuiltValueField(wireName: r'metadata')
   String? get metadata;
 
+  /// VRC score of the offer owner.
+  @BuiltValueField(wireName: r'score')
+  int? get score;
+
   RegisterOfferInput._();
 
   factory RegisterOfferInput([void updates(RegisterOfferInputBuilder b)]) =
@@ -228,6 +232,13 @@ class _$RegisterOfferInputSerializer
       yield serializers.serialize(
         object.metadata,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.score != null) {
+      yield r'score';
+      yield serializers.serialize(
+        object.score,
+        specifiedType: const FullType(int),
       );
     }
   }
@@ -398,6 +409,12 @@ class _$RegisterOfferInputSerializer
                   )
                   as String;
           result.metadata = valueDes;
+          break;
+        case r'score':
+          final valueDes =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int;
+          result.score = valueDes;
           break;
         default:
           unhandled.add(key);

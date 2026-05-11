@@ -17,10 +17,26 @@ class RCardDIDCommAttachmentBuilder {
   ///
   /// Use this when you already have a signed VC and want to attach it
   /// to a DIDComm message.
-  static List<Attachment> fromVcJson(Map<String, dynamic> vcJson) {
+  ///
+  /// Set [isUpdate] to `true` when the R-Card replaces a previously sent one
+  /// (e.g. after a profile update). Defaults to `false`.
+  ///
+  /// Set [isAutoExchange] to `true` when the R-Card was delivered via the
+  /// DIDComm channel-inauguration path (not an explicit send). Defaults to
+  /// `false`.
+  ///
+  /// Both flags are stored in the attachment payload and are read by the app
+  /// layer to decide how to render the attachment tile (e.g. suppress duplicate
+  /// notifications for auto-exchanged cards). They are not consumed by the SDK.
+  static List<Attachment> fromVcJson(
+    Map<String, dynamic> vcJson, {
+    bool isUpdate = false,
+    bool isAutoExchange = false,
+  }) {
     final payload = jsonEncode({
       'vcBlob': jsonEncode(vcJson),
-      'isUpdate': false,
+      'isUpdate': isUpdate,
+      'isAutoExchange': isAutoExchange,
     });
 
     return [

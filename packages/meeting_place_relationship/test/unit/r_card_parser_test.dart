@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:meeting_place_relationship/src/rcard/parser/r_card_parser.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -13,7 +14,7 @@ void main() {
     test('invalid JSON vcBlob returns null', () async {
       final result = await parser.parse(
         vcBlob: 'not-json',
-        contactChannelDid: 'did:example:channel',
+        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -23,7 +24,7 @@ void main() {
       vcJson['type'] = ['RelationshipCard'];
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        contactChannelDid: 'did:example:channel',
+        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -33,7 +34,7 @@ void main() {
       vcJson['type'] = ['VerifiableCredential'];
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        contactChannelDid: 'did:example:channel',
+        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -43,7 +44,7 @@ void main() {
       vcJson['@context'] = ['https://www.w3.org/2018/credentials/v1'];
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        contactChannelDid: 'did:example:channel',
+        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -51,7 +52,7 @@ void main() {
     test('VC with no proof returns null', () async {
       final result = await parser.parse(
         vcBlob: rCardVcBlob,
-        contactChannelDid: 'did:example:channel',
+        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -61,7 +62,7 @@ void main() {
       vcJson['credentialSubject'] = <String, dynamic>{};
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        contactChannelDid: 'did:example:channel',
+        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -91,10 +92,10 @@ void main() {
       vcBlob = jsonEncode(vc.toJson());
     });
 
-    test('valid signed R-Card returns a ReceivedRCard', () async {
+    test('valid signed R-Card returns a RCard', () async {
       final result = await parser.parse(
         vcBlob: vcBlob,
-        contactChannelDid: 'did:example:channel',
+        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNotNull);
       expect(result!.issuerDid, issuerDid);

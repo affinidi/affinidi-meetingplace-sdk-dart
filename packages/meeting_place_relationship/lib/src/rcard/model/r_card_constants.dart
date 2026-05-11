@@ -10,6 +10,6 @@ class RCardConstants {
   static const schemaRCard =
       'https://schema.affinidi.io/TRelationshipCardV1R0.json';
 
-  /// Monotonically increasing schema version for `ReceivedRCard` storage.
+  /// Monotonically increasing schema version for `RCard` storage.
   static const receivedRCardVersion = 1;
 }

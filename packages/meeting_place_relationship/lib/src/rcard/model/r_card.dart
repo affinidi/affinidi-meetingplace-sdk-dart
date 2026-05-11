@@ -7,36 +7,33 @@ import 'r_card_constants.dart';
 ///
 /// This is the persistence/view model for an incoming R-Card. It stores the
 /// raw VC blob alongside parsed metadata fields to avoid repeated decoding.
-class ReceivedRCard {
-  const ReceivedRCard({
+class RCard {
+  const RCard({
     required this.subjectDid,
     required this.vcBlob,
     required this.issuerDid,
     required this.version,
     required this.issuanceDate,
     required this.receivedAt,
-    this.contactChannelDid,
-    this.threadId,
+    this.otherPartyPermanentChannelDid,
+    this.permanentChannelDid,
     this.notes,
   });
 
-  /// Parses a [ReceivedRCard] from a raw VC blob string.
+  /// Parses a [RCard] from a raw VC blob string.
   ///
   /// Returns `null` if the blob cannot be decoded or required fields
   /// are missing.
-  static ReceivedRCard? fromVcBlob(
+  static RCard? fromVcBlob(
     String subjectDid,
     String vcBlob, {
     MeetingPlaceCoreSDKLogger? logger,
   }) {
-    final log =
-        logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'ReceivedRCard');
+    final log = logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCard');
     try {
       final vc = LdVcDm2Suite().tryParse(vcBlob);
       if (vc == null) {
-        log.warning(
-          'Could not parse VC from blob as a signed DM v2 credential',
-        );
+        log.warning('Could not parse VC from blob as a DM v2 credential');
         return null;
       }
       final rawJson = vc.toJson();
@@ -51,7 +48,7 @@ class ReceivedRCard {
         return null;
       }
       final now = DateTime.now().toUtc();
-      return ReceivedRCard(
+      return RCard(
         subjectDid: subjectDid.trim(),
         vcBlob: vcBlob,
         issuerDid: issuerDid,
@@ -60,11 +57,7 @@ class ReceivedRCard {
         receivedAt: now,
       );
     } catch (e, st) {
-      log.error(
-        'Failed to parse ReceivedRCard from VC blob',
-        error: e,
-        stackTrace: st,
-      );
+      log.error('Failed to parse RCard from VC blob', error: e, stackTrace: st);
       return null;
     }
   }
@@ -87,35 +80,39 @@ class ReceivedRCard {
   /// The UTC timestamp at which this card was received and stored locally.
   final DateTime receivedAt;
 
-  /// The channel DID through which this card was received, if known.
-  final String? contactChannelDid;
+  /// The permanent channel DID of the contact who sent this R-Card, if known.
+  final String? otherPartyPermanentChannelDid;
 
-  /// The thread ID of the exchange that delivered this card, if known.
-  final String? threadId;
+  /// Our own permanent channel DID for the channel this R-Card arrived on.
+  ///
+  /// Stored on receipt so consumers can correlate the card back to its
+  /// originating channel without re-querying.
+  final String? permanentChannelDid;
 
   /// Optional user notes attached to this contact.
   final String? notes;
 
-  ReceivedRCard copyWith({
+  RCard copyWith({
     String? subjectDid,
     String? vcBlob,
     String? issuerDid,
     int? version,
     DateTime? issuanceDate,
     DateTime? receivedAt,
-    String? contactChannelDid,
-    String? threadId,
+    String? otherPartyPermanentChannelDid,
+    String? permanentChannelDid,
     String? notes,
   }) {
-    return ReceivedRCard(
+    return RCard(
       subjectDid: subjectDid ?? this.subjectDid,
       vcBlob: vcBlob ?? this.vcBlob,
       issuerDid: issuerDid ?? this.issuerDid,
       version: version ?? this.version,
       issuanceDate: issuanceDate ?? this.issuanceDate,
       receivedAt: receivedAt ?? this.receivedAt,
-      contactChannelDid: contactChannelDid ?? this.contactChannelDid,
-      threadId: threadId ?? this.threadId,
+      otherPartyPermanentChannelDid:
+          otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
+      permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       notes: notes ?? this.notes,
     );
   }

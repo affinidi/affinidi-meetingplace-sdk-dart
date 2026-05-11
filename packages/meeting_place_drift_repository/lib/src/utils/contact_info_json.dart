@@ -19,8 +19,9 @@ String encodeContactInfoJson(model.ContactCard card) {
 
 /// Decodes a JSON string back into a contactInfo map.
 ///
-/// If [profilePic] is provided (non-null and non-empty), it is re-inserted
-/// under the 'photo' key so that callers receive a fully-populated map.
+/// If [profilePic] is provided (non-null), it is re-inserted under the
+/// 'photo' key so that callers receive a fully-populated map, including
+/// when the value is an empty string (no photo set).
 Map<String, dynamic> decodeContactInfoJson(
   String contactInfoJson, {
   String? profilePic,
@@ -35,7 +36,7 @@ Map<String, dynamic> decodeContactInfoJson(
     result = <String, dynamic>{};
   }
 
-  if (profilePic != null && profilePic.isNotEmpty) {
+  if (profilePic != null) {
     result['photo'] = profilePic;
   }
 

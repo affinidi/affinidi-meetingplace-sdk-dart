@@ -6,9 +6,9 @@ import 'package:test/test.dart';
 
 void main() {
   group('RCardSubject', () {
-    test('fromVcBlob returns null for invalid input', () {
-      expect(RCardSubject.fromVcBlob('not-json'), isNull);
-      expect(RCardSubject.fromVcBlob('{}'), isNull);
+    test('fromVcBlob throws FormatException for invalid input', () {
+      expect(() => RCardSubject.fromVcBlob('not-json'), throwsFormatException);
+      expect(() => RCardSubject.fromVcBlob('{}'), throwsFormatException);
     });
 
     test('name concatenates first and last name', () {
@@ -36,14 +36,14 @@ void main() {
     });
   });
 
-  group('ReceivedRCard', () {
+  group('RCard', () {
     test('fromVcBlob returns null for invalid JSON', () {
-      expect(ReceivedRCard.fromVcBlob('did:example:1', 'bad'), isNull);
+      expect(RCard.fromVcBlob('did:example:1', 'bad'), isNull);
     });
 
     test('fromVcBlob returns null when issuer is missing', () {
       const blob = '{"credentialSubject": {}}';
-      expect(ReceivedRCard.fromVcBlob('did:example:1', blob), isNull);
+      expect(RCard.fromVcBlob('did:example:1', blob), isNull);
     });
 
     test('fromVcBlob parses a minimal valid blob', () async {
@@ -62,8 +62,13 @@ void main() {
         subject: const RCardSubject(firstName: 'Alice'),
         issuerDidManager: didManager,
       );
+      expect(
+        vc,
+        isA<VcDataModelV2>(),
+        reason: 'RCardBuilder must produce a DM v2 credential',
+      );
 
-      final card = ReceivedRCard.fromVcBlob(
+      final card = RCard.fromVcBlob(
         'did:example:holder',
         jsonEncode(vc.toJson()),
       );

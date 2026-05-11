@@ -5,6 +5,9 @@
 class VrcParty {
   const VrcParty({required this.did, required this.name});
 
+  factory VrcParty.fromJson(Map<String, dynamic> json) =>
+      VrcParty(did: json['did'] as String, name: json['name'] as String);
+
   final String did;
   final String name;
 

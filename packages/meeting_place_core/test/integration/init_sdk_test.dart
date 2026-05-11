@@ -74,6 +74,7 @@ void main() async {
       ),
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
+      matrixConfig: getMatrixConfig(),
     );
 
     await minimumSDK.registerForPushNotifications(const Uuid().v4());

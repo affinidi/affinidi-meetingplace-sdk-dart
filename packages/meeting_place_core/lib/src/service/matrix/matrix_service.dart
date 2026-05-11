@@ -1,23 +1,23 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'matrix_client.dart';
 import 'matrix_client_cache.dart';
+import 'matrix_config.dart';
 import 'matrix_service_exception.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
 class MatrixService {
-  MatrixService({
-    required Uri this.homeserver,
-    required Future<dynamic> Function(String) databaseProvider,
-    MatrixClientCache? clientCache,
-  }) : _databaseProvider = databaseProvider,
-       _clientCache = clientCache ?? MatrixClientCache(homeserver: homeserver);
+  MatrixService({required MatrixConfig config, MatrixClientCache? clientCache})
+    : _config = config,
+      _clientCache =
+          clientCache ?? MatrixClientCache(homeserver: config.homeserver);
 
   static const String jwtLoginType = 'org.matrix.login.jwt';
 
-  final Uri homeserver;
-  final Future<dynamic> Function(String) _databaseProvider;
+  final MatrixConfig _config;
   final MatrixClientCache _clientCache;
+
+  Uri get homeserver => _config.homeserver;
 
   Future<String> loginWithJwt({
     required String jwt,
@@ -59,23 +59,13 @@ class MatrixService {
       return cached;
     }
 
-    final client = await _createClient(
-      userScope: userScope,
-      databaseProvider: _databaseProvider,
-    );
+    final client = await _createClient(userScope: userScope);
 
     _clientCache.add(userScope: userScope, client: client);
     return client;
   }
 
-  Future<matrix.Client> _createClient({
-    required String userScope,
-    required Future<dynamic> Function(String) databaseProvider,
-  }) {
-    return MatrixClient.init(
-      homeserver: homeserver,
-      userScope: userScope,
-      databaseProvider: databaseProvider,
-    );
+  Future<matrix.Client> _createClient({required String userScope}) {
+    return MatrixClient.init(config: _config, userScope: userScope);
   }
 }

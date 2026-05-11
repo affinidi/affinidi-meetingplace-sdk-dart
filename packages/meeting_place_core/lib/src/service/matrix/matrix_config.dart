@@ -1,0 +1,55 @@
+import 'package:sqflite_common/sqflite.dart';
+
+class MatrixConfig {
+  const MatrixConfig({required this.homeserver, required this.databaseFactory});
+
+  final Uri homeserver;
+  final MatrixDatabaseFactory databaseFactory;
+}
+
+class MatrixDatabaseContext {
+  const MatrixDatabaseContext({
+    required this.userScope,
+    required this.homeserver,
+    required this.databaseName,
+  });
+
+  final String userScope;
+  final Uri homeserver;
+  final String databaseName;
+}
+
+abstract interface class MatrixDatabaseFactory {
+  Future<Database?> openDatabase(MatrixDatabaseContext context);
+}
+
+class CallbackMatrixDatabaseFactory implements MatrixDatabaseFactory {
+  const CallbackMatrixDatabaseFactory({
+    required Future<Database?> Function(MatrixDatabaseContext context)
+    openDatabase,
+  }) : _openDatabase = openDatabase;
+
+  final Future<Database?> Function(MatrixDatabaseContext context) _openDatabase;
+
+  @override
+  Future<Database?> openDatabase(MatrixDatabaseContext context) {
+    return _openDatabase(context);
+  }
+}
+
+class UnsupportedMatrixDatabaseFactory implements MatrixDatabaseFactory {
+  const UnsupportedMatrixDatabaseFactory({
+    this.message =
+        'Matrix database initialization is not configured for this consumer.',
+  });
+
+  final String message;
+
+  @override
+  Future<Database?> openDatabase(MatrixDatabaseContext context) {
+    throw UnsupportedError(
+      '$message userScope=${context.userScope}, '
+      'databaseName=${context.databaseName}',
+    );
+  }
+}

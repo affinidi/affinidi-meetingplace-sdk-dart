@@ -34,6 +34,7 @@ export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
+export 'src/service/matrix/matrix_config.dart';
 export 'src/service/matrix/matrix_service.dart';
 export 'src/service/mediator/mediator_message.dart';
 export 'src/service/oob/session/oob_acceptance_session.dart';

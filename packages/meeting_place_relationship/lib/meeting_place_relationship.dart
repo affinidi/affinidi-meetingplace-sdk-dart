@@ -14,3 +14,4 @@ export 'src/models/vrc/vrc_credential_subject.dart';
 export 'src/models/vrc/vrc_exchange_role.dart';
 export 'src/models/vrc/vrc_party.dart';
 export 'src/parsers/r_card_attachment_parser.dart';
+export 'src/parsers/vrc_parser.dart';

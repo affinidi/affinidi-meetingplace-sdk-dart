@@ -26,10 +26,10 @@ void main() {
     });
 
     test(
-      'incomingRCards returns the same stream instance on repeated access',
+      'receivedRCards returns the same stream instance on repeated access',
       () async {
         final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
-        expect(sdk.incomingRCards, same(sdk.incomingRCards));
+        expect(sdk.receivedRCards, same(sdk.receivedRCards));
         await sdk.closeRelationshipStreams();
       },
     );
@@ -47,7 +47,7 @@ void main() {
       ).thenReturn('did:example:other');
 
       final emitted = <ReceivedRCard>[];
-      final sub = sdk.incomingRCards.listen(emitted.add);
+      final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
         channel,
@@ -69,7 +69,7 @@ void main() {
       ).thenReturn('did:example:other');
 
       final emitted = <ReceivedRCard>[];
-      final sub = sdk.incomingRCards.listen(emitted.add);
+      final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, []));
 
@@ -88,7 +88,7 @@ void main() {
       ).thenReturn('did:example:other');
 
       final emitted = <ReceivedRCard>[];
-      final sub = sdk.incomingRCards.listen(emitted.add);
+      final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
 
@@ -100,7 +100,7 @@ void main() {
     });
   });
 
-  group('MeetingPlaceRelationshipSDK incomingRCards happy path', () {
+  group('MeetingPlaceRelationshipSDK receivedRCards happy path', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
     late List<Attachment> signedAttachments;
@@ -140,10 +140,10 @@ void main() {
       await channelAttachmentsCtrl.close();
     });
 
-    test('valid signed R-Card emits on incomingRCards', () async {
+    test('valid signed R-Card emits on receivedRCards', () async {
       final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
       final emitted = <ReceivedRCard>[];
-      final sub = sdk.incomingRCards.listen(emitted.add);
+      final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, signedAttachments));
       await Future<void>.delayed(const Duration(milliseconds: 100));

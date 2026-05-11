@@ -21,15 +21,20 @@ class MatrixService {
 
   Future<String> loginWithJwt({
     required String jwt,
-    required String userScope,
+    required String did,
   }) async {
-    final client = await _getClientForUser(userScope: userScope);
+    final client = await _createClient(
+      did: did,
+      databaseProvider: _databaseProvider,
+    );
+
+    _clientCache.add(did: did, client: client);
 
     try {
       final response = await client.login(jwtLoginType, token: jwt);
       return response.userId;
     } catch (error, stackTrace) {
-      _clientCache.remove(userScope: userScope);
+      _clientCache.remove(did: did);
       Error.throwWithStackTrace(
         MatrixServiceException.loginFailed(innerException: error),
         stackTrace,
@@ -38,34 +43,53 @@ class MatrixService {
   }
 
   Future<String> createRoom({
-    required String userScope,
+    required String did,
     List<String>? inviteUsers,
   }) async {
-    final client = await _getClientForUser(userScope: userScope);
-    return client.createRoom(invite: inviteUsers);
+    final client = await _getClientForUser(did: did);
+    return client.createRoom(
+      invite: inviteUsers
+          ?.map((inviteDid) => _deriveUserId(inviteDid, homeserver.host))
+          .toList(),
+    );
   }
 
-  Future<String> deriveUserId(String did, String serverName) async {
-    return '@${sha256.convert(utf8.encode('$did|$serverName')).toString()}:$serverName';
+  Future<void> joinRoom(String roomId, {required String did}) async {
+    final client = await _getClientForUser(did: did);
+    await client.joinRoom(roomId);
   }
 
   void dispose() {
     _clientCache.dispose();
   }
 
-  Future<matrix.Client> _getClientForUser({required String userScope}) async {
-    final cached = _clientCache.get(userScope: userScope);
+  Future<matrix.Client> _getClientForUser({required String did}) async {
+    final cached = _clientCache.get(did: did);
     if (cached != null) {
       return cached;
     }
 
-    final client = await _createClient(userScope: userScope);
+    final client = await _createClient(
+      did: did,
+      databaseProvider: _databaseProvider,
+    );
 
-    _clientCache.add(userScope: userScope, client: client);
+    _clientCache.add(did: did, client: client);
     return client;
   }
 
-  Future<matrix.Client> _createClient({required String userScope}) {
-    return MatrixClient.init(config: _config, userScope: userScope);
+  Future<matrix.Client> _createClient({
+    required String did,
+    required Future<dynamic> Function(String) databaseProvider,
+  }) {
+    return MatrixClient.init(
+      homeserver: homeserver,
+      userScope: _deriveUserId(did, homeserver.host),
+      databaseProvider: databaseProvider,
+    );
+  }
+
+  String _deriveUserId(String did, String serverName) {
+    return '''@${sha256.convert(utf8.encode('$did|$serverName')).toString()}:$serverName''';
   }
 }

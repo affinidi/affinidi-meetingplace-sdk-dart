@@ -53,12 +53,11 @@ class IdentityService {
       ),
     );
 
+    final didDocument = await permanentChannelDidManager.getDidDocument();
     final matrixUserId = await _matrixService.loginWithJwt(
       jwt: matrixTokenCommandOutput.token.toJwt(),
-      userScope: matrixTokenCommandOutput.token.sub,
+      did: didDocument.id,
     );
-
-    final didDocument = await permanentChannelDidManager.getDidDocument();
 
     _logger.info(
       '''Created permanent identity with DID ${didDocument.id} and Matrix user ID $matrixUserId''',
@@ -69,7 +68,39 @@ class IdentityService {
       didManager: permanentChannelDidManager,
       didDocument: didDocument,
       matrixUserId: matrixUserId,
-      userScope: matrixTokenCommandOutput.token.sub,
+    );
+  }
+
+  Future<PermanentIdentity> getPermanentIdentity(
+    Wallet wallet,
+    String did,
+  ) async {
+    final permanentChannelDidManager = await _connectionManager
+        .getDidManagerForDid(wallet, did);
+
+    final matrixTokenCommandOutput = await _controlPlaneSDK.execute(
+      MatrixTokenCommand(
+        didManager: permanentChannelDidManager,
+        homeserver: _matrixService.homeserver,
+      ),
+    );
+
+    final matrixUserId = await _matrixService.loginWithJwt(
+      jwt: matrixTokenCommandOutput.token.toJwt(),
+      did: did,
+    );
+
+    _logger.info(
+      '''Restored permanent identity with DID $did and Matrix user ID $matrixUserId''',
+      name: _logkey,
+    );
+
+    final didDocument = await permanentChannelDidManager.getDidDocument();
+
+    return PermanentIdentity(
+      didManager: permanentChannelDidManager,
+      didDocument: didDocument,
+      matrixUserId: matrixUserId,
     );
   }
 }

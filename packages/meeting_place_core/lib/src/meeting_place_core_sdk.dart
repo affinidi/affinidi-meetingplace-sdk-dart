@@ -353,6 +353,8 @@ class MeetingPlaceCoreSDK {
       channelRepository: repositoryConfig.channelRepository,
       channelService: channelService,
       streamManager: discoveryEventStreamManager,
+      matrixService: matrixService,
+      identityService: identityService,
       didResolver: didResolver,
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
@@ -402,6 +404,7 @@ class MeetingPlaceCoreSDK {
       connectionManager: connectionManager,
       identityService: identityService,
       channelService: channelService,
+      matrixService: matrixService,
       controlPlaneSDK: controlPlaneSDK,
       controlPlaneEventStreamManager: discoveryEventStreamManager,
       logger: mpxLogger,

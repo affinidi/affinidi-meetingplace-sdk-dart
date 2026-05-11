@@ -7,21 +7,18 @@ class MatrixClientCache {
   final Uri homeserver;
   final Map<String, matrix.Client> _clientCache = {};
 
-  matrix.Client add({
-    required String userScope,
-    required matrix.Client client,
-  }) {
-    final cacheKey = _getCacheKey(userScope: userScope);
+  matrix.Client add({required String did, required matrix.Client client}) {
+    final cacheKey = _getCacheKey(did: did);
     return _clientCache.putIfAbsent(cacheKey, () => client);
   }
 
-  matrix.Client? get({required String userScope}) {
-    final cacheKey = _getCacheKey(userScope: userScope);
+  matrix.Client? get({required String did}) {
+    final cacheKey = _getCacheKey(did: did);
     return _clientCache[cacheKey];
   }
 
-  void remove({required String userScope}) {
-    final cacheKey = _getCacheKey(userScope: userScope);
+  void remove({required String did}) {
+    final cacheKey = _getCacheKey(did: did);
     _clientCache.remove(cacheKey);
   }
 
@@ -29,7 +26,7 @@ class MatrixClientCache {
     _clientCache.clear();
   }
 
-  String _getCacheKey({required String userScope}) {
-    return '${userScope.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_').toLowerCase()}_${homeserver.toString()}';
+  String _getCacheKey({required String did}) {
+    return '$did._${homeserver.toString()}';
   }
 }

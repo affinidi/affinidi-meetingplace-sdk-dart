@@ -4,6 +4,7 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../../meeting_place_core.dart';
 import '../../entity/entity.dart';
 import '../../event_handler/control_plane_event_handler_manager_options.dart';
 import '../../event_handler/control_plane_event_stream_manager.dart';
@@ -31,6 +32,7 @@ class OobService {
     required IdentityService identityService,
     required ChannelService channelService,
     required ControlPlaneSDK controlPlaneSDK,
+    required MatrixService matrixService,
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _wallet = wallet,
@@ -39,6 +41,7 @@ class OobService {
        _connectionManager = connectionManager,
        _identityService = identityService,
        _channelService = channelService,
+       _matrixService = matrixService,
        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
        _controlPlaneSDK = controlPlaneSDK,
        _logger = logger;
@@ -49,6 +52,7 @@ class OobService {
   final ConnectionManager _connectionManager;
   final IdentityService _identityService;
   final ChannelService _channelService;
+  final MatrixService _matrixService;
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
   final ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -274,6 +278,11 @@ class OobService {
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();
 
+    await _matrixService.createRoom(
+      did: permanentChannelDidDoc.id,
+      inviteUsers: [otherPartyPermanentChannelDid],
+    );
+
     await _connectionService.sendConnectionRequestApprovalToMediator(
       offerPublishedDid: session.didManager,
       permanentChannelDid: permanentChannelDidManager,
@@ -282,6 +291,7 @@ class OobService {
       outboundMessageId: session.oobInvitationMessage.id,
       contactCard: session.contactCard,
       mediatorDid: session.mediatorDid,
+      matrixRoomId: permanentChannelDidDoc.id,
     );
 
     final channel = Channel(

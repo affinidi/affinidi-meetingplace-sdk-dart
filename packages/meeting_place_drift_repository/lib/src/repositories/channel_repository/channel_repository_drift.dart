@@ -52,6 +52,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
               otherPartyNotificationToken: Value(
                 channel.otherPartyNotificationToken,
               ),
+              matrixRoomId: Value(channel.matrixRoomId),
               seqNo: Value(channel.seqNo),
               messageSyncMarker: Value(channel.messageSyncMarker),
               mediatorDid: Value(channel.mediatorDid),
@@ -142,6 +143,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           otherPartyNotificationToken: Value(
             channel.otherPartyNotificationToken,
           ),
+          matrixRoomId: Value(channel.matrixRoomId),
           seqNo: Value(channel.seqNo),
           messageSyncMarker: Value(channel.messageSyncMarker),
           mediatorDid: Value(channel.mediatorDid),
@@ -315,6 +317,7 @@ class _ChannelMapper {
       otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
       notificationToken: channel.notificationToken,
       otherPartyNotificationToken: channel.otherPartyNotificationToken,
+      matrixRoomId: channel.matrixRoomId,
       seqNo: channel.seqNo,
       messageSyncMarker: channel.messageSyncMarker?.toUtc(),
       externalRef: channel.externalRef,

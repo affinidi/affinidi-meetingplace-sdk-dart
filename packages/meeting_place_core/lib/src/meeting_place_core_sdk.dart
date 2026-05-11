@@ -292,15 +292,17 @@ class MeetingPlaceCoreSDK {
       databaseProvider: matrixDatabaseProvider,
     );
 
+    final identityService = IdentityService(
+      connectionManager: connectionManager,
+      controlPlaneSDK: controlPlaneSDK,
+      matrixService: matrixService,
+    );
+
     final connectionService = ConnectionService(
       connectionOfferRepository: repositoryConfig.connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
-      identityService: IdentityService(
-        connectionManager: connectionManager,
-        controlPlaneSDK: controlPlaneSDK,
-        matrixService: matrixService,
-      ),
+      identityService: identityService,
       controlPlaneSDK: controlPlaneSDK,
       mediatorAclService: MediatorAclService(
         mediatorSDK: mediatorSDK,
@@ -398,6 +400,7 @@ class MeetingPlaceCoreSDK {
       mediatorService: mediatorService,
       connectionService: connectionService,
       connectionManager: connectionManager,
+      identityService: identityService,
       channelService: channelService,
       controlPlaneSDK: controlPlaneSDK,
       controlPlaneEventStreamManager: discoveryEventStreamManager,

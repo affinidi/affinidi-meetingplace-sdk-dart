@@ -87,10 +87,10 @@ class ReceivedRCard {
   /// The UTC timestamp at which this card was received and stored locally.
   final DateTime receivedAt;
 
-  /// The DIDComm channel DID through which this card was received, if known.
+  /// The channel DID through which this card was received, if known.
   final String? contactChannelDid;
 
-  /// The DIDComm thread ID of the exchange that delivered this card, if known.
+  /// The thread ID of the exchange that delivered this card, if known.
   final String? threadId;
 
   /// Optional user notes attached to this contact.

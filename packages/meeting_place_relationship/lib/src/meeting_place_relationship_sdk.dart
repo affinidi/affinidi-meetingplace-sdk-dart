@@ -6,7 +6,7 @@ import 'package:ssi/ssi.dart';
 
 import 'builders/r_card_didcomm_attachment_builder.dart';
 import 'models/r_card/received_r_card.dart';
-import 'parsers/r_card_attachment_parser.dart';
+import 'parsers/r_card_parser.dart';
 import 'parsers/vrc_parser.dart';
 
 /// The Meeting Place Relationship SDK.
@@ -35,7 +35,7 @@ class MeetingPlaceRelationshipSDK {
     MeetingPlaceCoreSDKLogger? logger,
   }) : _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
-    _parser = RCardAttachmentParser(logger: _logger);
+    _parser = RCardParser(logger: _logger);
     _vrcParser = VrcParser(logger: _logger);
     _receivedRCardsController = StreamController.broadcast();
     _receivedRCards = _receivedRCardsController.stream;
@@ -52,7 +52,7 @@ class MeetingPlaceRelationshipSDK {
   late final StreamController<ReceivedRCard> _receivedRCardsController;
   late final Stream<ReceivedRCard> _receivedRCards;
   late final StreamSubscription<ReceivedRCard> _channelAttachmentsSubscription;
-  late final RCardAttachmentParser _parser;
+  late final RCardParser _parser;
   late final VrcParser _vrcParser;
   final MeetingPlaceCoreSDKLogger _logger;
 
@@ -70,27 +70,23 @@ class MeetingPlaceRelationshipSDK {
     await _receivedRCardsController.close();
   }
 
-  /// Parses the first valid R-Card from a list of DIDComm [attachments].
+  /// Parses and verifies a raw R-Card VC blob.
   ///
-  /// Use this when handling R-Cards received as chat message attachments.
-  /// Returns `null` if no valid, signature-verified R-Card is found.
+  /// Returns `null` if the blob is not a valid, signature-verified R-Card.
   ///
-  /// - [attachments] — attachments from an incoming chat message.
-  /// - [contactChannelDid] — the other party's permanent channel DID.
-  Future<ReceivedRCard?> parseRCardFromAttachments({
-    required List<Attachment> attachments,
-    required String contactChannelDid,
-  }) async {
-    for (final attachment in attachments) {
-      final vcBlob = _extractRCardVcBlob(attachment);
-      if (vcBlob == null) continue;
-      final rCard = await _parser.parse(
-        vcBlob: vcBlob,
-        contactChannelDid: contactChannelDid.isEmpty ? null : contactChannelDid,
-      );
-      if (rCard != null) return rCard;
-    }
-    return null;
+  /// - [vcBlob] — the raw serialised VC JSON string.
+  /// - [contactChannelDid] — the channel DID through which this card was
+  ///   received, stored on the result for later lookup.
+  Future<ReceivedRCard?> parseRCard({
+    required String vcBlob,
+    String? contactChannelDid,
+  }) {
+    return _parser.parse(
+      vcBlob: vcBlob,
+      contactChannelDid: (contactChannelDid?.isEmpty ?? true)
+          ? null
+          : contactChannelDid,
+    );
   }
 
   /// Parses and validates a VRC from a raw VC blob string.

@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -117,6 +117,12 @@ class ChannelDatabase extends _$ChannelDatabase {
             await migrator.addColumn(
               channelContactCards,
               channelContactCards.profilePic,
+            );
+          }
+          if (from < 4 && to >= 4) {
+            await migrator.addColumn(
+              channels,
+              channels.matrixRoomId,
             );
           }
         },

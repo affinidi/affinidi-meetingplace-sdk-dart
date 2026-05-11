@@ -533,15 +533,9 @@ class ConnectionService {
       wallet,
     );
 
-    // TODO: implement wrapper between here and matrix service that takes care of DID conversion and userScope handling?
-    final otherPartyMatrixUserId = await _matrixService.deriveUserId(
-      otherPartyPermanentChannelDid,
-      _matrixService.homeserver.host,
-    );
-
     final roomId = await _matrixService.createRoom(
-      userScope: permanentIdentity.userScope,
-      inviteUsers: [otherPartyMatrixUserId],
+      did: permanentIdentity.didDocument.id,
+      inviteUsers: [otherPartyPermanentChannelDid],
     );
 
     _logger.info(
@@ -557,6 +551,8 @@ class ConnectionService {
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
+      // TODO: transfer matrix specific data as attachment?
+      matrixRoomId: roomId,
       attachments: attachments,
     );
 
@@ -607,6 +603,7 @@ class ConnectionService {
     required String otherPartyAcceptOfferDid,
     required String outboundMessageId,
     required String mediatorDid,
+    required String matrixRoomId,
     ContactCard? contactCard,
     List<Attachment>? attachments,
   }) async {
@@ -633,6 +630,7 @@ class ConnectionService {
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
       contactCard: contactCard,
+      matrixRoomId: matrixRoomId,
       attachments: attachments,
     );
 

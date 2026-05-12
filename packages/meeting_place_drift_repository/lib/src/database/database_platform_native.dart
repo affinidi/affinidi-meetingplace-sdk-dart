@@ -7,24 +7,91 @@ import 'package:sqlite3/sqlite3.dart';
 
 /// Class with implementations specific to native platforms
 class DatabasePlatform {
-  static void _configureEncryptedDatabase(
-    Database sqliteDb,
-    String passphrase,
-  ) {
+  static const _probeFileName =
+      '.meeting_place_drift_database_encryption_support_probe';
+  static const _probeTableName = 'encryption_support_probe';
+  static const _probeValue = 1;
+  static bool _hasVerifiedEncryptionSupport = false;
+
+  static UnsupportedError _encryptionSupportUnavailable() {
+    return UnsupportedError(
+      'Database encryption support is not available. '
+      'Configure package:sqlite3 to use sqlite3mc with '
+      '`hooks: user_defines: sqlite3: source: sqlite3mc`. '
+      'See: https://github.com/simolus3/sqlite3.dart/blob/main/'
+      'UPGRADING_TO_V3.md#encryption',
+    );
+  }
+
+  static void _applyEncryptionPragmas(Database sqliteDb, String passphrase) {
     sqliteDb.execute("PRAGMA cipher = 'sqlcipher';");
     sqliteDb.execute('PRAGMA legacy = 4;');
     final escapedPassphrase = passphrase.replaceAll("'", "''");
     sqliteDb.execute("PRAGMA key = '$escapedPassphrase';");
+  }
 
-    final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
-    if (cipherVersion.isEmpty) {
-      throw UnsupportedError(
-        'Database encryption support is not available. '
-        'Configure package:sqlite3 to use sqlite3mc with '
-        '`hooks: user_defines: sqlite3: source: sqlite3mc`. '
-        'See: https://github.com/simolus3/sqlite3.dart/blob/main/'
-        'UPGRADING_TO_V3.md#encryption',
-      );
+  static void _ensureEncryptionSupport({
+    required Directory directory,
+    required String passphrase,
+  }) {
+    if (_hasVerifiedEncryptionSupport) {
+      return;
+    }
+
+    _runEncryptionSupportProbe(directory: directory, passphrase: passphrase);
+    _hasVerifiedEncryptionSupport = true;
+  }
+
+  static void _runEncryptionSupportProbe({
+    required Directory directory,
+    required String passphrase,
+  }) {
+    final probeFile = File(p.join(directory.path, _probeFileName));
+    if (probeFile.existsSync()) {
+      probeFile.deleteSync();
+    }
+
+    try {
+      final probeDb = sqlite3.open(probeFile.path);
+      try {
+        _applyEncryptionPragmas(probeDb, passphrase);
+        probeDb.execute(
+          'CREATE TABLE $_probeTableName (value INTEGER NOT NULL);',
+        );
+        probeDb.execute(
+          'INSERT INTO $_probeTableName (value) VALUES ($_probeValue);',
+        );
+      } finally {
+        probeDb.close();
+      }
+
+      final validationDb = sqlite3.open(probeFile.path);
+      try {
+        _applyEncryptionPragmas(validationDb, passphrase);
+        final rows = validationDb.select('SELECT value FROM $_probeTableName;');
+        if (rows.length != 1 || rows.single.columnAt(0) != _probeValue) {
+          throw _encryptionSupportUnavailable();
+        }
+      } on SqliteException {
+        throw _encryptionSupportUnavailable();
+      } finally {
+        validationDb.close();
+      }
+
+      final wrongKeyDb = sqlite3.open(probeFile.path);
+      try {
+        _applyEncryptionPragmas(wrongKeyDb, '$passphrase.invalid');
+        wrongKeyDb.select('SELECT value FROM $_probeTableName;');
+        throw _encryptionSupportUnavailable();
+      } on SqliteException {
+        return;
+      } finally {
+        wrongKeyDb.close();
+      }
+    } finally {
+      if (probeFile.existsSync()) {
+        probeFile.deleteSync();
+      }
     }
   }
 
@@ -36,9 +103,11 @@ class DatabasePlatform {
   }) {
     final dbPath = p.join(directory.path, databaseName);
 
+    _ensureEncryptionSupport(directory: directory, passphrase: passphrase);
+
     final sqliteDb = sqlite3.open(dbPath);
     try {
-      _configureEncryptedDatabase(sqliteDb, passphrase);
+      _applyEncryptionPragmas(sqliteDb, passphrase);
       sqliteDb.select('SELECT count(*) FROM sqlite_master;');
       return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
     } catch (_) {
@@ -154,7 +223,7 @@ QueryExecutor openConnection({
   }
 
   return LazyDatabase(() async {
-    return DatabasePlatform._openDatabase(
+    return DatabasePlatform.createDatabase(
       databaseName: databaseName,
       passphrase: passphrase,
       directory: directory,

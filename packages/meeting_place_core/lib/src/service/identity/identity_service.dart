@@ -2,6 +2,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
 import '../connection_manager/connection_manager.dart';
+import '../matrix/matrix_service.dart';
 import 'model/ephemeral_identity.dart';
 import 'model/permanent_identity.dart';
 

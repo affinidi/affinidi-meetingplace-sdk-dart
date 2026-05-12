@@ -25,6 +25,7 @@ import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 import 'service/identity/identity_service.dart';
+import 'service/matrix/matrix_service.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';

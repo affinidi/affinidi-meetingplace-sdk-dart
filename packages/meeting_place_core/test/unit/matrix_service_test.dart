@@ -28,7 +28,7 @@ class MockMatrixSessionManager extends Mock implements MatrixSessionManager {}
 class FakeMatrixTokenCommand extends Fake implements MatrixTokenCommand {}
 
 /// A [MatrixClientCache] that accepts pre-seeded [matrix.Client] entries
-/// without going through [MatrixClient.init].
+/// without going through `MatrixClient.init`.
 class _FakeClientCache extends MatrixClientCache {
   _FakeClientCache()
     : super(homeserver: Uri.parse('https://matrix.example.com'));
@@ -204,19 +204,19 @@ void main() {
 
         final result = await manager.getAuthenticatedClient(_testDid);
         expect(result, same(client));
-        verifyNever(() => client.refreshAccessToken());
+        verifyNever(client.refreshAccessToken);
       });
 
       test(
         'returns client after successful token refresh when expiring soon',
         () async {
           final client = _expiringSoonClient();
-          when(() => client.refreshAccessToken()).thenAnswer((_) async {});
+          when(client.refreshAccessToken).thenAnswer((_) async {});
           cache.seed(_testDid, client);
 
           final result = await manager.getAuthenticatedClient(_testDid);
           expect(result, same(client));
-          verify(() => client.refreshAccessToken()).called(1);
+          verify(client.refreshAccessToken).called(1);
         },
       );
 
@@ -225,7 +225,7 @@ void main() {
         () async {
           final client = _expiringSoonClient();
           when(
-            () => client.refreshAccessToken(),
+            client.refreshAccessToken,
           ).thenThrow(Exception('refresh failed'));
           cache.seed(_testDid, client);
 
@@ -250,7 +250,7 @@ void main() {
 
         final result = await manager.getAuthenticatedClient(_testDid);
         expect(result, same(client));
-        verifyNever(() => client.refreshAccessToken());
+        verifyNever(client.refreshAccessToken);
       });
     });
 
@@ -377,7 +377,7 @@ void main() {
           _,
         ) async {
           callCount++;
-          if (callCount == 1) throw MatrixAuthException();
+          if (callCount == 1) throw const MatrixAuthException();
           return client;
         });
 
@@ -457,7 +457,7 @@ void main() {
           _,
         ) async {
           callCount++;
-          if (callCount == 1) throw MatrixAuthException();
+          if (callCount == 1) throw const MatrixAuthException();
           return client;
         });
 

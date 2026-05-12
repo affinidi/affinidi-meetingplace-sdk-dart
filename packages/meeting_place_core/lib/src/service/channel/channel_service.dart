@@ -240,6 +240,7 @@ class ChannelService {
     Channel channel, {
     required String otherPartyPermanentChannelDid,
     required String outboundMessageId,
+    required String matrixRoomId,
     required ContactCard? otherPartyContactCard,
   }) {
     if (!channel.isOob) {
@@ -265,6 +266,7 @@ class ChannelService {
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
     channel.outboundMessageId = outboundMessageId;
     channel.otherPartyContactCard = otherPartyContactCard;
+    channel.matrixRoomId = matrixRoomId;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);
   }

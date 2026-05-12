@@ -4,7 +4,6 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
-import '../../../meeting_place_core.dart';
 import '../../entity/entity.dart';
 import '../../event_handler/control_plane_event_handler_manager_options.dart';
 import '../../event_handler/control_plane_event_stream_manager.dart';
@@ -16,6 +15,7 @@ import '../channel/channel_service.dart';
 import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
 import '../identity/identity_service.dart';
+import '../matrix/matrix_service.dart';
 import '../mediator/mediator_service.dart';
 import 'oob_service_exception.dart';
 import 'session/oob_acceptance_session.dart';
@@ -278,7 +278,7 @@ class OobService {
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();
 
-    await _matrixService.createRoom(
+    final matrixRoomId = await _matrixService.createRoom(
       didManager: permanentChannelDidManager,
       inviteUsers: [otherPartyPermanentChannelDid],
     );
@@ -291,7 +291,7 @@ class OobService {
       outboundMessageId: session.oobInvitationMessage.id,
       contactCard: session.contactCard,
       mediatorDid: session.mediatorDid,
-      matrixRoomId: permanentChannelDidDoc.id,
+      matrixRoomId: matrixRoomId,
     );
 
     final channel = Channel(
@@ -357,6 +357,7 @@ class OobService {
       outboundMessageId: message.parentThreadId,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyContactCard: message.contactCard,
+      matrixRoomId: message.body.matrixRoomId,
     );
 
     final attachments = message.attachments;

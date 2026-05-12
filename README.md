@@ -109,6 +109,19 @@ dart pub get
 
 Visit the pub.dev install page of the Dart package for more information.
 
+## Development Setup
+
+For local workspace development, install dependencies and generate the
+workspace codegen output before running examples, analysis, or tests:
+
+```bash
+dart pub get
+melos gen
+```
+
+`melos gen` regenerates the `build_runner` outputs used across the
+workspace packages.
+
 ## Usage
 
 ```dart

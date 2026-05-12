@@ -20,9 +20,10 @@ class DatabasePlatform {
     if (cipherVersion.isEmpty) {
       throw UnsupportedError(
         'Database encryption support is not available. '
-        'Ensure your app includes sqlcipher_flutter_libs as a dependency '
-        'and that the native SQLite build supports SQLCipher or sqlite3mc. '
-        'See: https://pub.dev/packages/sqlcipher_flutter_libs',
+        'Configure package:sqlite3 to use sqlite3mc with '
+        '`hooks: user_defines: sqlite3: source: sqlite3mc`. '
+        'See: https://github.com/simolus3/sqlite3.dart/blob/main/'
+        'UPGRADING_TO_V3.md#encryption',
       );
     }
   }
@@ -77,18 +78,18 @@ class DatabasePlatform {
 
   /// Creates an in-memory database for native platform using SQLite.
   ///
-  /// In-memory databases do not support encryption (sqlite3mc limitation), so
-  /// encryption configuration is skipped.
+  /// In-memory databases skip sqlite3mc configuration because they are not
+  /// persisted to disk.
   ///
   /// **Parameters:**
   /// - [passphrase]: Accepted for API consistency with [createDatabase] but
-  /// not applied; in-memory databases are always unencrypted.
+  /// not applied because the in-memory database path does not configure
+  /// file-based encryption.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
   ///
   /// **Returns:**
-  /// - A [QueryExecutor] instance connected to the encrypted in-memory
-  /// database.
+  /// - A [QueryExecutor] instance connected to the in-memory database.
   static Future<QueryExecutor> createInMemoryDatabase({
     required String passphrase,
     bool logStatements = false,
@@ -109,10 +110,13 @@ class DatabasePlatform {
 ///
 /// **Parameters:**
 /// - [databaseName]: The name of the database file.
-/// - [passphrase]: The passphrase used to open the encrypted database.
+/// - [passphrase]: The passphrase used to open the encrypted database when
+///   [inMemory] is `false`.
 /// - [directory]: The directory where the database file is stored.
 /// - [logStatements]: A boolean indicating whether to log SQL statements
 /// (default is false).
+/// - [inMemory]: When `true`, returns an in-memory database and skips
+///   file-based encryption configuration.
 /// - [lazy]: When `true` (default), wraps the connection in a [LazyDatabase]
 /// that defers opening until the first query. When `false`, opens the
 /// database immediately and returns the executor directly.

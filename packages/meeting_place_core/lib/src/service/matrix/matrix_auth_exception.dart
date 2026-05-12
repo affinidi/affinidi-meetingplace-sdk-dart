@@ -8,6 +8,7 @@ class MatrixAuthException implements Exception {
     this.message = 'Matrix session expired or not authenticated',
   ]);
 
+  /// A descriptive message providing details about the authentication error.
   final String message;
 
   @override

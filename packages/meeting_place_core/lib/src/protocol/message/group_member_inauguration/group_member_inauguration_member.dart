@@ -16,6 +16,7 @@ class GroupMemberInaugurationMember {
     required this.membershipType,
     required this.status,
     required this.publicKey,
+    this.matrixUserId,
   });
 
   final String did;
@@ -23,6 +24,7 @@ class GroupMemberInaugurationMember {
   final String membershipType;
   final String status;
   final String publicKey;
+  final String? matrixUserId;
 
   bool get isAdmin => membershipType == GroupMembershipType.admin.name;
 

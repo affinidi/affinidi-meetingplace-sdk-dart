@@ -11,6 +11,7 @@ InvitationAcceptanceGroupBody _$InvitationAcceptanceGroupBodyFromJson(
 ) => InvitationAcceptanceGroupBody(
   channelDid: json['channel_did'] as String,
   publicKey: json['public_key'] as String,
+  matrixUserId: json['matrix_user_id'] as String,
 );
 
 Map<String, dynamic> _$InvitationAcceptanceGroupBodyToJson(
@@ -18,4 +19,5 @@ Map<String, dynamic> _$InvitationAcceptanceGroupBodyToJson(
 ) => <String, dynamic>{
   'channel_did': instance.channelDid,
   'public_key': instance.publicKey,
+  'matrix_user_id': instance.matrixUserId,
 };

@@ -16,6 +16,7 @@ GroupMemberInaugurationMember _$GroupMemberInaugurationMemberFromJson(
   membershipType: json['membershipType'] as String,
   status: json['status'] as String,
   publicKey: json['publicKey'] as String,
+  matrixUserId: json['matrixUserId'] as String?,
 );
 
 Map<String, dynamic> _$GroupMemberInaugurationMemberToJson(
@@ -26,4 +27,5 @@ Map<String, dynamic> _$GroupMemberInaugurationMemberToJson(
   'membershipType': instance.membershipType,
   'status': instance.status,
   'publicKey': instance.publicKey,
+  'matrixUserId': ?instance.matrixUserId,
 };

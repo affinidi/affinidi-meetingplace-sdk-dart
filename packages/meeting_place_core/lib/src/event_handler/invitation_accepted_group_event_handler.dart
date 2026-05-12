@@ -5,6 +5,8 @@ import '../protocol/protocol.dart';
 import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
+import '../service/matrix/matrix_service.dart';
+import '../service/matrix/matrix_user_id_binding.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import 'base_event_handler.dart';
 import 'exceptions/invitation_accepted_group_exception.dart';
@@ -19,10 +21,13 @@ class InvitationGroupAcceptedEventHandler
     required super.mediatorService,
     required super.logger,
     required super.options,
+    required MatrixService matrixService,
     required GroupRepository groupRepository,
-  }) : _groupRepository = groupRepository;
+  }) : _groupRepository = groupRepository,
+       _matrixService = matrixService;
 
   final GroupRepository _groupRepository;
+  final MatrixService _matrixService;
 
   // This event is handled on the device of the group admin after a potential
   // new member accepted the group offer.
@@ -88,6 +93,11 @@ class InvitationGroupAcceptedEventHandler
     final invitationAcceptance = InvitationAcceptanceGroup.fromPlainTextMessage(
       message,
     );
+    validateMatrixUserIdBinding(
+      did: messageFrom,
+      matrixUserId: invitationAcceptance.body.matrixUserId,
+      serverName: _matrixService.homeserver.host,
+    );
 
     final otherPartyPermanentChannelDid = invitationAcceptance.body.channelDid;
 
@@ -106,6 +116,7 @@ class InvitationGroupAcceptedEventHandler
         did: otherPartyPermanentChannelDid,
         publicKey: invitationAcceptance.body.publicKey,
         contactCard: otherPartyContactCard,
+        matrixUserId: invitationAcceptance.body.matrixUserId,
       ),
     );
 
@@ -123,11 +134,14 @@ class InvitationGroupAcceptedEventHandler
       isConnectionInitiator: true,
       contactCard: connection.contactCard,
       otherPartyContactCard: otherPartyContactCard,
+      matrixUserId: groupChannel.matrixUserId,
+      otherPartyMatrixUserId: invitationAcceptance.body.matrixUserId,
+      matrixRoomId: groupChannel.matrixRoomId,
       externalRef: connection.externalRef,
     );
 
     await channelService.persistChannel(channel);
-    return groupChannel;
+    return channel;
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {

@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
-import '../utils/matrix.dart';
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
@@ -39,7 +38,7 @@ void main() async {
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);
   final file = File(
-    '${outputDirectory.path}${Platform.pathSeparator}group_matrix.txt',
+    '${outputDirectory.path}${Platform.pathSeparator}group.txt',
   );
   file.writeAsBytesSync(
     utf8.encode(publishOfferResult.connectionOffer.mnemonic),
@@ -78,19 +77,8 @@ void main() async {
     'Group channel waiting for approval',
     waitingChannel.toJson(),
   );
-  prettyPrintYellow('Owner Matrix user ID: ${waitingChannel.matrixUserId}');
-  prettyPrintYellow(
-    'Member Matrix user ID: ${waitingChannel.otherPartyMatrixUserId}',
-  );
   prettyPrintYellow('Group Matrix room ID: $matrixRoomId');
 
   await aliceSDK.approveConnectionRequest(channel: waitingChannel);
-  await sendMatrixTextMessage(
-    didManager: groupOwnerDidManager,
-    roomId: matrixRoomId,
-    message: 'Hello from Alice via Matrix',
-  );
-  prettyPrintYellow('Sent Matrix text message from the group owner.');
-
   await notificationStream.dispose();
 }

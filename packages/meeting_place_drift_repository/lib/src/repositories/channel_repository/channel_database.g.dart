@@ -97,18 +97,6 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
   late final GeneratedColumn<String> matrixRoomId = GeneratedColumn<String>(
       'matrix_room_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _matrixUserIdMeta =
-      const VerificationMeta('matrixUserId');
-  @override
-  late final GeneratedColumn<String> matrixUserId = GeneratedColumn<String>(
-      'matrix_user_id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _otherPartyMatrixUserIdMeta =
-      const VerificationMeta('otherPartyMatrixUserId');
-  @override
-  late final GeneratedColumn<String> otherPartyMatrixUserId =
-      GeneratedColumn<String>('other_party_matrix_user_id', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _externalRefMeta =
       const VerificationMeta('externalRef');
   @override
@@ -142,8 +130,6 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         notificationToken,
         otherPartyNotificationToken,
         matrixRoomId,
-        matrixUserId,
-        otherPartyMatrixUserId,
         externalRef,
         seqNo,
         messageSyncMarker
@@ -233,19 +219,6 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           matrixRoomId.isAcceptableOrUnknown(
               data['matrix_room_id']!, _matrixRoomIdMeta));
     }
-    if (data.containsKey('matrix_user_id')) {
-      context.handle(
-          _matrixUserIdMeta,
-          matrixUserId.isAcceptableOrUnknown(
-              data['matrix_user_id']!, _matrixUserIdMeta));
-    }
-    if (data.containsKey('other_party_matrix_user_id')) {
-      context.handle(
-          _otherPartyMatrixUserIdMeta,
-          otherPartyMatrixUserId.isAcceptableOrUnknown(
-              data['other_party_matrix_user_id']!,
-              _otherPartyMatrixUserIdMeta));
-    }
     if (data.containsKey('external_ref')) {
       context.handle(
           _externalRefMeta,
@@ -305,11 +278,6 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           data['${effectivePrefix}other_party_notification_token']),
       matrixRoomId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}matrix_room_id']),
-      matrixUserId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}matrix_user_id']),
-      otherPartyMatrixUserId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}other_party_matrix_user_id']),
       externalRef: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}external_ref']),
       seqNo: attachedDatabase.typeMapping
@@ -374,12 +342,6 @@ class Channel extends DataClass implements Insertable<Channel> {
   /// Matrix room ID associated with the channel.
   final String? matrixRoomId;
 
-  /// Matrix user ID associated with the local permanent identity.
-  final String? matrixUserId;
-
-  /// Matrix user ID associated with the other party.
-  final String? otherPartyMatrixUserId;
-
   /// External reference for the channel.
   final String? externalRef;
 
@@ -404,8 +366,6 @@ class Channel extends DataClass implements Insertable<Channel> {
       this.notificationToken,
       this.otherPartyNotificationToken,
       this.matrixRoomId,
-      this.matrixUserId,
-      this.otherPartyMatrixUserId,
       this.externalRef,
       required this.seqNo,
       this.messageSyncMarker});
@@ -446,13 +406,6 @@ class Channel extends DataClass implements Insertable<Channel> {
     }
     if (!nullToAbsent || matrixRoomId != null) {
       map['matrix_room_id'] = Variable<String>(matrixRoomId);
-    }
-    if (!nullToAbsent || matrixUserId != null) {
-      map['matrix_user_id'] = Variable<String>(matrixUserId);
-    }
-    if (!nullToAbsent || otherPartyMatrixUserId != null) {
-      map['other_party_matrix_user_id'] =
-          Variable<String>(otherPartyMatrixUserId);
     }
     if (!nullToAbsent || externalRef != null) {
       map['external_ref'] = Variable<String>(externalRef);
@@ -496,12 +449,6 @@ class Channel extends DataClass implements Insertable<Channel> {
       matrixRoomId: matrixRoomId == null && nullToAbsent
           ? const Value.absent()
           : Value(matrixRoomId),
-      matrixUserId: matrixUserId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(matrixUserId),
-      otherPartyMatrixUserId: otherPartyMatrixUserId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(otherPartyMatrixUserId),
       externalRef: externalRef == null && nullToAbsent
           ? const Value.absent()
           : Value(externalRef),
@@ -536,9 +483,6 @@ class Channel extends DataClass implements Insertable<Channel> {
       otherPartyNotificationToken:
           serializer.fromJson<String?>(json['otherPartyNotificationToken']),
       matrixRoomId: serializer.fromJson<String?>(json['matrixRoomId']),
-      matrixUserId: serializer.fromJson<String?>(json['matrixUserId']),
-      otherPartyMatrixUserId:
-          serializer.fromJson<String?>(json['otherPartyMatrixUserId']),
       externalRef: serializer.fromJson<String?>(json['externalRef']),
       seqNo: serializer.fromJson<int>(json['seqNo']),
       messageSyncMarker:
@@ -565,9 +509,6 @@ class Channel extends DataClass implements Insertable<Channel> {
       'otherPartyNotificationToken':
           serializer.toJson<String?>(otherPartyNotificationToken),
       'matrixRoomId': serializer.toJson<String?>(matrixRoomId),
-      'matrixUserId': serializer.toJson<String?>(matrixUserId),
-      'otherPartyMatrixUserId':
-          serializer.toJson<String?>(otherPartyMatrixUserId),
       'externalRef': serializer.toJson<String?>(externalRef),
       'seqNo': serializer.toJson<int>(seqNo),
       'messageSyncMarker': serializer.toJson<DateTime?>(messageSyncMarker),
@@ -589,8 +530,6 @@ class Channel extends DataClass implements Insertable<Channel> {
           Value<String?> notificationToken = const Value.absent(),
           Value<String?> otherPartyNotificationToken = const Value.absent(),
           Value<String?> matrixRoomId = const Value.absent(),
-          Value<String?> matrixUserId = const Value.absent(),
-          Value<String?> otherPartyMatrixUserId = const Value.absent(),
           Value<String?> externalRef = const Value.absent(),
           int? seqNo,
           Value<DateTime?> messageSyncMarker = const Value.absent()}) =>
@@ -622,11 +561,6 @@ class Channel extends DataClass implements Insertable<Channel> {
             : this.otherPartyNotificationToken,
         matrixRoomId:
             matrixRoomId.present ? matrixRoomId.value : this.matrixRoomId,
-        matrixUserId:
-            matrixUserId.present ? matrixUserId.value : this.matrixUserId,
-        otherPartyMatrixUserId: otherPartyMatrixUserId.present
-            ? otherPartyMatrixUserId.value
-            : this.otherPartyMatrixUserId,
         externalRef: externalRef.present ? externalRef.value : this.externalRef,
         seqNo: seqNo ?? this.seqNo,
         messageSyncMarker: messageSyncMarker.present
@@ -668,12 +602,6 @@ class Channel extends DataClass implements Insertable<Channel> {
       matrixRoomId: data.matrixRoomId.present
           ? data.matrixRoomId.value
           : this.matrixRoomId,
-      matrixUserId: data.matrixUserId.present
-          ? data.matrixUserId.value
-          : this.matrixUserId,
-      otherPartyMatrixUserId: data.otherPartyMatrixUserId.present
-          ? data.otherPartyMatrixUserId.value
-          : this.otherPartyMatrixUserId,
       externalRef:
           data.externalRef.present ? data.externalRef.value : this.externalRef,
       seqNo: data.seqNo.present ? data.seqNo.value : this.seqNo,
@@ -701,8 +629,6 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('matrixRoomId: $matrixRoomId, ')
-          ..write('matrixUserId: $matrixUserId, ')
-          ..write('otherPartyMatrixUserId: $otherPartyMatrixUserId, ')
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
           ..write('messageSyncMarker: $messageSyncMarker')
@@ -726,8 +652,6 @@ class Channel extends DataClass implements Insertable<Channel> {
       notificationToken,
       otherPartyNotificationToken,
       matrixRoomId,
-      matrixUserId,
-      otherPartyMatrixUserId,
       externalRef,
       seqNo,
       messageSyncMarker);
@@ -751,8 +675,6 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.otherPartyNotificationToken ==
               this.otherPartyNotificationToken &&
           other.matrixRoomId == this.matrixRoomId &&
-          other.matrixUserId == this.matrixUserId &&
-          other.otherPartyMatrixUserId == this.otherPartyMatrixUserId &&
           other.externalRef == this.externalRef &&
           other.seqNo == this.seqNo &&
           other.messageSyncMarker == this.messageSyncMarker);
@@ -773,8 +695,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String?> notificationToken;
   final Value<String?> otherPartyNotificationToken;
   final Value<String?> matrixRoomId;
-  final Value<String?> matrixUserId;
-  final Value<String?> otherPartyMatrixUserId;
   final Value<String?> externalRef;
   final Value<int> seqNo;
   final Value<DateTime?> messageSyncMarker;
@@ -794,8 +714,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.matrixRoomId = const Value.absent(),
-    this.matrixUserId = const Value.absent(),
-    this.otherPartyMatrixUserId = const Value.absent(),
     this.externalRef = const Value.absent(),
     this.seqNo = const Value.absent(),
     this.messageSyncMarker = const Value.absent(),
@@ -816,8 +734,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.matrixRoomId = const Value.absent(),
-    this.matrixUserId = const Value.absent(),
-    this.otherPartyMatrixUserId = const Value.absent(),
     this.externalRef = const Value.absent(),
     required int seqNo,
     this.messageSyncMarker = const Value.absent(),
@@ -843,8 +759,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? notificationToken,
     Expression<String>? otherPartyNotificationToken,
     Expression<String>? matrixRoomId,
-    Expression<String>? matrixUserId,
-    Expression<String>? otherPartyMatrixUserId,
     Expression<String>? externalRef,
     Expression<int>? seqNo,
     Expression<DateTime>? messageSyncMarker,
@@ -869,9 +783,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       if (otherPartyNotificationToken != null)
         'other_party_notification_token': otherPartyNotificationToken,
       if (matrixRoomId != null) 'matrix_room_id': matrixRoomId,
-      if (matrixUserId != null) 'matrix_user_id': matrixUserId,
-      if (otherPartyMatrixUserId != null)
-        'other_party_matrix_user_id': otherPartyMatrixUserId,
       if (externalRef != null) 'external_ref': externalRef,
       if (seqNo != null) 'seq_no': seqNo,
       if (messageSyncMarker != null) 'message_sync_marker': messageSyncMarker,
@@ -894,8 +805,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       Value<String?>? notificationToken,
       Value<String?>? otherPartyNotificationToken,
       Value<String?>? matrixRoomId,
-      Value<String?>? matrixUserId,
-      Value<String?>? otherPartyMatrixUserId,
       Value<String?>? externalRef,
       Value<int>? seqNo,
       Value<DateTime?>? messageSyncMarker,
@@ -918,9 +827,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       matrixRoomId: matrixRoomId ?? this.matrixRoomId,
-      matrixUserId: matrixUserId ?? this.matrixUserId,
-      otherPartyMatrixUserId:
-          otherPartyMatrixUserId ?? this.otherPartyMatrixUserId,
       externalRef: externalRef ?? this.externalRef,
       seqNo: seqNo ?? this.seqNo,
       messageSyncMarker: messageSyncMarker ?? this.messageSyncMarker,
@@ -979,13 +885,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     if (matrixRoomId.present) {
       map['matrix_room_id'] = Variable<String>(matrixRoomId.value);
     }
-    if (matrixUserId.present) {
-      map['matrix_user_id'] = Variable<String>(matrixUserId.value);
-    }
-    if (otherPartyMatrixUserId.present) {
-      map['other_party_matrix_user_id'] =
-          Variable<String>(otherPartyMatrixUserId.value);
-    }
     if (externalRef.present) {
       map['external_ref'] = Variable<String>(externalRef.value);
     }
@@ -1019,8 +918,6 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('matrixRoomId: $matrixRoomId, ')
-          ..write('matrixUserId: $matrixUserId, ')
-          ..write('otherPartyMatrixUserId: $otherPartyMatrixUserId, ')
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
           ..write('messageSyncMarker: $messageSyncMarker, ')
@@ -1477,8 +1374,6 @@ typedef $$ChannelsTableCreateCompanionBuilder = ChannelsCompanion Function({
   Value<String?> notificationToken,
   Value<String?> otherPartyNotificationToken,
   Value<String?> matrixRoomId,
-  Value<String?> matrixUserId,
-  Value<String?> otherPartyMatrixUserId,
   Value<String?> externalRef,
   required int seqNo,
   Value<DateTime?> messageSyncMarker,
@@ -1499,8 +1394,6 @@ typedef $$ChannelsTableUpdateCompanionBuilder = ChannelsCompanion Function({
   Value<String?> notificationToken,
   Value<String?> otherPartyNotificationToken,
   Value<String?> matrixRoomId,
-  Value<String?> matrixUserId,
-  Value<String?> otherPartyMatrixUserId,
   Value<String?> externalRef,
   Value<int> seqNo,
   Value<DateTime?> messageSyncMarker,
@@ -1592,13 +1485,6 @@ class $$ChannelsTableFilterComposer
 
   ColumnFilters<String> get matrixRoomId => $composableBuilder(
       column: $table.matrixRoomId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get matrixUserId => $composableBuilder(
-      column: $table.matrixUserId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get otherPartyMatrixUserId => $composableBuilder(
-      column: $table.otherPartyMatrixUserId,
-      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get externalRef => $composableBuilder(
       column: $table.externalRef, builder: (column) => ColumnFilters(column));
@@ -1693,14 +1579,6 @@ class $$ChannelsTableOrderingComposer
       column: $table.matrixRoomId,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get matrixUserId => $composableBuilder(
-      column: $table.matrixUserId,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get otherPartyMatrixUserId => $composableBuilder(
-      column: $table.otherPartyMatrixUserId,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get externalRef => $composableBuilder(
       column: $table.externalRef, builder: (column) => ColumnOrderings(column));
 
@@ -1764,12 +1642,6 @@ class $$ChannelsTableAnnotationComposer
 
   GeneratedColumn<String> get matrixRoomId => $composableBuilder(
       column: $table.matrixRoomId, builder: (column) => column);
-
-  GeneratedColumn<String> get matrixUserId => $composableBuilder(
-      column: $table.matrixUserId, builder: (column) => column);
-
-  GeneratedColumn<String> get otherPartyMatrixUserId => $composableBuilder(
-      column: $table.otherPartyMatrixUserId, builder: (column) => column);
 
   GeneratedColumn<String> get externalRef => $composableBuilder(
       column: $table.externalRef, builder: (column) => column);
@@ -1841,8 +1713,6 @@ class $$ChannelsTableTableManager extends RootTableManager<
             Value<String?> notificationToken = const Value.absent(),
             Value<String?> otherPartyNotificationToken = const Value.absent(),
             Value<String?> matrixRoomId = const Value.absent(),
-            Value<String?> matrixUserId = const Value.absent(),
-            Value<String?> otherPartyMatrixUserId = const Value.absent(),
             Value<String?> externalRef = const Value.absent(),
             Value<int> seqNo = const Value.absent(),
             Value<DateTime?> messageSyncMarker = const Value.absent(),
@@ -1863,8 +1733,6 @@ class $$ChannelsTableTableManager extends RootTableManager<
             notificationToken: notificationToken,
             otherPartyNotificationToken: otherPartyNotificationToken,
             matrixRoomId: matrixRoomId,
-            matrixUserId: matrixUserId,
-            otherPartyMatrixUserId: otherPartyMatrixUserId,
             externalRef: externalRef,
             seqNo: seqNo,
             messageSyncMarker: messageSyncMarker,
@@ -1885,8 +1753,6 @@ class $$ChannelsTableTableManager extends RootTableManager<
             Value<String?> notificationToken = const Value.absent(),
             Value<String?> otherPartyNotificationToken = const Value.absent(),
             Value<String?> matrixRoomId = const Value.absent(),
-            Value<String?> matrixUserId = const Value.absent(),
-            Value<String?> otherPartyMatrixUserId = const Value.absent(),
             Value<String?> externalRef = const Value.absent(),
             required int seqNo,
             Value<DateTime?> messageSyncMarker = const Value.absent(),
@@ -1907,8 +1773,6 @@ class $$ChannelsTableTableManager extends RootTableManager<
             notificationToken: notificationToken,
             otherPartyNotificationToken: otherPartyNotificationToken,
             matrixRoomId: matrixRoomId,
-            matrixUserId: matrixUserId,
-            otherPartyMatrixUserId: otherPartyMatrixUserId,
             externalRef: externalRef,
             seqNo: seqNo,
             messageSyncMarker: messageSyncMarker,

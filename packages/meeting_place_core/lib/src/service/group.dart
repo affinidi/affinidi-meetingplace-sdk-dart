@@ -30,7 +30,6 @@ import 'group/group_message.dart' as group_message;
 import 'group_service/accept_group_offer_result.dart';
 import 'identity/identity_service.dart';
 import 'matrix/matrix_service.dart';
-import 'matrix/matrix_user_id_binding.dart';
 
 class GroupService {
   GroupService({
@@ -169,7 +168,6 @@ class GroupService {
           did: ownerDidDocument.id,
           publicKey: recryptKeyPair.publicKeyToBase64(),
           contactCard: card,
-          matrixUserId: ownerIdentity.matrixUserId,
         ),
       ],
     );
@@ -227,7 +225,6 @@ class GroupService {
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
-        matrixUserId: ownerIdentity.matrixUserId,
         matrixRoomId: matrixRoomId,
         externalRef: externalRef,
       );
@@ -348,7 +345,6 @@ class GroupService {
         card: card,
         externalRef: externalRef,
         memberPublicKeyBase64: memberPublicKeyBase64,
-        matrixUserId: permanentIdentity.matrixUserId,
         offerLink: connectionOffer.offerLink,
       );
 
@@ -357,7 +353,6 @@ class GroupService {
         permanentChannelDid: permanentChannelDidManager,
         invitationMessage: invitationMessage,
         groupMemberPublicKey: memberPublicKeyBase64,
-        matrixUserId: permanentIdentity.matrixUserId,
         contactCard: card,
       );
 
@@ -368,7 +363,6 @@ class GroupService {
         card: card,
         externalRef: externalRef,
       );
-      channel.matrixUserId = permanentIdentity.matrixUserId;
 
       await _channelService.persistChannel(channel);
 
@@ -422,7 +416,6 @@ class GroupService {
     required ContactCard card,
     String? externalRef,
     required String memberPublicKeyBase64,
-    required String matrixUserId,
     required String offerLink,
   }) async {
     final existingGroup = await _groupRepository.getGroupByOfferLink(offerLink);
@@ -435,7 +428,6 @@ class GroupService {
             did: permanentChannelDidDocument.id,
             publicKey: memberPublicKeyBase64,
             contactCard: card,
-            matrixUserId: matrixUserId,
           ),
         ],
       );
@@ -456,7 +448,6 @@ class GroupService {
           did: permanentChannelDidDocument.id,
           publicKey: memberPublicKeyBase64,
           contactCard: card,
-          matrixUserId: matrixUserId,
         ),
       ],
     );
@@ -523,7 +514,6 @@ class GroupService {
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
     required String groupMemberPublicKey,
-    required String matrixUserId,
     ContactCard? contactCard,
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
@@ -555,7 +545,6 @@ class GroupService {
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
       publicKey: groupMemberPublicKey,
-      matrixUserId: matrixUserId,
       contactCard: contactCard,
     );
 
@@ -660,15 +649,7 @@ class GroupService {
       },
     );
 
-    final memberMatrixUserId = member.matrixUserId;
-    if (memberMatrixUserId == null) {
-      throw GroupException.memberDoesNotBelongToGroupError();
-    }
-    validateMatrixUserIdBinding(
-      did: member.did,
-      matrixUserId: memberMatrixUserId,
-      serverName: _matrixService.homeserver.host,
-    );
+    final memberMatrixUserId = _matrixService.deriveUserId(member.did);
 
     final memberDidDocument = await _didResolver.resolveDid(member.did);
     await _allowMemberToMessageGroupAdmin(group, member, channel.mediatorDid);
@@ -703,7 +684,6 @@ class GroupService {
       groupDid: group.did,
       groupId: group.id,
       adminDids: [group.ownerDid!],
-      adminMatrixUserId: ownerIdentity.matrixUserId,
       matrixRoomId: roomId,
       groupPublicKey: group.publicKey!,
       members: group.members
@@ -715,7 +695,6 @@ class GroupService {
               status: member.status.name,
               publicKey: member.publicKey,
               membershipType: member.membershipType.name,
-              matrixUserId: member.matrixUserId,
             ),
           )
           .toList(),

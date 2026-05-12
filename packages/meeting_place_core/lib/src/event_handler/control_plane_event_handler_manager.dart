@@ -61,7 +61,6 @@ class ControlPlaneEventManager {
       mediatorService: mediatorService,
       connectionManager: connectionManager,
       connectionOfferRepository: connectionOfferRepository,
-      matrixService: matrixService,
       groupRepository: groupRepository,
       channelService: channelService,
       options: options,

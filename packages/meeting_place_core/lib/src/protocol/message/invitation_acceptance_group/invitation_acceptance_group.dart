@@ -13,7 +13,6 @@ class InvitationAcceptanceGroup {
     required String parentThreadId,
     required String channelDid,
     required String publicKey,
-    required String matrixUserId,
     ContactCard? contactCard,
   }) {
     return InvitationAcceptanceGroup(
@@ -24,7 +23,6 @@ class InvitationAcceptanceGroup {
       body: InvitationAcceptanceGroupBody(
         channelDid: channelDid,
         publicKey: publicKey,
-        matrixUserId: matrixUserId,
       ),
       contactCard: contactCard,
     );

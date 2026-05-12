@@ -408,7 +408,6 @@ void main() {
           groupChannel,
           notificationToken: 'token',
           otherPartyPermanentChannelDid: 'otherDid',
-          otherPartyMatrixUserId: '@other:matrix.example.com',
           matrixRoomId: '!room:matrix.example.com',
           sequenceNumber: 42,
         );
@@ -430,7 +429,6 @@ void main() {
             notGroupChannel,
             notificationToken: 'token',
             otherPartyPermanentChannelDid: 'otherDid',
-            otherPartyMatrixUserId: '@other:matrix.example.com',
             matrixRoomId: '!room:matrix.example.com',
             sequenceNumber: 42,
           ),
@@ -452,7 +450,6 @@ void main() {
             wrongStatusGroupChannel,
             notificationToken: 'token',
             otherPartyPermanentChannelDid: 'otherDid',
-            otherPartyMatrixUserId: '@other:matrix.example.com',
             matrixRoomId: '!room:matrix.example.com',
             sequenceNumber: 42,
           ),

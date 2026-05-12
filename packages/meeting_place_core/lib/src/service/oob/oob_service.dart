@@ -9,6 +9,7 @@ import '../channel/channel_service.dart';
 import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
 import '../identity/identity_service.dart';
+import '../matrix/matrix_service.dart';
 import '../mediator/mediator_service.dart';
 import 'oob_service_exception.dart';
 

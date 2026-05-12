@@ -8,9 +8,6 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
-  matrix: ^7.1.0
-  meeting_place_control_plane:
-    path: ../../../packages/meeting_place_control_plane
   meeting_place_core:
     path: ../../../packages/meeting_place_core
   pretty_json: ^2.0.0

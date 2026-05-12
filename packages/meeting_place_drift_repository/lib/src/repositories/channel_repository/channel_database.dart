@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 4;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -126,16 +126,6 @@ class ChannelDatabase extends _$ChannelDatabase {
               channels.matrixRoomId,
             );
           }
-          if (from < 5 && to >= 5) {
-            await migrator.addColumn(
-              channels,
-              channels.matrixUserId,
-            );
-            await migrator.addColumn(
-              channels,
-              channels.otherPartyMatrixUserId,
-            );
-          }
         },
       );
 }
@@ -187,12 +177,6 @@ class Channels extends Table {
 
   /// Matrix room ID associated with the channel.
   TextColumn get matrixRoomId => text().nullable()();
-
-  /// Matrix user ID associated with the local permanent identity.
-  TextColumn get matrixUserId => text().nullable()();
-
-  /// Matrix user ID associated with the other party.
-  TextColumn get otherPartyMatrixUserId => text().nullable()();
 
   /// External reference for the channel.
   TextColumn get externalRef => text().nullable()();

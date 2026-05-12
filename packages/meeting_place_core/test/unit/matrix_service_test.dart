@@ -1,8 +1,6 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_auth_exception.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_client.dart'
-    show MatrixClient;
 import 'package:meeting_place_core/src/service/matrix/matrix_client_cache.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_config.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';

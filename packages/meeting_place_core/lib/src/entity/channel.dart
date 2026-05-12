@@ -39,8 +39,6 @@ class Channel {
     this.otherPartyPermanentChannelDid,
     this.notificationToken,
     this.otherPartyNotificationToken,
-    this.matrixUserId,
-    this.otherPartyMatrixUserId,
     this.matrixRoomId,
     this.messageSyncMarker,
     this.seqNo = 0,
@@ -157,13 +155,6 @@ class Channel {
   /// If connection offer lives on device of accepting party, notification token
   /// is the token shared by the offer owner.
   String? otherPartyNotificationToken;
-
-  /// Matrix user ID associated with the local permanent identity for this
-  /// channel.
-  String? matrixUserId;
-
-  /// Matrix user ID associated with the other party for this channel.
-  String? otherPartyMatrixUserId;
 
   /// Matrix room ID associated with the channel.
   String? matrixRoomId;

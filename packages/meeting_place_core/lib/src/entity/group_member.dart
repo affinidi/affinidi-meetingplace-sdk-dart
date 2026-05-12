@@ -20,7 +20,6 @@ class GroupMember {
     required String did,
     required String publicKey,
     required ContactCard contactCard,
-    String? matrixUserId,
   }) {
     return GroupMember(
       did: did,
@@ -29,7 +28,6 @@ class GroupMember {
       status: GroupMemberStatus.pendingApproval,
       membershipType: GroupMembershipType.member,
       contactCard: contactCard,
-      matrixUserId: matrixUserId,
     );
   }
 
@@ -37,7 +35,6 @@ class GroupMember {
     required String did,
     required String publicKey,
     required ContactCard contactCard,
-    String? matrixUserId,
   }) {
     return GroupMember(
       did: did,
@@ -46,7 +43,6 @@ class GroupMember {
       status: GroupMemberStatus.approved,
       membershipType: GroupMembershipType.admin,
       contactCard: contactCard,
-      matrixUserId: matrixUserId,
     );
   }
 
@@ -61,7 +57,6 @@ class GroupMember {
     required this.membershipType,
     required this.contactCard,
     required this.publicKey,
-    this.matrixUserId,
   });
 
   final String did;
@@ -69,7 +64,6 @@ class GroupMember {
   final GroupMembershipType membershipType;
   final String publicKey;
   ContactCard contactCard;
-  final String? matrixUserId;
 
   GroupMemberStatus status;
 
@@ -84,7 +78,6 @@ class GroupMember {
     GroupMembershipType? membershipType,
     ContactCard? card,
     String? publicKey,
-    String? matrixUserId,
   }) {
     return GroupMember(
       did: did ?? this.did,
@@ -93,7 +86,6 @@ class GroupMember {
       membershipType: membershipType ?? this.membershipType,
       contactCard: card ?? contactCard,
       publicKey: publicKey ?? this.publicKey,
-      matrixUserId: matrixUserId ?? this.matrixUserId,
     );
   }
 }

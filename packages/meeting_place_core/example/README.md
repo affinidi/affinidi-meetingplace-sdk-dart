@@ -6,8 +6,8 @@ Decentralised Identifiers (DIDs), DIDComm v2.1, and Matrix.
 
 | File path | What it demonstrates |
 |------|----------------------|
-| group_matrix/alice.dart | Publishes a group offer, provisions the owner Matrix user via JWT login, creates the shared Matrix room, receives the joining member, and sends a Matrix text message after approval. |
-| group_matrix/bob.dart | Finds and accepts the group offer, provisions the member Matrix user via JWT login, receives the shared room ID over DIDComm, joins the room after approval, and sends a Matrix text message. |
+| group/alice.dart | Publishes a group offer, provisions the owner Matrix user via JWT login, creates the shared Matrix room, and receives the joining member before approval. |
+| group/bob.dart | Finds and accepts the group offer, provisions the member Matrix user via JWT login, receives the shared room ID over DIDComm, and joins the room after approval. |
 | offer/alice.dart | Publishes connection offer (invitation) and approve connection request after the offer was accepted. initialises the chat. |
 | offer/bob.dart | Finds and accepts the connection offer, sends notification about acceptance of the connection request. initialises the chat. |
 | oob/alice.dart | Creates an out-of-band flow and waits for the other party to connect. |
@@ -52,9 +52,9 @@ local `.env` file for convenience.
     ```
 
     ```bash
-    # Group Matrix example
-    dart run group_matrix/alice.dart
-    dart run group_matrix/bob.dart
+     # Group example
+     dart run group/alice.dart
+     dart run group/bob.dart
     ```
 
     ```bash

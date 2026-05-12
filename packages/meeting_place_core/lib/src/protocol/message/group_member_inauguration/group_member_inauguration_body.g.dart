@@ -16,7 +16,6 @@ GroupMemberInaugurationBody _$GroupMemberInaugurationBodyFromJson(
   adminDids: (json['admin_dids'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
-  adminMatrixUserId: json['admin_matrix_user_id'] as String,
   matrixRoomId: json['matrix_room_id'] as String,
   members: (json['members'] as List<dynamic>)
       .map(
@@ -34,7 +33,6 @@ Map<String, dynamic> _$GroupMemberInaugurationBodyToJson(
   'group_id': instance.groupId,
   'group_public_key': instance.groupPublicKey,
   'admin_dids': instance.adminDids,
-  'admin_matrix_user_id': instance.adminMatrixUserId,
   'matrix_room_id': instance.matrixRoomId,
   'members': instance.members.map((e) => e.toJson()).toList(),
 };

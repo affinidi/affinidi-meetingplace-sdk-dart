@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
-import '../utils/matrix.dart';
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
@@ -16,7 +15,7 @@ void main() async {
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
 
-  final file = File('.example-output${Platform.pathSeparator}group_matrix.txt');
+  final file = File('.example-output${Platform.pathSeparator}group.txt');
   final mnemonicBytes = file.readAsBytesSync();
   final findOfferResult = await bobSDK.findOffer(
     mnemonic: utf8.decode(mnemonicBytes),
@@ -66,18 +65,7 @@ void main() async {
   }
 
   prettyJsonPrintYellow('Finalised group channel', finalisedChannel.toJson());
-  prettyPrintYellow('Member Matrix user ID: ${finalisedChannel.matrixUserId}');
-  prettyPrintYellow(
-    'Owner Matrix user ID: ${finalisedChannel.otherPartyMatrixUserId}',
-  );
   prettyPrintYellow('Shared Matrix room ID: $matrixRoomId');
-
-  await sendMatrixTextMessage(
-    didManager: acceptOfferResult.permanentChannelDid,
-    roomId: matrixRoomId,
-    message: 'Hello from Bob via Matrix',
-  );
-  prettyPrintYellow('Sent Matrix text message from the approved member.');
 
   await notificationStream.dispose();
 }

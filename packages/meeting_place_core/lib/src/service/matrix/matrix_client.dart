@@ -66,8 +66,9 @@ class MatrixClient {
         .replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_')
         .toLowerCase();
 
-    final sanitizedUserScope =
-        userScope.replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_').toLowerCase();
+    final sanitizedUserScope = userScope
+        .replaceAll(RegExp(r'[^a-zA-Z0-9]+'), '_')
+        .toLowerCase();
 
     return MatrixDatabaseContext(
       userScope: userScope,

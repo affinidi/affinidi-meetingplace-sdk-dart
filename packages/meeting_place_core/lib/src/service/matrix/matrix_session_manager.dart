@@ -23,9 +23,9 @@ class MatrixSessionManager {
   MatrixSessionManager({
     required MatrixConfig config,
     MatrixClientCache? clientCache,
-  })  : _config = config,
-        _clientCache =
-            clientCache ?? MatrixClientCache(homeserver: config.homeserver);
+  }) : _config = config,
+       _clientCache =
+           clientCache ?? MatrixClientCache(homeserver: config.homeserver);
 
   /// The login type for JWT-based authentication with the Matrix homeserver.
   static const String jwtLoginType = 'org.matrix.login.jwt';
@@ -103,7 +103,8 @@ class MatrixSessionManager {
     }
 
     final expiresAt = client.accessTokenExpiresAt;
-    final isExpiringSoon = expiresAt != null &&
+    final isExpiringSoon =
+        expiresAt != null &&
         DateTime.now().isAfter(expiresAt.subtract(tokenGracePeriod));
 
     if (!isExpiringSoon) {

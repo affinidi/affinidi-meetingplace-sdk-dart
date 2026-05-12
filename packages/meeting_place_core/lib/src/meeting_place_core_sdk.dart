@@ -334,6 +334,8 @@ class MeetingPlaceCoreSDK {
       controlPlaneSDK: controlPlaneSDK,
       mediatorSDK: mediatorSDK,
       offerService: offerService,
+      identityService: identityService,
+      matrixService: matrixService,
       didResolver: didResolver,
       logger: mpxLogger,
     );

@@ -18,6 +18,7 @@ GroupMember _$GroupMemberFromJson(Map<String, dynamic> json) => GroupMember(
     json['contactCard'] as Map<String, dynamic>,
   ),
   publicKey: json['publicKey'] as String,
+  matrixUserId: json['matrixUserId'] as String?,
 );
 
 Map<String, dynamic> _$GroupMemberToJson(GroupMember instance) =>
@@ -27,6 +28,7 @@ Map<String, dynamic> _$GroupMemberToJson(GroupMember instance) =>
       'membershipType': _$GroupMembershipTypeEnumMap[instance.membershipType]!,
       'publicKey': instance.publicKey,
       'contactCard': instance.contactCard.toJson(),
+      'matrixUserId': ?instance.matrixUserId,
       'status': _$GroupMemberStatusEnumMap[instance.status]!,
     };
 

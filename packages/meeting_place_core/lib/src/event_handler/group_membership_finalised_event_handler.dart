@@ -12,6 +12,8 @@ import '../protocol/meeting_place_protocol.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
 import '../repository/repository.dart';
 import '../service/group/group_exception.dart';
+import '../service/matrix/matrix_service.dart';
+import '../service/matrix/matrix_user_id_binding.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
@@ -30,12 +32,15 @@ class GroupMembershipFinalisedEventHandler
     required super.logger,
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
+    required MatrixService matrixService,
     required GroupRepository groupRepository,
   }) : _groupRepository = groupRepository,
-       _controlPlaneSDK = controlPlaneSDK;
+       _controlPlaneSDK = controlPlaneSDK,
+       _matrixService = matrixService;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
+  final MatrixService _matrixService;
 
   Future<List<Channel>> process(GroupMembershipFinalised event) async {
     logger.info('''Starting processing event of type
@@ -147,10 +152,20 @@ class GroupMembershipFinalisedEventHandler
     final admin = groupMemberInaugurationMessage.body.members.firstWhere(
       (member) => member.membershipType == GroupMembershipType.admin.name,
     );
+    validateMatrixUserIdBinding(
+      did: messageFrom,
+      matrixUserId: groupMemberInaugurationMessage.body.adminMatrixUserId,
+      serverName: _matrixService.homeserver.host,
+    );
 
     final didManager = await connectionManager.getDidManagerForDid(
       wallet,
       permanentChannelDid,
+    );
+
+    await _matrixService.joinRoom(
+      groupMemberInaugurationMessage.body.matrixRoomId,
+      didManager: didManager,
     );
 
     await _updateMediatorAcls(
@@ -185,6 +200,9 @@ class GroupMembershipFinalisedEventHandler
       channel,
       notificationToken: notificationToken,
       otherPartyPermanentChannelDid: updatedGroup.did,
+      otherPartyMatrixUserId:
+          groupMemberInaugurationMessage.body.adminMatrixUserId,
+      matrixRoomId: groupMemberInaugurationMessage.body.matrixRoomId,
       sequenceNumber: event.startSeqNo,
     );
 
@@ -323,6 +341,7 @@ class GroupMembershipFinalisedEventHandler
               member.membershipType,
             ),
             publicKey: member.publicKey,
+            matrixUserId: member.matrixUserId,
             dateAdded: DateTime.now().toUtc(),
           ),
         );
@@ -339,6 +358,7 @@ class GroupMembershipFinalisedEventHandler
         membershipType: GroupMembershipType.values.byName(
           member.membershipType,
         ),
+        matrixUserId: member.matrixUserId,
       );
     }
 

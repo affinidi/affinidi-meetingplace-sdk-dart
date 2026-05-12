@@ -28,6 +28,18 @@ melos:
         fileExists:
           - pubspec.yaml
 
+    gen:
+      run: |
+        echo "------------------------------------------------------------------------"
+        echo "Generating code"
+        echo "------------------------------------------------------------------------"
+        melos exec --scope=meeting_place_control_plane -- dart run build_runner build --delete-conflicting-outputs
+        melos exec --scope=meeting_place_mediator -- dart run build_runner build --delete-conflicting-outputs
+        melos exec --scope=meeting_place_core -- dart run build_runner build --delete-conflicting-outputs
+        melos exec --scope=meeting_place_chat -- dart run build_runner build --delete-conflicting-outputs
+        melos exec --scope=meeting_place_drift_repository -- dart run build_runner build --delete-conflicting-outputs
+        dart format -l 80 .
+
     analyze:
       run: melos run _analyze --no-select
       description: Run dart analyze on all packages

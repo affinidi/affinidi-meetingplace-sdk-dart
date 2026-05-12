@@ -1,5 +1,6 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
+import 'package:matrix/matrix.dart' as matrix;
 
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
@@ -19,9 +20,8 @@ class MatrixService {
     required MatrixConfig config,
     required ControlPlaneSDK controlPlaneSDK,
     MatrixSessionManager? sessionManager,
-  })  : _controlPlaneSDK = controlPlaneSDK,
-        _sessionManager =
-            sessionManager ?? MatrixSessionManager(config: config);
+  }) : _controlPlaneSDK = controlPlaneSDK,
+       _sessionManager = sessionManager ?? MatrixSessionManager(config: config);
 
   /// Control plane SDK for executing commands to obtain Matrix JWTs.
   final ControlPlaneSDK _controlPlaneSDK;
@@ -105,7 +105,7 @@ class MatrixService {
   /// Returns an authenticated client, transparently re-authenticating via
   /// [loginWithDid] when the session has expired or the refresh token is
   /// exhausted.
-  Future<dynamic> _ensureSession(DidManager didManager) async {
+  Future<matrix.Client> _ensureSession(DidManager didManager) async {
     final did = (await didManager.getDidDocument()).id;
 
     try {

@@ -22,16 +22,17 @@ class DidCommChallengeResponse {
   /// Base64-encoded DIDComm packed challenge response payload.
   final String challengeResponse;
 
-  /// Builds a base64-encoded DIDComm challenge-response payload that can be sent
-  /// to Control Plane endpoints requiring DID-based authentication.
+  /// Builds a base64-encoded DIDComm challenge-response payload that can be
+  /// sent to Control Plane endpoints requiring DID-based authentication.
   ///
-  /// The helper requests a challenge from [apiClient], resolves the recipient DID
-  /// document via [didResolver], constructs a `MeetingplaceAuthChallenge`, signs
-  /// and encrypts it with [didManager], and finally returns the encoded payload
-  /// together with the sender DID.
+  /// The helper requests a challenge from [apiClient], resolves the recipient
+  /// DID document via [didResolver], constructs a `MeetingplaceAuthChallenge`,
+  /// signs and encrypts it with [didManager], and finally returns the encoded
+  /// payload together with the sender DID.
   ///
-  /// If the challenge endpoint returns an empty challenge and [onEmptyChallenge]
-  /// is provided, the callback is used to create the thrown exception.
+  /// If the challenge endpoint returns an empty challenge and
+  /// [onEmptyChallenge] is provided, the callback is used to create the thrown
+  /// exception.
   static Future<DidCommChallengeResponse> build({
     required ControlPlaneApiClient apiClient,
     required DidManager didManager,

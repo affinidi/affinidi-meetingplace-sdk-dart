@@ -19,16 +19,27 @@ class MatrixService {
     required MatrixConfig config,
     required ControlPlaneSDK controlPlaneSDK,
     MatrixSessionManager? sessionManager,
-  }) : _controlPlaneSDK = controlPlaneSDK,
-       _sessionManager = sessionManager ?? MatrixSessionManager(config: config);
+  })  : _controlPlaneSDK = controlPlaneSDK,
+        _sessionManager =
+            sessionManager ?? MatrixSessionManager(config: config);
 
+  /// Control plane SDK for executing commands to obtain Matrix JWTs.
   final ControlPlaneSDK _controlPlaneSDK;
+
+  /// Manages Matrix sessions, including client instances and token refresh.
   final MatrixSessionManager _sessionManager;
 
+  /// Exposes the homeserver URI from the session manager.
   Uri get homeserver => _sessionManager.homeserver;
 
   /// Obtains a Matrix JWT from the control plane for [didManager], logs in,
   /// and returns the Matrix user ID.
+  ///
+  /// Parameters:
+  /// - [didManager]: The DID manager whose DID will be used to obtain the JWT
+  ///   and log in to the Matrix homeserver.
+  ///
+  /// Returns: The Matrix user ID associated with the logged-in session.
   Future<String> loginWithDid(DidManager didManager) async {
     final didDocument = await didManager.getDidDocument();
 
@@ -42,6 +53,22 @@ class MatrixService {
     );
   }
 
+  /// Creates a new Matrix room, optionally inviting specified users.
+  /// The method ensures an authenticated session, transparently
+  /// re-authenticating if necessary, before performing the room creation
+  /// operation.
+  ///
+  /// Note: The invited users should be specified as DIDs, which will be
+  /// internally converted to Matrix user IDs using the session manager's
+  /// derivation logic.
+  ///
+  /// Parameters:
+  /// - [didManager]: The DID manager used to ensure an authenticated session
+  ///   for the room creation operation.
+  /// - [inviteUsers]: Optional list of DIDs to invite to the newly created
+  ///   room.
+  ///
+  /// Returns: The ID of the newly created Matrix room.
   Future<String> createRoom({
     required DidManager didManager,
     List<String>? inviteUsers,
@@ -54,11 +81,23 @@ class MatrixService {
     );
   }
 
+  /// Joins an existing Matrix room by its ID.
+  /// The method ensures an authenticated session, transparently
+  /// re-authenticating if necessary, before performing the room join operation.
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to join.
+  /// - [didManager]: The DID manager used to ensure an authenticated session
+  ///   for the room join operation.
+  ///
+  /// Returns: A Future that completes when the room join operation is
+  /// successful.
   Future<void> joinRoom(String roomId, {required DidManager didManager}) async {
     final client = await _ensureSession(didManager);
     await client.joinRoom(roomId);
   }
 
+  /// Disposes of the session manager, cleaning up resources.
   void dispose() {
     _sessionManager.dispose();
   }

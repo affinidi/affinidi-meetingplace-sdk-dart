@@ -106,7 +106,6 @@ class OobStream implements CoreSDKStreamSubscription<OobStreamData, void> {
 
     _logger.info('Closing stream');
     await _controller.close();
-
-    if (_onDispose != null) await _onDispose();
+    await _onDispose?.call();
   }
 }

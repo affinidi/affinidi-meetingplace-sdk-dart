@@ -174,11 +174,9 @@ class OobService {
       _wallet,
     );
 
-    final permanentChannelDid = did != null
-        ? await _connectionManager.getDidManagerForDid(_wallet, did)
-        : (await _identityService.createPermanentIdentity(_wallet)).didManager;
-
-    final permanentChannelDidDoc = await permanentChannelDid.getDidDocument();
+    final permanentIdentity = did != null
+        ? await _identityService.getPermanentIdentity(_wallet, did)
+        : await _identityService.createPermanentIdentity(_wallet);
 
     final (invitationMessage, mediatorDid) = await _fetchOobInvitation(
       oobUri: oobUri,
@@ -192,7 +190,7 @@ class OobService {
       status: ChannelStatus.waitingForApproval,
       outboundMessageId: invitationMessage.id,
       acceptOfferDid: acceptOfferIdentity.didDocument.id,
-      permanentChannelDid: permanentChannelDidDoc.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
       type: ChannelType.oob,
       isConnectionInitiator: false,
       contactCard: contactCard,
@@ -211,8 +209,8 @@ class OobService {
 
     final session = OobAcceptanceSession(
       channel: channel,
-      permanentChannelDidManager: permanentChannelDid,
-      permanentChannelDidDocument: permanentChannelDidDoc,
+      permanentChannelDidManager: permanentIdentity.didManager,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       stream: oobStream,
       mediatorDid: mediatorDid,
     );
@@ -248,7 +246,7 @@ class OobService {
 
     await _connectionService.sendAcceptOfferToMediator(
       acceptOfferDid: acceptOfferIdentity.didManager,
-      permanentChannelDidDocument: permanentChannelDidDoc,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: mediatorDid,
       acceptContactCard: contactCard,
@@ -308,6 +306,7 @@ class OobService {
       contactCard: session.contactCard,
       otherPartyContactCard: message.contactCard,
       externalRef: externalRef,
+      matrixRoomId: matrixRoomId,
     );
 
     await _channelService.persistChannel(channel);

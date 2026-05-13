@@ -127,10 +127,12 @@ Expected: contains <3>
 
 This catches the missing snapshot steps before the migration tests even run.
 
-## Encrypted databases with sqlite3 v3
+## Database Encryption (Required)
 
-`package:sqlite3` v3 no longer ships SQLCipher. To keep encrypted database
-support, configure `sqlite3` to use SQLite3MultipleCiphers in your `pubspec`:
+`package:sqlite3` v3 no longer ships SQLCipher. Projects using this package
+**must** configure `sqlite3` to use
+[SQLite3MultipleCiphers](https://utelle.github.io/SQLite3MultipleCiphers/)
+by adding the following to their **`pubspec.yaml`**:
 
 ```yaml
 hooks:
@@ -139,11 +141,25 @@ hooks:
       source: sqlite3mc
 ```
 
-Existing SQLCipher databases remain compatible when the database is opened with
-the SQLCipher compatibility pragmas before the key is applied:
+Without this configuration, database encryption is not available and the SDK
+will throw an `UnsupportedError` at runtime.
 
-```sql
-PRAGMA cipher = 'sqlcipher';
-PRAGMA legacy = 4;
-PRAGMA key = '...';
-```
+### New databases
+
+New databases are encrypted with the sqlite3mc default cipher. No additional
+configuration is needed beyond `PRAGMA key`.
+
+### Existing SQLCipher databases
+
+Databases created with the previous SQLCipher-based build are opened
+automatically in compatibility mode (`PRAGMA cipher = 'sqlcipher'` /
+`PRAGMA legacy = 4`). This is handled transparently — the SDK tries the
+default cipher first and falls back to SQLCipher compatibility mode when
+needed.
+
+> **Note:** Legacy mode is used only for reading existing SQLCipher databases.
+> It is [not recommended](https://utelle.github.io/SQLite3MultipleCiphers/docs/ciphers/cipher_legacy_mode/)
+> for new databases.
+
+See the [sqlite3 v3 upgrade guide](https://github.com/simolus3/sqlite3.dart/blob/main/UPGRADING_TO_V3.md#encryption)
+for more details.

@@ -5,6 +5,7 @@ class ControlPlaneSDKOptions {
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
+    this.idleTimeout = const Duration(seconds: 90),
   });
 
   /// The number of retry attempts for a request when a network issue occurs.
@@ -27,4 +28,11 @@ class ControlPlaneSDKOptions {
   /// If no data is received within this time frame, the request will be
   /// aborted and a timeout error will be triggered.
   final Duration receiveTimeout;
+
+  /// The maximum duration an idle HTTP keep-alive connection is kept open
+  /// before being closed and removed from the connection pool.
+  ///
+  /// Increasing this value reduces connection churn and improves latency on
+  /// repeated requests, which is especially beneficial on mobile clients.
+  final Duration idleTimeout;
 }

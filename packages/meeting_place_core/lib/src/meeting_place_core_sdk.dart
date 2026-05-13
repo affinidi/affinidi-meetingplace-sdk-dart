@@ -267,6 +267,7 @@ class MeetingPlaceCoreSDK {
         maxRetriesDelay: options.maxRetriesDelay,
         connectTimeout: options.connectTimeout,
         receiveTimeout: options.receiveTimeout,
+        idleTimeout: options.idleTimeout,
       ),
       logger: controlPlaneLogger,
     );

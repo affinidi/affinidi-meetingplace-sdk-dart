@@ -1,8 +1,7 @@
 import '../../meeting_place_chat.dart';
 
 /// [ChatSDKOptions] defines configurable options for the [MeetingPlaceChatSDK],
-/// controlling behaviors such as presence intervals, activity expiry,
-/// and acknowledgement rules.
+/// controlling behaviors such as presence intervals and activity expiry.
 ///
 /// These options allow fine-tuning of chat performance and reliability.
 class ChatSDKOptions {

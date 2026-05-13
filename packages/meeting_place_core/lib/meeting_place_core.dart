@@ -37,6 +37,7 @@ export 'src/sdk/results/register_for_didcomm_notifications_result.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
 export 'src/service/matrix/matrix_config.dart';
+export 'src/service/matrix/matrix_read_receipt_event.dart';
 export 'src/service/matrix/matrix_room_event.dart';
 export 'src/service/matrix/matrix_service.dart';
 export 'src/service/matrix/matrix_subscription_options.dart';

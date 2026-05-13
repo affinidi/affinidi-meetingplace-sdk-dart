@@ -1,11 +1,4 @@
 import 'dart:async';
-import 'package:matrix/matrix.dart' as matrix;
-import 'matrix_client.dart';
-import 'matrix_client_cache.dart';
-import 'matrix_config.dart';
-import 'matrix_service_exception.dart';
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
@@ -125,7 +118,7 @@ class MatrixService {
   /// - [eventType]: The Matrix event type (a ChatProtocol URI).
   /// - [content]: The event content payload.
   /// - [didManager]: The DID manager used to ensure an authenticated session.
-  Future<void> sendRoomEvent(
+  Future<String?> sendRoomEvent(
     String roomId,
     String eventType,
     Map<String, dynamic> content, {
@@ -134,35 +127,14 @@ class MatrixService {
     final client = await _ensureSession(didManager);
     final room = client.getRoomById(roomId);
     if (room == null) throw StateError('Matrix room $roomId not found');
-    await room.sendEvent(content, type: eventType);
-  }
 
-  /// Returns a stream of [MatrixRoomEvent]s received in [roomId].
-  ///
-  /// Parameters:
-  /// - [roomId]: The ID of the Matrix room to subscribe to.
-  /// - [didManager]: The DID manager used to ensure an authenticated session.
-  /// - [excludeSelf]: When `true`, events sent by the local user are filtered
-  ///   out before being yielded (default: `false`).
-  Stream<MatrixRoomEvent> subscribeToRoom(
-    String roomId, {
-    required DidManager didManager,
-    MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
-  }) async* {
-    final client = await _ensureSession(didManager);
-    final myUserId = options.excludeSelf
-        ? _sessionManager.deriveUserId(
-            (await didManager.getDidDocument()).id,
-            homeserver.host,
-          )
-        : null;
-
-    await for (final event in client.onTimelineEvent.stream.where(
-      (e) => e.room.id == roomId,
-    )) {
-      final msg = _eventToMatrixRoomEvent(event);
-      if (msg != null && msg.sender != myUserId) yield msg;
+    if (eventType == 'm.read') {
+      final eventId = content['event_id'] as String;
+      await room.setReadMarker(eventId, mRead: eventId);
+      return null;
     }
+
+    return room.sendEvent(content, type: eventType);
   }
 
   /// Returns recent events from [roomId] as [MatrixRoomEvent]s.
@@ -177,18 +149,99 @@ class MatrixService {
     int limit = 50,
   }) async {
     final client = await _ensureSession(didManager);
+    final myUserId = _sessionManager.deriveUserId(
+      (await didManager.getDidDocument()).id,
+      homeserver.host,
+    );
     final room = client.getRoomById(roomId);
     if (room == null) return [];
 
     final timeline = await room.getTimeline();
-    return timeline.events
-        .map(_eventToMatrixRoomEvent)
-        .whereType<MatrixRoomEvent>()
-        .take(limit)
-        .toList();
+    final events = timeline.events
+        .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
+        .whereType<MatrixRoomEvent>();
+
+    return events.take(limit).toList();
   }
 
-  /// Disposes of the session manager, cleaning up resources.
+  /// Returns a stream of [MatrixRoomEvent]s received in [roomId].
+  ///
+  /// Yields both timeline events (message, reaction, etc.) and `m.receipt`
+  /// ephemeral events so callers can track delivery with a single subscription.
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to subscribe to.
+  /// - [didManager]: The DID manager used to ensure an authenticated session.
+  /// - [excludeSelf]: When `true`, events sent by the local user are filtered
+  ///   out before being yielded (default: `false`).
+  Stream<MatrixRoomEvent> subscribeToRoom(
+    String roomId, {
+    required DidManager didManager,
+    MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
+  }) async* {
+    final client = await _ensureSession(didManager);
+    final myUserId = _sessionManager.deriveUserId(
+      (await didManager.getDidDocument()).id,
+      homeserver.host,
+    );
+
+    final controller = StreamController<MatrixRoomEvent>();
+
+    final timelineSub = client.onTimelineEvent.stream
+        .where((e) => e.room.id == roomId)
+        .listen((event) {
+          final msg = _eventToMatrixRoomEvent(event, myUserId: myUserId);
+          if (msg != null && (!options.excludeSelf || msg.sender != myUserId))
+            controller.add(msg);
+        }, onError: controller.addError);
+
+    final syncSub = client.onSync.stream.listen((syncUpdate) {
+      final ephemeral = syncUpdate.rooms?.join?[roomId]?.ephemeral;
+      if (ephemeral == null) return;
+
+      for (final event in ephemeral) {
+        if (event.type != 'm.receipt') continue;
+
+        final content = event.content;
+        for (final entry in content.entries) {
+          final eventId = entry.key;
+          final mRead =
+              (entry.value as Map<String, dynamic>?)
+                      ?.cast<String, dynamic>()['m.read']
+                  as Map<String, dynamic>?;
+          if (mRead == null) continue;
+
+          for (final userEntry in mRead.entries) {
+            final userId = userEntry.key;
+            if (options.excludeSelf && userId == myUserId) continue;
+            final ts =
+                (userEntry.value as Map<String, dynamic>?)?['ts'] as int?;
+            controller.add(
+              MatrixRoomEvent(
+                id: eventId,
+                type: 'm.receipt',
+                sender: userId,
+                roomId: roomId,
+                content: {'event_id': eventId},
+                timestamp: ts != null
+                    ? DateTime.fromMillisecondsSinceEpoch(ts, isUtc: true)
+                    : DateTime.now().toUtc(),
+              ),
+            );
+          }
+        }
+      }
+    }, onError: controller.addError);
+
+    try {
+      yield* controller.stream;
+    } finally {
+      await timelineSub.cancel();
+      await syncSub.cancel();
+      await controller.close();
+    }
+  }
+
   void dispose() {
     _sessionManager.dispose();
   }

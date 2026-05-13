@@ -110,6 +110,7 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
       options:
           options ??
           ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
+      roomId: channel.matrixRoomId ?? '',
     ),
   );
 }
@@ -150,6 +151,7 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
       options: ChatSDKOptions(
         chatPresenceSendInterval: const Duration(seconds: 3),
       ),
+      roomId: channel.matrixRoomId ?? '',
     ),
   );
 }

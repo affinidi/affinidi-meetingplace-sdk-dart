@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 
 import '../../meeting_place_chat.dart';
 import '../core/chat_stream/chat_event_conversion.dart';
-import '../core/room_event/text_message_room_event.dart';
+import '../core/room_event/room_event.dart';
 import '../entity/chat_attachment_conversion.dart';
 import '../handlers/chat_alias_profile_hash_handler.dart';
 import '../handlers/chat_alias_profile_request_handler.dart';
@@ -49,6 +49,7 @@ abstract class BaseChatSDK {
        chatStream = ChatStream();
 
   static const String _className = 'BaseChatSDK';
+  static const String _logkey = 'BaseChatSDK';
 
   static const _streamOnlyTypes = {
     ChatProtocol.chatActivity,
@@ -71,6 +72,7 @@ abstract class BaseChatSDK {
   ChatStream chatStream;
   StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
   Future<StreamSubscription<MatrixRoomEvent>>? _subscriptionFuture;
+  final Map<String, String> _serverEventIdToMessageId = {};
   int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
@@ -109,28 +111,58 @@ abstract class BaseChatSDK {
   /// **Returns:**
   /// - A [Chat] instance containing retrieves messages and channel reference.
   Future<Chat> startChatSession() async {
-    final methodName = 'startChatSession';
-    _logger.info('Starting chat session', name: methodName);
-
     chatStream = ChatStream();
 
     _subscriptionFuture = subscribeToMatrixRoom();
-    final messagesFuture = chatRepository.listMessages(chatId);
 
     unawaited(sendProfileHash());
 
-    final messages = await messagesFuture;
+    final channel = await getChannel();
+    final allEvents = await coreSDK.fetchMatrixRoomHistory(
+      roomId: roomId,
+      receiverDid: did,
+    );
+
+    // TODO: Handle this in CoreSDK
+    final syncMarker = channel.matrixSyncMarker;
+    final events = syncMarker == null
+        ? allEvents
+        : allEvents.takeWhile((e) => e.id != syncMarker).toList();
+
+    // TODO: Update matrix sync marker in CoreSDK
+    if (events.isNotEmpty) {
+      channel.matrixSyncMarker = events.first.id;
+      await coreSDK.updateChannel(channel);
+    }
+
+    final newMessages = <Message>[];
+    for (final event in events) {
+      final msg = await _handleIncomingRoomEvent(event);
+      if (msg != null) newMessages.add(msg);
+    }
+
+    final existingMessages = allEvents
+        .skip(events.length)
+        .map(
+          (e) => e.isFromMe
+              ? Message.fromRoomEventSentByMe(event: e, chatId: chatId)
+              : Message.fromRoomEventReceivedByMe(event: e, chatId: chatId),
+        )
+        .toList();
+
+    final messages = [...newMessages, ...existingMessages];
+
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
       _subscriptionFuture!.then((subscription) {
-        unawaited(fetchNewMessages());
         _matrixRoomSubscription = subscription;
       }),
     );
 
-    // TODO: sort messages
-    _logger.info('Completed chat start', name: methodName);
+    // TODO: sort messages??
+    _logger.info('Chat session initialized,', name: _logkey);
+
     return chat;
   }
 
@@ -146,11 +178,21 @@ abstract class BaseChatSDK {
     return chatStream;
   }
 
-  /// Retrieves all persisted messages for this chat.
-  Future<List<ChatItem>> get messages {
+  /// Retrieves all messages for this chat from the Matrix client database.
+  Future<List<ChatItem>> get messages async {
     final methodName = 'messages';
     _logger.info('Retrieving all persisted messages', name: methodName);
-    return chatRepository.listMessages(chatId);
+    final events = await coreSDK.fetchMatrixRoomHistory(
+      roomId: roomId,
+      receiverDid: did,
+    );
+    return events
+        .map(
+          (e) => e.isFromMe
+              ? Message.fromRoomEventSentByMe(event: e, chatId: chatId)
+              : Message.fromRoomEventReceivedByMe(event: e, chatId: chatId),
+        )
+        .toList();
   }
 
   /// Retrieves a single message by ID.
@@ -245,10 +287,6 @@ abstract class BaseChatSDK {
     );
 
     final channel = await getChannel();
-    if (_requiresAcknowledgement(message.plainTextMessage)) {
-      unawaited(sendChatDeliveredMessage(message.plainTextMessage.id));
-    }
-
     if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
       final messageSequenceNumber = message.messageSequenceNumber;
       if (messageSequenceNumber != null &&
@@ -350,10 +388,6 @@ abstract class BaseChatSDK {
     return newMessages;
   }
 
-  /// Subscribes to the Matrix room for real-time message updates.
-  ///
-  /// **Returns:**
-  /// - A [StreamSubscription] for the Matrix room event stream.
   @internal
 <<<<<<< HEAD
   Future<SDKStreamSubscription> subscribeToMediator() {
@@ -375,22 +409,49 @@ abstract class BaseChatSDK {
           options: const MatrixSubscriptionOptions(excludeSelf: true),
         )
         .listen((event) async {
-          final message =
-              await chatRepository.createMessage(
-                    Message.fromRoomEventReceivedByMe(
-                      event: event,
-                      chatId: chatId,
-                    ),
-                  )
-                  as Message;
-
-          chatStream.pushData(
-            StreamData(event: event.toChatEvent(), chatItem: message),
-          );
+          await _handleIncomingRoomEvent(event);
         });
 
     return subscription;
 >>>>>>> 6e32091f (chore: first messsaging TODO)
+  }
+
+  Future<Message?> _handleIncomingRoomEvent(MatrixRoomEvent event) async {
+    if (event.type == 'm.receipt') {
+      final serverEventId = event.content['event_id'] as String;
+      final localMessageId = _serverEventIdToMessageId[serverEventId];
+      if (localMessageId == null) return null;
+
+      final message = await chatRepository.getMessage(
+        chatId: chatId,
+        messageId: localMessageId,
+      );
+
+      if (message == null || !message.isFromMe) return null;
+      if (message.status == ChatItemStatus.delivered) return null;
+
+      message.status = ChatItemStatus.delivered;
+      await chatRepository.updateMesssage(message);
+
+      chatStream.pushData(
+        StreamData(event: const ChatMessageEvent(), chatItem: message),
+      );
+      return null;
+    }
+
+    final message =
+        await chatRepository.createMessage(
+              Message.fromRoomEventReceivedByMe(event: event, chatId: chatId),
+            )
+            as Message;
+
+    unawaited(sendChatDeliveredMessage(event.id));
+
+    chatStream.pushData(
+      StreamData(event: event.toChatEvent(), chatItem: message),
+    );
+
+    return message;
   }
 
   /// Sends a custom [CustomMessage] using the chat's sender and recipient
@@ -463,52 +524,16 @@ abstract class BaseChatSDK {
     String text, {
     List<ChatAttachment>? attachments,
   }) async {
-    final methodName = 'sendTextMessage';
-    _logger.info('Started sending text message', name: methodName);
-
-    // TODO: check if sequence number is still needed for badge count
-    final channel = await getChannel();
-    channel.increaseSeqNo();
-
     final roomEvent = TextMessageRoomEvent.create(
       sender: did,
       roomId: roomId,
       text: text,
     );
 
-    final createdMessage = await chatRepository.createMessage(
-      Message.fromRoomEventSentByMe(event: roomEvent, chatId: chatId),
-    );
+    final result = await _sendRoomEventMessage(roomEvent);
 
-    try {
-      chatStream.pushData(
-        StreamData(event: roomEvent.toChatEvent(), chatItem: createdMessage),
-      );
-
-      await _sendMessageWithNotification(roomEvent);
-
-      final updatedMessage = await _updateMessageStatus(
-        chatId: chatId,
-        messageId: createdMessage.messageId,
-      );
-
-      await coreSDK.updateChannel(channel);
-
-      chatStream.pushData(
-        StreamData(event: roomEvent.toChatEvent(), chatItem: updatedMessage),
-      );
-
-      _logger.info('Completed sending text message', name: methodName);
-      return updatedMessage;
-    } catch (e, stackTrace) {
-      return await _handleSendMessageError(
-        createdMessage: createdMessage,
-        event: roomEvent,
-        error: e,
-        stackTrace: stackTrace,
-        methodName: methodName,
-      );
-    }
+    _logger.info('Text message sent', name: _logkey);
+    return result;
   }
 
   /// Starts periodic chat presence updates.
@@ -562,40 +587,20 @@ abstract class BaseChatSDK {
     _logger.info('Completed sending profile hash', name: methodName);
   }
 
-  bool _requiresAcknowledgement(PlainTextMessage message) {
-    return options.requiresAcknowledgement.contains(
-      ChatProtocol.byValue(message.type.toString()),
-    );
-  }
-
   bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
     return coreSDK.options.messageTypesForSequenceTracking.contains(
       message.type.toString(),
     );
   }
 
-  /// Sends a "delivered" acknowledgement for a received message.
+  /// Sends an `m.read` receipt for [messageId], marking it as delivered.
   ///
-  /// **Parameters:**
-  /// - [messageId]: The ID of the message being acknowledged as delivered.
-  ///
-  /// **Returns:**
-  /// - A [Future] that completes when the acknowledgement has been sent.
-  Future<void> sendChatDeliveredMessage(String messageId) async {
-    final methodName = 'sendChatDeliveredMessage';
-    _logger.info('Started sending chat delivered message', name: methodName);
-    await sendPlainTextMessage(
-      protocol.ChatDelivered.create(
-        from: did,
-        to: [otherPartyDid],
-        messages: [messageId],
-      ).toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
+  /// In the Matrix path the [messageId] is the Matrix event ID, so this maps
+  /// directly to the native read-marker API.
+  Future<void> sendChatDeliveredMessage(String messageId) {
+    return coreSDK.sendMatrixRoomEvent(
+      ReadReceiptRoomEvent(sender: did, roomId: roomId, eventId: messageId),
     );
-
-    _logger.info('Completed sending chat delivered message', name: methodName);
   }
 
   /// Sends updated contact details from the current contact card.
@@ -763,11 +768,55 @@ abstract class BaseChatSDK {
         ));
   }
 
+  // TODO: check if sequence number is still needed for badge count
+  Future<Message> _sendRoomEventMessage(MatrixRoomEvent roomEvent) async {
+    final channel = await getChannel();
+    channel.increaseSeqNo();
+
+    final createdMessage = await chatRepository.createMessage(
+      Message.fromRoomEventSentByMe(event: roomEvent, chatId: chatId),
+    );
+
+    try {
+      chatStream.pushData(
+        StreamData(event: roomEvent.toChatEvent(), chatItem: createdMessage),
+      );
+
+      final serverEventId = await _sendMessageWithNotification(roomEvent);
+
+      if (serverEventId != null) {
+        _serverEventIdToMessageId[serverEventId] = createdMessage.messageId;
+      }
+
+      final updatedMessage = await _updateMessageStatus(
+        chatId: chatId,
+        messageId: createdMessage.messageId,
+      );
+
+      await coreSDK.updateChannel(channel);
+
+      chatStream.pushData(
+        StreamData(event: roomEvent.toChatEvent(), chatItem: updatedMessage),
+      );
+
+      return updatedMessage;
+    } catch (e, stackTrace) {
+      return _handleSendMessageError(
+        createdMessage: createdMessage,
+        event: roomEvent,
+        error: e,
+        stackTrace: stackTrace,
+        methodName: _logkey,
+      );
+    }
+  }
+
   /// Sends a message with notification, ignoring notification failures.
-  Future<void> _sendMessageWithNotification(MatrixRoomEvent event) async {
+  /// Returns the server-assigned Matrix event ID, or `null` for receipt events.
+  Future<String?> _sendMessageWithNotification(MatrixRoomEvent event) async {
     try {
       // TODO: How to notify?
-      await coreSDK.sendMatrixRoomEvent(event);
+      return await coreSDK.sendMatrixRoomEvent(event);
     } on MeetingPlaceCoreSDKException catch (e) {
       final isNotificationError =
           e.code ==
@@ -786,6 +835,7 @@ abstract class BaseChatSDK {
         'Failed to send notification for message ${event.id}',
         name: '_sendMessageWithNotification',
       );
+      return null;
     }
   }
 

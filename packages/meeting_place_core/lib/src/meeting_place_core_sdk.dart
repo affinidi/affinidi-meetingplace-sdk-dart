@@ -1070,10 +1070,10 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Sends a [MatrixRoomEvent] to the Matrix room identified by [roomId].
-  Future<void> sendMatrixRoomEvent(MatrixRoomEvent event) {
+  Future<String?> sendMatrixRoomEvent(MatrixRoomEvent event) {
     return _withSdkExceptionHandling(() async {
       final didManager = await getDidManager(event.sender);
-      await _matrixService.sendRoomEvent(
+      return _matrixService.sendRoomEvent(
         event.roomId,
         event.type,
         event.content,

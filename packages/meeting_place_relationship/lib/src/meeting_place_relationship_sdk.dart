@@ -49,6 +49,7 @@ class MeetingPlaceRelationshipSDK {
       logger: log,
     );
     _receivedRCardsController = StreamController.broadcast();
+    _receivedRCardsStream = _receivedRCardsController.stream;
     _attachmentSubscription = _attachmentManager.stream.listen(
       _receivedRCardsController.add,
       onError: _receivedRCardsController.addError,
@@ -67,6 +68,7 @@ class MeetingPlaceRelationshipSDK {
   late final RCardChannelStreamManager _attachmentManager;
   late final RCardVdipStreamManager _vdipManager;
   late final StreamController<ReceivedRCard> _receivedRCardsController;
+  late final Stream<ReceivedRCard> _receivedRCardsStream;
   late final StreamSubscription<ReceivedRCard> _attachmentSubscription;
   late final StreamSubscription<ReceivedRCard> _vdipSubscription;
 
@@ -74,7 +76,7 @@ class MeetingPlaceRelationshipSDK {
   /// signature-verified R-Card is received over any channel — either via
   /// the DIDComm attachment path (OOB / inauguration) or the VDIP
   /// issued-credential path (chat-time update).
-  Stream<ReceivedRCard> get receivedRCards => _receivedRCardsController.stream;
+  Stream<ReceivedRCard> get receivedRCards => _receivedRCardsStream;
 
   /// Cancels all internal subscriptions and closes [receivedRCards].
   ///

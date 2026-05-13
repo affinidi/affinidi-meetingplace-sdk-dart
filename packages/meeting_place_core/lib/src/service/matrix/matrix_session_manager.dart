@@ -110,7 +110,7 @@ class MatrixSessionManager {
       return client.userID!;
     } finally {
       if (identical(_inFlightLogins[did], loginFuture)) {
-        _inFlightLogins.remove(did);
+        await _inFlightLogins.remove(did);
       }
     }
   }

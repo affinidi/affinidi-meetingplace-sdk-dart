@@ -84,6 +84,20 @@
             }
           },
           {
+            "name": "transport",
+            "getter_name": "transport",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('1')",
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const _ChannelTransportConverter()",
+              "dart_type_name": "ChannelTransport"
+            }
+          },
+          {
             "name": "is_connection_initiator",
             "getter_name": "isConnectionInitiator",
             "moor_type": "bool",
@@ -158,16 +172,6 @@
             "dsl_features": []
           },
           {
-            "name": "matrix_room_id",
-            "getter_name": "matrixRoomId",
-            "moor_type": "string",
-            "nullable": true,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
             "name": "external_ref",
             "getter_name": "externalRef",
             "moor_type": "string",
@@ -191,6 +195,16 @@
             "name": "message_sync_marker",
             "getter_name": "messageSyncMarker",
             "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "matrix_sync_marker",
+            "getter_name": "matrixSyncMarker",
+            "moor_type": "string",
             "nullable": true,
             "customConstraints": null,
             "default_dart": null,
@@ -346,7 +360,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"channels\" (\"id\" TEXT NOT NULL, \"publish_offer_did\" TEXT NOT NULL, \"mediator_did\" TEXT NOT NULL, \"offer_link\" TEXT NOT NULL, \"status\" INTEGER NOT NULL, \"type\" INTEGER NOT NULL, \"is_connection_initiator\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_connection_initiator\" IN (0, 1)), \"outbound_message_id\" TEXT NULL, \"accept_offer_did\" TEXT NULL, \"permanent_channel_did\" TEXT NULL, \"other_party_permanent_channel_did\" TEXT NULL, \"notification_token\" TEXT NULL, \"other_party_notification_token\" TEXT NULL, \"matrix_room_id\" TEXT NULL, \"external_ref\" TEXT NULL, \"seq_no\" INTEGER NOT NULL, \"message_sync_marker\" TEXT NULL, PRIMARY KEY (\"id\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"channels\" (\"id\" TEXT NOT NULL, \"publish_offer_did\" TEXT NOT NULL, \"mediator_did\" TEXT NOT NULL, \"offer_link\" TEXT NOT NULL, \"status\" INTEGER NOT NULL, \"type\" INTEGER NOT NULL, \"transport\" INTEGER NOT NULL DEFAULT 1, \"is_connection_initiator\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_connection_initiator\" IN (0, 1)), \"outbound_message_id\" TEXT NULL, \"accept_offer_did\" TEXT NULL, \"permanent_channel_did\" TEXT NULL, \"other_party_permanent_channel_did\" TEXT NULL, \"notification_token\" TEXT NULL, \"other_party_notification_token\" TEXT NULL, \"external_ref\" TEXT NULL, \"seq_no\" INTEGER NOT NULL, \"message_sync_marker\" TEXT NULL, \"matrix_sync_marker\" TEXT NULL, PRIMARY KEY (\"id\"));"
         }
       ]
     },

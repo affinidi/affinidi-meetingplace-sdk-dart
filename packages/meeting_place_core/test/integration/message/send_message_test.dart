@@ -77,26 +77,30 @@ void main() async {
   test('send message', () async {
     final messageId = const Uuid().v4();
 
-    await aliceSDK.didcomm.sendMessage(
-      PlainTextMessage(
-        id: messageId,
-        from: aliceApprovedChannel.permanentChannelDid!,
-        to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
-        type: Uri.parse('https://example.org/plain-text'),
-        body: {'text': 'Hello, Bob!'},
+    await aliceSDK.sendMessage(
+      DidCommOutgoingMessage(
+        senderDid: aliceApprovedChannel.permanentChannelDid!,
+        recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
+        payload: PlainTextMessage(
+          id: messageId,
+          from: aliceApprovedChannel.permanentChannelDid!,
+          to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
+          type: Uri.parse('https://example.org/plain-text'),
+          body: {'text': 'Hello, Bob!'},
+        ),
       ),
-      senderDid: aliceApprovedChannel.permanentChannelDid!,
-      recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
     );
 
     await Future<void>.delayed(const Duration(seconds: 4));
-    final messages = await bobSDK.didcomm.fetchMessages(
-      did: bobOfferFinalisedChannel.permanentChannelDid!,
+    final messages = await bobSDK.fetchHistory(
+      DidCommHistoryQuery(
+        receiverDid: bobOfferFinalisedChannel.permanentChannelDid!,
+      ),
     );
 
-    final actual = messages.firstWhereOrNull(
-      (m) => m.plainTextMessage.id == messageId,
-    );
+    final actual = messages
+        .whereType<DidCommIncomingMessage>()
+        .firstWhereOrNull((m) => m.payload.id == messageId);
 
     expect(actual, isNotNull);
   });
@@ -111,17 +115,19 @@ void main() async {
       await aliceSDK.updateChannel(aliceApprovedChannel);
 
       expect(
-        () => aliceSDK.didcomm.sendMessage(
-          PlainTextMessage(
-            id: messageId,
-            from: aliceApprovedChannel.permanentChannelDid!,
-            to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
-            type: Uri.parse('https://example.org/plain-text'),
-            body: {'text': 'Hello, Bob!'},
+        () => aliceSDK.sendMessage(
+          DidCommOutgoingMessage(
+            senderDid: aliceApprovedChannel.permanentChannelDid!,
+            recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
+            notifyChannelType: 'notify-channel',
+            payload: PlainTextMessage(
+              id: messageId,
+              from: aliceApprovedChannel.permanentChannelDid!,
+              to: [aliceApprovedChannel.otherPartyPermanentChannelDid!],
+              type: Uri.parse('https://example.org/plain-text'),
+              body: {'text': 'Hello, Bob!'},
+            ),
           ),
-          senderDid: aliceApprovedChannel.permanentChannelDid!,
-          recipientDid: aliceApprovedChannel.otherPartyPermanentChannelDid!,
-          notifyChannelType: 'notify-channel',
         ),
         throwsA(
           isA<MeetingPlaceCoreSDKException>().having(

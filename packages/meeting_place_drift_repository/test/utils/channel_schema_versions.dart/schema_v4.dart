@@ -39,6 +39,12 @@ class Channels extends Table with TableInfo {
       type: DriftSqlType.int,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<int> transport = GeneratedColumn<int>(
+      'transport', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 1',
+      defaultValue: const CustomExpression('1'));
   late final GeneratedColumn<int> isConnectionInitiator = GeneratedColumn<int>(
       'is_connection_initiator', aliasedName, false,
       type: DriftSqlType.int,
@@ -78,11 +84,6 @@ class Channels extends Table with TableInfo {
           type: DriftSqlType.string,
           requiredDuringInsert: false,
           $customConstraints: 'NULL');
-  late final GeneratedColumn<String> matrixRoomId = GeneratedColumn<String>(
-      'matrix_room_id', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: 'NULL');
   late final GeneratedColumn<String> externalRef = GeneratedColumn<String>(
       'external_ref', aliasedName, true,
       type: DriftSqlType.string,
@@ -98,6 +99,11 @@ class Channels extends Table with TableInfo {
           type: DriftSqlType.string,
           requiredDuringInsert: false,
           $customConstraints: 'NULL');
+  late final GeneratedColumn<String> matrixSyncMarker = GeneratedColumn<String>(
+      'matrix_sync_marker', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -106,6 +112,7 @@ class Channels extends Table with TableInfo {
         offerLink,
         status,
         type,
+        transport,
         isConnectionInitiator,
         outboundMessageId,
         acceptOfferDid,
@@ -113,10 +120,10 @@ class Channels extends Table with TableInfo {
         otherPartyPermanentChannelDid,
         notificationToken,
         otherPartyNotificationToken,
-        matrixRoomId,
         externalRef,
         seqNo,
-        messageSyncMarker
+        messageSyncMarker,
+        matrixSyncMarker
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;

@@ -11,7 +11,7 @@ import '../utils/sdk.dart';
 void main() async {
   final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
-  final notification = await aliceSDK.didcomm.registerForNotifications();
+  final notification = await aliceSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
 
@@ -57,11 +57,13 @@ void main() async {
     }
   });
 
-  final notificationStream = await aliceSDK.didcomm.subscribe(
-    notificationDidDocument.id,
+  final notificationStream = await aliceSDK.subscribe(
+    DidCommSubscription(receiverDid: notificationDidDocument.id),
   );
-  notificationStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
+    final didcommMessage = message as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await aliceSDK.processControlPlaneEvents();
   });
 
@@ -75,5 +77,5 @@ void main() async {
   );
 
   await aliceSDK.approveConnectionRequest(channel: waitingChannel);
-  await notificationStream.dispose();
+  await notificationSubscription.cancel();
 }

@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 
+import '../utils/chat_test_harness.dart';
 import 'utils/individual_chat_fixture.dart';
 
 void main() {
@@ -16,73 +15,56 @@ void main() {
     fixture.dispose();
   });
 
-  test('sendMessage sets from/to and sends message', () async {
+  test('sendCustomEvent delivers message to other party', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<Message>();
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
-          bobCompleter.complete(data.chatItem as Message);
-        }
-      });
-    });
+    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
+      fixture.bobChatSDK,
+    );
 
-    final message = CustomMessage(
-      id: 'test-id',
+    await fixture.aliceChatSDK.sendCustomEvent(
       type: ChatProtocol.chatMessage.value,
-      body: {
-        'text': 'Hello via sendMessage',
+      payload: {
+        'text': 'Hello via sendCustomEvent',
         'seq_no': 1,
         'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
 
-    await fixture.aliceChatSDK.sendMessage(message);
-
-    final received = await bobCompleter.future;
-    expect(received.value, equals('Hello via sendMessage'));
+    await bobWait;
+    final received = (await fixture.bobChatSDK.messages).first as Message;
+    expect(received.value, equals('Hello via sendCustomEvent'));
     expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.messageId, equals('test-id'));
   });
 
-  test('sendMessage with notify flag sends notification', () async {
+  test('sendCustomEvent message is persisted in repository', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<Message>();
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
-          bobCompleter.complete(data.chatItem as Message);
-        }
-      });
-    });
+    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
+      fixture.bobChatSDK,
+    );
 
-    final message = CustomMessage(
-      id: 'notify-id',
+    await fixture.aliceChatSDK.sendCustomEvent(
       type: ChatProtocol.chatMessage.value,
-      body: {
-        'text': 'Notify test',
+      payload: {
+        'text': 'Persist test',
         'seq_no': 1,
         'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
 
-    await fixture.aliceChatSDK.sendMessage(message, notify: true);
-
-    final received = await bobCompleter.future;
-    expect(received.value, equals('Notify test'));
+    await bobWait;
+    final received = (await fixture.bobChatSDK.messages).first as Message;
+    expect(received.value, equals('Persist test'));
     expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.messageId, equals('notify-id'));
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(
-      bobMessages.whereType<Message>().any((m) => m.messageId == 'notify-id'),
+      bobMessages.whereType<Message>().any((m) => m.value == 'Persist test'),
       isTrue,
-      reason:
-          'Message with notify flag should be persisted in Bob\'s repository',
+      reason: 'Message should be persisted in Bob\'s repository',
     );
   });
 }

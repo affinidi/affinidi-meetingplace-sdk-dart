@@ -2,43 +2,31 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
 
-///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
+/// Public interface for a single chat session in the Meeting Place SDK.
 ///
-/// It utilises:
-/// - **Decentralised Identifiers (DID)** for a globally unique
-///   identifierfor secure interactions.
-/// - **DIDComm Messaging v2.1 protocol** for a secure, private,
-///   and trusted communications across systems.
+/// A [MeetingPlaceChatSDK] is always scoped to one chat — either an individual
+/// chat with one peer or a group chat — and is obtained via
+/// [MeetingPlaceChatSDK.initialiseFromChannel]. The concrete implementation
+/// ([GroupMatrixChatSDK], [IndividualMatrixChatSDK], or
+/// [IndividualDidcommChatSDK]) is selected from the underlying channel.
 ///
-///  This class wraps either [GroupChatSDK] or [IndividualChatSDK]
-///  depending on the channel type, and delegates all SDK calls
-///  to the underlying implementation.
-class MeetingPlaceChatSDK implements ChatSDK {
-  /// Creates a new [MeetingPlaceChatSDK] instance with the given [ChatSDK]
-  /// implementation.
-  MeetingPlaceChatSDK({required ChatSDK sdk}) : _sdk = sdk;
-
-  /// A constructor that initializes a [MeetingPlaceChatSDK] from a [Channel].
+/// Responsibilities:
+/// - Lifecycle: start/end the chat session and expose the live event stream.
+/// - Messaging: send and edit text messages, reactions, effects, and activity
+///   (typing) signals.
+/// - Membership: approve/reject pending connection requests (group only).
+/// - Contact details: propose, accept, or reject contact-card updates.
+abstract interface class MeetingPlaceChatSDK {
+  /// Builds the right [MeetingPlaceChatSDK] implementation for [channel].
   ///
-  /// **Parameters:**
-  /// - [channel]: The [Channel] entity representing the chat.
-  /// - [coreSDK]: Instance of [MeetingPlaceCoreSDK] to retrieve group
-  ///   information if needed.
-  /// - [chatRepository]: The [ChatRepository] used for persisting messages.
-  /// - [options]: Configuration options for the chat.
-  /// - [card]: Optional [ContactCard] representing the user profile.
-  /// - [logger]: Optional logger implementation for custom logging behavior.
-  ///   If not provided, uses DefaultChatSdkLogger.
-  ///
-  /// **Returns:**
-  /// - A [MeetingPlaceChatSDK] that wraps either a [GroupChatSDK] (if
-  ///   `channel.type` is `group`)
-  ///   or an [IndividualChatSDK].
+  /// Groups always use Matrix. Individual channels dispatch on
+  /// [Channel.transport] between [IndividualMatrixChatSDK] and
+  /// [IndividualDidcommChatSDK].
   static Future<MeetingPlaceChatSDK> initialiseFromChannel(
     Channel channel, {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
-    required ChatSDKOptions options,
+    required MeetingPlaceChatSDKOptions options,
     ContactCard? card,
     MeetingPlaceChatSDKLogger? logger,
   }) async {
@@ -47,186 +35,117 @@ class MeetingPlaceChatSDK implements ChatSDK {
           await coreSDK.getGroupByOfferLink(channel.offerLink) ??
           (throw Exception('Group not found'));
 
-      return MeetingPlaceChatSDK(
-        sdk: GroupChatSDK(
-          coreSDK: coreSDK,
-          group: group,
-          did: channel.permanentChannelDid!,
-          otherPartyDid: channel.otherPartyPermanentChannelDid!,
-          mediatorDid: channel.mediatorDid,
-          chatRepository: chatRepository,
-          options: options,
-          card: card,
-          logger: logger,
-        ),
-      );
-    } else {
-      return MeetingPlaceChatSDK(
-        sdk: IndividualChatSDK(
-          coreSDK: coreSDK,
-          did: channel.permanentChannelDid!,
-          otherPartyDid: channel.otherPartyPermanentChannelDid!,
-          mediatorDid: channel.mediatorDid,
-          chatRepository: chatRepository,
-          options: options,
-          card: card,
-          logger: logger,
-        ),
+      return GroupMatrixChatSDK(
+        coreSDK: coreSDK,
+        group: group,
+        did: channel.permanentChannelDid!,
+        otherPartyDid: channel.otherPartyPermanentChannelDid!,
+        mediatorDid: channel.mediatorDid,
+        chatRepository: chatRepository,
+        options: options,
+        card: card,
+        logger: logger,
       );
     }
+
+    return switch (channel.transport) {
+      ChannelTransport.matrix => IndividualMatrixChatSDK(
+        coreSDK: coreSDK,
+        did: channel.permanentChannelDid!,
+        otherPartyDid: channel.otherPartyPermanentChannelDid!,
+        mediatorDid: channel.mediatorDid,
+        chatRepository: chatRepository,
+        options: options,
+        card: card,
+        logger: logger,
+      ),
+      ChannelTransport.didcomm => IndividualDidcommChatSDK(
+        coreSDK: coreSDK,
+        did: channel.permanentChannelDid!,
+        otherPartyDid: channel.otherPartyPermanentChannelDid!,
+        mediatorDid: channel.mediatorDid,
+        chatRepository: chatRepository,
+        options: options,
+        card: card,
+        logger: logger,
+      ),
+    };
   }
 
-  final ChatSDK _sdk;
+  /// All messages for this chat, ordered as the underlying transport returns
+  /// them. Matrix replays the room timeline; DIDComm returns the locally
+  /// persisted set.
+  Future<List<ChatItem>> get messages;
 
-  /// Retrieves the list of existing messages in the channel.
-  ///
-  /// **Returns:**
-  /// - A [List] of [ChatItem] objects.
-  @override
-  Future<List<ChatItem>> get messages {
-    return _sdk.messages;
-  }
+  /// Stream of live chat events for this session, or `null` if
+  /// [startChatSession] has not been called yet. Resolves once the transport
+  /// subscription is ready so callers don't miss the first events.
+  Future<ChatStream?> get chatStreamSubscription;
 
-  @override
-  Future<ChatStream?> get chatStreamSubscription => _sdk.chatStreamSubscription;
+  /// Starts the chat session: subscribes to the transport, replays history,
+  /// and returns the initial [Chat] snapshot.
+  Future<Chat> startChatSession();
 
-  /// Starts a new chat session.
-  ///
-  /// **Returns:**
-  /// - A [Chat] instance representing the started session.
-  @override
-  Future<Chat> startChatSession() {
-    return _sdk.startChatSession();
-  }
+  /// Ends the chat session, cancelling the transport subscription and
+  /// disposing the live [ChatStream].
+  Future<void> endChatSession();
 
-  /// Ends the active chat session.
-  @override
-  void endChatSession() async {
-    return _sdk.endChatSession();
-  }
+  /// Retrieves a single persisted message by its local [messageId], or `null`
+  /// if no such message exists in this chat.
+  Future<ChatItem?> getMessageById(String messageId);
 
-  /// Retrieves a single message by ID.
-  ///
-  /// **Parameters:**
-  /// - [messageId]: The unique identifier of the message.
-  ///
-  /// **Returns:**
-  /// - A [ChatItem] if found, or `null` otherwise.
-  @override
-  Future<ChatItem?> getMessageById(String messageId) {
-    return _sdk.getMessageById(messageId);
-  }
-
-  /// Fetches new messages from the channel.
-  ///
-  /// **Returns:**
-  /// - A [List] of [Message] objects representing new messages.
-  @override
-  Future<List<Message>> fetchNewMessages() {
-    return _sdk.fetchNewMessages();
-  }
-
-  /// Sends the profile hash to the channel.
-  @override
-  Future<void> sendProfileHash() {
-    return _sdk.sendProfileHash();
-  }
-
-  /// Sends updated chat contact details to the channel.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [ConciergeMessage] containing updated details.
-  @override
-  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) {
-    return _sdk.sendChatContactDetailsUpdate(message);
-  }
-
-  /// Sends a plain text message.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [CustomMessage] to send.
-  ///
-  /// Returns a [Future] that completes when the message has been sent.
-  @override
-  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
-    return _sdk.sendMessage(message, notify: notify);
-  }
-
-  /// Sends a plain text message (optionally with attachments).
-  ///
-  /// **Parameters:**
-  /// - [text]: The message content.
-  /// - [attachments]: An optional list of [ChatAttachment]s.
-  ///
-  /// **Returns:**
-  /// - The sent [Message].
-  @override
+  /// Sends a plain text message with optional [attachments]. Returns the
+  /// persisted [Message] once it has been dispatched (status reflects whether
+  /// the send succeeded).
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment>? attachments,
-  }) {
-    return _sdk.sendTextMessage(text, attachments: attachments);
-  }
+  });
 
-  /// Reacts to a given message.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [Message] to react to.
-  /// - [reaction]: The reaction string (e.g., emoji).
-  @override
-  Future<void> reactOnMessage(Message message, {required String reaction}) {
-    return _sdk.reactOnMessage(message, reaction: reaction);
-  }
+  /// Edits a previously sent text [message] to [newText]. Only the original
+  /// sender can edit a message; the message must have been delivered.
+  Future<void> editTextMessage(Message message, String newText);
 
-  /// Sends a "chat activity" signal (e.g., typing indicator).
-  @override
-  Future<void> sendChatActivity() => _sdk.sendChatActivity();
+  /// Sends a typing / activity indicator for this chat. The signal expires
+  /// after the configured `chatActivityExpiry`.
+  Future<void> sendChatActivity();
 
-  /// Sends a "chat presence" signal (e.g., online status).
-  @override
-  Future<void> sendChatPresence() => _sdk.sendChatPresence();
+  /// Broadcasts a visual chat [effect] (e.g. a confetti burst) to the other
+  /// participants.
+  Future<void> sendEffect(Effect effect);
 
-  /// Sends a special chat effect.
-  ///
-  /// **Parameters:**
-  /// - [effect]: The [Effect] to send.
-  @override
-  Future<void> sendEffect(Effect effect) => _sdk.sendEffect(effect);
+  /// Accepts the contact-details update prompted by [message] and broadcasts
+  /// the local contact card to the other participants.
+  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
 
-  /// Sends a "delivered" receipt for a plain text message.
-  ///
-  /// **Parameters:**
-  /// - [messageId]: The ID of the message that was delivered.
-  @override
-  Future<void> sendChatDeliveredMessage(String messageId) =>
-      _sdk.sendChatDeliveredMessage(messageId);
+  /// Toggles [reaction] on [message]. Adds the reaction if absent and removes
+  /// it if already present.
+  Future<void> reactOnMessage(Message message, {required String reaction});
 
-  /// Approves an incoming connection request.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [ConciergeMessage] representing the request.
-  @override
-  Future<void> approveConnectionRequest(ConciergeMessage message) =>
-      _sdk.approveConnectionRequest(message);
+  /// Approves a pending connection request represented by [message]. Group
+  /// chats only — implementations for individual chats throw
+  /// [UnimplementedError].
+  Future<void> approveConnectionRequest(ConciergeMessage message);
 
-  /// Rejects an incoming connection request.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [ConciergeMessage] representing the request.
-  @override
-  Future<void> rejectConnectionRequest(ConciergeMessage message) =>
-      _sdk.rejectConnectionRequest(message);
+  /// Rejects a pending connection request represented by [message]. Group
+  /// chats only — implementations for individual chats throw
+  /// [UnimplementedError].
+  Future<void> rejectConnectionRequest(ConciergeMessage message);
 
-  /// Rejects an incoming chat contact details update.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [ConciergeMessage] representing the update request.
-  @override
-  Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) =>
-      _sdk.rejectChatContactDetailsUpdate(message);
+  /// Rejects the contact-details update prompted by [message] without
+  /// broadcasting any card change; marks the concierge message as confirmed.
+  Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message);
 
-  /// Starts periodic chat presence updates to indicate the user is active in
-  /// the chat.
-  @override
-  Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
+  /// Starts periodic chat presence updates.
+  Future<void> startChatPresenceUpdates();
+
+  /// Transport-neutral escape hatch for sending an arbitrary event with the
+  /// given [type] and [payload] to the other participants. The concrete
+  /// transport (Matrix room event or DIDComm plain text message) is chosen by
+  /// the implementation; the SDK does not persist a [ChatItem] for the sender
+  /// and does not push to the chat stream.
+  Future<void> sendCustomEvent({
+    required String type,
+    required Map<String, dynamic> payload,
+  });
 }

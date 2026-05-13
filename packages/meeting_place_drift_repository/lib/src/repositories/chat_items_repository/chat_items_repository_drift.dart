@@ -53,6 +53,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                 status: Value(message.status),
                 type: Value(message.type),
                 senderDid: Value(message.senderDid),
+                transportId: Value(message.transportId),
               ),
             );
         final newMessage = await (_database.select(_database.chatItems)
@@ -335,6 +336,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             status: Value(message.status),
             type: Value(message.type),
             senderDid: Value(message.senderDid),
+            transportId: Value(message.transportId),
           ),
         );
 
@@ -593,6 +595,7 @@ class _ChatItemMapper {
         status: message.status,
         reactions: reactions.map((r) => r.value).toList(),
         senderDid: message.senderDid,
+        transportId: message.transportId,
         attachments: attachments.entries
             .map(
               (a) => model.ChatAttachment(

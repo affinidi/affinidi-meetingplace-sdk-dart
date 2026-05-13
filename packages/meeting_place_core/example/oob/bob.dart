@@ -50,16 +50,19 @@ void main() async {
   prettyPrint('Disposing OOB stream...');
   await acceptance.stream.dispose();
 
-  await bobSDK.didcomm.sendMessage(
-      PlainTextMessage(
+  await bobSDK.sendMessage(
+    DidCommOutgoingMessage(
+      senderDid: channel.permanentChannelDid!,
+      recipientDid: channel.otherPartyPermanentChannelDid!,
+      payload: PlainTextMessage(
           id: const Uuid().v4(),
           type: Uri.parse(
               'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example'),
           from: channel.permanentChannelDid,
           to: [channel.otherPartyPermanentChannelDid!],
           body: {'hello': 'world'}),
-      senderDid: channel.permanentChannelDid!,
-      recipientDid: channel.otherPartyPermanentChannelDid!);
+    ),
+  );
 
   prettyPrint('Message sent to Alice');
 }

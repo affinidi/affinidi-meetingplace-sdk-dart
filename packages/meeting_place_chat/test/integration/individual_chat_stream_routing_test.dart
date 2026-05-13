@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import '../utils/chat_test_harness.dart';
 import 'utils/individual_chat_fixture.dart';
 
 void main() {
@@ -27,34 +26,21 @@ void main() {
       body: {'text': 'Hello Alice!'},
     );
 
-    final pushedToChatStream = Completer<StreamData>();
-
     await fixture.aliceChatSDK.startChatSession();
-    await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) async {
-        final event = message.event;
-        if (event is UnhandledChatEvent &&
-            event.type == unhandledMessage.type.toString()) {
-          pushedToChatStream.complete(message);
-          stream.dispose();
-        }
-      });
-    });
-
-    await fixture.bobSDK.coreSDK.didcomm.sendMessage(
-      unhandledMessage,
-      senderDid: fixture.bobSDK.didDocument.id,
-      recipientDid: fixture.aliceSDK.didDocument.id,
+    final waitForUnhandled = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+      fixture.aliceChatSDK,
+      where: (e) => e.type == unhandledMessage.type.toString(),
     );
 
-    final receivedStreamData = await pushedToChatStream.future.timeout(
-      const Duration(seconds: 10),
+    await fixture.bobSDK.coreSDK.sendMessage(
+      DidCommOutgoingMessage(
+        senderDid: fixture.bobSDK.didDocument.id,
+        recipientDid: fixture.aliceSDK.didDocument.id,
+        payload: unhandledMessage,
+      ),
     );
 
-    expect(receivedStreamData, isA<StreamData>());
-    expect(
-      (receivedStreamData.event as UnhandledChatEvent).type,
-      equals(unhandledMessage.type.toString()),
-    );
+    final received = await waitForUnhandled;
+    expect(received.type, equals(unhandledMessage.type.toString()));
   });
 }

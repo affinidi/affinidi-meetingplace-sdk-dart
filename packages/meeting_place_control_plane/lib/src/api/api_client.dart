@@ -47,6 +47,8 @@ export 'api_client/model/group_delete_input.dart';
 export 'api_client/model/group_delete_ok.dart';
 export 'api_client/model/group_deregister_member_input.dart';
 export 'api_client/model/group_member_deregister_ok.dart';
+export 'api_client/model/group_notify_channel_input.dart';
+export 'api_client/model/group_notify_channel_ok.dart';
 export 'api_client/model/group_send_message.dart';
 export 'api_client/model/group_send_message_ok.dart';
 export 'api_client/model/invalid_acceptance_error.dart';

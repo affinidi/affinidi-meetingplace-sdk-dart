@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import '../utils/chat_test_harness.dart';
 import 'utils/individual_chat_fixture.dart';
 
 void main() {
@@ -43,23 +42,15 @@ void main() {
       attachments: attachments,
     );
 
-    final bobWaitForAttachments = Completer<List<ChatAttachment>>();
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (!bobWaitForAttachments.isCompleted &&
-            data.event is ChatMessageEvent &&
-            message.messageId == data.chatItem?.messageId) {
-          stream.dispose();
-          bobWaitForAttachments.complete(
-            (data.chatItem as Message).attachments,
-          );
-        }
-      });
-    });
+    final receivedItem = await ChatTestHarness.awaitItem(
+      fixture.bobChatSDK,
+      where: (item) => item.messageId == message.messageId,
+    );
 
-    final receivedAttachments = await bobWaitForAttachments.future;
-
-    expect(receivedAttachments.first.toJson(), attachments.first.toJson());
+    expect(
+      (receivedItem as Message).attachments.first.toJson(),
+      attachments.first.toJson(),
+    );
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(

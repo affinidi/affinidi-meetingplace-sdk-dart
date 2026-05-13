@@ -660,7 +660,8 @@ class GroupService {
       group.ownerDid!,
     );
 
-    final roomId = channel.matrixRoomId ?? (throw GroupException.notFoundError());
+    final roomId =
+        channel.matrixRoomId ?? (throw GroupException.notFoundError());
 
     await _matrixService.inviteUser(
       roomId,

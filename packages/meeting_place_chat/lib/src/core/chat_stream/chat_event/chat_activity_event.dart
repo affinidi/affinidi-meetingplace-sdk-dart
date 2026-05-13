@@ -9,7 +9,7 @@ final class ChatActivityEvent extends ChatEvent {
   });
 
   /// DID of the sender, used for group typing indicators.
-  final String? senderDid;
+  final String senderDid;
 
   /// Timestamp from the activity body.
   final DateTime timestamp;

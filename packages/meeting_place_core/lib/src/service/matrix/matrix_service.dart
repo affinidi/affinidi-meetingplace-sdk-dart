@@ -6,8 +6,9 @@ import 'package:ssi/ssi.dart';
 
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
-import 'matrix_session_manager.dart';
 import 'matrix_room_event.dart';
+import 'matrix_session_manager.dart';
+import 'matrix_subscription_options.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -100,6 +101,37 @@ class MatrixService {
     await client.joinRoom(roomId);
   }
 
+  Future<void> leaveRoom(
+    String roomId, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    await client.leaveRoom(roomId);
+  }
+
+  /// Sends an `m.typing` notification for [roomId], telling the server the
+  /// user is typing for [timeoutMs] milliseconds.
+  Future<void> enableTyping(
+    String roomId, {
+    required DidManager didManager,
+    int? timeoutMs,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    await room.setTyping(true, timeout: timeoutMs);
+  }
+
+  Future<void> disableTyping(
+    String roomId, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    await room.setTyping(false);
+  }
+
   Future<void> inviteUser(
     String roomId, {
     required String did,
@@ -110,7 +142,179 @@ class MatrixService {
     await client.inviteUser(roomId, userId);
   }
 
-  /// Disposes of the session manager, cleaning up resources.
+  Future<void> redactRoomEvent(
+    String roomId,
+    String eventId, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    await room.redactEvent(eventId);
+  }
+
+  /// Sends a Matrix room event with [eventType] and [content] to [roomId].
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to send the event to.
+  /// - [eventType]: The Matrix event type (a ChatProtocol URI).
+  /// - [content]: The event content payload.
+  /// - [didManager]: The DID manager used to ensure an authenticated session.
+  Future<String?> sendRoomEvent(
+    String roomId,
+    String eventType,
+    Map<String, dynamic> content, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+
+    if (eventType == 'm.read') {
+      final eventId = content['event_id'] as String;
+      await room.setReadMarker(eventId, mRead: eventId);
+      return null;
+    }
+
+    if (eventType == 'm.room.redaction') {
+      final targetEventId = content['redacts'] as String;
+      await room.redactEvent(targetEventId);
+      return null;
+    }
+
+    return room.sendEvent(content, type: eventType);
+  }
+
+  /// Returns recent events from [roomId] as [MatrixRoomEvent]s.
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to fetch history from.
+  /// - [didManager]: The DID manager used to ensure an authenticated session.
+  /// - [limit]: Maximum number of events to return (default: 50).
+  Future<List<MatrixRoomEvent>> fetchRoomHistory(
+    String roomId, {
+    required DidManager didManager,
+    int limit = 50,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final myUserId = _sessionManager.deriveUserId(
+      (await didManager.getDidDocument()).id,
+      homeserver.host,
+    );
+    final room = client.getRoomById(roomId);
+    if (room == null) return [];
+
+    final timeline = await room.getTimeline(limit: limit);
+
+    if (timeline.events.length < limit && timeline.canRequestHistory) {
+      await timeline.requestHistory(historyCount: limit);
+    }
+
+    final events = timeline.events
+        .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
+        .whereType<MatrixRoomEvent>();
+
+    return events.take(limit).toList();
+  }
+
+  /// Returns a stream of [MatrixRoomEvent]s received in [roomId].
+  ///
+  /// Yields both timeline events (message, reaction, etc.) and `m.receipt`
+  /// ephemeral events so callers can track delivery with a single subscription.
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to subscribe to.
+  /// - [didManager]: The DID manager used to ensure an authenticated session.
+  /// - [excludeSelf]: When `true`, events sent by the local user are filtered
+  ///   out before being yielded (default: `false`).
+  Stream<MatrixRoomEvent> subscribeToRoom(
+    String roomId, {
+    required DidManager didManager,
+    MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
+  }) async* {
+    final client = await _ensureSession(didManager);
+    final myUserId = _sessionManager.deriveUserId(
+      (await didManager.getDidDocument()).id,
+      homeserver.host,
+    );
+
+    final controller = StreamController<MatrixRoomEvent>();
+
+    final timelineSub = client.onTimelineEvent.stream
+        .where((e) => e.room.id == roomId)
+        .listen((event) {
+          final msg = _eventToMatrixRoomEvent(event, myUserId: myUserId);
+          if (msg != null && (!options.excludeSelf || !msg.isFromMe)) {
+            controller.add(msg);
+          }
+        }, onError: controller.addError);
+
+    final syncSub = client.onSync.stream.listen((syncUpdate) {
+      final ephemeral = syncUpdate.rooms?.join?[roomId]?.ephemeral;
+      if (ephemeral == null) return;
+
+      for (final event in ephemeral) {
+        if (event.type == 'm.typing') {
+          final userIds =
+              (event.content['user_ids'] as List?)?.cast<String>() ?? [];
+          for (final userId in userIds) {
+            if (options.excludeSelf && userId == myUserId) continue;
+            controller.add(
+              MatrixRoomEvent(
+                id: '${roomId}_typing_$userId',
+                type: 'm.typing',
+                userId: userId,
+                roomId: roomId,
+                content: event.content,
+                timestamp: DateTime.now().toUtc(),
+              ),
+            );
+          }
+          continue;
+        }
+
+        if (event.type != 'm.receipt') continue;
+
+        final content = event.content;
+        for (final entry in content.entries) {
+          final eventId = entry.key;
+          final mRead =
+              (entry.value as Map<String, dynamic>?)
+                      ?.cast<String, dynamic>()['m.read']
+                  as Map<String, dynamic>?;
+          if (mRead == null) continue;
+
+          for (final userEntry in mRead.entries) {
+            final userId = userEntry.key;
+            if (options.excludeSelf && userId == myUserId) continue;
+            final ts =
+                (userEntry.value as Map<String, dynamic>?)?['ts'] as int?;
+            controller.add(
+              MatrixRoomEvent(
+                id: eventId,
+                type: 'm.receipt',
+                userId: userId,
+                roomId: roomId,
+                content: {'event_id': eventId},
+                timestamp: ts != null
+                    ? DateTime.fromMillisecondsSinceEpoch(ts, isUtc: true)
+                    : DateTime.now().toUtc(),
+              ),
+            );
+          }
+        }
+      }
+    }, onError: controller.addError);
+
+    try {
+      yield* controller.stream;
+    } finally {
+      await timelineSub.cancel();
+      await syncSub.cancel();
+      await controller.close();
+    }
+  }
+
   void dispose() {
     _sessionManager.dispose();
   }
@@ -124,7 +328,7 @@ class MatrixService {
     return MatrixRoomEvent(
       id: event.eventId,
       type: typeStr,
-      sender: event.senderId,
+      userId: event.senderId,
       roomId: event.room.id,
       content: Map<String, dynamic>.from(event.content),
       timestamp: event.originServerTs,

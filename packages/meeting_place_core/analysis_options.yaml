@@ -15,7 +15,6 @@ linter:
 
 analyzer:
   exclude:
-    - "lib/src/service/matrix/**"
     - "test/load/**"
   errors:
     avoid_print: error

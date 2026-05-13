@@ -29,6 +29,7 @@ import 'group/group_exception.dart';
 import 'group/group_message.dart' as group_message;
 import 'group_service/accept_group_offer_result.dart';
 import 'identity/identity_service.dart';
+import 'identity/model/permanent_identity.dart';
 import 'matrix/matrix_service.dart';
 
 class GroupService {
@@ -677,6 +678,9 @@ class GroupService {
       member: member,
     );
 
+    group.approveMember(member);
+    await _groupRepository.updateGroup(group);
+
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
       to: [memberDid],
@@ -726,9 +730,6 @@ class GroupService {
         reencryptionKey: reencryptionKey.toBase64(),
       ),
     );
-
-    group.approveMember(member);
-    await _groupRepository.updateGroup(group);
 
     _logger.info(
       'Successfully approved membership request for offer: '
@@ -900,15 +901,24 @@ class GroupService {
       return;
     }
 
-    final memberDidManager = await _connectionManager.getDidManagerForDid(
+    final memberIdentity = await _identityService.getPermanentIdentity(
       _wallet,
       memberDid,
     );
 
     if (group.isMemberOfTypeAdmin(memberDid)) {
-      await _leaveGroupAsAdmin(group, memberDid);
+      await _leaveGroupAsAdmin(
+        group,
+        memberDid,
+        matrixRoomId: channel.matrixRoomId ?? '',
+        memberDidManager: memberIdentity.didManager,
+      );
     } else {
-      await _leaveGroupAsMember(group: group, memberDid: memberDid);
+      await _leaveGroupAsMember(
+        group: group,
+        channel: channel,
+        identity: memberIdentity,
+      );
     }
 
     if (channel.notificationToken != null) {
@@ -934,7 +944,7 @@ class GroupService {
     await _removePermissionToGetMessagesFromGroup(
       groupDid: group.did,
       mediatorDid: channel.mediatorDid,
-      memberDid: memberDidManager,
+      memberDid: memberIdentity.didManager,
     );
 
     await _groupRepository.removeGroup(group);
@@ -964,7 +974,19 @@ class GroupService {
     );
   }
 
-  Future<void> _leaveGroupAsAdmin(Group group, String memberDid) async {
+  Future<void> _leaveGroupAsAdmin(
+    Group group,
+    String memberDid, {
+    required String matrixRoomId,
+    required DidManager memberDidManager,
+  }) async {
+    await _matrixService.sendRoomEvent(
+      matrixRoomId,
+      MeetingPlaceProtocol.groupDeletion.value,
+      {'group_id': group.id},
+      didManager: memberDidManager,
+    );
+
     final encryptedMessage = group_message.GroupMessage.encrypt(
       GroupDeletion.create(groupId: group.id).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
@@ -982,12 +1004,18 @@ class GroupService {
 
   Future<void> _leaveGroupAsMember({
     required Group group,
-    required String memberDid,
+    required PermanentIdentity identity,
+    required Channel channel,
   }) async {
+    await _matrixService.leaveRoom(
+      channel.matrixRoomId!,
+      didManager: identity.didManager,
+    );
+
     final encryptedMessage = group_message.GroupMessage.encrypt(
       GroupMemberDeregistration.create(
         groupId: group.id,
-        memberDid: memberDid,
+        memberDid: identity.didDocument.id,
       ).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
@@ -997,7 +1025,7 @@ class GroupService {
     await _controlPlaneSDK.execute(
       cp.GroupDeregisterMemberCommand(
         groupId: group.id,
-        memberId: memberDid,
+        memberId: identity.didDocument.id,
         messageBase64: _encodeEncryptedMessagePayload(encryptedMessage),
       ),
     );

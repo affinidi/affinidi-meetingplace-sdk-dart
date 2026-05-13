@@ -440,7 +440,12 @@ class MeetingPlaceCoreSDK {
       onDeviceRegistered: (device) => controlPlaneSDK.device = device,
     );
 
-    final matrixTransport = MatrixTransport();
+    final matrixTransport = MatrixTransport(
+      matrixService: matrixService,
+      errorHandler: sdkErrorHandler,
+      getDidManager: (did) =>
+          connectionManager.getDidManagerForDid(wallet, did),
+    );
 
     return MeetingPlaceCoreSDK._(
       wallet: wallet,

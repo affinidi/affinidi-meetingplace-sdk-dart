@@ -114,6 +114,12 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
   late final GeneratedColumn<DateTime> messageSyncMarker =
       GeneratedColumn<DateTime>('message_sync_marker', aliasedName, true,
           type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _matrixSyncMarkerMeta =
+      const VerificationMeta('matrixSyncMarker');
+  @override
+  late final GeneratedColumn<String> matrixSyncMarker = GeneratedColumn<String>(
+      'matrix_sync_marker', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -132,7 +138,8 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         matrixRoomId,
         externalRef,
         seqNo,
-        messageSyncMarker
+        messageSyncMarker,
+        matrixSyncMarker
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -237,6 +244,12 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           messageSyncMarker.isAcceptableOrUnknown(
               data['message_sync_marker']!, _messageSyncMarkerMeta));
     }
+    if (data.containsKey('matrix_sync_marker')) {
+      context.handle(
+          _matrixSyncMarkerMeta,
+          matrixSyncMarker.isAcceptableOrUnknown(
+              data['matrix_sync_marker']!, _matrixSyncMarkerMeta));
+    }
     return context;
   }
 
@@ -284,6 +297,8 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           .read(DriftSqlType.int, data['${effectivePrefix}seq_no'])!,
       messageSyncMarker: attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime, data['${effectivePrefix}message_sync_marker']),
+      matrixSyncMarker: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}matrix_sync_marker']),
     );
   }
 
@@ -351,6 +366,9 @@ class Channel extends DataClass implements Insertable<Channel> {
 
   /// Message sync marker for the channel.
   final DateTime? messageSyncMarker;
+
+  /// Matrix sync marker for the channel.
+  final String? matrixSyncMarker;
   const Channel(
       {required this.id,
       required this.publishOfferDid,
@@ -368,7 +386,8 @@ class Channel extends DataClass implements Insertable<Channel> {
       this.matrixRoomId,
       this.externalRef,
       required this.seqNo,
-      this.messageSyncMarker});
+      this.messageSyncMarker,
+      this.matrixSyncMarker});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -414,6 +433,9 @@ class Channel extends DataClass implements Insertable<Channel> {
     if (!nullToAbsent || messageSyncMarker != null) {
       map['message_sync_marker'] = Variable<DateTime>(messageSyncMarker);
     }
+    if (!nullToAbsent || matrixSyncMarker != null) {
+      map['matrix_sync_marker'] = Variable<String>(matrixSyncMarker);
+    }
     return map;
   }
 
@@ -456,6 +478,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: messageSyncMarker == null && nullToAbsent
           ? const Value.absent()
           : Value(messageSyncMarker),
+      matrixSyncMarker: matrixSyncMarker == null && nullToAbsent
+          ? const Value.absent()
+          : Value(matrixSyncMarker),
     );
   }
 
@@ -487,6 +512,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       seqNo: serializer.fromJson<int>(json['seqNo']),
       messageSyncMarker:
           serializer.fromJson<DateTime?>(json['messageSyncMarker']),
+      matrixSyncMarker: serializer.fromJson<String?>(json['matrixSyncMarker']),
     );
   }
   @override
@@ -512,6 +538,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       'externalRef': serializer.toJson<String?>(externalRef),
       'seqNo': serializer.toJson<int>(seqNo),
       'messageSyncMarker': serializer.toJson<DateTime?>(messageSyncMarker),
+      'matrixSyncMarker': serializer.toJson<String?>(matrixSyncMarker),
     };
   }
 
@@ -532,7 +559,8 @@ class Channel extends DataClass implements Insertable<Channel> {
           Value<String?> matrixRoomId = const Value.absent(),
           Value<String?> externalRef = const Value.absent(),
           int? seqNo,
-          Value<DateTime?> messageSyncMarker = const Value.absent()}) =>
+          Value<DateTime?> messageSyncMarker = const Value.absent(),
+          Value<String?> matrixSyncMarker = const Value.absent()}) =>
       Channel(
         id: id ?? this.id,
         publishOfferDid: publishOfferDid ?? this.publishOfferDid,
@@ -566,6 +594,9 @@ class Channel extends DataClass implements Insertable<Channel> {
         messageSyncMarker: messageSyncMarker.present
             ? messageSyncMarker.value
             : this.messageSyncMarker,
+        matrixSyncMarker: matrixSyncMarker.present
+            ? matrixSyncMarker.value
+            : this.matrixSyncMarker,
       );
   Channel copyWithCompanion(ChannelsCompanion data) {
     return Channel(
@@ -608,6 +639,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: data.messageSyncMarker.present
           ? data.messageSyncMarker.value
           : this.messageSyncMarker,
+      matrixSyncMarker: data.matrixSyncMarker.present
+          ? data.matrixSyncMarker.value
+          : this.matrixSyncMarker,
     );
   }
 
@@ -631,7 +665,8 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('matrixRoomId: $matrixRoomId, ')
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
-          ..write('messageSyncMarker: $messageSyncMarker')
+          ..write('messageSyncMarker: $messageSyncMarker, ')
+          ..write('matrixSyncMarker: $matrixSyncMarker')
           ..write(')'))
         .toString();
   }
@@ -654,7 +689,8 @@ class Channel extends DataClass implements Insertable<Channel> {
       matrixRoomId,
       externalRef,
       seqNo,
-      messageSyncMarker);
+      messageSyncMarker,
+      matrixSyncMarker);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -677,7 +713,8 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.matrixRoomId == this.matrixRoomId &&
           other.externalRef == this.externalRef &&
           other.seqNo == this.seqNo &&
-          other.messageSyncMarker == this.messageSyncMarker);
+          other.messageSyncMarker == this.messageSyncMarker &&
+          other.matrixSyncMarker == this.matrixSyncMarker);
 }
 
 class ChannelsCompanion extends UpdateCompanion<Channel> {
@@ -698,6 +735,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String?> externalRef;
   final Value<int> seqNo;
   final Value<DateTime?> messageSyncMarker;
+  final Value<String?> matrixSyncMarker;
   final Value<int> rowid;
   const ChannelsCompanion({
     this.id = const Value.absent(),
@@ -717,6 +755,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.externalRef = const Value.absent(),
     this.seqNo = const Value.absent(),
     this.messageSyncMarker = const Value.absent(),
+    this.matrixSyncMarker = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChannelsCompanion.insert({
@@ -737,6 +776,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.externalRef = const Value.absent(),
     required int seqNo,
     this.messageSyncMarker = const Value.absent(),
+    this.matrixSyncMarker = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : publishOfferDid = Value(publishOfferDid),
         mediatorDid = Value(mediatorDid),
@@ -762,6 +802,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? externalRef,
     Expression<int>? seqNo,
     Expression<DateTime>? messageSyncMarker,
+    Expression<String>? matrixSyncMarker,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -786,6 +827,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       if (externalRef != null) 'external_ref': externalRef,
       if (seqNo != null) 'seq_no': seqNo,
       if (messageSyncMarker != null) 'message_sync_marker': messageSyncMarker,
+      if (matrixSyncMarker != null) 'matrix_sync_marker': matrixSyncMarker,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -808,6 +850,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       Value<String?>? externalRef,
       Value<int>? seqNo,
       Value<DateTime?>? messageSyncMarker,
+      Value<String?>? matrixSyncMarker,
       Value<int>? rowid}) {
     return ChannelsCompanion(
       id: id ?? this.id,
@@ -830,6 +873,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       externalRef: externalRef ?? this.externalRef,
       seqNo: seqNo ?? this.seqNo,
       messageSyncMarker: messageSyncMarker ?? this.messageSyncMarker,
+      matrixSyncMarker: matrixSyncMarker ?? this.matrixSyncMarker,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -894,6 +938,9 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     if (messageSyncMarker.present) {
       map['message_sync_marker'] = Variable<DateTime>(messageSyncMarker.value);
     }
+    if (matrixSyncMarker.present) {
+      map['matrix_sync_marker'] = Variable<String>(matrixSyncMarker.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -921,6 +968,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
           ..write('messageSyncMarker: $messageSyncMarker, ')
+          ..write('matrixSyncMarker: $matrixSyncMarker, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1377,6 +1425,7 @@ typedef $$ChannelsTableCreateCompanionBuilder = ChannelsCompanion Function({
   Value<String?> externalRef,
   required int seqNo,
   Value<DateTime?> messageSyncMarker,
+  Value<String?> matrixSyncMarker,
   Value<int> rowid,
 });
 typedef $$ChannelsTableUpdateCompanionBuilder = ChannelsCompanion Function({
@@ -1397,6 +1446,7 @@ typedef $$ChannelsTableUpdateCompanionBuilder = ChannelsCompanion Function({
   Value<String?> externalRef,
   Value<int> seqNo,
   Value<DateTime?> messageSyncMarker,
+  Value<String?> matrixSyncMarker,
   Value<int> rowid,
 });
 
@@ -1496,6 +1546,10 @@ class $$ChannelsTableFilterComposer
       column: $table.messageSyncMarker,
       builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get matrixSyncMarker => $composableBuilder(
+      column: $table.matrixSyncMarker,
+      builder: (column) => ColumnFilters(column));
+
   Expression<bool> channelContactCardsRefs(
       Expression<bool> Function($$ChannelContactCardsTableFilterComposer f) f) {
     final $$ChannelContactCardsTableFilterComposer composer = $composerBuilder(
@@ -1588,6 +1642,10 @@ class $$ChannelsTableOrderingComposer
   ColumnOrderings<DateTime> get messageSyncMarker => $composableBuilder(
       column: $table.messageSyncMarker,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get matrixSyncMarker => $composableBuilder(
+      column: $table.matrixSyncMarker,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$ChannelsTableAnnotationComposer
@@ -1651,6 +1709,9 @@ class $$ChannelsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get messageSyncMarker => $composableBuilder(
       column: $table.messageSyncMarker, builder: (column) => column);
+
+  GeneratedColumn<String> get matrixSyncMarker => $composableBuilder(
+      column: $table.matrixSyncMarker, builder: (column) => column);
 
   Expression<T> channelContactCardsRefs<T extends Object>(
       Expression<T> Function($$ChannelContactCardsTableAnnotationComposer a)
@@ -1716,6 +1777,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             Value<String?> externalRef = const Value.absent(),
             Value<int> seqNo = const Value.absent(),
             Value<DateTime?> messageSyncMarker = const Value.absent(),
+            Value<String?> matrixSyncMarker = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChannelsCompanion(
@@ -1736,6 +1798,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             externalRef: externalRef,
             seqNo: seqNo,
             messageSyncMarker: messageSyncMarker,
+            matrixSyncMarker: matrixSyncMarker,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1756,6 +1819,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             Value<String?> externalRef = const Value.absent(),
             required int seqNo,
             Value<DateTime?> messageSyncMarker = const Value.absent(),
+            Value<String?> matrixSyncMarker = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChannelsCompanion.insert(
@@ -1776,6 +1840,7 @@ class $$ChannelsTableTableManager extends RootTableManager<
             externalRef: externalRef,
             seqNo: seqNo,
             messageSyncMarker: messageSyncMarker,
+            matrixSyncMarker: matrixSyncMarker,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

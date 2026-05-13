@@ -1,4 +1,5 @@
 import '../../meeting_place_chat.dart';
+import 'custom_room_event.dart';
 
 abstract interface class ChatSDK {
   Future<List<ChatItem>> get messages;
@@ -8,15 +9,13 @@ abstract interface class ChatSDK {
   void endChatSession();
 
   Future<ChatItem?> getMessageById(String messageId);
-  Future<List<Message>> fetchNewMessages();
 
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment>? attachments,
   });
 
-  Future<void> sendMessage(CustomMessage message, {bool notify = false});
-  Future<void> sendProfileHash();
+  // TODO: add custom message
   Future<void> sendChatActivity();
   Future<void> sendChatPresence();
   Future<void> sendEffect(Effect effect);

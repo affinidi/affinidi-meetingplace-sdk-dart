@@ -16,7 +16,7 @@ extension PlainTextMessageToChatEvent on PlainTextMessage {
         ).body.timestamp,
       ),
       protocol.ChatProtocol.chatActivity => ChatActivityEvent(
-        senderDid: from,
+        senderDid: from!,
         timestamp: protocol.ChatActivity.fromPlainTextMessage(
           this,
         ).body.timestamp,
@@ -38,6 +38,18 @@ extension PlainTextMessageToChatEvent on PlainTextMessage {
         body: body,
         createdTime: createdTime,
       ),
+    };
+  }
+}
+
+extension MatrixRoomEventToChatEvent on MatrixRoomEvent {
+  ChatEvent toChatEvent() {
+    final chatProtocol = protocol.ChatProtocol.byValue(type);
+    return switch (chatProtocol) {
+      protocol.ChatProtocol.chatEffect => ChatEffectEvent(
+        effectName: content['effect'] as String? ?? '',
+      ),
+      _ => const ChatMessageEvent(),
     };
   }
 }

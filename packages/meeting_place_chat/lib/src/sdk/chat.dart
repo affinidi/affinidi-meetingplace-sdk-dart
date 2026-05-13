@@ -7,6 +7,11 @@ import '../entity/entity.dart';
 /// for receiving messages in real time, and a collection of
 /// persisted [ChatItem] messages.
 class Chat {
+  factory Chat.deleted({
+    required String id,
+    required List<ChatItem> messages,
+  }) => Chat(id: id, stream: null, messages: messages);
+
   /// Creates a new [Chat] instance.
   ///
   /// **Parameters:**

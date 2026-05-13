@@ -2,23 +2,18 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../core/chat_stream/chat_event_conversion.dart';
-import '../entity/chat_attachment_conversion.dart';
-import '../handlers/chat_alias_profile_hash_handler.dart';
-import '../handlers/chat_alias_profile_request_handler.dart';
-import '../handlers/chat_contact_details_update_handler.dart';
-import '../handlers/chat_delivered_handler.dart';
-import '../handlers/chat_message_handler.dart';
-import '../handlers/chat_reaction_handler.dart';
+import '../core/matrix_user_id_cache.dart';
+import '../core/room_event/room_event.dart';
 import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
 import '../utils/top_and_tail_extension.dart';
-
-typedef SDKStreamSubscription =
-    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>;
+import 'custom_room_event.dart';
+import 'incoming_room_event_router.dart';
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.
@@ -44,23 +39,21 @@ abstract class BaseChatSDK {
     required this.mediatorDid,
     required this.chatRepository,
     required this.options,
+    required this.roomId,
     this.card,
     MeetingPlaceChatSDKLogger? logger,
-  }) : _logger = LoggerFormatter(className: _className, baseLogger: logger),
-       chatStream = ChatStream();
+  }) : chatStream = ChatStream(),
+       _logger = LoggerFormatter(className: _className, baseLogger: logger),
+       didCache = MatrixUserIdCache(serverName: roomId.split(':').last);
 
   static const String _className = 'BaseChatSDK';
-
-  static const _streamOnlyTypes = {
-    ChatProtocol.chatActivity,
-    ChatProtocol.chatPresence,
-    ChatProtocol.chatEffect,
-  };
+  static const String _logkey = 'BaseChatSDK';
 
   final MeetingPlaceCoreSDK coreSDK;
   final String did;
   final String otherPartyDid;
   final String mediatorDid;
+  final String roomId;
   final ChatRepository chatRepository;
   final ChatSDKOptions options;
   final ContactCard? card;
@@ -69,22 +62,37 @@ abstract class BaseChatSDK {
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
-  SDKStreamSubscription? _mediatorStreamSubscription;
-  Future<SDKStreamSubscription>? mediatorStreamFuture;
-  int? seqNo;
+  StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
+  Future<StreamSubscription<MatrixRoomEvent>>? _subscriptionFuture;
+  final Map<String, String> _serverEventIdToMessageId = {};
+  final Map<String, String> _reactionServerEventIds = {};
+  // Maps Matrix user ID → DID, populated by subclasses for known participants.
+  @internal
+  final MatrixUserIdCache didCache;
+  late final IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
 
-  /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
+  /// Hook for subclasses to provide a specialized router.
+  @protected
+  IncomingRoomEventRouter buildRoomEventRouter() =>
+      IncomingRoomEventRouter(chatSDK: this);
+
+  @internal
+  Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
+
+  /// Sends a direct plain text message to another party.
   ///
   /// **Parameters:**
-  /// - [message]: The plain text message to send.
+  /// - [message]: The `PlainTextMessage` to send.
   /// - [senderDid]: DID of the user who sent the message.
   /// - [recipientDid]: DID of the recipient of the message.
-  /// - [mediatorDid]: Mediator DID for message routing.
-  /// - [notify]: Whether to notify via mediator (default: `false`).
-  /// - [ephemeral]: Whether the message should be ephemeral (default: `false`).
+  /// - [mediatorDid]: DID of the mediator used for routing.
+  /// - [notify]: Whether to notify via `"chat-activity"` channel
+  /// (default: `false`).
+  /// - [ephemeral]: Whether the message is ephemeral (default: `false`).
   /// - [forwardExpiryInSeconds]: Optional duration (in seconds) after which
-  ///     the forwarded message is considered expired.
-  @internal
+  /// the forwarded message is considered expired.
+  /// **Returns:**
+  /// - A [Future] that completes when the message has been sent.
   Future<void> sendPlainTextMessage(
     PlainTextMessage message, {
     required String senderDid,
@@ -93,7 +101,17 @@ abstract class BaseChatSDK {
     bool notify = false,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
-  });
+  }) {
+    return coreSDK.didcomm.sendMessage(
+      message,
+      senderDid: senderDid,
+      recipientDid: recipientDid,
+      mediatorDid: mediatorDid,
+      notifyChannelType: notify ? 'chat-activity' : null,
+      ephemeral: ephemeral,
+      forwardExpiryInSeconds: forwardExpiryInSeconds,
+    );
+  }
 
   /// Unique chat ID derived from [did] and [otherPartyDid].
   String get chatId =>
@@ -109,43 +127,51 @@ abstract class BaseChatSDK {
   /// **Returns:**
   /// - A [Chat] instance containing retrieves messages and channel reference.
   Future<Chat> startChatSession() async {
-    final methodName = 'startChatSession';
-    _logger.info('Starting chat session', name: methodName);
-
     chatStream = ChatStream();
 
-    mediatorStreamFuture = subscribeToMediator();
-    final messagesFuture = chatRepository.listMessages(chatId);
+    _subscriptionFuture = subscribeToMatrixRoom();
 
-    unawaited(sendProfileHash());
+    unawaited(proposeProfileUpdate());
 
-    final messages = await messagesFuture;
+    final channel = await getChannel();
+
+    final allEvents = await coreSDK.matrix.fetchRoomHistory(
+      roomId: roomId,
+      receiverDid: did,
+    );
+
+    // TODO: Handle this in CoreSDK
+    final syncMarker = channel.matrixSyncMarker;
+    final events = syncMarker == null
+        ? allEvents
+        : allEvents.takeWhile((e) => e.id != syncMarker).toList();
+    final incomingEvents = events.where((e) => !e.isFromMe).toList();
+
+    // TODO: Update matrix sync marker in CoreSDK
+    if (events.isNotEmpty) {
+      channel.matrixSyncMarker = events.first.id;
+      await coreSDK.updateChannel(channel);
+    }
+
+    final newMessages = <Message>[];
+    for (final event in incomingEvents) {
+      await _handleIncomingRoomEvent(event);
+    }
+
+    final existingMessages = await chatRepository.listMessages(chatId);
+    final messages = <ChatItem>[...newMessages, ...existingMessages];
+
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
-      mediatorStreamFuture!.then((subscription) {
-        unawaited(fetchNewMessages());
-        _mediatorStreamSubscription = subscription;
-        subscription.listen((data) async {
-          if (!await handleMessage(data, [])) {
-            chatStream.pushData(
-              StreamData(
-                event: UnhandledChatEvent(
-                  type: data.plainTextMessage.type.toString(),
-                  senderDid: data.plainTextMessage.from,
-                  body: data.plainTextMessage.body,
-                  createdTime: data.plainTextMessage.createdTime,
-                ),
-              ),
-            );
-          }
-          return MediatorStreamProcessingResult(keepMessage: false);
-        });
+      _subscriptionFuture!.then((subscription) {
+        _matrixRoomSubscription = subscription;
       }),
     );
 
-    // TODO: sort messages
-    _logger.info('Completed chat start', name: methodName);
+    // TODO: sort messages??
+    _logger.info('Chat session initialized,', name: _logkey);
+
     return chat;
   }
 
@@ -156,16 +182,45 @@ abstract class BaseChatSDK {
   /// - A [ChatStream] or `null` if the chat session has not yet started
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
-    if (mediatorStreamFuture == null) return null;
-    await mediatorStreamFuture;
+    if (_subscriptionFuture == null) return null;
+    await _subscriptionFuture;
     return chatStream;
   }
 
-  /// Retrieves all persisted messages for this chat.
-  Future<List<ChatItem>> get messages {
+  /// Retrieves all messages for this chat from the Matrix client database.
+  Future<List<ChatItem>> get messages async {
     final methodName = 'messages';
     _logger.info('Retrieving all persisted messages', name: methodName);
-    return chatRepository.listMessages(chatId);
+    final events = await coreSDK.matrix.fetchRoomHistory(
+      roomId: roomId,
+      receiverDid: did,
+    );
+    return events
+        .map((e) {
+          final senderDid = _resolveSenderDIDFromRoomEvent(e);
+          if (senderDid == null) {
+            _logger.warning(
+              'Could not resolve sender DID for event ${e.id}, skipping event.',
+              name: methodName,
+            );
+            return null;
+          }
+
+          return e.isFromMe
+              ? Message.fromRoomEventSentByMe(
+                  event: e,
+                  chatId: chatId,
+                  senderDid: senderDid,
+                )
+              : Message.fromRoomEventReceivedByMe(
+                  event: e,
+                  chatId: chatId,
+                  senderDid: senderDid,
+                );
+        })
+        .toList()
+        .whereType<ChatItem>()
+        .toList();
   }
 
   /// Retrieves a single message by ID.
@@ -176,8 +231,7 @@ abstract class BaseChatSDK {
   /// **Returns:**
   /// - A [ChatItem] if found, or `null`.
   Future<ChatItem?> getMessageById(String messageId) {
-    final methodName = 'getMessageById';
-    _logger.info('Retrieving message by ID: $messageId', name: methodName);
+    _logger.info('Retrieving message by ID: $messageId', name: _logkey);
     return chatRepository.getMessage(chatId: chatId, messageId: messageId);
   }
 
@@ -186,242 +240,21 @@ abstract class BaseChatSDK {
   /// **Throws:**
   /// - [Exception] if the chat has not been started first.
   Stream<StreamData> get stream {
-    final methodName = 'stream';
-    _logger.info('Returning chat event stream...', name: methodName);
+    _logger.info('Returning chat event stream...', name: _logkey);
     return chatStream.stream;
   }
 
-  /// Map of [ChatProtocol] to handler callbacks for message dispatch.
-  Map<String, Future<void> Function(MediatorMessage, Channel)>
-  get _messageHandlers => {
-    ChatProtocol.chatMessage.value: (msg, _) => ChatMessageHandler(
-      chatRepository: chatRepository,
-      streamManager: chatStream,
-    ).handle(message: msg, chatId: chatId),
-    ChatProtocol.chatReaction.value: (msg, _) => ChatReactionHandler(
-      chatRepository: chatRepository,
-      streamManager: chatStream,
-    ).handle(message: msg, chatId: chatId),
-    ChatProtocol.chatAliasProfileHash.value: (msg, ch) async {
-      if (ch.type != ChannelType.group) {
-        await ChatAliasProfileHashHandler(
-          chatSDK: this,
-          streamManager: chatStream,
-        ).handle(message: msg.plainTextMessage, channel: ch);
-      }
-    },
-    ChatProtocol.chatAliasProfileRequest.value: (msg, ch) async {
-      if (ch.type != ChannelType.group) {
-        await ChatAliasProfileRequestHandler(
-          chatRepository: chatRepository,
-          streamManager: chatStream,
-        ).handle(message: msg.plainTextMessage, chatId: chatId);
-      }
-    },
-    ChatProtocol.chatDelivered.value: (msg, _) => ChatDeliveredHandler(
-      chatRepository: chatRepository,
-      streamManager: chatStream,
-    ).handle(message: msg, chatId: chatId),
-    ChatProtocol.chatContactDetailsUpdate.value: (msg, ch) async {
-      if (ch.type != ChannelType.group) {
-        await ChatContactDetailsUpdateHandler(
-          coreSDK: coreSDK,
-          streamManager: chatStream,
-        ).handle(message: msg.plainTextMessage, channel: ch);
-      }
-    },
-  };
-
-  /// Handles an incoming [PlainTextMessage].
-  ///
-  /// Supported message types:
-  /// - **Chat message**: Persisted and pushed downstream.
-  /// - **Reaction**: Updates existing message reactions.
-  /// - **AliasProfileHash / AliasProfileRequest**: Validates or creates
-  ///   concierge messages.
-  /// - **Delivered**: Marks referenced messages as delivered.
-  /// - **ContactDetailsUpdate**: Updates channel contact card.
-  /// - **Activity / Presence / Effect**: Pushed downstream as events.
-  ///
-  /// **Parameters:**
-  /// - [MediatorMessage]: The incoming [MediatorMessage] to process.
-  /// - [messages]: A list to collect new [Message] instances.
-  ///
-  /// Returns a boolean indicating whether the message was handled.
   @internal
-  Future<bool> handleMessage(
-    MediatorMessage message,
-    List<Message> messages,
-  ) async {
-    final methodName = 'handleMessage';
-    _logger.info(
-      '''Starting to handle incoming message of type ${message.plainTextMessage.type}''',
-      name: methodName,
-    );
-
-    final channel = await getChannel();
-    if (_requiresAcknowledgement(message.plainTextMessage)) {
-      unawaited(sendChatDeliveredMessage(message.plainTextMessage.id));
-    }
-
-    if (_requiresSequenceNumberUpdate(message.plainTextMessage)) {
-      final messageSequenceNumber = message.messageSequenceNumber;
-      if (messageSequenceNumber != null &&
-          messageSequenceNumber > channel.seqNo) {
-        channel.seqNo = messageSequenceNumber;
-        seqNo = messageSequenceNumber;
-        await coreSDK.updateChannel(channel);
-      }
-    }
-
-    final messageType = message.plainTextMessage.type.toString();
-    final handler = _messageHandlers[messageType];
-    if (handler != null) {
-      _logger.info('Handling $messageType message', name: methodName);
-      await handler(message, channel);
-      return true;
-    }
-
-    final streamOnlyProtocol = ChatProtocol.byValue(messageType);
-    if (streamOnlyProtocol != null &&
-        _streamOnlyTypes.contains(streamOnlyProtocol)) {
-      _logger.info(
-        'Handling ${streamOnlyProtocol.name} message',
-        name: methodName,
-      );
-      chatStream.pushData(
-        StreamData(event: message.plainTextMessage.toChatEvent()),
-      );
-      return true;
-    }
-
-    return false;
+  Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
+    return (await coreSDK.matrix.subscribeToRoom(
+      roomId: roomId,
+      receiverDid: did,
+      options: const MatrixSubscriptionOptions(excludeSelf: true),
+    )).listen(_handleIncomingRoomEvent);
   }
 
-  /// Fetch new messages from the mediator and process them via [handleMessage].
-  ///
-  /// **Returns:**
-  /// - A list of newly processed [Message]s.
-  Future<List<Message>> fetchNewMessages() async {
-    final methodName = 'fetchNewMessages';
-    _logger.info('Started fetching new messages', name: methodName);
-    final messagesFromMediator = await coreSDK.didcomm.fetchMessages(
-      did: did,
-      mediatorDid: mediatorDid,
-      deleteOnRetrieve: false,
-    );
-    final newMessages = <Message>[];
-    final processedHashes = <String>[];
-
-    for (final message in messagesFromMediator) {
-      if (!await handleMessage(message, newMessages)) {
-        chatStream.pushData(
-          StreamData(
-            event: UnhandledChatEvent(
-              type: message.plainTextMessage.type.toString(),
-              senderDid: message.plainTextMessage.from,
-              body: message.plainTextMessage.body,
-              createdTime: message.plainTextMessage.createdTime,
-            ),
-          ),
-        );
-      }
-
-      final hash = message.messageHash;
-      if (hash != null) processedHashes.add(hash);
-    }
-
-    if (processedHashes.isNotEmpty) {
-      await coreSDK.didcomm.deleteMessages(
-        did: did,
-        mediatorDid: mediatorDid,
-        messageHashes: processedHashes,
-      );
-    }
-
-    _logger.info(
-      'Completed loading new messages: ${newMessages.length} new messages',
-      name: methodName,
-    );
-    return newMessages;
-  }
-
-  /// Subscribes to mediator channel for real-time updates.
-  ///
-  /// **Returns:**
-  /// - A [SDKStreamSubscription] subscription.
-  ///
-  /// **Throws:**
-  /// - [Exception] if the chat session has not yet started or resumed.
-  @internal
-  Future<SDKStreamSubscription> subscribeToMediator() {
-    return coreSDK.didcomm.subscribe(
-      did,
-      mediatorDid: mediatorDid,
-      options: MediatorStreamSubscriptionOptions(
-        expectedMessageWrappingTypes:
-            coreSDK.options.expectedMessageWrappingTypes,
-        fetchMessagesOnConnect: false,
-      ),
-    );
-  }
-
-  /// Sends a custom [CustomMessage] using the chat's sender and recipient
-  /// DIDs. No chat item is created or persisted for this type of operation.
-  ///
-  /// The SDK populates `from` and `to` from its own [did] and [otherPartyDid].
-  ///
-  /// **Parameters:**
-  /// - [message]: The [CustomMessage] to send.
-  ///
-  /// Returns a [Future] that completes when the message has been sent.
-  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
-    final plainTextMessage = PlainTextMessage(
-      id: message.id,
-      type: Uri.parse(message.type),
-      from: did,
-      to: [otherPartyDid],
-      body: message.body,
-      attachments: message.attachments?.map((a) => a.toDIDComm()).toList(),
-    );
-
-    return sendDirectMessage(
-      plainTextMessage,
-      recipientDid: otherPartyDid,
-      notify: notify,
-    );
-  }
-
-  @internal
-  Future<void> sendDirectMessage(
-    PlainTextMessage message, {
-    required String recipientDid,
-    bool notify = false,
-    bool ephemeral = false,
-    int? forwardExpiryInSeconds,
-  }) {
-    final senderDid = message.from;
-    if (senderDid == null || senderDid != did) {
-      throw Exception(
-        'Message "from" DID ${message.from} does not match chat sender DID '
-        '$did.',
-      );
-    }
-
-    return coreSDK.didcomm.sendMessage(
-      PlainTextMessage.fromJson({
-        ...message.toJson(),
-        'from': senderDid,
-        'to': [recipientDid],
-      }),
-      senderDid: senderDid,
-      recipientDid: recipientDid,
-      mediatorDid: mediatorDid,
-      notifyChannelType: notify ? 'chat-activity' : null,
-      ephemeral: ephemeral,
-      forwardExpiryInSeconds: forwardExpiryInSeconds,
-    );
-  }
+  Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
+      _incomingRouter.route(event);
 
   /// Sends a plain text message with optional attachments.
   ///
@@ -432,64 +265,23 @@ abstract class BaseChatSDK {
   ///
   /// **Returns:**
   /// - The sent [Message] object persisted in the repository.
+  ///
+  /// TODO: Add attachments support
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment>? attachments,
   }) async {
-    final methodName = 'sendTextMessage';
-    _logger.info('Started sending text message', name: methodName);
-
-    final channel = await getChannel();
-    channel.increaseSeqNo();
-
-    final chatMessage = protocol.ChatMessage.create(
-      from: did,
-      to: [otherPartyDid],
-      text: text,
-      seqNo: channel.seqNo,
-      attachments: (attachments ?? []).map((a) => a.toDIDComm()).toList(),
+    final message = await _sendRoomEventMessage(
+      TextMessageRoomEvent.create(senderDid: did, roomId: roomId, text: text),
     );
 
-    final plainTextMessage = chatMessage.toPlainTextMessage();
-    final createdMessage = await chatRepository.createMessage(
-      Message.fromSentMessage(message: chatMessage, chatId: chatId),
+    _logger.info(
+      'Text message sent, message id: ${message.messageId}',
+      name: _logkey,
     );
 
-    try {
-      chatStream.pushData(
-        StreamData(
-          event: plainTextMessage.toChatEvent(),
-          chatItem: createdMessage,
-        ),
-      );
-
-      await _sendMessageWithNotification(plainTextMessage);
-
-      final updatedMessage = await _updateMessageStatus(
-        chatId: chatId,
-        messageId: createdMessage.messageId,
-      );
-
-      await coreSDK.updateChannel(channel);
-
-      chatStream.pushData(
-        StreamData(
-          event: plainTextMessage.toChatEvent(),
-          chatItem: updatedMessage,
-        ),
-      );
-
-      _logger.info('Completed sending text message', name: methodName);
-      return updatedMessage;
-    } catch (e, stackTrace) {
-      return await _handleSendMessageError(
-        createdMessage: createdMessage,
-        chatMessage: plainTextMessage,
-        error: e,
-        stackTrace: stackTrace,
-        methodName: methodName,
-      );
-    }
+    await coreSDK.matrix.disableTyping(roomId: roomId, senderDid: did);
+    return message;
   }
 
   /// Starts periodic chat presence updates.
@@ -511,72 +303,18 @@ abstract class BaseChatSDK {
     );
   }
 
-  /// Sends a profile hash update if the contact card has changed.
-  Future<void> sendProfileHash() async {
-    final methodName = 'sendProfileHash';
-    _logger.info('Started sending profile hash', name: methodName);
-    if (card == null) {
-      _logger.info(
-        'ContactCard is null, skipping profile hash update',
-        name: methodName,
-      );
-      return;
-    }
+  /// Triggers a profile update proposal if the local contact card differs from
+  /// the persisted channel card.
+  Future<void> proposeProfileUpdate();
 
-    final channel = await getChannel();
-    if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
-      await sendPlainTextMessage(
-        protocol.ChatAliasProfileHash.create(
-          from: did,
-          to: [otherPartyDid],
-          profileHash: card!.profileHash,
-        ).toPlainTextMessage(),
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-      );
-
-      channel.contactCard = card;
-      await coreSDK.updateChannel(channel);
-    }
-
-    _logger.info('Completed sending profile hash', name: methodName);
-  }
-
-  bool _requiresAcknowledgement(PlainTextMessage message) {
-    return options.requiresAcknowledgement.contains(
-      ChatProtocol.byValue(message.type.toString()),
-    );
-  }
-
-  bool _requiresSequenceNumberUpdate(PlainTextMessage message) {
-    return coreSDK.options.messageTypesForSequenceTracking.contains(
-      message.type.toString(),
-    );
-  }
-
-  /// Sends a "delivered" acknowledgement for a received message.
+  /// Sends an `m.read` receipt for [messageId], marking it as delivered.
   ///
-  /// **Parameters:**
-  /// - [messageId]: The ID of the message being acknowledged as delivered.
-  ///
-  /// **Returns:**
-  /// - A [Future] that completes when the acknowledgement has been sent.
-  Future<void> sendChatDeliveredMessage(String messageId) async {
-    final methodName = 'sendChatDeliveredMessage';
-    _logger.info('Started sending chat delivered message', name: methodName);
-    await sendPlainTextMessage(
-      protocol.ChatDelivered.create(
-        from: did,
-        to: [otherPartyDid],
-        messages: [messageId],
-      ).toPlainTextMessage(),
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
+  /// In the Matrix path the [messageId] is the Matrix event ID, so this maps
+  /// directly to the native read-marker API.
+  Future<void> sendChatDeliveredMessage(String messageId) {
+    return coreSDK.matrix.sendRoomEvent(
+      ReadReceiptRoomEvent(senderDid: did, roomId: roomId, eventId: messageId),
     );
-
-    _logger.info('Completed sending chat delivered message', name: methodName);
   }
 
   /// Sends updated contact details from the current contact card.
@@ -649,7 +387,10 @@ abstract class BaseChatSDK {
   }) async {
     final methodName = 'reactOnMessage';
     _logger.info('Started reacting on message', name: methodName);
-    if (message.reactions.contains(reaction)) {
+
+    final isRemoving = message.reactions.contains(reaction);
+
+    if (isRemoving) {
       message.reactions.remove(reaction);
     } else {
       message.reactions.add(reaction);
@@ -657,20 +398,34 @@ abstract class BaseChatSDK {
 
     await chatRepository.updateMesssage(message);
 
-    final chatReaction = protocol.ChatReaction.create(
-      from: did,
-      to: [otherPartyDid],
-      reactions: message.reactions,
-      messageId: message.messageId,
-    );
+    final reactionKey = '${message.messageId}:$reaction';
 
     try {
-      await sendPlainTextMessage(
-        chatReaction.toPlainTextMessage(),
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-      );
+      if (isRemoving) {
+        final reactionEventId = _reactionServerEventIds[reactionKey];
+        if (reactionEventId != null) {
+          await coreSDK.matrix.sendRoomEvent(
+            RedactionRoomEvent(
+              senderDid: did,
+              roomId: roomId,
+              targetEventId: reactionEventId,
+            ),
+          );
+          _reactionServerEventIds.remove(reactionKey);
+        }
+      } else {
+        final serverEventId = await coreSDK.matrix.sendRoomEvent(
+          ReactionRoomEvent(
+            senderDid: did,
+            roomId: roomId,
+            targetEventId: message.messageId,
+            reaction: reaction,
+          ),
+        );
+        if (serverEventId != null) {
+          _reactionServerEventIds[reactionKey] = serverEventId;
+        }
+      }
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to send reaction message',
@@ -679,7 +434,11 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       // rollback
-      message.reactions.remove(reaction);
+      if (isRemoving) {
+        message.reactions.add(reaction);
+      } else {
+        message.reactions.remove(reaction);
+      }
       await chatRepository.updateMesssage(message);
       Error.throwWithStackTrace(e, stackTrace);
     }
@@ -689,24 +448,17 @@ abstract class BaseChatSDK {
 
   /// Sends a chat effect (visual/animated signal).
   Future<void> sendEffect(Effect effect) async {
-    final methodName = 'sendEffect';
-    _logger.info('Started sending chat effect', name: methodName);
-    final chatEffect = protocol.ChatEffect.create(
-      from: did,
-      to: [otherPartyDid],
+    final roomEvent = EffectRoomEvent(
+      senderDid: did,
+      roomId: roomId,
       effect: effect.name,
-    ).toPlainTextMessage();
+    );
 
-    chatStream.pushData(StreamData(event: chatEffect.toChatEvent()));
+    chatStream.pushData(StreamData(event: roomEvent.toChatEvent()));
 
     // TODO: handle error case
-    await sendPlainTextMessage(
-      chatEffect,
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
-    );
-    _logger.info('Completed sending chat effect', name: methodName);
+    await coreSDK.matrix.sendRoomEvent(roomEvent);
+    _logger.info('Chat effect sent', name: _logkey);
   }
 
   /// Sends a chat activity message.
@@ -727,11 +479,13 @@ abstract class BaseChatSDK {
     _logger.info('Completed sending chat activity', name: methodName);
   }
 
+  String? _resolveDid(String matrixUserId) => didCache.resolve(matrixUserId);
+
   /// Ends the chat session, disposing of the channel and stream manager.
   Future<void> end() async {
-    await _mediatorStreamSubscription?.dispose();
-    _mediatorStreamSubscription = null;
-    mediatorStreamFuture = null;
+    await _matrixRoomSubscription?.cancel();
+    _matrixRoomSubscription = null;
+    _subscriptionFuture = null;
     chatStream.dispose();
   }
 
@@ -744,16 +498,59 @@ abstract class BaseChatSDK {
         ));
   }
 
-  /// Sends a message with notification, ignoring notification failures.
-  Future<void> _sendMessageWithNotification(PlainTextMessage message) async {
-    try {
-      await sendPlainTextMessage(
-        message,
+  // TODO: check if sequence number is still needed for badge count
+  Future<Message> _sendRoomEventMessage(MatrixRoomEvent roomEvent) async {
+    final channel = await getChannel();
+    channel.increaseSeqNo();
+
+    final createdMessage = await chatRepository.createMessage(
+      Message.fromRoomEventSentByMe(
+        event: roomEvent,
+        chatId: chatId,
         senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-        notify: true,
+      ),
+    );
+
+    try {
+      chatStream.pushData(
+        StreamData(event: roomEvent.toChatEvent(), chatItem: createdMessage),
       );
+
+      final serverEventId = await _sendMessageWithNotification(roomEvent);
+
+      if (serverEventId != null) {
+        _serverEventIdToMessageId[serverEventId] = createdMessage.messageId;
+      }
+
+      final updatedMessage = await _updateMessageStatus(
+        chatId: chatId,
+        messageId: createdMessage.messageId,
+      );
+
+      await coreSDK.updateChannel(channel);
+
+      chatStream.pushData(
+        StreamData(event: roomEvent.toChatEvent(), chatItem: updatedMessage),
+      );
+
+      return updatedMessage;
+    } catch (e, stackTrace) {
+      return _handleSendMessageError(
+        createdMessage: createdMessage,
+        event: roomEvent,
+        error: e,
+        stackTrace: stackTrace,
+        methodName: _logkey,
+      );
+    }
+  }
+
+  /// Sends a message with notification, ignoring notification failures.
+  /// Returns the server-assigned Matrix event ID, or `null` for receipt events.
+  Future<String?> _sendMessageWithNotification(MatrixRoomEvent event) async {
+    try {
+      // TODO: How to notify?
+      return await coreSDK.matrix.sendRoomEvent(event);
     } on MeetingPlaceCoreSDKException catch (e) {
       final isNotificationError =
           e.code ==
@@ -769,9 +566,10 @@ abstract class BaseChatSDK {
       }
 
       _logger.warning(
-        'Failed to send notification for message ${message.id}',
+        'Failed to send notification for message ${event.id}',
         name: '_sendMessageWithNotification',
       );
+      return null;
     }
   }
 
@@ -795,7 +593,7 @@ abstract class BaseChatSDK {
 
   Future<Message> _handleSendMessageError({
     required ChatItem createdMessage,
-    required PlainTextMessage chatMessage,
+    required MatrixRoomEvent event,
     required Object error,
     required StackTrace stackTrace,
     required String methodName,
@@ -811,9 +609,13 @@ abstract class BaseChatSDK {
     );
 
     chatStream.pushData(
-      StreamData(event: chatMessage.toChatEvent(), chatItem: createdMessage),
+      StreamData(event: event.toChatEvent(), chatItem: createdMessage),
     );
 
     return createdMessage as Message;
+  }
+
+  String? _resolveSenderDIDFromRoomEvent(MatrixRoomEvent e) {
+    return _resolveDid(e.userId);
   }
 }

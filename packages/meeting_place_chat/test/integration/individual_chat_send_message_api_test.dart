@@ -16,7 +16,7 @@ void main() {
     fixture.dispose();
   });
 
-  test('sendMessage sets from/to and sends message', () async {
+  test('sendRoomEvent delivers message to other party', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
@@ -29,25 +29,23 @@ void main() {
       });
     });
 
-    final message = CustomMessage(
-      id: 'test-id',
+    final event = CustomRoomEvent(
       type: ChatProtocol.chatMessage.value,
-      body: {
-        'text': 'Hello via sendMessage',
+      content: {
+        'text': 'Hello via sendRoomEvent',
         'seq_no': 1,
         'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
 
-    await fixture.aliceChatSDK.sendMessage(message);
+    await fixture.aliceChatSDK.sendRoomEvent(event);
 
     final received = await bobCompleter.future;
-    expect(received.value, equals('Hello via sendMessage'));
+    expect(received.value, equals('Hello via sendRoomEvent'));
     expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.messageId, equals('test-id'));
   });
 
-  test('sendMessage with notify flag sends notification', () async {
+  test('sendRoomEvent message is persisted in repository', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
@@ -60,29 +58,28 @@ void main() {
       });
     });
 
-    final message = CustomMessage(
-      id: 'notify-id',
+    final event = CustomRoomEvent(
       type: ChatProtocol.chatMessage.value,
-      body: {
-        'text': 'Notify test',
+      content: {
+        'text': 'Persist test',
         'seq_no': 1,
         'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     );
 
-    await fixture.aliceChatSDK.sendMessage(message, notify: true);
+    await fixture.aliceChatSDK.sendRoomEvent(event);
 
     final received = await bobCompleter.future;
-    expect(received.value, equals('Notify test'));
+    expect(received.value, equals('Persist test'));
     expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
-    expect(received.messageId, equals('notify-id'));
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(
-      bobMessages.whereType<Message>().any((m) => m.messageId == 'notify-id'),
+      bobMessages.whereType<Message>().any(
+        (m) => m.value == 'Persist test',
+      ),
       isTrue,
-      reason:
-          'Message with notify flag should be persisted in Bob\'s repository',
+      reason: 'Message should be persisted in Bob\'s repository',
     );
   });
 }

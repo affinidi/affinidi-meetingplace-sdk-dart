@@ -1,44 +1,47 @@
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../meeting_place_chat.dart';
-import '../core/chat_history_service.dart';
+import '../../../meeting_place_chat.dart';
+import '../../core/chat_history_service.dart';
+import '../../core/matrix_user_id_cache.dart';
+import '../../sdk/room_event_handler/room_event_handler.dart';
 
-class ChatGroupMemberJoinedHandler {
-  ChatGroupMemberJoinedHandler({
+class MemberJoinedHandler implements RoomEventHandler {
+  MemberJoinedHandler({
     required ChatRepository chatRepository,
     required ChatHistoryService chatHistoryService,
     required ChatStream streamManager,
+    required MatrixUserIdCache didCache,
+    required String chatId,
+    required String ownDid,
+    required Group Function() getGroup,
   }) : _chatRepository = chatRepository,
        _chatHistoryService = chatHistoryService,
-       _streamManager = streamManager;
+       _streamManager = streamManager,
+       _didCache = didCache,
+       _chatId = chatId,
+       _ownDid = ownDid,
+       _getGroup = getGroup;
 
   final ChatRepository _chatRepository;
   final ChatHistoryService _chatHistoryService;
   final ChatStream _streamManager;
+  final MatrixUserIdCache _didCache;
+  final String _chatId;
+  final String _ownDid;
+  final Group Function() _getGroup;
 
-  Future<void> handle({
-    required MediatorMessage message,
-    required String chatId,
-    required String groupDid,
-    required bool isGroupOwner,
-    required List<ChatProtocol> memberJoinedIndicator,
-  }) async {
+  @override
+  Future<void> handle(MatrixRoomEvent event) async {
+    final senderDid = _didCache.resolve(event.userId);
+    if (senderDid == null) return;
+    _didCache.register(senderDid);
+
+    final group = _getGroup();
+    final isGroupOwner = group.ownerDid == _ownDid;
     if (!isGroupOwner) return;
 
-    final messageType = ChatProtocol.byValue(
-      message.plainTextMessage.type.toString(),
-    );
-    if (messageType == null || !memberJoinedIndicator.contains(messageType)) {
-      return;
-    }
-
-    final senderDid = message.fromDid ?? message.plainTextMessage.from;
-    if (senderDid == null) return;
-
-    // TODO: keep target list in memory to not always iterate through all
-    // messages
-    final allMessages = await _chatRepository.listMessages(chatId);
+    final allMessages = await _chatRepository.listMessages(_chatId);
     final matchingMessage = allMessages
         .whereType<EventMessage>()
         .firstWhereOrNull(
@@ -71,8 +74,8 @@ class ChatGroupMemberJoinedHandler {
 
     final chatItem = await _chatHistoryService
         .createGroupMemberJoinedGroupEventMessage(
-          chatId: chatId,
-          groupDid: groupDid,
+          chatId: _chatId,
+          groupDid: group.did,
           memberDid: memberDid,
           memberCard: ContactCard.fromJson(contactCardData),
         );

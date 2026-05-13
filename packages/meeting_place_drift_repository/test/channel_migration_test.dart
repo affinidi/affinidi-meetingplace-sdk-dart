@@ -216,4 +216,51 @@ void main() {
       await db.close();
     });
   });
+
+  group('v4 → v5 schema migration', () {
+    test('produces the correct v5 schema', () async {
+      final connection = await verifier.startAt(4);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 5);
+      await db.close();
+    });
+
+    test('adds matrix_sync_marker column with NULL as default', () async {
+      final schema = await verifier.schemaAt(4);
+
+      schema.rawDatabase.execute('''
+        INSERT INTO channels VALUES (
+          'ch-4',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-4',
+          1,
+          1,
+          0,
+          NULL,
+          NULL,
+          'did:example:permanent4',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          0,
+          NULL
+        )
+      ''');
+
+      final db = ChannelDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 5);
+
+      // matrix_sync_marker must exist and default to NULL for existing rows.
+      final rows = await db.customSelect(
+        'SELECT matrix_sync_marker FROM channels WHERE id = ?',
+        variables: [const Variable('ch-4')],
+      ).get();
+      expect(rows.single.read<String?>('matrix_sync_marker'), isNull);
+
+      await db.close();
+    });
+  });
 }

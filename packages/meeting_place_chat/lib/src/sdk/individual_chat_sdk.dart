@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:meeting_place_core/meeting_place_core.dart';
-
 import '../../meeting_place_chat.dart';
 import '../core/constants.dart';
+import '../core/room_event/profile_hash_room_event.dart';
+import '../entity/message.dart' as entity_chat_message;
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
 
@@ -29,6 +29,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     required super.mediatorDid,
     required super.chatRepository,
     required super.options,
+    required super.roomId,
     super.card,
     MeetingPlaceChatSDKLogger? logger,
   }) : super(
@@ -41,6 +42,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
        );
 
   static const String _className = 'IndividualChatSDK';
+  static const String _logkey = 'IndividualChatSDK';
 
   bool _isSendingChatPresence = false;
 
@@ -85,41 +87,6 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   @override
   Future<void> rejectConnectionRequest(ConciergeMessage message) {
     throw UnimplementedError();
-  }
-
-  /// Sends a direct plain text message to another party.
-  ///
-  /// **Parameters:**
-  /// - [message]: The `PlainTextMessage` to send.
-  /// - [senderDid]: DID of the user who sent the message.
-  /// - [recipientDid]: DID of the recipient of the message.
-  /// - [mediatorDid]: DID of the mediator used for routing.
-  /// - [notify]: Whether to notify via `"chat-activity"` channel
-  /// (default: `false`).
-  /// - [ephemeral]: Whether the message is ephemeral (default: `false`).
-  /// - [forwardExpiryInSeconds]: Optional duration (in seconds) after which
-  /// the forwarded message is considered expired.
-  /// **Returns:**
-  /// - A [Future] that completes when the message has been sent.
-  @override
-  Future<void> sendPlainTextMessage(
-    PlainTextMessage message, {
-    required String senderDid,
-    required String recipientDid,
-    required String mediatorDid,
-    bool notify = false,
-    bool ephemeral = false,
-    int? forwardExpiryInSeconds,
-  }) {
-    return coreSDK.didcomm.sendMessage(
-      message,
-      senderDid: senderDid,
-      recipientDid: recipientDid,
-      mediatorDid: mediatorDid,
-      notifyChannelType: notify ? 'chat-activity' : null,
-      ephemeral: ephemeral,
-      forwardExpiryInSeconds: forwardExpiryInSeconds,
-    );
   }
 
   /// Starts the periodic sending of chat presence signals.
@@ -168,5 +135,42 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
   /// Stops the periodic sending of chat presence signals.
   void stopChatPresenceInterval() {
     _isSendingChatPresence = false;
+  }
+
+  /// Sends a profile hash update to the other party via Matrix if the contact
+  /// card has changed since the last update.
+  @override
+  Future<void> proposeProfileUpdate() async {
+    if (card == null) {
+      logger.info(
+        'ContactCard is null, skipping profile hash update',
+        name: _logkey,
+      );
+      return;
+    }
+
+    final channel = await getChannel();
+    if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
+      await coreSDK.matrix.sendRoomEvent(
+        ProfileHashRoomEvent(
+          senderDid: did,
+          roomId: roomId,
+          profileHash: card!.profileHash,
+        ),
+      );
+
+      channel.contactCard = card;
+      await coreSDK.updateChannel(channel);
+    }
+
+    logger.info('Completed sending profile hash', name: _logkey);
+  }
+
+  @override
+  Future<List<entity_chat_message.Message>> fetchNewMessages() async {
+    throw UnimplementedError(
+      '''fetchNewMessages is not implemented for IndividualChatSDK. Messages are
+      received via Matrix room events and pushed to the chat stream.''',
+    );
   }
 }

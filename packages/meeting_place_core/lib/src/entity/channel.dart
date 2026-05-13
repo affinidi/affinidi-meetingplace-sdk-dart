@@ -41,6 +41,7 @@ class Channel {
     this.otherPartyNotificationToken,
     this.matrixRoomId,
     this.messageSyncMarker,
+    this.matrixSyncMarker,
     this.seqNo = 0,
     this.externalRef,
   }) : id = id ?? const Uuid().v4();
@@ -158,6 +159,11 @@ class Channel {
 
   /// Matrix room ID associated with the channel.
   String? matrixRoomId;
+
+  /// The Matrix event ID of the most recently fetched event.
+  /// Used as a cursor so that [fetchMatrixRoomHistory] can return only
+  /// events that are newer than this marker.
+  String? matrixSyncMarker;
 
   /// External reference that can be used to correlate the channel with external
   /// systems. This field is not used by the SDK, and can be set by the SDK

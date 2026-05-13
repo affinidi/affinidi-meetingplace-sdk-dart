@@ -54,6 +54,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
           did: channel.permanentChannelDid!,
           otherPartyDid: channel.otherPartyPermanentChannelDid!,
           mediatorDid: channel.mediatorDid,
+          roomId: channel.matrixRoomId!,
           chatRepository: chatRepository,
           options: options,
           card: card,
@@ -67,6 +68,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
           did: channel.permanentChannelDid!,
           otherPartyDid: channel.otherPartyPermanentChannelDid!,
           mediatorDid: channel.mediatorDid,
+          roomId: channel.matrixRoomId!,
           chatRepository: chatRepository,
           options: options,
           card: card,
@@ -117,21 +119,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
     return _sdk.getMessageById(messageId);
   }
 
-  /// Fetches new messages from the channel.
-  ///
-  /// **Returns:**
-  /// - A [List] of [Message] objects representing new messages.
-  @override
-  Future<List<Message>> fetchNewMessages() {
-    return _sdk.fetchNewMessages();
-  }
-
-  /// Sends the profile hash to the channel.
-  @override
-  Future<void> sendProfileHash() {
-    return _sdk.sendProfileHash();
-  }
-
   /// Sends updated chat contact details to the channel.
   ///
   /// **Parameters:**
@@ -139,17 +126,6 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) {
     return _sdk.sendChatContactDetailsUpdate(message);
-  }
-
-  /// Sends a plain text message.
-  ///
-  /// **Parameters:**
-  /// - [message]: The [CustomMessage] to send.
-  ///
-  /// Returns a [Future] that completes when the message has been sent.
-  @override
-  Future<void> sendMessage(CustomMessage message, {bool notify = false}) {
-    return _sdk.sendMessage(message, notify: notify);
   }
 
   /// Sends a plain text message (optionally with attachments).
@@ -229,4 +205,14 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// the chat.
   @override
   Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
+
+  /// Dispatches an arbitrary Matrix room event into the chat's room.
+  ///
+  /// Only supported for group chats. Throws [UnsupportedError] when the
+  /// wrapped SDK is not a [GroupChatSDK].
+  Future<void> sendRoomEvent(CustomRoomEvent event) {
+    final sdk = _sdk;
+    if (sdk is GroupChatSDK) return sdk.sendRoomEvent(event);
+    throw UnsupportedError('sendRoomEvent is only supported for group chats');
+  }
 }

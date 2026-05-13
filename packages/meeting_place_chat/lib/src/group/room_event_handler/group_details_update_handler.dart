@@ -1,42 +1,56 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
-import '../core/chat_history_service.dart';
-import '../core/chat_stream/chat_event_conversion.dart';
-import '../core/chat_stream/chat_stream.dart';
-import '../core/chat_stream/stream_data.dart';
 
-class ChatGroupDetailsUpdateHandler {
-  ChatGroupDetailsUpdateHandler({
+import '../../core/chat_history_service.dart';
+import '../../core/chat_stream/chat_event.dart';
+import '../../core/chat_stream/chat_event_conversion.dart';
+import '../../core/chat_stream/chat_stream.dart';
+import '../../core/chat_stream/stream_data.dart';
+import '../../core/matrix_user_id_cache.dart';
+import '../../sdk/room_event_handler/room_event_handler.dart';
+
+class GroupDetailsUpdateHandler implements RoomEventHandler {
+  GroupDetailsUpdateHandler({
     required MeetingPlaceCoreSDK coreSDK,
     required ChatHistoryService chatHistoryService,
     required ChatStream streamManager,
+    required MatrixUserIdCache didCache,
+    required String chatId,
+    required Group Function() getGroup,
+    required void Function(Group) setGroup,
   }) : _coreSDK = coreSDK,
        _chatHistoryService = chatHistoryService,
-       _streamManager = streamManager;
+       _streamManager = streamManager,
+       _didCache = didCache,
+       _chatId = chatId,
+       _getGroup = getGroup,
+       _setGroup = setGroup;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final ChatHistoryService _chatHistoryService;
   final ChatStream _streamManager;
+  final MatrixUserIdCache _didCache;
+  final String _chatId;
+  final Group Function() _getGroup;
+  final void Function(Group) _setGroup;
 
-  Future<Group> handle({
-    required Group group,
-    required PlainTextMessage message,
-    required String chatId,
-  }) async {
-    final updatedGroup = await _updateGroupMembersFromMessage(
-      group: group,
-      message: message,
-      chatId: chatId,
+  @override
+  Future<void> handle(MatrixRoomEvent event) async {
+    final updatedGroup = await _updateGroupMembers(
+      group: _getGroup(),
+      body: event.content,
+      chatEvent: event.toChatEvent(),
     );
     await _coreSDK.updateGroup(updatedGroup);
-    return updatedGroup;
+    _setGroup(updatedGroup);
+    _didCache.registerAll(updatedGroup.members.map((m) => m.did));
   }
 
-  Future<Group> _updateGroupMembersFromMessage({
+  Future<Group> _updateGroupMembers({
     required Group group,
-    required PlainTextMessage message,
-    required String chatId,
+    required Map<String, dynamic> body,
+    required ChatEvent chatEvent,
   }) async {
-    final membersFromMessage = (message.body!['members'] as List<dynamic>)
+    final membersFromMessage = (body['members'] as List<dynamic>)
         .cast<Map<String, dynamic>>();
 
     final knownMembers = group.members.map((member) => member.did).toSet();
@@ -54,10 +68,10 @@ class ChatGroupDetailsUpdateHandler {
     for (final newMember in newMembers) {
       final chatItem = await _chatHistoryService
           .createGroupMemberJoinedGroupEventMessage(
-            chatId: chatId,
+            chatId: _chatId,
             groupDid: group.did,
             memberDid: newMember['did'] as String,
-            memberCard: _cardFromMessage(newMember),
+            memberCard: _cardFromMember(newMember),
           );
       _streamManager.pushData(StreamData(chatItem: chatItem));
     }
@@ -72,18 +86,16 @@ class ChatGroupDetailsUpdateHandler {
           membershipType: GroupMembershipType.values.byName(
             member['membership_type'] as String,
           ),
-          contactCard: _cardFromMessage(member),
+          contactCard: _cardFromMember(member),
         );
       }).toList(),
     );
 
-    _streamManager.pushData(StreamData(event: message.toChatEvent()));
+    _streamManager.pushData(StreamData(event: chatEvent));
     return updatedGroup;
   }
 
-  ContactCard _cardFromMessage(Map<String, dynamic> message) {
-    return ContactCard.fromJson(
-      message['contact_card'] as Map<String, dynamic>,
-    );
+  ContactCard _cardFromMember(Map<String, dynamic> member) {
+    return ContactCard.fromJson(member['contact_card'] as Map<String, dynamic>);
   }
 }

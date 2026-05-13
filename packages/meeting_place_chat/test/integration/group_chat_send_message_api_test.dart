@@ -16,7 +16,7 @@ void main() {
     fixture.disposeSessions();
   });
 
-  test('group member sendMessage sets from/to and delivers to group', () async {
+  test('group member sendRoomEvent delivers message to group', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
     await fixture.charlieChatSDK.startChatSession();
@@ -44,32 +44,30 @@ void main() {
       }
     });
 
-    final message = CustomMessage(
-      id: 'group-test-id',
-      type: ChatProtocol.chatMessage.value,
-      body: {
-        'text': 'Hello group via sendMessage',
-        'seq_no': 1,
-        'timestamp': DateTime.now().toUtc().toIso8601String(),
+    final event = const CustomRoomEvent(
+      type: 'm.room.message',
+      content: {
+        'body': 'Hello group via sendRoomEvent',
+        'msgtype': 'm.text',
       },
     );
 
-    await fixture.aliceChatSDK.sendMessage(message);
+    await fixture.aliceChatSDK.sendRoomEvent(event);
 
     final receivedByBob = await bobCompleter.future;
     final receivedByCharlie = await charlieCompleter.future;
 
-    expect(receivedByBob.value, equals('Hello group via sendMessage'));
+    expect(receivedByBob.value, equals('Hello group via sendRoomEvent'));
     expect(receivedByBob.senderDid, equals(fixture.groupOwnerDidDocument.id));
 
-    expect(receivedByCharlie.value, equals('Hello group via sendMessage'));
+    expect(receivedByCharlie.value, equals('Hello group via sendRoomEvent'));
     expect(
       receivedByCharlie.senderDid,
       equals(fixture.groupOwnerDidDocument.id),
     );
   });
 
-  test('group sendMessage with notify flag delivers message', () async {
+  test('group sendRoomEvent delivers message', () async {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
@@ -85,21 +83,18 @@ void main() {
       }
     });
 
-    final message = CustomMessage(
-      id: 'group-notify-id',
-      type: ChatProtocol.chatMessage.value,
-      body: {
-        'text': 'Notify group test',
-        'seq_no': 1,
-        'timestamp': DateTime.now().toUtc().toIso8601String(),
+    final event = const CustomRoomEvent(
+      type: 'm.room.message',
+      content: {
+        'body': 'Notify group test',
+        'msgtype': 'm.text',
       },
     );
 
-    await fixture.aliceChatSDK.sendMessage(message, notify: true);
+    await fixture.aliceChatSDK.sendRoomEvent(event);
 
     final received = await bobCompleter.future;
     expect(received.value, equals('Notify group test'));
     expect(received.senderDid, equals(fixture.groupOwnerDidDocument.id));
-    expect(received.messageId, equals('group-notify-id'));
   });
 }

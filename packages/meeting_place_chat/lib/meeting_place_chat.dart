@@ -10,6 +10,6 @@ export 'src/repository/chat_repository.dart';
 export 'src/sdk/chat.dart';
 export 'src/sdk/chat_sdk.dart';
 export 'src/sdk/chat_sdk_options.dart';
-export 'src/sdk/custom_message.dart';
+export 'src/sdk/custom_room_event.dart';
 export 'src/sdk/group_chat_sdk.dart';
 export 'src/sdk/individual_chat_sdk.dart';

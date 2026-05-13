@@ -126,7 +126,7 @@ void main() {
         });
       });
 
-      await newBobChatSDK.sendProfileHash();
+      await newBobChatSDK.proposeProfileUpdate();
       await bobProfileRequestCompleter.future;
 
       final conciergeMessage =
@@ -204,7 +204,7 @@ void main() {
       });
     });
 
-    await newBobChatSDK.sendProfileHash();
+    await newBobChatSDK.proposeProfileUpdate();
     await bobProfileRequestCompleter.future;
 
     final conciergeMessage =

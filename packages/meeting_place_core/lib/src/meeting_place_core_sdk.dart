@@ -744,7 +744,7 @@ class MeetingPlaceCoreSDK {
             customPhrase: customPhrase,
             validUntil: validUntil,
             maximumUsage: maximumUsage,
-            mediatorDid: mediatorDid,
+            mediatorDid: mediatorDid ?? _mediatorDid,
             externalRef: externalRef,
             metadata: metadata,
             card: contactCard,

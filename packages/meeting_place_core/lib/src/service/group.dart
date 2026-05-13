@@ -94,7 +94,7 @@ class GroupService {
     required String offerName,
     required String offerDescription,
     required ContactCard card,
-    String? mediatorDid,
+    required String mediatorDid,
     String? customPhrase,
     DateTime? validUntil,
     int? maximumUsage,
@@ -107,7 +107,6 @@ class GroupService {
       name: methodName,
     );
 
-    final effectiveMediatorDid = mediatorDid ?? _controlPlaneSDK.mediatorDid;
     final ownerIdentity = await _identityService.createPermanentIdentity(
       _wallet,
     );
@@ -128,7 +127,7 @@ class GroupService {
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
 
     await _mediatorSDK.updateAcl(
-      mediatorDid: effectiveMediatorDid,
+      mediatorDid: mediatorDid,
       ownerDidManager: oobDidManager,
       acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
     );
@@ -150,7 +149,7 @@ class GroupService {
         adminDid: ownerDidDocument.id,
         adminPublicKey: recryptKeyPair.publicKeyToBase64(),
         adminReencryptionKey: groupAdmin.memberReencryptionKey,
-        mediatorDid: effectiveMediatorDid,
+        mediatorDid: mediatorDid,
         metadata: metadata,
       ),
     );

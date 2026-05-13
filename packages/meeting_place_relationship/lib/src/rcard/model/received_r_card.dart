@@ -16,6 +16,7 @@ class ReceivedRCard {
     required this.issuanceDate,
     required this.receivedAt,
     this.contactChannelDid,
+    this.localChannelDid,
     this.threadId,
     this.notes,
   });
@@ -32,10 +33,11 @@ class ReceivedRCard {
     final log =
         logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'ReceivedRCard');
     try {
-      final vc = LdVcDm2Suite().tryParse(vcBlob);
+      final vc =
+          LdVcDm1Suite().tryParse(vcBlob) ?? LdVcDm2Suite().tryParse(vcBlob);
       if (vc == null) {
         log.warning(
-          'Could not parse VC from blob as a signed DM v2 credential',
+          'Could not parse VC from blob as a DM v1 or DM v2 credential',
         );
         return null;
       }
@@ -90,6 +92,11 @@ class ReceivedRCard {
   /// The channel DID through which this card was received, if known.
   final String? contactChannelDid;
 
+  /// The local channel DID (our DID) of the channel through which this card
+  /// was received. Set only for the DIDComm attachment path (inauguration);
+  /// null for the VDIP path.
+  final String? localChannelDid;
+
   /// The thread ID of the exchange that delivered this card, if known.
   final String? threadId;
 
@@ -104,6 +111,7 @@ class ReceivedRCard {
     DateTime? issuanceDate,
     DateTime? receivedAt,
     String? contactChannelDid,
+    String? localChannelDid,
     String? threadId,
     String? notes,
   }) {
@@ -115,6 +123,7 @@ class ReceivedRCard {
       issuanceDate: issuanceDate ?? this.issuanceDate,
       receivedAt: receivedAt ?? this.receivedAt,
       contactChannelDid: contactChannelDid ?? this.contactChannelDid,
+      localChannelDid: localChannelDid ?? this.localChannelDid,
       threadId: threadId ?? this.threadId,
       notes: notes ?? this.notes,
     );

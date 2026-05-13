@@ -39,19 +39,19 @@ class RCardSubject {
 
   /// Parses an [RCardSubject] directly from a raw VC blob string.
   ///
-  /// Uses the SSI package to decode and validate the VC structure before
-  /// extracting the jCard credential subject. Returns `null` if the blob
-  /// cannot be parsed as a signed DM v2 credential or does not contain a
-  /// recognisable jCard.
+  /// Tries DM v1 first (the format produced by `RCardBuilder`), then falls
+  /// back to DM v2. Returns `null` if the blob cannot be parsed as either
+  /// data model or does not contain a recognisable jCard.
   static RCardSubject? fromVcBlob(
     String vcBlob, {
     MeetingPlaceCoreSDKLogger? logger,
   }) {
     final log =
         logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardSubject');
-    final vc = LdVcDm2Suite().tryParse(vcBlob);
+    final vc =
+        LdVcDm1Suite().tryParse(vcBlob) ?? LdVcDm2Suite().tryParse(vcBlob);
     if (vc == null) {
-      log.warning('Could not parse VC from blob as a signed DM v2 credential');
+      log.warning('Could not parse VC from blob as DM v1 or DM v2');
       return null;
     }
     final subject = vc.credentialSubject.firstOrNull;

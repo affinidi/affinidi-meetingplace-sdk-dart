@@ -439,6 +439,29 @@ abstract class BaseChatSDK {
       return null;
     }
 
+    if (event.type == 'm.reaction') {
+      final relatesTo =
+          event.content['m.relates_to'] as Map<String, dynamic>?;
+      final targetEventId = relatesTo?['event_id'] as String?;
+      final reaction = relatesTo?['key'] as String?;
+      if (targetEventId == null || reaction == null) return null;
+
+      final messageId =
+          _serverEventIdToMessageId[targetEventId] ?? targetEventId;
+      final message = await chatRepository.getMessage(
+        chatId: chatId,
+        messageId: messageId,
+      );
+      if (message == null || message is! Message) return null;
+
+      if (!message.reactions.contains(reaction)) {
+        message.reactions.add(reaction);
+        await chatRepository.updateMesssage(message);
+        chatStream.pushData(StreamData(chatItem: message));
+      }
+      return null;
+    }
+
     final message =
         await chatRepository.createMessage(
               Message.fromRoomEventReceivedByMe(event: event, chatId: chatId),
@@ -673,6 +696,7 @@ abstract class BaseChatSDK {
   }) async {
     final methodName = 'reactOnMessage';
     _logger.info('Started reacting on message', name: methodName);
+
     if (message.reactions.contains(reaction)) {
       message.reactions.remove(reaction);
     } else {
@@ -681,19 +705,14 @@ abstract class BaseChatSDK {
 
     await chatRepository.updateMesssage(message);
 
-    final chatReaction = protocol.ChatReaction.create(
-      from: did,
-      to: [otherPartyDid],
-      reactions: message.reactions,
-      messageId: message.messageId,
-    );
-
     try {
-      await sendPlainTextMessage(
-        chatReaction.toPlainTextMessage(),
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
+      await coreSDK.sendMatrixRoomEvent(
+        ReactionRoomEvent(
+          sender: did,
+          roomId: roomId,
+          targetEventId: message.messageId,
+          reaction: reaction,
+        ),
       );
     } catch (e, stackTrace) {
       _logger.error(

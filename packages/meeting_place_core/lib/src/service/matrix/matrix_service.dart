@@ -13,7 +13,9 @@ import 'package:ssi/ssi.dart';
 
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
+import 'matrix_room_event.dart';
 import 'matrix_session_manager.dart';
+import 'matrix_subscription_options.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -114,6 +116,76 @@ class MatrixService {
     final client = await _ensureSession(didManager);
     final userId = _sessionManager.deriveUserId(did, homeserver.host);
     await client.inviteUser(roomId, userId);
+  }
+
+  /// Sends a Matrix room event with [eventType] and [content] to [roomId].
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to send the event to.
+  /// - [eventType]: The Matrix event type (a ChatProtocol URI).
+  /// - [content]: The event content payload.
+  /// - [didManager]: The DID manager used to ensure an authenticated session.
+  Future<void> sendRoomEvent(
+    String roomId,
+    String eventType,
+    Map<String, dynamic> content, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    await room.sendEvent(content, type: eventType);
+  }
+
+  /// Returns a stream of [MatrixRoomEvent]s received in [roomId].
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to subscribe to.
+  /// - [didManager]: The DID manager used to ensure an authenticated session.
+  /// - [excludeSelf]: When `true`, events sent by the local user are filtered
+  ///   out before being yielded (default: `false`).
+  Stream<MatrixRoomEvent> subscribeToRoom(
+    String roomId, {
+    required DidManager didManager,
+    MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
+  }) async* {
+    final client = await _ensureSession(didManager);
+    final myUserId = options.excludeSelf
+        ? _sessionManager.deriveUserId(
+            (await didManager.getDidDocument()).id,
+            homeserver.host,
+          )
+        : null;
+
+    await for (final event in client.onTimelineEvent.stream.where(
+      (e) => e.room.id == roomId,
+    )) {
+      final msg = _eventToMatrixRoomEvent(event);
+      if (msg != null && msg.sender != myUserId) yield msg;
+    }
+  }
+
+  /// Returns recent events from [roomId] as [MatrixRoomEvent]s.
+  ///
+  /// Parameters:
+  /// - [roomId]: The ID of the Matrix room to fetch history from.
+  /// - [didManager]: The DID manager used to ensure an authenticated session.
+  /// - [limit]: Maximum number of events to return (default: 50).
+  Future<List<MatrixRoomEvent>> fetchRoomHistory(
+    String roomId, {
+    required DidManager didManager,
+    int limit = 50,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) return [];
+
+    final timeline = await room.getTimeline();
+    return timeline.events
+        .map(_eventToMatrixRoomEvent)
+        .whereType<MatrixRoomEvent>()
+        .take(limit)
+        .toList();
   }
 
   /// Disposes of the session manager, cleaning up resources.

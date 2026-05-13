@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../protocol/message/chat_message/chat_message.dart';
 import 'chat_attachment.dart';
@@ -118,6 +119,42 @@ class Message extends ChatItem {
       dateCreated: message.body.timestamp,
       status: status,
       attachments: attachments ?? [],
+    );
+  }
+
+  factory Message.fromRoomEventSentByMe({
+    required MatrixRoomEvent event,
+    required String chatId,
+  }) {
+    return Message(
+      chatId: chatId,
+      messageId: event.id,
+      senderDid: event.sender,
+      value: event.content['body'] as String? ?? '',
+      isFromMe: true,
+      dateCreated: event.timestamp,
+      // Set status to sent since this is created for messages sent by me.
+      // The status will be updated to delivered/failed based on the delivery
+      // outcome.
+      status: ChatItemStatus.sent,
+      // TODO: How to add attachments?
+      attachments: [],
+    );
+  }
+
+  factory Message.fromRoomEventReceivedByMe({
+    required MatrixRoomEvent event,
+    required String chatId,
+  }) {
+    return Message(
+      chatId: chatId,
+      messageId: event.id,
+      senderDid: event.sender,
+      value: event.content['body'] as String? ?? '',
+      isFromMe: false,
+      dateCreated: event.timestamp,
+      status: ChatItemStatus.received,
+      attachments: [],
     );
   }
 

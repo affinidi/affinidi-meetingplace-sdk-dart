@@ -29,6 +29,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     required super.mediatorDid,
     required super.chatRepository,
     required super.options,
+    required super.roomId,
     super.card,
     MeetingPlaceChatSDKLogger? logger,
   }) : super(

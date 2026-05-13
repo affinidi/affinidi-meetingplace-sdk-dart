@@ -1,3 +1,5 @@
+import 'package:matrix/matrix.dart' as matrix;
+
 class MatrixRoomEvent {
   MatrixRoomEvent({
     required this.id,

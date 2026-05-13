@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 
 import '../../meeting_place_chat.dart';
 import '../core/chat_stream/chat_event_conversion.dart';
+import '../core/room_event/text_message_room_event.dart';
 import '../entity/chat_attachment_conversion.dart';
 import '../handlers/chat_alias_profile_hash_handler.dart';
 import '../handlers/chat_alias_profile_request_handler.dart';
@@ -16,9 +17,6 @@ import '../loggers/logger_formatter.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../utils/chat_utils.dart';
 import '../utils/top_and_tail_extension.dart';
-
-typedef SDKStreamSubscription =
-    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>;
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.
@@ -44,6 +42,7 @@ abstract class BaseChatSDK {
     required this.mediatorDid,
     required this.chatRepository,
     required this.options,
+    required this.roomId,
     this.card,
     MeetingPlaceChatSDKLogger? logger,
   }) : _logger = LoggerFormatter(className: _className, baseLogger: logger),
@@ -61,6 +60,7 @@ abstract class BaseChatSDK {
   final String did;
   final String otherPartyDid;
   final String mediatorDid;
+  final String roomId;
   final ChatRepository chatRepository;
   final ChatSDKOptions options;
   final ContactCard? card;
@@ -69,8 +69,8 @@ abstract class BaseChatSDK {
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
-  SDKStreamSubscription? _mediatorStreamSubscription;
-  Future<SDKStreamSubscription>? mediatorStreamFuture;
+  StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
+  Future<StreamSubscription<MatrixRoomEvent>>? _subscriptionFuture;
   int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
@@ -114,7 +114,7 @@ abstract class BaseChatSDK {
 
     chatStream = ChatStream();
 
-    mediatorStreamFuture = subscribeToMediator();
+    _subscriptionFuture = subscribeToMatrixRoom();
     final messagesFuture = chatRepository.listMessages(chatId);
 
     unawaited(sendProfileHash());
@@ -123,24 +123,9 @@ abstract class BaseChatSDK {
     final chat = Chat(id: chatId, stream: chatStream, messages: messages);
 
     unawaited(
-      mediatorStreamFuture!.then((subscription) {
+      _subscriptionFuture!.then((subscription) {
         unawaited(fetchNewMessages());
-        _mediatorStreamSubscription = subscription;
-        subscription.listen((data) async {
-          if (!await handleMessage(data, [])) {
-            chatStream.pushData(
-              StreamData(
-                event: UnhandledChatEvent(
-                  type: data.plainTextMessage.type.toString(),
-                  senderDid: data.plainTextMessage.from,
-                  body: data.plainTextMessage.body,
-                  createdTime: data.plainTextMessage.createdTime,
-                ),
-              ),
-            );
-          }
-          return MediatorStreamProcessingResult(keepMessage: false);
-        });
+        _matrixRoomSubscription = subscription;
       }),
     );
 
@@ -156,8 +141,8 @@ abstract class BaseChatSDK {
   /// - A [ChatStream] or `null` if the chat session has not yet started
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
-    if (mediatorStreamFuture == null) return null;
-    await mediatorStreamFuture;
+    if (_subscriptionFuture == null) return null;
+    await _subscriptionFuture;
     return chatStream;
   }
 
@@ -298,21 +283,29 @@ abstract class BaseChatSDK {
     return false;
   }
 
-  /// Fetch new messages from the mediator and process them via [handleMessage].
+  /// Fetch new messages from the Matrix room history.
   ///
   /// **Returns:**
   /// - A list of newly processed [Message]s.
   Future<List<Message>> fetchNewMessages() async {
     final methodName = 'fetchNewMessages';
     _logger.info('Started fetching new messages', name: methodName);
+<<<<<<< HEAD
     final messagesFromMediator = await coreSDK.didcomm.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
       deleteOnRetrieve: false,
-    );
-    final newMessages = <Message>[];
-    final processedHashes = <String>[];
+=======
 
+    final events = await coreSDK.fetchMatrixRoomHistory(
+      roomId: roomId,
+      receiverDid: did,
+>>>>>>> 6e32091f (chore: first messsaging TODO)
+    );
+
+    final newMessages = <Message>[];
+
+<<<<<<< HEAD
     for (final message in messagesFromMediator) {
       if (!await handleMessage(message, newMessages)) {
         chatStream.pushData(
@@ -336,7 +329,18 @@ abstract class BaseChatSDK {
         did: did,
         mediatorDid: mediatorDid,
         messageHashes: processedHashes,
+=======
+    for (final event in events) {
+      final message =
+          await chatRepository.createMessage(
+                Message.fromRoomEventReceivedByMe(event: event, chatId: chatId),
+              )
+              as Message;
+      chatStream.pushData(
+        StreamData(event: event.toChatEvent(), chatItem: message),
+>>>>>>> 6e32091f (chore: first messsaging TODO)
       );
+      newMessages.add(message);
     }
 
     _logger.info(
@@ -346,14 +350,12 @@ abstract class BaseChatSDK {
     return newMessages;
   }
 
-  /// Subscribes to mediator channel for real-time updates.
+  /// Subscribes to the Matrix room for real-time message updates.
   ///
   /// **Returns:**
-  /// - A [SDKStreamSubscription] subscription.
-  ///
-  /// **Throws:**
-  /// - [Exception] if the chat session has not yet started or resumed.
+  /// - A [StreamSubscription] for the Matrix room event stream.
   @internal
+<<<<<<< HEAD
   Future<SDKStreamSubscription> subscribeToMediator() {
     return coreSDK.didcomm.subscribe(
       did,
@@ -364,6 +366,31 @@ abstract class BaseChatSDK {
         fetchMessagesOnConnect: false,
       ),
     );
+=======
+  Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
+    final subscription = coreSDK
+        .subscribeToMatrixRoom(
+          roomId: roomId,
+          receiverDid: did,
+          options: const MatrixSubscriptionOptions(excludeSelf: true),
+        )
+        .listen((event) async {
+          final message =
+              await chatRepository.createMessage(
+                    Message.fromRoomEventReceivedByMe(
+                      event: event,
+                      chatId: chatId,
+                    ),
+                  )
+                  as Message;
+
+          chatStream.pushData(
+            StreamData(event: event.toChatEvent(), chatItem: message),
+          );
+        });
+
+    return subscription;
+>>>>>>> 6e32091f (chore: first messsaging TODO)
   }
 
   /// Sends a custom [CustomMessage] using the chat's sender and recipient
@@ -439,31 +466,26 @@ abstract class BaseChatSDK {
     final methodName = 'sendTextMessage';
     _logger.info('Started sending text message', name: methodName);
 
+    // TODO: check if sequence number is still needed for badge count
     final channel = await getChannel();
     channel.increaseSeqNo();
 
-    final chatMessage = protocol.ChatMessage.create(
-      from: did,
-      to: [otherPartyDid],
+    final roomEvent = TextMessageRoomEvent.create(
+      sender: did,
+      roomId: roomId,
       text: text,
-      seqNo: channel.seqNo,
-      attachments: (attachments ?? []).map((a) => a.toDIDComm()).toList(),
     );
 
-    final plainTextMessage = chatMessage.toPlainTextMessage();
     final createdMessage = await chatRepository.createMessage(
-      Message.fromSentMessage(message: chatMessage, chatId: chatId),
+      Message.fromRoomEventSentByMe(event: roomEvent, chatId: chatId),
     );
 
     try {
       chatStream.pushData(
-        StreamData(
-          event: plainTextMessage.toChatEvent(),
-          chatItem: createdMessage,
-        ),
+        StreamData(event: roomEvent.toChatEvent(), chatItem: createdMessage),
       );
 
-      await _sendMessageWithNotification(plainTextMessage);
+      await _sendMessageWithNotification(roomEvent);
 
       final updatedMessage = await _updateMessageStatus(
         chatId: chatId,
@@ -473,10 +495,7 @@ abstract class BaseChatSDK {
       await coreSDK.updateChannel(channel);
 
       chatStream.pushData(
-        StreamData(
-          event: plainTextMessage.toChatEvent(),
-          chatItem: updatedMessage,
-        ),
+        StreamData(event: roomEvent.toChatEvent(), chatItem: updatedMessage),
       );
 
       _logger.info('Completed sending text message', name: methodName);
@@ -484,7 +503,7 @@ abstract class BaseChatSDK {
     } catch (e, stackTrace) {
       return await _handleSendMessageError(
         createdMessage: createdMessage,
-        chatMessage: plainTextMessage,
+        event: roomEvent,
         error: e,
         stackTrace: stackTrace,
         methodName: methodName,
@@ -729,9 +748,9 @@ abstract class BaseChatSDK {
 
   /// Ends the chat session, disposing of the channel and stream manager.
   Future<void> end() async {
-    await _mediatorStreamSubscription?.dispose();
-    _mediatorStreamSubscription = null;
-    mediatorStreamFuture = null;
+    await _matrixRoomSubscription?.cancel();
+    _matrixRoomSubscription = null;
+    _subscriptionFuture = null;
     chatStream.dispose();
   }
 
@@ -745,15 +764,10 @@ abstract class BaseChatSDK {
   }
 
   /// Sends a message with notification, ignoring notification failures.
-  Future<void> _sendMessageWithNotification(PlainTextMessage message) async {
+  Future<void> _sendMessageWithNotification(MatrixRoomEvent event) async {
     try {
-      await sendPlainTextMessage(
-        message,
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-        notify: true,
-      );
+      // TODO: How to notify?
+      await coreSDK.sendMatrixRoomEvent(event);
     } on MeetingPlaceCoreSDKException catch (e) {
       final isNotificationError =
           e.code ==
@@ -769,7 +783,7 @@ abstract class BaseChatSDK {
       }
 
       _logger.warning(
-        'Failed to send notification for message ${message.id}',
+        'Failed to send notification for message ${event.id}',
         name: '_sendMessageWithNotification',
       );
     }
@@ -795,7 +809,7 @@ abstract class BaseChatSDK {
 
   Future<Message> _handleSendMessageError({
     required ChatItem createdMessage,
-    required PlainTextMessage chatMessage,
+    required MatrixRoomEvent event,
     required Object error,
     required StackTrace stackTrace,
     required String methodName,
@@ -811,7 +825,7 @@ abstract class BaseChatSDK {
     );
 
     chatStream.pushData(
-      StreamData(event: chatMessage.toChatEvent(), chatItem: createdMessage),
+      StreamData(event: event.toChatEvent(), chatItem: createdMessage),
     );
 
     return createdMessage as Message;

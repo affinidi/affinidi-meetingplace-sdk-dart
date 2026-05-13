@@ -41,3 +41,12 @@ extension PlainTextMessageToChatEvent on PlainTextMessage {
     };
   }
 }
+
+extension MatrixRoomEventToChatEvent on MatrixRoomEvent {
+  ChatEvent toChatEvent() {
+    // For simplicity, treating all MatrixRoomEvents as ChatMessageEvents.
+    // In a real implementation, you'd inspect the event type and content
+    // to determine the appropriate ChatEvent subclass.
+    return const ChatMessageEvent();
+  }
+}

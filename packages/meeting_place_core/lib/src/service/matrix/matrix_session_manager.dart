@@ -58,15 +58,11 @@ class MatrixSessionManager {
     required String jwt,
     required String did,
   }) async {
-    var client = _clientCache.get(did: did);
-
-    if (client == null) {
-      client = await _createClient(did: did);
-      _clientCache.add(did: did, client: client);
-    }
-
     try {
+      final client = await _createClient(did: did);
       final response = await client.login(jwtLoginType, token: jwt);
+
+      _clientCache.add(did: did, client: client);
       return response.userId;
     } catch (error, stackTrace) {
       _clientCache.remove(did: did);

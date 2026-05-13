@@ -43,6 +43,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     required super.did,
     required super.otherPartyDid,
     required super.mediatorDid,
+    required super.roomId,
     required super.chatRepository,
     required super.options,
     required this.group,
@@ -342,27 +343,16 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     return newMessages;
   }
 
-  /// Subscribes to the mediator channel for group events.
+  /// Subscribes to the Matrix room for real-time group message updates.
   ///
   /// **Returns:**
-  /// - A [SDKStreamSubscription] subscription stream for group messages.
+  /// - A [StreamSubscription] for the Matrix room event stream.
   @override
-  Future<SDKStreamSubscription> subscribeToMediator() async {
-    final methodName = 'subscribeToChannel';
-    logger.info('Started subscribing to mediator channel', name: methodName);
-
-    final subscription = await super.subscribeToMediator();
-    logger.info('Completed subscribing to group channel', name: methodName);
-
-    subscription.listen((data) async {
-      if (!await _handleMessage(data)) {
-        chatStream.pushData(
-          StreamData(event: data.plainTextMessage.toChatEvent()),
-        );
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
-
+  Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
+    final methodName = 'subscribeToMatrixRoom';
+    logger.info('Started subscribing to matrix room', name: methodName);
+    final subscription = await super.subscribeToMatrixRoom();
+    logger.info('Completed subscribing to matrix room', name: methodName);
     return subscription;
   }
 

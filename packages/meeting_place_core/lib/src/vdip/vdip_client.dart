@@ -5,6 +5,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
+import '../entity/channel.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/message/message_service.dart';
@@ -26,6 +27,16 @@ class VdipClient {
        _channelService = channelService,
        _connectionManager = connectionManager,
        _wallet = wallet;
+
+  /// DIDComm message type for a VDIP issued-credential message.
+  static final String issuedCredentialMessageType = VdipIssuedCredentialMessage
+      .messageType
+      .toString();
+
+  /// DIDComm message type for a VDIP request-issuance message.
+  static final String requestIssuanceMessageType = VdipRequestIssuanceMessage
+      .messageType
+      .toString();
 
   final MessageService _messageService;
   final ChannelService _channelService;
@@ -73,6 +84,7 @@ class VdipClient {
     final channel = await _channelService.findChannelByDid(recipientDid);
     final message = VdipRequestIssuanceMessage(
       id: const Uuid().v4(),
+      from: senderDid,
       to: [recipientDid],
       body: VdipRequestIssuanceMessageBody(
         proposalId: options.proposalId,
@@ -119,6 +131,7 @@ class VdipClient {
     final channel = await _channelService.findChannelByDid(recipientDid);
     final message = VdipIssuedCredentialMessage(
       id: const Uuid().v4(),
+      from: senderDid,
       to: [recipientDid],
       body: body.toJson(),
     );
@@ -128,6 +141,51 @@ class VdipClient {
       recipientDid: recipientDid,
       mediatorDid: channel.mediatorDid,
       notifyChannelType: ChannelActivityType.vdipIssuedCredentials,
+    );
+  }
+
+  /// Issues a signed [credential] to the other party in [channel] via VDIP.
+  ///
+  /// High-level convenience wrapper around [sendIssuedCredential]. Extracts
+  /// the sender and recipient DIDs from [channel], constructs the
+  /// [VdipIssuedCredentialBody] by dispatching on the runtime credential type
+  /// (W3C v1 or v2), and delivers the message.
+  ///
+  /// Throws [StateError] if the channel DIDs are missing.
+  /// Throws [ArgumentError] if [credential] is not a supported VC type.
+  Future<void> issueCredential({
+    required Channel channel,
+    required VerifiableCredential credential,
+  }) async {
+    final senderDid = channel.permanentChannelDid;
+    final recipientDid = channel.otherPartyPermanentChannelDid;
+    if (senderDid == null || senderDid.isEmpty) {
+      throw StateError(
+        'Channel is missing permanentChannelDid — cannot issue credential.',
+      );
+    }
+    if (recipientDid == null || recipientDid.isEmpty) {
+      throw StateError(
+        'Channel is missing otherPartyPermanentChannelDid — cannot issue'
+        ' credential.',
+      );
+    }
+
+    final VdipIssuedCredentialBody body;
+    if (credential is VcDataModelV2) {
+      body = VdipIssuedCredentialBody.w3cV2(credential: credential);
+    } else if (credential is VcDataModelV1) {
+      body = VdipIssuedCredentialBody.w3cV1(credential: credential);
+    } else {
+      throw ArgumentError(
+        'Unsupported VerifiableCredential type: ${credential.runtimeType}',
+      );
+    }
+
+    await sendIssuedCredential(
+      senderDid: senderDid,
+      recipientDid: recipientDid,
+      body: body,
     );
   }
 

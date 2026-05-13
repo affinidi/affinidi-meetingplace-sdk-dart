@@ -53,6 +53,7 @@ class VdipActivityEventHandler {
       mediatorDid: channel.mediatorDid,
       options: FetchMessagesOptions(
         deleteOnRetrieve: false,
+        deleteFailedMessages: true,
         filterByMessageTypes: [
           VdipRequestIssuanceMessage.messageType.toString(),
           VdipIssuedCredentialMessage.messageType.toString(),

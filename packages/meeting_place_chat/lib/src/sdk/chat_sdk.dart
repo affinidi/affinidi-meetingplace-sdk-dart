@@ -28,4 +28,12 @@ abstract interface class ChatSDK {
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates();
+
+  Future<void> createChatMessageFromIssuedCredential({
+    required List<Attachment> attachments,
+  });
+
+  Future<void> createChatMessageFromRequestCredential({
+    required List<Attachment> attachments,
+  });
 }

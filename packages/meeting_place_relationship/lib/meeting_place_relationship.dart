@@ -9,6 +9,7 @@ export 'src/rcard/model/r_card_vcard_extensions.dart';
 export 'src/rcard/model/received_r_card.dart';
 export 'src/rcard/parser/r_card_parser.dart';
 export 'src/rcard/r_card_channel_stream_manager.dart';
+export 'src/rcard/r_card_vdip_stream_manager.dart';
 export 'src/shared/credential_builder.dart';
 export 'src/shared/credential_constants.dart';
 export 'src/vrc/model/vrc_constants.dart';

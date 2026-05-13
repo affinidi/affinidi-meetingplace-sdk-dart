@@ -5,7 +5,6 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
 import 'matrix_session_manager.dart';
-import 'matrix_user_id_binding.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -100,26 +99,12 @@ class MatrixService {
 
   Future<void> inviteUser(
     String roomId, {
-    required String userId,
+    required String did,
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
+    final userId = _sessionManager.deriveUserId(did, homeserver.host);
     await client.inviteUser(roomId, userId);
-  }
-
-  String deriveUserId(String did) {
-    return deriveMatrixUserId(did, homeserver.host);
-  }
-
-  void validateUserIdBinding({
-    required String did,
-    required String matrixUserId,
-  }) {
-    validateMatrixUserIdBinding(
-      did: did,
-      matrixUserId: matrixUserId,
-      serverName: homeserver.host,
-    );
   }
 
   /// Disposes of the session manager, cleaning up resources.

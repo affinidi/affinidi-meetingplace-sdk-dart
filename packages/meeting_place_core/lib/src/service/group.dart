@@ -349,6 +349,7 @@ class GroupService {
       );
 
       await sendAcceptInvitationGroupToMediator(
+        senderDid: acceptOfferDidManager,
         mediatorDid: result.mediatorDid,
         permanentChannelDid: permanentChannelDidManager,
         invitationMessage: invitationMessage,
@@ -510,6 +511,7 @@ class GroupService {
   }
 
   Future<void> sendAcceptInvitationGroupToMediator({
+    required DidManager senderDid,
     required DidManager permanentChannelDid,
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
@@ -525,6 +527,7 @@ class GroupService {
 
     final recipientDid = invitationMessage.from;
 
+    final senderDidDocument = await senderDid.getDidDocument();
     final permanentChannelDidDocument = await permanentChannelDid
         .getDidDocument();
 
@@ -540,7 +543,7 @@ class GroupService {
     );
 
     final invitationAcceptanceMessage = InvitationAcceptanceGroup.create(
-      from: permanentChannelDidDocument.id,
+      from: senderDidDocument.id,
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
@@ -550,7 +553,7 @@ class GroupService {
 
     await _mediatorSDK.sendMessage(
       invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: permanentChannelDid,
+      senderDidManager: senderDid,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
       next: recipientDid,
@@ -649,8 +652,6 @@ class GroupService {
       },
     );
 
-    final memberMatrixUserId = _matrixService.deriveUserId(member.did);
-
     final memberDidDocument = await _didResolver.resolveDid(member.did);
     await _allowMemberToMessageGroupAdmin(group, member, channel.mediatorDid);
 
@@ -668,7 +669,7 @@ class GroupService {
 
     await _matrixService.inviteUser(
       roomId,
-      userId: memberMatrixUserId,
+      did: member.did,
       didManager: ownerIdentity.didManager,
     );
 

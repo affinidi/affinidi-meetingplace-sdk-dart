@@ -167,7 +167,12 @@ class MatrixService {
     final room = client.getRoomById(roomId);
     if (room == null) return [];
 
-    final timeline = await room.getTimeline();
+    final timeline = await room.getTimeline(limit: limit);
+
+    if (timeline.events.length < limit && timeline.canRequestHistory) {
+      await timeline.requestHistory(historyCount: limit);
+    }
+
     final events = timeline.events
         .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
         .whereType<MatrixRoomEvent>();

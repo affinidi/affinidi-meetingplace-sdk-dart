@@ -490,6 +490,11 @@ abstract class BaseChatSDK {
       return null;
     }
 
+    if (event.type == ChatProtocol.chatEffect.value) {
+      chatStream.pushData(StreamData(event: event.toChatEvent()));
+      return null;
+    }
+
     final message =
         await chatRepository.createMessage(
               Message.fromRoomEventReceivedByMe(event: event, chatId: chatId),
@@ -783,24 +788,19 @@ abstract class BaseChatSDK {
 
   /// Sends a chat effect (visual/animated signal).
   Future<void> sendEffect(Effect effect) async {
-    final methodName = 'sendEffect';
-    _logger.info('Started sending chat effect', name: methodName);
-    final chatEffect = protocol.ChatEffect.create(
-      from: did,
-      to: [otherPartyDid],
-      effect: effect.name,
-    ).toPlainTextMessage();
+    _logger.info('Started sending chat effect', name: _logkey);
 
-    chatStream.pushData(StreamData(event: chatEffect.toChatEvent()));
+    final roomEvent = EffectRoomEvent(
+      sender: did,
+      roomId: roomId,
+      effect: effect.name,
+    );
+
+    chatStream.pushData(StreamData(event: roomEvent.toChatEvent()));
 
     // TODO: handle error case
-    await sendPlainTextMessage(
-      chatEffect,
-      senderDid: did,
-      recipientDid: otherPartyDid,
-      mediatorDid: mediatorDid,
-    );
-    _logger.info('Completed sending chat effect', name: methodName);
+    await coreSDK.sendMatrixRoomEvent(roomEvent);
+    _logger.info('Chat effect sent', name: _logkey);
   }
 
   /// Sends a chat activity message.

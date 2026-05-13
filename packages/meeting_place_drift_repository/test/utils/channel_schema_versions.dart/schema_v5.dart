@@ -78,6 +78,11 @@ class Channels extends Table with TableInfo {
           type: DriftSqlType.string,
           requiredDuringInsert: false,
           $customConstraints: 'NULL');
+  late final GeneratedColumn<String> matrixRoomId = GeneratedColumn<String>(
+      'matrix_room_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> externalRef = GeneratedColumn<String>(
       'external_ref', aliasedName, true,
       type: DriftSqlType.string,
@@ -93,6 +98,11 @@ class Channels extends Table with TableInfo {
           type: DriftSqlType.string,
           requiredDuringInsert: false,
           $customConstraints: 'NULL');
+  late final GeneratedColumn<String> matrixSyncMarker = GeneratedColumn<String>(
+      'matrix_sync_marker', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -108,9 +118,11 @@ class Channels extends Table with TableInfo {
         otherPartyPermanentChannelDid,
         notificationToken,
         otherPartyNotificationToken,
+        matrixRoomId,
         externalRef,
         seqNo,
-        messageSyncMarker
+        messageSyncMarker,
+        matrixSyncMarker
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -207,8 +219,8 @@ class ChannelContactCards extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV3 extends GeneratedDatabase {
-  DatabaseAtV3(QueryExecutor e) : super(e);
+class DatabaseAtV5 extends GeneratedDatabase {
+  DatabaseAtV5(QueryExecutor e) : super(e);
   late final Channels channels = Channels(this);
   late final ChannelContactCards channelContactCards =
       ChannelContactCards(this);
@@ -233,7 +245,7 @@ class DatabaseAtV3 extends GeneratedDatabase {
         ],
       );
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

@@ -81,6 +81,13 @@ class ChannelDatabase extends _$ChannelDatabase {
             UNIQUE(channel_id, card_type)
           )
         ''');
+        // Note: the JSON keys produced here ('email', 'mobile', 'color') do
+        // not match the nested paths expected by ContactCardFieldsKeys
+        // extensions (['email','type','work'], ['tel','type','cell'],
+        // ['x-meetingplace-identity-card-color']). Extension getters will
+        // therefore resolve to empty string for rows migrated from v1. This
+        // is a known limitation of the original v1→v2 migration that cannot
+        // be corrected without a further schema migration.
         await customStatement('''
           INSERT INTO channel_contact_cards_temp
             (id, channel_id, did, type, contact_info_json, card_type)

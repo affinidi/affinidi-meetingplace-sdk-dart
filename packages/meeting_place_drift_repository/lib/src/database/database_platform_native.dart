@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -36,7 +37,12 @@ class DatabasePlatform {
       sqliteDb.execute("PRAGMA key = '$escapedPassphrase';");
       sqliteDb.select('SELECT count(*) FROM sqlite_master;');
       return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
-    } on SqliteException {
+    } on SqliteException catch (e) {
+      developer.log(
+        'Default sqlite3mc cipher failed, retrying with SQLCipher '
+        'legacy mode: $e',
+        name: 'DatabasePlatform',
+      );
       sqliteDb.close();
     }
 
@@ -49,7 +55,13 @@ class DatabasePlatform {
       legacyDb.execute("PRAGMA key = '$escapedPassphrase';");
       legacyDb.select('SELECT count(*) FROM sqlite_master;');
       return NativeDatabase.opened(legacyDb, logStatements: logStatements);
-    } catch (_) {
+    } catch (e, st) {
+      developer.log(
+        'SQLCipher legacy mode failed: $e',
+        name: 'DatabasePlatform',
+        error: e,
+        stackTrace: st,
+      );
       legacyDb.close();
       rethrow;
     }

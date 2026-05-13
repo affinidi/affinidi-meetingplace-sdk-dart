@@ -660,17 +660,17 @@ class GroupService {
       group.ownerDid!,
     );
 
-    final roomId =
-        channel.matrixRoomId ??
-        (await _channelService.findChannelByOtherPartyPermanentChannelDid(
-          group.did,
-        )).matrixRoomId ??
-        (throw GroupException.notFoundError());
+    final roomId = channel.matrixRoomId ?? (throw GroupException.notFoundError());
 
     await _matrixService.inviteUser(
       roomId,
       did: member.did,
       didManager: ownerIdentity.didManager,
+    );
+
+    final senderDid = await _connectionManager.getDidManagerForDid(
+      _wallet,
+      channel.publishOfferDid,
     );
 
     final reencryptionKey = await generateMemberReEncryptionKey(
@@ -679,7 +679,7 @@ class GroupService {
     );
 
     final groupMemberInauguration = GroupMemberInauguration.create(
-      from: ownerIdentity.didDocument.id,
+      from: channel.publishOfferDid,
       to: [memberDid],
       memberDid: memberDid,
       groupDid: group.did,
@@ -703,7 +703,7 @@ class GroupService {
 
     await _mediatorSDK.sendMessage(
       groupMemberInauguration.toPlainTextMessage(),
-      senderDidManager: ownerIdentity.didManager,
+      senderDidManager: senderDid,
       recipientDidDocument: memberDidDocument,
       mediatorDid: channel.mediatorDid,
     );

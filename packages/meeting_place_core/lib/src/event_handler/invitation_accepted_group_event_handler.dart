@@ -127,7 +127,7 @@ class InvitationGroupAcceptedEventHandler
     );
 
     await channelService.persistChannel(channel);
-    return channel;
+    return groupChannel;
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {

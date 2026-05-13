@@ -73,6 +73,9 @@ abstract class BaseChatSDK {
   StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
   Future<StreamSubscription<MatrixRoomEvent>>? _subscriptionFuture;
   final Map<String, String> _serverEventIdToMessageId = {};
+  final Map<String, String> _reactionServerEventIds = {};
+  // Maps incoming reaction server event ID → "$messageId:$reaction"
+  final Map<String, String> _incomingReactionEventIds = {};
   int? seqNo;
 
   /// Sends a [PlainTextMessage] to the other party (implemented by subclasses).
@@ -440,8 +443,7 @@ abstract class BaseChatSDK {
     }
 
     if (event.type == 'm.reaction') {
-      final relatesTo =
-          event.content['m.relates_to'] as Map<String, dynamic>?;
+      final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
       final targetEventId = relatesTo?['event_id'] as String?;
       final reaction = relatesTo?['key'] as String?;
       if (targetEventId == null || reaction == null) return null;
@@ -456,6 +458,32 @@ abstract class BaseChatSDK {
 
       if (!message.reactions.contains(reaction)) {
         message.reactions.add(reaction);
+        await chatRepository.updateMesssage(message);
+        chatStream.pushData(StreamData(chatItem: message));
+        _incomingReactionEventIds[event.id] = '$messageId:$reaction';
+      }
+      return null;
+    }
+
+    if (event.type == 'm.room.redaction') {
+      final redactedEventId = event.content['redacts'] as String?;
+      if (redactedEventId == null) return null;
+
+      final reactionKey = _incomingReactionEventIds.remove(redactedEventId);
+      if (reactionKey == null) return null;
+
+      final separatorIndex = reactionKey.lastIndexOf(':');
+      if (separatorIndex == -1) return null;
+      final messageId = reactionKey.substring(0, separatorIndex);
+      final reaction = reactionKey.substring(separatorIndex + 1);
+
+      final message = await chatRepository.getMessage(
+        chatId: chatId,
+        messageId: messageId,
+      );
+      if (message == null || message is! Message) return null;
+
+      if (message.reactions.remove(reaction)) {
         await chatRepository.updateMesssage(message);
         chatStream.pushData(StreamData(chatItem: message));
       }
@@ -697,7 +725,9 @@ abstract class BaseChatSDK {
     final methodName = 'reactOnMessage';
     _logger.info('Started reacting on message', name: methodName);
 
-    if (message.reactions.contains(reaction)) {
+    final isRemoving = message.reactions.contains(reaction);
+
+    if (isRemoving) {
       message.reactions.remove(reaction);
     } else {
       message.reactions.add(reaction);
@@ -705,15 +735,32 @@ abstract class BaseChatSDK {
 
     await chatRepository.updateMesssage(message);
 
+    final reactionKey = '${message.messageId}:$reaction';
+
     try {
-      await coreSDK.sendMatrixRoomEvent(
-        ReactionRoomEvent(
-          sender: did,
-          roomId: roomId,
-          targetEventId: message.messageId,
-          reaction: reaction,
-        ),
-      );
+      if (isRemoving) {
+        final reactionEventId = _reactionServerEventIds[reactionKey];
+        if (reactionEventId != null) {
+          await coreSDK.redactMatrixRoomEvent(
+            roomId: roomId,
+            eventId: reactionEventId,
+            senderDid: did,
+          );
+          _reactionServerEventIds.remove(reactionKey);
+        }
+      } else {
+        final serverEventId = await coreSDK.sendMatrixRoomEvent(
+          ReactionRoomEvent(
+            sender: did,
+            roomId: roomId,
+            targetEventId: message.messageId,
+            reaction: reaction,
+          ),
+        );
+        if (serverEventId != null) {
+          _reactionServerEventIds[reactionKey] = serverEventId;
+        }
+      }
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to send reaction message',
@@ -722,7 +769,11 @@ abstract class BaseChatSDK {
         name: methodName,
       );
       // rollback
-      message.reactions.remove(reaction);
+      if (isRemoving) {
+        message.reactions.add(reaction);
+      } else {
+        message.reactions.remove(reaction);
+      }
       await chatRepository.updateMesssage(message);
       Error.throwWithStackTrace(e, stackTrace);
     }

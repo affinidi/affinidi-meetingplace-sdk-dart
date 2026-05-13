@@ -1082,6 +1082,21 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  Future<void> redactMatrixRoomEvent({
+    required String roomId,
+    required String eventId,
+    required String senderDid,
+  }) {
+    return _withSdkExceptionHandling(() async {
+      final didManager = await getDidManager(senderDid);
+      return _matrixService.redactRoomEvent(
+        roomId,
+        eventId,
+        didManager: didManager,
+      );
+    });
+  }
+
   /// Returns a stream of [MatrixRoomEvent]s from the Matrix room [roomId].
   ///
   /// Parameters:

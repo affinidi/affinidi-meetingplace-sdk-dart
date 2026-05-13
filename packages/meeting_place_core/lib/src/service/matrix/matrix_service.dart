@@ -111,6 +111,17 @@ class MatrixService {
     await client.inviteUser(roomId, userId);
   }
 
+  Future<void> redactRoomEvent(
+    String roomId,
+    String eventId, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    await room.redactEvent(eventId);
+  }
+
   /// Sends a Matrix room event with [eventType] and [content] to [roomId].
   ///
   /// Parameters:

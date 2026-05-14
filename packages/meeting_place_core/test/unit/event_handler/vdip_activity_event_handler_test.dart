@@ -120,6 +120,7 @@ void main() {
     ).thenAnswer((_) async {});
 
     when(() => mockVdipClient.dispatch(any())).thenReturn(null);
+    when(() => mockVdipClient.messageProcessors).thenReturn(const []);
 
     when(
       () => mockChannelService.updateChannelSequence(

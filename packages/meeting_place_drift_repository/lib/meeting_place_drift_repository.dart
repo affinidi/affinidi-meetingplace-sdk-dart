@@ -11,3 +11,5 @@ export 'src/repositories/connection_offer_repository/connection_offer_database.d
 export 'src/repositories/connection_offer_repository/connection_offer_repository_drift.dart';
 export 'src/repositories/group_repository/groups_database.dart';
 export 'src/repositories/group_repository/groups_repository_drift.dart';
+export 'src/repositories/r_card_repository/received_r_card_database.dart';
+export 'src/repositories/r_card_repository/received_r_card_repository_drift.dart';

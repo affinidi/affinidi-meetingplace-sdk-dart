@@ -6,7 +6,17 @@ import '../model/j_card.dart';
 import '../model/r_card_constants.dart';
 import '../model/r_card_subject.dart';
 
+/// Builds signed R-Card Verifiable Credentials.
+///
+/// Uses W3C Data Model v1 with an ecdsa-jcs-2019 (Data Integrity) proof.
+/// Contact data is embedded as an RFC 7095 jCard in the credential subject.
 abstract final class RCardBuilder {
+  /// Builds and signs an R-Card VC.
+  ///
+  /// - [issuerDid] — DID of the issuer.
+  /// - [subjectDid] — DID of the credential subject.
+  /// - [subject] — Contact fields to embed as a jCard.
+  /// - [issuerDidManager] — [DidManager] used to sign the credential.
   static Future<VerifiableCredential> build({
     required String issuerDid,
     required String subjectDid,

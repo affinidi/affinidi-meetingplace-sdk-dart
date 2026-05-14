@@ -61,6 +61,21 @@ void main() {
         body: {},
       ),
     );
+    registerFallbackValue(
+      Channel(
+        offerLink: 'fallback-offer',
+        publishOfferDid: 'did:key:fallback',
+        mediatorDid: 'did:web:fallback',
+        status: ChannelStatus.inaugurated,
+        isConnectionInitiator: false,
+        contactCard: ContactCard(
+          did: 'did:key:fallback-other',
+          type: 'individual',
+          contactInfo: const {},
+        ),
+        type: ChannelType.individual,
+      ),
+    );
   });
 
   setUp(() {

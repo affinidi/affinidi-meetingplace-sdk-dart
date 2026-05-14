@@ -39,8 +39,9 @@ class RCardVdipStreamManager {
 
   /// Cancels the internal subscription and closes [stream].
   ///
-  /// Call this when the SDK is no longer needed (e.g. on sign-out).
+  /// Safe to call more than once — subsequent calls are no-ops.
   Future<void> close() async {
+    if (_controller.isClosed) return;
     await _subscription.cancel();
     await _controller.close();
   }

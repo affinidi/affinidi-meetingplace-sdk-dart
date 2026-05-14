@@ -80,8 +80,9 @@ class MeetingPlaceRelationshipSDK {
 
   /// Cancels all internal subscriptions and closes [receivedRCards].
   ///
-  /// Call this when the SDK is no longer needed (e.g. on sign-out).
+  /// Safe to call more than once — subsequent calls are no-ops.
   Future<void> closeRelationshipStreams() async {
+    if (_receivedRCardsController.isClosed) return;
     await _vdipSubscription.cancel();
     await _attachmentSubscription.cancel();
     await _vdipManager.close();

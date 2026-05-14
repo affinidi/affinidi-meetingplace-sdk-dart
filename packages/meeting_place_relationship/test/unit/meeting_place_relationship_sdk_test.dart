@@ -39,6 +39,13 @@ void main() {
       await expectLater(sdk.closeRelationshipStreams(), completes);
     });
 
+    test('closeRelationshipStreams() is idempotent'
+        ' — does not throw on second call', () async {
+      final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
+      await sdk.closeRelationshipStreams();
+      await expectLater(sdk.closeRelationshipStreams(), completes);
+    });
+
     test('attachments with wrong format do not emit', () async {
       final sdk = MeetingPlaceRelationshipSDK(coreSDK: mockCoreSDK);
       final channel = MockChannel();

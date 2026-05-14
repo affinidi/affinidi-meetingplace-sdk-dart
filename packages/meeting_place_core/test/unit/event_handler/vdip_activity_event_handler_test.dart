@@ -105,6 +105,14 @@ void main() {
     ).thenAnswer((_) async {});
 
     when(() => mockVdipClient.dispatch(any())).thenReturn(null);
+
+    when(
+      () => mockChannelService.updateChannelSequence(
+        any(),
+        sequenceNumber: any(named: 'sequenceNumber'),
+        messageSyncMarker: any(named: 'messageSyncMarker'),
+      ),
+    ).thenAnswer((_) async {});
   });
 
   group('VdipActivityEventHandler', () {
@@ -128,7 +136,7 @@ void main() {
 
       final result = await handler.process(event);
 
-      expect(result, isEmpty);
+      expect(result, [channel]);
 
       final verification = verify(
         () => mockMediatorService.fetchMessages(
@@ -156,6 +164,13 @@ void main() {
           didManager: mockDidManager,
           mediatorDid: mediatorDid,
           messageHashes: [messageHash],
+        ),
+      ).called(1);
+      verify(
+        () => mockChannelService.updateChannelSequence(
+          channel,
+          sequenceNumber: channel.seqNo + 1,
+          messageSyncMarker: channel.messageSyncMarker,
         ),
       ).called(1);
     });
@@ -212,7 +227,7 @@ void main() {
 
         final result = await handler.process(event);
 
-        expect(result, isEmpty);
+        expect(result, [channel]);
         verify(
           () => mockVdipClient.dispatch(mediatorMessage.plainTextMessage),
         ).called(1);

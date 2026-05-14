@@ -44,7 +44,29 @@ class VdipClient {
   final Wallet _wallet;
 
   final _incomingController = StreamController<PlainTextMessage>.broadcast();
+  final _messageProcessors = <Future<void> Function(PlainTextMessage)>[];
   var _isDisposed = false;
+
+  /// Registers a [processor] that is called for every VDIP message handled
+  /// by `VdipActivityEventHandler`, **before** the message is deleted from
+  /// the mediator.
+  ///
+  /// Unlike [incomingMessages], processors are guaranteed to be called even
+  /// when no stream subscriber is present — making them the correct hook for
+  /// reliable persistence (e.g. R-Card upsert) that must not depend on lazy
+  /// SDK initialisation timing.
+  void registerMessageProcessor(
+    Future<void> Function(PlainTextMessage) processor,
+  ) {
+    _messageProcessors.add(processor);
+  }
+
+  /// The list of processors registered via [registerMessageProcessor].
+  ///
+  /// Called sequentially by `VdipActivityEventHandler` for each incoming
+  /// VDIP message before that message is deleted from the mediator.
+  List<Future<void> Function(PlainTextMessage)> get messageProcessors =>
+      List.unmodifiable(_messageProcessors);
 
   /// A broadcast stream that emits incoming VDIP [PlainTextMessage]s.
   ///

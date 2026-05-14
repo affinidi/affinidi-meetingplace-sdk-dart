@@ -46,6 +46,21 @@ class RCardVdipStreamManager {
     await _controller.close();
   }
 
+  /// Processes a single [message] using the same parse logic as [stream].
+  ///
+  /// Returns the parsed [ReceivedRCard] if [message] is a valid
+  /// `vdip-issued-credentials` R-Card, or `null` otherwise.
+  ///
+  /// Used by `MeetingPlaceRelationshipSDK` as a `VdipClient` message
+  /// processor to guarantee R-Card persistence regardless of whether
+  /// [stream] has an active subscriber at dispatch time.
+  Future<ReceivedRCard?> processMessage(PlainTextMessage message) async {
+    await for (final rCard in _parseVdipMessage(message)) {
+      return rCard;
+    }
+    return null;
+  }
+
   Stream<ReceivedRCard> _parseVdipMessage(PlainTextMessage message) async* {
     if (message.type != VdipIssuedCredentialMessage.messageType) return;
 

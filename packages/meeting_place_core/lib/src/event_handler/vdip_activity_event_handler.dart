@@ -65,6 +65,11 @@ class VdipActivityEventHandler {
 
     for (final message in messages) {
       _vdipClient.dispatch(message.plainTextMessage);
+
+      for (final processor in _vdipClient.messageProcessors) {
+        await processor(message.plainTextMessage);
+      }
+
       processedCount++;
 
       final messageHash = message.messageHash;

@@ -1,4 +1,5 @@
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:meeting_place_relationship/src/rcard/model/j_card.dart';
 import 'package:test/test.dart';
 
 void main() {

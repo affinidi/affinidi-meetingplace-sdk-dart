@@ -61,8 +61,12 @@ class VdipActivityEventHandler {
       ),
     );
 
+    var processedCount = 0;
+
     for (final message in messages) {
       _vdipClient.dispatch(message.plainTextMessage);
+      processedCount++;
+
       final messageHash = message.messageHash;
       if (messageHash != null) {
         await _mediatorService.deleteMessages(
@@ -79,6 +83,14 @@ class VdipActivityEventHandler {
       }
     }
 
-    return [];
+    if (processedCount > 0) {
+      await _channelService.updateChannelSequence(
+        channel,
+        sequenceNumber: channel.seqNo + processedCount,
+        messageSyncMarker: channel.messageSyncMarker,
+      );
+    }
+
+    return [channel];
   }
 }

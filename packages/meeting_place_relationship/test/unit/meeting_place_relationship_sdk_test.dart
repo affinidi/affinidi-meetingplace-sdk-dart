@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
 import 'package:mocktail/mocktail.dart';
@@ -17,10 +18,10 @@ void main() {
       RCard(
         subjectDid: 'did:key:fallback',
         vcBlob: '{}',
-        issuerDid: 'did:key:fallback',
+        issuerDid: 'did:key:issuer',
         version: 1,
-        issuanceDate: DateTime.utc(2024),
-        receivedAt: DateTime.utc(2024),
+        issuanceDate: DateTime.utc(2024, 1, 1),
+        receivedAt: DateTime.utc(2024, 1, 1),
       ),
     );
     registerFallbackValue(MockChannel());
@@ -31,18 +32,33 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<PlainTextMessage> vdipMessagesCtrl;
+    late MeetingPlaceRelationshipSDK sdk;
 
     setUp(() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
-      mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
+      vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
+      mockCoreSDK = mockCoreSDKWithStreams(
+        channelAttachmentsCtrl,
+        vdipMessagesCtrl,
+      );
       mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
+      when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
+      when(() => mockRepo.getBySubjectDid(any())).thenAnswer((_) async => null);
+      when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
+      when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
+      sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
     });
 
     tearDown(() async {
       await channelAttachmentsCtrl.close();
+      await vdipMessagesCtrl.close();
     });
 
     test(
@@ -72,10 +88,125 @@ void main() {
         rCardRepository: mockRepo,
       );
       await sdk.closeRelationshipStreams();
-      await expectLater(sdk.closeRelationshipStreams(), completes);
     });
 
-    test('attachments with wrong format do not emit', () async {
+    test('watchReceivedRCards delegates to repository', () async {
+      final expected = [
+        RCard(
+          subjectDid: 'did:key:peer',
+          vcBlob: '{}',
+          issuerDid: 'did:key:issuer',
+          version: 1,
+          issuanceDate: DateTime.utc(2024, 1, 1),
+          receivedAt: DateTime.utc(2024, 1, 2),
+        ),
+      ];
+      when(() => mockRepo.watchAll()).thenAnswer((_) => Stream.value(expected));
+
+      expectLater(sdk.watchReceivedRCards(), emits(expected));
+    });
+
+    test('list/get/update/delete delegate to repository', () async {
+      final stored = RCard(
+        subjectDid: 'did:key:peer',
+        vcBlob: '{}',
+        issuerDid: 'did:key:issuer',
+        version: 1,
+        issuanceDate: DateTime.utc(2024, 1, 1),
+        receivedAt: DateTime.utc(2024, 1, 2),
+      );
+      when(() => mockRepo.listAll()).thenAnswer((_) async => [stored]);
+      when(
+        () => mockRepo.getBySubjectDid('did:key:peer'),
+      ).thenAnswer((_) async => stored);
+
+      expect(await sdk.listReceivedRCards(), [stored]);
+      expect(await sdk.getReceivedRCardBySubjectDid('did:key:peer'), stored);
+
+      await sdk.updateReceivedRCardNotes('did:key:peer', 'hello');
+      await sdk.deleteReceivedRCard('did:key:peer');
+
+      verify(() => mockRepo.updateNotes('did:key:peer', 'hello')).called(1);
+      verify(() => mockRepo.deleteBySubjectDid('did:key:peer')).called(1);
+    });
+  });
+
+  group('MeetingPlaceRelationshipSDK R-Card stream wiring', () {
+    late MockMeetingPlaceCoreSDK mockCoreSDK;
+    late MockRCardRepository mockRepo;
+    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<PlainTextMessage> vdipMessagesCtrl;
+    late String issuerDid;
+    late List<Attachment> signedAttachments;
+
+    setUpAll(() async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+      final didManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final keyPair = await wallet.generateKey();
+      await didManager.addVerificationMethod(keyPair.id);
+      final didDoc = await didManager.getDidDocument();
+      issuerDid = didDoc.id;
+
+      final vc = await CredentialBuilder.buildRCard(
+        issuerDid: issuerDid,
+        subjectDid: issuerDid,
+        subject: const RCardSubject(firstName: 'Alice'),
+        issuerDidManager: didManager,
+      );
+      signedAttachments = RCardDIDCommAttachmentBuilder.fromVcJson(vc.toJson());
+    });
+
+    setUp(() {
+      channelAttachmentsCtrl =
+          StreamController<(Channel, List<Attachment>)>.broadcast();
+      vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
+      mockCoreSDK = mockCoreSDKWithStreams(
+        channelAttachmentsCtrl,
+        vdipMessagesCtrl,
+      );
+      mockRepo = MockRCardRepository();
+      when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
+      when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
+      when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
+      when(() => mockRepo.getBySubjectDid(any())).thenAnswer((_) async => null);
+      when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
+      when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
+    });
+
+    tearDown(() async {
+      await channelAttachmentsCtrl.close();
+      await vdipMessagesCtrl.close();
+    });
+
+    test('emits and persists a valid signed attachment R-Card', () async {
+      final sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
+      final channel = MockChannel();
+      when(
+        () => channel.otherPartyPermanentChannelDid,
+      ).thenReturn('did:example:other');
+
+      final emitted = <RCard>[];
+      final sub = sdk.receivedRCards.listen(emitted.add);
+
+      channelAttachmentsCtrl.add((channel, signedAttachments));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(emitted, hasLength(1));
+      expect(emitted.first.issuerDid, issuerDid);
+      expect(emitted.first.contactChannelDid, 'did:example:other');
+      verify(() => mockRepo.upsert(any())).called(1);
+
+      await sub.cancel();
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('ignores unrelated attachments', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
@@ -92,10 +223,11 @@ void main() {
         channel,
         [makeAttachment(format: 'unknown_plugin', dataJson: '{}')],
       ));
-
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
+      verifyNever(() => mockRepo.upsert(any()));
+
       await sub.cancel();
       await sdk.closeRelationshipStreams();
     });
@@ -148,93 +280,291 @@ void main() {
     });
   });
 
-  group('MeetingPlaceRelationshipSDK receivedRCards happy path', () {
+  group('MeetingPlaceRelationshipSDK VRC streams', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
-    late List<Attachment> signedAttachments;
-    late MockChannel channel;
+    late StreamController<PlainTextMessage> vdipMessagesCtrl;
+    late String signedVrcBlob;
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
-      final didManager = DidKeyManager(
+      final issuerManager = DidKeyManager(
         wallet: wallet,
         store: InMemoryDidStore(),
       );
       final keyPair = await wallet.generateKey();
-      await didManager.addVerificationMethod(keyPair.id);
-      final didDoc = await didManager.getDidDocument();
-      final did = didDoc.id;
+      await issuerManager.addVerificationMethod(keyPair.id);
+      final didDoc = await issuerManager.getDidDocument();
+      final issuerDid = didDoc.id;
 
-      final vc = await CredentialBuilder.buildRCard(
-        issuerDid: did,
-        subjectDid: did,
-        subject: const RCardSubject(firstName: 'Alice'),
-        issuerDidManager: didManager,
+      final signed = await CredentialBuilder.buildVrc(
+        issuerDid: issuerDid,
+        subject: VrcCredentialSubject(
+          from: VrcParty(did: issuerDid, name: 'Alice'),
+          to: const VrcParty(did: 'did:key:peer', name: 'Bob'),
+        ),
+        issuerDidManager: issuerManager,
       );
-      signedAttachments = RCardDIDCommAttachmentBuilder.fromVcJson(vc.toJson());
+      signedVrcBlob = jsonEncode(signed.toJson());
     });
 
     setUp(() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
-      mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
+      vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
+      mockCoreSDK = mockCoreSDKWithStreams(
+        channelAttachmentsCtrl,
+        vdipMessagesCtrl,
+      );
       mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
-      channel = MockChannel();
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
+      when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
+      when(() => mockRepo.getBySubjectDid(any())).thenAnswer((_) async => null);
+      when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
+      when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
     });
 
     tearDown(() async {
       await channelAttachmentsCtrl.close();
+      await vdipMessagesCtrl.close();
     });
 
-    test('valid signed R-Card emits on receivedRCards', () async {
+    test('emits a typed VRC request and caches it by sender DID', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
       );
-      final emitted = <RCard>[];
-      final sub = sdk.receivedRCards.listen(emitted.add);
+      final events = <ReceivedVrcRequest>[];
+      final sub = sdk.receivedVrcRequests.listen(events.add);
 
-      channelAttachmentsCtrl.add((channel, signedAttachments));
+      vdipMessagesCtrl.add(
+        PlainTextMessage(
+          id: 'msg-1',
+          type: VdipRequestIssuanceMessage.messageType,
+          from: 'did:key:sender',
+          to: const ['did:key:recipient'],
+          body: {
+            'proposal_id': 'proposal-1',
+            'credential_meta': {
+              'data': {
+                VrcConstants.requestMetadataKeyChannelId: 'channel-1',
+                VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+                VrcConstants.requestMetadataKeyIdentityName: 'Bob',
+              },
+            },
+          },
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(events, hasLength(1));
+      expect(events.single.senderDid, 'did:key:sender');
+      expect(events.single.proposalId, 'proposal-1');
+      expect(events.single.channelId, 'channel-1');
+      expect(events.single.identityDid, 'did:key:peer');
+      expect(sdk.consumePendingVrcRequest('did:key:sender'), events.single);
+      expect(sdk.consumePendingVrcRequest('did:key:sender'), isNull);
+
+      await sub.cancel();
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('ignores VRC requests without sender DID', () async {
+      final sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
+      final events = <ReceivedVrcRequest>[];
+      final sub = sdk.receivedVrcRequests.listen(events.add);
+
+      vdipMessagesCtrl.add(
+        PlainTextMessage(
+          id: 'msg-2',
+          type: VdipRequestIssuanceMessage.messageType,
+          body: const {'proposal_id': 'proposal-2'},
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(events, isEmpty);
+      expect(sdk.consumePendingVrcRequest('did:key:sender'), isNull);
+
+      await sub.cancel();
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('emits a parsed VRC and caches it by sender DID', () async {
+      final sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
+      final events = <ReceivedVrc>[];
+      final sub = sdk.receivedVrcs.listen(events.add);
+
+      vdipMessagesCtrl.add(
+        PlainTextMessage(
+          id: 'msg-3',
+          type: VdipIssuedCredentialMessage.messageType,
+          from: 'did:key:sender',
+          to: const ['did:key:recipient'],
+          body: {
+            'credential': signedVrcBlob,
+            'credential_format': RelationshipCredentialConstants.w3cLdV1,
+          },
+        ),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
-      expect(emitted, hasLength(1));
+      expect(events, hasLength(1));
+      expect(events.single.senderDid, 'did:key:sender');
+      expect(events.single.vcBlob, signedVrcBlob);
+      expect(sdk.consumePendingVrc('did:key:sender'), events.single);
+      expect(sdk.consumePendingVrc('did:key:sender'), isNull);
+
+      await sub.cancel();
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('ignores invalid VRC payloads', () async {
+      final sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
+      final events = <ReceivedVrc>[];
+      final sub = sdk.receivedVrcs.listen(events.add);
+
+      vdipMessagesCtrl.add(
+        PlainTextMessage(
+          id: 'msg-4',
+          type: VdipIssuedCredentialMessage.messageType,
+          from: 'did:key:sender',
+          body: const {
+            'credential': '',
+            'credential_format': RelationshipCredentialConstants.w3cLdV1,
+          },
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(events, isEmpty);
+      expect(sdk.consumePendingVrc('did:key:sender'), isNull);
+
       await sub.cancel();
       await sdk.closeRelationshipStreams();
     });
   });
 
-  group('MeetingPlaceRelationshipSDK.parseRCard', () {
+  group('MeetingPlaceRelationshipSDK VRC protocol helpers', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<PlainTextMessage> vdipMessagesCtrl;
+    late MeetingPlaceRelationshipSDK sdk;
+    late String signedVrcBlob;
+
+    setUpAll(() async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+      final issuerManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final keyPair = await wallet.generateKey();
+      await issuerManager.addVerificationMethod(keyPair.id);
+      final didDoc = await issuerManager.getDidDocument();
+      final issuerDid = didDoc.id;
+
+      final signed = await CredentialBuilder.buildVrc(
+        issuerDid: issuerDid,
+        subject: VrcCredentialSubject(
+          from: VrcParty(did: issuerDid, name: 'Alice'),
+          to: const VrcParty(did: 'did:key:peer', name: 'Bob'),
+        ),
+        issuerDidManager: issuerManager,
+      );
+      signedVrcBlob = jsonEncode(signed.toJson());
+    });
 
     setUp(() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
-      mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
+      vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
+      mockCoreSDK = mockCoreSDKWithStreams(
+        channelAttachmentsCtrl,
+        vdipMessagesCtrl,
+      );
       mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
+      when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
+      when(() => mockRepo.getBySubjectDid(any())).thenAnswer((_) async => null);
+      when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
+      when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
+      sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
     });
 
     tearDown(() async {
       await channelAttachmentsCtrl.close();
+      await vdipMessagesCtrl.close();
     });
 
-    test('returns null for invalid JSON blob', () async {
-      final sdk = MeetingPlaceRelationshipSDK(
-        coreSDK: mockCoreSDK,
-        rCardRepository: mockRepo,
+    test(
+      'handleReceivedVrcRequest returns prompt when exchange not started',
+      () async {
+        final request = ReceivedVrcRequest(
+          senderDid: 'did:key:sender',
+          credentialMetaData: const {
+            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          },
+        );
+
+        final outcome = await sdk.handleReceivedVrcRequest(
+          channelDid: 'channel-1',
+          request: request,
+          hasVrcExchangeInitiated: false,
+          isConnectionInitiator: true,
+        );
+
+        expect(outcome, VrcRequestReceivedOutcome.prompt);
+      },
+    );
+
+    test(
+      'handleReceivedVrcRequest returns waiting for non-initiator',
+      () async {
+        final request = ReceivedVrcRequest(
+          senderDid: 'did:key:sender',
+          credentialMetaData: const {
+            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          },
+        );
+
+        final outcome = await sdk.handleReceivedVrcRequest(
+          channelDid: 'channel-1',
+          request: request,
+          hasVrcExchangeInitiated: true,
+          isConnectionInitiator: false,
+        );
+
+        expect(outcome, VrcRequestReceivedOutcome.waiting);
+      },
+    );
+
+    test('handleReceivedVrc returns ignored when already completed', () async {
+      final outcome = await sdk.handleReceivedVrc(
+        channelDid: 'channel-1',
+        vcBlob: signedVrcBlob,
+        hasVrcExchangeCompleted: true,
+        hasVrcExchangeInitiated: true,
+        hasVrcRequestReceived: true,
+        isConnectionInitiator: true,
       );
-      final result = await sdk.parseRCard(vcBlob: 'not-json');
-      expect(result, isNull);
-      await sdk.closeRelationshipStreams();
+
+      expect(outcome, VrcReceivedOutcome.ignored);
     });
 
     test('returns null for R-Card without proof', () async {
@@ -246,17 +576,38 @@ void main() {
       expect(result, isNull);
       await sdk.closeRelationshipStreams();
     });
+
+    test(
+      'handleReceivedVrc returns completed when request already received',
+      () async {
+        final outcome = await sdk.handleReceivedVrc(
+          channelDid: 'channel-1',
+          vcBlob: signedVrcBlob,
+          hasVrcExchangeCompleted: false,
+          hasVrcExchangeInitiated: false,
+          hasVrcRequestReceived: true,
+          isConnectionInitiator: false,
+        );
+
+        expect(outcome, VrcReceivedOutcome.completed);
+      },
+    );
   });
 
   group('MeetingPlaceRelationshipSDK.parseVrc', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<PlainTextMessage> vdipMessagesCtrl;
 
     setUp(() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
-      mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
+      vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
+      mockCoreSDK = mockCoreSDKWithStreams(
+        channelAttachmentsCtrl,
+        vdipMessagesCtrl,
+      );
       mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
@@ -264,6 +615,7 @@ void main() {
 
     tearDown(() async {
       await channelAttachmentsCtrl.close();
+      await vdipMessagesCtrl.close();
     });
 
     test('returns null for empty string', () async {

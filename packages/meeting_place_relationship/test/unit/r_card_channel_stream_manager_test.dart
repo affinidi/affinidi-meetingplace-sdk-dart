@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
-import 'package:meeting_place_relationship/src/rcard/parser/r_card_parser.dart';
 import 'package:meeting_place_relationship/src/rcard/r_card_channel_stream_manager.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';

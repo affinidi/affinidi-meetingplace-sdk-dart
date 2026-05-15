@@ -731,14 +731,7 @@ abstract class BaseChatSDK {
   }
 
   /// Creates a local chat [Message] for a credential that was issued to the
-  /// other party.
-  ///
-  /// Persists the message and pushes it to [chatStream] so the sender sees
-  /// an attachment tile immediately.
-  ///
-  /// **Parameters:**
-  /// - [attachments]: The list of [Attachment]s containing the issued
-  ///   credential data.
+  /// other party (isFromMe: true).
   Future<void> createChatMessageFromIssuedCredential({
     required List<Attachment> attachments,
   }) async {
@@ -756,15 +749,8 @@ abstract class BaseChatSDK {
     chatStream.pushData(StreamData(chatItem: chatMessage));
   }
 
-  /// Creates a local chat [Message] for a credential that was received from
-  /// the other party.
-  ///
-  /// Persists the message and pushes it to [chatStream] so the receiver sees
-  /// an attachment tile immediately.
-  ///
-  /// **Parameters:**
-  /// - [attachments]: The list of [Attachment]s containing the received
-  ///   credential data.
+  /// Creates a local chat [Message] for a credential received from the other
+  /// party (isFromMe: false).
   Future<void> createChatMessageFromRequestCredential({
     required List<Attachment> attachments,
   }) async {

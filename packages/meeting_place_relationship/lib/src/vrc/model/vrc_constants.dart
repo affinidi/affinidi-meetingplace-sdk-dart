@@ -4,6 +4,13 @@ class VrcConstants {
 
   static const typeRelationshipCredential = 'RelationshipCredential';
 
+  static const requestMetadataKeyRelationshipType = 'relationship_type';
+  static const requestMetadataKeyChannelId = 'channel_id';
+  static const requestMetadataKeySelectedPersona = 'selected_persona';
+  static const requestMetadataKeyIdentityDid = 'identityDid';
+  static const requestMetadataKeyIdentityName = 'identityName';
+  static const requestRelationshipTypeChatParticipant = 'chat_participant';
+
   static const contextVrc =
       'https://schema.affinidi.io/TRelationshipCredentialV1R0.jsonld';
 }

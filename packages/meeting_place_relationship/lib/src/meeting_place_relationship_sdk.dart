@@ -12,7 +12,14 @@ import 'rcard/parser/r_card_parser.dart';
 import 'rcard/r_card_channel_stream_manager.dart';
 import 'rcard/r_card_vdip_stream_manager.dart';
 import 'rcard/repository/r_card_repository.dart';
+import 'vrc/model/received_vrc.dart';
+import 'vrc/model/received_vrc_request.dart';
+import 'vrc/model/vrc_received_outcome.dart';
+import 'vrc/model/vrc_request_received_outcome.dart';
 import 'vrc/parser/vrc_parser.dart';
+import 'vrc/vrc_exchange_client.dart';
+import 'vrc/vrc_incoming_message_stream_manager.dart';
+import 'vrc/vrc_protocol_handler.dart';
 
 /// The Meeting Place Relationship SDK.
 ///
@@ -48,32 +55,33 @@ class MeetingPlaceRelationshipSDK {
     required MeetingPlaceCoreSDK coreSDK,
     required RCardRepository rCardRepository,
     MeetingPlaceCoreSDKLogger? logger,
-  }) : _coreSDK = coreSDK,
+    Future<void> Function(Duration duration)? delay,
+  }) : _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className),
+       _coreSDK = coreSDK,
        _rCardRepository = rCardRepository {
-    final log =
-        logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
-    _logger = log;
-    _rCardParser = RCardParser(logger: log);
-    _vrcParser = VrcParser(logger: log);
+    final rCardParser = RCardParser(logger: _logger);
+    final vrcParser = VrcParser(logger: _logger);
+
+    _rCardParser = rCardParser;
+    _vrcParser = vrcParser;
+
     _attachmentManager = RCardChannelStreamManager(
       channelAttachments: coreSDK.channelAttachments,
-      parser: _rCardParser,
-      logger: log,
+      parser: rCardParser,
+      logger: _logger,
     );
     _vdipManager = RCardVdipStreamManager(
       incomingVdipMessages: coreSDK.vdip.incomingMessages,
-      parser: _rCardParser,
-      logger: log,
+      parser: rCardParser,
+      logger: _logger,
     );
-    _receivedRCardsController = StreamController.broadcast();
+    _receivedRCardsController = StreamController<RCard>.broadcast();
     _receivedRCardsStream = _receivedRCardsController.stream;
     _attachmentSubscription = _attachmentManager.stream.listen(
       _receivedRCardsController.add,
       onError: _receivedRCardsController.addError,
     );
-    // Primary path: forward parsed R-Cards from the VDIP stream manager.
-    // Active whenever this SDK instance is alive — covers the common case
-    // where both parties are online / in the chat screen.
     _vdipSubscription = _vdipManager.stream.listen(
       _receivedRCardsController.add,
       onError: _receivedRCardsController.addError,
@@ -104,13 +112,29 @@ class MeetingPlaceRelationshipSDK {
             );
           },
         );
+
+    _vrcStreamManager = VrcIncomingMessageStreamManager(
+      incomingMessages: coreSDK.vdip.incomingMessages,
+      parser: vrcParser,
+      logger: _logger,
+    );
+    _vrcClient = VrcExchangeClient(
+      coreSDK: coreSDK,
+      logger: _logger,
+      delay: delay,
+    );
+    _vrcProtocolHandler = VrcProtocolHandler(
+      client: _vrcClient,
+      parser: vrcParser,
+      logger: _logger,
+    );
   }
 
   static const _className = 'MeetingPlaceRelationshipSDK';
 
   final MeetingPlaceCoreSDK _coreSDK;
   final RCardRepository _rCardRepository;
-  late final MeetingPlaceCoreSDKLogger _logger;
+  final MeetingPlaceCoreSDKLogger _logger;
   late final RCardParser _rCardParser;
   late final VrcParser _vrcParser;
   late final RCardChannelStreamManager _attachmentManager;
@@ -120,6 +144,14 @@ class MeetingPlaceRelationshipSDK {
   late final StreamSubscription<RCard> _attachmentSubscription;
   late final StreamSubscription<RCard> _vdipSubscription;
   late final StreamSubscription<void> _persistenceSubscription;
+
+  late final VrcIncomingMessageStreamManager _vrcStreamManager;
+  late final VrcExchangeClient _vrcClient;
+  late final VrcProtocolHandler _vrcProtocolHandler;
+
+  // ---------------------------------------------------------------------------
+  // Streams
+  // ---------------------------------------------------------------------------
 
   /// A broadcast stream that emits a [RCard] whenever a valid,
   /// signature-verified R-Card is received over any channel — either via
@@ -151,24 +183,46 @@ class MeetingPlaceRelationshipSDK {
       _rCardRepository.updateNotes(subjectDid, notes);
 
   /// Removes the persisted R-Card identified by [subjectDid].
-  ///
-  /// Does nothing if no record with [subjectDid] exists.
   Future<void> deleteReceivedRCard(String subjectDid) =>
       _rCardRepository.deleteBySubjectDid(subjectDid);
 
-  /// Cancels all internal subscriptions and closes [receivedRCards].
-  ///
-  /// Safe to call more than once — subsequent calls are no-ops.
+  /// A broadcast stream that emits a [ReceivedVrcRequest] for each incoming
+  /// VDIP request-issuance message.
+  Stream<ReceivedVrcRequest> get receivedVrcRequests =>
+      _vrcStreamManager.requests;
+
+  /// A broadcast stream that emits a [ReceivedVrc] for each incoming,
+  /// signature-verified issued VRC received over VDIP.
+  Stream<ReceivedVrc> get receivedVrcs => _vrcStreamManager.receivedVrcs;
+
+  /// Returns and removes the last [ReceivedVrcRequest] from [senderDid] that
+  /// arrived while no listener was attached.
+  ReceivedVrcRequest? consumePendingVrcRequest(String senderDid) =>
+      _vrcStreamManager.consumePendingRequest(senderDid);
+
+  /// Returns and removes the last [ReceivedVrc] from [senderDid] that arrived
+  /// while no listener was attached.
+  ReceivedVrc? consumePendingVrc(String senderDid) =>
+      _vrcStreamManager.consumePendingVrc(senderDid);
+
+  /// Cancels all internal stream subscriptions.
   Future<void> closeRelationshipStreams() async {
-    if (_receivedRCardsController.isClosed) return;
-    await _persistenceSubscription.cancel();
-    await _vdipSubscription.cancel();
-    await _attachmentSubscription.cancel();
-    await _vdipManager.close();
-    await _attachmentManager.close();
-    await _receivedRCardsController.close();
-    await _coreSDK.closeVdipStream();
+    if (!_receivedRCardsController.isClosed) {
+      await _persistenceSubscription.cancel();
+      await _vdipSubscription.cancel();
+      await _attachmentSubscription.cancel();
+      await _vdipManager.close();
+      await _attachmentManager.close();
+      await _receivedRCardsController.close();
+      await _coreSDK.closeVdipStream();
+    }
+
+    await _vrcStreamManager.close();
   }
+
+  // ---------------------------------------------------------------------------
+  // R-Card operations
+  // ---------------------------------------------------------------------------
 
   /// Builds, signs, and delivers an R-Card to the other party in [channel]
   /// via VDIP.
@@ -210,6 +264,10 @@ class MeetingPlaceRelationshipSDK {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Parsing
+  // ---------------------------------------------------------------------------
+
   /// Parses and verifies a raw R-Card VC blob.
   ///
   /// Returns `null` if the blob is not a valid, signature-verified R-Card.
@@ -231,11 +289,83 @@ class MeetingPlaceRelationshipSDK {
   }
 
   /// Parses and validates a VRC from a raw VC blob string.
-  ///
-  /// Returns `null` if the blob is not a valid, signature-verified VRC.
-  ///
-  /// - [vcBlob] — the raw serialised VC JSON string.
   Future<ParsedVerifiableCredential?> parseVrc({required String vcBlob}) {
     return _vrcParser.parse(vcBlob: vcBlob);
   }
+
+  // ---------------------------------------------------------------------------
+  // Outbound VRC operations
+  // ---------------------------------------------------------------------------
+
+  /// Requests a VRC exchange over VDIP for the given [channelDid].
+  Future<void> requestVrcExchange({
+    required String channelDid,
+    required String identityDid,
+    required String identityName,
+  }) => _vrcClient.requestExchange(
+    channelDid: channelDid,
+    identityDid: identityDid,
+    identityName: identityName,
+  );
+
+  /// Builds and sends a VRC over VDIP for the given [channelDid].
+  Future<String> sendVrc({
+    required String channelDid,
+    required String issuerDid,
+    required String issuerName,
+    required String peerDid,
+    required String peerName,
+  }) => _vrcClient.sendVrc(
+    channelDid: channelDid,
+    issuerDid: issuerDid,
+    issuerName: issuerName,
+    peerDid: peerDid,
+    peerName: peerName,
+  );
+
+  // ---------------------------------------------------------------------------
+  // VRC protocol decisions
+  // ---------------------------------------------------------------------------
+
+  /// Handles the relationship-protocol outcome of receiving a VRC request.
+  Future<VrcRequestReceivedOutcome> handleReceivedVrcRequest({
+    required String channelDid,
+    required ReceivedVrcRequest request,
+    required bool hasVrcExchangeInitiated,
+    required bool isConnectionInitiator,
+    String? localIdentityDid,
+    String? localIdentityName,
+    void Function(String vcBlob)? onVrcSent,
+  }) => _vrcProtocolHandler.handleReceivedVrcRequest(
+    channelDid: channelDid,
+    request: request,
+    hasVrcExchangeInitiated: hasVrcExchangeInitiated,
+    isConnectionInitiator: isConnectionInitiator,
+    localIdentityDid: localIdentityDid,
+    localIdentityName: localIdentityName,
+    onVrcSent: onVrcSent,
+  );
+
+  /// Handles the relationship-protocol outcome of receiving a VRC.
+  Future<VrcReceivedOutcome> handleReceivedVrc({
+    required String channelDid,
+    required String vcBlob,
+    required bool hasVrcExchangeCompleted,
+    required bool hasVrcExchangeInitiated,
+    required bool hasVrcRequestReceived,
+    required bool isConnectionInitiator,
+    String? localIdentityDid,
+    String? localIdentityName,
+    void Function(String vcBlob)? onVrcSent,
+  }) => _vrcProtocolHandler.handleReceivedVrc(
+    channelDid: channelDid,
+    vcBlob: vcBlob,
+    hasVrcExchangeCompleted: hasVrcExchangeCompleted,
+    hasVrcExchangeInitiated: hasVrcExchangeInitiated,
+    hasVrcRequestReceived: hasVrcRequestReceived,
+    isConnectionInitiator: isConnectionInitiator,
+    localIdentityDid: localIdentityDid,
+    localIdentityName: localIdentityName,
+    onVrcSent: onVrcSent,
+  );
 }

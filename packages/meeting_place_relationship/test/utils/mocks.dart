@@ -17,14 +17,17 @@ class MockVerifiableCredential extends Mock implements VerifiableCredential {}
 
 class FakeVcDataModelV2 extends Fake implements VcDataModelV2 {}
 
-MockMeetingPlaceCoreSDK mockCoreSDKWithAttachmentStream(
-  StreamController<(Channel, List<Attachment>)> ctrl,
+MockMeetingPlaceCoreSDK mockCoreSDKWithStreams(
+  StreamController<(Channel, List<Attachment>)> attachmentCtrl,
+  StreamController<PlainTextMessage> vdipCtrl,
 ) {
   final sdk = MockMeetingPlaceCoreSDK();
-  final vdip = MockVdipClient();
-  when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
-  when(() => sdk.vdip).thenReturn(vdip);
-  when(() => sdk.channelAttachments).thenAnswer((_) => ctrl.stream);
+  final vdipClient = MockVdipClient();
+
+  when(() => sdk.channelAttachments).thenAnswer((_) => attachmentCtrl.stream);
+  when(() => sdk.vdip).thenReturn(vdipClient);
+  when(() => vdipClient.incomingMessages).thenAnswer((_) => vdipCtrl.stream);
+  when(() => vdipClient.registerMessageProcessor(any())).thenReturn(null);
   when(sdk.closeVdipStream).thenAnswer((_) async {});
   return sdk;
 }

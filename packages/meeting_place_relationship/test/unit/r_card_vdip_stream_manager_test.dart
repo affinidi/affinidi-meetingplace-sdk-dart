@@ -48,10 +48,10 @@ void main() {
       );
     }
 
-    test('valid signed R-Card emits a ReceivedRCard', () async {
+    test('valid signed R-Card emits a RCard', () async {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       ctrl.add(
@@ -80,7 +80,7 @@ void main() {
     test('request-issuance type does not emit', () async {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       ctrl.add(
@@ -107,7 +107,7 @@ void main() {
     test('missing from field does not emit', () async {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       ctrl.add(
@@ -132,7 +132,7 @@ void main() {
     test('unsupported credential_format does not emit', () async {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       ctrl.add(

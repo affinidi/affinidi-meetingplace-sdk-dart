@@ -13,7 +13,7 @@ import '../utils/mocks.dart';
 void main() {
   setUpAll(() {
     registerFallbackValue(
-      ReceivedRCard(
+      RCard(
         subjectDid: 'did:key:fallback',
         vcBlob: '{}',
         issuerDid: 'did:key:fallback',
@@ -26,14 +26,14 @@ void main() {
 
   group('MeetingPlaceRelationshipSDK', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
-    late MockReceivedRCardRepository mockRepo;
+    late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
 
     setUp(() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
       mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
-      mockRepo = MockReceivedRCardRepository();
+      mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
     });
@@ -47,7 +47,7 @@ void main() {
       () async {
         final sdk = MeetingPlaceRelationshipSDK(
           coreSDK: mockCoreSDK,
-          receivedRCardRepository: mockRepo,
+          rCardRepository: mockRepo,
         );
         expect(sdk.receivedRCards, same(sdk.receivedRCards));
         await sdk.closeRelationshipStreams();
@@ -57,7 +57,7 @@ void main() {
     test('closeRelationshipStreams() completes without error', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       await expectLater(sdk.closeRelationshipStreams(), completes);
     });
@@ -66,7 +66,7 @@ void main() {
         ' — does not throw on second call', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       await sdk.closeRelationshipStreams();
       await expectLater(sdk.closeRelationshipStreams(), completes);
@@ -75,14 +75,14 @@ void main() {
     test('attachments with wrong format do not emit', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final channel = MockChannel();
       when(
         () => channel.otherPartyPermanentChannelDid,
       ).thenReturn('did:example:other');
 
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -100,14 +100,14 @@ void main() {
     test('empty attachment list does not emit', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final channel = MockChannel();
       when(
         () => channel.otherPartyPermanentChannelDid,
       ).thenReturn('did:example:other');
 
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, []));
@@ -122,14 +122,14 @@ void main() {
     test('invalid R-Card attachment does not emit', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final channel = MockChannel();
       when(
         () => channel.otherPartyPermanentChannelDid,
       ).thenReturn('did:example:other');
 
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
@@ -144,7 +144,7 @@ void main() {
 
   group('MeetingPlaceRelationshipSDK receivedRCards happy path', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
-    late MockReceivedRCardRepository mockRepo;
+    late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
     late List<Attachment> signedAttachments;
     late MockChannel channel;
@@ -173,7 +173,7 @@ void main() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
       mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
-      mockRepo = MockReceivedRCardRepository();
+      mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
       channel = MockChannel();
@@ -189,9 +189,9 @@ void main() {
     test('valid signed R-Card emits on receivedRCards', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, signedAttachments));
@@ -205,14 +205,14 @@ void main() {
 
   group('MeetingPlaceRelationshipSDK.parseRCard', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
-    late MockReceivedRCardRepository mockRepo;
+    late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
 
     setUp(() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
       mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
-      mockRepo = MockReceivedRCardRepository();
+      mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
     });
@@ -224,7 +224,7 @@ void main() {
     test('returns null for invalid JSON blob', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final result = await sdk.parseRCard(vcBlob: 'not-json');
       expect(result, isNull);
@@ -234,7 +234,7 @@ void main() {
     test('returns null for R-Card without proof', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final result = await sdk.parseRCard(vcBlob: rCardVcBlob);
       expect(result, isNull);
@@ -244,14 +244,14 @@ void main() {
 
   group('MeetingPlaceRelationshipSDK.parseVrc', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
-    late MockReceivedRCardRepository mockRepo;
+    late MockRCardRepository mockRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
 
     setUp(() {
       channelAttachmentsCtrl =
           StreamController<(Channel, List<Attachment>)>.broadcast();
       mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
-      mockRepo = MockReceivedRCardRepository();
+      mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
     });
@@ -263,7 +263,7 @@ void main() {
     test('returns null for empty string', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final result = await sdk.parseVrc(vcBlob: '');
       expect(result, isNull);
@@ -273,7 +273,7 @@ void main() {
     test('returns null for non-VRC blob', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final result = await sdk.parseVrc(vcBlob: 'not-json');
       expect(result, isNull);
@@ -283,7 +283,7 @@ void main() {
     test('returns null for VRC without proof', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
-        receivedRCardRepository: mockRepo,
+        rCardRepository: mockRepo,
       );
       final result = await sdk.parseVrc(vcBlob: vrcBlobWithoutProof);
       expect(result, isNull);

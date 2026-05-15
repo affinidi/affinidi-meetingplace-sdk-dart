@@ -4,28 +4,28 @@ import 'package:drift/drift.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart'
     as model;
 
-import 'received_r_card_database.dart' as db;
+import 'r_card_database.dart' as db;
 
-/// Repository implementation for managing [model.ReceivedRCard] entities
-/// using a Drift-backed [db.ReceivedRCardDatabase].
+/// Repository implementation for managing [model.RCard] entities
+/// using a Drift-backed [db.RCardDatabase].
 ///
-/// Implements [model.ReceivedRCardRepository] — inject this into
+/// Implements [model.RCardRepository] — inject this into
 /// `MeetingPlaceRelationshipSDK` to enable automatic local persistence of
 /// every incoming R-Card.
-class ReceivedRCardRepositoryDrift implements model.ReceivedRCardRepository {
+class RCardRepositoryDrift implements model.RCardRepository {
   /// Creates a new repository with the given [database].
-  ReceivedRCardRepositoryDrift({required db.ReceivedRCardDatabase database})
+  RCardRepositoryDrift({required db.RCardDatabase database})
       : _database = database;
 
-  final db.ReceivedRCardDatabase _database;
+  final db.RCardDatabase _database;
 
-  /// Inserts or updates [rCard], keyed on [model.ReceivedRCard.subjectDid].
+  /// Inserts or updates [rCard], keyed on [model.RCard.subjectDid].
   ///
   /// A canonical JSON comparison is used to detect no-op updates so that
-  /// [model.ReceivedRCard.version] is only incremented when the VC content
+  /// [model.RCard.version] is only incremented when the VC content
   /// actually changes.
   @override
-  Future<void> upsert(model.ReceivedRCard rCard) async {
+  Future<void> upsert(model.RCard rCard) async {
     await _database.transaction(() async {
       final existing = await (_database.select(_database.receivedRCards)
             ..where((t) => t.subjectDid.equals(rCard.subjectDid)))
@@ -58,9 +58,9 @@ class ReceivedRCardRepositoryDrift implements model.ReceivedRCardRepository {
   }
 
   /// Returns a live stream of all stored R-Cards ordered by
-  /// [model.ReceivedRCard.receivedAt] descending.
+  /// [model.RCard.receivedAt] descending.
   @override
-  Stream<List<model.ReceivedRCard>> watchAll() {
+  Stream<List<model.RCard>> watchAll() {
     return (_database.select(_database.receivedRCards)
           ..orderBy([(t) => OrderingTerm.desc(t.receivedAt)]))
         .watch()
@@ -68,9 +68,9 @@ class ReceivedRCardRepositoryDrift implements model.ReceivedRCardRepository {
   }
 
   /// Returns a snapshot of all stored R-Cards ordered by
-  /// [model.ReceivedRCard.receivedAt] descending.
+  /// [model.RCard.receivedAt] descending.
   @override
-  Future<List<model.ReceivedRCard>> listAll() async {
+  Future<List<model.RCard>> listAll() async {
     final rows = await (_database.select(_database.receivedRCards)
           ..orderBy([(t) => OrderingTerm.desc(t.receivedAt)]))
         .get();
@@ -79,7 +79,7 @@ class ReceivedRCardRepositoryDrift implements model.ReceivedRCardRepository {
 
   /// Returns the R-Card with the matching [subjectDid], or `null`.
   @override
-  Future<model.ReceivedRCard?> getBySubjectDid(String subjectDid) async {
+  Future<model.RCard?> getBySubjectDid(String subjectDid) async {
     final row = await (_database.select(_database.receivedRCards)
           ..where((t) => t.subjectDid.equals(subjectDid)))
         .getSingleOrNull();
@@ -106,8 +106,8 @@ class ReceivedRCardRepositoryDrift implements model.ReceivedRCardRepository {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  model.ReceivedRCard _mapRow(db.ReceivedRCardRow row) {
-    return model.ReceivedRCard(
+  model.RCard _mapRow(db.RCardRow row) {
+    return model.RCard(
       subjectDid: row.subjectDid,
       vcBlob: row.vcBlob,
       issuerDid: row.issuerDid,

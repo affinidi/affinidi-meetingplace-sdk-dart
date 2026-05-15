@@ -93,7 +93,7 @@ void main() {
       vcBlob = jsonEncode(vc.toJson());
     });
 
-    test('valid signed R-Card returns a ReceivedRCard', () async {
+    test('valid signed R-Card returns a RCard', () async {
       final result = await parser.parse(
         vcBlob: vcBlob,
         contactChannelDid: 'did:example:channel',

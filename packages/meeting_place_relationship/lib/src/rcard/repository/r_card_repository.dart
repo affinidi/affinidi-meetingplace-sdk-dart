@@ -1,34 +1,34 @@
-import '../model/received_r_card.dart';
+import '../model/r_card.dart';
 
-/// Repository interface for persisting and querying [ReceivedRCard] entities.
+/// Repository interface for persisting and querying [RCard] entities.
 ///
 /// Implementations are provided by `meeting_place_drift_repository` via
-/// `ReceivedRCardRepositoryDrift`, and injected into
+/// `RCardRepositoryDrift`, and injected into
 /// `MeetingPlaceRelationshipSDK` at construction time.
-abstract interface class ReceivedRCardRepository {
-  /// Inserts or updates [rCard], keyed on [ReceivedRCard.subjectDid].
+abstract interface class RCardRepository {
+  /// Inserts or updates [rCard], keyed on [RCard.subjectDid].
   ///
-  /// If a record already exists with the same [ReceivedRCard.subjectDid],
+  /// If a record already exists with the same [RCard.subjectDid],
   /// the call is a no-op when the VC content is unchanged.  When the VC
   /// content differs the record is replaced and
-  /// [ReceivedRCard.version] is incremented.
-  Future<void> upsert(ReceivedRCard rCard);
+  /// [RCard.version] is incremented.
+  Future<void> upsert(RCard rCard);
 
   /// Returns a live stream of all stored R-Cards, ordered by
-  /// [ReceivedRCard.receivedAt] descending.
+  /// [RCard.receivedAt] descending.
   ///
   /// Emits a new list whenever any record is added, updated, or removed.
-  Stream<List<ReceivedRCard>> watchAll();
+  Stream<List<RCard>> watchAll();
 
   /// Returns a snapshot of all stored R-Cards, ordered by
-  /// [ReceivedRCard.receivedAt] descending.
-  Future<List<ReceivedRCard>> listAll();
+  /// [RCard.receivedAt] descending.
+  Future<List<RCard>> listAll();
 
-  /// Returns the R-Card whose [ReceivedRCard.subjectDid] matches [subjectDid],
+  /// Returns the R-Card whose [RCard.subjectDid] matches [subjectDid],
   /// or `null` if no such record exists.
-  Future<ReceivedRCard?> getBySubjectDid(String subjectDid);
+  Future<RCard?> getBySubjectDid(String subjectDid);
 
-  /// Updates the [ReceivedRCard.notes] field for the record identified by
+  /// Updates the [RCard.notes] field for the record identified by
   /// [subjectDid].  Pass `null` to clear the notes.
   ///
   /// Does nothing if no record with [subjectDid] exists.

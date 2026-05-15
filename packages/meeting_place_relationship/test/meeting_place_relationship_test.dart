@@ -37,14 +37,14 @@ void main() {
     });
   });
 
-  group('ReceivedRCard', () {
+  group('RCard', () {
     test('fromVcBlob returns null for invalid JSON', () {
-      expect(ReceivedRCard.fromVcBlob('did:example:1', 'bad'), isNull);
+      expect(RCard.fromVcBlob('did:example:1', 'bad'), isNull);
     });
 
     test('fromVcBlob returns null when issuer is missing', () {
       const blob = '{"credentialSubject": {}}';
-      expect(ReceivedRCard.fromVcBlob('did:example:1', blob), isNull);
+      expect(RCard.fromVcBlob('did:example:1', blob), isNull);
     });
 
     test('fromVcBlob parses a minimal valid blob', () async {
@@ -64,7 +64,7 @@ void main() {
         issuerDidManager: didManager,
       );
 
-      final card = ReceivedRCard.fromVcBlob(
+      final card = RCard.fromVcBlob(
         'did:example:holder',
         jsonEncode(vc.toJson()),
       );

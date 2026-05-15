@@ -4,10 +4,10 @@ import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../shared/credential_constants.dart';
-import 'model/received_r_card.dart';
+import 'model/r_card.dart';
 import 'parser/r_card_parser.dart';
 
-/// Manages the [ReceivedRCard] broadcast stream sourced from
+/// Manages the [RCard] broadcast stream sourced from
 /// [VdipClient.incomingMessages].
 ///
 /// Filters for [VdipIssuedCredentialMessage] messages, validates the
@@ -29,13 +29,13 @@ class RCardVdipStreamManager {
 
   final RCardParser _parser;
   final MeetingPlaceCoreSDKLogger _logger;
-  late final StreamController<ReceivedRCard> _controller;
-  late final StreamSubscription<ReceivedRCard> _subscription;
-  late final Stream<ReceivedRCard> _stream;
+  late final StreamController<RCard> _controller;
+  late final StreamSubscription<RCard> _subscription;
+  late final Stream<RCard> _stream;
 
-  /// Emits a [ReceivedRCard] for every valid, signature-verified R-Card
+  /// Emits a [RCard] for every valid, signature-verified R-Card
   /// delivered via VDIP issued-credential message.
-  Stream<ReceivedRCard> get stream => _stream;
+  Stream<RCard> get stream => _stream;
 
   /// Cancels the internal subscription and closes [stream].
   ///
@@ -48,20 +48,20 @@ class RCardVdipStreamManager {
 
   /// Processes a single [message] using the same parse logic as [stream].
   ///
-  /// Returns the parsed [ReceivedRCard] if [message] is a valid
+  /// Returns the parsed [RCard] if [message] is a valid
   /// `vdip-issued-credentials` R-Card, or `null` otherwise.
   ///
   /// Used by `MeetingPlaceRelationshipSDK` as a `VdipClient` message
   /// processor to guarantee R-Card persistence regardless of whether
   /// [stream] has an active subscriber at dispatch time.
-  Future<ReceivedRCard?> processMessage(PlainTextMessage message) async {
+  Future<RCard?> processMessage(PlainTextMessage message) async {
     await for (final rCard in _parseVdipMessage(message)) {
       return rCard;
     }
     return null;
   }
 
-  Stream<ReceivedRCard> _parseVdipMessage(PlainTextMessage message) async* {
+  Stream<RCard> _parseVdipMessage(PlainTextMessage message) async* {
     if (message.type != VdipIssuedCredentialMessage.messageType) return;
 
     final body = message.body;

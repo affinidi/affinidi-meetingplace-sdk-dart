@@ -40,7 +40,7 @@ void main() {
     test('null otherPartyPermanentChannelDid does not emit', () async {
       when(() => channel.otherPartyPermanentChannelDid).thenReturn(null);
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
@@ -54,7 +54,7 @@ void main() {
     test('empty otherPartyPermanentChannelDid does not emit', () async {
       when(() => channel.otherPartyPermanentChannelDid).thenReturn('');
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
@@ -75,7 +75,7 @@ void main() {
 
     test('wrong attachment format does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -91,7 +91,7 @@ void main() {
 
     test('null attachment data does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -112,7 +112,7 @@ void main() {
 
     test('non-JSON data payload does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -128,7 +128,7 @@ void main() {
 
     test('missing vcBlob key does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -146,7 +146,7 @@ void main() {
 
     test('non-string vcBlob does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -166,7 +166,7 @@ void main() {
 
     test('empty attachment list does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, []));
@@ -210,7 +210,7 @@ void main() {
 
     test('valid signed R-Card emits on stream', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, signedAttachments));

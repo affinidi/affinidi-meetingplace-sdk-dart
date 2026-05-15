@@ -1,10 +1,10 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'received_r_card_database.dart';
+part of 'r_card_database.dart';
 
 // ignore_for_file: type=lint
 class $ReceivedRCardsTable extends ReceivedRCards
-    with TableInfo<$ReceivedRCardsTable, ReceivedRCardRow> {
+    with TableInfo<$ReceivedRCardsTable, RCardRow> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -88,7 +88,7 @@ class $ReceivedRCardsTable extends ReceivedRCards
   String get actualTableName => $name;
   static const String $name = 'received_r_cards';
   @override
-  VerificationContext validateIntegrity(Insertable<ReceivedRCardRow> instance,
+  VerificationContext validateIntegrity(Insertable<RCardRow> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -158,9 +158,9 @@ class $ReceivedRCardsTable extends ReceivedRCards
   @override
   Set<GeneratedColumn> get $primaryKey => {subjectDid};
   @override
-  ReceivedRCardRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+  RCardRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ReceivedRCardRow(
+    return RCardRow(
       subjectDid: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}subject_did'])!,
       vcBlob: attachedDatabase.typeMapping
@@ -190,8 +190,7 @@ class $ReceivedRCardsTable extends ReceivedRCards
   }
 }
 
-class ReceivedRCardRow extends DataClass
-    implements Insertable<ReceivedRCardRow> {
+class RCardRow extends DataClass implements Insertable<RCardRow> {
   /// DID of the credential subject — serves as the primary key.
   final String subjectDid;
 
@@ -223,7 +222,7 @@ class ReceivedRCardRow extends DataClass
 
   /// UTC timestamp recording when the R-Card was first received locally.
   final DateTime receivedAt;
-  const ReceivedRCardRow(
+  const RCardRow(
       {required this.subjectDid,
       required this.vcBlob,
       required this.issuerDid,
@@ -280,10 +279,10 @@ class ReceivedRCardRow extends DataClass
     );
   }
 
-  factory ReceivedRCardRow.fromJson(Map<String, dynamic> json,
+  factory RCardRow.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ReceivedRCardRow(
+    return RCardRow(
       subjectDid: serializer.fromJson<String>(json['subjectDid']),
       vcBlob: serializer.fromJson<String>(json['vcBlob']),
       issuerDid: serializer.fromJson<String>(json['issuerDid']),
@@ -314,7 +313,7 @@ class ReceivedRCardRow extends DataClass
     };
   }
 
-  ReceivedRCardRow copyWith(
+  RCardRow copyWith(
           {String? subjectDid,
           String? vcBlob,
           String? issuerDid,
@@ -325,7 +324,7 @@ class ReceivedRCardRow extends DataClass
           Value<String?> contactChannelDid = const Value.absent(),
           Value<String?> localChannelDid = const Value.absent(),
           DateTime? receivedAt}) =>
-      ReceivedRCardRow(
+      RCardRow(
         subjectDid: subjectDid ?? this.subjectDid,
         vcBlob: vcBlob ?? this.vcBlob,
         issuerDid: issuerDid ?? this.issuerDid,
@@ -341,8 +340,8 @@ class ReceivedRCardRow extends DataClass
             : this.localChannelDid,
         receivedAt: receivedAt ?? this.receivedAt,
       );
-  ReceivedRCardRow copyWithCompanion(ReceivedRCardsCompanion data) {
-    return ReceivedRCardRow(
+  RCardRow copyWithCompanion(ReceivedRCardsCompanion data) {
+    return RCardRow(
       subjectDid:
           data.subjectDid.present ? data.subjectDid.value : this.subjectDid,
       vcBlob: data.vcBlob.present ? data.vcBlob.value : this.vcBlob,
@@ -366,7 +365,7 @@ class ReceivedRCardRow extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('ReceivedRCardRow(')
+    return (StringBuffer('RCardRow(')
           ..write('subjectDid: $subjectDid, ')
           ..write('vcBlob: $vcBlob, ')
           ..write('issuerDid: $issuerDid, ')
@@ -396,7 +395,7 @@ class ReceivedRCardRow extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ReceivedRCardRow &&
+      (other is RCardRow &&
           other.subjectDid == this.subjectDid &&
           other.vcBlob == this.vcBlob &&
           other.issuerDid == this.issuerDid &&
@@ -409,7 +408,7 @@ class ReceivedRCardRow extends DataClass
           other.receivedAt == this.receivedAt);
 }
 
-class ReceivedRCardsCompanion extends UpdateCompanion<ReceivedRCardRow> {
+class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
   final Value<String> subjectDid;
   final Value<String> vcBlob;
   final Value<String> issuerDid;
@@ -451,7 +450,7 @@ class ReceivedRCardsCompanion extends UpdateCompanion<ReceivedRCardRow> {
         issuerDid = Value(issuerDid),
         issuanceDate = Value(issuanceDate),
         receivedAt = Value(receivedAt);
-  static Insertable<ReceivedRCardRow> custom({
+  static Insertable<RCardRow> custom({
     Expression<String>? subjectDid,
     Expression<String>? vcBlob,
     Expression<String>? issuerDid,
@@ -564,10 +563,9 @@ class ReceivedRCardsCompanion extends UpdateCompanion<ReceivedRCardRow> {
   }
 }
 
-abstract class _$ReceivedRCardDatabase extends GeneratedDatabase {
-  _$ReceivedRCardDatabase(QueryExecutor e) : super(e);
-  $ReceivedRCardDatabaseManager get managers =>
-      $ReceivedRCardDatabaseManager(this);
+abstract class _$RCardDatabase extends GeneratedDatabase {
+  _$RCardDatabase(QueryExecutor e) : super(e);
+  $RCardDatabaseManager get managers => $RCardDatabaseManager(this);
   late final $ReceivedRCardsTable receivedRCards = $ReceivedRCardsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -609,7 +607,7 @@ typedef $$ReceivedRCardsTableUpdateCompanionBuilder = ReceivedRCardsCompanion
 });
 
 class $$ReceivedRCardsTableFilterComposer
-    extends Composer<_$ReceivedRCardDatabase, $ReceivedRCardsTable> {
+    extends Composer<_$RCardDatabase, $ReceivedRCardsTable> {
   $$ReceivedRCardsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -651,7 +649,7 @@ class $$ReceivedRCardsTableFilterComposer
 }
 
 class $$ReceivedRCardsTableOrderingComposer
-    extends Composer<_$ReceivedRCardDatabase, $ReceivedRCardsTable> {
+    extends Composer<_$RCardDatabase, $ReceivedRCardsTable> {
   $$ReceivedRCardsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -694,7 +692,7 @@ class $$ReceivedRCardsTableOrderingComposer
 }
 
 class $$ReceivedRCardsTableAnnotationComposer
-    extends Composer<_$ReceivedRCardDatabase, $ReceivedRCardsTable> {
+    extends Composer<_$RCardDatabase, $ReceivedRCardsTable> {
   $$ReceivedRCardsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -734,23 +732,19 @@ class $$ReceivedRCardsTableAnnotationComposer
 }
 
 class $$ReceivedRCardsTableTableManager extends RootTableManager<
-    _$ReceivedRCardDatabase,
+    _$RCardDatabase,
     $ReceivedRCardsTable,
-    ReceivedRCardRow,
+    RCardRow,
     $$ReceivedRCardsTableFilterComposer,
     $$ReceivedRCardsTableOrderingComposer,
     $$ReceivedRCardsTableAnnotationComposer,
     $$ReceivedRCardsTableCreateCompanionBuilder,
     $$ReceivedRCardsTableUpdateCompanionBuilder,
-    (
-      ReceivedRCardRow,
-      BaseReferences<_$ReceivedRCardDatabase, $ReceivedRCardsTable,
-          ReceivedRCardRow>
-    ),
-    ReceivedRCardRow,
+    (RCardRow, BaseReferences<_$RCardDatabase, $ReceivedRCardsTable, RCardRow>),
+    RCardRow,
     PrefetchHooks Function()> {
   $$ReceivedRCardsTableTableManager(
-      _$ReceivedRCardDatabase db, $ReceivedRCardsTable table)
+      _$RCardDatabase db, $ReceivedRCardsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
@@ -820,25 +814,21 @@ class $$ReceivedRCardsTableTableManager extends RootTableManager<
 }
 
 typedef $$ReceivedRCardsTableProcessedTableManager = ProcessedTableManager<
-    _$ReceivedRCardDatabase,
+    _$RCardDatabase,
     $ReceivedRCardsTable,
-    ReceivedRCardRow,
+    RCardRow,
     $$ReceivedRCardsTableFilterComposer,
     $$ReceivedRCardsTableOrderingComposer,
     $$ReceivedRCardsTableAnnotationComposer,
     $$ReceivedRCardsTableCreateCompanionBuilder,
     $$ReceivedRCardsTableUpdateCompanionBuilder,
-    (
-      ReceivedRCardRow,
-      BaseReferences<_$ReceivedRCardDatabase, $ReceivedRCardsTable,
-          ReceivedRCardRow>
-    ),
-    ReceivedRCardRow,
+    (RCardRow, BaseReferences<_$RCardDatabase, $ReceivedRCardsTable, RCardRow>),
+    RCardRow,
     PrefetchHooks Function()>;
 
-class $ReceivedRCardDatabaseManager {
-  final _$ReceivedRCardDatabase _db;
-  $ReceivedRCardDatabaseManager(this._db);
+class $RCardDatabaseManager {
+  final _$RCardDatabase _db;
+  $RCardDatabaseManager(this._db);
   $$ReceivedRCardsTableTableManager get receivedRCards =>
       $$ReceivedRCardsTableTableManager(_db, _db.receivedRCards);
 }

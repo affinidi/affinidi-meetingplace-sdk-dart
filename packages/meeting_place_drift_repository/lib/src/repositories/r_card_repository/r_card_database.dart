@@ -5,17 +5,17 @@ import 'package:meta/meta.dart';
 
 import '../../database/database_platform.dart';
 
-part 'received_r_card_database.g.dart';
+part 'r_card_database.g.dart';
 
 /// Drift database for persisting [ReceivedRCards] — the local store for
 /// R-Cards received from contacts.
 ///
 /// Uses the same encrypted [openConnection] setup as every other SDK
-/// database.  Pass this instance to `ReceivedRCardRepositoryDrift` and
+/// database.  Pass this instance to `RCardRepositoryDrift` and
 /// inject the repository into `MeetingPlaceRelationshipSDK`.
 @DriftDatabase(tables: [ReceivedRCards])
-class ReceivedRCardDatabase extends _$ReceivedRCardDatabase {
-  /// Constructs a [ReceivedRCardDatabase] instance.
+class RCardDatabase extends _$RCardDatabase {
+  /// Constructs a [RCardDatabase] instance.
   ///
   /// **Parameters:**
   /// - [databaseName]: The name of the database file on disk.
@@ -24,7 +24,7 @@ class ReceivedRCardDatabase extends _$ReceivedRCardDatabase {
   /// - [logStatements]: Whether to log SQL statements (default `false`).
   /// - [inMemory]: When `true` the database is held in memory only —
   ///   useful for tests (default `false`).
-  ReceivedRCardDatabase({
+  RCardDatabase({
     required String databaseName,
     required String passphrase,
     required Directory directory,
@@ -40,11 +40,11 @@ class ReceivedRCardDatabase extends _$ReceivedRCardDatabase {
           ),
         );
 
-  /// Opens a [ReceivedRCardDatabase] from an existing [connection].
+  /// Opens a [RCardDatabase] from an existing [connection].
   ///
   /// Intended for migration and schema verification tests only.
   @visibleForTesting
-  ReceivedRCardDatabase.forTesting(DatabaseConnection super.connection);
+  RCardDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
   int get schemaVersion => 1;
@@ -55,7 +55,7 @@ class ReceivedRCardDatabase extends _$ReceivedRCardDatabase {
 /// Each row is keyed on [subjectDid] — the DID of the credential subject.
 /// When a contact sends an updated R-Card the row is replaced in place and
 /// [version] is incremented.
-@DataClassName('ReceivedRCardRow')
+@DataClassName('RCardRow')
 class ReceivedRCards extends Table {
   /// DID of the credential subject — serves as the primary key.
   TextColumn get subjectDid => text()();

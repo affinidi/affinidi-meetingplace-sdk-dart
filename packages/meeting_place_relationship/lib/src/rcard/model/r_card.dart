@@ -7,8 +7,8 @@ import 'r_card_constants.dart';
 ///
 /// This is the persistence/view model for an incoming R-Card. It stores the
 /// raw VC blob alongside parsed metadata fields to avoid repeated decoding.
-class ReceivedRCard {
-  const ReceivedRCard({
+class RCard {
+  const RCard({
     required this.subjectDid,
     required this.vcBlob,
     required this.issuerDid,
@@ -21,17 +21,16 @@ class ReceivedRCard {
     this.notes,
   });
 
-  /// Parses a [ReceivedRCard] from a raw VC blob string.
+  /// Parses a [RCard] from a raw VC blob string.
   ///
   /// Returns `null` if the blob cannot be decoded or required fields
   /// are missing.
-  static ReceivedRCard? fromVcBlob(
+  static RCard? fromVcBlob(
     String subjectDid,
     String vcBlob, {
     MeetingPlaceCoreSDKLogger? logger,
   }) {
-    final log =
-        logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'ReceivedRCard');
+    final log = logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCard');
     try {
       final vc =
           LdVcDm1Suite().tryParse(vcBlob) ?? LdVcDm2Suite().tryParse(vcBlob);
@@ -53,7 +52,7 @@ class ReceivedRCard {
         return null;
       }
       final now = DateTime.now().toUtc();
-      return ReceivedRCard(
+      return RCard(
         subjectDid: subjectDid.trim(),
         vcBlob: vcBlob,
         issuerDid: issuerDid,
@@ -62,11 +61,7 @@ class ReceivedRCard {
         receivedAt: now,
       );
     } catch (e, st) {
-      log.error(
-        'Failed to parse ReceivedRCard from VC blob',
-        error: e,
-        stackTrace: st,
-      );
+      log.error('Failed to parse RCard from VC blob', error: e, stackTrace: st);
       return null;
     }
   }
@@ -103,7 +98,7 @@ class ReceivedRCard {
   /// Optional user notes attached to this contact.
   final String? notes;
 
-  ReceivedRCard copyWith({
+  RCard copyWith({
     String? subjectDid,
     String? vcBlob,
     String? issuerDid,
@@ -115,7 +110,7 @@ class ReceivedRCard {
     String? threadId,
     String? notes,
   }) {
-    return ReceivedRCard(
+    return RCard(
       subjectDid: subjectDid ?? this.subjectDid,
       vcBlob: vcBlob ?? this.vcBlob,
       issuerDid: issuerDid ?? this.issuerDid,

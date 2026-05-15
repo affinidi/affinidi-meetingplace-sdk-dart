@@ -10,8 +10,7 @@ class MockVdipClient extends Mock implements VdipClient {}
 
 class MockChannel extends Mock implements Channel {}
 
-class MockReceivedRCardRepository extends Mock
-    implements ReceivedRCardRepository {}
+class MockRCardRepository extends Mock implements RCardRepository {}
 
 MockMeetingPlaceCoreSDK mockCoreSDKWithAttachmentStream(
   StreamController<(Channel, List<Attachment>)> ctrl,

@@ -13,3 +13,5 @@ export 'src/repositories/group_repository/groups_database.dart';
 export 'src/repositories/group_repository/groups_repository_drift.dart';
 export 'src/repositories/r_card_repository/r_card_database.dart';
 export 'src/repositories/r_card_repository/r_card_repository_drift.dart';
+export 'src/repositories/vrc_repository/stored_vrc_database.dart';
+export 'src/repositories/vrc_repository/stored_vrc_repository_drift.dart';

@@ -17,6 +17,8 @@ class MockVerifiableCredential extends Mock implements VerifiableCredential {}
 
 class FakeVcDataModelV2 extends Fake implements VcDataModelV2 {}
 
+class MockVrcRepository extends Mock implements VrcRepository {}
+
 MockMeetingPlaceCoreSDK mockCoreSDKWithStreams(
   StreamController<(Channel, List<Attachment>)> attachmentCtrl,
   StreamController<PlainTextMessage> vdipCtrl,
@@ -30,4 +32,16 @@ MockMeetingPlaceCoreSDK mockCoreSDKWithStreams(
   when(() => vdipClient.registerMessageProcessor(any())).thenReturn(null);
   when(sdk.closeVdipStream).thenAnswer((_) async {});
   return sdk;
+}
+
+MockVrcRepository stubbedMockVrcRepository() {
+  final mock = MockVrcRepository();
+  when(() => mock.upsert(any())).thenAnswer((_) async {});
+  when(mock.watchAll).thenReturn(const Stream.empty());
+  when(mock.listAll).thenReturn(Future.value(const []));
+  when(() => mock.getById(any())).thenAnswer((_) async => null);
+  when(() => mock.listByHolderDid(any())).thenAnswer((_) async => const []);
+  when(() => mock.countByHolderDid(any())).thenAnswer((_) async => 0);
+  when(() => mock.deleteById(any())).thenAnswer((_) async {});
+  return mock;
 }

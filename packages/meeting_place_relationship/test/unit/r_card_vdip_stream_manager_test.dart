@@ -6,7 +6,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
 import 'package:meeting_place_relationship/src/rcard/parser/r_card_parser.dart';
 import 'package:meeting_place_relationship/src/rcard/r_card_vdip_stream_manager.dart';
-import 'package:meeting_place_relationship/src/shared/credential_constants.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';

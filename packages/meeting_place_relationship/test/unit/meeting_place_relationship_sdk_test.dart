@@ -41,6 +41,7 @@ void main() {
   group('MeetingPlaceRelationshipSDK', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
+    late MockVrcRepository mockVrcRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late MeetingPlaceRelationshipSDK sdk;
@@ -54,6 +55,7 @@ void main() {
         vdipMessagesCtrl,
       );
       mockRepo = MockRCardRepository();
+      mockVrcRepo = MockVrcRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
       when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
@@ -63,7 +65,7 @@ void main() {
       sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
     });
 
@@ -78,7 +80,7 @@ void main() {
         final sdk = MeetingPlaceRelationshipSDK(
           coreSDK: mockCoreSDK,
           rCardRepository: mockRepo,
-          vrcRepository: stubbedMockVrcRepository(),
+          vrcRepository: mockVrcRepo,
         );
         expect(sdk.receivedRCards, same(sdk.receivedRCards));
         await sdk.closeRelationshipStreams();
@@ -89,7 +91,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       await expectLater(sdk.closeRelationshipStreams(), completes);
     });
@@ -99,7 +101,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       await sdk.closeRelationshipStreams();
     });
@@ -148,6 +150,7 @@ void main() {
   group('MeetingPlaceRelationshipSDK R-Card stream wiring', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
+    late MockVrcRepository mockVrcRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String issuerDid;
@@ -182,6 +185,7 @@ void main() {
         vdipMessagesCtrl,
       );
       mockRepo = MockRCardRepository();
+      mockVrcRepo = MockVrcRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
       when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
@@ -199,7 +203,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
       when(
@@ -225,7 +229,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
       when(
@@ -252,7 +256,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
       when(
@@ -275,7 +279,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
       when(
@@ -301,6 +305,7 @@ void main() {
   group('MeetingPlaceRelationshipSDK VRC streams', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
+    late MockVrcRepository mockVrcRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String signedVrcBlob;
@@ -336,12 +341,16 @@ void main() {
         vdipMessagesCtrl,
       );
       mockRepo = MockRCardRepository();
+      mockVrcRepo = MockVrcRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
       when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
       when(() => mockRepo.getBySubjectDid(any())).thenAnswer((_) async => null);
       when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
       when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
+      when(
+        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => null);
     });
 
     tearDown(() async {
@@ -353,7 +362,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final events = <ReceivedVrcRequest>[];
       final sub = sdk.receivedVrcRequests.listen(events.add);
@@ -394,7 +403,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final events = <ReceivedVrcRequest>[];
       final sub = sdk.receivedVrcRequests.listen(events.add);
@@ -419,7 +428,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final events = <ReceivedVrc>[];
       final sub = sdk.receivedVrcs.listen(events.add);
@@ -452,7 +461,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final events = <ReceivedVrc>[];
       final sub = sdk.receivedVrcs.listen(events.add);
@@ -604,6 +613,7 @@ void main() {
   group('MeetingPlaceRelationshipSDK VRC protocol helpers', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
+    late MockVrcRepository mockVrcRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late MeetingPlaceRelationshipSDK sdk;
@@ -640,16 +650,20 @@ void main() {
         vdipMessagesCtrl,
       );
       mockRepo = MockRCardRepository();
+      mockVrcRepo = MockVrcRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
       when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
       when(() => mockRepo.getBySubjectDid(any())).thenAnswer((_) async => null);
       when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
       when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
+      when(
+        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => null);
       sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
     });
 
@@ -717,7 +731,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final result = await sdk.parseRCard(vcBlob: rCardVcBlob);
       expect(result, isNull);
@@ -744,6 +758,7 @@ void main() {
   group('MeetingPlaceRelationshipSDK.parseVrc', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
+    late MockVrcRepository mockVrcRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
 
@@ -756,6 +771,7 @@ void main() {
         vdipMessagesCtrl,
       );
       mockRepo = MockRCardRepository();
+      mockVrcRepo = MockVrcRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
     });
@@ -769,7 +785,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final result = await sdk.parseVrc(vcBlob: '');
       expect(result, isNull);
@@ -780,7 +796,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final result = await sdk.parseVrc(vcBlob: 'not-json');
       expect(result, isNull);
@@ -791,7 +807,7 @@ void main() {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
-        vrcRepository: stubbedMockVrcRepository(),
+        vrcRepository: mockVrcRepo,
       );
       final result = await sdk.parseVrc(vcBlob: vrcBlobWithoutProof);
       expect(result, isNull);

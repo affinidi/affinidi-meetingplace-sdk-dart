@@ -17,6 +17,8 @@ class _$RegisterOfferOK extends RegisterOfferOK {
   final int? maximumUsage;
   @override
   final String offerLink;
+  @override
+  final int? score;
 
   factory _$RegisterOfferOK([void Function(RegisterOfferOKBuilder)? updates]) =>
       (RegisterOfferOKBuilder()..update(updates))._build();
@@ -27,6 +29,7 @@ class _$RegisterOfferOK extends RegisterOfferOK {
     this.validUntil,
     this.maximumUsage,
     required this.offerLink,
+    this.score,
   }) : super._();
   @override
   RegisterOfferOK rebuild(void Function(RegisterOfferOKBuilder) updates) =>
@@ -43,7 +46,8 @@ class _$RegisterOfferOK extends RegisterOfferOK {
         mnemonic == other.mnemonic &&
         validUntil == other.validUntil &&
         maximumUsage == other.maximumUsage &&
-        offerLink == other.offerLink;
+        offerLink == other.offerLink &&
+        score == other.score;
   }
 
   @override
@@ -54,6 +58,7 @@ class _$RegisterOfferOK extends RegisterOfferOK {
     _$hash = $jc(_$hash, validUntil.hashCode);
     _$hash = $jc(_$hash, maximumUsage.hashCode);
     _$hash = $jc(_$hash, offerLink.hashCode);
+    _$hash = $jc(_$hash, score.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -65,7 +70,8 @@ class _$RegisterOfferOK extends RegisterOfferOK {
           ..add('mnemonic', mnemonic)
           ..add('validUntil', validUntil)
           ..add('maximumUsage', maximumUsage)
-          ..add('offerLink', offerLink))
+          ..add('offerLink', offerLink)
+          ..add('score', score))
         .toString();
   }
 }
@@ -94,6 +100,10 @@ class RegisterOfferOKBuilder
   String? get offerLink => _$this._offerLink;
   set offerLink(String? offerLink) => _$this._offerLink = offerLink;
 
+  int? _score;
+  int? get score => _$this._score;
+  set score(int? score) => _$this._score = score;
+
   RegisterOfferOKBuilder() {
     RegisterOfferOK._defaults(this);
   }
@@ -106,6 +116,7 @@ class RegisterOfferOKBuilder
       _validUntil = $v.validUntil;
       _maximumUsage = $v.maximumUsage;
       _offerLink = $v.offerLink;
+      _score = $v.score;
       _$v = null;
     }
     return this;
@@ -141,6 +152,7 @@ class RegisterOfferOKBuilder
             r'RegisterOfferOK',
             'offerLink',
           ),
+          score: score,
         );
     replace(_$result);
     return _$result;

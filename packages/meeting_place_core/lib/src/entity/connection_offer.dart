@@ -41,6 +41,7 @@ class ConnectionOffer {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.externalRef,
+    this.score,
   });
 
   factory ConnectionOffer.fromJson(Map<String, dynamic> json) {
@@ -79,6 +80,9 @@ class ConnectionOffer {
 
   final String? externalRef;
 
+  /// VRC score of the offer owner.
+  final int? score;
+
   Map<String, dynamic> toJson() {
     return _$ConnectionOfferToJson(this);
   }
@@ -100,6 +104,7 @@ class ConnectionOffer {
     int? maximumUsage,
     String? externalRef,
     DateTime? createdAt,
+    int? score,
   }) {
     return ConnectionOffer(
       offerLink: offerLink,
@@ -125,6 +130,7 @@ class ConnectionOffer {
       externalRef: externalRef ?? this.externalRef,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
+      score: score ?? this.score,
     );
   }
 
@@ -134,6 +140,7 @@ class ConnectionOffer {
     required ContactCard card,
     required DateTime createdAt,
     String? externalRef,
+    int? score,
   }) {
     return copyWith(
       acceptOfferDid: acceptOfferDid,
@@ -142,6 +149,7 @@ class ConnectionOffer {
       card: card,
       createdAt: createdAt,
       externalRef: externalRef,
+      score: score ?? this.score,
     );
   }
 

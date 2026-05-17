@@ -194,6 +194,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   final bool? isSearchable;
   @override
   final String? metadata;
+  @override
+  final int? score;
 
   factory _$RegisterOfferInput([
     void Function(RegisterOfferInputBuilder)? updates,
@@ -216,6 +218,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     this.customPhrase,
     this.isSearchable,
     this.metadata,
+    this.score,
   }) : super._();
   @override
   RegisterOfferInput rebuild(
@@ -245,7 +248,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
         mediatorWSSEndpoint == other.mediatorWSSEndpoint &&
         customPhrase == other.customPhrase &&
         isSearchable == other.isSearchable &&
-        metadata == other.metadata;
+        metadata == other.metadata &&
+        score == other.score;
   }
 
   @override
@@ -267,6 +271,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     _$hash = $jc(_$hash, customPhrase.hashCode);
     _$hash = $jc(_$hash, isSearchable.hashCode);
     _$hash = $jc(_$hash, metadata.hashCode);
+    _$hash = $jc(_$hash, score.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -289,7 +294,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
           ..add('mediatorWSSEndpoint', mediatorWSSEndpoint)
           ..add('customPhrase', customPhrase)
           ..add('isSearchable', isSearchable)
-          ..add('metadata', metadata))
+          ..add('metadata', metadata)
+          ..add('score', score))
         .toString();
   }
 }
@@ -369,6 +375,10 @@ class RegisterOfferInputBuilder
   String? get metadata => _$this._metadata;
   set metadata(String? metadata) => _$this._metadata = metadata;
 
+  int? _score;
+  int? get score => _$this._score;
+  set score(int? score) => _$this._score = score;
+
   RegisterOfferInputBuilder() {
     RegisterOfferInput._defaults(this);
   }
@@ -392,6 +402,7 @@ class RegisterOfferInputBuilder
       _customPhrase = $v.customPhrase;
       _isSearchable = $v.isSearchable;
       _metadata = $v.metadata;
+      _score = $v.score;
       _$v = null;
     }
     return this;
@@ -466,6 +477,7 @@ class RegisterOfferInputBuilder
           customPhrase: customPhrase,
           isSearchable: isSearchable,
           metadata: metadata,
+          score: score,
         );
     replace(_$result);
     return _$result;

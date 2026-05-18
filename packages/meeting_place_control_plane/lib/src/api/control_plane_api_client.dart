@@ -6,8 +6,8 @@ import '../constants/sdk_constants.dart';
 import '../control_plane_sdk.dart';
 import '../loggers/control_plane_sdk_logger.dart';
 import '../loggers/default_control_plane_sdk_logger.dart';
-import '_idle_timeout_configurator_stub.dart'
-    if (dart.library.io) '_idle_timeout_configurator_io.dart';
+import 'idle_timeout_configurator_stub.dart'
+    if (dart.library.io) 'idle_timeout_configurator_io.dart';
 import 'api_client.dart' as api_client;
 import 'control_plane_api_client_options.dart';
 import 'refresh_auth_credentials_interceptor.dart';

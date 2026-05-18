@@ -5,7 +5,6 @@ final class LivenessProofPayload {
   /// Parses and validates a decoded JSON map from a liveness-proof attachment.
   ///
   /// Throws [FormatException] if required fields are missing or wrong type.
-  /// If `type` is present it must match
   /// [LivenessZkpConstants.livenessProofPayloadType].
   factory LivenessProofPayload.fromJson(Map<String, dynamic> json) {
     final type = json[LivenessZkpConstants.typeJsonKey];

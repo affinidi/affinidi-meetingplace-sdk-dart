@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 void main() {
   group('LivenessZkpAttachmentParser', () {
     test(
-      'tryParseLivenessProofPayload returns payload for valid attachment',
+      'tryParseProofIn returns payload for valid attachment',
       () {
         const payload = LivenessProofPayload(
           proof: 'abc',
@@ -24,7 +24,7 @@ void main() {
           ),
         ];
 
-        final parsed = LivenessZkpAttachmentParser.tryParseLivenessProofPayload(
+        final parsed = LivenessZkpAttachmentParser.tryParseProofIn(
           attachments,
         );
 
@@ -34,7 +34,7 @@ void main() {
       },
     );
 
-    test('tryParseLivenessProofPayload skips wrong format', () {
+    test('tryParseProofIn skips wrong format', () {
       final attachments = [
         Attachment(
           id: '1',
@@ -51,12 +51,12 @@ void main() {
       ];
 
       expect(
-        LivenessZkpAttachmentParser.tryParseLivenessProofPayload(attachments),
+        LivenessZkpAttachmentParser.tryParseProofIn(attachments),
         isNull,
       );
     });
 
-    test('tryParseLivenessProofPayload returns null on invalid JSON', () {
+    test('tryParseProofIn returns null on invalid JSON', () {
       final attachments = [
         Attachment(
           id: '1',
@@ -68,20 +68,109 @@ void main() {
       ];
 
       expect(
-        LivenessZkpAttachmentParser.tryParseLivenessProofPayload(attachments),
+        LivenessZkpAttachmentParser.tryParseProofIn(attachments),
         isNull,
       );
     });
 
-    test('hasLivenessCheckRequest / hasLivenessProof', () {
-      final attachments = [
-        Attachment(
-          id: 'r',
-          mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessCheckRequestFormat,
-          lastModifiedTime: DateTime.utc(2026),
-          data: AttachmentData(json: '{}'),
+    test(
+      'tryParseRequest returns payload for valid attachment',
+      () {
+        final attachments = [
+          Attachment(
+            id: 'r',
+            mediaType: 'application/json',
+            format: LivenessZkpConstants.livenessCheckRequestFormat,
+            lastModifiedTime: DateTime.utc(2026),
+            data: AttachmentData(
+              json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
+            ),
+          ),
+        ];
+
+        expect(
+          LivenessZkpAttachmentParser.tryParseRequest(
+            attachments.single,
+          ),
+          isNotNull,
+        );
+        expect(
+          LivenessZkpAttachmentParser.tryParseRequestIn(
+            attachments,
+          ),
+          isNotNull,
+        );
+        expect(
+          LivenessZkpAttachmentParser.isRequest(attachments.single),
+          isTrue,
+        );
+        expect(
+          LivenessZkpAttachmentParser.hasRequest(attachments),
+          isTrue,
+        );
+      },
+    );
+
+    test('tryParseRequest rejects wrong format or payload', () {
+      final wrongFormat = Attachment(
+        id: '1',
+        mediaType: 'application/json',
+        format: LivenessZkpConstants.livenessProofFormat,
+        lastModifiedTime: DateTime.utc(2026),
+        data: AttachmentData(
+          json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
         ),
+      );
+      final emptyPayload = Attachment(
+        id: '2',
+        mediaType: 'application/json',
+        format: LivenessZkpConstants.livenessCheckRequestFormat,
+        lastModifiedTime: DateTime.utc(2026),
+        data: AttachmentData(json: '{}'),
+      );
+      final wrongType = Attachment(
+        id: '3',
+        mediaType: 'application/json',
+        format: LivenessZkpConstants.livenessCheckRequestFormat,
+        lastModifiedTime: DateTime.utc(2026),
+        data: AttachmentData(
+          json: jsonEncode({
+            LivenessZkpConstants.typeJsonKey: 'other',
+          }),
+        ),
+      );
+
+      for (final attachment in [wrongFormat, emptyPayload, wrongType]) {
+        expect(
+          LivenessZkpAttachmentParser.tryParseRequest(attachment),
+          isNull,
+        );
+        expect(
+          LivenessZkpAttachmentParser.isRequest(attachment),
+          isFalse,
+        );
+      }
+      expect(
+        LivenessZkpAttachmentParser.hasRequest([
+          emptyPayload,
+          wrongType,
+        ]),
+        isFalse,
+      );
+    });
+
+    test('hasProof requires valid proof payload', () {
+      const payload = LivenessProofPayload(proof: 'a', publicSignals: 'b');
+      final valid = [
+        Attachment(
+          id: 'p',
+          mediaType: 'application/json',
+          format: LivenessZkpConstants.livenessProofFormat,
+          lastModifiedTime: DateTime.utc(2026),
+          data: AttachmentData(json: jsonEncode(payload.toJson())),
+        ),
+      ];
+      final invalid = [
         Attachment(
           id: 'p',
           mediaType: 'application/json',
@@ -91,11 +180,29 @@ void main() {
         ),
       ];
 
+      expect(LivenessZkpAttachmentParser.hasProof(valid), isTrue);
+      expect(LivenessZkpAttachmentParser.hasProof(invalid), isFalse);
+    });
+  });
+
+  group('LivenessCheckRequestPayload.fromJson', () {
+    test('requires liveness_request type', () {
       expect(
-        LivenessZkpAttachmentParser.hasLivenessCheckRequest(attachments),
-        isTrue,
+        () => LivenessCheckRequestPayload.fromJson({}),
+        throwsA(isA<FormatException>()),
       );
-      expect(LivenessZkpAttachmentParser.hasLivenessProof(attachments), isTrue);
+      expect(
+        () => LivenessCheckRequestPayload.fromJson({
+          LivenessZkpConstants.typeJsonKey: 'other',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+
+      final payload = LivenessCheckRequestPayload.fromJson({
+        LivenessZkpConstants.typeJsonKey:
+            LivenessZkpConstants.livenessRequestPayloadType,
+      });
+      expect(payload, isA<LivenessCheckRequestPayload>());
     });
   });
 

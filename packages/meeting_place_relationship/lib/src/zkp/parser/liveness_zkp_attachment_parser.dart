@@ -2,29 +2,56 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+import '../model/liveness_check_request_payload.dart';
 import '../model/liveness_proof_payload.dart';
 import '../model/liveness_zkp_constants.dart';
 
 /// Reads liveness ZKP attachments from DIDComm [Attachment] lists.
 abstract final class LivenessZkpAttachmentParser {
-  static bool isLivenessCheckRequest(Attachment? attachment) =>
-      attachment?.format == LivenessZkpConstants.livenessCheckRequestFormat;
+  static bool isRequest(Attachment? attachment) =>
+      tryParseRequest(attachment) != null;
 
-  static bool isLivenessProof(Attachment? attachment) =>
-      attachment?.format == LivenessZkpConstants.livenessProofFormat;
+  static bool isProof(Attachment? attachment) =>
+      tryParseProof(attachment) != null;
 
-  static bool hasLivenessCheckRequest(Iterable<Attachment?> attachments) =>
-      attachments.any(isLivenessCheckRequest);
+  static bool hasRequest(Iterable<Attachment?> attachments) =>
+      tryParseRequestIn(attachments) != null;
 
-  static bool hasLivenessProof(Iterable<Attachment?> attachments) =>
-      attachments.any(isLivenessProof);
+  static bool hasProof(Iterable<Attachment?> attachments) =>
+      tryParseProofIn(attachments) != null;
 
-  /// Returns the first valid liveness proof payload, or `null` if none found.
-  static LivenessProofPayload? tryParseLivenessProofPayload(
+  static LivenessCheckRequestPayload? tryParseRequest(Attachment? attachment) =>
+      tryParseRequestIn([attachment]);
+
+  static LivenessCheckRequestPayload? tryParseRequestIn(
     Iterable<Attachment?> attachments,
-  ) {
+  ) =>
+      _tryParseFirstAttachment(
+        attachments,
+        format: LivenessZkpConstants.livenessCheckRequestFormat,
+        fromJson: LivenessCheckRequestPayload.fromJson,
+      );
+
+  static LivenessProofPayload? tryParseProof(Attachment? attachment) =>
+      tryParseProofIn([attachment]);
+
+  static LivenessProofPayload? tryParseProofIn(
+    Iterable<Attachment?> attachments,
+  ) =>
+      _tryParseFirstAttachment(
+        attachments,
+        format: LivenessZkpConstants.livenessProofFormat,
+        fromJson: LivenessProofPayload.fromJson,
+      );
+
+  /// Scans [attachments] and returns the first payload matching [format].
+  static T? _tryParseFirstAttachment<T>(
+    Iterable<Attachment?> attachments, {
+    required String format,
+    required T Function(Map<String, dynamic> json) fromJson,
+  }) {
     for (final attachment in attachments) {
-      if (!isLivenessProof(attachment)) continue;
+      if (attachment?.format != format) continue;
 
       final jsonStr = attachment!.data?.json;
       if (jsonStr == null || jsonStr.isEmpty) continue;
@@ -32,10 +59,8 @@ abstract final class LivenessZkpAttachmentParser {
       try {
         final decoded = jsonDecode(jsonStr);
         if (decoded is! Map<String, dynamic>) continue;
-        return LivenessProofPayload.fromJson(decoded);
+        return fromJson(decoded);
       } on FormatException {
-        continue;
-      } on Object {
         continue;
       }
     }

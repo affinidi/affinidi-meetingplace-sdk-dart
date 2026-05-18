@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+import '../model/liveness_check_request_payload.dart';
 import '../model/liveness_proof_payload.dart';
 import '../model/liveness_zkp_constants.dart';
 
@@ -13,30 +14,34 @@ abstract final class LivenessZkpAttachmentBuilder {
   static List<Attachment> buildLivenessCheckRequest({
     String? attachmentId,
     DateTime? lastModified,
-  }) {
-    final id =
-        attachmentId ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final when = (lastModified ?? DateTime.now()).toUtc();
-
-    return [
-      Attachment(
-        id: id,
-        mediaType: _mediaType,
-        format: LivenessZkpConstants.livenessCheckRequestFormat,
-        lastModifiedTime: when,
-        data: AttachmentData(
-          json: jsonEncode({
-            LivenessZkpConstants.typeJsonKey:
-                LivenessZkpConstants.livenessRequestPayloadType,
-          }),
+  }) =>
+      [
+        _jsonAttachment(
+          format: LivenessZkpConstants.livenessCheckRequestFormat,
+          json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
+          attachmentId: attachmentId,
+          lastModified: lastModified,
         ),
-      ),
-    ];
-  }
+      ];
 
   /// One attachment carrying a generated liveness proof.
   static List<Attachment> buildLivenessProof({
     required LivenessProofPayload payload,
+    String? attachmentId,
+    DateTime? lastModified,
+  }) =>
+      [
+        _jsonAttachment(
+          format: LivenessZkpConstants.livenessProofFormat,
+          json: jsonEncode(payload.toJson()),
+          attachmentId: attachmentId,
+          lastModified: lastModified,
+        ),
+      ];
+
+  static Attachment _jsonAttachment({
+    required String format,
+    required String json,
     String? attachmentId,
     DateTime? lastModified,
   }) {
@@ -44,14 +49,12 @@ abstract final class LivenessZkpAttachmentBuilder {
         attachmentId ?? DateTime.now().millisecondsSinceEpoch.toString();
     final when = (lastModified ?? DateTime.now()).toUtc();
 
-    return [
-      Attachment(
-        id: id,
-        mediaType: _mediaType,
-        format: LivenessZkpConstants.livenessProofFormat,
-        lastModifiedTime: when,
-        data: AttachmentData(json: jsonEncode(payload.toJson())),
-      ),
-    ];
+    return Attachment(
+      id: id,
+      mediaType: _mediaType,
+      format: format,
+      lastModifiedTime: when,
+      data: AttachmentData(json: json),
+    );
   }
 }

@@ -14,3 +14,4 @@ export 'src/sdk/chat_sdk_options.dart';
 export 'src/sdk/group_chat_sdk.dart';
 export 'src/sdk/individual_chat_sdk.dart';
 export 'src/service/chat_stream.dart';
+export 'src/zkp/liveness_zkp_concierge_chat_mapper.dart';

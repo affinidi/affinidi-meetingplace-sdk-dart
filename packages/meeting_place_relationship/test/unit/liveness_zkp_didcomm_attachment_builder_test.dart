@@ -4,9 +4,9 @@ import 'package:meeting_place_relationship/meeting_place_relationship.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('LivenessZkpAttachmentBuilder', () {
+  group('LivenessZkpDIDCommAttachmentBuilder', () {
     test('buildLivenessCheckRequest encodes expected format and payload', () {
-      final list = LivenessZkpAttachmentBuilder.buildLivenessCheckRequest(
+      final list = LivenessZkpDIDCommAttachmentBuilder.buildLivenessCheckRequest(
         attachmentId: 'req-1',
         lastModified: DateTime.utc(2026, 1, 2),
       );
@@ -28,7 +28,7 @@ void main() {
     test('buildLivenessProof encodes proof payload', () {
       const payload = LivenessProofPayload(proof: 'p1', publicSignals: 's1');
 
-      final list = LivenessZkpAttachmentBuilder.buildLivenessProof(
+      final list = LivenessZkpDIDCommAttachmentBuilder.buildLivenessProof(
         payload: payload,
         attachmentId: 'proof-1',
         lastModified: DateTime.utc(2026, 1, 3),

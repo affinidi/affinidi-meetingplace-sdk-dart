@@ -14,30 +14,28 @@ abstract final class LivenessZkpAttachmentBuilder {
   static List<Attachment> buildLivenessCheckRequest({
     String? attachmentId,
     DateTime? lastModified,
-  }) =>
-      [
-        _jsonAttachment(
-          format: LivenessZkpConstants.livenessCheckRequestFormat,
-          json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
-          attachmentId: attachmentId,
-          lastModified: lastModified,
-        ),
-      ];
+  }) => [
+    _jsonAttachment(
+      format: LivenessZkpConstants.livenessCheckRequestFormat,
+      json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
+      attachmentId: attachmentId,
+      lastModified: lastModified,
+    ),
+  ];
 
   /// One attachment carrying a generated liveness proof.
   static List<Attachment> buildLivenessProof({
     required LivenessProofPayload payload,
     String? attachmentId,
     DateTime? lastModified,
-  }) =>
-      [
-        _jsonAttachment(
-          format: LivenessZkpConstants.livenessProofFormat,
-          json: jsonEncode(payload.toJson()),
-          attachmentId: attachmentId,
-          lastModified: lastModified,
-        ),
-      ];
+  }) => [
+    _jsonAttachment(
+      format: LivenessZkpConstants.livenessProofFormat,
+      json: jsonEncode(payload.toJson()),
+      attachmentId: attachmentId,
+      lastModified: lastModified,
+    ),
+  ];
 
   static Attachment _jsonAttachment({
     required String format,
@@ -45,8 +43,7 @@ abstract final class LivenessZkpAttachmentBuilder {
     String? attachmentId,
     DateTime? lastModified,
   }) {
-    final id =
-        attachmentId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final id = attachmentId ?? DateTime.now().millisecondsSinceEpoch.toString();
     final when = (lastModified ?? DateTime.now()).toUtc();
 
     return Attachment(

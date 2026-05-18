@@ -6,33 +6,25 @@ import 'package:test/test.dart';
 
 void main() {
   group('LivenessZkpAttachmentParser', () {
-    test(
-      'tryParseProofIn returns payload for valid attachment',
-      () {
-        const payload = LivenessProofPayload(
-          proof: 'abc',
-          publicSignals: 'def',
-        );
+    test('tryParseProofIn returns payload for valid attachment', () {
+      const payload = LivenessProofPayload(proof: 'abc', publicSignals: 'def');
 
-        final attachments = [
-          Attachment(
-            id: '1',
-            mediaType: 'application/json',
-            format: LivenessZkpConstants.livenessProofFormat,
-            lastModifiedTime: DateTime.utc(2026),
-            data: AttachmentData(json: jsonEncode(payload.toJson())),
-          ),
-        ];
+      final attachments = [
+        Attachment(
+          id: '1',
+          mediaType: 'application/json',
+          format: LivenessZkpConstants.livenessProofFormat,
+          lastModifiedTime: DateTime.utc(2026),
+          data: AttachmentData(json: jsonEncode(payload.toJson())),
+        ),
+      ];
 
-        final parsed = LivenessZkpAttachmentParser.tryParseProofIn(
-          attachments,
-        );
+      final parsed = LivenessZkpAttachmentParser.tryParseProofIn(attachments);
 
-        expect(parsed, isNotNull);
-        expect(parsed!.proof, 'abc');
-        expect(parsed.publicSignals, 'def');
-      },
-    );
+      expect(parsed, isNotNull);
+      expect(parsed!.proof, 'abc');
+      expect(parsed.publicSignals, 'def');
+    });
 
     test('tryParseProofIn skips wrong format', () {
       final attachments = [
@@ -50,10 +42,7 @@ void main() {
         ),
       ];
 
-      expect(
-        LivenessZkpAttachmentParser.tryParseProofIn(attachments),
-        isNull,
-      );
+      expect(LivenessZkpAttachmentParser.tryParseProofIn(attachments), isNull);
     });
 
     test('tryParseProofIn returns null on invalid JSON', () {
@@ -67,49 +56,33 @@ void main() {
         ),
       ];
 
-      expect(
-        LivenessZkpAttachmentParser.tryParseProofIn(attachments),
-        isNull,
-      );
+      expect(LivenessZkpAttachmentParser.tryParseProofIn(attachments), isNull);
     });
 
-    test(
-      'tryParseRequest returns payload for valid attachment',
-      () {
-        final attachments = [
-          Attachment(
-            id: 'r',
-            mediaType: 'application/json',
-            format: LivenessZkpConstants.livenessCheckRequestFormat,
-            lastModifiedTime: DateTime.utc(2026),
-            data: AttachmentData(
-              json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
-            ),
+    test('tryParseRequest returns payload for valid attachment', () {
+      final attachments = [
+        Attachment(
+          id: 'r',
+          mediaType: 'application/json',
+          format: LivenessZkpConstants.livenessCheckRequestFormat,
+          lastModifiedTime: DateTime.utc(2026),
+          data: AttachmentData(
+            json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
           ),
-        ];
+        ),
+      ];
 
-        expect(
-          LivenessZkpAttachmentParser.tryParseRequest(
-            attachments.single,
-          ),
-          isNotNull,
-        );
-        expect(
-          LivenessZkpAttachmentParser.tryParseRequestIn(
-            attachments,
-          ),
-          isNotNull,
-        );
-        expect(
-          LivenessZkpAttachmentParser.isRequest(attachments.single),
-          isTrue,
-        );
-        expect(
-          LivenessZkpAttachmentParser.hasRequest(attachments),
-          isTrue,
-        );
-      },
-    );
+      expect(
+        LivenessZkpAttachmentParser.tryParseRequest(attachments.single),
+        isNotNull,
+      );
+      expect(
+        LivenessZkpAttachmentParser.tryParseRequestIn(attachments),
+        isNotNull,
+      );
+      expect(LivenessZkpAttachmentParser.isRequest(attachments.single), isTrue);
+      expect(LivenessZkpAttachmentParser.hasRequest(attachments), isTrue);
+    });
 
     test('tryParseRequest rejects wrong format or payload', () {
       final wrongFormat = Attachment(
@@ -134,27 +107,16 @@ void main() {
         format: LivenessZkpConstants.livenessCheckRequestFormat,
         lastModifiedTime: DateTime.utc(2026),
         data: AttachmentData(
-          json: jsonEncode({
-            LivenessZkpConstants.typeJsonKey: 'other',
-          }),
+          json: jsonEncode({LivenessZkpConstants.typeJsonKey: 'other'}),
         ),
       );
 
       for (final attachment in [wrongFormat, emptyPayload, wrongType]) {
-        expect(
-          LivenessZkpAttachmentParser.tryParseRequest(attachment),
-          isNull,
-        );
-        expect(
-          LivenessZkpAttachmentParser.isRequest(attachment),
-          isFalse,
-        );
+        expect(LivenessZkpAttachmentParser.tryParseRequest(attachment), isNull);
+        expect(LivenessZkpAttachmentParser.isRequest(attachment), isFalse);
       }
       expect(
-        LivenessZkpAttachmentParser.hasRequest([
-          emptyPayload,
-          wrongType,
-        ]),
+        LivenessZkpAttachmentParser.hasRequest([emptyPayload, wrongType]),
         isFalse,
       );
     });

@@ -22,10 +22,7 @@ void main() {
         map[LivenessZkpConstants.typeJsonKey],
         LivenessZkpConstants.livenessRequestPayloadType,
       );
-      expect(
-        LivenessZkpAttachmentParser.tryParseRequest(att),
-        isNotNull,
-      );
+      expect(LivenessZkpAttachmentParser.tryParseRequest(att), isNotNull);
     });
 
     test('buildLivenessProof encodes proof payload', () {

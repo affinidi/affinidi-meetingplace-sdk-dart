@@ -7,7 +7,7 @@ import '../model/liveness_proof_payload.dart';
 import '../model/liveness_zkp_protocol.dart';
 
 /// Builds DIDComm [Attachment] lists for liveness ZKP request/proof messages.
-abstract final class LivenessZkpAttachmentBuilder {
+abstract final class LivenessZkpDIDCommAttachmentBuilder {
   static const _mediaType = 'application/json';
 
   /// One attachment asking the peer to run the liveness + proof flow.

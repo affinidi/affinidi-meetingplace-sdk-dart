@@ -25,24 +25,22 @@ abstract final class LivenessZkpAttachmentParser {
 
   static LivenessCheckRequestPayload? tryParseRequestIn(
     Iterable<Attachment?> attachments,
-  ) =>
-      _tryParseFirstAttachment(
-        attachments,
-        format: LivenessZkpConstants.livenessCheckRequestFormat,
-        fromJson: LivenessCheckRequestPayload.fromJson,
-      );
+  ) => _tryParseFirstAttachment(
+    attachments,
+    format: LivenessZkpConstants.livenessCheckRequestFormat,
+    fromJson: LivenessCheckRequestPayload.fromJson,
+  );
 
   static LivenessProofPayload? tryParseProof(Attachment? attachment) =>
       tryParseProofIn([attachment]);
 
   static LivenessProofPayload? tryParseProofIn(
     Iterable<Attachment?> attachments,
-  ) =>
-      _tryParseFirstAttachment(
-        attachments,
-        format: LivenessZkpConstants.livenessProofFormat,
-        fromJson: LivenessProofPayload.fromJson,
-      );
+  ) => _tryParseFirstAttachment(
+    attachments,
+    format: LivenessZkpConstants.livenessProofFormat,
+    fromJson: LivenessProofPayload.fromJson,
+  );
 
   /// Scans [attachments] and returns the first payload matching [format].
   static T? _tryParseFirstAttachment<T>(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
@@ -22,6 +23,8 @@ void main() {
         receivedAt: DateTime.utc(2024),
       ),
     );
+    registerFallbackValue(MockChannel());
+    registerFallbackValue(MockVerifiableCredential());
   });
 
   group('MeetingPlaceRelationshipSDK', () {
@@ -287,6 +290,105 @@ void main() {
       );
       final result = await sdk.parseVrc(vcBlob: vrcBlobWithoutProof);
       expect(result, isNull);
+      await sdk.closeRelationshipStreams();
+    });
+  });
+
+  group('MeetingPlaceRelationshipSDK.sendRCard', () {
+    late MockMeetingPlaceCoreSDK mockCoreSDK;
+    late MockVdipClient mockVdip;
+    late MockRCardRepository mockRepo;
+    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late DidKeyManager didManager;
+    late String issuerDid;
+
+    setUpAll(() async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+      didManager = DidKeyManager(wallet: wallet, store: InMemoryDidStore());
+      final keyPair = await wallet.generateKey();
+      await didManager.addVerificationMethod(keyPair.id);
+      final didDoc = await didManager.getDidDocument();
+      issuerDid = didDoc.id;
+    });
+
+    setUp(() {
+      channelAttachmentsCtrl =
+          StreamController<(Channel, List<Attachment>)>.broadcast();
+      mockCoreSDK = MockMeetingPlaceCoreSDK();
+      mockVdip = MockVdipClient();
+      when(
+        () => mockVdip.incomingMessages,
+      ).thenAnswer((_) => const Stream.empty());
+      when(
+        () => mockVdip.issueCredential(
+          channel: any(named: 'channel'),
+          credential: any(named: 'credential'),
+        ),
+      ).thenAnswer((_) async {});
+      when(() => mockCoreSDK.vdip).thenReturn(mockVdip);
+      when(
+        () => mockCoreSDK.channelAttachments,
+      ).thenAnswer((_) => channelAttachmentsCtrl.stream);
+      mockRepo = MockRCardRepository();
+      when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
+      when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
+    });
+
+    tearDown(() async {
+      await channelAttachmentsCtrl.close();
+    });
+
+    test('returns valid VC JSON and calls issueCredential', () async {
+      final channel = MockChannel();
+      when(() => channel.permanentChannelDid).thenReturn(issuerDid);
+      when(
+        () => channel.otherPartyPermanentChannelDid,
+      ).thenReturn('did:key:recipient');
+
+      final sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
+
+      final vcBlob = await sdk.sendRCard(
+        channel: channel,
+        subjectDid: 'did:key:recipient',
+        card: const RCardSubject(firstName: 'Bob', lastName: 'Smith'),
+        issuerDidManager: didManager,
+      );
+
+      expect(() => jsonDecode(vcBlob), returnsNormally);
+      final decoded = jsonDecode(vcBlob) as Map<String, dynamic>;
+      expect(decoded['type'], contains('RelationshipCard'));
+      verify(
+        () => mockVdip.issueCredential(
+          channel: any(named: 'channel'),
+          credential: any(named: 'credential'),
+        ),
+      ).called(1);
+
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('throws StateError when channel lacks permanentChannelDid', () async {
+      final channel = MockChannel();
+      when(() => channel.permanentChannelDid).thenReturn(null);
+
+      final sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+      );
+
+      await expectLater(
+        sdk.sendRCard(
+          channel: channel,
+          subjectDid: 'did:key:recipient',
+          card: const RCardSubject(firstName: 'Bob'),
+          issuerDidManager: didManager,
+        ),
+        throwsStateError,
+      );
+
       await sdk.closeRelationshipStreams();
     });
   });

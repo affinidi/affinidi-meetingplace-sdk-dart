@@ -6,6 +6,34 @@ import 'package:test/test.dart';
 
 void main() {
   group('LivenessZkpAttachmentParser', () {
+    test('matchesRequestFormat and matchesProofFormat are format only', () {
+      final requestFormatOnly = Attachment(
+        id: 'r',
+        mediaType: 'application/json',
+        format: LivenessZkpProtocol.livenessCheckRequestFormat,
+        lastModifiedTime: DateTime.utc(2026),
+        data: AttachmentData(json: '{}'),
+      );
+      final proofFormatOnly = Attachment(
+        id: 'p',
+        mediaType: 'application/json',
+        format: LivenessZkpProtocol.livenessProofFormat,
+        lastModifiedTime: DateTime.utc(2026),
+        data: AttachmentData(json: '{}'),
+      );
+
+      expect(
+        LivenessZkpAttachmentParser.matchesRequestFormat(requestFormatOnly),
+        isTrue,
+      );
+      expect(
+        LivenessZkpAttachmentParser.matchesProofFormat(proofFormatOnly),
+        isTrue,
+      );
+      expect(LivenessZkpAttachmentParser.isRequest(requestFormatOnly), isFalse);
+      expect(LivenessZkpAttachmentParser.isProof(proofFormatOnly), isFalse);
+    });
+
     test('tryParseProofIn returns payload for valid attachment', () {
       const payload = LivenessProofPayload(proof: 'abc', publicSignals: 'def');
 

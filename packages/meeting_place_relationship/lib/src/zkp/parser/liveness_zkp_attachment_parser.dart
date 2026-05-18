@@ -7,10 +7,30 @@ import '../model/liveness_proof_payload.dart';
 import '../model/liveness_zkp_protocol.dart';
 
 /// Reads liveness ZKP attachments from DIDComm [Attachment] lists.
-abstract final class LivenessZkpAttachmentParser {
-  static MeetingPlaceCoreSDKLogger logger = DefaultMeetingPlaceCoreSDKLogger(
-    className: 'LivenessZkpAttachmentParser',
-  );
+class LivenessZkpAttachmentParser {
+  LivenessZkpAttachmentParser({MeetingPlaceCoreSDKLogger? logger})
+    : _logger =
+          logger ??
+          DefaultMeetingPlaceCoreSDKLogger(
+            className: 'LivenessZkpAttachmentParser',
+          );
+
+  final MeetingPlaceCoreSDKLogger _logger;
+
+  static final LivenessZkpAttachmentParser instance =
+      LivenessZkpAttachmentParser();
+
+  static bool matchesRequestFormat(Attachment? attachment) =>
+      attachment?.format == LivenessZkpProtocol.livenessCheckRequestFormat;
+
+  static bool matchesProofFormat(Attachment? attachment) =>
+      attachment?.format == LivenessZkpProtocol.livenessProofFormat;
+
+  static bool hasRequestFormat(Iterable<Attachment?> attachments) =>
+      attachments.any(matchesRequestFormat);
+
+  static bool hasProofFormat(Iterable<Attachment?> attachments) =>
+      attachments.any(matchesProofFormat);
 
   static bool isRequest(Attachment? attachment) =>
       tryParseRequest(attachment) != null;
@@ -25,9 +45,23 @@ abstract final class LivenessZkpAttachmentParser {
       tryParseProofIn(attachments) != null;
 
   static LivenessCheckRequestPayload? tryParseRequest(Attachment? attachment) =>
-      tryParseRequestIn([attachment]);
+      instance.parseRequest(attachment);
 
   static LivenessCheckRequestPayload? tryParseRequestIn(
+    Iterable<Attachment?> attachments,
+  ) => instance.parseRequestIn(attachments);
+
+  static LivenessProofPayload? tryParseProof(Attachment? attachment) =>
+      instance.parseProof(attachment);
+
+  static LivenessProofPayload? tryParseProofIn(
+    Iterable<Attachment?> attachments,
+  ) => instance.parseProofIn(attachments);
+
+  LivenessCheckRequestPayload? parseRequest(Attachment? attachment) =>
+      parseRequestIn([attachment]);
+
+  LivenessCheckRequestPayload? parseRequestIn(
     Iterable<Attachment?> attachments,
   ) => _firstParsed(
     attachments,
@@ -35,18 +69,16 @@ abstract final class LivenessZkpAttachmentParser {
     fromJson: LivenessCheckRequestPayload.fromJson,
   );
 
-  static LivenessProofPayload? tryParseProof(Attachment? attachment) =>
-      tryParseProofIn([attachment]);
+  LivenessProofPayload? parseProof(Attachment? attachment) =>
+      parseProofIn([attachment]);
 
-  static LivenessProofPayload? tryParseProofIn(
-    Iterable<Attachment?> attachments,
-  ) => _firstParsed(
-    attachments,
-    format: LivenessZkpProtocol.livenessProofFormat,
-    fromJson: LivenessProofPayload.fromJson,
-  );
-
-  static T? _firstParsed<T>(
+  LivenessProofPayload? parseProofIn(Iterable<Attachment?> attachments) =>
+      _firstParsed(
+        attachments,
+        format: LivenessZkpProtocol.livenessProofFormat,
+        fromJson: LivenessProofPayload.fromJson,
+      );
+  T? _firstParsed<T>(
     Iterable<Attachment?> attachments, {
     required String format,
     required T Function(Map<String, dynamic> json) fromJson,
@@ -59,7 +91,7 @@ abstract final class LivenessZkpAttachmentParser {
     return null;
   }
 
-  static T? _parseJson<T>(
+  T? _parseJson<T>(
     Attachment attachment,
     T Function(Map<String, dynamic> json) fromJson,
   ) {
@@ -72,22 +104,22 @@ abstract final class LivenessZkpAttachmentParser {
     try {
       final decoded = jsonDecode(jsonStr);
       if (decoded is! Map<String, dynamic>) {
-        logger.debug('Attachment $id: JSON body is not an object');
+        _logger.debug('Attachment $id: JSON body is not an object');
         return null;
       }
       body = decoded;
     } on FormatException catch (e) {
-      logger.debug('Attachment $id: malformed JSON $e');
+      _logger.debug('Attachment $id: malformed JSON $e');
       return null;
     }
 
     try {
       return fromJson(body);
     } on FormatException catch (e) {
-      logger.debug('Attachment $id: invalid liveness payload $e');
+      _logger.debug('Attachment $id: invalid liveness payload $e');
       return null;
     } catch (e) {
-      logger.debug('Attachment $id: unexpected error $e');
+      _logger.debug('Attachment $id: unexpected error $e');
       return null;
     }
   }

@@ -22,19 +22,6 @@ class JCard {
       ['version', const <String, dynamic>{}, 'text', '4.0'],
     ];
 
-    final family = subject.lastName?.trim() ?? '';
-    final given = subject.firstName?.trim() ?? '';
-    if (family.isNotEmpty || given.isNotEmpty) {
-      final fn = [given, family].where((s) => s.isNotEmpty).join(' ');
-      entries.add(['fn', const <String, dynamic>{}, 'text', fn]);
-      entries.add([
-        'n',
-        const <String, dynamic>{},
-        'text',
-        [family, given, '', '', ''],
-      ]);
-    }
-
     void addText(String prop, String? value) {
       final v = value?.trim();
       if (v != null && v.isNotEmpty) {
@@ -42,20 +29,15 @@ class JCard {
       }
     }
 
-    void addUri(String prop, String? value) {
-      final v = value?.trim();
-      if (v != null && v.isNotEmpty) {
-        entries.add([prop, const <String, dynamic>{}, 'uri', v]);
-      }
-    }
-
+    addText('firstName', subject.firstName);
+    addText('lastName', subject.lastName);
     addText('email', subject.email);
-    addText('tel', subject.phone);
-    addUri('photo', subject.profilePic);
-    addText('org', subject.company);
-    addText('title', subject.position);
-    addUri('url', subject.website);
-    addUri('x-socialprofile', subject.social);
+    addText('phone', subject.phone);
+    addText('profilePic', subject.profilePic);
+    addText('company', subject.company);
+    addText('position', subject.position);
+    addText('website', subject.website);
+    addText('social', subject.social);
 
     return ['vcard', entries];
   }

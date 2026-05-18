@@ -12,33 +12,25 @@ void main() {
       expect(props.first[3], '4.0');
     });
 
-    test('emits fn and n for a subject with first and last name', () {
+    test('emits firstName and lastName as separate text entries', () {
       const subject = RCardSubject(firstName: 'Alice', lastName: 'Smith');
       final jCard = JCard.encode(subject);
       final props = (jCard[1] as List).cast<List>();
       final propNames = props.map((p) => p[0]).toList();
-      expect(propNames, containsAll(['fn', 'n']));
+      expect(propNames, containsAll(['firstName', 'lastName']));
     });
 
-    test('n structured value has family name at index 0 and given at 1', () {
+    test('firstName and lastName entries carry correct values', () {
       const subject = RCardSubject(firstName: 'Alice', lastName: 'Smith');
       final jCard = JCard.encode(subject);
       final props = (jCard[1] as List).cast<List>();
-      final n = props.firstWhere((p) => p[0] == 'n');
-      final structured = n[3] as List;
-      expect(structured[0], 'Smith');
-      expect(structured[1], 'Alice');
+      final first = props.firstWhere((p) => p[0] == 'firstName');
+      final last = props.firstWhere((p) => p[0] == 'lastName');
+      expect(first[3], 'Alice');
+      expect(last[3], 'Smith');
     });
 
-    test('fn value is "given family"', () {
-      const subject = RCardSubject(firstName: 'Alice', lastName: 'Smith');
-      final jCard = JCard.encode(subject);
-      final props = (jCard[1] as List).cast<List>();
-      final fn = props.firstWhere((p) => p[0] == 'fn');
-      expect(fn[3], 'Alice Smith');
-    });
-
-    test('uses RFC 6350 property names for all contact fields', () {
+    test('uses camelCase property names for all contact fields', () {
       const subject = RCardSubject(
         firstName: 'Alice',
         lastName: 'Smith',
@@ -57,15 +49,15 @@ void main() {
         propNames,
         containsAll([
           'version',
-          'fn',
-          'n',
+          'firstName',
+          'lastName',
           'email',
-          'tel',
-          'photo',
-          'org',
-          'title',
-          'url',
-          'x-socialprofile',
+          'phone',
+          'profilePic',
+          'company',
+          'position',
+          'website',
+          'social',
         ]),
       );
     });

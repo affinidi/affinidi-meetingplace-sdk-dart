@@ -1,33 +1,35 @@
-import 'liveness_zkp_constants.dart';
+import 'liveness_zkp_protocol.dart';
 
 /// Parsed liveness proof attachment payload (`proof` + `publicSignals`).
 final class LivenessProofPayload {
   /// Parses and validates a decoded JSON map from a liveness-proof attachment.
   ///
   /// Throws [FormatException] if required fields are missing or wrong type.
-  /// [LivenessZkpConstants.livenessProofPayloadType].
+  /// If `type` is present it must match
+  /// [LivenessZkpProtocol.livenessProofPayloadType].
   factory LivenessProofPayload.fromJson(Map<String, dynamic> json) {
-    final type = json[LivenessZkpConstants.typeJsonKey];
-    if (type != null && type != LivenessZkpConstants.livenessProofPayloadType) {
+    final type = json[LivenessZkpProtocol.typeJsonKey];
+    if (type != null && type != LivenessZkpProtocol.livenessProofPayloadType) {
       throw FormatException('Unexpected liveness ZKP payload type: $type');
     }
 
-    final proof = json[LivenessZkpConstants.proofJsonKey];
-    final publicSignals = json[LivenessZkpConstants.publicSignalsJsonKey];
+    final proof = json[LivenessZkpProtocol.proofJsonKey];
+    final publicSignals = json[LivenessZkpProtocol.publicSignalsJsonKey];
 
     if (proof is! String || proof.isEmpty) {
       throw const FormatException(
-        'Missing or invalid "${LivenessZkpConstants.proofJsonKey}"',
+        'Missing or invalid "${LivenessZkpProtocol.proofJsonKey}"',
       );
     }
     if (publicSignals is! String || publicSignals.isEmpty) {
       throw const FormatException(
-        'Missing or invalid "${LivenessZkpConstants.publicSignalsJsonKey}"',
+        'Missing or invalid "${LivenessZkpProtocol.publicSignalsJsonKey}"',
       );
     }
 
     return LivenessProofPayload(proof: proof, publicSignals: publicSignals);
   }
+
   const LivenessProofPayload({
     required this.proof,
     required this.publicSignals,
@@ -37,9 +39,9 @@ final class LivenessProofPayload {
   final String publicSignals;
 
   Map<String, dynamic> toJson() => {
-    LivenessZkpConstants.typeJsonKey:
-        LivenessZkpConstants.livenessProofPayloadType,
-    LivenessZkpConstants.proofJsonKey: proof,
-    LivenessZkpConstants.publicSignalsJsonKey: publicSignals,
+    LivenessZkpProtocol.typeJsonKey:
+        LivenessZkpProtocol.livenessProofPayloadType,
+    LivenessZkpProtocol.proofJsonKey: proof,
+    LivenessZkpProtocol.publicSignalsJsonKey: publicSignals,
   };
 }

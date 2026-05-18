@@ -4,7 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../model/liveness_check_request_payload.dart';
 import '../model/liveness_proof_payload.dart';
-import '../model/liveness_zkp_constants.dart';
+import '../model/liveness_zkp_protocol.dart';
 
 /// Reads liveness ZKP attachments from DIDComm [Attachment] lists.
 abstract final class LivenessZkpAttachmentParser {
@@ -27,7 +27,7 @@ abstract final class LivenessZkpAttachmentParser {
     Iterable<Attachment?> attachments,
   ) => _tryParseFirstAttachment(
     attachments,
-    format: LivenessZkpConstants.livenessCheckRequestFormat,
+    format: LivenessZkpProtocol.livenessCheckRequestFormat,
     fromJson: LivenessCheckRequestPayload.fromJson,
   );
 
@@ -38,7 +38,7 @@ abstract final class LivenessZkpAttachmentParser {
     Iterable<Attachment?> attachments,
   ) => _tryParseFirstAttachment(
     attachments,
-    format: LivenessZkpConstants.livenessProofFormat,
+    format: LivenessZkpProtocol.livenessProofFormat,
     fromJson: LivenessProofPayload.fromJson,
   );
 

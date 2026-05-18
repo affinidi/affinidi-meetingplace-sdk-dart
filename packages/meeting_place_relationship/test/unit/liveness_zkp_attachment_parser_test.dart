@@ -13,7 +13,7 @@ void main() {
         Attachment(
           id: '1',
           mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessProofFormat,
+          format: LivenessZkpProtocol.livenessProofFormat,
           lastModifiedTime: DateTime.utc(2026),
           data: AttachmentData(json: jsonEncode(payload.toJson())),
         ),
@@ -31,12 +31,12 @@ void main() {
         Attachment(
           id: '1',
           mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessCheckRequestFormat,
+          format: LivenessZkpProtocol.livenessCheckRequestFormat,
           lastModifiedTime: DateTime.utc(2026),
           data: AttachmentData(
             json: jsonEncode({
-              LivenessZkpConstants.typeJsonKey:
-                  LivenessZkpConstants.livenessRequestPayloadType,
+              LivenessZkpProtocol.typeJsonKey:
+                  LivenessZkpProtocol.livenessRequestPayloadType,
             }),
           ),
         ),
@@ -50,7 +50,7 @@ void main() {
         Attachment(
           id: '1',
           mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessProofFormat,
+          format: LivenessZkpProtocol.livenessProofFormat,
           lastModifiedTime: DateTime.utc(2026),
           data: AttachmentData(json: 'not-json'),
         ),
@@ -64,7 +64,7 @@ void main() {
         Attachment(
           id: 'r',
           mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessCheckRequestFormat,
+          format: LivenessZkpProtocol.livenessCheckRequestFormat,
           lastModifiedTime: DateTime.utc(2026),
           data: AttachmentData(
             json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
@@ -88,7 +88,7 @@ void main() {
       final wrongFormat = Attachment(
         id: '1',
         mediaType: 'application/json',
-        format: LivenessZkpConstants.livenessProofFormat,
+        format: LivenessZkpProtocol.livenessProofFormat,
         lastModifiedTime: DateTime.utc(2026),
         data: AttachmentData(
           json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
@@ -97,17 +97,17 @@ void main() {
       final emptyPayload = Attachment(
         id: '2',
         mediaType: 'application/json',
-        format: LivenessZkpConstants.livenessCheckRequestFormat,
+        format: LivenessZkpProtocol.livenessCheckRequestFormat,
         lastModifiedTime: DateTime.utc(2026),
         data: AttachmentData(json: '{}'),
       );
       final wrongType = Attachment(
         id: '3',
         mediaType: 'application/json',
-        format: LivenessZkpConstants.livenessCheckRequestFormat,
+        format: LivenessZkpProtocol.livenessCheckRequestFormat,
         lastModifiedTime: DateTime.utc(2026),
         data: AttachmentData(
-          json: jsonEncode({LivenessZkpConstants.typeJsonKey: 'other'}),
+          json: jsonEncode({LivenessZkpProtocol.typeJsonKey: 'other'}),
         ),
       );
 
@@ -127,7 +127,7 @@ void main() {
         Attachment(
           id: 'p',
           mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessProofFormat,
+          format: LivenessZkpProtocol.livenessProofFormat,
           lastModifiedTime: DateTime.utc(2026),
           data: AttachmentData(json: jsonEncode(payload.toJson())),
         ),
@@ -136,7 +136,7 @@ void main() {
         Attachment(
           id: 'p',
           mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessProofFormat,
+          format: LivenessZkpProtocol.livenessProofFormat,
           lastModifiedTime: DateTime.utc(2026),
           data: AttachmentData(json: '{}'),
         ),
@@ -155,14 +155,14 @@ void main() {
       );
       expect(
         () => LivenessCheckRequestPayload.fromJson({
-          LivenessZkpConstants.typeJsonKey: 'other',
+          LivenessZkpProtocol.typeJsonKey: 'other',
         }),
         throwsA(isA<FormatException>()),
       );
 
       final payload = LivenessCheckRequestPayload.fromJson({
-        LivenessZkpConstants.typeJsonKey:
-            LivenessZkpConstants.livenessRequestPayloadType,
+        LivenessZkpProtocol.typeJsonKey:
+            LivenessZkpProtocol.livenessRequestPayloadType,
       });
       expect(payload, isA<LivenessCheckRequestPayload>());
     });
@@ -172,9 +172,9 @@ void main() {
     test('rejects wrong type discriminator when present', () {
       expect(
         () => LivenessProofPayload.fromJson({
-          LivenessZkpConstants.typeJsonKey: 'other',
-          LivenessZkpConstants.proofJsonKey: 'a',
-          LivenessZkpConstants.publicSignalsJsonKey: 'b',
+          LivenessZkpProtocol.typeJsonKey: 'other',
+          LivenessZkpProtocol.proofJsonKey: 'a',
+          LivenessZkpProtocol.publicSignalsJsonKey: 'b',
         }),
         throwsA(isA<FormatException>()),
       );
@@ -182,8 +182,8 @@ void main() {
 
     test('accepts missing type key for backward compatibility', () {
       final p = LivenessProofPayload.fromJson({
-        LivenessZkpConstants.proofJsonKey: 'a',
-        LivenessZkpConstants.publicSignalsJsonKey: 'b',
+        LivenessZkpProtocol.proofJsonKey: 'a',
+        LivenessZkpProtocol.publicSignalsJsonKey: 'b',
       });
       expect(p.proof, 'a');
       expect(p.publicSignals, 'b');

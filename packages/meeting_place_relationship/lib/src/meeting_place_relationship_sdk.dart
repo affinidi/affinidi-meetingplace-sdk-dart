@@ -5,8 +5,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
 import 'rcard/builder/r_card_builder.dart';
-import 'rcard/model/r_card_subject.dart';
 import 'rcard/model/r_card.dart';
+import 'rcard/model/r_card_subject.dart';
 import 'rcard/parser/r_card_parser.dart';
 import 'rcard/r_card_channel_stream_manager.dart';
 import 'rcard/r_card_vdip_stream_manager.dart';
@@ -77,14 +77,16 @@ class MeetingPlaceRelationshipSDK {
       onError: _receivedRCardsController.addError,
     );
     // Secondary path: processor registered on VdipClient so R-Cards are
-    // also persisted before the mediator message is deleted — guarantees
+    // persisted before the mediator message is deleted — guarantees
     // persistence even if this SDK was constructed after the message
-    // arrived (lazy Riverpod initialisation). upsert is idempotent, so
-    // double-emission from both paths is harmless.
+    // arrived (lazy Riverpod initialisation). Upserts directly to the
+    // repository rather than re-emitting on the stream to avoid the
+    // duplicate-event that would otherwise result from the primary
+    // _vdipSubscription path also forwarding the same message.
     coreSDK.vdip.registerMessageProcessor((message) async {
       final rCard = await _vdipManager.processMessage(message);
-      if (rCard != null && !_receivedRCardsController.isClosed) {
-        _receivedRCardsController.add(rCard);
+      if (rCard != null) {
+        await _rCardRepository.upsert(rCard);
       }
     });
     _persistenceSubscription = _receivedRCardsController.stream.listen(

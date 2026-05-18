@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
 import 'package:test/test.dart';
 
@@ -18,17 +17,15 @@ void main() {
       expect(att.format, LivenessZkpConstants.livenessCheckRequestFormat);
       expect(att.mediaType, 'application/json');
 
-      final map =
-          jsonDecode(att.data!.json!) as Map<String, dynamic>;
-      expect(map[LivenessZkpConstants.typeJsonKey],
-          LivenessZkpConstants.livenessRequestPayloadType);
+      final map = jsonDecode(att.data!.json!) as Map<String, dynamic>;
+      expect(
+        map[LivenessZkpConstants.typeJsonKey],
+        LivenessZkpConstants.livenessRequestPayloadType,
+      );
     });
 
     test('buildLivenessProof encodes proof payload', () {
-      const payload = LivenessProofPayload(
-        proof: 'p1',
-        publicSignals: 's1',
-      );
+      const payload = LivenessProofPayload(proof: 'p1', publicSignals: 's1');
 
       final list = LivenessZkpAttachmentBuilder.buildLivenessProof(
         payload: payload,
@@ -40,8 +37,7 @@ void main() {
       final att = list.single;
       expect(att.format, LivenessZkpConstants.livenessProofFormat);
 
-      final map =
-          jsonDecode(att.data!.json!) as Map<String, dynamic>;
+      final map = jsonDecode(att.data!.json!) as Map<String, dynamic>;
       expect(map, payload.toJson());
     });
   });

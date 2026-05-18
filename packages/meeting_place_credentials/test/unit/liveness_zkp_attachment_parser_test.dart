@@ -6,29 +6,33 @@ import 'package:test/test.dart';
 
 void main() {
   group('LivenessZkpAttachmentParser', () {
-    test('tryParseLivenessProofPayload returns payload for valid attachment', () {
-      const payload = LivenessProofPayload(
-        proof: 'abc',
-        publicSignals: 'def',
-      );
+    test(
+      'tryParseLivenessProofPayload returns payload for valid attachment',
+      () {
+        const payload = LivenessProofPayload(
+          proof: 'abc',
+          publicSignals: 'def',
+        );
 
-      final attachments = [
-        Attachment(
-          id: '1',
-          mediaType: 'application/json',
-          format: LivenessZkpConstants.livenessProofFormat,
-          lastModifiedTime: DateTime.utc(2026),
-          data: AttachmentData(json: jsonEncode(payload.toJson())),
-        ),
-      ];
+        final attachments = [
+          Attachment(
+            id: '1',
+            mediaType: 'application/json',
+            format: LivenessZkpConstants.livenessProofFormat,
+            lastModifiedTime: DateTime.utc(2026),
+            data: AttachmentData(json: jsonEncode(payload.toJson())),
+          ),
+        ];
 
-      final parsed =
-          LivenessZkpAttachmentParser.tryParseLivenessProofPayload(attachments);
+        final parsed = LivenessZkpAttachmentParser.tryParseLivenessProofPayload(
+          attachments,
+        );
 
-      expect(parsed, isNotNull);
-      expect(parsed!.proof, 'abc');
-      expect(parsed.publicSignals, 'def');
-    });
+        expect(parsed, isNotNull);
+        expect(parsed!.proof, 'abc');
+        expect(parsed.publicSignals, 'def');
+      },
+    );
 
     test('tryParseLivenessProofPayload skips wrong format', () {
       final attachments = [

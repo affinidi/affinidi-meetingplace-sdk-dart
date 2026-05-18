@@ -121,7 +121,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
             );
           }
 
-          if (from < 3) {
+          if (from < 3 && to >= 3) {
             await migrator.addColumn(
               connectionOffers,
               connectionOffers.score,

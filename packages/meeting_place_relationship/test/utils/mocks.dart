@@ -37,8 +37,8 @@ MockMeetingPlaceCoreSDK mockCoreSDKWithStreams(
 MockVrcRepository stubbedMockVrcRepository() {
   final mock = MockVrcRepository();
   when(() => mock.upsert(any())).thenAnswer((_) async {});
-  when(mock.watchAll).thenReturn(const Stream.empty());
-  when(mock.listAll).thenReturn(Future.value(const []));
+  when(mock.watchAll).thenAnswer((_) => const Stream.empty());
+  when(mock.listAll).thenAnswer((_) async => const []);
   when(() => mock.getById(any())).thenAnswer((_) async => null);
   when(() => mock.listByHolderDid(any())).thenAnswer((_) async => const []);
   when(() => mock.countByHolderDid(any())).thenAnswer((_) async => 0);

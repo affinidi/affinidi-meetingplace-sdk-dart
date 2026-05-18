@@ -10,7 +10,7 @@ class ControlPlaneApiClientOptions {
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
-    this.idleTimeout = const Duration(seconds: 90),
+    this.idleTimeout = const Duration(seconds: 3),
   });
 
   /// Specifies the DID of the control plane that the SDK should communicate
@@ -41,8 +41,8 @@ class ControlPlaneApiClientOptions {
   /// The maximum duration an idle HTTP keep-alive connection is kept open
   /// before being closed and removed from the connection pool.
   ///
-  /// Increasing this value reduces connection churn and improves latency on
-  /// repeated requests, which is especially beneficial on mobile clients.
+  /// Defaults to 3 seconds to match Dio's native adapter behavior.
+  /// Override it when a deployment benefits from longer keep-alive reuse.
   final Duration idleTimeout;
 
   Map<String, dynamic> toJson() {

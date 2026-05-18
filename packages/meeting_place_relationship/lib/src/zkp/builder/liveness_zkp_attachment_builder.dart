@@ -4,7 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../model/liveness_check_request_payload.dart';
 import '../model/liveness_proof_payload.dart';
-import '../model/liveness_zkp_constants.dart';
+import '../model/liveness_zkp_protocol.dart';
 
 /// Builds DIDComm [Attachment] lists for liveness ZKP request/proof messages.
 abstract final class LivenessZkpAttachmentBuilder {
@@ -16,7 +16,7 @@ abstract final class LivenessZkpAttachmentBuilder {
     DateTime? lastModified,
   }) => [
     _jsonAttachment(
-      format: LivenessZkpConstants.livenessCheckRequestFormat,
+      format: LivenessZkpProtocol.livenessCheckRequestFormat,
       json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
       attachmentId: attachmentId,
       lastModified: lastModified,
@@ -30,7 +30,7 @@ abstract final class LivenessZkpAttachmentBuilder {
     DateTime? lastModified,
   }) => [
     _jsonAttachment(
-      format: LivenessZkpConstants.livenessProofFormat,
+      format: LivenessZkpProtocol.livenessProofFormat,
       json: jsonEncode(payload.toJson()),
       attachmentId: attachmentId,
       lastModified: lastModified,

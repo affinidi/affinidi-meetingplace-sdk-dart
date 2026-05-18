@@ -14,13 +14,13 @@ void main() {
       expect(list, hasLength(1));
       final att = list.single;
       expect(att.id, 'req-1');
-      expect(att.format, LivenessZkpConstants.livenessCheckRequestFormat);
+      expect(att.format, LivenessZkpProtocol.livenessCheckRequestFormat);
       expect(att.mediaType, 'application/json');
 
       final map = jsonDecode(att.data!.json!) as Map<String, dynamic>;
       expect(
-        map[LivenessZkpConstants.typeJsonKey],
-        LivenessZkpConstants.livenessRequestPayloadType,
+        map[LivenessZkpProtocol.typeJsonKey],
+        LivenessZkpProtocol.livenessRequestPayloadType,
       );
       expect(LivenessZkpAttachmentParser.tryParseRequest(att), isNotNull);
     });
@@ -36,7 +36,7 @@ void main() {
 
       expect(list, hasLength(1));
       final att = list.single;
-      expect(att.format, LivenessZkpConstants.livenessProofFormat);
+      expect(att.format, LivenessZkpProtocol.livenessProofFormat);
 
       final map = jsonDecode(att.data!.json!) as Map<String, dynamic>;
       expect(map, payload.toJson());

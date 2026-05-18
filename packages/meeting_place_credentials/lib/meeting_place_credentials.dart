@@ -25,5 +25,5 @@ export 'src/vrc/repository/vrc_repository.dart';
 export 'src/zkp/builder/liveness_zkp_attachment_builder.dart';
 export 'src/zkp/model/liveness_check_request_payload.dart';
 export 'src/zkp/model/liveness_proof_payload.dart';
-export 'src/zkp/model/liveness_zkp_constants.dart';
+export 'src/zkp/model/liveness_zkp_protocol.dart';
 export 'src/zkp/parser/liveness_zkp_attachment_parser.dart';

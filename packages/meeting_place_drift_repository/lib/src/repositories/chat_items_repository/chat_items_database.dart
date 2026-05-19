@@ -23,7 +23,6 @@ part 'chat_items_database.g.dart';
 /// Foreign key constraints are enabled via
 /// `PRAGMA foreign_keys = ON` to ensure cascade deletes.
 @DriftDatabase(tables: [ChatItems, Reactions, Attachments, AttachmentsLinks])
-
 /// Opens or creates the database.
 ///
 /// **Parameters:**
@@ -51,15 +50,15 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
     bool inMemory = false,
     bool lazy = true,
   }) : super(
-          openConnection(
-            databaseName: databaseName,
-            passphrase: passphrase,
-            directory: directory,
-            logStatements: logStatements,
-            inMemory: inMemory,
-            lazy: lazy,
-          ),
-        );
+         openConnection(
+           databaseName: databaseName,
+           passphrase: passphrase,
+           directory: directory,
+           logStatements: logStatements,
+           inMemory: inMemory,
+           lazy: lazy,
+         ),
+       );
 
   /// Opens a [ChatItemsDatabase] from an existing [connection].
   ///
@@ -73,19 +72,17 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            // SQLite does not support changing column types in-place.
-            // Recreate chat_items with event_type and concierge_type as TEXT,
-            // converting the old integer values to their string equivalents.
-            //
-            // Drop any leftover chat_items_temp first so the migration is
-            // idempotent: if a previous upgrade attempt was interrupted and
-            // left a partial table behind, we start clean on retry.
-            await customStatement(
-              'DROP TABLE IF EXISTS chat_items_temp',
-            );
-            await customStatement('''
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        // SQLite does not support changing column types in-place.
+        // Recreate chat_items with event_type and concierge_type as TEXT,
+        // converting the old integer values to their string equivalents.
+        //
+        // Drop any leftover chat_items_temp first so the migration is
+        // idempotent: if a previous upgrade attempt was interrupted and
+        // left a partial table behind, we start clean on retry.
+        await customStatement('DROP TABLE IF EXISTS chat_items_temp');
+        await customStatement('''
               CREATE TABLE chat_items_temp (
                 chat_id TEXT NOT NULL,
                 message_id TEXT NOT NULL,
@@ -102,12 +99,12 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
                 PRIMARY KEY (message_id)
               )
             ''');
-            // Explicit destination column list keeps the INSERT correct
-            // regardless of column order changes in future schema versions.
-            // Unknown legacy integer values are preserved as 'unknown:<n>'
-            // rather than NULL so that corrupted rows remain diagnosable and
-            // do not cause null-assert failures in the mapper.
-            await customStatement('''
+        // Explicit destination column list keeps the INSERT correct
+        // regardless of column order changes in future schema versions.
+        // Unknown legacy integer values are preserved as 'unknown:<n>'
+        // rather than NULL so that corrupted rows remain diagnosable and
+        // do not cause null-assert failures in the mapper.
+        await customStatement('''
               INSERT INTO chat_items_temp (
                 chat_id, message_id, value, is_from_me, date_created,
                 status, "type", event_type, concierge_type, data, sender_did
@@ -132,16 +129,16 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
                 data, sender_did
               FROM chat_items
             ''');
-            await customStatement('DROP TABLE chat_items');
-            await customStatement(
-              'ALTER TABLE chat_items_temp RENAME TO chat_items',
-            );
-          }
-        },
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+        await customStatement('DROP TABLE chat_items');
+        await customStatement(
+          'ALTER TABLE chat_items_temp RENAME TO chat_items',
+        );
+      }
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 }
 
 /// Stores core metadata for messages and concierge items.
@@ -193,8 +190,8 @@ class ChatItems extends Table {
 class Reactions extends Table {
   /// The message ID this reaction is associated with.
   TextColumn get messageId => text().customConstraint(
-        'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL',
-      )();
+    'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL',
+  )();
 
   /// The reaction value (e.g., emoji).
   TextColumn get value => text()();
@@ -205,8 +202,8 @@ class Reactions extends Table {
 class Attachments extends Table {
   /// The message ID this attachment is associated with.
   TextColumn get messageId => text().customConstraint(
-        'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL',
-      )();
+    'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL',
+  )();
 
   /// Auto-incrementing unique identifier for the attachment.
   IntColumn get attachmentId => integer().autoIncrement()();
@@ -250,8 +247,8 @@ class Attachments extends Table {
 class AttachmentsLinks extends Table {
   /// The attachment ID this link is associated with.
   IntColumn get attachmentId => integer().customConstraint(
-        'REFERENCES attachments(attachment_id) ON DELETE CASCADE NOT NULL',
-      )();
+    'REFERENCES attachments(attachment_id) ON DELETE CASCADE NOT NULL',
+  )();
 
   /// The URL of the attachment link.
   TextColumn get url => text().map(const _UriConverter())();

@@ -12,60 +12,106 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _didMeta = const VerificationMeta('did');
   @override
   late final GeneratedColumn<String> did = GeneratedColumn<String>(
-      'did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _offerLinkMeta =
-      const VerificationMeta('offerLink');
+    'did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _offerLinkMeta = const VerificationMeta(
+    'offerLink',
+  );
   @override
   late final GeneratedColumn<String> offerLink = GeneratedColumn<String>(
-      'offer_link', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'offer_link',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<GroupStatus, int> status =
-      GeneratedColumn<int>('status', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<GroupStatus>(
-              $MeetingPlaceGroupsTable.$converterstatus);
-  static const VerificationMeta _createdMeta =
-      const VerificationMeta('created');
+      GeneratedColumn<int>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<GroupStatus>($MeetingPlaceGroupsTable.$converterstatus);
+  static const VerificationMeta _createdMeta = const VerificationMeta(
+    'created',
+  );
   @override
   late final GeneratedColumn<DateTime> created = GeneratedColumn<DateTime>(
-      'created', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _groupKeyPairMeta =
-      const VerificationMeta('groupKeyPair');
+    'created',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupKeyPairMeta = const VerificationMeta(
+    'groupKeyPair',
+  );
   @override
   late final GeneratedColumn<String> groupKeyPair = GeneratedColumn<String>(
-      'group_key_pair', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _publicKeyMeta =
-      const VerificationMeta('publicKey');
+    'group_key_pair',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _publicKeyMeta = const VerificationMeta(
+    'publicKey',
+  );
   @override
   late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
-      'public_key', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _ownerDidMeta =
-      const VerificationMeta('ownerDid');
+    'public_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ownerDidMeta = const VerificationMeta(
+    'ownerDid',
+  );
   @override
   late final GeneratedColumn<String> ownerDid = GeneratedColumn<String>(
-      'owner_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'owner_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, did, offerLink, status, created, groupKeyPair, publicKey, ownerDid];
+  List<GeneratedColumn> get $columns => [
+    id,
+    did,
+    offerLink,
+    status,
+    created,
+    groupKeyPair,
+    publicKey,
+    ownerDid,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'meeting_place_groups';
   @override
-  VerificationContext validateIntegrity(Insertable<MeetingPlaceGroup> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<MeetingPlaceGroup> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -75,35 +121,48 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
     }
     if (data.containsKey('did')) {
       context.handle(
-          _didMeta, did.isAcceptableOrUnknown(data['did']!, _didMeta));
+        _didMeta,
+        did.isAcceptableOrUnknown(data['did']!, _didMeta),
+      );
     } else if (isInserting) {
       context.missing(_didMeta);
     }
     if (data.containsKey('offer_link')) {
-      context.handle(_offerLinkMeta,
-          offerLink.isAcceptableOrUnknown(data['offer_link']!, _offerLinkMeta));
+      context.handle(
+        _offerLinkMeta,
+        offerLink.isAcceptableOrUnknown(data['offer_link']!, _offerLinkMeta),
+      );
     } else if (isInserting) {
       context.missing(_offerLinkMeta);
     }
     if (data.containsKey('created')) {
-      context.handle(_createdMeta,
-          created.isAcceptableOrUnknown(data['created']!, _createdMeta));
+      context.handle(
+        _createdMeta,
+        created.isAcceptableOrUnknown(data['created']!, _createdMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdMeta);
     }
     if (data.containsKey('group_key_pair')) {
       context.handle(
+        _groupKeyPairMeta,
+        groupKeyPair.isAcceptableOrUnknown(
+          data['group_key_pair']!,
           _groupKeyPairMeta,
-          groupKeyPair.isAcceptableOrUnknown(
-              data['group_key_pair']!, _groupKeyPairMeta));
+        ),
+      );
     }
     if (data.containsKey('public_key')) {
-      context.handle(_publicKeyMeta,
-          publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta));
+      context.handle(
+        _publicKeyMeta,
+        publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta),
+      );
     }
     if (data.containsKey('owner_did')) {
-      context.handle(_ownerDidMeta,
-          ownerDid.isAcceptableOrUnknown(data['owner_did']!, _ownerDidMeta));
+      context.handle(
+        _ownerDidMeta,
+        ownerDid.isAcceptableOrUnknown(data['owner_did']!, _ownerDidMeta),
+      );
     }
     return context;
   }
@@ -114,23 +173,40 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
   MeetingPlaceGroup map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return MeetingPlaceGroup(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      did: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
-      offerLink: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}offer_link'])!,
-      status: $MeetingPlaceGroupsTable.$converterstatus.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
-      created: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created'])!,
-      groupKeyPair: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}group_key_pair']),
-      publicKey: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}public_key']),
-      ownerDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}owner_did']),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      did: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}did'],
+      )!,
+      offerLink: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}offer_link'],
+      )!,
+      status: $MeetingPlaceGroupsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      created: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created'],
+      )!,
+      groupKeyPair: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_key_pair'],
+      ),
+      publicKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}public_key'],
+      ),
+      ownerDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_did'],
+      ),
     );
   }
 
@@ -168,15 +244,16 @@ class MeetingPlaceGroup extends DataClass
 
   /// The DID of the owner of the group.
   final String? ownerDid;
-  const MeetingPlaceGroup(
-      {required this.id,
-      required this.did,
-      required this.offerLink,
-      required this.status,
-      required this.created,
-      this.groupKeyPair,
-      this.publicKey,
-      this.ownerDid});
+  const MeetingPlaceGroup({
+    required this.id,
+    required this.did,
+    required this.offerLink,
+    required this.status,
+    required this.created,
+    this.groupKeyPair,
+    this.publicKey,
+    this.ownerDid,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -185,7 +262,8 @@ class MeetingPlaceGroup extends DataClass
     map['offer_link'] = Variable<String>(offerLink);
     {
       map['status'] = Variable<int>(
-          $MeetingPlaceGroupsTable.$converterstatus.toSql(status));
+        $MeetingPlaceGroupsTable.$converterstatus.toSql(status),
+      );
     }
     map['created'] = Variable<DateTime>(created);
     if (!nullToAbsent || groupKeyPair != null) {
@@ -219,8 +297,10 @@ class MeetingPlaceGroup extends DataClass
     );
   }
 
-  factory MeetingPlaceGroup.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory MeetingPlaceGroup.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MeetingPlaceGroup(
       id: serializer.fromJson<String>(json['id']),
@@ -248,26 +328,25 @@ class MeetingPlaceGroup extends DataClass
     };
   }
 
-  MeetingPlaceGroup copyWith(
-          {String? id,
-          String? did,
-          String? offerLink,
-          GroupStatus? status,
-          DateTime? created,
-          Value<String?> groupKeyPair = const Value.absent(),
-          Value<String?> publicKey = const Value.absent(),
-          Value<String?> ownerDid = const Value.absent()}) =>
-      MeetingPlaceGroup(
-        id: id ?? this.id,
-        did: did ?? this.did,
-        offerLink: offerLink ?? this.offerLink,
-        status: status ?? this.status,
-        created: created ?? this.created,
-        groupKeyPair:
-            groupKeyPair.present ? groupKeyPair.value : this.groupKeyPair,
-        publicKey: publicKey.present ? publicKey.value : this.publicKey,
-        ownerDid: ownerDid.present ? ownerDid.value : this.ownerDid,
-      );
+  MeetingPlaceGroup copyWith({
+    String? id,
+    String? did,
+    String? offerLink,
+    GroupStatus? status,
+    DateTime? created,
+    Value<String?> groupKeyPair = const Value.absent(),
+    Value<String?> publicKey = const Value.absent(),
+    Value<String?> ownerDid = const Value.absent(),
+  }) => MeetingPlaceGroup(
+    id: id ?? this.id,
+    did: did ?? this.did,
+    offerLink: offerLink ?? this.offerLink,
+    status: status ?? this.status,
+    created: created ?? this.created,
+    groupKeyPair: groupKeyPair.present ? groupKeyPair.value : this.groupKeyPair,
+    publicKey: publicKey.present ? publicKey.value : this.publicKey,
+    ownerDid: ownerDid.present ? ownerDid.value : this.ownerDid,
+  );
   MeetingPlaceGroup copyWithCompanion(MeetingPlaceGroupsCompanion data) {
     return MeetingPlaceGroup(
       id: data.id.present ? data.id.value : this.id,
@@ -300,7 +379,15 @@ class MeetingPlaceGroup extends DataClass
 
   @override
   int get hashCode => Object.hash(
-      id, did, offerLink, status, created, groupKeyPair, publicKey, ownerDid);
+    id,
+    did,
+    offerLink,
+    status,
+    created,
+    groupKeyPair,
+    publicKey,
+    ownerDid,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -346,11 +433,11 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     this.publicKey = const Value.absent(),
     this.ownerDid = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        did = Value(did),
-        offerLink = Value(offerLink),
-        status = Value(status),
-        created = Value(created);
+  }) : id = Value(id),
+       did = Value(did),
+       offerLink = Value(offerLink),
+       status = Value(status),
+       created = Value(created);
   static Insertable<MeetingPlaceGroup> custom({
     Expression<String>? id,
     Expression<String>? did,
@@ -375,16 +462,17 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     });
   }
 
-  MeetingPlaceGroupsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? did,
-      Value<String>? offerLink,
-      Value<GroupStatus>? status,
-      Value<DateTime>? created,
-      Value<String?>? groupKeyPair,
-      Value<String?>? publicKey,
-      Value<String?>? ownerDid,
-      Value<int>? rowid}) {
+  MeetingPlaceGroupsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? did,
+    Value<String>? offerLink,
+    Value<GroupStatus>? status,
+    Value<DateTime>? created,
+    Value<String?>? groupKeyPair,
+    Value<String?>? publicKey,
+    Value<String?>? ownerDid,
+    Value<int>? rowid,
+  }) {
     return MeetingPlaceGroupsCompanion(
       id: id ?? this.id,
       did: did ?? this.did,
@@ -412,7 +500,8 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     }
     if (status.present) {
       map['status'] = Variable<int>(
-          $MeetingPlaceGroupsTable.$converterstatus.toSql(status.value));
+        $MeetingPlaceGroupsTable.$converterstatus.toSql(status.value),
+      );
     }
     if (created.present) {
       map['created'] = Variable<DateTime>(created.value);
@@ -455,204 +544,304 @@ class $GroupMembersTable extends GroupMembers
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $GroupMembersTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _groupIdMeta =
-      const VerificationMeta('groupId');
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
   @override
   late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
-      'group_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints:
-          'REFERENCES meeting_place_groups(id) ON DELETE CASCADE NOT NULL');
-  static const VerificationMeta _memberDidMeta =
-      const VerificationMeta('memberDid');
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'REFERENCES meeting_place_groups(id) ON DELETE CASCADE NOT NULL',
+  );
+  static const VerificationMeta _memberDidMeta = const VerificationMeta(
+    'memberDid',
+  );
   @override
   late final GeneratedColumn<String> memberDid = GeneratedColumn<String>(
-      'member_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _groupOwnerDidMeta =
-      const VerificationMeta('groupOwnerDid');
+    'member_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupOwnerDidMeta = const VerificationMeta(
+    'groupOwnerDid',
+  );
   @override
   late final GeneratedColumn<String> groupOwnerDid = GeneratedColumn<String>(
-      'group_owner_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _groupDidMeta =
-      const VerificationMeta('groupDid');
+    'group_owner_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _groupDidMeta = const VerificationMeta(
+    'groupDid',
+  );
   @override
   late final GeneratedColumn<String> groupDid = GeneratedColumn<String>(
-      'group_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _metadataMeta =
-      const VerificationMeta('metadata');
+    'group_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _metadataMeta = const VerificationMeta(
+    'metadata',
+  );
   @override
   late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
-      'metadata', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _acceptOfferAsDidMeta =
-      const VerificationMeta('acceptOfferAsDid');
+    'metadata',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _acceptOfferAsDidMeta = const VerificationMeta(
+    'acceptOfferAsDid',
+  );
   @override
   late final GeneratedColumn<String> acceptOfferAsDid = GeneratedColumn<String>(
-      'accept_offer_as_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _dateAddedMeta =
-      const VerificationMeta('dateAdded');
+    'accept_offer_as_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dateAddedMeta = const VerificationMeta(
+    'dateAdded',
+  );
   @override
   late final GeneratedColumn<DateTime> dateAdded = GeneratedColumn<DateTime>(
-      'date_added', aliasedName, false,
-      type: DriftSqlType.dateTime,
-      requiredDuringInsert: false,
-      clientDefault: clock.now);
-  static const VerificationMeta _publicKeyMeta =
-      const VerificationMeta('publicKey');
+    'date_added',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: clock.now,
+  );
+  static const VerificationMeta _publicKeyMeta = const VerificationMeta(
+    'publicKey',
+  );
   @override
   late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
-      'public_key', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'public_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<GroupMembershipType, int>
-      membershipType = GeneratedColumn<int>(
-              'membership_type', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<GroupMembershipType>(
-              $GroupMembersTable.$convertermembershipType);
-  static const VerificationMeta _peerProfileHashMeta =
-      const VerificationMeta('peerProfileHash');
+  membershipType =
+      GeneratedColumn<int>(
+        'membership_type',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<GroupMembershipType>(
+        $GroupMembersTable.$convertermembershipType,
+      );
+  static const VerificationMeta _peerProfileHashMeta = const VerificationMeta(
+    'peerProfileHash',
+  );
   @override
   late final GeneratedColumn<String> peerProfileHash = GeneratedColumn<String>(
-      'peer_profile_hash', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'peer_profile_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<GroupMemberStatus, int> status =
-      GeneratedColumn<int>('status', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<GroupMemberStatus>(
-              $GroupMembersTable.$converterstatus);
-  static const VerificationMeta _identityDidMeta =
-      const VerificationMeta('identityDid');
+      GeneratedColumn<int>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<GroupMemberStatus>($GroupMembersTable.$converterstatus);
+  static const VerificationMeta _identityDidMeta = const VerificationMeta(
+    'identityDid',
+  );
   @override
   late final GeneratedColumn<String> identityDid = GeneratedColumn<String>(
-      'identity_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'identity_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
-      'type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _contactInfoJsonMeta =
-      const VerificationMeta('contactInfoJson');
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contactInfoJsonMeta = const VerificationMeta(
+    'contactInfoJson',
+  );
   @override
   late final GeneratedColumn<String> contactInfoJson = GeneratedColumn<String>(
-      'contact_info_json', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('{}'));
-  static const VerificationMeta _profilePicMeta =
-      const VerificationMeta('profilePic');
+    'contact_info_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _profilePicMeta = const VerificationMeta(
+    'profilePic',
+  );
   @override
   late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
-      'profile_pic', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'profile_pic',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        groupId,
-        memberDid,
-        groupOwnerDid,
-        groupDid,
-        metadata,
-        acceptOfferAsDid,
-        dateAdded,
-        publicKey,
-        membershipType,
-        peerProfileHash,
-        status,
-        identityDid,
-        type,
-        contactInfoJson,
-        profilePic
-      ];
+    groupId,
+    memberDid,
+    groupOwnerDid,
+    groupDid,
+    metadata,
+    acceptOfferAsDid,
+    dateAdded,
+    publicKey,
+    membershipType,
+    peerProfileHash,
+    status,
+    identityDid,
+    type,
+    contactInfoJson,
+    profilePic,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'group_members';
   @override
-  VerificationContext validateIntegrity(Insertable<GroupMember> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<GroupMember> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('group_id')) {
-      context.handle(_groupIdMeta,
-          groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta));
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_groupIdMeta);
     }
     if (data.containsKey('member_did')) {
-      context.handle(_memberDidMeta,
-          memberDid.isAcceptableOrUnknown(data['member_did']!, _memberDidMeta));
+      context.handle(
+        _memberDidMeta,
+        memberDid.isAcceptableOrUnknown(data['member_did']!, _memberDidMeta),
+      );
     } else if (isInserting) {
       context.missing(_memberDidMeta);
     }
     if (data.containsKey('group_owner_did')) {
       context.handle(
+        _groupOwnerDidMeta,
+        groupOwnerDid.isAcceptableOrUnknown(
+          data['group_owner_did']!,
           _groupOwnerDidMeta,
-          groupOwnerDid.isAcceptableOrUnknown(
-              data['group_owner_did']!, _groupOwnerDidMeta));
+        ),
+      );
     }
     if (data.containsKey('group_did')) {
-      context.handle(_groupDidMeta,
-          groupDid.isAcceptableOrUnknown(data['group_did']!, _groupDidMeta));
+      context.handle(
+        _groupDidMeta,
+        groupDid.isAcceptableOrUnknown(data['group_did']!, _groupDidMeta),
+      );
     }
     if (data.containsKey('metadata')) {
-      context.handle(_metadataMeta,
-          metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta));
+      context.handle(
+        _metadataMeta,
+        metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
+      );
     }
     if (data.containsKey('accept_offer_as_did')) {
       context.handle(
+        _acceptOfferAsDidMeta,
+        acceptOfferAsDid.isAcceptableOrUnknown(
+          data['accept_offer_as_did']!,
           _acceptOfferAsDidMeta,
-          acceptOfferAsDid.isAcceptableOrUnknown(
-              data['accept_offer_as_did']!, _acceptOfferAsDidMeta));
+        ),
+      );
     }
     if (data.containsKey('date_added')) {
-      context.handle(_dateAddedMeta,
-          dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta));
+      context.handle(
+        _dateAddedMeta,
+        dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
+      );
     }
     if (data.containsKey('public_key')) {
-      context.handle(_publicKeyMeta,
-          publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta));
+      context.handle(
+        _publicKeyMeta,
+        publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta),
+      );
     } else if (isInserting) {
       context.missing(_publicKeyMeta);
     }
     if (data.containsKey('peer_profile_hash')) {
       context.handle(
+        _peerProfileHashMeta,
+        peerProfileHash.isAcceptableOrUnknown(
+          data['peer_profile_hash']!,
           _peerProfileHashMeta,
-          peerProfileHash.isAcceptableOrUnknown(
-              data['peer_profile_hash']!, _peerProfileHashMeta));
+        ),
+      );
     }
     if (data.containsKey('identity_did')) {
       context.handle(
+        _identityDidMeta,
+        identityDid.isAcceptableOrUnknown(
+          data['identity_did']!,
           _identityDidMeta,
-          identityDid.isAcceptableOrUnknown(
-              data['identity_did']!, _identityDidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_identityDidMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
-          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
     if (data.containsKey('contact_info_json')) {
       context.handle(
+        _contactInfoJsonMeta,
+        contactInfoJson.isAcceptableOrUnknown(
+          data['contact_info_json']!,
           _contactInfoJsonMeta,
-          contactInfoJson.isAcceptableOrUnknown(
-              data['contact_info_json']!, _contactInfoJsonMeta));
+        ),
+      );
     }
     if (data.containsKey('profile_pic')) {
       context.handle(
-          _profilePicMeta,
-          profilePic.isAcceptableOrUnknown(
-              data['profile_pic']!, _profilePicMeta));
+        _profilePicMeta,
+        profilePic.isAcceptableOrUnknown(data['profile_pic']!, _profilePicMeta),
+      );
     }
     return context;
   }
@@ -663,38 +852,70 @@ class $GroupMembersTable extends GroupMembers
   GroupMember map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return GroupMember(
-      groupId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}group_id'])!,
-      memberDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}member_did'])!,
-      groupOwnerDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}group_owner_did']),
-      groupDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}group_did']),
-      metadata: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}metadata']),
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      memberDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}member_did'],
+      )!,
+      groupOwnerDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_owner_did'],
+      ),
+      groupDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_did'],
+      ),
+      metadata: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metadata'],
+      ),
       acceptOfferAsDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}accept_offer_as_did']),
-      dateAdded: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}date_added'])!,
-      publicKey: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}public_key'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}accept_offer_as_did'],
+      ),
+      dateAdded: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date_added'],
+      )!,
+      publicKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}public_key'],
+      )!,
       membershipType: $GroupMembersTable.$convertermembershipType.fromSql(
-          attachedDatabase.typeMapping.read(
-              DriftSqlType.int, data['${effectivePrefix}membership_type'])!),
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}membership_type'],
+        )!,
+      ),
       peerProfileHash: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}peer_profile_hash']),
-      status: $GroupMembersTable.$converterstatus.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
-      identityDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}identity_did'])!,
-      type: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}peer_profile_hash'],
+      ),
+      status: $GroupMembersTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      identityDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}identity_did'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
       contactInfoJson: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}contact_info_json'])!,
-      profilePic: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic']),
+        DriftSqlType.string,
+        data['${effectivePrefix}contact_info_json'],
+      )!,
+      profilePic: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_pic'],
+      ),
     );
   }
 
@@ -754,22 +975,23 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
 
   /// Profile picture of the contact.
   final String? profilePic;
-  const GroupMember(
-      {required this.groupId,
-      required this.memberDid,
-      this.groupOwnerDid,
-      this.groupDid,
-      this.metadata,
-      this.acceptOfferAsDid,
-      required this.dateAdded,
-      required this.publicKey,
-      required this.membershipType,
-      this.peerProfileHash,
-      required this.status,
-      required this.identityDid,
-      required this.type,
-      required this.contactInfoJson,
-      this.profilePic});
+  const GroupMember({
+    required this.groupId,
+    required this.memberDid,
+    this.groupOwnerDid,
+    this.groupDid,
+    this.metadata,
+    this.acceptOfferAsDid,
+    required this.dateAdded,
+    required this.publicKey,
+    required this.membershipType,
+    this.peerProfileHash,
+    required this.status,
+    required this.identityDid,
+    required this.type,
+    required this.contactInfoJson,
+    this.profilePic,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -791,14 +1013,16 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     map['public_key'] = Variable<String>(publicKey);
     {
       map['membership_type'] = Variable<int>(
-          $GroupMembersTable.$convertermembershipType.toSql(membershipType));
+        $GroupMembersTable.$convertermembershipType.toSql(membershipType),
+      );
     }
     if (!nullToAbsent || peerProfileHash != null) {
       map['peer_profile_hash'] = Variable<String>(peerProfileHash);
     }
     {
-      map['status'] =
-          Variable<int>($GroupMembersTable.$converterstatus.toSql(status));
+      map['status'] = Variable<int>(
+        $GroupMembersTable.$converterstatus.toSql(status),
+      );
     }
     map['identity_did'] = Variable<String>(identityDid);
     map['type'] = Variable<String>(type);
@@ -841,8 +1065,10 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     );
   }
 
-  factory GroupMember.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory GroupMember.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return GroupMember(
       groupId: serializer.fromJson<String>(json['groupId']),
@@ -853,8 +1079,9 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       acceptOfferAsDid: serializer.fromJson<String?>(json['acceptOfferAsDid']),
       dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
       publicKey: serializer.fromJson<String>(json['publicKey']),
-      membershipType:
-          serializer.fromJson<GroupMembershipType>(json['membershipType']),
+      membershipType: serializer.fromJson<GroupMembershipType>(
+        json['membershipType'],
+      ),
       peerProfileHash: serializer.fromJson<String?>(json['peerProfileHash']),
       status: serializer.fromJson<GroupMemberStatus>(json['status']),
       identityDid: serializer.fromJson<String>(json['identityDid']),
@@ -885,44 +1112,45 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     };
   }
 
-  GroupMember copyWith(
-          {String? groupId,
-          String? memberDid,
-          Value<String?> groupOwnerDid = const Value.absent(),
-          Value<String?> groupDid = const Value.absent(),
-          Value<String?> metadata = const Value.absent(),
-          Value<String?> acceptOfferAsDid = const Value.absent(),
-          DateTime? dateAdded,
-          String? publicKey,
-          GroupMembershipType? membershipType,
-          Value<String?> peerProfileHash = const Value.absent(),
-          GroupMemberStatus? status,
-          String? identityDid,
-          String? type,
-          String? contactInfoJson,
-          Value<String?> profilePic = const Value.absent()}) =>
-      GroupMember(
-        groupId: groupId ?? this.groupId,
-        memberDid: memberDid ?? this.memberDid,
-        groupOwnerDid:
-            groupOwnerDid.present ? groupOwnerDid.value : this.groupOwnerDid,
-        groupDid: groupDid.present ? groupDid.value : this.groupDid,
-        metadata: metadata.present ? metadata.value : this.metadata,
-        acceptOfferAsDid: acceptOfferAsDid.present
-            ? acceptOfferAsDid.value
-            : this.acceptOfferAsDid,
-        dateAdded: dateAdded ?? this.dateAdded,
-        publicKey: publicKey ?? this.publicKey,
-        membershipType: membershipType ?? this.membershipType,
-        peerProfileHash: peerProfileHash.present
-            ? peerProfileHash.value
-            : this.peerProfileHash,
-        status: status ?? this.status,
-        identityDid: identityDid ?? this.identityDid,
-        type: type ?? this.type,
-        contactInfoJson: contactInfoJson ?? this.contactInfoJson,
-        profilePic: profilePic.present ? profilePic.value : this.profilePic,
-      );
+  GroupMember copyWith({
+    String? groupId,
+    String? memberDid,
+    Value<String?> groupOwnerDid = const Value.absent(),
+    Value<String?> groupDid = const Value.absent(),
+    Value<String?> metadata = const Value.absent(),
+    Value<String?> acceptOfferAsDid = const Value.absent(),
+    DateTime? dateAdded,
+    String? publicKey,
+    GroupMembershipType? membershipType,
+    Value<String?> peerProfileHash = const Value.absent(),
+    GroupMemberStatus? status,
+    String? identityDid,
+    String? type,
+    String? contactInfoJson,
+    Value<String?> profilePic = const Value.absent(),
+  }) => GroupMember(
+    groupId: groupId ?? this.groupId,
+    memberDid: memberDid ?? this.memberDid,
+    groupOwnerDid: groupOwnerDid.present
+        ? groupOwnerDid.value
+        : this.groupOwnerDid,
+    groupDid: groupDid.present ? groupDid.value : this.groupDid,
+    metadata: metadata.present ? metadata.value : this.metadata,
+    acceptOfferAsDid: acceptOfferAsDid.present
+        ? acceptOfferAsDid.value
+        : this.acceptOfferAsDid,
+    dateAdded: dateAdded ?? this.dateAdded,
+    publicKey: publicKey ?? this.publicKey,
+    membershipType: membershipType ?? this.membershipType,
+    peerProfileHash: peerProfileHash.present
+        ? peerProfileHash.value
+        : this.peerProfileHash,
+    status: status ?? this.status,
+    identityDid: identityDid ?? this.identityDid,
+    type: type ?? this.type,
+    contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+    profilePic: profilePic.present ? profilePic.value : this.profilePic,
+  );
   GroupMember copyWithCompanion(GroupMembersCompanion data) {
     return GroupMember(
       groupId: data.groupId.present ? data.groupId.value : this.groupId,
@@ -944,14 +1172,16 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ? data.peerProfileHash.value
           : this.peerProfileHash,
       status: data.status.present ? data.status.value : this.status,
-      identityDid:
-          data.identityDid.present ? data.identityDid.value : this.identityDid,
+      identityDid: data.identityDid.present
+          ? data.identityDid.value
+          : this.identityDid,
       type: data.type.present ? data.type.value : this.type,
       contactInfoJson: data.contactInfoJson.present
           ? data.contactInfoJson.value
           : this.contactInfoJson,
-      profilePic:
-          data.profilePic.present ? data.profilePic.value : this.profilePic,
+      profilePic: data.profilePic.present
+          ? data.profilePic.value
+          : this.profilePic,
     );
   }
 
@@ -979,21 +1209,22 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
 
   @override
   int get hashCode => Object.hash(
-      groupId,
-      memberDid,
-      groupOwnerDid,
-      groupDid,
-      metadata,
-      acceptOfferAsDid,
-      dateAdded,
-      publicKey,
-      membershipType,
-      peerProfileHash,
-      status,
-      identityDid,
-      type,
-      contactInfoJson,
-      profilePic);
+    groupId,
+    memberDid,
+    groupOwnerDid,
+    groupDid,
+    metadata,
+    acceptOfferAsDid,
+    dateAdded,
+    publicKey,
+    membershipType,
+    peerProfileHash,
+    status,
+    identityDid,
+    type,
+    contactInfoJson,
+    profilePic,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1067,13 +1298,13 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.contactInfoJson = const Value.absent(),
     this.profilePic = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : groupId = Value(groupId),
-        memberDid = Value(memberDid),
-        publicKey = Value(publicKey),
-        membershipType = Value(membershipType),
-        status = Value(status),
-        identityDid = Value(identityDid),
-        type = Value(type);
+  }) : groupId = Value(groupId),
+       memberDid = Value(memberDid),
+       publicKey = Value(publicKey),
+       membershipType = Value(membershipType),
+       status = Value(status),
+       identityDid = Value(identityDid),
+       type = Value(type);
   static Insertable<GroupMember> custom({
     Expression<String>? groupId,
     Expression<String>? memberDid,
@@ -1112,23 +1343,24 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     });
   }
 
-  GroupMembersCompanion copyWith(
-      {Value<String>? groupId,
-      Value<String>? memberDid,
-      Value<String?>? groupOwnerDid,
-      Value<String?>? groupDid,
-      Value<String?>? metadata,
-      Value<String?>? acceptOfferAsDid,
-      Value<DateTime>? dateAdded,
-      Value<String>? publicKey,
-      Value<GroupMembershipType>? membershipType,
-      Value<String?>? peerProfileHash,
-      Value<GroupMemberStatus>? status,
-      Value<String>? identityDid,
-      Value<String>? type,
-      Value<String>? contactInfoJson,
-      Value<String?>? profilePic,
-      Value<int>? rowid}) {
+  GroupMembersCompanion copyWith({
+    Value<String>? groupId,
+    Value<String>? memberDid,
+    Value<String?>? groupOwnerDid,
+    Value<String?>? groupDid,
+    Value<String?>? metadata,
+    Value<String?>? acceptOfferAsDid,
+    Value<DateTime>? dateAdded,
+    Value<String>? publicKey,
+    Value<GroupMembershipType>? membershipType,
+    Value<String?>? peerProfileHash,
+    Value<GroupMemberStatus>? status,
+    Value<String>? identityDid,
+    Value<String>? type,
+    Value<String>? contactInfoJson,
+    Value<String?>? profilePic,
+    Value<int>? rowid,
+  }) {
     return GroupMembersCompanion(
       groupId: groupId ?? this.groupId,
       memberDid: memberDid ?? this.memberDid,
@@ -1177,16 +1409,17 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       map['public_key'] = Variable<String>(publicKey.value);
     }
     if (membershipType.present) {
-      map['membership_type'] = Variable<int>($GroupMembersTable
-          .$convertermembershipType
-          .toSql(membershipType.value));
+      map['membership_type'] = Variable<int>(
+        $GroupMembersTable.$convertermembershipType.toSql(membershipType.value),
+      );
     }
     if (peerProfileHash.present) {
       map['peer_profile_hash'] = Variable<String>(peerProfileHash.value);
     }
     if (status.present) {
       map['status'] = Variable<int>(
-          $GroupMembersTable.$converterstatus.toSql(status.value));
+        $GroupMembersTable.$converterstatus.toSql(status.value),
+      );
     }
     if (identityDid.present) {
       map['identity_did'] = Variable<String>(identityDid.value);
@@ -1240,68 +1473,82 @@ abstract class _$GroupsDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [meetingPlaceGroups, groupMembers];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    meetingPlaceGroups,
+    groupMembers,
+  ];
   @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
-        [
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('meeting_place_groups',
-                limitUpdateKind: UpdateKind.delete),
-            result: [
-              TableUpdate('group_members', kind: UpdateKind.delete),
-            ],
-          ),
-        ],
-      );
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'meeting_place_groups',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('group_members', kind: UpdateKind.delete)],
+    ),
+  ]);
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$MeetingPlaceGroupsTableCreateCompanionBuilder
-    = MeetingPlaceGroupsCompanion Function({
-  required String id,
-  required String did,
-  required String offerLink,
-  required GroupStatus status,
-  required DateTime created,
-  Value<String?> groupKeyPair,
-  Value<String?> publicKey,
-  Value<String?> ownerDid,
-  Value<int> rowid,
-});
-typedef $$MeetingPlaceGroupsTableUpdateCompanionBuilder
-    = MeetingPlaceGroupsCompanion Function({
-  Value<String> id,
-  Value<String> did,
-  Value<String> offerLink,
-  Value<GroupStatus> status,
-  Value<DateTime> created,
-  Value<String?> groupKeyPair,
-  Value<String?> publicKey,
-  Value<String?> ownerDid,
-  Value<int> rowid,
-});
+typedef $$MeetingPlaceGroupsTableCreateCompanionBuilder =
+    MeetingPlaceGroupsCompanion Function({
+      required String id,
+      required String did,
+      required String offerLink,
+      required GroupStatus status,
+      required DateTime created,
+      Value<String?> groupKeyPair,
+      Value<String?> publicKey,
+      Value<String?> ownerDid,
+      Value<int> rowid,
+    });
+typedef $$MeetingPlaceGroupsTableUpdateCompanionBuilder =
+    MeetingPlaceGroupsCompanion Function({
+      Value<String> id,
+      Value<String> did,
+      Value<String> offerLink,
+      Value<GroupStatus> status,
+      Value<DateTime> created,
+      Value<String?> groupKeyPair,
+      Value<String?> publicKey,
+      Value<String?> ownerDid,
+      Value<int> rowid,
+    });
 
-final class $$MeetingPlaceGroupsTableReferences extends BaseReferences<
-    _$GroupsDatabase, $MeetingPlaceGroupsTable, MeetingPlaceGroup> {
+final class $$MeetingPlaceGroupsTableReferences
+    extends
+        BaseReferences<
+          _$GroupsDatabase,
+          $MeetingPlaceGroupsTable,
+          MeetingPlaceGroup
+        > {
   $$MeetingPlaceGroupsTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
 
   static MultiTypedResultKey<$GroupMembersTable, List<GroupMember>>
-      _groupMembersRefsTable(_$GroupsDatabase db) =>
-          MultiTypedResultKey.fromTable(db.groupMembers,
-              aliasName: $_aliasNameGenerator(
-                  db.meetingPlaceGroups.id, db.groupMembers.groupId));
+  _groupMembersRefsTable(_$GroupsDatabase db) => MultiTypedResultKey.fromTable(
+    db.groupMembers,
+    aliasName: $_aliasNameGenerator(
+      db.meetingPlaceGroups.id,
+      db.groupMembers.groupId,
+    ),
+  );
 
   $$GroupMembersTableProcessedTableManager get groupMembersRefs {
-    final manager = $$GroupMembersTableTableManager($_db, $_db.groupMembers)
-        .filter((f) => f.groupId.id.sqlEquals($_itemColumn<String>('id')!));
+    final manager = $$GroupMembersTableTableManager(
+      $_db,
+      $_db.groupMembers,
+    ).filter((f) => f.groupId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_groupMembersRefsTable($_db));
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
+      manager.$state.copyWith(prefetchedData: cache),
+    );
   }
 }
 
@@ -1315,49 +1562,68 @@ class $$MeetingPlaceGroupsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get did => $composableBuilder(
-      column: $table.did, builder: (column) => ColumnFilters(column));
+    column: $table.did,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get offerLink => $composableBuilder(
-      column: $table.offerLink, builder: (column) => ColumnFilters(column));
+    column: $table.offerLink,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<GroupStatus, GroupStatus, int> get status =>
       $composableBuilder(
-          column: $table.status,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+        column: $table.status,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<DateTime> get created => $composableBuilder(
-      column: $table.created, builder: (column) => ColumnFilters(column));
+    column: $table.created,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get groupKeyPair => $composableBuilder(
-      column: $table.groupKeyPair, builder: (column) => ColumnFilters(column));
+    column: $table.groupKeyPair,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get publicKey => $composableBuilder(
-      column: $table.publicKey, builder: (column) => ColumnFilters(column));
+    column: $table.publicKey,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get ownerDid => $composableBuilder(
-      column: $table.ownerDid, builder: (column) => ColumnFilters(column));
+    column: $table.ownerDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   Expression<bool> groupMembersRefs(
-      Expression<bool> Function($$GroupMembersTableFilterComposer f) f) {
+    Expression<bool> Function($$GroupMembersTableFilterComposer f) f,
+  ) {
     final $$GroupMembersTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.groupMembers,
-        getReferencedColumn: (t) => t.groupId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$GroupMembersTableFilterComposer(
-              $db: $db,
-              $table: $db.groupMembers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.groupMembers,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GroupMembersTableFilterComposer(
+            $db: $db,
+            $table: $db.groupMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return f(composer);
   }
 }
@@ -1372,29 +1638,44 @@ class $$MeetingPlaceGroupsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get did => $composableBuilder(
-      column: $table.did, builder: (column) => ColumnOrderings(column));
+    column: $table.did,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get offerLink => $composableBuilder(
-      column: $table.offerLink, builder: (column) => ColumnOrderings(column));
+    column: $table.offerLink,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get status => $composableBuilder(
-      column: $table.status, builder: (column) => ColumnOrderings(column));
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get created => $composableBuilder(
-      column: $table.created, builder: (column) => ColumnOrderings(column));
+    column: $table.created,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get groupKeyPair => $composableBuilder(
-      column: $table.groupKeyPair,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.groupKeyPair,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get publicKey => $composableBuilder(
-      column: $table.publicKey, builder: (column) => ColumnOrderings(column));
+    column: $table.publicKey,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get ownerDid => $composableBuilder(
-      column: $table.ownerDid, builder: (column) => ColumnOrderings(column));
+    column: $table.ownerDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MeetingPlaceGroupsTableAnnotationComposer
@@ -1422,7 +1703,9 @@ class $$MeetingPlaceGroupsTableAnnotationComposer
       $composableBuilder(column: $table.created, builder: (column) => column);
 
   GeneratedColumn<String> get groupKeyPair => $composableBuilder(
-      column: $table.groupKeyPair, builder: (column) => column);
+    column: $table.groupKeyPair,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get publicKey =>
       $composableBuilder(column: $table.publicKey, builder: (column) => column);
@@ -1431,42 +1714,51 @@ class $$MeetingPlaceGroupsTableAnnotationComposer
       $composableBuilder(column: $table.ownerDid, builder: (column) => column);
 
   Expression<T> groupMembersRefs<T extends Object>(
-      Expression<T> Function($$GroupMembersTableAnnotationComposer a) f) {
+    Expression<T> Function($$GroupMembersTableAnnotationComposer a) f,
+  ) {
     final $$GroupMembersTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.groupMembers,
-        getReferencedColumn: (t) => t.groupId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$GroupMembersTableAnnotationComposer(
-              $db: $db,
-              $table: $db.groupMembers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.groupMembers,
+      getReferencedColumn: (t) => t.groupId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$GroupMembersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.groupMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return f(composer);
   }
 }
 
-class $$MeetingPlaceGroupsTableTableManager extends RootTableManager<
-    _$GroupsDatabase,
-    $MeetingPlaceGroupsTable,
-    MeetingPlaceGroup,
-    $$MeetingPlaceGroupsTableFilterComposer,
-    $$MeetingPlaceGroupsTableOrderingComposer,
-    $$MeetingPlaceGroupsTableAnnotationComposer,
-    $$MeetingPlaceGroupsTableCreateCompanionBuilder,
-    $$MeetingPlaceGroupsTableUpdateCompanionBuilder,
-    (MeetingPlaceGroup, $$MeetingPlaceGroupsTableReferences),
-    MeetingPlaceGroup,
-    PrefetchHooks Function({bool groupMembersRefs})> {
+class $$MeetingPlaceGroupsTableTableManager
+    extends
+        RootTableManager<
+          _$GroupsDatabase,
+          $MeetingPlaceGroupsTable,
+          MeetingPlaceGroup,
+          $$MeetingPlaceGroupsTableFilterComposer,
+          $$MeetingPlaceGroupsTableOrderingComposer,
+          $$MeetingPlaceGroupsTableAnnotationComposer,
+          $$MeetingPlaceGroupsTableCreateCompanionBuilder,
+          $$MeetingPlaceGroupsTableUpdateCompanionBuilder,
+          (MeetingPlaceGroup, $$MeetingPlaceGroupsTableReferences),
+          MeetingPlaceGroup,
+          PrefetchHooks Function({bool groupMembersRefs})
+        > {
   $$MeetingPlaceGroupsTableTableManager(
-      _$GroupsDatabase db, $MeetingPlaceGroupsTable table)
-      : super(TableManagerState(
+    _$GroupsDatabase db,
+    $MeetingPlaceGroupsTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1475,56 +1767,60 @@ class $$MeetingPlaceGroupsTableTableManager extends RootTableManager<
               $$MeetingPlaceGroupsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$MeetingPlaceGroupsTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> did = const Value.absent(),
-            Value<String> offerLink = const Value.absent(),
-            Value<GroupStatus> status = const Value.absent(),
-            Value<DateTime> created = const Value.absent(),
-            Value<String?> groupKeyPair = const Value.absent(),
-            Value<String?> publicKey = const Value.absent(),
-            Value<String?> ownerDid = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              MeetingPlaceGroupsCompanion(
-            id: id,
-            did: did,
-            offerLink: offerLink,
-            status: status,
-            created: created,
-            groupKeyPair: groupKeyPair,
-            publicKey: publicKey,
-            ownerDid: ownerDid,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String did,
-            required String offerLink,
-            required GroupStatus status,
-            required DateTime created,
-            Value<String?> groupKeyPair = const Value.absent(),
-            Value<String?> publicKey = const Value.absent(),
-            Value<String?> ownerDid = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              MeetingPlaceGroupsCompanion.insert(
-            id: id,
-            did: did,
-            offerLink: offerLink,
-            status: status,
-            created: created,
-            groupKeyPair: groupKeyPair,
-            publicKey: publicKey,
-            ownerDid: ownerDid,
-            rowid: rowid,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> did = const Value.absent(),
+                Value<String> offerLink = const Value.absent(),
+                Value<GroupStatus> status = const Value.absent(),
+                Value<DateTime> created = const Value.absent(),
+                Value<String?> groupKeyPair = const Value.absent(),
+                Value<String?> publicKey = const Value.absent(),
+                Value<String?> ownerDid = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MeetingPlaceGroupsCompanion(
+                id: id,
+                did: did,
+                offerLink: offerLink,
+                status: status,
+                created: created,
+                groupKeyPair: groupKeyPair,
+                publicKey: publicKey,
+                ownerDid: ownerDid,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String did,
+                required String offerLink,
+                required GroupStatus status,
+                required DateTime created,
+                Value<String?> groupKeyPair = const Value.absent(),
+                Value<String?> publicKey = const Value.absent(),
+                Value<String?> ownerDid = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MeetingPlaceGroupsCompanion.insert(
+                id: id,
+                did: did,
+                offerLink: offerLink,
+                status: status,
+                created: created,
+                groupKeyPair: groupKeyPair,
+                publicKey: publicKey,
+                ownerDid: ownerDid,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$MeetingPlaceGroupsTableReferences(db, table, e)
-                  ))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MeetingPlaceGroupsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({groupMembersRefs = false}) {
             return PrefetchHooks(
@@ -1534,94 +1830,106 @@ class $$MeetingPlaceGroupsTableTableManager extends RootTableManager<
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (groupMembersRefs)
-                    await $_getPrefetchedData<MeetingPlaceGroup,
-                            $MeetingPlaceGroupsTable, GroupMember>(
-                        currentTable: table,
-                        referencedTable: $$MeetingPlaceGroupsTableReferences
-                            ._groupMembersRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$MeetingPlaceGroupsTableReferences(db, table, p0)
-                                .groupMembersRefs,
-                        referencedItemsForCurrentItem: (item,
-                                referencedItems) =>
-                            referencedItems.where((e) => e.groupId == item.id),
-                        typedResults: items)
+                    await $_getPrefetchedData<
+                      MeetingPlaceGroup,
+                      $MeetingPlaceGroupsTable,
+                      GroupMember
+                    >(
+                      currentTable: table,
+                      referencedTable: $$MeetingPlaceGroupsTableReferences
+                          ._groupMembersRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$MeetingPlaceGroupsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).groupMembersRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.groupId == item.id),
+                      typedResults: items,
+                    ),
                 ];
               },
             );
           },
-        ));
+        ),
+      );
 }
 
-typedef $$MeetingPlaceGroupsTableProcessedTableManager = ProcessedTableManager<
-    _$GroupsDatabase,
-    $MeetingPlaceGroupsTable,
-    MeetingPlaceGroup,
-    $$MeetingPlaceGroupsTableFilterComposer,
-    $$MeetingPlaceGroupsTableOrderingComposer,
-    $$MeetingPlaceGroupsTableAnnotationComposer,
-    $$MeetingPlaceGroupsTableCreateCompanionBuilder,
-    $$MeetingPlaceGroupsTableUpdateCompanionBuilder,
-    (MeetingPlaceGroup, $$MeetingPlaceGroupsTableReferences),
-    MeetingPlaceGroup,
-    PrefetchHooks Function({bool groupMembersRefs})>;
-typedef $$GroupMembersTableCreateCompanionBuilder = GroupMembersCompanion
-    Function({
-  required String groupId,
-  required String memberDid,
-  Value<String?> groupOwnerDid,
-  Value<String?> groupDid,
-  Value<String?> metadata,
-  Value<String?> acceptOfferAsDid,
-  Value<DateTime> dateAdded,
-  required String publicKey,
-  required GroupMembershipType membershipType,
-  Value<String?> peerProfileHash,
-  required GroupMemberStatus status,
-  required String identityDid,
-  required String type,
-  Value<String> contactInfoJson,
-  Value<String?> profilePic,
-  Value<int> rowid,
-});
-typedef $$GroupMembersTableUpdateCompanionBuilder = GroupMembersCompanion
-    Function({
-  Value<String> groupId,
-  Value<String> memberDid,
-  Value<String?> groupOwnerDid,
-  Value<String?> groupDid,
-  Value<String?> metadata,
-  Value<String?> acceptOfferAsDid,
-  Value<DateTime> dateAdded,
-  Value<String> publicKey,
-  Value<GroupMembershipType> membershipType,
-  Value<String?> peerProfileHash,
-  Value<GroupMemberStatus> status,
-  Value<String> identityDid,
-  Value<String> type,
-  Value<String> contactInfoJson,
-  Value<String?> profilePic,
-  Value<int> rowid,
-});
+typedef $$MeetingPlaceGroupsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$GroupsDatabase,
+      $MeetingPlaceGroupsTable,
+      MeetingPlaceGroup,
+      $$MeetingPlaceGroupsTableFilterComposer,
+      $$MeetingPlaceGroupsTableOrderingComposer,
+      $$MeetingPlaceGroupsTableAnnotationComposer,
+      $$MeetingPlaceGroupsTableCreateCompanionBuilder,
+      $$MeetingPlaceGroupsTableUpdateCompanionBuilder,
+      (MeetingPlaceGroup, $$MeetingPlaceGroupsTableReferences),
+      MeetingPlaceGroup,
+      PrefetchHooks Function({bool groupMembersRefs})
+    >;
+typedef $$GroupMembersTableCreateCompanionBuilder =
+    GroupMembersCompanion Function({
+      required String groupId,
+      required String memberDid,
+      Value<String?> groupOwnerDid,
+      Value<String?> groupDid,
+      Value<String?> metadata,
+      Value<String?> acceptOfferAsDid,
+      Value<DateTime> dateAdded,
+      required String publicKey,
+      required GroupMembershipType membershipType,
+      Value<String?> peerProfileHash,
+      required GroupMemberStatus status,
+      required String identityDid,
+      required String type,
+      Value<String> contactInfoJson,
+      Value<String?> profilePic,
+      Value<int> rowid,
+    });
+typedef $$GroupMembersTableUpdateCompanionBuilder =
+    GroupMembersCompanion Function({
+      Value<String> groupId,
+      Value<String> memberDid,
+      Value<String?> groupOwnerDid,
+      Value<String?> groupDid,
+      Value<String?> metadata,
+      Value<String?> acceptOfferAsDid,
+      Value<DateTime> dateAdded,
+      Value<String> publicKey,
+      Value<GroupMembershipType> membershipType,
+      Value<String?> peerProfileHash,
+      Value<GroupMemberStatus> status,
+      Value<String> identityDid,
+      Value<String> type,
+      Value<String> contactInfoJson,
+      Value<String?> profilePic,
+      Value<int> rowid,
+    });
 
 final class $$GroupMembersTableReferences
     extends BaseReferences<_$GroupsDatabase, $GroupMembersTable, GroupMember> {
   $$GroupMembersTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $MeetingPlaceGroupsTable _groupIdTable(_$GroupsDatabase db) =>
-      db.meetingPlaceGroups.createAlias($_aliasNameGenerator(
-          db.groupMembers.groupId, db.meetingPlaceGroups.id));
+      db.meetingPlaceGroups.createAlias(
+        $_aliasNameGenerator(db.groupMembers.groupId, db.meetingPlaceGroups.id),
+      );
 
   $$MeetingPlaceGroupsTableProcessedTableManager get groupId {
     final $_column = $_itemColumn<String>('group_id')!;
 
-    final manager =
-        $$MeetingPlaceGroupsTableTableManager($_db, $_db.meetingPlaceGroups)
-            .filter((f) => f.id.sqlEquals($_column));
+    final manager = $$MeetingPlaceGroupsTableTableManager(
+      $_db,
+      $_db.meetingPlaceGroups,
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_groupIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
   }
 }
 
@@ -1635,71 +1943,97 @@ class $$GroupMembersTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get memberDid => $composableBuilder(
-      column: $table.memberDid, builder: (column) => ColumnFilters(column));
+    column: $table.memberDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get groupOwnerDid => $composableBuilder(
-      column: $table.groupOwnerDid, builder: (column) => ColumnFilters(column));
+    column: $table.groupOwnerDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get groupDid => $composableBuilder(
-      column: $table.groupDid, builder: (column) => ColumnFilters(column));
+    column: $table.groupDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get metadata => $composableBuilder(
-      column: $table.metadata, builder: (column) => ColumnFilters(column));
+    column: $table.metadata,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get acceptOfferAsDid => $composableBuilder(
-      column: $table.acceptOfferAsDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.acceptOfferAsDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get dateAdded => $composableBuilder(
-      column: $table.dateAdded, builder: (column) => ColumnFilters(column));
+    column: $table.dateAdded,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get publicKey => $composableBuilder(
-      column: $table.publicKey, builder: (column) => ColumnFilters(column));
+    column: $table.publicKey,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<GroupMembershipType, GroupMembershipType, int>
-      get membershipType => $composableBuilder(
-          column: $table.membershipType,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  get membershipType => $composableBuilder(
+    column: $table.membershipType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 
   ColumnFilters<String> get peerProfileHash => $composableBuilder(
-      column: $table.peerProfileHash,
-      builder: (column) => ColumnFilters(column));
+    column: $table.peerProfileHash,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<GroupMemberStatus, GroupMemberStatus, int>
-      get status => $composableBuilder(
-          column: $table.status,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 
   ColumnFilters<String> get identityDid => $composableBuilder(
-      column: $table.identityDid, builder: (column) => ColumnFilters(column));
+    column: $table.identityDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnFilters(column));
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson,
-      builder: (column) => ColumnFilters(column));
+    column: $table.contactInfoJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => ColumnFilters(column));
+    column: $table.profilePic,
+    builder: (column) => ColumnFilters(column),
+  );
 
   $$MeetingPlaceGroupsTableFilterComposer get groupId {
     final $$MeetingPlaceGroupsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.groupId,
-        referencedTable: $db.meetingPlaceGroups,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$MeetingPlaceGroupsTableFilterComposer(
-              $db: $db,
-              $table: $db.meetingPlaceGroups,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.meetingPlaceGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MeetingPlaceGroupsTableFilterComposer(
+            $db: $db,
+            $table: $db.meetingPlaceGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -1714,69 +2048,95 @@ class $$GroupMembersTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get memberDid => $composableBuilder(
-      column: $table.memberDid, builder: (column) => ColumnOrderings(column));
+    column: $table.memberDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get groupOwnerDid => $composableBuilder(
-      column: $table.groupOwnerDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.groupOwnerDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get groupDid => $composableBuilder(
-      column: $table.groupDid, builder: (column) => ColumnOrderings(column));
+    column: $table.groupDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get metadata => $composableBuilder(
-      column: $table.metadata, builder: (column) => ColumnOrderings(column));
+    column: $table.metadata,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get acceptOfferAsDid => $composableBuilder(
-      column: $table.acceptOfferAsDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.acceptOfferAsDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get dateAdded => $composableBuilder(
-      column: $table.dateAdded, builder: (column) => ColumnOrderings(column));
+    column: $table.dateAdded,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get publicKey => $composableBuilder(
-      column: $table.publicKey, builder: (column) => ColumnOrderings(column));
+    column: $table.publicKey,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get membershipType => $composableBuilder(
-      column: $table.membershipType,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.membershipType,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get peerProfileHash => $composableBuilder(
-      column: $table.peerProfileHash,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.peerProfileHash,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get status => $composableBuilder(
-      column: $table.status, builder: (column) => ColumnOrderings(column));
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get identityDid => $composableBuilder(
-      column: $table.identityDid, builder: (column) => ColumnOrderings(column));
+    column: $table.identityDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.contactInfoJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => ColumnOrderings(column));
+    column: $table.profilePic,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   $$MeetingPlaceGroupsTableOrderingComposer get groupId {
     final $$MeetingPlaceGroupsTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.groupId,
-        referencedTable: $db.meetingPlaceGroups,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$MeetingPlaceGroupsTableOrderingComposer(
-              $db: $db,
-              $table: $db.meetingPlaceGroups,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.groupId,
+      referencedTable: $db.meetingPlaceGroups,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MeetingPlaceGroupsTableOrderingComposer(
+            $db: $db,
+            $table: $db.meetingPlaceGroups,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -1794,7 +2154,9 @@ class $$GroupMembersTableAnnotationComposer
       $composableBuilder(column: $table.memberDid, builder: (column) => column);
 
   GeneratedColumn<String> get groupOwnerDid => $composableBuilder(
-      column: $table.groupOwnerDid, builder: (column) => column);
+    column: $table.groupOwnerDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get groupDid =>
       $composableBuilder(column: $table.groupDid, builder: (column) => column);
@@ -1803,7 +2165,9 @@ class $$GroupMembersTableAnnotationComposer
       $composableBuilder(column: $table.metadata, builder: (column) => column);
 
   GeneratedColumn<String> get acceptOfferAsDid => $composableBuilder(
-      column: $table.acceptOfferAsDid, builder: (column) => column);
+    column: $table.acceptOfferAsDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get dateAdded =>
       $composableBuilder(column: $table.dateAdded, builder: (column) => column);
@@ -1812,63 +2176,80 @@ class $$GroupMembersTableAnnotationComposer
       $composableBuilder(column: $table.publicKey, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<GroupMembershipType, int>
-      get membershipType => $composableBuilder(
-          column: $table.membershipType, builder: (column) => column);
+  get membershipType => $composableBuilder(
+    column: $table.membershipType,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get peerProfileHash => $composableBuilder(
-      column: $table.peerProfileHash, builder: (column) => column);
+    column: $table.peerProfileHash,
+    builder: (column) => column,
+  );
 
   GeneratedColumnWithTypeConverter<GroupMemberStatus, int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<String> get identityDid => $composableBuilder(
-      column: $table.identityDid, builder: (column) => column);
+    column: $table.identityDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson, builder: (column) => column);
+    column: $table.contactInfoJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => column);
+    column: $table.profilePic,
+    builder: (column) => column,
+  );
 
   $$MeetingPlaceGroupsTableAnnotationComposer get groupId {
     final $$MeetingPlaceGroupsTableAnnotationComposer composer =
         $composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.groupId,
-            referencedTable: $db.meetingPlaceGroups,
-            getReferencedColumn: (t) => t.id,
-            builder: (joinBuilder,
-                    {$addJoinBuilderToRootComposer,
-                    $removeJoinBuilderFromRootComposer}) =>
-                $$MeetingPlaceGroupsTableAnnotationComposer(
-                  $db: $db,
-                  $table: $db.meetingPlaceGroups,
-                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                  joinBuilder: joinBuilder,
-                  $removeJoinBuilderFromRootComposer:
-                      $removeJoinBuilderFromRootComposer,
-                ));
+          composer: this,
+          getCurrentColumn: (t) => t.groupId,
+          referencedTable: $db.meetingPlaceGroups,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$MeetingPlaceGroupsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.meetingPlaceGroups,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return composer;
   }
 }
 
-class $$GroupMembersTableTableManager extends RootTableManager<
-    _$GroupsDatabase,
-    $GroupMembersTable,
-    GroupMember,
-    $$GroupMembersTableFilterComposer,
-    $$GroupMembersTableOrderingComposer,
-    $$GroupMembersTableAnnotationComposer,
-    $$GroupMembersTableCreateCompanionBuilder,
-    $$GroupMembersTableUpdateCompanionBuilder,
-    (GroupMember, $$GroupMembersTableReferences),
-    GroupMember,
-    PrefetchHooks Function({bool groupId})> {
+class $$GroupMembersTableTableManager
+    extends
+        RootTableManager<
+          _$GroupsDatabase,
+          $GroupMembersTable,
+          GroupMember,
+          $$GroupMembersTableFilterComposer,
+          $$GroupMembersTableOrderingComposer,
+          $$GroupMembersTableAnnotationComposer,
+          $$GroupMembersTableCreateCompanionBuilder,
+          $$GroupMembersTableUpdateCompanionBuilder,
+          (GroupMember, $$GroupMembersTableReferences),
+          GroupMember,
+          PrefetchHooks Function({bool groupId})
+        > {
   $$GroupMembersTableTableManager(_$GroupsDatabase db, $GroupMembersTable table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1877,90 +2258,94 @@ class $$GroupMembersTableTableManager extends RootTableManager<
               $$GroupMembersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$GroupMembersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> groupId = const Value.absent(),
-            Value<String> memberDid = const Value.absent(),
-            Value<String?> groupOwnerDid = const Value.absent(),
-            Value<String?> groupDid = const Value.absent(),
-            Value<String?> metadata = const Value.absent(),
-            Value<String?> acceptOfferAsDid = const Value.absent(),
-            Value<DateTime> dateAdded = const Value.absent(),
-            Value<String> publicKey = const Value.absent(),
-            Value<GroupMembershipType> membershipType = const Value.absent(),
-            Value<String?> peerProfileHash = const Value.absent(),
-            Value<GroupMemberStatus> status = const Value.absent(),
-            Value<String> identityDid = const Value.absent(),
-            Value<String> type = const Value.absent(),
-            Value<String> contactInfoJson = const Value.absent(),
-            Value<String?> profilePic = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              GroupMembersCompanion(
-            groupId: groupId,
-            memberDid: memberDid,
-            groupOwnerDid: groupOwnerDid,
-            groupDid: groupDid,
-            metadata: metadata,
-            acceptOfferAsDid: acceptOfferAsDid,
-            dateAdded: dateAdded,
-            publicKey: publicKey,
-            membershipType: membershipType,
-            peerProfileHash: peerProfileHash,
-            status: status,
-            identityDid: identityDid,
-            type: type,
-            contactInfoJson: contactInfoJson,
-            profilePic: profilePic,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String groupId,
-            required String memberDid,
-            Value<String?> groupOwnerDid = const Value.absent(),
-            Value<String?> groupDid = const Value.absent(),
-            Value<String?> metadata = const Value.absent(),
-            Value<String?> acceptOfferAsDid = const Value.absent(),
-            Value<DateTime> dateAdded = const Value.absent(),
-            required String publicKey,
-            required GroupMembershipType membershipType,
-            Value<String?> peerProfileHash = const Value.absent(),
-            required GroupMemberStatus status,
-            required String identityDid,
-            required String type,
-            Value<String> contactInfoJson = const Value.absent(),
-            Value<String?> profilePic = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              GroupMembersCompanion.insert(
-            groupId: groupId,
-            memberDid: memberDid,
-            groupOwnerDid: groupOwnerDid,
-            groupDid: groupDid,
-            metadata: metadata,
-            acceptOfferAsDid: acceptOfferAsDid,
-            dateAdded: dateAdded,
-            publicKey: publicKey,
-            membershipType: membershipType,
-            peerProfileHash: peerProfileHash,
-            status: status,
-            identityDid: identityDid,
-            type: type,
-            contactInfoJson: contactInfoJson,
-            profilePic: profilePic,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> groupId = const Value.absent(),
+                Value<String> memberDid = const Value.absent(),
+                Value<String?> groupOwnerDid = const Value.absent(),
+                Value<String?> groupDid = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
+                Value<String?> acceptOfferAsDid = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
+                Value<String> publicKey = const Value.absent(),
+                Value<GroupMembershipType> membershipType =
+                    const Value.absent(),
+                Value<String?> peerProfileHash = const Value.absent(),
+                Value<GroupMemberStatus> status = const Value.absent(),
+                Value<String> identityDid = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> contactInfoJson = const Value.absent(),
+                Value<String?> profilePic = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GroupMembersCompanion(
+                groupId: groupId,
+                memberDid: memberDid,
+                groupOwnerDid: groupOwnerDid,
+                groupDid: groupDid,
+                metadata: metadata,
+                acceptOfferAsDid: acceptOfferAsDid,
+                dateAdded: dateAdded,
+                publicKey: publicKey,
+                membershipType: membershipType,
+                peerProfileHash: peerProfileHash,
+                status: status,
+                identityDid: identityDid,
+                type: type,
+                contactInfoJson: contactInfoJson,
+                profilePic: profilePic,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String groupId,
+                required String memberDid,
+                Value<String?> groupOwnerDid = const Value.absent(),
+                Value<String?> groupDid = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
+                Value<String?> acceptOfferAsDid = const Value.absent(),
+                Value<DateTime> dateAdded = const Value.absent(),
+                required String publicKey,
+                required GroupMembershipType membershipType,
+                Value<String?> peerProfileHash = const Value.absent(),
+                required GroupMemberStatus status,
+                required String identityDid,
+                required String type,
+                Value<String> contactInfoJson = const Value.absent(),
+                Value<String?> profilePic = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GroupMembersCompanion.insert(
+                groupId: groupId,
+                memberDid: memberDid,
+                groupOwnerDid: groupOwnerDid,
+                groupDid: groupDid,
+                metadata: metadata,
+                acceptOfferAsDid: acceptOfferAsDid,
+                dateAdded: dateAdded,
+                publicKey: publicKey,
+                membershipType: membershipType,
+                peerProfileHash: peerProfileHash,
+                status: status,
+                identityDid: identityDid,
+                type: type,
+                contactInfoJson: contactInfoJson,
+                profilePic: profilePic,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$GroupMembersTableReferences(db, table, e)
-                  ))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$GroupMembersTableReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({groupId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
+              addJoins:
+                  <
+                    T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -1971,40 +2356,48 @@ class $$GroupMembersTableTableManager extends RootTableManager<
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic>>(state) {
-                if (groupId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.groupId,
-                    referencedTable:
-                        $$GroupMembersTableReferences._groupIdTable(db),
-                    referencedColumn:
-                        $$GroupMembersTableReferences._groupIdTable(db).id,
-                  ) as T;
-                }
+                      dynamic
+                    >
+                  >(state) {
+                    if (groupId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.groupId,
+                                referencedTable: $$GroupMembersTableReferences
+                                    ._groupIdTable(db),
+                                referencedColumn: $$GroupMembersTableReferences
+                                    ._groupIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
 
-                return state;
-              },
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ));
+        ),
+      );
 }
 
-typedef $$GroupMembersTableProcessedTableManager = ProcessedTableManager<
-    _$GroupsDatabase,
-    $GroupMembersTable,
-    GroupMember,
-    $$GroupMembersTableFilterComposer,
-    $$GroupMembersTableOrderingComposer,
-    $$GroupMembersTableAnnotationComposer,
-    $$GroupMembersTableCreateCompanionBuilder,
-    $$GroupMembersTableUpdateCompanionBuilder,
-    (GroupMember, $$GroupMembersTableReferences),
-    GroupMember,
-    PrefetchHooks Function({bool groupId})>;
+typedef $$GroupMembersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$GroupsDatabase,
+      $GroupMembersTable,
+      GroupMember,
+      $$GroupMembersTableFilterComposer,
+      $$GroupMembersTableOrderingComposer,
+      $$GroupMembersTableAnnotationComposer,
+      $$GroupMembersTableCreateCompanionBuilder,
+      $$GroupMembersTableUpdateCompanionBuilder,
+      (GroupMember, $$GroupMembersTableReferences),
+      GroupMember,
+      PrefetchHooks Function({bool groupId})
+    >;
 
 class $GroupsDatabaseManager {
   final _$GroupsDatabase _db;

@@ -11,130 +11,208 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      clientDefault: const Uuid().v4);
-  static const VerificationMeta _publishOfferDidMeta =
-      const VerificationMeta('publishOfferDid');
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: const Uuid().v4,
+  );
+  static const VerificationMeta _publishOfferDidMeta = const VerificationMeta(
+    'publishOfferDid',
+  );
   @override
   late final GeneratedColumn<String> publishOfferDid = GeneratedColumn<String>(
-      'publish_offer_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _mediatorDidMeta =
-      const VerificationMeta('mediatorDid');
+    'publish_offer_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediatorDidMeta = const VerificationMeta(
+    'mediatorDid',
+  );
   @override
   late final GeneratedColumn<String> mediatorDid = GeneratedColumn<String>(
-      'mediator_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _offerLinkMeta =
-      const VerificationMeta('offerLink');
+    'mediator_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _offerLinkMeta = const VerificationMeta(
+    'offerLink',
+  );
   @override
   late final GeneratedColumn<String> offerLink = GeneratedColumn<String>(
-      'offer_link', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'offer_link',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<ChannelStatus, int> status =
-      GeneratedColumn<int>('status', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<ChannelStatus>($ChannelsTable.$converterstatus);
+      GeneratedColumn<int>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<ChannelStatus>($ChannelsTable.$converterstatus);
   @override
   late final GeneratedColumnWithTypeConverter<ChannelType, int> type =
-      GeneratedColumn<int>('type', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<ChannelType>($ChannelsTable.$convertertype);
+      GeneratedColumn<int>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<ChannelType>($ChannelsTable.$convertertype);
   static const VerificationMeta _isConnectionInitiatorMeta =
       const VerificationMeta('isConnectionInitiator');
   @override
   late final GeneratedColumn<bool> isConnectionInitiator =
-      GeneratedColumn<bool>('is_connection_initiator', aliasedName, false,
-          type: DriftSqlType.bool,
-          requiredDuringInsert: false,
-          defaultConstraints: GeneratedColumn.constraintIsAlways(
-              'CHECK ("is_connection_initiator" IN (0, 1))'),
-          defaultValue: const Constant(false));
-  static const VerificationMeta _outboundMessageIdMeta =
-      const VerificationMeta('outboundMessageId');
+      GeneratedColumn<bool>(
+        'is_connection_initiator',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_connection_initiator" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _outboundMessageIdMeta = const VerificationMeta(
+    'outboundMessageId',
+  );
   @override
   late final GeneratedColumn<String> outboundMessageId =
-      GeneratedColumn<String>('outbound_message_id', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _acceptOfferDidMeta =
-      const VerificationMeta('acceptOfferDid');
+      GeneratedColumn<String>(
+        'outbound_message_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _acceptOfferDidMeta = const VerificationMeta(
+    'acceptOfferDid',
+  );
   @override
   late final GeneratedColumn<String> acceptOfferDid = GeneratedColumn<String>(
-      'accept_offer_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'accept_offer_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _permanentChannelDidMeta =
       const VerificationMeta('permanentChannelDid');
   @override
   late final GeneratedColumn<String> permanentChannelDid =
-      GeneratedColumn<String>('permanent_channel_did', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
+      GeneratedColumn<String>(
+        'permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _otherPartyPermanentChannelDidMeta =
       const VerificationMeta('otherPartyPermanentChannelDid');
   @override
   late final GeneratedColumn<String> otherPartyPermanentChannelDid =
       GeneratedColumn<String>(
-          'other_party_permanent_channel_did', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _notificationTokenMeta =
-      const VerificationMeta('notificationToken');
+        'other_party_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _notificationTokenMeta = const VerificationMeta(
+    'notificationToken',
+  );
   @override
   late final GeneratedColumn<String> notificationToken =
-      GeneratedColumn<String>('notification_token', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
+      GeneratedColumn<String>(
+        'notification_token',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _otherPartyNotificationTokenMeta =
       const VerificationMeta('otherPartyNotificationToken');
   @override
   late final GeneratedColumn<String> otherPartyNotificationToken =
       GeneratedColumn<String>(
-          'other_party_notification_token', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _externalRefMeta =
-      const VerificationMeta('externalRef');
+        'other_party_notification_token',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _externalRefMeta = const VerificationMeta(
+    'externalRef',
+  );
   @override
   late final GeneratedColumn<String> externalRef = GeneratedColumn<String>(
-      'external_ref', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'external_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _seqNoMeta = const VerificationMeta('seqNo');
   @override
   late final GeneratedColumn<int> seqNo = GeneratedColumn<int>(
-      'seq_no', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _messageSyncMarkerMeta =
-      const VerificationMeta('messageSyncMarker');
+    'seq_no',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _messageSyncMarkerMeta = const VerificationMeta(
+    'messageSyncMarker',
+  );
   @override
   late final GeneratedColumn<DateTime> messageSyncMarker =
-      GeneratedColumn<DateTime>('message_sync_marker', aliasedName, true,
-          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+      GeneratedColumn<DateTime>(
+        'message_sync_marker',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        publishOfferDid,
-        mediatorDid,
-        offerLink,
-        status,
-        type,
-        isConnectionInitiator,
-        outboundMessageId,
-        acceptOfferDid,
-        permanentChannelDid,
-        otherPartyPermanentChannelDid,
-        notificationToken,
-        otherPartyNotificationToken,
-        externalRef,
-        seqNo,
-        messageSyncMarker
-      ];
+    id,
+    publishOfferDid,
+    mediatorDid,
+    offerLink,
+    status,
+    type,
+    isConnectionInitiator,
+    outboundMessageId,
+    acceptOfferDid,
+    permanentChannelDid,
+    otherPartyPermanentChannelDid,
+    notificationToken,
+    otherPartyNotificationToken,
+    externalRef,
+    seqNo,
+    messageSyncMarker,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'channels';
   @override
-  VerificationContext validateIntegrity(Insertable<Channel> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<Channel> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -142,87 +220,122 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
     }
     if (data.containsKey('publish_offer_did')) {
       context.handle(
+        _publishOfferDidMeta,
+        publishOfferDid.isAcceptableOrUnknown(
+          data['publish_offer_did']!,
           _publishOfferDidMeta,
-          publishOfferDid.isAcceptableOrUnknown(
-              data['publish_offer_did']!, _publishOfferDidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_publishOfferDidMeta);
     }
     if (data.containsKey('mediator_did')) {
       context.handle(
+        _mediatorDidMeta,
+        mediatorDid.isAcceptableOrUnknown(
+          data['mediator_did']!,
           _mediatorDidMeta,
-          mediatorDid.isAcceptableOrUnknown(
-              data['mediator_did']!, _mediatorDidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_mediatorDidMeta);
     }
     if (data.containsKey('offer_link')) {
-      context.handle(_offerLinkMeta,
-          offerLink.isAcceptableOrUnknown(data['offer_link']!, _offerLinkMeta));
+      context.handle(
+        _offerLinkMeta,
+        offerLink.isAcceptableOrUnknown(data['offer_link']!, _offerLinkMeta),
+      );
     } else if (isInserting) {
       context.missing(_offerLinkMeta);
     }
     if (data.containsKey('is_connection_initiator')) {
       context.handle(
+        _isConnectionInitiatorMeta,
+        isConnectionInitiator.isAcceptableOrUnknown(
+          data['is_connection_initiator']!,
           _isConnectionInitiatorMeta,
-          isConnectionInitiator.isAcceptableOrUnknown(
-              data['is_connection_initiator']!, _isConnectionInitiatorMeta));
+        ),
+      );
     }
     if (data.containsKey('outbound_message_id')) {
       context.handle(
+        _outboundMessageIdMeta,
+        outboundMessageId.isAcceptableOrUnknown(
+          data['outbound_message_id']!,
           _outboundMessageIdMeta,
-          outboundMessageId.isAcceptableOrUnknown(
-              data['outbound_message_id']!, _outboundMessageIdMeta));
+        ),
+      );
     }
     if (data.containsKey('accept_offer_did')) {
       context.handle(
+        _acceptOfferDidMeta,
+        acceptOfferDid.isAcceptableOrUnknown(
+          data['accept_offer_did']!,
           _acceptOfferDidMeta,
-          acceptOfferDid.isAcceptableOrUnknown(
-              data['accept_offer_did']!, _acceptOfferDidMeta));
+        ),
+      );
     }
     if (data.containsKey('permanent_channel_did')) {
       context.handle(
+        _permanentChannelDidMeta,
+        permanentChannelDid.isAcceptableOrUnknown(
+          data['permanent_channel_did']!,
           _permanentChannelDidMeta,
-          permanentChannelDid.isAcceptableOrUnknown(
-              data['permanent_channel_did']!, _permanentChannelDidMeta));
+        ),
+      );
     }
     if (data.containsKey('other_party_permanent_channel_did')) {
       context.handle(
+        _otherPartyPermanentChannelDidMeta,
+        otherPartyPermanentChannelDid.isAcceptableOrUnknown(
+          data['other_party_permanent_channel_did']!,
           _otherPartyPermanentChannelDidMeta,
-          otherPartyPermanentChannelDid.isAcceptableOrUnknown(
-              data['other_party_permanent_channel_did']!,
-              _otherPartyPermanentChannelDidMeta));
+        ),
+      );
     }
     if (data.containsKey('notification_token')) {
       context.handle(
+        _notificationTokenMeta,
+        notificationToken.isAcceptableOrUnknown(
+          data['notification_token']!,
           _notificationTokenMeta,
-          notificationToken.isAcceptableOrUnknown(
-              data['notification_token']!, _notificationTokenMeta));
+        ),
+      );
     }
     if (data.containsKey('other_party_notification_token')) {
       context.handle(
+        _otherPartyNotificationTokenMeta,
+        otherPartyNotificationToken.isAcceptableOrUnknown(
+          data['other_party_notification_token']!,
           _otherPartyNotificationTokenMeta,
-          otherPartyNotificationToken.isAcceptableOrUnknown(
-              data['other_party_notification_token']!,
-              _otherPartyNotificationTokenMeta));
+        ),
+      );
     }
     if (data.containsKey('external_ref')) {
       context.handle(
+        _externalRefMeta,
+        externalRef.isAcceptableOrUnknown(
+          data['external_ref']!,
           _externalRefMeta,
-          externalRef.isAcceptableOrUnknown(
-              data['external_ref']!, _externalRefMeta));
+        ),
+      );
     }
     if (data.containsKey('seq_no')) {
       context.handle(
-          _seqNoMeta, seqNo.isAcceptableOrUnknown(data['seq_no']!, _seqNoMeta));
+        _seqNoMeta,
+        seqNo.isAcceptableOrUnknown(data['seq_no']!, _seqNoMeta),
+      );
     } else if (isInserting) {
       context.missing(_seqNoMeta);
     }
     if (data.containsKey('message_sync_marker')) {
       context.handle(
+        _messageSyncMarkerMeta,
+        messageSyncMarker.isAcceptableOrUnknown(
+          data['message_sync_marker']!,
           _messageSyncMarkerMeta,
-          messageSyncMarker.isAcceptableOrUnknown(
-              data['message_sync_marker']!, _messageSyncMarkerMeta));
+        ),
+      );
     }
     return context;
   }
@@ -233,42 +346,74 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
   Channel map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Channel(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
       publishOfferDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}publish_offer_did'])!,
-      mediatorDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}mediator_did'])!,
-      offerLink: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}offer_link'])!,
-      status: $ChannelsTable.$converterstatus.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
-      type: $ChannelsTable.$convertertype.fromSql(attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}type'])!),
+        DriftSqlType.string,
+        data['${effectivePrefix}publish_offer_did'],
+      )!,
+      mediatorDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mediator_did'],
+      )!,
+      offerLink: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}offer_link'],
+      )!,
+      status: $ChannelsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      type: $ChannelsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
       isConnectionInitiator: attachedDatabase.typeMapping.read(
-          DriftSqlType.bool,
-          data['${effectivePrefix}is_connection_initiator'])!,
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_connection_initiator'],
+      )!,
       outboundMessageId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}outbound_message_id']),
+        DriftSqlType.string,
+        data['${effectivePrefix}outbound_message_id'],
+      ),
       acceptOfferDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}accept_offer_did']),
+        DriftSqlType.string,
+        data['${effectivePrefix}accept_offer_did'],
+      ),
       permanentChannelDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}permanent_channel_did']),
+        DriftSqlType.string,
+        data['${effectivePrefix}permanent_channel_did'],
+      ),
       otherPartyPermanentChannelDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}other_party_permanent_channel_did']),
+        DriftSqlType.string,
+        data['${effectivePrefix}other_party_permanent_channel_did'],
+      ),
       notificationToken: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}notification_token']),
+        DriftSqlType.string,
+        data['${effectivePrefix}notification_token'],
+      ),
       otherPartyNotificationToken: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}other_party_notification_token']),
-      externalRef: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}external_ref']),
-      seqNo: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}seq_no'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}other_party_notification_token'],
+      ),
+      externalRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_ref'],
+      ),
+      seqNo: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}seq_no'],
+      )!,
       messageSyncMarker: attachedDatabase.typeMapping.read(
-          DriftSqlType.dateTime, data['${effectivePrefix}message_sync_marker']),
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}message_sync_marker'],
+      ),
     );
   }
 
@@ -333,23 +478,24 @@ class Channel extends DataClass implements Insertable<Channel> {
 
   /// Message sync marker for the channel.
   final DateTime? messageSyncMarker;
-  const Channel(
-      {required this.id,
-      required this.publishOfferDid,
-      required this.mediatorDid,
-      required this.offerLink,
-      required this.status,
-      required this.type,
-      required this.isConnectionInitiator,
-      this.outboundMessageId,
-      this.acceptOfferDid,
-      this.permanentChannelDid,
-      this.otherPartyPermanentChannelDid,
-      this.notificationToken,
-      this.otherPartyNotificationToken,
-      this.externalRef,
-      required this.seqNo,
-      this.messageSyncMarker});
+  const Channel({
+    required this.id,
+    required this.publishOfferDid,
+    required this.mediatorDid,
+    required this.offerLink,
+    required this.status,
+    required this.type,
+    required this.isConnectionInitiator,
+    this.outboundMessageId,
+    this.acceptOfferDid,
+    this.permanentChannelDid,
+    this.otherPartyPermanentChannelDid,
+    this.notificationToken,
+    this.otherPartyNotificationToken,
+    this.externalRef,
+    required this.seqNo,
+    this.messageSyncMarker,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -358,8 +504,9 @@ class Channel extends DataClass implements Insertable<Channel> {
     map['mediator_did'] = Variable<String>(mediatorDid);
     map['offer_link'] = Variable<String>(offerLink);
     {
-      map['status'] =
-          Variable<int>($ChannelsTable.$converterstatus.toSql(status));
+      map['status'] = Variable<int>(
+        $ChannelsTable.$converterstatus.toSql(status),
+      );
     }
     {
       map['type'] = Variable<int>($ChannelsTable.$convertertype.toSql(type));
@@ -375,15 +522,17 @@ class Channel extends DataClass implements Insertable<Channel> {
       map['permanent_channel_did'] = Variable<String>(permanentChannelDid);
     }
     if (!nullToAbsent || otherPartyPermanentChannelDid != null) {
-      map['other_party_permanent_channel_did'] =
-          Variable<String>(otherPartyPermanentChannelDid);
+      map['other_party_permanent_channel_did'] = Variable<String>(
+        otherPartyPermanentChannelDid,
+      );
     }
     if (!nullToAbsent || notificationToken != null) {
       map['notification_token'] = Variable<String>(notificationToken);
     }
     if (!nullToAbsent || otherPartyNotificationToken != null) {
-      map['other_party_notification_token'] =
-          Variable<String>(otherPartyNotificationToken);
+      map['other_party_notification_token'] = Variable<String>(
+        otherPartyNotificationToken,
+      );
     }
     if (!nullToAbsent || externalRef != null) {
       map['external_ref'] = Variable<String>(externalRef);
@@ -415,15 +564,15 @@ class Channel extends DataClass implements Insertable<Channel> {
           : Value(permanentChannelDid),
       otherPartyPermanentChannelDid:
           otherPartyPermanentChannelDid == null && nullToAbsent
-              ? const Value.absent()
-              : Value(otherPartyPermanentChannelDid),
+          ? const Value.absent()
+          : Value(otherPartyPermanentChannelDid),
       notificationToken: notificationToken == null && nullToAbsent
           ? const Value.absent()
           : Value(notificationToken),
       otherPartyNotificationToken:
           otherPartyNotificationToken == null && nullToAbsent
-              ? const Value.absent()
-              : Value(otherPartyNotificationToken),
+          ? const Value.absent()
+          : Value(otherPartyNotificationToken),
       externalRef: externalRef == null && nullToAbsent
           ? const Value.absent()
           : Value(externalRef),
@@ -434,8 +583,10 @@ class Channel extends DataClass implements Insertable<Channel> {
     );
   }
 
-  factory Channel.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory Channel.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Channel(
       id: serializer.fromJson<String>(json['id']),
@@ -444,23 +595,30 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink: serializer.fromJson<String>(json['offerLink']),
       status: serializer.fromJson<ChannelStatus>(json['status']),
       type: serializer.fromJson<ChannelType>(json['type']),
-      isConnectionInitiator:
-          serializer.fromJson<bool>(json['isConnectionInitiator']),
-      outboundMessageId:
-          serializer.fromJson<String?>(json['outboundMessageId']),
+      isConnectionInitiator: serializer.fromJson<bool>(
+        json['isConnectionInitiator'],
+      ),
+      outboundMessageId: serializer.fromJson<String?>(
+        json['outboundMessageId'],
+      ),
       acceptOfferDid: serializer.fromJson<String?>(json['acceptOfferDid']),
-      permanentChannelDid:
-          serializer.fromJson<String?>(json['permanentChannelDid']),
-      otherPartyPermanentChannelDid:
-          serializer.fromJson<String?>(json['otherPartyPermanentChannelDid']),
-      notificationToken:
-          serializer.fromJson<String?>(json['notificationToken']),
-      otherPartyNotificationToken:
-          serializer.fromJson<String?>(json['otherPartyNotificationToken']),
+      permanentChannelDid: serializer.fromJson<String?>(
+        json['permanentChannelDid'],
+      ),
+      otherPartyPermanentChannelDid: serializer.fromJson<String?>(
+        json['otherPartyPermanentChannelDid'],
+      ),
+      notificationToken: serializer.fromJson<String?>(
+        json['notificationToken'],
+      ),
+      otherPartyNotificationToken: serializer.fromJson<String?>(
+        json['otherPartyNotificationToken'],
+      ),
       externalRef: serializer.fromJson<String?>(json['externalRef']),
       seqNo: serializer.fromJson<int>(json['seqNo']),
-      messageSyncMarker:
-          serializer.fromJson<DateTime?>(json['messageSyncMarker']),
+      messageSyncMarker: serializer.fromJson<DateTime?>(
+        json['messageSyncMarker'],
+      ),
     );
   }
   @override
@@ -477,74 +635,77 @@ class Channel extends DataClass implements Insertable<Channel> {
       'outboundMessageId': serializer.toJson<String?>(outboundMessageId),
       'acceptOfferDid': serializer.toJson<String?>(acceptOfferDid),
       'permanentChannelDid': serializer.toJson<String?>(permanentChannelDid),
-      'otherPartyPermanentChannelDid':
-          serializer.toJson<String?>(otherPartyPermanentChannelDid),
+      'otherPartyPermanentChannelDid': serializer.toJson<String?>(
+        otherPartyPermanentChannelDid,
+      ),
       'notificationToken': serializer.toJson<String?>(notificationToken),
-      'otherPartyNotificationToken':
-          serializer.toJson<String?>(otherPartyNotificationToken),
+      'otherPartyNotificationToken': serializer.toJson<String?>(
+        otherPartyNotificationToken,
+      ),
       'externalRef': serializer.toJson<String?>(externalRef),
       'seqNo': serializer.toJson<int>(seqNo),
       'messageSyncMarker': serializer.toJson<DateTime?>(messageSyncMarker),
     };
   }
 
-  Channel copyWith(
-          {String? id,
-          String? publishOfferDid,
-          String? mediatorDid,
-          String? offerLink,
-          ChannelStatus? status,
-          ChannelType? type,
-          bool? isConnectionInitiator,
-          Value<String?> outboundMessageId = const Value.absent(),
-          Value<String?> acceptOfferDid = const Value.absent(),
-          Value<String?> permanentChannelDid = const Value.absent(),
-          Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-          Value<String?> notificationToken = const Value.absent(),
-          Value<String?> otherPartyNotificationToken = const Value.absent(),
-          Value<String?> externalRef = const Value.absent(),
-          int? seqNo,
-          Value<DateTime?> messageSyncMarker = const Value.absent()}) =>
-      Channel(
-        id: id ?? this.id,
-        publishOfferDid: publishOfferDid ?? this.publishOfferDid,
-        mediatorDid: mediatorDid ?? this.mediatorDid,
-        offerLink: offerLink ?? this.offerLink,
-        status: status ?? this.status,
-        type: type ?? this.type,
-        isConnectionInitiator:
-            isConnectionInitiator ?? this.isConnectionInitiator,
-        outboundMessageId: outboundMessageId.present
-            ? outboundMessageId.value
-            : this.outboundMessageId,
-        acceptOfferDid:
-            acceptOfferDid.present ? acceptOfferDid.value : this.acceptOfferDid,
-        permanentChannelDid: permanentChannelDid.present
-            ? permanentChannelDid.value
-            : this.permanentChannelDid,
-        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
-            ? otherPartyPermanentChannelDid.value
-            : this.otherPartyPermanentChannelDid,
-        notificationToken: notificationToken.present
-            ? notificationToken.value
-            : this.notificationToken,
-        otherPartyNotificationToken: otherPartyNotificationToken.present
-            ? otherPartyNotificationToken.value
-            : this.otherPartyNotificationToken,
-        externalRef: externalRef.present ? externalRef.value : this.externalRef,
-        seqNo: seqNo ?? this.seqNo,
-        messageSyncMarker: messageSyncMarker.present
-            ? messageSyncMarker.value
-            : this.messageSyncMarker,
-      );
+  Channel copyWith({
+    String? id,
+    String? publishOfferDid,
+    String? mediatorDid,
+    String? offerLink,
+    ChannelStatus? status,
+    ChannelType? type,
+    bool? isConnectionInitiator,
+    Value<String?> outboundMessageId = const Value.absent(),
+    Value<String?> acceptOfferDid = const Value.absent(),
+    Value<String?> permanentChannelDid = const Value.absent(),
+    Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
+    Value<String?> notificationToken = const Value.absent(),
+    Value<String?> otherPartyNotificationToken = const Value.absent(),
+    Value<String?> externalRef = const Value.absent(),
+    int? seqNo,
+    Value<DateTime?> messageSyncMarker = const Value.absent(),
+  }) => Channel(
+    id: id ?? this.id,
+    publishOfferDid: publishOfferDid ?? this.publishOfferDid,
+    mediatorDid: mediatorDid ?? this.mediatorDid,
+    offerLink: offerLink ?? this.offerLink,
+    status: status ?? this.status,
+    type: type ?? this.type,
+    isConnectionInitiator: isConnectionInitiator ?? this.isConnectionInitiator,
+    outboundMessageId: outboundMessageId.present
+        ? outboundMessageId.value
+        : this.outboundMessageId,
+    acceptOfferDid: acceptOfferDid.present
+        ? acceptOfferDid.value
+        : this.acceptOfferDid,
+    permanentChannelDid: permanentChannelDid.present
+        ? permanentChannelDid.value
+        : this.permanentChannelDid,
+    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
+        ? otherPartyPermanentChannelDid.value
+        : this.otherPartyPermanentChannelDid,
+    notificationToken: notificationToken.present
+        ? notificationToken.value
+        : this.notificationToken,
+    otherPartyNotificationToken: otherPartyNotificationToken.present
+        ? otherPartyNotificationToken.value
+        : this.otherPartyNotificationToken,
+    externalRef: externalRef.present ? externalRef.value : this.externalRef,
+    seqNo: seqNo ?? this.seqNo,
+    messageSyncMarker: messageSyncMarker.present
+        ? messageSyncMarker.value
+        : this.messageSyncMarker,
+  );
   Channel copyWithCompanion(ChannelsCompanion data) {
     return Channel(
       id: data.id.present ? data.id.value : this.id,
       publishOfferDid: data.publishOfferDid.present
           ? data.publishOfferDid.value
           : this.publishOfferDid,
-      mediatorDid:
-          data.mediatorDid.present ? data.mediatorDid.value : this.mediatorDid,
+      mediatorDid: data.mediatorDid.present
+          ? data.mediatorDid.value
+          : this.mediatorDid,
       offerLink: data.offerLink.present ? data.offerLink.value : this.offerLink,
       status: data.status.present ? data.status.value : this.status,
       type: data.type.present ? data.type.value : this.type,
@@ -569,8 +730,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       otherPartyNotificationToken: data.otherPartyNotificationToken.present
           ? data.otherPartyNotificationToken.value
           : this.otherPartyNotificationToken,
-      externalRef:
-          data.externalRef.present ? data.externalRef.value : this.externalRef,
+      externalRef: data.externalRef.present
+          ? data.externalRef.value
+          : this.externalRef,
       seqNo: data.seqNo.present ? data.seqNo.value : this.seqNo,
       messageSyncMarker: data.messageSyncMarker.present
           ? data.messageSyncMarker.value
@@ -592,7 +754,8 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('acceptOfferDid: $acceptOfferDid, ')
           ..write('permanentChannelDid: $permanentChannelDid, ')
           ..write(
-              'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ')
+            'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
+          )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
@@ -604,22 +767,23 @@ class Channel extends DataClass implements Insertable<Channel> {
 
   @override
   int get hashCode => Object.hash(
-      id,
-      publishOfferDid,
-      mediatorDid,
-      offerLink,
-      status,
-      type,
-      isConnectionInitiator,
-      outboundMessageId,
-      acceptOfferDid,
-      permanentChannelDid,
-      otherPartyPermanentChannelDid,
-      notificationToken,
-      otherPartyNotificationToken,
-      externalRef,
-      seqNo,
-      messageSyncMarker);
+    id,
+    publishOfferDid,
+    mediatorDid,
+    offerLink,
+    status,
+    type,
+    isConnectionInitiator,
+    outboundMessageId,
+    acceptOfferDid,
+    permanentChannelDid,
+    otherPartyPermanentChannelDid,
+    notificationToken,
+    otherPartyNotificationToken,
+    externalRef,
+    seqNo,
+    messageSyncMarker,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -699,12 +863,12 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     required int seqNo,
     this.messageSyncMarker = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : publishOfferDid = Value(publishOfferDid),
-        mediatorDid = Value(mediatorDid),
-        offerLink = Value(offerLink),
-        status = Value(status),
-        type = Value(type),
-        seqNo = Value(seqNo);
+  }) : publishOfferDid = Value(publishOfferDid),
+       mediatorDid = Value(mediatorDid),
+       offerLink = Value(offerLink),
+       status = Value(status),
+       type = Value(type),
+       seqNo = Value(seqNo);
   static Insertable<Channel> custom({
     Expression<String>? id,
     Expression<String>? publishOfferDid,
@@ -749,24 +913,25 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     });
   }
 
-  ChannelsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? publishOfferDid,
-      Value<String>? mediatorDid,
-      Value<String>? offerLink,
-      Value<ChannelStatus>? status,
-      Value<ChannelType>? type,
-      Value<bool>? isConnectionInitiator,
-      Value<String?>? outboundMessageId,
-      Value<String?>? acceptOfferDid,
-      Value<String?>? permanentChannelDid,
-      Value<String?>? otherPartyPermanentChannelDid,
-      Value<String?>? notificationToken,
-      Value<String?>? otherPartyNotificationToken,
-      Value<String?>? externalRef,
-      Value<int>? seqNo,
-      Value<DateTime?>? messageSyncMarker,
-      Value<int>? rowid}) {
+  ChannelsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? publishOfferDid,
+    Value<String>? mediatorDid,
+    Value<String>? offerLink,
+    Value<ChannelStatus>? status,
+    Value<ChannelType>? type,
+    Value<bool>? isConnectionInitiator,
+    Value<String?>? outboundMessageId,
+    Value<String?>? acceptOfferDid,
+    Value<String?>? permanentChannelDid,
+    Value<String?>? otherPartyPermanentChannelDid,
+    Value<String?>? notificationToken,
+    Value<String?>? otherPartyNotificationToken,
+    Value<String?>? externalRef,
+    Value<int>? seqNo,
+    Value<DateTime?>? messageSyncMarker,
+    Value<int>? rowid,
+  }) {
     return ChannelsCompanion(
       id: id ?? this.id,
       publishOfferDid: publishOfferDid ?? this.publishOfferDid,
@@ -807,16 +972,19 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       map['offer_link'] = Variable<String>(offerLink.value);
     }
     if (status.present) {
-      map['status'] =
-          Variable<int>($ChannelsTable.$converterstatus.toSql(status.value));
+      map['status'] = Variable<int>(
+        $ChannelsTable.$converterstatus.toSql(status.value),
+      );
     }
     if (type.present) {
-      map['type'] =
-          Variable<int>($ChannelsTable.$convertertype.toSql(type.value));
+      map['type'] = Variable<int>(
+        $ChannelsTable.$convertertype.toSql(type.value),
+      );
     }
     if (isConnectionInitiator.present) {
-      map['is_connection_initiator'] =
-          Variable<bool>(isConnectionInitiator.value);
+      map['is_connection_initiator'] = Variable<bool>(
+        isConnectionInitiator.value,
+      );
     }
     if (outboundMessageId.present) {
       map['outbound_message_id'] = Variable<String>(outboundMessageId.value);
@@ -825,19 +993,22 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       map['accept_offer_did'] = Variable<String>(acceptOfferDid.value);
     }
     if (permanentChannelDid.present) {
-      map['permanent_channel_did'] =
-          Variable<String>(permanentChannelDid.value);
+      map['permanent_channel_did'] = Variable<String>(
+        permanentChannelDid.value,
+      );
     }
     if (otherPartyPermanentChannelDid.present) {
-      map['other_party_permanent_channel_did'] =
-          Variable<String>(otherPartyPermanentChannelDid.value);
+      map['other_party_permanent_channel_did'] = Variable<String>(
+        otherPartyPermanentChannelDid.value,
+      );
     }
     if (notificationToken.present) {
       map['notification_token'] = Variable<String>(notificationToken.value);
     }
     if (otherPartyNotificationToken.present) {
-      map['other_party_notification_token'] =
-          Variable<String>(otherPartyNotificationToken.value);
+      map['other_party_notification_token'] = Variable<String>(
+        otherPartyNotificationToken.value,
+      );
     }
     if (externalRef.present) {
       map['external_ref'] = Variable<String>(externalRef.value);
@@ -868,7 +1039,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('acceptOfferDid: $acceptOfferDid, ')
           ..write('permanentChannelDid: $permanentChannelDid, ')
           ..write(
-              'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ')
+            'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
+          )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
@@ -889,95 +1061,143 @@ class $ChannelContactCardsTable extends ChannelContactCards
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _channelIdMeta =
-      const VerificationMeta('channelId');
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _channelIdMeta = const VerificationMeta(
+    'channelId',
+  );
   @override
   late final GeneratedColumn<String> channelId = GeneratedColumn<String>(
-      'channel_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'REFERENCES channels(id) ON DELETE CASCADE NOT NULL');
+    'channel_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'REFERENCES channels(id) ON DELETE CASCADE NOT NULL',
+  );
   static const VerificationMeta _didMeta = const VerificationMeta('did');
   @override
   late final GeneratedColumn<String> did = GeneratedColumn<String>(
-      'did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
-      'type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _contactInfoJsonMeta =
-      const VerificationMeta('contactInfoJson');
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contactInfoJsonMeta = const VerificationMeta(
+    'contactInfoJson',
+  );
   @override
   late final GeneratedColumn<String> contactInfoJson = GeneratedColumn<String>(
-      'contact_info_json', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('{}'));
-  static const VerificationMeta _profilePicMeta =
-      const VerificationMeta('profilePic');
+    'contact_info_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _profilePicMeta = const VerificationMeta(
+    'profilePic',
+  );
   @override
   late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
-      'profile_pic', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'profile_pic',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<ContactCardType, int> cardType =
-      GeneratedColumn<int>('card_type', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<ContactCardType>(
-              $ChannelContactCardsTable.$convertercardType);
+      GeneratedColumn<int>(
+        'card_type',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<ContactCardType>(
+        $ChannelContactCardsTable.$convertercardType,
+      );
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, channelId, did, type, contactInfoJson, profilePic, cardType];
+  List<GeneratedColumn> get $columns => [
+    id,
+    channelId,
+    did,
+    type,
+    contactInfoJson,
+    profilePic,
+    cardType,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'channel_contact_cards';
   @override
-  VerificationContext validateIntegrity(Insertable<ChannelContactCard> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<ChannelContactCard> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('channel_id')) {
-      context.handle(_channelIdMeta,
-          channelId.isAcceptableOrUnknown(data['channel_id']!, _channelIdMeta));
+      context.handle(
+        _channelIdMeta,
+        channelId.isAcceptableOrUnknown(data['channel_id']!, _channelIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_channelIdMeta);
     }
     if (data.containsKey('did')) {
       context.handle(
-          _didMeta, did.isAcceptableOrUnknown(data['did']!, _didMeta));
+        _didMeta,
+        did.isAcceptableOrUnknown(data['did']!, _didMeta),
+      );
     } else if (isInserting) {
       context.missing(_didMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
-          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
     if (data.containsKey('contact_info_json')) {
       context.handle(
+        _contactInfoJsonMeta,
+        contactInfoJson.isAcceptableOrUnknown(
+          data['contact_info_json']!,
           _contactInfoJsonMeta,
-          contactInfoJson.isAcceptableOrUnknown(
-              data['contact_info_json']!, _contactInfoJsonMeta));
+        ),
+      );
     }
     if (data.containsKey('profile_pic')) {
       context.handle(
-          _profilePicMeta,
-          profilePic.isAcceptableOrUnknown(
-              data['profile_pic']!, _profilePicMeta));
+        _profilePicMeta,
+        profilePic.isAcceptableOrUnknown(data['profile_pic']!, _profilePicMeta),
+      );
     }
     return context;
   }
@@ -986,27 +1206,42 @@ class $ChannelContactCardsTable extends ChannelContactCards
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-        {channelId, cardType},
-      ];
+    {channelId, cardType},
+  ];
   @override
   ChannelContactCard map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ChannelContactCard(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      channelId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}channel_id'])!,
-      did: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
-      type: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      channelId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}channel_id'],
+      )!,
+      did: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}did'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
       contactInfoJson: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}contact_info_json'])!,
-      profilePic: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic']),
+        DriftSqlType.string,
+        data['${effectivePrefix}contact_info_json'],
+      )!,
+      profilePic: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_pic'],
+      ),
       cardType: $ChannelContactCardsTable.$convertercardType.fromSql(
-          attachedDatabase.typeMapping
-              .read(DriftSqlType.int, data['${effectivePrefix}card_type'])!),
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}card_type'],
+        )!,
+      ),
     );
   }
 
@@ -1041,14 +1276,15 @@ class ChannelContactCard extends DataClass
 
   /// Type of the contact card.
   final ContactCardType cardType;
-  const ChannelContactCard(
-      {required this.id,
-      required this.channelId,
-      required this.did,
-      required this.type,
-      required this.contactInfoJson,
-      this.profilePic,
-      required this.cardType});
+  const ChannelContactCard({
+    required this.id,
+    required this.channelId,
+    required this.did,
+    required this.type,
+    required this.contactInfoJson,
+    this.profilePic,
+    required this.cardType,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1062,7 +1298,8 @@ class ChannelContactCard extends DataClass
     }
     {
       map['card_type'] = Variable<int>(
-          $ChannelContactCardsTable.$convertercardType.toSql(cardType));
+        $ChannelContactCardsTable.$convertercardType.toSql(cardType),
+      );
     }
     return map;
   }
@@ -1081,8 +1318,10 @@ class ChannelContactCard extends DataClass
     );
   }
 
-  factory ChannelContactCard.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory ChannelContactCard.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ChannelContactCard(
       id: serializer.fromJson<int>(json['id']),
@@ -1108,23 +1347,23 @@ class ChannelContactCard extends DataClass
     };
   }
 
-  ChannelContactCard copyWith(
-          {int? id,
-          String? channelId,
-          String? did,
-          String? type,
-          String? contactInfoJson,
-          Value<String?> profilePic = const Value.absent(),
-          ContactCardType? cardType}) =>
-      ChannelContactCard(
-        id: id ?? this.id,
-        channelId: channelId ?? this.channelId,
-        did: did ?? this.did,
-        type: type ?? this.type,
-        contactInfoJson: contactInfoJson ?? this.contactInfoJson,
-        profilePic: profilePic.present ? profilePic.value : this.profilePic,
-        cardType: cardType ?? this.cardType,
-      );
+  ChannelContactCard copyWith({
+    int? id,
+    String? channelId,
+    String? did,
+    String? type,
+    String? contactInfoJson,
+    Value<String?> profilePic = const Value.absent(),
+    ContactCardType? cardType,
+  }) => ChannelContactCard(
+    id: id ?? this.id,
+    channelId: channelId ?? this.channelId,
+    did: did ?? this.did,
+    type: type ?? this.type,
+    contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+    profilePic: profilePic.present ? profilePic.value : this.profilePic,
+    cardType: cardType ?? this.cardType,
+  );
   ChannelContactCard copyWithCompanion(ChannelContactCardsCompanion data) {
     return ChannelContactCard(
       id: data.id.present ? data.id.value : this.id,
@@ -1134,8 +1373,9 @@ class ChannelContactCard extends DataClass
       contactInfoJson: data.contactInfoJson.present
           ? data.contactInfoJson.value
           : this.contactInfoJson,
-      profilePic:
-          data.profilePic.present ? data.profilePic.value : this.profilePic,
+      profilePic: data.profilePic.present
+          ? data.profilePic.value
+          : this.profilePic,
       cardType: data.cardType.present ? data.cardType.value : this.cardType,
     );
   }
@@ -1156,7 +1396,14 @@ class ChannelContactCard extends DataClass
 
   @override
   int get hashCode => Object.hash(
-      id, channelId, did, type, contactInfoJson, profilePic, cardType);
+    id,
+    channelId,
+    did,
+    type,
+    contactInfoJson,
+    profilePic,
+    cardType,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1195,10 +1442,10 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     this.contactInfoJson = const Value.absent(),
     this.profilePic = const Value.absent(),
     required ContactCardType cardType,
-  })  : channelId = Value(channelId),
-        did = Value(did),
-        type = Value(type),
-        cardType = Value(cardType);
+  }) : channelId = Value(channelId),
+       did = Value(did),
+       type = Value(type),
+       cardType = Value(cardType);
   static Insertable<ChannelContactCard> custom({
     Expression<int>? id,
     Expression<String>? channelId,
@@ -1219,14 +1466,15 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     });
   }
 
-  ChannelContactCardsCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? channelId,
-      Value<String>? did,
-      Value<String>? type,
-      Value<String>? contactInfoJson,
-      Value<String?>? profilePic,
-      Value<ContactCardType>? cardType}) {
+  ChannelContactCardsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? channelId,
+    Value<String>? did,
+    Value<String>? type,
+    Value<String>? contactInfoJson,
+    Value<String?>? profilePic,
+    Value<ContactCardType>? cardType,
+  }) {
     return ChannelContactCardsCompanion(
       id: id ?? this.id,
       channelId: channelId ?? this.channelId,
@@ -1261,7 +1509,8 @@ class ChannelContactCardsCompanion extends UpdateCompanion<ChannelContactCard> {
     }
     if (cardType.present) {
       map['card_type'] = Variable<int>(
-          $ChannelContactCardsTable.$convertercardType.toSql(cardType.value));
+        $ChannelContactCardsTable.$convertercardType.toSql(cardType.value),
+      );
     }
     return map;
   }
@@ -1287,90 +1536,104 @@ abstract class _$ChannelDatabase extends GeneratedDatabase {
   late final $ChannelsTable channels = $ChannelsTable(this);
   late final $ChannelContactCardsTable channelContactCards =
       $ChannelContactCardsTable(this);
-  late final Index offerLink =
-      Index('offer_link', 'CREATE INDEX offer_link ON channels (offer_link)');
+  late final Index offerLink = Index(
+    'offer_link',
+    'CREATE INDEX offer_link ON channels (offer_link)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [channels, channelContactCards, offerLink];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    channels,
+    channelContactCards,
+    offerLink,
+  ];
   @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
-        [
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('channels',
-                limitUpdateKind: UpdateKind.delete),
-            result: [
-              TableUpdate('channel_contact_cards', kind: UpdateKind.delete),
-            ],
-          ),
-        ],
-      );
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'channels',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('channel_contact_cards', kind: UpdateKind.delete)],
+    ),
+  ]);
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$ChannelsTableCreateCompanionBuilder = ChannelsCompanion Function({
-  Value<String> id,
-  required String publishOfferDid,
-  required String mediatorDid,
-  required String offerLink,
-  required ChannelStatus status,
-  required ChannelType type,
-  Value<bool> isConnectionInitiator,
-  Value<String?> outboundMessageId,
-  Value<String?> acceptOfferDid,
-  Value<String?> permanentChannelDid,
-  Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> notificationToken,
-  Value<String?> otherPartyNotificationToken,
-  Value<String?> externalRef,
-  required int seqNo,
-  Value<DateTime?> messageSyncMarker,
-  Value<int> rowid,
-});
-typedef $$ChannelsTableUpdateCompanionBuilder = ChannelsCompanion Function({
-  Value<String> id,
-  Value<String> publishOfferDid,
-  Value<String> mediatorDid,
-  Value<String> offerLink,
-  Value<ChannelStatus> status,
-  Value<ChannelType> type,
-  Value<bool> isConnectionInitiator,
-  Value<String?> outboundMessageId,
-  Value<String?> acceptOfferDid,
-  Value<String?> permanentChannelDid,
-  Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> notificationToken,
-  Value<String?> otherPartyNotificationToken,
-  Value<String?> externalRef,
-  Value<int> seqNo,
-  Value<DateTime?> messageSyncMarker,
-  Value<int> rowid,
-});
+typedef $$ChannelsTableCreateCompanionBuilder =
+    ChannelsCompanion Function({
+      Value<String> id,
+      required String publishOfferDid,
+      required String mediatorDid,
+      required String offerLink,
+      required ChannelStatus status,
+      required ChannelType type,
+      Value<bool> isConnectionInitiator,
+      Value<String?> outboundMessageId,
+      Value<String?> acceptOfferDid,
+      Value<String?> permanentChannelDid,
+      Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> notificationToken,
+      Value<String?> otherPartyNotificationToken,
+      Value<String?> externalRef,
+      required int seqNo,
+      Value<DateTime?> messageSyncMarker,
+      Value<int> rowid,
+    });
+typedef $$ChannelsTableUpdateCompanionBuilder =
+    ChannelsCompanion Function({
+      Value<String> id,
+      Value<String> publishOfferDid,
+      Value<String> mediatorDid,
+      Value<String> offerLink,
+      Value<ChannelStatus> status,
+      Value<ChannelType> type,
+      Value<bool> isConnectionInitiator,
+      Value<String?> outboundMessageId,
+      Value<String?> acceptOfferDid,
+      Value<String?> permanentChannelDid,
+      Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> notificationToken,
+      Value<String?> otherPartyNotificationToken,
+      Value<String?> externalRef,
+      Value<int> seqNo,
+      Value<DateTime?> messageSyncMarker,
+      Value<int> rowid,
+    });
 
 final class $$ChannelsTableReferences
     extends BaseReferences<_$ChannelDatabase, $ChannelsTable, Channel> {
   $$ChannelsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$ChannelContactCardsTable,
-      List<ChannelContactCard>> _channelContactCardsRefsTable(
-          _$ChannelDatabase db) =>
-      MultiTypedResultKey.fromTable(db.channelContactCards,
-          aliasName: $_aliasNameGenerator(
-              db.channels.id, db.channelContactCards.channelId));
+  static MultiTypedResultKey<
+    $ChannelContactCardsTable,
+    List<ChannelContactCard>
+  >
+  _channelContactCardsRefsTable(_$ChannelDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.channelContactCards,
+        aliasName: $_aliasNameGenerator(
+          db.channels.id,
+          db.channelContactCards.channelId,
+        ),
+      );
 
   $$ChannelContactCardsTableProcessedTableManager get channelContactCardsRefs {
     final manager = $$ChannelContactCardsTableTableManager(
-            $_db, $_db.channelContactCards)
-        .filter((f) => f.channelId.id.sqlEquals($_itemColumn<String>('id')!));
+      $_db,
+      $_db.channelContactCards,
+    ).filter((f) => f.channelId.id.sqlEquals($_itemColumn<String>('id')!));
 
-    final cache =
-        $_typedResult.readTableOrNull(_channelContactCardsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(
+      _channelContactCardsRefsTable($_db),
+    );
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
+      manager.$state.copyWith(prefetchedData: cache),
+    );
   }
 }
 
@@ -1384,84 +1647,109 @@ class $$ChannelsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get publishOfferDid => $composableBuilder(
-      column: $table.publishOfferDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.publishOfferDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get mediatorDid => $composableBuilder(
-      column: $table.mediatorDid, builder: (column) => ColumnFilters(column));
+    column: $table.mediatorDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get offerLink => $composableBuilder(
-      column: $table.offerLink, builder: (column) => ColumnFilters(column));
+    column: $table.offerLink,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<ChannelStatus, ChannelStatus, int>
-      get status => $composableBuilder(
-          column: $table.status,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<ChannelType, ChannelType, int> get type =>
       $composableBuilder(
-          column: $table.type,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+        column: $table.type,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   ColumnFilters<bool> get isConnectionInitiator => $composableBuilder(
-      column: $table.isConnectionInitiator,
-      builder: (column) => ColumnFilters(column));
+    column: $table.isConnectionInitiator,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get outboundMessageId => $composableBuilder(
-      column: $table.outboundMessageId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.outboundMessageId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get acceptOfferDid => $composableBuilder(
-      column: $table.acceptOfferDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.acceptOfferDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.permanentChannelDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get otherPartyPermanentChannelDid => $composableBuilder(
-      column: $table.otherPartyPermanentChannelDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.otherPartyPermanentChannelDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get notificationToken => $composableBuilder(
-      column: $table.notificationToken,
-      builder: (column) => ColumnFilters(column));
+    column: $table.notificationToken,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get otherPartyNotificationToken => $composableBuilder(
-      column: $table.otherPartyNotificationToken,
-      builder: (column) => ColumnFilters(column));
+    column: $table.otherPartyNotificationToken,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get externalRef => $composableBuilder(
-      column: $table.externalRef, builder: (column) => ColumnFilters(column));
+    column: $table.externalRef,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get seqNo => $composableBuilder(
-      column: $table.seqNo, builder: (column) => ColumnFilters(column));
+    column: $table.seqNo,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get messageSyncMarker => $composableBuilder(
-      column: $table.messageSyncMarker,
-      builder: (column) => ColumnFilters(column));
+    column: $table.messageSyncMarker,
+    builder: (column) => ColumnFilters(column),
+  );
 
   Expression<bool> channelContactCardsRefs(
-      Expression<bool> Function($$ChannelContactCardsTableFilterComposer f) f) {
+    Expression<bool> Function($$ChannelContactCardsTableFilterComposer f) f,
+  ) {
     final $$ChannelContactCardsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.id,
-        referencedTable: $db.channelContactCards,
-        getReferencedColumn: (t) => t.channelId,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ChannelContactCardsTableFilterComposer(
-              $db: $db,
-              $table: $db.channelContactCards,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.channelContactCards,
+      getReferencedColumn: (t) => t.channelId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChannelContactCardsTableFilterComposer(
+            $db: $db,
+            $table: $db.channelContactCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return f(composer);
   }
 }
@@ -1476,62 +1764,85 @@ class $$ChannelsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get publishOfferDid => $composableBuilder(
-      column: $table.publishOfferDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.publishOfferDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get mediatorDid => $composableBuilder(
-      column: $table.mediatorDid, builder: (column) => ColumnOrderings(column));
+    column: $table.mediatorDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get offerLink => $composableBuilder(
-      column: $table.offerLink, builder: (column) => ColumnOrderings(column));
+    column: $table.offerLink,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get status => $composableBuilder(
-      column: $table.status, builder: (column) => ColumnOrderings(column));
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<bool> get isConnectionInitiator => $composableBuilder(
-      column: $table.isConnectionInitiator,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.isConnectionInitiator,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get outboundMessageId => $composableBuilder(
-      column: $table.outboundMessageId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.outboundMessageId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get acceptOfferDid => $composableBuilder(
-      column: $table.acceptOfferDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.acceptOfferDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.permanentChannelDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get otherPartyPermanentChannelDid =>
       $composableBuilder(
-          column: $table.otherPartyPermanentChannelDid,
-          builder: (column) => ColumnOrderings(column));
+        column: $table.otherPartyPermanentChannelDid,
+        builder: (column) => ColumnOrderings(column),
+      );
 
   ColumnOrderings<String> get notificationToken => $composableBuilder(
-      column: $table.notificationToken,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.notificationToken,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get otherPartyNotificationToken => $composableBuilder(
-      column: $table.otherPartyNotificationToken,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.otherPartyNotificationToken,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get externalRef => $composableBuilder(
-      column: $table.externalRef, builder: (column) => ColumnOrderings(column));
+    column: $table.externalRef,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get seqNo => $composableBuilder(
-      column: $table.seqNo, builder: (column) => ColumnOrderings(column));
+    column: $table.seqNo,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get messageSyncMarker => $composableBuilder(
-      column: $table.messageSyncMarker,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.messageSyncMarker,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChannelsTableAnnotationComposer
@@ -1547,10 +1858,14 @@ class $$ChannelsTableAnnotationComposer
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get publishOfferDid => $composableBuilder(
-      column: $table.publishOfferDid, builder: (column) => column);
+    column: $table.publishOfferDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get mediatorDid => $composableBuilder(
-      column: $table.mediatorDid, builder: (column) => column);
+    column: $table.mediatorDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get offerLink =>
       $composableBuilder(column: $table.offerLink, builder: (column) => column);
@@ -1562,75 +1877,99 @@ class $$ChannelsTableAnnotationComposer
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<bool> get isConnectionInitiator => $composableBuilder(
-      column: $table.isConnectionInitiator, builder: (column) => column);
+    column: $table.isConnectionInitiator,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get outboundMessageId => $composableBuilder(
-      column: $table.outboundMessageId, builder: (column) => column);
+    column: $table.outboundMessageId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get acceptOfferDid => $composableBuilder(
-      column: $table.acceptOfferDid, builder: (column) => column);
+    column: $table.acceptOfferDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid, builder: (column) => column);
+    column: $table.permanentChannelDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get otherPartyPermanentChannelDid =>
       $composableBuilder(
-          column: $table.otherPartyPermanentChannelDid,
-          builder: (column) => column);
+        column: $table.otherPartyPermanentChannelDid,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<String> get notificationToken => $composableBuilder(
-      column: $table.notificationToken, builder: (column) => column);
+    column: $table.notificationToken,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get otherPartyNotificationToken => $composableBuilder(
-      column: $table.otherPartyNotificationToken, builder: (column) => column);
+    column: $table.otherPartyNotificationToken,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get externalRef => $composableBuilder(
-      column: $table.externalRef, builder: (column) => column);
+    column: $table.externalRef,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get seqNo =>
       $composableBuilder(column: $table.seqNo, builder: (column) => column);
 
   GeneratedColumn<DateTime> get messageSyncMarker => $composableBuilder(
-      column: $table.messageSyncMarker, builder: (column) => column);
+    column: $table.messageSyncMarker,
+    builder: (column) => column,
+  );
 
   Expression<T> channelContactCardsRefs<T extends Object>(
-      Expression<T> Function($$ChannelContactCardsTableAnnotationComposer a)
-          f) {
+    Expression<T> Function($$ChannelContactCardsTableAnnotationComposer a) f,
+  ) {
     final $$ChannelContactCardsTableAnnotationComposer composer =
         $composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $db.channelContactCards,
-            getReferencedColumn: (t) => t.channelId,
-            builder: (joinBuilder,
-                    {$addJoinBuilderToRootComposer,
-                    $removeJoinBuilderFromRootComposer}) =>
-                $$ChannelContactCardsTableAnnotationComposer(
-                  $db: $db,
-                  $table: $db.channelContactCards,
-                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                  joinBuilder: joinBuilder,
-                  $removeJoinBuilderFromRootComposer:
-                      $removeJoinBuilderFromRootComposer,
-                ));
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.channelContactCards,
+          getReferencedColumn: (t) => t.channelId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ChannelContactCardsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.channelContactCards,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
 
-class $$ChannelsTableTableManager extends RootTableManager<
-    _$ChannelDatabase,
-    $ChannelsTable,
-    Channel,
-    $$ChannelsTableFilterComposer,
-    $$ChannelsTableOrderingComposer,
-    $$ChannelsTableAnnotationComposer,
-    $$ChannelsTableCreateCompanionBuilder,
-    $$ChannelsTableUpdateCompanionBuilder,
-    (Channel, $$ChannelsTableReferences),
-    Channel,
-    PrefetchHooks Function({bool channelContactCardsRefs})> {
+class $$ChannelsTableTableManager
+    extends
+        RootTableManager<
+          _$ChannelDatabase,
+          $ChannelsTable,
+          Channel,
+          $$ChannelsTableFilterComposer,
+          $$ChannelsTableOrderingComposer,
+          $$ChannelsTableAnnotationComposer,
+          $$ChannelsTableCreateCompanionBuilder,
+          $$ChannelsTableUpdateCompanionBuilder,
+          (Channel, $$ChannelsTableReferences),
+          Channel,
+          PrefetchHooks Function({bool channelContactCardsRefs})
+        > {
   $$ChannelsTableTableManager(_$ChannelDatabase db, $ChannelsTable table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -1639,166 +1978,194 @@ class $$ChannelsTableTableManager extends RootTableManager<
               $$ChannelsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$ChannelsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> publishOfferDid = const Value.absent(),
-            Value<String> mediatorDid = const Value.absent(),
-            Value<String> offerLink = const Value.absent(),
-            Value<ChannelStatus> status = const Value.absent(),
-            Value<ChannelType> type = const Value.absent(),
-            Value<bool> isConnectionInitiator = const Value.absent(),
-            Value<String?> outboundMessageId = const Value.absent(),
-            Value<String?> acceptOfferDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
-            Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> notificationToken = const Value.absent(),
-            Value<String?> otherPartyNotificationToken = const Value.absent(),
-            Value<String?> externalRef = const Value.absent(),
-            Value<int> seqNo = const Value.absent(),
-            Value<DateTime?> messageSyncMarker = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ChannelsCompanion(
-            id: id,
-            publishOfferDid: publishOfferDid,
-            mediatorDid: mediatorDid,
-            offerLink: offerLink,
-            status: status,
-            type: type,
-            isConnectionInitiator: isConnectionInitiator,
-            outboundMessageId: outboundMessageId,
-            acceptOfferDid: acceptOfferDid,
-            permanentChannelDid: permanentChannelDid,
-            otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-            otherPartyNotificationToken: otherPartyNotificationToken,
-            externalRef: externalRef,
-            seqNo: seqNo,
-            messageSyncMarker: messageSyncMarker,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            required String publishOfferDid,
-            required String mediatorDid,
-            required String offerLink,
-            required ChannelStatus status,
-            required ChannelType type,
-            Value<bool> isConnectionInitiator = const Value.absent(),
-            Value<String?> outboundMessageId = const Value.absent(),
-            Value<String?> acceptOfferDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
-            Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> notificationToken = const Value.absent(),
-            Value<String?> otherPartyNotificationToken = const Value.absent(),
-            Value<String?> externalRef = const Value.absent(),
-            required int seqNo,
-            Value<DateTime?> messageSyncMarker = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ChannelsCompanion.insert(
-            id: id,
-            publishOfferDid: publishOfferDid,
-            mediatorDid: mediatorDid,
-            offerLink: offerLink,
-            status: status,
-            type: type,
-            isConnectionInitiator: isConnectionInitiator,
-            outboundMessageId: outboundMessageId,
-            acceptOfferDid: acceptOfferDid,
-            permanentChannelDid: permanentChannelDid,
-            otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-            otherPartyNotificationToken: otherPartyNotificationToken,
-            externalRef: externalRef,
-            seqNo: seqNo,
-            messageSyncMarker: messageSyncMarker,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> publishOfferDid = const Value.absent(),
+                Value<String> mediatorDid = const Value.absent(),
+                Value<String> offerLink = const Value.absent(),
+                Value<ChannelStatus> status = const Value.absent(),
+                Value<ChannelType> type = const Value.absent(),
+                Value<bool> isConnectionInitiator = const Value.absent(),
+                Value<String?> outboundMessageId = const Value.absent(),
+                Value<String?> acceptOfferDid = const Value.absent(),
+                Value<String?> permanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyPermanentChannelDid =
+                    const Value.absent(),
+                Value<String?> notificationToken = const Value.absent(),
+                Value<String?> otherPartyNotificationToken =
+                    const Value.absent(),
+                Value<String?> externalRef = const Value.absent(),
+                Value<int> seqNo = const Value.absent(),
+                Value<DateTime?> messageSyncMarker = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChannelsCompanion(
+                id: id,
+                publishOfferDid: publishOfferDid,
+                mediatorDid: mediatorDid,
+                offerLink: offerLink,
+                status: status,
+                type: type,
+                isConnectionInitiator: isConnectionInitiator,
+                outboundMessageId: outboundMessageId,
+                acceptOfferDid: acceptOfferDid,
+                permanentChannelDid: permanentChannelDid,
+                otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                notificationToken: notificationToken,
+                otherPartyNotificationToken: otherPartyNotificationToken,
+                externalRef: externalRef,
+                seqNo: seqNo,
+                messageSyncMarker: messageSyncMarker,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String publishOfferDid,
+                required String mediatorDid,
+                required String offerLink,
+                required ChannelStatus status,
+                required ChannelType type,
+                Value<bool> isConnectionInitiator = const Value.absent(),
+                Value<String?> outboundMessageId = const Value.absent(),
+                Value<String?> acceptOfferDid = const Value.absent(),
+                Value<String?> permanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyPermanentChannelDid =
+                    const Value.absent(),
+                Value<String?> notificationToken = const Value.absent(),
+                Value<String?> otherPartyNotificationToken =
+                    const Value.absent(),
+                Value<String?> externalRef = const Value.absent(),
+                required int seqNo,
+                Value<DateTime?> messageSyncMarker = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChannelsCompanion.insert(
+                id: id,
+                publishOfferDid: publishOfferDid,
+                mediatorDid: mediatorDid,
+                offerLink: offerLink,
+                status: status,
+                type: type,
+                isConnectionInitiator: isConnectionInitiator,
+                outboundMessageId: outboundMessageId,
+                acceptOfferDid: acceptOfferDid,
+                permanentChannelDid: permanentChannelDid,
+                otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                notificationToken: notificationToken,
+                otherPartyNotificationToken: otherPartyNotificationToken,
+                externalRef: externalRef,
+                seqNo: seqNo,
+                messageSyncMarker: messageSyncMarker,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$ChannelsTableReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ChannelsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({channelContactCardsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (channelContactCardsRefs) db.channelContactCards
+                if (channelContactCardsRefs) db.channelContactCards,
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (channelContactCardsRefs)
-                    await $_getPrefetchedData<Channel, $ChannelsTable,
-                            ChannelContactCard>(
-                        currentTable: table,
-                        referencedTable: $$ChannelsTableReferences
-                            ._channelContactCardsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$ChannelsTableReferences(db, table, p0)
-                                .channelContactCardsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.channelId == item.id),
-                        typedResults: items)
+                    await $_getPrefetchedData<
+                      Channel,
+                      $ChannelsTable,
+                      ChannelContactCard
+                    >(
+                      currentTable: table,
+                      referencedTable: $$ChannelsTableReferences
+                          ._channelContactCardsRefsTable(db),
+                      managerFromTypedResult: (p0) => $$ChannelsTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).channelContactCardsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.channelId == item.id),
+                      typedResults: items,
+                    ),
                 ];
               },
             );
           },
-        ));
+        ),
+      );
 }
 
-typedef $$ChannelsTableProcessedTableManager = ProcessedTableManager<
-    _$ChannelDatabase,
-    $ChannelsTable,
-    Channel,
-    $$ChannelsTableFilterComposer,
-    $$ChannelsTableOrderingComposer,
-    $$ChannelsTableAnnotationComposer,
-    $$ChannelsTableCreateCompanionBuilder,
-    $$ChannelsTableUpdateCompanionBuilder,
-    (Channel, $$ChannelsTableReferences),
-    Channel,
-    PrefetchHooks Function({bool channelContactCardsRefs})>;
-typedef $$ChannelContactCardsTableCreateCompanionBuilder
-    = ChannelContactCardsCompanion Function({
-  Value<int> id,
-  required String channelId,
-  required String did,
-  required String type,
-  Value<String> contactInfoJson,
-  Value<String?> profilePic,
-  required ContactCardType cardType,
-});
-typedef $$ChannelContactCardsTableUpdateCompanionBuilder
-    = ChannelContactCardsCompanion Function({
-  Value<int> id,
-  Value<String> channelId,
-  Value<String> did,
-  Value<String> type,
-  Value<String> contactInfoJson,
-  Value<String?> profilePic,
-  Value<ContactCardType> cardType,
-});
+typedef $$ChannelsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ChannelDatabase,
+      $ChannelsTable,
+      Channel,
+      $$ChannelsTableFilterComposer,
+      $$ChannelsTableOrderingComposer,
+      $$ChannelsTableAnnotationComposer,
+      $$ChannelsTableCreateCompanionBuilder,
+      $$ChannelsTableUpdateCompanionBuilder,
+      (Channel, $$ChannelsTableReferences),
+      Channel,
+      PrefetchHooks Function({bool channelContactCardsRefs})
+    >;
+typedef $$ChannelContactCardsTableCreateCompanionBuilder =
+    ChannelContactCardsCompanion Function({
+      Value<int> id,
+      required String channelId,
+      required String did,
+      required String type,
+      Value<String> contactInfoJson,
+      Value<String?> profilePic,
+      required ContactCardType cardType,
+    });
+typedef $$ChannelContactCardsTableUpdateCompanionBuilder =
+    ChannelContactCardsCompanion Function({
+      Value<int> id,
+      Value<String> channelId,
+      Value<String> did,
+      Value<String> type,
+      Value<String> contactInfoJson,
+      Value<String?> profilePic,
+      Value<ContactCardType> cardType,
+    });
 
-final class $$ChannelContactCardsTableReferences extends BaseReferences<
-    _$ChannelDatabase, $ChannelContactCardsTable, ChannelContactCard> {
+final class $$ChannelContactCardsTableReferences
+    extends
+        BaseReferences<
+          _$ChannelDatabase,
+          $ChannelContactCardsTable,
+          ChannelContactCard
+        > {
   $$ChannelContactCardsTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
 
   static $ChannelsTable _channelIdTable(_$ChannelDatabase db) =>
-      db.channels.createAlias($_aliasNameGenerator(
-          db.channelContactCards.channelId, db.channels.id));
+      db.channels.createAlias(
+        $_aliasNameGenerator(db.channelContactCards.channelId, db.channels.id),
+      );
 
   $$ChannelsTableProcessedTableManager get channelId {
     final $_column = $_itemColumn<String>('channel_id')!;
 
-    final manager = $$ChannelsTableTableManager($_db, $_db.channels)
-        .filter((f) => f.id.sqlEquals($_column));
+    final manager = $$ChannelsTableTableManager(
+      $_db,
+      $_db.channels,
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_channelIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
   }
 }
 
@@ -1812,43 +2179,56 @@ class $$ChannelContactCardsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get did => $composableBuilder(
-      column: $table.did, builder: (column) => ColumnFilters(column));
+    column: $table.did,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnFilters(column));
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson,
-      builder: (column) => ColumnFilters(column));
+    column: $table.contactInfoJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => ColumnFilters(column));
+    column: $table.profilePic,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<ContactCardType, ContactCardType, int>
-      get cardType => $composableBuilder(
-          column: $table.cardType,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  get cardType => $composableBuilder(
+    column: $table.cardType,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 
   $$ChannelsTableFilterComposer get channelId {
     final $$ChannelsTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.channelId,
-        referencedTable: $db.channels,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ChannelsTableFilterComposer(
-              $db: $db,
-              $table: $db.channels,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.channelId,
+      referencedTable: $db.channels,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChannelsTableFilterComposer(
+            $db: $db,
+            $table: $db.channels,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -1863,41 +2243,55 @@ class $$ChannelContactCardsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get did => $composableBuilder(
-      column: $table.did, builder: (column) => ColumnOrderings(column));
+    column: $table.did,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.contactInfoJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => ColumnOrderings(column));
+    column: $table.profilePic,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get cardType => $composableBuilder(
-      column: $table.cardType, builder: (column) => ColumnOrderings(column));
+    column: $table.cardType,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   $$ChannelsTableOrderingComposer get channelId {
     final $$ChannelsTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.channelId,
-        referencedTable: $db.channels,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ChannelsTableOrderingComposer(
-              $db: $db,
-              $table: $db.channels,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.channelId,
+      referencedTable: $db.channels,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChannelsTableOrderingComposer(
+            $db: $db,
+            $table: $db.channels,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -1921,108 +2315,127 @@ class $$ChannelContactCardsTableAnnotationComposer
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson, builder: (column) => column);
+    column: $table.contactInfoJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => column);
+    column: $table.profilePic,
+    builder: (column) => column,
+  );
 
   GeneratedColumnWithTypeConverter<ContactCardType, int> get cardType =>
       $composableBuilder(column: $table.cardType, builder: (column) => column);
 
   $$ChannelsTableAnnotationComposer get channelId {
     final $$ChannelsTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.channelId,
-        referencedTable: $db.channels,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ChannelsTableAnnotationComposer(
-              $db: $db,
-              $table: $db.channels,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.channelId,
+      referencedTable: $db.channels,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ChannelsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.channels,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
 
-class $$ChannelContactCardsTableTableManager extends RootTableManager<
-    _$ChannelDatabase,
-    $ChannelContactCardsTable,
-    ChannelContactCard,
-    $$ChannelContactCardsTableFilterComposer,
-    $$ChannelContactCardsTableOrderingComposer,
-    $$ChannelContactCardsTableAnnotationComposer,
-    $$ChannelContactCardsTableCreateCompanionBuilder,
-    $$ChannelContactCardsTableUpdateCompanionBuilder,
-    (ChannelContactCard, $$ChannelContactCardsTableReferences),
-    ChannelContactCard,
-    PrefetchHooks Function({bool channelId})> {
+class $$ChannelContactCardsTableTableManager
+    extends
+        RootTableManager<
+          _$ChannelDatabase,
+          $ChannelContactCardsTable,
+          ChannelContactCard,
+          $$ChannelContactCardsTableFilterComposer,
+          $$ChannelContactCardsTableOrderingComposer,
+          $$ChannelContactCardsTableAnnotationComposer,
+          $$ChannelContactCardsTableCreateCompanionBuilder,
+          $$ChannelContactCardsTableUpdateCompanionBuilder,
+          (ChannelContactCard, $$ChannelContactCardsTableReferences),
+          ChannelContactCard,
+          PrefetchHooks Function({bool channelId})
+        > {
   $$ChannelContactCardsTableTableManager(
-      _$ChannelDatabase db, $ChannelContactCardsTable table)
-      : super(TableManagerState(
+    _$ChannelDatabase db,
+    $ChannelContactCardsTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$ChannelContactCardsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
               $$ChannelContactCardsTableOrderingComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
               $$ChannelContactCardsTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> channelId = const Value.absent(),
-            Value<String> did = const Value.absent(),
-            Value<String> type = const Value.absent(),
-            Value<String> contactInfoJson = const Value.absent(),
-            Value<String?> profilePic = const Value.absent(),
-            Value<ContactCardType> cardType = const Value.absent(),
-          }) =>
-              ChannelContactCardsCompanion(
-            id: id,
-            channelId: channelId,
-            did: did,
-            type: type,
-            contactInfoJson: contactInfoJson,
-            profilePic: profilePic,
-            cardType: cardType,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String channelId,
-            required String did,
-            required String type,
-            Value<String> contactInfoJson = const Value.absent(),
-            Value<String?> profilePic = const Value.absent(),
-            required ContactCardType cardType,
-          }) =>
-              ChannelContactCardsCompanion.insert(
-            id: id,
-            channelId: channelId,
-            did: did,
-            type: type,
-            contactInfoJson: contactInfoJson,
-            profilePic: profilePic,
-            cardType: cardType,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> channelId = const Value.absent(),
+                Value<String> did = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> contactInfoJson = const Value.absent(),
+                Value<String?> profilePic = const Value.absent(),
+                Value<ContactCardType> cardType = const Value.absent(),
+              }) => ChannelContactCardsCompanion(
+                id: id,
+                channelId: channelId,
+                did: did,
+                type: type,
+                contactInfoJson: contactInfoJson,
+                profilePic: profilePic,
+                cardType: cardType,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String channelId,
+                required String did,
+                required String type,
+                Value<String> contactInfoJson = const Value.absent(),
+                Value<String?> profilePic = const Value.absent(),
+                required ContactCardType cardType,
+              }) => ChannelContactCardsCompanion.insert(
+                id: id,
+                channelId: channelId,
+                did: did,
+                type: type,
+                contactInfoJson: contactInfoJson,
+                profilePic: profilePic,
+                cardType: cardType,
+              ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$ChannelContactCardsTableReferences(db, table, e)
-                  ))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ChannelContactCardsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({channelId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
+              addJoins:
+                  <
+                    T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -2033,41 +2446,50 @@ class $$ChannelContactCardsTableTableManager extends RootTableManager<
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic>>(state) {
-                if (channelId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.channelId,
-                    referencedTable: $$ChannelContactCardsTableReferences
-                        ._channelIdTable(db),
-                    referencedColumn: $$ChannelContactCardsTableReferences
-                        ._channelIdTable(db)
-                        .id,
-                  ) as T;
-                }
+                      dynamic
+                    >
+                  >(state) {
+                    if (channelId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.channelId,
+                                referencedTable:
+                                    $$ChannelContactCardsTableReferences
+                                        ._channelIdTable(db),
+                                referencedColumn:
+                                    $$ChannelContactCardsTableReferences
+                                        ._channelIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
 
-                return state;
-              },
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ));
+        ),
+      );
 }
 
-typedef $$ChannelContactCardsTableProcessedTableManager = ProcessedTableManager<
-    _$ChannelDatabase,
-    $ChannelContactCardsTable,
-    ChannelContactCard,
-    $$ChannelContactCardsTableFilterComposer,
-    $$ChannelContactCardsTableOrderingComposer,
-    $$ChannelContactCardsTableAnnotationComposer,
-    $$ChannelContactCardsTableCreateCompanionBuilder,
-    $$ChannelContactCardsTableUpdateCompanionBuilder,
-    (ChannelContactCard, $$ChannelContactCardsTableReferences),
-    ChannelContactCard,
-    PrefetchHooks Function({bool channelId})>;
+typedef $$ChannelContactCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ChannelDatabase,
+      $ChannelContactCardsTable,
+      ChannelContactCard,
+      $$ChannelContactCardsTableFilterComposer,
+      $$ChannelContactCardsTableOrderingComposer,
+      $$ChannelContactCardsTableAnnotationComposer,
+      $$ChannelContactCardsTableCreateCompanionBuilder,
+      $$ChannelContactCardsTableUpdateCompanionBuilder,
+      (ChannelContactCard, $$ChannelContactCardsTableReferences),
+      ChannelContactCard,
+      PrefetchHooks Function({bool channelId})
+    >;
 
 class $ChannelDatabaseManager {
   final _$ChannelDatabase _db;

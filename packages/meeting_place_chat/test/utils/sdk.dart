@@ -18,9 +18,11 @@ import 'storage/storage.dart';
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
 Uri getMatrixHomeserver() =>
-    Uri.tryParse(Platform.environment['MATRIX_HOMESERVER'] ?? '') ??
-    Uri.tryParse(env['MATRIX_HOMESERVER'] ?? '') ??
-    Uri.parse('https://matrix.example.com');
+    switch (Platform.environment['MATRIX_HOMESERVER'] ??
+    env['MATRIX_HOMESERVER']) {
+      final s? => Uri.parse(s),
+      _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
+    };
 
 Future<Database> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();

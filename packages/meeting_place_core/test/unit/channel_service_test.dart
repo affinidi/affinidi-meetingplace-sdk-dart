@@ -408,6 +408,7 @@ void main() {
           groupChannel,
           notificationToken: 'token',
           otherPartyPermanentChannelDid: 'otherDid',
+          matrixRoomId: '!room:matrix.example.com',
           sequenceNumber: 42,
         );
         verify(() => repository.updateChannel(groupChannel)).called(1);
@@ -428,6 +429,7 @@ void main() {
             notGroupChannel,
             notificationToken: 'token',
             otherPartyPermanentChannelDid: 'otherDid',
+            matrixRoomId: '!room:matrix.example.com',
             sequenceNumber: 42,
           ),
           throwsA(isA<ChannelServiceException>()),
@@ -448,6 +450,7 @@ void main() {
             wrongStatusGroupChannel,
             notificationToken: 'token',
             otherPartyPermanentChannelDid: 'otherDid',
+            matrixRoomId: '!room:matrix.example.com',
             sequenceNumber: 42,
           ),
           throwsA(isA<ChannelServiceException>()),

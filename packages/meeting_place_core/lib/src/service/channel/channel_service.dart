@@ -289,6 +289,7 @@ class ChannelService {
     Channel channel, {
     required String notificationToken,
     required String otherPartyPermanentChannelDid,
+    required String matrixRoomId,
     required int sequenceNumber,
   }) {
     if (!channel.isGroup) {
@@ -307,6 +308,7 @@ class ChannelService {
 
     channel.notificationToken = notificationToken;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.matrixRoomId = matrixRoomId;
     channel.seqNo = sequenceNumber;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);

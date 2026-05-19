@@ -74,10 +74,12 @@ String getMediatorDid() =>
     env['MEDIATOR_DID'] ??
     (throw Exception('MEDIATOR_DID not set in environment'));
 
-Uri getMatrixHomeserver() => switch (env['MATRIX_HOMESERVER']) {
-  final s? => Uri.parse(s),
-  _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
-};
+Uri getMatrixHomeserver() =>
+    switch (Platform.environment['MATRIX_HOMESERVER'] ??
+    env['MATRIX_HOMESERVER']) {
+      final s? => Uri.parse(s),
+      _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
+    };
 
 ChannelRepository initChannelRepository() {
   return ChannelRepositoryImpl(storage: InMemoryStorage());

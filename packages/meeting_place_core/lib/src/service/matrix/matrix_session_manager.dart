@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
 import 'package:matrix/matrix.dart' as matrix;
 
 import 'matrix_auth_exception.dart';
@@ -8,6 +5,7 @@ import 'matrix_client.dart';
 import 'matrix_client_cache.dart';
 import 'matrix_config.dart';
 import 'matrix_service_exception.dart';
+import 'matrix_user_id_binding.dart';
 
 /// Manages the lifecycle of Matrix client sessions for individual DIDs.
 ///
@@ -159,6 +157,6 @@ class MatrixSessionManager {
   ///
   /// Returns: A Matrix user ID derived from the DID and server name.
   String deriveUserId(String did, String serverName) {
-    return '''@${sha256.convert(utf8.encode('$did|$serverName')).toString()}:$serverName''';
+    return deriveMatrixUserId(did, serverName);
   }
 }

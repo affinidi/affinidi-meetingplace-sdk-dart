@@ -93,6 +93,7 @@ class ControlPlaneEventManager {
           wallet: wallet,
           mediatorService: mediatorService,
           controlPlaneSDK: controlPlaneSDK,
+          matrixService: matrixService,
           connectionManager: connectionManager,
           connectionOfferRepository: connectionOfferRepository,
           groupRepository: groupRepository,

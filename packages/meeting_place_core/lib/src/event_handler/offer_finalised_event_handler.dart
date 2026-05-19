@@ -4,7 +4,6 @@ import 'package:ssi/ssi.dart';
 import '../../meeting_place_core.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../service/identity/identity_service.dart';
-import '../service/matrix/matrix_service.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';

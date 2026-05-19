@@ -97,6 +97,16 @@ class MatrixService {
     await client.joinRoom(roomId);
   }
 
+  Future<void> inviteUser(
+    String roomId, {
+    required String did,
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final userId = _sessionManager.deriveUserId(did, homeserver.host);
+    await client.inviteUser(roomId, userId);
+  }
+
   /// Disposes of the session manager, cleaning up resources.
   void dispose() {
     _sessionManager.dispose();

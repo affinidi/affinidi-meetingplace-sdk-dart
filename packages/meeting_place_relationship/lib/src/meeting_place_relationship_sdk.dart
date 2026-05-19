@@ -50,9 +50,12 @@ import 'vrc/vrc_protocol_handler.dart';
 class MeetingPlaceRelationshipSDK {
   /// Creates a `MeetingPlaceRelationshipSDK` backed by the given [coreSDK].
   ///
-  /// - [rCardRepository]: Required repository used to persist every
-  ///   incoming R-Card. Construct one with `RCardRepositoryDrift`
-  ///   from `meeting_place_drift_repository`.
+  /// - [rCardRepository]: Repository used to persist every incoming R-Card.
+  ///   Construct one with `RCardRepositoryDrift` from
+  ///   `meeting_place_drift_repository`.
+  /// - [vrcRepository]: Repository used to persist every received VRC.
+  ///   Construct one with `VrcRepositoryDrift` from
+  ///   `meeting_place_drift_repository`.
   MeetingPlaceRelationshipSDK({
     required MeetingPlaceCoreSDK coreSDK,
     required RCardRepository rCardRepository,

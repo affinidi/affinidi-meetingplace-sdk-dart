@@ -9,7 +9,6 @@ import '../utils/repository/chat_repository_impl.dart';
 import '../utils/repository/connection_group_offer_repository_impl.dart';
 import '../utils/repository/connection_offer_repository_impl.dart';
 import '../utils/repository/key_repository_impl.dart';
-import '../utils/sdk.dart';
 import '../utils/storage/in_memory_storage.dart';
 
 // Captures calls to sendPlainTextMessage for assertion.
@@ -73,7 +72,10 @@ void main() {
       ),
       mediatorDid: mediatorDid,
       controlPlaneDid: 'did:peer:control-plane',
-      matrixConfig: getMatrixConfig(),
+      matrixConfig: MatrixConfig(
+        homeserver: Uri.parse('https://matrix.example.com'),
+        databaseFactory: const UnsupportedMatrixDatabaseFactory(),
+      ),
     );
 
     sdk = _SpyChatSDK(

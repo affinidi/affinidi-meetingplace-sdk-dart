@@ -39,21 +39,20 @@ class RCardSubject {
 
   /// Parses an [RCardSubject] directly from a raw VC blob string.
   ///
-  /// Tries DM v1 first (the format produced by `RCardBuilder`), then falls
-  /// back to DM v2.
+  /// Expects a W3C Data Model v2 credential (the format produced by
+  /// `RCardBuilder`).
   ///
-  /// Throws a [FormatException] if the blob cannot be parsed as either data
-  /// model or does not contain a recognisable jCard.
+  /// Throws a [FormatException] if the blob cannot be parsed as a DM v2
+  /// credential or does not contain a recognisable jCard.
   static RCardSubject fromVcBlob(
     String vcBlob, {
     MeetingPlaceCoreSDKLogger? logger,
   }) {
     final log =
         logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardSubject');
-    final vc =
-        LdVcDm1Suite().tryParse(vcBlob) ?? LdVcDm2Suite().tryParse(vcBlob);
+    final vc = LdVcDm2Suite().tryParse(vcBlob);
     if (vc == null) {
-      const message = 'Could not parse VC from blob as DM v1 or DM v2';
+      const message = 'Could not parse VC from blob as a DM v2 credential';
       log.warning(message);
       throw const FormatException(message);
     }

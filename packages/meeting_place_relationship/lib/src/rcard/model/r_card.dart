@@ -35,9 +35,7 @@ class RCard {
     try {
       final vc = LdVcDm2Suite().tryParse(vcBlob);
       if (vc == null) {
-        log.warning(
-          'Could not parse VC from blob as a DM v1 or DM v2 credential',
-        );
+        log.warning('Could not parse VC from blob as a DM v2 credential');
         return null;
       }
       final rawJson = vc.toJson();

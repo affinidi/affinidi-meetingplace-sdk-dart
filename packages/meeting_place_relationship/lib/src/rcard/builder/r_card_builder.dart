@@ -18,7 +18,7 @@ abstract final class RCardBuilder {
   /// - [subjectDid] — DID of the credential subject.
   /// - [subject] — Contact fields to embed as a jCard.
   /// - [issuerDidManager] — [DidManager] used to sign the credential.
-  static Future<VerifiableCredential> build({
+  static Future<VcDataModelV2> build({
     required String issuerDid,
     required String subjectDid,
     required RCardSubject subject,
@@ -45,6 +45,7 @@ abstract final class RCardBuilder {
       ],
     );
 
-    return CredentialSigner.sign(unsigned, issuerDidManager);
+    return await CredentialSigner.sign(unsigned, issuerDidManager)
+        as VcDataModelV2;
   }
 }

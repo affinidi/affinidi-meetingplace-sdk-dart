@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
-import 'package:meeting_place_relationship/src/rcard/model/r_card_constants.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -62,6 +61,11 @@ void main() {
         subjectDid: 'did:example:holder',
         subject: const RCardSubject(firstName: 'Alice'),
         issuerDidManager: didManager,
+      );
+      expect(
+        vc,
+        isA<VcDataModelV2>(),
+        reason: 'RCardBuilder must produce a DM v2 credential',
       );
 
       final card = RCard.fromVcBlob(

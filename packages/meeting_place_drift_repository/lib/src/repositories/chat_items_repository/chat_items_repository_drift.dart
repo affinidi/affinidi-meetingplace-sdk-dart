@@ -3,7 +3,6 @@ import 'package:meeting_place_chat/meeting_place_chat.dart' as model;
 import 'package:synchronized/synchronized.dart';
 
 import '../../../meeting_place_drift_repository.dart';
-import '../../exceptions/meeting_place_core_repository_error_code.dart';
 import 'chat_items_database.dart' as db;
 
 /// [ChatItemsRepositoryDrift] is a Drift (SQLite)–backed implementation

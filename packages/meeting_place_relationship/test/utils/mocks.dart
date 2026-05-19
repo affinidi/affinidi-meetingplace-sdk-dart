@@ -15,6 +15,8 @@ class MockRCardRepository extends Mock implements RCardRepository {}
 
 class MockVerifiableCredential extends Mock implements VerifiableCredential {}
 
+class FakeVcDataModelV2 extends Fake implements VcDataModelV2 {}
+
 MockMeetingPlaceCoreSDK mockCoreSDKWithAttachmentStream(
   StreamController<(Channel, List<Attachment>)> ctrl,
 ) {

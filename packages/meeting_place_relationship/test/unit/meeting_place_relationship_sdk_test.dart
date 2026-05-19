@@ -24,7 +24,7 @@ void main() {
       ),
     );
     registerFallbackValue(MockChannel());
-    registerFallbackValue(MockVerifiableCredential());
+    registerFallbackValue(FakeVcDataModelV2());
   });
 
   group('MeetingPlaceRelationshipSDK', () {

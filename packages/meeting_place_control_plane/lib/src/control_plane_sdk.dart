@@ -144,6 +144,7 @@ class ControlPlaneSDK {
         maxRetriesDelay: controlPlaneSDKConfig.maxRetriesDelay,
         connectTimeout: controlPlaneSDKConfig.connectTimeout,
         receiveTimeout: controlPlaneSDKConfig.receiveTimeout,
+        idleTimeout: controlPlaneSDKConfig.idleTimeout,
       ),
       didResolver: didResolver,
       logger: _logger,

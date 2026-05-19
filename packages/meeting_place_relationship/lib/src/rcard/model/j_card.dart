@@ -12,10 +12,9 @@ class JCard {
   /// Encodes an [RCardSubject] to an RFC 7095 jCard list structure.
   ///
   /// **Property names are camelCase** (e.g. `firstName`, `profilePic`) rather
-  /// than the RFC 6350 vocabulary names (`n`, `photo`, `url`). This is
-  /// intentional for compatibility with the H2H decoder which uses the same
-  /// camelCase convention. The `version` property is always emitted first as
-  /// required by RFC 7095. Only non-empty fields are included.
+  /// than the RFC 6350 vocabulary names (`n`, `photo`, `url`). The `version`
+  /// property is always emitted first as required by RFC 7095. Only non-empty
+  /// fields are included.
   ///
   /// Output format:
   /// `['vcard', [['version',{},'text','4.0'], ['fn',{},'text','...'], ...]]`.
@@ -47,8 +46,7 @@ class JCard {
   /// Decodes a jCard list into a flat map suitable for [RCardSubject.fromJson].
   ///
   /// Maps standard RFC 6350 property names to [RCardSubject] field names.
-  /// Unknown property names are passed through as-is for backward compatibility
-  /// with older VCs that used camelCase names.
+  /// Non-standard property names are passed through as-is.
   ///
   /// Returns `null` if [card] is not a valid jCard structure.
   static Map<String, dynamic>? decode(dynamic card, String? id) {
@@ -87,7 +85,7 @@ class JCard {
         case 'x-socialprofile':
           result['social'] = _trim(value);
         default:
-          // Backward compat: pass through legacy camelCase property names.
+          // Pass through non-standard property names as-is.
           result[name] = _trim(value);
       }
     }

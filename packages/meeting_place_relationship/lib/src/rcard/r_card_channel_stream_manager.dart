@@ -55,7 +55,7 @@ class RCardChannelStreamManager {
       );
       return;
     }
-    final localChannelDid = channel.permanentChannelDid;
+    final permanentChannelDid = channel.permanentChannelDid;
     for (final attachment in attachments) {
       final vcBlob = _extractVcBlob(attachment);
       if (vcBlob == null) continue;
@@ -64,8 +64,8 @@ class RCardChannelStreamManager {
         otherPartyPermanentChannelDid: contactChannelDid,
       );
       if (rCard != null) {
-        yield (localChannelDid != null && localChannelDid.isNotEmpty)
-            ? rCard.copyWith(permanentChannelDid: localChannelDid)
+        yield (permanentChannelDid != null && permanentChannelDid.isNotEmpty)
+            ? rCard.copyWith(permanentChannelDid: permanentChannelDid)
             : rCard;
       }
     }

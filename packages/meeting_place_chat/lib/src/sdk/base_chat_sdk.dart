@@ -311,7 +311,7 @@ abstract class BaseChatSDK {
     final messagesFromMediator = await coreSDK.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      deleteOnRetrieve: false,
+      deleteOnRetrieve: true,
       deleteFailedMessages: true,
     );
     final newMessages = <Message>[];

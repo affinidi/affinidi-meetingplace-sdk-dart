@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart'
     as model;
@@ -21,9 +19,9 @@ class RCardRepositoryDrift implements model.RCardRepository {
 
   /// Inserts or updates [rCard], keyed on [model.RCard.subjectDid].
   ///
-  /// A canonical JSON comparison is used to detect no-op updates so that
-  /// [model.RCard.version] is only incremented when the VC content
-  /// actually changes.
+  /// The [model.RCard.vcBlob] is compared directly; canonicalisation is
+  /// applied upstream when the [model.RCard] is constructed, so a plain
+  /// string comparison is sufficient to detect no-op updates.
   @override
   Future<void> upsert(model.RCard rCard) async {
     await _database.transaction(() async {
@@ -31,9 +29,7 @@ class RCardRepositoryDrift implements model.RCardRepository {
             ..where((t) => t.subjectDid.equals(rCard.subjectDid)))
           .getSingleOrNull();
 
-      final canonical = _canonical(rCard.vcBlob);
-
-      if (existing != null && _canonical(existing.vcBlob) == canonical) {
+      if (existing != null && existing.vcBlob == rCard.vcBlob) {
         // Content unchanged — skip write.
         return;
       }
@@ -49,8 +45,9 @@ class RCardRepositoryDrift implements model.RCardRepository {
               issuanceDate: Value(rCard.issuanceDate),
               notes: Value(rCard.notes),
               threadId: Value(rCard.threadId),
-              contactChannelDid: Value(rCard.contactChannelDid),
-              localChannelDid: Value(rCard.localChannelDid),
+              otherPartyPermanentChannelDid:
+                  Value(rCard.otherPartyPermanentChannelDid),
+              permanentChannelDid: Value(rCard.permanentChannelDid),
               receivedAt: Value(rCard.receivedAt),
             ),
           );
@@ -116,22 +113,8 @@ class RCardRepositoryDrift implements model.RCardRepository {
       receivedAt: row.receivedAt,
       notes: row.notes,
       threadId: row.threadId,
-      contactChannelDid: row.contactChannelDid,
-      localChannelDid: row.localChannelDid,
+      otherPartyPermanentChannelDid: row.otherPartyPermanentChannelDid,
+      permanentChannelDid: row.permanentChannelDid,
     );
-  }
-
-  /// Produces canonical JSON for equality comparison.
-  ///
-  /// Re-encoding through [jsonDecode]/[jsonEncode] normalises whitespace so
-  /// that two blobs with identical structure and key insertion order compare
-  /// equal. Key-order differences between semantically equivalent VCs are not
-  /// normalised; use deep-map equality if that matters.
-  String _canonical(String vcBlob) {
-    try {
-      return jsonEncode(jsonDecode(vcBlob));
-    } catch (_) {
-      return vcBlob;
-    }
   }
 }

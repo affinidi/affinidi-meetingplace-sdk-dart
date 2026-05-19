@@ -418,7 +418,7 @@ void main() {
           issuanceDate: DateTime.utc(2026, 1, 1),
           receivedAt: DateTime.utc(2026, 1, 2),
           notes: notes,
-          contactChannelDid: contactChannelDid,
+          otherPartyPermanentChannelDid: contactChannelDid,
         );
 
     test('upsert persists a new R-Card', () async {

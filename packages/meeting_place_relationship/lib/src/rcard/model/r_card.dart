@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
@@ -15,8 +17,8 @@ class RCard {
     required this.version,
     required this.issuanceDate,
     required this.receivedAt,
-    this.contactChannelDid,
-    this.localChannelDid,
+    this.otherPartyPermanentChannelDid,
+    this.permanentChannelDid,
     this.threadId,
     this.notes,
   });
@@ -52,9 +54,10 @@ class RCard {
         return null;
       }
       final now = DateTime.now().toUtc();
+      final canonicalBlob = jsonEncode(jsonDecode(vcBlob));
       return RCard(
         subjectDid: subjectDid.trim(),
-        vcBlob: vcBlob,
+        vcBlob: canonicalBlob,
         issuerDid: issuerDid,
         version: RCardConstants.receivedRCardVersion,
         issuanceDate: vc.validFrom?.toUtc() ?? now,
@@ -84,13 +87,13 @@ class RCard {
   /// The UTC timestamp at which this card was received and stored locally.
   final DateTime receivedAt;
 
-  /// The channel DID through which this card was received, if known.
-  final String? contactChannelDid;
+  /// The permanent channel DID of the contact who sent this R-Card, if known.
+  final String? otherPartyPermanentChannelDid;
 
-  /// The local channel DID (our DID) of the channel through which this card
-  /// was received. Set only for the DIDComm attachment path (inauguration);
-  /// null for the VDIP path.
-  final String? localChannelDid;
+  /// Our own permanent channel DID for the channel this R-Card arrived on.
+  /// Set only for the DIDComm attachment path (inauguration); null for the
+  /// VDIP path.
+  final String? permanentChannelDid;
 
   /// The thread ID of the exchange that delivered this card, if known.
   final String? threadId;
@@ -105,8 +108,8 @@ class RCard {
     int? version,
     DateTime? issuanceDate,
     DateTime? receivedAt,
-    String? contactChannelDid,
-    String? localChannelDid,
+    String? otherPartyPermanentChannelDid,
+    String? permanentChannelDid,
     String? threadId,
     String? notes,
   }) {
@@ -117,8 +120,9 @@ class RCard {
       version: version ?? this.version,
       issuanceDate: issuanceDate ?? this.issuanceDate,
       receivedAt: receivedAt ?? this.receivedAt,
-      contactChannelDid: contactChannelDid ?? this.contactChannelDid,
-      localChannelDid: localChannelDid ?? this.localChannelDid,
+      otherPartyPermanentChannelDid:
+          otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
+      permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       threadId: threadId ?? this.threadId,
       notes: notes ?? this.notes,
     );

@@ -6,6 +6,7 @@ import 'package:ssi/ssi.dart';
 
 import 'rcard/builder/r_card_builder.dart';
 import 'rcard/model/r_card.dart';
+import 'rcard/model/r_card_constants.dart';
 import 'rcard/model/r_card_subject.dart';
 import 'rcard/parser/r_card_parser.dart';
 import 'rcard/r_card_channel_stream_manager.dart';
@@ -170,16 +171,14 @@ class MeetingPlaceRelationshipSDK {
   }
 
   /// Builds, signs, and delivers an R-Card to the other party in [channel]
-  /// via VDIP — the ADR 0002 compliant transport.
+  /// via VDIP.
   ///
-  /// Returns the serialised VC JSON string (vcBlob) so callers can render
-  /// the sent R-Card as a chat attachment via
-  /// `ChatSDK.createChatMessageFromIssuedCredential`.
+  /// Returns the sent [RCard] so callers can display or store the issued card.
   ///
   /// - [channel] — the established channel to the contact.
   /// - [card] — contact fields to embed in the R-Card VC.
   /// - [issuerDidManager] — [DidManager] used to sign the credential.
-  Future<String> sendRCard({
+  Future<RCard> sendRCard({
     required Channel channel,
     required String subjectDid,
     required RCardSubject card,
@@ -198,7 +197,17 @@ class MeetingPlaceRelationshipSDK {
       issuerDidManager: issuerDidManager,
     );
     await _coreSDK.vdip.issueCredential(channel: channel, credential: vc);
-    return jsonEncode(vc.toJson());
+    final vcBlob = jsonEncode(vc.toJson());
+    return RCard(
+      subjectDid: subjectDid,
+      vcBlob: vcBlob,
+      issuerDid: issuerDid,
+      version: RCardConstants.receivedRCardVersion,
+      issuanceDate: vc.validFrom?.toUtc() ?? DateTime.now().toUtc(),
+      receivedAt: DateTime.now().toUtc(),
+      permanentChannelDid: issuerDid,
+      otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
+    );
   }
 
   /// Parses and verifies a raw R-Card VC blob.
@@ -206,17 +215,18 @@ class MeetingPlaceRelationshipSDK {
   /// Returns `null` if the blob is not a valid, signature-verified R-Card.
   ///
   /// - [vcBlob] — the raw serialised VC JSON string.
-  /// - [contactChannelDid] — the channel DID through which this card was
-  ///   received, stored on the result for later lookup.
+  /// - [otherPartyPermanentChannelDid] — the permanent channel DID of the
+  ///   contact who sent this card, stored on the result for later lookup.
   Future<RCard?> parseRCard({
     required String vcBlob,
-    String? contactChannelDid,
+    String? otherPartyPermanentChannelDid,
   }) {
     return _rCardParser.parse(
       vcBlob: vcBlob,
-      contactChannelDid: (contactChannelDid?.isEmpty ?? true)
+      otherPartyPermanentChannelDid:
+          (otherPartyPermanentChannelDid?.isEmpty ?? true)
           ? null
-          : contactChannelDid,
+          : otherPartyPermanentChannelDid,
     );
   }
 

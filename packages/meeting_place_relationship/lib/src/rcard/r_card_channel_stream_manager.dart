@@ -61,11 +61,11 @@ class RCardChannelStreamManager {
       if (vcBlob == null) continue;
       final rCard = await _parser.parse(
         vcBlob: vcBlob,
-        contactChannelDid: contactChannelDid,
+        otherPartyPermanentChannelDid: contactChannelDid,
       );
       if (rCard != null) {
         yield (localChannelDid != null && localChannelDid.isNotEmpty)
-            ? rCard.copyWith(localChannelDid: localChannelDid)
+            ? rCard.copyWith(permanentChannelDid: localChannelDid)
             : rCard;
       }
     }

@@ -15,6 +15,44 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_control_plane` - `v0.0.1-dev.17`](#meeting_place_control_plane---v001-dev17)
+ - [`meeting_place_core` - `v0.0.1-dev.35`](#meeting_place_core---v001-dev35)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.38`](#meeting_place_drift_repository---v001-dev38)
+ - [`meeting_place_chat` - `v0.0.1-dev.37`](#meeting_place_chat---v001-dev37)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.37`
+
+---
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.17`
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
+#### `meeting_place_core` - `v0.0.1-dev.35`
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.38`
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
+
+## 2026-05-19
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_chat` - `v0.0.1-dev.36`](#meeting_place_chat---v001-dev36)
  - [`meeting_place_core` - `v0.0.1-dev.34`](#meeting_place_core---v001-dev34)
  - [`meeting_place_drift_repository` - `v0.0.1-dev.37`](#meeting_place_drift_repository---v001-dev37)

@@ -1,3 +1,7 @@
+## 0.0.1-dev.17
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
 ## 0.0.1-dev.16
 
  - **FIX**: improvements and bug fixes (#131).

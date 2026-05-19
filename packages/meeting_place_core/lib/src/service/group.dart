@@ -179,15 +179,14 @@ class GroupService {
     await _groupRepository.createGroup(group);
 
     try {
-      final matrixRoomId = await _matrixService.createRoom(
-        didManager: ownerDid,
-      );
-
-      await _allowGroupToMessageGroupOwner(
-        groupOwnerDid: ownerDid,
-        mediatorDid: result.mediatorDid,
-        groupDid: result.groupDid,
-      );
+      final (matrixRoomId, _) = await (
+        _matrixService.createRoom(didManager: ownerDid),
+        _allowGroupToMessageGroupOwner(
+          groupOwnerDid: ownerDid,
+          mediatorDid: result.mediatorDid,
+          groupDid: result.groupDid,
+        ),
+      ).wait;
 
       final oobDidDoc = await oobDidManager.getDidDocument();
       final connectionOffer = GroupConnectionOffer(

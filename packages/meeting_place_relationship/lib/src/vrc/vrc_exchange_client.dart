@@ -4,6 +4,7 @@ import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../shared/credential_builder.dart';
+import '../shared/credential_constants.dart';
 import 'model/vrc_constants.dart';
 import 'model/vrc_credential_subject.dart';
 import 'model/vrc_party.dart';
@@ -104,7 +105,7 @@ class VrcExchangeClient {
         recipientDid: channelDid,
         body: VdipIssuedCredentialBody.fromJson({
           'credential': vcBlob,
-          'credential_format': 'w3c/v2',
+          'credential_format': RelationshipCredentialConstants.w3cV2,
         }),
       ),
     );

@@ -33,6 +33,7 @@ class VrcIncomingMessageStreamManager {
   late final StreamSubscription<PlainTextMessage> _subscription;
   late final Stream<ReceivedVrcRequest> _requests;
   late final Stream<ReceivedVrc> _receivedVrcs;
+  bool _isClosed = false;
 
   // Pending caches: events dispatched before any listener was attached are
   // stored here so a late-subscribing chat session can replay them.
@@ -52,6 +53,8 @@ class VrcIncomingMessageStreamManager {
       _pendingVrcs.remove(senderDid);
 
   Future<void> close() async {
+    if (_isClosed) return;
+    _isClosed = true;
     await _subscription.cancel();
     await _requestController.close();
     await _receivedVrcController.close();
@@ -69,7 +72,7 @@ class VrcIncomingMessageStreamManager {
       final request = _toReceivedVrcRequest(message, senderDid);
       if (request != null) {
         _pendingRequests[senderDid] = request;
-        _requestController.add(request);
+        if (!_isClosed) _requestController.add(request);
       }
       return;
     }
@@ -78,7 +81,7 @@ class VrcIncomingMessageStreamManager {
       final receivedVrc = await _toReceivedVrc(message, senderDid);
       if (receivedVrc != null) {
         _pendingVrcs[senderDid] = receivedVrc;
-        _receivedVrcController.add(receivedVrc);
+        if (!_isClosed) _receivedVrcController.add(receivedVrc);
       }
     }
   }
@@ -150,6 +153,7 @@ class VrcIncomingMessageStreamManager {
   }
 
   void _handleError(Object error, StackTrace stackTrace) {
+    if (_isClosed) return;
     _requestController.addError(error, stackTrace);
     _receivedVrcController.addError(error, stackTrace);
   }

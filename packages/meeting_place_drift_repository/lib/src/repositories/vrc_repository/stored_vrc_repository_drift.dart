@@ -21,7 +21,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
           .getSingleOrNull();
 
       if (existing != null &&
-          _canonical(existing.vcBlob) == _canonical(vrc.vcBlob)) {
+          _minifyJson(existing.vcBlob) == _minifyJson(vrc.vcBlob)) {
         await (_database.update(_database.vrcs)
               ..where((t) => t.id.equals(vrc.id)))
             .write(
@@ -117,7 +117,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
     );
   }
 
-  String _canonical(String vcBlob) {
+  String _minifyJson(String vcBlob) {
     try {
       return jsonEncode(jsonDecode(vcBlob));
     } catch (_) {

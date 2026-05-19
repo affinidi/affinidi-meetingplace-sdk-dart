@@ -1,5 +1,4 @@
 export 'src/command/command.dart';
-export 'src/command/update_offers_score/failed_offer.dart';
 export 'src/control_plane_sdk.dart';
 export 'src/control_plane_sdk_error_code.dart';
 export 'src/control_plane_sdk_exception.dart';

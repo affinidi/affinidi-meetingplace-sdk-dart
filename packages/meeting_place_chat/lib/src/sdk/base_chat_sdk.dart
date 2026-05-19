@@ -746,10 +746,12 @@ abstract class BaseChatSDK {
       if (isRemoving) {
         final reactionEventId = _reactionServerEventIds[reactionKey];
         if (reactionEventId != null) {
-          await coreSDK.redactMatrixRoomEvent(
-            roomId: roomId,
-            eventId: reactionEventId,
-            senderDid: did,
+          await coreSDK.sendMatrixRoomEvent(
+            RedactionRoomEvent(
+              sender: did,
+              roomId: roomId,
+              targetEventId: reactionEventId,
+            ),
           );
           _reactionServerEventIds.remove(reactionKey);
         }

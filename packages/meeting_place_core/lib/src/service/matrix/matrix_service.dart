@@ -145,6 +145,12 @@ class MatrixService {
       return null;
     }
 
+    if (eventType == 'm.room.redaction') {
+      final targetEventId = content['redacts'] as String;
+      await room.redactEvent(targetEventId);
+      return null;
+    }
+
     return room.sendEvent(content, type: eventType);
   }
 

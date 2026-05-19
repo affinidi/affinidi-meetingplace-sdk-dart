@@ -248,7 +248,7 @@ void main() async {
 
       // --- Check that ACLs are not updated yet
       expect(
-        () => bobSDK.sendMessage(
+        () => bobSDK.didcomm.sendMessage(
           useChatMessage(
             acceptResultBob.connectionOffer.permanentChannelDid!,
             groupDid,
@@ -260,7 +260,7 @@ void main() async {
       );
 
       expect(
-        () => bobSDK.sendMessage(
+        () => bobSDK.didcomm.sendMessage(
           useChatMessage(
             acceptResultBob.connectionOffer.permanentChannelDid!,
             groupOwnerDidDoc.id,
@@ -334,7 +334,7 @@ void main() async {
 
       // Verify that ACLs are configured correctly
       expect(
-        bobSDK.sendGroupMessage(
+        bobSDK.didcomm.sendGroupMessage(
           useChatMessage(acceptResultBobChannelDid.id, groupDid),
           senderDid: acceptResultBobChannelDid.id,
           recipientDid: groupDid,
@@ -344,7 +344,7 @@ void main() async {
       );
 
       expect(
-        bobSDK.sendMessage(
+        bobSDK.didcomm.sendMessage(
           useChatMessage(acceptResultBobChannelDid.id, groupOwnerDidDoc.id),
           senderDid: acceptResultBobChannelDid.id,
           recipientDid: groupOwnerDidDoc.id,
@@ -353,7 +353,7 @@ void main() async {
       );
 
       expect(
-        charlieSDK.sendGroupMessage(
+        charlieSDK.didcomm.sendGroupMessage(
           useChatMessage(charlieDidDoc.id, groupDid),
           senderDid: charlieDidDoc.id,
           recipientDid: groupDid,
@@ -363,7 +363,7 @@ void main() async {
       );
 
       expect(
-        charlieSDK.sendMessage(
+        charlieSDK.didcomm.sendMessage(
           useChatMessage(charlieDidDoc.id, groupOwnerDidDoc.id),
           senderDid: charlieDidDoc.id,
           recipientDid: groupOwnerDidDoc.id,
@@ -408,7 +408,7 @@ void main() async {
       body: {'text': '[integration test]: Checking ACL!'},
     );
 
-    await aliceSDK.sendGroupMessage(
+    await aliceSDK.didcomm.sendGroupMessage(
       chatMessage,
       senderDid: result.connectionOffer.groupOwnerDid!,
       recipientDid: groupDidDocument.id,
@@ -444,7 +444,7 @@ void main() async {
       result.connectionOffer.offerLink,
     );
 
-    final messages = await bobSDK.fetchMessages(
+    final messages = await bobSDK.didcomm.fetchMessages(
       did: acceptResult.connectionOffer.permanentChannelDid!,
     );
 
@@ -624,7 +624,7 @@ void main() async {
     expect(connectionExp!.status, equals(ConnectionOfferStatus.deleted));
 
     expect(
-      () => aliceSDK.sendMessage(
+      () => aliceSDK.didcomm.sendMessage(
         PlainTextMessage(
           id: const Uuid().v4(),
           type: Uri.parse('https://affinidi.io/mpx/core-sdk/test'),

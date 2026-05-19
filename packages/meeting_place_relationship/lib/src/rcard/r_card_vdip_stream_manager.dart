@@ -85,14 +85,26 @@ class RCardVdipStreamManager {
 
     final from = message.from;
     if (from == null || from.isEmpty) {
-      _logger.warning('Skipping VDIP R-Card: missing sender DID (from field)');
+      yield* Stream.error(
+        const FormatException(
+          'Received VDIP R-Card with missing sender DID (from)',
+        ),
+      );
       return;
     }
 
     final rCard = await _parser.parse(
       vcBlob: credential,
-      contactChannelDid: from,
+      otherPartyPermanentChannelDid: from,
     );
-    if (rCard != null) yield rCard;
+    if (rCard != null) {
+      yield rCard;
+    } else {
+      yield* Stream.error(
+        const FormatException(
+          'Failed to parse VDIP R-Card from credential blob',
+        ),
+      );
+    }
   }
 }

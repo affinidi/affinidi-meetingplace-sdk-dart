@@ -339,7 +339,7 @@ void main() {
       await channelAttachmentsCtrl.close();
     });
 
-    test('returns valid VC JSON and calls issueCredential', () async {
+    test('returns sent RCard and calls issueCredential', () async {
       final channel = MockChannel();
       when(() => channel.permanentChannelDid).thenReturn(issuerDid);
       when(
@@ -351,15 +351,20 @@ void main() {
         rCardRepository: mockRepo,
       );
 
-      final vcBlob = await sdk.sendRCard(
+      final rCard = await sdk.sendRCard(
         channel: channel,
         subjectDid: 'did:key:recipient',
         card: const RCardSubject(firstName: 'Bob', lastName: 'Smith'),
         issuerDidManager: didManager,
       );
 
-      expect(() => jsonDecode(vcBlob), returnsNormally);
-      final decoded = jsonDecode(vcBlob) as Map<String, dynamic>;
+      expect(rCard, isA<RCard>());
+      expect(rCard.subjectDid, 'did:key:recipient');
+      expect(rCard.issuerDid, issuerDid);
+      expect(rCard.permanentChannelDid, issuerDid);
+      expect(rCard.otherPartyPermanentChannelDid, 'did:key:recipient');
+      expect(() => jsonDecode(rCard.vcBlob), returnsNormally);
+      final decoded = jsonDecode(rCard.vcBlob) as Map<String, dynamic>;
       expect(decoded['type'], contains('RelationshipCard'));
       verify(
         () => mockVdip.issueCredential(

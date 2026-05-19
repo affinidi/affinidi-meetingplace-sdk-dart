@@ -8,6 +8,8 @@ import '../loggers/control_plane_sdk_logger.dart';
 import '../loggers/default_control_plane_sdk_logger.dart';
 import 'api_client.dart' as api_client;
 import 'control_plane_api_client_options.dart';
+import 'idle_timeout_configurator_stub.dart'
+    if (dart.library.io) 'idle_timeout_configurator_io.dart';
 import 'refresh_auth_credentials_interceptor.dart';
 import 'retry_interceptor.dart';
 
@@ -79,6 +81,8 @@ class ControlPlaneApiClient {
         receiveTimeout: options.receiveTimeout,
       ),
     );
+
+    configureIdleTimeout(dio, options.idleTimeout);
 
     dio.interceptors.add(
       RetryInterceptor(

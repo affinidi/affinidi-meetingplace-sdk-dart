@@ -25,21 +25,60 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       name: _logKey,
     );
 
-    final channel = await channelService.findChannelByDid(event.did);
-    final didManager = await findDidManager(channel);
+    try {
+      final channel = await channelService.findChannelByDid(event.did);
+      final didManager = await findDidManager(channel);
+      var messageSyncMarker = channel.messageSyncMarker;
 
-    return processEvent(
-      event: event,
-      didManager: didManager,
-      mediatorDid: channel.mediatorDid,
-      channel: channel,
-      fetchMessageOptions: FetchMessagesOptions(
-        startFrom: channel.messageSyncMarker,
-        batchSize: 100,
-        deleteOnRetrieve: false,
-        filterByMessageTypes: options.messageTypesForSequenceTracking,
-      ),
-    );
+      final messages = await mediatorService.fetchMessages(
+        didManager: didManager,
+        mediatorDid: channel.mediatorDid,
+        options: FetchMessagesOptions(
+          startFrom: messageSyncMarker,
+          batchSize: 100,
+          deleteOnRetrieve: false,
+          filterByMessageTypes: options.messageTypesForSequenceTracking,
+        ),
+      );
+
+      int? updatedMessageSeqNumber;
+      for (final message in messages) {
+        final messageSeqNumber = message.messageSequenceNumber;
+        if (messageSeqNumber == null) continue;
+
+        if (messageSeqNumber > channel.seqNo) {
+          updatedMessageSeqNumber = messageSeqNumber;
+        }
+
+        final createdTime = message.plainTextMessage.createdTime?.toUtc();
+        if (createdTime != null &&
+            (messageSyncMarker == null ||
+                createdTime.compareTo(messageSyncMarker) > 0)) {
+          messageSyncMarker = createdTime;
+        }
+      }
+
+      await channelService.updateChannelSequence(
+        channel,
+        sequenceNumber: updatedMessageSeqNumber ?? channel.seqNo,
+        messageSyncMarker: messageSyncMarker,
+      );
+
+      logger.info(
+        'Completed processing event of type ${event.type}',
+        name: _logKey,
+      );
+
+      return [channel];
+    } catch (e, stackTrace) {
+      logger.error(
+        'Failed to process event of type ${event.type}',
+        error: e,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+      rethrow;
+    }
   }
 
   @override
@@ -52,52 +91,6 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
     if (channel == null) {
       throw ArgumentError('Channel not found for did ${event.did}');
     }
-
-    final didManager = await findDidManager(channel);
-    var messageSyncMarker = channel.messageSyncMarker;
-
-    // Do not delete from mediator as SDK fetches messages only to update
-    // batch count. Another consumer (e.g. ChatSDK) is going to fetch
-    // messages again in order to make messsages visible.
-    final messages = await mediatorService.fetchMessages(
-      didManager: didManager,
-      mediatorDid: channel.mediatorDid,
-      options: FetchMessagesOptions(
-        startFrom: messageSyncMarker,
-        batchSize: 100,
-        deleteOnRetrieve: false,
-        filterByMessageTypes: options.messageTypesForSequenceTracking,
-      ),
-    );
-
-    int? updatedMessageSeqNumber;
-    for (final message in messages) {
-      final messageSeqNumber = message.messageSequenceNumber;
-      if (messageSeqNumber == null) continue;
-
-      if (messageSeqNumber > channel.seqNo) {
-        updatedMessageSeqNumber = messageSeqNumber;
-      }
-
-      final createdTime = message.plainTextMessage.createdTime?.toUtc();
-      if (createdTime != null &&
-          (messageSyncMarker == null ||
-              createdTime.compareTo(messageSyncMarker) > 0)) {
-        messageSyncMarker = createdTime;
-      }
-    }
-
-    await channelService.updateChannelSequence(
-      channel,
-      sequenceNumber: updatedMessageSeqNumber ?? channel.seqNo,
-      messageSyncMarker: messageSyncMarker,
-    );
-
-    logger.info(
-      'Completed processing event of type ${event.type}',
-      name: _logKey,
-    );
-
     return channel;
   }
 }

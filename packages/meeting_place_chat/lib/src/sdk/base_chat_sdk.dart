@@ -331,46 +331,15 @@ abstract class BaseChatSDK {
   Future<List<Message>> fetchNewMessages() async {
     final methodName = 'fetchNewMessages';
     _logger.info('Started fetching new messages', name: methodName);
-<<<<<<< HEAD
-    final messagesFromMediator = await coreSDK.didcomm.fetchMessages(
-      did: did,
-      mediatorDid: mediatorDid,
-      deleteOnRetrieve: false,
-=======
 
+    // TODO: update sync marker?
     final events = await coreSDK.fetchMatrixRoomHistory(
       roomId: roomId,
       receiverDid: did,
->>>>>>> 6e32091f (chore: first messsaging TODO)
     );
 
     final newMessages = <Message>[];
 
-<<<<<<< HEAD
-    for (final message in messagesFromMediator) {
-      if (!await handleMessage(message, newMessages)) {
-        chatStream.pushData(
-          StreamData(
-            event: UnhandledChatEvent(
-              type: message.plainTextMessage.type.toString(),
-              senderDid: message.plainTextMessage.from,
-              body: message.plainTextMessage.body,
-              createdTime: message.plainTextMessage.createdTime,
-            ),
-          ),
-        );
-      }
-
-      final hash = message.messageHash;
-      if (hash != null) processedHashes.add(hash);
-    }
-
-    if (processedHashes.isNotEmpty) {
-      await coreSDK.didcomm.deleteMessages(
-        did: did,
-        mediatorDid: mediatorDid,
-        messageHashes: processedHashes,
-=======
     for (final event in events) {
       final message =
           await chatRepository.createMessage(
@@ -379,7 +348,6 @@ abstract class BaseChatSDK {
               as Message;
       chatStream.pushData(
         StreamData(event: event.toChatEvent(), chatItem: message),
->>>>>>> 6e32091f (chore: first messsaging TODO)
       );
       newMessages.add(message);
     }
@@ -392,31 +360,12 @@ abstract class BaseChatSDK {
   }
 
   @internal
-<<<<<<< HEAD
-  Future<SDKStreamSubscription> subscribeToMediator() {
-    return coreSDK.didcomm.subscribe(
-      did,
-      mediatorDid: mediatorDid,
-      options: MediatorStreamSubscriptionOptions(
-        expectedMessageWrappingTypes:
-            coreSDK.options.expectedMessageWrappingTypes,
-        fetchMessagesOnConnect: false,
-      ),
-    );
-=======
   Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
-    final subscription = coreSDK
-        .subscribeToMatrixRoom(
-          roomId: roomId,
-          receiverDid: did,
-          options: const MatrixSubscriptionOptions(excludeSelf: true),
-        )
-        .listen((event) async {
-          await _handleIncomingRoomEvent(event);
-        });
-
-    return subscription;
->>>>>>> 6e32091f (chore: first messsaging TODO)
+    return (await coreSDK.matrix.subscribeToRoom(
+      roomId: roomId,
+      receiverDid: did,
+      options: const MatrixSubscriptionOptions(excludeSelf: true),
+    )).listen(_handleIncomingRoomEvent);
   }
 
   Future<Message?> _handleIncomingRoomEvent(MatrixRoomEvent event) async {
@@ -654,7 +603,7 @@ abstract class BaseChatSDK {
   /// In the Matrix path the [messageId] is the Matrix event ID, so this maps
   /// directly to the native read-marker API.
   Future<void> sendChatDeliveredMessage(String messageId) {
-    return coreSDK.sendMatrixRoomEvent(
+    return coreSDK.matrix.sendRoomEvent(
       ReadReceiptRoomEvent(sender: did, roomId: roomId, eventId: messageId),
     );
   }
@@ -746,7 +695,7 @@ abstract class BaseChatSDK {
       if (isRemoving) {
         final reactionEventId = _reactionServerEventIds[reactionKey];
         if (reactionEventId != null) {
-          await coreSDK.sendMatrixRoomEvent(
+          await coreSDK.matrix.sendRoomEvent(
             RedactionRoomEvent(
               sender: did,
               roomId: roomId,
@@ -756,7 +705,7 @@ abstract class BaseChatSDK {
           _reactionServerEventIds.remove(reactionKey);
         }
       } else {
-        final serverEventId = await coreSDK.sendMatrixRoomEvent(
+        final serverEventId = await coreSDK.matrix.sendRoomEvent(
           ReactionRoomEvent(
             sender: did,
             roomId: roomId,
@@ -801,7 +750,7 @@ abstract class BaseChatSDK {
     chatStream.pushData(StreamData(event: roomEvent.toChatEvent()));
 
     // TODO: handle error case
-    await coreSDK.sendMatrixRoomEvent(roomEvent);
+    await coreSDK.matrix.sendRoomEvent(roomEvent);
     _logger.info('Chat effect sent', name: _logkey);
   }
 
@@ -888,7 +837,7 @@ abstract class BaseChatSDK {
   Future<String?> _sendMessageWithNotification(MatrixRoomEvent event) async {
     try {
       // TODO: How to notify?
-      return await coreSDK.sendMatrixRoomEvent(event);
+      return await coreSDK.matrix.sendRoomEvent(event);
     } on MeetingPlaceCoreSDKException catch (e) {
       final isNotificationError =
           e.code ==

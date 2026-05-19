@@ -11,7 +11,7 @@ import '../utils/sdk.dart';
 void main() async {
   final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
-  final notification = await aliceSDK.registerForDIDCommNotifications();
+  final notification = await aliceSDK.didcomm.registerForNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
 
@@ -57,7 +57,7 @@ void main() async {
     }
   });
 
-  final notificationStream = await aliceSDK.subscribeToMediator(
+  final notificationStream = await aliceSDK.didcomm.subscribe(
     notificationDidDocument.id,
   );
   notificationStream.stream.listen((data) async {

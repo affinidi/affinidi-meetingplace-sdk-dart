@@ -427,7 +427,12 @@ class MeetingPlaceCoreSDK {
       onDeviceRegistered: (device) => controlPlaneSDK.device = device,
     );
 
-    final matrixTransport = MatrixTransport();
+    final matrixTransport = MatrixTransport(
+      matrixService: matrixService,
+      errorHandler: sdkErrorHandler,
+      getDidManager: (did) =>
+          connectionManager.getDidManagerForDid(wallet, did),
+    );
 
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
@@ -1067,57 +1072,6 @@ class MeetingPlaceCoreSDK {
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
-  }
-
-  /// Sends a [MatrixRoomEvent] to the Matrix room identified by [roomId].
-  Future<String?> sendMatrixRoomEvent(MatrixRoomEvent event) {
-    return _withSdkExceptionHandling(() async {
-      final didManager = await getDidManager(event.sender);
-      return _matrixService.sendRoomEvent(
-        event.roomId,
-        event.type,
-        event.content,
-        didManager: didManager,
-      );
-    });
-  }
-
-  /// Returns a stream of [MatrixRoomEvent]s from the Matrix room [roomId].
-  ///
-  /// Parameters:
-  /// - [roomId]: The ID of the Matrix room to subscribe to.
-  /// - [receiverDid]: The DID of the receiver to authenticate with the Matrix
-  ///   service.
-  /// - [options]: Optional subscription options.
-  ///
-  /// TODO: Make return type consistent with subscribeToMediator?
-  Stream<MatrixRoomEvent> subscribeToMatrixRoom({
-    required String roomId,
-    required String receiverDid,
-    MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
-  }) async* {
-    final didManager = await getDidManager(receiverDid);
-    yield* _matrixService.subscribeToRoom(
-      roomId,
-      didManager: didManager,
-      options: options,
-    );
-  }
-
-  /// Returns recent [MatrixRoomEvent]s from the Matrix room [roomId].
-  Future<List<MatrixRoomEvent>> fetchMatrixRoomHistory({
-    required String roomId,
-    required String receiverDid,
-    int limit = 50,
-  }) {
-    return _withSdkExceptionHandling(() async {
-      final didManager = await getDidManager(receiverDid);
-      return _matrixService.fetchRoomHistory(
-        roomId,
-        didManager: didManager,
-        limit: limit,
-      );
-    });
   }
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {

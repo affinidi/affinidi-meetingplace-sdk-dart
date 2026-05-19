@@ -308,7 +308,7 @@ abstract class BaseChatSDK {
     final messagesFromMediator = await coreSDK.didcomm.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      deleteOnRetrieve: true,
+      deleteOnRetrieve: false,
     );
     final newMessages = <Message>[];
     final processedHashes = <String>[];
@@ -326,7 +326,6 @@ abstract class BaseChatSDK {
           ),
         );
       }
-
       processedHashes.add(message.messageHash!);
     }
 

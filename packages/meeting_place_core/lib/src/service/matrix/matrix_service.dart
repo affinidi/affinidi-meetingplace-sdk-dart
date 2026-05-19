@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
+
 import 'package:matrix/matrix.dart' as matrix;
 import 'matrix_client.dart';
 import 'matrix_client_cache.dart';

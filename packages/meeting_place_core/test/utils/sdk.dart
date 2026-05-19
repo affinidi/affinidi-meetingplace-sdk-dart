@@ -14,14 +14,6 @@ import 'storage/in_memory_storage.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
-<<<<<<< HEAD
-=======
-Uri getMatrixHomeserver() =>
-    Uri.tryParse(Platform.environment['MATRIX_HOMESERVER'] ?? '') ??
-    Uri.tryParse(env['MATRIX_HOMESERVER'] ?? '') ??
-    Uri.parse('https://matrix.example.com');
-
->>>>>>> fd11ed87 (refactor: add matrix db config abstraction)
 Future<Database> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();
   final directory = Directory(

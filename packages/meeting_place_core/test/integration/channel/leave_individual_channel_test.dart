@@ -97,7 +97,7 @@ void main() async {
 
     // Bob is not allowed to send messages to Alice anymore
     expect(
-      () => bobSDK.sendMessage(
+      () => bobSDK.didcomm.sendMessage(
         PlainTextMessage(
           id: const Uuid().v4(),
           type: Uri.parse('https://affinidi.io/test'),
@@ -127,7 +127,7 @@ void main() async {
 
     // Alice is not allowed to send messages to Bob anymore
     expect(
-      () => aliceSDK.sendMessage(
+      () => aliceSDK.didcomm.sendMessage(
         PlainTextMessage(
           id: const Uuid().v4(),
           type: Uri.parse('https://affinidi.io/test'),

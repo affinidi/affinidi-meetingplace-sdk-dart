@@ -50,7 +50,7 @@ void main() async {
   prettyPrint('Disposing OOB stream...');
   await acceptance.stream.dispose();
 
-  await bobSDK.sendMessage(
+  await bobSDK.didcomm.sendMessage(
       PlainTextMessage(
           id: const Uuid().v4(),
           type: Uri.parse(

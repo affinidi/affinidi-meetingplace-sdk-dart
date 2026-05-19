@@ -16,6 +16,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AclSet,
         MediatorStreamProcessingResult,
         MediatorStreamSubscriptionOptions,
+        MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKErrorCode,
         MeetingPlaceMediatorSDKException;
 export 'package:ssi/ssi.dart' show DidManager;
@@ -32,6 +33,7 @@ export 'src/meeting_place_core_sdk_options.dart';
 export 'src/protocol/message/plaintext_message_extension.dart';
 export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
+export 'src/sdk/results/register_for_didcomm_notifications_result.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
 export 'src/service/matrix/matrix_config.dart';

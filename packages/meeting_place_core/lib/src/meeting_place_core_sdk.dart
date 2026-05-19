@@ -5,7 +5,6 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         DefaultMeetingPlaceMediatorSDKLogger,
-        MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
 import 'package:ssi/ssi.dart';
@@ -15,7 +14,6 @@ import 'constants/sdk_constants.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
-import 'sdk/results/register_for_didcomm_notifications_result.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
 import 'service/channel/channel_service.dart';
@@ -26,13 +24,13 @@ import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 import 'service/identity/identity_service.dart';
 import 'service/matrix/matrix_service.dart';
-import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_service.dart';
 import 'service/outreach/outreach_service.dart';
+import 'transport/transport.dart';
 import 'utils/cached_did_resolver.dart';
 
 /// # Meeting Place Core SDK
@@ -156,8 +154,9 @@ class MeetingPlaceCoreSDK {
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
     required MeetingPlaceCoreSDKLogger logger,
+    required DIDCommTransport didcommTransport,
+    required MatrixTransport matrixTransport,
   }) : _repositoryConfig = repositoryConfig,
-       _controlPlaneDid = controlPlaneDid,
        _mediatorSDK = mediatorSDK,
        _controlPlaneSDK = controlPlaneSDK,
        _connectionManager = connectionManager,
@@ -169,16 +168,14 @@ class MeetingPlaceCoreSDK {
        _outreachService = outreachService,
        _oobService = oobService,
        _channelService = channelService,
-       _mediatorService = mediatorService,
-       _messageService = messageService,
-       _didResolver = didResolver,
        _mediatorDid = mediatorDid,
        _options = options,
-       _sdkErrorHandler = sdkErrorHandler;
+       _sdkErrorHandler = sdkErrorHandler,
+       didcomm = didcommTransport,
+       matrix = matrixTransport;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
-  final String _controlPlaneDid;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;
   final ConnectionManager _connectionManager;
@@ -187,14 +184,14 @@ class MeetingPlaceCoreSDK {
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
   final GroupService _groupService;
   final NotificationService _notificationService;
-  final MediatorService _mediatorService;
   final OutreachService _outreachService;
   final OobService _oobService;
-  final MessageService _messageService;
   final ChannelService _channelService;
-  final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
+
+  final DIDCommTransport didcomm;
+  final MatrixTransport matrix;
 
   String _mediatorDid;
 
@@ -414,6 +411,28 @@ class MeetingPlaceCoreSDK {
     );
 
     mpxLogger.info('Completed initializing CoreSDK', name: methodName);
+
+    final sdkErrorHandler = SDKErrorHandler(logger: mpxLogger);
+
+    final didcommTransport = DIDCommTransport(
+      mediatorSDK: mediatorSDK,
+      messageService: messageService,
+      mediatorService: mediatorService,
+      groupService: groupService,
+      notificationService: notificationService,
+      didResolver: didResolver,
+      errorHandler: sdkErrorHandler,
+      wallet: wallet,
+      controlPlaneDid: controlPlaneDid,
+      getDidManager: (did) =>
+          connectionManager.getDidManagerForDid(wallet, did),
+      defaultMediatorDid: mediatorDid,
+      expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
+      onDeviceRegistered: (device) => controlPlaneSDK.device = device,
+    );
+
+    final matrixTransport = MatrixTransport();
+
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
       repositoryConfig: repositoryConfig,
@@ -434,13 +453,12 @@ class MeetingPlaceCoreSDK {
       didResolver: didResolver,
       mediatorDid: mediatorDid,
       options: options,
-      sdkErrorHandler: SDKErrorHandler(logger: mpxLogger),
+      sdkErrorHandler: sdkErrorHandler,
       logger: mpxLogger,
+      didcommTransport: didcommTransport,
+      matrixTransport: matrixTransport,
     );
   }
-
-  /// Returns instance of used low level [MeetingPlaceMediatorSDK].
-  MeetingPlaceMediatorSDK get mediator => _mediatorSDK;
 
   /// Returns instance of used low level [ControlPlaneSDK].
   ControlPlaneSDK get discovery => _controlPlaneSDK;
@@ -473,6 +491,7 @@ class MeetingPlaceCoreSDK {
     _mediatorDid = mediatorDid;
     _controlPlaneSDK.mediatorDid = mediatorDid;
     _mediatorSDK.mediatorDid = mediatorDid;
+    didcomm.defaultMediatorDid = mediatorDid;
   }
 
   /// Updates the [Device] used for subsequent method invocations.
@@ -635,46 +654,6 @@ class MeetingPlaceCoreSDK {
 
       _controlPlaneSDK.device = device;
       return device;
-    });
-  }
-
-  /// Registers the device for DIDComm notifications using a combination of the
-  /// recipient's DID and the mediator's DID as a unique device token. This
-  /// token identifies the recipient and enables message retrieval or
-  /// subscription to the mediator.
-  ///
-  /// Once registered, the DID can be used to fetch messages or subscribe to
-  /// updates from the mediator.
-  ///
-  /// The SDK updates the ACL for the newly created recipient DID to allow
-  /// receiving messages from the mediator identified by the given
-  /// [mediatorDid].
-  ///
-  /// [mediatorDid] - The mediator's DID. If not provided, the SDK will use the
-  /// mediator DID configured in the current instance.
-  ///
-  /// **Returns:**
-  /// - A [RegisterForDidcommNotificationsResult] containing the Device used
-  /// for subsequent SDK calls and the generated DidManager for the recipient
-  /// DID.
-  Future<RegisterForDidcommNotificationsResult>
-  registerForDIDCommNotifications({
-    String? mediatorDid,
-    String? recipientDid,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      final result = await _notificationService.registerForDIDCommNotifications(
-        wallet: wallet,
-        controlPlaneDid: _controlPlaneDid,
-        recipientDid: recipientDid,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-      );
-
-      _controlPlaneSDK.device = result.device;
-      return RegisterForDidcommNotificationsResult(
-        recipientDid: result.recipientDid,
-        device: result.device,
-      );
     });
   }
 
@@ -919,114 +898,6 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Encrypts and signs the message using the sender' s DID, then sends it to
-  /// the recipient DID via DIDComm.
-  ///
-  /// **Parameters:**
-  /// - [message] - DIDComm plain text message
-  /// - [senderDid] - DID used to send messages
-  /// - [recipientDid] - DID of recipient.
-  /// - [mediatorDid] - the Mediator DID
-  /// - [notifyChannelType] - The notify channel type (currently its only
-  ///   chat_activity)
-  /// - [ephemeral] - boolean value that indicates if the message is short live
-  ///   only.
-  /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
-  Future<void> sendMessage(
-    PlainTextMessage message, {
-    required String senderDid,
-    required String recipientDid,
-    String? mediatorDid,
-    String? notifyChannelType,
-    bool? ephemeral,
-    int? forwardExpiryInSeconds,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      final senderDidManager = await getDidManager(senderDid);
-      return _messageService.sendMessage(
-        message,
-        senderDidManager: senderDidManager,
-        recipientDid: recipientDid,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        notifyChannelType: notifyChannelType,
-        ephemeral: ephemeral ?? false,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
-      );
-    });
-  }
-
-  /// Queues a message in the mediator for later sending.
-  ///
-  /// **Parameters:**
-  /// - [message] - DIDComm plain text message
-  /// - [senderDid] - DID used to send messages
-  /// - [recipientDid] - DID of recipient.
-  /// - [mediatorDid] - the Mediator DID
-  /// - [ephemeral] - boolean value that indicates if the message is short live
-  ///   only.
-  /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
-  Future<void> queueMessage(
-    PlainTextMessage message, {
-    required String senderDid,
-    required String recipientDid,
-    String? mediatorDid,
-    bool? ephemeral,
-    int? forwardExpiryInSeconds,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      final senderDidManager = await getDidManager(senderDid);
-      final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
-
-      await _mediatorSDK.queueMessage(
-        message,
-        senderDidManager: senderDidManager,
-        recipientDidDocument: recipientDidDocument,
-        mediatorDid: mediatorDid,
-        ephemeral: ephemeral,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
-      );
-    });
-  }
-
-  /// A method that allows a user to send a message to a group using the group's
-  /// recipient DID via DIDComm.
-  ///
-  /// **Parameters:**
-  /// - [message] - DIDComm plain text message
-  /// - [senderDid] - DID used to send messages
-  /// - [recipientDid] - DID of recipient. This is the DID of the group
-  /// - [increaseSequenceNumber] - boolean value that inidicates if the
-  /// sequence number increments for the message sent to the group.
-  /// - [notify] - boolean value that indicates that a notification is sent to
-  /// the group members. Always set to `true` by default.
-  /// - [ephemeral] - boolean value that indicates if the message is short live
-  ///   only.
-  /// - [forwardExpiryInSeconds] - the forwrd expiry timer in seconds.
-  Future<void> sendGroupMessage(
-    PlainTextMessage message, {
-    required String senderDid,
-    required String recipientDid,
-    required bool increaseSequenceNumber,
-    bool notify = true,
-    bool ephemeral = false,
-    int? forwardExpiryInSeconds,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      final senderDidManager = await getDidManager(senderDid);
-      final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
-
-      return _groupService.sendMessage(
-        message,
-        senderDid: senderDidManager,
-        groupDidDocument: recipientDidDocument,
-        increaseSequenceNumber: increaseSequenceNumber,
-        notify: notify,
-        ephemeral: ephemeral,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
-      );
-    });
-  }
-
   /// Sends outreach invitation to owner of [outreachConnectionOffer].
   ///
   /// **Parameters:**
@@ -1084,109 +955,6 @@ class MeetingPlaceCoreSDK {
   /// A method that deletes all pending discovery events.
   Future<List<String>> deleteControlPlaneEvents() {
     return _controlPlaneEventService.deleteAll();
-  }
-
-  /// Retrieves available messages from the specified mediator instance
-  /// [mediatorDid]. By setting [deleteOnRetrieve] to true, retrieved messages
-  /// can be automatically deleted. The method takes care of checking message
-  /// signatures and decrypts the messages if necessary.
-  ///
-  /// **Parameters:**
-  /// - [did] - DID used to fetch messages from mediator.
-  ///
-  /// - [mediatorDid] - Optional mediator DID that can override the already
-  /// registered mediator DID, if provided
-  ///
-  /// - [deleteOnRetrieve] - Boolean flag indicating whether messages should be
-  /// deleted upon retrieval
-  ///
-  /// - [deleteFailedMessages] - Boolean flag indicating whether messages should
-  ///   be
-  /// deleted upon failure
-  ///
-  /// **Returns:**
-  /// - List of [MediatorMessage] instances.
-  Future<List<MediatorMessage>> fetchMessages({
-    required String did,
-    String? mediatorDid,
-    bool deleteOnRetrieve = false,
-    bool deleteFailedMessages = false,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      final didManager = await getDidManager(did);
-      return _mediatorService.fetchMessages(
-        didManager: didManager,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        options: FetchMessagesOptions(
-          deleteFailedMessages: deleteFailedMessages,
-          deleteOnRetrieve: deleteOnRetrieve,
-          expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
-        ),
-      );
-    });
-  }
-
-  /// Deletes messages from the mediator identified by their [messageHashes].
-  ///
-  /// **Parameters:**
-  /// - [did] - DID used to authenticate with the mediator.
-  ///
-  /// - [mediatorDid] - Optional mediator DID. Falls back to the SDK instance's
-  /// default mediator DID if not provided.
-  ///
-  /// - [messageHashes] - Cryptographic hashes of the messages to delete.
-  Future<void> deleteMessages({
-    required String did,
-    String? mediatorDid,
-    required List<String> messageHashes,
-  }) {
-    return _withSdkExceptionHandling(() async {
-      final didManager = await getDidManager(did);
-      return _mediatorService.deleteMessages(
-        didManager: didManager,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        messageHashes: messageHashes,
-      );
-    });
-  }
-
-  /// A method to subscribes to incoming messages from the mediator.
-  ///
-  /// **Parameters:**
-  /// - [did] - DID used to subscripe to mediator.
-  ///
-  /// - [mediatorDid]: Optional mediator DID to authenticate against.
-  ///   If not provided, the SDK instance’s default mediator DID will be used.
-  ///
-  /// - [options]: Options for subscribing to mediator messages.
-  ///
-  /// **Returns: [CoreSDKStreamSubscription]**
-  Future<
-    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>
-  >
-  subscribeToMediator(
-    String did, {
-    String? mediatorDid,
-    MediatorStreamSubscriptionOptions? options,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      final didManager = await getDidManager(did);
-      return _mediatorService.subscribe(
-        didManager: didManager,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        options: MediatorStreamSubscriptionOptions(
-          deleteMessageDelay:
-              options?.deleteMessageDelay ??
-              MediatorStreamSubscriptionOptions.defaults.deleteMessageDelay,
-          fetchMessagesOnConnect:
-              options?.fetchMessagesOnConnect ??
-              MediatorStreamSubscriptionOptions.defaults.fetchMessagesOnConnect,
-          expectedMessageWrappingTypes:
-              options?.expectedMessageWrappingTypes ??
-              this.options.expectedMessageWrappingTypes,
-        ),
-      );
-    });
   }
 
   /// Returns connection offer identified by [offerLink] from storage.

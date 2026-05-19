@@ -1,6 +1,11 @@
+<<<<<<< HEAD
+=======
+import 'dart:async';
+
+import 'package:matrix/matrix.dart' as matrix;
+>>>>>>> 923ca04d (fix: core sdk multiple transport support)
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
-import 'package:matrix/matrix.dart' as matrix;
 
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
@@ -100,6 +105,23 @@ class MatrixService {
   /// Disposes of the session manager, cleaning up resources.
   void dispose() {
     _sessionManager.dispose();
+  }
+
+  MatrixRoomEvent? _eventToMatrixRoomEvent(
+    matrix.Event event, {
+    String? myUserId,
+  }) {
+    final typeStr = event.type;
+
+    return MatrixRoomEvent(
+      id: event.eventId,
+      type: typeStr,
+      sender: event.senderId,
+      roomId: event.room.id,
+      content: Map<String, dynamic>.from(event.content),
+      timestamp: event.originServerTs,
+      isFromMe: myUserId != null && event.senderId == myUserId,
+    );
   }
 
   /// Returns an authenticated client, transparently re-authenticating via

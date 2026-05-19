@@ -43,7 +43,7 @@ void main() async {
   prettyPrint('Disposing OOB stream...');
   await oob.stream.dispose();
 
-  final messageSubscription = await aliceSDK.subscribeToMediator(
+  final messageSubscription = await aliceSDK.didcomm.subscribe(
     channel.permanentChannelDid!,
   );
 

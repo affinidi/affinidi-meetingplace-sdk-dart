@@ -66,7 +66,7 @@ void main() {
     final aliceChannel = await aliceCompleter.future;
     final bobChannel = await bobCompleter.future;
 
-    await fixture.bobSDK.sendMessage(
+    await fixture.bobSDK.didcomm.sendMessage(
       PlainTextMessage(
         id: 'test-message-id',
         type: Uri.parse('https://example.com/test'),
@@ -78,7 +78,7 @@ void main() {
       recipientDid: bobChannel.otherPartyPermanentChannelDid!,
     );
 
-    await fixture.aliceSDK.sendMessage(
+    await fixture.aliceSDK.didcomm.sendMessage(
       PlainTextMessage(
         id: 'test-message-id',
         type: Uri.parse('https://example.com/test'),

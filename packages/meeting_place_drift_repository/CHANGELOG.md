@@ -1,3 +1,7 @@
+## 0.0.1-dev.39
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.38
 
  - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).

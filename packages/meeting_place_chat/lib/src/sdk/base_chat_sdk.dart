@@ -299,10 +299,9 @@ abstract class BaseChatSDK {
     final messagesFromMediator = await coreSDK.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      deleteOnRetrieve: false,
+      deleteOnRetrieve: true,
     );
     final newMessages = <Message>[];
-    final processedHashes = <String>[];
 
     for (final message in messagesFromMediator) {
       if (!await handleMessage(message, newMessages)) {
@@ -310,15 +309,6 @@ abstract class BaseChatSDK {
           StreamData(plainTextMessage: message.plainTextMessage),
         );
       }
-      processedHashes.add(message.messageHash!);
-    }
-
-    if (processedHashes.isNotEmpty) {
-      await coreSDK.deleteMessages(
-        did: did,
-        mediatorDid: mediatorDid,
-        messageHashes: processedHashes,
-      );
     }
 
     _logger.info(

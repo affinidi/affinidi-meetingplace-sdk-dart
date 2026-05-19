@@ -7,8 +7,8 @@ class VrcConstants {
   static const requestMetadataKeyRelationshipType = 'relationship_type';
   static const requestMetadataKeyChannelId = 'channel_id';
   static const requestMetadataKeySelectedPersona = 'selected_persona';
-  static const requestMetadataKeyIdentityDid = 'identityDid';
-  static const requestMetadataKeyIdentityName = 'identityName';
+  static const requestMetadataKeyIdentityDid = 'identity_did';
+  static const requestMetadataKeyIdentityName = 'identity_name';
   static const requestRelationshipTypeChatParticipant = 'chat_participant';
 
   static const contextVrc =

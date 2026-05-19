@@ -81,8 +81,9 @@ class VrcExchangeClient {
     );
     final senderDid = channel?.permanentChannelDid;
     if (channel == null || senderDid == null || senderDid.isEmpty) {
-      _logger.warning('Cannot send VRC: channel or sender DID missing');
-      return '';
+      throw StateError(
+        'Cannot send VRC: channel or sender DID missing for $channelDid',
+      );
     }
 
     final didManager = await _coreSDK.getDidManager(issuerDid);

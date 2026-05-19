@@ -104,11 +104,12 @@ void main() {
       await ctrl.close();
     });
 
-    test('missing from field does not emit', () async {
+    test('missing from field emits a stream error', () async {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);
       final emitted = <RCard>[];
-      final sub = manager.stream.listen(emitted.add);
+      final errors = <Object>[];
+      final sub = manager.stream.listen(emitted.add, onError: errors.add);
 
       ctrl.add(
         PlainTextMessage(
@@ -124,6 +125,8 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<FormatException>());
       await sub.cancel();
       await manager.close();
       await ctrl.close();

@@ -7,9 +7,9 @@ import 'package:test/test.dart';
 
 void main() {
   group('RCardSubject', () {
-    test('fromVcBlob returns null for invalid input', () {
-      expect(RCardSubject.fromVcBlob('not-json'), isNull);
-      expect(RCardSubject.fromVcBlob('{}'), isNull);
+    test('fromVcBlob throws FormatException for invalid input', () {
+      expect(() => RCardSubject.fromVcBlob('not-json'), throwsFormatException);
+      expect(() => RCardSubject.fromVcBlob('{}'), throwsFormatException);
     });
 
     test('name concatenates first and last name', () {

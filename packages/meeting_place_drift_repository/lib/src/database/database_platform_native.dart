@@ -6,6 +6,9 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 
+import '../exceptions/meeting_place_core_repository_error_code.dart';
+import '../exceptions/meeting_place_core_repository_exception.dart';
+
 /// Class with implementations specific to native platforms
 class DatabasePlatform {
   static NativeDatabase _openDatabase({
@@ -24,10 +27,11 @@ class DatabasePlatform {
     final cipherCheck = sqliteDb.select('PRAGMA cipher;');
     if (cipherCheck.isEmpty) {
       sqliteDb.close();
-      throw UnsupportedError(
+      throw MeetingPlaceCoreRepositoryException(
         'Database encryption not available. '
         'Add to pubspec.yaml: '
         'hooks: user_defines: sqlite3: source: sqlite3mc',
+        code: MeetingPlaceCoreRepositoryErrorCode.encryptionNotAvailable,
       );
     }
 

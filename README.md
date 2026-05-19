@@ -100,7 +100,7 @@ hooks:
       source: sqlite3mc
 ```
 
-Without this, the SDK will throw an `UnsupportedError` when opening a
+Without this, the SDK will throw a `MeetingPlaceCoreRepositoryException` when opening a
 database. See the [Drift Repository README](./packages/meeting_place_drift_repository/README.md#database-encryption-required)
 for details on new-database encryption and SQLCipher migration.
 

@@ -329,6 +329,7 @@ void main() {
       when(
         () => mockCoreSDK.channelAttachments,
       ).thenAnswer((_) => channelAttachmentsCtrl.stream);
+      when(() => mockCoreSDK.closeVdipStream()).thenAnswer((_) async {});
       mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
@@ -388,6 +389,97 @@ void main() {
         ),
         throwsStateError,
       );
+
+      await sdk.closeRelationshipStreams();
+    });
+  });
+
+  group('MeetingPlaceRelationshipSDK CRUD delegation', () {
+    late MockMeetingPlaceCoreSDK mockCoreSDK;
+    late MockRCardRepository mockRepo;
+    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+
+    final stubCard = RCard(
+      subjectDid: 'did:example:subject',
+      vcBlob: '{}',
+      issuerDid: 'did:example:issuer',
+      version: 1,
+      issuanceDate: DateTime.utc(2026),
+      receivedAt: DateTime.utc(2026),
+    );
+
+    setUp(() {
+      channelAttachmentsCtrl =
+          StreamController<(Channel, List<Attachment>)>.broadcast();
+      mockCoreSDK = mockCoreSDKWithAttachmentStream(channelAttachmentsCtrl);
+      mockRepo = MockRCardRepository();
+      when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
+      when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
+    });
+
+    tearDown(() async {
+      await channelAttachmentsCtrl.close();
+    });
+
+    MeetingPlaceRelationshipSDK buildSdk() => MeetingPlaceRelationshipSDK(
+      coreSDK: mockCoreSDK,
+      rCardRepository: mockRepo,
+    );
+
+    test('watchReceivedRCards delegates to repository.watchAll', () async {
+      when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
+      final sdk = buildSdk();
+
+      sdk.watchReceivedRCards();
+      verify(() => mockRepo.watchAll()).called(1);
+
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('listReceivedRCards delegates to repository.listAll', () async {
+      when(() => mockRepo.listAll()).thenAnswer((_) async => [stubCard]);
+      final sdk = buildSdk();
+
+      final result = await sdk.listReceivedRCards();
+      expect(result, equals([stubCard]));
+
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('getReceivedRCardBySubjectDid delegates to repository', () async {
+      when(
+        () => mockRepo.getBySubjectDid(stubCard.subjectDid),
+      ).thenAnswer((_) async => stubCard);
+      final sdk = buildSdk();
+
+      final result = await sdk.getReceivedRCardBySubjectDid(
+        stubCard.subjectDid,
+      );
+      expect(result, equals(stubCard));
+
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('updateReceivedRCardNotes delegates to repository', () async {
+      when(
+        () => mockRepo.updateNotes(stubCard.subjectDid, 'note'),
+      ).thenAnswer((_) async {});
+      final sdk = buildSdk();
+
+      await sdk.updateReceivedRCardNotes(stubCard.subjectDid, 'note');
+      verify(() => mockRepo.updateNotes(stubCard.subjectDid, 'note')).called(1);
+
+      await sdk.closeRelationshipStreams();
+    });
+
+    test('deleteReceivedRCard delegates to repository', () async {
+      when(
+        () => mockRepo.deleteBySubjectDid(stubCard.subjectDid),
+      ).thenAnswer((_) async {});
+      final sdk = buildSdk();
+
+      await sdk.deleteReceivedRCard(stubCard.subjectDid);
+      verify(() => mockRepo.deleteBySubjectDid(stubCard.subjectDid)).called(1);
 
       await sdk.closeRelationshipStreams();
     });

@@ -23,5 +23,6 @@ MockMeetingPlaceCoreSDK mockCoreSDKWithAttachmentStream(
   when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
   when(() => sdk.vdip).thenReturn(vdip);
   when(() => sdk.channelAttachments).thenAnswer((_) => ctrl.stream);
+  when(sdk.closeVdipStream).thenAnswer((_) async {});
   return sdk;
 }

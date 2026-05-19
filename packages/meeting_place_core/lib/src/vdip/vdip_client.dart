@@ -170,14 +170,12 @@ class VdipClient {
   ///
   /// High-level convenience wrapper around [sendIssuedCredential]. Extracts
   /// the sender and recipient DIDs from [channel], constructs the
-  /// [VdipIssuedCredentialBody] by dispatching on the runtime credential type
-  /// (W3C v1 or v2), and delivers the message.
+  /// [VdipIssuedCredentialBody], and delivers the message.
   ///
   /// Throws [StateError] if the channel DIDs are missing.
-  /// Throws [ArgumentError] if [credential] is not a supported VC type.
   Future<void> issueCredential({
     required Channel channel,
-    required VerifiableCredential credential,
+    required VcDataModelV2 credential,
   }) async {
     final senderDid = channel.permanentChannelDid;
     final recipientDid = channel.otherPartyPermanentChannelDid;
@@ -193,16 +191,7 @@ class VdipClient {
       );
     }
 
-    final VdipIssuedCredentialBody body;
-    if (credential is VcDataModelV2) {
-      body = VdipIssuedCredentialBody.w3cV2(credential: credential);
-    } else if (credential is VcDataModelV1) {
-      body = VdipIssuedCredentialBody.w3cV1(credential: credential);
-    } else {
-      throw ArgumentError(
-        'Unsupported VerifiableCredential type: ${credential.runtimeType}',
-      );
-    }
+    final body = VdipIssuedCredentialBody.w3cV2(credential: credential);
 
     await sendIssuedCredential(
       senderDid: senderDid,

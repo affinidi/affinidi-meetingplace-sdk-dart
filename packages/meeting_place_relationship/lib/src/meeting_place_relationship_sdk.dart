@@ -196,7 +196,10 @@ class MeetingPlaceRelationshipSDK {
       subject: card,
       issuerDidManager: issuerDidManager,
     );
-    await _coreSDK.vdip.issueCredential(channel: channel, credential: vc);
+    await _coreSDK.vdip.issueCredential(
+      channel: channel,
+      credential: vc as VcDataModelV2,
+    );
     final vcBlob = jsonEncode(vc.toJson());
     return RCard(
       subjectDid: subjectDid,

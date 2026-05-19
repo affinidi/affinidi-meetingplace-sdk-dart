@@ -14,23 +14,17 @@ class RCardCredentialSubject {
 
   /// Parses an [RCardCredentialSubject] from a credential subject JSON map.
   ///
-  /// Handles both the current jCard-encoded format (where contact data is
-  /// stored as a `card` property following RFC 7095) and the legacy flat-field
-  /// format for backward compatibility.
+  /// Expects the credential subject to carry contact data as a jCard in the
+  /// `card` property (RFC 7095), which is the format `RCardBuilder` always
+  /// produces. Throws [FormatException] if `card` is absent or malformed.
   factory RCardCredentialSubject.fromJson(Map<String, dynamic> json) {
-    // Decode jCard if present; fall back to treating the map as flat fields.
-    final Map<String, dynamic> flat;
-    if (json['card'] != null) {
-      final decoded = JCard.decode(json['card'], json['id']?.toString());
-      if (decoded == null) {
-        throw const FormatException(
-          'Failed to decode jCard from credentialSubject.card',
-        );
-      }
-      flat = decoded;
-    } else {
-      flat = json;
+    final decoded = JCard.decode(json['card'], json['id']?.toString());
+    if (decoded == null) {
+      throw const FormatException(
+        'Failed to decode jCard from credentialSubject.card',
+      );
     }
+    final flat = decoded;
 
     final firstName = (flat['firstName'] as String?)?.trim();
     final lastName = (flat['lastName'] as String?)?.trim();

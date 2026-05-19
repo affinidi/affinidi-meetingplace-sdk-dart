@@ -305,12 +305,13 @@ abstract class BaseChatSDK {
   Future<List<Message>> fetchNewMessages() async {
     final methodName = 'fetchNewMessages';
     _logger.info('Started fetching new messages', name: methodName);
-    final messagesFromMediator = await coreSDK.fetchMessages(
+    final messagesFromMediator = await coreSDK.didcomm.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      deleteOnRetrieve: true,
+      deleteOnRetrieve: false,
     );
     final newMessages = <Message>[];
+    final processedHashes = <String>[];
 
     for (final message in messagesFromMediator) {
       if (!await handleMessage(message, newMessages)) {
@@ -325,6 +326,17 @@ abstract class BaseChatSDK {
           ),
         );
       }
+
+      final hash = message.messageHash;
+      if (hash != null) processedHashes.add(hash);
+    }
+
+    if (processedHashes.isNotEmpty) {
+      await coreSDK.didcomm.deleteMessages(
+        did: did,
+        mediatorDid: mediatorDid,
+        messageHashes: processedHashes,
+      );
     }
 
     _logger.info(
@@ -343,7 +355,7 @@ abstract class BaseChatSDK {
   /// - [Exception] if the chat session has not yet started or resumed.
   @internal
   Future<SDKStreamSubscription> subscribeToMediator() {
-    return coreSDK.subscribeToMediator(
+    return coreSDK.didcomm.subscribe(
       did,
       mediatorDid: mediatorDid,
       options: MediatorStreamSubscriptionOptions(
@@ -396,7 +408,7 @@ abstract class BaseChatSDK {
       );
     }
 
-    return coreSDK.sendMessage(
+    return coreSDK.didcomm.sendMessage(
       PlainTextMessage.fromJson({
         ...message.toJson(),
         'from': senderDid,

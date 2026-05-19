@@ -17,7 +17,10 @@ void main() async {
   late DidDocument bobDidDoc;
 
   Future<void> clearMessageQueue(DidDocument didDoc) async {
-    await aliceSDK.fetchMessages(did: aliceDidDoc.id, deleteOnRetrieve: true);
+    await aliceSDK.didcomm.fetchMessages(
+      did: didDoc.id,
+      deleteOnRetrieve: true,
+    );
   }
 
   setUp(() async {
@@ -30,7 +33,7 @@ void main() async {
     bobDID = await bobSDK.generateDid();
     bobDidDoc = await bobDID.getDidDocument();
 
-    await aliceSDK.mediator.updateAcl(
+    await aliceSDK.didcomm.mediator.updateAcl(
       ownerDidManager: aliceDID,
       acl: AccessListAdd(ownerDid: aliceDidDoc.id, granteeDids: [bobDidDoc.id]),
     );
@@ -43,7 +46,7 @@ void main() async {
     String message = 'Hello World',
     String type = 'https://example.com/test',
   }) async {
-    await bobSDK.sendMessage(
+    await bobSDK.didcomm.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
         type: Uri.parse(type),
@@ -57,7 +60,7 @@ void main() async {
   }
 
   test('successfully subscribes to mediator and receives messages', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscription = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
 
     final messageCompleter = Completer<MediatorMessage>();
     subscription.listen((message) {
@@ -80,7 +83,7 @@ void main() async {
   });
 
   test('returns closed subscription after dispose', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscription = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
     expect(subscription.isClosed, false);
 
     await subscription.dispose();
@@ -88,7 +91,7 @@ void main() async {
   });
 
   test('supports multiple listeners on the same subscription', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscription = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
 
     final listener1Completer = Completer<MediatorMessage>();
     final listener2Completer = Completer<MediatorMessage>();
@@ -123,7 +126,7 @@ void main() async {
   });
 
   test('processes multiple messages successfully', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscription = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
 
     var messagesReceived = 0;
     final messageCompleter = Completer<void>();
@@ -151,7 +154,7 @@ void main() async {
     // tests are received
     final messageType = 'https://example.com/${const Uuid().v4()}';
 
-    final subscription = await aliceSDK.subscribeToMediator(
+    final subscription = await aliceSDK.didcomm.subscribe(
       aliceDidDoc.id,
       options: const MediatorStreamSubscriptionOptions(
         deleteMessageDelay: Duration(milliseconds: 200),
@@ -178,7 +181,7 @@ void main() async {
 
     await waitForMessage.future.timeout(const Duration(seconds: 10));
 
-    final messages = await aliceSDK.fetchMessages(
+    final messages = await aliceSDK.didcomm.fetchMessages(
       did: aliceDidDoc.id,
       deleteOnRetrieve: true,
     );
@@ -187,7 +190,7 @@ void main() async {
   });
 
   test('stream can be accessed multiple times', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscription = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
 
     final stream1 = subscription.stream;
     final stream2 = subscription.stream;
@@ -197,7 +200,7 @@ void main() async {
   });
 
   test('timeout applies correctly to the stream', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscription = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
     final timeoutCompleter = Completer<bool>();
 
     subscription.timeout(
@@ -218,8 +221,8 @@ void main() async {
     final otherDidManager = await aliceSDK.generateDid();
     final otherDidDoc = await otherDidManager.getDidDocument();
 
-    final subscription1 = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
-    final subscription2 = await aliceSDK.subscribeToMediator(otherDidDoc.id);
+    final subscription1 = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
+    final subscription2 = await aliceSDK.didcomm.subscribe(otherDidDoc.id);
 
     expect(subscription1, isNot(equals(subscription2)));
 
@@ -228,7 +231,7 @@ void main() async {
   });
 
   test('onDone callback is invoked when stream closes', () async {
-    final subscription = await aliceSDK.subscribeToMediator(aliceDidDoc.id);
+    final subscription = await aliceSDK.didcomm.subscribe(aliceDidDoc.id);
     final doneCompleter = Completer<bool>();
 
     subscription.listen((message) {
@@ -248,7 +251,7 @@ void main() async {
   test(
     'deletes messages in queue even after subscription was disposed',
     () async {
-      final subscription = await aliceSDK.subscribeToMediator(
+      final subscription = await aliceSDK.didcomm.subscribe(
         aliceDidDoc.id,
         options: const MediatorStreamSubscriptionOptions(
           deleteMessageDelay: Duration(seconds: 3),
@@ -280,7 +283,7 @@ void main() async {
       await Future<void>.delayed(const Duration(seconds: 5));
 
       // Verify messages were deleted even though subscription was disposed
-      final messages = await aliceSDK.fetchMessages(
+      final messages = await aliceSDK.didcomm.fetchMessages(
         did: aliceDidDoc.id,
         deleteOnRetrieve: false,
       );
@@ -290,7 +293,7 @@ void main() async {
   );
 
   test('invokes onError callback when listener throws exception', () async {
-    final subscription = await aliceSDK.subscribeToMediator(
+    final subscription = await aliceSDK.didcomm.subscribe(
       aliceDidDoc.id,
       options: const MediatorStreamSubscriptionOptions(
         deleteMessageDelay: Duration(seconds: 3),
@@ -337,12 +340,12 @@ void main() async {
         deleteMessageDelay: null,
       );
 
-      final subscriptionA = await aliceSDK.subscribeToMediator(
+      final subscriptionA = await aliceSDK.didcomm.subscribe(
         aliceDidDoc.id,
         options: subscriptionOptions,
       );
 
-      final subscriptionB = await aliceSDK.subscribeToMediator(
+      final subscriptionB = await aliceSDK.didcomm.subscribe(
         aliceDidDoc.id,
         options: subscriptionOptions,
       );
@@ -376,7 +379,7 @@ void main() async {
         );
       });
 
-      await bobSDK.sendMessage(
+      await bobSDK.didcomm.sendMessage(
         testMessage,
         senderDid: bobDidDoc.id,
         recipientDid: aliceDidDoc.id,
@@ -392,7 +395,9 @@ void main() async {
       );
 
       await Future<void>.delayed(const Duration(seconds: 5));
-      final messages = await aliceSDK.fetchMessages(did: aliceDidDoc.id);
+      final messages = await aliceSDK.didcomm.fetchMessages(
+        did: aliceDidDoc.id,
+      );
 
       return (
         subscriptionAMessage,

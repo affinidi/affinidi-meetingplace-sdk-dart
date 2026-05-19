@@ -1,5 +1,4 @@
 import 'package:matrix/matrix.dart' as matrix;
-import 'matrix_client.dart';
 
 /// Cache for Matrix client instances, keyed by user DID and homeserver.
 class MatrixClientCache {

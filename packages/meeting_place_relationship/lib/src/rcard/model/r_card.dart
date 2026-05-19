@@ -19,7 +19,6 @@ class RCard {
     required this.receivedAt,
     this.otherPartyPermanentChannelDid,
     this.permanentChannelDid,
-    this.threadId,
     this.notes,
   });
 
@@ -34,8 +33,7 @@ class RCard {
   }) {
     final log = logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCard');
     try {
-      final vc =
-          LdVcDm1Suite().tryParse(vcBlob) ?? LdVcDm2Suite().tryParse(vcBlob);
+      final vc = LdVcDm2Suite().tryParse(vcBlob);
       if (vc == null) {
         log.warning(
           'Could not parse VC from blob as a DM v1 or DM v2 credential',
@@ -95,9 +93,6 @@ class RCard {
   /// VDIP path.
   final String? permanentChannelDid;
 
-  /// The thread ID of the exchange that delivered this card, if known.
-  final String? threadId;
-
   /// Optional user notes attached to this contact.
   final String? notes;
 
@@ -110,7 +105,6 @@ class RCard {
     DateTime? receivedAt,
     String? otherPartyPermanentChannelDid,
     String? permanentChannelDid,
-    String? threadId,
     String? notes,
   }) {
     return RCard(
@@ -123,7 +117,6 @@ class RCard {
       otherPartyPermanentChannelDid:
           otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
-      threadId: threadId ?? this.threadId,
       notes: notes ?? this.notes,
     );
   }

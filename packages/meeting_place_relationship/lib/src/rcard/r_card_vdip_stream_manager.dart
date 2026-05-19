@@ -75,7 +75,8 @@ class RCardVdipStreamManager {
       return;
     }
 
-    final format = body['credential_format'] as String?;
+    final rawFormat = body['credential_format'];
+    final format = rawFormat is String ? rawFormat : null;
     if (format != null &&
         !RelationshipCredentialConstants.supportedFormats.contains(format)) {
       _logger.warning('Unsupported VDIP credential format: $format');

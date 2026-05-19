@@ -11,9 +11,11 @@ class JCard {
 
   /// Encodes an [RCardSubject] to an RFC 7095 jCard list structure.
   ///
-  /// Property names follow the vCard 4.0 / RFC 6350 vocabulary. The `version`
-  /// property is always emitted first as required by RFC 7095. Only non-empty
-  /// fields are included.
+  /// **Property names are camelCase** (e.g. `firstName`, `profilePic`) rather
+  /// than the RFC 6350 vocabulary names (`n`, `photo`, `url`). This is
+  /// intentional for compatibility with the H2H decoder which uses the same
+  /// camelCase convention. The `version` property is always emitted first as
+  /// required by RFC 7095. Only non-empty fields are included.
   ///
   /// Output format:
   /// `['vcard', [['version',{},'text','4.0'], ['fn',{},'text','...'], ...]]`.

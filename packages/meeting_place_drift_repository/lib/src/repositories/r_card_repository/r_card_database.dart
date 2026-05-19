@@ -70,7 +70,8 @@ class ReceivedRCards extends Table {
   /// incremented by the repository on every real (content-changing) upsert.
   IntColumn get version => integer().withDefault(const Constant(1))();
 
-  /// UTC issuance date taken from the VC's `validFrom` field.
+  /// UTC issuance timestamp from the VC, using DM v1 `issuanceDate`
+  /// (with `validFrom` accepted as a fallback during parsing).
   DateTimeColumn get issuanceDate => dateTime()();
 
   /// Optional user-supplied notes about this contact.

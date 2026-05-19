@@ -51,6 +51,7 @@ class MeetingPlaceRelationshipSDK {
        _rCardRepository = rCardRepository {
     final log =
         logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
+    _logger = log;
     _rCardParser = RCardParser(logger: log);
     _vrcParser = VrcParser(logger: log);
     _attachmentManager = RCardChannelStreamManager(
@@ -89,15 +90,26 @@ class MeetingPlaceRelationshipSDK {
         await _rCardRepository.upsert(rCard);
       }
     });
-    _persistenceSubscription = _receivedRCardsController.stream.listen(
-      _rCardRepository.upsert,
-    );
+    _persistenceSubscription = _receivedRCardsController.stream
+        .asyncMap(_rCardRepository.upsert)
+        .listen(
+          (_) {},
+          onError: (Object error, StackTrace stackTrace) {
+            _logger.error(
+              'Failed to persist R-Card',
+              error: error,
+              stackTrace: stackTrace,
+              name: _className,
+            );
+          },
+        );
   }
 
   static const _className = 'MeetingPlaceRelationshipSDK';
 
   final MeetingPlaceCoreSDK _coreSDK;
   final RCardRepository _rCardRepository;
+  late final MeetingPlaceCoreSDKLogger _logger;
   late final RCardParser _rCardParser;
   late final VrcParser _vrcParser;
   late final RCardChannelStreamManager _attachmentManager;
@@ -106,7 +118,7 @@ class MeetingPlaceRelationshipSDK {
   late final Stream<RCard> _receivedRCardsStream;
   late final StreamSubscription<RCard> _attachmentSubscription;
   late final StreamSubscription<RCard> _vdipSubscription;
-  late final StreamSubscription<RCard> _persistenceSubscription;
+  late final StreamSubscription<void> _persistenceSubscription;
 
   /// A broadcast stream that emits a [RCard] whenever a valid,
   /// signature-verified R-Card is received over any channel — either via
@@ -154,6 +166,7 @@ class MeetingPlaceRelationshipSDK {
     await _vdipManager.close();
     await _attachmentManager.close();
     await _receivedRCardsController.close();
+    await _coreSDK.closeVdipStream();
   }
 
   /// Builds, signs, and delivers an R-Card to the other party in [channel]

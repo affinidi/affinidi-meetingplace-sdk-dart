@@ -123,8 +123,10 @@ class RCardRepositoryDrift implements model.RCardRepository {
 
   /// Produces canonical JSON for equality comparison.
   ///
-  /// Re-encoding through [jsonDecode]/[jsonEncode] normalises key order and
-  /// whitespace so that two blobs representing identical VCs compare equal.
+  /// Re-encoding through [jsonDecode]/[jsonEncode] normalises whitespace so
+  /// that two blobs with identical structure and key insertion order compare
+  /// equal. Key-order differences between semantically equivalent VCs are not
+  /// normalised; use deep-map equality if that matters.
   String _canonical(String vcBlob) {
     try {
       return jsonEncode(jsonDecode(vcBlob));

@@ -12,25 +12,19 @@ void main() {
       expect(props.first[3], '4.0');
     });
 
-    test('emits firstName and lastName as separate text entries', () {
+    test('emits fn and structured n for firstName and lastName', () {
       const subject = RCardSubject(firstName: 'Alice', lastName: 'Smith');
       final jCard = JCard.encode(subject);
       final props = (jCard[1] as List).cast<List>();
-      final propNames = props.map((p) => p[0]).toList();
-      expect(propNames, containsAll(['firstName', 'lastName']));
+      final fn = props.firstWhere((p) => p[0] == 'fn');
+      final n = props.firstWhere((p) => p[0] == 'n');
+      expect(fn[3], 'Alice Smith');
+      // n: [family, given, additional, prefix, suffix]
+      expect((n[3] as List)[0], 'Smith');
+      expect((n[3] as List)[1], 'Alice');
     });
 
-    test('firstName and lastName entries carry correct values', () {
-      const subject = RCardSubject(firstName: 'Alice', lastName: 'Smith');
-      final jCard = JCard.encode(subject);
-      final props = (jCard[1] as List).cast<List>();
-      final first = props.firstWhere((p) => p[0] == 'firstName');
-      final last = props.firstWhere((p) => p[0] == 'lastName');
-      expect(first[3], 'Alice');
-      expect(last[3], 'Smith');
-    });
-
-    test('uses camelCase property names for all contact fields', () {
+    test('uses RFC 6350 property names and correct value types', () {
       const subject = RCardSubject(
         firstName: 'Alice',
         lastName: 'Smith',
@@ -44,22 +38,44 @@ void main() {
       );
       final jCard = JCard.encode(subject);
       final props = (jCard[1] as List).cast<List>();
-      final propNames = props.map((p) => p[0]).toSet();
+      final byName = {for (final p in props) p[0] as String: p};
+
+      // RFC 6350 vocabulary names
       expect(
-        propNames,
+        byName.keys,
         containsAll([
           'version',
-          'firstName',
-          'lastName',
+          'fn',
+          'n',
           'email',
-          'phone',
-          'profilePic',
-          'company',
-          'position',
-          'website',
-          'social',
+          'tel',
+          'photo',
+          'org',
+          'title',
+          'url',
+          'x-socialprofile',
         ]),
       );
+      // No legacy camelCase names
+      for (final legacy in [
+        'firstName',
+        'lastName',
+        'phone',
+        'profilePic',
+        'company',
+        'position',
+        'website',
+        'social',
+      ]) {
+        expect(
+          byName.keys,
+          isNot(contains(legacy)),
+          reason: 'must not emit legacy key $legacy',
+        );
+      }
+      // photo and url must be uri type
+      expect(byName['photo']![2], 'uri');
+      expect(byName['url']![2], 'uri');
     });
 
     test('omits optional fields when null or empty', () {
@@ -130,28 +146,27 @@ void main() {
       expect(decoded!['id'], 'did:key:z2');
     });
 
-    test(
-      'passes through unknown legacy camelCase keys for backward compat',
-      () {
-        final legacyCard = [
-          'vcard',
-          [
-            ['version', const <String, dynamic>{}, 'text', '4.0'],
-            ['profilePic', const <String, dynamic>{}, 'text', 'https://pic.io'],
-          ],
-        ];
-        final decoded = JCard.decode(legacyCard, null);
-        expect(decoded!['profilePic'], 'https://pic.io');
-      },
-    );
+    test('passes through unknown property names as-is', () {
+      final card = [
+        'vcard',
+        [
+          ['version', const <String, dynamic>{}, 'text', '4.0'],
+          ['unknownProp', const <String, dynamic>{}, 'text', 'someValue'],
+        ],
+      ];
+      final decoded = JCard.decode(card, null);
+      expect(decoded!['unknownProp'], 'someValue');
+    });
 
-    test('ignores version and fn properties', () {
+    test('ignores version; maps fn to name fallback field', () {
       final encoded = JCard.encode(
         const RCardSubject(firstName: 'Dave', lastName: 'Jones'),
       );
       final decoded = JCard.decode(encoded, null)!;
       expect(decoded.containsKey('version'), isFalse);
       expect(decoded.containsKey('fn'), isFalse);
+      // fn value is exposed as name (fallback for RCardCredentialSubject)
+      expect(decoded['name'], 'Dave Jones');
     });
   });
 }

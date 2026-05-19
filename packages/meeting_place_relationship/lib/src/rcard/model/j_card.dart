@@ -2,23 +2,28 @@ import 'r_card_subject.dart';
 
 /// Codec for the jCard format used to embed contact data in R-Card VCs.
 ///
-/// The wire format is the 4-tuple array structure defined by RFC 7095
-/// (https://datatracker.ietf.org/doc/html/rfc7095). Property names are
-/// camelCase (e.g. `firstName`, `profilePic`) rather than RFC 6350 vocabulary
-/// names; [decode] also recognises standard RFC 6350 aliases for
-/// interoperability with externally-encoded vCards.
+/// The wire format and property vocabulary follow RFC 7095
+/// (https://datatracker.ietf.org/doc/html/rfc7095) and RFC 6350
+/// (https://datatracker.ietf.org/doc/html/rfc6350).
 class JCard {
   JCard._();
 
-  /// Encodes an [RCardSubject] to an RFC 7095 jCard list structure.
+  /// Encodes an [RCardSubject] to an RFC 7095 / RFC 6350 compliant jCard.
   ///
-  /// **Property names are camelCase** (e.g. `firstName`, `profilePic`) rather
-  /// than the RFC 6350 vocabulary names (`n`, `photo`, `url`). The `version`
-  /// property is always emitted first as required by RFC 7095. Only non-empty
-  /// fields are included.
+  /// Property names and value types follow the RFC 6350 vocabulary:
+  /// - `fn` (mandatory §6.2.1): formatted display name derived from
+  ///   first + last name.
+  /// - `n` (§6.2.2): structured name
+  ///   `[family, given, additional, prefix, suffix]`.
+  /// - `email`, `tel`, `org`, `title`: `"text"` values.
+  /// - `photo`, `url`: `"uri"` values (RFC 6350 §6.2.4 / §6.7.8).
+  /// - `x-socialprofile`: extension property (RFC 6350 §6.10) for social URL.
+  ///
+  /// `version` is always emitted first as required by RFC 7095 §3.3.
+  /// Only non-empty fields are included.
   ///
   /// Output format:
-  /// `['vcard', [['version',{},'text','4.0'], ['firstName',{},'text','...'], ...]]`.
+  /// `['vcard', [['version',{},'text','4.0'], ['fn',{},'text','...'], ...]]`.
   static List<Object> encode(RCardSubject subject) {
     final entries = <List<Object>>[
       ['version', const <String, dynamic>{}, 'text', '4.0'],
@@ -31,24 +36,49 @@ class JCard {
       }
     }
 
-    addText('firstName', subject.firstName);
-    addText('lastName', subject.lastName);
+    void addUri(String prop, String? value) {
+      final v = value?.trim();
+      if (v != null && v.isNotEmpty) {
+        entries.add([prop, const <String, dynamic>{}, 'uri', v]);
+      }
+    }
+
+    // fn is mandatory in every vCard (RFC 6350 §6.2.1)
+    final givenName = subject.firstName?.trim() ?? '';
+    final familyName = subject.lastName?.trim() ?? '';
+    final formattedName = [
+      givenName,
+      familyName,
+    ].where((s) => s.isNotEmpty).join(' ');
+    if (formattedName.isNotEmpty) {
+      entries.add(['fn', const <String, dynamic>{}, 'text', formattedName]);
+    }
+
+    // n: structured name [family, given, additional, prefix, suffix]
+    if (givenName.isNotEmpty || familyName.isNotEmpty) {
+      entries.add([
+        'n',
+        const <String, dynamic>{},
+        'text',
+        [familyName, givenName, '', '', ''],
+      ]);
+    }
+
     addText('email', subject.email);
-    addText('phone', subject.phone);
-    addText('profilePic', subject.profilePic);
-    addText('company', subject.company);
-    addText('position', subject.position);
-    addText('website', subject.website);
-    addText('social', subject.social);
+    addText('tel', subject.phone);
+    addUri('photo', subject.profilePic);
+    addText('org', subject.company);
+    addText('title', subject.position);
+    addUri('url', subject.website);
+    addText('x-socialprofile', subject.social);
 
     return ['vcard', entries];
   }
 
-  /// Decodes a jCard list into a flat map suitable for [RCardSubject.fromJson].
+  /// Decodes a jCard list into a flat map suitable for
+  /// `RCardCredentialSubject.fromJson`.
   ///
-  /// Recognises the camelCase property names written by [encode] and maps
-  /// standard RFC 6350 aliases (`n`, `tel`, `photo`, `org`, `title`, `url`)
-  /// to the corresponding [RCardSubject] field names for interoperability.
+  /// Maps RFC 6350 property names to `RCardCredentialSubject` field names.
   /// Unknown property names are passed through as-is.
   ///
   /// Returns `null` if [card] is not a valid jCard structure.
@@ -64,9 +94,10 @@ class JCard {
       final value = p[3];
       switch (name) {
         case 'version':
-        case 'fn':
-          // skip: version is metadata; fn is a display-name alias not used by encode
           break;
+        case 'fn':
+          // formatted name — used as fallback when n is absent
+          result['name'] = _trim(value);
         case 'n':
           // Structured name: [family, given, additional, prefix, suffix]
           if (value is List) {
@@ -85,10 +116,10 @@ class JCard {
           result['position'] = _trim(value);
         case 'url':
           result['website'] = _trim(value);
-        case 'social':
+        case 'x-socialprofile':
           result['social'] = _trim(value);
         default:
-          // Pass through non-standard property names as-is.
+          // Pass through unknown property names as-is.
           result[name] = _trim(value);
       }
     }

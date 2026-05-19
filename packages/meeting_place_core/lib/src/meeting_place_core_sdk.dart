@@ -24,6 +24,7 @@ import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
+import 'service/identity/identity_service.dart';
 import 'service/mediator/fetch_messages_options.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
@@ -76,6 +77,10 @@ import 'utils/cached_did_resolver.dart';
 ///   repositoryConfig: repositoryConfig,
 ///   mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
 ///   controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
+///   matrixConfig: MatrixConfig(
+///     homeserver: Uri.parse('https://matrix.example.com'),
+///     databaseFactory: const UnsupportedMatrixDatabaseFactory(),
+///   ),
 /// );
 /// ```
 ///
@@ -213,6 +218,7 @@ class MeetingPlaceCoreSDK {
     required RepositoryConfig repositoryConfig,
     required String mediatorDid,
     required String controlPlaneDid,
+    required MatrixConfig matrixConfig,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -283,10 +289,21 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
+    final matrixService = MatrixService(
+      config: matrixConfig,
+      controlPlaneSDK: controlPlaneSDK,
+    );
+
+    final identityService = IdentityService(
+      connectionManager: connectionManager,
+      matrixService: matrixService,
+    );
+
     final connectionService = ConnectionService(
       connectionOfferRepository: repositoryConfig.connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
+      identityService: identityService,
       controlPlaneSDK: controlPlaneSDK,
       mediatorAclService: MediatorAclService(
         mediatorSDK: mediatorSDK,
@@ -296,6 +313,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
+      matrixService: matrixService,
       logger: mpxLogger,
     );
 
@@ -315,6 +333,8 @@ class MeetingPlaceCoreSDK {
       controlPlaneSDK: controlPlaneSDK,
       mediatorSDK: mediatorSDK,
       offerService: offerService,
+      identityService: identityService,
+      matrixService: matrixService,
       didResolver: didResolver,
       logger: mpxLogger,
     );
@@ -337,6 +357,8 @@ class MeetingPlaceCoreSDK {
       channelRepository: repositoryConfig.channelRepository,
       channelService: channelService,
       streamManager: discoveryEventStreamManager,
+      matrixService: matrixService,
+      identityService: identityService,
       didResolver: didResolver,
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
@@ -384,7 +406,9 @@ class MeetingPlaceCoreSDK {
       mediatorService: mediatorService,
       connectionService: connectionService,
       connectionManager: connectionManager,
+      identityService: identityService,
       channelService: channelService,
+      matrixService: matrixService,
       controlPlaneSDK: controlPlaneSDK,
       controlPlaneEventStreamManager: discoveryEventStreamManager,
       logger: mpxLogger,
@@ -719,7 +743,7 @@ class MeetingPlaceCoreSDK {
             customPhrase: customPhrase,
             validUntil: validUntil,
             maximumUsage: maximumUsage,
-            mediatorDid: mediatorDid,
+            mediatorDid: mediatorDid ?? _mediatorDid,
             externalRef: externalRef,
             metadata: metadata,
             card: contactCard,

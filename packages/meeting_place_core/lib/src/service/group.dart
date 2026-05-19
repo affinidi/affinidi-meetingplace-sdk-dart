@@ -28,6 +28,8 @@ import 'group/group_admin.dart';
 import 'group/group_exception.dart';
 import 'group/group_message.dart' as group_message;
 import 'group_service/accept_group_offer_result.dart';
+import 'identity/identity_service.dart';
+import 'matrix/matrix_service.dart';
 
 class GroupService {
   GroupService({
@@ -39,8 +41,10 @@ class GroupService {
     required ChannelService channelService,
     required ConnectionOfferService offerService,
     required ConnectionService connectionService,
+    required IdentityService identityService,
     required cp.ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
+    required MatrixService matrixService,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _wallet = wallet,
@@ -51,8 +55,10 @@ class GroupService {
        _keyRepository = keyRepository,
        _connectionOfferService = offerService,
        _connectionService = connectionService,
+       _identityService = identityService,
        _controlPlaneSDK = controlPlaneSDK,
        _mediatorSDK = mediatorSDK,
+       _matrixService = matrixService,
        _didResolver = didResolver,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
@@ -67,11 +73,13 @@ class GroupService {
   final ConnectionService _connectionService;
   final ChannelService _channelService;
   final KeyRepository _keyRepository;
+  final IdentityService _identityService;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
 
   final cp.ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceMediatorSDK _mediatorSDK;
+  final MatrixService _matrixService;
 
   final _recrypt = recrypt.Recrypt();
 
@@ -86,7 +94,7 @@ class GroupService {
     required String offerName,
     required String offerDescription,
     required ContactCard card,
-    String? mediatorDid,
+    required String mediatorDid,
     String? customPhrase,
     DateTime? validUntil,
     int? maximumUsage,
@@ -99,8 +107,11 @@ class GroupService {
       name: methodName,
     );
 
-    final ownerDid = await _connectionManager.generateDid(_wallet);
-    final ownerDidDocument = await ownerDid.getDidDocument();
+    final ownerIdentity = await _identityService.createPermanentIdentity(
+      _wallet,
+    );
+    final ownerDid = ownerIdentity.didManager;
+    final ownerDidDocument = ownerIdentity.didDocument;
 
     final groupKeyPair = _recrypt.generateKeyPair();
     final recryptKeyPair = await generateRecryptKeyPair(ownerDidDocument.id);
@@ -168,11 +179,14 @@ class GroupService {
     await _groupRepository.createGroup(group);
 
     try {
-      await _allowGroupToMessageGroupOwner(
-        groupOwnerDid: ownerDid,
-        mediatorDid: result.mediatorDid,
-        groupDid: result.groupDid,
-      );
+      final (matrixRoomId, _) = await (
+        _matrixService.createRoom(didManager: ownerDid),
+        _allowGroupToMessageGroupOwner(
+          groupOwnerDid: ownerDid,
+          mediatorDid: result.mediatorDid,
+          groupDid: result.groupDid,
+        ),
+      ).wait;
 
       final oobDidDoc = await oobDidManager.getDidDocument();
       final connectionOffer = GroupConnectionOffer(
@@ -209,6 +223,7 @@ class GroupService {
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
+        matrixRoomId: matrixRoomId,
         externalRef: externalRef,
       );
 
@@ -279,12 +294,11 @@ class GroupService {
       name: methodName,
     );
 
-    final permanentChannelDidManager = await _connectionManager.generateDid(
+    final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
     );
-
-    final permanentChannelDidDocument = await permanentChannelDidManager
-        .getDidDocument();
+    final permanentChannelDidManager = permanentIdentity.didManager;
+    final permanentChannelDidDocument = permanentIdentity.didDocument;
 
     _logger.debug(
       'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
@@ -639,6 +653,20 @@ class GroupService {
     final memberDidDocument = await _didResolver.resolveDid(member.did);
     await _allowMemberToMessageGroupAdmin(group, member, channel.mediatorDid);
 
+    final ownerIdentity = await _identityService.getPermanentIdentity(
+      _wallet,
+      group.ownerDid!,
+    );
+
+    final roomId =
+        channel.matrixRoomId ?? (throw GroupException.notFoundError());
+
+    await _matrixService.inviteUser(
+      roomId,
+      did: member.did,
+      didManager: ownerIdentity.didManager,
+    );
+
     final senderDid = await _connectionManager.getDidManagerForDid(
       _wallet,
       channel.publishOfferDid,
@@ -656,6 +684,7 @@ class GroupService {
       groupDid: group.did,
       groupId: group.id,
       adminDids: [group.ownerDid!],
+      matrixRoomId: roomId,
       groupPublicKey: group.publicKey!,
       members: group.members
           .where((member) => member.status == GroupMemberStatus.approved)

@@ -88,6 +88,10 @@ enum ControlPlaneSDKErrorCode {
   validateOfferPhraseTimeout('validate_offer_phrase_timeout'),
   validateOfferPhraseGeneric('validate_offer_phrase_generic'),
 
+  // matrix token codes
+  matrixTokenInvalidResponse('matrix_token_invalid_response'),
+  matrixTokenGeneric('matrix_token_generic'),
+
   // others
   networkError('network_error'),
   generic('generic');

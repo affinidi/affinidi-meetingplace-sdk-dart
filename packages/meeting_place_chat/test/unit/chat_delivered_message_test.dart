@@ -72,6 +72,10 @@ void main() {
       ),
       mediatorDid: mediatorDid,
       controlPlaneDid: 'did:peer:control-plane',
+      matrixConfig: MatrixConfig(
+        homeserver: Uri.parse('https://matrix.example.com'),
+        databaseFactory: const UnsupportedMatrixDatabaseFactory(),
+      ),
     );
 
     sdk = _SpyChatSDK(

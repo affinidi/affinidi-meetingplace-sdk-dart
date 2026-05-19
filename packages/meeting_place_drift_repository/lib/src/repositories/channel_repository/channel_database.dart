@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -110,13 +110,20 @@ class ChannelDatabase extends _$ChannelDatabase {
             ''');
             await customStatement('DROP TABLE channel_contact_cards');
             await customStatement(
-              'ALTER TABLE channel_contact_cards_temp RENAME TO channel_contact_cards',
+              'ALTER TABLE channel_contact_cards_temp '
+              'RENAME TO channel_contact_cards',
             );
           }
           if (from < 3 && to >= 3) {
             await migrator.addColumn(
               channelContactCards,
               channelContactCards.profilePic,
+            );
+          }
+          if (from < 4 && to >= 4) {
+            await migrator.addColumn(
+              channels,
+              channels.matrixRoomId,
             );
           }
         },
@@ -167,6 +174,9 @@ class Channels extends Table {
 
   /// Notification token for the other party in the channel.
   TextColumn get otherPartyNotificationToken => text().nullable()();
+
+  /// Matrix room ID associated with the channel.
+  TextColumn get matrixRoomId => text().nullable()();
 
   /// External reference for the channel.
   TextColumn get externalRef => text().nullable()();

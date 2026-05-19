@@ -1,11 +1,12 @@
 import 'r_card_subject.dart';
 
-/// Codec for the RFC 7095 jCard format used to embed contact data
-/// in R-Card VCs.
+/// Codec for the jCard format used to embed contact data in R-Card VCs.
 ///
-/// See https://datatracker.ietf.org/doc/html/rfc7095 for the jCard specification
-/// and https://datatracker.ietf.org/doc/html/rfc6350 for the underlying vCard 4.0
-/// property vocabulary.
+/// The wire format is the 4-tuple array structure defined by RFC 7095
+/// (https://datatracker.ietf.org/doc/html/rfc7095). Property names are
+/// camelCase (e.g. `firstName`, `profilePic`) rather than RFC 6350 vocabulary
+/// names; [decode] also recognises standard RFC 6350 aliases for
+/// interoperability with externally-encoded vCards.
 class JCard {
   JCard._();
 
@@ -17,7 +18,7 @@ class JCard {
   /// fields are included.
   ///
   /// Output format:
-  /// `['vcard', [['version',{},'text','4.0'], ['fn',{},'text','...'], ...]]`.
+  /// `['vcard', [['version',{},'text','4.0'], ['firstName',{},'text','...'], ...]]`.
   static List<Object> encode(RCardSubject subject) {
     final entries = <List<Object>>[
       ['version', const <String, dynamic>{}, 'text', '4.0'],
@@ -45,8 +46,10 @@ class JCard {
 
   /// Decodes a jCard list into a flat map suitable for [RCardSubject.fromJson].
   ///
-  /// Maps standard RFC 6350 property names to [RCardSubject] field names.
-  /// Non-standard property names are passed through as-is.
+  /// Recognises the camelCase property names written by [encode] and maps
+  /// standard RFC 6350 aliases (`n`, `tel`, `photo`, `org`, `title`, `url`)
+  /// to the corresponding [RCardSubject] field names for interoperability.
+  /// Unknown property names are passed through as-is.
   ///
   /// Returns `null` if [card] is not a valid jCard structure.
   static Map<String, dynamic>? decode(dynamic card, String? id) {
@@ -62,7 +65,7 @@ class JCard {
       switch (name) {
         case 'version':
         case 'fn':
-          // skip: version is metadata; fn is derived from the n property
+          // skip: version is metadata; fn is a display-name alias not used by encode
           break;
         case 'n':
           // Structured name: [family, given, additional, prefix, suffix]
@@ -82,7 +85,7 @@ class JCard {
           result['position'] = _trim(value);
         case 'url':
           result['website'] = _trim(value);
-        case 'x-socialprofile':
+        case 'social':
           result['social'] = _trim(value);
         default:
           // Pass through non-standard property names as-is.

@@ -730,6 +730,9 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
+  /// Creates a local chat [Message] for a credential that was issued to the
+  /// other party.
+  ///
   /// Persists the message and pushes it to [chatStream] so the sender sees
   /// an attachment tile immediately.
   ///
@@ -753,8 +756,9 @@ abstract class BaseChatSDK {
     chatStream.pushData(StreamData(chatItem: chatMessage));
   }
 
-  /// Creates a local chat [Message] for a credential received from the other
-  /// party (isFromMe: false).
+  /// Creates a local chat [Message] for a credential that was received from
+  /// the other party.
+  ///
   /// Persists the message and pushes it to [chatStream] so the receiver sees
   /// an attachment tile immediately.
   ///

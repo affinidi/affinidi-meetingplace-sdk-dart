@@ -239,7 +239,7 @@ class MeetingPlaceChatSDK implements ChatSDK {
     required List<Attachment> attachments,
     required bool isFromMe,
   }) => _sdk.createAttachmentMessage(
-        attachments: attachments,
-        isFromMe: isFromMe,
-      );
+    attachments: attachments,
+    isFromMe: isFromMe,
+  );
 }

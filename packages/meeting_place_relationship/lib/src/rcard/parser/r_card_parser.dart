@@ -22,9 +22,7 @@ class RCardParser {
   /// validation fails, or signature verification fails.
   ///
   /// - [vcBlob] — raw VC JSON string.
-  Future<RCard?> parse({
-    required String vcBlob,
-  }) async {
+  Future<RCard?> parse({required String vcBlob}) async {
     final dynamic decoded;
     try {
       decoded = jsonDecode(vcBlob);

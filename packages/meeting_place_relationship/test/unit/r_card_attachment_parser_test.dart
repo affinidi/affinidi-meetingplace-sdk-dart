@@ -12,52 +12,40 @@ void main() {
 
   group('RCardAttachmentParser', () {
     test('invalid JSON vcBlob returns null', () async {
-      final result = await parser.parse(
-        vcBlob: 'not-json',
-      );
+      final result = await parser.parse(vcBlob: 'not-json');
       expect(result, isNull);
     });
 
     test('VC type missing VerifiableCredential returns null', () async {
       final vcJson = jsonDecode(rCardVcBlob) as Map<String, dynamic>;
       vcJson['type'] = ['RelationshipCard'];
-      final result = await parser.parse(
-        vcBlob: jsonEncode(vcJson),
-      );
+      final result = await parser.parse(vcBlob: jsonEncode(vcJson));
       expect(result, isNull);
     });
 
     test('VC type missing RelationshipCard returns null', () async {
       final vcJson = jsonDecode(rCardVcBlob) as Map<String, dynamic>;
       vcJson['type'] = ['VerifiableCredential'];
-      final result = await parser.parse(
-        vcBlob: jsonEncode(vcJson),
-      );
+      final result = await parser.parse(vcBlob: jsonEncode(vcJson));
       expect(result, isNull);
     });
 
     test('VC context missing R-Card URL returns null', () async {
       final vcJson = jsonDecode(rCardVcBlob) as Map<String, dynamic>;
       vcJson['@context'] = ['https://www.w3.org/2018/credentials/v1'];
-      final result = await parser.parse(
-        vcBlob: jsonEncode(vcJson),
-      );
+      final result = await parser.parse(vcBlob: jsonEncode(vcJson));
       expect(result, isNull);
     });
 
     test('VC with no proof returns null', () async {
-      final result = await parser.parse(
-        vcBlob: rCardVcBlob,
-      );
+      final result = await parser.parse(vcBlob: rCardVcBlob);
       expect(result, isNull);
     });
 
     test('VC missing credentialSubject.id returns null', () async {
       final vcJson = jsonDecode(rCardVcBlob) as Map<String, dynamic>;
       vcJson['credentialSubject'] = <String, dynamic>{};
-      final result = await parser.parse(
-        vcBlob: jsonEncode(vcJson),
-      );
+      final result = await parser.parse(vcBlob: jsonEncode(vcJson));
       expect(result, isNull);
     });
   });
@@ -87,9 +75,7 @@ void main() {
     });
 
     test('valid signed R-Card returns a RCard', () async {
-      final result = await parser.parse(
-        vcBlob: vcBlob,
-      );
+      final result = await parser.parse(vcBlob: vcBlob);
       expect(result, isNotNull);
       expect(result!.issuerDid, issuerDid);
       expect(result.subjectDid, issuerDid);

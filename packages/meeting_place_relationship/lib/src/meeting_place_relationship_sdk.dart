@@ -304,9 +304,7 @@ class MeetingPlaceRelationshipSDK {
   /// Returns `null` if the blob is not a valid, signature-verified R-Card.
   ///
   /// - [vcBlob] — the raw serialised VC JSON string.
-  Future<RCard?> parseRCard({
-    required String vcBlob,
-  }) {
+  Future<RCard?> parseRCard({required String vcBlob}) {
     return _rCardParser.parse(vcBlob: vcBlob);
   }
 

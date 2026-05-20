@@ -93,9 +93,7 @@ class RCardVdipStreamManager {
       return;
     }
 
-    final rCard = await _parser.parse(
-      vcBlob: credential,
-    );
+    final rCard = await _parser.parse(vcBlob: credential);
     if (rCard != null) {
       yield rCard;
     } else {

@@ -48,9 +48,7 @@ class RCardChannelStreamManager {
     for (final attachment in attachments) {
       final vcBlob = _extractVcBlob(attachment);
       if (vcBlob == null) continue;
-      final rCard = await _parser.parse(
-        vcBlob: vcBlob,
-      );
+      final rCard = await _parser.parse(vcBlob: vcBlob);
       if (rCard != null) {
         yield rCard;
       } else {

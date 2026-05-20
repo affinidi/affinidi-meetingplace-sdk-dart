@@ -36,11 +36,12 @@ import 'vrc/vrc_protocol_handler.dart';
 /// Example:
 /// ```dart
 /// final coreSDK = await MeetingPlaceCoreSDK.create(...);
-/// final db = RCardDatabase(...);
-/// final repo = RCardRepositoryDrift(database: db);
+/// final rCardDb = RCardDatabase(...);
+/// final vrcDb = VrcDatabase(...);
 /// final relationshipSDK = MeetingPlaceRelationshipSDK(
 ///   coreSDK: coreSDK,
-///   rCardRepository: repo,
+///   rCardRepository: RCardRepositoryDrift(database: rCardDb),
+///   vrcRepository: VrcRepositoryDrift(database: vrcDb),
 /// );
 ///
 /// relationshipSDK.watchReceivedRCards().listen((cards) {

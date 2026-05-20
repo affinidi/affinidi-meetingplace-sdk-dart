@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_relationship/src/vrc/model/vrc_constants.dart';
+import 'package:meeting_place_relationship/meeting_place_relationship.dart';
 import 'package:meeting_place_relationship/src/vrc/vrc_exchange_client.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';

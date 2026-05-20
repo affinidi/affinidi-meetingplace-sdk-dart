@@ -15,7 +15,6 @@ class RCard {
     required this.version,
     required this.issuanceDate,
     required this.receivedAt,
-    this.otherPartyPermanentChannelDid,
     this.notes,
   });
 
@@ -79,9 +78,6 @@ class RCard {
   /// The UTC timestamp at which this card was received and stored locally.
   final DateTime receivedAt;
 
-  /// The permanent channel DID of the contact who sent this R-Card, if known.
-  final String? otherPartyPermanentChannelDid;
-
   /// Optional user notes attached to this contact.
   final String? notes;
 
@@ -92,7 +88,6 @@ class RCard {
     int? version,
     DateTime? issuanceDate,
     DateTime? receivedAt,
-    String? otherPartyPermanentChannelDid,
     String? notes,
   }) {
     return RCard(
@@ -102,8 +97,6 @@ class RCard {
       version: version ?? this.version,
       issuanceDate: issuanceDate ?? this.issuanceDate,
       receivedAt: receivedAt ?? this.receivedAt,
-      otherPartyPermanentChannelDid:
-          otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
       notes: notes ?? this.notes,
     );
   }

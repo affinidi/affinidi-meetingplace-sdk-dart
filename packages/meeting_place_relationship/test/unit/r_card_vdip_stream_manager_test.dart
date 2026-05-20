@@ -70,7 +70,6 @@ void main() {
 
       expect(emitted, hasLength(1));
       expect(emitted.first.issuerDid, issuerDid);
-      expect(emitted.first.otherPartyPermanentChannelDid, issuerDid);
       await sub.cancel();
       await manager.close();
       await ctrl.close();

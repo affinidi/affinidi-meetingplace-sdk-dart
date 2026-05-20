@@ -14,7 +14,6 @@ void main() {
     test('invalid JSON vcBlob returns null', () async {
       final result = await parser.parse(
         vcBlob: 'not-json',
-        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -24,7 +23,6 @@ void main() {
       vcJson['type'] = ['RelationshipCard'];
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -34,7 +32,6 @@ void main() {
       vcJson['type'] = ['VerifiableCredential'];
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -44,7 +41,6 @@ void main() {
       vcJson['@context'] = ['https://www.w3.org/2018/credentials/v1'];
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -52,7 +48,6 @@ void main() {
     test('VC with no proof returns null', () async {
       final result = await parser.parse(
         vcBlob: rCardVcBlob,
-        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -62,7 +57,6 @@ void main() {
       vcJson['credentialSubject'] = <String, dynamic>{};
       final result = await parser.parse(
         vcBlob: jsonEncode(vcJson),
-        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNull);
     });
@@ -95,7 +89,6 @@ void main() {
     test('valid signed R-Card returns a RCard', () async {
       final result = await parser.parse(
         vcBlob: vcBlob,
-        otherPartyPermanentChannelDid: 'did:example:channel',
       );
       expect(result, isNotNull);
       expect(result!.issuerDid, issuerDid);

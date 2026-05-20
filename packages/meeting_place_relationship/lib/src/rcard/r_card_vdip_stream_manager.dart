@@ -95,7 +95,6 @@ class RCardVdipStreamManager {
 
     final rCard = await _parser.parse(
       vcBlob: credential,
-      otherPartyPermanentChannelDid: from,
     );
     if (rCard != null) {
       yield rCard;

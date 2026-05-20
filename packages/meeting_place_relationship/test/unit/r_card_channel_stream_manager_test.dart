@@ -5,7 +5,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
 import 'package:meeting_place_relationship/src/rcard/parser/r_card_parser.dart';
 import 'package:meeting_place_relationship/src/rcard/r_card_channel_stream_manager.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -30,49 +29,10 @@ void main() {
     return RCardChannelStreamManager(
       channelAttachments: channelAttachmentsCtrl.stream,
       parser: RCardParser(),
-      logger: DefaultMeetingPlaceCoreSDKLogger(
-        className: 'RCardChannelStreamManagerTest',
-      ),
     );
   }
 
-  group('RCardChannelStreamManager — null/empty channel DID', () {
-    test('null otherPartyPermanentChannelDid does not emit', () async {
-      when(() => channel.otherPartyPermanentChannelDid).thenReturn(null);
-      final manager = makeManager();
-      final emitted = <RCard>[];
-      final sub = manager.stream.listen(emitted.add);
-
-      channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
-      await Future<void>.delayed(Duration.zero);
-
-      expect(emitted, isEmpty);
-      await sub.cancel();
-      await manager.close();
-    });
-
-    test('empty otherPartyPermanentChannelDid does not emit', () async {
-      when(() => channel.otherPartyPermanentChannelDid).thenReturn('');
-      final manager = makeManager();
-      final emitted = <RCard>[];
-      final sub = manager.stream.listen(emitted.add);
-
-      channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
-      await Future<void>.delayed(Duration.zero);
-
-      expect(emitted, isEmpty);
-      await sub.cancel();
-      await manager.close();
-    });
-  });
-
   group('RCardChannelStreamManager — attachment envelope', () {
-    setUp(() {
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
-    });
-
     test('wrong attachment format does not emit', () async {
       final manager = makeManager();
       final emitted = <RCard>[];
@@ -202,12 +162,6 @@ void main() {
       signedAttachments = RCardDIDCommAttachmentBuilder.fromVcJson(vc.toJson());
     });
 
-    setUp(() {
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
-    });
-
     test('valid signed R-Card emits on stream', () async {
       final manager = makeManager();
       final emitted = <RCard>[];
@@ -218,7 +172,6 @@ void main() {
 
       expect(emitted, hasLength(1));
       expect(emitted.first.issuerDid, issuerDid);
-      expect(emitted.first.otherPartyPermanentChannelDid, 'did:example:other');
       await sub.cancel();
       await manager.close();
     });

@@ -568,7 +568,7 @@ void main() {
         rel.Vrc(
           id: id,
           vcBlob: vcBlob,
-          channelId: channelId,
+          referenceId: channelId,
           holderDid: holderDid,
           issuerDid: issuerDid,
           issuedAt: issuedAt ?? DateTime.utc(2026, 1, 1),
@@ -585,7 +585,7 @@ void main() {
       final stored = await repository.getById('vrc-1');
       expect(stored, isNotNull);
       expect(stored!.id, equals('vrc-1'));
-      expect(stored.channelId, equals('channel-1'));
+      expect(stored.referenceId, equals('channel-1'));
       expect(stored.holderDid, equals('did:example:holder'));
       expect(stored.issuerDid, equals('did:example:issuer'));
     });
@@ -600,7 +600,7 @@ void main() {
       await repository.upsert(vrc(channelId: 'channel-new'));
 
       final stored = await repository.getById('vrc-1');
-      expect(stored!.channelId, equals('channel-new'));
+      expect(stored!.referenceId, equals('channel-new'));
     });
 
     test('upsert replaces row when vcBlob changes', () async {

@@ -30,7 +30,7 @@ void main() {
       Vrc(
         id: 'stored-vrc-fallback',
         vcBlob: '{}',
-        channelId: 'channel-fallback',
+        referenceId: 'channel-fallback',
         holderDid: 'did:key:holder',
         issuerDid: 'did:key:issuer',
         issuedAt: DateTime.utc(2024, 1, 1),
@@ -365,7 +365,7 @@ void main() {
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      final events = <ReceivedVrcRequest>[];
+      final events = <VrcRequest>[];
       final sub = sdk.receivedVrcRequests.listen(events.add);
 
       vdipMessagesCtrl.add(
@@ -406,7 +406,7 @@ void main() {
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      final events = <ReceivedVrcRequest>[];
+      final events = <VrcRequest>[];
       final sub = sdk.receivedVrcRequests.listen(events.add);
 
       vdipMessagesCtrl.add(
@@ -431,7 +431,7 @@ void main() {
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      final events = <ReceivedVrc>[];
+      final events = <VrcIssuance>[];
       final sub = sdk.receivedVrcs.listen(events.add);
 
       vdipMessagesCtrl.add(
@@ -464,7 +464,7 @@ void main() {
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      final events = <ReceivedVrc>[];
+      final events = <VrcIssuance>[];
       final sub = sdk.receivedVrcs.listen(events.add);
 
       vdipMessagesCtrl.add(
@@ -573,12 +573,26 @@ void main() {
 
       final vrc = await sdk.storeVrc(
         vcBlob: signedVrcBlob,
-        channelId: 'channel-1',
+        referenceId: 'channel-1',
       );
 
       expect(vrc, isNotNull);
-      expect(vrc!.channelId, 'channel-1');
+      expect(vrc.referenceId, 'channel-1');
       verify(() => mockVrcRepo.upsert(any())).called(1);
+    });
+
+    test('storeVrc throws MeetingPlaceRelationshipSDKException '
+        'for an invalid vcBlob', () async {
+      final sdk = MeetingPlaceRelationshipSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRCardRepo,
+        vrcRepository: mockVrcRepo,
+      );
+
+      await expectLater(
+        () => sdk.storeVrc(vcBlob: 'not-a-vrc', referenceId: 'channel-1'),
+        throwsA(isA<MeetingPlaceRelationshipSDKException>()),
+      );
     });
 
     test('received VRC auto-persists when repository is configured', () async {
@@ -677,7 +691,7 @@ void main() {
     test(
       'handleReceivedVrcRequest returns prompt when exchange not started',
       () async {
-        final request = ReceivedVrcRequest(
+        final request = VrcRequest(
           senderDid: 'did:key:sender',
           credentialMetaData: const {
             VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
@@ -685,20 +699,20 @@ void main() {
         );
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          channelDid: 'channel-1',
+          permanentChannelDid: 'channel-1',
           request: request,
           hasVrcExchangeInitiated: false,
           isConnectionInitiator: true,
         );
 
-        expect(outcome, VrcRequestReceivedOutcome.prompt);
+        expect(outcome, VrcRequestProcessingResult.prompt);
       },
     );
 
     test(
       'handleReceivedVrcRequest returns waiting for non-initiator',
       () async {
-        final request = ReceivedVrcRequest(
+        final request = VrcRequest(
           senderDid: 'did:key:sender',
           credentialMetaData: const {
             VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
@@ -706,28 +720,15 @@ void main() {
         );
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          channelDid: 'channel-1',
+          permanentChannelDid: 'channel-1',
           request: request,
           hasVrcExchangeInitiated: true,
           isConnectionInitiator: false,
         );
 
-        expect(outcome, VrcRequestReceivedOutcome.waiting);
+        expect(outcome, VrcRequestProcessingResult.waiting);
       },
     );
-
-    test('handleReceivedVrc returns ignored when already completed', () async {
-      final outcome = await sdk.handleReceivedVrc(
-        channelDid: 'channel-1',
-        vcBlob: signedVrcBlob,
-        hasVrcExchangeCompleted: true,
-        hasVrcExchangeInitiated: true,
-        hasVrcRequestReceived: true,
-        isConnectionInitiator: true,
-      );
-
-      expect(outcome, VrcReceivedOutcome.ignored);
-    });
 
     test('returns null for R-Card without proof', () async {
       final sdk = MeetingPlaceRelationshipSDK(
@@ -744,15 +745,16 @@ void main() {
       'handleReceivedVrc returns completed when request already received',
       () async {
         final outcome = await sdk.handleReceivedVrc(
-          channelDid: 'channel-1',
+          permanentChannelDid: 'channel-1',
           vcBlob: signedVrcBlob,
-          hasVrcExchangeCompleted: false,
-          hasVrcExchangeInitiated: false,
-          hasVrcRequestReceived: true,
-          isConnectionInitiator: false,
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: false,
+            hasVrcRequestReceived: true,
+            isConnectionInitiator: false,
+          ),
         );
 
-        expect(outcome, VrcReceivedOutcome.completed);
+        expect(outcome, VrcProcessingResult.completed);
       },
     );
 
@@ -775,7 +777,7 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      final request = ReceivedVrcRequest(
+      final request = VrcRequest(
         senderDid: 'did:key:sender',
         credentialMetaData: {
           VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
@@ -783,15 +785,15 @@ void main() {
         },
       );
       final outcome = await sdk.handleReceivedVrcRequest(
-        channelDid: 'did:key:peer',
+        permanentChannelDid: 'did:key:peer',
         request: request,
         hasVrcExchangeInitiated: true,
         isConnectionInitiator: true,
-        localIdentityDid: issuerDid,
-        localIdentityName: 'Alice',
+        issuerDid: issuerDid,
+        issuerName: 'Alice',
       );
 
-      expect(outcome, VrcRequestReceivedOutcome.issued);
+      expect(outcome, VrcRequestProcessingResult.issued);
     });
 
     test(
@@ -815,17 +817,18 @@ void main() {
         ).thenAnswer((_) async {});
 
         final outcome = await sdk.handleReceivedVrc(
-          channelDid: 'did:key:peer',
+          permanentChannelDid: 'did:key:peer',
           vcBlob: signedVrcBlob,
-          hasVrcExchangeCompleted: false,
-          hasVrcExchangeInitiated: true,
-          hasVrcRequestReceived: false,
-          isConnectionInitiator: true,
-          localIdentityDid: issuerDid,
-          localIdentityName: 'Alice',
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: true,
+            hasVrcRequestReceived: false,
+            isConnectionInitiator: true,
+          ),
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
         );
 
-        expect(outcome, VrcReceivedOutcome.reciprocated);
+        expect(outcome, VrcProcessingResult.reciprocated);
       },
     );
 
@@ -850,8 +853,8 @@ void main() {
 
       String? capturedBlob;
       await sdk.handleReceivedVrcRequest(
-        channelDid: 'did:key:peer',
-        request: ReceivedVrcRequest(
+        permanentChannelDid: 'did:key:peer',
+        request: VrcRequest(
           senderDid: 'did:key:sender',
           credentialMetaData: {
             VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
@@ -860,8 +863,8 @@ void main() {
         ),
         hasVrcExchangeInitiated: true,
         isConnectionInitiator: true,
-        localIdentityDid: issuerDid,
-        localIdentityName: 'Alice',
+        issuerDid: issuerDid,
+        issuerName: 'Alice',
         onVrcSent: (blob) => capturedBlob = blob,
       );
 
@@ -890,14 +893,15 @@ void main() {
 
       String? capturedBlob;
       await sdk.handleReceivedVrc(
-        channelDid: 'did:key:peer',
+        permanentChannelDid: 'did:key:peer',
         vcBlob: signedVrcBlob,
-        hasVrcExchangeCompleted: false,
-        hasVrcExchangeInitiated: true,
-        hasVrcRequestReceived: false,
-        isConnectionInitiator: true,
-        localIdentityDid: issuerDid,
-        localIdentityName: 'Alice',
+        exchangeState: const VrcExchangeState(
+          hasVrcExchangeInitiated: true,
+          hasVrcRequestReceived: false,
+          isConnectionInitiator: true,
+        ),
+        issuerDid: issuerDid,
+        issuerName: 'Alice',
         onVrcSent: (blob) => capturedBlob = blob,
       );
 

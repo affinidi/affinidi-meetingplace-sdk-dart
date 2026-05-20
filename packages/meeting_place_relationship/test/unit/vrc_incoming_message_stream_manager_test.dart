@@ -49,7 +49,7 @@ void main() {
       () async {
         final ctrl = StreamController<PlainTextMessage>();
         final manager = makeManager(ctrl);
-        final events = <ReceivedVrcRequest>[];
+        final events = <VrcRequest>[];
         final sub = manager.requests.listen(events.add);
 
         ctrl.add(
@@ -86,7 +86,7 @@ void main() {
     test('skips request issuance message without sender DID', () async {
       final ctrl = StreamController<PlainTextMessage>();
       final manager = makeManager(ctrl);
-      final events = <ReceivedVrcRequest>[];
+      final events = <VrcRequest>[];
       final sub = manager.requests.listen(events.add);
 
       ctrl.add(
@@ -106,11 +106,11 @@ void main() {
     });
 
     test(
-      'emits ReceivedVrc for a valid signed issued-credential message',
+      'emits VrcIssuance for a valid signed issued-credential message',
       () async {
         final ctrl = StreamController<PlainTextMessage>();
         final manager = makeManager(ctrl);
-        final events = <ReceivedVrc>[];
+        final events = <VrcIssuance>[];
         final sub = manager.receivedVrcs.listen(events.add);
 
         ctrl.add(
@@ -142,7 +142,7 @@ void main() {
       () async {
         final ctrl = StreamController<PlainTextMessage>();
         final manager = makeManager(ctrl);
-        final events = <ReceivedVrc>[];
+        final events = <VrcIssuance>[];
         final sub = manager.receivedVrcs.listen(events.add);
 
         ctrl.add(

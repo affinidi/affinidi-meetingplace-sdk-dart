@@ -60,13 +60,13 @@ void main() {
       final handler = makeHandler(client: mockClient);
 
       final outcome = await handler.handleReceivedVrcRequest(
-        channelDid: 'did:key:channel',
-        request: ReceivedVrcRequest(senderDid: 'did:key:sender'),
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(senderDid: 'did:key:sender'),
         hasVrcExchangeInitiated: false,
         isConnectionInitiator: true,
       );
 
-      expect(outcome, VrcRequestReceivedOutcome.prompt);
+      expect(outcome, VrcRequestProcessingResult.prompt);
       verifyNever(
         () => mockClient.sendVrc(
           channelDid: any(named: 'channelDid'),
@@ -78,34 +78,32 @@ void main() {
       );
     });
 
-    test(
-      'returns waiting when exchange initiated but local party is not initiator',
-      () async {
-        final handler = makeHandler(client: mockClient);
+    test('returns waiting when exchange initiated but local party is '
+        'not initiator', () async {
+      final handler = makeHandler(client: mockClient);
 
-        final outcome = await handler.handleReceivedVrcRequest(
-          channelDid: 'did:key:channel',
-          request: ReceivedVrcRequest(senderDid: 'did:key:sender'),
-          hasVrcExchangeInitiated: true,
-          isConnectionInitiator: false,
-        );
+      final outcome = await handler.handleReceivedVrcRequest(
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(senderDid: 'did:key:sender'),
+        hasVrcExchangeInitiated: true,
+        isConnectionInitiator: false,
+      );
 
-        expect(outcome, VrcRequestReceivedOutcome.waiting);
-      },
-    );
+      expect(outcome, VrcRequestProcessingResult.waiting);
+    });
 
     test('returns prompt when local identity DID is missing', () async {
       final handler = makeHandler(client: mockClient);
 
       final outcome = await handler.handleReceivedVrcRequest(
-        channelDid: 'did:key:channel',
-        request: ReceivedVrcRequest(senderDid: 'did:key:sender'),
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(senderDid: 'did:key:sender'),
         hasVrcExchangeInitiated: true,
         isConnectionInitiator: true,
         // no localIdentityDid
       );
 
-      expect(outcome, VrcRequestReceivedOutcome.prompt);
+      expect(outcome, VrcRequestProcessingResult.prompt);
       verifyNever(
         () => mockClient.sendVrc(
           channelDid: any(named: 'channelDid'),
@@ -123,17 +121,17 @@ void main() {
         final handler = makeHandler(client: mockClient);
 
         final outcome = await handler.handleReceivedVrcRequest(
-          channelDid: 'did:key:channel',
-          request: ReceivedVrcRequest(
+          permanentChannelDid: 'did:key:channel',
+          request: VrcRequest(
             senderDid: 'did:key:sender',
-            // no identityDid or selectedPersona in credentialMetaData
+            // no identityDid or selectedIdentity in credentialMetaData
           ),
           hasVrcExchangeInitiated: true,
           isConnectionInitiator: true,
-          localIdentityDid: 'did:key:local',
+          issuerDid: 'did:key:local',
         );
 
-        expect(outcome, VrcRequestReceivedOutcome.prompt);
+        expect(outcome, VrcRequestProcessingResult.prompt);
       },
     );
 
@@ -153,8 +151,8 @@ void main() {
         final handler = makeHandler(client: mockClient);
 
         final outcome = await handler.handleReceivedVrcRequest(
-          channelDid: 'did:key:channel',
-          request: ReceivedVrcRequest(
+          permanentChannelDid: 'did:key:channel',
+          request: VrcRequest(
             senderDid: 'did:key:sender',
             credentialMetaData: {
               VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
@@ -163,11 +161,11 @@ void main() {
           ),
           hasVrcExchangeInitiated: true,
           isConnectionInitiator: true,
-          localIdentityDid: 'did:key:local',
-          localIdentityName: 'Alice',
+          issuerDid: 'did:key:local',
+          issuerName: 'Alice',
         );
 
-        expect(outcome, VrcRequestReceivedOutcome.issued);
+        expect(outcome, VrcRequestProcessingResult.issued);
         verify(
           () => mockClient.sendVrc(
             channelDid: 'did:key:channel',
@@ -195,8 +193,8 @@ void main() {
       final handler = makeHandler(client: mockClient);
 
       await handler.handleReceivedVrcRequest(
-        channelDid: 'did:key:channel',
-        request: ReceivedVrcRequest(
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(
           senderDid: 'did:key:sender',
           credentialMetaData: {
             VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
@@ -204,7 +202,7 @@ void main() {
         ),
         hasVrcExchangeInitiated: true,
         isConnectionInitiator: true,
-        localIdentityDid: 'did:key:local',
+        issuerDid: 'did:key:local',
         onVrcSent: (blob) => capturedBlob = blob,
       );
 
@@ -219,47 +217,22 @@ void main() {
       mockClient = MockVrcExchangeClient();
     });
 
-    test('returns ignored when exchange already completed', () async {
+    test('returns completed for initiator when both initiated '
+        'and request received', () async {
       final handler = makeHandler(client: mockClient);
 
       final outcome = await handler.handleReceivedVrc(
-        channelDid: 'did:key:channel',
+        permanentChannelDid: 'did:key:channel',
         vcBlob: signedVrcBlob,
-        hasVrcExchangeCompleted: true,
-        hasVrcExchangeInitiated: false,
-        hasVrcRequestReceived: false,
-        isConnectionInitiator: true,
-      );
-
-      expect(outcome, VrcReceivedOutcome.ignored);
-      verifyNever(
-        () => mockClient.sendVrc(
-          channelDid: any(named: 'channelDid'),
-          issuerDid: any(named: 'issuerDid'),
-          issuerName: any(named: 'issuerName'),
-          peerDid: any(named: 'peerDid'),
-          peerName: any(named: 'peerName'),
-        ),
-      );
-    });
-
-    test(
-      'returns completed for initiator when both initiated and request received',
-      () async {
-        final handler = makeHandler(client: mockClient);
-
-        final outcome = await handler.handleReceivedVrc(
-          channelDid: 'did:key:channel',
-          vcBlob: signedVrcBlob,
-          hasVrcExchangeCompleted: false,
+        exchangeState: const VrcExchangeState(
           hasVrcExchangeInitiated: true,
           hasVrcRequestReceived: true,
           isConnectionInitiator: true,
-        );
+        ),
+      );
 
-        expect(outcome, VrcReceivedOutcome.completed);
-      },
-    );
+      expect(outcome, VrcProcessingResult.completed);
+    });
 
     test(
       'returns completed when request was received but exchange not initiated',
@@ -267,15 +240,16 @@ void main() {
         final handler = makeHandler(client: mockClient);
 
         final outcome = await handler.handleReceivedVrc(
-          channelDid: 'did:key:channel',
+          permanentChannelDid: 'did:key:channel',
           vcBlob: signedVrcBlob,
-          hasVrcExchangeCompleted: false,
-          hasVrcExchangeInitiated: false,
-          hasVrcRequestReceived: true,
-          isConnectionInitiator: true,
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: false,
+            hasVrcRequestReceived: true,
+            isConnectionInitiator: true,
+          ),
         );
 
-        expect(outcome, VrcReceivedOutcome.completed);
+        expect(outcome, VrcProcessingResult.completed);
       },
     );
 
@@ -285,15 +259,16 @@ void main() {
         final handler = makeHandler(client: mockClient);
 
         final outcome = await handler.handleReceivedVrc(
-          channelDid: 'did:key:channel',
+          permanentChannelDid: 'did:key:channel',
           vcBlob: signedVrcBlob,
-          hasVrcExchangeCompleted: false,
-          hasVrcExchangeInitiated: false,
-          hasVrcRequestReceived: false,
-          isConnectionInitiator: true,
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: false,
+            hasVrcRequestReceived: false,
+            isConnectionInitiator: true,
+          ),
         );
 
-        expect(outcome, VrcReceivedOutcome.ignored);
+        expect(outcome, VrcProcessingResult.ignored);
       },
     );
 
@@ -303,16 +278,17 @@ void main() {
         final handler = makeHandler(client: mockClient);
 
         final outcome = await handler.handleReceivedVrc(
-          channelDid: 'did:key:channel',
+          permanentChannelDid: 'did:key:channel',
           vcBlob: signedVrcBlob,
-          hasVrcExchangeCompleted: false,
-          hasVrcExchangeInitiated: true,
-          hasVrcRequestReceived: false,
-          isConnectionInitiator: true,
-          // no localIdentityDid
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: true,
+            hasVrcRequestReceived: false,
+            isConnectionInitiator: true,
+          ),
+          // no issuerDid
         );
 
-        expect(outcome, VrcReceivedOutcome.ignored);
+        expect(outcome, VrcProcessingResult.ignored);
         verifyNever(
           () => mockClient.sendVrc(
             channelDid: any(named: 'channelDid'),
@@ -336,16 +312,17 @@ void main() {
       final handler = makeHandler(client: mockClient, parser: mockParser);
 
       final outcome = await handler.handleReceivedVrc(
-        channelDid: 'did:key:channel',
+        permanentChannelDid: 'did:key:channel',
         vcBlob: 'any-blob',
-        hasVrcExchangeCompleted: false,
-        hasVrcExchangeInitiated: true,
-        hasVrcRequestReceived: false,
-        isConnectionInitiator: true,
-        localIdentityDid: 'did:key:local',
+        exchangeState: const VrcExchangeState(
+          hasVrcExchangeInitiated: true,
+          hasVrcRequestReceived: false,
+          isConnectionInitiator: true,
+        ),
+        issuerDid: 'did:key:local',
       );
 
-      expect(outcome, VrcReceivedOutcome.ignored);
+      expect(outcome, VrcProcessingResult.ignored);
     });
 
     test(
@@ -364,17 +341,18 @@ void main() {
         final handler = makeHandler(client: mockClient, parser: VrcParser());
 
         final outcome = await handler.handleReceivedVrc(
-          channelDid: 'did:key:peer',
+          permanentChannelDid: 'did:key:peer',
           vcBlob: signedVrcBlob,
-          hasVrcExchangeCompleted: false,
-          hasVrcExchangeInitiated: true,
-          hasVrcRequestReceived: false,
-          isConnectionInitiator: true,
-          localIdentityDid: 'did:key:local',
-          localIdentityName: 'Carol',
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: true,
+            hasVrcRequestReceived: false,
+            isConnectionInitiator: true,
+          ),
+          issuerDid: 'did:key:local',
+          issuerName: 'Carol',
         );
 
-        expect(outcome, VrcReceivedOutcome.reciprocated);
+        expect(outcome, VrcProcessingResult.reciprocated);
         verify(
           () => mockClient.sendVrc(
             channelDid: 'did:key:peer',
@@ -402,14 +380,15 @@ void main() {
       final handler = makeHandler(client: mockClient, parser: VrcParser());
 
       await handler.handleReceivedVrc(
-        channelDid: 'did:key:peer',
+        permanentChannelDid: 'did:key:peer',
         vcBlob: signedVrcBlob,
-        hasVrcExchangeCompleted: false,
-        hasVrcExchangeInitiated: true,
-        hasVrcRequestReceived: false,
-        isConnectionInitiator: true,
-        localIdentityDid: 'did:key:local',
-        localIdentityName: 'Carol',
+        exchangeState: const VrcExchangeState(
+          hasVrcExchangeInitiated: true,
+          hasVrcRequestReceived: false,
+          isConnectionInitiator: true,
+        ),
+        issuerDid: 'did:key:local',
+        issuerName: 'Carol',
         onVrcSent: (blob) => capturedBlob = blob,
       );
 
@@ -430,17 +409,18 @@ void main() {
       final handler = makeHandler(client: mockClient, parser: VrcParser());
 
       final outcome = await handler.handleReceivedVrc(
-        channelDid: 'did:key:peer',
+        permanentChannelDid: 'did:key:peer',
         vcBlob: signedVrcBlob,
-        hasVrcExchangeCompleted: false,
-        hasVrcExchangeInitiated: true,
-        hasVrcRequestReceived: true,
-        isConnectionInitiator: false,
-        localIdentityDid: 'did:key:local',
-        localIdentityName: 'Carol',
+        exchangeState: const VrcExchangeState(
+          hasVrcExchangeInitiated: true,
+          hasVrcRequestReceived: true,
+          isConnectionInitiator: false,
+        ),
+        issuerDid: 'did:key:local',
+        issuerName: 'Carol',
       );
 
-      expect(outcome, VrcReceivedOutcome.reciprocated);
+      expect(outcome, VrcProcessingResult.reciprocated);
     });
   });
 }

@@ -6,7 +6,7 @@ class VrcConstants {
 
   static const requestMetadataKeyRelationshipType = 'relationship_type';
   static const requestMetadataKeyChannelId = 'channel_id';
-  static const requestMetadataKeySelectedPersona = 'selected_persona';
+  static const requestMetadataKeySelectedIdentity = 'selected_identity';
   static const requestMetadataKeyIdentityDid = 'identity_did';
   static const requestMetadataKeyIdentityName = 'identity_name';
   static const requestRelationshipTypeChatParticipant = 'chat_participant';

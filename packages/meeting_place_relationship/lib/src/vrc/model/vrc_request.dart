@@ -1,8 +1,8 @@
 import 'vrc_constants.dart';
 
 /// A typed VRC issuance request received over VDIP.
-class ReceivedVrcRequest {
-  ReceivedVrcRequest({
+class VrcRequest {
+  VrcRequest({
     required this.senderDid,
     this.proposalId,
     Map<String, dynamic> credentialMeta = const <String, dynamic>{},
@@ -26,14 +26,14 @@ class ReceivedVrcRequest {
   String? get channelId =>
       credentialMetaData[VrcConstants.requestMetadataKeyChannelId] as String?;
 
-  String? get selectedPersona =>
-      credentialMetaData[VrcConstants.requestMetadataKeySelectedPersona]
+  String? get selectedIdentity =>
+      credentialMetaData[VrcConstants.requestMetadataKeySelectedIdentity]
           as String?;
 
   String? get identityDid =>
       credentialMetaData[VrcConstants.requestMetadataKeyIdentityDid]
           as String? ??
-      selectedPersona;
+      selectedIdentity;
 
   String? get identityName =>
       credentialMetaData[VrcConstants.requestMetadataKeyIdentityName]
@@ -42,7 +42,7 @@ class ReceivedVrcRequest {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ReceivedVrcRequest &&
+      other is VrcRequest &&
           senderDid == other.senderDid &&
           proposalId == other.proposalId &&
           _mapsEqual(credentialMeta, other.credentialMeta) &&
@@ -66,7 +66,7 @@ class ReceivedVrcRequest {
 
   @override
   String toString() {
-    return 'ReceivedVrcRequest('
+    return 'VrcRequest('
         'senderDid: $senderDid, '
         'proposalId: $proposalId, '
         'credentialMetaData: $credentialMetaData)';

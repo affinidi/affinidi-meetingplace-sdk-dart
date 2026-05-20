@@ -7,7 +7,7 @@ class Vrc {
   const Vrc({
     required this.id,
     required this.vcBlob,
-    required this.channelId,
+    required this.referenceId,
     required this.holderDid,
     required this.issuerDid,
     required this.issuedAt,
@@ -18,7 +18,7 @@ class Vrc {
 
   final String id;
   final String vcBlob;
-  final String channelId;
+  final String referenceId;
   final String holderDid;
   final String issuerDid;
   final DateTime issuedAt;
@@ -29,7 +29,7 @@ class Vrc {
   Vrc copyWith({
     String? id,
     String? vcBlob,
-    String? channelId,
+    String? referenceId,
     String? holderDid,
     String? issuerDid,
     DateTime? issuedAt,
@@ -40,7 +40,7 @@ class Vrc {
     return Vrc(
       id: id ?? this.id,
       vcBlob: vcBlob ?? this.vcBlob,
-      channelId: channelId ?? this.channelId,
+      referenceId: referenceId ?? this.referenceId,
       holderDid: holderDid ?? this.holderDid,
       issuerDid: issuerDid ?? this.issuerDid,
       issuedAt: issuedAt ?? this.issuedAt,
@@ -54,7 +54,7 @@ class Vrc {
 extension ParsedVerifiableCredentialVrcExtension on ParsedVerifiableCredential {
   /// Maps a parsed VRC into the SDK's canonical representation.
   Vrc toVrc({
-    required String channelId,
+    required String referenceId,
     DateTime? verifiedAt,
     DateTime? receivedAt,
     String? credentialFormat,
@@ -74,7 +74,7 @@ extension ParsedVerifiableCredentialVrcExtension on ParsedVerifiableCredential {
     return Vrc(
       id: credentialId.toString(),
       vcBlob: serialized as String,
-      channelId: channelId,
+      referenceId: referenceId,
       holderDid: subject.to.did,
       issuerDid: subject.from.did,
       issuedAt: validFrom ?? DateTime.now().toUtc(),

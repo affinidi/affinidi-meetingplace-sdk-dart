@@ -1038,7 +1038,6 @@ void main() {
       expect(rCard, isA<RCard>());
       expect(rCard.subjectDid, 'did:key:recipient');
       expect(rCard.issuerDid, issuerDid);
-      expect(rCard.permanentChannelDid, issuerDid);
       expect(rCard.otherPartyPermanentChannelDid, 'did:key:recipient');
       expect(() => jsonDecode(rCard.vcBlob), returnsNormally);
       final decoded = jsonDecode(rCard.vcBlob) as Map<String, dynamic>;

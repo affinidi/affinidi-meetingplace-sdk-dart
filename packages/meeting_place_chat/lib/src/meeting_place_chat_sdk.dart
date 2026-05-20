@@ -1,6 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
+import 'sdk/base_chat_sdk.dart';
 
 ///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
 ///
@@ -235,10 +236,11 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// **Parameters:**
   /// - [attachments]: The list of [Attachment]s containing the issued
   ///   credential data.
-  @override
   Future<void> createChatMessageFromIssuedCredential({
     required List<Attachment> attachments,
-  }) => _sdk.createChatMessageFromIssuedCredential(attachments: attachments);
+  }) => (_sdk as BaseChatSDK).createChatMessageFromIssuedCredential(
+        attachments: attachments,
+      );
 
   /// Creates a chat message from a credential issuance request (VDIP request
   /// flow).
@@ -246,8 +248,9 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// **Parameters:**
   /// - [attachments]: The list of [Attachment]s containing the credential
   ///   request data.
-  @override
   Future<void> createChatMessageFromRequestCredential({
     required List<Attachment> attachments,
-  }) => _sdk.createChatMessageFromRequestCredential(attachments: attachments);
+  }) => (_sdk as BaseChatSDK).createChatMessageFromRequestCredential(
+        attachments: attachments,
+      );
 }

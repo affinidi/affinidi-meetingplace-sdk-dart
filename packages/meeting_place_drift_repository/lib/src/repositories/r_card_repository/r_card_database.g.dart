@@ -52,12 +52,6 @@ class $ReceivedRCardsTable extends ReceivedRCards
       GeneratedColumn<String>(
           'other_party_permanent_channel_did', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _permanentChannelDidMeta =
-      const VerificationMeta('permanentChannelDid');
-  @override
-  late final GeneratedColumn<String> permanentChannelDid =
-      GeneratedColumn<String>('permanent_channel_did', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _receivedAtMeta =
       const VerificationMeta('receivedAt');
   @override
@@ -73,7 +67,6 @@ class $ReceivedRCardsTable extends ReceivedRCards
         issuanceDate,
         notes,
         otherPartyPermanentChannelDid,
-        permanentChannelDid,
         receivedAt
       ];
   @override
@@ -129,12 +122,6 @@ class $ReceivedRCardsTable extends ReceivedRCards
               data['other_party_permanent_channel_did']!,
               _otherPartyPermanentChannelDidMeta));
     }
-    if (data.containsKey('permanent_channel_did')) {
-      context.handle(
-          _permanentChannelDidMeta,
-          permanentChannelDid.isAcceptableOrUnknown(
-              data['permanent_channel_did']!, _permanentChannelDidMeta));
-    }
     if (data.containsKey('received_at')) {
       context.handle(
           _receivedAtMeta,
@@ -167,8 +154,6 @@ class $ReceivedRCardsTable extends ReceivedRCards
       otherPartyPermanentChannelDid: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}other_party_permanent_channel_did']),
-      permanentChannelDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}permanent_channel_did']),
       receivedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}received_at'])!,
     );
@@ -204,10 +189,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
   /// Permanent channel DID of the contact who sent this R-Card.
   final String? otherPartyPermanentChannelDid;
 
-  /// Our own local permanent channel DID for the channel this R-Card arrived
-  /// on.  Set only for the OOB / inauguration path; `null` for the VDIP path.
-  final String? permanentChannelDid;
-
   /// UTC timestamp recording when the R-Card was first received locally.
   final DateTime receivedAt;
   const RCardRow(
@@ -218,7 +199,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
       required this.issuanceDate,
       this.notes,
       this.otherPartyPermanentChannelDid,
-      this.permanentChannelDid,
       required this.receivedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -234,9 +214,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
     if (!nullToAbsent || otherPartyPermanentChannelDid != null) {
       map['other_party_permanent_channel_did'] =
           Variable<String>(otherPartyPermanentChannelDid);
-    }
-    if (!nullToAbsent || permanentChannelDid != null) {
-      map['permanent_channel_did'] = Variable<String>(permanentChannelDid);
     }
     map['received_at'] = Variable<DateTime>(receivedAt);
     return map;
@@ -255,9 +232,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
           otherPartyPermanentChannelDid == null && nullToAbsent
               ? const Value.absent()
               : Value(otherPartyPermanentChannelDid),
-      permanentChannelDid: permanentChannelDid == null && nullToAbsent
-          ? const Value.absent()
-          : Value(permanentChannelDid),
       receivedAt: Value(receivedAt),
     );
   }
@@ -274,8 +248,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
       notes: serializer.fromJson<String?>(json['notes']),
       otherPartyPermanentChannelDid:
           serializer.fromJson<String?>(json['otherPartyPermanentChannelDid']),
-      permanentChannelDid:
-          serializer.fromJson<String?>(json['permanentChannelDid']),
       receivedAt: serializer.fromJson<DateTime>(json['receivedAt']),
     );
   }
@@ -291,7 +263,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
       'notes': serializer.toJson<String?>(notes),
       'otherPartyPermanentChannelDid':
           serializer.toJson<String?>(otherPartyPermanentChannelDid),
-      'permanentChannelDid': serializer.toJson<String?>(permanentChannelDid),
       'receivedAt': serializer.toJson<DateTime>(receivedAt),
     };
   }
@@ -304,7 +275,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
           DateTime? issuanceDate,
           Value<String?> notes = const Value.absent(),
           Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-          Value<String?> permanentChannelDid = const Value.absent(),
           DateTime? receivedAt}) =>
       RCardRow(
         subjectDid: subjectDid ?? this.subjectDid,
@@ -316,9 +286,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
         otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
             ? otherPartyPermanentChannelDid.value
             : this.otherPartyPermanentChannelDid,
-        permanentChannelDid: permanentChannelDid.present
-            ? permanentChannelDid.value
-            : this.permanentChannelDid,
         receivedAt: receivedAt ?? this.receivedAt,
       );
   RCardRow copyWithCompanion(ReceivedRCardsCompanion data) {
@@ -335,9 +302,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
       otherPartyPermanentChannelDid: data.otherPartyPermanentChannelDid.present
           ? data.otherPartyPermanentChannelDid.value
           : this.otherPartyPermanentChannelDid,
-      permanentChannelDid: data.permanentChannelDid.present
-          ? data.permanentChannelDid.value
-          : this.permanentChannelDid,
       receivedAt:
           data.receivedAt.present ? data.receivedAt.value : this.receivedAt,
     );
@@ -354,23 +318,14 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
           ..write('notes: $notes, ')
           ..write(
               'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ')
-          ..write('permanentChannelDid: $permanentChannelDid, ')
           ..write('receivedAt: $receivedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      subjectDid,
-      vcBlob,
-      issuerDid,
-      version,
-      issuanceDate,
-      notes,
-      otherPartyPermanentChannelDid,
-      permanentChannelDid,
-      receivedAt);
+  int get hashCode => Object.hash(subjectDid, vcBlob, issuerDid, version,
+      issuanceDate, notes, otherPartyPermanentChannelDid, receivedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -383,7 +338,6 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
           other.notes == this.notes &&
           other.otherPartyPermanentChannelDid ==
               this.otherPartyPermanentChannelDid &&
-          other.permanentChannelDid == this.permanentChannelDid &&
           other.receivedAt == this.receivedAt);
 }
 
@@ -395,7 +349,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
   final Value<DateTime> issuanceDate;
   final Value<String?> notes;
   final Value<String?> otherPartyPermanentChannelDid;
-  final Value<String?> permanentChannelDid;
   final Value<DateTime> receivedAt;
   final Value<int> rowid;
   const ReceivedRCardsCompanion({
@@ -406,7 +359,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
     this.issuanceDate = const Value.absent(),
     this.notes = const Value.absent(),
     this.otherPartyPermanentChannelDid = const Value.absent(),
-    this.permanentChannelDid = const Value.absent(),
     this.receivedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -418,7 +370,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
     required DateTime issuanceDate,
     this.notes = const Value.absent(),
     this.otherPartyPermanentChannelDid = const Value.absent(),
-    this.permanentChannelDid = const Value.absent(),
     required DateTime receivedAt,
     this.rowid = const Value.absent(),
   })  : subjectDid = Value(subjectDid),
@@ -434,7 +385,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
     Expression<DateTime>? issuanceDate,
     Expression<String>? notes,
     Expression<String>? otherPartyPermanentChannelDid,
-    Expression<String>? permanentChannelDid,
     Expression<DateTime>? receivedAt,
     Expression<int>? rowid,
   }) {
@@ -447,8 +397,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
       if (notes != null) 'notes': notes,
       if (otherPartyPermanentChannelDid != null)
         'other_party_permanent_channel_did': otherPartyPermanentChannelDid,
-      if (permanentChannelDid != null)
-        'permanent_channel_did': permanentChannelDid,
       if (receivedAt != null) 'received_at': receivedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -462,7 +410,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
       Value<DateTime>? issuanceDate,
       Value<String?>? notes,
       Value<String?>? otherPartyPermanentChannelDid,
-      Value<String?>? permanentChannelDid,
       Value<DateTime>? receivedAt,
       Value<int>? rowid}) {
     return ReceivedRCardsCompanion(
@@ -474,7 +421,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
       notes: notes ?? this.notes,
       otherPartyPermanentChannelDid:
           otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
-      permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       receivedAt: receivedAt ?? this.receivedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -505,10 +451,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
       map['other_party_permanent_channel_did'] =
           Variable<String>(otherPartyPermanentChannelDid.value);
     }
-    if (permanentChannelDid.present) {
-      map['permanent_channel_did'] =
-          Variable<String>(permanentChannelDid.value);
-    }
     if (receivedAt.present) {
       map['received_at'] = Variable<DateTime>(receivedAt.value);
     }
@@ -529,7 +471,6 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
           ..write('notes: $notes, ')
           ..write(
               'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ')
-          ..write('permanentChannelDid: $permanentChannelDid, ')
           ..write('receivedAt: $receivedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -560,7 +501,6 @@ typedef $$ReceivedRCardsTableCreateCompanionBuilder = ReceivedRCardsCompanion
   required DateTime issuanceDate,
   Value<String?> notes,
   Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> permanentChannelDid,
   required DateTime receivedAt,
   Value<int> rowid,
 });
@@ -573,7 +513,6 @@ typedef $$ReceivedRCardsTableUpdateCompanionBuilder = ReceivedRCardsCompanion
   Value<DateTime> issuanceDate,
   Value<String?> notes,
   Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> permanentChannelDid,
   Value<DateTime> receivedAt,
   Value<int> rowid,
 });
@@ -607,10 +546,6 @@ class $$ReceivedRCardsTableFilterComposer
 
   ColumnFilters<String> get otherPartyPermanentChannelDid => $composableBuilder(
       column: $table.otherPartyPermanentChannelDid,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get receivedAt => $composableBuilder(
@@ -650,10 +585,6 @@ class $$ReceivedRCardsTableOrderingComposer
           column: $table.otherPartyPermanentChannelDid,
           builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<DateTime> get receivedAt => $composableBuilder(
       column: $table.receivedAt, builder: (column) => ColumnOrderings(column));
 }
@@ -690,9 +621,6 @@ class $$ReceivedRCardsTableAnnotationComposer
           column: $table.otherPartyPermanentChannelDid,
           builder: (column) => column);
 
-  GeneratedColumn<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid, builder: (column) => column);
-
   GeneratedColumn<DateTime> get receivedAt => $composableBuilder(
       column: $table.receivedAt, builder: (column) => column);
 }
@@ -728,7 +656,6 @@ class $$ReceivedRCardsTableTableManager extends RootTableManager<
             Value<DateTime> issuanceDate = const Value.absent(),
             Value<String?> notes = const Value.absent(),
             Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
             Value<DateTime> receivedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -740,7 +667,6 @@ class $$ReceivedRCardsTableTableManager extends RootTableManager<
             issuanceDate: issuanceDate,
             notes: notes,
             otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            permanentChannelDid: permanentChannelDid,
             receivedAt: receivedAt,
             rowid: rowid,
           ),
@@ -752,7 +678,6 @@ class $$ReceivedRCardsTableTableManager extends RootTableManager<
             required DateTime issuanceDate,
             Value<String?> notes = const Value.absent(),
             Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
             required DateTime receivedAt,
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -764,7 +689,6 @@ class $$ReceivedRCardsTableTableManager extends RootTableManager<
             issuanceDate: issuanceDate,
             notes: notes,
             otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            permanentChannelDid: permanentChannelDid,
             receivedAt: receivedAt,
             rowid: rowid,
           ),

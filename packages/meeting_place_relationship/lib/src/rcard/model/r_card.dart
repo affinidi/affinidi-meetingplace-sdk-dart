@@ -16,7 +16,6 @@ class RCard {
     required this.issuanceDate,
     required this.receivedAt,
     this.otherPartyPermanentChannelDid,
-    this.permanentChannelDid,
     this.notes,
   });
 
@@ -83,12 +82,6 @@ class RCard {
   /// The permanent channel DID of the contact who sent this R-Card, if known.
   final String? otherPartyPermanentChannelDid;
 
-  /// Our own permanent channel DID for the channel this R-Card arrived on.
-  ///
-  /// Stored on receipt so consumers can correlate the card back to its
-  /// originating channel without re-querying.
-  final String? permanentChannelDid;
-
   /// Optional user notes attached to this contact.
   final String? notes;
 
@@ -100,7 +93,6 @@ class RCard {
     DateTime? issuanceDate,
     DateTime? receivedAt,
     String? otherPartyPermanentChannelDid,
-    String? permanentChannelDid,
     String? notes,
   }) {
     return RCard(
@@ -112,7 +104,6 @@ class RCard {
       receivedAt: receivedAt ?? this.receivedAt,
       otherPartyPermanentChannelDid:
           otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
-      permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       notes: notes ?? this.notes,
     );
   }

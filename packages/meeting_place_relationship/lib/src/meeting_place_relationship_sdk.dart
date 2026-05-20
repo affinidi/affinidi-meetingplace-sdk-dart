@@ -292,7 +292,6 @@ class MeetingPlaceRelationshipSDK {
       version: RCardConstants.receivedRCardVersion,
       issuanceDate: vc.validFrom?.toUtc() ?? DateTime.now().toUtc(),
       receivedAt: DateTime.now().toUtc(),
-      permanentChannelDid: issuerDid,
       otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
     );
   }

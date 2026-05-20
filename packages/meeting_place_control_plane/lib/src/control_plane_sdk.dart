@@ -14,6 +14,8 @@ import 'command/delete_pending_notifications/'
     'delete_pending_notifications_handler.dart';
 import 'command/deregister_notification/deregister_notification_handler.dart';
 import 'command/deregister_offer/deregister_offer_handler.dart';
+import 'command/did_document_resolve/did_document_resolve_handler.dart';
+import 'command/did_document_upload/did_document_upload_handler.dart';
 import 'command/finalise_acceptance/finalise_acceptance_handler.dart';
 import 'command/get_oob/get_oob_handler.dart';
 import 'command/get_pending_notifications/get_pending_notifications_handler.dart';
@@ -308,6 +310,14 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       NotifyOutreachHandler(apiClient: _controlPlaneApiClient),
+    );
+
+    _dispatcher.registerHandler(
+      UploadDidDocumentHandler(apiClient: _controlPlaneApiClient),
+    );
+
+    _dispatcher.registerHandler(
+      ResolveDidDocumentHandler(didResolver: didResolver),
     );
 
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(

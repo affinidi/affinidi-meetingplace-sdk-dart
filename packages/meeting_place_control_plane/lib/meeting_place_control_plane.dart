@@ -1,8 +1,4 @@
 export 'src/command/command.dart';
-export 'src/command/did_document_resolve/did_document_resolve.dart';
-export 'src/command/did_document_resolve/did_document_resolve_output.dart';
-export 'src/command/did_document_upload/did_document_upload.dart';
-export 'src/command/did_document_upload/did_document_upload_output.dart';
 export 'src/control_plane_sdk.dart';
 export 'src/control_plane_sdk_error_code.dart';
 export 'src/control_plane_sdk_exception.dart';

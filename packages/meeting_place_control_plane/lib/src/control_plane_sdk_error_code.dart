@@ -95,6 +95,13 @@ enum ControlPlaneSDKErrorCode {
   matrixTokenInvalidResponse('matrix_token_invalid_response'),
   matrixTokenGeneric('matrix_token_generic'),
 
+  // upload did document codes
+  uploadDidDocumentGeneric('upload_did_document_generic'),
+
+  // resolve did document codes
+  resolveDidDocumentInvalidDid('resolve_did_document_invalid_did'),
+  resolveDidDocumentGeneric('resolve_did_document_generic'),
+
   // others
   networkError('network_error'),
   generic('generic');

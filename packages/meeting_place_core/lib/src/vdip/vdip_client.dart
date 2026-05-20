@@ -5,6 +5,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
+import '../entity/channel.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/message/message_service.dart';
@@ -27,13 +28,45 @@ class VdipClient {
        _connectionManager = connectionManager,
        _wallet = wallet;
 
+  /// DIDComm message type for a VDIP issued-credential message.
+  static final String issuedCredentialMessageType = VdipIssuedCredentialMessage
+      .messageType
+      .toString();
+
+  /// DIDComm message type for a VDIP request-issuance message.
+  static final String requestIssuanceMessageType = VdipRequestIssuanceMessage
+      .messageType
+      .toString();
+
   final MessageService _messageService;
   final ChannelService _channelService;
   final ConnectionManager _connectionManager;
   final Wallet _wallet;
 
   final _incomingController = StreamController<PlainTextMessage>.broadcast();
+  final _messageProcessors = <Future<void> Function(PlainTextMessage)>[];
   var _isDisposed = false;
+
+  /// Registers a [processor] that is called for every VDIP message handled
+  /// by `VdipActivityEventHandler`, **before** the message is deleted from
+  /// the mediator.
+  ///
+  /// Unlike [incomingMessages], processors are guaranteed to be called even
+  /// when no stream subscriber is present — making them the correct hook for
+  /// reliable persistence (e.g. R-Card upsert) that must not depend on lazy
+  /// SDK initialisation timing.
+  void registerMessageProcessor(
+    Future<void> Function(PlainTextMessage) processor,
+  ) {
+    _messageProcessors.add(processor);
+  }
+
+  /// The list of processors registered via [registerMessageProcessor].
+  ///
+  /// Called sequentially by `VdipActivityEventHandler` for each incoming
+  /// VDIP message before that message is deleted from the mediator.
+  List<Future<void> Function(PlainTextMessage)> get messageProcessors =>
+      List.unmodifiable(_messageProcessors);
 
   /// A broadcast stream that emits incoming VDIP [PlainTextMessage]s.
   ///
@@ -73,6 +106,7 @@ class VdipClient {
     final channel = await _channelService.findChannelByDid(recipientDid);
     final message = VdipRequestIssuanceMessage(
       id: const Uuid().v4(),
+      from: senderDid,
       to: [recipientDid],
       body: VdipRequestIssuanceMessageBody(
         proposalId: options.proposalId,
@@ -119,6 +153,7 @@ class VdipClient {
     final channel = await _channelService.findChannelByDid(recipientDid);
     final message = VdipIssuedCredentialMessage(
       id: const Uuid().v4(),
+      from: senderDid,
       to: [recipientDid],
       body: body.toJson(),
     );
@@ -128,6 +163,40 @@ class VdipClient {
       recipientDid: recipientDid,
       mediatorDid: channel.mediatorDid,
       notifyChannelType: ChannelActivityType.vdipIssuedCredentials,
+    );
+  }
+
+  /// Issues a signed [credential] to the other party in [channel] via VDIP.
+  ///
+  /// High-level convenience wrapper around [sendIssuedCredential]. Extracts
+  /// the sender and recipient DIDs from [channel], constructs the
+  /// [VdipIssuedCredentialBody], and delivers the message.
+  ///
+  /// Throws [StateError] if the channel DIDs are missing.
+  Future<void> issueCredential({
+    required Channel channel,
+    required VcDataModelV2 credential,
+  }) async {
+    final senderDid = channel.permanentChannelDid;
+    final recipientDid = channel.otherPartyPermanentChannelDid;
+    if (senderDid == null || senderDid.isEmpty) {
+      throw StateError(
+        'Channel is missing permanentChannelDid — cannot issue credential.',
+      );
+    }
+    if (recipientDid == null || recipientDid.isEmpty) {
+      throw StateError(
+        'Channel is missing otherPartyPermanentChannelDid — cannot issue'
+        ' credential.',
+      );
+    }
+
+    final body = VdipIssuedCredentialBody.w3cV2(credential: credential);
+
+    await sendIssuedCredential(
+      senderDid: senderDid,
+      recipientDid: recipientDid,
+      body: body,
     );
   }
 

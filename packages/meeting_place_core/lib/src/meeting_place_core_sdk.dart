@@ -1105,6 +1105,14 @@ class MeetingPlaceCoreSDK {
     return _channelAttachmentsController.close();
   }
 
+  /// Disposes the [VdipClient] and closes the [vdip] incoming-messages stream.
+  ///
+  /// Call this when the SDK is no longer needed (e.g. on sign-out) to
+  /// release resources held by the VDIP subsystem.
+  Future<void> closeVdipStream() {
+    return _vdipClient.dispose();
+  }
+
   /// A method that deletes all pending discovery events.
   Future<List<String>> deleteControlPlaneEvents() {
     return _controlPlaneEventService.deleteAll();

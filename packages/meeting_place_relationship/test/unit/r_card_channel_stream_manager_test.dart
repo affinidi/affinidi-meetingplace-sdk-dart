@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:meeting_place_relationship/src/rcard/parser/r_card_parser.dart';
+import 'package:meeting_place_relationship/src/rcard/r_card_channel_stream_manager.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -38,7 +40,7 @@ void main() {
     test('null otherPartyPermanentChannelDid does not emit', () async {
       when(() => channel.otherPartyPermanentChannelDid).thenReturn(null);
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
@@ -52,7 +54,7 @@ void main() {
     test('empty otherPartyPermanentChannelDid does not emit', () async {
       when(() => channel.otherPartyPermanentChannelDid).thenReturn('');
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
@@ -73,7 +75,7 @@ void main() {
 
     test('wrong attachment format does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -89,7 +91,7 @@ void main() {
 
     test('null attachment data does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -110,7 +112,7 @@ void main() {
 
     test('non-JSON data payload does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -126,7 +128,7 @@ void main() {
 
     test('missing vcBlob key does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -144,7 +146,7 @@ void main() {
 
     test('non-string vcBlob does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((
@@ -164,7 +166,7 @@ void main() {
 
     test('empty attachment list does not emit', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, []));
@@ -208,7 +210,7 @@ void main() {
 
     test('valid signed R-Card emits on stream', () async {
       final manager = makeManager();
-      final emitted = <ReceivedRCard>[];
+      final emitted = <RCard>[];
       final sub = manager.stream.listen(emitted.add);
 
       channelAttachmentsCtrl.add((channel, signedAttachments));
@@ -216,7 +218,7 @@ void main() {
 
       expect(emitted, hasLength(1));
       expect(emitted.first.issuerDid, issuerDid);
-      expect(emitted.first.contactChannelDid, 'did:example:other');
+      expect(emitted.first.otherPartyPermanentChannelDid, 'did:example:other');
       await sub.cancel();
       await manager.close();
     });

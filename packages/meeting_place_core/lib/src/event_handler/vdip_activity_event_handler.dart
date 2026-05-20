@@ -53,6 +53,7 @@ class VdipActivityEventHandler {
       mediatorDid: channel.mediatorDid,
       options: FetchMessagesOptions(
         deleteOnRetrieve: false,
+        deleteFailedMessages: true,
         filterByMessageTypes: [
           VdipRequestIssuanceMessage.messageType.toString(),
           VdipIssuedCredentialMessage.messageType.toString(),
@@ -60,8 +61,17 @@ class VdipActivityEventHandler {
       ),
     );
 
+    var processedCount = 0;
+
     for (final message in messages) {
       _vdipClient.dispatch(message.plainTextMessage);
+
+      for (final processor in _vdipClient.messageProcessors) {
+        await processor(message.plainTextMessage);
+      }
+
+      processedCount++;
+
       final messageHash = message.messageHash;
       if (messageHash != null) {
         await _mediatorService.deleteMessages(
@@ -78,6 +88,14 @@ class VdipActivityEventHandler {
       }
     }
 
-    return [];
+    if (processedCount > 0) {
+      await _channelService.updateChannelSequence(
+        channel,
+        sequenceNumber: channel.seqNo + processedCount,
+        messageSyncMarker: channel.messageSyncMarker,
+      );
+    }
+
+    return [channel];
   }
 }

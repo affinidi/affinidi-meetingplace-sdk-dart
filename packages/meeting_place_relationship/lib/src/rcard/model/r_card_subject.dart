@@ -39,11 +39,12 @@ class RCardSubject {
 
   /// Parses an [RCardSubject] directly from a raw VC blob string.
   ///
-  /// Uses the SSI package to decode and validate the VC structure before
-  /// extracting the jCard credential subject. Returns `null` if the blob
-  /// cannot be parsed as a signed DM v2 credential or does not contain a
-  /// recognisable jCard.
-  static RCardSubject? fromVcBlob(
+  /// Expects a W3C Data Model v2 credential (the format produced by
+  /// `RCardBuilder`).
+  ///
+  /// Throws a [FormatException] if the blob cannot be parsed as a DM v2
+  /// credential or does not contain a recognisable jCard.
+  static RCardSubject fromVcBlob(
     String vcBlob, {
     MeetingPlaceCoreSDKLogger? logger,
   }) {
@@ -51,18 +52,21 @@ class RCardSubject {
         logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardSubject');
     final vc = LdVcDm2Suite().tryParse(vcBlob);
     if (vc == null) {
-      log.warning('Could not parse VC from blob as a signed DM v2 credential');
-      return null;
+      const message = 'Could not parse VC from blob as a DM v2 credential';
+      log.warning(message);
+      throw const FormatException(message);
     }
     final subject = vc.credentialSubject.firstOrNull;
     if (subject == null) {
-      log.warning('Could not extract credentialSubject from VC');
-      return null;
+      const message = 'Could not extract credentialSubject from VC';
+      log.warning(message);
+      throw const FormatException(message);
     }
     final map = JCard.decode(subject['card'], subject.id?.toString());
     if (map == null) {
-      log.warning('Could not parse jCard from credentialSubject');
-      return null;
+      const message = 'Could not parse jCard from credentialSubject';
+      log.warning(message);
+      throw const FormatException(message);
     }
     return RCardSubject.fromJson(map);
   }

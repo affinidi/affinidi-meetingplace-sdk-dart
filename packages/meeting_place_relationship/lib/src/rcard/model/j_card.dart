@@ -43,16 +43,15 @@ class JCard {
       }
     }
 
-    // fn is mandatory in every vCard (RFC 6350 §6.2.1)
+    // fn is mandatory in every vCard (RFC 6350 §6.2.1).
+    // Always emit it even when both names are absent.
     final givenName = subject.firstName?.trim() ?? '';
     final familyName = subject.lastName?.trim() ?? '';
     final formattedName = [
       givenName,
       familyName,
     ].where((s) => s.isNotEmpty).join(' ');
-    if (formattedName.isNotEmpty) {
-      entries.add(['fn', const <String, dynamic>{}, 'text', formattedName]);
-    }
+    entries.add(['fn', const <String, dynamic>{}, 'text', formattedName]);
 
     // n: structured name [family, given, additional, prefix, suffix]
     if (givenName.isNotEmpty || familyName.isNotEmpty) {
@@ -103,6 +102,11 @@ class JCard {
           if (value is List) {
             result['lastName'] = _trim(value.isNotEmpty ? value[0] : null);
             result['firstName'] = _trim(value.length > 1 ? value[1] : null);
+            result['additionalName'] = _trim(
+              value.length > 2 ? value[2] : null,
+            );
+            result['prefix'] = _trim(value.length > 3 ? value[3] : null);
+            result['suffix'] = _trim(value.length > 4 ? value[4] : null);
           }
         case 'email':
           result['email'] = _trim(value);

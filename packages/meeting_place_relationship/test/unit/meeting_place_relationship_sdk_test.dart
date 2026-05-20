@@ -122,7 +122,7 @@ void main() {
       await sdk.closeRelationshipStreams();
     });
 
-    test('invalid R-Card attachment does not emit', () async {
+    test('invalid R-Card attachment emits a stream error', () async {
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
@@ -133,13 +133,16 @@ void main() {
       ).thenReturn('did:example:other');
 
       final emitted = <RCard>[];
-      final sub = sdk.receivedRCards.listen(emitted.add);
+      final errors = <Object>[];
+      final sub = sdk.receivedRCards.listen(emitted.add, onError: errors.add);
 
       channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
 
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
+      expect(errors, hasLength(1));
+      expect(errors.first, isA<FormatException>());
       await sub.cancel();
       await sdk.closeRelationshipStreams();
     });

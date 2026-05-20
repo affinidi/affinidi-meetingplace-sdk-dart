@@ -45,7 +45,6 @@ abstract final class RCardBuilder {
       ],
     );
 
-    return await CredentialSigner.sign(unsigned, issuerDidManager)
-        as VcDataModelV2;
+    return await CredentialSigner.sign(unsigned, issuerDidManager);
   }
 }

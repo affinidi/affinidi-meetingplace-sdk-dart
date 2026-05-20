@@ -87,7 +87,7 @@ class RCardParser {
         : (issuer is Map ? issuer['id']?.toString() : null);
     if (issuerDid == null || issuerDid.isEmpty) return null;
 
-    final rawDate = decoded['validFrom'] ?? decoded['issuanceDate'];
+    final rawDate = decoded['validFrom'];
     final issuanceDate = rawDate is String ? DateTime.tryParse(rawDate) : null;
     final now = DateTime.now().toUtc();
 

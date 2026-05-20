@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
@@ -50,10 +48,9 @@ class RCard {
         return null;
       }
       final now = DateTime.now().toUtc();
-      final canonicalBlob = jsonEncode(jsonDecode(vcBlob));
       return RCard(
         subjectDid: subjectDid.trim(),
-        vcBlob: canonicalBlob,
+        vcBlob: vcBlob,
         issuerDid: issuerDid,
         version: RCardConstants.receivedRCardVersion,
         issuanceDate: vc.validFrom?.toUtc() ?? now,
@@ -87,8 +84,9 @@ class RCard {
   final String? otherPartyPermanentChannelDid;
 
   /// Our own permanent channel DID for the channel this R-Card arrived on.
-  /// Set only for the DIDComm attachment path (inauguration); null for the
-  /// VDIP path.
+  ///
+  /// Stored on receipt so consumers can correlate the card back to its
+  /// originating channel without re-querying.
   final String? permanentChannelDid;
 
   /// Optional user notes attached to this contact.

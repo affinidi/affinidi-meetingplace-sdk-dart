@@ -67,6 +67,13 @@ class RCardChannelStreamManager {
         yield (permanentChannelDid != null && permanentChannelDid.isNotEmpty)
             ? rCard.copyWith(permanentChannelDid: permanentChannelDid)
             : rCard;
+      } else {
+        _controller.addError(
+          FormatException(
+            'Failed to parse R-Card from attachment '
+            '(vcBlob length=${vcBlob.length})',
+          ),
+        );
       }
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:uuid/uuid.dart';
 
 import '../model/liveness_check_request_payload.dart';
 import '../model/liveness_proof_payload.dart';
@@ -43,7 +44,7 @@ abstract final class LivenessZkpDIDCommAttachmentBuilder {
     String? attachmentId,
     DateTime? lastModified,
   }) {
-    final id = attachmentId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final id = attachmentId ?? const Uuid().v4();
     final when = (lastModified ?? DateTime.now()).toUtc();
 
     return Attachment(

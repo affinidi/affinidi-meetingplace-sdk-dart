@@ -1,3 +1,4 @@
+/// Concierge message IDs for human liveness ZKP.
 abstract final class LivenessZkpConciergeIds {
   static String requestReceived(String attachmentMessageId) =>
       'zkp-request-received-$attachmentMessageId';

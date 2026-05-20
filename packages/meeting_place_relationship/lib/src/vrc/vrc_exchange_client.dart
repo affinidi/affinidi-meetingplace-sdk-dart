@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:retry/retry.dart';
 
 import '../shared/credential_builder.dart';
 import '../shared/credential_constants.dart';
@@ -15,17 +16,17 @@ class VrcExchangeClient {
   VrcExchangeClient({
     required MeetingPlaceCoreSDK coreSDK,
     required MeetingPlaceCoreSDKLogger logger,
-    Future<void> Function(Duration duration)? delay,
   }) : _coreSDK = coreSDK,
-       _logger = logger,
-       _delay = delay ?? Future<void>.delayed;
+       _logger = logger;
 
-  static const _maxRetries = 5;
-  static const _initialRetryDelayMs = 500;
+  static const _retryOptions = RetryOptions(
+    maxAttempts: 6,
+    delayFactor: Duration(milliseconds: 500),
+    maxDelay: Duration(seconds: 16),
+  );
 
   final MeetingPlaceCoreSDK _coreSDK;
   final MeetingPlaceCoreSDKLogger _logger;
-  final Future<void> Function(Duration duration) _delay;
 
   /// Sends a VDIP VRC-exchange request for [channelDid].
   Future<void> requestExchange({
@@ -56,7 +57,7 @@ class VrcExchangeClient {
               VrcConstants.requestMetadataKeyRelationshipType:
                   VrcConstants.requestRelationshipTypeChatParticipant,
               VrcConstants.requestMetadataKeyChannelId: channel.id,
-              VrcConstants.requestMetadataKeySelectedPersona: identityDid,
+              VrcConstants.requestMetadataKeySelectedIdentity: identityDid,
               VrcConstants.requestMetadataKeyIdentityDid: identityDid,
               VrcConstants.requestMetadataKeyIdentityName: identityName,
             },
@@ -116,37 +117,25 @@ class VrcExchangeClient {
     required String operationName,
     required Future<void> Function() action,
   }) async {
-    var attempt = 0;
-    var delayMs = _initialRetryDelayMs;
-
-    while (true) {
-      try {
-        await action();
-        return;
-      } catch (error, stackTrace) {
-        final isAccessDenied = _isMediatorAclDenied(error);
-        if (isAccessDenied && attempt < _maxRetries) {
-          attempt++;
-          _logger.warning(
-            'Mediator ACL denied during $operationName '
-            '(attempt $attempt/$_maxRetries), retrying in ${delayMs}ms',
-          );
-          await _delay(Duration(milliseconds: delayMs));
-          delayMs *= 2;
-          continue;
-        }
-
-        _logger.error(
-          'Failed to $operationName',
-          error: error,
-          stackTrace: stackTrace,
-        );
-        rethrow;
-      }
+    try {
+      await _retryOptions.retry(
+        action,
+        retryIf: _isMediatorAclDenied,
+        onRetry: (e) => _logger.warning(
+          'Mediator ACL denied during $operationName, retrying...',
+        ),
+      );
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Failed to $operationName',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 
-  bool _isMediatorAclDenied(Object error) {
+  bool _isMediatorAclDenied(Exception error) {
     final errorString = error.toString();
     return errorString.contains('Status code: 403') ||
         errorString.contains('access_list denied') ||

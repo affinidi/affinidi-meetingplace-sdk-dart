@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import 'model/received_vrc.dart';
-import 'model/received_vrc_request.dart';
+import 'model/vrc_issuance.dart';
+import 'model/vrc_request.dart';
 import 'parser/vrc_parser.dart';
 
 /// Manages typed VRC receive streams sourced from the VDIP incoming messages
@@ -16,8 +16,8 @@ class VrcIncomingMessageStreamManager {
     required MeetingPlaceCoreSDKLogger logger,
   }) : _parser = parser,
        _logger = logger {
-    _requestController = StreamController<ReceivedVrcRequest>.broadcast();
-    _receivedVrcController = StreamController<ReceivedVrc>.broadcast();
+    _requestController = StreamController<VrcRequest>.broadcast();
+    _receivedVrcController = StreamController<VrcIssuance>.broadcast();
     _requests = _requestController.stream;
     _receivedVrcs = _receivedVrcController.stream;
     _subscription = incomingMessages.listen(
@@ -28,28 +28,28 @@ class VrcIncomingMessageStreamManager {
 
   final VrcParser _parser;
   final MeetingPlaceCoreSDKLogger _logger;
-  late final StreamController<ReceivedVrcRequest> _requestController;
-  late final StreamController<ReceivedVrc> _receivedVrcController;
+  late final StreamController<VrcRequest> _requestController;
+  late final StreamController<VrcIssuance> _receivedVrcController;
   late final StreamSubscription<PlainTextMessage> _subscription;
-  late final Stream<ReceivedVrcRequest> _requests;
-  late final Stream<ReceivedVrc> _receivedVrcs;
+  late final Stream<VrcRequest> _requests;
+  late final Stream<VrcIssuance> _receivedVrcs;
   bool _isClosed = false;
 
   // Pending caches: events dispatched before any listener was attached are
   // stored here so a late-subscribing chat session can replay them.
-  final Map<String, ReceivedVrcRequest> _pendingRequests = {};
-  final Map<String, ReceivedVrc> _pendingVrcs = {};
+  final Map<String, VrcRequest> _pendingRequests = {};
+  final Map<String, VrcIssuance> _pendingVrcs = {};
 
-  Stream<ReceivedVrcRequest> get requests => _requests;
+  Stream<VrcRequest> get requests => _requests;
 
-  Stream<ReceivedVrc> get receivedVrcs => _receivedVrcs;
+  Stream<VrcIssuance> get receivedVrcs => _receivedVrcs;
 
   /// Returns and removes the cached VRC request from [senderDid], or null.
-  ReceivedVrcRequest? consumePendingRequest(String senderDid) =>
+  VrcRequest? consumePendingRequest(String senderDid) =>
       _pendingRequests.remove(senderDid);
 
   /// Returns and removes the cached received VRC from [senderDid], or null.
-  ReceivedVrc? consumePendingVrc(String senderDid) =>
+  VrcIssuance? consumePendingVrc(String senderDid) =>
       _pendingVrcs.remove(senderDid);
 
   Future<void> close() async {
@@ -67,8 +67,7 @@ class VrcIncomingMessageStreamManager {
       return;
     }
 
-    final type = message.type.toString();
-    if (type == VdipRequestIssuanceMessage.messageType.toString()) {
+    if (message.type == VdipRequestIssuanceMessage.messageType) {
       final request = _toReceivedVrcRequest(message, senderDid);
       if (request != null) {
         _pendingRequests[senderDid] = request;
@@ -77,7 +76,7 @@ class VrcIncomingMessageStreamManager {
       return;
     }
 
-    if (type == VdipIssuedCredentialMessage.messageType.toString()) {
+    if (message.type == VdipIssuedCredentialMessage.messageType) {
       final receivedVrc = await _toReceivedVrc(message, senderDid);
       if (receivedVrc != null) {
         _pendingVrcs[senderDid] = receivedVrc;
@@ -86,7 +85,7 @@ class VrcIncomingMessageStreamManager {
     }
   }
 
-  ReceivedVrcRequest? _toReceivedVrcRequest(
+  VrcRequest? _toReceivedVrcRequest(
     PlainTextMessage message,
     String senderDid,
   ) {
@@ -104,7 +103,7 @@ class VrcIncomingMessageStreamManager {
     final credentialMetaData = _extractCredentialMetaData(credentialMetaMap);
     final proposalId = bodyMap['proposal_id'];
 
-    return ReceivedVrcRequest(
+    return VrcRequest(
       senderDid: senderDid,
       proposalId: proposalId is String ? proposalId : null,
       credentialMeta: credentialMetaMap,
@@ -112,7 +111,7 @@ class VrcIncomingMessageStreamManager {
     );
   }
 
-  Future<ReceivedVrc?> _toReceivedVrc(
+  Future<VrcIssuance?> _toReceivedVrc(
     PlainTextMessage message,
     String senderDid,
   ) async {
@@ -136,7 +135,7 @@ class VrcIncomingMessageStreamManager {
 
     final credentialFormat =
         bodyMap['credential_format'] ?? bodyMap['credentialFormat'];
-    return ReceivedVrc(
+    return VrcIssuance(
       senderDid: senderDid,
       vcBlob: vcBlob,
       parsedCredential: parsedCredential,

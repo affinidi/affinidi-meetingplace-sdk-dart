@@ -15,3 +15,8 @@ export 'src/sdk/group_chat_sdk.dart';
 export 'src/sdk/individual_chat_sdk.dart';
 export 'src/service/chat_stream.dart';
 export 'src/zkp/liveness_zkp_concierge_chat_mapper.dart';
+export 'src/zkp/liveness_zkp_concierge_deriver.dart';
+export 'src/zkp/liveness_zkp_concierge_messages.dart';
+export 'src/zkp/model/liveness_zkp_concierge_ids.dart';
+export 'src/zkp/model/liveness_zkp_concierge_notice.dart';
+export 'src/zkp/model/liveness_zkp_concierge_types.dart';

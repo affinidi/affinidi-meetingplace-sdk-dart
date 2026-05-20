@@ -1,8 +1,10 @@
-import '../model/liveness_zkp_concierge_ids.dart';
-import '../model/liveness_zkp_concierge_notice.dart';
-import '../model/liveness_zkp_concierge_types.dart';
+import 'package:uuid/uuid.dart';
 
-/// Factories for human ZKP concierge notices (relationship / ZKP domain).
+import 'model/liveness_zkp_concierge_ids.dart';
+import 'model/liveness_zkp_concierge_notice.dart';
+import 'model/liveness_zkp_concierge_types.dart';
+
+/// Factories for human ZKP concierge notices
 abstract final class LivenessZkpConciergeMessages {
   static LivenessZkpConciergeNotice humanZkpRequest({
     required String chatId,
@@ -31,7 +33,7 @@ abstract final class LivenessZkpConciergeMessages {
             forRequestNoticeMessageId: pausedForRequestNoticeMessageId,
           )
         : LivenessZkpConciergeIds.pausedEphemeral(
-            ephemeralSuffix ?? DateTime.now().microsecondsSinceEpoch.toString(),
+            ephemeralSuffix ?? const Uuid().v4(),
           );
 
     return LivenessZkpConciergeNotice(

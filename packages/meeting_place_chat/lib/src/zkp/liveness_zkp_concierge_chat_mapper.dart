@@ -1,9 +1,8 @@
-import 'package:meeting_place_relationship/meeting_place_relationship.dart';
-
 import '../entity/chat_item.dart';
 import '../entity/concierge_message.dart';
+import 'model/liveness_zkp_concierge_notice.dart';
 
-/// Maps relationship-layer ZKP notices to chat [ConciergeMessage] rows.
+/// Maps human liveness ZKP concierge notices to chat [ConciergeMessage] rows.
 abstract final class LivenessZkpConciergeChatMapper {
   static ConciergeMessage toConciergeMessage(
     LivenessZkpConciergeNotice notice,

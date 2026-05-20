@@ -36,7 +36,7 @@ void main() {
         issuedAt: DateTime.utc(2024, 1, 1),
       ),
     );
-    registerFallbackValue(VdipIssuedCredentialBody.fromJson({}));
+    registerFallbackValue(FakeVdipIssuedCredentialBody());
   });
 
   group('MeetingPlaceRelationshipSDK', () {
@@ -613,6 +613,7 @@ void main() {
 
   group('MeetingPlaceRelationshipSDK VRC protocol helpers', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
+    late MockVdipClient mockVdipClient;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
     late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
@@ -649,6 +650,7 @@ void main() {
         channelAttachmentsCtrl,
         vdipMessagesCtrl,
       );
+      mockVdipClient = mockCoreSDK.vdip as MockVdipClient;
       mockRepo = MockRCardRepository();
       mockVrcRepo = MockVrcRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
@@ -766,7 +768,7 @@ void main() {
         () => mockCoreSDK.getDidManager(issuerDid),
       ).thenAnswer((_) async => issuerManager);
       when(
-        () => mockCoreSDK.vdip.sendIssuedCredential(
+        () => mockVdipClient.sendIssuedCredential(
           senderDid: any(named: 'senderDid'),
           recipientDid: any(named: 'recipientDid'),
           body: any(named: 'body'),
@@ -805,7 +807,7 @@ void main() {
           () => mockCoreSDK.getDidManager(issuerDid),
         ).thenAnswer((_) async => issuerManager);
         when(
-          () => mockCoreSDK.vdip.sendIssuedCredential(
+          () => mockVdipClient.sendIssuedCredential(
             senderDid: any(named: 'senderDid'),
             recipientDid: any(named: 'recipientDid'),
             body: any(named: 'body'),
@@ -826,6 +828,82 @@ void main() {
         expect(outcome, VrcReceivedOutcome.reciprocated);
       },
     );
+
+    test('handleReceivedVrcRequest invokes onVrcSent with the sent vcBlob'
+        ' when outcome is issued', () async {
+      final sendChannel = MockChannel();
+      when(() => sendChannel.id).thenReturn('channel-id');
+      when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
+      when(
+        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => sendChannel);
+      when(
+        () => mockCoreSDK.getDidManager(issuerDid),
+      ).thenAnswer((_) async => issuerManager);
+      when(
+        () => mockVdipClient.sendIssuedCredential(
+          senderDid: any(named: 'senderDid'),
+          recipientDid: any(named: 'recipientDid'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async {});
+
+      String? capturedBlob;
+      await sdk.handleReceivedVrcRequest(
+        channelDid: 'did:key:peer',
+        request: ReceivedVrcRequest(
+          senderDid: 'did:key:sender',
+          credentialMetaData: {
+            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+            VrcConstants.requestMetadataKeyIdentityName: 'Bob',
+          },
+        ),
+        hasVrcExchangeInitiated: true,
+        isConnectionInitiator: true,
+        localIdentityDid: issuerDid,
+        localIdentityName: 'Alice',
+        onVrcSent: (blob) => capturedBlob = blob,
+      );
+
+      expect(capturedBlob, isNotNull);
+      expect(capturedBlob, isNotEmpty);
+    });
+
+    test('handleReceivedVrc invokes onVrcSent with the sent vcBlob'
+        ' when outcome is reciprocated', () async {
+      final sendChannel = MockChannel();
+      when(() => sendChannel.id).thenReturn('channel-id');
+      when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
+      when(
+        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => sendChannel);
+      when(
+        () => mockCoreSDK.getDidManager(issuerDid),
+      ).thenAnswer((_) async => issuerManager);
+      when(
+        () => mockVdipClient.sendIssuedCredential(
+          senderDid: any(named: 'senderDid'),
+          recipientDid: any(named: 'recipientDid'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async {});
+
+      String? capturedBlob;
+      await sdk.handleReceivedVrc(
+        channelDid: 'did:key:peer',
+        vcBlob: signedVrcBlob,
+        hasVrcExchangeCompleted: false,
+        hasVrcExchangeInitiated: true,
+        hasVrcRequestReceived: false,
+        isConnectionInitiator: true,
+        localIdentityDid: issuerDid,
+        localIdentityName: 'Alice',
+        onVrcSent: (blob) => capturedBlob = blob,
+      );
+
+      expect(capturedBlob, isNotNull);
+      expect(capturedBlob, isNotEmpty);
+    });
   });
 
   group('MeetingPlaceRelationshipSDK.parseVrc', () {

@@ -49,7 +49,7 @@ void main() {
         credentialMeta: CredentialMeta(data: {}),
       ),
     );
-    registerFallbackValue(VdipIssuedCredentialBody.fromJson({}));
+    registerFallbackValue(FakeVdipIssuedCredentialBody());
   });
 
   group('VrcExchangeClient.requestExchange', () {

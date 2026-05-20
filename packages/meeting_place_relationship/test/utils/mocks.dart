@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:meeting_place_relationship/src/vrc/parser/vrc_parser.dart';
+import 'package:meeting_place_relationship/src/vrc/vrc_exchange_client.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 
@@ -18,6 +20,15 @@ class MockVerifiableCredential extends Mock implements VerifiableCredential {}
 class FakeVcDataModelV2 extends Fake implements VcDataModelV2 {}
 
 class MockVrcRepository extends Mock implements VrcRepository {}
+
+class MockVrcExchangeClient extends Mock implements VrcExchangeClient {}
+
+class MockVrcParser extends Mock implements VrcParser {}
+
+class MockParsedVC extends Mock implements ParsedVerifiableCredential {}
+
+class FakeVdipIssuedCredentialBody extends Fake
+    implements VdipIssuedCredentialBody {}
 
 MockMeetingPlaceCoreSDK mockCoreSDKWithStreams(
   StreamController<(Channel, List<Attachment>)> attachmentCtrl,

@@ -168,11 +168,10 @@ class VrcProtocolHandler {
 
   Future<VrcParty?> _extractIssuerParty({required String vcBlob}) async {
     final parsed = await _parser.parse(vcBlob: vcBlob);
-    if (parsed == null || parsed.credentialSubject.isEmpty) return null;
-
-    final subject = VrcCredentialSubject.fromJson(
-      Map<String, dynamic>.from(parsed.credentialSubject.first),
-    );
+    if (parsed == null) return null;
+    final raw = parsed.credentialSubject.firstOrNull as Map<String, dynamic>?;
+    if (raw == null) return null;
+    final subject = VrcCredentialSubject.fromJson(raw);
     return subject.from;
   }
 }

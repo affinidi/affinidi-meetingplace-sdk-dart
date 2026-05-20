@@ -41,11 +41,11 @@ class Vrcs extends Table {
   /// Stable credential identifier used as the primary key.
   TextColumn get id => text()();
 
-  /// Raw serialized VC JSON string used as the reference document.
-  TextColumn get referenceId => text()();
+  /// Raw serialized VC JSON string.
+  TextColumn get vcBlob => text()();
 
-  /// Channel identifier used by the consumer app.
-  TextColumn get channelId => text()();
+  /// Channel identifier used as reference by the consumer app.
+  TextColumn get referenceId => text()();
 
   /// DID of the credential holder.
   TextColumn get holderDid => text()();

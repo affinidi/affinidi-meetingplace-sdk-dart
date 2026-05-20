@@ -18,12 +18,12 @@ class VrcRepositoryDrift implements model.VrcRepository {
             ..where((t) => t.id.equals(vrc.id)))
           .getSingleOrNull();
 
-      if (existing != null && existing.referenceId == vrc.vcBlob) {
+      if (existing != null && existing.vcBlob == vrc.vcBlob) {
         await (_database.update(_database.vrcs)
               ..where((t) => t.id.equals(vrc.id)))
             .write(
           db.VrcsCompanion(
-            channelId: Value(vrc.channelId),
+            referenceId: Value(vrc.referenceId),
             holderDid: Value(vrc.holderDid),
             issuerDid: Value(vrc.issuerDid),
             issuedAt: Value(vrc.issuedAt),
@@ -38,8 +38,8 @@ class VrcRepositoryDrift implements model.VrcRepository {
       await _database.into(_database.vrcs).insertOnConflictUpdate(
             db.VrcsCompanion(
               id: Value(vrc.id),
-              referenceId: Value(vrc.vcBlob),
-              channelId: Value(vrc.channelId),
+              vcBlob: Value(vrc.vcBlob),
+              referenceId: Value(vrc.referenceId),
               holderDid: Value(vrc.holderDid),
               issuerDid: Value(vrc.issuerDid),
               issuedAt: Value(vrc.issuedAt),
@@ -103,8 +103,8 @@ class VrcRepositoryDrift implements model.VrcRepository {
   model.Vrc _mapRow(db.VrcRow row) {
     return model.Vrc(
       id: row.id,
-      vcBlob: row.referenceId,
-      channelId: row.channelId,
+      vcBlob: row.vcBlob,
+      referenceId: row.referenceId,
       holderDid: row.holderDid,
       issuerDid: row.issuerDid,
       issuedAt: row.issuedAt,

@@ -730,49 +730,19 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
-  /// Creates a local chat [Message] for a credential that was issued to the
-  /// other party.
+  /// Creates a local chat [Message] with the given attachments.
   ///
-  /// Persists the message and pushes it to [chatStream] so the sender sees
-  /// an attachment tile immediately.
-  ///
-  /// **Parameters:**
-  /// - [attachments]: The list of [Attachment]s containing the issued
-  ///   credential data.
-  Future<void> createChatMessageFromIssuedCredential({
+  /// Set [isFromMe] to `true` when the local user initiated the exchange
+  /// (sender tile), or `false` when the other party did (receiver tile).
+  Future<void> createAttachmentMessage({
     required List<Attachment> attachments,
+    required bool isFromMe,
   }) async {
     final chatMessage = Message(
       chatId: chatId,
       messageId: const Uuid().v4(),
-      senderDid: did,
-      isFromMe: true,
-      dateCreated: DateTime.now().toUtc(),
-      status: ChatItemStatus.confirmed,
-      value: '',
-      attachments: attachments,
-    );
-    await chatRepository.createMessage(chatMessage);
-    chatStream.pushData(StreamData(chatItem: chatMessage));
-  }
-
-  /// Creates a local chat [Message] for a credential that was received from
-  /// the other party.
-  ///
-  /// Persists the message and pushes it to [chatStream] so the receiver sees
-  /// an attachment tile immediately.
-  ///
-  /// **Parameters:**
-  /// - [attachments]: The list of [Attachment]s containing the received
-  ///   credential data.
-  Future<void> createChatMessageFromRequestCredential({
-    required List<Attachment> attachments,
-  }) async {
-    final chatMessage = Message(
-      chatId: chatId,
-      messageId: const Uuid().v4(),
-      senderDid: otherPartyDid,
-      isFromMe: false,
+      senderDid: isFromMe ? did : otherPartyDid,
+      isFromMe: isFromMe,
       dateCreated: DateTime.now().toUtc(),
       status: ChatItemStatus.confirmed,
       value: '',

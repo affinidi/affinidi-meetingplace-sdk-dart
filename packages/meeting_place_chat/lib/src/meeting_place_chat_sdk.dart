@@ -1,7 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
-import 'sdk/base_chat_sdk.dart';
 
 ///  [MeetingPlaceChatSDK] is built on top of the core Meeting Place SDK.
 ///
@@ -231,26 +230,16 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
 
-  /// Creates a chat message from an issued credential (VDIP issuance flow).
+  /// Creates a local chat message with attachments.
   ///
-  /// **Parameters:**
-  /// - [attachments]: The list of [Attachment]s containing the issued
-  ///   credential data.
-  Future<void> createChatMessageFromIssuedCredential({
+  /// Set [isFromMe] `true` for a sent credential tile, `false` for a
+  /// received credential tile.
+  @override
+  Future<void> createAttachmentMessage({
     required List<Attachment> attachments,
-  }) => (_sdk as BaseChatSDK).createChatMessageFromIssuedCredential(
+    required bool isFromMe,
+  }) => _sdk.createAttachmentMessage(
         attachments: attachments,
-      );
-
-  /// Creates a chat message from a credential issuance request (VDIP request
-  /// flow).
-  ///
-  /// **Parameters:**
-  /// - [attachments]: The list of [Attachment]s containing the credential
-  ///   request data.
-  Future<void> createChatMessageFromRequestCredential({
-    required List<Attachment> attachments,
-  }) => (_sdk as BaseChatSDK).createChatMessageFromRequestCredential(
-        attachments: attachments,
+        isFromMe: isFromMe,
       );
 }

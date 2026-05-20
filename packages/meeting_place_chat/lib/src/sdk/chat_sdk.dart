@@ -28,4 +28,13 @@ abstract interface class ChatSDK {
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates();
+
+  /// Creates a local chat message with attachments.
+  ///
+  /// Use [isFromMe] `true` when the local user initiated the credential
+  /// exchange, `false` when the other party did.
+  Future<void> createAttachmentMessage({
+    required List<Attachment> attachments,
+    required bool isFromMe,
+  });
 }

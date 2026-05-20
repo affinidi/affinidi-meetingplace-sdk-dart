@@ -168,6 +168,12 @@ class ControlPlaneApiClient {
       },
       options: Options(extra: {'secure': _didDocumentSecure}),
     );
-    return DidDocumentHostingRecord.fromJson(response.data!);
+    final data = response.data;
+    if (data == null) {
+      throw StateError(
+        'uploadDidDocument: server returned a successful status but no body.',
+      );
+    }
+    return DidDocumentHostingRecord.fromJson(data);
   }
 }

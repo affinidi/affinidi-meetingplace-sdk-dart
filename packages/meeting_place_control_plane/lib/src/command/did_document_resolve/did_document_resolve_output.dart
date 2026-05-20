@@ -1,7 +1,9 @@
 import 'package:ssi/ssi.dart';
 
-/// Output returned after successfully resolving a did:web DID Document.
+/// Model that represents the output data returned from a successful execution
+/// of [ResolveDidDocumentCommandOutput] operation.
 class ResolveDidDocumentCommandOutput {
+  /// Creates a new instance of [ResolveDidDocumentCommandOutput].
   ResolveDidDocumentCommandOutput({required this.didDocument});
 
   final DidDocument didDocument;

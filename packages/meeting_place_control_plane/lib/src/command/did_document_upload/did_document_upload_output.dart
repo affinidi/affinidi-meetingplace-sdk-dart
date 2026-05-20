@@ -1,7 +1,9 @@
 import '../../core/model/did_document_hosting_record.dart';
 
-/// Output returned after successfully uploading a did:web DID Document.
+/// Model that represents the output data returned from a successful execution
+/// of [UploadDidDocumentCommandOutput] operation.
 class UploadDidDocumentCommandOutput {
+  /// Creates a new instance of [UploadDidDocumentCommandOutput].
   UploadDidDocumentCommandOutput({required this.record});
 
   final DidDocumentHostingRecord record;

@@ -4,32 +4,65 @@
 /// the new `#auth` key in the DID Document) share this structure.
 /// See the MPX Matrix Integration ADR for the canonical proof payload spec.
 class DidWebProof {
+  /// Creates a new instance of [DidWebProof].
+  ///
+  /// **Parameters:**
+  /// - [type]: The proof type. Expected value: `DataIntegrityProof`.
+  /// - [created]: ISO-8601 UTC timestamp of when the proof was created.
+  /// - [verificationMethod]: Key identifier used to sign the proof,
+  /// e.g. `did:web:<host>:user:<segment>#auth`.
+  /// - [proofPurpose]: The intended purpose. Expected value: `assertionMethod`.
+  /// - [jws]: Detached JWS over the canonical proof payload
+  /// (base64url, no padding).
   DidWebProof({
     required this.type,
     required this.created,
     required this.verificationMethod,
     required this.proofPurpose,
     required this.jws,
-  });
+  }) : assert(
+         DateTime.tryParse(created) != null,
+         'created must be a valid ISO-8601 datetime string',
+       );
 
+  /// Creates a [DidWebProof] from the given JSON [json].
+  ///
+  /// Throws [FormatException] if any required field is absent or not a string.
   factory DidWebProof.fromJson(Map<String, dynamic> json) {
+    final type = json['type'];
+    final created = json['created'];
+    final verificationMethod = json['verificationMethod'];
+    final proofPurpose = json['proofPurpose'];
+    final jws = json['jws'];
+    if (type is! String ||
+        created is! String ||
+        verificationMethod is! String ||
+        proofPurpose is! String ||
+        jws is! String) {
+      throw const FormatException(
+        'DidWebProof: missing or invalid fields in JSON.',
+      );
+    }
     return DidWebProof(
-      type: json['type'] as String,
-      created: json['created'] as String,
-      verificationMethod: json['verificationMethod'] as String,
-      proofPurpose: json['proofPurpose'] as String,
-      jws: json['jws'] as String,
+      type: type,
+      created: created,
+      verificationMethod: verificationMethod,
+      proofPurpose: proofPurpose,
+      jws: jws,
     );
   }
 
+  /// The proof type. Expected value: `DataIntegrityProof`.
   final String type;
 
-  /// ISO 8601 timestamp.
+  /// ISO-8601 UTC timestamp of when the proof was created.
   final String created;
 
-  /// Key identifier, e.g. `did:web:<host>:user:<segment>#auth`.
+  /// Key identifier used to sign the proof,
+  /// e.g. `did:web:<host>:user:<segment>#auth`.
   final String verificationMethod;
 
+  /// The intended proof purpose. Expected value: `assertionMethod`.
   final String proofPurpose;
 
   /// Detached JWS over the canonical proof payload (base64url, no padding).

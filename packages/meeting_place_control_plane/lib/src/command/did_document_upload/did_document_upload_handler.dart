@@ -1,36 +1,60 @@
+import 'dart:async';
+
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'did_document_upload.dart';
+import 'did_document_upload_exception.dart';
 import 'did_document_upload_output.dart';
 
-/// Handles the Upload DID Document operation.
+/// A concreate implementation of the [CommandHandler] interface.
 ///
-/// Sends a POST request to `/v1/did-document/upload` on the Control Plane API
-/// to create and store a new did:web DID Document.
+/// Handles communication with the API server, including sending requests,
+/// receiving responses, and validating the returned data for Upload DID
+/// Document operation.
 class UploadDidDocumentHandler
     implements
         CommandHandler<
           UploadDidDocumentCommand,
           UploadDidDocumentCommandOutput
         > {
+  /// Returns an instance of [UploadDidDocumentHandler].
+  ///
+  /// **Parameters:**
+  /// - [apiClient]: An instance of the Control Plane API client object.
   UploadDidDocumentHandler({
-    required this.apiClient,
+    required ControlPlaneApiClient apiClient,
     ControlPlaneSDKLogger? logger,
-  }) : _logger =
+  }) : _apiClient = apiClient,
+       _logger =
            logger ??
            DefaultControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
-
   static const String _className = 'UploadDidDocumentHandler';
 
-  final ControlPlaneApiClient apiClient;
+  final ControlPlaneApiClient _apiClient;
   final ControlPlaneSDKLogger _logger;
 
+  /// Overrides the method [CommandHandler.handle].
+  ///
+  /// This prepares the request that will be sent to the API server and
+  /// validates the response. This also handles the exception that are returned
+  /// by the API server.
+  ///
+  /// **Parameters:**
+  /// - [command]: Upload DID Document command object.
+  ///
+  /// **Returns:**
+  /// - [UploadDidDocumentCommandOutput]: The upload DID document command
+  /// output object.
+  ///
+  /// **Throws:**
+  /// - [UploadDidDocumentException]: Exception thrown by the upload DID
+  /// document operation.
   @override
   Future<UploadDidDocumentCommandOutput> handle(
     UploadDidDocumentCommand command,
@@ -39,7 +63,7 @@ class UploadDidDocumentHandler
     _logger.info('Uploading DID document', name: methodName);
 
     try {
-      final record = await apiClient.uploadDidDocument(
+      final record = await _apiClient.uploadDidDocument(
         command.didDocument,
         controlProof: command.controlProof,
         proof: command.proof,
@@ -47,13 +71,17 @@ class UploadDidDocumentHandler
       _logger.info('Uploaded DID document: ${record.did}', name: methodName);
       return UploadDidDocumentCommandOutput(record: record);
     } catch (e, stackTrace) {
+      // Do not pass `error: e` to the logger: DioException carries
+      // requestOptions.data which contains the JWS proof payloads.
       _logger.error(
         'Failed to upload DID document',
-        error: e,
         stackTrace: stackTrace,
         name: methodName,
       );
-      Error.throwWithStackTrace(e, stackTrace);
+      Error.throwWithStackTrace(
+        UploadDidDocumentException.generic(innerException: e),
+        stackTrace,
+      );
     }
   }
 }

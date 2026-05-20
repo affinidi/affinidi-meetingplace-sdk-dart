@@ -36,6 +36,7 @@ void main() {
         issuedAt: DateTime.utc(2024, 1, 1),
       ),
     );
+    registerFallbackValue(VdipIssuedCredentialBody.fromJson({}));
   });
 
   group('MeetingPlaceRelationshipSDK', () {
@@ -618,17 +619,16 @@ void main() {
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late MeetingPlaceRelationshipSDK sdk;
     late String signedVrcBlob;
+    late DidKeyManager issuerManager;
+    late String issuerDid;
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
-      final issuerManager = DidKeyManager(
-        wallet: wallet,
-        store: InMemoryDidStore(),
-      );
+      issuerManager = DidKeyManager(wallet: wallet, store: InMemoryDidStore());
       final keyPair = await wallet.generateKey();
       await issuerManager.addVerificationMethod(keyPair.id);
       final didDoc = await issuerManager.getDidDocument();
-      final issuerDid = didDoc.id;
+      issuerDid = didDoc.id;
 
       final signed = await CredentialBuilder.buildVrc(
         issuerDid: issuerDid,
@@ -751,6 +751,79 @@ void main() {
         );
 
         expect(outcome, VrcReceivedOutcome.completed);
+      },
+    );
+
+    test('handleReceivedVrcRequest returns issued for simultaneous'
+        ' request when initiator', () async {
+      final sendChannel = MockChannel();
+      when(() => sendChannel.id).thenReturn('channel-id');
+      when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
+      when(
+        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => sendChannel);
+      when(
+        () => mockCoreSDK.getDidManager(issuerDid),
+      ).thenAnswer((_) async => issuerManager);
+      when(
+        () => mockCoreSDK.vdip.sendIssuedCredential(
+          senderDid: any(named: 'senderDid'),
+          recipientDid: any(named: 'recipientDid'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async {});
+
+      final request = ReceivedVrcRequest(
+        senderDid: 'did:key:sender',
+        credentialMetaData: {
+          VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          VrcConstants.requestMetadataKeyIdentityName: 'Bob',
+        },
+      );
+      final outcome = await sdk.handleReceivedVrcRequest(
+        channelDid: 'did:key:peer',
+        request: request,
+        hasVrcExchangeInitiated: true,
+        isConnectionInitiator: true,
+        localIdentityDid: issuerDid,
+        localIdentityName: 'Alice',
+      );
+
+      expect(outcome, VrcRequestReceivedOutcome.issued);
+    });
+
+    test(
+      'handleReceivedVrc returns reciprocated when initiator receives VRC',
+      () async {
+        final sendChannel = MockChannel();
+        when(() => sendChannel.id).thenReturn('channel-id');
+        when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
+        when(
+          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        ).thenAnswer((_) async => sendChannel);
+        when(
+          () => mockCoreSDK.getDidManager(issuerDid),
+        ).thenAnswer((_) async => issuerManager);
+        when(
+          () => mockCoreSDK.vdip.sendIssuedCredential(
+            senderDid: any(named: 'senderDid'),
+            recipientDid: any(named: 'recipientDid'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final outcome = await sdk.handleReceivedVrc(
+          channelDid: 'did:key:peer',
+          vcBlob: signedVrcBlob,
+          hasVrcExchangeCompleted: false,
+          hasVrcExchangeInitiated: true,
+          hasVrcRequestReceived: false,
+          isConnectionInitiator: true,
+          localIdentityDid: issuerDid,
+          localIdentityName: 'Alice',
+        );
+
+        expect(outcome, VrcReceivedOutcome.reciprocated);
       },
     );
   });

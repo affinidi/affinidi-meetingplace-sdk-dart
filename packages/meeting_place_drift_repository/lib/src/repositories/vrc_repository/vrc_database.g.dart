@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'stored_vrc_database.dart';
+part of 'vrc_database.dart';
 
 // ignore_for_file: type=lint
 class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
@@ -13,10 +13,11 @@ class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _vcBlobMeta = const VerificationMeta('vcBlob');
+  static const VerificationMeta _referenceIdMeta =
+      const VerificationMeta('referenceId');
   @override
-  late final GeneratedColumn<String> vcBlob = GeneratedColumn<String>(
-      'vc_blob', aliasedName, false,
+  late final GeneratedColumn<String> referenceId = GeneratedColumn<String>(
+      'reference_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _channelIdMeta =
       const VerificationMeta('channelId');
@@ -63,7 +64,7 @@ class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
   @override
   List<GeneratedColumn> get $columns => [
         id,
-        vcBlob,
+        referenceId,
         channelId,
         holderDid,
         issuerDid,
@@ -87,11 +88,13 @@ class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
     } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (data.containsKey('vc_blob')) {
-      context.handle(_vcBlobMeta,
-          vcBlob.isAcceptableOrUnknown(data['vc_blob']!, _vcBlobMeta));
+    if (data.containsKey('reference_id')) {
+      context.handle(
+          _referenceIdMeta,
+          referenceId.isAcceptableOrUnknown(
+              data['reference_id']!, _referenceIdMeta));
     } else if (isInserting) {
-      context.missing(_vcBlobMeta);
+      context.missing(_referenceIdMeta);
     }
     if (data.containsKey('channel_id')) {
       context.handle(_channelIdMeta,
@@ -146,8 +149,8 @@ class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
     return VrcRow(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      vcBlob: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}vc_blob'])!,
+      referenceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}reference_id'])!,
       channelId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}channel_id'])!,
       holderDid: attachedDatabase.typeMapping
@@ -175,8 +178,8 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   /// Stable credential identifier used as the primary key.
   final String id;
 
-  /// Raw serialized VC JSON blob.
-  final String vcBlob;
+  /// Raw serialized VC JSON string used as the reference document.
+  final String referenceId;
 
   /// Channel identifier used by the consumer app.
   final String channelId;
@@ -200,7 +203,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   final String? credentialFormat;
   const VrcRow(
       {required this.id,
-      required this.vcBlob,
+      required this.referenceId,
       required this.channelId,
       required this.holderDid,
       required this.issuerDid,
@@ -212,7 +215,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['vc_blob'] = Variable<String>(vcBlob);
+    map['reference_id'] = Variable<String>(referenceId);
     map['channel_id'] = Variable<String>(channelId);
     map['holder_did'] = Variable<String>(holderDid);
     map['issuer_did'] = Variable<String>(issuerDid);
@@ -232,7 +235,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   VrcsCompanion toCompanion(bool nullToAbsent) {
     return VrcsCompanion(
       id: Value(id),
-      vcBlob: Value(vcBlob),
+      referenceId: Value(referenceId),
       channelId: Value(channelId),
       holderDid: Value(holderDid),
       issuerDid: Value(issuerDid),
@@ -254,7 +257,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VrcRow(
       id: serializer.fromJson<String>(json['id']),
-      vcBlob: serializer.fromJson<String>(json['vcBlob']),
+      referenceId: serializer.fromJson<String>(json['referenceId']),
       channelId: serializer.fromJson<String>(json['channelId']),
       holderDid: serializer.fromJson<String>(json['holderDid']),
       issuerDid: serializer.fromJson<String>(json['issuerDid']),
@@ -269,7 +272,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'vcBlob': serializer.toJson<String>(vcBlob),
+      'referenceId': serializer.toJson<String>(referenceId),
       'channelId': serializer.toJson<String>(channelId),
       'holderDid': serializer.toJson<String>(holderDid),
       'issuerDid': serializer.toJson<String>(issuerDid),
@@ -282,7 +285,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
 
   VrcRow copyWith(
           {String? id,
-          String? vcBlob,
+          String? referenceId,
           String? channelId,
           String? holderDid,
           String? issuerDid,
@@ -292,7 +295,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
           Value<String?> credentialFormat = const Value.absent()}) =>
       VrcRow(
         id: id ?? this.id,
-        vcBlob: vcBlob ?? this.vcBlob,
+        referenceId: referenceId ?? this.referenceId,
         channelId: channelId ?? this.channelId,
         holderDid: holderDid ?? this.holderDid,
         issuerDid: issuerDid ?? this.issuerDid,
@@ -306,7 +309,8 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   VrcRow copyWithCompanion(VrcsCompanion data) {
     return VrcRow(
       id: data.id.present ? data.id.value : this.id,
-      vcBlob: data.vcBlob.present ? data.vcBlob.value : this.vcBlob,
+      referenceId:
+          data.referenceId.present ? data.referenceId.value : this.referenceId,
       channelId: data.channelId.present ? data.channelId.value : this.channelId,
       holderDid: data.holderDid.present ? data.holderDid.value : this.holderDid,
       issuerDid: data.issuerDid.present ? data.issuerDid.value : this.issuerDid,
@@ -325,7 +329,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   String toString() {
     return (StringBuffer('VrcRow(')
           ..write('id: $id, ')
-          ..write('vcBlob: $vcBlob, ')
+          ..write('referenceId: $referenceId, ')
           ..write('channelId: $channelId, ')
           ..write('holderDid: $holderDid, ')
           ..write('issuerDid: $issuerDid, ')
@@ -338,14 +342,14 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, vcBlob, channelId, holderDid, issuerDid,
-      issuedAt, verifiedAt, receivedAt, credentialFormat);
+  int get hashCode => Object.hash(id, referenceId, channelId, holderDid,
+      issuerDid, issuedAt, verifiedAt, receivedAt, credentialFormat);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VrcRow &&
           other.id == this.id &&
-          other.vcBlob == this.vcBlob &&
+          other.referenceId == this.referenceId &&
           other.channelId == this.channelId &&
           other.holderDid == this.holderDid &&
           other.issuerDid == this.issuerDid &&
@@ -357,7 +361,7 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
 
 class VrcsCompanion extends UpdateCompanion<VrcRow> {
   final Value<String> id;
-  final Value<String> vcBlob;
+  final Value<String> referenceId;
   final Value<String> channelId;
   final Value<String> holderDid;
   final Value<String> issuerDid;
@@ -368,7 +372,7 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
   final Value<int> rowid;
   const VrcsCompanion({
     this.id = const Value.absent(),
-    this.vcBlob = const Value.absent(),
+    this.referenceId = const Value.absent(),
     this.channelId = const Value.absent(),
     this.holderDid = const Value.absent(),
     this.issuerDid = const Value.absent(),
@@ -380,7 +384,7 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
   });
   VrcsCompanion.insert({
     required String id,
-    required String vcBlob,
+    required String referenceId,
     required String channelId,
     required String holderDid,
     required String issuerDid,
@@ -390,14 +394,14 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
     this.credentialFormat = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
-        vcBlob = Value(vcBlob),
+        referenceId = Value(referenceId),
         channelId = Value(channelId),
         holderDid = Value(holderDid),
         issuerDid = Value(issuerDid),
         issuedAt = Value(issuedAt);
   static Insertable<VrcRow> custom({
     Expression<String>? id,
-    Expression<String>? vcBlob,
+    Expression<String>? referenceId,
     Expression<String>? channelId,
     Expression<String>? holderDid,
     Expression<String>? issuerDid,
@@ -409,7 +413,7 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (vcBlob != null) 'vc_blob': vcBlob,
+      if (referenceId != null) 'reference_id': referenceId,
       if (channelId != null) 'channel_id': channelId,
       if (holderDid != null) 'holder_did': holderDid,
       if (issuerDid != null) 'issuer_did': issuerDid,
@@ -423,7 +427,7 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
 
   VrcsCompanion copyWith(
       {Value<String>? id,
-      Value<String>? vcBlob,
+      Value<String>? referenceId,
       Value<String>? channelId,
       Value<String>? holderDid,
       Value<String>? issuerDid,
@@ -434,7 +438,7 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
       Value<int>? rowid}) {
     return VrcsCompanion(
       id: id ?? this.id,
-      vcBlob: vcBlob ?? this.vcBlob,
+      referenceId: referenceId ?? this.referenceId,
       channelId: channelId ?? this.channelId,
       holderDid: holderDid ?? this.holderDid,
       issuerDid: issuerDid ?? this.issuerDid,
@@ -452,8 +456,8 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (vcBlob.present) {
-      map['vc_blob'] = Variable<String>(vcBlob.value);
+    if (referenceId.present) {
+      map['reference_id'] = Variable<String>(referenceId.value);
     }
     if (channelId.present) {
       map['channel_id'] = Variable<String>(channelId.value);
@@ -486,7 +490,7 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
   String toString() {
     return (StringBuffer('VrcsCompanion(')
           ..write('id: $id, ')
-          ..write('vcBlob: $vcBlob, ')
+          ..write('referenceId: $referenceId, ')
           ..write('channelId: $channelId, ')
           ..write('holderDid: $holderDid, ')
           ..write('issuerDid: $issuerDid, ')
@@ -516,7 +520,7 @@ abstract class _$VrcDatabase extends GeneratedDatabase {
 
 typedef $$VrcsTableCreateCompanionBuilder = VrcsCompanion Function({
   required String id,
-  required String vcBlob,
+  required String referenceId,
   required String channelId,
   required String holderDid,
   required String issuerDid,
@@ -528,7 +532,7 @@ typedef $$VrcsTableCreateCompanionBuilder = VrcsCompanion Function({
 });
 typedef $$VrcsTableUpdateCompanionBuilder = VrcsCompanion Function({
   Value<String> id,
-  Value<String> vcBlob,
+  Value<String> referenceId,
   Value<String> channelId,
   Value<String> holderDid,
   Value<String> issuerDid,
@@ -550,8 +554,8 @@ class $$VrcsTableFilterComposer extends Composer<_$VrcDatabase, $VrcsTable> {
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get vcBlob => $composableBuilder(
-      column: $table.vcBlob, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get referenceId => $composableBuilder(
+      column: $table.referenceId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get channelId => $composableBuilder(
       column: $table.channelId, builder: (column) => ColumnFilters(column));
@@ -587,8 +591,8 @@ class $$VrcsTableOrderingComposer extends Composer<_$VrcDatabase, $VrcsTable> {
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get vcBlob => $composableBuilder(
-      column: $table.vcBlob, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get referenceId => $composableBuilder(
+      column: $table.referenceId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get channelId => $composableBuilder(
       column: $table.channelId, builder: (column) => ColumnOrderings(column));
@@ -625,8 +629,8 @@ class $$VrcsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get vcBlob =>
-      $composableBuilder(column: $table.vcBlob, builder: (column) => column);
+  GeneratedColumn<String> get referenceId => $composableBuilder(
+      column: $table.referenceId, builder: (column) => column);
 
   GeneratedColumn<String> get channelId =>
       $composableBuilder(column: $table.channelId, builder: (column) => column);
@@ -674,7 +678,7 @@ class $$VrcsTableTableManager extends RootTableManager<
               $$VrcsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String> vcBlob = const Value.absent(),
+            Value<String> referenceId = const Value.absent(),
             Value<String> channelId = const Value.absent(),
             Value<String> holderDid = const Value.absent(),
             Value<String> issuerDid = const Value.absent(),
@@ -686,7 +690,7 @@ class $$VrcsTableTableManager extends RootTableManager<
           }) =>
               VrcsCompanion(
             id: id,
-            vcBlob: vcBlob,
+            referenceId: referenceId,
             channelId: channelId,
             holderDid: holderDid,
             issuerDid: issuerDid,
@@ -698,7 +702,7 @@ class $$VrcsTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             required String id,
-            required String vcBlob,
+            required String referenceId,
             required String channelId,
             required String holderDid,
             required String issuerDid,
@@ -710,7 +714,7 @@ class $$VrcsTableTableManager extends RootTableManager<
           }) =>
               VrcsCompanion.insert(
             id: id,
-            vcBlob: vcBlob,
+            referenceId: referenceId,
             channelId: channelId,
             holderDid: holderDid,
             issuerDid: issuerDid,

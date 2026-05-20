@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 
 import '../../database/database_platform.dart';
 
-part 'stored_vrc_database.g.dart';
+part 'vrc_database.g.dart';
 
 /// Drift database for persisting VRCs.
 @DriftDatabase(tables: [Vrcs])
@@ -41,8 +41,8 @@ class Vrcs extends Table {
   /// Stable credential identifier used as the primary key.
   TextColumn get id => text()();
 
-  /// Raw serialized VC JSON blob.
-  TextColumn get vcBlob => text()();
+  /// Raw serialized VC JSON string used as the reference document.
+  TextColumn get referenceId => text()();
 
   /// Channel identifier used by the consumer app.
   TextColumn get channelId => text()();

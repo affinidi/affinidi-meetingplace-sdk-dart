@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart'
     as model;
 
-import 'stored_vrc_database.dart' as db;
+import 'vrc_database.dart' as db;
 
 /// Drift-backed implementation of [model.VrcRepository].
 class VrcRepositoryDrift implements model.VrcRepository {
@@ -20,8 +18,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
             ..where((t) => t.id.equals(vrc.id)))
           .getSingleOrNull();
 
-      if (existing != null &&
-          _minifyJson(existing.vcBlob) == _minifyJson(vrc.vcBlob)) {
+      if (existing != null && existing.referenceId == vrc.vcBlob) {
         await (_database.update(_database.vrcs)
               ..where((t) => t.id.equals(vrc.id)))
             .write(
@@ -41,7 +38,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
       await _database.into(_database.vrcs).insertOnConflictUpdate(
             db.VrcsCompanion(
               id: Value(vrc.id),
-              vcBlob: Value(vrc.vcBlob),
+              referenceId: Value(vrc.vcBlob),
               channelId: Value(vrc.channelId),
               holderDid: Value(vrc.holderDid),
               issuerDid: Value(vrc.issuerDid),
@@ -106,7 +103,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
   model.Vrc _mapRow(db.VrcRow row) {
     return model.Vrc(
       id: row.id,
-      vcBlob: row.vcBlob,
+      vcBlob: row.referenceId,
       channelId: row.channelId,
       holderDid: row.holderDid,
       issuerDid: row.issuerDid,
@@ -115,13 +112,5 @@ class VrcRepositoryDrift implements model.VrcRepository {
       receivedAt: row.receivedAt,
       credentialFormat: row.credentialFormat,
     );
-  }
-
-  String _minifyJson(String vcBlob) {
-    try {
-      return jsonEncode(jsonDecode(vcBlob));
-    } catch (_) {
-      return vcBlob;
-    }
   }
 }

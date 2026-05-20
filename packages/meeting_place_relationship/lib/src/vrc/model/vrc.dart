@@ -60,10 +60,19 @@ extension ParsedVerifiableCredentialVrcExtension on ParsedVerifiableCredential {
     String? credentialFormat,
   }) {
     final subjectJson = credentialSubject.firstOrNull as Map<String, dynamic>?;
-    final subject = VrcCredentialSubject.fromJson(subjectJson ?? {});
+    if (subjectJson == null) {
+      throw StateError(
+        'Cannot map VRC to domain model: credential has no subject',
+      );
+    }
+    final subject = VrcCredentialSubject.fromJson(subjectJson);
+    final credentialId = id;
+    if (credentialId == null) {
+      throw StateError('Cannot map VRC to domain model: credential has no id');
+    }
 
     return Vrc(
-      id: id.toString(),
+      id: credentialId.toString(),
       vcBlob: serialized as String,
       channelId: channelId,
       holderDid: subject.to.did,

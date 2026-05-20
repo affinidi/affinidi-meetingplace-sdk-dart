@@ -4,6 +4,8 @@ import 'package:ssi/ssi.dart';
 
 import '../constants/sdk_constants.dart';
 import '../control_plane_sdk.dart';
+import '../core/model/did_document_hosting_record.dart';
+import '../core/model/did_web_proof.dart';
 import '../loggers/control_plane_sdk_logger.dart';
 import '../loggers/default_control_plane_sdk_logger.dart';
 import 'api_client.dart' as api_client;
@@ -134,5 +136,44 @@ class ControlPlaneApiClient {
 
     final url = (apiBasePath.serviceEndpoint as StringEndpoint).url;
     return url.replaceFirst('/v1', '');
+  }
+
+  static const _didDocumentSecure = <Map<String, String>>[
+    {
+      'type': 'apiKey',
+      'name': 'DidCommTokenAuth',
+      'keyName': 'authorization',
+      'where': 'header',
+    },
+  ];
+
+  /// Uploads (creates) a new did:web DID Document on the Control Plane.
+  ///
+  /// The [didDocument] map must contain an `id` field set to a valid
+  /// `did:web` DID of the form `did:web:<host>:user:<segment>`.
+  /// [controlProof] is a detached JWS signed by the `controlDid` key.
+  /// [proof] is a detached JWS signed by the new `#auth` key inside
+  /// [didDocument].
+  Future<DidDocumentHostingRecord> uploadDidDocument(
+    Map<String, dynamic> didDocument, {
+    required DidWebProof controlProof,
+    required DidWebProof proof,
+  }) async {
+    final response = await _mpxClient.dio.post<Map<String, dynamic>>(
+      '/v1/did-document/upload',
+      data: {
+        'didDocument': didDocument,
+        'controlProof': controlProof.toJson(),
+        'proof': proof.toJson(),
+      },
+      options: Options(extra: {'secure': _didDocumentSecure}),
+    );
+    final data = response.data;
+    if (data == null) {
+      throw StateError(
+        'uploadDidDocument: server returned a successful status but no body.',
+      );
+    }
+    return DidDocumentHostingRecord.fromJson(data);
   }
 }

@@ -732,17 +732,18 @@ abstract class BaseChatSDK {
 
   /// Creates a local chat [Message] with the given attachments.
   ///
-  /// Set [isFromMe] to `true` when the local user initiated the exchange
-  /// (sender tile), or `false` when the other party did (receiver tile).
+  /// [senderDid] must be the DID of the party who sent the credential —
+  /// pass [Channel.permanentChannelDid] for an outgoing exchange, or
+  /// [Channel.otherPartyPermanentChannelDid] for an incoming one.
   Future<void> createAttachmentMessage({
     required List<Attachment> attachments,
-    required bool isFromMe,
+    required String senderDid,
   }) async {
     final chatMessage = Message(
       chatId: chatId,
       messageId: const Uuid().v4(),
-      senderDid: isFromMe ? did : otherPartyDid,
-      isFromMe: isFromMe,
+      senderDid: senderDid,
+      isFromMe: senderDid == did,
       dateCreated: DateTime.now().toUtc(),
       status: ChatItemStatus.confirmed,
       value: '',

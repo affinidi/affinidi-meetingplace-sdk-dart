@@ -232,14 +232,15 @@ class MeetingPlaceChatSDK implements ChatSDK {
 
   /// Creates a local chat message with attachments.
   ///
-  /// Set [isFromMe] `true` for a sent credential tile, `false` for a
-  /// received credential tile.
+  /// [senderDid] must be the DID of the party who sent the credential —
+  /// pass [Channel.permanentChannelDid] for an outgoing exchange, or
+  /// [Channel.otherPartyPermanentChannelDid] for an incoming one.
   @override
   Future<void> createAttachmentMessage({
     required List<Attachment> attachments,
-    required bool isFromMe,
+    required String senderDid,
   }) => _sdk.createAttachmentMessage(
     attachments: attachments,
-    isFromMe: isFromMe,
+    senderDid: senderDid,
   );
 }

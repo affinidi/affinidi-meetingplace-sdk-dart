@@ -31,10 +31,11 @@ abstract interface class ChatSDK {
 
   /// Creates a local chat message with attachments.
   ///
-  /// Use [isFromMe] `true` when the local user initiated the credential
-  /// exchange, `false` when the other party did.
+  /// [senderDid] must be the DID of the party who sent the credential —
+  /// pass `Channel.permanentChannelDid` for an outgoing exchange, or
+  /// `Channel.otherPartyPermanentChannelDid` for an incoming one.
   Future<void> createAttachmentMessage({
     required List<Attachment> attachments,
-    required bool isFromMe,
+    required String senderDid,
   });
 }

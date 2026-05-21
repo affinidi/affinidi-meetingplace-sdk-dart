@@ -92,6 +92,10 @@ abstract class QueryOfferOK
   @BuiltValueField(wireName: r'groupDid')
   String? get groupDid;
 
+  /// VRC score of the offer owner.
+  @BuiltValueField(wireName: r'score')
+  int? get score;
+
   QueryOfferOK._();
 
   factory QueryOfferOK([void updates(QueryOfferOKBuilder b)]) = _$QueryOfferOK;
@@ -205,6 +209,13 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
       yield serializers.serialize(
         object.groupDid,
         specifiedType: const FullType(String),
+      );
+    }
+    if (object.score != null) {
+      yield r'score';
+      yield serializers.serialize(
+        object.score,
+        specifiedType: const FullType(int),
       );
     }
   }
@@ -368,6 +379,12 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
                   )
                   as String;
           result.groupDid = valueDes;
+          break;
+        case r'score':
+          final valueDes =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int;
+          result.score = valueDes;
           break;
         default:
           unhandled.add(key);

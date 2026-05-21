@@ -110,7 +110,8 @@ class ChannelDatabase extends _$ChannelDatabase {
             ''');
             await customStatement('DROP TABLE channel_contact_cards');
             await customStatement(
-              'ALTER TABLE channel_contact_cards_temp RENAME TO channel_contact_cards',
+              'ALTER TABLE channel_contact_cards_temp'
+              ' RENAME TO channel_contact_cards',
             );
           }
           if (from < 3 && to >= 3) {

@@ -66,7 +66,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
 
   /// Current schema version of the database.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Migration strategy applied before opening the database.
   /// Ensures foreign key constraints are enforced.
@@ -116,7 +116,15 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
             """);
             await customStatement('DROP TABLE connection_contact_cards');
             await customStatement(
-              'ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards',
+              'ALTER TABLE connection_contact_cards_temp'
+              ' RENAME TO connection_contact_cards',
+            );
+          }
+
+          if (from < 3 && to >= 3) {
+            await migrator.addColumn(
+              connectionOffers,
+              connectionOffers.score,
             );
           }
         },
@@ -192,6 +200,9 @@ class ConnectionOffers extends Table {
 
   /// External reference for the connection offer.
   TextColumn get externalRef => text().nullable()();
+
+  /// VRC score of the offer owner.
+  IntColumn get score => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

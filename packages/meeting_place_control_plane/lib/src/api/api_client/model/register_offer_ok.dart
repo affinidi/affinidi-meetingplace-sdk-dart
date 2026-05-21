@@ -16,6 +16,7 @@ part 'register_offer_ok.g.dart';
 /// * [validUntil]
 /// * [maximumUsage]
 /// * [offerLink]
+/// * [score]
 @BuiltValue()
 abstract class RegisterOfferOK
     implements Built<RegisterOfferOK, RegisterOfferOKBuilder> {
@@ -33,6 +34,10 @@ abstract class RegisterOfferOK
 
   @BuiltValueField(wireName: r'offerLink')
   String get offerLink;
+
+  /// VRC score of the offer owner.
+  @BuiltValueField(wireName: r'score')
+  int? get score;
 
   RegisterOfferOK._();
 
@@ -91,6 +96,13 @@ class _$RegisterOfferOKSerializer
       object.offerLink,
       specifiedType: const FullType(String),
     );
+    if (object.score != null) {
+      yield r'score';
+      yield serializers.serialize(
+        object.score,
+        specifiedType: const FullType(int),
+      );
+    }
   }
 
   @override
@@ -159,6 +171,12 @@ class _$RegisterOfferOKSerializer
                   )
                   as String;
           result.offerLink = valueDes;
+          break;
+        case r'score':
+          final valueDes =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int;
+          result.score = valueDes;
           break;
         default:
           unhandled.add(key);

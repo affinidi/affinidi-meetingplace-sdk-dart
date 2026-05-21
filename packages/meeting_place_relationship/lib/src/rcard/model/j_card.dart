@@ -8,6 +8,18 @@ import 'r_card_subject.dart';
 class JCard {
   JCard._();
 
+  static const _vcard = 'vcard';
+  static const _version = 'version';
+  static const _fn = 'fn';
+  static const _n = 'n';
+  static const _email = 'email';
+  static const _tel = 'tel';
+  static const _photo = 'photo';
+  static const _org = 'org';
+  static const _title = 'title';
+  static const _url = 'url';
+  static const _socialProfile = 'x-socialprofile';
+
   /// Encodes an [RCardSubject] to an RFC 7095 / RFC 6350 compliant jCard.
   ///
   /// Property names and value types follow the RFC 6350 vocabulary:
@@ -26,7 +38,7 @@ class JCard {
   /// `['vcard', [['version',{},'text','4.0'], ['fn',{},'text','...'], ...]]`.
   static List<Object> encode(RCardSubject subject) {
     final entries = <List<Object>>[
-      ['version', const <String, dynamic>{}, 'text', '4.0'],
+      [_version, const <String, dynamic>{}, 'text', '4.0'],
     ];
 
     void addText(String prop, String? value) {
@@ -51,27 +63,27 @@ class JCard {
       givenName,
       familyName,
     ].where((s) => s.isNotEmpty).join(' ');
-    entries.add(['fn', const <String, dynamic>{}, 'text', formattedName]);
+    entries.add([_fn, const <String, dynamic>{}, 'text', formattedName]);
 
     // n: structured name [family, given, additional, prefix, suffix]
     if (givenName.isNotEmpty || familyName.isNotEmpty) {
       entries.add([
-        'n',
+        _n,
         const <String, dynamic>{},
         'text',
         [familyName, givenName, '', '', ''],
       ]);
     }
 
-    addText('email', subject.email);
-    addText('tel', subject.phone);
-    addUri('photo', subject.profilePic);
-    addText('org', subject.company);
-    addText('title', subject.position);
-    addUri('url', subject.website);
-    addText('x-socialprofile', subject.social);
+    addText(_email, subject.email);
+    addText(_tel, subject.phone);
+    addUri(_photo, subject.profilePic);
+    addText(_org, subject.company);
+    addText(_title, subject.position);
+    addUri(_url, subject.website);
+    addText(_socialProfile, subject.social);
 
-    return ['vcard', entries];
+    return [_vcard, entries];
   }
 
   /// Decodes a jCard list into a flat map suitable for
@@ -82,7 +94,7 @@ class JCard {
   ///
   /// Returns `null` if [card] is not a valid jCard structure.
   static Map<String, dynamic>? decode(dynamic card, String? id) {
-    if (card is! List || card.length < 2 || card[0] != 'vcard') return null;
+    if (card is! List || card.length < 2 || card[0] != _vcard) return null;
     final props = card[1];
     if (props is! List) return null;
 
@@ -92,12 +104,12 @@ class JCard {
       final name = p[0].toString();
       final value = p[3];
       switch (name) {
-        case 'version':
+        case _version:
           break;
-        case 'fn':
+        case _fn:
           // formatted name — used as fallback when n is absent
           result['name'] = _trim(value);
-        case 'n':
+        case _n:
           // Structured name: [family, given, additional, prefix, suffix]
           if (value is List) {
             result['lastName'] = _trim(value.isNotEmpty ? value[0] : null);
@@ -108,19 +120,19 @@ class JCard {
             result['prefix'] = _trim(value.length > 3 ? value[3] : null);
             result['suffix'] = _trim(value.length > 4 ? value[4] : null);
           }
-        case 'email':
+        case _email:
           result['email'] = _trim(value);
-        case 'tel':
+        case _tel:
           result['phone'] = _trim(value);
-        case 'photo':
+        case _photo:
           result['profilePic'] = _trim(value);
-        case 'org':
+        case _org:
           result['company'] = _trim(value);
-        case 'title':
+        case _title:
           result['position'] = _trim(value);
-        case 'url':
+        case _url:
           result['website'] = _trim(value);
-        case 'x-socialprofile':
+        case _socialProfile:
           result['social'] = _trim(value);
         default:
           // Pass through unknown property names as-is.

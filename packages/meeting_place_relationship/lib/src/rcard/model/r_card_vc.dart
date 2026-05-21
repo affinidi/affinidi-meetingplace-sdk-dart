@@ -1,5 +1,6 @@
 import 'package:ssi/ssi.dart';
 
+import '../../meeting_place_relationship_sdk_exception.dart';
 import 'r_card_credential_subject.dart';
 
 /// A parsed Relationship Card (R-Card) Verifiable Credential.
@@ -21,7 +22,7 @@ class RCardVC {
     final vc = VcDataModelV2.fromJson(json);
     final subject = vc.credentialSubject.firstOrNull;
     if (subject == null) {
-      throw const FormatException('Missing credentialSubject');
+      throw MeetingPlaceRelationshipSDKException.rCardMissingCredentialSubject();
     }
     final subjectMap = Map<String, dynamic>.from(subject.toJson());
     return RCardVC(
@@ -40,7 +41,7 @@ class RCardVC {
     final rawJson = vc.toJson();
     final subject = vc.credentialSubject.firstOrNull;
     if (subject == null) {
-      throw const FormatException('Missing credentialSubject');
+      throw MeetingPlaceRelationshipSDKException.rCardMissingCredentialSubject();
     }
     final subjectMap = Map<String, dynamic>.from(subject.toJson());
     return RCardVC(

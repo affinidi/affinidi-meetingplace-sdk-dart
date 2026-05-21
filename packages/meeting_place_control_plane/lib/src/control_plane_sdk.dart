@@ -330,11 +330,14 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      UploadDidDocumentHandler(apiClient: _controlPlaneApiClient),
+      UploadDidDocumentHandler(
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
     );
 
     _dispatcher.registerHandler(
-      ResolveDidDocumentHandler(didResolver: didResolver),
+      ResolveDidDocumentHandler(didResolver: didResolver, logger: _logger),
     );
 
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(

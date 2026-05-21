@@ -20,10 +20,7 @@ class DidWebProof {
     required this.verificationMethod,
     required this.proofPurpose,
     required this.jws,
-  }) : assert(
-         DateTime.tryParse(created) != null,
-         'created must be a valid ISO-8601 datetime string',
-       );
+  });
 
   /// Creates a [DidWebProof] from the given JSON [json].
   ///
@@ -41,6 +38,11 @@ class DidWebProof {
         jws is! String) {
       throw const FormatException(
         'DidWebProof: missing or invalid fields in JSON.',
+      );
+    }
+    if (DateTime.tryParse(created) == null) {
+      throw const FormatException(
+        'DidWebProof: "created" must be a valid ISO-8601 datetime string.',
       );
     }
     return DidWebProof(

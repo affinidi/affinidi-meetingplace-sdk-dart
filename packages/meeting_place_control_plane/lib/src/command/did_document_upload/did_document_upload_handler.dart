@@ -9,7 +9,7 @@ import 'did_document_upload.dart';
 import 'did_document_upload_exception.dart';
 import 'did_document_upload_output.dart';
 
-/// A concreate implementation of the [CommandHandler] interface.
+/// A concrete implementation of the [CommandHandler] interface.
 ///
 /// Handles communication with the API server, including sending requests,
 /// receiving responses, and validating the returned data for Upload DID

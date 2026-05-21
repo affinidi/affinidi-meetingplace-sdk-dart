@@ -38,4 +38,8 @@ class DidDocumentHostingRecord {
 
   /// The public URL at which the DID Document is hosted.
   final String didDocUrl;
+
+  Map<String, dynamic> toJson() {
+    return {'did': did, 'segment': segment, 'didDocUrl': didDocUrl};
+  }
 }

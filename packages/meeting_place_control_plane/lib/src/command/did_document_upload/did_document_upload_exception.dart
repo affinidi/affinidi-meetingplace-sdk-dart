@@ -20,7 +20,7 @@ class UploadDidDocumentException implements ControlPlaneException {
   /// - [innerException]: The exception object.
   factory UploadDidDocumentException.generic({Object? innerException}) {
     return UploadDidDocumentException._(
-      message: 'DID document upload failed: ${innerException.toString()}.',
+      message: 'DID document upload failed.',
       code: ControlPlaneSDKErrorCode.uploadDidDocumentGeneric,
       innerException: innerException,
     );

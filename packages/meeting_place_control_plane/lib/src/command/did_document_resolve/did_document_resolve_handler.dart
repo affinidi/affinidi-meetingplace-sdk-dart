@@ -10,7 +10,7 @@ import 'did_document_resolve.dart';
 import 'did_document_resolve_exception.dart';
 import 'did_document_resolve_output.dart';
 
-/// A concreate implementation of the [CommandHandler] interface.
+/// A concrete implementation of the [CommandHandler] interface.
 ///
 /// Handles DID resolution by delegating to the injected [DidResolver].
 /// This also handles the exception that are returned by the resolver.

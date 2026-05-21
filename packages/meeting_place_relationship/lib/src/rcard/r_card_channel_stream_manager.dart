@@ -5,10 +5,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import 'builder/r_card_didcomm_attachment_builder.dart';
 import 'model/channel_r_card_event.dart';
-import 'model/r_card.dart';
 import 'parser/r_card_parser.dart';
 
-/// Manages the [RCard] broadcast stream sourced from
+/// Manages the [ChannelRCardEvent] broadcast stream sourced from
 /// [MeetingPlaceCoreSDK.channelAttachments].
 ///
 /// Extracts R-Card VC blobs from incoming DIDComm attachments, delegates

@@ -1,8 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
+import 'package:meeting_place_core/src/channel_attachment_event.dart';
 import 'package:meeting_place_core/src/entity/channel.dart';
-import 'package:meeting_place_core/src/event_handler/channel_attachment_event.dart';
 import 'package:meeting_place_core/src/event_handler/channel_inauguration_event_handler.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
@@ -80,7 +80,7 @@ void main() {
   group('ChannelInaugurationEventHandler', () {
     group('channelAttachments stream', () {
       test(
-        'emits (channel, attachments) when message contains attachments',
+        'emits a ChannelAttachmentEvent when message contains attachments',
         () async {
           final received = <ChannelAttachmentEvent>[];
           final attachment = Attachment(

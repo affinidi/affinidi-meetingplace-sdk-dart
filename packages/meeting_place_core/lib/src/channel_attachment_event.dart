@@ -1,10 +1,9 @@
 import 'package:didcomm/didcomm.dart' show Attachment;
 
-import '../entity/channel.dart';
-import '../meeting_place_core_sdk.dart' show MeetingPlaceCoreSDK;
+import 'entity/channel.dart';
 
-/// Emitted on [MeetingPlaceCoreSDK.channelAttachments] when the remote party
-/// delivers DIDComm attachments during channel inauguration.
+/// Emitted when the remote party delivers DIDComm attachments during
+/// channel inauguration.
 class ChannelAttachmentEvent {
   ChannelAttachmentEvent({required this.channel, required this.attachments});
 

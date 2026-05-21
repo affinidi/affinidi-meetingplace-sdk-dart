@@ -8,7 +8,7 @@ import '../utils/oob_flow_fixture.dart';
 
 void main() {
   group('channelAttachments stream', () {
-    test('emits (channel, attachments) on Alice side when Bob accepts'
+    test('emits a ChannelAttachmentEvent on Alice side when Bob accepts'
         ' with attachments', () async {
       final fixture = await OobFlowFixture.create();
 

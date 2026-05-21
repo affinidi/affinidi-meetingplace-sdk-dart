@@ -1,9 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart' show Channel;
 
-import '../../meeting_place_relationship_sdk.dart';
 import 'r_card.dart';
 
-/// Emitted on [MeetingPlaceRelationshipSDK.receivedRCardsOnChannel] when an
+/// Emitted on the SDK `receivedRCardsOnChannel` stream when an
 /// R-Card is received via the DIDComm channel-inauguration (OOB) path.
 ///
 /// Carries the originating [channel] so callers can access

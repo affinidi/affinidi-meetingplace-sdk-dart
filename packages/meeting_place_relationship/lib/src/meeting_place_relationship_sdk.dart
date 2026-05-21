@@ -173,7 +173,8 @@ class MeetingPlaceRelationshipSDK {
   Stream<RCard> get receivedRCards => _receivedRCardsStream;
 
   /// A broadcast stream that emits a [ChannelRCardEvent] for every R-Card
-  /// received via the DIDComm attachment (channel-inauguration) path.
+  /// received via the connection establishment (channel inauguration /
+  /// OOB acceptance) path.
   ///
   /// Callers can use [ChannelRCardEvent.channel] to access
   /// [Channel.permanentChannelDid] and

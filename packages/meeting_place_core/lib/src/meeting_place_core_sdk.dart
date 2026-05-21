@@ -746,6 +746,7 @@ class MeetingPlaceCoreSDK {
     String? mediatorDid,
     String? metadata,
     String? externalRef,
+    int? score,
   }) async {
     if (type == sdk.SDKConnectionOfferType.groupInvitation) {
       final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
@@ -781,6 +782,7 @@ class MeetingPlaceCoreSDK {
           mediatorDid: mediatorDid,
           externalRef: externalRef,
           contactCard: contactCard,
+          score: score,
         );
 
     return sdk.PublishOfferResult(
@@ -1294,6 +1296,66 @@ class MeetingPlaceCoreSDK {
   /// - list of objects with type [ConnectionOffer].
   Future<List<ConnectionOffer>> listConnectionOffers() {
     return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
+  }
+
+  /// Retrieves all [ConnectionOffer] objects matching the given [externalRef].
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
+    String externalRef,
+  ) {
+    return _repositoryConfig.connectionOfferRepository
+        .getConnectionOffersByExternalRef(externalRef);
+  }
+
+  /// Updates the VRC score for the given [offers] on the Control Plane.
+  ///
+  /// [score] — the new trust score (VRC count) to set.
+  /// [offers] — the published [ConnectionOffer] objects to update.
+  Future<UpdateScoreForOffersResult> updateScoreForOffers({
+    required int score,
+    required List<ConnectionOffer> offers,
+  }) {
+    return _withSdkExceptionHandling(() async {
+      final mnemonics = offers.map((o) => o.mnemonic).toList();
+      final output = await _controlPlaneSDK.execute(
+        UpdateOffersScoreCommand(score: score, mnemonics: mnemonics),
+      );
+
+      final updatedMnemonics = output.updatedOffers.toSet();
+      for (final offer in offers) {
+        if (updatedMnemonics.contains(offer.mnemonic)) {
+          await _repositoryConfig.connectionOfferRepository
+              .updateConnectionOffer(offer.copyWith(score: score));
+        }
+      }
+
+      return UpdateScoreForOffersResult(
+        updatedOffers: output.updatedOffers,
+        failedOffers: output.failedOffers,
+      );
+    });
+  }
+
+  /// Updates the VRC score for [offers] in local storage only, without calling
+  /// the control plane API.
+  ///
+  /// Use this for accepted (non-owned) offers where the local user cannot
+  /// update the score remotely — for example, when B accepted A's published
+  /// offer and needs to reflect an updated VRC count without owning the
+  /// mnemonic on the control plane.
+  ///
+  /// **Parameters:**
+  /// - [score] — the new trust score (VRC count) to persist locally.
+  /// - [offers] — the accepted [ConnectionOffer] objects to update in the
+  ///   local repository.
+  Future<void> updateLocalConnectionOffersScore({
+    required int score,
+    required List<ConnectionOffer> offers,
+  }) async {
+    for (final offer in offers) {
+      await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
+        offer.copyWith(score: score),
+      );
+    }
   }
 
   /// Fetches a channel entity from the repository by using repository method

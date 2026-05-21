@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
+import 'meeting_place_relationship_sdk_error_code.dart';
+import 'meeting_place_relationship_sdk_exception.dart';
 import 'rcard/builder/r_card_builder.dart';
 import 'rcard/model/r_card.dart';
 import 'rcard/model/r_card_constants.dart';
@@ -12,7 +14,17 @@ import 'rcard/parser/r_card_parser.dart';
 import 'rcard/r_card_channel_stream_manager.dart';
 import 'rcard/r_card_vdip_stream_manager.dart';
 import 'rcard/repository/r_card_repository.dart';
+import 'vrc/model/vrc.dart';
+import 'vrc/model/vrc_exchange_state.dart';
+import 'vrc/model/vrc_issuance.dart';
+import 'vrc/model/vrc_processing_result.dart';
+import 'vrc/model/vrc_request.dart';
+import 'vrc/model/vrc_request_processing_result.dart';
 import 'vrc/parser/vrc_parser.dart';
+import 'vrc/repository/vrc_repository.dart';
+import 'vrc/vrc_exchange_client.dart';
+import 'vrc/vrc_incoming_message_stream_manager.dart';
+import 'vrc/vrc_protocol_handler.dart';
 
 /// The Meeting Place Relationship SDK.
 ///
@@ -27,11 +39,12 @@ import 'vrc/parser/vrc_parser.dart';
 /// Example:
 /// ```dart
 /// final coreSDK = await MeetingPlaceCoreSDK.create(...);
-/// final db = RCardDatabase(...);
-/// final repo = RCardRepositoryDrift(database: db);
+/// final rCardDb = RCardDatabase(...);
+/// final vrcDb = VrcDatabase(...);
 /// final relationshipSDK = MeetingPlaceRelationshipSDK(
 ///   coreSDK: coreSDK,
-///   rCardRepository: repo,
+///   rCardRepository: RCardRepositoryDrift(database: rCardDb),
+///   vrcRepository: VrcRepositoryDrift(database: vrcDb),
 /// );
 ///
 /// relationshipSDK.watchReceivedRCards().listen((cards) {
@@ -41,39 +54,44 @@ import 'vrc/parser/vrc_parser.dart';
 class MeetingPlaceRelationshipSDK {
   /// Creates a `MeetingPlaceRelationshipSDK` backed by the given [coreSDK].
   ///
-  /// - [rCardRepository]: Required repository used to persist every
-  ///   incoming R-Card. Construct one with `RCardRepositoryDrift`
-  ///   from `meeting_place_drift_repository`.
+  /// - [rCardRepository]: Repository used to persist every incoming R-Card.
+  ///   Construct one with `RCardRepositoryDrift` from
+  ///   `meeting_place_drift_repository`.
+  /// - [vrcRepository]: Repository used to persist every received VRC.
+  ///   Construct one with `VrcRepositoryDrift` from
+  ///   `meeting_place_drift_repository`.
   MeetingPlaceRelationshipSDK({
     required MeetingPlaceCoreSDK coreSDK,
     required RCardRepository rCardRepository,
+    required VrcRepository vrcRepository,
     MeetingPlaceCoreSDKLogger? logger,
-  }) : _coreSDK = coreSDK,
-       _rCardRepository = rCardRepository {
-    final log =
-        logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
-    _logger = log;
-    _rCardParser = RCardParser(logger: log);
-    _vrcParser = VrcParser(logger: log);
+  }) : _logger =
+           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className),
+       _coreSDK = coreSDK,
+       _rCardRepository = rCardRepository,
+       _vrcRepository = vrcRepository {
+    final rCardParser = RCardParser(logger: _logger);
+    final vrcParser = VrcParser(logger: _logger);
+
+    _rCardParser = rCardParser;
+    _vrcParser = vrcParser;
+
     _attachmentManager = RCardChannelStreamManager(
       channelAttachments: coreSDK.channelAttachments,
-      parser: _rCardParser,
-      logger: log,
+      parser: rCardParser,
+      logger: _logger,
     );
     _vdipManager = RCardVdipStreamManager(
       incomingVdipMessages: coreSDK.vdip.incomingMessages,
-      parser: _rCardParser,
-      logger: log,
+      parser: rCardParser,
+      logger: _logger,
     );
-    _receivedRCardsController = StreamController.broadcast();
+    _receivedRCardsController = StreamController<RCard>.broadcast();
     _receivedRCardsStream = _receivedRCardsController.stream;
     _attachmentSubscription = _attachmentManager.stream.listen(
       _receivedRCardsController.add,
       onError: _receivedRCardsController.addError,
     );
-    // Primary path: forward parsed R-Cards from the VDIP stream manager.
-    // Active whenever this SDK instance is alive — covers the common case
-    // where both parties are online / in the chat screen.
     _vdipSubscription = _vdipManager.stream.listen(
       _receivedRCardsController.add,
       onError: _receivedRCardsController.addError,
@@ -104,13 +122,30 @@ class MeetingPlaceRelationshipSDK {
             );
           },
         );
+
+    _vrcStreamManager = VrcIncomingMessageStreamManager(
+      incomingMessages: coreSDK.vdip.incomingMessages,
+      parser: vrcParser,
+      logger: _logger,
+    );
+    _vrcClient = VrcExchangeClient(coreSDK: coreSDK, logger: _logger);
+    _vrcProtocolHandler = VrcProtocolHandler(
+      client: _vrcClient,
+      parser: vrcParser,
+      logger: _logger,
+    );
+
+    _vrcPersistenceSubscription = _vrcStreamManager.receivedVrcs.listen(
+      (receivedVrc) => unawaited(_persistReceivedVrc(receivedVrc)),
+    );
   }
 
   static const _className = 'MeetingPlaceRelationshipSDK';
 
   final MeetingPlaceCoreSDK _coreSDK;
   final RCardRepository _rCardRepository;
-  late final MeetingPlaceCoreSDKLogger _logger;
+  final VrcRepository _vrcRepository;
+  final MeetingPlaceCoreSDKLogger _logger;
   late final RCardParser _rCardParser;
   late final VrcParser _vrcParser;
   late final RCardChannelStreamManager _attachmentManager;
@@ -120,6 +155,15 @@ class MeetingPlaceRelationshipSDK {
   late final StreamSubscription<RCard> _attachmentSubscription;
   late final StreamSubscription<RCard> _vdipSubscription;
   late final StreamSubscription<void> _persistenceSubscription;
+
+  late final VrcIncomingMessageStreamManager _vrcStreamManager;
+  late final VrcExchangeClient _vrcClient;
+  late final VrcProtocolHandler _vrcProtocolHandler;
+  StreamSubscription<VrcIssuance>? _vrcPersistenceSubscription;
+
+  // ---------------------------------------------------------------------------
+  // Streams
+  // ---------------------------------------------------------------------------
 
   /// A broadcast stream that emits a [RCard] whenever a valid,
   /// signature-verified R-Card is received over any channel — either via
@@ -151,24 +195,67 @@ class MeetingPlaceRelationshipSDK {
       _rCardRepository.updateNotes(subjectDid, notes);
 
   /// Removes the persisted R-Card identified by [subjectDid].
-  ///
-  /// Does nothing if no record with [subjectDid] exists.
   Future<void> deleteReceivedRCard(String subjectDid) =>
       _rCardRepository.deleteBySubjectDid(subjectDid);
 
-  /// Cancels all internal subscriptions and closes [receivedRCards].
-  ///
-  /// Safe to call more than once — subsequent calls are no-ops.
+  /// A broadcast stream that emits a [VrcRequest] for each incoming
+  /// VDIP request-issuance message.
+  Stream<VrcRequest> get receivedVrcRequests => _vrcStreamManager.requests;
+
+  /// A broadcast stream that emits a [VrcIssuance] for each incoming,
+  /// signature-verified issued VRC received over VDIP.
+  Stream<VrcIssuance> get receivedVrcs => _vrcStreamManager.receivedVrcs;
+
+  /// Returns and removes the last [VrcRequest] from [senderDid] that
+  /// arrived while no listener was attached.
+  VrcRequest? consumePendingVrcRequest(String senderDid) =>
+      _vrcStreamManager.consumePendingRequest(senderDid);
+
+  /// Returns and removes the last [VrcIssuance] from [senderDid] that arrived
+  /// while no listener was attached.
+  VrcIssuance? consumePendingVrc(String senderDid) =>
+      _vrcStreamManager.consumePendingVrc(senderDid);
+
+  /// Returns a live stream of all persisted VRCs.
+  Stream<List<Vrc>> watchVrcs() => _vrcRepository.watchAll();
+
+  /// Returns a snapshot of all persisted VRCs.
+  Future<List<Vrc>> listVrcs() => _vrcRepository.listAll();
+
+  /// Returns the persisted VRC identified by [id].
+  Future<Vrc?> getVrcById(String id) => _vrcRepository.getById(id);
+
+  /// Returns the persisted VRCs where the holder DID matches [holderDid].
+  Future<List<Vrc>> listVrcsByHolderDid(String holderDid) =>
+      _vrcRepository.listByHolderDid(holderDid);
+
+  /// Returns the number of persisted VRCs where the holder DID matches
+  /// [holderDid].
+  Future<int> countVrcsByHolderDid(String holderDid) =>
+      _vrcRepository.countByHolderDid(holderDid);
+
+  /// Removes the persisted VRC identified by [id].
+  Future<void> deleteVrc(String id) => _vrcRepository.deleteById(id);
+
+  /// Cancels all internal stream subscriptions.
   Future<void> closeRelationshipStreams() async {
-    if (_receivedRCardsController.isClosed) return;
-    await _persistenceSubscription.cancel();
-    await _vdipSubscription.cancel();
-    await _attachmentSubscription.cancel();
-    await _vdipManager.close();
-    await _attachmentManager.close();
-    await _receivedRCardsController.close();
-    await _coreSDK.closeVdipStream();
+    if (!_receivedRCardsController.isClosed) {
+      await _persistenceSubscription.cancel();
+      await _vdipSubscription.cancel();
+      await _attachmentSubscription.cancel();
+      await _vdipManager.close();
+      await _attachmentManager.close();
+      await _receivedRCardsController.close();
+      await _coreSDK.closeVdipStream();
+    }
+
+    await _vrcPersistenceSubscription?.cancel();
+    await _vrcStreamManager.close();
   }
+
+  // ---------------------------------------------------------------------------
+  // R-Card operations
+  // ---------------------------------------------------------------------------
 
   /// Builds, signs, and delivers an R-Card to the other party in [channel]
   /// via VDIP.
@@ -210,6 +297,10 @@ class MeetingPlaceRelationshipSDK {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Parsing
+  // ---------------------------------------------------------------------------
+
   /// Parses and verifies a raw R-Card VC blob.
   ///
   /// Returns `null` if the blob is not a valid, signature-verified R-Card.
@@ -231,11 +322,127 @@ class MeetingPlaceRelationshipSDK {
   }
 
   /// Parses and validates a VRC from a raw VC blob string.
-  ///
-  /// Returns `null` if the blob is not a valid, signature-verified VRC.
-  ///
-  /// - [vcBlob] — the raw serialised VC JSON string.
   Future<ParsedVerifiableCredential?> parseVrc({required String vcBlob}) {
     return _vrcParser.parse(vcBlob: vcBlob);
+  }
+
+  /// Parses and stores a VRC for the given [referenceId].
+  ///
+  /// Throws [MeetingPlaceRelationshipSDKException] with
+  /// [MeetingPlaceRelationshipSDKErrorCode.vrcInvalidCredential] if [vcBlob]
+  /// cannot be parsed as a valid VRC.
+  Future<Vrc> storeVrc({
+    required String vcBlob,
+    required String referenceId,
+    DateTime? verifiedAt,
+    DateTime? receivedAt,
+    String? credentialFormat,
+  }) async {
+    final parsed = await parseVrc(vcBlob: vcBlob);
+    if (parsed == null) {
+      throw MeetingPlaceRelationshipSDKException.vrcInvalidCredential();
+    }
+
+    final vrc = parsed.toVrc(
+      referenceId: referenceId,
+      verifiedAt: verifiedAt,
+      receivedAt: receivedAt,
+      credentialFormat: credentialFormat,
+    );
+    await _vrcRepository.upsert(vrc);
+    return vrc;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Outbound VRC operations
+  // ---------------------------------------------------------------------------
+
+  /// Requests a VRC exchange over VDIP for the given [channelDid].
+  Future<void> requestVrcExchange({
+    required String channelDid,
+    required String identityDid,
+    required String identityName,
+  }) => _vrcClient.requestExchange(
+    channelDid: channelDid,
+    identityDid: identityDid,
+    identityName: identityName,
+  );
+
+  /// Builds and sends a VRC over VDIP for the given [channelDid].
+  Future<String> sendVrc({
+    required String channelDid,
+    required String issuerDid,
+    required String issuerName,
+    required String peerDid,
+    required String peerName,
+  }) => _vrcClient.sendVrc(
+    channelDid: channelDid,
+    issuerDid: issuerDid,
+    issuerName: issuerName,
+    peerDid: peerDid,
+    peerName: peerName,
+  );
+
+  // ---------------------------------------------------------------------------
+  // VRC protocol decisions
+  // ---------------------------------------------------------------------------
+
+  /// Handles the relationship-protocol outcome of receiving a VRC request.
+  Future<VrcRequestProcessingResult> handleReceivedVrcRequest({
+    required String permanentChannelDid,
+    required VrcRequest request,
+    required bool hasVrcExchangeInitiated,
+    required bool isConnectionInitiator,
+    String? issuerDid,
+    String? issuerName,
+    void Function(String vcBlob)? onVrcSent,
+  }) => _vrcProtocolHandler.handleReceivedVrcRequest(
+    permanentChannelDid: permanentChannelDid,
+    request: request,
+    hasVrcExchangeInitiated: hasVrcExchangeInitiated,
+    isConnectionInitiator: isConnectionInitiator,
+    issuerDid: issuerDid,
+    issuerName: issuerName,
+    onVrcSent: onVrcSent,
+  );
+
+  /// Handles the relationship-protocol outcome of receiving a VRC.
+  ///
+  /// The caller is responsible for not invoking this method when the exchange
+  /// is already completed.
+  Future<VrcProcessingResult> handleReceivedVrc({
+    required String permanentChannelDid,
+    required String vcBlob,
+    required VrcExchangeState exchangeState,
+    String? issuerDid,
+    String? issuerName,
+    void Function(String vcBlob)? onVrcSent,
+  }) => _vrcProtocolHandler.handleReceivedVrc(
+    permanentChannelDid: permanentChannelDid,
+    vcBlob: vcBlob,
+    exchangeState: exchangeState,
+    issuerDid: issuerDid,
+    issuerName: issuerName,
+    onVrcSent: onVrcSent,
+  );
+
+  Future<void> _persistReceivedVrc(VrcIssuance vrcIssuance) async {
+    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+      vrcIssuance.senderDid,
+    );
+    if (channel == null) {
+      _logger.warning(
+        'Skipping VRC persistence: no channel found for sender '
+        '${vrcIssuance.senderDid}',
+      );
+      return;
+    }
+
+    final vrc = vrcIssuance.parsedCredential.toVrc(
+      referenceId: channel.id,
+      receivedAt: DateTime.now().toUtc(),
+      credentialFormat: vrcIssuance.credentialFormat,
+    );
+    await _vrcRepository.upsert(vrc);
   }
 }

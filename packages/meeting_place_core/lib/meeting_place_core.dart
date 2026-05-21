@@ -1,4 +1,6 @@
 // external exports
+export 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart'
+    show VdipIssuedCredentialBody;
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, MessageWrappingType, PlainTextMessage;
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'

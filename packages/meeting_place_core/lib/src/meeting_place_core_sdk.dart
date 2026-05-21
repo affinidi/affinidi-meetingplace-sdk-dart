@@ -149,7 +149,7 @@ class MeetingPlaceCoreSDK {
     required String mediatorDid,
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
-    required StreamController<(Channel, List<Attachment>)>
+    required StreamController<ChannelAttachmentEvent>
     channelAttachmentsController,
     required VdipClient vdipClient,
   }) : _repositoryConfig = repositoryConfig,
@@ -193,8 +193,7 @@ class MeetingPlaceCoreSDK {
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
-  final StreamController<(Channel, List<Attachment>)>
-  _channelAttachmentsController;
+  final StreamController<ChannelAttachmentEvent> _channelAttachmentsController;
   final VdipClient _vdipClient;
 
   String _mediatorDid;
@@ -225,7 +224,7 @@ class MeetingPlaceCoreSDK {
   }) async {
     final methodName = 'create';
     final channelAttachmentsController =
-        StreamController<(Channel, List<Attachment>)>.broadcast();
+        StreamController<ChannelAttachmentEvent>.broadcast();
     final mpxLogger = LoggerAdapter(
       className: _className,
       sdkName: coreSDKName,
@@ -373,7 +372,12 @@ class MeetingPlaceCoreSDK {
             options.messageTypesForSequenceTracking,
         onBuildAttachments: options.onBuildAttachments,
         onAttachmentsReceived: (channel, attachments) =>
-            channelAttachmentsController.add((channel, attachments)),
+            channelAttachmentsController.add(
+              ChannelAttachmentEvent(
+                channel: channel,
+                attachments: attachments,
+              ),
+            ),
       ),
       logger: mpxLogger,
     );
@@ -408,7 +412,9 @@ class MeetingPlaceCoreSDK {
       controlPlaneSDK: controlPlaneSDK,
       controlPlaneEventStreamManager: discoveryEventStreamManager,
       onAttachmentsReceived: (channel, attachments) =>
-          channelAttachmentsController.add((channel, attachments)),
+          channelAttachmentsController.add(
+            ChannelAttachmentEvent(channel: channel, attachments: attachments),
+          ),
       logger: mpxLogger,
     );
 
@@ -452,13 +458,13 @@ class MeetingPlaceCoreSDK {
   /// Returns the [MeetingPlaceCoreSDKOptions] used to configure the SDK.
   MeetingPlaceCoreSDKOptions get options => _options;
 
-  /// A broadcast stream that emits a [Channel] and its received
-  /// [List<Attachment>] whenever attachments arrive during connection
-  /// establishment (channel inauguration or OOB acceptance).
+  /// A broadcast stream that emits a [ChannelAttachmentEvent] whenever
+  /// attachments arrive during connection establishment (channel inauguration
+  /// or OOB acceptance).
   ///
   /// Subscribe to this stream to react to incoming attachments — for example,
   /// to extract and store R-Card credentials sent by the other party.
-  Stream<(Channel, List<Attachment>)> get channelAttachments =>
+  Stream<ChannelAttachmentEvent> get channelAttachments =>
       _channelAttachmentsController.stream;
 
   /// Returns a stream of [ControlPlaneStreamEvent] events.

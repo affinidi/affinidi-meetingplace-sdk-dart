@@ -22,6 +22,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MeetingPlaceMediatorSDKException;
 export 'package:ssi/ssi.dart' show DidManager;
 
+export 'src/channel_attachment_event.dart';
 export 'src/entity/entity.dart';
 export 'src/event_handler/control_plane_event_handler_manager_options.dart';
 export 'src/event_handler/control_plane_stream_event.dart';

@@ -7,6 +7,7 @@ class VrcExchangeState {
     required this.hasVrcExchangeInitiated,
     required this.hasVrcRequestReceived,
     required this.isConnectionInitiator,
+    this.hasVrcExchangeCompleted = false,
   });
 
   /// Whether the local party has initiated a VRC exchange on this channel.
@@ -18,4 +19,10 @@ class VrcExchangeState {
 
   /// Whether the local party is the connection initiator for this channel.
   final bool isConnectionInitiator;
+
+  /// Whether the VRC exchange for this channel has already been completed.
+  ///
+  /// When `true`, `handleReceivedVrc` returns `ignored` immediately. Callers
+  /// do not need to guard against duplicate delivery themselves.
+  final bool hasVrcExchangeCompleted;
 }

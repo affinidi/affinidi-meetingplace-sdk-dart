@@ -40,14 +40,13 @@ class VrcProtocolHandler {
     required bool isConnectionInitiator,
     String? issuerDid,
     String? issuerName,
-    void Function(String vcBlob)? onVrcSent,
   }) async {
     if (!hasVrcExchangeInitiated) {
-      return VrcRequestProcessingResult.prompt;
+      return const VrcRequestProcessingResultPromptRequired();
     }
 
     if (!isConnectionInitiator) {
-      return VrcRequestProcessingResult.waiting;
+      return const VrcRequestProcessingResultWaiting();
     }
 
     if (issuerDid == null || issuerDid.isEmpty) {
@@ -55,7 +54,7 @@ class VrcProtocolHandler {
         'Cannot auto-issue VRC for simultaneous request: '
         'local initiator identity is missing',
       );
-      return VrcRequestProcessingResult.prompt;
+      return const VrcRequestProcessingResultPromptRequired();
     }
 
     final peerDid = request.identityDid;
@@ -64,7 +63,7 @@ class VrcProtocolHandler {
         'Cannot auto-issue VRC for simultaneous request: '
         'peer identity DID is missing',
       );
-      return VrcRequestProcessingResult.prompt;
+      return const VrcRequestProcessingResultPromptRequired();
     }
 
     final sentVcBlob = await _client.sendVrc(
@@ -74,8 +73,7 @@ class VrcProtocolHandler {
       peerDid: peerDid,
       peerName: request.identityName ?? '',
     );
-    onVrcSent?.call(sentVcBlob);
-    return VrcRequestProcessingResult.issued;
+    return VrcRequestProcessingResultIssued(sentVcBlob);
   }
 
   /// Determines the outcome for an incoming VRC.
@@ -84,20 +82,25 @@ class VrcProtocolHandler {
   /// VRC back to the peer. If the local party had already received a VRC
   /// request, this marks the exchange as completed without sending another VRC.
   ///
-  /// The caller is responsible for not invoking this method when the exchange
-  /// is already completed.
+  /// Returns [VrcProcessingResultIgnored] immediately when
+  /// [VrcExchangeState.hasVrcExchangeCompleted] is `true`, so callers do not
+  /// need to guard against duplicate delivery.
   Future<VrcProcessingResult> handleReceivedVrc({
     required String permanentChannelDid,
     required String vcBlob,
     required VrcExchangeState exchangeState,
     String? issuerDid,
     String? issuerName,
-    void Function(String vcBlob)? onVrcSent,
   }) async {
+    if (exchangeState.hasVrcExchangeCompleted) {
+      _logger.info('Skipping VRC: exchange already completed');
+      return const VrcProcessingResultIgnored();
+    }
+
     if (exchangeState.hasVrcExchangeInitiated &&
         exchangeState.hasVrcRequestReceived) {
       if (exchangeState.isConnectionInitiator) {
-        return VrcProcessingResult.completed;
+        return const VrcProcessingResultCompleted();
       }
 
       return await _reciprocate(
@@ -106,7 +109,6 @@ class VrcProtocolHandler {
         issuerDid: issuerDid,
         issuerName: issuerName,
         warningContext: 'after waiting',
-        onVrcSent: onVrcSent,
       );
     }
 
@@ -117,15 +119,14 @@ class VrcProtocolHandler {
         issuerDid: issuerDid,
         issuerName: issuerName,
         warningContext: '',
-        onVrcSent: onVrcSent,
       );
     }
 
     if (exchangeState.hasVrcRequestReceived) {
-      return VrcProcessingResult.completed;
+      return const VrcProcessingResultCompleted();
     }
 
-    return VrcProcessingResult.ignored;
+    return const VrcProcessingResultIgnored();
   }
 
   Future<VrcProcessingResult> _reciprocate({
@@ -134,14 +135,13 @@ class VrcProtocolHandler {
     required String? issuerDid,
     required String? issuerName,
     required String warningContext,
-    void Function(String vcBlob)? onVrcSent,
   }) async {
     final suffix = warningContext.isEmpty ? '' : ' $warningContext';
     if (issuerDid == null || issuerDid.isEmpty) {
       _logger.warning(
         'Cannot reciprocate VRC$suffix: local initiator identity is missing',
       );
-      return VrcProcessingResult.ignored;
+      return const VrcProcessingResultIgnored();
     }
 
     final peerParty = await _extractIssuerParty(vcBlob: vcBlob);
@@ -149,19 +149,17 @@ class VrcProtocolHandler {
       _logger.warning(
         'Cannot reciprocate VRC$suffix: failed to extract peer party',
       );
-      return VrcProcessingResult.ignored;
+      return const VrcProcessingResultIgnored();
     }
 
-    await _client
-        .sendVrc(
-          channelDid: permanentChannelDid,
-          issuerDid: issuerDid,
-          issuerName: issuerName ?? '',
-          peerDid: peerParty.did,
-          peerName: peerParty.name,
-        )
-        .then(onVrcSent ?? (_) {});
-    return VrcProcessingResult.reciprocated;
+    final sentVcBlob = await _client.sendVrc(
+      channelDid: permanentChannelDid,
+      issuerDid: issuerDid,
+      issuerName: issuerName ?? '',
+      peerDid: peerParty.did,
+      peerName: peerParty.name,
+    );
+    return VrcProcessingResultReciprocated(sentVcBlob);
   }
 
   Future<VrcParty?> _extractIssuerParty({required String vcBlob}) async {

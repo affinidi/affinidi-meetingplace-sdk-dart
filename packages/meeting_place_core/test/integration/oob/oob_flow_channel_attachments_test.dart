@@ -8,7 +8,7 @@ import '../utils/oob_flow_fixture.dart';
 
 void main() {
   group('channelAttachments stream', () {
-    test('emits (channel, attachments) on Alice side when Bob accepts'
+    test('emits a ChannelAttachmentEvent on Alice side when Bob accepts'
         ' with attachments', () async {
       final fixture = await OobFlowFixture.create();
 
@@ -17,7 +17,7 @@ void main() {
         data: AttachmentData(base64: 'dGVzdA=='),
       );
 
-      final received = <(Channel, List<Attachment>)>[];
+      final received = <ChannelAttachmentEvent>[];
       final completer = Completer<void>();
 
       fixture.aliceSDK.channelAttachments.listen((event) {
@@ -38,14 +38,14 @@ void main() {
       await completer.future.timeout(const Duration(seconds: 10));
 
       expect(received, hasLength(1));
-      expect(received.first.$2, hasLength(1));
-      expect(received.first.$2.first.id, equals(attachment.id));
+      expect(received.first.attachments, hasLength(1));
+      expect(received.first.attachments.first.id, equals(attachment.id));
     });
 
     test('does not emit when Bob accepts without attachments', () async {
       final fixture = await OobFlowFixture.create();
 
-      final received = <(Channel, List<Attachment>)>[];
+      final received = <ChannelAttachmentEvent>[];
       fixture.aliceSDK.channelAttachments.listen(received.add);
 
       final oobOfferSession = await fixture.createOobFlow();

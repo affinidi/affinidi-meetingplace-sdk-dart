@@ -7,11 +7,10 @@ import 'model/vrc_issuance.dart';
 import 'model/vrc_request.dart';
 import 'parser/vrc_parser.dart';
 
-/// Manages typed VRC receive streams sourced from the VDIP incoming messages
-/// stream of a [MeetingPlaceCoreSDK] instance.
-class VrcIncomingMessageStreamManager {
-  VrcIncomingMessageStreamManager({
-    required Stream<PlainTextMessage> incomingMessages,
+/// Manages typed VRC receive streams sourced from routed VDIP messages.
+class VrcVdipStreamManager {
+  VrcVdipStreamManager({
+    required Stream<PlainTextMessage> incomingVdipMessages,
     required VrcParser parser,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _parser = parser,
@@ -20,7 +19,7 @@ class VrcIncomingMessageStreamManager {
     _receivedVrcController = StreamController<VrcIssuance>.broadcast();
     _requests = _requestController.stream;
     _receivedVrcs = _receivedVrcController.stream;
-    _subscription = incomingMessages.listen(
+    _subscription = incomingVdipMessages.listen(
       (message) => unawaited(_handleMessage(message)),
       onError: _handleError,
     );
@@ -40,8 +39,10 @@ class VrcIncomingMessageStreamManager {
   final Map<String, VrcRequest> _pendingRequests = {};
   final Map<String, VrcIssuance> _pendingVrcs = {};
 
+  /// Emits incoming VRC requests routed from VDIP request-issuance messages.
   Stream<VrcRequest> get requests => _requests;
 
+  /// Emits incoming, parsed VRC issuances routed from VDIP issued credentials.
   Stream<VrcIssuance> get receivedVrcs => _receivedVrcs;
 
   /// Returns and removes the cached VRC request from [senderDid], or null.
@@ -52,6 +53,7 @@ class VrcIncomingMessageStreamManager {
   VrcIssuance? consumePendingVrc(String senderDid) =>
       _pendingVrcs.remove(senderDid);
 
+  /// Cancels the internal subscription and closes both VRC output streams.
   Future<void> close() async {
     if (_isClosed) return;
     _isClosed = true;
@@ -60,6 +62,7 @@ class VrcIncomingMessageStreamManager {
     await _receivedVrcController.close();
   }
 
+  /// Routes each VDIP message to the VRC request or issuance flow.
   Future<void> _handleMessage(PlainTextMessage message) async {
     final senderDid = message.from;
     if (senderDid == null || senderDid.isEmpty) {
@@ -85,6 +88,7 @@ class VrcIncomingMessageStreamManager {
     }
   }
 
+  /// Builds a typed VRC request from a request-issuance message.
   VrcRequest? _toReceivedVrcRequest(
     PlainTextMessage message,
     String senderDid,
@@ -111,6 +115,7 @@ class VrcIncomingMessageStreamManager {
     );
   }
 
+  /// Builds a typed VRC issuance from an issued-credential message.
   Future<VrcIssuance?> _toReceivedVrc(
     PlainTextMessage message,
     String senderDid,
@@ -143,6 +148,7 @@ class VrcIncomingMessageStreamManager {
     );
   }
 
+  /// Extracts the request metadata payload from the credential meta block.
   Map<String, dynamic> _extractCredentialMetaData(
     Map<String, dynamic> credentialMeta,
   ) {
@@ -151,6 +157,7 @@ class VrcIncomingMessageStreamManager {
     return Map<String, dynamic>.from(data);
   }
 
+  /// Forwards upstream stream errors to both VRC output streams.
   void _handleError(Object error, StackTrace stackTrace) {
     if (_isClosed) return;
     _requestController.addError(error, stackTrace);

@@ -43,13 +43,13 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late MeetingPlaceRelationshipSDK sdk;
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -152,7 +152,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String issuerDid;
     late List<Attachment> signedAttachments;
@@ -179,7 +179,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -214,12 +214,16 @@ void main() {
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, signedAttachments));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: signedAttachments,
+        ),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       expect(emitted, hasLength(1));
       expect(emitted.first.issuerDid, issuerDid);
-      expect(emitted.first.otherPartyPermanentChannelDid, 'did:example:other');
       verify(() => mockRepo.upsert(any())).called(1);
 
       await sub.cancel();
@@ -233,17 +237,18 @@ void main() {
         vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
 
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((
-        channel,
-        [makeAttachment(format: 'unknown_plugin', dataJson: '{}')],
-      ));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [
+            makeAttachment(format: 'unknown_plugin', dataJson: '{}'),
+          ],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -260,14 +265,13 @@ void main() {
         vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
 
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, []));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(channel: channel, attachments: []),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -291,7 +295,12 @@ void main() {
       final errors = <Object>[];
       final sub = sdk.receivedRCards.listen(emitted.add, onError: errors.add);
 
-      channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment()],
+        ),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -307,7 +316,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String signedVrcBlob;
 
@@ -335,7 +344,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -492,7 +501,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRCardRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String signedVrcBlob;
 
@@ -520,7 +529,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -630,7 +639,7 @@ void main() {
     late MockVdipClient mockVdipClient;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late MeetingPlaceRelationshipSDK sdk;
     late String signedVrcBlob;
@@ -658,7 +667,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -705,7 +714,7 @@ void main() {
           isConnectionInitiator: true,
         );
 
-        expect(outcome, VrcRequestProcessingResult.prompt);
+        expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
       },
     );
 
@@ -726,7 +735,7 @@ void main() {
           isConnectionInitiator: false,
         );
 
-        expect(outcome, VrcRequestProcessingResult.waiting);
+        expect(outcome, isA<VrcRequestProcessingResultWaiting>());
       },
     );
 
@@ -754,7 +763,7 @@ void main() {
           ),
         );
 
-        expect(outcome, VrcProcessingResult.completed);
+        expect(outcome, isA<VrcProcessingResultCompleted>());
       },
     );
 
@@ -793,7 +802,7 @@ void main() {
         issuerName: 'Alice',
       );
 
-      expect(outcome, VrcRequestProcessingResult.issued);
+      expect(outcome, isA<VrcRequestProcessingResultIssued>());
     });
 
     test(
@@ -828,98 +837,104 @@ void main() {
           issuerName: 'Alice',
         );
 
-        expect(outcome, VrcProcessingResult.reciprocated);
+        expect(outcome, isA<VrcProcessingResultReciprocated>());
       },
     );
 
-    test('handleReceivedVrcRequest invokes onVrcSent with the sent vcBlob'
-        ' when outcome is issued', () async {
-      final sendChannel = MockChannel();
-      when(() => sendChannel.id).thenReturn('channel-id');
-      when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
-      when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
-      ).thenAnswer((_) async => sendChannel);
-      when(
-        () => mockCoreSDK.getDidManager(issuerDid),
-      ).thenAnswer((_) async => issuerManager);
-      when(
-        () => mockVdipClient.sendIssuedCredential(
-          senderDid: any(named: 'senderDid'),
-          recipientDid: any(named: 'recipientDid'),
-          body: any(named: 'body'),
-        ),
-      ).thenAnswer((_) async {});
+    test(
+      'handleReceivedVrcRequest returns sentVcBlob in result when issued',
+      () async {
+        final sendChannel = MockChannel();
+        when(() => sendChannel.id).thenReturn('channel-id');
+        when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
+        when(
+          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        ).thenAnswer((_) async => sendChannel);
+        when(
+          () => mockCoreSDK.getDidManager(issuerDid),
+        ).thenAnswer((_) async => issuerManager);
+        when(
+          () => mockVdipClient.sendIssuedCredential(
+            senderDid: any(named: 'senderDid'),
+            recipientDid: any(named: 'recipientDid'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer((_) async {});
 
-      String? capturedBlob;
-      await sdk.handleReceivedVrcRequest(
-        permanentChannelDid: 'did:key:peer',
-        request: VrcRequest(
-          senderDid: 'did:key:sender',
-          credentialMetaData: {
-            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
-            VrcConstants.requestMetadataKeyIdentityName: 'Bob',
-          },
-        ),
-        hasVrcExchangeInitiated: true,
-        isConnectionInitiator: true,
-        issuerDid: issuerDid,
-        issuerName: 'Alice',
-        onVrcSent: (blob) => capturedBlob = blob,
-      );
-
-      expect(capturedBlob, isNotNull);
-      expect(capturedBlob, isNotEmpty);
-    });
-
-    test('handleReceivedVrc invokes onVrcSent with the sent vcBlob'
-        ' when outcome is reciprocated', () async {
-      final sendChannel = MockChannel();
-      when(() => sendChannel.id).thenReturn('channel-id');
-      when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
-      when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
-      ).thenAnswer((_) async => sendChannel);
-      when(
-        () => mockCoreSDK.getDidManager(issuerDid),
-      ).thenAnswer((_) async => issuerManager);
-      when(
-        () => mockVdipClient.sendIssuedCredential(
-          senderDid: any(named: 'senderDid'),
-          recipientDid: any(named: 'recipientDid'),
-          body: any(named: 'body'),
-        ),
-      ).thenAnswer((_) async {});
-
-      String? capturedBlob;
-      await sdk.handleReceivedVrc(
-        permanentChannelDid: 'did:key:peer',
-        vcBlob: signedVrcBlob,
-        exchangeState: const VrcExchangeState(
+        final outcome = await sdk.handleReceivedVrcRequest(
+          permanentChannelDid: 'did:key:peer',
+          request: VrcRequest(
+            senderDid: 'did:key:sender',
+            credentialMetaData: {
+              VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+              VrcConstants.requestMetadataKeyIdentityName: 'Bob',
+            },
+          ),
           hasVrcExchangeInitiated: true,
-          hasVrcRequestReceived: false,
           isConnectionInitiator: true,
-        ),
-        issuerDid: issuerDid,
-        issuerName: 'Alice',
-        onVrcSent: (blob) => capturedBlob = blob,
-      );
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
+        );
 
-      expect(capturedBlob, isNotNull);
-      expect(capturedBlob, isNotEmpty);
-    });
+        expect(outcome, isA<VrcRequestProcessingResultIssued>());
+        expect(
+          (outcome as VrcRequestProcessingResultIssued).sentVcBlob,
+          isNotEmpty,
+        );
+      },
+    );
+
+    test(
+      'handleReceivedVrc returns sentVcBlob in result when reciprocated',
+      () async {
+        final sendChannel = MockChannel();
+        when(() => sendChannel.id).thenReturn('channel-id');
+        when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
+        when(
+          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        ).thenAnswer((_) async => sendChannel);
+        when(
+          () => mockCoreSDK.getDidManager(issuerDid),
+        ).thenAnswer((_) async => issuerManager);
+        when(
+          () => mockVdipClient.sendIssuedCredential(
+            senderDid: any(named: 'senderDid'),
+            recipientDid: any(named: 'recipientDid'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer((_) async {});
+
+        final outcome = await sdk.handleReceivedVrc(
+          permanentChannelDid: 'did:key:peer',
+          vcBlob: signedVrcBlob,
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: true,
+            hasVrcRequestReceived: false,
+            isConnectionInitiator: true,
+          ),
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
+        );
+
+        expect(outcome, isA<VrcProcessingResultReciprocated>());
+        expect(
+          (outcome as VrcProcessingResultReciprocated).sentVcBlob,
+          isNotEmpty,
+        );
+      },
+    );
   });
 
   group('MeetingPlaceRelationshipSDK.parseVrc', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -974,7 +989,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockVdipClient mockVdip;
     late MockRCardRepository mockRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late DidKeyManager didManager;
     late String issuerDid;
 
@@ -989,7 +1004,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       mockCoreSDK = MockMeetingPlaceCoreSDK();
       mockVdip = MockVdipClient();
       when(
@@ -1018,9 +1033,6 @@ void main() {
     test('returns sent RCard and calls issueCredential', () async {
       final channel = MockChannel();
       when(() => channel.permanentChannelDid).thenReturn(issuerDid);
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:key:recipient');
 
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
@@ -1038,8 +1050,6 @@ void main() {
       expect(rCard, isA<RCard>());
       expect(rCard.subjectDid, 'did:key:recipient');
       expect(rCard.issuerDid, issuerDid);
-      expect(rCard.permanentChannelDid, issuerDid);
-      expect(rCard.otherPartyPermanentChannelDid, 'did:key:recipient');
       expect(() => jsonDecode(rCard.vcBlob), returnsNormally);
       final decoded = jsonDecode(rCard.vcBlob) as Map<String, dynamic>;
       expect(decoded['type'], contains('RelationshipCard'));
@@ -1080,7 +1090,7 @@ void main() {
   group('MeetingPlaceRelationshipSDK CRUD delegation', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
 
     final stubCard = RCard(
@@ -1094,7 +1104,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,

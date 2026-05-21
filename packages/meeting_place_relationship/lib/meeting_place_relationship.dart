@@ -2,6 +2,7 @@ export 'src/meeting_place_relationship_sdk.dart';
 export 'src/meeting_place_relationship_sdk_error_code.dart';
 export 'src/meeting_place_relationship_sdk_exception.dart';
 export 'src/rcard/builder/r_card_didcomm_attachment_builder.dart';
+export 'src/rcard/model/channel_r_card_event.dart';
 export 'src/rcard/model/r_card.dart';
 export 'src/rcard/model/r_card_constants.dart';
 export 'src/rcard/model/r_card_subject.dart';

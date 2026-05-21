@@ -31,7 +31,7 @@ class FakeVdipIssuedCredentialBody extends Fake
     implements VdipIssuedCredentialBody {}
 
 MockMeetingPlaceCoreSDK mockCoreSDKWithStreams(
-  StreamController<(Channel, List<Attachment>)> attachmentCtrl,
+  StreamController<ChannelAttachmentEvent> attachmentCtrl,
   StreamController<PlainTextMessage> vdipCtrl,
 ) {
   final sdk = MockMeetingPlaceCoreSDK();

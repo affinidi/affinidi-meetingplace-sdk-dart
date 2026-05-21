@@ -5,12 +5,12 @@ import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_relationship/meeting_place_relationship.dart';
 import 'package:meeting_place_relationship/src/vrc/parser/vrc_parser.dart';
-import 'package:meeting_place_relationship/src/vrc/vrc_incoming_message_stream_manager.dart';
+import 'package:meeting_place_relationship/src/vrc/vrc_vdip_stream_manager.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('VrcIncomingMessageStreamManager', () {
+  group('VrcVdipStreamManager', () {
     late String signedVrcBlob;
 
     setUpAll(() async {
@@ -32,14 +32,12 @@ void main() {
       signedVrcBlob = jsonEncode(vc.toJson());
     });
 
-    VrcIncomingMessageStreamManager makeManager(
-      StreamController<PlainTextMessage> ctrl,
-    ) {
-      return VrcIncomingMessageStreamManager(
-        incomingMessages: ctrl.stream,
+    VrcVdipStreamManager makeManager(StreamController<PlainTextMessage> ctrl) {
+      return VrcVdipStreamManager(
+        incomingVdipMessages: ctrl.stream,
         parser: VrcParser(),
         logger: DefaultMeetingPlaceCoreSDKLogger(
-          className: 'VrcIncomingMessageStreamManagerTest',
+          className: 'VrcVdipStreamManagerTest',
         ),
       );
     }

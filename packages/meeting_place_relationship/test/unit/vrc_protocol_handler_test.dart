@@ -66,7 +66,7 @@ void main() {
         isConnectionInitiator: true,
       );
 
-      expect(outcome, VrcRequestProcessingResult.prompt);
+      expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
       verifyNever(
         () => mockClient.sendVrc(
           channelDid: any(named: 'channelDid'),
@@ -89,7 +89,7 @@ void main() {
         isConnectionInitiator: false,
       );
 
-      expect(outcome, VrcRequestProcessingResult.waiting);
+      expect(outcome, isA<VrcRequestProcessingResultWaiting>());
     });
 
     test('returns prompt when local identity DID is missing', () async {
@@ -103,7 +103,7 @@ void main() {
         // no localIdentityDid
       );
 
-      expect(outcome, VrcRequestProcessingResult.prompt);
+      expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
       verifyNever(
         () => mockClient.sendVrc(
           channelDid: any(named: 'channelDid'),
@@ -131,7 +131,7 @@ void main() {
           issuerDid: 'did:key:local',
         );
 
-        expect(outcome, VrcRequestProcessingResult.prompt);
+        expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
       },
     );
 
@@ -165,7 +165,7 @@ void main() {
           issuerName: 'Alice',
         );
 
-        expect(outcome, VrcRequestProcessingResult.issued);
+        expect(outcome, isA<VrcRequestProcessingResultIssued>());
         verify(
           () => mockClient.sendVrc(
             channelDid: 'did:key:channel',
@@ -178,7 +178,7 @@ void main() {
       },
     );
 
-    test('invokes onVrcSent with the sent vcBlob when issued', () async {
+    test('returns sentVcBlob in result when issued', () async {
       when(
         () => mockClient.sendVrc(
           channelDid: any(named: 'channelDid'),
@@ -189,10 +189,9 @@ void main() {
         ),
       ).thenAnswer((_) async => 'sent-vc-blob');
 
-      String? capturedBlob;
       final handler = makeHandler(client: mockClient);
 
-      await handler.handleReceivedVrcRequest(
+      final outcome = await handler.handleReceivedVrcRequest(
         permanentChannelDid: 'did:key:channel',
         request: VrcRequest(
           senderDid: 'did:key:sender',
@@ -203,10 +202,16 @@ void main() {
         hasVrcExchangeInitiated: true,
         isConnectionInitiator: true,
         issuerDid: 'did:key:local',
-        onVrcSent: (blob) => capturedBlob = blob,
       );
 
-      expect(capturedBlob, 'sent-vc-blob');
+      expect(
+        outcome,
+        isA<VrcRequestProcessingResultIssued>().having(
+          (r) => r.sentVcBlob,
+          'sentVcBlob',
+          'sent-vc-blob',
+        ),
+      );
     });
   });
 
@@ -231,7 +236,7 @@ void main() {
         ),
       );
 
-      expect(outcome, VrcProcessingResult.completed);
+      expect(outcome, isA<VrcProcessingResultCompleted>());
     });
 
     test(
@@ -249,7 +254,7 @@ void main() {
           ),
         );
 
-        expect(outcome, VrcProcessingResult.completed);
+        expect(outcome, isA<VrcProcessingResultCompleted>());
       },
     );
 
@@ -268,7 +273,7 @@ void main() {
           ),
         );
 
-        expect(outcome, VrcProcessingResult.ignored);
+        expect(outcome, isA<VrcProcessingResultIgnored>());
       },
     );
 
@@ -288,7 +293,7 @@ void main() {
           // no issuerDid
         );
 
-        expect(outcome, VrcProcessingResult.ignored);
+        expect(outcome, isA<VrcProcessingResultIgnored>());
         verifyNever(
           () => mockClient.sendVrc(
             channelDid: any(named: 'channelDid'),
@@ -322,7 +327,7 @@ void main() {
         issuerDid: 'did:key:local',
       );
 
-      expect(outcome, VrcProcessingResult.ignored);
+      expect(outcome, isA<VrcProcessingResultIgnored>());
     });
 
     test(
@@ -352,7 +357,7 @@ void main() {
           issuerName: 'Carol',
         );
 
-        expect(outcome, VrcProcessingResult.reciprocated);
+        expect(outcome, isA<VrcProcessingResultReciprocated>());
         verify(
           () => mockClient.sendVrc(
             channelDid: 'did:key:peer',
@@ -365,7 +370,7 @@ void main() {
       },
     );
 
-    test('invokes onVrcSent with the sent vcBlob when reciprocated', () async {
+    test('returns sentVcBlob in result when reciprocated', () async {
       when(
         () => mockClient.sendVrc(
           channelDid: any(named: 'channelDid'),
@@ -376,10 +381,9 @@ void main() {
         ),
       ).thenAnswer((_) async => 'sent-vc-blob');
 
-      String? capturedBlob;
       final handler = makeHandler(client: mockClient, parser: VrcParser());
 
-      await handler.handleReceivedVrc(
+      final outcome = await handler.handleReceivedVrc(
         permanentChannelDid: 'did:key:peer',
         vcBlob: signedVrcBlob,
         exchangeState: const VrcExchangeState(
@@ -389,10 +393,16 @@ void main() {
         ),
         issuerDid: 'did:key:local',
         issuerName: 'Carol',
-        onVrcSent: (blob) => capturedBlob = blob,
       );
 
-      expect(capturedBlob, 'sent-vc-blob');
+      expect(
+        outcome,
+        isA<VrcProcessingResultReciprocated>().having(
+          (r) => r.sentVcBlob,
+          'sentVcBlob',
+          'sent-vc-blob',
+        ),
+      );
     });
 
     test('returns reciprocated after waiting for non-initiator', () async {
@@ -420,7 +430,24 @@ void main() {
         issuerName: 'Carol',
       );
 
-      expect(outcome, VrcProcessingResult.reciprocated);
+      expect(outcome, isA<VrcProcessingResultReciprocated>());
+    });
+
+    test('returns ignored when exchange is already completed', () async {
+      final handler = makeHandler(client: mockClient, parser: VrcParser());
+
+      final outcome = await handler.handleReceivedVrc(
+        permanentChannelDid: 'did:key:peer',
+        vcBlob: signedVrcBlob,
+        exchangeState: const VrcExchangeState(
+          hasVrcExchangeInitiated: true,
+          hasVrcRequestReceived: true,
+          isConnectionInitiator: true,
+          hasVrcExchangeCompleted: true,
+        ),
+      );
+
+      expect(outcome, isA<VrcProcessingResultIgnored>());
     });
   });
 }

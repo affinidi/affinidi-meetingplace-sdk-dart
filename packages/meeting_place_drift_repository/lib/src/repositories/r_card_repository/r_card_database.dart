@@ -77,13 +77,6 @@ class ReceivedRCards extends Table {
   /// Optional user-supplied notes about this contact.
   TextColumn get notes => text().nullable()();
 
-  /// Permanent channel DID of the contact who sent this R-Card.
-  TextColumn get otherPartyPermanentChannelDid => text().nullable()();
-
-  /// Our own local permanent channel DID for the channel this R-Card arrived
-  /// on.  Set only for the OOB / inauguration path; `null` for the VDIP path.
-  TextColumn get permanentChannelDid => text().nullable()();
-
   /// UTC timestamp recording when the R-Card was first received locally.
   DateTimeColumn get receivedAt => dateTime()();
 

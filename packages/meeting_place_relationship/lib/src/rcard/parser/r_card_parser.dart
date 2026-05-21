@@ -22,12 +22,7 @@ class RCardParser {
   /// validation fails, or signature verification fails.
   ///
   /// - [vcBlob] — raw VC JSON string.
-  /// - [otherPartyPermanentChannelDid] — the permanent channel DID of the
-  ///   contact who sent this card, stored on the result for later lookup.
-  Future<RCard?> parse({
-    required String vcBlob,
-    String? otherPartyPermanentChannelDid,
-  }) async {
+  Future<RCard?> parse({required String vcBlob}) async {
     final dynamic decoded;
     try {
       decoded = jsonDecode(vcBlob);
@@ -98,7 +93,6 @@ class RCardParser {
       version: RCardConstants.receivedRCardVersion,
       issuanceDate: issuanceDate ?? now,
       receivedAt: now,
-      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
     );
   }
 }

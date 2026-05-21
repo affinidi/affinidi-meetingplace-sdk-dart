@@ -21,6 +21,29 @@ class MeetingPlaceRelationshipSDKException implements Exception {
     );
   }
 
+  /// Factory constructor for an R-Card VC that is missing a credentialSubject.
+  factory MeetingPlaceRelationshipSDKException.rCardMissingCredentialSubject({
+    Object? innerException,
+  }) {
+    return MeetingPlaceRelationshipSDKException(
+      message: 'R-Card VC is missing a credentialSubject.',
+      code: MeetingPlaceRelationshipSDKErrorCode.rCardMissingCredentialSubject,
+      innerException: innerException,
+    );
+  }
+
+  /// Factory constructor for when no assertion method key is available for
+  /// signing.
+  factory MeetingPlaceRelationshipSDKException.signingKeyUnavailable({
+    Object? innerException,
+  }) {
+    return MeetingPlaceRelationshipSDKException(
+      message: 'DidManager has no assertionMethod keys available for signing.',
+      code: MeetingPlaceRelationshipSDKErrorCode.signingKeyUnavailable,
+      innerException: innerException,
+    );
+  }
+
   /// The descriptive message for the exception.
   final String message;
 

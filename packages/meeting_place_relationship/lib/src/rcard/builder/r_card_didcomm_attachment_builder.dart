@@ -52,10 +52,10 @@ class RCardDIDCommAttachmentBuilder {
 
   /// Builds and signs an R-Card and returns it as a DIDComm attachment list.
   ///
-  /// - [issuerDid] — DID of the local party whose card is being shared.
+  /// - [issuerDid] — DID of the identity whose card is being shared.
   /// - [card] — The contact fields to embed in the R-Card VC.
   /// - [issuerDidManager] — [DidManager] used to sign the credential.
-  static Future<List<Attachment>> buildForOwner({
+  static Future<List<Attachment>> build({
     required String issuerDid,
     required RCardSubject card,
     required DidManager issuerDidManager,

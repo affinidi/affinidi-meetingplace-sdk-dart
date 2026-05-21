@@ -33,13 +33,10 @@ class RCardVdipStreamManager {
   late final StreamSubscription<RCard> _subscription;
   late final Stream<RCard> _stream;
 
-  /// Emits a [RCard] for every valid, signature-verified R-Card
-  /// delivered via VDIP issued-credential message.
+  /// Emits incoming, parsed R-Cards routed from VDIP issued credentials.
   Stream<RCard> get stream => _stream;
 
-  /// Cancels the internal subscription and closes [stream].
-  ///
-  /// Safe to call more than once — subsequent calls are no-ops.
+  /// Cancels the internal subscription and closes the R-Card output stream.
   Future<void> close() async {
     if (_controller.isClosed) return;
     await _subscription.cancel();
@@ -61,11 +58,15 @@ class RCardVdipStreamManager {
     return null;
   }
 
+  /// Parses one VDIP issued-credential message into an [RCard].
   Stream<RCard> _parseVdipMessage(PlainTextMessage message) async* {
     if (message.type != VdipIssuedCredentialMessage.messageType) return;
 
     final body = message.body;
-    if (body == null) return;
+    if (body == null) {
+      _logger.warning('VDIP issued-credential body is missing');
+      return;
+    }
 
     final credential = body['credential'];
     if (credential is! String) {
@@ -93,10 +94,7 @@ class RCardVdipStreamManager {
       return;
     }
 
-    final rCard = await _parser.parse(
-      vcBlob: credential,
-      otherPartyPermanentChannelDid: from,
-    );
+    final rCard = await _parser.parse(vcBlob: credential);
     if (rCard != null) {
       yield rCard;
     } else {

@@ -4,10 +4,10 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import 'builder/r_card_didcomm_attachment_builder.dart';
-import 'model/r_card.dart';
+import 'model/channel_r_card_event.dart';
 import 'parser/r_card_parser.dart';
 
-/// Manages the [RCard] broadcast stream sourced from
+/// Manages the [ChannelRCardEvent] broadcast stream sourced from
 /// [MeetingPlaceCoreSDK.channelAttachments].
 ///
 /// Extracts R-Card VC blobs from incoming DIDComm attachments, delegates
@@ -15,7 +15,7 @@ import 'parser/r_card_parser.dart';
 /// the [stream].
 class RCardChannelStreamManager {
   RCardChannelStreamManager({
-    required Stream<(Channel, List<Attachment>)> channelAttachments,
+    required Stream<ChannelAttachmentEvent> channelAttachments,
     required RCardParser parser,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _parser = parser,
@@ -29,13 +29,18 @@ class RCardChannelStreamManager {
 
   final RCardParser _parser;
   final MeetingPlaceCoreSDKLogger _logger;
-  late final StreamController<RCard> _controller;
-  late final StreamSubscription<RCard> _subscription;
-  late final Stream<RCard> _stream;
+  late final StreamController<ChannelRCardEvent> _controller;
+  late final StreamSubscription<ChannelRCardEvent> _subscription;
+  late final Stream<ChannelRCardEvent> _stream;
 
-  /// Emits a [RCard] for every valid, signature-verified R-Card
+  /// Emits a [ChannelRCardEvent] for every valid, signature-verified R-Card
   /// attachment received over any channel.
-  Stream<RCard> get stream => _stream;
+  ///
+  /// The [ChannelRCardEvent.channel] carries context such as
+  /// [Channel.permanentChannelDid] and
+  /// [Channel.otherPartyPermanentChannelDid] that callers can use to correlate
+  /// the R-Card to the originating conversation.
+  Stream<ChannelRCardEvent> get stream => _stream;
 
   /// Cancels the internal subscription and closes [stream].
   ///
@@ -46,8 +51,11 @@ class RCardChannelStreamManager {
     await _controller.close();
   }
 
-  Stream<RCard> _parseChannelEvent((Channel, List<Attachment>) record) async* {
-    final (channel, attachments) = record;
+  Stream<ChannelRCardEvent> _parseChannelEvent(
+    ChannelAttachmentEvent event,
+  ) async* {
+    final channel = event.channel;
+    final attachments = event.attachments;
     final contactChannelDid = channel.otherPartyPermanentChannelDid;
     if (contactChannelDid == null || contactChannelDid.isEmpty) {
       _logger.warning(
@@ -55,18 +63,12 @@ class RCardChannelStreamManager {
       );
       return;
     }
-    final permanentChannelDid = channel.permanentChannelDid;
     for (final attachment in attachments) {
       final vcBlob = _extractVcBlob(attachment);
       if (vcBlob == null) continue;
-      final rCard = await _parser.parse(
-        vcBlob: vcBlob,
-        otherPartyPermanentChannelDid: contactChannelDid,
-      );
+      final rCard = await _parser.parse(vcBlob: vcBlob);
       if (rCard != null) {
-        yield (permanentChannelDid != null && permanentChannelDid.isNotEmpty)
-            ? rCard.copyWith(permanentChannelDid: permanentChannelDid)
-            : rCard;
+        yield ChannelRCardEvent(channel: channel, rCard: rCard);
       } else {
         _controller.addError(
           FormatException(

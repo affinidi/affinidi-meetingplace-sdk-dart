@@ -219,7 +219,6 @@ void main() {
 
       expect(emitted, hasLength(1));
       expect(emitted.first.issuerDid, issuerDid);
-      expect(emitted.first.otherPartyPermanentChannelDid, 'did:example:other');
       verify(() => mockRepo.upsert(any())).called(1);
 
       await sub.cancel();
@@ -277,6 +276,9 @@ void main() {
         vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
+      when(
+        () => channel.otherPartyPermanentChannelDid,
+      ).thenReturn('did:example:other');
 
       final emitted = <RCard>[];
       final errors = <Object>[];

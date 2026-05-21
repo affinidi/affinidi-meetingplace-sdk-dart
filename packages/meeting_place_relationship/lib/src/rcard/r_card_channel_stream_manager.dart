@@ -17,7 +17,9 @@ class RCardChannelStreamManager {
   RCardChannelStreamManager({
     required Stream<(Channel, List<Attachment>)> channelAttachments,
     required RCardParser parser,
-  }) : _parser = parser {
+    required MeetingPlaceCoreSDKLogger logger,
+  }) : _parser = parser,
+       _logger = logger {
     _controller = StreamController.broadcast();
     _stream = _controller.stream;
     _subscription = channelAttachments
@@ -26,6 +28,7 @@ class RCardChannelStreamManager {
   }
 
   final RCardParser _parser;
+  final MeetingPlaceCoreSDKLogger _logger;
   late final StreamController<RCard> _controller;
   late final StreamSubscription<RCard> _subscription;
   late final Stream<RCard> _stream;
@@ -44,7 +47,14 @@ class RCardChannelStreamManager {
   }
 
   Stream<RCard> _parseChannelEvent((Channel, List<Attachment>) record) async* {
-    final (_, attachments) = record;
+    final (channel, attachments) = record;
+    final contactChannelDid = channel.otherPartyPermanentChannelDid;
+    if (contactChannelDid == null || contactChannelDid.isEmpty) {
+      _logger.warning(
+        'Skipping R-Card parse: otherPartyPermanentChannelDid is null or empty',
+      );
+      return;
+    }
     for (final attachment in attachments) {
       final vcBlob = _extractVcBlob(attachment);
       if (vcBlob == null) continue;

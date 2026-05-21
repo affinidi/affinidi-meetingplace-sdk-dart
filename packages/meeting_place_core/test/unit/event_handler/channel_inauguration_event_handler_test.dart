@@ -2,6 +2,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_core/src/entity/channel.dart';
+import 'package:meeting_place_core/src/event_handler/channel_attachment_event.dart';
 import 'package:meeting_place_core/src/event_handler/channel_inauguration_event_handler.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
@@ -81,14 +82,16 @@ void main() {
       test(
         'emits (channel, attachments) when message contains attachments',
         () async {
-          final received = <(Channel, List<Attachment>)>[];
+          final received = <ChannelAttachmentEvent>[];
           final attachment = Attachment(
             id: const Uuid().v4(),
             data: AttachmentData(base64: 'dGVzdA=='),
           );
 
           final handler = buildHandler(
-            onAttachmentsReceived: (ch, atts) => received.add((ch, atts)),
+            onAttachmentsReceived: (ch, atts) => received.add(
+              ChannelAttachmentEvent(channel: ch, attachments: atts),
+            ),
           );
 
           await handler.processMessage(
@@ -98,15 +101,17 @@ void main() {
           );
 
           expect(received, hasLength(1));
-          expect(received.first.$1.publishOfferDid, equals(myChannelDid));
-          expect(received.first.$2, equals([attachment]));
+          expect(received.first.channel.publishOfferDid, equals(myChannelDid));
+          expect(received.first.attachments, equals([attachment]));
         },
       );
 
       test('does not emit when message has no attachments', () async {
-        final received = <(Channel, List<Attachment>)>[];
+        final received = <ChannelAttachmentEvent>[];
         final handler = buildHandler(
-          onAttachmentsReceived: (ch, atts) => received.add((ch, atts)),
+          onAttachmentsReceived: (ch, atts) => received.add(
+            ChannelAttachmentEvent(channel: ch, attachments: atts),
+          ),
         );
 
         await handler.processMessage(

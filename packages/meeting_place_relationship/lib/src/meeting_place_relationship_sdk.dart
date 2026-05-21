@@ -7,6 +7,7 @@ import 'package:ssi/ssi.dart';
 import 'meeting_place_relationship_sdk_error_code.dart';
 import 'meeting_place_relationship_sdk_exception.dart';
 import 'rcard/builder/r_card_builder.dart';
+import 'rcard/model/channel_r_card_event.dart';
 import 'rcard/model/r_card.dart';
 import 'rcard/model/r_card_constants.dart';
 import 'rcard/model/r_card_subject.dart';
@@ -89,7 +90,7 @@ class MeetingPlaceRelationshipSDK {
     _receivedRCardsController = StreamController<RCard>.broadcast();
     _receivedRCardsStream = _receivedRCardsController.stream;
     _attachmentSubscription = _attachmentManager.stream.listen(
-      _receivedRCardsController.add,
+      (event) => _receivedRCardsController.add(event.rCard),
       onError: _receivedRCardsController.addError,
     );
     _vdipSubscription = _vdipManager.stream.listen(
@@ -152,7 +153,7 @@ class MeetingPlaceRelationshipSDK {
   late final RCardVdipStreamManager _vdipManager;
   late final StreamController<RCard> _receivedRCardsController;
   late final Stream<RCard> _receivedRCardsStream;
-  late final StreamSubscription<RCard> _attachmentSubscription;
+  late final StreamSubscription<ChannelRCardEvent> _attachmentSubscription;
   late final StreamSubscription<RCard> _vdipSubscription;
   late final StreamSubscription<void> _persistenceSubscription;
 
@@ -170,6 +171,19 @@ class MeetingPlaceRelationshipSDK {
   /// the DIDComm attachment path (OOB / inauguration) or the VDIP
   /// issued-credential path (chat-time update).
   Stream<RCard> get receivedRCards => _receivedRCardsStream;
+
+  /// A broadcast stream that emits a [ChannelRCardEvent] for every R-Card
+  /// received via the DIDComm attachment (channel-inauguration) path.
+  ///
+  /// Callers can use [ChannelRCardEvent.channel] to access
+  /// [Channel.permanentChannelDid] and
+  /// [Channel.otherPartyPermanentChannelDid] to correlate the R-Card to the
+  /// originating conversation (e.g. to create an auto-exchange chat message).
+  ///
+  /// VDIP-path R-Cards are NOT emitted on this stream; use [receivedRCards]
+  /// for those.
+  Stream<ChannelRCardEvent> get receivedRCardsOnChannel =>
+      _attachmentManager.stream;
 
   /// Returns a live stream of all persisted R-Cards, ordered by
   /// [RCard.receivedAt] descending.

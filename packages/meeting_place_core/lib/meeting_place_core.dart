@@ -23,6 +23,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
 export 'package:ssi/ssi.dart' show DidManager;
 
 export 'src/entity/entity.dart';
+export 'src/event_handler/channel_attachment_event.dart';
 export 'src/event_handler/control_plane_event_handler_manager_options.dart';
 export 'src/event_handler/control_plane_stream_event.dart';
 export 'src/loggers/default_meeting_place_core_sdk_logger.dart';

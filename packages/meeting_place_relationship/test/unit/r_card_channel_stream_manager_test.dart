@@ -13,12 +13,12 @@ import '../fixtures/r_card_fixture.dart';
 import '../utils/mocks.dart';
 
 void main() {
-  late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+  late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
   late MockChannel channel;
 
   setUp(() {
     channelAttachmentsCtrl =
-        StreamController<(Channel, List<Attachment>)>.broadcast();
+        StreamController<ChannelAttachmentEvent>.broadcast();
     channel = MockChannel();
   });
 
@@ -40,10 +40,15 @@ void main() {
     test('null otherPartyPermanentChannelDid does not emit', () async {
       when(() => channel.otherPartyPermanentChannelDid).thenReturn(null);
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment()],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -54,10 +59,15 @@ void main() {
     test('empty otherPartyPermanentChannelDid does not emit', () async {
       when(() => channel.otherPartyPermanentChannelDid).thenReturn('');
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment()],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -75,13 +85,17 @@ void main() {
 
     test('wrong attachment format does not emit', () async {
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((
-        channel,
-        [makeAttachment(format: 'unknown_plugin', dataJson: '{}')],
-      ));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [
+            makeAttachment(format: 'unknown_plugin', dataJson: '{}'),
+          ],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -91,18 +105,20 @@ void main() {
 
     test('null attachment data does not emit', () async {
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((
-        channel,
-        [
-          makeAttachment(
-            format: RCardDIDCommAttachmentBuilder.attachmentFormat,
-            dataJson: null,
-          ),
-        ],
-      ));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [
+            makeAttachment(
+              format: RCardDIDCommAttachmentBuilder.attachmentFormat,
+              dataJson: null,
+            ),
+          ],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -112,13 +128,15 @@ void main() {
 
     test('non-JSON data payload does not emit', () async {
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((
-        channel,
-        [rCardAttachment(overrideDataJson: 'not-json')],
-      ));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment(overrideDataJson: 'not-json')],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -128,15 +146,17 @@ void main() {
 
     test('missing vcBlob key does not emit', () async {
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((
-        channel,
-        [
-          rCardAttachment(overrideDataJson: jsonEncode({'isUpdate': false})),
-        ],
-      ));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [
+            rCardAttachment(overrideDataJson: jsonEncode({'isUpdate': false})),
+          ],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -146,17 +166,19 @@ void main() {
 
     test('non-string vcBlob does not emit', () async {
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((
-        channel,
-        [
-          rCardAttachment(
-            overrideDataJson: jsonEncode({'vcBlob': 42, 'isUpdate': false}),
-          ),
-        ],
-      ));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [
+            rCardAttachment(
+              overrideDataJson: jsonEncode({'vcBlob': 42, 'isUpdate': false}),
+            ),
+          ],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -166,10 +188,12 @@ void main() {
 
     test('empty attachment list does not emit', () async {
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, []));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(channel: channel, attachments: []),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -211,14 +235,20 @@ void main() {
 
     test('valid signed R-Card emits on stream', () async {
       final manager = makeManager();
-      final emitted = <RCard>[];
+      final emitted = <ChannelRCardEvent>[];
       final sub = manager.stream.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, signedAttachments));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: signedAttachments,
+        ),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       expect(emitted, hasLength(1));
-      expect(emitted.first.issuerDid, issuerDid);
+      expect(emitted.first.channel, channel);
+      expect(emitted.first.rCard.issuerDid, issuerDid);
       await sub.cancel();
       await manager.close();
     });

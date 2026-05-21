@@ -43,13 +43,13 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late MeetingPlaceRelationshipSDK sdk;
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -152,7 +152,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String issuerDid;
     late List<Attachment> signedAttachments;
@@ -179,7 +179,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -214,7 +214,12 @@ void main() {
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, signedAttachments));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: signedAttachments,
+        ),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       expect(emitted, hasLength(1));
@@ -236,10 +241,14 @@ void main() {
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((
-        channel,
-        [makeAttachment(format: 'unknown_plugin', dataJson: '{}')],
-      ));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [
+            makeAttachment(format: 'unknown_plugin', dataJson: '{}'),
+          ],
+        ),
+      );
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
@@ -260,7 +269,9 @@ void main() {
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
 
-      channelAttachmentsCtrl.add((channel, []));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(channel: channel, attachments: []),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -284,7 +295,12 @@ void main() {
       final errors = <Object>[];
       final sub = sdk.receivedRCards.listen(emitted.add, onError: errors.add);
 
-      channelAttachmentsCtrl.add((channel, [rCardAttachment()]));
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment()],
+        ),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -300,7 +316,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String signedVrcBlob;
 
@@ -328,7 +344,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -485,7 +501,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRCardRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String signedVrcBlob;
 
@@ -513,7 +529,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -623,7 +639,7 @@ void main() {
     late MockVdipClient mockVdipClient;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late MeetingPlaceRelationshipSDK sdk;
     late String signedVrcBlob;
@@ -651,7 +667,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -907,12 +923,12 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
     late MockVrcRepository mockVrcRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,
@@ -967,7 +983,7 @@ void main() {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockVdipClient mockVdip;
     late MockRCardRepository mockRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late DidKeyManager didManager;
     late String issuerDid;
 
@@ -982,7 +998,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       mockCoreSDK = MockMeetingPlaceCoreSDK();
       mockVdip = MockVdipClient();
       when(
@@ -1068,7 +1084,7 @@ void main() {
   group('MeetingPlaceRelationshipSDK CRUD delegation', () {
     late MockMeetingPlaceCoreSDK mockCoreSDK;
     late MockRCardRepository mockRepo;
-    late StreamController<(Channel, List<Attachment>)> channelAttachmentsCtrl;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
 
     final stubCard = RCard(
@@ -1082,7 +1098,7 @@ void main() {
 
     setUp(() {
       channelAttachmentsCtrl =
-          StreamController<(Channel, List<Attachment>)>.broadcast();
+          StreamController<ChannelAttachmentEvent>.broadcast();
       vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
       mockCoreSDK = mockCoreSDKWithStreams(
         channelAttachmentsCtrl,

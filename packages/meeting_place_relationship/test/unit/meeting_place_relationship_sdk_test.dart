@@ -219,7 +219,6 @@ void main() {
 
       expect(emitted, hasLength(1));
       expect(emitted.first.issuerDid, issuerDid);
-      expect(emitted.first.otherPartyPermanentChannelDid, 'did:example:other');
       verify(() => mockRepo.upsert(any())).called(1);
 
       await sub.cancel();
@@ -233,9 +232,6 @@ void main() {
         vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
 
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
@@ -260,9 +256,6 @@ void main() {
         vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
 
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);
@@ -1018,9 +1011,6 @@ void main() {
     test('returns sent RCard and calls issueCredential', () async {
       final channel = MockChannel();
       when(() => channel.permanentChannelDid).thenReturn(issuerDid);
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:key:recipient');
 
       final sdk = MeetingPlaceRelationshipSDK(
         coreSDK: mockCoreSDK,
@@ -1038,8 +1028,6 @@ void main() {
       expect(rCard, isA<RCard>());
       expect(rCard.subjectDid, 'did:key:recipient');
       expect(rCard.issuerDid, issuerDid);
-      expect(rCard.permanentChannelDid, issuerDid);
-      expect(rCard.otherPartyPermanentChannelDid, 'did:key:recipient');
       expect(() => jsonDecode(rCard.vcBlob), returnsNormally);
       final decoded = jsonDecode(rCard.vcBlob) as Map<String, dynamic>;
       expect(decoded['type'], contains('RelationshipCard'));

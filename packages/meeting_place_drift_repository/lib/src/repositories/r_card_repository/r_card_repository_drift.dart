@@ -44,9 +44,6 @@ class RCardRepositoryDrift implements model.RCardRepository {
               version: Value(nextVersion),
               issuanceDate: Value(rCard.issuanceDate),
               notes: Value(rCard.notes),
-              otherPartyPermanentChannelDid:
-                  Value(rCard.otherPartyPermanentChannelDid),
-              permanentChannelDid: Value(rCard.permanentChannelDid),
               receivedAt: Value(rCard.receivedAt),
             ),
           );
@@ -111,8 +108,6 @@ class RCardRepositoryDrift implements model.RCardRepository {
       issuanceDate: row.issuanceDate,
       receivedAt: row.receivedAt,
       notes: row.notes,
-      otherPartyPermanentChannelDid: row.otherPartyPermanentChannelDid,
-      permanentChannelDid: row.permanentChannelDid,
     );
   }
 }

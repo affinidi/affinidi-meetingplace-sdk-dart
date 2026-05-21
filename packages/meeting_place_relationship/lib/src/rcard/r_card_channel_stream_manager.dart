@@ -55,18 +55,12 @@ class RCardChannelStreamManager {
       );
       return;
     }
-    final permanentChannelDid = channel.permanentChannelDid;
     for (final attachment in attachments) {
       final vcBlob = _extractVcBlob(attachment);
       if (vcBlob == null) continue;
-      final rCard = await _parser.parse(
-        vcBlob: vcBlob,
-        otherPartyPermanentChannelDid: contactChannelDid,
-      );
+      final rCard = await _parser.parse(vcBlob: vcBlob);
       if (rCard != null) {
-        yield (permanentChannelDid != null && permanentChannelDid.isNotEmpty)
-            ? rCard.copyWith(permanentChannelDid: permanentChannelDid)
-            : rCard;
+        yield rCard;
       } else {
         _controller.addError(
           FormatException(

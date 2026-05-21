@@ -184,6 +184,7 @@ void main() {
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
+
       final didManager = DidKeyManager(
         wallet: wallet,
         store: InMemoryDidStore(),
@@ -218,7 +219,6 @@ void main() {
 
       expect(emitted, hasLength(1));
       expect(emitted.first.issuerDid, issuerDid);
-      expect(emitted.first.otherPartyPermanentChannelDid, 'did:example:other');
       await sub.cancel();
       await manager.close();
     });

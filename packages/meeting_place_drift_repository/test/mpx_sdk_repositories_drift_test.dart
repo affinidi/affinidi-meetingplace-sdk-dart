@@ -408,7 +408,6 @@ void main() {
       String issuerDid = 'did:example:issuer',
       int version = 1,
       String? notes,
-      String? contactChannelDid,
     }) =>
         rel.RCard(
           subjectDid: subjectDid,
@@ -418,7 +417,6 @@ void main() {
           issuanceDate: DateTime.utc(2026, 1, 1),
           receivedAt: DateTime.utc(2026, 1, 2),
           notes: notes,
-          otherPartyPermanentChannelDid: contactChannelDid,
         );
 
     test('upsert persists a new R-Card', () async {

@@ -292,8 +292,6 @@ class MeetingPlaceRelationshipSDK {
       version: RCardConstants.receivedRCardVersion,
       issuanceDate: vc.validFrom?.toUtc() ?? DateTime.now().toUtc(),
       receivedAt: DateTime.now().toUtc(),
-      permanentChannelDid: issuerDid,
-      otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
     );
   }
 
@@ -306,19 +304,8 @@ class MeetingPlaceRelationshipSDK {
   /// Returns `null` if the blob is not a valid, signature-verified R-Card.
   ///
   /// - [vcBlob] — the raw serialised VC JSON string.
-  /// - [otherPartyPermanentChannelDid] — the permanent channel DID of the
-  ///   contact who sent this card, stored on the result for later lookup.
-  Future<RCard?> parseRCard({
-    required String vcBlob,
-    String? otherPartyPermanentChannelDid,
-  }) {
-    return _rCardParser.parse(
-      vcBlob: vcBlob,
-      otherPartyPermanentChannelDid:
-          (otherPartyPermanentChannelDid?.isEmpty ?? true)
-          ? null
-          : otherPartyPermanentChannelDid,
-    );
+  Future<RCard?> parseRCard({required String vcBlob}) {
+    return _rCardParser.parse(vcBlob: vcBlob);
   }
 
   /// Parses and validates a VRC from a raw VC blob string.

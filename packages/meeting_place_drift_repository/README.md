@@ -127,15 +127,39 @@ Expected: contains <3>
 
 This catches the missing snapshot steps before the migration tests even run.
 
-## Workaround to open sqlcipher on old Android versions.
+## Database Encryption (Required)
 
-On old Android versions, this method can help if you're having issues opening sqlite3 (e.g. if you're seeing crashes about libsqlcipher.so not being available). To be safe, call this method before using apis from package:sqlite3 or package:moor/ffi.dart.
+`package:sqlite3` v3 no longer ships SQLCipher. Projects using this package
+**must** configure `sqlite3` to use
+[SQLite3MultipleCiphers](https://utelle.github.io/SQLite3MultipleCiphers/)
+by adding the following to their **`pubspec.yaml`**:
 
-```dart
-Future<void> setupSqlCipher() async {
-  await applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
-  open.overrideFor(OperatingSystem.android, openCipherOnAndroid);
-}
+```yaml
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
 ```
 
-Declared in `package:sqlcipher_flutter_libs/sqlcipher_flutter_libs.dart`.
+Without this configuration, database encryption is not available and the SDK
+will throw an `UnsupportedError` at runtime.
+
+### New databases
+
+New databases are encrypted with the sqlite3mc default cipher. No additional
+configuration is needed beyond `PRAGMA key`.
+
+### Existing SQLCipher databases
+
+Databases created with the previous SQLCipher-based build are opened
+automatically in compatibility mode (`PRAGMA cipher = 'sqlcipher'` /
+`PRAGMA legacy = 4`). This is handled transparently — the SDK tries the
+default cipher first and falls back to SQLCipher compatibility mode when
+needed.
+
+> **Note:** Legacy mode is used only for reading existing SQLCipher databases.
+> It is [not recommended](https://utelle.github.io/SQLite3MultipleCiphers/docs/ciphers/cipher_legacy_mode/)
+> for new databases.
+
+See the [sqlite3 v3 upgrade guide](https://github.com/simolus3/sqlite3.dart/blob/main/UPGRADING_TO_V3.md#encryption)
+for more details.

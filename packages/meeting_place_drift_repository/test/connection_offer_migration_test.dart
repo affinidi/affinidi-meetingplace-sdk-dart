@@ -8,22 +8,24 @@ import 'package:test/test.dart';
 import 'utils/connection_offer_schema_versions.dart/schema.dart';
 
 ConnectionOfferDatabase _freshDatabase() => ConnectionOfferDatabase(
-      databaseName: 'connection_offer_migration_test.db',
-      passphrase: 'test-passphrase',
-      directory: Directory.systemTemp,
-      inMemory: true,
-    );
+  databaseName: 'connection_offer_migration_test.db',
+  passphrase: 'test-passphrase',
+  directory: Directory.systemTemp,
+  inMemory: true,
+);
 
 Future<String?> _field(
   ConnectionOfferDatabase db,
   String connectionOfferId,
   String column,
 ) async {
-  final rows = await db.customSelect(
-    'SELECT $column FROM connection_contact_cards'
-    ' WHERE connection_offer_id = ?',
-    variables: [Variable(connectionOfferId)],
-  ).get();
+  final rows = await db
+      .customSelect(
+        'SELECT $column FROM connection_contact_cards'
+        ' WHERE connection_offer_id = ?',
+        variables: [Variable(connectionOfferId)],
+      )
+      .get();
   return rows.isEmpty ? null : rows.first.read<String?>(column);
 }
 

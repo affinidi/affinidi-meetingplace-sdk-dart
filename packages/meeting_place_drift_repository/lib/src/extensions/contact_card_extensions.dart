@@ -1,30 +1,12 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 enum _ContactCardPaths {
-  firstName([
-    'n',
-    'given',
-  ]),
-  lastName([
-    'n',
-    'surname',
-  ]),
-  email([
-    'email',
-    'type',
-    'work',
-  ]),
-  mobile([
-    'tel',
-    'type',
-    'cell',
-  ]),
-  profilePic([
-    'photo',
-  ]),
-  meetingplaceIdentityCardColor([
-    'x-meetingplace-identity-card-color',
-  ]);
+  firstName(['n', 'given']),
+  lastName(['n', 'surname']),
+  email(['email', 'type', 'work']),
+  mobile(['tel', 'type', 'cell']),
+  profilePic(['photo']),
+  meetingplaceIdentityCardColor(['x-meetingplace-identity-card-color']);
 
   const _ContactCardPaths(this.paths);
   final List<String> paths;
@@ -84,53 +66,53 @@ extension ContactCardFieldsKeys on ContactCard {
   String get firstName =>
       _getContactCardPathValue(contactInfo, _ContactCardPaths.firstName.paths);
   set firstName(String value) => _setContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.firstName.paths,
-        value,
-      );
+    contactInfo,
+    _ContactCardPaths.firstName.paths,
+    value,
+  );
 
   String get lastName =>
       _getContactCardPathValue(contactInfo, _ContactCardPaths.lastName.paths);
   set lastName(String value) => _setContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.lastName.paths,
-        value,
-      );
+    contactInfo,
+    _ContactCardPaths.lastName.paths,
+    value,
+  );
 
   String get email =>
       _getContactCardPathValue(contactInfo, _ContactCardPaths.email.paths);
   set email(String value) => _setContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.email.paths,
-        value,
-      );
+    contactInfo,
+    _ContactCardPaths.email.paths,
+    value,
+  );
 
   String get mobile =>
       _getContactCardPathValue(contactInfo, _ContactCardPaths.mobile.paths);
   set mobile(String value) => _setContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.mobile.paths,
-        value,
-      );
+    contactInfo,
+    _ContactCardPaths.mobile.paths,
+    value,
+  );
 
   String get profilePic => _getContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.profilePic.paths,
-        defaultValue: '',
-      );
+    contactInfo,
+    _ContactCardPaths.profilePic.paths,
+    defaultValue: '',
+  );
   set profilePic(String value) => _setContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.profilePic.paths,
-        value,
-      );
+    contactInfo,
+    _ContactCardPaths.profilePic.paths,
+    value,
+  );
 
   String get meetingplaceIdentityCardColor => _getContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.meetingplaceIdentityCardColor.paths,
-      );
+    contactInfo,
+    _ContactCardPaths.meetingplaceIdentityCardColor.paths,
+  );
   set meetingplaceIdentityCardColor(String value) => _setContactCardPathValue(
-        contactInfo,
-        _ContactCardPaths.meetingplaceIdentityCardColor.paths,
-        value,
-      );
+    contactInfo,
+    _ContactCardPaths.meetingplaceIdentityCardColor.paths,
+    value,
+  );
 }

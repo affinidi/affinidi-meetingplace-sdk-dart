@@ -7,7 +7,6 @@ import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service_exception.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_session_manager.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:sqflite_common/sqflite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -533,6 +532,6 @@ class _NoOpDatabaseFactory implements MatrixDatabaseFactory {
   const _NoOpDatabaseFactory();
 
   @override
-  Future<Database?> openDatabase(MatrixDatabaseContext context) =>
+  Future<matrix.DatabaseApi?> openDatabase(MatrixDatabaseContext context) =>
       Future.value(null);
 }

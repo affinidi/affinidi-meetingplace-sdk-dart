@@ -1,6 +1,7 @@
 // external exports
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, MessageWrappingType, PlainTextMessage;
+export 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         ControlPlaneEventType,

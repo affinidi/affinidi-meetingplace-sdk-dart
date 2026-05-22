@@ -1,4 +1,4 @@
-import 'package:sqflite_common/sqflite.dart';
+import 'package:matrix/matrix.dart' show DatabaseApi;
 
 class MatrixConfig {
   const MatrixConfig({required this.homeserver, required this.databaseFactory});
@@ -20,19 +20,20 @@ class MatrixDatabaseContext {
 }
 
 abstract interface class MatrixDatabaseFactory {
-  Future<Database?> openDatabase(MatrixDatabaseContext context);
+  Future<DatabaseApi?> openDatabase(MatrixDatabaseContext context);
 }
 
 class CallbackMatrixDatabaseFactory implements MatrixDatabaseFactory {
   const CallbackMatrixDatabaseFactory({
-    required Future<Database?> Function(MatrixDatabaseContext context)
+    required Future<DatabaseApi?> Function(MatrixDatabaseContext context)
     openDatabase,
   }) : _openDatabase = openDatabase;
 
-  final Future<Database?> Function(MatrixDatabaseContext context) _openDatabase;
+  final Future<DatabaseApi?> Function(MatrixDatabaseContext context)
+  _openDatabase;
 
   @override
-  Future<Database?> openDatabase(MatrixDatabaseContext context) {
+  Future<DatabaseApi?> openDatabase(MatrixDatabaseContext context) {
     return _openDatabase(context);
   }
 }
@@ -46,7 +47,7 @@ class UnsupportedMatrixDatabaseFactory implements MatrixDatabaseFactory {
   final String message;
 
   @override
-  Future<Database?> openDatabase(MatrixDatabaseContext context) {
+  Future<DatabaseApi?> openDatabase(MatrixDatabaseContext context) {
     throw UnsupportedError(
       '$message userScope=${context.userScope}, '
       'databaseName=${context.databaseName}',

@@ -28,14 +28,17 @@ Uri getMatrixHomeserver() => switch (
       _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
     };
 
-Future<Database> _openMatrixDatabase(MatrixDatabaseContext context) async {
+Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();
   final directory = Directory(
     '${Directory.systemTemp.path}/meeting_place_core_example_matrix',
   );
   await directory.create(recursive: true);
-  return databaseFactoryFfi.openDatabase(
-    '${directory.path}/${context.databaseName}.sqlite',
+  return MatrixSdkDatabase.init(
+    context.databaseName,
+    database: await databaseFactoryFfi.openDatabase(
+      '${directory.path}/${context.databaseName}.sqlite',
+    ),
   );
 }
 

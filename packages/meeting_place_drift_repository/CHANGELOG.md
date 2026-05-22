@@ -1,3 +1,7 @@
+## 0.0.1-dev.40
+
+ - **REFACTOR**: database schema and update dependencies (#168).
+
 ## 0.0.1-dev.39
 
  - Update a dependency to the latest release.

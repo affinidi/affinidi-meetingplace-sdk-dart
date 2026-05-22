@@ -1,3 +1,7 @@
+## 0.0.1-dev.39
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.38
 
  - **FIX**: delete mediator messages individually after processing in fetchNewMessages (#178).

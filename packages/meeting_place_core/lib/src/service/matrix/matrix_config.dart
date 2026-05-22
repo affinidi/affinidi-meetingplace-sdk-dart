@@ -1,7 +1,13 @@
 import 'package:matrix/matrix.dart' show DatabaseApi;
+import '../config.dart';
 
-class MatrixConfig {
-  const MatrixConfig({required this.homeserver, required this.databaseFactory});
+class MatrixConfig extends Config {
+  const MatrixConfig({
+    required super.mediatorDid,
+    required super.controlPlaneDid,
+    required this.homeserver,
+    required this.databaseFactory,
+  });
 
   final Uri homeserver;
   final MatrixDatabaseFactory databaseFactory;

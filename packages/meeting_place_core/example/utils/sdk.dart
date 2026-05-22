@@ -43,6 +43,8 @@ Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
 }
 
 MatrixConfig getMatrixConfig() => MatrixConfig(
+      mediatorDid: getMediatorDid(),
+      controlPlaneDid: getControlPlaneDid(),
       homeserver: getMatrixHomeserver(),
       databaseFactory: const CallbackMatrixDatabaseFactory(
         openDatabase: _openMatrixDatabase,
@@ -63,9 +65,7 @@ Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
   return MeetingPlaceCoreSDK.create(
     wallet: wallet,
     repositoryConfig: getRepositoryConfig(),
-    mediatorDid: getMediatorDid(),
-    controlPlaneDid: getControlPlaneDid(),
-    matrixConfig: getMatrixConfig(),
+    config: getMatrixConfig(),
     logger: DefaultMeetingPlaceCoreSDKLogger(),
   );
 }

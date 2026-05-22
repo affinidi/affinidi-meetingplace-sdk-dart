@@ -17,6 +17,7 @@ import 'loggers/logger_adapter.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
 import 'service/channel/channel_service.dart';
+import 'service/config.dart';
 import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
@@ -73,9 +74,9 @@ import 'utils/cached_did_resolver.dart';
 /// final sdk = MeetingPlaceCoreSDK.create(
 ///   wallet: wallet,
 ///   repositoryConfig: repositoryConfig,
-///   mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
-///   controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
-///   matrixConfig: MatrixConfig(
+///   config: MatrixConfig(
+///     mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
+///     controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
 ///     homeserver: Uri.parse('https://matrix.example.com'),
 ///     databaseFactory: const UnsupportedMatrixDatabaseFactory(),
 ///   ),
@@ -198,8 +199,9 @@ class MeetingPlaceCoreSDK {
   /// different algorithms for signing and verifying VC and VP.
   /// - [repositoryConfig]: A repository object which defines the storage,
   /// group, key and channel repository objects.
-  /// - [mediatorDid]: The mediator DID.
-  /// - [controlPlaneDid]: The control plane DID.
+  /// - [config]: Base SDK configuration. Pass [MatrixConfig] to enable
+  ///   matrix-backed features, or [Config] for mediator/control-plane-only
+  ///   initialization.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
   ///
   /// **Returns:**
@@ -208,13 +210,13 @@ class MeetingPlaceCoreSDK {
   static Future<MeetingPlaceCoreSDK> create({
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
-    required String mediatorDid,
-    required String controlPlaneDid,
-    required MatrixConfig matrixConfig,
+    required Config config,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
     final methodName = 'create';
+    final mediatorDid = config.mediatorDid;
+    final controlPlaneDid = config.controlPlaneDid;
     final mpxLogger = LoggerAdapter(
       className: _className,
       sdkName: coreSDKName,
@@ -281,8 +283,20 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
+    if (config is! MatrixConfig) {
+      // TODO(MA): Allow creating a setup that does not need matrix and can work
+      // with any mediator that implements the expected interfaces,
+      // like in the original version of the SDK. This will require some
+      // refactoring to separate the core logic from matrix-specific
+      // implementations, but will make the SDK more flexible and adaptable to
+      // different environments and use cases.
+      throw UnsupportedError(
+        '''Unsupported config type. Expected MatrixConfig for this version of the SDK.''',
+      );
+    }
+
     final matrixService = MatrixService(
-      config: matrixConfig,
+      config: config,
       controlPlaneSDK: controlPlaneSDK,
     );
 

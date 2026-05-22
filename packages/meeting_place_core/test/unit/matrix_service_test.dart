@@ -64,6 +64,8 @@ const _testRoomId = '!room123:matrix.example.com';
 final _testHomeserver = Uri.parse('https://matrix.example.com');
 
 MatrixConfig _fakeConfig() => MatrixConfig(
+  mediatorDid: 'did:test:mediator',
+  controlPlaneDid: 'did:test:control-plane',
   homeserver: _testHomeserver,
   databaseFactory: const _NoOpDatabaseFactory(),
 );

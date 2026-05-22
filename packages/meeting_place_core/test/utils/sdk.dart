@@ -29,6 +29,8 @@ Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
 }
 
 MatrixConfig getMatrixConfig() => MatrixConfig(
+  mediatorDid: getMediatorDid(),
+  controlPlaneDid: getControlPlaneDid(),
   homeserver: getMatrixHomeserver(),
   databaseFactory: const CallbackMatrixDatabaseFactory(
     openDatabase: _openMatrixDatabase,
@@ -53,9 +55,7 @@ Future<MeetingPlaceCoreSDK> initSDKInstance({
       channelRepository:
           channelRepository ?? ChannelRepositoryImpl(storage: storage),
     ),
-    mediatorDid: getMediatorDid(),
-    controlPlaneDid: getControlPlaneDid(),
-    matrixConfig: getMatrixConfig(),
+    config: getMatrixConfig(),
   );
 
   if (!withoutDevice) {

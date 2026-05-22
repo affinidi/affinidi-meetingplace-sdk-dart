@@ -2,6 +2,7 @@
 
 library;
 
+export 'src/exceptions/meeting_place_core_repository_error_code.dart';
 export 'src/exceptions/meeting_place_core_repository_exception.dart';
 export 'src/repositories/channel_repository/channel_database.dart';
 export 'src/repositories/channel_repository/channel_repository_drift.dart';

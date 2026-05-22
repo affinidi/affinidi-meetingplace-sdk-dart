@@ -23,7 +23,10 @@ enum MeetingPlaceCoreRepositoryErrorCode {
   missingMessage('missing_message'),
 
   /// Unsupported message type exception.
-  unsupportedMessageType('unsupported_message_type');
+  unsupportedMessageType('unsupported_message_type'),
+
+  /// Database encryption is not available on this platform build.
+  encryptionNotAvailable('encryption_not_available');
 
   const MeetingPlaceCoreRepositoryErrorCode(this.value);
   final String value;

@@ -9,6 +9,7 @@ import '../model/r_card_constants.dart';
 
 /// Parses R-Card VC blobs and extracts verified [RCard] instances.
 class RCardParser {
+  /// Creates an [RCardParser], optionally injecting a [logger].
   RCardParser({MeetingPlaceCoreSDKLogger? logger})
     : _logger =
           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardParser');

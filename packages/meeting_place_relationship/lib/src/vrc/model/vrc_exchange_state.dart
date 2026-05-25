@@ -3,6 +3,7 @@
 /// Passed to the VRC protocol handler to determine the correct
 /// protocol response without the caller re-threading four separate flags.
 class VrcExchangeState {
+  /// Creates a [VrcExchangeState] snapshot for a given channel.
   const VrcExchangeState({
     required this.hasVrcExchangeInitiated,
     required this.hasVrcRequestReceived,

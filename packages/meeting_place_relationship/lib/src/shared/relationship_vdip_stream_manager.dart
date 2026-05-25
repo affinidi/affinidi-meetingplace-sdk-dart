@@ -16,6 +16,8 @@ enum _RelationshipCredentialType { rCard, vrc, unknown }
 /// credential messages are classified once and then routed to the matching
 /// relationship stream.
 class RelationshipVdipStreamManager {
+  /// Creates a [RelationshipVdipStreamManager] that subscribes to
+  /// [incomingVdipMessages] and routes each message to the appropriate stream.
   RelationshipVdipStreamManager({
     required Stream<PlainTextMessage> incomingVdipMessages,
     required MeetingPlaceCoreSDKLogger logger,

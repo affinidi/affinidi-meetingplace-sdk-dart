@@ -14,6 +14,8 @@ import 'parser/r_card_parser.dart';
 /// parsing and verification to [RCardParser], and forwards valid results to
 /// the [stream].
 class RCardChannelStreamManager {
+  /// Creates an [RCardChannelStreamManager] that subscribes to
+  /// [channelAttachments] and forwards valid R-Cards to [stream].
   RCardChannelStreamManager({
     required Stream<ChannelAttachmentEvent> channelAttachments,
     required RCardParser parser,

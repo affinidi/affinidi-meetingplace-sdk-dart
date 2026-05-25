@@ -11,6 +11,7 @@ workspace:
   - packages/meeting_place_mediator
   - packages/meeting_place_drift_repository
   - packages/meeting_place_relationship
+  - packages/meeting_place_relationship/example
 
 environment:
   sdk: ">=3.10.0 <4.0.0"

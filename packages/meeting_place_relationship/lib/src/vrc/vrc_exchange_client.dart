@@ -14,6 +14,8 @@ import 'model/vrc_party.dart';
 /// Handles outbound VRC operations over VDIP, with retry/backoff on
 /// mediator ACL denials.
 class VrcExchangeClient {
+  /// Creates a [VrcExchangeClient] backed by [coreSDK] for outbound VDIP
+  /// operations.
   VrcExchangeClient({
     required MeetingPlaceCoreSDK coreSDK,
     required MeetingPlaceCoreSDKLogger logger,

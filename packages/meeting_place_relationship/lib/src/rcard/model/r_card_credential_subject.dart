@@ -2,6 +2,7 @@ import 'j_card.dart';
 
 /// The structured credential subject of an R-Card VC.
 class RCardCredentialSubject {
+  /// Creates an [RCardCredentialSubject] with the given contact fields.
   const RCardCredentialSubject({
     required this.id,
     this.name,
@@ -59,16 +60,28 @@ class RCardCredentialSubject {
     );
   }
 
+  /// DID of the credential subject.
   final String id;
+
+  /// Full display name derived from `firstName` + `lastName` in the jCard.
   final String? name;
+
+  /// Profile picture URL or base64-encoded data URI.
   final String? profilePic;
+
+  /// Email address.
   final String? email;
+
+  /// Phone number.
   final String? phone;
+
+  /// Physical address string.
   final String? address;
 
   /// Any non-standard fields present in the credential subject.
   final Map<String, dynamic>? additionalFields;
 
+  /// Serialises this [RCardCredentialSubject] to a JSON map.
   Map<String, dynamic> toJson() => {
     'id': id,
     if (name != null) 'name': name,

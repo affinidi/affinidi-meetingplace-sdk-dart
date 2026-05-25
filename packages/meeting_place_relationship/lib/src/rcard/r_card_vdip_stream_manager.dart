@@ -14,6 +14,8 @@ import 'parser/r_card_parser.dart';
 /// credential format, delegates parsing and signature verification to
 /// [RCardParser], and forwards valid results to [stream].
 class RCardVdipStreamManager {
+  /// Creates an [RCardVdipStreamManager] that subscribes to
+  /// [incomingVdipMessages] and forwards valid R-Cards to [stream].
   RCardVdipStreamManager({
     required Stream<PlainTextMessage> incomingVdipMessages,
     required RCardParser parser,

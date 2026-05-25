@@ -8,6 +8,7 @@ import '../model/vrc_constants.dart';
 
 /// Parses and verifies Verifiable Relationship Credential (VRC) blobs.
 class VrcParser {
+  /// Creates a [VrcParser], optionally injecting a [logger].
   VrcParser({MeetingPlaceCoreSDKLogger? logger})
     : _logger =
           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'VrcParser');

@@ -51,7 +51,14 @@ class VrcCredentialSubject {
       log.warning(message);
       throw const FormatException(message);
     }
-    return VrcCredentialSubject.fromJson(subject);
+    try {
+      return VrcCredentialSubject.fromJson(subject);
+    } catch (error, stackTrace) {
+      const message =
+          'VRC credentialSubject is missing required from/to fields';
+      log.error(message, error: error, stackTrace: stackTrace);
+      throw FormatException('$message: $error');
+    }
   }
 
   /// Serialises this [VrcCredentialSubject] to a JSON map.

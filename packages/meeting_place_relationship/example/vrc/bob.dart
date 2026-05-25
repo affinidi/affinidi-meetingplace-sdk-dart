@@ -42,8 +42,9 @@ Future<void> main() async {
   // ── 3. Parse Alice's VRC and inspect the relationship subject ─────────
   prettyPrintGreen('>>> Parsing Alice\'s VRC credential subject');
 
-  // VrcCredentialSubject.fromVcBlob parses and validates the DM v2 envelope.
-  // It throws a FormatException when the blob is not a valid VRC.
+  // VrcCredentialSubject.fromVcBlob parses the DM v2 envelope and extracts
+  // the credentialSubject. It may throw a FormatException for malformed input,
+  // but does not validate the VRC type or verify the proof/signature.
   final subject = VrcCredentialSubject.fromVcBlob(aliceVcBlob);
   prettyPrintYellow('VRC from : ${subject.from.did} (${subject.from.name})');
   prettyPrintYellow('VRC to   : ${subject.to.did} (${subject.to.name})');

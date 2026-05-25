@@ -20,10 +20,10 @@ Future<void> main() async {
   final vcBlob = blobFile.readAsStringSync();
   prettyPrintYellow('VC blob read (${vcBlob.length} chars)');
 
-  // ── 2. Parse and verify the R-Card subject ────────────────────────────
+  // ── 2. Parse the R-Card subject ─────────────────────────────────────────
   prettyPrintGreen('>>> Parsing R-Card subject from VC blob');
 
-  // RCardSubject.fromVcBlob parses and signature-verifies the credential.
+  // RCardSubject.fromVcBlob parses the VC blob and extracts the subject.
   // It throws a FormatException when the blob is not a valid DM v2 R-Card.
   final subject = RCardSubject.fromVcBlob(vcBlob);
 

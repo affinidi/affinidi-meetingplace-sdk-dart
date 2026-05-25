@@ -11,6 +11,18 @@ void main() {
       expect(() => RCardSubject.fromVcBlob('{}'), throwsFormatException);
     });
 
+    test('fromVcBlob throws FormatException for a DM v1 R-Card blob', () {
+      const v1Blob =
+          '{"@context":["https://www.w3.org/2018/credentials/v1",'
+          '"https://schema.affinidi.io/TRelationshipCardV1R0.jsonld"],'
+          '"type":["VerifiableCredential","RelationshipCard"],'
+          '"issuer":"did:example:issuer",'
+          '"issuanceDate":"2024-01-01T00:00:00Z",'
+          '"credentialSubject":{"id":"did:example:subject"}}'
+          '}'; // DM v1 — tryParse must reject this
+      expect(() => RCardSubject.fromVcBlob(v1Blob), throwsFormatException);
+    });
+
     test('name concatenates first and last name', () {
       const subject = RCardSubject(firstName: 'Alice', lastName: 'Smith');
       expect(subject.name, 'Alice Smith');

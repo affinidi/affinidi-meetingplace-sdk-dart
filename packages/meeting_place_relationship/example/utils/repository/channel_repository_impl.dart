@@ -3,15 +3,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../storage.dart';
 
-class ConnectionOfferNotFoundException implements Exception {
-  ConnectionOfferNotFoundException(this.offerLink);
-  final String offerLink;
-
-  @override
-  String toString() =>
-      '''ConnectionOfferNotFoundException: connection offer not found for $offerLink''';
-}
-
 class ChannelRepositoryImpl implements ChannelRepository {
   ChannelRepositoryImpl({required InMemoryStorage storage})
     : _storage = storage;

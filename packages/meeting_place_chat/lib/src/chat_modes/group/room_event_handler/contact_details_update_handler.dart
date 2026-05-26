@@ -6,7 +6,7 @@ import '../../../events/chat_event_conversion.dart';
 import '../../../stream/chat_stream.dart';
 import '../../../events/stream_data.dart';
 import '../../../transport/matrix/matrix_user_id_cache.dart';
-import '../../../sdk/base_chat_sdk.dart';
+import '../../base_chat_sdk.dart';
 import '../../../transport/matrix/incoming/room_event_handler.dart';
 
 class ContactDetailsUpdateHandler implements RoomEventHandler {

@@ -1,4 +1,4 @@
-import '../../meeting_place_chat.dart';
+import '../meeting_place_chat.dart';
 
 /// [ChatSDKOptions] defines configurable options for the [MeetingPlaceChatSDK],
 /// controlling behaviors such as presence intervals and activity expiry.

@@ -338,10 +338,7 @@ class ChannelService {
   /// Advances [Channel.matrixSyncMarker] to [eventId] and persists the change.
   /// Used after a Matrix history fetch or after delivering an event from a
   /// live subscription, so that future fetches return only newer events.
-  Future<void> updateMatrixSyncMarker(
-    Channel channel,
-    String eventId,
-  ) async {
+  Future<void> updateMatrixSyncMarker(Channel channel, String eventId) async {
     if (channel.matrixSyncMarker == eventId) return;
     channel.matrixSyncMarker = eventId;
     return _channelRepository.updateChannel(channel);

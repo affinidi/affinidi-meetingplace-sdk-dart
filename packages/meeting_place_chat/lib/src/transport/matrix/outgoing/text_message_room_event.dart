@@ -10,6 +10,7 @@ class TextMessageRoomEvent extends MatrixOutgoingMessage {
     required super.senderDid,
     required super.roomId,
     required String text,
+    super.notification,
   }) : super(
          type: EventTypes.Message,
          content: {'body': text, 'msgtype': 'm.text'},

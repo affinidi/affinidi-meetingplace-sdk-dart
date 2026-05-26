@@ -222,7 +222,15 @@ abstract class BaseChatSDK {
     List<ChatAttachment>? attachments,
   }) async {
     final message = await _sendRoomEventMessage(
-      TextMessageRoomEvent(senderDid: did, roomId: roomId, text: text),
+      TextMessageRoomEvent(
+        senderDid: did,
+        roomId: roomId,
+        text: text,
+        notification: ChannelNotification(
+          recipientDid: otherPartyDid,
+          type: 'chat-activity',
+        ),
+      ),
     );
 
     _logger.info(
@@ -502,7 +510,6 @@ abstract class BaseChatSDK {
     MatrixOutgoingMessage outgoing,
   ) async {
     try {
-      // TODO: How to notify?
       return await coreSDK.sendMessage(outgoing);
     } on MeetingPlaceCoreSDKException catch (e) {
       final isNotificationError =

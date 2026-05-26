@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -132,6 +132,19 @@ class ChannelDatabase extends _$ChannelDatabase {
               channels.matrixSyncMarker,
             );
           }
+          if (from < 6 && to >= 6) {
+            await migrator.addColumn(
+              channels,
+              channels.transport,
+            );
+            // Backfill transport from existing rows: matrix when the row has a
+            // matrix_room_id, didcomm otherwise. Numeric value matches
+            // [_ChannelTransportValue.value].
+            await customStatement(
+              'UPDATE channels SET transport = 2 '
+              'WHERE matrix_room_id IS NOT NULL',
+            );
+          }
         },
       );
 }
@@ -157,6 +170,15 @@ class Channels extends Table {
 
   /// Type of the channel.
   IntColumn get type => integer().map(const _ChannelTypeConverter())();
+
+  /// Transport used by the channel.
+  ///
+  /// Defaults to `didcomm` (value `1`) so existing rows have a sane value when
+  /// the column is added by the v5→v6 migration. The migration then backfills
+  /// rows with a `matrix_room_id` to `matrix` (value `2`).
+  IntColumn get transport => integer()
+      .map(const _ChannelTransportConverter())
+      .withDefault(const Constant(1))();
 
   /// Indicates whether the channel was initiated by the local party or the
   /// other party.
@@ -308,6 +330,31 @@ class _ChannelTypeConverter extends TypeConverter<ChannelType, int> {
 
   @override
   int toSql(ChannelType value) {
+    return value.value;
+  }
+}
+
+extension _ChannelTransportValue on ChannelTransport {
+  int get value {
+    switch (this) {
+      case ChannelTransport.didcomm:
+        return 1;
+      case ChannelTransport.matrix:
+        return 2;
+    }
+  }
+}
+
+class _ChannelTransportConverter extends TypeConverter<ChannelTransport, int> {
+  const _ChannelTransportConverter();
+
+  @override
+  ChannelTransport fromSql(int fromDb) {
+    return ChannelTransport.values.firstWhere((p) => p.value == fromDb);
+  }
+
+  @override
+  int toSql(ChannelTransport value) {
     return value.value;
   }
 }

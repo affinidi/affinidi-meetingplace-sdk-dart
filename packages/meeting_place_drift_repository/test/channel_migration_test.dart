@@ -263,4 +263,84 @@ void main() {
       await db.close();
     });
   });
+
+  group('v5 → v6 schema migration', () {
+    test('produces the correct v6 schema', () async {
+      final connection = await verifier.startAt(5);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 6);
+      await db.close();
+    });
+
+    test(
+      'adds transport column and backfills matrix when matrix_room_id is set',
+      () async {
+        final schema = await verifier.schemaAt(5);
+
+        // Channel without a matrix_room_id → must backfill to didcomm (1).
+        schema.rawDatabase.execute('''
+        INSERT INTO channels VALUES (
+          'ch-didcomm',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-didcomm',
+          1,
+          1,
+          0,
+          NULL,
+          NULL,
+          'did:example:permanent-didcomm',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          0,
+          NULL,
+          NULL
+        )
+      ''');
+
+        // Channel with a matrix_room_id → must backfill to matrix (2).
+        schema.rawDatabase.execute('''
+        INSERT INTO channels VALUES (
+          'ch-matrix',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-matrix',
+          1,
+          2,
+          0,
+          NULL,
+          NULL,
+          'did:example:permanent-matrix',
+          NULL,
+          NULL,
+          NULL,
+          '!room:matrix.org',
+          NULL,
+          0,
+          NULL,
+          NULL
+        )
+      ''');
+
+        final db = ChannelDatabase.forTesting(schema.newConnection());
+        await verifier.migrateAndValidate(db, 6);
+
+        final rows = await db
+            .customSelect(
+              'SELECT id, transport FROM channels ORDER BY id',
+            )
+            .get();
+        final byId = {
+          for (final r in rows) r.read<String>('id'): r.read<int>('transport'),
+        };
+        expect(byId['ch-didcomm'], equals(1));
+        expect(byId['ch-matrix'], equals(2));
+
+        await db.close();
+      },
+    );
+  });
 }

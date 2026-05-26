@@ -150,6 +150,7 @@ class MeetingPlaceCoreSDK {
     required SDKErrorHandler sdkErrorHandler,
     required DIDCommTransport didcommTransport,
     required MatrixService matrixService,
+    required MessageService messageService,
     required Future<DidManager> Function(String did) getDidManager,
   }) : _repositoryConfig = repositoryConfig,
        _mediatorSDK = mediatorSDK,
@@ -167,6 +168,7 @@ class MeetingPlaceCoreSDK {
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
        _matrixService = matrixService,
+       _messageService = messageService,
        _getDidManager = getDidManager,
        didcomm = didcommTransport;
 
@@ -188,6 +190,7 @@ class MeetingPlaceCoreSDK {
 
   final DIDCommTransport didcomm;
   final MatrixService _matrixService;
+  final MessageService _messageService;
   final Future<DidManager> Function(String did) _getDidManager;
 
   String _mediatorDid;
@@ -465,6 +468,7 @@ class MeetingPlaceCoreSDK {
       sdkErrorHandler: sdkErrorHandler,
       didcommTransport: didcommTransport,
       matrixService: matrixService,
+      messageService: messageService,
       getDidManager: matrixTransportGetDidManager,
     );
   }
@@ -1095,12 +1099,7 @@ class MeetingPlaceCoreSDK {
   Future<String?> sendMessage(OutgoingMessage message) async {
     return _withSdkExceptionHandling(() async {
       return switch (message) {
-        MatrixOutgoingMessage m => await _matrixService.sendRoomEvent(
-          m.roomId,
-          m.type,
-          m.content,
-          didManager: await _getDidManager(m.senderDid),
-        ),
+        MatrixOutgoingMessage m => await _sendMatrixOutgoing(m),
         DidCommOutgoingMessage m =>
           await didcomm
               .sendMessage(
@@ -1204,6 +1203,29 @@ class MeetingPlaceCoreSDK {
     final channel = await _channelService.findChannelByDidOrNull(receiverDid);
     if (channel == null) return;
     await _channelService.updateMatrixSyncMarker(channel, eventId);
+  }
+
+  Future<String?> _sendMatrixOutgoing(MatrixOutgoingMessage m) async {
+    final eventId = await _matrixService.sendRoomEvent(
+      m.roomId,
+      m.type,
+      m.content,
+      didManager: await _getDidManager(m.senderDid),
+    );
+
+    final notification = m.notification;
+    if (notification != null) {
+      unawaited(
+        _messageService
+            .notifyChannel(
+              recipientDid: notification.recipientDid,
+              notifyChannelType: notification.type,
+            )
+            .catchError((Object _, StackTrace __) {}),
+      );
+    }
+
+    return eventId;
   }
 
   /// Whether [event] represents a real timeline event whose id should be used

@@ -221,6 +221,7 @@ class GroupService {
         status: ChannelStatus.inaugurated,
         contactCard: card,
         type: ChannelType.group,
+        transport: ChannelTransport.matrix,
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,

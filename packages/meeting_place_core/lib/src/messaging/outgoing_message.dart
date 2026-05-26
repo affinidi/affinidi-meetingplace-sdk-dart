@@ -26,11 +26,33 @@ abstract class MatrixOutgoingMessage extends OutgoingMessage {
     required this.roomId,
     required this.type,
     required this.content,
+    this.notification,
   });
 
   final String roomId;
   final String type;
   final Map<String, dynamic> content;
+
+  /// When set, the core SDK fires a fire-and-forget control-plane channel
+  /// notification after the room event is delivered to the homeserver.
+  final ChannelNotification? notification;
+}
+
+/// Parameters required to dispatch a control-plane channel notification for
+/// a [MatrixOutgoingMessage].
+class ChannelNotification {
+  const ChannelNotification({
+    required this.recipientDid,
+    required this.type,
+  });
+
+  /// DID of the recipient whose `Channel.otherPartyNotificationToken` is
+  /// used to address the notification.
+  final String recipientDid;
+
+  /// Notification type passed to `NotifyChannelCommand` (e.g. `chat-activity`,
+  /// `chat-message`).
+  final String type;
 }
 
 /// An [OutgoingMessage] routed through the DIDComm transport.

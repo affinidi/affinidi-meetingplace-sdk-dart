@@ -85,6 +85,7 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
+      matrixService: matrixService,
       options: options,
       logger: _logger,
     );

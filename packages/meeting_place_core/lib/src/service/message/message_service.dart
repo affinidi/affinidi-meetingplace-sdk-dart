@@ -53,7 +53,7 @@ class MessageService {
     if (notifyChannelType == null) return;
 
     unawaited(
-      _notifyChannel(
+      notifyChannel(
         recipientDid: recipientDid,
         notifyChannelType: notifyChannelType,
       ).catchError((Object e, StackTrace _) {
@@ -66,7 +66,10 @@ class MessageService {
     );
   }
 
-  Future<void> _notifyChannel({
+  /// Fires a control-plane channel notification for [recipientDid] using the
+  /// stored [Channel.otherPartyNotificationToken]. No-op when the channel or
+  /// its other-party token is unknown.
+  Future<void> notifyChannel({
     required String recipientDid,
     required String notifyChannelType,
   }) async {

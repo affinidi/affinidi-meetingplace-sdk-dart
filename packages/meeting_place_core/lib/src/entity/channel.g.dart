@@ -16,6 +16,9 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       ? null
       : ContactCard.fromJson(json['contactCard'] as Map<String, dynamic>),
   type: $enumDecode(_$ChannelTypeEnumMap, json['type']),
+  transport:
+      $enumDecodeNullable(_$ChannelTransportEnumMap, json['transport']) ??
+      ChannelTransport.didcomm,
   isConnectionInitiator: json['isConnectionInitiator'] as bool,
   otherPartyContactCard: json['otherPartyContactCard'] == null
       ? null
@@ -44,6 +47,7 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'mediatorDid': instance.mediatorDid,
   'offerLink': instance.offerLink,
   'type': _$ChannelTypeEnumMap[instance.type]!,
+  'transport': _$ChannelTransportEnumMap[instance.transport]!,
   'isConnectionInitiator': instance.isConnectionInitiator,
   'contactCard': ?instance.contactCard?.toJson(),
   'otherPartyContactCard': ?instance.otherPartyContactCard?.toJson(),
@@ -55,8 +59,8 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
   'matrixRoomId': ?instance.matrixRoomId,
-  'externalRef': ?instance.externalRef,
   'matrixSyncMarker': ?instance.matrixSyncMarker,
+  'externalRef': ?instance.externalRef,
   'seqNo': instance.seqNo,
   'messageSyncMarker': ?instance.messageSyncMarker?.toIso8601String(),
 };
@@ -71,4 +75,9 @@ const _$ChannelTypeEnumMap = {
   ChannelType.individual: 'individual',
   ChannelType.group: 'group',
   ChannelType.oob: 'oob',
+};
+
+const _$ChannelTransportEnumMap = {
+  ChannelTransport.didcomm: 'didcomm',
+  ChannelTransport.matrix: 'matrix',
 };

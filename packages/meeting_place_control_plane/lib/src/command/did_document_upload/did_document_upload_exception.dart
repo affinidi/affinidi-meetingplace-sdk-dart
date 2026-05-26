@@ -11,6 +11,17 @@ class UploadDidDocumentException implements ControlPlaneException {
     this.innerException,
   });
 
+  /// Creates an `alreadyRegistered` [UploadDidDocumentException] instance.
+  ///
+  /// Thrown when the server returns HTTP 409 Conflict, meaning a DID Document
+  /// for this DID has already been registered.
+  factory UploadDidDocumentException.alreadyRegistered() {
+    return UploadDidDocumentException._(
+      message: 'DID document upload failed: already registered.',
+      code: ControlPlaneSDKErrorCode.uploadDidDocumentAlreadyRegistered,
+    );
+  }
+
   /// Creates a `generic` [UploadDidDocumentException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual

@@ -97,6 +97,7 @@ enum ControlPlaneSDKErrorCode {
 
   // upload did document codes
   uploadDidDocumentGeneric('upload_did_document_generic'),
+  uploadDidDocumentAlreadyRegistered('upload_did_document_already_registered'),
 
   // resolve did document codes
   resolveDidDocumentInvalidDid('resolve_did_document_invalid_did'),

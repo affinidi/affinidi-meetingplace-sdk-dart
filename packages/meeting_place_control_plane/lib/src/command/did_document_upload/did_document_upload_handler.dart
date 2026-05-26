@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
@@ -70,6 +73,23 @@ class UploadDidDocumentHandler
       );
       _logger.info('Uploaded DID document: ${record.did}', name: methodName);
       return UploadDidDocumentCommandOutput(record: record);
+    } on DioException catch (e, stackTrace) {
+      if (e.response?.statusCode == HttpStatus.conflict) {
+        _logger.warning('DID document already registered', name: methodName);
+        Error.throwWithStackTrace(
+          UploadDidDocumentException.alreadyRegistered(),
+          stackTrace,
+        );
+      }
+      _logger.error(
+        'Failed to upload DID document',
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      Error.throwWithStackTrace(
+        UploadDidDocumentException.generic(innerException: e),
+        stackTrace,
+      );
     } catch (e, stackTrace) {
       // Do not pass `error: e` to the logger: DioException carries
       // requestOptions.data which contains the JWS proof payloads.

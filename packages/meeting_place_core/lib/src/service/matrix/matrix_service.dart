@@ -7,6 +7,7 @@ import 'package:ssi/ssi.dart';
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
 import 'matrix_session_manager.dart';
+import 'matrix_room_event.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.

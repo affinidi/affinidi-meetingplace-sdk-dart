@@ -11,8 +11,10 @@ class UploadDidDocumentCommand
   /// **Parameters:**
   /// - [didDocument]: The DID Document JSON map. Must contain an `id` field
   /// set to a valid `did:web` DID.
-  /// - [controlProof]: Detached JWS signed by the `controlDid` key.
-  /// - [proof]: Detached JWS signed by the `#auth` key inside [didDocument].
+  /// - [controlProof]: Compact JWS with an embedded payload, signed by the
+  ///   `controlDid` key.
+  /// - [proof]: Compact JWS with an embedded payload, signed by the `#auth`
+  ///   key inside [didDocument].
   /// Both proofs are required by the MPX Matrix Integration ADR.
   UploadDidDocumentCommand({
     required this.didDocument,

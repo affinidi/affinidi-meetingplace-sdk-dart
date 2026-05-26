@@ -168,9 +168,10 @@ class ControlPlaneApiClient {
   ///
   /// The [didDocument] map must contain an `id` field set to a valid
   /// `did:web` DID of the form `did:web:<host>:user:<segment>`.
-  /// [controlProof] is a detached JWS signed by the `controlDid` key.
-  /// [proof] is a detached JWS signed by the new `#auth` key inside
-  /// [didDocument].
+  /// [controlProof] is a compact JWS with an embedded payload, signed by the
+  /// `controlDid` key.
+  /// [proof] is a compact JWS with an embedded payload, signed by the new
+  /// `#auth` key inside [didDocument].
   Future<DidDocumentHostingRecord> uploadDidDocument(
     Map<String, dynamic> didDocument, {
     required DidWebProof controlProof,

@@ -1,4 +1,5 @@
-/// A detached JWS proof as required by the did:web DID Document upload flow.
+/// A compact JWS proof with an embedded payload as required by the did:web DID
+/// Document upload flow.
 ///
 /// Both `controlProof` (signed by the `controlDid` key) and `proof` (signed by
 /// the new `#auth` key in the DID Document) share this structure.
@@ -12,8 +13,8 @@ class DidWebProof {
   /// - [verificationMethod]: Key identifier used to sign the proof,
   /// e.g. `did:web:<host>:user:<segment>#auth`.
   /// - [proofPurpose]: The intended purpose. Expected value: `authentication`.
-  /// - [jws]: Detached JWS over the canonical proof payload
-  /// (base64url, no padding).
+  /// - [jws]: Compact JWS with an embedded payload over the canonical proof
+  ///   payload (base64url, no padding).
   DidWebProof({
     required this.type,
     required this.created,
@@ -67,7 +68,8 @@ class DidWebProof {
   /// The intended proof purpose. Expected value: `authentication`.
   final String proofPurpose;
 
-  /// Detached JWS over the canonical proof payload (base64url, no padding).
+  /// Compact JWS with an embedded payload over the canonical proof payload
+  /// (base64url, no padding).
   final String jws;
 
   Map<String, dynamic> toJson() {

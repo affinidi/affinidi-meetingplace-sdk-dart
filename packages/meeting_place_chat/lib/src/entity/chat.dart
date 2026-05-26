@@ -20,6 +20,12 @@ class Chat {
   /// - [messages]: The list of [ChatItem]s (messages) that belong to this chat.
   Chat({required this.id, required this.stream, required this.messages});
 
+  /// Derives a stable chat id from the two participating DIDs.
+  static String deriveId({
+    required String did,
+    required String otherPartyDid,
+  }) => '$did-$otherPartyDid';
+
   /// Unique identifier for this chat.
   final String id;
 

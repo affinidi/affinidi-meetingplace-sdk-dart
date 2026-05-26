@@ -81,6 +81,8 @@ class UploadDidDocumentHandler
           stackTrace,
         );
       }
+      // Do not pass `error: e` to the logger: DioException carries
+      // requestOptions.data which contains the JWS proof payloads.
       _logger.error(
         'Failed to upload DID document',
         stackTrace: stackTrace,
@@ -91,10 +93,9 @@ class UploadDidDocumentHandler
         stackTrace,
       );
     } catch (e, stackTrace) {
-      // Do not pass `error: e` to the logger: DioException carries
-      // requestOptions.data which contains the JWS proof payloads.
       _logger.error(
         'Failed to upload DID document',
+        error: e,
         stackTrace: stackTrace,
         name: methodName,
       );

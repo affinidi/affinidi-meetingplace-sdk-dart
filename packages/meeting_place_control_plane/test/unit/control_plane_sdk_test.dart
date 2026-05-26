@@ -56,4 +56,26 @@ void main() {
     expect(output.didDocument.id, hostedDid);
     expect(sdk.isInitialized, isFalse);
   });
+
+  test(
+    'ResolveDidDocumentCommand accepts did:web hosts with encoded ports',
+    () async {
+      const controlPlaneDid = 'did:web:control.example.com';
+      const hostedDid = 'did:web:example.com%3A3000:user:alice';
+
+      final resolver = _FakeDidResolver({hostedDid: _didDocument(hostedDid)});
+
+      final sdk = await _buildSdk(
+        controlPlaneDid: controlPlaneDid,
+        didResolver: resolver,
+      );
+
+      final output = await sdk.execute(
+        ResolveDidDocumentCommand(did: hostedDid),
+      );
+
+      expect(output.didDocument.id, hostedDid);
+      expect(sdk.isInitialized, isFalse);
+    },
+  );
 }

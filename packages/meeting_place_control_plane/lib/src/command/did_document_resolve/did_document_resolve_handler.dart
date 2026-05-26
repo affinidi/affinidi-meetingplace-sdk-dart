@@ -91,10 +91,22 @@ class ResolveDidDocumentHandler
   }
 
   /// Returns true if [did] is a syntactically valid did:web identifier.
-  ///
-  /// Rejects percent-encoded characters to block port-injection attacks
-  /// (e.g. `did:web:host%3A8080:path`).
   static bool _isValidDidWeb(String did) {
-    return did.startsWith('did:web:') && did.length > 8 && !did.contains('%');
+    if (!did.startsWith('did:web:') || did.length <= 8) {
+      return false;
+    }
+
+    final methodSpecificId = did.substring('did:web:'.length);
+    final host = methodSpecificId.split(':').first;
+    if (host.isEmpty) {
+      return false;
+    }
+
+    try {
+      Uri.decodeComponent(host);
+      return true;
+    } on FormatException {
+      return false;
+    }
   }
 }

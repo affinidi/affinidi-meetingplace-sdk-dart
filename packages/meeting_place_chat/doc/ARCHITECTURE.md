@@ -17,7 +17,7 @@ lib/
 
     chat/                            — ChatSDK implementations
       base_chat_sdk.dart             — abstract base class
-      group/                         — GroupChatSDK + handlers, actions, listeners, factories
+      group/                         — GroupChatSDK + handlers, actions, listeners, factories, chat_history_service
       individual/                    — IndividualChatSDK
 
     entity/                          — domain models
@@ -34,7 +34,7 @@ lib/
       matrix/                        — Matrix transport (outgoing/, incoming/, cache)
       didcomm/                       — DIDComm transport (outgoing/, protocol/, chat_protocol.dart)
 
-    repository/                      — persistence interface + history service
+    repository/                      — persistence interface (ChatRepository)
 
     loggers/                         — logging primitives and formatters
 ```

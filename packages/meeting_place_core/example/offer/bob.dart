@@ -14,7 +14,7 @@ void main() async {
 
   // Bob registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
-  final notification = await bobSDK.registerForDIDCommNotifications();
+  final notification = await bobSDK.didcomm.registerForNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
@@ -65,7 +65,7 @@ void main() async {
   // Listen to mediator stream using notification DID
   prettyPrintGreen('>>> Calling SDK.subscribeToMediator');
   final notificationStream =
-      await bobSDK.subscribeToMediator(notificationDidDocument.id);
+      await bobSDK.didcomm.subscribe(notificationDidDocument.id);
 
   prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream.listen((data) async {
@@ -78,6 +78,10 @@ void main() async {
   prettyPrintYellow('>>> Received offer finalised event');
   prettyPrintYellow('Event type: ${offerFinalisedEvent.type.name}');
   prettyJsonPrintYellow('Channel:', offerFinalisedEvent.channel);
+  prettyJsonPrintYellow(
+    'Matrix room ID:',
+    offerFinalisedEvent.channel.matrixRoomId!,
+  );
 
   await notificationStream.dispose();
 }

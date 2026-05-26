@@ -1,6 +1,7 @@
 // external exports
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, MessageWrappingType, PlainTextMessage;
+export 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         ControlPlaneEventType,
@@ -16,6 +17,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AclSet,
         MediatorStreamProcessingResult,
         MediatorStreamSubscriptionOptions,
+        MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKErrorCode,
         MeetingPlaceMediatorSDKException;
 export 'package:ssi/ssi.dart' show DidManager;
@@ -32,11 +34,16 @@ export 'src/meeting_place_core_sdk_options.dart';
 export 'src/protocol/message/plaintext_message_extension.dart';
 export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
+export 'src/sdk/results/register_for_didcomm_notifications_result.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
+export 'src/service/matrix/matrix_config.dart';
+export 'src/service/matrix/matrix_room_event.dart';
+export 'src/service/matrix/matrix_service.dart';
 export 'src/service/mediator/mediator_message.dart';
 export 'src/service/oob/session/oob_acceptance_session.dart';
 export 'src/service/oob/session/oob_offer_session.dart';
 export 'src/service/oob/stream/oob_stream.dart';
 export 'src/service/oob/stream/oob_stream_data.dart';
+export 'src/transport/transport.dart';
 export 'src/utils/contact_card_utils.dart';

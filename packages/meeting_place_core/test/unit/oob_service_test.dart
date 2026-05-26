@@ -10,6 +10,10 @@ import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart'
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/connection_service.dart';
+import 'package:meeting_place_core/src/service/identity/identity_service.dart';
+import 'package:meeting_place_core/src/service/identity/model/ephemeral_identity.dart';
+import 'package:meeting_place_core/src/service/identity/model/permanent_identity.dart';
+import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:meeting_place_core/src/service/oob/oob_service.dart';
 import 'package:meeting_place_core/src/service/oob/oob_service_exception.dart';
@@ -33,12 +37,18 @@ class MockConnectionService extends Mock implements ConnectionService {}
 
 class MockChannelService extends Mock implements ChannelService {}
 
+class MockIdentityService extends Mock implements IdentityService {}
+
+class MockMatrixService extends Mock implements MatrixService {}
+
 class MockControlPlaneEventStreamManager extends Mock
     implements ControlPlaneEventStreamManager {}
 
 class MockLogger extends Mock implements MeetingPlaceCoreSDKLogger {}
 
 class FakeDiscoveryCommand<T> extends Fake implements DiscoveryCommand<T> {}
+
+class FakeWallet extends Fake implements Wallet {}
 
 final _testUri = Uri.parse('https://example.com/oob/123');
 final _testContactCard = core.ContactCard(
@@ -60,21 +70,28 @@ class _OobServiceMocks {
       permanentChannelDidManager.getDidDocument,
     ).thenAnswer((_) async => permanentChannelDidDoc);
 
-    var generateDidCallCount = 0;
-    when(() => connectionManager.generateDid(wallet)).thenAnswer((_) async {
-      generateDidCallCount += 1;
-      return switch (generateDidCallCount) {
-        1 => acceptOfferDidManager,
-        2 => permanentChannelDidManager,
-        _ => permanentChannelDidManager,
-      };
-    });
+    when(() => identityService.createEphemeralIdentity(any())).thenAnswer(
+      (_) async => EphemeralIdentity(
+        didManager: acceptOfferDidManager,
+        didDocument: acceptOfferDidDoc,
+      ),
+    );
+
+    when(() => identityService.createPermanentIdentity(any())).thenAnswer(
+      (_) async => PermanentIdentity(
+        didManager: permanentChannelDidManager,
+        didDocument: permanentChannelDidDoc,
+        matrixUserId: '@test:matrix.example.com',
+      ),
+    );
   }
 
   final wallet = MockWallet();
   final mediatorService = MockMediatorService();
   final connectionService = MockConnectionService();
   final channelService = MockChannelService();
+  final identityService = MockIdentityService();
+  final matrixService = MockMatrixService();
   final controlPlaneEventStreamManager = MockControlPlaneEventStreamManager();
   final logger = MockLogger();
 
@@ -101,8 +118,10 @@ class _OobServiceMocks {
       mediatorService: mediatorService,
       connectionService: connectionService,
       connectionManager: connectionManager,
+      identityService: identityService,
       channelService: channelService,
       controlPlaneSDK: controlPlaneSDK,
+      matrixService: matrixService,
       controlPlaneEventStreamManager: controlPlaneEventStreamManager,
       logger: logger,
     );
@@ -121,6 +140,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(FakeDiscoveryCommand<Object?>());
     registerFallbackValue(FakeDiscoveryCommand<GetOobCommandOutput>());
+    registerFallbackValue(FakeWallet());
   });
 
   group('OobService', () {

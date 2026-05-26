@@ -72,8 +72,7 @@ void main() async {
         channelRepository: ChannelRepositoryImpl(storage: storage),
         keyRepository: KeyRepositoryImpl(storage: storage),
       ),
-      mediatorDid: getMediatorDid(),
-      controlPlaneDid: getControlPlaneDid(),
+      config: getMatrixConfig(),
     );
 
     await minimumSDK.registerForPushNotifications(const Uuid().v4());

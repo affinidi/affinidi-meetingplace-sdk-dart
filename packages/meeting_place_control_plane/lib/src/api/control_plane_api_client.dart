@@ -43,6 +43,8 @@ class ControlPlaneApiClient {
   final api_client.ControlPlaneApi _mpxClient;
   final ControlPlaneSDKLogger _logger;
 
+  Dio get dio => _mpxClient.dio;
+
   api_client.DefaultApi get client => _mpxClient.getDefaultApi();
 
   /// Creates and initializes an instance of [ControlPlaneApiClient].

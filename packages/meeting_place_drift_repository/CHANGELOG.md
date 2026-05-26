@@ -1,3 +1,7 @@
+## 0.0.1-dev.37
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.36
 
  - **FEAT**: convert contact card fields to json blob (#157).

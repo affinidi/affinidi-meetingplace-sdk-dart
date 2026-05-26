@@ -111,7 +111,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
   }) {
-    return coreSDK.sendMessage(
+    return coreSDK.didcomm.sendMessage(
       message,
       senderDid: senderDid,
       recipientDid: recipientDid,

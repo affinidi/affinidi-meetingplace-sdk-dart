@@ -176,7 +176,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
       ' from=${message.from}, to=${message.to}',
       name: methodName,
     );
-    return coreSDK.sendGroupMessage(
+    return coreSDK.didcomm.sendGroupMessage(
       message,
       senderDid: senderDid,
       recipientDid: recipientDid,
@@ -194,7 +194,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     final methodName = 'sendChatActivity';
     logger.info('Send group chat activity', name: methodName);
 
-    await coreSDK.sendGroupMessage(
+    await coreSDK.didcomm.sendGroupMessage(
       ChatActivity.create(from: did, to: [otherPartyDid]).toPlainTextMessage(),
       senderDid: did,
       recipientDid: otherPartyDid,
@@ -307,7 +307,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   Future<List<entity_chat_message.Message>> fetchNewMessages() async {
     final methodName = 'fetchNewMessages';
     logger.info('Started loading new messages', name: methodName);
-    final messagesFromMediator = await coreSDK.fetchMessages(
+    final messagesFromMediator = await coreSDK.didcomm.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
       deleteOnRetrieve: false,
@@ -328,7 +328,7 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     }
 
     if (processedHashes.isNotEmpty) {
-      await coreSDK.deleteMessages(
+      await coreSDK.didcomm.deleteMessages(
         did: did,
         mediatorDid: mediatorDid,
         messageHashes: processedHashes,

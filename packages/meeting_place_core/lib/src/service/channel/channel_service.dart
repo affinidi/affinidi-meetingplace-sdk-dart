@@ -106,6 +106,7 @@ class ChannelService {
     required String permanentChannelDid,
     required String otherPartyPermanentChannelDid,
     required String notificationToken,
+    required String matrixRoomId,
   }) async {
     if (channel.isGroup) {
       throw ChannelServiceException.invalidChannelType(
@@ -128,6 +129,7 @@ class ChannelService {
     channel.permanentChannelDid = permanentChannelDid;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
     channel.notificationToken = notificationToken;
+    channel.matrixRoomId = matrixRoomId;
     channel.status = ChannelStatus.approved;
     return _channelRepository.updateChannel(channel);
   }
@@ -191,6 +193,7 @@ class ChannelService {
     required String otherPartyPermanentChannelDid,
     required String outboundMessageId,
     required ContactCard? otherPartyContactCard,
+    required String matrixRoomId,
   }) {
     if (!channel.isIndividual) {
       throw ChannelServiceException.invalidChannelType(
@@ -210,6 +213,7 @@ class ChannelService {
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
     channel.outboundMessageId = outboundMessageId;
     channel.otherPartyContactCard = otherPartyContactCard;
+    channel.matrixRoomId = matrixRoomId;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);
   }
@@ -236,6 +240,7 @@ class ChannelService {
     Channel channel, {
     required String otherPartyPermanentChannelDid,
     required String outboundMessageId,
+    required String matrixRoomId,
     required ContactCard? otherPartyContactCard,
   }) {
     if (!channel.isOob) {
@@ -261,6 +266,7 @@ class ChannelService {
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
     channel.outboundMessageId = outboundMessageId;
     channel.otherPartyContactCard = otherPartyContactCard;
+    channel.matrixRoomId = matrixRoomId;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);
   }
@@ -283,6 +289,7 @@ class ChannelService {
     Channel channel, {
     required String notificationToken,
     required String otherPartyPermanentChannelDid,
+    required String matrixRoomId,
     required int sequenceNumber,
   }) {
     if (!channel.isGroup) {
@@ -301,6 +308,7 @@ class ChannelService {
 
     channel.notificationToken = notificationToken;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.matrixRoomId = matrixRoomId;
     channel.seqNo = sequenceNumber;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);

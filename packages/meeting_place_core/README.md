@@ -86,8 +86,10 @@ void main() async {
          channelRepository: ChannelRepositoryImpl(storage: storage),
          keyRepository: KeyRepositoryImpl(storage: storage),
       ),
-      mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
-      controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
+      config: Config(
+         mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
+         controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
+      ),
    );
 
    await aliceSDK.registerForPushNotifications(const Uuid().v4());

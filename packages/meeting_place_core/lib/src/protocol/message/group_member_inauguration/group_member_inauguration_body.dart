@@ -15,6 +15,7 @@ class GroupMemberInaugurationBody {
     required this.groupId,
     required this.groupPublicKey,
     required this.adminDids,
+    required this.matrixRoomId,
     required this.members,
   });
 
@@ -32,6 +33,9 @@ class GroupMemberInaugurationBody {
 
   @JsonKey(name: 'admin_dids')
   final List<String> adminDids;
+
+  @JsonKey(name: 'matrix_room_id')
+  final String matrixRoomId;
 
   @JsonKey(name: 'members')
   final List<GroupMemberInaugurationMember> members;

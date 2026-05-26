@@ -106,6 +106,7 @@ void main() {
           permanentChannelDid: 'permanent',
           otherPartyPermanentChannelDid: 'other',
           notificationToken: 'token',
+          matrixRoomId: 'roomId',
         );
         verify(() => repository.updateChannel(initiatorChannel)).called(1);
         expect(initiatorChannel.status, ChannelStatus.approved);
@@ -126,6 +127,7 @@ void main() {
             permanentChannelDid: 'permanent',
             otherPartyPermanentChannelDid: 'other',
             notificationToken: 'token',
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -146,6 +148,7 @@ void main() {
             permanentChannelDid: 'permanent',
             otherPartyPermanentChannelDid: 'other',
             notificationToken: 'token',
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -166,6 +169,7 @@ void main() {
             permanentChannelDid: 'permanent',
             otherPartyPermanentChannelDid: 'other',
             notificationToken: 'token',
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -248,6 +252,7 @@ void main() {
           otherPartyPermanentChannelDid: 'otherDid',
           outboundMessageId: 'msgId',
           otherPartyContactCard: null,
+          matrixRoomId: 'roomId',
         );
         verify(() => repository.updateChannel(nonInitiatorChannel)).called(1);
         expect(nonInitiatorChannel.status, ChannelStatus.inaugurated);
@@ -270,6 +275,7 @@ void main() {
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
             otherPartyContactCard: null,
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -292,6 +298,7 @@ void main() {
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
             otherPartyContactCard: null,
+            matrixRoomId: 'roomId',
           ),
           throwsA(isA<ChannelServiceException>()),
         );
@@ -314,6 +321,7 @@ void main() {
           oobChannel,
           otherPartyPermanentChannelDid: 'otherDid',
           outboundMessageId: 'msgId',
+          matrixRoomId: 'roomId',
           otherPartyContactCard: null,
         );
         verify(() => repository.updateChannel(oobChannel)).called(1);
@@ -334,6 +342,7 @@ void main() {
             notOobChannel,
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
+            matrixRoomId: 'roomId',
             otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
@@ -354,6 +363,7 @@ void main() {
             initiatorOobChannel,
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
+            matrixRoomId: 'roomId',
             otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
@@ -374,6 +384,7 @@ void main() {
             wrongStatusOobChannel,
             otherPartyPermanentChannelDid: 'otherDid',
             outboundMessageId: 'msgId',
+            matrixRoomId: 'roomId',
             otherPartyContactCard: null,
           ),
           throwsA(isA<ChannelServiceException>()),
@@ -397,6 +408,7 @@ void main() {
           groupChannel,
           notificationToken: 'token',
           otherPartyPermanentChannelDid: 'otherDid',
+          matrixRoomId: '!room:matrix.example.com',
           sequenceNumber: 42,
         );
         verify(() => repository.updateChannel(groupChannel)).called(1);
@@ -417,6 +429,7 @@ void main() {
             notGroupChannel,
             notificationToken: 'token',
             otherPartyPermanentChannelDid: 'otherDid',
+            matrixRoomId: '!room:matrix.example.com',
             sequenceNumber: 42,
           ),
           throwsA(isA<ChannelServiceException>()),
@@ -437,6 +450,7 @@ void main() {
             wrongStatusGroupChannel,
             notificationToken: 'token',
             otherPartyPermanentChannelDid: 'otherDid',
+            matrixRoomId: '!room:matrix.example.com',
             sequenceNumber: 42,
           ),
           throwsA(isA<ChannelServiceException>()),

@@ -2,15 +2,15 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../meeting_place_chat.dart';
-import '../repository/chat_history_service.dart';
+import '../../repository/chat_history_service.dart';
 import 'room_event_handler/contact_details_update_handler.dart';
 import 'room_event_handler/group_deletion_handler.dart';
 import 'room_event_handler/group_details_update_handler.dart';
 import 'room_event_handler/member_deregistered_handler.dart';
 import 'room_event_handler/member_joined_handler.dart';
 import 'room_event_handler/room_member_handler.dart';
-import '../transport/matrix/incoming/incoming_room_event_router.dart';
-import '../transport/matrix/incoming/room_event_handler.dart';
+import '../../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../../transport/matrix/incoming/room_event_handler.dart';
 
 /// Routes incoming Matrix room events for a [GroupChatSDK]. Extends the
 /// common [IncomingRoomEventRouter] dispatch with handlers for group-specific

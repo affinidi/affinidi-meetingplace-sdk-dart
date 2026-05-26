@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_chat/src/didcomm/protocol.dart';
+import 'package:meeting_place_chat/src/transport/didcomm/protocol.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 

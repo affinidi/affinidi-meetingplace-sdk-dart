@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../stream/chat_event_conversion.dart';
+import '../../../events/chat_event_conversion.dart';
 import '../matrix_user_id_cache.dart';
 import 'room_event_handler.dart';
 

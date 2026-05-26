@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 
-import '../../../../../meeting_place_chat.dart';
+import '../../../../meeting_place_chat.dart';
 import '../factory/profile_update_concierge_factory.dart';
 import 'group_action.dart';
 

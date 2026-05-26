@@ -1,4 +1,4 @@
-import '../../../../../meeting_place_chat.dart';
+import '../../../../meeting_place_chat.dart';
 
 /// Common shape for all group chat side-effects that are extracted from
 /// [GroupChatSDK]. Each action wraps a single SDK-bound operation, performs its

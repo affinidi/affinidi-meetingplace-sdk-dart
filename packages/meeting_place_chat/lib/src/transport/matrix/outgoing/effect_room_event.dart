@@ -1,6 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../chat_protocol.dart';
+import '../../didcomm/chat_protocol.dart';
 
 class EffectRoomEvent extends MatrixOutgoingMessage {
   EffectRoomEvent({

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../../../../meeting_place_chat.dart';
+import '../../../../meeting_place_chat.dart';
 import '../control_plane_event_handler/chat_group_invitation_accept_handler.dart';
 
 /// Subscribes to [ControlPlaneEventType.InvitationGroupAccept] events for the

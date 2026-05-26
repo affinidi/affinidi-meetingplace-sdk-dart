@@ -3,7 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../sdk/base_chat_sdk.dart';
+import '../../../sdk/base_chat_sdk.dart';
 import 'chat_effect_handler.dart';
 import 'incoming_reaction_state_store.dart';
 import 'reaction_handler.dart';

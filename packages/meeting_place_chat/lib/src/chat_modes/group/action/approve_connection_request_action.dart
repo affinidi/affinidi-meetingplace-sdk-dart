@@ -1,6 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../../../../meeting_place_chat.dart';
+import '../../../../meeting_place_chat.dart';
 import '../../../repository/chat_history_service.dart';
 import '../../../transport/matrix/outgoing/outgoing.dart';
 import '../../../utils/top_and_tail_extension.dart';

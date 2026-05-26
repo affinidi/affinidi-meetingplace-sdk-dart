@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '../../../../../meeting_place_chat.dart';
+import '../../../../meeting_place_chat.dart';
 import '../../../transport/matrix/outgoing/outgoing.dart';
 
 /// Confirms an approved profile update by:

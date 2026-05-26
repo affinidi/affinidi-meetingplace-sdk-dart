@@ -1,7 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../chat_protocol.dart';
-import '../protocol/chat_group_details_update/chat_group_details_update.dart';
+import '../../didcomm/chat_protocol.dart';
+import '../../didcomm/protocol/chat_group_details_update/chat_group_details_update.dart';
 
 class GroupDetailsUpdateRoomEvent extends MatrixOutgoingMessage {
   GroupDetailsUpdateRoomEvent({

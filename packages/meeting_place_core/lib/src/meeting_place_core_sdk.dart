@@ -30,7 +30,6 @@ import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_service.dart';
 import 'service/outreach/outreach_service.dart';
-import 'transport/transport.dart';
 import 'utils/cached_did_resolver.dart';
 
 /// # Meeting Place Core SDK

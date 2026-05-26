@@ -1,40 +1,35 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../chat_history_service.dart';
-import '../../../event/chat_event.dart';
+import '../../../../meeting_place_chat.dart';
 import '../../../event/chat_event_conversion.dart';
-import '../../../event/chat_stream.dart';
-import '../../../event/stream_data.dart';
-import '../../../transport/matrix/matrix_user_id_cache.dart';
-import '../../../transport/matrix/incoming/room_event_handler.dart';
 
-class GroupDetailsUpdateHandler implements RoomEventHandler {
+class GroupDetailsUpdateHandler implements ChatEventHandler {
   GroupDetailsUpdateHandler({
     required MeetingPlaceCoreSDK coreSDK,
-    required ChatHistoryService chatHistoryService,
+    required ChatRepository chatRepository,
     required ChatStream streamManager,
-    required MatrixUserIdCache didCache,
+    required void Function(Iterable<String>) registerMemberDids,
     required String chatId,
     required Group Function() getGroup,
     required void Function(Group) setGroup,
   }) : _coreSDK = coreSDK,
-       _chatHistoryService = chatHistoryService,
+       _chatRepository = chatRepository,
        _streamManager = streamManager,
-       _didCache = didCache,
+       _registerMemberDids = registerMemberDids,
        _chatId = chatId,
        _getGroup = getGroup,
        _setGroup = setGroup;
 
   final MeetingPlaceCoreSDK _coreSDK;
-  final ChatHistoryService _chatHistoryService;
+  final ChatRepository _chatRepository;
   final ChatStream _streamManager;
-  final MatrixUserIdCache _didCache;
+  final void Function(Iterable<String>) _registerMemberDids;
   final String _chatId;
   final Group Function() _getGroup;
   final void Function(Group) _setGroup;
 
   @override
-  Future<void> handle(MatrixRoomEvent event) async {
+  Future<void> handle(IncomingChatEvent event) async {
     final updatedGroup = await _updateGroupMembers(
       group: _getGroup(),
       body: event.content,
@@ -42,7 +37,7 @@ class GroupDetailsUpdateHandler implements RoomEventHandler {
     );
     await _coreSDK.updateGroup(updatedGroup);
     _setGroup(updatedGroup);
-    _didCache.registerAll(updatedGroup.members.map((m) => m.did));
+    _registerMemberDids(updatedGroup.members.map((m) => m.did));
   }
 
   Future<Group> _updateGroupMembers({
@@ -66,13 +61,14 @@ class GroupDetailsUpdateHandler implements RoomEventHandler {
         .cast<Map<String, dynamic>>();
 
     for (final newMember in newMembers) {
-      final chatItem = await _chatHistoryService
-          .createGroupMemberJoinedGroupEventMessage(
-            chatId: _chatId,
-            groupDid: group.did,
-            memberDid: newMember['did'] as String,
-            memberCard: _cardFromMember(newMember),
-          );
+      final chatItem = await _chatRepository.createMessage(
+        EventMessage.groupMemberJoined(
+          chatId: _chatId,
+          groupDid: group.did,
+          memberDid: newMember['did'] as String,
+          memberCard: newMember['contact_card'] as Map<String, dynamic>,
+        ),
+      );
       _streamManager.pushData(StreamData(chatItem: chatItem));
     }
 
@@ -86,16 +82,14 @@ class GroupDetailsUpdateHandler implements RoomEventHandler {
           membershipType: GroupMembershipType.values.byName(
             member['membership_type'] as String,
           ),
-          contactCard: _cardFromMember(member),
+          contactCard: ContactCard.fromJson(
+            member['contact_card'] as Map<String, dynamic>,
+          ),
         );
       }).toList(),
     );
 
     _streamManager.pushData(StreamData(event: chatEvent));
     return updatedGroup;
-  }
-
-  ContactCard _cardFromMember(Map<String, dynamic> member) {
-    return ContactCard.fromJson(member['contact_card'] as Map<String, dynamic>);
   }
 }

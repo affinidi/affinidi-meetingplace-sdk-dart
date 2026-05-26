@@ -2,11 +2,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
 import 'incoming_reaction_state_store.dart';
-import 'room_event_handler.dart';
 
 /// Handles `m.reaction` events by appending the reaction to its target
 /// message and remembering the event so a later redaction can undo it.
-class ReactionHandler implements RoomEventHandler {
+class ReactionHandler {
   ReactionHandler({
     required ChatRepository chatRepository,
     required ChatStream chatStream,
@@ -25,7 +24,6 @@ class ReactionHandler implements RoomEventHandler {
   final Map<String, String> _serverEventIdToMessageId;
   final IncomingReactionStateStore _reactionStateStore;
 
-  @override
   Future<void> handle(MatrixRoomEvent event) async {
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
     final targetEventId = relatesTo?['event_id'] as String?;

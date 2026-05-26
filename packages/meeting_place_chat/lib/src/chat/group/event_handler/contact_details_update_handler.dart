@@ -1,36 +1,29 @@
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../../event/chat_event.dart';
+import '../../../../meeting_place_chat.dart';
 import '../../../event/chat_event_conversion.dart';
-import '../../../event/chat_stream.dart';
-import '../../../event/stream_data.dart';
-import '../../../transport/matrix/matrix_user_id_cache.dart';
 import '../../base_chat_sdk.dart';
-import '../../../transport/matrix/incoming/room_event_handler.dart';
 
-class ContactDetailsUpdateHandler implements RoomEventHandler {
+class ContactDetailsUpdateHandler implements ChatEventHandler {
   ContactDetailsUpdateHandler({
     required BaseChatSDK chatSDK,
     required ChatStream streamManager,
-    required MatrixUserIdCache didCache,
     required Group Function() getGroup,
     required void Function(Group) setGroup,
   }) : _chatSDK = chatSDK,
        _streamManager = streamManager,
-       _didCache = didCache,
        _getGroup = getGroup,
        _setGroup = setGroup;
 
   final BaseChatSDK _chatSDK;
   final ChatStream _streamManager;
-  final MatrixUserIdCache _didCache;
   final Group Function() _getGroup;
   final void Function(Group) _setGroup;
 
   @override
-  Future<void> handle(MatrixRoomEvent event) async {
-    final senderDid = _didCache.resolve(event.userId);
+  Future<void> handle(IncomingChatEvent event) async {
+    final senderDid = event.senderDid;
     if (senderDid == null) return;
 
     final profileDetails =

@@ -27,10 +27,7 @@ class MatrixRoomSubscription extends IncomingMessageSubscription {
 
 /// Subscribe to incoming DIDComm messages for the receiver DID.
 class DidCommSubscription extends IncomingMessageSubscription {
-  const DidCommSubscription({
-    required super.receiverDid,
-    this.mediatorDid,
-  });
+  const DidCommSubscription({required super.receiverDid, this.mediatorDid});
 
   final String? mediatorDid;
 }

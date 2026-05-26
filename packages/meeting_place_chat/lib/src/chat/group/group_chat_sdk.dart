@@ -4,7 +4,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../../meeting_place_chat.dart';
-import 'chat_history_service.dart';
 import '../../transport/matrix/outgoing/outgoing.dart';
 import 'action/approve_connection_request_action.dart';
 import 'action/propose_profile_update_action.dart';
@@ -43,23 +42,15 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
     required this.group,
     super.card,
     super.logger,
-  }) : _chatHistoryService = ChatHistoryService(
-         chatRepository: chatRepository,
-         logger: logger,
-       );
+  });
 
   /// Log key for consistent logging across methods in this class.
   static const String _logkey = 'GroupChatSDK';
 
-  /// Service for managing chat history operations.
-  final ChatHistoryService _chatHistoryService;
-
   @override
   @protected
-  IncomingRoomEventRouter buildRoomEventRouter() => GroupRoomEventRouter(
-    chatSDK: this,
-    chatHistoryService: _chatHistoryService,
-  );
+  IncomingRoomEventRouter buildRoomEventRouter() =>
+      GroupRoomEventRouter(chatSDK: this);
 
   /// The current state of the group, which may be updated over time as events
   /// are received.

@@ -2,40 +2,30 @@ import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../chat_history_service.dart';
-import '../../../transport/matrix/matrix_user_id_cache.dart';
-import '../../../transport/matrix/incoming/room_event_handler.dart';
 
-class MemberJoinedHandler implements RoomEventHandler {
+class MemberJoinedHandler implements ChatEventHandler {
   MemberJoinedHandler({
     required ChatRepository chatRepository,
-    required ChatHistoryService chatHistoryService,
     required ChatStream streamManager,
-    required MatrixUserIdCache didCache,
     required String chatId,
     required String ownDid,
     required Group Function() getGroup,
   }) : _chatRepository = chatRepository,
-       _chatHistoryService = chatHistoryService,
        _streamManager = streamManager,
-       _didCache = didCache,
        _chatId = chatId,
        _ownDid = ownDid,
        _getGroup = getGroup;
 
   final ChatRepository _chatRepository;
-  final ChatHistoryService _chatHistoryService;
   final ChatStream _streamManager;
-  final MatrixUserIdCache _didCache;
   final String _chatId;
   final String _ownDid;
   final Group Function() _getGroup;
 
   @override
-  Future<void> handle(MatrixRoomEvent event) async {
-    final senderDid = _didCache.resolve(event.userId);
+  Future<void> handle(IncomingChatEvent event) async {
+    final senderDid = event.senderDid;
     if (senderDid == null) return;
-    _didCache.register(senderDid);
 
     final group = _getGroup();
     final isGroupOwner = group.ownerDid == _ownDid;
@@ -72,13 +62,14 @@ class MemberJoinedHandler implements RoomEventHandler {
     await _chatRepository.updateMesssage(matchingMessage);
     _streamManager.pushData(StreamData(chatItem: matchingMessage));
 
-    final chatItem = await _chatHistoryService
-        .createGroupMemberJoinedGroupEventMessage(
-          chatId: _chatId,
-          groupDid: group.did,
-          memberDid: memberDid,
-          memberCard: ContactCard.fromJson(contactCardData),
-        );
+    final chatItem = await _chatRepository.createMessage(
+      EventMessage.groupMemberJoined(
+        chatId: _chatId,
+        groupDid: group.did,
+        memberDid: memberDid,
+        memberCard: contactCardData,
+      ),
+    );
 
     _streamManager.pushData(StreamData(chatItem: chatItem));
   }

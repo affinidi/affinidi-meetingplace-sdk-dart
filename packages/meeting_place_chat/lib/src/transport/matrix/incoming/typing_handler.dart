@@ -2,11 +2,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
 import '../matrix_user_id_cache.dart';
-import 'room_event_handler.dart';
 
 /// Handles `m.typing` events by resolving the sender DID and pushing a
 /// [ChatActivityEvent] onto the chat stream.
-class TypingHandler implements RoomEventHandler {
+class TypingHandler {
   TypingHandler({
     required MatrixUserIdCache didCache,
     required ChatStream chatStream,
@@ -24,7 +23,6 @@ class TypingHandler implements RoomEventHandler {
   final String _ownDid;
   final MeetingPlaceChatSDKLogger _logger;
 
-  @override
   Future<void> handle(MatrixRoomEvent event) async {
     final senderDid = _didCache.resolve(event.userId);
     _logger.info(

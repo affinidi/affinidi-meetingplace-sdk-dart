@@ -1,11 +1,10 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import 'room_event_handler.dart';
 
 /// Handles `m.receipt` events by marking the corresponding outgoing message
 /// as delivered.
-class ReceiptHandler implements RoomEventHandler {
+class ReceiptHandler {
   ReceiptHandler({
     required ChatRepository chatRepository,
     required ChatStream chatStream,
@@ -21,7 +20,6 @@ class ReceiptHandler implements RoomEventHandler {
   final String _chatId;
   final Map<String, String> _serverEventIdToMessageId;
 
-  @override
   Future<void> handle(MatrixRoomEvent event) async {
     final serverEventId = event.content['event_id'] as String;
     final localMessageId = _serverEventIdToMessageId[serverEventId];

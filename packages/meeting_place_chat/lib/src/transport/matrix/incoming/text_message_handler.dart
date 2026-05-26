@@ -5,12 +5,11 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import '../../../../meeting_place_chat.dart';
 import '../../../event/chat_event_conversion.dart';
 import '../matrix_user_id_cache.dart';
-import 'room_event_handler.dart';
 
 /// Handles incoming `m.room.message` events. Resolves the sender DID,
 /// persists the message, pushes it to the chat stream and fires a delivered
 /// receipt.
-class TextMessageHandler implements RoomEventHandler {
+class TextMessageHandler {
   TextMessageHandler({
     required ChatRepository chatRepository,
     required ChatStream chatStream,
@@ -34,7 +33,6 @@ class TextMessageHandler implements RoomEventHandler {
   final MeetingPlaceChatSDKLogger _logger;
   final Future<void> Function(String messageId) _sendDeliveredReceipt;
 
-  @override
   Future<void> handle(MatrixRoomEvent event) async {
     final senderDid = _didCache.resolve(event.userId);
     if (senderDid == null) {

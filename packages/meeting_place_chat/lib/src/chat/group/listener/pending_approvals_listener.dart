@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../control_plane_event_handler/chat_group_invitation_accept_handler.dart';
+import '../factory/pending_approval_concierge_factory.dart';
 
 /// Subscribes to [ControlPlaneEventType.InvitationGroupAccept] events for the
-/// current chat. When such an event arrives, the listener applies the resulting
-/// group update via [ChatGroupInvitationAcceptHandler] and refreshes the SDK's
+/// current chat. When such an event arrives, the listener refreshes the group,
+/// creates concierge messages for pending approvals, and updates the SDK's
 /// in-memory [GroupChatSDK.group] and DID cache.
 ///
 /// Intended for use by group owners; the SDK gates the subscription on
@@ -21,17 +21,22 @@ class PendingApprovalsListener {
     return _chatSDK.coreSDK.controlPlaneEventsStream.listen((event) async {
       if (event.type != ControlPlaneEventType.InvitationGroupAccept) return;
 
-      final updatedGroup = await ChatGroupInvitationAcceptHandler(
-        coreSDK: _chatSDK.coreSDK,
-        chatRepository: _chatSDK.chatRepository,
-        streamManager: _chatSDK.chatStream,
-        logger: _chatSDK.logger,
-      ).handle(event: event, group: _chatSDK.group, chat: chat);
+      final group = _chatSDK.group;
+      if (group.did != event.channel.otherPartyPermanentChannelDid) return;
 
-      if (updatedGroup != null) {
-        _chatSDK.group = updatedGroup;
-        _chatSDK.didCache.registerAll(updatedGroup.members.map((m) => m.did));
+      final updatedGroup = (await _chatSDK.coreSDK.getGroupById(group.id))!;
+
+      final conciergeMessages = await PendingApprovalConciergeFactory(
+        chatRepository: _chatSDK.chatRepository,
+        logger: _chatSDK.logger,
+      ).create(group: updatedGroup, chat: chat);
+
+      for (final message in conciergeMessages) {
+        _chatSDK.chatStream.pushData(StreamData(chatItem: message));
       }
+
+      _chatSDK.group = updatedGroup;
+      _chatSDK.didCache.registerAll(updatedGroup.members.map((m) => m.did));
     });
   }
 }

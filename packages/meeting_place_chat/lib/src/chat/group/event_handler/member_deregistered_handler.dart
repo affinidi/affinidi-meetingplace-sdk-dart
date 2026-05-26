@@ -1,42 +1,33 @@
-import 'dart:async';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../chat_history_service.dart';
+import '../../../../meeting_place_chat.dart';
 import '../../../event/chat_event_conversion.dart';
-import '../../../event/chat_stream.dart';
-import '../../../event/stream_data.dart';
-import '../../../transport/matrix/matrix_user_id_cache.dart';
-import '../../../transport/matrix/incoming/room_event_handler.dart';
 
-class MemberDeregisteredHandler implements RoomEventHandler {
+class MemberDeregisteredHandler implements ChatEventHandler {
   MemberDeregisteredHandler({
     required MeetingPlaceCoreSDK coreSDK,
-    required ChatHistoryService chatHistoryService,
+    required ChatRepository chatRepository,
     required ChatStream streamManager,
-    required MatrixUserIdCache didCache,
     required String chatId,
     required Group Function() getGroup,
     required void Function(Group) setGroup,
   }) : _coreSDK = coreSDK,
-       _chatHistoryService = chatHistoryService,
+       _chatRepository = chatRepository,
        _streamManager = streamManager,
-       _didCache = didCache,
        _chatId = chatId,
        _getGroup = getGroup,
        _setGroup = setGroup;
 
   final MeetingPlaceCoreSDK _coreSDK;
-  final ChatHistoryService _chatHistoryService;
+  final ChatRepository _chatRepository;
   final ChatStream _streamManager;
-  final MatrixUserIdCache _didCache;
   final String _chatId;
   final Group Function() _getGroup;
   final void Function(Group) _setGroup;
 
   @override
-  Future<void> handle(MatrixRoomEvent event) async {
-    final senderDid = _didCache.resolve(event.userId);
+  Future<void> handle(IncomingChatEvent event) async {
+    final senderDid = event.senderDid;
     if (senderDid == null) return;
 
     final group = _getGroup();
@@ -51,13 +42,14 @@ class MemberDeregisteredHandler implements RoomEventHandler {
     await _coreSDK.updateGroup(group);
     _setGroup(group);
 
-    final chatItem = await _chatHistoryService
-        .createGroupMemberLeftGroupEventMessage(
-          chatId: _chatId,
-          groupDid: group.did,
-          memberDid: senderDid,
-          memberCard: member.contactCard,
-        );
+    final chatItem = await _chatRepository.createMessage(
+      EventMessage.groupMemberLeft(
+        chatId: _chatId,
+        groupDid: group.did,
+        memberDid: senderDid,
+        memberCard: member.contactCard.toJson(),
+      ),
+    );
 
     _streamManager.pushData(
       StreamData(event: event.toChatEvent(), chatItem: chatItem),

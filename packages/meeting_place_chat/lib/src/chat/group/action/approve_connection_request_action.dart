@@ -1,20 +1,14 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../chat_history_service.dart';
 import '../../../transport/matrix/outgoing/outgoing.dart';
 import '../../../loggers/top_and_tail_extension.dart';
 import 'group_action.dart';
 
 class ApproveConnectionRequestAction implements GroupAction<Group> {
-  ApproveConnectionRequestAction(this._chatSDK, {required this.message})
-    : _chatHistoryService = ChatHistoryService(
-        chatRepository: _chatSDK.chatRepository,
-        logger: _chatSDK.logger,
-      );
+  ApproveConnectionRequestAction(this._chatSDK, {required this.message});
 
   final GroupChatSDK _chatSDK;
-  final ChatHistoryService _chatHistoryService;
   final ConciergeMessage message;
 
   @override
@@ -48,13 +42,14 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
     await _chatSDK.chatRepository.updateMesssage(message);
     _chatSDK.chatStream.pushData(StreamData(chatItem: message));
 
-    final chatItem = await _chatHistoryService
-        .createAwaitingGroupMemberToJoinEventMessage(
-          chatId: _chatSDK.chatId,
-          groupDid: updatedGroup.did,
-          memberDid: channel.otherPartyPermanentChannelDid!,
-          memberCard: channel.otherPartyContactCard!,
-        );
+    final chatItem = await _chatSDK.chatRepository.createMessage(
+      EventMessage.awaitingGroupMember(
+        chatId: _chatSDK.chatId,
+        groupDid: updatedGroup.did,
+        memberDid: channel.otherPartyPermanentChannelDid!,
+        memberCard: channel.otherPartyContactCard!.toJson(),
+      ),
+    );
 
     _chatSDK.logger.info(
       'Completed approving connection request for member: '

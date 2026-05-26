@@ -2,11 +2,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
 import 'incoming_reaction_state_store.dart';
-import 'room_event_handler.dart';
 
 /// Handles `m.room.redaction` events that revoke a previously received
 /// reaction, removing it from the target message.
-class RedactionHandler implements RoomEventHandler {
+class RedactionHandler {
   RedactionHandler({
     required ChatRepository chatRepository,
     required ChatStream chatStream,
@@ -22,7 +21,6 @@ class RedactionHandler implements RoomEventHandler {
   final String _chatId;
   final IncomingReactionStateStore _reactionStateStore;
 
-  @override
   Future<void> handle(MatrixRoomEvent event) async {
     final redactedEventId = event.content['redacts'] as String?;
     if (redactedEventId == null) return;

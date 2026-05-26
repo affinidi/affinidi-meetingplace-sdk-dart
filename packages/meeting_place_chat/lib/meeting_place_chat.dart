@@ -1,6 +1,6 @@
-export 'src/events/chat_event.dart';
-export 'src/stream/chat_stream.dart';
-export 'src/events/stream_data.dart';
+export 'src/event/chat_event.dart';
+export 'src/event/chat_stream.dart';
+export 'src/event/stream_data.dart';
 export 'src/entity/entity.dart';
 export 'src/loggers/meeting_place_chat_sdk_logger.dart';
 export 'src/meeting_place_chat_sdk.dart';

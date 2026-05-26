@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../../events/chat_event.dart';
-import '../../../events/chat_event_conversion.dart';
-import '../../../stream/chat_stream.dart';
-import '../../../events/stream_data.dart';
+import '../../../event/chat_event.dart';
+import '../../../event/chat_event_conversion.dart';
+import '../../../event/chat_stream.dart';
+import '../../../event/stream_data.dart';
 import '../../../transport/matrix/matrix_user_id_cache.dart';
 import '../../base_chat_sdk.dart';
 import '../../../transport/matrix/incoming/room_event_handler.dart';

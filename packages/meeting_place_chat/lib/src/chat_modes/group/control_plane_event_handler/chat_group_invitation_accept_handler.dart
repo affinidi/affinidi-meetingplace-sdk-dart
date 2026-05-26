@@ -1,8 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../stream/chat_stream.dart';
-import '../../../events/stream_data.dart';
+import '../../../event/chat_stream.dart';
+import '../../../event/stream_data.dart';
 import '../factory/pending_approval_concierge_factory.dart';
 
 class ChatGroupInvitationAcceptHandler {

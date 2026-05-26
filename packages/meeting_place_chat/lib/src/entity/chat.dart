@@ -1,4 +1,4 @@
-import '../stream/chat_stream.dart';
+import '../event/chat_stream.dart';
 import 'chat_item.dart';
 
 /// [Chat] represents an active or historical chat session.

@@ -3,7 +3,7 @@ import 'dart:async';
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import '../loggers/meeting_place_chat_sdk_logger.dart';
 import '../constants.dart';
-import '../events/stream_data.dart';
+import '../event/stream_data.dart';
 
 class ChatStream {
   ChatStream({MeetingPlaceChatSDKLogger? logger})

@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
-import '../events/chat_event_conversion.dart';
+import '../event/chat_event_conversion.dart';
 import '../transport/matrix/matrix_user_id_cache.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import '../transport/didcomm/outgoing/outgoing.dart';

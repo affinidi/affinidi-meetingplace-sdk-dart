@@ -7,11 +7,11 @@ class DidWebProof {
   /// Creates a new instance of [DidWebProof].
   ///
   /// **Parameters:**
-  /// - [type]: The proof type. Expected value: `DataIntegrityProof`.
+  /// - [type]: The proof type. Expected value: `JsonWebSignature2020`.
   /// - [created]: ISO-8601 UTC timestamp of when the proof was created.
   /// - [verificationMethod]: Key identifier used to sign the proof,
   /// e.g. `did:web:<host>:user:<segment>#auth`.
-  /// - [proofPurpose]: The intended purpose. Expected value: `assertionMethod`.
+  /// - [proofPurpose]: The intended purpose. Expected value: `authentication`.
   /// - [jws]: Detached JWS over the canonical proof payload
   /// (base64url, no padding).
   DidWebProof({
@@ -54,7 +54,7 @@ class DidWebProof {
     );
   }
 
-  /// The proof type. Expected value: `DataIntegrityProof`.
+  /// The proof type. Expected value: `JsonWebSignature2020`.
   final String type;
 
   /// ISO-8601 UTC timestamp of when the proof was created.
@@ -64,7 +64,7 @@ class DidWebProof {
   /// e.g. `did:web:<host>:user:<segment>#auth`.
   final String verificationMethod;
 
-  /// The intended proof purpose. Expected value: `assertionMethod`.
+  /// The intended proof purpose. Expected value: `authentication`.
   final String proofPurpose;
 
   /// Detached JWS over the canonical proof payload (base64url, no padding).

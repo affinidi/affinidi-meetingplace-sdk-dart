@@ -22,10 +22,10 @@ void main() {
   late UploadDidDocumentHandler handler;
 
   final testProof = DidWebProof(
-    type: 'DataIntegrityProof',
+    type: 'JsonWebSignature2020',
     created: '2026-01-01T00:00:00Z',
     verificationMethod: 'did:web:example.com:user:alice#auth',
-    proofPurpose: 'assertionMethod',
+    proofPurpose: 'authentication',
     jws: 'test-jws',
   );
 

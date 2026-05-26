@@ -1101,17 +1101,18 @@ class MeetingPlaceCoreSDK {
           m.content,
           didManager: await _getDidManager(m.senderDid),
         ),
-        DidCommOutgoingMessage m => await didcomm
-            .sendMessage(
-              m.payload,
-              senderDid: m.senderDid,
-              recipientDid: m.recipientDid,
-              mediatorDid: m.mediatorDid,
-              notifyChannelType: m.notifyChannelType,
-              ephemeral: m.ephemeral,
-              forwardExpiryInSeconds: m.forwardExpiryInSeconds,
-            )
-            .then((_) => null),
+        DidCommOutgoingMessage m =>
+          await didcomm
+              .sendMessage(
+                m.payload,
+                senderDid: m.senderDid,
+                recipientDid: m.recipientDid,
+                mediatorDid: m.mediatorDid,
+                notifyChannelType: m.notifyChannelType,
+                ephemeral: m.ephemeral,
+                forwardExpiryInSeconds: m.forwardExpiryInSeconds,
+              )
+              .then((_) => null),
         _ => throw ArgumentError(
           'Unsupported OutgoingMessage subtype: ${message.runtimeType}',
         ),
@@ -1121,7 +1122,10 @@ class MeetingPlaceCoreSDK {
 
   /// Subscribes to incoming messages for the given [subscription].
   ///
-  /// For [MatrixRoomSubscription], yields events from a single room.
+  /// For [MatrixRoomSubscription], yields events from a single room. Each
+  /// delivered event advances [Channel.matrixSyncMarker] for the subscribing
+  /// DID's channel before the event is yielded, so a restart resumes from the
+  /// last event seen.
   /// For [DidCommSubscription], yields DIDComm messages for the receiver DID
   /// across all peers.
   Future<Stream<IncomingMessage>> subscribe(
@@ -1130,12 +1134,26 @@ class MeetingPlaceCoreSDK {
     return _withSdkExceptionHandling(() async {
       switch (subscription) {
         case MatrixRoomSubscription s:
-          final stream = await _matrixService.subscribeToRoom(
+          final stream = _matrixService.subscribeToRoom(
             s.roomId,
             didManager: await _getDidManager(s.receiverDid),
             options: s.options,
           );
-          return stream.map(_toMatrixIncoming);
+          // Capture a cutoff so that pre-join events the matrix client loads
+          // into the timeline (via room history visibility) are not delivered
+          // through the live subscription. Catch-up of post-marker events is
+          // the job of fetchHistory.
+          final cutoff = DateTime.now().toUtc();
+          return stream
+              .where(
+                (e) => !_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff),
+              )
+              .asyncMap((e) async {
+                if (_isTimelineEvent(e)) {
+                  await _advanceMatrixSyncMarker(s.receiverDid, e.id);
+                }
+                return _toMatrixIncoming(e);
+              });
         case DidCommSubscription s:
           final sub = await didcomm.subscribe(
             s.receiverDid,
@@ -1151,11 +1169,21 @@ class MeetingPlaceCoreSDK {
     return _withSdkExceptionHandling(() async {
       switch (query) {
         case MatrixRoomHistoryQuery q:
+          final channel = await _channelService.findChannelByDidOrNull(
+            q.receiverDid,
+          );
           final events = await _matrixService.fetchRoomHistory(
             q.roomId,
             didManager: await _getDidManager(q.receiverDid),
             limit: q.limit,
+            sinceEventId: channel?.matrixSyncMarker,
           );
+          if (channel != null && events.isNotEmpty) {
+            await _channelService.updateMatrixSyncMarker(
+              channel,
+              events.first.id,
+            );
+          }
           return events.map(_toMatrixIncoming).toList();
         case DidCommHistoryQuery q:
           final messages = await didcomm.fetchMessages(
@@ -1167,6 +1195,22 @@ class MeetingPlaceCoreSDK {
           return messages.take(q.limit).map(_toDidCommIncoming).toList();
       }
     });
+  }
+
+  Future<void> _advanceMatrixSyncMarker(
+    String receiverDid,
+    String eventId,
+  ) async {
+    final channel = await _channelService.findChannelByDidOrNull(receiverDid);
+    if (channel == null) return;
+    await _channelService.updateMatrixSyncMarker(channel, eventId);
+  }
+
+  /// Whether [event] represents a real timeline event whose id should be used
+  /// as a sync cursor. Ephemeral events (typing, receipts) carry synthetic or
+  /// non-cursor ids and must not advance [Channel.matrixSyncMarker].
+  bool _isTimelineEvent(MatrixRoomEvent event) {
+    return event.type != 'm.typing' && event.type != 'm.receipt';
   }
 
   MatrixIncomingMessage _toMatrixIncoming(MatrixRoomEvent e) {
@@ -1184,8 +1228,7 @@ class MeetingPlaceCoreSDK {
   DidCommIncomingMessage _toDidCommIncoming(MediatorMessage m) {
     return DidCommIncomingMessage(
       senderDid: m.fromDid ?? m.plainTextMessage.from ?? '',
-      timestamp:
-          m.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+      timestamp: m.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
       payload: m.plainTextMessage,
     );
   }

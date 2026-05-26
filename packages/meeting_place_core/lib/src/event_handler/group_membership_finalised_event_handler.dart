@@ -162,6 +162,11 @@ class GroupMembershipFinalisedEventHandler
       didManager: didManager,
     );
 
+    final initialMatrixSyncMarker = await _matrixService.getLatestEventId(
+      groupMemberInaugurationMessage.body.matrixRoomId,
+      didManager: didManager,
+    );
+
     await _updateMediatorAcls(
       didManager: didManager,
       permanentChannelDid: permanentChannelDid,
@@ -195,6 +200,7 @@ class GroupMembershipFinalisedEventHandler
       notificationToken: notificationToken,
       otherPartyPermanentChannelDid: updatedGroup.did,
       matrixRoomId: groupMemberInaugurationMessage.body.matrixRoomId,
+      matrixSyncMarker: initialMatrixSyncMarker,
       sequenceNumber: event.startSeqNo,
     );
 

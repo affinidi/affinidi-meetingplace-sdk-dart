@@ -164,10 +164,14 @@ class MatrixService {
   /// - [roomId]: The ID of the Matrix room to fetch history from.
   /// - [didManager]: The DID manager used to ensure an authenticated session.
   /// - [limit]: Maximum number of events to return (default: 50).
+  /// - [sinceEventId]: When non-null, stops walking the timeline at this
+  ///   event id (exclusive), so only events strictly newer than the marker
+  ///   are returned.
   Future<List<MatrixRoomEvent>> fetchRoomHistory(
     String roomId, {
     required DidManager didManager,
     int limit = 50,
+    String? sinceEventId,
   }) async {
     final client = await _ensureSession(didManager);
     final myUserId = _sessionManager.deriveUserId(
@@ -184,10 +188,28 @@ class MatrixService {
     }
 
     final events = timeline.events
+        .takeWhile((e) => sinceEventId == null || e.eventId != sinceEventId)
         .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
         .whereType<MatrixRoomEvent>();
 
     return events.take(limit).toList();
+  }
+
+  /// Returns the most recent event id in [roomId], or `null` if the room is
+  /// not known to the client or has no events yet.
+  ///
+  /// Used to anchor [Channel.matrixSyncMarker] at join time so that
+  /// subsequent [fetchRoomHistory] calls only return events posted after the
+  /// joiner became a member.
+  Future<String?> getLatestEventId(
+    String roomId, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) return null;
+    final timeline = await room.getTimeline(limit: 1);
+    return timeline.events.isEmpty ? null : timeline.events.first.eventId;
   }
 
   /// Returns a stream of [MatrixRoomEvent]s received in [roomId].

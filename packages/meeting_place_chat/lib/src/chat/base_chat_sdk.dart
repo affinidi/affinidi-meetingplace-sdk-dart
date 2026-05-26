@@ -78,8 +78,7 @@ abstract class BaseChatSDK {
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
 
   /// Unique chat ID derived from [did] and [otherPartyDid].
-  String get chatId =>
-      Chat.deriveId(did: did, otherPartyDid: otherPartyDid);
+  String get chatId => Chat.deriveId(did: did, otherPartyDid: otherPartyDid);
 
   /// Starts a chat session.
   ///
@@ -97,22 +96,8 @@ abstract class BaseChatSDK {
 
     unawaited(proposeProfileUpdate());
 
-    final channel = await getChannel();
-
-    final allEvents = await _fetchRoomHistoryAsRoomEvents();
-
-    // TODO: Handle this in CoreSDK
-    final syncMarker = channel.matrixSyncMarker;
-    final events = syncMarker == null
-        ? allEvents
-        : allEvents.takeWhile((e) => e.id != syncMarker).toList();
+    final events = await _fetchRoomHistoryAsRoomEvents();
     final incomingEvents = events.where((e) => !e.isFromMe).toList();
-
-    // TODO: Update matrix sync marker in CoreSDK
-    if (events.isNotEmpty) {
-      channel.matrixSyncMarker = events.first.id;
-      await coreSDK.updateChannel(channel);
-    }
 
     final newMessages = <Message>[];
     for (final event in incomingEvents) {
@@ -215,7 +200,7 @@ abstract class BaseChatSDK {
         .where((m) => m is MatrixIncomingMessage)
         .cast<MatrixIncomingMessage>()
         .map(_toRoomEvent)
-        .listen(_handleIncomingRoomEvent);
+        .listen((event) async => await _handleIncomingRoomEvent(event));
   }
 
   Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
@@ -246,11 +231,7 @@ abstract class BaseChatSDK {
     );
 
     await coreSDK.sendMessage(
-      ChatTypingNotification(
-        senderDid: did,
-        roomId: roomId,
-        active: false,
-      ),
+      ChatTypingNotification(senderDid: did, roomId: roomId, active: false),
     );
     return message;
   }

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import '../../meeting_place_chat.dart';
 import '../core/constants.dart';
-import '../core/room_event/profile_hash_room_event.dart';
+import '../core/outgoing_message/matrix/profile_hash_room_event.dart';
 import '../entity/message.dart' as entity_chat_message;
 import '../loggers/default_meeting_place_chat_sdk_logger.dart';
 import 'base_chat_sdk.dart';
@@ -151,7 +151,7 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
 
     final channel = await getChannel();
     if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
-      await coreSDK.matrix.sendRoomEvent(
+      await coreSDK.sendMessage(
         ProfileHashRoomEvent(
           senderDid: did,
           roomId: roomId,
@@ -166,7 +166,6 @@ class IndividualChatSDK extends BaseChatSDK implements ChatSDK {
     logger.info('Completed sending profile hash', name: _logkey);
   }
 
-  @override
   Future<List<entity_chat_message.Message>> fetchNewMessages() async {
     throw UnimplementedError(
       '''fetchNewMessages is not implemented for IndividualChatSDK. Messages are

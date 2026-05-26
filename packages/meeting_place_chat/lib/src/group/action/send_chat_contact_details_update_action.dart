@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import '../../../meeting_place_chat.dart';
-import '../../core/room_event/room_event.dart';
+import '../../core/outgoing_message/outgoing_message.dart';
 
 /// Confirms an approved profile update by:
 ///
@@ -32,7 +32,7 @@ class SendChatContactDetailsUpdateAction {
     await _chatSDK.coreSDK.updateGroup(group);
 
     unawaited(
-      _chatSDK.coreSDK.matrix.sendRoomEvent(
+      _chatSDK.coreSDK.sendMessage(
         ContactDetailsUpdateRoomEvent(
           senderDid: _chatSDK.did,
           roomId: _chatSDK.roomId,

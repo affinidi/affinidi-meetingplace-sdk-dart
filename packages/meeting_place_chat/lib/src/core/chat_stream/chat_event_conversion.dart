@@ -53,3 +53,15 @@ extension MatrixRoomEventToChatEvent on MatrixRoomEvent {
     };
   }
 }
+
+extension MatrixOutgoingMessageToChatEvent on MatrixOutgoingMessage {
+  ChatEvent toChatEvent() {
+    final chatProtocol = protocol.ChatProtocol.byValue(type);
+    return switch (chatProtocol) {
+      protocol.ChatProtocol.chatEffect => ChatEffectEvent(
+        effectName: content['effect'] as String? ?? '',
+      ),
+      _ => const ChatMessageEvent(),
+    };
+  }
+}

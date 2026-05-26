@@ -149,7 +149,8 @@ class MeetingPlaceCoreSDK {
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
     required DIDCommTransport didcommTransport,
-    required MatrixTransport matrixTransport,
+    required MatrixService matrixService,
+    required Future<DidManager> Function(String did) getDidManager,
   }) : _repositoryConfig = repositoryConfig,
        _mediatorSDK = mediatorSDK,
        _controlPlaneSDK = controlPlaneSDK,
@@ -165,8 +166,9 @@ class MeetingPlaceCoreSDK {
        _mediatorDid = mediatorDid,
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
-       didcomm = didcommTransport,
-       matrix = matrixTransport;
+       _matrixService = matrixService,
+       _getDidManager = getDidManager,
+       didcomm = didcommTransport;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -185,7 +187,8 @@ class MeetingPlaceCoreSDK {
   final SDKErrorHandler _sdkErrorHandler;
 
   final DIDCommTransport didcomm;
-  final MatrixTransport matrix;
+  final MatrixService _matrixService;
+  final Future<DidManager> Function(String did) _getDidManager;
 
   String _mediatorDid;
 
@@ -440,12 +443,8 @@ class MeetingPlaceCoreSDK {
       onDeviceRegistered: (device) => controlPlaneSDK.device = device,
     );
 
-    final matrixTransport = MatrixTransport(
-      matrixService: matrixService,
-      errorHandler: sdkErrorHandler,
-      getDidManager: (did) =>
-          connectionManager.getDidManagerForDid(wallet, did),
-    );
+    final matrixTransportGetDidManager = (String did) =>
+        connectionManager.getDidManagerForDid(wallet, did);
 
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
@@ -465,7 +464,8 @@ class MeetingPlaceCoreSDK {
       options: options,
       sdkErrorHandler: sdkErrorHandler,
       didcommTransport: didcommTransport,
-      matrixTransport: matrixTransport,
+      matrixService: matrixService,
+      getDidManager: matrixTransportGetDidManager,
     );
   }
 
@@ -1085,6 +1085,109 @@ class MeetingPlaceCoreSDK {
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
+  }
+
+  /// Sends [message] through its transport (Matrix or DIDComm).
+  ///
+  /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
+  /// matrix events that don't produce one, such as `m.read`, `m.typing`,
+  /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
+  Future<String?> sendMessage(OutgoingMessage message) async {
+    return _withSdkExceptionHandling(() async {
+      return switch (message) {
+        MatrixOutgoingMessage m => await _matrixService.sendRoomEvent(
+          m.roomId,
+          m.type,
+          m.content,
+          didManager: await _getDidManager(m.senderDid),
+        ),
+        DidCommOutgoingMessage m => await didcomm
+            .sendMessage(
+              m.payload,
+              senderDid: m.senderDid,
+              recipientDid: m.recipientDid,
+              mediatorDid: m.mediatorDid,
+              notifyChannelType: m.notifyChannelType,
+              ephemeral: m.ephemeral,
+              forwardExpiryInSeconds: m.forwardExpiryInSeconds,
+            )
+            .then((_) => null),
+        _ => throw ArgumentError(
+          'Unsupported OutgoingMessage subtype: ${message.runtimeType}',
+        ),
+      };
+    });
+  }
+
+  /// Subscribes to incoming messages for the given [subscription].
+  ///
+  /// For [MatrixRoomSubscription], yields events from a single room.
+  /// For [DidCommSubscription], yields DIDComm messages for the receiver DID
+  /// across all peers.
+  Future<Stream<IncomingMessage>> subscribe(
+    IncomingMessageSubscription subscription,
+  ) async {
+    return _withSdkExceptionHandling(() async {
+      switch (subscription) {
+        case MatrixRoomSubscription s:
+          final stream = await _matrixService.subscribeToRoom(
+            s.roomId,
+            didManager: await _getDidManager(s.receiverDid),
+            options: s.options,
+          );
+          return stream.map(_toMatrixIncoming);
+        case DidCommSubscription s:
+          final sub = await didcomm.subscribe(
+            s.receiverDid,
+            mediatorDid: s.mediatorDid,
+          );
+          return sub.stream.map(_toDidCommIncoming);
+      }
+    });
+  }
+
+  /// Fetches historical messages for the given [query].
+  Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
+    return _withSdkExceptionHandling(() async {
+      switch (query) {
+        case MatrixRoomHistoryQuery q:
+          final events = await _matrixService.fetchRoomHistory(
+            q.roomId,
+            didManager: await _getDidManager(q.receiverDid),
+            limit: q.limit,
+          );
+          return events.map(_toMatrixIncoming).toList();
+        case DidCommHistoryQuery q:
+          final messages = await didcomm.fetchMessages(
+            did: q.receiverDid,
+            mediatorDid: q.mediatorDid,
+            deleteOnRetrieve: q.deleteOnRetrieve,
+            deleteFailedMessages: q.deleteFailedMessages,
+          );
+          return messages.take(q.limit).map(_toDidCommIncoming).toList();
+      }
+    });
+  }
+
+  MatrixIncomingMessage _toMatrixIncoming(MatrixRoomEvent e) {
+    return MatrixIncomingMessage(
+      senderDid: e.senderDid ?? e.userId,
+      timestamp: e.timestamp,
+      roomId: e.roomId,
+      eventId: e.id,
+      type: e.type,
+      content: e.content,
+      isFromMe: e.isFromMe,
+    );
+  }
+
+  DidCommIncomingMessage _toDidCommIncoming(MediatorMessage m) {
+    return DidCommIncomingMessage(
+      senderDid: m.fromDid ?? m.plainTextMessage.from ?? '',
+      timestamp:
+          m.plainTextMessage.createdTime ?? DateTime.now().toUtc(),
+      payload: m.plainTextMessage,
+    );
   }
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {

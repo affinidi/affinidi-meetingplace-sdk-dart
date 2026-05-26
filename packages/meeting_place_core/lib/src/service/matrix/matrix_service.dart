@@ -109,29 +109,6 @@ class MatrixService {
     await client.leaveRoom(roomId);
   }
 
-  /// Sends an `m.typing` notification for [roomId], telling the server the
-  /// user is typing for [timeoutMs] milliseconds.
-  Future<void> enableTyping(
-    String roomId, {
-    required DidManager didManager,
-    int? timeoutMs,
-  }) async {
-    final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) throw StateError('Matrix room $roomId not found');
-    await room.setTyping(true, timeout: timeoutMs);
-  }
-
-  Future<void> disableTyping(
-    String roomId, {
-    required DidManager didManager,
-  }) async {
-    final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) throw StateError('Matrix room $roomId not found');
-    await room.setTyping(false);
-  }
-
   Future<void> inviteUser(
     String roomId, {
     required String did,
@@ -140,17 +117,6 @@ class MatrixService {
     final client = await _ensureSession(didManager);
     final userId = _sessionManager.deriveUserId(did, homeserver.host);
     await client.inviteUser(roomId, userId);
-  }
-
-  Future<void> redactRoomEvent(
-    String roomId,
-    String eventId, {
-    required DidManager didManager,
-  }) async {
-    final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) throw StateError('Matrix room $roomId not found');
-    await room.redactEvent(eventId);
   }
 
   /// Sends a Matrix room event with [eventType] and [content] to [roomId].
@@ -179,6 +145,13 @@ class MatrixService {
     if (eventType == 'm.room.redaction') {
       final targetEventId = content['redacts'] as String;
       await room.redactEvent(targetEventId);
+      return null;
+    }
+
+    if (eventType == 'm.typing') {
+      final active = content['active'] as bool;
+      final timeoutMs = content['timeoutMs'] as int?;
+      await room.setTyping(active, timeout: active ? timeoutMs : null);
       return null;
     }
 

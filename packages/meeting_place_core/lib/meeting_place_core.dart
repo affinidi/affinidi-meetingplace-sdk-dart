@@ -31,6 +31,7 @@ export 'src/meeting_place_core_sdk.dart';
 export 'src/meeting_place_core_sdk_error_code.dart';
 export 'src/meeting_place_core_sdk_exception.dart';
 export 'src/meeting_place_core_sdk_options.dart';
+export 'src/messaging/messaging.dart';
 export 'src/protocol/message/plaintext_message_extension.dart';
 export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';

@@ -1,6 +1,8 @@
+export 'chat_typing_notification.dart';
 export 'contact_details_update_room_event.dart';
 export 'effect_room_event.dart';
 export 'group_details_update_room_event.dart';
+export 'matrix_custom_outgoing_message.dart';
 export 'profile_hash_room_event.dart';
 export 'profile_request_room_event.dart';
 export 'reaction_room_event.dart';

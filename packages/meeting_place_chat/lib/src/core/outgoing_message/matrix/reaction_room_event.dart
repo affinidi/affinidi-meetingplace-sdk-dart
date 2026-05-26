@@ -1,14 +1,12 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:uuid/uuid.dart';
 
-class ReactionRoomEvent extends MatrixRoomEvent {
+class ReactionRoomEvent extends MatrixOutgoingMessage {
   ReactionRoomEvent({
     required super.senderDid,
     required super.roomId,
     required String targetEventId,
     required String reaction,
   }) : super(
-         id: const Uuid().v4(),
          type: 'm.reaction',
          content: {
            'm.relates_to': {
@@ -17,6 +15,5 @@ class ReactionRoomEvent extends MatrixRoomEvent {
              'key': reaction,
            },
          },
-         timestamp: DateTime.now().toUtc(),
        );
 }

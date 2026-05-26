@@ -1,7 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../meeting_place_chat.dart';
-import '../../core/room_event/room_event.dart';
+import '../../core/outgoing_message/outgoing_message.dart';
 import '../../utils/top_and_tail_extension.dart';
 import 'group_action.dart';
 
@@ -28,7 +28,7 @@ class RejectConnectionRequestAction implements GroupAction<Group> {
     final updatedGroup = await _chatSDK.coreSDK.rejectConnectionRequest(
       channel: channel,
     );
-    await _chatSDK.coreSDK.matrix.sendRoomEvent(
+    await _chatSDK.coreSDK.sendMessage(
       GroupDetailsUpdateRoomEvent(
         senderDid: _chatSDK.did,
         roomId: _chatSDK.roomId,

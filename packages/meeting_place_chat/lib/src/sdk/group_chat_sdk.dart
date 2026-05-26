@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../core/chat_history_service.dart';
+import '../core/outgoing_message/outgoing_message.dart';
 import '../group/action/approve_connection_request_action.dart';
 import '../group/action/propose_profile_update_action.dart';
 import '../group/action/reject_connection_request_action.dart';
@@ -151,10 +151,13 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// ephemeral typing notification.
   @override
   Future<void> sendChatActivity() async {
-    await coreSDK.matrix.sendTypingNotification(
-      roomId: roomId,
-      senderDid: did,
-      timeoutMs: options.chatActivityExpiry.inMilliseconds,
+    await coreSDK.sendMessage(
+      ChatTypingNotification(
+        senderDid: did,
+        roomId: roomId,
+        active: true,
+        timeoutMs: options.chatActivityExpiry.inMilliseconds,
+      ),
     );
 
     logger.info('Sent chat activity', name: _logkey);
@@ -166,15 +169,12 @@ class GroupChatSDK extends BaseChatSDK implements ChatSDK {
   /// [chatStream] for the sender. Receivers handle the event through their
   /// existing incoming routers based on [CustomRoomEvent.type].
   Future<void> sendRoomEvent(CustomRoomEvent event) async {
-    await coreSDK.matrix.sendRoomEvent(
-      MatrixRoomEvent(
-        id: const Uuid().v4(),
-        type: event.type,
+    await coreSDK.sendMessage(
+      MatrixCustomOutgoingMessage(
         senderDid: did,
         roomId: roomId,
+        type: event.type,
         content: event.content,
-        timestamp: DateTime.now().toUtc(),
-        isFromMe: true,
       ),
     );
 

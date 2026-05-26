@@ -94,7 +94,7 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await Future<void>.delayed(const Duration(seconds: 3));
 
-    final bobMessages = await fixture.bobSDK.coreSDK.fetchMessages(
+    final bobMessages = await fixture.bobSDK.coreSDK.didcomm.fetchMessages(
       did: fixture.bobSDK.didDocument.id,
       deleteOnRetrieve: true,
     );

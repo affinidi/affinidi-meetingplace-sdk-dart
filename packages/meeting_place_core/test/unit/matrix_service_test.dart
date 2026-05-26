@@ -7,7 +7,6 @@ import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service_exception.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_session_manager.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:sqflite_common/sqflite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -65,6 +64,8 @@ const _testRoomId = '!room123:matrix.example.com';
 final _testHomeserver = Uri.parse('https://matrix.example.com');
 
 MatrixConfig _fakeConfig() => MatrixConfig(
+  mediatorDid: 'did:test:mediator',
+  controlPlaneDid: 'did:test:control-plane',
   homeserver: _testHomeserver,
   databaseFactory: const _NoOpDatabaseFactory(),
 );
@@ -533,6 +534,6 @@ class _NoOpDatabaseFactory implements MatrixDatabaseFactory {
   const _NoOpDatabaseFactory();
 
   @override
-  Future<Database?> openDatabase(MatrixDatabaseContext context) =>
+  Future<matrix.DatabaseApi?> openDatabase(MatrixDatabaseContext context) =>
       Future.value(null);
 }

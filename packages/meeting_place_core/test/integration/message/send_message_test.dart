@@ -77,7 +77,7 @@ void main() async {
   test('send message', () async {
     final messageId = const Uuid().v4();
 
-    await aliceSDK.sendMessage(
+    await aliceSDK.didcomm.sendMessage(
       PlainTextMessage(
         id: messageId,
         from: aliceApprovedChannel.permanentChannelDid!,
@@ -90,7 +90,7 @@ void main() async {
     );
 
     await Future<void>.delayed(const Duration(seconds: 4));
-    final messages = await bobSDK.fetchMessages(
+    final messages = await bobSDK.didcomm.fetchMessages(
       did: bobOfferFinalisedChannel.permanentChannelDid!,
     );
 
@@ -111,7 +111,7 @@ void main() async {
       await aliceSDK.updateChannel(aliceApprovedChannel);
 
       expect(
-        () => aliceSDK.sendMessage(
+        () => aliceSDK.didcomm.sendMessage(
           PlainTextMessage(
             id: messageId,
             from: aliceApprovedChannel.permanentChannelDid!,

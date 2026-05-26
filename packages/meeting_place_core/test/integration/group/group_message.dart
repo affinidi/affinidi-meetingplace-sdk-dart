@@ -25,12 +25,12 @@ void main() {
       attachments: [],
     );
 
-    final aliceStream = await fixture.aliceSDK.subscribeToMediator(
+    final aliceStream = await fixture.aliceSDK.didcomm.subscribe(
       fixture.aliceDid,
     );
     final aliceReceivedMessageCompleter = Completer<PlainTextMessage>();
 
-    final charlieStream = await fixture.charlieSDK.subscribeToMediator(
+    final charlieStream = await fixture.charlieSDK.didcomm.subscribe(
       fixture.charlieDid,
     );
     final charlieReceivedMessageCompleter = Completer<PlainTextMessage>();
@@ -51,7 +51,7 @@ void main() {
       }
     });
 
-    await fixture.bobSDK.sendGroupMessage(
+    await fixture.bobSDK.didcomm.sendGroupMessage(
       chatMessage,
       senderDid: fixture.bobDid,
       recipientDid: fixture.groupDid,
@@ -77,8 +77,8 @@ void main() {
       body: {'text': 'Hello Group!', 'seq_no': 1},
     );
 
-    final bobStream = await fixture.bobSDK.subscribeToMediator(fixture.bobDid);
-    final charlieStream = await fixture.charlieSDK.subscribeToMediator(
+    final bobStream = await fixture.bobSDK.didcomm.subscribe(fixture.bobDid);
+    final charlieStream = await fixture.charlieSDK.didcomm.subscribe(
       fixture.charlieDid,
     );
 
@@ -103,7 +103,7 @@ void main() {
 
     await Future<void>.delayed(const Duration(seconds: 3));
 
-    await fixture.aliceSDK.sendGroupMessage(
+    await fixture.aliceSDK.didcomm.sendGroupMessage(
       chatMessage,
       senderDid: fixture.aliceDid,
       recipientDid: fixture.groupDid,

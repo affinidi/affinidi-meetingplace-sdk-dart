@@ -11,7 +11,7 @@ import '../utils/sdk.dart';
 void main() async {
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
-  final notification = await bobSDK.registerForDIDCommNotifications();
+  final notification = await bobSDK.didcomm.registerForNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
 
@@ -48,7 +48,7 @@ void main() async {
     }
   });
 
-  final notificationStream = await bobSDK.subscribeToMediator(
+  final notificationStream = await bobSDK.didcomm.subscribe(
     notificationDidDocument.id,
   );
   notificationStream.stream.listen((data) async {

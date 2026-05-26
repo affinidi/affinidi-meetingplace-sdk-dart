@@ -23,13 +23,13 @@ void main() async {
     final didDocB = await didManagerB.getDidDocument();
 
     // --- Reset messages ---
-    await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerA,
+    await aliceSDK.didcomm.fetchMessages(
+      did: didDocA.id,
       deleteOnRetrieve: true,
     );
 
-    await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerB,
+    await aliceSDK.didcomm.fetchMessages(
+      did: didDocB.id,
       deleteOnRetrieve: true,
     );
 
@@ -37,7 +37,7 @@ void main() async {
     final sendMessageDid = await bobSDK.generateDid();
     final senderDidDocument = await sendMessageDid.getDidDocument();
 
-    await aliceSDK.mediator.updateAcl(
+    await aliceSDK.didcomm.mediator.updateAcl(
       ownerDidManager: didManagerA,
       acl: AccessListAdd(
         ownerDid: didDocA.id,
@@ -45,7 +45,7 @@ void main() async {
       ),
     );
 
-    await aliceSDK.mediator.updateAcl(
+    await aliceSDK.didcomm.mediator.updateAcl(
       ownerDidManager: didManagerB,
       acl: AccessListAdd(
         ownerDid: didDocB.id,
@@ -53,7 +53,7 @@ void main() async {
       ),
     );
 
-    await bobSDK.mediator.sendMessage(
+    await bobSDK.didcomm.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
         type: Uri.parse('https://example.com/test'),
@@ -61,12 +61,11 @@ void main() async {
         to: [didDocA.id],
         body: {'fooA': 'barA'},
       ),
-      senderDidManager: sendMessageDid,
-      recipientDidDocument: didDocA,
-      next: didDocA.id,
+      senderDid: senderDidDocument.id,
+      recipientDid: didDocA.id,
     );
 
-    await bobSDK.mediator.sendMessage(
+    await bobSDK.didcomm.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
         type: Uri.parse('https://example.com/test'),
@@ -74,32 +73,37 @@ void main() async {
         to: [didDocB.id],
         body: {'fooB': 'barB'},
       ),
-      senderDidManager: sendMessageDid,
-      recipientDidDocument: didDocB,
-      next: didDocB.id,
+      senderDid: senderDidDocument.id,
+      recipientDid: didDocB.id,
     );
 
     await Future<void>.delayed(const Duration(seconds: 5));
 
-    final messagesA = await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerA,
+    final messagesA = await aliceSDK.didcomm.fetchMessages(
+      did: didDocA.id,
+      deleteOnRetrieve: false,
     );
 
     final targetMessages = messagesA
         .where(
-          (mes) => mes.message!.type.toString() == 'https://example.com/test',
+          (mes) =>
+              mes.plainTextMessage.type.toString() ==
+              'https://example.com/test',
         )
         .toList();
 
     expect(targetMessages.length, 1);
 
-    final messagesB = await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerB,
+    final messagesB = await aliceSDK.didcomm.fetchMessages(
+      did: didDocB.id,
+      deleteOnRetrieve: false,
     );
 
     final targetMessagesB = messagesB
         .where(
-          (mes) => mes.message!.type.toString() == 'https://example.com/test',
+          (mes) =>
+              mes.plainTextMessage.type.toString() ==
+              'https://example.com/test',
         )
         .toList();
 
@@ -108,13 +112,14 @@ void main() async {
 
   test('different stream for each mediator session', () async {
     final didManager = await aliceSDK.generateDid();
+    final didDoc = await didManager.getDidDocument();
+
     final didManager2 = await aliceSDK.generateDid();
+    final didDoc2 = await didManager2.getDidDocument();
 
-    final channel = await aliceSDK.mediator.subscribeToMessages(didManager);
+    final channel = await aliceSDK.didcomm.subscribe(didDoc.id);
 
-    final differentChannel = await aliceSDK.mediator.subscribeToMessages(
-      didManager2,
-    );
+    final differentChannel = await aliceSDK.didcomm.subscribe(didDoc2.id);
 
     expect(channel, isNot(equals(differentChannel)));
     await channel.dispose();

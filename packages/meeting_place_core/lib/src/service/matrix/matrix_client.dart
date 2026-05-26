@@ -29,10 +29,9 @@ class MatrixClient {
       homeserver: config.homeserver,
       userScope: userScope,
     );
-    final database = await matrix.MatrixSdkDatabase.init(
-      context.databaseName,
-      database: await config.databaseFactory.openDatabase(context),
-    );
+    final database =
+        await config.databaseFactory.openDatabase(context) ??
+        await matrix.MatrixSdkDatabase.init(context.databaseName);
 
     final client = matrix.Client(
       '${_clientName}_$userScope',

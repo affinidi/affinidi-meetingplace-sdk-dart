@@ -14,18 +14,23 @@ import 'storage/in_memory_storage.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
-Future<Database> _openMatrixDatabase(MatrixDatabaseContext context) async {
+Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();
   final directory = Directory(
     '${Directory.systemTemp.path}/meeting_place_core_test_matrix',
   );
   await directory.create(recursive: true);
-  return databaseFactoryFfi.openDatabase(
-    '${directory.path}/${context.databaseName}.sqlite',
+  return MatrixSdkDatabase.init(
+    context.databaseName,
+    database: await databaseFactoryFfi.openDatabase(
+      '${directory.path}/${context.databaseName}.sqlite',
+    ),
   );
 }
 
 MatrixConfig getMatrixConfig() => MatrixConfig(
+  mediatorDid: getMediatorDid(),
+  controlPlaneDid: getControlPlaneDid(),
   homeserver: getMatrixHomeserver(),
   databaseFactory: const CallbackMatrixDatabaseFactory(
     openDatabase: _openMatrixDatabase,
@@ -50,9 +55,7 @@ Future<MeetingPlaceCoreSDK> initSDKInstance({
       channelRepository:
           channelRepository ?? ChannelRepositoryImpl(storage: storage),
     ),
-    mediatorDid: getMediatorDid(),
-    controlPlaneDid: getControlPlaneDid(),
-    matrixConfig: getMatrixConfig(),
+    config: getMatrixConfig(),
   );
 
   if (!withoutDevice) {

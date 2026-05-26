@@ -28,18 +28,23 @@ Uri getMatrixHomeserver() => switch (
       _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
     };
 
-Future<Database> _openMatrixDatabase(MatrixDatabaseContext context) async {
+Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();
   final directory = Directory(
     '${Directory.systemTemp.path}/meeting_place_core_example_matrix',
   );
   await directory.create(recursive: true);
-  return databaseFactoryFfi.openDatabase(
-    '${directory.path}/${context.databaseName}.sqlite',
+  return MatrixSdkDatabase.init(
+    context.databaseName,
+    database: await databaseFactoryFfi.openDatabase(
+      '${directory.path}/${context.databaseName}.sqlite',
+    ),
   );
 }
 
 MatrixConfig getMatrixConfig() => MatrixConfig(
+      mediatorDid: getMediatorDid(),
+      controlPlaneDid: getControlPlaneDid(),
       homeserver: getMatrixHomeserver(),
       databaseFactory: const CallbackMatrixDatabaseFactory(
         openDatabase: _openMatrixDatabase,
@@ -60,9 +65,7 @@ Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
   return MeetingPlaceCoreSDK.create(
     wallet: wallet,
     repositoryConfig: getRepositoryConfig(),
-    mediatorDid: getMediatorDid(),
-    controlPlaneDid: getControlPlaneDid(),
-    matrixConfig: getMatrixConfig(),
+    config: getMatrixConfig(),
     logger: DefaultMeetingPlaceCoreSDKLogger(),
   );
 }

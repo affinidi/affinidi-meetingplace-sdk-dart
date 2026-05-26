@@ -13,4 +13,10 @@ class ResolveDidDocumentCommand
   ResolveDidDocumentCommand({required this.did});
 
   final String did;
+
+  @override
+  bool get requiresBootstrap => false;
+
+  @override
+  bool get requiresAuthentication => false;
 }

@@ -16,6 +16,25 @@ import 'retry_interceptor.dart';
 /// A class that is used to handle the API calls for [ControlPlaneSDK] using
 /// [Dio].
 class ControlPlaneApiClient {
+  factory ControlPlaneApiClient.forTesting({
+    required Dio dio,
+    required String basePath,
+    required ControlPlaneSDK controlPlaneSDK,
+    required String controlPlaneDid,
+    ControlPlaneSDKLogger? logger,
+  }) {
+    final effectiveLogger =
+        logger ??
+        DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
+    return ControlPlaneApiClient._(
+      dio: dio,
+      basePath: basePath,
+      controlPlaneSDK: controlPlaneSDK,
+      controlPlaneDid: controlPlaneDid,
+      logger: effectiveLogger,
+    );
+  }
+
   /// Create an instance of the [ControlPlaneApiClient] class.
   ///
   /// This also creates the instance of [ControlPlaneApiClient] class.

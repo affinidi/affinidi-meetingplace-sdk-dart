@@ -99,7 +99,10 @@ class ControlPlaneSDK {
   late final CommandDispatcher _dispatcher;
 
   Device? _device;
-  Future<void>? _initializing;
+  Future<void>? _bootstrapping;
+  Future<void>? _authenticating;
+  bool _publicHandlersRegistered = false;
+  bool _handlersRegistered = false;
   bool isInitialized = false;
 
   /// Setter method that sets the value of [Device] variable of the
@@ -139,7 +142,20 @@ class ControlPlaneSDK {
 
   /// Private method that initialises the ControlPlaneApiClient.
   /// This is invoked by a public method within the [ControlPlaneSDK].
-  Future<void> _init() async {
+  void _registerPublicHandlers() {
+    if (_publicHandlersRegistered) {
+      return;
+    }
+
+    _dispatcher = CommandDispatcher();
+    _dispatcher.registerHandler(
+      ResolveDidDocumentHandler(didResolver: didResolver, logger: _logger),
+    );
+    _publicHandlersRegistered = true;
+  }
+
+  Future<void> _bootstrap() async {
+    _registerPublicHandlers();
     _controlPlaneApiClient = await ControlPlaneApiClient.init(
       controlPlaneSDK: this,
       options: ControlPlaneApiClientOptions(
@@ -153,7 +169,6 @@ class ControlPlaneSDK {
       logger: _logger,
     );
 
-    _dispatcher = CommandDispatcher();
     _dispatcher.registerHandler(
       AuthenticateHandler(
         apiClient: _controlPlaneApiClient,
@@ -335,15 +350,13 @@ class ControlPlaneSDK {
         logger: _logger,
       ),
     );
+    _handlersRegistered = true;
+  }
 
-    _dispatcher.registerHandler(
-      ResolveDidDocumentHandler(didResolver: didResolver, logger: _logger),
-    );
-
+  Future<void> _authenticate() async {
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(
       AuthenticateCommand(controlPlaneDid: controlPlaneDid),
     );
-
     isInitialized = true;
   }
 
@@ -364,26 +377,46 @@ class ControlPlaneSDK {
     _logger.info('Executing command: ${command.runtimeType}', name: methodName);
 
     return _withSdkExceptionHandling(() async {
-      if (!isInitialized) {
-        // Ensure only one initialization happens, even with concurrent calls
-        _initializing ??= _init()
+      _registerPublicHandlers();
+
+      if (command.requiresBootstrap && !_handlersRegistered) {
+        _bootstrapping ??= _bootstrap()
             .then((_) {
-              _logger.info('SDK initialization complete', name: methodName);
+              _logger.info('SDK bootstrap complete', name: methodName);
             })
             .catchError((Object e, StackTrace stackTrace) {
-              _logger.error('SDK initialization failed: $e', name: methodName);
-              // Reset to allow retry on next execute call
-              _initializing = null;
-              // Clean up partial state
+              _logger.error('SDK bootstrap failed: $e', name: methodName);
+              _bootstrapping = null;
+              _authenticating = null;
+              _handlersRegistered = false;
               isInitialized = false;
               Error.throwWithStackTrace(e, stackTrace);
             });
 
         _logger.warning(
-          'SDK not initialized, starting initialization...',
+          'SDK not bootstrapped, starting bootstrap...',
           name: methodName,
         );
-        await _initializing;
+        await _bootstrapping;
+      }
+
+      if (command.requiresAuthentication && !isInitialized) {
+        _authenticating ??= _authenticate()
+            .then((_) {
+              _logger.info('SDK authentication complete', name: methodName);
+            })
+            .catchError((Object e, StackTrace stackTrace) {
+              _logger.error('SDK authentication failed: $e', name: methodName);
+              _authenticating = null;
+              isInitialized = false;
+              Error.throwWithStackTrace(e, stackTrace);
+            });
+
+        _logger.warning(
+          'SDK not authenticated, starting authentication...',
+          name: methodName,
+        );
+        await _authenticating;
       }
       return await _dispatcher.dispatch(command);
     });

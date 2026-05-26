@@ -8,5 +8,5 @@ export 'src/transport/didcomm/chat_protocol.dart';
 export 'src/repository/chat_repository.dart';
 export 'src/chat_sdk.dart';
 export 'src/chat_sdk_options.dart';
-export 'src/chat_modes/group/group_chat_sdk.dart';
-export 'src/chat_modes/individual/individual_chat_sdk.dart';
+export 'src/chat/group/group_chat_sdk.dart';
+export 'src/chat/individual/individual_chat_sdk.dart';

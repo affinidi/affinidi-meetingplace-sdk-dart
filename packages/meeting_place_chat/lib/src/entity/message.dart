@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../protocol/message/chat_message/chat_message.dart';
+import '../transport/didcomm/protocol/chat_message/chat_message.dart';
 import 'chat_attachment.dart';
 import 'chat_attachment_conversion.dart';
 import 'chat_item.dart';

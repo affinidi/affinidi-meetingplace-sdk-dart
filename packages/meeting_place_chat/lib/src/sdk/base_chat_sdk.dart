@@ -5,13 +5,14 @@ import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
-import '../core/chat_stream/chat_event_conversion.dart';
-import '../core/matrix_user_id_cache.dart';
-import '../core/outgoing_message/outgoing_message.dart';
+import '../events/chat_event_conversion.dart';
+import '../transport/matrix/matrix_user_id_cache.dart';
+import '../transport/matrix/outgoing/outgoing.dart';
+import '../transport/didcomm/outgoing/outgoing.dart';
 import '../loggers/logger_formatter.dart';
 import '../utils/chat_utils.dart';
 import '../utils/top_and_tail_extension.dart';
-import 'incoming_room_event_router.dart';
+import '../transport/matrix/incoming/incoming_room_event_router.dart';
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.

@@ -84,7 +84,8 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   ) async {
     final shouldRetryAuth = err.requestOptions.extra['retry_auth'] ?? true;
     final isUnauthorized = err.response?.statusCode == HttpStatus.unauthorized;
-    final data = err.response?.data as Map<String, dynamic>?;
+    final responseData = err.response?.data;
+    final data = responseData is Map<String, dynamic> ? responseData : null;
 
     final isTokenExpired =
         isUnauthorized && data?['errorCode'] == _errorCodeTokenExpired;

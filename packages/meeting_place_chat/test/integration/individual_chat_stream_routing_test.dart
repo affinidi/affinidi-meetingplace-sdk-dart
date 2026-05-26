@@ -41,7 +41,7 @@ void main() {
       });
     });
 
-    await fixture.bobSDK.coreSDK.sendMessage(
+    await fixture.bobSDK.coreSDK.didcomm.sendMessage(
       unhandledMessage,
       senderDid: fixture.bobSDK.didDocument.id,
       recipientDid: fixture.aliceSDK.didDocument.id,

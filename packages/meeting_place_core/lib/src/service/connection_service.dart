@@ -21,6 +21,8 @@ import 'connection_offer/connection_offer_service.dart';
 import 'connection_offer/offer_already_claimed_exception.dart';
 import 'connection_offer/offer_owner_exception.dart';
 import 'connection_service/accept_offer_result.dart';
+import 'identity/identity_service.dart';
+import 'matrix/matrix_service.dart';
 import 'mediator/mediator_acl_service.dart';
 
 class FindOfferException implements Exception {
@@ -41,9 +43,11 @@ class ConnectionService {
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MediatorAclService mediatorAclService,
+    required IdentityService identityService,
     required ConnectionOfferService offerService,
     required DidResolver didResolver,
     required ChannelService channelService,
+    required MatrixService matrixService,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _channelService = channelService,
@@ -51,14 +55,17 @@ class ConnectionService {
        _controlPlaneSDK = controlPlaneSDK,
        _mediatorSDK = mediatorSDK,
        _mediatorAclService = mediatorAclService,
+       _identityService = identityService,
        _connectionOfferService = offerService,
        _didResolver = didResolver,
+       _matrixService = matrixService,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   static const String _className = 'ConnectionService';
 
   final ConnectionManager _connectionManager;
+  final IdentityService _identityService;
   final ConnectionOfferRepository _connectionOfferRepository;
   final ConnectionOfferService _connectionOfferService;
   final ChannelService _channelService;
@@ -66,6 +73,7 @@ class ConnectionService {
   final MediatorAclService _mediatorAclService;
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
+  final MatrixService _matrixService;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
@@ -191,13 +199,13 @@ class ConnectionService {
     final methodName = 'publishOffer';
     _logger.info('Publishing connection offer: $offerName', name: methodName);
 
-    final oobDidManager = await _connectionManager.generateDid(wallet);
-    final oobDidDoc = await oobDidManager.getDidDocument();
-
-    final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
+    final oobIdentity = await _identityService.createEphemeralIdentity(wallet);
+    final oobMessage = OobInvitationMessage.create(
+      from: oobIdentity.didDocument.id,
+    );
 
     await _mediatorAclService.toPublic(
-      didManager: oobDidManager,
+      didManager: oobIdentity.didManager,
       mediatorDid: mediatorDid,
     );
 
@@ -223,7 +231,6 @@ class ConnectionService {
     );
 
     try {
-      final didDocument = await oobDidManager.getDidDocument();
       final connectionOffer = ConnectionOffer(
         offerName: registerOfferOutput.offerName,
         offerLink: registerOfferOutput.offerLink,
@@ -235,7 +242,7 @@ class ConnectionService {
         oobInvitationMessage: toBase64(
           registerOfferOutput.didcommMessage.toJson(),
         ),
-        publishOfferDid: didDocument.id,
+        publishOfferDid: oobIdentity.didDocument.id,
         maximumUsage: registerOfferOutput.maximumUsage,
         contactCard: contactCard,
         status: ConnectionOfferStatus.published,
@@ -246,7 +253,7 @@ class ConnectionService {
 
       await _connectionOfferRepository.createConnectionOffer(connectionOffer);
       _logger.info('Connection offer published: $offerName', name: methodName);
-      return (connectionOffer, oobDidManager);
+      return (connectionOffer, oobIdentity.didManager);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to publish connection offer',
@@ -284,24 +291,12 @@ class ConnectionService {
       connectionOffer.offerLink,
     );
 
-    final acceptOfferDidManager = await _connectionManager.generateDid(wallet);
-    final acceptOfferDidDocument = await acceptOfferDidManager.getDidDocument();
-
-    _logger.debug(
-      'Accept offer DID: ${acceptOfferDidDocument.id.topAndTail()}',
-      name: methodName,
-    );
-
-    final permanentChannelDidManager = await _connectionManager.generateDid(
+    final acceptOfferIdentity = await _identityService.createEphemeralIdentity(
       wallet,
     );
 
-    final permanentChannelDidDocument = await permanentChannelDidManager
-        .getDidDocument();
-
-    _logger.debug(
-      'Permanent channel DID: ${permanentChannelDidDocument.id.topAndTail()}',
-      name: methodName,
+    final permanentIdentity = await _identityService.createPermanentIdentity(
+      wallet,
     );
 
     final result = await _controlPlaneSDK.execute(
@@ -309,7 +304,7 @@ class ConnectionService {
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
-        acceptOfferDid: acceptOfferDidDocument.id,
+        acceptOfferDid: acceptOfferIdentity.didDocument.id,
         contactCard: ContactCardImpl(
           did: contactCard.did,
           type: contactCard.type,
@@ -324,8 +319,8 @@ class ConnectionService {
     );
 
     await sendAcceptOfferToMediator(
-      acceptOfferDid: acceptOfferDidManager,
-      permanentChannelDidDocument: permanentChannelDidDocument,
+      acceptOfferDid: acceptOfferIdentity.didManager,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: result.mediatorDid,
       acceptContactCard: contactCard,
@@ -333,16 +328,16 @@ class ConnectionService {
 
     final acceptedConnectionOffer = await _acceptConnectionOffer(
       connectionOffer,
-      acceptOfferDidDocument: acceptOfferDidDocument,
-      permanentChannelDidDocument: permanentChannelDidDocument,
+      acceptOfferDidDocument: acceptOfferIdentity.didDocument,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       contactCard: contactCard,
       externalRef: externalRef,
     );
 
     final channel = Channel.individualFromAcceptedConnectionOffer(
       acceptedConnectionOffer,
-      permanentChannelDid: permanentChannelDidDocument.id,
-      acceptOfferDid: acceptOfferDidDocument.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
+      acceptOfferDid: acceptOfferIdentity.didDocument.id,
       contactCard: contactCard,
       externalRef: externalRef,
     );
@@ -366,8 +361,8 @@ class ConnectionService {
     return AcceptOfferResult(
       connectionOffer: acceptedConnectionOffer,
       channel: channel,
-      acceptOfferDid: acceptOfferDidManager,
-      permanentChannelDid: permanentChannelDidManager,
+      acceptOfferDid: acceptOfferIdentity.didManager,
+      permanentChannelDid: permanentIdentity.didManager,
     );
   }
 
@@ -534,19 +529,30 @@ class ConnectionService {
       channel.publishOfferDid,
     );
 
-    final permanentChannelDid = await _connectionManager.generateDid(wallet);
+    final permanentIdentity = await _identityService.createPermanentIdentity(
+      wallet,
+    );
 
-    final permanentChannelDidDocument = await permanentChannelDid
-        .getDidDocument();
+    final roomId = await _matrixService.createRoom(
+      didManager: permanentIdentity.didManager,
+      inviteUsers: [otherPartyPermanentChannelDid],
+    );
+
+    _logger.info(
+      'Matrix room created with ID: ${roomId.topAndTail()}',
+      name: methodName,
+    );
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
-      permanentChannelDid: permanentChannelDid,
+      permanentChannelDid: permanentIdentity.didManager,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyAcceptOfferDid: acceptOfferDid,
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
+      // TODO: transfer matrix specific data as attachment?
+      matrixRoomId: roomId,
       attachments: attachments,
     );
 
@@ -570,16 +576,17 @@ class ConnectionService {
     );
 
     final finalisedConnection = connectionOffer.finalise(
-      permanentChannelDid: permanentChannelDidDocument.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
     );
     await _connectionOfferRepository.updateConnectionOffer(finalisedConnection);
 
     await _channelService.markChannelApprovedForConnectionInitiator(
       channel,
-      permanentChannelDid: permanentChannelDidDocument.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       notificationToken: finaliseAcceptanceOutput.notificationToken,
+      matrixRoomId: roomId,
     );
 
     _logger.info(
@@ -597,6 +604,7 @@ class ConnectionService {
     required String otherPartyAcceptOfferDid,
     required String outboundMessageId,
     required String mediatorDid,
+    required String matrixRoomId,
     ContactCard? contactCard,
     List<Attachment>? attachments,
   }) async {
@@ -623,6 +631,7 @@ class ConnectionService {
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
       contactCard: contactCard,
+      matrixRoomId: matrixRoomId,
       attachments: attachments,
     );
 

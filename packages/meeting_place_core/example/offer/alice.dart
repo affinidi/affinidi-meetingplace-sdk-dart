@@ -13,7 +13,7 @@ void main() async {
 
   // Alice registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
-  final notification = await aliceSDK.registerForDIDCommNotifications();
+  final notification = await aliceSDK.didcomm.registerForNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
@@ -67,7 +67,7 @@ void main() async {
   // Alice listens to mediator stream using notification DID
   prettyPrintGreen('>>> Calling SDK.subscribeToMediator');
   final notificationStream =
-      await aliceSDK.subscribeToMediator(notificationDidDocument.id);
+      await aliceSDK.didcomm.subscribe(notificationDidDocument.id);
 
   prettyPrintYellow('>>> Listen on notification stream');
   notificationStream.stream.listen((data) async {
@@ -91,6 +91,11 @@ void main() async {
   final receivedChannelActivityEvent = await waitForChannelActivity.future;
   prettyPrintYellow('Event type: ${receivedChannelActivityEvent.type.name}');
   prettyJsonPrintYellow('Channel:', receivedChannelActivityEvent.channel);
+
+  prettyJsonPrintYellow(
+    'Matrix room ID:',
+    receivedChannelActivityEvent.channel.matrixRoomId!,
+  );
 
   await notificationStream.dispose();
 }

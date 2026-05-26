@@ -39,6 +39,7 @@ class Channel {
     this.otherPartyPermanentChannelDid,
     this.notificationToken,
     this.otherPartyNotificationToken,
+    this.matrixRoomId,
     this.messageSyncMarker,
     this.seqNo = 0,
     this.externalRef,
@@ -154,6 +155,9 @@ class Channel {
   /// If connection offer lives on device of accepting party, notification token
   /// is the token shared by the offer owner.
   String? otherPartyNotificationToken;
+
+  /// Matrix room ID associated with the channel.
+  String? matrixRoomId;
 
   /// External reference that can be used to correlate the channel with external
   /// systems. This field is not used by the SDK, and can be set by the SDK

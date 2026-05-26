@@ -1,3 +1,7 @@
+## 0.0.1-dev.34
+
+ - **FIX**: stop ChatActivityEventHandler from deleting mediator messages (#177).
+
 ## 0.0.1-dev.33
 
  - **FEAT**: convert contact card fields to json blob (#157).

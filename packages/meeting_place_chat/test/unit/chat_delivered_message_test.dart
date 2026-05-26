@@ -9,6 +9,7 @@ import '../utils/repository/chat_repository_impl.dart';
 import '../utils/repository/connection_group_offer_repository_impl.dart';
 import '../utils/repository/connection_offer_repository_impl.dart';
 import '../utils/repository/key_repository_impl.dart';
+import '../utils/sdk.dart';
 import '../utils/storage/in_memory_storage.dart';
 
 // Captures calls to sendPlainTextMessage for assertion.
@@ -70,8 +71,12 @@ void main() {
         keyRepository: KeyRepositoryImpl(storage: storage),
         channelRepository: ChannelRepositoryImpl(storage: storage),
       ),
-      mediatorDid: mediatorDid,
-      controlPlaneDid: 'did:peer:control-plane',
+      config: MatrixConfig(
+        mediatorDid: mediatorDid,
+        controlPlaneDid: 'did:peer:control-plane',
+        homeserver: getMatrixConfig().homeserver,
+        databaseFactory: getMatrixConfig().databaseFactory,
+      ),
     );
 
     sdk = _SpyChatSDK(

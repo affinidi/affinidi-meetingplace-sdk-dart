@@ -1,3 +1,7 @@
+## 0.0.1-dev.36
+
+ - **FIX**: stop ChatActivityEventHandler from deleting mediator messages (#177).
+
 ## 0.0.1-dev.35
 
  - Update a dependency to the latest release.

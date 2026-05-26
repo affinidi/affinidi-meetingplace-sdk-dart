@@ -161,8 +161,8 @@ class ControlPlaneApiClient {
       '/v1/did-document/upload',
       data: {
         'didDocument': didDocument,
-        'controlProof': controlProof.jws,
-        'proof': proof.jws,
+        'controlProof': controlProof.toJson(),
+        'proof': proof.toJson(),
       },
       options: Options(extra: {'secure': _didDocumentSecure}),
     );

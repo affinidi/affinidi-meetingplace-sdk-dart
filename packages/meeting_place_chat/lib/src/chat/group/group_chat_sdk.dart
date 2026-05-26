@@ -4,7 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../../meeting_place_chat.dart';
-import '../../repository/chat_history_service.dart';
+import 'chat_history_service.dart';
 import '../../transport/matrix/outgoing/outgoing.dart';
 import 'action/approve_connection_request_action.dart';
 import 'action/propose_profile_update_action.dart';

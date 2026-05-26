@@ -1,7 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../repository/chat_history_service.dart';
+import '../chat_history_service.dart';
 import '../../../transport/matrix/outgoing/outgoing.dart';
 import '../../../loggers/top_and_tail_extension.dart';
 import 'group_action.dart';

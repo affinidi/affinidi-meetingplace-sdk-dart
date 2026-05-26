@@ -1,6 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../../repository/chat_history_service.dart';
+import '../chat_history_service.dart';
 import '../../../event/chat_event_conversion.dart';
 import '../../../event/chat_stream.dart';
 import '../../../event/stream_data.dart';

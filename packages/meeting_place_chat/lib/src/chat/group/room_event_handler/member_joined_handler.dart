@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../repository/chat_history_service.dart';
+import '../chat_history_service.dart';
 import '../../../transport/matrix/matrix_user_id_cache.dart';
 import '../../../transport/matrix/incoming/room_event_handler.dart';
 

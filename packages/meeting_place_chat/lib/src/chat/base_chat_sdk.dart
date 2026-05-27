@@ -9,8 +9,8 @@ import '../event/chat_event_conversion.dart';
 import '../transport/matrix/matrix_user_id_cache.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import '../transport/didcomm/outgoing/outgoing.dart';
-import '../loggers/logger_formatter.dart';
-import '../loggers/top_and_tail_extension.dart';
+import '../logger/logger_formatter.dart';
+import '../logger/top_and_tail_extension.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 
 /// [BaseChatSDK] is an abstract base class that provides functionality

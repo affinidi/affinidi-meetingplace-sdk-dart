@@ -5,7 +5,7 @@ export 'src/event/chat_stream.dart';
 export 'src/event/incoming_chat_event.dart';
 export 'src/event/stream_data.dart';
 export 'src/entity/entity.dart';
-export 'src/loggers/meeting_place_chat_sdk_logger.dart';
+export 'src/logger/meeting_place_chat_sdk_logger.dart';
 export 'src/meeting_place_chat_sdk.dart';
 export 'src/transport/didcomm/chat_protocol.dart';
 export 'src/repository/chat_repository.dart';

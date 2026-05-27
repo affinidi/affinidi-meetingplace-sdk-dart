@@ -44,6 +44,10 @@ import '../model/group_deregister_member_input.dart';
 import '../model/group_member_deregister_ok.dart';
 import '../model/group_send_message.dart';
 import '../model/group_send_message_ok.dart';
+import '../model/matrix_challenge.dart';
+import '../model/matrix_challenge_ok.dart';
+import '../model/matrix_token.dart';
+import '../model/matrix_token_ok.dart';
 import '../model/notify_accept_offer_group_input.dart';
 import '../model/notify_accept_offer_group_ok.dart';
 import '../model/notify_accept_offer_input.dart';
@@ -1713,6 +1717,194 @@ class DefaultApi {
     }
 
     return Response<GroupSendMessageOK>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// matrixChallenge
+  /// Initiates the Matrix authentication process by generating an auth
+  /// challenge token for the specified Decentralised Identifier (DID).
+  ///
+  /// Parameters:
+  /// * [matrixChallenge] - List of required parameters to initiate the Matrix
+  ///   authentication process.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [MatrixChallengeOK] as
+  /// data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<MatrixChallengeOK>> matrixChallenge({
+    required MatrixChallenge matrixChallenge,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/matrix/challenge';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{'secure': <Map<String, String>>[], ...?extra},
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(MatrixChallenge);
+      _bodyData = _serializers.serialize(matrixChallenge, specifiedType: _type);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    MatrixChallengeOK? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null
+          ? null
+          : _serializers.deserialize(
+                  rawResponse,
+                  specifiedType: const FullType(MatrixChallengeOK),
+                )
+                as MatrixChallengeOK;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<MatrixChallengeOK>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// matrixToken
+  /// Authenticates a user and issues a Matrix login token by validating an
+  /// encrypted DIDComm message signed with the user&#39;s private key
+  /// associated with their Decentralised Identifier (DID).
+  ///
+  /// Parameters:
+  /// * [matrixToken] - List of required parameters to obtain a Matrix login
+  ///   token.
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
+  ///   determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
+  ///   progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
+  ///   receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [MatrixTokenOK] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<MatrixTokenOK>> matrixToken({
+    required MatrixToken matrixToken,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/v1/matrix/token';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{'secure': <Map<String, String>>[], ...?extra},
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(MatrixToken);
+      _bodyData = _serializers.serialize(matrixToken, specifiedType: _type);
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _options.compose(_dio.options, _path),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    MatrixTokenOK? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null
+          ? null
+          : _serializers.deserialize(
+                  rawResponse,
+                  specifiedType: const FullType(MatrixTokenOK),
+                )
+                as MatrixTokenOK;
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<MatrixTokenOK>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

@@ -2,7 +2,9 @@
 
 ![Affinidi Meeting Place](https://raw.githubusercontent.com/affinidi/affinidi-meetingplace-sdk-dart/main/assets/images/meetingplace-banner.png)
 
-The Affinidi Meeting Place - Relationship SDK for Dart provides the domain models, credential builders, and repository interfaces for exchanging verifiable relationship credentials, including Verifiable Relationship Credentials (VRC), Relationship Cards (R-Cards), and other relationship credential types, over the Meeting Place SDK.
+The Affinidi Meeting Place - Relationship SDK for Dart provides domain models, credential builders, and repository interfaces for exchanging verifiable relationship credentials over the Meeting Place SDK. Supported types include Verifiable Relationship Credentials (VRC) and Relationship Cards (R-Cards), with an extensible design for adding new credential types.
+
+The Relationship SDK is part of the Meeting Place SDK toolkit. It builds on top of `meeting_place_core` for DIDComm transport and protocol primitives. Storage implementations for `RCardRepository` and `VrcRepository` are required; `meeting_place_drift_repository` provides ready-made Drift-backed implementations.
 
 > **DISCLAIMER:** Affinidi provides this SDK as a developer tool to facilitate decentralized messaging. Any personal data exchanged or stored via this tool is entirely initiated and controlled by end-users. Affinidi does not collect, access, or process such data. Implementing parties are responsible for ensuring that their applications comply with applicable privacy laws and user transparency obligations.
 
@@ -11,6 +13,8 @@ The Affinidi Meeting Place - Relationship SDK for Dart provides the domain model
 - **[Relationship Card (R-Card)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.cg17eeqde3ek)** - A Verifiable Credential encoding a user's contact information (name, email, phone, company, etc.) as a [jCard (RFC 7095)](https://www.rfc-editor.org/rfc/rfc7095) in the credential subject, exchangeable over DIDComm channels and exportable to [vCard 3.0 (RFC 6350)](https://www.rfc-editor.org/rfc/rfc6350).
 
 - **[Verifiable Relationship Credential (VRC)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.siks62ntn9c5)** - A Verifiable Credential encoding a mutual relationship between two DIDs (`from` and `to` parties), exchanged via a two-step request-reciprocate handshake over the VDIP protocol.
+
+- **[Verifiable Data Issuance Protocol (VDIP)](https://docs.affinidi.com/dev-tools/affinidi-tdk/dart/libraries/vdip/)** - The verifiable-data exchange protocol used to transport credentials and credential requests over an established DIDComm channel.
 
 ## Key Features
 

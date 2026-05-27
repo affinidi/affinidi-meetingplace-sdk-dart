@@ -114,6 +114,17 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
 
     if (events.isEmpty) return;
 
+    // Count only inbound chat messages — skip our own sends (already counted by
+    // BaseChatSDK._sendRoomEventMessage) and non-message events (typing,
+    // receipts, redactions, etc.). updateMatrixSyncMarker persists the whole
+    // row, so the mutated seqNo is written in the same SQL update.
+    final inboundChatCount = events
+        .where((e) => !e.isFromMe && e.type == 'm.room.message')
+        .length;
+    if (inboundChatCount > 0) {
+      channel.seqNo += inboundChatCount;
+    }
+
     // Events are returned newest-first; advance the marker to the latest.
     await channelService.updateMatrixSyncMarker(channel, events.first.id);
   }

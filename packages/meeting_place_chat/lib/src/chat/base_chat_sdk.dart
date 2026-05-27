@@ -449,7 +449,6 @@ abstract class BaseChatSDK {
         ));
   }
 
-  // TODO: check if sequence number is still needed for badge count
   Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
     final channel = await getChannel();
     channel.increaseSeqNo();

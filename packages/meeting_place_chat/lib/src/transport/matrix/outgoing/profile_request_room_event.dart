@@ -1,14 +1,12 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../didcomm/chat_protocol.dart';
-
 class ProfileRequestRoomEvent extends MatrixOutgoingMessage {
   ProfileRequestRoomEvent({
     required super.senderDid,
     required super.roomId,
     required String profileHash,
   }) : super(
-         type: ChatProtocol.chatAliasProfileRequest.value,
+         type: 'com.affinidi.chat.profile-request',
          content: {'profile_hash': profileHash},
        );
 }

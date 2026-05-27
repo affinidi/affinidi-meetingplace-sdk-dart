@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
@@ -46,7 +48,6 @@ class MatrixService {
   /// Returns: The Matrix user ID associated with the logged-in session.
   Future<String> loginWithDid(DidManager didManager) async {
     final didDocument = await didManager.getDidDocument();
-
     final matrixTokenOutput = await _controlPlaneSDK.execute(
       MatrixTokenCommand(didManager: didManager, homeserver: homeserver),
     );
@@ -77,6 +78,10 @@ class MatrixService {
     required DidManager didManager,
     List<String>? inviteUsers,
   }) async {
+    print(
+      'demo: createRoom user=${await _userIdOf(didManager)} '
+      'invite=${inviteUsers?.length ?? 0}',
+    );
     final client = await _ensureSession(didManager);
     return client.createRoom(
       invite: inviteUsers
@@ -97,6 +102,7 @@ class MatrixService {
   /// Returns: A Future that completes when the room join operation is
   /// successful.
   Future<void> joinRoom(String roomId, {required DidManager didManager}) async {
+    print('demo: joinRoom user=${await _userIdOf(didManager)} room=$roomId');
     final client = await _ensureSession(didManager);
     await client.joinRoom(roomId);
   }
@@ -105,6 +111,7 @@ class MatrixService {
     String roomId, {
     required DidManager didManager,
   }) async {
+    print('demo: leaveRoom user=${await _userIdOf(didManager)} room=$roomId');
     final client = await _ensureSession(didManager);
     await client.leaveRoom(roomId);
   }
@@ -114,6 +121,10 @@ class MatrixService {
     required String did,
     required DidManager didManager,
   }) async {
+    print(
+      'demo: inviteUser user=${await _userIdOf(didManager)} '
+      'room=$roomId invitedDid=$did',
+    );
     final client = await _ensureSession(didManager);
     final userId = _sessionManager.deriveUserId(did, homeserver.host);
     await client.inviteUser(roomId, userId);
@@ -132,6 +143,10 @@ class MatrixService {
     Map<String, dynamic> content, {
     required DidManager didManager,
   }) async {
+    print(
+      'demo: sendRoomEvent user=${await _userIdOf(didManager)} '
+      'room=$roomId type=$eventType',
+    );
     final client = await _ensureSession(didManager);
     final room = client.getRoomById(roomId);
     if (room == null) throw StateError('Matrix room $roomId not found');
@@ -173,6 +188,10 @@ class MatrixService {
     int limit = 50,
     String? sinceEventId,
   }) async {
+    print(
+      'demo: fetchRoomHistory user=${await _userIdOf(didManager)} '
+      'room=$roomId limit=$limit since=$sinceEventId',
+    );
     final client = await _ensureSession(didManager);
     final myUserId = _sessionManager.deriveUserId(
       (await didManager.getDidDocument()).id,
@@ -189,7 +208,14 @@ class MatrixService {
 
     final events = timeline.events
         .takeWhile((e) => sinceEventId == null || e.eventId != sinceEventId)
-        .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
+        .map((e) {
+          print(
+            'demo: fetched timeline event room=$roomId '
+            'type=${e.type} '
+            'id=${e.eventId} from=${e.senderId}',
+          );
+          return _eventToMatrixRoomEvent(e, myUserId: myUserId);
+        })
         .whereType<MatrixRoomEvent>();
 
     return events.take(limit).toList();
@@ -205,6 +231,10 @@ class MatrixService {
     String roomId, {
     required DidManager didManager,
   }) async {
+    print(
+      'demo: getLatestEventId user=${await _userIdOf(didManager)} '
+      'room=$roomId',
+    );
     final client = await _ensureSession(didManager);
     final room = client.getRoomById(roomId);
     if (room == null) return null;
@@ -232,6 +262,7 @@ class MatrixService {
       (await didManager.getDidDocument()).id,
       homeserver.host,
     );
+    print('demo: subscribeToRoom room=$roomId user=$myUserId');
 
     final controller = StreamController<MatrixRoomEvent>();
 
@@ -240,6 +271,11 @@ class MatrixService {
         .listen((event) {
           final msg = _eventToMatrixRoomEvent(event, myUserId: myUserId);
           if (msg != null && (!options.excludeSelf || !msg.isFromMe)) {
+            print(
+              'demo: received timeline event room=$roomId '
+              'type=${event.type} '
+              'id=${event.eventId} from=${event.senderId}',
+            );
             controller.add(msg);
           }
         }, onError: controller.addError);
@@ -254,6 +290,7 @@ class MatrixService {
               (event.content['user_ids'] as List?)?.cast<String>() ?? [];
           for (final userId in userIds) {
             if (options.excludeSelf && userId == myUserId) continue;
+            print('demo: received typing event room=$roomId from=$userId');
             controller.add(
               MatrixRoomEvent(
                 id: '${roomId}_typing_$userId',
@@ -284,6 +321,10 @@ class MatrixService {
             if (options.excludeSelf && userId == myUserId) continue;
             final ts =
                 (userEntry.value as Map<String, dynamic>?)?['ts'] as int?;
+            print(
+              'demo: received receipt event room=$roomId '
+              'eventId=$eventId from=$userId',
+            );
             controller.add(
               MatrixRoomEvent(
                 id: eventId,
@@ -329,6 +370,11 @@ class MatrixService {
       timestamp: event.originServerTs,
       isFromMe: myUserId != null && event.senderId == myUserId,
     );
+  }
+
+  Future<String> _userIdOf(DidManager didManager) async {
+    final did = (await didManager.getDidDocument()).id;
+    return _sessionManager.deriveUserId(did, homeserver.host);
   }
 
   /// Returns an authenticated client, transparently re-authenticating via

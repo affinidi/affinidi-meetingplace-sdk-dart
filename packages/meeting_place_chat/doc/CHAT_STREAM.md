@@ -67,9 +67,9 @@ stream?.listen((data) {
       // The group is gone. Close the chat screen and drop the entry from
       // your contact list.
 
-    case ChatGroupMembersUpdatedEvent(:final groupDid):
-      // The membership list changed (someone joined, someone's status
-      // updated). Re-fetch the group via coreSDK.getGroup().
+    case ChatGroupDetailsUpdateEvent():
+      // Group details (e.g. membership list) changed. Re-fetch the group
+      // via coreSDK.getGroup() if you need the latest state.
 
     case ChatMemberDeregisteredEvent(:final groupDid, :final memberDid):
       // A specific member left. A "member left" system row also arrives
@@ -101,7 +101,7 @@ stream?.listen((data) {
 | `ChatEffectEvent`                | A visual effect is triggered.                                    | no                     |
 | `ChatContactDetailsUpdateEvent`  | A contact card was updated.                                      | no                     |
 | `ChatGroupDeletedEvent`          | The group is deleted.                                            | sometimes (system row) |
-| `ChatGroupMembersUpdatedEvent`   | Group membership changes (joins, status changes).                | sometimes (per member) |
+| `ChatGroupDetailsUpdateEvent`    | Group details (e.g. membership list) changed.                    | sometimes (per member) |
 | `ChatMemberDeregisteredEvent`    | A member leaves the group.                                       | yes (system row)       |
 | `ChatPresenceEvent`              | The peer is online.                                              | no                     |
 | `ChatActivityEvent`              | The peer is typing.                                              | no                     |

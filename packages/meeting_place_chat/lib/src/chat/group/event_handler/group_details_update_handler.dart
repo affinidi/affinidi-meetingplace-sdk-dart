@@ -32,7 +32,7 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
     final updatedGroup = await _updateGroupMembers(
       group: _getGroup(),
       body: event.content,
-      chatEvent: ChatGroupMembersUpdatedEvent(groupDid: _getGroup().did),
+      chatEvent: const ChatGroupDetailsUpdateEvent(),
     );
     await _coreSDK.updateGroup(updatedGroup);
     _setGroup(updatedGroup);

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:matrix/matrix.dart' as matrix;
 
 import 'matrix_auth_exception.dart';
@@ -106,6 +108,7 @@ class MatrixSessionManager {
     }
 
     try {
+      print('demo: refreshAccessToken did=$did');
       await client.refreshAccessToken();
       return client;
     } catch (_) {

@@ -127,14 +127,12 @@ class IncomingRoomEventRouter {
       return null;
     }
     return switch (event.type) {
-      final t when t == MeetingPlaceProtocol.groupDeletion.value =>
-        ChatEventTypes.groupDeletion,
-      final t when t == ChatProtocol.chatGroupDetailsUpdate.value =>
+      'com.affinidi.chat.group-deletion' => ChatEventTypes.groupDeletion,
+      'com.affinidi.chat.group-details-update' =>
         ChatEventTypes.groupDetailsUpdate,
-      final t when t == ChatProtocol.chatContactDetailsUpdate.value =>
+      'com.affinidi.chat.contact-details-update' =>
         ChatEventTypes.contactDetailsUpdate,
-      final t when t == ChatProtocol.chatEffect.value =>
-        ChatEventTypes.chatEffect,
+      'com.affinidi.chat.effect' => ChatEventTypes.chatEffect,
       _ => event.type,
     };
   }

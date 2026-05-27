@@ -6,7 +6,7 @@ part 'chat_activity_event.dart';
 part 'chat_effect_event.dart';
 part 'chat_contact_details_update_event.dart';
 part 'chat_group_deleted_event.dart';
-part 'chat_group_members_updated_event.dart';
+part 'chat_group_details_update_event.dart';
 part 'chat_member_deregistered_event.dart';
 part 'unhandled_chat_event.dart';
 

@@ -1,6 +1,5 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../didcomm/chat_protocol.dart';
 import '../../didcomm/protocol/chat_group_details_update/chat_group_details_update.dart';
 
 class GroupDetailsUpdateRoomEvent extends MatrixOutgoingMessage {
@@ -9,7 +8,7 @@ class GroupDetailsUpdateRoomEvent extends MatrixOutgoingMessage {
     required super.roomId,
     required Group group,
   }) : super(
-         type: ChatProtocol.chatGroupDetailsUpdate.value,
+         type: 'com.affinidi.chat.group-details-update',
          content: ChatGroupDetailsUpdate.fromGroup(
            group,
            senderDid: senderDid,

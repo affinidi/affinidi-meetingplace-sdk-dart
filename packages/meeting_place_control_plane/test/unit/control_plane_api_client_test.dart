@@ -1,13 +1,47 @@
-import 'package:dio/dio.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_control_plane/src/api/auth_credentials.dart';
 import 'package:meeting_place_control_plane/src/api/control_plane_api_client.dart';
+import 'package:meeting_place_control_plane/src/api/control_plane_api_client_options.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
 
 class FakeAuthenticateCommand extends Fake implements AuthenticateCommand {}
+
+class _FakeDidResolver implements DidResolver {
+  _FakeDidResolver(this._documents);
+
+  final Map<String, DidDocument> _documents;
+
+  @override
+  Future<DidDocument> resolveDid(String did) async {
+    final document = _documents[did];
+    if (document == null) {
+      throw Exception('Missing DID document for $did');
+    }
+    return document;
+  }
+}
+
+DidDocument _didDocument(String did, Uri apiBaseUri) => DidDocument.fromJson({
+  '@context': ['https://www.w3.org/ns/did/v1'],
+  'id': did,
+  'verificationMethod': const <Object>[],
+  'authentication': const <Object>[],
+  'service': [
+    {
+      'id': '$did#control-plane',
+      'type': 'RestAPI',
+      'serviceEndpoint': apiBaseUri.toString(),
+    },
+  ],
+});
 
 void main() {
   const controlPlaneDid = 'did:web:example.com';
@@ -30,35 +64,55 @@ void main() {
         ),
       ),
     );
-
-    final dio = Dio(BaseOptions(baseUrl: 'https://example.com'));
     Map<String, dynamic>? capturedData;
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          capturedData = Map<String, dynamic>.from(
-            options.data as Map<String, dynamic>,
+    final requestHandled = Completer<void>();
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() async {
+      await server.close(force: true);
+    });
+
+    server.listen((request) async {
+      try {
+        expect(request.method, 'POST');
+        expect(request.uri.path, '/v1/did-document/upload');
+
+        final body = await utf8.decoder.bind(request).join();
+        final decodedBody = jsonDecode(body);
+        if (decodedBody is! Map<String, dynamic>) {
+          fail('Expected JSON object body, got ${decodedBody.runtimeType}');
+        }
+        capturedData = Map<String, dynamic>.from(decodedBody);
+
+        request.response
+          ..statusCode = HttpStatus.ok
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode({
+              'did': 'did:web:example.com:user:alice',
+              'segment': 'alice',
+              'didDocUrl': 'https://example.com/user/alice/did.json',
+            }),
           );
-          handler.resolve(
-            Response<Map<String, dynamic>>(
-              requestOptions: options,
-              statusCode: 200,
-              data: {
-                'did': 'did:web:example.com:user:alice',
-                'segment': 'alice',
-                'didDocUrl': 'https://example.com/user/alice/did.json',
-              },
-            ),
-          );
-        },
-      ),
+        await request.response.close();
+        requestHandled.complete();
+      } catch (error, stackTrace) {
+        if (!requestHandled.isCompleted) {
+          requestHandled.completeError(error, stackTrace);
+        }
+        rethrow;
+      }
+    });
+
+    final apiBaseUri = Uri.parse(
+      'http://${server.address.address}:${server.port}/v1',
     );
 
-    final client = ControlPlaneApiClient.forTesting(
-      dio: dio,
-      basePath: 'https://example.com',
+    final client = await ControlPlaneApiClient.init(
+      options: ControlPlaneApiClientOptions(controlPlaneDid: controlPlaneDid),
       controlPlaneSDK: mockControlPlaneSDK,
-      controlPlaneDid: controlPlaneDid,
+      didResolver: _FakeDidResolver({
+        controlPlaneDid: _didDocument(controlPlaneDid, apiBaseUri),
+      }),
     );
 
     final controlProof = DidWebProof(
@@ -81,6 +135,7 @@ void main() {
       controlProof: controlProof,
       proof: proof,
     );
+    await requestHandled.future;
 
     expect(capturedData, isNotNull);
     expect(

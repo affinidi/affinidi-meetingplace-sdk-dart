@@ -1,7 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../event/chat_event_conversion.dart';
 
 class GroupDeletionHandler implements ChatEventHandler {
   GroupDeletionHandler({
@@ -41,6 +40,8 @@ class GroupDeletionHandler implements ChatEventHandler {
       _streamManager.pushData(StreamData(chatItem: chatItem));
     }
 
-    _streamManager.pushData(StreamData(event: event.toChatEvent()));
+    _streamManager.pushData(
+      StreamData(event: ChatGroupDeletedEvent(groupDid: _getGroup().did)),
+    );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../event/chat_event_conversion.dart';
 
 class GroupDetailsUpdateHandler implements ChatEventHandler {
   GroupDetailsUpdateHandler({
@@ -33,7 +32,7 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
     final updatedGroup = await _updateGroupMembers(
       group: _getGroup(),
       body: event.content,
-      chatEvent: event.toChatEvent(),
+      chatEvent: ChatGroupMembersUpdatedEvent(groupDid: _getGroup().did),
     );
     await _coreSDK.updateGroup(updatedGroup);
     _setGroup(updatedGroup);

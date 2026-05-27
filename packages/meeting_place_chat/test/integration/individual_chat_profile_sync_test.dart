@@ -146,7 +146,7 @@ void main() {
       final aliceChatCompleter = Completer<void>();
       await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
         stream!.listen((message) async {
-          if (message.event is ChatContactDetailsUpdateEvent) {
+          if (message.event is ChatMessageEvent) {
             aliceChatCompleter.complete();
           }
         });

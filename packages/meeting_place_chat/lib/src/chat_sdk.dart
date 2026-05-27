@@ -16,9 +16,7 @@ abstract interface class ChatSDK {
 
   // TODO: add custom message
   Future<void> sendChatActivity();
-  Future<void> sendChatPresence();
   Future<void> sendEffect(Effect effect);
-  Future<void> sendChatDeliveredMessage(String messageId);
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
   Future<void> reactOnMessage(Message message, {required String reaction});
 

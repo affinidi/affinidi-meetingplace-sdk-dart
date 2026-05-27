@@ -158,24 +158,12 @@ class MeetingPlaceChatSDK implements ChatSDK {
   @override
   Future<void> sendChatActivity() => _sdk.sendChatActivity();
 
-  /// Sends a "chat presence" signal (e.g., online status).
-  @override
-  Future<void> sendChatPresence() => _sdk.sendChatPresence();
-
   /// Sends a special chat effect.
   ///
   /// **Parameters:**
   /// - [effect]: The [Effect] to send.
   @override
   Future<void> sendEffect(Effect effect) => _sdk.sendEffect(effect);
-
-  /// Sends a "delivered" receipt for a plain text message.
-  ///
-  /// **Parameters:**
-  /// - [messageId]: The ID of the message that was delivered.
-  @override
-  Future<void> sendChatDeliveredMessage(String messageId) =>
-      _sdk.sendChatDeliveredMessage(messageId);
 
   /// Approves an incoming connection request.
   ///

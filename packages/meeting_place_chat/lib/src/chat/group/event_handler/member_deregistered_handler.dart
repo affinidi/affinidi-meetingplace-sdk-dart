@@ -1,7 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../event/chat_event_conversion.dart';
 
 class MemberDeregisteredHandler implements ChatEventHandler {
   MemberDeregisteredHandler({
@@ -52,7 +51,13 @@ class MemberDeregisteredHandler implements ChatEventHandler {
     );
 
     _streamManager.pushData(
-      StreamData(event: event.toChatEvent(), chatItem: chatItem),
+      StreamData(
+        event: ChatMemberDeregisteredEvent(
+          groupDid: group.did,
+          memberDid: senderDid,
+        ),
+        chatItem: chatItem,
+      ),
     );
   }
 }

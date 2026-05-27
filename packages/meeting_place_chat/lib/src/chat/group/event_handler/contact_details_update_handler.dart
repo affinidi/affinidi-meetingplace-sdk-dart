@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../event/chat_event_conversion.dart';
 import '../../base_chat_sdk.dart';
 
 class ContactDetailsUpdateHandler implements ChatEventHandler {
@@ -34,7 +33,10 @@ class ContactDetailsUpdateHandler implements ChatEventHandler {
       group: _getGroup(),
       memberDid: senderDid,
       profileDetails: profileDetails,
-      chatEvent: event.toChatEvent(),
+      chatEvent: ChatContactDetailsUpdateEvent(
+        senderDid: senderDid,
+        contactCard: ContactCard.fromJson(profileDetails),
+      ),
     );
     _setGroup(updated);
   }

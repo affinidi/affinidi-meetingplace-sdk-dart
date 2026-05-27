@@ -5,6 +5,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
+import '../utils/chat_test_harness.dart';
 import '../utils/sdk.dart';
 import 'utils/group_chat_fixture.dart';
 
@@ -44,10 +45,17 @@ void main() {
     final chat = await newAliceChatSDK.startChatSession();
     expect(chat.messages.whereType<ConciergeMessage>().length, equals(1));
 
+    await fixture.bobChatSDK.startChatSession();
+    final bobGroupUpdated =
+        ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(
+      fixture.bobChatSDK,
+    );
+
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.approveConnectionRequest(conciergeMessage);
 
     expect(conciergeMessage.status, ChatItemStatus.confirmed);
+    await bobGroupUpdated;
     newAliceChatSDK.endChatSession();
   });
 
@@ -81,8 +89,14 @@ void main() {
 
     await Future<void>.delayed(const Duration(seconds: 2));
 
+    final bobGroupUpdated =
+        ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(
+      fixture.bobChatSDK,
+    );
+
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
+    await bobGroupUpdated;
 
     final newMemberDidDoc = await acceptance.permanentChannelDid
         .getDidDocument();

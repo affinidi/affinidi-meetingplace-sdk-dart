@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 
+import '../utils/chat_test_harness.dart';
 import 'utils/individual_chat_fixture.dart';
 
 void main() {
@@ -20,14 +19,9 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<Message>();
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
-          bobCompleter.complete(data.chatItem as Message);
-        }
-      });
-    });
+    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
+      fixture.bobChatSDK,
+    );
 
     final event = CustomRoomEvent(
       type: ChatProtocol.chatMessage.value,
@@ -40,7 +34,8 @@ void main() {
 
     await fixture.aliceChatSDK.sendRoomEvent(event);
 
-    final received = await bobCompleter.future;
+    await bobWait;
+    final received = (await fixture.bobChatSDK.messages).first as Message;
     expect(received.value, equals('Hello via sendRoomEvent'));
     expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
   });
@@ -49,14 +44,9 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCompleter = Completer<Message>();
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.event is ChatMessageEvent && !bobCompleter.isCompleted) {
-          bobCompleter.complete(data.chatItem as Message);
-        }
-      });
-    });
+    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
+      fixture.bobChatSDK,
+    );
 
     final event = CustomRoomEvent(
       type: ChatProtocol.chatMessage.value,
@@ -69,7 +59,8 @@ void main() {
 
     await fixture.aliceChatSDK.sendRoomEvent(event);
 
-    final received = await bobCompleter.future;
+    await bobWait;
+    final received = (await fixture.bobChatSDK.messages).first as Message;
     expect(received.value, equals('Persist test'));
     expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
 

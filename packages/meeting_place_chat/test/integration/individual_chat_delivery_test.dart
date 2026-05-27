@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:collection/collection.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 
+import '../utils/chat_test_harness.dart';
 import 'utils/individual_chat_fixture.dart';
 
 void main() {
@@ -21,91 +20,63 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final aliceCompleter = Completer<void>();
-    final bobCompleter = Completer<void>();
+    final bobReceivedTwo = ChatTestHarness.collect(
+      fixture.bobChatSDK,
+      duration: const Duration(seconds: 10),
+    );
 
-    final receivedMessageIds = <String>[];
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (data.event is ChatMessageEvent &&
-            !receivedMessageIds.contains(data.chatItem!.messageId)) {
-          receivedMessageIds.add(data.chatItem!.messageId);
-          if (receivedMessageIds.length == 2) {
-            bobCompleter.complete();
-          }
-        }
-      });
-    });
-
-    final messageIds = <String>[];
-    messageIds.add(
+    final messageIds = <String>[
       (await fixture.aliceChatSDK.sendTextMessage('Message#1')).messageId,
-    );
-    messageIds.add(
       (await fixture.aliceChatSDK.sendTextMessage('Message#2')).messageId,
+    ];
+
+    final aliceDelivered = ChatTestHarness.collect(
+      fixture.aliceChatSDK,
+      duration: const Duration(seconds: 10),
     );
 
-    await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        final event = data.event;
-        if (event is UnhandledChatEvent &&
-            event.type == ChatProtocol.chatDelivered.value) {
-          final deliveredIds = (event.body!['messages'] as List).cast<String>();
-          final removed = messageIds.remove(deliveredIds.first);
-          if (messageIds.isEmpty && removed) {
-            aliceCompleter.complete();
-          }
-        }
-      });
-    });
+    final bobMessageIds = (await bobReceivedTwo)
+        .where((d) => d.event is ChatMessageEvent && d.chatItem != null)
+        .map((d) => d.chatItem!.messageId)
+        .toSet();
+    expect(bobMessageIds.length, equals(2));
 
-    await bobCompleter.future;
-    await aliceCompleter.future;
-    expect(receivedMessageIds.length, equals(2));
+    final deliveredIds = (await aliceDelivered)
+        .map((d) => d.event)
+        .whereType<UnhandledChatEvent>()
+        .where((e) => e.type == ChatProtocol.chatDelivered.value)
+        .expand((e) => (e.body!['messages'] as List).cast<String>())
+        .toSet();
+    expect(deliveredIds, containsAll(messageIds));
 
     final aliceRepositoryMessages = await fixture.aliceChatSDK.messages;
     expect(aliceRepositoryMessages.length, equals(2));
-
     expect(aliceRepositoryMessages[0].status, ChatItemStatus.delivered);
     expect(aliceRepositoryMessages[1].status, ChatItemStatus.delivered);
 
     final bobRepositoryMessages = await fixture.bobChatSDK.messages;
     expect(bobRepositoryMessages.length, equals(2));
-
     expect(bobRepositoryMessages[0].status, ChatItemStatus.received);
     expect(bobRepositoryMessages[1].status, ChatItemStatus.received);
   });
 
   test('sendTextMessage produces delivered status for sender', () async {
-    final bobChatCompleted = Completer<void>();
     await fixture.bobChatSDK.startChatSession();
-
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (!bobChatCompleted.isCompleted && data.event is ChatMessageEvent) {
-          bobChatCompleted.complete();
-        }
-      });
-    });
-
-    final aliceDelivered = Completer<void>();
     await fixture.aliceChatSDK.startChatSession();
 
-    await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        final event = data.event;
-        if (!aliceDelivered.isCompleted &&
-            event is UnhandledChatEvent &&
-            event.type == ChatProtocol.chatDelivered.value) {
-          aliceDelivered.complete();
-        }
-      });
-    });
+    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
+      fixture.bobChatSDK,
+    );
+    final aliceDelivered =
+        ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+      fixture.aliceChatSDK,
+      where: (e) => e.type == ChatProtocol.chatDelivered.value,
+    );
 
     final sentMessage = await fixture.aliceChatSDK.sendTextMessage(
       'Hello World!',
     );
-    await aliceDelivered.future;
+    await aliceDelivered;
 
     final actualMessages = await fixture.aliceChatSDK.messages;
     expect(
@@ -115,7 +86,7 @@ void main() {
       equals(ChatItemStatus.delivered),
     );
 
-    await bobChatCompleted.future;
+    await bobWait;
     expect((await fixture.bobChatSDK.messages).length, equals(1));
   });
 

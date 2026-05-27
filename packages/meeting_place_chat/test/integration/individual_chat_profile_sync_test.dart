@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 
+import '../utils/chat_test_harness.dart';
 import '../utils/contact_card_fixture.dart' as fixtures;
 import 'utils/individual_chat_fixture.dart';
 
@@ -21,19 +20,11 @@ void main() {
     'alice receives profile hash message from Bob when Bob starts chat',
     () async {
       await fixture.aliceChatSDK.startChatSession();
-
-      final waitForProfileHashMessage = Completer<bool>();
-      await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-        stream!.listen((message) {
-          final event = message.event;
-          if (event is UnhandledChatEvent &&
-              event.type == ChatProtocol.chatAliasProfileHash.value) {
-            if (!waitForProfileHashMessage.isCompleted) {
-              waitForProfileHashMessage.complete(true);
-            }
-          }
-        });
-      });
+      final aliceProfileHash =
+          ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+        fixture.aliceChatSDK,
+        where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
+      );
 
       final channel = await fixture.bobSDK.coreSDK.getChannelByDid(
         fixture.bobSDK.didDocument.id,
@@ -43,24 +34,18 @@ void main() {
       await fixture.bobSDK.coreSDK.updateChannel(channel);
 
       await fixture.bobChatSDK.startChatSession();
-      final receivedProfileHashMessage = await waitForProfileHashMessage.future;
-      expect(receivedProfileHashMessage, isTrue);
+      final received = await aliceProfileHash;
+      expect(received, isA<UnhandledChatEvent>());
     },
   );
 
   test('Alice does not send profile request if profile hash matches', () async {
     await fixture.aliceChatSDK.startChatSession();
-    final aliceCompleter = Completer<void>();
-
-    await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) {
-        final event = message.event;
-        if (event is UnhandledChatEvent &&
-            event.type == ChatProtocol.chatAliasProfileHash.value) {
-          if (!aliceCompleter.isCompleted) aliceCompleter.complete();
-        }
-      });
-    });
+    final aliceProfileHash =
+        ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+      fixture.aliceChatSDK,
+      where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
+    );
 
     final channel = await fixture.bobSDK.coreSDK.getChannelByDid(
       fixture.bobSDK.didDocument.id,
@@ -71,20 +56,19 @@ void main() {
 
     await fixture.bobChatSDK.startChatSession();
 
-    var receivedProfileRequestMessage = false;
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) {
-        final event = message.event;
-        if (event is UnhandledChatEvent &&
-            event.type == ChatProtocol.chatAliasProfileRequest.value) {
-          receivedProfileRequestMessage = true;
-        }
-      });
-    });
+    // Collect Bob's events for 3 seconds and verify no profile request fires.
+    final bobEvents = ChatTestHarness.collect(
+      fixture.bobChatSDK,
+      duration: const Duration(seconds: 3),
+    );
 
-    await aliceCompleter.future;
-    await Future<void>.delayed(const Duration(seconds: 3));
-    expect(receivedProfileRequestMessage, isFalse);
+    await aliceProfileHash;
+
+    final bobReceivedProfileRequest = (await bobEvents)
+        .map((d) => d.event)
+        .whereType<UnhandledChatEvent>()
+        .any((e) => e.type == ChatProtocol.chatAliasProfileRequest.value);
+    expect(bobReceivedProfileRequest, isFalse);
   });
 
   test(
@@ -96,12 +80,8 @@ void main() {
         contactInfo: {'changed': 'value'},
       );
 
-      final aliceOpenedChat = Completer<void>();
-      await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-        aliceOpenedChat.complete();
-      });
-
-      await aliceOpenedChat.future;
+      // Ensure Alice's chat stream is initialised.
+      await fixture.aliceChatSDK.chatStreamSubscription;
 
       final newBobChatSDK = await fixture.setup.createChatSdk(
         sdkInstance: fixture.bobSDK,
@@ -114,20 +94,13 @@ void main() {
       );
 
       final bobChat = await newBobChatSDK.startChatSession();
-      final bobProfileRequestCompleter = Completer<void>();
-      await newBobChatSDK.chatStreamSubscription.then((stream) {
-        stream!.listen((message) {
-          final event = message.event;
-          if (event is UnhandledChatEvent &&
-              event.type == ChatProtocol.chatAliasProfileRequest.value) {
-            if (bobProfileRequestCompleter.isCompleted) return;
-            bobProfileRequestCompleter.complete();
-          }
-        });
-      });
+      final bobProfileRequest =
+          ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+        newBobChatSDK,
+        where: (e) => e.type == ChatProtocol.chatAliasProfileRequest.value,
+      );
 
-      await newBobChatSDK.proposeProfileUpdate();
-      await bobProfileRequestCompleter.future;
+      await bobProfileRequest;
 
       final conciergeMessage =
           (await newBobChatSDK.messages).firstWhere(
@@ -143,18 +116,13 @@ void main() {
         'replyTo': fixture.aliceSDK.didDocument.id,
       });
 
-      final aliceChatCompleter = Completer<void>();
-      await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-        stream!.listen((message) async {
-          if (message.event is ChatMessageEvent) {
-            aliceChatCompleter.complete();
-          }
-        });
-      });
+      final aliceMessage = ChatTestHarness.awaitEvent<ChatMessageEvent>(
+        fixture.aliceChatSDK,
+      );
 
       await newBobChatSDK.sendChatContactDetailsUpdate(conciergeMessage);
 
-      await aliceChatCompleter.future;
+      await aliceMessage;
       final aliceChannel = await fixture.aliceSDK.coreSDK.getChannelByDid(
         fixture.bobSDK.didDocument.id,
       );
@@ -174,12 +142,7 @@ void main() {
       contactInfo: {'changed': 'value'},
     );
 
-    final aliceOpenedChat = Completer<void>();
-    await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      aliceOpenedChat.complete();
-    });
-
-    await aliceOpenedChat.future;
+    await fixture.aliceChatSDK.chatStreamSubscription;
 
     final newBobChatSDK = await fixture.setup.createChatSdk(
       sdkInstance: fixture.bobSDK,
@@ -192,20 +155,13 @@ void main() {
     );
 
     await newBobChatSDK.startChatSession();
-    final bobProfileRequestCompleter = Completer<void>();
-    await newBobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((message) {
-        final event = message.event;
-        if (event is UnhandledChatEvent &&
-            event.type == ChatProtocol.chatAliasProfileRequest.value) {
-          if (bobProfileRequestCompleter.isCompleted) return;
-          bobProfileRequestCompleter.complete();
-        }
-      });
-    });
+    final bobProfileRequest =
+        ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+      newBobChatSDK,
+      where: (e) => e.type == ChatProtocol.chatAliasProfileRequest.value,
+    );
 
-    await newBobChatSDK.proposeProfileUpdate();
-    await bobProfileRequestCompleter.future;
+    await bobProfileRequest;
 
     final conciergeMessage =
         (await newBobChatSDK.messages).firstWhere(

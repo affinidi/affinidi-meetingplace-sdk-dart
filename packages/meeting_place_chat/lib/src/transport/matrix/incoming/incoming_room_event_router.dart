@@ -30,16 +30,19 @@ class IncomingRoomEventRouter {
   IncomingRoomEventRouter({required BaseChatSDK chatSDK})
     : _matrixHandlers = buildBaseHandlers(chatSDK),
       _chatHandlers = const {},
-      _didCache = chatSDK.didCache;
+      _didCache = chatSDK.didCache,
+      _chatStream = chatSDK.chatStream;
 
   @protected
   IncomingRoomEventRouter.withHandlers({
     required MatrixUserIdCache didCache,
     required Map<String, MatrixRoomEventHandler> matrixHandlers,
     required Map<String, ChatEventHandler> chatHandlers,
+    ChatStream? chatStream,
   }) : _matrixHandlers = matrixHandlers,
        _chatHandlers = chatHandlers,
-       _didCache = didCache;
+       _didCache = didCache,
+       _chatStream = chatStream;
 
   /// Common matrix-coupled handler map shared by all chat types.
   @protected
@@ -90,6 +93,7 @@ class IncomingRoomEventRouter {
   final MatrixUserIdCache _didCache;
   final Map<String, MatrixRoomEventHandler> _matrixHandlers;
   final Map<String, ChatEventHandler> _chatHandlers;
+  final ChatStream? _chatStream;
 
   Future<void> route(MatrixRoomEvent event) async {
     final dispatchKey = _translate(event);
@@ -101,13 +105,27 @@ class IncomingRoomEventRouter {
     }
 
     final chatHandler = _chatHandlers[dispatchKey];
-    if (chatHandler == null) return;
+    if (chatHandler != null) {
+      return chatHandler.handle(
+        IncomingChatEvent(
+          type: dispatchKey,
+          senderDid: _didCache.resolve(event.userId),
+          content: event.content,
+        ),
+      );
+    }
 
-    return chatHandler.handle(
-      IncomingChatEvent(
-        type: dispatchKey,
-        senderDid: _didCache.resolve(event.userId),
-        content: event.content,
+    // No handler matched. Surface the raw event to SDK consumers as an
+    // [UnhandledChatEvent] so they can act on protocol types the SDK does
+    // not natively process.
+    _chatStream?.pushData(
+      StreamData(
+        event: UnhandledChatEvent(
+          type: event.type,
+          senderDid: _didCache.resolve(event.userId),
+          body: event.content,
+          createdTime: event.timestamp,
+        ),
       ),
     );
   }

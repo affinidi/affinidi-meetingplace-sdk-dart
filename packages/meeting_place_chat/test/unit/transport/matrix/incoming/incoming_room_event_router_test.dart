@@ -13,6 +13,7 @@ class _TestRouter extends IncomingRoomEventRouter {
     required super.didCache,
     required super.matrixHandlers,
     required super.chatHandlers,
+    super.chatStream,
     // ignore: invalid_use_of_protected_member
   }) : super.withHandlers();
 }
@@ -145,9 +146,31 @@ void main() {
       verify(() => fallthroughHandler.handle(any())).called(1);
     });
 
-    test('unrouted type does nothing', () async {
-      await router.route(_event(type: 'm.totally.unmapped'));
+    test('unrouted type pushes UnhandledChatEvent to the chat stream',
+        () async {
+      final stream = ChatStream();
+      final emitted = <StreamData>[];
+      stream.listen(emitted.add);
+
+      final unhandledRouter = _TestRouter(
+        didCache: MatrixUserIdCache(serverName: 'server'),
+        matrixHandlers: const {},
+        chatHandlers: const {},
+        chatStream: stream,
+      );
+
+      await unhandledRouter.route(
+        _event(type: 'm.totally.unmapped', content: const {'k': 'v'}),
+      );
+      await Future<void>.delayed(Duration.zero);
+
       verifyNever(() => chatEffectHandler.handle(any()));
+      expect(emitted.length, 1);
+      final event = emitted.single.event;
+      expect(event, isA<UnhandledChatEvent>());
+      event as UnhandledChatEvent;
+      expect(event.type, 'm.totally.unmapped');
+      expect(event.body, {'k': 'v'});
     });
 
     test('IncomingChatEvent.senderDid is resolved via the didCache', () async {

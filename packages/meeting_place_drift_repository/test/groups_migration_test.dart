@@ -8,11 +8,11 @@ import 'package:test/test.dart';
 import 'utils/groups_schema_versions.dart/schema.dart';
 
 GroupsDatabase _freshDatabase() => GroupsDatabase(
-      databaseName: 'groups_migration_test.db',
-      passphrase: 'test-passphrase',
-      directory: Directory.systemTemp,
-      inMemory: true,
-    );
+  databaseName: 'groups_migration_test.db',
+  passphrase: 'test-passphrase',
+  directory: Directory.systemTemp,
+  inMemory: true,
+);
 
 Future<String?> _field(
   GroupsDatabase db,
@@ -20,11 +20,13 @@ Future<String?> _field(
   String memberDid,
   String column,
 ) async {
-  final rows = await db.customSelect(
-    'SELECT $column FROM group_members'
-    ' WHERE group_id = ? AND member_did = ?',
-    variables: [Variable(groupId), Variable(memberDid)],
-  ).get();
+  final rows = await db
+      .customSelect(
+        'SELECT $column FROM group_members'
+        ' WHERE group_id = ? AND member_did = ?',
+        variables: [Variable(groupId), Variable(memberDid)],
+      )
+      .get();
   return rows.isEmpty ? null : rows.first.read<String?>(column);
 }
 
@@ -93,8 +95,12 @@ void main() {
       final db = GroupsDatabase.forTesting(schema.newConnection());
       await verifier.migrateAndValidate(db, 2);
 
-      final json =
-          await _field(db, 'grp-1', 'did:example:alice', 'contact_info_json');
+      final json = await _field(
+        db,
+        'grp-1',
+        'did:example:alice',
+        'contact_info_json',
+      );
       expect(json, isNotNull);
       expect(json, contains('Alice'));
       expect(json, contains('Jones'));

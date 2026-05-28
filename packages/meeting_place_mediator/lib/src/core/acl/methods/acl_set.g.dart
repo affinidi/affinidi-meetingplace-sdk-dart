@@ -7,11 +7,11 @@ part of 'acl_set.dart';
 // **************************************************************************
 
 AclSet _$AclSetFromJson(Map<String, dynamic> json) => AclSet(
-      ownerDid: json['did_hash'] as String,
-      acls: (json['acls'] as num).toInt(),
-    );
+  ownerDid: json['did_hash'] as String,
+  acls: (json['acls'] as num).toInt(),
+);
 
 Map<String, dynamic> _$AclSetToJson(AclSet instance) => <String, dynamic>{
-      'did_hash': instance.ownerDid,
-      'acls': instance.acls,
-    };
+  'did_hash': instance.ownerDid,
+  'acls': instance.acls,
+};

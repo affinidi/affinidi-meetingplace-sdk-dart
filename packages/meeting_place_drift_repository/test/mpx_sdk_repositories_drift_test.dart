@@ -40,9 +40,7 @@ void main() {
 
         await repository.createMessage(message);
         final stored = await repository.getMessage(
-          chatId: 'chat-1',
-          messageId: 'msg-1',
-        ) as ConciergeMessage;
+            chatId: 'chat-1', messageId: 'msg-1') as ConciergeMessage;
 
         expect(
           stored.conciergeType,
@@ -67,9 +65,7 @@ void main() {
 
         await repository.createMessage(message);
         final stored = await repository.getMessage(
-          chatId: 'chat-1',
-          messageId: 'msg-2',
-        ) as ConciergeMessage;
+            chatId: 'chat-1', messageId: 'msg-2') as ConciergeMessage;
 
         expect(stored.conciergeType, equals(meetingRequest));
         expect(stored.conciergeType.value, equals('meetingRequest'));
@@ -99,8 +95,9 @@ void main() {
       });
 
       test('updates status while preserving a custom concierge type', () async {
-        final bookingApproval =
-            ConciergeMessageType.fromJson('bookingApproval');
+        final bookingApproval = ConciergeMessageType.fromJson(
+          'bookingApproval',
+        );
 
         final message = ConciergeMessage(
           chatId: 'chat-1',
@@ -118,9 +115,7 @@ void main() {
         await repository.updateMesssage(message);
 
         final updated = await repository.getMessage(
-          chatId: 'chat-1',
-          messageId: 'msg-4',
-        ) as ConciergeMessage;
+            chatId: 'chat-1', messageId: 'msg-4') as ConciergeMessage;
 
         expect(updated.status, equals(ChatItemStatus.confirmed));
         expect(updated.conciergeType, equals(bookingApproval));
@@ -142,9 +137,7 @@ void main() {
 
         await repository.createMessage(message);
         final stored = await repository.getMessage(
-          chatId: 'chat-1',
-          messageId: 'evt-1',
-        ) as EventMessage;
+            chatId: 'chat-1', messageId: 'evt-1') as EventMessage;
 
         expect(
           stored.eventType,
@@ -168,9 +161,7 @@ void main() {
 
         await repository.createMessage(message);
         final stored = await repository.getMessage(
-          chatId: 'chat-1',
-          messageId: 'evt-2',
-        ) as EventMessage;
+            chatId: 'chat-1', messageId: 'evt-2') as EventMessage;
 
         expect(stored.eventType, equals(fileShared));
         expect(stored.eventType.value, equals('fileShared'));
@@ -259,12 +250,15 @@ void main() {
 
       await repository.createChannel(channel);
 
-      final stored =
-          await repository.findChannelByDid(channel.permanentChannelDid!);
+      final stored = await repository.findChannelByDid(
+        channel.permanentChannelDid!,
+      );
 
       expect(stored, isNotNull);
-      expect(stored!.contactCard!.contactInfo,
-          equals(channel.contactCard!.contactInfo));
+      expect(
+        stored!.contactCard!.contactInfo,
+        equals(channel.contactCard!.contactInfo),
+      );
       expect(
         stored.otherPartyContactCard!.contactInfo,
         equals(channel.otherPartyContactCard!.contactInfo),
@@ -279,54 +273,57 @@ void main() {
       );
     });
 
-    test('connection offer repository round-trips arbitrary contact info',
-        () async {
-      final database = ConnectionOfferDatabase(
-        databaseName: 'connection_offer.sqlite',
-        passphrase: 'test-passphrase',
-        directory: tempDirectory,
-        inMemory: true,
-      );
-      addTearDown(database.close);
+    test(
+      'connection offer repository round-trips arbitrary contact info',
+      () async {
+        final database = ConnectionOfferDatabase(
+          databaseName: 'connection_offer.sqlite',
+          passphrase: 'test-passphrase',
+          directory: tempDirectory,
+          inMemory: true,
+        );
+        addTearDown(database.close);
 
-      final repository = ConnectionOfferRepositoryDrift(database: database);
-      final connectionOffer = model.ConnectionOffer(
-        offerName: 'Offer name',
-        offerLink: 'https://example.com/offer',
-        mnemonic: 'mnemonic words',
-        publishOfferDid: 'did:example:publisher',
-        mediatorDid: 'did:example:mediator',
-        oobInvitationMessage: 'invitation-message',
-        type: model.ConnectionOfferType.meetingPlaceInvitation,
-        status: model.ConnectionOfferStatus.published,
-        contactCard: model.ContactCard(
-          did: 'did:example:contact',
-          type: 'Person',
-          contactInfo: {
-            'organization': 'Acme',
-            'photo': 'mxc://server/photo',
-            'x-anything': {'value': 'kept'},
-          },
-        ),
-        ownedByMe: true,
-        createdAt: DateTime.utc(2026, 1, 1),
-        transport: model.ChannelTransport.didcomm,
-      );
+        final repository = ConnectionOfferRepositoryDrift(database: database);
+        final connectionOffer = model.ConnectionOffer(
+          offerName: 'Offer name',
+          offerLink: 'https://example.com/offer',
+          mnemonic: 'mnemonic words',
+          publishOfferDid: 'did:example:publisher',
+          mediatorDid: 'did:example:mediator',
+          oobInvitationMessage: 'invitation-message',
+          type: model.ConnectionOfferType.meetingPlaceInvitation,
+          status: model.ConnectionOfferStatus.published,
+          contactCard: model.ContactCard(
+            did: 'did:example:contact',
+            type: 'Person',
+            contactInfo: {
+              'organization': 'Acme',
+              'photo': 'mxc://server/photo',
+              'x-anything': {'value': 'kept'},
+            },
+          ),
+          ownedByMe: true,
+          createdAt: DateTime.utc(2026, 1, 1),
+          transport: model.ChannelTransport.didcomm,
+        );
+        await repository.createConnectionOffer(connectionOffer);
 
-      await repository.createConnectionOffer(connectionOffer);
+        final stored = await repository.getConnectionOfferByOfferLink(
+          connectionOffer.offerLink,
+        );
 
-      final stored = await repository.getConnectionOfferByOfferLink(
-        connectionOffer.offerLink,
-      );
-
-      expect(stored, isNotNull);
-      expect(stored!.contactCard.contactInfo,
-          equals(connectionOffer.contactCard.contactInfo));
-      expect(
-        stored.contactCard.contactInfo['photo'],
-        equals('mxc://server/photo'),
-      );
-    });
+        expect(stored, isNotNull);
+        expect(
+          stored!.contactCard.contactInfo,
+          equals(connectionOffer.contactCard.contactInfo),
+        );
+        expect(
+          stored.contactCard.contactInfo['photo'],
+          equals('mxc://server/photo'),
+        );
+      },
+    );
 
     test('group repository round-trips arbitrary contact info', () async {
       final database = GroupsDatabase(

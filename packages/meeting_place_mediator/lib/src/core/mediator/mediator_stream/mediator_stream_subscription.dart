@@ -20,16 +20,17 @@ class MediatorStreamSubscription {
     required Duration? deleteMessageDelay,
     required List<MessageWrappingType> messageWrappingTypes,
     MeetingPlaceMediatorSDKLogger? logger,
-  })  : _client = client,
-        _didManager = didManager,
-        _deleteMessageDelay = deleteMessageDelay,
-        _messageWrappingTypes = messageWrappingTypes,
-        _messageQueue = MessageQueue(client: client, logger: logger),
-        _logger = logger ??
-            DefaultMeetingPlaceMediatorSDKLogger(
-              className: _className,
-              sdkName: sdkName,
-            );
+  }) : _client = client,
+       _didManager = didManager,
+       _deleteMessageDelay = deleteMessageDelay,
+       _messageWrappingTypes = messageWrappingTypes,
+       _messageQueue = MessageQueue(client: client, logger: logger),
+       _logger =
+           logger ??
+           DefaultMeetingPlaceMediatorSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
 
   static const String _className = 'MediatorStreamSubscription';
   static final Mutex _reconnectMutex = Mutex();
@@ -57,17 +58,20 @@ class MediatorStreamSubscription {
     }
 
     try {
-      _client.listenForIncomingMessages(
-        _onIncomingMessage,
-        onDone: _onDone,
-      );
+      _client.listenForIncomingMessages(_onIncomingMessage, onDone: _onDone);
 
       await ConnectionPool.instance.startConnections();
-      _logger.info('Mediator stream subscription initialized',
-          name: methodName);
+      _logger.info(
+        'Mediator stream subscription initialized',
+        name: methodName,
+      );
     } on StateError catch (e, stackTrace) {
-      _logger.error('Mediator client already connected.',
-          name: methodName, error: e, stackTrace: stackTrace);
+      _logger.error(
+        'Mediator client already connected.',
+        name: methodName,
+        error: e,
+        stackTrace: stackTrace,
+      );
     } catch (e) {
       rethrow;
     }
@@ -94,13 +98,15 @@ class MediatorStreamSubscription {
     }
 
     _controller.add(data);
-    _logger.info('Data pushed to stream - ${data.message.id}',
-        name: methodName);
+    _logger.info(
+      'Data pushed to stream - ${data.message.id}',
+      name: methodName,
+    );
   }
 
   MediatorStreamSubscription listen(
     FutureOr<MediatorStreamProcessingResult> Function(PlainTextMessage)
-        onData, {
+    onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
@@ -115,8 +121,10 @@ class MediatorStreamSubscription {
           }
 
           if (!processingResult.keepMessage) {
-            _messageQueue.scheduleDeletion(data.messageHash,
-                delay: _deleteMessageDelay);
+            _messageQueue.scheduleDeletion(
+              data.messageHash,
+              delay: _deleteMessageDelay,
+            );
           }
         } catch (e, stackTrace) {
           _logger.error(
@@ -136,8 +144,9 @@ class MediatorStreamSubscription {
 
     if (_eventBuffer.isNotEmpty) {
       _logger.info(
-          'Flushing ${_eventBuffer.length} buffered event(s) to the stream',
-          name: 'listen');
+        'Flushing ${_eventBuffer.length} buffered event(s) to the stream',
+        name: 'listen',
+      );
 
       _eventBuffer.forEach(_controller.add);
       _eventBuffer.clear();
@@ -175,10 +184,12 @@ class MediatorStreamSubscription {
         ),
       );
 
-      _pushMessage(MediatorStreamData(
-        message: decryptedMessage,
-        messageHash: _hashMessage(message),
-      ));
+      _pushMessage(
+        MediatorStreamData(
+          message: decryptedMessage,
+          messageHash: _hashMessage(message),
+        ),
+      );
 
       _logger.info('Completed processing incoming message', name: methodName);
     } catch (e, stackTrace) {
@@ -254,10 +265,7 @@ class MediatorStreamSubscription {
           'Re-establishing WebSocket connection...',
           name: methodName,
         );
-        _client.listenForIncomingMessages(
-          _onIncomingMessage,
-          onDone: _onDone,
-        );
+        _client.listenForIncomingMessages(_onIncomingMessage, onDone: _onDone);
 
         await ConnectionPool.instance.startConnections();
         _logger.info(

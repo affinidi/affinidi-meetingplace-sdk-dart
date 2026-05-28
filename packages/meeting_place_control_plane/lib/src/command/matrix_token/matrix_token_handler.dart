@@ -77,18 +77,21 @@ class MatrixTokenHandler
   @override
   Future<MatrixTokenCommandOutput> handle(MatrixTokenCommand command) async {
     try {
-      final challengeResponse = await DidCommChallengeResponse.buildForMatrix(
+      final challengeResponse = await DidCommChallengeResponse.build(
         apiClient: apiClient,
         didManager: command.didManager,
         didResolver: didResolver,
         recipientDid: controlPlaneDid,
+        challengeProvider: DidCommChallengeResponse.matrixChallengeProvider(
+          apiClient.dio,
+        ),
         onEmptyChallenge: (_) {
           _logger.error(
-            'Empty challenge returned from matrixChallenge',
+            'Empty challenge returned from matrix challenge',
             name: _logKey,
           );
           return MatrixTokenException.invalidResponse(
-            message: 'Empty challenge returned from matrixChallenge',
+            message: 'Empty challenge returned from matrix challenge',
           );
         },
       );

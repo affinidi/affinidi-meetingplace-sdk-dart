@@ -38,7 +38,7 @@ class ConnectionOfferRepositoryDrift
   /// **Returns:**
   /// - An instance of [ConnectionOfferRepositoryDrift].
   ConnectionOfferRepositoryDrift({required db.ConnectionOfferDatabase database})
-      : _database = database;
+    : _database = database;
 
   final db.ConnectionOfferDatabase _database;
 
@@ -70,8 +70,7 @@ class ConnectionOfferRepositoryDrift
           _database.connectionOffers.id,
         ),
       ),
-    ])
-      ..where(predicate);
+    ])..where(predicate);
 
     final results = await query.getSingleOrNull();
     if (results == null) return null;
@@ -87,20 +86,17 @@ class ConnectionOfferRepositoryDrift
   @override
   Future<model.ConnectionOffer?> getConnectionOfferByOfferLink(
     String offerLink,
-  ) =>
-      _getConnectionOfferByPredicate(
-        _database.connectionOffers.offerLink.equals(offerLink),
-      );
+  ) => _getConnectionOfferByPredicate(
+    _database.connectionOffers.offerLink.equals(offerLink),
+  );
 
   /// Finds a [model.ConnectionOffer] by its [permanentChannelDid].
   @override
   Future<model.ConnectionOffer?> getConnectionOfferByPermanentChannelDid(
     String permanentChannelDid,
-  ) =>
-      _getConnectionOfferByPredicate(
-        _database.connectionOffers.permanentChannelDid
-            .equals(permanentChannelDid),
-      );
+  ) => _getConnectionOfferByPredicate(
+    _database.connectionOffers.permanentChannelDid.equals(permanentChannelDid),
+  );
 
   /// Finds a [model.ConnectionOffer] by its [groupDid].
   ///
@@ -108,10 +104,9 @@ class ConnectionOfferRepositoryDrift
   @override
   Future<model.ConnectionOffer?> getConnectionOfferByGroupDid(
     String groupDid,
-  ) =>
-      _getConnectionOfferByPredicate(
-        _database.groupConnectionOffers.groupDid.equals(groupDid),
-      );
+  ) => _getConnectionOfferByPredicate(
+    _database.groupConnectionOffers.groupDid.equals(groupDid),
+  );
 
   /// Retrieves all stored [model.ConnectionOffer] records,
   /// including related group offers and contact cards.
@@ -155,7 +150,9 @@ class ConnectionOfferRepositoryDrift
   ) async {
     await _database.transaction(() async {
       final connectionOfferId = const Uuid().v4();
-      await _database.into(_database.connectionOffers).insert(
+      await _database
+          .into(_database.connectionOffers)
+          .insert(
             db.ConnectionOffersCompanion(
               id: Value(connectionOfferId),
               offerName: Value(connectionOffer.offerName),
@@ -187,7 +184,9 @@ class ConnectionOfferRepositoryDrift
           );
 
       if (connectionOffer is model.GroupConnectionOffer) {
-        await _database.into(_database.groupConnectionOffers).insert(
+        await _database
+            .into(_database.groupConnectionOffers)
+            .insert(
               db.GroupConnectionOffersCompanion(
                 connectionOfferId: Value(connectionOfferId),
                 memberDid: Value(connectionOffer.memberDid!),
@@ -200,7 +199,9 @@ class ConnectionOfferRepositoryDrift
       }
 
       final card = connectionOffer.contactCard;
-      await _database.into(_database.connectionContactCards).insert(
+      await _database
+          .into(_database.connectionContactCards)
+          .insert(
             db.ConnectionContactCardsCompanion(
               connectionOfferId: Value(connectionOfferId),
               did: Value(card.did),
@@ -240,8 +241,7 @@ class ConnectionOfferRepositoryDrift
       final connectionOfferId = results.id;
       await (_database.update(
         _database.connectionOffers,
-      )..where((c) => c.offerLink.equals(connectionOffer.offerLink)))
-          .write(
+      )..where((c) => c.offerLink.equals(connectionOffer.offerLink))).write(
         db.ConnectionOffersCompanion(
           offerName: Value(connectionOffer.offerName),
           offerLink: Value(connectionOffer.offerLink),
@@ -272,45 +272,42 @@ class ConnectionOfferRepositoryDrift
       );
 
       if (connectionOffer is model.GroupConnectionOffer) {
-        await (_database.update(_database.groupConnectionOffers)
-              ..where(
-                (c) => _database.groupConnectionOffers.connectionOfferId.equals(
-                  connectionOfferId,
-                ),
-              ))
+        await (_database.update(_database.groupConnectionOffers)..where(
+              (c) => _database.groupConnectionOffers.connectionOfferId.equals(
+                connectionOfferId,
+              ),
+            ))
             .write(
-          db.GroupConnectionOffersCompanion(
-            connectionOfferId: Value(connectionOfferId),
-            memberDid: Value(connectionOffer.memberDid!),
-            groupId: Value(connectionOffer.groupId),
-            groupOwnerDid: Value(connectionOffer.groupOwnerDid),
-            groupDid: Value(connectionOffer.groupDid),
-            metadata: Value(connectionOffer.metadata),
-          ),
-        );
+              db.GroupConnectionOffersCompanion(
+                connectionOfferId: Value(connectionOfferId),
+                memberDid: Value(connectionOffer.memberDid!),
+                groupId: Value(connectionOffer.groupId),
+                groupOwnerDid: Value(connectionOffer.groupOwnerDid),
+                groupDid: Value(connectionOffer.groupDid),
+                metadata: Value(connectionOffer.metadata),
+              ),
+            );
       } else {
-        await (_database.delete(_database.groupConnectionOffers)
-              ..where(
-                (filter) => filter.connectionOfferId.equals(connectionOfferId),
-              ))
+        await (_database.delete(_database.groupConnectionOffers)..where(
+              (filter) => filter.connectionOfferId.equals(connectionOfferId),
+            ))
             .go();
       }
 
       final card = connectionOffer.contactCard;
-      await (_database.update(_database.connectionContactCards)
-            ..where(
-              (c) => _database.connectionContactCards.connectionOfferId.equals(
-                connectionOfferId,
-              ),
-            ))
+      await (_database.update(_database.connectionContactCards)..where(
+            (c) => _database.connectionContactCards.connectionOfferId.equals(
+              connectionOfferId,
+            ),
+          ))
           .write(
-        db.ConnectionContactCardsCompanion(
-          did: Value(card.did),
-          type: Value(card.type),
-          contactInfoJson: Value(encodeContactInfoJson(card)),
-          profilePic: Value(extractProfilePic(card)),
-        ),
-      );
+            db.ConnectionContactCardsCompanion(
+              did: Value(card.did),
+              type: Value(card.type),
+              contactInfoJson: Value(encodeContactInfoJson(card)),
+              profilePic: Value(extractProfilePic(card)),
+            ),
+          );
     });
   }
 
@@ -321,10 +318,9 @@ class ConnectionOfferRepositoryDrift
   Future<void> deleteConnectionOffer(
     model.ConnectionOffer connectionOffer,
   ) async {
-    await (_database.delete(_database.connectionOffers)
-          ..where(
-            (filter) => filter.offerLink.equals(connectionOffer.offerLink),
-          ))
+    await (_database.delete(_database.connectionOffers)..where(
+          (filter) => filter.offerLink.equals(connectionOffer.offerLink),
+        ))
         .go();
   }
 }

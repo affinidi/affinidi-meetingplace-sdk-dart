@@ -9,12 +9,12 @@ import 'package:test/test.dart';
 import 'utils/schema_versions.dart/schema.dart';
 
 ChatItemsDatabase _freshDatabase() => ChatItemsDatabase(
-      databaseName: 'migration_test.db',
-      passphrase: 'test-passphrase',
-      directory: Directory.systemTemp,
-      inMemory: true,
-      lazy: false,
-    );
+  databaseName: 'migration_test.db',
+  passphrase: 'test-passphrase',
+  directory: Directory.systemTemp,
+  inMemory: true,
+  lazy: false,
+);
 
 // Queries a single nullable string column from chat_items via the Drift
 // database (available after migrateAndValidate and before close).
@@ -23,10 +23,12 @@ Future<String?> _field(
   String messageId,
   String column,
 ) async {
-  final rows = await db.customSelect(
-    'SELECT $column FROM chat_items WHERE message_id = ?',
-    variables: [Variable(messageId)],
-  ).get();
+  final rows = await db
+      .customSelect(
+        'SELECT $column FROM chat_items WHERE message_id = ?',
+        variables: [Variable(messageId)],
+      )
+      .get();
   return rows.isEmpty ? null : rows.first.read<String?>(column);
 }
 
@@ -99,15 +101,9 @@ void main() {
         await _field(db, 'evt-await', 'event_type'),
         equals('awaitingGroupMemberToJoin'),
       );
-      expect(
-        await _field(db, 'evt-del', 'event_type'),
-        equals('groupDeleted'),
-      );
+      expect(await _field(db, 'evt-del', 'event_type'), equals('groupDeleted'));
       expect(await _field(db, 'evt-null', 'event_type'), isNull);
-      expect(
-        await _field(db, 'evt-unk', 'event_type'),
-        equals('unknown:99'),
-      );
+      expect(await _field(db, 'evt-unk', 'event_type'), equals('unknown:99'));
       expect(
         await _field(db, 'con-prof', 'concierge_type'),
         equals('permissionToUpdateProfile'),
@@ -122,12 +118,11 @@ void main() {
         equals('unknown:99'),
       );
 
-      final count = (await db
-              .customSelect(
-                'SELECT COUNT(*) AS n FROM chat_items',
-              )
-              .getSingle())
-          .read<int>('n');
+      final count =
+          (await db
+                  .customSelect('SELECT COUNT(*) AS n FROM chat_items')
+                  .getSingle())
+              .read<int>('n');
       expect(count, equals(10));
 
       await db.close();
@@ -160,8 +155,10 @@ void main() {
         );
 
         await repository.createMessage(message);
-        final stored =
-            await repository.getMessage(chatId: 'c1', messageId: 'e1');
+        final stored = await repository.getMessage(
+          chatId: 'c1',
+          messageId: 'e1',
+        );
 
         expect(stored, isA<EventMessage>());
         expect(
@@ -186,8 +183,10 @@ void main() {
         );
 
         await repository.createMessage(message);
-        final stored =
-            await repository.getMessage(chatId: 'c1', messageId: 'cm1');
+        final stored = await repository.getMessage(
+          chatId: 'c1',
+          messageId: 'cm1',
+        );
 
         expect(stored, isA<ConciergeMessage>());
         expect(

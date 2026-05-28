@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
@@ -101,6 +103,9 @@ abstract interface class MeetingPlaceChatSDK {
     String text, {
     List<ChatAttachment>? attachments,
   });
+
+  /// Downloads a hosted-media attachment from the homeserver through the SDK.
+  Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Edits a previously sent text [message] to [newText]. Only the original
   /// sender can edit a message; the message must have been delivered.

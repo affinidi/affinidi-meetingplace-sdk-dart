@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -6,6 +8,7 @@ import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
+import '../entity/chat_attachment_conversion.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
@@ -282,12 +285,12 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     List<ChatAttachment>? attachments,
   }) async {
     assertCanSend();
+    final normalizedAttachments = await _prepareAttachmentsForSending(
+      attachments,
+    );
     final message = await _sendRoomEventMessage(
-      TextMessageRoomEvent(
-        senderDid: did,
-        text: text,
-        notification: buildChannelNotification('chat-activity'),
-      ),
+      _buildOutgoingMessage(text, normalizedAttachments),
+      attachments: normalizedAttachments,
     );
 
     logger.info(
@@ -299,6 +302,21 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       ChatTypingNotification(senderDid: did, active: false),
     );
     return message;
+  }
+
+  @override
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
+    final didcommAttachment = attachment.toDIDComm();
+    final mxcUri = getMxcUri(didcommAttachment);
+    if (mxcUri == null) {
+      throw ArgumentError('Attachment does not contain a hosted media URI');
+    }
+
+    return coreSDK.downloadMedia(
+      mxcUri,
+      receiverDid: did,
+      encryptedFileInfo: getEncryptedFileInfo(didcommAttachment),
+    );
   }
 
   /// Sends an `m.read` receipt for [messageId], marking it as delivered.
@@ -586,7 +604,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   String? _resolveSenderDIDFromRoomEvent(MatrixRoomEvent e) => e.senderDid;
 
-  Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
+  Future<Message> _sendRoomEventMessage(
+    MatrixOutgoingMessage outgoing, {
+    List<ChatAttachment>? attachments,
+  }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
 
@@ -602,7 +623,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,
-        attachments: const [],
+        attachments: attachments ?? const [],
       ),
     );
 
@@ -740,6 +761,95 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       timestamp: m.timestamp,
       isFromMe: m.isFromMe,
       stateKey: m.stateKey,
+    );
+  }
+
+  Future<List<ChatAttachment>> _prepareAttachmentsForSending(
+    List<ChatAttachment>? attachments,
+  ) async {
+    if (attachments == null || attachments.isEmpty) return const [];
+    if (attachments.length > 1) {
+      throw ArgumentError.value(
+        attachments.length,
+        'attachments',
+        'Multiple attachments are not supported for Matrix hosted media '
+            'messages',
+      );
+    }
+
+    final attachment = attachments.first;
+    final didcommAttachment = attachment.toDIDComm();
+    if (getMxcUri(didcommAttachment) != null) {
+      return attachments;
+    }
+
+    final base64Content = attachment.data?.base64;
+    if (base64Content == null || base64Content.isEmpty) {
+      logger.warning(
+        'Attachment has no base64 data and no mxc:// URI; '
+        'cannot upload hosted media.',
+        name: 'MatrixChatSDK',
+      );
+      throw ArgumentError(
+        'Attachment must contain either base64 data or an mxc:// URI',
+      );
+    }
+
+    final uploadOutput = await coreSDK.uploadMedia(
+      base64Decode(const Base64Codec().normalize(base64Content)),
+      senderDid: did,
+      contentType: attachment.mediaType ?? 'application/octet-stream',
+      filename: attachment.filename,
+    );
+
+    return [
+      attachmentFromMediaUpload(
+        uploadOutput,
+        mediaType: attachment.mediaType ?? 'application/octet-stream',
+        filename: attachment.filename,
+        description: attachment.description,
+      ).toChatAttachment(),
+    ];
+  }
+
+  MatrixOutgoingMessage _buildOutgoingMessage(
+    String text,
+    List<ChatAttachment>? attachments,
+  ) {
+    final notification = buildChannelNotification('chat-activity');
+
+    final first = attachments != null && attachments.isNotEmpty
+        ? attachments.first
+        : null;
+    if (first == null) {
+      return TextMessageRoomEvent(
+        senderDid: did,
+        text: text,
+        notification: notification,
+      );
+    }
+
+    final didcommAttachment = first.toDIDComm();
+    final mxcUri = getMxcUri(didcommAttachment);
+    if (mxcUri != null) {
+      final encryptedFileInfo = getEncryptedFileInfo(didcommAttachment);
+
+      return MediaMessageRoomEvent(
+        senderDid: did,
+        mxcUri: mxcUri,
+        contentType: first.mediaType ?? 'application/octet-stream',
+        sizeBytes: first.byteCount ?? 0,
+        filename: first.filename,
+        caption: text.isNotEmpty ? text : null,
+        encryptedFileInfo: encryptedFileInfo,
+        notification: notification,
+      );
+    }
+
+    return TextMessageRoomEvent(
+      senderDid: did,
+      text: text,
+      notification: notification,
     );
   }
 }

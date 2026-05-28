@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
@@ -113,6 +115,9 @@ abstract class BaseChatSDK {
     String text, {
     List<ChatAttachment>? attachments,
   });
+
+  /// Downloads a hosted-media attachment.
+  Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}

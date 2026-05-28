@@ -132,15 +132,14 @@ class Message extends ChatItem {
       chatId: chatId,
       messageId: event.id,
       senderDid: senderDid,
-      value: event.content['body'] as String? ?? '',
+      value: _stringValue(event.content['body']) ?? '',
       isFromMe: true,
       dateCreated: event.timestamp,
       // Set status to sent since this is created for messages sent by me.
       // The status will be updated to delivered/failed based on the delivery
       // outcome.
       status: ChatItemStatus.sent,
-      // TODO: How to add attachments?
-      attachments: [],
+      attachments: _extractMediaAttachment(event.content),
       transportId: event.id,
     );
   }
@@ -154,11 +153,11 @@ class Message extends ChatItem {
       chatId: chatId,
       messageId: event.id,
       senderDid: senderDid,
-      value: event.content['body'] as String? ?? '',
+      value: _stringValue(event.content['body']) ?? '',
       isFromMe: false,
       dateCreated: event.timestamp,
       status: ChatItemStatus.received,
-      attachments: [],
+      attachments: _extractMediaAttachment(event.content),
       transportId: event.id,
     );
   }
@@ -254,4 +253,55 @@ class Message extends ChatItem {
   Map<String, dynamic> toJson() {
     return _$MessageToJson(this);
   }
+}
+
+/// Matrix `msgtype` values that carry a media payload.
+const _mediaMsgTypes = {'m.file', 'm.image', 'm.audio', 'm.video'};
+
+/// Extracts a single hosted-media [ChatAttachment] from a Matrix
+/// `m.room.message` content map.
+List<ChatAttachment> _extractMediaAttachment(Map<String, dynamic> content) {
+  final msgtype = _stringValue(content['msgtype']);
+  if (msgtype == null || !_mediaMsgTypes.contains(msgtype)) return [];
+
+  final info = _mapValue(content['info']);
+  final filename =
+      _stringValue(content['filename']) ?? _stringValue(content['body']);
+  final mimetype = _stringValue(info?['mimetype']);
+  final sizeValue = info?['size'];
+  final size = sizeValue is int ? sizeValue : null;
+
+  final fileInfo = _mapValue(content['file']);
+  final mxcUrl = _stringValue(fileInfo?['url']) ?? _stringValue(content['url']);
+
+  if (mxcUrl == null) return [];
+  final mxcUri = Uri.tryParse(mxcUrl);
+  if (mxcUri == null || mxcUri.scheme != 'mxc') return [];
+
+  final links = [mxcUri];
+  String? encryptionJson;
+  String? hash;
+
+  if (fileInfo != null) {
+    encryptionJson = jsonEncode(fileInfo);
+    final hashes = _mapValue(fileInfo['hashes']);
+    hash = _stringValue(hashes?['sha256']);
+  }
+
+  return [
+    ChatAttachment(
+      filename: filename,
+      mediaType: mimetype,
+      format: AttachmentFormat.hostedMedia.value,
+      byteCount: size,
+      data: ChatAttachmentData(links: links, json: encryptionJson, hash: hash),
+    ),
+  ];
+}
+
+String? _stringValue(Object? value) => value is String ? value : null;
+
+Map<String, dynamic>? _mapValue(Object? value) {
+  if (value is! Map) return null;
+  return Map<String, dynamic>.from(value);
 }

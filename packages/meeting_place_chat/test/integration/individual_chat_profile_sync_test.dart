@@ -20,8 +20,7 @@ void main() {
     'alice receives profile hash message from Bob when Bob starts chat',
     () async {
       await fixture.aliceChatSDK.startChatSession();
-      final aliceProfileHash =
-          ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+      final aliceProfileHash = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
         fixture.aliceChatSDK,
         where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
       );
@@ -41,8 +40,7 @@ void main() {
 
   test('Alice does not send profile request if profile hash matches', () async {
     await fixture.aliceChatSDK.startChatSession();
-    final aliceProfileHash =
-        ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+    final aliceProfileHash = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
       fixture.aliceChatSDK,
       where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
     );
@@ -94,8 +92,7 @@ void main() {
       );
 
       final bobChat = await newBobChatSDK.startChatSession();
-      final bobProfileRequest =
-          ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+      final bobProfileRequest = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
         newBobChatSDK,
         where: (e) => e.type == ChatProtocol.chatAliasProfileRequest.value,
       );
@@ -155,8 +152,7 @@ void main() {
     );
 
     await newBobChatSDK.startChatSession();
-    final bobProfileRequest =
-        ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+    final bobProfileRequest = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
       newBobChatSDK,
       where: (e) => e.type == ChatProtocol.chatAliasProfileRequest.value,
     );

@@ -9,11 +9,8 @@ class _MockBaseChatSDK extends Mock implements BaseChatSDK {}
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
-ContactCard _card(String did, {String name = 'Original'}) => ContactCard(
-  did: did,
-  type: 'human',
-  contactInfo: {'n': name},
-);
+ContactCard _card(String did, {String name = 'Original'}) =>
+    ContactCard(did: did, type: 'human', contactInfo: {'n': name});
 
 Group _group() => Group(
   id: 'group-1',
@@ -65,28 +62,30 @@ void main() {
       setGroup: (g) => group = g,
     );
 
-    test('updates member contact card and emits ChatContactDetailsUpdateEvent',
-        () async {
-      final received = <StreamData>[];
-      stream.listen(received.add);
+    test(
+      'updates member contact card and emits ChatContactDetailsUpdateEvent',
+      () async {
+        final received = <StreamData>[];
+        stream.listen(received.add);
 
-      final newCard = _card('did:test:bob', name: 'Robert');
+        final newCard = _card('did:test:bob', name: 'Robert');
 
-      await buildHandler().handle(
-        IncomingChatEvent(
-          type: ChatEventTypes.contactDetailsUpdate,
-          senderDid: 'did:test:bob',
-          content: {'profileDetails': newCard.toJson()},
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
+        await buildHandler().handle(
+          IncomingChatEvent(
+            type: ChatEventTypes.contactDetailsUpdate,
+            senderDid: 'did:test:bob',
+            content: {'profileDetails': newCard.toJson()},
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      final bob = group.members.firstWhere((m) => m.did == 'did:test:bob');
-      expect(bob.contactCard.contactInfo['n'], 'Robert');
-      verify(() => coreSDK.updateGroup(any())).called(1);
-      expect(received.length, 1);
-      expect(received.single.event, isA<ChatContactDetailsUpdateEvent>());
-    });
+        final bob = group.members.firstWhere((m) => m.did == 'did:test:bob');
+        expect(bob.contactCard.contactInfo['n'], 'Robert');
+        verify(() => coreSDK.updateGroup(any())).called(1);
+        expect(received.length, 1);
+        expect(received.single.event, isA<ChatContactDetailsUpdateEvent>());
+      },
+    );
 
     test('does nothing when senderDid is null', () async {
       await buildHandler().handle(

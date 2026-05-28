@@ -27,8 +27,7 @@ void main() {
     );
 
     await fixture.aliceChatSDK.startChatSession();
-    final waitForUnhandled =
-        ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+    final waitForUnhandled = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
       fixture.aliceChatSDK,
       where: (e) => e.type == unhandledMessage.type.toString(),
     );

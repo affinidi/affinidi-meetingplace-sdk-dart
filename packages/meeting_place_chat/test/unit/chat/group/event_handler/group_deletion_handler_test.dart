@@ -65,30 +65,32 @@ void main() {
       setGroup: (g) => group = g,
     );
 
-    test('marks group deleted, persists event message, emits stream items',
-        () async {
-      final received = <StreamData>[];
-      stream.listen(received.add);
+    test(
+      'marks group deleted, persists event message, emits stream items',
+      () async {
+        final received = <StreamData>[];
+        stream.listen(received.add);
 
-      await buildHandler().handle(
-        IncomingChatEvent(
-          type: ChatEventTypes.groupDeletion,
-          senderDid: 'did:test:owner',
-          content: const {},
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
+        await buildHandler().handle(
+          IncomingChatEvent(
+            type: ChatEventTypes.groupDeletion,
+            senderDid: 'did:test:owner',
+            content: const {},
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      expect(group.isDeleted, isTrue);
-      verify(() => coreSDK.updateGroup(any())).called(1);
-      verify(() => chatRepository.createMessage(any())).called(1);
+        expect(group.isDeleted, isTrue);
+        verify(() => coreSDK.updateGroup(any())).called(1);
+        verify(() => chatRepository.createMessage(any())).called(1);
 
-      expect(received.length, 2);
-      expect(received[0].chatItem, isA<EventMessage>());
-      final emitted = received[1].event;
-      expect(emitted, isA<ChatGroupDeletedEvent>());
-      expect((emitted as ChatGroupDeletedEvent).groupDid, group.did);
-    });
+        expect(received.length, 2);
+        expect(received[0].chatItem, isA<EventMessage>());
+        final emitted = received[1].event;
+        expect(emitted, isA<ChatGroupDeletedEvent>());
+        expect((emitted as ChatGroupDeletedEvent).groupDid, group.did);
+      },
+    );
 
     test('skips persistence when group is already deleted', () async {
       group.markAsDeleted();

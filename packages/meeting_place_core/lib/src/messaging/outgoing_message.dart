@@ -1,5 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 
+import '../meeting_place_core_sdk.dart' show MeetingPlaceCoreSDK;
+
 /// A message that can be sent through [MeetingPlaceCoreSDK.sendMessage],
 /// regardless of the underlying transport.
 ///
@@ -41,10 +43,7 @@ abstract class MatrixOutgoingMessage extends OutgoingMessage {
 /// Parameters required to dispatch a control-plane channel notification for
 /// a [MatrixOutgoingMessage].
 class ChannelNotification {
-  const ChannelNotification({
-    required this.recipientDid,
-    required this.type,
-  });
+  const ChannelNotification({required this.recipientDid, required this.type});
 
   /// DID of the recipient whose `Channel.otherPartyNotificationToken` is
   /// used to address the notification.

@@ -5,8 +5,5 @@ class RedactionRoomEvent extends MatrixOutgoingMessage {
     required super.senderDid,
     required super.roomId,
     required String targetEventId,
-  }) : super(
-         type: 'm.room.redaction',
-         content: {'redacts': targetEventId},
-       );
+  }) : super(type: 'm.room.redaction', content: {'redacts': targetEventId});
 }

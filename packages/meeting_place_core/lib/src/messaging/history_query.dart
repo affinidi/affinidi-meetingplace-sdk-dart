@@ -1,3 +1,5 @@
+import '../meeting_place_core_sdk.dart' show MeetingPlaceCoreSDK;
+
 /// Specifies what historical messages to fetch via
 /// [MeetingPlaceCoreSDK.fetchHistory].
 sealed class HistoryQuery {

@@ -5,8 +5,5 @@ class EffectRoomEvent extends MatrixOutgoingMessage {
     required super.senderDid,
     required super.roomId,
     required String effect,
-  }) : super(
-         type: 'com.affinidi.chat.effect',
-         content: {'effect': effect},
-       );
+  }) : super(type: 'com.affinidi.chat.effect', content: {'effect': effect});
 }

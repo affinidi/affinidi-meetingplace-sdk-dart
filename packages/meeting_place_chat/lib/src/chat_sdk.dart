@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../meeting_place_chat.dart';
 
 abstract interface class ChatSDK {
@@ -13,6 +15,8 @@ abstract interface class ChatSDK {
     String text, {
     List<ChatAttachment>? attachments,
   });
+
+  Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   // TODO: add custom message
   Future<void> sendChatActivity();

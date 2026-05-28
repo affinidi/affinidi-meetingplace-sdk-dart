@@ -1,3 +1,7 @@
+import '../../../meeting_place_core.dart' show MatrixService;
+import 'matrix_service.dart' show MatrixService;
+import 'matrix_session_manager.dart' show MatrixSessionManager;
+
 /// Thrown by [MatrixSessionManager] when a session does not exist, the access
 /// token is missing, or both access and refresh tokens have expired.
 ///

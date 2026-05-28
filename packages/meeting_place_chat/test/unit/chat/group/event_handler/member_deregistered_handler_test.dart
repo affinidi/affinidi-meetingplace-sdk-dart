@@ -70,10 +70,8 @@ void main() {
       setGroup: (g) => group = g,
     );
 
-    test(
-        'marks the matching member deleted and emits '
-        'ChatMemberDeregisteredEvent',
-        () async {
+    test('marks the matching member deleted and emits '
+        'ChatMemberDeregisteredEvent', () async {
       final received = <StreamData>[];
       stream.listen(received.add);
 

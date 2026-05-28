@@ -53,8 +53,9 @@ void main() {
     final type = ChatProtocol.chatPresence.value;
 
     await fixture.bobChatSDK.startChatSession();
-    final bobPresenceFromFirst =
-        ChatTestHarness.awaitEvent<ChatPresenceEvent>(fixture.bobChatSDK);
+    final bobPresenceFromFirst = ChatTestHarness.awaitEvent<ChatPresenceEvent>(
+      fixture.bobChatSDK,
+    );
 
     // Start Alice's first chat session and wait for Bob to receive presence
     await fixture.aliceChatSDK.startChatSession();

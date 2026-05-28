@@ -6,11 +6,10 @@ import '../protocol.dart';
 class ChatActivityMessage extends DidCommOutgoingMessage {
   ChatActivityMessage({
     required super.senderDid,
-    required String recipientDid,
+    required super.recipientDid,
     required super.mediatorDid,
     required Duration forwardExpiry,
   }) : super(
-         recipientDid: recipientDid,
          payload: ChatActivity.create(
            from: senderDid,
            to: [recipientDid],

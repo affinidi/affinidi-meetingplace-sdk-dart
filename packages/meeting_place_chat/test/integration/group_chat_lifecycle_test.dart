@@ -22,8 +22,7 @@ void main() {
       await fixture.bobChatSDK.startChatSession();
       await fixture.charlieChatSDK.startChatSession();
 
-      final groupDid =
-          fixture.publishOfferResult.connectionOffer.groupDid!;
+      final groupDid = fixture.publishOfferResult.connectionOffer.groupDid!;
 
       final bobDeleted = ChatTestHarness.awaitEvent<ChatGroupDeletedEvent>(
         fixture.bobChatSDK,
@@ -51,21 +50,19 @@ void main() {
       await fixture.bobChatSDK.startChatSession();
       await fixture.charlieChatSDK.startChatSession();
 
-      final groupDid =
-          fixture.publishOfferResult.connectionOffer.groupDid!;
+      final groupDid = fixture.publishOfferResult.connectionOffer.groupDid!;
 
-      final aliceLeft =
-          ChatTestHarness.awaitEvent<ChatMemberDeregisteredEvent>(
+      final aliceLeft = ChatTestHarness.awaitEvent<ChatMemberDeregisteredEvent>(
         fixture.aliceChatSDK,
         where: (e) =>
             e.groupDid == groupDid && e.memberDid == fixture.bobMemberDid,
       );
       final charlieLeft =
           ChatTestHarness.awaitEvent<ChatMemberDeregisteredEvent>(
-        fixture.charlieChatSDK,
-        where: (e) =>
-            e.groupDid == groupDid && e.memberDid == fixture.bobMemberDid,
-      );
+            fixture.charlieChatSDK,
+            where: (e) =>
+                e.groupDid == groupDid && e.memberDid == fixture.bobMemberDid,
+          );
 
       final bobChannel = await fixture.bobSDK.getChannelByDid(
         fixture.bobMemberDid,

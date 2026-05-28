@@ -1,8 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
-import '../../../transport/matrix/outgoing/outgoing.dart';
 import '../../../logger/top_and_tail_extension.dart';
+import '../../../transport/matrix/outgoing/outgoing.dart';
 import 'group_action.dart';
 
 class RejectConnectionRequestAction implements GroupAction<Group> {

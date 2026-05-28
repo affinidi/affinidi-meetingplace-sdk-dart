@@ -67,8 +67,7 @@ void main() {
     final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
       fixture.bobChatSDK,
     );
-    final aliceDelivered =
-        ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+    final aliceDelivered = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
       fixture.aliceChatSDK,
       where: (e) => e.type == ChatProtocol.chatDelivered.value,
     );

@@ -10,8 +10,5 @@ class ReadReceiptRoomEvent extends MatrixOutgoingMessage {
     required super.senderDid,
     required super.roomId,
     required String eventId,
-  }) : super(
-         type: 'm.read',
-         content: {'event_id': eventId},
-       );
+  }) : super(type: 'm.read', content: {'event_id': eventId});
 }

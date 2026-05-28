@@ -1,3 +1,4 @@
+import '../meeting_place_core_sdk.dart' show MeetingPlaceCoreSDK;
 import '../service/matrix/matrix_subscription_options.dart';
 
 /// Specifies what to subscribe to when calling [MeetingPlaceCoreSDK.subscribe].

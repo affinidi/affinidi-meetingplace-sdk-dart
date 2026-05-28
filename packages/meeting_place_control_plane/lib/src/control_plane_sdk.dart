@@ -21,6 +21,7 @@ import 'command/group_add_member/group_add_member_handler.dart';
 import 'command/group_delete/group_delete_handler.dart';
 import 'command/group_member_deregister/group_deregister_member_handler.dart';
 import 'command/group_send_message/group_send_message_handler.dart';
+import 'command/matrix_media_download/matrix_media_download_handler.dart';
 import 'command/matrix_token/matrix_token_handler.dart';
 import 'command/notify_acceptance/notify_acceptance_handler.dart';
 import 'command/notify_acceptance_group/notify_acceptance_handler.dart';
@@ -308,6 +309,15 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       NotifyOutreachHandler(apiClient: _controlPlaneApiClient),
+    );
+
+    _dispatcher.registerHandler(
+      MatrixMediaDownloadHandler(
+        apiClient: _controlPlaneApiClient,
+        didResolver: didResolver,
+        controlPlaneDid: controlPlaneDid,
+        logger: _logger,
+      ),
     );
 
     _dispatcher.registerHandler(

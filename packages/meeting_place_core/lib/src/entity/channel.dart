@@ -170,7 +170,7 @@ class Channel {
   String? matrixRoomId;
 
   /// The Matrix event ID of the most recently fetched event.
-  /// Used as a cursor so that [fetchMatrixRoomHistory] can return only
+  /// Used as a cursor so that `fetchMatrixRoomHistory` can return only
   /// events that are newer than this marker.
   String? matrixSyncMarker;
 

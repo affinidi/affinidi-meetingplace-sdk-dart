@@ -33,10 +33,7 @@ void main() {
 
     const event = CustomRoomEvent(
       type: 'm.room.message',
-      content: {
-        'body': 'Hello group via sendRoomEvent',
-        'msgtype': 'm.text',
-      },
+      content: {'body': 'Hello group via sendRoomEvent', 'msgtype': 'm.text'},
     );
 
     await fixture.aliceChatSDK.sendRoomEvent(event);
@@ -65,10 +62,7 @@ void main() {
 
     const event = CustomRoomEvent(
       type: 'm.room.message',
-      content: {
-        'body': 'Notify group test',
-        'msgtype': 'm.text',
-      },
+      content: {'body': 'Notify group test', 'msgtype': 'm.text'},
     );
 
     await fixture.aliceChatSDK.sendRoomEvent(event);

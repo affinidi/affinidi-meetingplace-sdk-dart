@@ -2,9 +2,9 @@ import 'dart:async';
 
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
-import '../../transport/matrix/outgoing/profile_hash_room_event.dart';
 import '../../entity/message.dart' as entity_chat_message;
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
+import '../../transport/matrix/outgoing/profile_hash_room_event.dart';
 import '../base_chat_sdk.dart';
 
 /// [IndividualChatSDK] is a specialized implementation of [ChatSDK] for

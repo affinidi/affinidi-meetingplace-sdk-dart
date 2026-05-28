@@ -29,10 +29,7 @@ Group _initialGroup() => Group(
   ],
 );
 
-Map<String, dynamic> _memberJson(
-  String did, {
-  String status = 'approved',
-}) => {
+Map<String, dynamic> _memberJson(String did, {String status = 'approved'}) => {
   'did': did,
   'date_added': DateTime.utc(2026, 1, 2).toIso8601String(),
   'status': status,
@@ -77,42 +74,47 @@ void main() {
       setGroup: (g) => group = g,
     );
 
-    test('adds only newly approved members and emits a chat item per new join',
-        () async {
-      final received = <StreamData>[];
-      stream.listen(received.add);
+    test(
+      'adds only newly approved members and emits a chat item per new join',
+      () async {
+        final received = <StreamData>[];
+        stream.listen(received.add);
 
-      await buildHandler().handle(
-        IncomingChatEvent(
-          type: ChatEventTypes.groupDetailsUpdate,
-          senderDid: 'did:test:alice',
-          content: {
-            'members': [
-              _memberJson('did:test:alice'),
-              _memberJson('did:test:bob'),
-              _memberJson('did:test:carol', status: 'pendingApproval'),
-            ],
-          },
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
+        await buildHandler().handle(
+          IncomingChatEvent(
+            type: ChatEventTypes.groupDetailsUpdate,
+            senderDid: 'did:test:alice',
+            content: {
+              'members': [
+                _memberJson('did:test:alice'),
+                _memberJson('did:test:bob'),
+                _memberJson('did:test:carol', status: 'pendingApproval'),
+              ],
+            },
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      // Only Bob is *new and approved*. Carol is new but pendingApproval,
-      // Alice is already a member.
-      verify(() => chatRepository.createMessage(any())).called(1);
+        // Only Bob is *new and approved*. Carol is new but pendingApproval,
+        // Alice is already a member.
+        verify(() => chatRepository.createMessage(any())).called(1);
 
-      verify(() => coreSDK.updateGroup(any())).called(1);
+        verify(() => coreSDK.updateGroup(any())).called(1);
 
-      // Group membership replaced with the inbound list (3 members).
-      expect(group.members.length, 3);
-      expect(registeredDids, containsAll(<String>[
-        'did:test:alice',
-        'did:test:bob',
-        'did:test:carol',
-      ]));
+        // Group membership replaced with the inbound list (3 members).
+        expect(group.members.length, 3);
+        expect(
+          registeredDids,
+          containsAll(<String>[
+            'did:test:alice',
+            'did:test:bob',
+            'did:test:carol',
+          ]),
+        );
 
-      final events = received.map((d) => d.event).whereType<ChatEvent>();
-      expect(events.whereType<ChatGroupDetailsUpdateEvent>().length, 1);
-    });
+        final events = received.map((d) => d.event).whereType<ChatEvent>();
+        expect(events.whereType<ChatGroupDetailsUpdateEvent>().length, 1);
+      },
+    );
   });
 }

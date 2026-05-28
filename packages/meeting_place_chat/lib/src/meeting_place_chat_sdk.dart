@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
@@ -142,6 +144,11 @@ class MeetingPlaceChatSDK implements ChatSDK {
     List<ChatAttachment>? attachments,
   }) {
     return _sdk.sendTextMessage(text, attachments: attachments);
+  }
+
+  @override
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) {
+    return _sdk.downloadMedia(attachment);
   }
 
   /// Reacts to a given message.

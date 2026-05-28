@@ -4,16 +4,16 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
 import '../../../meeting_place_chat.dart';
+import '../../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../../transport/matrix/outgoing/outgoing.dart';
+import '../base_chat_sdk.dart';
 import 'action/approve_connection_request_action.dart';
 import 'action/propose_profile_update_action.dart';
 import 'action/reject_connection_request_action.dart';
 import 'action/send_chat_contact_details_update_action.dart';
 import 'factory/pending_approval_concierge_factory.dart';
-import 'listener/pending_approvals_listener.dart';
-import '../base_chat_sdk.dart';
 import 'group_room_event_router.dart';
-import '../../transport/matrix/incoming/incoming_room_event_router.dart';
+import 'listener/pending_approvals_listener.dart';
 
 /// [GroupChatSDK] is a specialized implementation of [MeetingPlaceChatSDK] for
 /// handling

@@ -95,7 +95,7 @@ class MatrixSessionManager {
     final client = _clientCache.get(did: did);
 
     if (client == null || client.accessToken == null) {
-      throw MatrixAuthException();
+      throw const MatrixAuthException();
     }
 
     final expiresAt = client.accessTokenExpiresAt;
@@ -113,7 +113,7 @@ class MatrixSessionManager {
       return client;
     } catch (_) {
       _clientCache.remove(did: did);
-      throw MatrixAuthException();
+      throw const MatrixAuthException();
     }
   }
 

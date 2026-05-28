@@ -1,5 +1,8 @@
 import 'package:didcomm/didcomm.dart';
 
+import '../../meeting_place_core.dart'
+    show MeetingPlaceCoreSDK, OutgoingMessage;
+
 /// A message received from a transport via [MeetingPlaceCoreSDK.subscribe]
 /// or [MeetingPlaceCoreSDK.fetchHistory].
 ///

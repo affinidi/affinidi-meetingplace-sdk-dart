@@ -65,29 +65,32 @@ void main() {
           getGroup: () => group,
         );
 
-    test('owner confirms awaiting message and emits joined event message',
-        () async {
-      final awaiting = _awaitingMessage('did:test:bob');
-      when(() => chatRepository.listMessages('chat-1'))
-          .thenAnswer((_) async => [awaiting]);
+    test(
+      'owner confirms awaiting message and emits joined event message',
+      () async {
+        final awaiting = _awaitingMessage('did:test:bob');
+        when(
+          () => chatRepository.listMessages('chat-1'),
+        ).thenAnswer((_) async => [awaiting]);
 
-      final received = <StreamData>[];
-      stream.listen(received.add);
+        final received = <StreamData>[];
+        stream.listen(received.add);
 
-      await buildHandler().handle(
-        IncomingChatEvent(
-          type: ChatEventTypes.memberJoined,
-          senderDid: 'did:test:bob',
-          content: const {},
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
+        await buildHandler().handle(
+          IncomingChatEvent(
+            type: ChatEventTypes.memberJoined,
+            senderDid: 'did:test:bob',
+            content: const {},
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      expect(awaiting.status, ChatItemStatus.confirmed);
-      verify(() => chatRepository.updateMesssage(any())).called(1);
-      verify(() => chatRepository.createMessage(any())).called(1);
-      expect(received.length, 2);
-    });
+        expect(awaiting.status, ChatItemStatus.confirmed);
+        verify(() => chatRepository.updateMesssage(any())).called(1);
+        verify(() => chatRepository.createMessage(any())).called(1);
+        expect(received.length, 2);
+      },
+    );
 
     test('non-owner ignores the event', () async {
       await buildHandler(ownDid: 'did:test:not-owner').handle(
@@ -112,8 +115,9 @@ void main() {
     });
 
     test('returns early when no awaiting message matches', () async {
-      when(() => chatRepository.listMessages('chat-1'))
-          .thenAnswer((_) async => []);
+      when(
+        () => chatRepository.listMessages('chat-1'),
+      ).thenAnswer((_) async => []);
 
       await buildHandler().handle(
         IncomingChatEvent(

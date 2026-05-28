@@ -39,8 +39,9 @@ void main() {
     await fixture.bobChatSDK.startChatSession();
     await fixture.charlieChatSDK.startChatSession();
 
-    final charlieActivity =
-        ChatTestHarness.awaitEvent<ChatActivityEvent>(fixture.charlieChatSDK);
+    final charlieActivity = ChatTestHarness.awaitEvent<ChatActivityEvent>(
+      fixture.charlieChatSDK,
+    );
 
     await fixture.bobChatSDK.sendChatActivity();
     await charlieActivity;

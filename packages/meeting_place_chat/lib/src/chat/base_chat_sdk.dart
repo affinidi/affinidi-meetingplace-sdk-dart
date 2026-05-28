@@ -1,17 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
+import '../entity/chat_attachment_conversion.dart';
 import '../event/chat_event_conversion.dart';
-import '../transport/matrix/matrix_user_id_cache.dart';
-import '../transport/matrix/outgoing/outgoing.dart';
-import '../transport/didcomm/outgoing/outgoing.dart';
 import '../logger/logger_formatter.dart';
 import '../logger/top_and_tail_extension.dart';
+import '../transport/didcomm/outgoing/outgoing.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_user_id_cache.dart';
+import '../transport/matrix/outgoing/outgoing.dart';
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.
@@ -206,31 +209,29 @@ abstract class BaseChatSDK {
   Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
       _incomingRouter.route(event);
 
-  /// Sends a plain text message with optional attachments.
+  /// Sends a plain text message with optional hosted-media attachments.
   ///
   /// **Parameters:**
-  /// - [text]: The plain text content of the message.
-  /// - [attachments]: Optional list of [ChatAttachment]s included with
-  ///   the message.
+  /// - [text]: The plain text content (or caption for a media message).
+  /// - [attachments]: Optional list of [ChatAttachment]s. When the first
+  ///   attachment contains an `mxc://` URI in [ChatAttachmentData.links],
+  ///   a Matrix `m.room.message` media event is sent instead of `m.text`.
+  ///   For non-hosted attachments (e.g. DIDComm-style base64), the
+  ///   attachment is stored locally but not yet carried over the wire.
   ///
   /// **Returns:**
   /// - The sent [Message] object persisted in the repository.
-  ///
-  /// TODO: Add attachments support
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment>? attachments,
   }) async {
+    final normalizedAttachments = await _prepareAttachmentsForSending(
+      attachments,
+    );
+    final outgoing = _buildOutgoingMessage(text, normalizedAttachments);
     final message = await _sendRoomEventMessage(
-      TextMessageRoomEvent(
-        senderDid: did,
-        roomId: roomId,
-        text: text,
-        notification: ChannelNotification(
-          recipientDid: otherPartyDid,
-          type: 'chat-activity',
-        ),
-      ),
+      outgoing,
+      attachments: normalizedAttachments,
     );
 
     _logger.info(
@@ -242,6 +243,110 @@ abstract class BaseChatSDK {
       ChatTypingNotification(senderDid: did, roomId: roomId, active: false),
     );
     return message;
+  }
+
+  Future<List<ChatAttachment>> _prepareAttachmentsForSending(
+    List<ChatAttachment>? attachments,
+  ) async {
+    if (attachments == null || attachments.isEmpty) return const [];
+    if (attachments.length > 1) {
+      throw UnsupportedError(
+        'Multiple attachments are not supported for Matrix hosted media '
+        'messages',
+      );
+    }
+
+    final attachment = attachments.first;
+    final didcommAttachment = attachment.toDIDComm();
+    if (getMxcUri(didcommAttachment) != null) {
+      return attachments;
+    }
+
+    final base64Content = attachment.data?.base64;
+    if (base64Content == null || base64Content.isEmpty) {
+      return attachments;
+    }
+
+    final uploadOutput = await coreSDK.uploadMedia(
+      _decodeBase64Url(base64Content),
+      senderDid: did,
+      contentType: attachment.mediaType ?? 'application/octet-stream',
+      filename: attachment.filename,
+    );
+
+    return [
+      attachmentFromMediaUpload(
+        uploadOutput,
+        mediaType: attachment.mediaType ?? 'application/octet-stream',
+        filename: attachment.filename,
+        description: attachment.description,
+      ).toChatAttachment(),
+    ];
+  }
+
+  /// Builds the appropriate outgoing Matrix event for [text] and [attachments].
+  ///
+  /// When [attachments] contains a hosted-media attachment (first item has a
+  /// valid `mxc://` URI in `data.links`), a [MediaMessageRoomEvent] is
+  /// returned. Otherwise a plain [TextMessageRoomEvent] is returned.
+  MatrixOutgoingMessage _buildOutgoingMessage(
+    String text,
+    List<ChatAttachment>? attachments,
+  ) {
+    final notification = ChannelNotification(
+      recipientDid: otherPartyDid,
+      type: 'chat-activity',
+    );
+
+    final first = attachments?.firstOrNull;
+    if (first == null) {
+      return TextMessageRoomEvent(
+        senderDid: did,
+        roomId: roomId,
+        text: text,
+        notification: notification,
+      );
+    }
+
+    final didcommAttachment = first.toDIDComm();
+    final mxcUri = getMxcUri(didcommAttachment);
+    if (mxcUri != null) {
+      final encryptedFileInfo = getEncryptedFileInfo(didcommAttachment);
+
+      return MediaMessageRoomEvent(
+        senderDid: did,
+        roomId: roomId,
+        mxcUri: mxcUri,
+        contentType: first.mediaType ?? 'application/octet-stream',
+        sizeBytes: first.byteCount ?? 0,
+        filename: first.filename,
+        caption: text.isNotEmpty ? text : null,
+        encryptedFileInfo: encryptedFileInfo,
+        notification: notification,
+      );
+    }
+
+    return TextMessageRoomEvent(
+      senderDid: did,
+      roomId: roomId,
+      text: text,
+      notification: notification,
+    );
+  }
+
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
+    final didcommAttachment = attachment.toDIDComm();
+    final mxcUri = getMxcUri(didcommAttachment);
+    if (mxcUri == null) {
+      throw ArgumentError('Attachment does not contain a hosted media URI');
+    }
+
+    return coreSDK.downloadMedia(
+      mxcUri,
+      receiverDid: did,
+      roomId: roomId,
+      encryptedFileInfo: getEncryptedFileInfo(didcommAttachment),
+    );
   }
 
   /// Starts periodic chat presence updates.
@@ -449,7 +554,10 @@ abstract class BaseChatSDK {
         ));
   }
 
-  Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
+  Future<Message> _sendRoomEventMessage(
+    MatrixOutgoingMessage outgoing, {
+    List<ChatAttachment> attachments = const [],
+  }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
 
@@ -465,7 +573,7 @@ abstract class BaseChatSDK {
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,
-        attachments: const [],
+        attachments: attachments,
       ),
     );
 
@@ -501,6 +609,16 @@ abstract class BaseChatSDK {
         methodName: _logkey,
       );
     }
+  }
+
+  Uint8List _decodeBase64Url(String input) {
+    return base64Url.decode(_padBase64(input));
+  }
+
+  String _padBase64(String input) {
+    final remainder = input.length % 4;
+    if (remainder == 0) return input;
+    return input + '=' * (4 - remainder);
   }
 
   /// Sends a message with notification, ignoring notification failures.

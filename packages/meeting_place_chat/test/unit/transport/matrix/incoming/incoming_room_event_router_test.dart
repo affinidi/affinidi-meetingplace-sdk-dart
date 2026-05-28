@@ -120,21 +120,25 @@ void main() {
       verify(() => groupDeletionHandler.handle(any())).called(1);
     });
 
-    test('com.affinidi.chat.group-details-update → groupDetailsUpdate',
-        () async {
-      await router.route(
-        _event(type: 'com.affinidi.chat.group-details-update'),
-      );
-      verify(() => groupDetailsHandler.handle(any())).called(1);
-    });
+    test(
+      'com.affinidi.chat.group-details-update → groupDetailsUpdate',
+      () async {
+        await router.route(
+          _event(type: 'com.affinidi.chat.group-details-update'),
+        );
+        verify(() => groupDetailsHandler.handle(any())).called(1);
+      },
+    );
 
-    test('com.affinidi.chat.contact-details-update → contactDetailsUpdate',
-        () async {
-      await router.route(
-        _event(type: 'com.affinidi.chat.contact-details-update'),
-      );
-      verify(() => contactDetailsHandler.handle(any())).called(1);
-    });
+    test(
+      'com.affinidi.chat.contact-details-update → contactDetailsUpdate',
+      () async {
+        await router.route(
+          _event(type: 'com.affinidi.chat.contact-details-update'),
+        );
+        verify(() => contactDetailsHandler.handle(any())).called(1);
+      },
+    );
 
     test('com.affinidi.chat.effect → chatEffect', () async {
       await router.route(_event(type: 'com.affinidi.chat.effect'));
@@ -146,32 +150,34 @@ void main() {
       verify(() => fallthroughHandler.handle(any())).called(1);
     });
 
-    test('unrouted type pushes UnhandledChatEvent to the chat stream',
-        () async {
-      final stream = ChatStream();
-      final emitted = <StreamData>[];
-      stream.listen(emitted.add);
+    test(
+      'unrouted type pushes UnhandledChatEvent to the chat stream',
+      () async {
+        final stream = ChatStream();
+        final emitted = <StreamData>[];
+        stream.listen(emitted.add);
 
-      final unhandledRouter = _TestRouter(
-        didCache: MatrixUserIdCache(serverName: 'server'),
-        matrixHandlers: const {},
-        chatHandlers: const {},
-        chatStream: stream,
-      );
+        final unhandledRouter = _TestRouter(
+          didCache: MatrixUserIdCache(serverName: 'server'),
+          matrixHandlers: const {},
+          chatHandlers: const {},
+          chatStream: stream,
+        );
 
-      await unhandledRouter.route(
-        _event(type: 'm.totally.unmapped', content: const {'k': 'v'}),
-      );
-      await Future<void>.delayed(Duration.zero);
+        await unhandledRouter.route(
+          _event(type: 'm.totally.unmapped', content: const {'k': 'v'}),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      verifyNever(() => chatEffectHandler.handle(any()));
-      expect(emitted.length, 1);
-      final event = emitted.single.event;
-      expect(event, isA<UnhandledChatEvent>());
-      event as UnhandledChatEvent;
-      expect(event.type, 'm.totally.unmapped');
-      expect(event.body, {'k': 'v'});
-    });
+        verifyNever(() => chatEffectHandler.handle(any()));
+        expect(emitted.length, 1);
+        final event = emitted.single.event;
+        expect(event, isA<UnhandledChatEvent>());
+        event as UnhandledChatEvent;
+        expect(event.type, 'm.totally.unmapped');
+        expect(event.body, {'k': 'v'});
+      },
+    );
 
     test('IncomingChatEvent.senderDid is resolved via the didCache', () async {
       final cache = MatrixUserIdCache(serverName: 'server');
@@ -194,9 +200,9 @@ void main() {
         ),
       );
 
-      final captured = verify(
-        () => chatEffectHandler.handle(captureAny()),
-      ).captured.single as IncomingChatEvent;
+      final captured =
+          verify(() => chatEffectHandler.handle(captureAny())).captured.single
+              as IncomingChatEvent;
       expect(captured.senderDid, 'did:test:alice');
       expect(captured.type, ChatEventTypes.chatEffect);
       expect(captured.content, {'effect': 'confetti'});

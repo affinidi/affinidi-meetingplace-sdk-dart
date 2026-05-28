@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
@@ -224,7 +225,7 @@ class MatrixService {
   /// Returns the most recent event id in [roomId], or `null` if the room is
   /// not known to the client or has no events yet.
   ///
-  /// Used to anchor [Channel.matrixSyncMarker] at join time so that
+  /// Used to anchor `Channel.matrixSyncMarker` at join time so that
   /// subsequent [fetchRoomHistory] calls only return events posted after the
   /// joiner became a member.
   Future<String?> getLatestEventId(
@@ -353,6 +354,63 @@ class MatrixService {
 
   void dispose() {
     _sessionManager.dispose();
+  }
+
+  /// Uploads media content to the Matrix homeserver's content repository.
+  ///
+  /// Uses the authenticated Matrix client to upload raw bytes.
+  /// Returns the mxc:// URI of the uploaded content.
+  ///
+  /// Parameters:
+  /// - [didManager]: The DID manager for authentication.
+  /// - [bytes]: The raw file bytes to upload.
+  /// - [contentType]: MIME type of the content (e.g. 'image/jpeg').
+  /// - [filename]: Optional filename for the upload.
+  Future<Uri> uploadMedia(
+    Uint8List bytes, {
+    required DidManager didManager,
+    required String contentType,
+    String? filename,
+  }) async {
+    final client = await _ensureSession(didManager);
+    return client.uploadContent(
+      bytes,
+      filename: filename,
+      contentType: contentType,
+    );
+  }
+
+  /// Downloads media from the Matrix homeserver's content repository.
+  ///
+  /// Parses the mxc:// URI and downloads the content using the authenticated
+  /// Matrix client via the control plane download-url endpoint.
+  ///
+  /// Parameters:
+  /// - [didManager]: The DID manager for authentication.
+  /// - [mxcUri]: The mxc:// URI to download from.
+  /// - [roomId]: The Matrix room ID the media is associated with.
+  Future<Uint8List> downloadMedia(
+    String mxcUri, {
+    required DidManager didManager,
+    required String roomId,
+  }) async {
+    final mediaDownloadOutput = await _controlPlaneSDK.execute(
+      MatrixMediaDownloadCommand(
+        didManager: didManager,
+        homeserver: homeserver,
+        roomId: roomId,
+        mxcUri: mxcUri,
+      ),
+    );
+    return mediaDownloadOutput.bytes;
+  }
+
+  /// Returns the maximum upload size allowed by the homeserver, in bytes.
+  /// Returns null if the server does not report a limit.
+  Future<int?> getMediaConfig({required DidManager didManager}) async {
+    final client = await _ensureSession(didManager);
+    final config = await client.getConfigAuthed();
+    return config.mUploadSize;
   }
 
   MatrixRoomEvent? _eventToMatrixRoomEvent(

@@ -66,9 +66,7 @@ void main() {
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(
-      bobMessages.whereType<Message>().any(
-        (m) => m.value == 'Persist test',
-      ),
+      bobMessages.whereType<Message>().any((m) => m.value == 'Persist test'),
       isTrue,
       reason: 'Message should be persisted in Bob\'s repository',
     );

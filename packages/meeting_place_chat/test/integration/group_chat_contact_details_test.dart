@@ -31,8 +31,7 @@ void main() {
       final newBobChatSDK = await initGroupChatSDK(
         coreSDK: fixture.bobSDK,
         did: fixture.bobMemberDid,
-        otherPartyDid:
-            fixture.publishOfferResult.connectionOffer.groupDid!,
+        otherPartyDid: fixture.publishOfferResult.connectionOffer.groupDid!,
         group: fixture.bobGroup,
         channelRepository: fixture.bobChannelRepository,
         card: updatedCard,
@@ -44,14 +43,14 @@ void main() {
 
       final aliceUpdate =
           ChatTestHarness.awaitEvent<ChatContactDetailsUpdateEvent>(
-        fixture.aliceChatSDK,
-        where: (e) => e.senderDid == fixture.bobMemberDid,
-      );
+            fixture.aliceChatSDK,
+            where: (e) => e.senderDid == fixture.bobMemberDid,
+          );
       final charlieUpdate =
           ChatTestHarness.awaitEvent<ChatContactDetailsUpdateEvent>(
-        fixture.charlieChatSDK,
-        where: (e) => e.senderDid == fixture.bobMemberDid,
-      );
+            fixture.charlieChatSDK,
+            where: (e) => e.senderDid == fixture.bobMemberDid,
+          );
 
       final concierge = ConciergeMessage(
         chatId: bobChat.id,

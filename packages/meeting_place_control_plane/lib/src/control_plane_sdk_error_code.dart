@@ -92,6 +92,13 @@ enum ControlPlaneSDKErrorCode {
   matrixTokenInvalidResponse('matrix_token_invalid_response'),
   matrixTokenGeneric('matrix_token_generic'),
 
+  // matrix media download codes
+  matrixMediaDownloadInvalidResponse('matrix_media_download_invalid_response'),
+  matrixMediaDownloadForbidden('matrix_media_download_forbidden'),
+  matrixMediaDownloadNotFound('matrix_media_download_not_found'),
+  matrixMediaDownloadRateLimited('matrix_media_download_rate_limited'),
+  matrixMediaDownloadGeneric('matrix_media_download_generic'),
+
   // others
   networkError('network_error'),
   generic('generic');

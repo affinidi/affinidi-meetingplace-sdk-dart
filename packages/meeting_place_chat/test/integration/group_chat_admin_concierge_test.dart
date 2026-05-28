@@ -48,8 +48,8 @@ void main() {
     await fixture.bobChatSDK.startChatSession();
     final bobGroupUpdated =
         ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(
-      fixture.bobChatSDK,
-    );
+          fixture.bobChatSDK,
+        );
 
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.approveConnectionRequest(conciergeMessage);
@@ -91,8 +91,8 @@ void main() {
 
     final bobGroupUpdated =
         ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(
-      fixture.bobChatSDK,
-    );
+          fixture.bobChatSDK,
+        );
 
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);

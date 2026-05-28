@@ -4,11 +4,13 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../loggers/meeting_place_core_sdk_logger.dart';
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
 import 'matrix_room_alias.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_room_event.dart';
+import 'matrix_session_manager.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -23,15 +25,24 @@ class MatrixService {
   MatrixService({
     required MatrixConfig config,
     required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceCoreSDKLogger logger,
     MatrixSessionManager? sessionManager,
   }) : _controlPlaneSDK = controlPlaneSDK,
-       _sessionManager = sessionManager ?? MatrixSessionManager(config: config);
+       _logger = logger,
+       _sessionManager =
+           sessionManager ??
+           MatrixSessionManager(config: config, logger: logger);
 
   /// Control plane SDK for executing commands to obtain Matrix JWTs.
   final ControlPlaneSDK _controlPlaneSDK;
 
   /// Manages Matrix sessions, including client instances and token refresh.
   final MatrixSessionManager _sessionManager;
+
+  /// Logger for MatrixService operations and errors.
+  final MeetingPlaceCoreSDKLogger _logger;
+
+  static const _logKey = 'MatrixService';
 
   /// Exposes the homeserver URI from the session manager.
   Uri get homeserver => _sessionManager.homeserver;
@@ -47,9 +58,18 @@ class MatrixService {
   Future<String> loginWithDid(DidManager didManager) async {
     final didDocument = await didManager.getDidDocument();
 
+    final cachedClient = await _sessionManager.getAuthenticatedClient(
+      didDocument.id,
+    );
+    if (cachedClient != null) {
+      return cachedClient.userID!;
+    }
+
     final matrixTokenOutput = await _controlPlaneSDK.execute(
       MatrixTokenCommand(didManager: didManager, homeserver: homeserver),
     );
+
+    _logger.info('Obtained Matrix JWT for ${didDocument.id}', name: _logKey);
 
     return _sessionManager.loginWithJwt(
       jwt: matrixTokenOutput.token.toJwt(),
@@ -157,11 +177,14 @@ class MatrixService {
   Future<matrix.Client> _ensureSession(DidManager didManager) async {
     final did = (await didManager.getDidDocument()).id;
 
-    try {
-      return await _sessionManager.getAuthenticatedClient(did);
-    } on MatrixAuthException {
-      await loginWithDid(didManager);
-      return _sessionManager.getAuthenticatedClient(did);
+    final cached = await _sessionManager.getAuthenticatedClient(did);
+    if (cached != null) return cached;
+
+    await loginWithDid(didManager);
+    final client = await _sessionManager.getAuthenticatedClient(did);
+    if (client == null) {
+      throw const MatrixAuthException();
     }
+    return client;
   }
 }

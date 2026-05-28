@@ -1,6 +1,6 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_auth_exception.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_client_cache.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_config.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
@@ -32,17 +32,20 @@ class _FakeClientCache extends MatrixClientCache {
   _FakeClientCache()
     : super(homeserver: Uri.parse('https://matrix.example.com'));
 
-  final Map<String, matrix.Client> _clients = {};
+  final Map<String, Future<matrix.Client>> _clients = {};
 
-  void seed(String did, matrix.Client client) => _clients[did] = client;
+  void seed(String did, matrix.Client client) =>
+      _clients[did] = Future.value(client);
+
+  void seedFuture(String did, Future<matrix.Client> future) =>
+      _clients[did] = future;
 
   @override
-  matrix.Client? get({required String did}) => _clients[did];
+  Future<matrix.Client>? get({required String did}) => _clients[did];
 
   @override
-  matrix.Client add({required String did, required matrix.Client client}) {
-    _clients[did] = client;
-    return client;
+  void add({required String did, required Future<matrix.Client> future}) {
+    _clients[did] = future;
   }
 
   @override
@@ -116,7 +119,11 @@ void main() {
 
     setUp(() {
       cache = _FakeClientCache();
-      manager = MatrixSessionManager(config: _fakeConfig(), clientCache: cache);
+      manager = MatrixSessionManager(
+        config: _fakeConfig(),
+        logger: _NoOpLogger(),
+        clientCache: cache,
+      );
     });
 
     // ------------------------------------------------------------------
@@ -124,8 +131,10 @@ void main() {
     // ------------------------------------------------------------------
 
     group('loginWithJwt', () {
-      test('creates a new client and returns the Matrix user ID', () async {
+      test('logs in a stale cached client and returns its user ID', () async {
         final mockClient = MockMatrixClient();
+        when(() => mockClient.accessToken).thenReturn(null);
+        when(() => mockClient.userID).thenReturn(_matrixUserId);
         final loginResponse = matrix.LoginResponse(
           userId: _matrixUserId,
           accessToken: 'token',
@@ -145,10 +154,71 @@ void main() {
 
         final userId = await manager.loginWithJwt(jwt: _testJwt, did: _testDid);
         expect(userId, equals(_matrixUserId));
+        verify(
+          () => mockClient.login(
+            MatrixSessionManager.jwtLoginType,
+            token: _testJwt,
+          ),
+        ).called(1);
+      });
+
+      test(
+        'short-circuits and skips login when cached token is fresh',
+        () async {
+          final mockClient = _validClient();
+          when(() => mockClient.userID).thenReturn(_matrixUserId);
+          cache.seed(_testDid, mockClient);
+
+          final userId = await manager.loginWithJwt(
+            jwt: _testJwt,
+            did: _testDid,
+          );
+
+          expect(userId, equals(_matrixUserId));
+          verifyNever(
+            () => mockClient.login(any(), token: any(named: 'token')),
+          );
+        },
+      );
+
+      test('deduplicates concurrent logins for the same DID', () async {
+        final mockClient = MockMatrixClient();
+        when(() => mockClient.accessToken).thenReturn(null);
+        when(() => mockClient.userID).thenReturn(_matrixUserId);
+        final loginResponse = matrix.LoginResponse(
+          userId: _matrixUserId,
+          accessToken: 'token',
+          deviceId: 'device',
+          wellKnown: null,
+          expiresInMs: null,
+          refreshToken: null,
+        );
+        var loginCalls = 0;
+        when(
+          () => mockClient.login(
+            MatrixSessionManager.jwtLoginType,
+            token: _testJwt,
+          ),
+        ).thenAnswer((_) async {
+          loginCalls++;
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+          return loginResponse;
+        });
+
+        cache.seed(_testDid, mockClient);
+
+        final results = await Future.wait([
+          manager.loginWithJwt(jwt: _testJwt, did: _testDid),
+          manager.loginWithJwt(jwt: _testJwt, did: _testDid),
+        ]);
+
+        expect(results, [_matrixUserId, _matrixUserId]);
+        expect(loginCalls, 1);
       });
 
       test('throws MatrixServiceException when login call fails', () async {
         final mockClient = MockMatrixClient();
+        when(() => mockClient.accessToken).thenReturn(null);
         when(
           () => mockClient.login(any(), token: any(named: 'token')),
         ).thenThrow(Exception('network error'));
@@ -163,6 +233,7 @@ void main() {
 
       test('evicts client from cache when login fails', () async {
         final mockClient = MockMatrixClient();
+        when(() => mockClient.accessToken).thenReturn(null);
         when(
           () => mockClient.login(any(), token: any(named: 'token')),
         ).thenThrow(Exception('fail'));
@@ -183,20 +254,14 @@ void main() {
     // ------------------------------------------------------------------
 
     group('getAuthenticatedClient', () {
-      test('throws MatrixAuthException when no session exists', () {
-        expect(
-          () => manager.getAuthenticatedClient(_testDid),
-          throwsA(isA<MatrixAuthException>()),
-        );
+      test('returns null when no session exists', () async {
+        expect(await manager.getAuthenticatedClient(_testDid), isNull);
       });
 
-      test('throws MatrixAuthException when access token is null', () {
+      test('returns null when access token is null', () async {
         cache.seed(_testDid, _unauthenticatedClient());
 
-        expect(
-          () => manager.getAuthenticatedClient(_testDid),
-          throwsA(isA<MatrixAuthException>()),
-        );
+        expect(await manager.getAuthenticatedClient(_testDid), isNull);
       });
 
       test('returns client directly when token is not expiring soon', () async {
@@ -222,7 +287,7 @@ void main() {
       );
 
       test(
-        'throws MatrixAuthException and evicts client when refresh fails',
+        'returns null and evicts client when refresh fails',
         () async {
           final client = _expiringSoonClient();
           when(
@@ -230,10 +295,7 @@ void main() {
           ).thenThrow(Exception('refresh failed'));
           cache.seed(_testDid, client);
 
-          await expectLater(
-            () => manager.getAuthenticatedClient(_testDid),
-            throwsA(isA<MatrixAuthException>()),
-          );
+          expect(await manager.getAuthenticatedClient(_testDid), isNull);
 
           expect(
             cache.get(did: _testDid),
@@ -322,6 +384,7 @@ void main() {
       service = MatrixService(
         config: _fakeConfig(),
         controlPlaneSDK: controlPlane,
+        logger: _NoOpLogger(),
         sessionManager: sessionManager,
       );
     });
@@ -332,6 +395,9 @@ void main() {
 
     group('loginWithDid', () {
       test('fetches a JWT from the control plane and logs in', () async {
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => null);
         final tokenOutput = _stubMatrixToken(controlPlane, didManager);
         when(
           () => sessionManager.loginWithJwt(
@@ -375,14 +441,14 @@ void main() {
 
       test('re-authenticates and retries when session is expired', () async {
         final client = MockMatrixClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
 
-        // First call throws; second succeeds after re-auth.
-        var callCount = 0;
-        when(() => sessionManager.getAuthenticatedClient(_testDid)).thenAnswer((
-          _,
-        ) async {
-          callCount++;
-          if (callCount == 1) throw const MatrixAuthException();
+        // Cache misses until loginWithJwt populates a session.
+        var loggedIn = false;
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async {
+          if (!loggedIn) return null;
           return client;
         });
 
@@ -392,7 +458,10 @@ void main() {
             jwt: tokenOutput.token.toJwt(),
             did: _testDid,
           ),
-        ).thenAnswer((_) async => _matrixUserId);
+        ).thenAnswer((_) async {
+          loggedIn = true;
+          return _matrixUserId;
+        });
 
         when(
           () => client.createRoom(
@@ -476,13 +545,13 @@ void main() {
 
       test('re-authenticates and retries when session is expired', () async {
         final client = MockMatrixClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
 
-        var callCount = 0;
-        when(() => sessionManager.getAuthenticatedClient(_testDid)).thenAnswer((
-          _,
-        ) async {
-          callCount++;
-          if (callCount == 1) throw const MatrixAuthException();
+        var loggedIn = false;
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async {
+          if (!loggedIn) return null;
           return client;
         });
 
@@ -492,7 +561,10 @@ void main() {
             jwt: tokenOutput.token.toJwt(),
             did: _testDid,
           ),
-        ).thenAnswer((_) async => _matrixUserId);
+        ).thenAnswer((_) async {
+          loggedIn = true;
+          return _matrixUserId;
+        });
 
         when(
           () => client.joinRoom(any()),
@@ -564,4 +636,23 @@ class _NoOpDatabaseFactory implements MatrixDatabaseFactory {
   @override
   Future<matrix.DatabaseApi?> openDatabase(MatrixDatabaseContext context) =>
       Future.value(null);
+}
+
+class _NoOpLogger implements MeetingPlaceCoreSDKLogger {
+  @override
+  void info(String message, {String name = ''}) {}
+
+  @override
+  void warning(String message, {String name = ''}) {}
+
+  @override
+  void debug(String message, {String name = ''}) {}
+
+  @override
+  void error(
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+    String name = '',
+  }) {}
 }

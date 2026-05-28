@@ -1,6 +1,9 @@
 import 'package:matrix/matrix.dart' as matrix;
 
-/// Cache for Matrix client instances, keyed by user DID and homeserver.
+/// Cache for in-flight and resolved Matrix client logins, keyed by user DID
+/// and homeserver. Storing `Future<matrix.Client>` (rather than the resolved
+/// client) lets concurrent callers share a single login attempt and prevents
+/// readers from observing an unauthenticated client.
 class MatrixClientCache {
   MatrixClientCache({required this.homeserver});
 
@@ -8,68 +11,42 @@ class MatrixClientCache {
   final Uri homeserver;
 
   /// Internal cache mapping a composite key of DID and homeserver to the
-  /// authenticated Matrix client instance for that user and homeserver.
-  final Map<String, matrix.Client> _clientCache = {};
+  /// in-flight (or resolved) login Future for that user and homeserver.
+  final Map<String, Future<matrix.Client>> _clientCache = {};
 
-  /// Adds a new authenticated client to the cache for the given [did]. The
-  /// cache key is derived from the [did] and the [homeserver] URI.
-  ///
-  /// If a client already exists in the cache for the same key, it will be
-  /// returned without adding the new client.
-  ///
-  /// Parameters:
-  /// - [did]: The DID of the user for whom the client is being added, used
-  ///   to derive the cache key.
-  /// - [client]: The authenticated Matrix client instance to be cached for
-  ///   the user.
-  ///
-  /// Returns: The cached client instance for the user, which may be the newly
-  /// added client or an existing one if a client was already cached for the
-  /// same key.
-  matrix.Client add({required String did, required matrix.Client client}) {
+  /// Stores [future] in the cache for the given [did], replacing any existing
+  /// entry. The caller is expected to have checked for a usable existing
+  /// session before invoking this — the `get`-then-`add` sequence runs without
+  /// yielding in Dart's single-threaded event loop, so concurrent callers
+  /// cannot race past `get`.
+  void add({
+    required String did,
+    required Future<matrix.Client> future,
+  }) {
     final cacheKey = _getCacheKey(did: did);
-    return _clientCache.putIfAbsent(cacheKey, () => client);
+    _clientCache[cacheKey] = future;
   }
 
-  /// Retrieves the cached client for the given [did], or null if no client is
-  /// cached for that user and homeserver.
-  ///
-  /// Parameters:
-  /// - [did]: The DID of the user for whom to retrieve the cached client,
-  ///   used to derive the cache key.
-  ///
-  /// Returns: The cached Matrix client instance for the user, or null if no
-  /// client is cached for the given key.
-  matrix.Client? get({required String did}) {
+  /// Retrieves the cached login Future for the given [did], or null if no
+  /// login has been started for that user and homeserver.
+  Future<matrix.Client>? get({required String did}) {
     final cacheKey = _getCacheKey(did: did);
     return _clientCache[cacheKey];
   }
 
-  /// Removes the cached client for the given [did], if it exists. This is used
-  /// to clear the session for a user when authentication fails or the session
-  /// expires.
-  ///
-  /// Parameters:
-  /// - [did]: The DID of the user for whom to remove the cached client,
-  ///   used to derive the cache key.
+  /// Removes the cached entry for the given [did], if it exists. Used to
+  /// clear the session when authentication fails or the token cannot be
+  /// refreshed.
   void remove({required String did}) {
     final cacheKey = _getCacheKey(did: did);
     _clientCache.remove(cacheKey);
   }
 
-  /// Clears all cached clients from the cache.
+  /// Clears all cached entries.
   void dispose() {
     _clientCache.clear();
   }
 
-  /// Derives a cache key from the given [did] and the [homeserver] URI. The key
-  /// is a combination of the DID and the homeserver to ensure uniqueness across
-  /// different users and homeservers.
-  ///
-  /// Parameters:
-  /// - [did]: The DID of the user, used as part of the cache key
-  ///
-  /// Returns: A string representing the cache key for the given DID and homeserver.
   String _getCacheKey({required String did}) {
     return '$did._${homeserver.toString()}';
   }

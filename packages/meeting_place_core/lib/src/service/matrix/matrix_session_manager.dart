@@ -1,6 +1,6 @@
 import 'package:matrix/matrix.dart' as matrix;
 
-import 'matrix_auth_exception.dart';
+import '../../loggers/meeting_place_core_sdk_logger.dart';
 import 'matrix_client.dart';
 import 'matrix_client_cache.dart';
 import 'matrix_config.dart';
@@ -14,14 +14,16 @@ import 'matrix_user_id_binding.dart';
 /// - Logging in with a JWT and storing the resulting session.
 /// - Proactively refreshing access tokens before they expire.
 ///
-/// This class has no dependency on the control plane. When a refresh fails,
-/// it throws [MatrixAuthException] so the caller can obtain a fresh JWT and
-/// call [loginWithJwt] again.
+/// This class has no dependency on the control plane. When no usable
+/// session exists, [getAuthenticatedClient] returns `null` so the caller
+/// can obtain a fresh JWT and call [loginWithJwt] again.
 class MatrixSessionManager {
   MatrixSessionManager({
     required MatrixConfig config,
+    required MeetingPlaceCoreSDKLogger logger,
     MatrixClientCache? clientCache,
   }) : _config = config,
+       _logger = logger,
        _clientCache =
            clientCache ?? MatrixClientCache(homeserver: config.homeserver);
 
@@ -35,39 +37,62 @@ class MatrixSessionManager {
   /// Configuration for Matrix client creation and homeserver details.
   final MatrixConfig _config;
 
-  /// Cache of Matrix clients keyed by DID, storing the authenticated client
-  /// for each logged-in user.
+  /// Cache of in-flight and resolved Matrix login Futures keyed by DID.
   final MatrixClientCache _clientCache;
+
+  /// Logger for session manager operations and errors.
+  final MeetingPlaceCoreSDKLogger _logger;
+
+  static const _logKey = 'MatrixSessionManager';
 
   /// Exposes the homeserver URI from the configuration.
   Uri get homeserver => _config.homeserver;
 
   /// Logs in with [jwt] for the user identified by [did], returning the
-  /// Matrix user ID. Creates a new client if none is cached for [did].
+  /// Matrix user ID.
   ///
-  /// On successful login, the authenticated client is cached for future use.
-  /// If login fails (e.g. invalid/expired JWT), the client is removed from
-  /// the cache and a [MatrixServiceException] is thrown.
+  /// Caching behaviour:
+  /// - If a cached session for [did] is already authenticated and its access
+  ///   token is not within [tokenGracePeriod] of expiry, the cached client's
+  ///   user ID is returned without contacting the homeserver.
+  /// - If a login for [did] is already in flight, this call awaits the same
+  ///   Future rather than starting a second login.
+  /// - Otherwise a new client is created and logged in. The in-flight Future
+  ///   is published to the cache before awaiting, so concurrent callers and
+  ///   readers via [getAuthenticatedClient] observe the same session.
   ///
-  /// Parameters:
-  /// - [jwt]: The Matrix JWT obtained from the control plane, used for login.
-  /// - [did]: The DID of the user logging in, used to cache the client session.
-  ///
-  /// Returns: The Matrix user ID associated with the logged-in session.
+  /// On login failure the cache entry is evicted and a [MatrixServiceException]
+  /// is thrown.
   Future<String> loginWithJwt({
     required String jwt,
     required String did,
   }) async {
-    var client = _clientCache.get(did: did);
-
-    if (client == null) {
-      client = await _createClient(did: did);
-      _clientCache.add(did: did, client: client);
+    final cached = _clientCache.get(did: did);
+    matrix.Client? existingClient;
+    if (cached != null) {
+      try {
+        existingClient = await cached;
+        if (_isTokenFresh(existingClient)) {
+          return existingClient.userID!;
+        }
+      } catch (_) {
+        // Previous login attempt errored; fall through and retry with a
+        // fresh client.
+        existingClient = null;
+      }
     }
 
+    _logger.info(
+      'Logging in to Matrix homeserver with DID $did',
+      name: _logKey,
+    );
+
+    final loginFuture = _login(did: did, jwt: jwt, existing: existingClient);
+    _clientCache.add(did: did, future: loginFuture);
+
     try {
-      final response = await client.login(jwtLoginType, token: jwt);
-      return response.userId;
+      final client = await loginFuture;
+      return client.userID!;
     } catch (error, stackTrace) {
       _clientCache.remove(did: did);
       Error.throwWithStackTrace(
@@ -80,32 +105,27 @@ class MatrixSessionManager {
   /// Returns the cached, authenticated client for [did], refreshing the
   /// access token when it is within [tokenGracePeriod] of expiry.
   ///
-  /// The caller is responsible for obtaining a fresh JWT and calling
-  /// [loginWithJwt] before retrying.
-  ///
-  /// Throws [MatrixAuthException] when:
-  /// - No session exists for [did].
-  /// - The access token is missing (soft-logout).
-  /// - The token is expiring soon and `refreshAccessToken` fails.
-  ///
-  /// Parameters:
-  /// - [did]: The DID of the user for whom to retrieve the authenticated
-  ///   client.
-  ///
-  /// Returns: The authenticated [matrix.Client] instance for the user.
-  Future<matrix.Client> getAuthenticatedClient(String did) async {
-    final client = _clientCache.get(did: did);
-
-    if (client == null || client.accessToken == null) {
-      throw MatrixAuthException();
+  /// Returns `null` when no usable session exists (no cache entry, prior
+  /// login failed, soft-logout, or the refresh attempt failed). The caller
+  /// is responsible for obtaining a fresh JWT and calling [loginWithJwt].
+  Future<matrix.Client?> getAuthenticatedClient(String did) async {
+    final cached = _clientCache.get(did: did);
+    if (cached == null) {
+      return null;
     }
 
-    final expiresAt = client.accessTokenExpiresAt;
-    final isExpiringSoon =
-        expiresAt != null &&
-        DateTime.now().isAfter(expiresAt.subtract(tokenGracePeriod));
+    final matrix.Client client;
+    try {
+      client = await cached;
+    } catch (_) {
+      return null;
+    }
 
-    if (!isExpiringSoon) {
+    if (client.accessToken == null) {
+      return null;
+    }
+
+    if (_isTokenFresh(client)) {
       return client;
     }
 
@@ -114,7 +134,7 @@ class MatrixSessionManager {
       return client;
     } catch (_) {
       _clientCache.remove(did: did);
-      throw MatrixAuthException();
+      return null;
     }
   }
 
@@ -123,15 +143,32 @@ class MatrixSessionManager {
     _clientCache.dispose();
   }
 
+  Future<matrix.Client> _login({
+    required String did,
+    required String jwt,
+    matrix.Client? existing,
+  }) async {
+    final client = existing ?? await _createClient(did: did);
+    await client.login(jwtLoginType, token: jwt);
+    return client;
+  }
+
+  /// Whether the client's access token is present and outside the
+  /// [tokenGracePeriod] window.
+  bool _isTokenFresh(matrix.Client client) {
+    if (client.accessToken == null) {
+      return false;
+    }
+    final expiresAt = client.accessTokenExpiresAt;
+    if (expiresAt == null) {
+      return true;
+    }
+    return DateTime.now().isBefore(expiresAt.subtract(tokenGracePeriod));
+  }
+
   /// Creates a new [matrix.Client] instance for the given [did], without
   /// logging in. The caller is responsible for calling [loginWithJwt] to
   /// authenticate the client and cache the session.
-  ///
-  /// Parameters:
-  /// - [did]: The DID for which to create the Matrix client, used to derive
-  ///   the Matrix user ID.
-  ///
-  /// Returns: A new instance of [matrix.Client] configured for the given DID.
   Future<matrix.Client> _createClient({required String did}) {
     return MatrixClient.init(
       config: _config,
@@ -145,17 +182,6 @@ class MatrixSessionManager {
   /// The resulting user ID is in the format `@<hash>:<serverName>`,
   /// where `<hash>` is a SHA-256 hash of the concatenation of the DID and
   /// server name.
-  ///
-  /// This approach ensures that the same DID will always map to the same Matrix
-  /// user ID on a given homeserver, without exposing the raw DID in the
-  /// user ID.
-  ///
-  /// Parameters:
-  /// - [did]: The DID to derive the user ID from.
-  /// - [serverName]: The Matrix homeserver name, used as the domain in the
-  ///   resulting user ID.
-  ///
-  /// Returns: A Matrix user ID derived from the DID and server name.
   String deriveUserId(String did, String serverName) {
     return deriveMatrixUserId(did, serverName);
   }

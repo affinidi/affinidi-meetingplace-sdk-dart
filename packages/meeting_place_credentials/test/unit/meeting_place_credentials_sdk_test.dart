@@ -1185,4 +1185,137 @@ void main() {
       await sdk.closeCredentialStreams();
     });
   });
+
+  group('MeetingPlaceCredentialsSDK R-Card VDIP pending cache', () {
+    late MockMeetingPlaceCoreSDK mockCoreSDK;
+    late MockRCardRepository mockRepo;
+    late MockVrcRepository mockVrcRepo;
+    late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
+    late StreamController<PlainTextMessage> vdipMessagesCtrl;
+    late String issuerDid;
+    late String signedRCardBlob;
+
+    setUpAll(() async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+      final didManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final keyPair = await wallet.generateKey();
+      await didManager.addVerificationMethod(keyPair.id);
+      final didDoc = await didManager.getDidDocument();
+      issuerDid = didDoc.id;
+
+      final vc = await CredentialBuilder.buildRCard(
+        issuerDid: issuerDid,
+        subjectDid: issuerDid,
+        subject: const RCardSubject(firstName: 'Alice'),
+        issuerDidManager: didManager,
+      );
+      signedRCardBlob = jsonEncode(vc.toJson());
+    });
+
+    setUp(() {
+      channelAttachmentsCtrl =
+          StreamController<ChannelAttachmentEvent>.broadcast();
+      vdipMessagesCtrl = StreamController<PlainTextMessage>.broadcast();
+      mockCoreSDK = mockCoreSDKWithStreams(
+        channelAttachmentsCtrl,
+        vdipMessagesCtrl,
+      );
+      mockRepo = MockRCardRepository();
+      mockVrcRepo = MockVrcRepository();
+      when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
+      when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
+      when(() => mockRepo.listAll()).thenAnswer((_) async => const []);
+      when(() => mockRepo.getBySubjectDid(any())).thenAnswer((_) async => null);
+      when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
+      when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
+    });
+
+    tearDown(() async {
+      await channelAttachmentsCtrl.close();
+      await vdipMessagesCtrl.close();
+    });
+
+    test(
+      'consumePendingRCard returns and removes the cached R-Card by sender',
+      () async {
+        final sdk = MeetingPlaceCredentialsSDK(
+          coreSDK: mockCoreSDK,
+          rCardRepository: mockRepo,
+          vrcRepository: mockVrcRepo,
+        );
+        final events = <RCard>[];
+        final sub = sdk.receivedRCards.listen(events.add);
+
+        vdipMessagesCtrl.add(
+          PlainTextMessage(
+            id: 'msg-rcard-1',
+            type: VdipIssuedCredentialMessage.messageType,
+            from: issuerDid,
+            to: const ['did:key:recipient'],
+            body: {
+              'credential': signedRCardBlob,
+              'credential_format': CredentialsSDKConstants.w3cLdV1,
+            },
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(events, hasLength(1));
+        expect(events.first.issuerDid, issuerDid);
+        expect(sdk.consumePendingRCard(issuerDid), events.first);
+        expect(sdk.consumePendingRCard(issuerDid), isNull);
+
+        await sub.cancel();
+        await sdk.closeCredentialStreams();
+      },
+    );
+
+    test(
+      'consumePendingRCard returns null when no VDIP R-Card arrived',
+      () async {
+        final sdk = MeetingPlaceCredentialsSDK(
+          coreSDK: mockCoreSDK,
+          rCardRepository: mockRepo,
+          vrcRepository: mockVrcRepo,
+        );
+
+        expect(sdk.consumePendingRCard(issuerDid), isNull);
+
+        await sdk.closeCredentialStreams();
+      },
+    );
+
+    test('consumePendingRCard returns cached R-Card when no stream listener '
+        'was attached at dispatch time', () async {
+      final sdk = MeetingPlaceCredentialsSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+        vrcRepository: mockVrcRepo,
+      );
+      // No listener on sdk.receivedRCards — simulates chat not yet open.
+
+      vdipMessagesCtrl.add(
+        PlainTextMessage(
+          id: 'msg-rcard-2',
+          type: VdipIssuedCredentialMessage.messageType,
+          from: issuerDid,
+          to: const ['did:key:recipient'],
+          body: {
+            'credential': signedRCardBlob,
+            'credential_format': CredentialsSDKConstants.w3cLdV1,
+          },
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      final cached = sdk.consumePendingRCard(issuerDid);
+      expect(cached, isNotNull);
+      expect(cached!.issuerDid, issuerDid);
+
+      await sdk.closeCredentialStreams();
+    });
+  });
 }

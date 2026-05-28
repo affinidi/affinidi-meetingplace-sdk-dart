@@ -35,8 +35,16 @@ class RCardVdipStreamManager {
   late final StreamSubscription<RCard> _subscription;
   late final Stream<RCard> _stream;
 
+  // Pending cache: R-Cards dispatched before any listener was attached are
+  // stored here so a late-subscribing chat session can replay them.
+  final Map<String, RCard> _pendingRCards = {};
+
   /// Emits incoming, parsed R-Cards routed from VDIP issued credentials.
   Stream<RCard> get stream => _stream;
+
+  /// Returns and removes the cached R-Card from [senderDid], or null.
+  RCard? consumePendingRCard(String senderDid) =>
+      _pendingRCards.remove(senderDid);
 
   /// Cancels the internal subscription and closes the R-Card output stream.
   Future<void> close() async {
@@ -98,6 +106,7 @@ class RCardVdipStreamManager {
 
     final rCard = await _parser.parse(vcBlob: credential);
     if (rCard != null) {
+      _pendingRCards[from] = rCard;
       yield rCard;
     } else {
       yield* Stream.error(

@@ -245,6 +245,11 @@ class MeetingPlaceCredentialsSDK {
   VrcIssuance? consumePendingVrc(String senderDid) =>
       _vrcVdipStreamManager.consumePendingVrc(senderDid);
 
+  /// Returns and removes the last [RCard] from [senderDid] that arrived
+  /// while no listener was attached.
+  RCard? consumePendingRCard(String senderDid) =>
+      _rCardVdipStreamManager.consumePendingRCard(senderDid);
+
   /// Returns a live stream of all persisted VRCs.
   Stream<List<Vrc>> watchVrcs() => _vrcRepository.watchAll();
 

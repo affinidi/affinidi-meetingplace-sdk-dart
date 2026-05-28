@@ -153,6 +153,77 @@ void main() {
       await ctrl.close();
     });
 
+    test('consumePendingRCard returns and removes the cached R-Card', () async {
+      final ctrl = StreamController<PlainTextMessage>.broadcast();
+      final manager = makeManager(ctrl);
+      final sub = manager.stream.listen((_) {});
+
+      ctrl.add(
+        PlainTextMessage(
+          id: const Uuid().v4(),
+          type: VdipIssuedCredentialMessage.messageType,
+          from: issuerDid,
+          to: ['did:example:recipient'],
+          body: {
+            'credential': vcBlob,
+            'credential_format': CredentialsSDKConstants.w3cLdV1,
+          },
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      final first = manager.consumePendingRCard(issuerDid);
+      final second = manager.consumePendingRCard(issuerDid);
+      expect(first, isNotNull);
+      expect(first!.issuerDid, issuerDid);
+      expect(second, isNull);
+
+      await sub.cancel();
+      await manager.close();
+      await ctrl.close();
+    });
+
+    test('consumePendingRCard returns null when sender not found', () async {
+      final ctrl = StreamController<PlainTextMessage>.broadcast();
+      final manager = makeManager(ctrl);
+
+      expect(manager.consumePendingRCard('did:key:unknown'), isNull);
+
+      await manager.close();
+      await ctrl.close();
+    });
+
+    test(
+      'R-Card is stored in pending cache even with no stream listener',
+      () async {
+        final ctrl = StreamController<PlainTextMessage>.broadcast();
+        // Intentionally no listener attached to manager.stream.
+        final manager = makeManager(ctrl);
+
+        ctrl.add(
+          PlainTextMessage(
+            id: const Uuid().v4(),
+            type: VdipIssuedCredentialMessage.messageType,
+            from: issuerDid,
+            to: ['did:example:recipient'],
+            body: {
+              'credential': vcBlob,
+              'credential_format': CredentialsSDKConstants.w3cLdV1,
+            },
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        // Cache is populated even though no subscriber was ever attached.
+        final cached = manager.consumePendingRCard(issuerDid);
+        expect(cached, isNotNull);
+        expect(cached!.issuerDid, issuerDid);
+
+        await manager.close();
+        await ctrl.close();
+      },
+    );
+
     test('close() is idempotent — does not throw on second call', () async {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);

@@ -6,8 +6,14 @@ import 'j_card.dart';
 
 part 'r_card_subject.g.dart';
 
+/// Parsed contact fields from an R-Card Verifiable Credential.
+///
+/// All fields are optional because a contact card may be partially filled.
+/// Use `RCardSubject.fromVcBlob` to deserialise from a raw VC blob, or
+/// `RCardVCardExtension.toVCard` to serialise to a vCard 3.0 string.
 @JsonSerializable()
 class RCardSubject {
+  /// Creates an [RCardSubject] with the given optional contact fields.
   const RCardSubject({
     this.id,
     this.firstName,
@@ -21,20 +27,41 @@ class RCardSubject {
     this.profilePic,
   });
 
+  /// Deserialises an [RCardSubject] from a JSON map.
   factory RCardSubject.fromJson(Map<String, dynamic> json) =>
       _$RCardSubjectFromJson(json);
 
+  /// Optional DID of the credential subject.
   final String? id;
+
+  /// Given name.
   final String? firstName;
+
+  /// Family name.
   final String? lastName;
+
+  /// Email address.
   final String? email;
+
+  /// Phone number.
   final String? phone;
+
+  /// Organisation name.
   final String? company;
+
+  /// Job title.
   final String? position;
+
+  /// Personal or professional website URL.
   final String? website;
+
+  /// Social profile URL or handle.
   final String? social;
+
+  /// Profile picture URL or base64-encoded data URI.
   final String? profilePic;
 
+  /// Serialises this [RCardSubject] to a JSON map.
   Map<String, dynamic> toJson() => _$RCardSubjectToJson(this);
 
   /// Parses an [RCardSubject] directly from a raw VC blob string.

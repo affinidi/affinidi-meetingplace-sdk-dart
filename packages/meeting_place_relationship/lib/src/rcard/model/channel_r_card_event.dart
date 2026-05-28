@@ -9,6 +9,8 @@ import 'r_card.dart';
 /// [Channel.permanentChannelDid] and [Channel.otherPartyPermanentChannelDid]
 /// without those fields being duplicated on [RCard].
 class ChannelRCardEvent {
+  /// Creates a [ChannelRCardEvent] with the originating [channel] and
+  /// the parsed [rCard].
   ChannelRCardEvent({required this.channel, required this.rCard});
 
   /// The channel through which the R-Card arrived.

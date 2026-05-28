@@ -16,6 +16,8 @@ import 'vrc_exchange_client.dart';
 /// on the local exchange state and the ADR channel-ownership tie-breaker rule.
 /// Actual VDIP sends are delegated to [VrcExchangeClient].
 class VrcProtocolHandler {
+  /// Creates a [VrcProtocolHandler] with the given [client], [parser], and
+  /// [logger].
   VrcProtocolHandler({
     required VrcExchangeClient client,
     required VrcParser parser,

@@ -9,6 +9,8 @@ import 'parser/vrc_parser.dart';
 
 /// Manages typed VRC receive streams sourced from routed VDIP messages.
 class VrcVdipStreamManager {
+  /// Creates a [VrcVdipStreamManager] that subscribes to
+  /// [incomingVdipMessages] and routes VRC messages to the appropriate streams.
   VrcVdipStreamManager({
     required Stream<PlainTextMessage> incomingVdipMessages,
     required VrcParser parser,

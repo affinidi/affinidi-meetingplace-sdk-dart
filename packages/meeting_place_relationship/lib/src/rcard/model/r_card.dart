@@ -8,6 +8,7 @@ import 'r_card_constants.dart';
 /// This is the persistence/view model for an incoming R-Card. It stores the
 /// raw VC blob alongside parsed metadata fields to avoid repeated decoding.
 class RCard {
+  /// Creates an [RCard] with all required persistence fields.
   const RCard({
     required this.subjectDid,
     required this.vcBlob,
@@ -81,6 +82,7 @@ class RCard {
   /// Optional user notes attached to this contact.
   final String? notes;
 
+  /// Returns a copy of this [RCard] with the specified fields replaced.
   RCard copyWith({
     String? subjectDid,
     String? vcBlob,

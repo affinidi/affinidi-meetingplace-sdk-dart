@@ -1063,7 +1063,8 @@ void main() {
       await sdk.closeRelationshipStreams();
     });
 
-    test('throws StateError when channel lacks permanentChannelDid', () async {
+    test('throws MeetingPlaceRelationshipSDKException when channel lacks'
+        ' permanentChannelDid', () async {
       final channel = MockChannel();
       when(() => channel.permanentChannelDid).thenReturn(null);
 
@@ -1080,7 +1081,7 @@ void main() {
           card: const RCardSubject(firstName: 'Bob'),
           issuerDidManager: didManager,
         ),
-        throwsStateError,
+        throwsA(isA<MeetingPlaceRelationshipSDKException>()),
       );
 
       await sdk.closeRelationshipStreams();

@@ -22,6 +22,7 @@ class RCardVC {
     final vc = VcDataModelV2.fromJson(json);
     final subject = vc.credentialSubject.firstOrNull;
     if (subject == null) {
+      // ignore: lines_longer_than_80_chars
       throw MeetingPlaceRelationshipSDKException.rCardMissingCredentialSubject();
     }
     final subjectMap = Map<String, dynamic>.from(subject.toJson());
@@ -41,6 +42,7 @@ class RCardVC {
     final rawJson = vc.toJson();
     final subject = vc.credentialSubject.firstOrNull;
     if (subject == null) {
+      // ignore: lines_longer_than_80_chars
       throw MeetingPlaceRelationshipSDKException.rCardMissingCredentialSubject();
     }
     final subjectMap = Map<String, dynamic>.from(subject.toJson());

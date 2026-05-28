@@ -21,6 +21,42 @@ class MeetingPlaceRelationshipSDKException implements Exception {
     );
   }
 
+  /// Factory constructor for a VRC VC that is missing a credentialSubject.
+  factory MeetingPlaceRelationshipSDKException.vrcMissingCredentialSubject({
+    Object? innerException,
+  }) {
+    return MeetingPlaceRelationshipSDKException(
+      message: 'VRC VC is missing a credentialSubject or id.',
+      code: MeetingPlaceRelationshipSDKErrorCode.vrcMissingCredentialSubject,
+      innerException: innerException,
+    );
+  }
+
+  /// Factory constructor for when the channel or sender DID is missing when
+  /// sending a VRC.
+  factory MeetingPlaceRelationshipSDKException.sendVrcMissingChannel({
+    required String channelDid,
+    Object? innerException,
+  }) {
+    return MeetingPlaceRelationshipSDKException(
+      message: 'Cannot send VRC: channel or sender DID missing for $channelDid',
+      code: MeetingPlaceRelationshipSDKErrorCode.sendVrcMissingChannel,
+      innerException: innerException,
+    );
+  }
+
+  /// Factory constructor for when the channel is missing a permanentChannelDid
+  /// when sending an R-Card.
+  factory MeetingPlaceRelationshipSDKException.sendRCardMissingChannelDid({
+    Object? innerException,
+  }) {
+    return MeetingPlaceRelationshipSDKException(
+      message: 'Channel is missing permanentChannelDid — cannot send R-Card.',
+      code: MeetingPlaceRelationshipSDKErrorCode.sendRCardMissingChannelDid,
+      innerException: innerException,
+    );
+  }
+
   /// Factory constructor for an R-Card VC that is missing a credentialSubject.
   factory MeetingPlaceRelationshipSDKException.rCardMissingCredentialSubject({
     Object? innerException,

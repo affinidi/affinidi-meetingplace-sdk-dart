@@ -4,6 +4,7 @@ import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:retry/retry.dart';
 
+import '../meeting_place_relationship_sdk_exception.dart';
 import '../shared/credential_builder.dart';
 import '../shared/credential_constants.dart';
 import 'model/vrc_constants.dart';
@@ -83,8 +84,8 @@ class VrcExchangeClient {
     );
     final senderDid = channel?.permanentChannelDid;
     if (channel == null || senderDid == null || senderDid.isEmpty) {
-      throw StateError(
-        'Cannot send VRC: channel or sender DID missing for $channelDid',
+      throw MeetingPlaceRelationshipSDKException.sendVrcMissingChannel(
+        channelDid: channelDid,
       );
     }
 

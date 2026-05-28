@@ -165,21 +165,24 @@ void main() {
       ).called(1);
     });
 
-    test('throws StateError when channel is null', () async {
-      when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
-      ).thenAnswer((_) async => null);
+    test(
+      'throws MeetingPlaceRelationshipSDKException when channel is null',
+      () async {
+        when(
+          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        ).thenAnswer((_) async => null);
 
-      await expectLater(
-        () => client.sendVrc(
-          channelDid: 'did:key:unknown',
-          issuerDid: issuerDid,
-          issuerName: 'Alice',
-          peerDid: 'did:key:peer',
-          peerName: 'Bob',
-        ),
-        throwsA(isA<StateError>()),
-      );
-    });
+        await expectLater(
+          () => client.sendVrc(
+            channelDid: 'did:key:unknown',
+            issuerDid: issuerDid,
+            issuerName: 'Alice',
+            peerDid: 'did:key:peer',
+            peerName: 'Bob',
+          ),
+          throwsA(isA<MeetingPlaceRelationshipSDKException>()),
+        );
+      },
+    );
   });
 }

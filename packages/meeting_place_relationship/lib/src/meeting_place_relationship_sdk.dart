@@ -307,9 +307,7 @@ class MeetingPlaceRelationshipSDK {
   }) async {
     final issuerDid = channel.permanentChannelDid;
     if (issuerDid == null || issuerDid.isEmpty) {
-      throw StateError(
-        'Channel is missing permanentChannelDid — cannot send R-Card.',
-      );
+      throw MeetingPlaceRelationshipSDKException.sendRCardMissingChannelDid();
     }
     final vc = await RCardBuilder.build(
       issuerDid: issuerDid,

@@ -1,5 +1,6 @@
 import 'package:ssi/ssi.dart';
 
+import '../../meeting_place_relationship_sdk_exception.dart';
 import 'vrc_credential_subject.dart';
 
 /// A parsed and verified VRC suitable for in-memory use and persistence.
@@ -61,14 +62,12 @@ extension ParsedVerifiableCredentialVrcExtension on ParsedVerifiableCredential {
   }) {
     final subjectJson = credentialSubject.firstOrNull as Map<String, dynamic>?;
     if (subjectJson == null) {
-      throw StateError(
-        'Cannot map VRC to domain model: credential has no subject',
-      );
+      throw MeetingPlaceRelationshipSDKException.vrcMissingCredentialSubject();
     }
     final subject = VrcCredentialSubject.fromJson(subjectJson);
     final credentialId = id;
     if (credentialId == null) {
-      throw StateError('Cannot map VRC to domain model: credential has no id');
+      throw MeetingPlaceRelationshipSDKException.vrcMissingCredentialSubject();
     }
 
     return Vrc(

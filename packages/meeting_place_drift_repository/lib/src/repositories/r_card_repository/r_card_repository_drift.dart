@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:meeting_place_relationship/meeting_place_relationship.dart'
+import 'package:meeting_place_credentials/meeting_place_credentials.dart'
     as model;
 
 import 'r_card_database.dart' as db;
@@ -8,7 +8,7 @@ import 'r_card_database.dart' as db;
 /// using a Drift-backed [db.RCardDatabase].
 ///
 /// Implements [model.RCardRepository] — inject this into
-/// `MeetingPlaceRelationshipSDK` to enable automatic local persistence of
+/// `MeetingPlaceCredentialsSDK` to enable automatic local persistence of
 /// every incoming R-Card.
 class RCardRepositoryDrift implements model.RCardRepository {
   /// Creates a new repository with the given [database].

@@ -12,7 +12,7 @@ part 'r_card_database.g.dart';
 ///
 /// Uses the same encrypted [openConnection] setup as every other SDK
 /// database.  Pass this instance to `RCardRepositoryDrift` and
-/// inject the repository into `MeetingPlaceRelationshipSDK`.
+/// inject the repository into `MeetingPlaceCredentialsSDK`.
 @DriftDatabase(tables: [ReceivedRCards])
 class RCardDatabase extends _$RCardDatabase {
   /// Constructs a [RCardDatabase] instance.

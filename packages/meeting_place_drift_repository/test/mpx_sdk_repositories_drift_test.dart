@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart' as model;
+import 'package:meeting_place_credentials/meeting_place_credentials.dart'
+    as credentials;
 import 'package:meeting_place_drift_repository/meeting_place_drift_repository.dart';
-import 'package:meeting_place_relationship/meeting_place_relationship.dart'
-    as rel;
 import 'package:test/test.dart';
 
 ChatItemsDatabase _inMemoryDatabase() => ChatItemsDatabase(
@@ -405,13 +405,13 @@ void main() {
       inMemory: true,
     );
 
-    rel.RCard rCard({
+    credentials.RCard rCard({
       String subjectDid = 'did:example:subject',
       String vcBlob = '{"type":["RelationshipCard"]}',
       String issuerDid = 'did:example:issuer',
       int version = 1,
       String? notes,
-    }) => rel.RCard(
+    }) => credentials.RCard(
       subjectDid: subjectDid,
       vcBlob: vcBlob,
       issuerDid: issuerDid,
@@ -473,7 +473,7 @@ void main() {
       final repository = RCardRepositoryDrift(database: db);
 
       await repository.upsert(
-        rel.RCard(
+        credentials.RCard(
           subjectDid: 'did:example:alice',
           vcBlob: '{}',
           issuerDid: 'did:example:issuer',
@@ -483,7 +483,7 @@ void main() {
         ),
       );
       await repository.upsert(
-        rel.RCard(
+        credentials.RCard(
           subjectDid: 'did:example:bob',
           vcBlob: '{}',
           issuerDid: 'did:example:issuer',
@@ -558,7 +558,7 @@ void main() {
       inMemory: true,
     );
 
-    rel.Vrc vrc({
+    credentials.Vrc vrc({
       String id = 'vrc-1',
       String vcBlob = '{"type":["RelationshipCredential"]}',
       String channelId = 'channel-1',
@@ -566,7 +566,7 @@ void main() {
       String issuerDid = 'did:example:issuer',
       DateTime? issuedAt,
       String? credentialFormat,
-    }) => rel.Vrc(
+    }) => credentials.Vrc(
       id: id,
       vcBlob: vcBlob,
       referenceId: channelId,
@@ -689,7 +689,7 @@ void main() {
       addTearDown(db.close);
       final repository = VrcRepositoryDrift(database: db);
 
-      final emitted = <List<rel.Vrc>>[];
+      final emitted = <List<credentials.Vrc>>[];
       final sub = repository.watchAll().listen(emitted.add);
 
       await repository.upsert(vrc());

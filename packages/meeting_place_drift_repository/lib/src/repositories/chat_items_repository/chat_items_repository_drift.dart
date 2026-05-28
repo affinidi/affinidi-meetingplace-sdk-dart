@@ -20,7 +20,7 @@ import 'chat_items_database.dart' as db;
 class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// Creates a new repository using the given Drift [database].
   ChatItemsRepositoryDrift({required db.ChatItemsDatabase database})
-      : _database = database;
+    : _database = database;
 
   final db.ChatItemsDatabase _database;
 
@@ -43,7 +43,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       }
 
       await _database.transaction(() async {
-        await _database.into(_database.chatItems).insert(
+        await _database
+            .into(_database.chatItems)
+            .insert(
               db.ChatItemsCompanion(
                 chatId: Value(message.chatId),
                 messageId: Value(message.messageId),
@@ -58,9 +60,11 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                 isDeletedLocally: Value(message.isDeletedLocally),
               ),
             );
-        final newMessage = await (_database.select(_database.chatItems)
-              ..where((filter) => filter.messageId.equals(message.messageId)))
-            .getSingleOrNull();
+        final newMessage =
+            await (_database.select(_database.chatItems)..where(
+                  (filter) => filter.messageId.equals(message.messageId),
+                ))
+                .getSingleOrNull();
         if (newMessage == null) {
           throw MeetingPlaceCoreRepositoryException(
             'Message not found',
@@ -80,25 +84,28 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         });
 
         for (final attachment in message.attachments) {
-          final attachmentId =
-              await _database.into(_database.attachments).insert(
-                    db.AttachmentsCompanion.insert(
-                      messageId: message.messageId,
-                      id: Value(attachment.id),
-                      description: Value(attachment.description),
-                      filename: Value(attachment.filename),
-                      mediaType: Value(attachment.mediaType),
-                      format: Value(attachment.format),
-                      lastModifiedTime: Value(attachment.lastModifiedTime),
-                      jws: Value(attachment.data?.jws),
-                      byteCount: Value(attachment.byteCount),
-                      hash: Value(attachment.data?.hash),
-                      base64: Value(attachment.data?.base64),
-                      json: Value(attachment.data?.json),
-                    ),
-                  );
+          final attachmentId = await _database
+              .into(_database.attachments)
+              .insert(
+                db.AttachmentsCompanion.insert(
+                  messageId: message.messageId,
+                  id: Value(attachment.id),
+                  description: Value(attachment.description),
+                  filename: Value(attachment.filename),
+                  mediaType: Value(attachment.mediaType),
+                  format: Value(attachment.format),
+                  lastModifiedTime: Value(attachment.lastModifiedTime),
+                  jws: Value(attachment.data?.jws),
+                  byteCount: Value(attachment.byteCount),
+                  hash: Value(attachment.data?.hash),
+                  base64: Value(attachment.data?.base64),
+                  json: Value(attachment.data?.json),
+                ),
+              );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
-            await _database.into(_database.attachmentsLinks).insert(
+            await _database
+                .into(_database.attachmentsLinks)
+                .insert(
                   db.AttachmentsLinksCompanion.insert(
                     attachmentId: attachmentId,
                     url: link,
@@ -141,7 +148,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       }
 
       await _database.transaction(() async {
-        await _database.into(_database.chatItems).insert(
+        await _database
+            .into(_database.chatItems)
+            .insert(
               db.ChatItemsCompanion(
                 chatId: Value(message.chatId),
                 messageId: Value(message.messageId),
@@ -155,9 +164,11 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
               ),
             );
 
-        final newMessage = await (_database.select(_database.chatItems)
-              ..where((filter) => filter.messageId.equals(message.messageId)))
-            .getSingleOrNull();
+        final newMessage =
+            await (_database.select(_database.chatItems)..where(
+                  (filter) => filter.messageId.equals(message.messageId),
+                ))
+                .getSingleOrNull();
         if (newMessage == null) {
           throw MeetingPlaceCoreRepositoryException(
             'Message not found',
@@ -186,7 +197,9 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       }
 
       await _database.transaction(() async {
-        await _database.into(_database.chatItems).insert(
+        await _database
+            .into(_database.chatItems)
+            .insert(
               db.ChatItemsCompanion(
                 chatId: Value(message.chatId),
                 messageId: Value(message.messageId),
@@ -200,9 +213,11 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
               ),
             );
 
-        final newMessage = await (_database.select(_database.chatItems)
-              ..where((filter) => filter.messageId.equals(message.messageId)))
-            .getSingleOrNull();
+        final newMessage =
+            await (_database.select(_database.chatItems)..where(
+                  (filter) => filter.messageId.equals(message.messageId),
+                ))
+                .getSingleOrNull();
         if (newMessage == null) {
           throw MeetingPlaceCoreRepositoryException(
             'Message not found',
@@ -253,19 +268,18 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     required String chatId,
     required String messageId,
   }) async {
-    final message = await (_database.select(_database.chatItems)
-          ..where(
-            (m) => m.chatId.equals(chatId) & m.messageId.equals(messageId),
-          ))
-        .getSingleOrNull();
+    final message =
+        await (_database.select(_database.chatItems)..where(
+              (m) => m.chatId.equals(chatId) & m.messageId.equals(messageId),
+            ))
+            .getSingleOrNull();
 
     if (message == null) return null;
 
     final results = await Future.wait([
       (_database.select(
         _database.reactions,
-      )..where((r) => r.messageId.equals(messageId)))
-          .get(),
+      )..where((r) => r.messageId.equals(messageId))).get(),
       _groupAttachmentsWithLinksByChatItem([message.messageId]),
     ]);
 
@@ -287,15 +301,13 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   Future<List<model.ChatItem>> listMessages(String chatId) async {
     final chatItems = await (_database.select(
       _database.chatItems,
-    )..where((m) => m.chatId.equals(chatId)))
-        .get();
+    )..where((m) => m.chatId.equals(chatId))).get();
     final messageIds = chatItems.map((c) => c.messageId);
 
     final results = await Future.wait([
       (_database.select(
         _database.reactions,
-      )..where((r) => r.messageId.isIn(messageIds)))
-          .get(),
+      )..where((r) => r.messageId.isIn(messageIds))).get(),
       _groupAttachmentsWithLinksByChatItem(messageIds.toList()),
     ]);
 
@@ -327,8 +339,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       await _database.transaction(() async {
         await (_database.update(
           _database.chatItems,
-        )..where((m) => m.messageId.equals(message.messageId)))
-            .write(
+        )..where((m) => m.messageId.equals(message.messageId))).write(
           db.ChatItemsCompanion(
             chatId: Value(message.chatId),
             messageId: Value(message.messageId),
@@ -346,8 +357,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
 
         await (_database.delete(
           _database.reactions,
-        )..where((a) => a.messageId.equals(message.messageId)))
-            .go();
+        )..where((a) => a.messageId.equals(message.messageId))).go();
 
         final reactionCompanions = message.reactions.map((reaction) {
           return db.ReactionsCompanion.insert(
@@ -362,29 +372,31 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
 
         await (_database.delete(
           _database.attachments,
-        )..where((a) => a.messageId.equals(message.messageId)))
-            .go();
+        )..where((a) => a.messageId.equals(message.messageId))).go();
 
         for (final attachment in message.attachments) {
-          final attachmentId =
-              await _database.into(_database.attachments).insert(
-                    db.AttachmentsCompanion.insert(
-                      messageId: message.messageId,
-                      id: Value(attachment.id),
-                      description: Value(attachment.description),
-                      filename: Value(attachment.filename),
-                      mediaType: Value(attachment.mediaType),
-                      format: Value(attachment.format),
-                      lastModifiedTime: Value(attachment.lastModifiedTime),
-                      jws: Value(attachment.data?.jws),
-                      byteCount: Value(attachment.byteCount),
-                      hash: Value(attachment.data?.hash),
-                      base64: Value(attachment.data?.base64),
-                      json: Value(attachment.data?.json),
-                    ),
-                  );
+          final attachmentId = await _database
+              .into(_database.attachments)
+              .insert(
+                db.AttachmentsCompanion.insert(
+                  messageId: message.messageId,
+                  id: Value(attachment.id),
+                  description: Value(attachment.description),
+                  filename: Value(attachment.filename),
+                  mediaType: Value(attachment.mediaType),
+                  format: Value(attachment.format),
+                  lastModifiedTime: Value(attachment.lastModifiedTime),
+                  jws: Value(attachment.data?.jws),
+                  byteCount: Value(attachment.byteCount),
+                  hash: Value(attachment.data?.hash),
+                  base64: Value(attachment.data?.base64),
+                  json: Value(attachment.data?.json),
+                ),
+              );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
-            await _database.into(_database.attachmentsLinks).insert(
+            await _database
+                .into(_database.attachmentsLinks)
+                .insert(
                   db.AttachmentsLinksCompanion.insert(
                     attachmentId: attachmentId,
                     url: link,
@@ -420,8 +432,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       await _database.transaction(() async {
         await (_database.update(
           _database.chatItems,
-        )..where((m) => m.messageId.equals(message.messageId)))
-            .write(
+        )..where((m) => m.messageId.equals(message.messageId))).write(
           db.ChatItemsCompanion(
             chatId: Value(message.chatId),
             messageId: Value(message.messageId),
@@ -435,13 +446,13 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
           ),
         );
 
-        final updatedMessage = await (_database.select(_database.chatItems)
-              ..where(
-                (m) =>
-                    m.chatId.equals(message.chatId) &
-                    m.messageId.equals(message.messageId),
-              ))
-            .getSingleOrNull();
+        final updatedMessage =
+            await (_database.select(_database.chatItems)..where(
+                  (m) =>
+                      m.chatId.equals(message.chatId) &
+                      m.messageId.equals(message.messageId),
+                ))
+                .getSingleOrNull();
 
         if (updatedMessage == null) {
           throw MeetingPlaceCoreRepositoryException(
@@ -469,8 +480,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       await _database.transaction(() async {
         await (_database.update(
           _database.chatItems,
-        )..where((m) => m.messageId.equals(message.messageId)))
-            .write(
+        )..where((m) => m.messageId.equals(message.messageId))).write(
           db.ChatItemsCompanion(
             chatId: Value(message.chatId),
             messageId: Value(message.messageId),
@@ -484,13 +494,13 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
           ),
         );
 
-        final updatedMessage = await (_database.select(_database.chatItems)
-              ..where(
-                (m) =>
-                    m.chatId.equals(message.chatId) &
-                    m.messageId.equals(message.messageId),
-              ))
-            .getSingleOrNull();
+        final updatedMessage =
+            await (_database.select(_database.chatItems)..where(
+                  (m) =>
+                      m.chatId.equals(message.chatId) &
+                      m.messageId.equals(message.messageId),
+                ))
+                .getSingleOrNull();
 
         if (updatedMessage == null) {
           throw MeetingPlaceCoreRepositoryException(
@@ -540,16 +550,14 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// - A map where each key is a `messageId`, and the value
   ///   is a mapping of attachments : their links.
   Future<Map<String, Map<db.Attachment, List<db.AttachmentLink>>>>
-      _groupAttachmentsWithLinksByChatItem(List<String> messageIds) async {
+  _groupAttachmentsWithLinksByChatItem(List<String> messageIds) async {
     final attachments = await (_database.select(
       _database.attachments,
-    )..where((a) => a.messageId.isIn(messageIds)))
-        .get();
+    )..where((a) => a.messageId.isIn(messageIds))).get();
     final attachmentIds = attachments.map((a) => a.attachmentId);
     final attachmentLinks = await (_database.select(
       _database.attachmentsLinks,
-    )..where((l) => l.attachmentId.isIn(attachmentIds)))
-        .get();
+    )..where((l) => l.attachmentId.isIn(attachmentIds))).get();
 
     final attachmentByMessages = <String, List<db.Attachment>>{};
     for (final a in attachments) {

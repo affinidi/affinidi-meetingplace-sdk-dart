@@ -11,20 +11,24 @@ import 'mediator_exception.dart';
 /// or metadata.
 class MediatorResolver {
   MediatorResolver({MeetingPlaceMediatorSDKLogger? logger, Dio? dio})
-      : _logger = logger ??
-            DefaultMeetingPlaceMediatorSDKLogger(
-                className: _className, sdkName: sdkName),
-        _dio = dio ??
-            (() {
-              final baseDio = Dio(
-                BaseOptions(
-                  connectTimeout: const Duration(seconds: 10),
-                  receiveTimeout: const Duration(seconds: 10),
-                ),
-              );
-              baseDio.interceptors.add(RetryInterceptor(dio: baseDio));
-              return baseDio;
-            }());
+    : _logger =
+          logger ??
+          DefaultMeetingPlaceMediatorSDKLogger(
+            className: _className,
+            sdkName: sdkName,
+          ),
+      _dio =
+          dio ??
+          (() {
+            final baseDio = Dio(
+              BaseOptions(
+                connectTimeout: const Duration(seconds: 10),
+                receiveTimeout: const Duration(seconds: 10),
+              ),
+            );
+            baseDio.interceptors.add(RetryInterceptor(dio: baseDio));
+            return baseDio;
+          }());
   static const String _className = 'MediatorResolver';
 
   final MeetingPlaceMediatorSDKLogger _logger;

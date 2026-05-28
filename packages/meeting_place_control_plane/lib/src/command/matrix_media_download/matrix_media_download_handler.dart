@@ -98,13 +98,16 @@ class MatrixMediaDownloadHandler
         didManager: command.didManager,
         didResolver: didResolver,
         recipientDid: controlPlaneDid,
+        challengeProvider: DidCommChallengeResponse.matrixChallengeProvider(
+          apiClient.dio,
+        ),
         onEmptyChallenge: (_) {
           _logger.error(
-            'Empty challenge returned from didChallenge',
+            'Empty challenge returned from matrix challenge',
             name: _logKey,
           );
           return MatrixMediaDownloadException.invalidResponse(
-            message: 'Empty challenge returned from didChallenge',
+            message: 'Empty challenge returned from matrix challenge',
           );
         },
       );

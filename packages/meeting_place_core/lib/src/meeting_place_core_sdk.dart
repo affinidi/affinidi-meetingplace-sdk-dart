@@ -151,6 +151,7 @@ class MeetingPlaceCoreSDK {
     required SDKErrorHandler sdkErrorHandler,
     required DIDCommTransport didcommTransport,
     required MatrixService matrixService,
+    required MediaService mediaService,
     required MessageService messageService,
     required Future<DidManager> Function(String did) getDidManager,
   }) : _repositoryConfig = repositoryConfig,
@@ -169,6 +170,7 @@ class MeetingPlaceCoreSDK {
        _controlPlaneDid = controlPlaneDid,
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
+       _mediaService = mediaService,
        _didcomm = didcommTransport,
        _messagingService = MessagingService(
          matrixService: matrixService,
@@ -198,6 +200,7 @@ class MeetingPlaceCoreSDK {
 
   final DIDCommTransport _didcomm;
   final MessagingService _messagingService;
+  final MediaService _mediaService;
 
   String _mediatorDid;
   final String _controlPlaneDid;
@@ -451,6 +454,10 @@ class MeetingPlaceCoreSDK {
 
     Future<DidManager> matrixTransportGetDidManager(String did) =>
         connectionManager.getDidManagerForDid(wallet, did);
+    final mediaService = MediaService(
+      matrixService: matrixService,
+      logger: mpxLogger,
+    );
 
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
@@ -472,6 +479,7 @@ class MeetingPlaceCoreSDK {
       sdkErrorHandler: sdkErrorHandler,
       didcommTransport: didcommTransport,
       matrixService: matrixService,
+      mediaService: mediaService,
       messageService: messageService,
       getDidManager: matrixTransportGetDidManager,
     );
@@ -1141,6 +1149,42 @@ class MeetingPlaceCoreSDK {
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
+  }
+
+  /// Uploads media to the Matrix homeserver and returns the hosted-media
+  /// output.
+  Future<MediaUploadOutput> uploadMedia(
+    Uint8List fileBytes, {
+    required String senderDid,
+    required String contentType,
+    String? filename,
+  }) async {
+    return _withSdkExceptionHandling(() async {
+      return _mediaService.upload(
+        fileBytes,
+        didManager: await _getDidManager(senderDid),
+        contentType: contentType,
+        filename: filename,
+      );
+    });
+  }
+
+  /// Downloads hosted media from the Matrix homeserver and decrypts it when
+  /// encrypted media metadata is provided.
+  Future<Uint8List> downloadMedia(
+    String mxcUri, {
+    required String receiverDid,
+    required String roomId,
+    EncryptedFileInfo? encryptedFileInfo,
+  }) async {
+    return _withSdkExceptionHandling(() async {
+      return _mediaService.download(
+        mxcUri,
+        didManager: await _getDidManager(receiverDid),
+        roomId: roomId,
+        encryptedFileInfo: encryptedFileInfo,
+      );
+    });
   }
 
   /// Sends [message] through its transport (Matrix or DIDComm).

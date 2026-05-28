@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:didcomm/didcomm.dart' as didcomm;
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -236,6 +237,13 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       chatStream.pushData(StreamData(chatItem: created));
       return created as Message;
     }
+  }
+
+  @override
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) {
+    throw UnsupportedError(
+      'Hosted media download is only supported for Matrix chat sessions',
+    );
   }
 
   @override

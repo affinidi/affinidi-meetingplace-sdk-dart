@@ -11,7 +11,7 @@ import 'matrix_token.dart';
 import 'matrix_token_exception.dart';
 import 'matrix_token_output.dart';
 
-/// A concreate implementation of the [CommandHandler] interface.
+/// A concrete implementation of the [CommandHandler] interface.
 ///
 /// Handles communication with the API server, including preparing the
 /// challenge-response authentication payload, sending the request, and

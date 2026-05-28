@@ -43,7 +43,7 @@ or manually, add the package into your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meeting_place_relationship: ^0.0.1-dev.1
+  meeting_place_relationship: ^<version_number>
 ```
 
 and then run the command below to install the package:
@@ -94,6 +94,26 @@ void main() async {
 ```
 
 For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_relationship/example).
+
+## Running tests locally
+
+### Option 1: Running tests via `melos` (recommended for CI and automation)
+
+This approach uses environment variables from your shell and does **not** require an `.env` file.
+
+To run tests in this package from the terminal:
+
+```bash
+melos run test
+```
+
+---
+
+### Option 2: Running tests directly from VS Code
+
+You can run tests directly from VS Code using the `Run` button or `Test Explorer` without any additional configuration, as this package contains unit tests only.
+
+---
 
 ## Support & feedback
 

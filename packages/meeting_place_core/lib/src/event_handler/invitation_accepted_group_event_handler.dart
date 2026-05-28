@@ -122,7 +122,6 @@ class InvitationGroupAcceptedEventHandler
       isConnectionInitiator: true,
       contactCard: connection.contactCard,
       otherPartyContactCard: otherPartyContactCard,
-      matrixRoomId: groupChannel.matrixRoomId,
       externalRef: connection.externalRef,
     );
 

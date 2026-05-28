@@ -356,7 +356,10 @@ void main() {
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
         when(
-          () => client.createRoom(invite: any(named: 'invite')),
+          () => client.createRoom(
+            roomAliasName: any(named: 'roomAliasName'),
+            invite: any(named: 'invite'),
+          ),
         ).thenAnswer((_) async => _testRoomId);
         when(
           () => sessionManager.deriveUserId(any(), any()),
@@ -364,6 +367,7 @@ void main() {
 
         final roomId = await service.createRoom(
           didManager: didManager,
+          channelDid: 'did:test:alice', otherPartyChannelDid: 'did:test:bob',
           inviteUsers: ['did:test:bob'],
         );
         expect(roomId, equals(_testRoomId));
@@ -391,13 +395,19 @@ void main() {
         ).thenAnswer((_) async => _matrixUserId);
 
         when(
-          () => client.createRoom(invite: any(named: 'invite')),
+          () => client.createRoom(
+            roomAliasName: any(named: 'roomAliasName'),
+            invite: any(named: 'invite'),
+          ),
         ).thenAnswer((_) async => _testRoomId);
         when(
           () => sessionManager.deriveUserId(any(), any()),
         ).thenReturn('@invitee:matrix.example.com');
 
-        final roomId = await service.createRoom(didManager: didManager);
+        final roomId = await service.createRoom(
+          didManager: didManager,
+          channelDid: 'did:test:alice', otherPartyChannelDid: 'did:test:bob',
+        );
         expect(roomId, equals(_testRoomId));
         verify(
           () => sessionManager.loginWithJwt(
@@ -417,16 +427,26 @@ void main() {
               sessionManager.deriveUserId('did:test:bob', _testHomeserver.host),
         ).thenReturn('@bob-hash:matrix.example.com');
         when(
-          () => client.createRoom(invite: ['@bob-hash:matrix.example.com']),
+          () => client.createRoom(
+            roomAliasName: any(named: 'roomAliasName'),
+            invite: ['@bob-hash:matrix.example.com'],
+          ),
         ).thenAnswer((_) async => _testRoomId);
 
         await service.createRoom(
           didManager: didManager,
+          channelDid: 'did:test:alice', otherPartyChannelDid: 'did:test:bob',
           inviteUsers: ['did:test:bob'],
         );
 
         verify(
-          () => client.createRoom(invite: ['@bob-hash:matrix.example.com']),
+          () => client.createRoom(
+            roomAliasName: any(
+              named: 'roomAliasName',
+              that: startsWith('mp_'),
+            ),
+            invite: ['@bob-hash:matrix.example.com'],
+          ),
         ).called(1);
       });
     });
@@ -435,19 +455,23 @@ void main() {
     // joinRoom
     // ------------------------------------------------------------------
 
-    group('joinRoom', () {
-      test('joins the room when session is valid', () async {
+    group('joinChannelRoom', () {
+      test('joins the room via derived alias when session is valid', () async {
         final client = MockMatrixClient();
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
         when(
-          () => client.joinRoom(_testRoomId),
+          () => client.joinRoom(any()),
         ).thenAnswer((_) async => _testRoomId);
 
-        await service.joinRoom(_testRoomId, didManager: didManager);
+        await service.joinChannelRoom(
+          didManager: didManager,
+          channelDid: 'did:test:alice',
+          otherPartyChannelDid: 'did:test:bob',
+        );
 
-        verify(() => client.joinRoom(_testRoomId)).called(1);
+        verify(() => client.joinRoom(any(that: startsWith('#mp_')))).called(1);
       });
 
       test('re-authenticates and retries when session is expired', () async {
@@ -471,12 +495,16 @@ void main() {
         ).thenAnswer((_) async => _matrixUserId);
 
         when(
-          () => client.joinRoom(_testRoomId),
+          () => client.joinRoom(any()),
         ).thenAnswer((_) async => _testRoomId);
 
-        await service.joinRoom(_testRoomId, didManager: didManager);
+        await service.joinChannelRoom(
+          didManager: didManager,
+          channelDid: 'did:test:alice',
+          otherPartyChannelDid: 'did:test:bob',
+        );
 
-        verify(() => client.joinRoom(_testRoomId)).called(1);
+        verify(() => client.joinRoom(any(that: startsWith('#mp_')))).called(1);
         verify(
           () => sessionManager.loginWithJwt(
             jwt: any(named: 'jwt'),

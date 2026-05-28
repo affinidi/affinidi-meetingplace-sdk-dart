@@ -207,8 +207,8 @@ class ChannelContactCards extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV3 extends GeneratedDatabase {
-  DatabaseAtV3(QueryExecutor e) : super(e);
+class DatabaseAtV5 extends GeneratedDatabase {
+  DatabaseAtV5(QueryExecutor e) : super(e);
   late final Channels channels = Channels(this);
   late final ChannelContactCards channelContactCards =
       ChannelContactCards(this);
@@ -233,7 +233,7 @@ class DatabaseAtV3 extends GeneratedDatabase {
         ],
       );
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 5;
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

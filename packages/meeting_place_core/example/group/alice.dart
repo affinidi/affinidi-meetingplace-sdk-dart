@@ -68,16 +68,11 @@ void main() async {
   prettyPrintYellow('=== Waiting for Bob to accept the group offer...');
   final invitationAcceptedEvent = await waitForInvitationAcceptGroup.future;
   final waitingChannel = invitationAcceptedEvent.channel;
-  final matrixRoomId = waitingChannel.matrixRoomId;
-  if (matrixRoomId == null) {
-    throw StateError('Missing Matrix room ID on group channel');
-  }
 
   prettyJsonPrintYellow(
     'Group channel waiting for approval',
     waitingChannel.toJson(),
   );
-  prettyPrintYellow('Group Matrix room ID: $matrixRoomId');
 
   await aliceSDK.approveConnectionRequest(channel: waitingChannel);
   await notificationStream.dispose();

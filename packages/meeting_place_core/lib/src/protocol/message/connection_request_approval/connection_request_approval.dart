@@ -13,7 +13,6 @@ class ConnectionRequestApproval {
     required List<String> to,
     required String parentThreadId,
     required String channelDid,
-    required String matrixRoomId,
     ContactCard? contactCard,
     List<Attachment>? attachments,
   }) {
@@ -22,10 +21,7 @@ class ConnectionRequestApproval {
       from: from,
       to: to,
       parentThreadId: parentThreadId,
-      body: ConnectionRequestApprovalBody(
-        channelDid: channelDid,
-        matrixRoomId: matrixRoomId,
-      ),
+      body: ConnectionRequestApprovalBody(channelDid: channelDid),
       contactCard: contactCard,
       attachments: attachments,
     );

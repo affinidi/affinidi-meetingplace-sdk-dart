@@ -6,6 +6,7 @@ import 'package:ssi/ssi.dart';
 
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
+import 'matrix_room_alias.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_room_event.dart';
 
@@ -56,48 +57,66 @@ class MatrixService {
     );
   }
 
-  /// Creates a new Matrix room, optionally inviting specified users.
-  /// The method ensures an authenticated session, transparently
-  /// re-authenticating if necessary, before performing the room creation
-  /// operation.
+  /// Creates a new Matrix room with a deterministic alias derived from the
+  /// channel DIDs, optionally inviting specified users.
   ///
-  /// Note: The invited users should be specified as DIDs, which will be
-  /// internally converted to Matrix user IDs using the session manager's
-  /// derivation logic.
-  ///
-  /// Parameters:
-  /// - [didManager]: The DID manager used to ensure an authenticated session
-  ///   for the room creation operation.
-  /// - [inviteUsers]: Optional list of DIDs to invite to the newly created
-  ///   room.
+  /// For two-party channels (individual, OOB) pass both [channelDid] and
+  /// [otherPartyChannelDid]; for group channels pass only [channelDid].
+  /// See [deriveRoomAliasLocalpart] for the localpart semantics.
   ///
   /// Returns: The ID of the newly created Matrix room.
   Future<String> createRoom({
     required DidManager didManager,
+    required String channelDid,
+    String? otherPartyChannelDid,
     List<String>? inviteUsers,
   }) async {
     final client = await _ensureSession(didManager);
     return client.createRoom(
+      roomAliasName: deriveRoomAliasLocalpart(
+        channelDid: channelDid,
+        otherPartyChannelDid: otherPartyChannelDid,
+      ),
       invite: inviteUsers
           ?.map((did) => _sessionManager.deriveUserId(did, homeserver.host))
           .toList(),
     );
   }
 
-  /// Joins an existing Matrix room by its ID.
-  /// The method ensures an authenticated session, transparently
-  /// re-authenticating if necessary, before performing the room join operation.
-  ///
-  /// Parameters:
-  /// - [roomId]: The ID of the Matrix room to join.
-  /// - [didManager]: The DID manager used to ensure an authenticated session
-  ///   for the room join operation.
-  ///
-  /// Returns: A Future that completes when the room join operation is
-  /// successful.
-  Future<void> joinRoom(String roomId, {required DidManager didManager}) async {
+  /// Resolves the deterministic alias for a channel to its Matrix room ID.
+  Future<String> resolveChannelRoomId({
+    required DidManager didManager,
+    required String channelDid,
+    String? otherPartyChannelDid,
+  }) async {
     final client = await _ensureSession(didManager);
-    await client.joinRoom(roomId);
+    final alias = deriveRoomAlias(
+      channelDid: channelDid,
+      otherPartyChannelDid: otherPartyChannelDid,
+      homeserverHost: homeserver.host,
+    );
+    final response = await client.getRoomIdByAlias(alias);
+    final roomId = response.roomId;
+    if (roomId == null) {
+      throw StateError('Matrix alias $alias did not resolve to a room id');
+    }
+    return roomId;
+  }
+
+  /// Joins the Matrix room for a channel via its deterministic alias.
+  Future<void> joinChannelRoom({
+    required DidManager didManager,
+    required String channelDid,
+    String? otherPartyChannelDid,
+  }) async {
+    final client = await _ensureSession(didManager);
+    await client.joinRoom(
+      deriveRoomAlias(
+        channelDid: channelDid,
+        otherPartyChannelDid: otherPartyChannelDid,
+        homeserverHost: homeserver.host,
+      ),
+    );
   }
 
   Future<void> inviteUser(

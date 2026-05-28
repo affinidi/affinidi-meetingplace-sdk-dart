@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -121,9 +121,13 @@ class ChannelDatabase extends _$ChannelDatabase {
             );
           }
           if (from < 4 && to >= 4) {
-            await migrator.addColumn(
-              channels,
-              channels.matrixRoomId,
+            await customStatement(
+              'ALTER TABLE channels ADD COLUMN "matrix_room_id" TEXT NULL',
+            );
+          }
+          if (from < 5 && to >= 5) {
+            await customStatement(
+              'ALTER TABLE channels DROP COLUMN matrix_room_id',
             );
           }
         },
@@ -174,9 +178,6 @@ class Channels extends Table {
 
   /// Notification token for the other party in the channel.
   TextColumn get otherPartyNotificationToken => text().nullable()();
-
-  /// Matrix room ID associated with the channel.
-  TextColumn get matrixRoomId => text().nullable()();
 
   /// External reference for the channel.
   TextColumn get externalRef => text().nullable()();

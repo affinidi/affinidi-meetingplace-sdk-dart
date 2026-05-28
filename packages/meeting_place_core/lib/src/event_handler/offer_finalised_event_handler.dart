@@ -132,9 +132,10 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
-    await _matrixService.joinRoom(
-      connectionRequestApprovalMessage.body.matrixRoomId,
+    await _matrixService.joinChannelRoom(
       didManager: permanentChannelIdentity.didManager,
+      channelDid: permanentChannelIdentity.didDocument.id,
+      otherPartyChannelDid: otherPartyPermanentChannelDid,
     );
 
     await _updateMediatorAcls(
@@ -162,7 +163,6 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       outboundMessageId: message.id,
       otherPartyContactCard: connectionRequestApprovalMessage.contactCard,
-      matrixRoomId: connectionRequestApprovalMessage.body.matrixRoomId,
     );
 
     final attachments = message.attachments;

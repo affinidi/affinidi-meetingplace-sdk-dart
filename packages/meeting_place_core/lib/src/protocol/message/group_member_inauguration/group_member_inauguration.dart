@@ -14,7 +14,6 @@ class GroupMemberInauguration {
     required String groupId,
     required String groupPublicKey,
     required List<String> adminDids,
-    required String matrixRoomId,
     required List<GroupMemberInaugurationMember> members,
   }) {
     return GroupMemberInauguration(
@@ -27,7 +26,6 @@ class GroupMemberInauguration {
         groupId: groupId,
         groupPublicKey: groupPublicKey,
         adminDids: adminDids,
-        matrixRoomId: matrixRoomId,
         members: members,
       ),
     );

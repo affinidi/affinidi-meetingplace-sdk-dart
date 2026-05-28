@@ -78,10 +78,6 @@ void main() async {
   prettyPrintYellow('>>> Received offer finalised event');
   prettyPrintYellow('Event type: ${offerFinalisedEvent.type.name}');
   prettyJsonPrintYellow('Channel:', offerFinalisedEvent.channel);
-  prettyJsonPrintYellow(
-    'Matrix room ID:',
-    offerFinalisedEvent.channel.matrixRoomId!,
-  );
 
   await notificationStream.dispose();
 }

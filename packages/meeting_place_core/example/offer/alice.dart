@@ -92,10 +92,5 @@ void main() async {
   prettyPrintYellow('Event type: ${receivedChannelActivityEvent.type.name}');
   prettyJsonPrintYellow('Channel:', receivedChannelActivityEvent.channel);
 
-  prettyJsonPrintYellow(
-    'Matrix room ID:',
-    receivedChannelActivityEvent.channel.matrixRoomId!,
-  );
-
   await notificationStream.dispose();
 }

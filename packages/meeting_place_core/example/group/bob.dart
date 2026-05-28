@@ -59,13 +59,8 @@ void main() async {
   prettyPrintYellow('=== Waiting for Alice to approve the group membership...');
   final membershipFinalisedEvent = await waitForMembershipFinalised.future;
   final finalisedChannel = membershipFinalisedEvent.channel;
-  final matrixRoomId = finalisedChannel.matrixRoomId;
-  if (matrixRoomId == null) {
-    throw StateError('Missing Matrix room ID on finalised group channel');
-  }
 
   prettyJsonPrintYellow('Finalised group channel', finalisedChannel.toJson());
-  prettyPrintYellow('Shared Matrix room ID: $matrixRoomId');
 
   await notificationStream.dispose();
 }

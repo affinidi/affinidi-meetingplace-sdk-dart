@@ -276,8 +276,10 @@ class OobService {
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();
 
-    final matrixRoomId = await _matrixService.createRoom(
+    await _matrixService.createRoom(
       didManager: permanentChannelDidManager,
+      channelDid: permanentChannelDidDoc.id,
+      otherPartyChannelDid: otherPartyPermanentChannelDid,
       inviteUsers: [otherPartyPermanentChannelDid],
     );
 
@@ -289,7 +291,6 @@ class OobService {
       outboundMessageId: session.oobInvitationMessage.id,
       contactCard: session.contactCard,
       mediatorDid: session.mediatorDid,
-      matrixRoomId: matrixRoomId,
     );
 
     final channel = Channel(
@@ -306,7 +307,6 @@ class OobService {
       contactCard: session.contactCard,
       otherPartyContactCard: message.contactCard,
       externalRef: externalRef,
-      matrixRoomId: matrixRoomId,
     );
 
     await _channelService.persistChannel(channel);
@@ -356,7 +356,6 @@ class OobService {
       outboundMessageId: message.parentThreadId,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyContactCard: message.contactCard,
-      matrixRoomId: message.body.matrixRoomId,
     );
 
     final attachments = message.attachments;

@@ -179,8 +179,11 @@ class GroupService {
     await _groupRepository.createGroup(group);
 
     try {
-      final (matrixRoomId, _) = await (
-        _matrixService.createRoom(didManager: ownerDid),
+      await (
+        _matrixService.createRoom(
+          didManager: ownerDid,
+          channelDid: result.groupDid,
+        ),
         _allowGroupToMessageGroupOwner(
           groupOwnerDid: ownerDid,
           mediatorDid: result.mediatorDid,
@@ -223,7 +226,6 @@ class GroupService {
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
-        matrixRoomId: matrixRoomId,
         externalRef: externalRef,
       );
 
@@ -658,8 +660,10 @@ class GroupService {
       group.ownerDid!,
     );
 
-    final roomId =
-        channel.matrixRoomId ?? (throw GroupException.notFoundError());
+    final roomId = await _matrixService.resolveChannelRoomId(
+      didManager: ownerIdentity.didManager,
+      channelDid: group.did,
+    );
 
     await _matrixService.inviteUser(
       roomId,
@@ -684,7 +688,6 @@ class GroupService {
       groupDid: group.did,
       groupId: group.id,
       adminDids: [group.ownerDid!],
-      matrixRoomId: roomId,
       groupPublicKey: group.publicKey!,
       members: group.members
           .where((member) => member.status == GroupMemberStatus.approved)

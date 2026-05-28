@@ -535,6 +535,8 @@ class ConnectionService {
 
     final roomId = await _matrixService.createRoom(
       didManager: permanentIdentity.didManager,
+      channelDid: permanentIdentity.didDocument.id,
+      otherPartyChannelDid: otherPartyPermanentChannelDid,
       inviteUsers: [otherPartyPermanentChannelDid],
     );
 
@@ -551,8 +553,6 @@ class ConnectionService {
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
-      // TODO: transfer matrix specific data as attachment?
-      matrixRoomId: roomId,
       attachments: attachments,
     );
 
@@ -586,7 +586,6 @@ class ConnectionService {
       permanentChannelDid: permanentIdentity.didDocument.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       notificationToken: finaliseAcceptanceOutput.notificationToken,
-      matrixRoomId: roomId,
     );
 
     _logger.info(
@@ -604,7 +603,6 @@ class ConnectionService {
     required String otherPartyAcceptOfferDid,
     required String outboundMessageId,
     required String mediatorDid,
-    required String matrixRoomId,
     ContactCard? contactCard,
     List<Attachment>? attachments,
   }) async {
@@ -631,7 +629,6 @@ class ConnectionService {
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
       contactCard: contactCard,
-      matrixRoomId: matrixRoomId,
       attachments: attachments,
     );
 

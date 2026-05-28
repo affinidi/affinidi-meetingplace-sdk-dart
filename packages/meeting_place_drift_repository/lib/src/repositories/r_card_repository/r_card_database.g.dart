@@ -9,102 +9,154 @@ class $ReceivedRCardsTable extends ReceivedRCards
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ReceivedRCardsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _subjectDidMeta =
-      const VerificationMeta('subjectDid');
+  static const VerificationMeta _subjectDidMeta = const VerificationMeta(
+    'subjectDid',
+  );
   @override
   late final GeneratedColumn<String> subjectDid = GeneratedColumn<String>(
-      'subject_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'subject_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _vcBlobMeta = const VerificationMeta('vcBlob');
   @override
   late final GeneratedColumn<String> vcBlob = GeneratedColumn<String>(
-      'vc_blob', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _issuerDidMeta =
-      const VerificationMeta('issuerDid');
+    'vc_blob',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuerDidMeta = const VerificationMeta(
+    'issuerDid',
+  );
   @override
   late final GeneratedColumn<String> issuerDid = GeneratedColumn<String>(
-      'issuer_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _versionMeta =
-      const VerificationMeta('version');
+    'issuer_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
   @override
   late final GeneratedColumn<int> version = GeneratedColumn<int>(
-      'version', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(1));
-  static const VerificationMeta _issuanceDateMeta =
-      const VerificationMeta('issuanceDate');
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _issuanceDateMeta = const VerificationMeta(
+    'issuanceDate',
+  );
   @override
   late final GeneratedColumn<DateTime> issuanceDate = GeneratedColumn<DateTime>(
-      'issuance_date', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+    'issuance_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
-      'notes', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _receivedAtMeta =
-      const VerificationMeta('receivedAt');
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _receivedAtMeta = const VerificationMeta(
+    'receivedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> receivedAt = GeneratedColumn<DateTime>(
-      'received_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+    'received_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [subjectDid, vcBlob, issuerDid, version, issuanceDate, notes, receivedAt];
+  List<GeneratedColumn> get $columns => [
+    subjectDid,
+    vcBlob,
+    issuerDid,
+    version,
+    issuanceDate,
+    notes,
+    receivedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'received_r_cards';
   @override
-  VerificationContext validateIntegrity(Insertable<RCardRow> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<RCardRow> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('subject_did')) {
       context.handle(
-          _subjectDidMeta,
-          subjectDid.isAcceptableOrUnknown(
-              data['subject_did']!, _subjectDidMeta));
+        _subjectDidMeta,
+        subjectDid.isAcceptableOrUnknown(data['subject_did']!, _subjectDidMeta),
+      );
     } else if (isInserting) {
       context.missing(_subjectDidMeta);
     }
     if (data.containsKey('vc_blob')) {
-      context.handle(_vcBlobMeta,
-          vcBlob.isAcceptableOrUnknown(data['vc_blob']!, _vcBlobMeta));
+      context.handle(
+        _vcBlobMeta,
+        vcBlob.isAcceptableOrUnknown(data['vc_blob']!, _vcBlobMeta),
+      );
     } else if (isInserting) {
       context.missing(_vcBlobMeta);
     }
     if (data.containsKey('issuer_did')) {
-      context.handle(_issuerDidMeta,
-          issuerDid.isAcceptableOrUnknown(data['issuer_did']!, _issuerDidMeta));
+      context.handle(
+        _issuerDidMeta,
+        issuerDid.isAcceptableOrUnknown(data['issuer_did']!, _issuerDidMeta),
+      );
     } else if (isInserting) {
       context.missing(_issuerDidMeta);
     }
     if (data.containsKey('version')) {
-      context.handle(_versionMeta,
-          version.isAcceptableOrUnknown(data['version']!, _versionMeta));
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
     }
     if (data.containsKey('issuance_date')) {
       context.handle(
+        _issuanceDateMeta,
+        issuanceDate.isAcceptableOrUnknown(
+          data['issuance_date']!,
           _issuanceDateMeta,
-          issuanceDate.isAcceptableOrUnknown(
-              data['issuance_date']!, _issuanceDateMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_issuanceDateMeta);
     }
     if (data.containsKey('notes')) {
       context.handle(
-          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
     }
     if (data.containsKey('received_at')) {
       context.handle(
-          _receivedAtMeta,
-          receivedAt.isAcceptableOrUnknown(
-              data['received_at']!, _receivedAtMeta));
+        _receivedAtMeta,
+        receivedAt.isAcceptableOrUnknown(data['received_at']!, _receivedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_receivedAtMeta);
     }
@@ -117,20 +169,34 @@ class $ReceivedRCardsTable extends ReceivedRCards
   RCardRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return RCardRow(
-      subjectDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}subject_did'])!,
-      vcBlob: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}vc_blob'])!,
-      issuerDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}issuer_did'])!,
-      version: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}version'])!,
+      subjectDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subject_did'],
+      )!,
+      vcBlob: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vc_blob'],
+      )!,
+      issuerDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuer_did'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
       issuanceDate: attachedDatabase.typeMapping.read(
-          DriftSqlType.dateTime, data['${effectivePrefix}issuance_date'])!,
-      notes: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}notes']),
-      receivedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}received_at'])!,
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}issuance_date'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      receivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}received_at'],
+      )!,
     );
   }
 
@@ -163,14 +229,15 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
 
   /// UTC timestamp recording when the R-Card was first received locally.
   final DateTime receivedAt;
-  const RCardRow(
-      {required this.subjectDid,
-      required this.vcBlob,
-      required this.issuerDid,
-      required this.version,
-      required this.issuanceDate,
-      this.notes,
-      required this.receivedAt});
+  const RCardRow({
+    required this.subjectDid,
+    required this.vcBlob,
+    required this.issuerDid,
+    required this.version,
+    required this.issuanceDate,
+    this.notes,
+    required this.receivedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -193,14 +260,17 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
       issuerDid: Value(issuerDid),
       version: Value(version),
       issuanceDate: Value(issuanceDate),
-      notes:
-          notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
       receivedAt: Value(receivedAt),
     );
   }
 
-  factory RCardRow.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory RCardRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return RCardRow(
       subjectDid: serializer.fromJson<String>(json['subjectDid']),
@@ -226,27 +296,28 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
     };
   }
 
-  RCardRow copyWith(
-          {String? subjectDid,
-          String? vcBlob,
-          String? issuerDid,
-          int? version,
-          DateTime? issuanceDate,
-          Value<String?> notes = const Value.absent(),
-          DateTime? receivedAt}) =>
-      RCardRow(
-        subjectDid: subjectDid ?? this.subjectDid,
-        vcBlob: vcBlob ?? this.vcBlob,
-        issuerDid: issuerDid ?? this.issuerDid,
-        version: version ?? this.version,
-        issuanceDate: issuanceDate ?? this.issuanceDate,
-        notes: notes.present ? notes.value : this.notes,
-        receivedAt: receivedAt ?? this.receivedAt,
-      );
+  RCardRow copyWith({
+    String? subjectDid,
+    String? vcBlob,
+    String? issuerDid,
+    int? version,
+    DateTime? issuanceDate,
+    Value<String?> notes = const Value.absent(),
+    DateTime? receivedAt,
+  }) => RCardRow(
+    subjectDid: subjectDid ?? this.subjectDid,
+    vcBlob: vcBlob ?? this.vcBlob,
+    issuerDid: issuerDid ?? this.issuerDid,
+    version: version ?? this.version,
+    issuanceDate: issuanceDate ?? this.issuanceDate,
+    notes: notes.present ? notes.value : this.notes,
+    receivedAt: receivedAt ?? this.receivedAt,
+  );
   RCardRow copyWithCompanion(ReceivedRCardsCompanion data) {
     return RCardRow(
-      subjectDid:
-          data.subjectDid.present ? data.subjectDid.value : this.subjectDid,
+      subjectDid: data.subjectDid.present
+          ? data.subjectDid.value
+          : this.subjectDid,
       vcBlob: data.vcBlob.present ? data.vcBlob.value : this.vcBlob,
       issuerDid: data.issuerDid.present ? data.issuerDid.value : this.issuerDid,
       version: data.version.present ? data.version.value : this.version,
@@ -254,8 +325,9 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
           ? data.issuanceDate.value
           : this.issuanceDate,
       notes: data.notes.present ? data.notes.value : this.notes,
-      receivedAt:
-          data.receivedAt.present ? data.receivedAt.value : this.receivedAt,
+      receivedAt: data.receivedAt.present
+          ? data.receivedAt.value
+          : this.receivedAt,
     );
   }
 
@@ -275,7 +347,14 @@ class RCardRow extends DataClass implements Insertable<RCardRow> {
 
   @override
   int get hashCode => Object.hash(
-      subjectDid, vcBlob, issuerDid, version, issuanceDate, notes, receivedAt);
+    subjectDid,
+    vcBlob,
+    issuerDid,
+    version,
+    issuanceDate,
+    notes,
+    receivedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -317,11 +396,11 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
     this.notes = const Value.absent(),
     required DateTime receivedAt,
     this.rowid = const Value.absent(),
-  })  : subjectDid = Value(subjectDid),
-        vcBlob = Value(vcBlob),
-        issuerDid = Value(issuerDid),
-        issuanceDate = Value(issuanceDate),
-        receivedAt = Value(receivedAt);
+  }) : subjectDid = Value(subjectDid),
+       vcBlob = Value(vcBlob),
+       issuerDid = Value(issuerDid),
+       issuanceDate = Value(issuanceDate),
+       receivedAt = Value(receivedAt);
   static Insertable<RCardRow> custom({
     Expression<String>? subjectDid,
     Expression<String>? vcBlob,
@@ -344,15 +423,16 @@ class ReceivedRCardsCompanion extends UpdateCompanion<RCardRow> {
     });
   }
 
-  ReceivedRCardsCompanion copyWith(
-      {Value<String>? subjectDid,
-      Value<String>? vcBlob,
-      Value<String>? issuerDid,
-      Value<int>? version,
-      Value<DateTime>? issuanceDate,
-      Value<String?>? notes,
-      Value<DateTime>? receivedAt,
-      Value<int>? rowid}) {
+  ReceivedRCardsCompanion copyWith({
+    Value<String>? subjectDid,
+    Value<String>? vcBlob,
+    Value<String>? issuerDid,
+    Value<int>? version,
+    Value<DateTime>? issuanceDate,
+    Value<String?>? notes,
+    Value<DateTime>? receivedAt,
+    Value<int>? rowid,
+  }) {
     return ReceivedRCardsCompanion(
       subjectDid: subjectDid ?? this.subjectDid,
       vcBlob: vcBlob ?? this.vcBlob,
@@ -425,28 +505,28 @@ abstract class _$RCardDatabase extends GeneratedDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$ReceivedRCardsTableCreateCompanionBuilder = ReceivedRCardsCompanion
-    Function({
-  required String subjectDid,
-  required String vcBlob,
-  required String issuerDid,
-  Value<int> version,
-  required DateTime issuanceDate,
-  Value<String?> notes,
-  required DateTime receivedAt,
-  Value<int> rowid,
-});
-typedef $$ReceivedRCardsTableUpdateCompanionBuilder = ReceivedRCardsCompanion
-    Function({
-  Value<String> subjectDid,
-  Value<String> vcBlob,
-  Value<String> issuerDid,
-  Value<int> version,
-  Value<DateTime> issuanceDate,
-  Value<String?> notes,
-  Value<DateTime> receivedAt,
-  Value<int> rowid,
-});
+typedef $$ReceivedRCardsTableCreateCompanionBuilder =
+    ReceivedRCardsCompanion Function({
+      required String subjectDid,
+      required String vcBlob,
+      required String issuerDid,
+      Value<int> version,
+      required DateTime issuanceDate,
+      Value<String?> notes,
+      required DateTime receivedAt,
+      Value<int> rowid,
+    });
+typedef $$ReceivedRCardsTableUpdateCompanionBuilder =
+    ReceivedRCardsCompanion Function({
+      Value<String> subjectDid,
+      Value<String> vcBlob,
+      Value<String> issuerDid,
+      Value<int> version,
+      Value<DateTime> issuanceDate,
+      Value<String?> notes,
+      Value<DateTime> receivedAt,
+      Value<int> rowid,
+    });
 
 class $$ReceivedRCardsTableFilterComposer
     extends Composer<_$RCardDatabase, $ReceivedRCardsTable> {
@@ -458,25 +538,39 @@ class $$ReceivedRCardsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get subjectDid => $composableBuilder(
-      column: $table.subjectDid, builder: (column) => ColumnFilters(column));
+    column: $table.subjectDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get vcBlob => $composableBuilder(
-      column: $table.vcBlob, builder: (column) => ColumnFilters(column));
+    column: $table.vcBlob,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get issuerDid => $composableBuilder(
-      column: $table.issuerDid, builder: (column) => ColumnFilters(column));
+    column: $table.issuerDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<int> get version => $composableBuilder(
-      column: $table.version, builder: (column) => ColumnFilters(column));
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get issuanceDate => $composableBuilder(
-      column: $table.issuanceDate, builder: (column) => ColumnFilters(column));
+    column: $table.issuanceDate,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get notes => $composableBuilder(
-      column: $table.notes, builder: (column) => ColumnFilters(column));
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get receivedAt => $composableBuilder(
-      column: $table.receivedAt, builder: (column) => ColumnFilters(column));
+    column: $table.receivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$ReceivedRCardsTableOrderingComposer
@@ -489,26 +583,39 @@ class $$ReceivedRCardsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get subjectDid => $composableBuilder(
-      column: $table.subjectDid, builder: (column) => ColumnOrderings(column));
+    column: $table.subjectDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get vcBlob => $composableBuilder(
-      column: $table.vcBlob, builder: (column) => ColumnOrderings(column));
+    column: $table.vcBlob,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get issuerDid => $composableBuilder(
-      column: $table.issuerDid, builder: (column) => ColumnOrderings(column));
+    column: $table.issuerDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get version => $composableBuilder(
-      column: $table.version, builder: (column) => ColumnOrderings(column));
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get issuanceDate => $composableBuilder(
-      column: $table.issuanceDate,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.issuanceDate,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get notes => $composableBuilder(
-      column: $table.notes, builder: (column) => ColumnOrderings(column));
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get receivedAt => $composableBuilder(
-      column: $table.receivedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.receivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ReceivedRCardsTableAnnotationComposer
@@ -521,7 +628,9 @@ class $$ReceivedRCardsTableAnnotationComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   GeneratedColumn<String> get subjectDid => $composableBuilder(
-      column: $table.subjectDid, builder: (column) => column);
+    column: $table.subjectDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get vcBlob =>
       $composableBuilder(column: $table.vcBlob, builder: (column) => column);
@@ -533,30 +642,42 @@ class $$ReceivedRCardsTableAnnotationComposer
       $composableBuilder(column: $table.version, builder: (column) => column);
 
   GeneratedColumn<DateTime> get issuanceDate => $composableBuilder(
-      column: $table.issuanceDate, builder: (column) => column);
+    column: $table.issuanceDate,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
   GeneratedColumn<DateTime> get receivedAt => $composableBuilder(
-      column: $table.receivedAt, builder: (column) => column);
+    column: $table.receivedAt,
+    builder: (column) => column,
+  );
 }
 
-class $$ReceivedRCardsTableTableManager extends RootTableManager<
-    _$RCardDatabase,
-    $ReceivedRCardsTable,
-    RCardRow,
-    $$ReceivedRCardsTableFilterComposer,
-    $$ReceivedRCardsTableOrderingComposer,
-    $$ReceivedRCardsTableAnnotationComposer,
-    $$ReceivedRCardsTableCreateCompanionBuilder,
-    $$ReceivedRCardsTableUpdateCompanionBuilder,
-    (RCardRow, BaseReferences<_$RCardDatabase, $ReceivedRCardsTable, RCardRow>),
-    RCardRow,
-    PrefetchHooks Function()> {
+class $$ReceivedRCardsTableTableManager
+    extends
+        RootTableManager<
+          _$RCardDatabase,
+          $ReceivedRCardsTable,
+          RCardRow,
+          $$ReceivedRCardsTableFilterComposer,
+          $$ReceivedRCardsTableOrderingComposer,
+          $$ReceivedRCardsTableAnnotationComposer,
+          $$ReceivedRCardsTableCreateCompanionBuilder,
+          $$ReceivedRCardsTableUpdateCompanionBuilder,
+          (
+            RCardRow,
+            BaseReferences<_$RCardDatabase, $ReceivedRCardsTable, RCardRow>,
+          ),
+          RCardRow,
+          PrefetchHooks Function()
+        > {
   $$ReceivedRCardsTableTableManager(
-      _$RCardDatabase db, $ReceivedRCardsTable table)
-      : super(TableManagerState(
+    _$RCardDatabase db,
+    $ReceivedRCardsTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -565,65 +686,71 @@ class $$ReceivedRCardsTableTableManager extends RootTableManager<
               $$ReceivedRCardsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$ReceivedRCardsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> subjectDid = const Value.absent(),
-            Value<String> vcBlob = const Value.absent(),
-            Value<String> issuerDid = const Value.absent(),
-            Value<int> version = const Value.absent(),
-            Value<DateTime> issuanceDate = const Value.absent(),
-            Value<String?> notes = const Value.absent(),
-            Value<DateTime> receivedAt = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ReceivedRCardsCompanion(
-            subjectDid: subjectDid,
-            vcBlob: vcBlob,
-            issuerDid: issuerDid,
-            version: version,
-            issuanceDate: issuanceDate,
-            notes: notes,
-            receivedAt: receivedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String subjectDid,
-            required String vcBlob,
-            required String issuerDid,
-            Value<int> version = const Value.absent(),
-            required DateTime issuanceDate,
-            Value<String?> notes = const Value.absent(),
-            required DateTime receivedAt,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ReceivedRCardsCompanion.insert(
-            subjectDid: subjectDid,
-            vcBlob: vcBlob,
-            issuerDid: issuerDid,
-            version: version,
-            issuanceDate: issuanceDate,
-            notes: notes,
-            receivedAt: receivedAt,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> subjectDid = const Value.absent(),
+                Value<String> vcBlob = const Value.absent(),
+                Value<String> issuerDid = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<DateTime> issuanceDate = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> receivedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ReceivedRCardsCompanion(
+                subjectDid: subjectDid,
+                vcBlob: vcBlob,
+                issuerDid: issuerDid,
+                version: version,
+                issuanceDate: issuanceDate,
+                notes: notes,
+                receivedAt: receivedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String subjectDid,
+                required String vcBlob,
+                required String issuerDid,
+                Value<int> version = const Value.absent(),
+                required DateTime issuanceDate,
+                Value<String?> notes = const Value.absent(),
+                required DateTime receivedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ReceivedRCardsCompanion.insert(
+                subjectDid: subjectDid,
+                vcBlob: vcBlob,
+                issuerDid: issuerDid,
+                version: version,
+                issuanceDate: issuanceDate,
+                notes: notes,
+                receivedAt: receivedAt,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$ReceivedRCardsTableProcessedTableManager = ProcessedTableManager<
-    _$RCardDatabase,
-    $ReceivedRCardsTable,
-    RCardRow,
-    $$ReceivedRCardsTableFilterComposer,
-    $$ReceivedRCardsTableOrderingComposer,
-    $$ReceivedRCardsTableAnnotationComposer,
-    $$ReceivedRCardsTableCreateCompanionBuilder,
-    $$ReceivedRCardsTableUpdateCompanionBuilder,
-    (RCardRow, BaseReferences<_$RCardDatabase, $ReceivedRCardsTable, RCardRow>),
-    RCardRow,
-    PrefetchHooks Function()>;
+typedef $$ReceivedRCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$RCardDatabase,
+      $ReceivedRCardsTable,
+      RCardRow,
+      $$ReceivedRCardsTableFilterComposer,
+      $$ReceivedRCardsTableOrderingComposer,
+      $$ReceivedRCardsTableAnnotationComposer,
+      $$ReceivedRCardsTableCreateCompanionBuilder,
+      $$ReceivedRCardsTableUpdateCompanionBuilder,
+      (
+        RCardRow,
+        BaseReferences<_$RCardDatabase, $ReceivedRCardsTable, RCardRow>,
+      ),
+      RCardRow,
+      PrefetchHooks Function()
+    >;
 
 class $RCardDatabaseManager {
   final _$RCardDatabase _db;

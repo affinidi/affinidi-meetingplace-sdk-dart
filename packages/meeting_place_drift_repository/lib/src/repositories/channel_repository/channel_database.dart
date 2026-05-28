@@ -38,14 +38,14 @@ class ChannelDatabase extends _$ChannelDatabase {
     bool logStatements = false,
     bool inMemory = false,
   }) : super(
-          openConnection(
-            databaseName: databaseName,
-            passphrase: passphrase,
-            directory: directory,
-            logStatements: logStatements,
-            inMemory: inMemory,
-          ),
-        );
+         openConnection(
+           databaseName: databaseName,
+           passphrase: passphrase,
+           directory: directory,
+           logStatements: logStatements,
+           inMemory: inMemory,
+         ),
+       );
 
   /// Opens a [ChannelDatabase] from an existing [connection].
   ///
@@ -61,16 +61,16 @@ class ChannelDatabase extends _$ChannelDatabase {
   /// Migration strategy to handle database version upgrades.
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-        onUpgrade: (migrator, from, to) async {
-          if (from < 2) {
-            await migrator.addColumn(channels, channels.isConnectionInitiator);
-            await customStatement(
-              'DROP TABLE IF EXISTS channel_contact_cards_temp',
-            );
-            await customStatement('''
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(channels, channels.isConnectionInitiator);
+        await customStatement(
+          'DROP TABLE IF EXISTS channel_contact_cards_temp',
+        );
+        await customStatement('''
           CREATE TABLE channel_contact_cards_temp (
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             channel_id TEXT REFERENCES channels(id) ON DELETE CASCADE NOT NULL,
@@ -81,14 +81,14 @@ class ChannelDatabase extends _$ChannelDatabase {
             UNIQUE(channel_id, card_type)
           )
         ''');
-            // Note: the JSON keys produced here ('email', 'mobile', 'color') do
-            // not match the nested paths expected by ContactCardFieldsKeys
-            // extensions (['email','type','work'], ['tel','type','cell'],
-            // ['x-meetingplace-identity-card-color']). Extension getters will
-            // therefore resolve to empty string for rows migrated from v1. This
-            // is a known limitation of the original v1→v2 migration that cannot
-            // be corrected without a further schema migration.
-            await customStatement('''
+        // Note: the JSON keys produced here ('email', 'mobile', 'color') do
+        // not match the nested paths expected by ContactCardFieldsKeys
+        // extensions (['email','type','work'], ['tel','type','cell'],
+        // ['x-meetingplace-identity-card-color']). Extension getters will
+        // therefore resolve to empty string for rows migrated from v1. This
+        // is a known limitation of the original v1→v2 migration that cannot
+        // be corrected without a further schema migration.
+        await customStatement('''
           INSERT INTO channel_contact_cards_temp
             (id, channel_id, did, type, contact_info_json, card_type)
           SELECT
@@ -106,20 +106,20 @@ class ChannelDatabase extends _$ChannelDatabase {
             card_type
           FROM channel_contact_cards
         ''');
-            await customStatement('DROP TABLE channel_contact_cards');
-            await customStatement(
-              'ALTER TABLE channel_contact_cards_temp RENAME TO '
-              'channel_contact_cards',
-            );
-          }
-          if (from < 3 && to >= 3) {
-            await migrator.addColumn(
-              channelContactCards,
-              channelContactCards.profilePic,
-            );
-          }
-        },
-      );
+        await customStatement('DROP TABLE channel_contact_cards');
+        await customStatement(
+          'ALTER TABLE channel_contact_cards_temp RENAME TO '
+          'channel_contact_cards',
+        );
+      }
+      if (from < 3 && to >= 3) {
+        await migrator.addColumn(
+          channelContactCards,
+          channelContactCards.profilePic,
+        );
+      }
+    },
+  );
 }
 
 /// Table representing chat channels.
@@ -190,8 +190,8 @@ class ChannelContactCards extends Table {
 
   /// ID of the associated channel.
   TextColumn get channelId => text().customConstraint(
-        'REFERENCES channels(id) ON DELETE CASCADE NOT NULL',
-      )();
+    'REFERENCES channels(id) ON DELETE CASCADE NOT NULL',
+  )();
 
   /// DID of the contact.
   TextColumn get did => text()();
@@ -211,8 +211,8 @@ class ChannelContactCards extends Table {
   /// Unique keys for the contact cards table.
   @override
   List<Set<Column>> get uniqueKeys => [
-        {channelId, cardType},
-      ];
+    {channelId, cardType},
+  ];
 }
 
 /// Enumeration representing the type of ContactCard.

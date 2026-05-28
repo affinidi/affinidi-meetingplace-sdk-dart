@@ -9,62 +9,89 @@ class Vrcs extends Table with TableInfo {
   final String? _alias;
   Vrcs(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   late final GeneratedColumn<String> vcBlob = GeneratedColumn<String>(
-      'vc_blob', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'vc_blob',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   late final GeneratedColumn<String> referenceId = GeneratedColumn<String>(
-      'reference_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'reference_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   late final GeneratedColumn<String> holderDid = GeneratedColumn<String>(
-      'holder_did', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'holder_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   late final GeneratedColumn<String> issuerDid = GeneratedColumn<String>(
-      'issuer_did', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'issuer_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   late final GeneratedColumn<String> issuedAt = GeneratedColumn<String>(
-      'issued_at', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+    'issued_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
   late final GeneratedColumn<String> verifiedAt = GeneratedColumn<String>(
-      'verified_at', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: 'NULL');
+    'verified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
   late final GeneratedColumn<String> receivedAt = GeneratedColumn<String>(
-      'received_at', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: 'NULL');
+    'received_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
   late final GeneratedColumn<String> credentialFormat = GeneratedColumn<String>(
-      'credential_format', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: 'NULL');
+    'credential_format',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        vcBlob,
-        referenceId,
-        holderDid,
-        issuerDid,
-        issuedAt,
-        verifiedAt,
-        receivedAt,
-        credentialFormat
-      ];
+    id,
+    vcBlob,
+    referenceId,
+    holderDid,
+    issuerDid,
+    issuedAt,
+    verifiedAt,
+    receivedAt,
+    credentialFormat,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override

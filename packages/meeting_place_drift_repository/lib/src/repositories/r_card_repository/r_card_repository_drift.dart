@@ -13,7 +13,7 @@ import 'r_card_database.dart' as db;
 class RCardRepositoryDrift implements model.RCardRepository {
   /// Creates a new repository with the given [database].
   RCardRepositoryDrift({required db.RCardDatabase database})
-      : _database = database;
+    : _database = database;
 
   final db.RCardDatabase _database;
 
@@ -25,9 +25,9 @@ class RCardRepositoryDrift implements model.RCardRepository {
   @override
   Future<void> upsert(model.RCard rCard) async {
     await _database.transaction(() async {
-      final existing = await (_database.select(_database.receivedRCards)
-            ..where((t) => t.subjectDid.equals(rCard.subjectDid)))
-          .getSingleOrNull();
+      final existing = await (_database.select(
+        _database.receivedRCards,
+      )..where((t) => t.subjectDid.equals(rCard.subjectDid))).getSingleOrNull();
 
       if (existing != null && existing.vcBlob == rCard.vcBlob) {
         // Content unchanged — skip write.
@@ -36,7 +36,9 @@ class RCardRepositoryDrift implements model.RCardRepository {
 
       final nextVersion = existing == null ? 1 : existing.version + 1;
 
-      await _database.into(_database.receivedRCards).insertOnConflictUpdate(
+      await _database
+          .into(_database.receivedRCards)
+          .insertOnConflictUpdate(
             db.ReceivedRCardsCompanion(
               subjectDid: Value(rCard.subjectDid),
               vcBlob: Value(rCard.vcBlob),
@@ -64,18 +66,18 @@ class RCardRepositoryDrift implements model.RCardRepository {
   /// [model.RCard.receivedAt] descending.
   @override
   Future<List<model.RCard>> listAll() async {
-    final rows = await (_database.select(_database.receivedRCards)
-          ..orderBy([(t) => OrderingTerm.desc(t.receivedAt)]))
-        .get();
+    final rows = await (_database.select(
+      _database.receivedRCards,
+    )..orderBy([(t) => OrderingTerm.desc(t.receivedAt)])).get();
     return rows.map(_mapRow).toList();
   }
 
   /// Returns the R-Card with the matching [subjectDid], or `null`.
   @override
   Future<model.RCard?> getBySubjectDid(String subjectDid) async {
-    final row = await (_database.select(_database.receivedRCards)
-          ..where((t) => t.subjectDid.equals(subjectDid)))
-        .getSingleOrNull();
+    final row = await (_database.select(
+      _database.receivedRCards,
+    )..where((t) => t.subjectDid.equals(subjectDid))).getSingleOrNull();
     return row == null ? null : _mapRow(row);
   }
 
@@ -90,9 +92,9 @@ class RCardRepositoryDrift implements model.RCardRepository {
   /// Removes the R-Card identified by [subjectDid].
   @override
   Future<void> deleteBySubjectDid(String subjectDid) async {
-    await (_database.delete(_database.receivedRCards)
-          ..where((t) => t.subjectDid.equals(subjectDid)))
-        .go();
+    await (_database.delete(
+      _database.receivedRCards,
+    )..where((t) => t.subjectDid.equals(subjectDid))).go();
   }
 
   // ---------------------------------------------------------------------------

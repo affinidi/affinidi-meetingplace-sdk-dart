@@ -63,7 +63,8 @@ void main() {
       () async {
         final schema = await verifier.schemaAt(1);
 
-        // Seed a channel row and a contact card with the old individual columns.
+        // Seed a channel row and a contact card with the old individual
+        // columns.
         schema.rawDatabase.execute('''
         INSERT INTO channels VALUES (
           'ch-1',

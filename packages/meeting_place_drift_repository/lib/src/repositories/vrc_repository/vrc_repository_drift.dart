@@ -14,14 +14,14 @@ class VrcRepositoryDrift implements model.VrcRepository {
   @override
   Future<void> upsert(model.Vrc vrc) async {
     await _database.transaction(() async {
-      final existing = await (_database.select(_database.vrcs)
-            ..where((t) => t.id.equals(vrc.id)))
-          .getSingleOrNull();
+      final existing = await (_database.select(
+        _database.vrcs,
+      )..where((t) => t.id.equals(vrc.id))).getSingleOrNull();
 
       if (existing != null && existing.vcBlob == vrc.vcBlob) {
-        await (_database.update(_database.vrcs)
-              ..where((t) => t.id.equals(vrc.id)))
-            .write(
+        await (_database.update(
+          _database.vrcs,
+        )..where((t) => t.id.equals(vrc.id))).write(
           db.VrcsCompanion(
             referenceId: Value(vrc.referenceId),
             holderDid: Value(vrc.holderDid),
@@ -35,7 +35,9 @@ class VrcRepositoryDrift implements model.VrcRepository {
         return;
       }
 
-      await _database.into(_database.vrcs).insertOnConflictUpdate(
+      await _database
+          .into(_database.vrcs)
+          .insertOnConflictUpdate(
             db.VrcsCompanion(
               id: Value(vrc.id),
               vcBlob: Value(vrc.vcBlob),
@@ -61,26 +63,27 @@ class VrcRepositoryDrift implements model.VrcRepository {
 
   @override
   Future<List<model.Vrc>> listAll() async {
-    final rows = await (_database.select(_database.vrcs)
-          ..orderBy([(t) => OrderingTerm.desc(t.issuedAt)]))
-        .get();
+    final rows = await (_database.select(
+      _database.vrcs,
+    )..orderBy([(t) => OrderingTerm.desc(t.issuedAt)])).get();
     return rows.map(_mapRow).toList();
   }
 
   @override
   Future<model.Vrc?> getById(String id) async {
-    final row = await (_database.select(_database.vrcs)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+    final row = await (_database.select(
+      _database.vrcs,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     return row == null ? null : _mapRow(row);
   }
 
   @override
   Future<List<model.Vrc>> listByHolderDid(String holderDid) async {
-    final rows = await (_database.select(_database.vrcs)
-          ..where((t) => t.holderDid.equals(holderDid))
-          ..orderBy([(t) => OrderingTerm.desc(t.issuedAt)]))
-        .get();
+    final rows =
+        await (_database.select(_database.vrcs)
+              ..where((t) => t.holderDid.equals(holderDid))
+              ..orderBy([(t) => OrderingTerm.desc(t.issuedAt)]))
+            .get();
     return rows.map(_mapRow).toList();
   }
 
@@ -96,8 +99,9 @@ class VrcRepositoryDrift implements model.VrcRepository {
 
   @override
   Future<void> deleteById(String id) async {
-    await (_database.delete(_database.vrcs)..where((t) => t.id.equals(id)))
-        .go();
+    await (_database.delete(
+      _database.vrcs,
+    )..where((t) => t.id.equals(id))).go();
   }
 
   model.Vrc _mapRow(db.VrcRow row) {

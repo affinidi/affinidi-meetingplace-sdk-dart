@@ -31,14 +31,14 @@ class RCardDatabase extends _$RCardDatabase {
     bool logStatements = false,
     bool inMemory = false,
   }) : super(
-          openConnection(
-            databaseName: databaseName,
-            passphrase: passphrase,
-            directory: directory,
-            logStatements: logStatements,
-            inMemory: inMemory,
-          ),
-        );
+         openConnection(
+           databaseName: databaseName,
+           passphrase: passphrase,
+           directory: directory,
+           logStatements: logStatements,
+           inMemory: inMemory,
+         ),
+       );
 
   /// Opens a [RCardDatabase] from an existing [connection].
   ///

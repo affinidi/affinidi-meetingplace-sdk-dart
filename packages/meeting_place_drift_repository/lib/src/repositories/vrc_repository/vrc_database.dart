@@ -18,14 +18,14 @@ class VrcDatabase extends _$VrcDatabase {
     bool logStatements = false,
     bool inMemory = false,
   }) : super(
-          openConnection(
-            databaseName: databaseName,
-            passphrase: passphrase,
-            directory: directory,
-            logStatements: logStatements,
-            inMemory: inMemory,
-          ),
-        );
+         openConnection(
+           databaseName: databaseName,
+           passphrase: passphrase,
+           directory: directory,
+           logStatements: logStatements,
+           inMemory: inMemory,
+         ),
+       );
 
   /// Opens a [VrcDatabase] from an existing [connection].
   @visibleForTesting

@@ -154,10 +154,12 @@ void main() {
       final db = ConnectionOfferDatabase.forTesting(schema.newConnection());
       await verifier.migrateAndValidate(db, 3);
 
-      final rows = await db.customSelect(
-        'SELECT score FROM connection_offers WHERE id = ?',
-        variables: [const Variable('offer-v2')],
-      ).get();
+      final rows = await db
+          .customSelect(
+            'SELECT score FROM connection_offers WHERE id = ?',
+            variables: [const Variable('offer-v2')],
+          )
+          .get();
       expect(rows, hasLength(1));
       expect(rows.first.read<int?>('score'), isNull);
 

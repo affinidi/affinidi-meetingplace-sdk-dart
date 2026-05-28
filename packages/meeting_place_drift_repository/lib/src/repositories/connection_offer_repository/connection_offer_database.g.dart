@@ -257,10 +257,16 @@ class $ConnectionOffersTable extends ConnectionOffers
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
   @override
   late final GeneratedColumn<int> score = GeneratedColumn<int>(
-      'score', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+    'score',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
   List<GeneratedColumn> get $columns => [
     id,
     offerName,
@@ -283,9 +289,9 @@ class $ConnectionOffersTable extends ConnectionOffers
     otherPartyPermanentChannelDid,
     notificationToken,
     otherPartyNotificationToken,
-        score
-      ];
->>>>>>> 557fe96 (fix: add VRC exchange flow on top of R-Card routing (#175))
+    externalRef,
+    score,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -467,7 +473,9 @@ class $ConnectionOffersTable extends ConnectionOffers
     }
     if (data.containsKey('score')) {
       context.handle(
-          _scoreMeta, score.isAcceptableOrUnknown(data['score']!, _scoreMeta));
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
     }
     return context;
   }
@@ -570,6 +578,10 @@ class $ConnectionOffersTable extends ConnectionOffers
         DriftSqlType.string,
         data['${effectivePrefix}external_ref'],
       ),
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      ),
     );
   }
 
@@ -653,30 +665,31 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
 
   /// VRC score of the offer owner.
   final int? score;
-  const ConnectionOffer(
-      {required this.id,
-      required this.offerName,
-      required this.offerLink,
-      this.offerDescription,
-      required this.oobInvitationMessage,
-      required this.mnemonic,
-      this.expiresAt,
-      required this.createdAt,
-      required this.publishOfferDid,
-      required this.type,
-      required this.status,
-      this.maximumUsage,
-      required this.ownedByMe,
-      required this.mediatorDid,
-      this.aliasId,
-      this.outboundMessageId,
-      this.acceptOfferDid,
-      this.permanentChannelDid,
-      this.otherPartyPermanentChannelDid,
-      this.notificationToken,
-      this.otherPartyNotificationToken,
-      this.externalRef,
-      this.score});
+  const ConnectionOffer({
+    required this.id,
+    required this.offerName,
+    required this.offerLink,
+    this.offerDescription,
+    required this.oobInvitationMessage,
+    required this.mnemonic,
+    this.expiresAt,
+    required this.createdAt,
+    required this.publishOfferDid,
+    required this.type,
+    required this.status,
+    this.maximumUsage,
+    required this.ownedByMe,
+    required this.mediatorDid,
+    this.aliasId,
+    this.outboundMessageId,
+    this.acceptOfferDid,
+    this.permanentChannelDid,
+    this.otherPartyPermanentChannelDid,
+    this.notificationToken,
+    this.otherPartyNotificationToken,
+    this.externalRef,
+    this.score,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -790,8 +803,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       externalRef: externalRef == null && nullToAbsent
           ? const Value.absent()
           : Value(externalRef),
-      score:
-          score == null && nullToAbsent ? const Value.absent() : Value(score),
+      score: score == null && nullToAbsent
+          ? const Value.absent()
+          : Value(score),
     );
   }
 
@@ -872,69 +886,69 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     };
   }
 
-  ConnectionOffer copyWith(
-          {String? id,
-          String? offerName,
-          String? offerLink,
-          Value<String?> offerDescription = const Value.absent(),
-          String? oobInvitationMessage,
-          String? mnemonic,
-          Value<DateTime?> expiresAt = const Value.absent(),
-          DateTime? createdAt,
-          String? publishOfferDid,
-          ConnectionOfferType? type,
-          ConnectionOfferStatus? status,
-          Value<int?> maximumUsage = const Value.absent(),
-          bool? ownedByMe,
-          String? mediatorDid,
-          Value<String?> aliasId = const Value.absent(),
-          Value<String?> outboundMessageId = const Value.absent(),
-          Value<String?> acceptOfferDid = const Value.absent(),
-          Value<String?> permanentChannelDid = const Value.absent(),
-          Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-          Value<String?> notificationToken = const Value.absent(),
-          Value<String?> otherPartyNotificationToken = const Value.absent(),
-          Value<String?> externalRef = const Value.absent(),
-          Value<int?> score = const Value.absent()}) =>
-      ConnectionOffer(
-        id: id ?? this.id,
-        offerName: offerName ?? this.offerName,
-        offerLink: offerLink ?? this.offerLink,
-        offerDescription: offerDescription.present
-            ? offerDescription.value
-            : this.offerDescription,
-        oobInvitationMessage: oobInvitationMessage ?? this.oobInvitationMessage,
-        mnemonic: mnemonic ?? this.mnemonic,
-        expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
-        createdAt: createdAt ?? this.createdAt,
-        publishOfferDid: publishOfferDid ?? this.publishOfferDid,
-        type: type ?? this.type,
-        status: status ?? this.status,
-        maximumUsage:
-            maximumUsage.present ? maximumUsage.value : this.maximumUsage,
-        ownedByMe: ownedByMe ?? this.ownedByMe,
-        mediatorDid: mediatorDid ?? this.mediatorDid,
-        aliasId: aliasId.present ? aliasId.value : this.aliasId,
-        outboundMessageId: outboundMessageId.present
-            ? outboundMessageId.value
-            : this.outboundMessageId,
-        acceptOfferDid:
-            acceptOfferDid.present ? acceptOfferDid.value : this.acceptOfferDid,
-        permanentChannelDid: permanentChannelDid.present
-            ? permanentChannelDid.value
-            : this.permanentChannelDid,
-        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
-            ? otherPartyPermanentChannelDid.value
-            : this.otherPartyPermanentChannelDid,
-        notificationToken: notificationToken.present
-            ? notificationToken.value
-            : this.notificationToken,
-        otherPartyNotificationToken: otherPartyNotificationToken.present
-            ? otherPartyNotificationToken.value
-            : this.otherPartyNotificationToken,
-        externalRef: externalRef.present ? externalRef.value : this.externalRef,
-        score: score.present ? score.value : this.score,
-      );
+  ConnectionOffer copyWith({
+    String? id,
+    String? offerName,
+    String? offerLink,
+    Value<String?> offerDescription = const Value.absent(),
+    String? oobInvitationMessage,
+    String? mnemonic,
+    Value<DateTime?> expiresAt = const Value.absent(),
+    DateTime? createdAt,
+    String? publishOfferDid,
+    ConnectionOfferType? type,
+    ConnectionOfferStatus? status,
+    Value<int?> maximumUsage = const Value.absent(),
+    bool? ownedByMe,
+    String? mediatorDid,
+    Value<String?> aliasId = const Value.absent(),
+    Value<String?> outboundMessageId = const Value.absent(),
+    Value<String?> acceptOfferDid = const Value.absent(),
+    Value<String?> permanentChannelDid = const Value.absent(),
+    Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
+    Value<String?> notificationToken = const Value.absent(),
+    Value<String?> otherPartyNotificationToken = const Value.absent(),
+    Value<String?> externalRef = const Value.absent(),
+    Value<int?> score = const Value.absent(),
+  }) => ConnectionOffer(
+    id: id ?? this.id,
+    offerName: offerName ?? this.offerName,
+    offerLink: offerLink ?? this.offerLink,
+    offerDescription: offerDescription.present
+        ? offerDescription.value
+        : this.offerDescription,
+    oobInvitationMessage: oobInvitationMessage ?? this.oobInvitationMessage,
+    mnemonic: mnemonic ?? this.mnemonic,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    createdAt: createdAt ?? this.createdAt,
+    publishOfferDid: publishOfferDid ?? this.publishOfferDid,
+    type: type ?? this.type,
+    status: status ?? this.status,
+    maximumUsage: maximumUsage.present ? maximumUsage.value : this.maximumUsage,
+    ownedByMe: ownedByMe ?? this.ownedByMe,
+    mediatorDid: mediatorDid ?? this.mediatorDid,
+    aliasId: aliasId.present ? aliasId.value : this.aliasId,
+    outboundMessageId: outboundMessageId.present
+        ? outboundMessageId.value
+        : this.outboundMessageId,
+    acceptOfferDid: acceptOfferDid.present
+        ? acceptOfferDid.value
+        : this.acceptOfferDid,
+    permanentChannelDid: permanentChannelDid.present
+        ? permanentChannelDid.value
+        : this.permanentChannelDid,
+    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
+        ? otherPartyPermanentChannelDid.value
+        : this.otherPartyPermanentChannelDid,
+    notificationToken: notificationToken.present
+        ? notificationToken.value
+        : this.notificationToken,
+    otherPartyNotificationToken: otherPartyNotificationToken.present
+        ? otherPartyNotificationToken.value
+        : this.otherPartyNotificationToken,
+    externalRef: externalRef.present ? externalRef.value : this.externalRef,
+    score: score.present ? score.value : this.score,
+  );
   ConnectionOffer copyWithCompanion(ConnectionOffersCompanion data) {
     return ConnectionOffer(
       id: data.id.present ? data.id.value : this.id,
@@ -980,8 +994,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       otherPartyNotificationToken: data.otherPartyNotificationToken.present
           ? data.otherPartyNotificationToken.value
           : this.otherPartyNotificationToken,
-      externalRef:
-          data.externalRef.present ? data.externalRef.value : this.externalRef,
+      externalRef: data.externalRef.present
+          ? data.externalRef.value
+          : this.externalRef,
       score: data.score.present ? data.score.value : this.score,
     );
   }
@@ -1020,30 +1035,30 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
 
   @override
   int get hashCode => Object.hashAll([
-        id,
-        offerName,
-        offerLink,
-        offerDescription,
-        oobInvitationMessage,
-        mnemonic,
-        expiresAt,
-        createdAt,
-        publishOfferDid,
-        type,
-        status,
-        maximumUsage,
-        ownedByMe,
-        mediatorDid,
-        aliasId,
-        outboundMessageId,
-        acceptOfferDid,
-        permanentChannelDid,
-        otherPartyPermanentChannelDid,
-        notificationToken,
-        otherPartyNotificationToken,
-        externalRef,
-        score
-      ]);
+    id,
+    offerName,
+    offerLink,
+    offerDescription,
+    oobInvitationMessage,
+    mnemonic,
+    expiresAt,
+    createdAt,
+    publishOfferDid,
+    type,
+    status,
+    maximumUsage,
+    ownedByMe,
+    mediatorDid,
+    aliasId,
+    outboundMessageId,
+    acceptOfferDid,
+    permanentChannelDid,
+    otherPartyPermanentChannelDid,
+    notificationToken,
+    otherPartyNotificationToken,
+    externalRef,
+    score,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1218,31 +1233,32 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     });
   }
 
-  ConnectionOffersCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? offerName,
-      Value<String>? offerLink,
-      Value<String?>? offerDescription,
-      Value<String>? oobInvitationMessage,
-      Value<String>? mnemonic,
-      Value<DateTime?>? expiresAt,
-      Value<DateTime>? createdAt,
-      Value<String>? publishOfferDid,
-      Value<ConnectionOfferType>? type,
-      Value<ConnectionOfferStatus>? status,
-      Value<int?>? maximumUsage,
-      Value<bool>? ownedByMe,
-      Value<String>? mediatorDid,
-      Value<String?>? aliasId,
-      Value<String?>? outboundMessageId,
-      Value<String?>? acceptOfferDid,
-      Value<String?>? permanentChannelDid,
-      Value<String?>? otherPartyPermanentChannelDid,
-      Value<String?>? notificationToken,
-      Value<String?>? otherPartyNotificationToken,
-      Value<String?>? externalRef,
-      Value<int?>? score,
-      Value<int>? rowid}) {
+  ConnectionOffersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? offerName,
+    Value<String>? offerLink,
+    Value<String?>? offerDescription,
+    Value<String>? oobInvitationMessage,
+    Value<String>? mnemonic,
+    Value<DateTime?>? expiresAt,
+    Value<DateTime>? createdAt,
+    Value<String>? publishOfferDid,
+    Value<ConnectionOfferType>? type,
+    Value<ConnectionOfferStatus>? status,
+    Value<int?>? maximumUsage,
+    Value<bool>? ownedByMe,
+    Value<String>? mediatorDid,
+    Value<String?>? aliasId,
+    Value<String?>? outboundMessageId,
+    Value<String?>? acceptOfferDid,
+    Value<String?>? permanentChannelDid,
+    Value<String?>? otherPartyPermanentChannelDid,
+    Value<String?>? notificationToken,
+    Value<String?>? otherPartyNotificationToken,
+    Value<String?>? externalRef,
+    Value<int?>? score,
+    Value<int>? rowid,
+  }) {
     return ConnectionOffersCompanion(
       id: id ?? this.id,
       offerName: offerName ?? this.offerName,
@@ -2325,60 +2341,60 @@ abstract class _$ConnectionOfferDatabase extends GeneratedDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$ConnectionOffersTableCreateCompanionBuilder
-    = ConnectionOffersCompanion Function({
-  Value<String> id,
-  required String offerName,
-  required String offerLink,
-  Value<String?> offerDescription,
-  required String oobInvitationMessage,
-  required String mnemonic,
-  Value<DateTime?> expiresAt,
-  required DateTime createdAt,
-  required String publishOfferDid,
-  required ConnectionOfferType type,
-  required ConnectionOfferStatus status,
-  Value<int?> maximumUsage,
-  Value<bool> ownedByMe,
-  required String mediatorDid,
-  Value<String?> aliasId,
-  Value<String?> outboundMessageId,
-  Value<String?> acceptOfferDid,
-  Value<String?> permanentChannelDid,
-  Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> notificationToken,
-  Value<String?> otherPartyNotificationToken,
-  Value<String?> externalRef,
-  Value<int?> score,
-  Value<int> rowid,
-});
-typedef $$ConnectionOffersTableUpdateCompanionBuilder
-    = ConnectionOffersCompanion Function({
-  Value<String> id,
-  Value<String> offerName,
-  Value<String> offerLink,
-  Value<String?> offerDescription,
-  Value<String> oobInvitationMessage,
-  Value<String> mnemonic,
-  Value<DateTime?> expiresAt,
-  Value<DateTime> createdAt,
-  Value<String> publishOfferDid,
-  Value<ConnectionOfferType> type,
-  Value<ConnectionOfferStatus> status,
-  Value<int?> maximumUsage,
-  Value<bool> ownedByMe,
-  Value<String> mediatorDid,
-  Value<String?> aliasId,
-  Value<String?> outboundMessageId,
-  Value<String?> acceptOfferDid,
-  Value<String?> permanentChannelDid,
-  Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> notificationToken,
-  Value<String?> otherPartyNotificationToken,
-  Value<String?> externalRef,
-  Value<int?> score,
-  Value<int> rowid,
-});
+typedef $$ConnectionOffersTableCreateCompanionBuilder =
+    ConnectionOffersCompanion Function({
+      Value<String> id,
+      required String offerName,
+      required String offerLink,
+      Value<String?> offerDescription,
+      required String oobInvitationMessage,
+      required String mnemonic,
+      Value<DateTime?> expiresAt,
+      required DateTime createdAt,
+      required String publishOfferDid,
+      required ConnectionOfferType type,
+      required ConnectionOfferStatus status,
+      Value<int?> maximumUsage,
+      Value<bool> ownedByMe,
+      required String mediatorDid,
+      Value<String?> aliasId,
+      Value<String?> outboundMessageId,
+      Value<String?> acceptOfferDid,
+      Value<String?> permanentChannelDid,
+      Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> notificationToken,
+      Value<String?> otherPartyNotificationToken,
+      Value<String?> externalRef,
+      Value<int?> score,
+      Value<int> rowid,
+    });
+typedef $$ConnectionOffersTableUpdateCompanionBuilder =
+    ConnectionOffersCompanion Function({
+      Value<String> id,
+      Value<String> offerName,
+      Value<String> offerLink,
+      Value<String?> offerDescription,
+      Value<String> oobInvitationMessage,
+      Value<String> mnemonic,
+      Value<DateTime?> expiresAt,
+      Value<DateTime> createdAt,
+      Value<String> publishOfferDid,
+      Value<ConnectionOfferType> type,
+      Value<ConnectionOfferStatus> status,
+      Value<int?> maximumUsage,
+      Value<bool> ownedByMe,
+      Value<String> mediatorDid,
+      Value<String?> aliasId,
+      Value<String?> outboundMessageId,
+      Value<String?> acceptOfferDid,
+      Value<String?> permanentChannelDid,
+      Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> notificationToken,
+      Value<String?> otherPartyNotificationToken,
+      Value<String?> externalRef,
+      Value<int?> score,
+      Value<int> rowid,
+    });
 
 final class $$ConnectionOffersTableReferences
     extends
@@ -2582,7 +2598,9 @@ class $$ConnectionOffersTableFilterComposer
   );
 
   ColumnFilters<int> get score => $composableBuilder(
-      column: $table.score, builder: (column) => ColumnFilters(column));
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
 
   Expression<bool> connectionContactCardsRefs(
     Expression<bool> Function($$ConnectionContactCardsTableFilterComposer f) f,
@@ -2753,10 +2771,14 @@ class $$ConnectionOffersTableOrderingComposer
   );
 
   ColumnOrderings<String> get externalRef => $composableBuilder(
-      column: $table.externalRef, builder: (column) => ColumnOrderings(column));
+    column: $table.externalRef,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get score => $composableBuilder(
-      column: $table.score, builder: (column) => ColumnOrderings(column));
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ConnectionOffersTableAnnotationComposer
@@ -2946,110 +2968,114 @@ class $$ConnectionOffersTableTableManager
               $$ConnectionOffersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$ConnectionOffersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> offerName = const Value.absent(),
-            Value<String> offerLink = const Value.absent(),
-            Value<String?> offerDescription = const Value.absent(),
-            Value<String> oobInvitationMessage = const Value.absent(),
-            Value<String> mnemonic = const Value.absent(),
-            Value<DateTime?> expiresAt = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<String> publishOfferDid = const Value.absent(),
-            Value<ConnectionOfferType> type = const Value.absent(),
-            Value<ConnectionOfferStatus> status = const Value.absent(),
-            Value<int?> maximumUsage = const Value.absent(),
-            Value<bool> ownedByMe = const Value.absent(),
-            Value<String> mediatorDid = const Value.absent(),
-            Value<String?> aliasId = const Value.absent(),
-            Value<String?> outboundMessageId = const Value.absent(),
-            Value<String?> acceptOfferDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
-            Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> notificationToken = const Value.absent(),
-            Value<String?> otherPartyNotificationToken = const Value.absent(),
-            Value<String?> externalRef = const Value.absent(),
-            Value<int?> score = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ConnectionOffersCompanion(
-            id: id,
-            offerName: offerName,
-            offerLink: offerLink,
-            offerDescription: offerDescription,
-            oobInvitationMessage: oobInvitationMessage,
-            mnemonic: mnemonic,
-            expiresAt: expiresAt,
-            createdAt: createdAt,
-            publishOfferDid: publishOfferDid,
-            type: type,
-            status: status,
-            maximumUsage: maximumUsage,
-            ownedByMe: ownedByMe,
-            mediatorDid: mediatorDid,
-            aliasId: aliasId,
-            outboundMessageId: outboundMessageId,
-            acceptOfferDid: acceptOfferDid,
-            permanentChannelDid: permanentChannelDid,
-            otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-            otherPartyNotificationToken: otherPartyNotificationToken,
-            externalRef: externalRef,
-            score: score,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            required String offerName,
-            required String offerLink,
-            Value<String?> offerDescription = const Value.absent(),
-            required String oobInvitationMessage,
-            required String mnemonic,
-            Value<DateTime?> expiresAt = const Value.absent(),
-            required DateTime createdAt,
-            required String publishOfferDid,
-            required ConnectionOfferType type,
-            required ConnectionOfferStatus status,
-            Value<int?> maximumUsage = const Value.absent(),
-            Value<bool> ownedByMe = const Value.absent(),
-            required String mediatorDid,
-            Value<String?> aliasId = const Value.absent(),
-            Value<String?> outboundMessageId = const Value.absent(),
-            Value<String?> acceptOfferDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
-            Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> notificationToken = const Value.absent(),
-            Value<String?> otherPartyNotificationToken = const Value.absent(),
-            Value<String?> externalRef = const Value.absent(),
-            Value<int?> score = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ConnectionOffersCompanion.insert(
-            id: id,
-            offerName: offerName,
-            offerLink: offerLink,
-            offerDescription: offerDescription,
-            oobInvitationMessage: oobInvitationMessage,
-            mnemonic: mnemonic,
-            expiresAt: expiresAt,
-            createdAt: createdAt,
-            publishOfferDid: publishOfferDid,
-            type: type,
-            status: status,
-            maximumUsage: maximumUsage,
-            ownedByMe: ownedByMe,
-            mediatorDid: mediatorDid,
-            aliasId: aliasId,
-            outboundMessageId: outboundMessageId,
-            acceptOfferDid: acceptOfferDid,
-            permanentChannelDid: permanentChannelDid,
-            otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-            otherPartyNotificationToken: otherPartyNotificationToken,
-            externalRef: externalRef,
-            score: score,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> offerName = const Value.absent(),
+                Value<String> offerLink = const Value.absent(),
+                Value<String?> offerDescription = const Value.absent(),
+                Value<String> oobInvitationMessage = const Value.absent(),
+                Value<String> mnemonic = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> publishOfferDid = const Value.absent(),
+                Value<ConnectionOfferType> type = const Value.absent(),
+                Value<ConnectionOfferStatus> status = const Value.absent(),
+                Value<int?> maximumUsage = const Value.absent(),
+                Value<bool> ownedByMe = const Value.absent(),
+                Value<String> mediatorDid = const Value.absent(),
+                Value<String?> aliasId = const Value.absent(),
+                Value<String?> outboundMessageId = const Value.absent(),
+                Value<String?> acceptOfferDid = const Value.absent(),
+                Value<String?> permanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyPermanentChannelDid =
+                    const Value.absent(),
+                Value<String?> notificationToken = const Value.absent(),
+                Value<String?> otherPartyNotificationToken =
+                    const Value.absent(),
+                Value<String?> externalRef = const Value.absent(),
+                Value<int?> score = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConnectionOffersCompanion(
+                id: id,
+                offerName: offerName,
+                offerLink: offerLink,
+                offerDescription: offerDescription,
+                oobInvitationMessage: oobInvitationMessage,
+                mnemonic: mnemonic,
+                expiresAt: expiresAt,
+                createdAt: createdAt,
+                publishOfferDid: publishOfferDid,
+                type: type,
+                status: status,
+                maximumUsage: maximumUsage,
+                ownedByMe: ownedByMe,
+                mediatorDid: mediatorDid,
+                aliasId: aliasId,
+                outboundMessageId: outboundMessageId,
+                acceptOfferDid: acceptOfferDid,
+                permanentChannelDid: permanentChannelDid,
+                otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                notificationToken: notificationToken,
+                otherPartyNotificationToken: otherPartyNotificationToken,
+                externalRef: externalRef,
+                score: score,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String offerName,
+                required String offerLink,
+                Value<String?> offerDescription = const Value.absent(),
+                required String oobInvitationMessage,
+                required String mnemonic,
+                Value<DateTime?> expiresAt = const Value.absent(),
+                required DateTime createdAt,
+                required String publishOfferDid,
+                required ConnectionOfferType type,
+                required ConnectionOfferStatus status,
+                Value<int?> maximumUsage = const Value.absent(),
+                Value<bool> ownedByMe = const Value.absent(),
+                required String mediatorDid,
+                Value<String?> aliasId = const Value.absent(),
+                Value<String?> outboundMessageId = const Value.absent(),
+                Value<String?> acceptOfferDid = const Value.absent(),
+                Value<String?> permanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyPermanentChannelDid =
+                    const Value.absent(),
+                Value<String?> notificationToken = const Value.absent(),
+                Value<String?> otherPartyNotificationToken =
+                    const Value.absent(),
+                Value<String?> externalRef = const Value.absent(),
+                Value<int?> score = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConnectionOffersCompanion.insert(
+                id: id,
+                offerName: offerName,
+                offerLink: offerLink,
+                offerDescription: offerDescription,
+                oobInvitationMessage: oobInvitationMessage,
+                mnemonic: mnemonic,
+                expiresAt: expiresAt,
+                createdAt: createdAt,
+                publishOfferDid: publishOfferDid,
+                type: type,
+                status: status,
+                maximumUsage: maximumUsage,
+                ownedByMe: ownedByMe,
+                mediatorDid: mediatorDid,
+                aliasId: aliasId,
+                outboundMessageId: outboundMessageId,
+                acceptOfferDid: acceptOfferDid,
+                permanentChannelDid: permanentChannelDid,
+                otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                notificationToken: notificationToken,
+                otherPartyNotificationToken: otherPartyNotificationToken,
+                externalRef: externalRef,
+                score: score,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (

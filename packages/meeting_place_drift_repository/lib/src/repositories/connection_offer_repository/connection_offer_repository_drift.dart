@@ -341,8 +341,7 @@ class ConnectionOfferRepositoryDrift
           _database.connectionOffers.id,
         ),
       ),
-    ])
-      ..where(_database.connectionOffers.externalRef.equals(externalRef));
+    ])..where(_database.connectionOffers.externalRef.equals(externalRef));
 
     final rows = await query.get();
     return rows.map((result) {

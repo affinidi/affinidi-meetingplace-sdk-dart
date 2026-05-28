@@ -6,11 +6,11 @@ import 'package:test/test.dart';
 import 'utils/vrc_schema_versions.dart/schema.dart';
 
 VrcDatabase _freshDatabase() => VrcDatabase(
-      databaseName: 'vrc_migration_test.db',
-      passphrase: 'test-passphrase',
-      directory: Directory.systemTemp,
-      inMemory: true,
-    );
+  databaseName: 'vrc_migration_test.db',
+  passphrase: 'test-passphrase',
+  directory: Directory.systemTemp,
+  inMemory: true,
+);
 
 void main() {
   test('schema snapshot exists for current schemaVersion', () {

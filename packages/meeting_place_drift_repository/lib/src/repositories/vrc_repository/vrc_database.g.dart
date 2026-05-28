@@ -11,75 +11,120 @@ class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _vcBlobMeta = const VerificationMeta('vcBlob');
   @override
   late final GeneratedColumn<String> vcBlob = GeneratedColumn<String>(
-      'vc_blob', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _referenceIdMeta =
-      const VerificationMeta('referenceId');
+    'vc_blob',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceIdMeta = const VerificationMeta(
+    'referenceId',
+  );
   @override
   late final GeneratedColumn<String> referenceId = GeneratedColumn<String>(
-      'reference_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _holderDidMeta =
-      const VerificationMeta('holderDid');
+    'reference_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _holderDidMeta = const VerificationMeta(
+    'holderDid',
+  );
   @override
   late final GeneratedColumn<String> holderDid = GeneratedColumn<String>(
-      'holder_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _issuerDidMeta =
-      const VerificationMeta('issuerDid');
+    'holder_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuerDidMeta = const VerificationMeta(
+    'issuerDid',
+  );
   @override
   late final GeneratedColumn<String> issuerDid = GeneratedColumn<String>(
-      'issuer_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _issuedAtMeta =
-      const VerificationMeta('issuedAt');
+    'issuer_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _issuedAtMeta = const VerificationMeta(
+    'issuedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> issuedAt = GeneratedColumn<DateTime>(
-      'issued_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _verifiedAtMeta =
-      const VerificationMeta('verifiedAt');
+    'issued_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _verifiedAtMeta = const VerificationMeta(
+    'verifiedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> verifiedAt = GeneratedColumn<DateTime>(
-      'verified_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _receivedAtMeta =
-      const VerificationMeta('receivedAt');
+    'verified_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _receivedAtMeta = const VerificationMeta(
+    'receivedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> receivedAt = GeneratedColumn<DateTime>(
-      'received_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _credentialFormatMeta =
-      const VerificationMeta('credentialFormat');
+    'received_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _credentialFormatMeta = const VerificationMeta(
+    'credentialFormat',
+  );
   @override
   late final GeneratedColumn<String> credentialFormat = GeneratedColumn<String>(
-      'credential_format', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'credential_format',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        vcBlob,
-        referenceId,
-        holderDid,
-        issuerDid,
-        issuedAt,
-        verifiedAt,
-        receivedAt,
-        credentialFormat
-      ];
+    id,
+    vcBlob,
+    referenceId,
+    holderDid,
+    issuerDid,
+    issuedAt,
+    verifiedAt,
+    receivedAt,
+    credentialFormat,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'vrcs';
   @override
-  VerificationContext validateIntegrity(Insertable<VrcRow> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<VrcRow> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -88,54 +133,68 @@ class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
       context.missing(_idMeta);
     }
     if (data.containsKey('vc_blob')) {
-      context.handle(_vcBlobMeta,
-          vcBlob.isAcceptableOrUnknown(data['vc_blob']!, _vcBlobMeta));
+      context.handle(
+        _vcBlobMeta,
+        vcBlob.isAcceptableOrUnknown(data['vc_blob']!, _vcBlobMeta),
+      );
     } else if (isInserting) {
       context.missing(_vcBlobMeta);
     }
     if (data.containsKey('reference_id')) {
       context.handle(
+        _referenceIdMeta,
+        referenceId.isAcceptableOrUnknown(
+          data['reference_id']!,
           _referenceIdMeta,
-          referenceId.isAcceptableOrUnknown(
-              data['reference_id']!, _referenceIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_referenceIdMeta);
     }
     if (data.containsKey('holder_did')) {
-      context.handle(_holderDidMeta,
-          holderDid.isAcceptableOrUnknown(data['holder_did']!, _holderDidMeta));
+      context.handle(
+        _holderDidMeta,
+        holderDid.isAcceptableOrUnknown(data['holder_did']!, _holderDidMeta),
+      );
     } else if (isInserting) {
       context.missing(_holderDidMeta);
     }
     if (data.containsKey('issuer_did')) {
-      context.handle(_issuerDidMeta,
-          issuerDid.isAcceptableOrUnknown(data['issuer_did']!, _issuerDidMeta));
+      context.handle(
+        _issuerDidMeta,
+        issuerDid.isAcceptableOrUnknown(data['issuer_did']!, _issuerDidMeta),
+      );
     } else if (isInserting) {
       context.missing(_issuerDidMeta);
     }
     if (data.containsKey('issued_at')) {
-      context.handle(_issuedAtMeta,
-          issuedAt.isAcceptableOrUnknown(data['issued_at']!, _issuedAtMeta));
+      context.handle(
+        _issuedAtMeta,
+        issuedAt.isAcceptableOrUnknown(data['issued_at']!, _issuedAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_issuedAtMeta);
     }
     if (data.containsKey('verified_at')) {
       context.handle(
-          _verifiedAtMeta,
-          verifiedAt.isAcceptableOrUnknown(
-              data['verified_at']!, _verifiedAtMeta));
+        _verifiedAtMeta,
+        verifiedAt.isAcceptableOrUnknown(data['verified_at']!, _verifiedAtMeta),
+      );
     }
     if (data.containsKey('received_at')) {
       context.handle(
-          _receivedAtMeta,
-          receivedAt.isAcceptableOrUnknown(
-              data['received_at']!, _receivedAtMeta));
+        _receivedAtMeta,
+        receivedAt.isAcceptableOrUnknown(data['received_at']!, _receivedAtMeta),
+      );
     }
     if (data.containsKey('credential_format')) {
       context.handle(
+        _credentialFormatMeta,
+        credentialFormat.isAcceptableOrUnknown(
+          data['credential_format']!,
           _credentialFormatMeta,
-          credentialFormat.isAcceptableOrUnknown(
-              data['credential_format']!, _credentialFormatMeta));
+        ),
+      );
     }
     return context;
   }
@@ -146,24 +205,42 @@ class $VrcsTable extends Vrcs with TableInfo<$VrcsTable, VrcRow> {
   VrcRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VrcRow(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      vcBlob: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}vc_blob'])!,
-      referenceId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}reference_id'])!,
-      holderDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}holder_did'])!,
-      issuerDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}issuer_did'])!,
-      issuedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}issued_at'])!,
-      verifiedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}verified_at']),
-      receivedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}received_at']),
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vcBlob: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vc_blob'],
+      )!,
+      referenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference_id'],
+      )!,
+      holderDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}holder_did'],
+      )!,
+      issuerDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuer_did'],
+      )!,
+      issuedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}issued_at'],
+      )!,
+      verifiedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}verified_at'],
+      ),
+      receivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}received_at'],
+      ),
       credentialFormat: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}credential_format']),
+        DriftSqlType.string,
+        data['${effectivePrefix}credential_format'],
+      ),
     );
   }
 
@@ -200,16 +277,17 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
 
   /// Optional credential format metadata.
   final String? credentialFormat;
-  const VrcRow(
-      {required this.id,
-      required this.vcBlob,
-      required this.referenceId,
-      required this.holderDid,
-      required this.issuerDid,
-      required this.issuedAt,
-      this.verifiedAt,
-      this.receivedAt,
-      this.credentialFormat});
+  const VrcRow({
+    required this.id,
+    required this.vcBlob,
+    required this.referenceId,
+    required this.holderDid,
+    required this.issuerDid,
+    required this.issuedAt,
+    this.verifiedAt,
+    this.receivedAt,
+    this.credentialFormat,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -251,8 +329,10 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
     );
   }
 
-  factory VrcRow.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory VrcRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VrcRow(
       id: serializer.fromJson<String>(json['id']),
@@ -282,42 +362,45 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
     };
   }
 
-  VrcRow copyWith(
-          {String? id,
-          String? vcBlob,
-          String? referenceId,
-          String? holderDid,
-          String? issuerDid,
-          DateTime? issuedAt,
-          Value<DateTime?> verifiedAt = const Value.absent(),
-          Value<DateTime?> receivedAt = const Value.absent(),
-          Value<String?> credentialFormat = const Value.absent()}) =>
-      VrcRow(
-        id: id ?? this.id,
-        vcBlob: vcBlob ?? this.vcBlob,
-        referenceId: referenceId ?? this.referenceId,
-        holderDid: holderDid ?? this.holderDid,
-        issuerDid: issuerDid ?? this.issuerDid,
-        issuedAt: issuedAt ?? this.issuedAt,
-        verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
-        receivedAt: receivedAt.present ? receivedAt.value : this.receivedAt,
-        credentialFormat: credentialFormat.present
-            ? credentialFormat.value
-            : this.credentialFormat,
-      );
+  VrcRow copyWith({
+    String? id,
+    String? vcBlob,
+    String? referenceId,
+    String? holderDid,
+    String? issuerDid,
+    DateTime? issuedAt,
+    Value<DateTime?> verifiedAt = const Value.absent(),
+    Value<DateTime?> receivedAt = const Value.absent(),
+    Value<String?> credentialFormat = const Value.absent(),
+  }) => VrcRow(
+    id: id ?? this.id,
+    vcBlob: vcBlob ?? this.vcBlob,
+    referenceId: referenceId ?? this.referenceId,
+    holderDid: holderDid ?? this.holderDid,
+    issuerDid: issuerDid ?? this.issuerDid,
+    issuedAt: issuedAt ?? this.issuedAt,
+    verifiedAt: verifiedAt.present ? verifiedAt.value : this.verifiedAt,
+    receivedAt: receivedAt.present ? receivedAt.value : this.receivedAt,
+    credentialFormat: credentialFormat.present
+        ? credentialFormat.value
+        : this.credentialFormat,
+  );
   VrcRow copyWithCompanion(VrcsCompanion data) {
     return VrcRow(
       id: data.id.present ? data.id.value : this.id,
       vcBlob: data.vcBlob.present ? data.vcBlob.value : this.vcBlob,
-      referenceId:
-          data.referenceId.present ? data.referenceId.value : this.referenceId,
+      referenceId: data.referenceId.present
+          ? data.referenceId.value
+          : this.referenceId,
       holderDid: data.holderDid.present ? data.holderDid.value : this.holderDid,
       issuerDid: data.issuerDid.present ? data.issuerDid.value : this.issuerDid,
       issuedAt: data.issuedAt.present ? data.issuedAt.value : this.issuedAt,
-      verifiedAt:
-          data.verifiedAt.present ? data.verifiedAt.value : this.verifiedAt,
-      receivedAt:
-          data.receivedAt.present ? data.receivedAt.value : this.receivedAt,
+      verifiedAt: data.verifiedAt.present
+          ? data.verifiedAt.value
+          : this.verifiedAt,
+      receivedAt: data.receivedAt.present
+          ? data.receivedAt.value
+          : this.receivedAt,
       credentialFormat: data.credentialFormat.present
           ? data.credentialFormat.value
           : this.credentialFormat,
@@ -341,8 +424,17 @@ class VrcRow extends DataClass implements Insertable<VrcRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, vcBlob, referenceId, holderDid, issuerDid,
-      issuedAt, verifiedAt, receivedAt, credentialFormat);
+  int get hashCode => Object.hash(
+    id,
+    vcBlob,
+    referenceId,
+    holderDid,
+    issuerDid,
+    issuedAt,
+    verifiedAt,
+    receivedAt,
+    credentialFormat,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -392,12 +484,12 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
     this.receivedAt = const Value.absent(),
     this.credentialFormat = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        vcBlob = Value(vcBlob),
-        referenceId = Value(referenceId),
-        holderDid = Value(holderDid),
-        issuerDid = Value(issuerDid),
-        issuedAt = Value(issuedAt);
+  }) : id = Value(id),
+       vcBlob = Value(vcBlob),
+       referenceId = Value(referenceId),
+       holderDid = Value(holderDid),
+       issuerDid = Value(issuerDid),
+       issuedAt = Value(issuedAt);
   static Insertable<VrcRow> custom({
     Expression<String>? id,
     Expression<String>? vcBlob,
@@ -424,17 +516,18 @@ class VrcsCompanion extends UpdateCompanion<VrcRow> {
     });
   }
 
-  VrcsCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? vcBlob,
-      Value<String>? referenceId,
-      Value<String>? holderDid,
-      Value<String>? issuerDid,
-      Value<DateTime>? issuedAt,
-      Value<DateTime?>? verifiedAt,
-      Value<DateTime?>? receivedAt,
-      Value<String?>? credentialFormat,
-      Value<int>? rowid}) {
+  VrcsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vcBlob,
+    Value<String>? referenceId,
+    Value<String>? holderDid,
+    Value<String>? issuerDid,
+    Value<DateTime>? issuedAt,
+    Value<DateTime?>? verifiedAt,
+    Value<DateTime?>? receivedAt,
+    Value<String?>? credentialFormat,
+    Value<int>? rowid,
+  }) {
     return VrcsCompanion(
       id: id ?? this.id,
       vcBlob: vcBlob ?? this.vcBlob,
@@ -517,30 +610,32 @@ abstract class _$VrcDatabase extends GeneratedDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$VrcsTableCreateCompanionBuilder = VrcsCompanion Function({
-  required String id,
-  required String vcBlob,
-  required String referenceId,
-  required String holderDid,
-  required String issuerDid,
-  required DateTime issuedAt,
-  Value<DateTime?> verifiedAt,
-  Value<DateTime?> receivedAt,
-  Value<String?> credentialFormat,
-  Value<int> rowid,
-});
-typedef $$VrcsTableUpdateCompanionBuilder = VrcsCompanion Function({
-  Value<String> id,
-  Value<String> vcBlob,
-  Value<String> referenceId,
-  Value<String> holderDid,
-  Value<String> issuerDid,
-  Value<DateTime> issuedAt,
-  Value<DateTime?> verifiedAt,
-  Value<DateTime?> receivedAt,
-  Value<String?> credentialFormat,
-  Value<int> rowid,
-});
+typedef $$VrcsTableCreateCompanionBuilder =
+    VrcsCompanion Function({
+      required String id,
+      required String vcBlob,
+      required String referenceId,
+      required String holderDid,
+      required String issuerDid,
+      required DateTime issuedAt,
+      Value<DateTime?> verifiedAt,
+      Value<DateTime?> receivedAt,
+      Value<String?> credentialFormat,
+      Value<int> rowid,
+    });
+typedef $$VrcsTableUpdateCompanionBuilder =
+    VrcsCompanion Function({
+      Value<String> id,
+      Value<String> vcBlob,
+      Value<String> referenceId,
+      Value<String> holderDid,
+      Value<String> issuerDid,
+      Value<DateTime> issuedAt,
+      Value<DateTime?> verifiedAt,
+      Value<DateTime?> receivedAt,
+      Value<String?> credentialFormat,
+      Value<int> rowid,
+    });
 
 class $$VrcsTableFilterComposer extends Composer<_$VrcDatabase, $VrcsTable> {
   $$VrcsTableFilterComposer({
@@ -551,32 +646,49 @@ class $$VrcsTableFilterComposer extends Composer<_$VrcDatabase, $VrcsTable> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get vcBlob => $composableBuilder(
-      column: $table.vcBlob, builder: (column) => ColumnFilters(column));
+    column: $table.vcBlob,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get referenceId => $composableBuilder(
-      column: $table.referenceId, builder: (column) => ColumnFilters(column));
+    column: $table.referenceId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get holderDid => $composableBuilder(
-      column: $table.holderDid, builder: (column) => ColumnFilters(column));
+    column: $table.holderDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get issuerDid => $composableBuilder(
-      column: $table.issuerDid, builder: (column) => ColumnFilters(column));
+    column: $table.issuerDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get issuedAt => $composableBuilder(
-      column: $table.issuedAt, builder: (column) => ColumnFilters(column));
+    column: $table.issuedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get verifiedAt => $composableBuilder(
-      column: $table.verifiedAt, builder: (column) => ColumnFilters(column));
+    column: $table.verifiedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get receivedAt => $composableBuilder(
-      column: $table.receivedAt, builder: (column) => ColumnFilters(column));
+    column: $table.receivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get credentialFormat => $composableBuilder(
-      column: $table.credentialFormat,
-      builder: (column) => ColumnFilters(column));
+    column: $table.credentialFormat,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$VrcsTableOrderingComposer extends Composer<_$VrcDatabase, $VrcsTable> {
@@ -588,32 +700,49 @@ class $$VrcsTableOrderingComposer extends Composer<_$VrcDatabase, $VrcsTable> {
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get vcBlob => $composableBuilder(
-      column: $table.vcBlob, builder: (column) => ColumnOrderings(column));
+    column: $table.vcBlob,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get referenceId => $composableBuilder(
-      column: $table.referenceId, builder: (column) => ColumnOrderings(column));
+    column: $table.referenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get holderDid => $composableBuilder(
-      column: $table.holderDid, builder: (column) => ColumnOrderings(column));
+    column: $table.holderDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get issuerDid => $composableBuilder(
-      column: $table.issuerDid, builder: (column) => ColumnOrderings(column));
+    column: $table.issuerDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get issuedAt => $composableBuilder(
-      column: $table.issuedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.issuedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get verifiedAt => $composableBuilder(
-      column: $table.verifiedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.verifiedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get receivedAt => $composableBuilder(
-      column: $table.receivedAt, builder: (column) => ColumnOrderings(column));
+    column: $table.receivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get credentialFormat => $composableBuilder(
-      column: $table.credentialFormat,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.credentialFormat,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$VrcsTableAnnotationComposer
@@ -632,7 +761,9 @@ class $$VrcsTableAnnotationComposer
       $composableBuilder(column: $table.vcBlob, builder: (column) => column);
 
   GeneratedColumn<String> get referenceId => $composableBuilder(
-      column: $table.referenceId, builder: (column) => column);
+    column: $table.referenceId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get holderDid =>
       $composableBuilder(column: $table.holderDid, builder: (column) => column);
@@ -644,29 +775,39 @@ class $$VrcsTableAnnotationComposer
       $composableBuilder(column: $table.issuedAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get verifiedAt => $composableBuilder(
-      column: $table.verifiedAt, builder: (column) => column);
+    column: $table.verifiedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get receivedAt => $composableBuilder(
-      column: $table.receivedAt, builder: (column) => column);
+    column: $table.receivedAt,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get credentialFormat => $composableBuilder(
-      column: $table.credentialFormat, builder: (column) => column);
+    column: $table.credentialFormat,
+    builder: (column) => column,
+  );
 }
 
-class $$VrcsTableTableManager extends RootTableManager<
-    _$VrcDatabase,
-    $VrcsTable,
-    VrcRow,
-    $$VrcsTableFilterComposer,
-    $$VrcsTableOrderingComposer,
-    $$VrcsTableAnnotationComposer,
-    $$VrcsTableCreateCompanionBuilder,
-    $$VrcsTableUpdateCompanionBuilder,
-    (VrcRow, BaseReferences<_$VrcDatabase, $VrcsTable, VrcRow>),
-    VrcRow,
-    PrefetchHooks Function()> {
+class $$VrcsTableTableManager
+    extends
+        RootTableManager<
+          _$VrcDatabase,
+          $VrcsTable,
+          VrcRow,
+          $$VrcsTableFilterComposer,
+          $$VrcsTableOrderingComposer,
+          $$VrcsTableAnnotationComposer,
+          $$VrcsTableCreateCompanionBuilder,
+          $$VrcsTableUpdateCompanionBuilder,
+          (VrcRow, BaseReferences<_$VrcDatabase, $VrcsTable, VrcRow>),
+          VrcRow,
+          PrefetchHooks Function()
+        > {
   $$VrcsTableTableManager(_$VrcDatabase db, $VrcsTable table)
-      : super(TableManagerState(
+    : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -675,73 +816,76 @@ class $$VrcsTableTableManager extends RootTableManager<
               $$VrcsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$VrcsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> vcBlob = const Value.absent(),
-            Value<String> referenceId = const Value.absent(),
-            Value<String> holderDid = const Value.absent(),
-            Value<String> issuerDid = const Value.absent(),
-            Value<DateTime> issuedAt = const Value.absent(),
-            Value<DateTime?> verifiedAt = const Value.absent(),
-            Value<DateTime?> receivedAt = const Value.absent(),
-            Value<String?> credentialFormat = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              VrcsCompanion(
-            id: id,
-            vcBlob: vcBlob,
-            referenceId: referenceId,
-            holderDid: holderDid,
-            issuerDid: issuerDid,
-            issuedAt: issuedAt,
-            verifiedAt: verifiedAt,
-            receivedAt: receivedAt,
-            credentialFormat: credentialFormat,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required String vcBlob,
-            required String referenceId,
-            required String holderDid,
-            required String issuerDid,
-            required DateTime issuedAt,
-            Value<DateTime?> verifiedAt = const Value.absent(),
-            Value<DateTime?> receivedAt = const Value.absent(),
-            Value<String?> credentialFormat = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              VrcsCompanion.insert(
-            id: id,
-            vcBlob: vcBlob,
-            referenceId: referenceId,
-            holderDid: holderDid,
-            issuerDid: issuerDid,
-            issuedAt: issuedAt,
-            verifiedAt: verifiedAt,
-            receivedAt: receivedAt,
-            credentialFormat: credentialFormat,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vcBlob = const Value.absent(),
+                Value<String> referenceId = const Value.absent(),
+                Value<String> holderDid = const Value.absent(),
+                Value<String> issuerDid = const Value.absent(),
+                Value<DateTime> issuedAt = const Value.absent(),
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                Value<DateTime?> receivedAt = const Value.absent(),
+                Value<String?> credentialFormat = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VrcsCompanion(
+                id: id,
+                vcBlob: vcBlob,
+                referenceId: referenceId,
+                holderDid: holderDid,
+                issuerDid: issuerDid,
+                issuedAt: issuedAt,
+                verifiedAt: verifiedAt,
+                receivedAt: receivedAt,
+                credentialFormat: credentialFormat,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vcBlob,
+                required String referenceId,
+                required String holderDid,
+                required String issuerDid,
+                required DateTime issuedAt,
+                Value<DateTime?> verifiedAt = const Value.absent(),
+                Value<DateTime?> receivedAt = const Value.absent(),
+                Value<String?> credentialFormat = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VrcsCompanion.insert(
+                id: id,
+                vcBlob: vcBlob,
+                referenceId: referenceId,
+                holderDid: holderDid,
+                issuerDid: issuerDid,
+                issuedAt: issuedAt,
+                verifiedAt: verifiedAt,
+                receivedAt: receivedAt,
+                credentialFormat: credentialFormat,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
           prefetchHooksCallback: null,
-        ));
+        ),
+      );
 }
 
-typedef $$VrcsTableProcessedTableManager = ProcessedTableManager<
-    _$VrcDatabase,
-    $VrcsTable,
-    VrcRow,
-    $$VrcsTableFilterComposer,
-    $$VrcsTableOrderingComposer,
-    $$VrcsTableAnnotationComposer,
-    $$VrcsTableCreateCompanionBuilder,
-    $$VrcsTableUpdateCompanionBuilder,
-    (VrcRow, BaseReferences<_$VrcDatabase, $VrcsTable, VrcRow>),
-    VrcRow,
-    PrefetchHooks Function()>;
+typedef $$VrcsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$VrcDatabase,
+      $VrcsTable,
+      VrcRow,
+      $$VrcsTableFilterComposer,
+      $$VrcsTableOrderingComposer,
+      $$VrcsTableAnnotationComposer,
+      $$VrcsTableCreateCompanionBuilder,
+      $$VrcsTableUpdateCompanionBuilder,
+      (VrcRow, BaseReferences<_$VrcDatabase, $VrcsTable, VrcRow>),
+      VrcRow,
+      PrefetchHooks Function()
+    >;
 
 class $VrcDatabaseManager {
   final _$VrcDatabase _db;

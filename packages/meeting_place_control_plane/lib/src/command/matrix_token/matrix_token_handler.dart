@@ -94,10 +94,11 @@ class MatrixTokenHandler
       );
 
       final response = await apiClient.client.matrixToken(
-        matrixToken: (MatrixTokenBuilder()
-              ..challengeResponse = challengeResponse.challengeResponse
-              ..homeserver = command.homeserver.toString())
-            .build(),
+        matrixToken:
+            (MatrixTokenBuilder()
+                  ..challengeResponse = challengeResponse.challengeResponse
+                  ..homeserver = command.homeserver.toString())
+                .build(),
       );
 
       return _parseResponseData(response.data);

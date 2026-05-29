@@ -10,7 +10,6 @@ import 'matrix_config.dart';
 import 'matrix_room_alias.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_room_event.dart';
-import 'matrix_session_manager.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -147,23 +146,6 @@ class MatrixService {
     final client = await _ensureSession(didManager);
     final userId = _sessionManager.deriveUserId(did, homeserver.host);
     await client.inviteUser(roomId, userId);
-  }
-
-  MatrixRoomEvent? _eventToMatrixRoomEvent(
-    matrix.Event event, {
-    String? myUserId,
-  }) {
-    final typeStr = event.type;
-
-    return MatrixRoomEvent(
-      id: event.eventId,
-      type: typeStr,
-      sender: event.senderId,
-      roomId: event.room.id,
-      content: Map<String, dynamic>.from(event.content),
-      timestamp: event.originServerTs,
-      isFromMe: myUserId != null && event.senderId == myUserId,
-    );
   }
 
   /// Returns an authenticated client, transparently re-authenticating via

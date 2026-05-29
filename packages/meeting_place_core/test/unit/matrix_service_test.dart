@@ -3,8 +3,6 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_auth_exception.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_client_cache.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_config.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service_exception.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_session_manager.dart';
 import 'package:mocktail/mocktail.dart';
@@ -181,7 +179,8 @@ void main() {
 
       test('deduplicates concurrent logins for the same DID', () async {
         final mockClient = MockMatrixClient();
-        when(() => mockClient.accessToken).thenReturn(null);
+        String? accessToken;
+        when(() => mockClient.accessToken).thenAnswer((_) => accessToken);
         when(() => mockClient.userID).thenReturn(_matrixUserId);
         final loginResponse = matrix.LoginResponse(
           userId: _matrixUserId,
@@ -200,6 +199,7 @@ void main() {
         ).thenAnswer((_) async {
           loginCalls++;
           await Future<void>.delayed(const Duration(milliseconds: 10));
+          accessToken = 'token';
           return loginResponse;
         });
 
@@ -284,24 +284,19 @@ void main() {
         },
       );
 
-      test(
-        'returns null and evicts client when refresh fails',
-        () async {
-          final client = _expiringSoonClient();
-          when(
-            client.refreshAccessToken,
-          ).thenThrow(Exception('refresh failed'));
-          cache.seed(_testDid, client);
+      test('returns null and evicts client when refresh fails', () async {
+        final client = _expiringSoonClient();
+        when(client.refreshAccessToken).thenThrow(Exception('refresh failed'));
+        cache.seed(_testDid, client);
 
-          expect(await manager.getAuthenticatedClient(_testDid), isNull);
+        expect(await manager.getAuthenticatedClient(_testDid), isNull);
 
-          expect(
-            cache.get(did: _testDid),
-            isNull,
-            reason: 'stale client must be evicted after failed refresh',
-          );
-        },
-      );
+        expect(
+          cache.get(did: _testDid),
+          isNull,
+          reason: 'stale client must be evicted after failed refresh',
+        );
+      });
 
       test('token without expiry is never considered expiring soon', () async {
         final client = MockMatrixClient();
@@ -422,7 +417,8 @@ void main() {
 
         final roomId = await service.createRoom(
           didManager: didManager,
-          channelDid: 'did:test:alice', otherPartyChannelDid: 'did:test:bob',
+          channelDid: 'did:test:alice',
+          otherPartyChannelDid: 'did:test:bob',
           inviteUsers: ['did:test:bob'],
         );
         expect(roomId, equals(_testRoomId));
@@ -434,9 +430,9 @@ void main() {
 
         // Cache misses until loginWithJwt populates a session.
         var loggedIn = false;
-        when(
-          () => sessionManager.getAuthenticatedClient(_testDid),
-        ).thenAnswer((_) async {
+        when(() => sessionManager.getAuthenticatedClient(_testDid)).thenAnswer((
+          _,
+        ) async {
           if (!loggedIn) return null;
           return client;
         });
@@ -464,7 +460,8 @@ void main() {
 
         final roomId = await service.createRoom(
           didManager: didManager,
-          channelDid: 'did:test:alice', otherPartyChannelDid: 'did:test:bob',
+          channelDid: 'did:test:alice',
+          otherPartyChannelDid: 'did:test:bob',
         );
         expect(roomId, equals(_testRoomId));
         verify(
@@ -494,42 +491,40 @@ void main() {
 
         await service.createRoom(
           didManager: didManager,
-          channelDid: 'did:test:alice', otherPartyChannelDid: 'did:test:bob',
+          channelDid: 'did:test:alice',
+          otherPartyChannelDid: 'did:test:bob',
           inviteUsers: ['did:test:bob'],
         );
 
         verify(
           () => client.createRoom(
-            roomAliasName: any(
-              named: 'roomAliasName',
-              that: startsWith('mp_'),
-            ),
+            roomAliasName: any(named: 'roomAliasName', that: startsWith('mp_')),
             invite: ['@bob-hash:matrix.example.com'],
           ),
         ).called(1);
       });
 
-      test(
-        'throws MatrixAuthException when loginWithDid succeeds but the '
-        'session is unavailable',
-        () async {
-          when(
-            () => sessionManager.getAuthenticatedClient(_testDid),
-          ).thenAnswer((_) async => null);
-          final tokenOutput = _stubMatrixToken(controlPlane, didManager);
-          when(
-            () => sessionManager.loginWithJwt(
-              jwt: tokenOutput.token.toJwt(),
-              did: _testDid,
-            ),
-          ).thenAnswer((_) async => _matrixUserId);
+      test('throws MatrixAuthException when loginWithDid succeeds but the '
+          'session is unavailable', () async {
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => null);
+        final tokenOutput = _stubMatrixToken(controlPlane, didManager);
+        when(
+          () => sessionManager.loginWithJwt(
+            jwt: tokenOutput.token.toJwt(),
+            did: _testDid,
+          ),
+        ).thenAnswer((_) async => _matrixUserId);
 
-          expect(
-            () => service.createRoom(didManager: didManager),
-            throwsA(isA<MatrixAuthException>()),
-          );
-        },
-      );
+        expect(
+          () => service.createRoom(
+            didManager: didManager,
+            channelDid: 'did:test:alice',
+          ),
+          throwsA(isA<MatrixAuthException>()),
+        );
+      });
     });
 
     // ------------------------------------------------------------------
@@ -543,9 +538,7 @@ void main() {
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
-        when(
-          () => client.joinRoom(any()),
-        ).thenAnswer((_) async => _testRoomId);
+        when(() => client.joinRoom(any())).thenAnswer((_) async => _testRoomId);
 
         await service.joinChannelRoom(
           didManager: didManager,
@@ -561,9 +554,9 @@ void main() {
         when(() => client.userID).thenReturn(_matrixUserId);
 
         var loggedIn = false;
-        when(
-          () => sessionManager.getAuthenticatedClient(_testDid),
-        ).thenAnswer((_) async {
+        when(() => sessionManager.getAuthenticatedClient(_testDid)).thenAnswer((
+          _,
+        ) async {
           if (!loggedIn) return null;
           return client;
         });
@@ -579,9 +572,7 @@ void main() {
           return _matrixUserId;
         });
 
-        when(
-          () => client.joinRoom(any()),
-        ).thenAnswer((_) async => _testRoomId);
+        when(() => client.joinRoom(any())).thenAnswer((_) async => _testRoomId);
 
         await service.joinChannelRoom(
           didManager: didManager,

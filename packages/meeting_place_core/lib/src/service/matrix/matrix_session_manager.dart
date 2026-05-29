@@ -43,6 +43,9 @@ class MatrixSessionManager {
   /// Logger for session manager operations and errors.
   final MeetingPlaceCoreSDKLogger _logger;
 
+  /// In-flight login attempts keyed by DID.
+  final Map<String, Future<matrix.Client>> _inFlightLogins = {};
+
   static const _logKey = 'MatrixSessionManager';
 
   /// Exposes the homeserver URI from the configuration.
@@ -67,38 +70,48 @@ class MatrixSessionManager {
     required String jwt,
     required String did,
   }) async {
-    final cached = _clientCache.get(did: did);
-    matrix.Client? existingClient;
-    if (cached != null) {
-      try {
-        existingClient = await cached;
-        if (_isTokenFresh(existingClient)) {
-          return existingClient.userID!;
+    final loginFuture = _inFlightLogins.putIfAbsent(did, () async {
+      final cached = _clientCache.get(did: did);
+      matrix.Client? existingClient;
+      if (cached != null) {
+        try {
+          existingClient = await cached;
+          if (_isTokenFresh(existingClient)) {
+            return existingClient;
+          }
+        } catch (_) {
+          // Previous login attempt errored; fall through and retry with a
+          // fresh client.
+          existingClient = null;
         }
-      } catch (_) {
-        // Previous login attempt errored; fall through and retry with a
-        // fresh client.
-        existingClient = null;
       }
-    }
 
-    _logger.info(
-      'Logging in to Matrix homeserver with DID $did',
-      name: _logKey,
-    );
+      _logger.info(
+        'Logging in to Matrix homeserver with DID $did',
+        name: _logKey,
+      );
 
-    final loginFuture = _login(did: did, jwt: jwt, existing: existingClient);
-    _clientCache.add(did: did, future: loginFuture);
+      final attempt = _login(did: did, jwt: jwt, existing: existingClient);
+      _clientCache.add(did: did, future: attempt);
+
+      try {
+        return await attempt;
+      } catch (error, stackTrace) {
+        _clientCache.remove(did: did);
+        Error.throwWithStackTrace(
+          MatrixServiceException.loginFailed(innerException: error),
+          stackTrace,
+        );
+      }
+    });
 
     try {
       final client = await loginFuture;
       return client.userID!;
-    } catch (error, stackTrace) {
-      _clientCache.remove(did: did);
-      Error.throwWithStackTrace(
-        MatrixServiceException.loginFailed(innerException: error),
-        stackTrace,
-      );
+    } finally {
+      if (identical(_inFlightLogins[did], loginFuture)) {
+        _inFlightLogins.remove(did);
+      }
     }
   }
 

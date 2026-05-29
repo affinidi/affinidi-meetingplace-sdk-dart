@@ -100,6 +100,31 @@ class DidCommChallengeResponse {
     );
   }
 
+  /// Variant of [build] that fetches the challenge from the Matrix challenge
+  /// endpoint (`/v1/matrix/challenge`) instead of the DID authenticate
+  /// challenge endpoint.
+  static Future<DidCommChallengeResponse> buildForMatrix({
+    required ControlPlaneApiClient apiClient,
+    required DidManager didManager,
+    required DidResolver didResolver,
+    required String recipientDid,
+    Exception Function(String senderDid)? onEmptyChallenge,
+  }) {
+    return build(
+      apiClient: apiClient,
+      didManager: didManager,
+      didResolver: didResolver,
+      recipientDid: recipientDid,
+      onEmptyChallenge: onEmptyChallenge,
+      challengeProvider: (String did) async {
+        final response = await apiClient.client.matrixChallenge(
+          matrixChallenge: (MatrixChallengeBuilder()..did = did).build(),
+        );
+        return response.data?.challenge;
+      },
+    );
+  }
+
   /// Signs the provided plaintext DIDComm [message] and encrypts it for the
   /// [recipientDidDocument] using the sender's available authentication and key
   /// agreement material from [senderDidManager].

@@ -1162,7 +1162,7 @@ class MeetingPlaceCoreSDK {
     return _withSdkExceptionHandling(() async {
       return _mediaService.upload(
         fileBytes,
-        didManager: await _getDidManager(senderDid),
+        didManager: await getDidManager(senderDid),
         contentType: contentType,
         filename: filename,
       );
@@ -1171,16 +1171,18 @@ class MeetingPlaceCoreSDK {
 
   /// Downloads hosted media from the Matrix homeserver and decrypts it when
   /// encrypted media metadata is provided.
+  ///
+  /// The room is resolved internally from [receiverDid] via the channel.
   Future<Uint8List> downloadMedia(
     String mxcUri, {
     required String receiverDid,
-    required String roomId,
     EncryptedFileInfo? encryptedFileInfo,
   }) async {
     return _withSdkExceptionHandling(() async {
+      final roomId = await _messagingService.resolveRoomIdForDid(receiverDid);
       return _mediaService.download(
         mxcUri,
-        didManager: await _getDidManager(receiverDid),
+        didManager: await getDidManager(receiverDid),
         roomId: roomId,
         encryptedFileInfo: encryptedFileInfo,
       );

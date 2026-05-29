@@ -138,11 +138,6 @@ class MatrixSessionManager {
     }
   }
 
-  /// Clears all cached sessions, logging out from the Matrix homeserver.
-  void dispose() {
-    _clientCache.dispose();
-  }
-
   Future<matrix.Client> _login({
     required String did,
     required String jwt,

@@ -42,11 +42,6 @@ class MatrixClientCache {
     _clientCache.remove(cacheKey);
   }
 
-  /// Clears all cached entries.
-  void dispose() {
-    _clientCache.clear();
-  }
-
   String _getCacheKey({required String did}) {
     return '$did._${homeserver.toString()}';
   }

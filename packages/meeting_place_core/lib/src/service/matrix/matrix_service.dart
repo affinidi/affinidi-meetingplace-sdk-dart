@@ -149,11 +149,6 @@ class MatrixService {
     await client.inviteUser(roomId, userId);
   }
 
-  /// Disposes of the session manager, cleaning up resources.
-  void dispose() {
-    _sessionManager.dispose();
-  }
-
   MatrixRoomEvent? _eventToMatrixRoomEvent(
     matrix.Event event, {
     String? myUserId,

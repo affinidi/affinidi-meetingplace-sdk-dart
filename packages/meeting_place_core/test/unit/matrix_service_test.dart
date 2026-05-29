@@ -51,9 +51,6 @@ class _FakeClientCache extends MatrixClientCache {
 
   @override
   void remove({required String did}) => _clients.remove(did);
-
-  @override
-  void dispose() => _clients.clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -349,16 +346,6 @@ void main() {
         expect(id1, isNot(equals(id2)));
       });
     });
-
-    // ------------------------------------------------------------------
-    // dispose
-    // ------------------------------------------------------------------
-
-    test('dispose clears the client cache', () {
-      cache.seed(_testDid, _validClient());
-      manager.dispose();
-      expect(cache.get(did: _testDid), isNull);
-    });
   });
 
   // =========================================================================
@@ -610,16 +597,6 @@ void main() {
           ),
         ).called(1);
       });
-    });
-
-    // ------------------------------------------------------------------
-    // dispose
-    // ------------------------------------------------------------------
-
-    test('dispose delegates to session manager', () {
-      when(() => sessionManager.dispose()).thenReturn(null);
-      service.dispose();
-      verify(() => sessionManager.dispose()).called(1);
     });
   });
 }

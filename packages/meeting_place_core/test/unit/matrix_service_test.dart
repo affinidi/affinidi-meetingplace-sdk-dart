@@ -418,6 +418,7 @@ void main() {
     group('createRoom', () {
       test('returns room ID when session is valid', () async {
         final client = MockMatrixClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
@@ -488,6 +489,7 @@ void main() {
 
       test('maps invite DIDs to Matrix user IDs', () async {
         final client = MockMatrixClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
@@ -527,6 +529,7 @@ void main() {
     group('joinChannelRoom', () {
       test('joins the room via derived alias when session is valid', () async {
         final client = MockMatrixClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);

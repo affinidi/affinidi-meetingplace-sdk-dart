@@ -177,9 +177,6 @@ class MatrixService {
   Future<matrix.Client> _ensureSession(DidManager didManager) async {
     final did = (await didManager.getDidDocument()).id;
 
-    final cached = await _sessionManager.getAuthenticatedClient(did);
-    if (cached != null) return cached;
-
     await loginWithDid(didManager);
     final client = await _sessionManager.getAuthenticatedClient(did);
     if (client == null) {

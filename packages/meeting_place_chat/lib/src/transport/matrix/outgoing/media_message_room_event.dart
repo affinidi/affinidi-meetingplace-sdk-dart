@@ -17,15 +17,15 @@ class MediaMsgType {
 /// A [MatrixOutgoingMessage] for media (file/image/audio/video) messages.
 ///
 /// Builds an `m.room.message` event following the Matrix Client-Server spec:
-/// - Encrypted content: pass [encryptedFileInfo] (the `file` object from the
+/// - Encrypted content: pass `encryptedFileInfo` (the `file` object from the
 ///   upload result containing the JWK, IV, and hashes); its JSON form is used
 ///   as the `file` field and a top-level `url` is omitted.
-/// - Unencrypted content: omit [encryptedFileInfo]; [mxcUri] is placed in the
+/// - Unencrypted content: omit `encryptedFileInfo`; `mxcUri` is placed in the
 ///   top-level `url` field.
 ///
-/// [contentType] and [sizeBytes] are placed inside the `info` sub-object.
-/// [filename] is included as a top-level field when provided.
-/// [caption] overrides the `body` field; otherwise [filename] or msgtype is
+/// `contentType` and `sizeBytes` are placed inside the `info` sub-object.
+/// `filename` is included as a top-level field when provided.
+/// `caption` overrides the `body` field; otherwise `filename` or msgtype is
 /// used as a fallback.
 class MediaMessageRoomEvent extends MatrixOutgoingMessage {
   MediaMessageRoomEvent({

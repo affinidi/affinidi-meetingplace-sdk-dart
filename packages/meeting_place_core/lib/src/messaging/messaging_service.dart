@@ -94,7 +94,7 @@ class MessagingService {
     return _errorHandler.handleError(() async {
       switch (subscription) {
         case MatrixRoomSubscription s:
-          final roomId = await _resolveRoomIdForDid(s.receiverDid);
+          final roomId = await resolveRoomIdForDid(s.receiverDid);
           final stream = _matrixService.subscribeToRoom(
             roomId,
             didManager: await _getDidManager(s.receiverDid),
@@ -146,7 +146,7 @@ class MessagingService {
           // pipeline (ChatActivityEventHandler) which uses it for badge-count
           // bookkeeping and must not be consumed here.
           final sinceEventId = q.sinceEventId ?? channel?.matrixSyncMarker;
-          final roomId = await _resolveRoomIdForDid(q.receiverDid);
+          final roomId = await resolveRoomIdForDid(q.receiverDid);
           final events = await _matrixService.fetchRoomHistory(
             roomId,
             didManager: await _getDidManager(q.receiverDid),
@@ -171,7 +171,7 @@ class MessagingService {
     });
   }
 
-  Future<String> _resolveRoomIdForDid(String did) async {
+  Future<String> resolveRoomIdForDid(String did) async {
     final channel = await _channelService.findChannelByDidOrNull(did);
     if (channel == null) {
       throw StateError('No channel found for DID $did');
@@ -193,7 +193,7 @@ class MessagingService {
   }
 
   Future<String?> _sendMatrixOutgoing(MatrixOutgoingMessage m) async {
-    final roomId = await _resolveRoomIdForDid(m.senderDid);
+    final roomId = await resolveRoomIdForDid(m.senderDid);
     final eventId = await _matrixService.sendRoomEvent(
       roomId,
       m.type,

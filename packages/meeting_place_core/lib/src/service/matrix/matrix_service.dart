@@ -440,7 +440,7 @@ class MatrixService {
   }
 
   void dispose() {
-    _sessionManager.dispose();
+    // MatrixSessionManager lifecycle is managed externally.
   }
 
   /// Uploads media content to the Matrix homeserver's content repository.

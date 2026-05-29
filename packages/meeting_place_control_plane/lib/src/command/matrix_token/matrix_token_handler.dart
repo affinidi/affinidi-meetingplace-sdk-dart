@@ -1,6 +1,6 @@
-import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
@@ -11,7 +11,7 @@ import 'matrix_token.dart';
 import 'matrix_token_exception.dart';
 import 'matrix_token_output.dart';
 
-/// A concreate implementation of the [CommandHandler] interface.
+/// A concrete implementation of the [CommandHandler] interface.
 ///
 /// Handles communication with the API server, including preparing the
 /// challenge-response authentication payload, sending the request, and
@@ -40,7 +40,7 @@ class MatrixTokenHandler
   final String controlPlaneDid;
   final ControlPlaneSDKLogger _logger;
 
-  MatrixTokenCommandOutput _parseResponseData(Map<String, dynamic>? data) {
+  MatrixTokenCommandOutput _parseResponseData(MatrixTokenOK? data) {
     if (data == null) {
       _logger.error('Response data is null', name: _logKey);
       throw MatrixTokenException.invalidResponse(
@@ -48,8 +48,8 @@ class MatrixTokenHandler
       );
     }
 
-    final token = data['token'];
-    if (token is! String || token.trim().isEmpty) {
+    final token = data.token;
+    if (token == null || token.trim().isEmpty) {
       _logger.error('Missing or empty token in response', name: _logKey);
       throw MatrixTokenException.invalidResponse(
         message: 'Missing or empty token in response',
@@ -77,32 +77,28 @@ class MatrixTokenHandler
   @override
   Future<MatrixTokenCommandOutput> handle(MatrixTokenCommand command) async {
     try {
-      final challengeResponse = await DidCommChallengeResponse.build(
+      final challengeResponse = await DidCommChallengeResponse.buildForMatrix(
         apiClient: apiClient,
         didManager: command.didManager,
         didResolver: didResolver,
         recipientDid: controlPlaneDid,
         onEmptyChallenge: (_) {
           _logger.error(
-            'Empty challenge returned from didChallenge',
+            'Empty challenge returned from matrixChallenge',
             name: _logKey,
           );
           return MatrixTokenException.invalidResponse(
-            message: 'Empty challenge returned from didChallenge',
+            message: 'Empty challenge returned from matrixChallenge',
           );
         },
       );
 
-      final response = await apiClient.dio.post<Map<String, dynamic>>(
-        '/v1/matrix/token',
-        data: {
-          'challenge_response': challengeResponse.challengeResponse,
-          'homeserver': command.homeserver.toString(),
-        },
-        options: Options(
-          headers: {Headers.contentTypeHeader: Headers.jsonContentType},
-          contentType: Headers.jsonContentType,
-        ),
+      final response = await apiClient.client.matrixToken(
+        matrixToken:
+            (MatrixTokenBuilder()
+                  ..challengeResponse = challengeResponse.challengeResponse
+                  ..homeserver = command.homeserver.toString())
+                .build(),
       );
 
       return _parseResponseData(response.data);

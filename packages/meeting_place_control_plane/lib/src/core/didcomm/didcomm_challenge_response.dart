@@ -41,18 +41,57 @@ class DidCommChallengeResponse {
     Exception Function(String senderDid)? onEmptyChallenge,
   }) async {
     final senderDidDocument = await didManager.getDidDocument();
-    final challengeBuilder = DidChallengeBuilder()..did = senderDidDocument.id;
-
     final challengeResponse = await apiClient.client.didChallenge(
-      didChallenge: challengeBuilder.build(),
+      didChallenge: (DidChallengeBuilder()..did = senderDidDocument.id).build(),
     );
+    return _buildFromChallenge(
+      senderDidDocument: senderDidDocument,
+      challenge: challengeResponse.data?.challenge,
+      didManager: didManager,
+      didResolver: didResolver,
+      recipientDid: recipientDid,
+      onEmptyChallenge: onEmptyChallenge,
+    );
+  }
 
-    final challenge = challengeResponse.data?.challenge;
+  /// Variant of [build] that fetches the challenge from the Matrix challenge
+  /// endpoint (`/v1/matrix/challenge`) instead of the DID authenticate
+  /// challenge endpoint.
+  static Future<DidCommChallengeResponse> buildForMatrix({
+    required ControlPlaneApiClient apiClient,
+    required DidManager didManager,
+    required DidResolver didResolver,
+    required String recipientDid,
+    Exception Function(String senderDid)? onEmptyChallenge,
+  }) async {
+    final senderDidDocument = await didManager.getDidDocument();
+    final challengeResponse = await apiClient.client.matrixChallenge(
+      matrixChallenge: (MatrixChallengeBuilder()..did = senderDidDocument.id)
+          .build(),
+    );
+    return _buildFromChallenge(
+      senderDidDocument: senderDidDocument,
+      challenge: challengeResponse.data?.challenge,
+      didManager: didManager,
+      didResolver: didResolver,
+      recipientDid: recipientDid,
+      onEmptyChallenge: onEmptyChallenge,
+    );
+  }
+
+  static Future<DidCommChallengeResponse> _buildFromChallenge({
+    required DidDocument senderDidDocument,
+    required String? challenge,
+    required DidManager didManager,
+    required DidResolver didResolver,
+    required String recipientDid,
+    required Exception Function(String senderDid)? onEmptyChallenge,
+  }) async {
     if (challenge == null || challenge.trim().isEmpty) {
       if (onEmptyChallenge != null) {
         throw onEmptyChallenge(senderDidDocument.id);
       }
-      throw StateError('Empty challenge returned from didChallenge');
+      throw StateError('Empty challenge returned from challenge endpoint');
     }
 
     final recipientDidDocument = await didResolver.resolveDid(recipientDid);

@@ -301,6 +301,13 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
+  Future<void> deleteMessage(Message message, {bool localOnly = false}) {
+    throw UnsupportedError(
+      'Message deletion is not supported over DIDComm transport.',
+    );
+  }
+
+  @override
   Future<void> sendEffect(Effect effect) async {
     assertCanSend();
     await coreSDK.sendMessage(

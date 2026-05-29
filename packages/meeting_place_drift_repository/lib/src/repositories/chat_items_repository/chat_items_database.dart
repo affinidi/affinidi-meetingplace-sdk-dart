@@ -69,7 +69,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -146,6 +146,20 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
               'ALTER TABLE chat_items ADD COLUMN transport_id TEXT',
             );
           }
+          if (from < 4) {
+            // Persist tombstone flags so locally-hidden and remotely-redacted
+            // messages survive cold start. Without these, `clearContent` wipes
+            // the row's text/attachments but the flags themselves are lost on
+            // reload, leaving an empty bubble instead of a tombstone.
+            await customStatement(
+              'ALTER TABLE chat_items ADD COLUMN is_deleted INTEGER NOT NULL '
+              'DEFAULT 0 CHECK ("is_deleted" IN (0, 1))',
+            );
+            await customStatement(
+              'ALTER TABLE chat_items ADD COLUMN is_deleted_locally INTEGER '
+              'NOT NULL DEFAULT 0 CHECK ("is_deleted_locally" IN (0, 1))',
+            );
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
@@ -197,6 +211,16 @@ class ChatItems extends Table {
   /// that have not yet been delivered. Used as the relation target when
   /// sending edits, reactions, or redactions.
   TextColumn get transportId => text().nullable()();
+
+  /// Whether the message has been redacted for all participants via the
+  /// transport. Persisted so the tombstone state survives cold start.
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+
+  /// Whether the message has been hidden for the local user only via
+  /// `deleteMessage(localOnly: true)`. Never broadcast; persisted so the
+  /// local-only hide survives cold start.
+  BoolColumn get isDeletedLocally =>
+      boolean().withDefault(const Constant(false))();
 
   /// Table primary key definition.
   @override

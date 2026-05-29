@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -90,11 +91,28 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     logger.info('Retrieving all persisted messages', name: methodName);
     final events = await _fetchRoomHistoryAsRoomEvents();
 
+    // Persisted tombstone flags (`isDeletedLocally`, `isDeleted`) cannot be
+    // reconstructed from the Matrix timeline alone — local-only hides are
+    // never broadcast, and a redaction event may have been pruned by the
+    // server. Index persisted messages by their `transportId` (server event
+    // id) so we can re-apply both flags onto the freshly rebuilt items.
+    final persisted = await chatRepository.listMessages(chatId);
+    final persistedByTransportId = <String, Message>{
+      for (final m in persisted.whereType<Message>())
+        if (m.transportId != null) m.transportId!: m,
+    };
+
     final messagesByEventId = <String, Message>{};
     final ordered = <ChatItem>[];
     final pendingEdits = <MatrixRoomEvent>[];
+    final pendingRedactions = <MatrixRoomEvent>[];
 
     for (final e in events) {
+      if (e.type == matrix.EventTypes.Redaction) {
+        pendingRedactions.add(e);
+        continue;
+      }
+
       final senderDid = _resolveSenderDIDFromRoomEvent(e);
       if (senderDid == null) {
         logger.warning(
@@ -143,6 +161,31 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       }
       message.value = newBody;
       message.editedAt = edit.timestamp;
+    }
+
+    for (final redaction in pendingRedactions) {
+      final target = redaction.content['redacts'] as String?;
+      if (target == null) continue;
+      final message = messagesByEventId[target];
+      if (message == null) continue;
+      message.isDeleted = true;
+      message.clearContent();
+    }
+
+    // Re-apply persisted tombstone flags. `isDeletedLocally` is never on the
+    // wire, and `isDeleted` would otherwise depend on the redaction event
+    // still being present in the timeline window we just fetched.
+    for (final entry in messagesByEventId.entries) {
+      final p = persistedByTransportId[entry.key];
+      if (p == null) continue;
+      if (p.isDeletedLocally) {
+        entry.value.isDeletedLocally = true;
+        entry.value.clearContent();
+      }
+      if (p.isDeleted && !entry.value.isDeleted) {
+        entry.value.isDeleted = true;
+        entry.value.clearContent();
+      }
     }
 
     return ordered;
@@ -313,6 +356,75 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     logger.info('Completed editing message', name: methodName);
+  }
+
+  @override
+  Future<void> deleteMessage(Message message, {bool localOnly = false}) async {
+    const methodName = 'deleteMessage';
+
+    if (!message.isFromMe) {
+      throw StateError('Only the original sender can delete a message');
+    }
+
+    if (localOnly) {
+      if (message.isDeletedLocally) return;
+      message.isDeletedLocally = true;
+      message.clearContent();
+      await chatRepository.updateMesssage(message);
+      chatStream.pushData(StreamData(chatItem: message));
+      logger.info(
+        'Hid message locally: ${message.messageId}',
+        name: methodName,
+      );
+      return;
+    }
+
+    assertCanSend();
+    final transportId = message.transportId;
+    if (transportId == null) {
+      throw StateError(
+        'Cannot delete a message that has not yet been delivered',
+      );
+    }
+    if (message.isDeleted) return;
+
+    final window = options.deleteMessageWindow;
+    final age = DateTime.now().toUtc().difference(message.dateCreated);
+    if (window == Duration.zero || age > window) {
+      throw StateError('Window for deleting this message has expired');
+    }
+
+    final previousValue = message.value;
+    final previousAttachments = List<ChatAttachment>.from(message.attachments);
+    final previousReactions = List<String>.from(message.reactions);
+    final previousEditedAt = message.editedAt;
+
+    message.isDeleted = true;
+    message.clearContent();
+    await chatRepository.updateMesssage(message);
+    chatStream.pushData(StreamData(chatItem: message));
+
+    try {
+      await coreSDK.sendMessage(
+        RedactionRoomEvent(senderDid: did, targetEventId: transportId),
+      );
+      logger.info('Deleted message: ${message.messageId}', name: methodName);
+    } catch (e, stackTrace) {
+      logger.error(
+        'Failed to send message redaction',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      message.isDeleted = false;
+      message.value = previousValue;
+      message.attachments = previousAttachments;
+      message.reactions = previousReactions;
+      message.editedAt = previousEditedAt;
+      await chatRepository.updateMesssage(message);
+      chatStream.pushData(StreamData(chatItem: message));
+      Error.throwWithStackTrace(e, stackTrace);
+    }
   }
 
   /// Dispatches an arbitrary Matrix room event into the underlying room.

@@ -3,8 +3,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import '../../../../meeting_place_chat.dart';
 import 'incoming_reaction_state_store.dart';
 
-/// Handles `m.room.redaction` events that revoke a previously received
-/// reaction, removing it from the target message.
+/// Handles `m.room.redaction` events. Redactions can target two things:
+/// a previously received reaction (revoked → remove from target message)
+/// or a previously received message (deleted by its sender → mark the
+/// stored [Message] as `isDeleted`).
 class RedactionHandler {
   RedactionHandler({
     required ChatRepository chatRepository,
@@ -26,17 +28,35 @@ class RedactionHandler {
     if (redactedEventId == null) return;
 
     final entry = _reactionStateStore.popByEventId(redactedEventId);
-    if (entry == null) return;
+    if (entry != null) {
+      final message = await _chatRepository.getMessage(
+        chatId: _chatId,
+        messageId: entry.messageId,
+      );
+      if (message == null || message is! Message) return;
 
-    final message = await _chatRepository.getMessage(
-      chatId: _chatId,
-      messageId: entry.messageId,
-    );
-    if (message == null || message is! Message) return;
+      if (!message.reactions.remove(entry.reaction)) return;
 
-    if (!message.reactions.remove(entry.reaction)) return;
+      await _chatRepository.updateMesssage(message);
+      _chatStream.pushData(StreamData(chatItem: message));
+      return;
+    }
 
+    final message = await _findMessageByTransportId(redactedEventId);
+    if (message == null) return;
+    if (message.isDeleted) return;
+
+    message.isDeleted = true;
+    message.clearContent();
     await _chatRepository.updateMesssage(message);
     _chatStream.pushData(StreamData(chatItem: message));
+  }
+
+  Future<Message?> _findMessageByTransportId(String transportId) async {
+    final items = await _chatRepository.listMessages(_chatId);
+    for (final item in items) {
+      if (item is Message && item.transportId == transportId) return item;
+    }
+    return null;
   }
 }

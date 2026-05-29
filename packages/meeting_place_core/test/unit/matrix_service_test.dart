@@ -1,6 +1,7 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_core/src/service/matrix/matrix_auth_exception.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_client_cache.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_config.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
@@ -520,6 +521,28 @@ void main() {
           ),
         ).called(1);
       });
+
+      test(
+        'throws MatrixAuthException when loginWithDid succeeds but the '
+        'session is unavailable',
+        () async {
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => null);
+          final tokenOutput = _stubMatrixToken(controlPlane, didManager);
+          when(
+            () => sessionManager.loginWithJwt(
+              jwt: tokenOutput.token.toJwt(),
+              did: _testDid,
+            ),
+          ).thenAnswer((_) async => _matrixUserId);
+
+          expect(
+            () => service.createRoom(didManager: didManager),
+            throwsA(isA<MatrixAuthException>()),
+          );
+        },
+      );
     });
 
     // ------------------------------------------------------------------

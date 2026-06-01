@@ -197,7 +197,14 @@ void main() {
   });
 
   group('LivenessProofPayload.fromJson', () {
-    test('rejects wrong type discriminator when present', () {
+    test('requires liveness_proof type', () {
+      expect(
+        () => LivenessProofPayload.fromJson({
+          LivenessZkpProtocol.proofJsonKey: 'a',
+          LivenessZkpProtocol.publicSignalsJsonKey: 'b',
+        }),
+        throwsA(isA<FormatException>()),
+      );
       expect(
         () => LivenessProofPayload.fromJson({
           LivenessZkpProtocol.typeJsonKey: 'other',
@@ -206,10 +213,10 @@ void main() {
         }),
         throwsA(isA<FormatException>()),
       );
-    });
 
-    test('accepts missing type key for backward compatibility', () {
       final p = LivenessProofPayload.fromJson({
+        LivenessZkpProtocol.typeJsonKey:
+            LivenessZkpProtocol.livenessProofPayloadType,
         LivenessZkpProtocol.proofJsonKey: 'a',
         LivenessZkpProtocol.publicSignalsJsonKey: 'b',
       });

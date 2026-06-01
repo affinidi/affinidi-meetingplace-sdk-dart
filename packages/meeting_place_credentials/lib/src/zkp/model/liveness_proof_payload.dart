@@ -4,13 +4,13 @@ import 'liveness_zkp_protocol.dart';
 final class LivenessProofPayload {
   /// Parses and validates a decoded JSON map from a liveness-proof attachment.
   ///
-  /// Throws [FormatException] if required fields are missing or wrong type.
-  /// If `type` is present it must match
-  /// [LivenessZkpProtocol.livenessProofPayloadType].
+  /// Throws [FormatException] if required fields are missing or invalid.
   factory LivenessProofPayload.fromJson(Map<String, dynamic> json) {
     final type = json[LivenessZkpProtocol.typeJsonKey];
-    if (type != null && type != LivenessZkpProtocol.livenessProofPayloadType) {
-      throw FormatException('Unexpected liveness ZKP payload type: $type');
+    if (type != LivenessZkpProtocol.livenessProofPayloadType) {
+      throw const FormatException(
+        'Missing or invalid "${LivenessZkpProtocol.typeJsonKey}"',
+      );
     }
 
     final proof = json[LivenessZkpProtocol.proofJsonKey];

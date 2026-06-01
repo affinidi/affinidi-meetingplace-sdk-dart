@@ -13,12 +13,17 @@ abstract final class LivenessZkpDIDCommAttachmentBuilder {
 
   /// One attachment asking the peer to run the liveness + proof flow.
   static List<Attachment> buildLivenessCheckRequest({
+    required String challengeNonceHex,
     String? attachmentId,
     DateTime? lastModified,
   }) => [
     _jsonAttachment(
       format: LivenessZkpProtocol.livenessCheckRequestFormat,
-      json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
+      json: jsonEncode(
+        LivenessCheckRequestPayload(
+          challengeNonceHex: challengeNonceHex,
+        ).toJson(),
+      ),
       attachmentId: attachmentId,
       lastModified: lastModified,
     ),

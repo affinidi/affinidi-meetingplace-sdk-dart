@@ -4,6 +4,13 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 import 'package:test/test.dart';
 
+const _testChallengeNonceHex =
+    '0123456789abcdef0123456789abcdef'
+    '0123456789abcdef0123456789abcdef';
+
+LivenessCheckRequestPayload _testRequestPayload() =>
+    LivenessCheckRequestPayload(challengeNonceHex: _testChallengeNonceHex);
+
 void main() {
   group('LivenessZkpAttachmentParser', () {
     test('matchesRequestFormat and matchesProofFormat are format only', () {
@@ -95,7 +102,7 @@ void main() {
           format: LivenessZkpProtocol.livenessCheckRequestFormat,
           lastModifiedTime: DateTime.utc(2026),
           data: AttachmentData(
-            json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
+            json: jsonEncode(_testRequestPayload().toJson()),
           ),
         ),
       ];
@@ -118,9 +125,7 @@ void main() {
         mediaType: 'application/json',
         format: LivenessZkpProtocol.livenessProofFormat,
         lastModifiedTime: DateTime.utc(2026),
-        data: AttachmentData(
-          json: jsonEncode(const LivenessCheckRequestPayload().toJson()),
-        ),
+        data: AttachmentData(json: jsonEncode(_testRequestPayload().toJson())),
       );
       final emptyPayload = Attachment(
         id: '2',
@@ -191,8 +196,10 @@ void main() {
       final payload = LivenessCheckRequestPayload.fromJson({
         LivenessZkpProtocol.typeJsonKey:
             LivenessZkpProtocol.livenessRequestPayloadType,
+        LivenessZkpProtocol.challengeNonceJsonKey: _testChallengeNonceHex,
       });
       expect(payload, isA<LivenessCheckRequestPayload>());
+      expect(payload.challengeNonceBytes, hasLength(32));
     });
   });
 

@@ -3,11 +3,16 @@ import 'dart:convert';
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 import 'package:test/test.dart';
 
+const _testChallengeNonceHex =
+    '0123456789abcdef0123456789abcdef'
+    '0123456789abcdef0123456789abcdef';
+
 void main() {
   group('LivenessZkpDIDCommAttachmentBuilder', () {
     test('buildLivenessCheckRequest encodes expected format and payload', () {
       final list =
           LivenessZkpDIDCommAttachmentBuilder.buildLivenessCheckRequest(
+            challengeNonceHex: _testChallengeNonceHex,
             attachmentId: 'req-1',
             lastModified: DateTime.utc(2026, 1, 2),
           );
@@ -22,6 +27,10 @@ void main() {
       expect(
         map[LivenessZkpProtocol.typeJsonKey],
         LivenessZkpProtocol.livenessRequestPayloadType,
+      );
+      expect(
+        map[LivenessZkpProtocol.challengeNonceJsonKey],
+        _testChallengeNonceHex,
       );
       expect(LivenessZkpAttachmentParser.tryParseRequest(att), isNotNull);
     });

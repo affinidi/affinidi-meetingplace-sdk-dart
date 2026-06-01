@@ -14,4 +14,7 @@ abstract final class LivenessZkpProtocol {
   static const proofJsonKey = 'proof';
 
   static const publicSignalsJsonKey = 'publicSignals';
+
+  /// 32-byte verifier challenge as 64 lowercase hex characters.
+  static const challengeNonceJsonKey = 'challengeNonce';
 }

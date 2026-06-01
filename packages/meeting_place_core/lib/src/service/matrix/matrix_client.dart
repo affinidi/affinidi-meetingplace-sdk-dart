@@ -16,8 +16,9 @@ class MatrixClient {
   /// database, and performing a homeserver check to ensure connectivity.
   ///
   /// Requires `vodozemac` to be initialized by the consumer before this method
-  /// is invoked (see [_assertVodozemacInitialized]); otherwise the resulting
-  /// Matrix client cannot encrypt or decrypt room events.
+  /// is invoked (see [_assertVodozemacInitialized]); otherwise this method
+  /// throws a [StateError] and no Matrix client is created.
+  ///
   ///
   /// Parameters:
   /// - [config]: The configuration for the Matrix client, including homeserver

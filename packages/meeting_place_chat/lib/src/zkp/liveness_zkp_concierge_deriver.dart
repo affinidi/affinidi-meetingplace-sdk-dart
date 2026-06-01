@@ -169,15 +169,25 @@ abstract final class LivenessZkpConciergeDeriver {
         ),
       );
     }
+    if (latestTheirProof != null) {
+      derived.add(
+        LivenessZkpConciergeChatMapper.toConciergeMessage(
+          LivenessZkpConciergeMessages.humanZkpProofReceived(
+            chatId: latestTheirProof.chatId,
+            messageId: LivenessZkpConciergeIds.proofReceived(
+              latestTheirProof.messageId,
+            ),
+            dateCreated: latestTheirProof.dateCreated,
+            contactName: contactName,
+          ),
+        ),
+      );
+    }
     final latestRequestNoticeId = latestIncomingRequest == null
         ? null
         : LivenessZkpConciergeIds.requestReceived(
             latestIncomingRequest.message.messageId,
           );
-
-    final latestIncomingProofNoticeId = latestTheirProof == null
-        ? null
-        : LivenessZkpConciergeIds.proofReceived(latestTheirProof.messageId);
 
     final pausedNotices = existing.whereType<ConciergeMessage>().where(
       (notice) =>
@@ -190,14 +200,6 @@ abstract final class LivenessZkpConciergeDeriver {
                   )),
     );
 
-    final verifiedProofNotices = existing.whereType<ConciergeMessage>().where(
-      (notice) =>
-          notice.conciergeType.value ==
-              LivenessZkpConciergeTypes.humanZkpProofReceived &&
-          latestIncomingProofNoticeId != null &&
-          notice.messageId == latestIncomingProofNoticeId,
-    );
-
     final withoutHumanZkp = existing.where(
       (item) => !isHumanZkpConcierge(item),
     );
@@ -205,7 +207,6 @@ abstract final class LivenessZkpConciergeDeriver {
     return [
       ...withoutHumanZkp,
       ...pausedNotices,
-      ...verifiedProofNotices,
       ...derived,
     ].sortedBy((item) => item.dateCreated).reversed.toList();
   }

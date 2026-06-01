@@ -255,6 +255,37 @@ void main() {
         );
       });
 
+      test('derives proof-received notice from latest incoming proof', () {
+        final olderProof = _zkpMessage(
+          messageId: 'peer-proof-old',
+          isFromMe: false,
+          dateCreated: t0,
+          attachments: [_zkpProofAttachment()],
+        );
+        final latestProof = _zkpMessage(
+          messageId: 'peer-proof-new',
+          isFromMe: false,
+          dateCreated: t2,
+          attachments: [_zkpProofAttachment()],
+        );
+
+        final result =
+            LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages([
+              olderProof,
+              latestProof,
+            ], contactName: contactName);
+
+        final notice = _findConcierge(
+          result,
+          LivenessZkpConciergeTypes.humanZkpProofReceived,
+        );
+        expect(notice, isNotNull);
+        expect(
+          notice!.messageId,
+          LivenessZkpConciergeIds.proofReceived('peer-proof-new'),
+        );
+      });
+
       test('leaves non-ZKP chat items unchanged', () {
         final text = Message(
           chatId: chatId,

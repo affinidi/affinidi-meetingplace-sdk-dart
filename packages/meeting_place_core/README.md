@@ -65,6 +65,42 @@ dart pub get
 
 Visit the pub.dev install page of the Dart package for more information.
 
+## Initializing the encryption runtime (for Matrix usage)
+
+The SDK uses native Matrix end-to-end encryption, which is backed by the
+[`vodozemac`](https://pub.dev/packages/vodozemac) library. Vodozemac must be
+initialized **once, before** the first `loginWithDid` call; otherwise the SDK
+throws a `StateError` when it tries to create a Matrix client.
+
+**Flutter apps** — add [`flutter_vodozemac`](https://pub.dev/packages/flutter_vodozemac)
+to your app's `pubspec.yaml` and initialize it from `main()`:
+
+```dart  
+import 'package:flutter_vodozemac/flutter_vodozemac.dart' as fvod;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await fvod.init();
+  // ... create MeetingPlaceCoreSDK
+}
+```
+
+`flutter_vodozemac` ships prebuilt binaries for iOS, Android, macOS, Linux,
+Windows, and web.
+
+**Pure-Dart apps** — build the vodozemac library for your target platform (see
+the [vodozemac README](https://pub.dev/packages/vodozemac) for the Rust build
+steps) and initialize it directly:
+
+```dart
+import 'package:vodozemac/vodozemac.dart' as vod;
+
+Future<void> main() async {
+  await vod.init(libraryPath: '/path/to/vodozemac/dylib/dir');
+  // ... create MeetingPlaceCoreSDK
+}
+```
+
 ## Usage
 
 ```dart

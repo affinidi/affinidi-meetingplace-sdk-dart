@@ -99,6 +99,12 @@ class MatrixService {
       'invite=${inviteUsers?.length ?? 0}',
     );
     final client = await _ensureSession(didManager);
+    if (!client.encryptionEnabled) {
+      throw StateError(
+        'Matrix client encryption is not enabled; cannot create encrypted '
+        'room. Ensure vodozemac initialized successfully before login.',
+      );
+    }
     return client.createRoom(
       roomAliasName: deriveRoomAliasLocalpart(
         channelDid: channelDid,
@@ -107,6 +113,15 @@ class MatrixService {
       invite: inviteUsers
           ?.map((did) => _sessionManager.deriveUserId(did, homeserver.host))
           .toList(),
+      initialState: [
+        matrix.StateEvent(
+          type: matrix.EventTypes.Encryption,
+          content: {
+            'algorithm':
+                matrix.Client.supportedGroupEncryptionAlgorithms.first,
+          },
+        ),
+      ],
     );
   }
 

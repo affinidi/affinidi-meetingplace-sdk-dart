@@ -319,6 +319,7 @@ void main() {
     late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String signedVrcBlob;
+    late String issuerDid;
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
@@ -329,7 +330,7 @@ void main() {
       final keyPair = await wallet.generateKey();
       await issuerManager.addVerificationMethod(keyPair.id);
       final didDoc = await issuerManager.getDidDocument();
-      final issuerDid = didDoc.id;
+      issuerDid = didDoc.id;
 
       final signed = await CredentialBuilder.buildVrc(
         issuerDid: issuerDid,
@@ -504,6 +505,7 @@ void main() {
     late StreamController<ChannelAttachmentEvent> channelAttachmentsCtrl;
     late StreamController<PlainTextMessage> vdipMessagesCtrl;
     late String signedVrcBlob;
+    late String issuerDid;
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
@@ -514,7 +516,7 @@ void main() {
       final keyPair = await wallet.generateKey();
       await issuerManager.addVerificationMethod(keyPair.id);
       final didDoc = await issuerManager.getDidDocument();
-      final issuerDid = didDoc.id;
+      issuerDid = didDoc.id;
 
       final signed = await CredentialBuilder.buildVrc(
         issuerDid: issuerDid,

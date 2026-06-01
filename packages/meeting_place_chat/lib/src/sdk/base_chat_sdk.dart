@@ -739,6 +739,12 @@ abstract class BaseChatSDK {
     required List<Attachment> attachments,
     required String senderDid,
   }) async {
+    if (senderDid != did && senderDid != otherPartyDid) {
+      throw Exception(
+        'senderDid $senderDid is not a participant of this chat '
+        '(did=$did, otherPartyDid=$otherPartyDid).',
+      );
+    }
     final chatMessage = Message(
       chatId: chatId,
       messageId: const Uuid().v4(),

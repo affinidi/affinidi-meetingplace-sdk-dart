@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 void main() {
   group('VrcVdipStreamManager', () {
     late String signedVrcBlob;
+    late String issuerDid;
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
@@ -19,7 +20,7 @@ void main() {
       final keyPair = await wallet.generateKey();
       await manager.addVerificationMethod(keyPair.id);
       final didDoc = await manager.getDidDocument();
-      final issuerDid = didDoc.id;
+      issuerDid = didDoc.id;
 
       final vc = await CredentialBuilder.buildVrc(
         issuerDid: issuerDid,

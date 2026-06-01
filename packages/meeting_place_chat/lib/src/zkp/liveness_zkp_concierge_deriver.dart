@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 
 import '../entity/chat_item.dart';
 import '../entity/concierge_message.dart';

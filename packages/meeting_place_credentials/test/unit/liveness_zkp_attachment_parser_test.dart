@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 /// Provider-neutral result of a liveness check.
 ///
 /// Any liveness vendor (AWS Rekognition, Azure Face API, Onfido, etc.) should
-/// map its response into this model before issuing a [LivenessCredential].
+/// map its response into this model before issuing a liveness VC.
 class LivenessEvidence {
   const LivenessEvidence({
     required this.providerId,

@@ -1,15 +1,16 @@
 import 'dart:convert';
 
-import 'package:meeting_place_relationship/meeting_place_relationship.dart';
+import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('LivenessZkpDIDCommAttachmentBuilder', () {
     test('buildLivenessCheckRequest encodes expected format and payload', () {
-      final list = LivenessZkpDIDCommAttachmentBuilder.buildLivenessCheckRequest(
-        attachmentId: 'req-1',
-        lastModified: DateTime.utc(2026, 1, 2),
-      );
+      final list =
+          LivenessZkpDIDCommAttachmentBuilder.buildLivenessCheckRequest(
+            attachmentId: 'req-1',
+            lastModified: DateTime.utc(2026, 1, 2),
+          );
 
       expect(list, hasLength(1));
       final att = list.single;

@@ -1,13 +1,13 @@
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../shared/credential_constants.dart';
+import '../../shared/credential_sdk_constants.dart';
 import '../../shared/credential_signer.dart';
 import '../model/liveness_credential_constants.dart';
 import '../model/liveness_credential_subject.dart';
 import '../model/liveness_evidence.dart';
 
-/// Builds signed W3C [LivenessCredential] verifiable credentials.
+/// Builds signed W3C liveness verifiable credentials.
 abstract final class LivenessVcBuilder {
   static Future<VcDataModelV2> build({
     required String issuerDid,
@@ -22,13 +22,13 @@ abstract final class LivenessVcBuilder {
     final unsigned = VcDataModelV2(
       context: JsonLdContext.fromJson([
         dmV2ContextUrl,
-        RelationshipCredentialConstants.dataIntegrityV2Context,
+        CredentialsSDKConstants.dataIntegrityV2Context,
         LivenessCredentialConstants.contextLivenessCredential,
       ]),
       id: Uri.parse('urn:uuid:${const Uuid().v4()}'),
       issuer: Issuer.uri(issuerDid),
       type: {
-        RelationshipCredentialConstants.typeVerifiableCredential,
+        CredentialsSDKConstants.typeVerifiableCredential,
         LivenessCredentialConstants.typeLivenessCredential,
       },
       validFrom: validFrom,

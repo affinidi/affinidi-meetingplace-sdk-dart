@@ -56,7 +56,7 @@ class CredentialBuilder {
   /// Builds and signs a Liveness Verifiable Credential.
   ///
   /// Uses W3C Data Model v2 with a Data Integrity proof. Liveness claims are
-  /// provider-neutral and stored in [LivenessCredentialSubject].
+  /// provider-neutral and stored in the credential subject.
   static Future<VerifiableCredential> buildLiveness({
     required String issuerDid,
     required String holderDid,

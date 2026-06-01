@@ -1,30 +1,30 @@
-import 'dart:async';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
 import '../../../event/chat_event_conversion.dart';
 import 'message_edit_handler.dart';
 
-/// Handles incoming `m.room.message` events. Persists the message, pushes it
-/// to the chat stream and fires a delivered receipt. Sender DID is supplied
-/// by core's `MessagingService` via [MatrixRoomEvent.senderDid].
+/// Handles incoming `m.room.message` events. Persists the message and pushes
+/// it to the chat stream. Sender DID is supplied by core's `MessagingService`
+/// via [MatrixRoomEvent.senderDid].
 ///
 /// `m.room.message` events that carry an `m.replace` relation are delegated
 /// to [MessageEditHandler] which mutates the target message in place.
+///
+/// Delivery receipts are issued by the SDK after handling completes, so the
+/// buffered-fetch path can send a single cumulative receipt for the latest
+/// event rather than one per message (Matrix `m.read` is cumulative).
 class TextMessageHandler {
   TextMessageHandler({
     required ChatRepository chatRepository,
     required ChatStream chatStream,
     required String chatId,
     required MeetingPlaceChatSDKLogger logger,
-    required Future<void> Function(String messageId) sendDeliveredReceipt,
     required MessageEditHandler editHandler,
   }) : _chatRepository = chatRepository,
        _chatStream = chatStream,
        _chatId = chatId,
        _logger = logger,
-       _sendDeliveredReceipt = sendDeliveredReceipt,
        _editHandler = editHandler;
 
   static const String _logkey = 'TextMessageHandler';
@@ -33,7 +33,6 @@ class TextMessageHandler {
   final ChatStream _chatStream;
   final String _chatId;
   final MeetingPlaceChatSDKLogger _logger;
-  final Future<void> Function(String messageId) _sendDeliveredReceipt;
   final MessageEditHandler _editHandler;
 
   Future<void> handle(MatrixRoomEvent event) async {
@@ -70,7 +69,5 @@ class TextMessageHandler {
         name: _logkey,
       );
     }
-
-    unawaited(_sendDeliveredReceipt(event.id));
   }
 }

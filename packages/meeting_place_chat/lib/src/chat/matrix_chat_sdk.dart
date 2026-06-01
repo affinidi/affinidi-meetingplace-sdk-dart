@@ -68,6 +68,11 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       await _handleIncomingRoomEvent(event);
     }
 
+    final latestReceiptId = _latestReceiptWorthyId(incomingEvents);
+    if (latestReceiptId != null) {
+      await sendChatDeliveredMessage(latestReceiptId);
+    }
+
     final existingMessages = await chatRepository.listMessages(chatId);
     final messages = <ChatItem>[...existingMessages];
 
@@ -161,11 +166,39 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         .where((m) => m is MatrixIncomingMessage)
         .cast<MatrixIncomingMessage>()
         .map(_toRoomEvent)
-        .listen((event) async => await _handleIncomingRoomEvent(event));
+        .listen((event) async {
+          await _handleIncomingRoomEvent(event);
+          if (_isReceiptWorthy(event)) {
+            await sendChatDeliveredMessage(event.id);
+          }
+        });
   }
 
   Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
       _incomingRouter.route(event);
+
+  /// True when [event] is a primary `m.room.message` (i.e. not an edit).
+  /// Used to decide whether to issue an `m.read` receipt — edits piggyback on
+  /// the receipt for the original message.
+  static bool _isReceiptWorthy(MatrixRoomEvent event) {
+    if (event.type != 'm.room.message') return false;
+    final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
+    return relatesTo?['rel_type'] != 'm.replace';
+  }
+
+  /// Returns the id of the most recent receipt-worthy event in [events], or
+  /// `null` if none qualify. History fetches are not guaranteed to be in
+  /// chronological order, so we pick by timestamp rather than position.
+  static String? _latestReceiptWorthyId(List<MatrixRoomEvent> events) {
+    MatrixRoomEvent? latest;
+    for (final event in events) {
+      if (!_isReceiptWorthy(event)) continue;
+      if (latest == null || event.timestamp.isAfter(latest.timestamp)) {
+        latest = event;
+      }
+    }
+    return latest?.id;
+  }
 
   @override
   Future<Message> sendTextMessage(

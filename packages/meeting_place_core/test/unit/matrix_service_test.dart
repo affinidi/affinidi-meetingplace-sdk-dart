@@ -21,11 +21,15 @@ class MockDidDocument extends Mock implements DidDocument {}
 
 class MockMatrixClient extends Mock implements matrix.Client {}
 
+class MockMatrixRoom extends Mock implements matrix.Room {}
+
 class MockMatrixSessionManager extends Mock implements MatrixSessionManager {}
 
 class FakeMatrixTokenCommand extends Fake implements MatrixTokenCommand {}
 
 class FakeStateEvent extends Fake implements matrix.StateEvent {}
+
+class FakeSyncUpdate extends Fake implements matrix.SyncUpdate {}
 
 /// A [MatrixClientCache] that accepts pre-seeded [matrix.Client] entries
 /// without going through `MatrixClient.init`.
@@ -106,6 +110,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(FakeMatrixTokenCommand());
     registerFallbackValue(<matrix.StateEvent>[FakeStateEvent()]);
+    registerFallbackValue(FakeSyncUpdate());
   });
 
   // =========================================================================
@@ -487,6 +492,9 @@ void main() {
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
         when(
+          () => sessionManager.deriveUserId(any(), any()),
+        ).thenReturn(_matrixUserId);
+        when(
           () =>
               sessionManager.deriveUserId('did:test:bob', _testHomeserver.host),
         ).thenReturn('@bob-hash:matrix.example.com');
@@ -583,6 +591,9 @@ void main() {
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => null);
+        when(
+          () => sessionManager.deriveUserId(any(), any()),
+        ).thenReturn(_matrixUserId);
         final tokenOutput = _stubMatrixToken(controlPlane, didManager);
         when(
           () => sessionManager.loginWithJwt(
@@ -606,25 +617,116 @@ void main() {
     // ------------------------------------------------------------------
 
     group('joinChannelRoom', () {
-      test('joins the room via derived alias when session is valid', () async {
+      test('returns room ID when room is encrypted', () async {
         final client = MockMatrixClient();
+        final room = MockMatrixRoom();
         when(() => client.userID).thenReturn(_matrixUserId);
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
         when(() => client.joinRoom(any())).thenAnswer((_) async => _testRoomId);
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(() => room.encrypted).thenReturn(true);
 
-        await service.joinChannelRoom(
+        final roomId = await service.joinChannelRoom(
           didManager: didManager,
           channelDid: 'did:test:alice',
           otherPartyChannelDid: 'did:test:bob',
         );
 
+        expect(roomId, equals(_testRoomId));
         verify(() => client.joinRoom(any(that: startsWith('#mp_')))).called(1);
       });
 
+      test(
+        'waits for sync and returns room ID when room appears after join',
+        () async {
+          final client = MockMatrixClient();
+          final room = MockMatrixRoom();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(
+            () => client.joinRoom(any()),
+          ).thenAnswer((_) async => _testRoomId);
+          // Room not available immediately; appears after sync.
+          var syncCalled = false;
+          when(() => client.getRoomById(_testRoomId)).thenAnswer((_) {
+            return syncCalled ? room : null;
+          });
+          when(
+            () => client.waitForRoomInSync(_testRoomId, join: true),
+          ).thenAnswer((_) async {
+            syncCalled = true;
+            return FakeSyncUpdate();
+          });
+          when(() => room.encrypted).thenReturn(true);
+
+          final roomId = await service.joinChannelRoom(
+            didManager: didManager,
+            channelDid: 'did:test:alice',
+            otherPartyChannelDid: 'did:test:bob',
+          );
+
+          expect(roomId, equals(_testRoomId));
+          verify(
+            () => client.waitForRoomInSync(_testRoomId, join: true),
+          ).called(1);
+        },
+      );
+
+      test('throws StateError when joined room is not encrypted', () async {
+        final client = MockMatrixClient();
+        final room = MockMatrixRoom();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.joinRoom(any())).thenAnswer((_) async => _testRoomId);
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(() => room.encrypted).thenReturn(false);
+
+        expect(
+          () => service.joinChannelRoom(
+            didManager: didManager,
+            channelDid: 'did:test:alice',
+            otherPartyChannelDid: 'did:test:bob',
+          ),
+          throwsStateError,
+        );
+      });
+
+      test(
+        'throws StateError when room does not appear in sync after joining',
+        () async {
+          final client = MockMatrixClient();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(
+            () => client.joinRoom(any()),
+          ).thenAnswer((_) async => _testRoomId);
+          when(() => client.getRoomById(_testRoomId)).thenReturn(null);
+          when(
+            () => client.waitForRoomInSync(_testRoomId, join: true),
+          ).thenAnswer((_) async => FakeSyncUpdate());
+
+          expect(
+            () => service.joinChannelRoom(
+              didManager: didManager,
+              channelDid: 'did:test:alice',
+              otherPartyChannelDid: 'did:test:bob',
+            ),
+            throwsStateError,
+          );
+        },
+      );
+
       test('re-authenticates and retries when session is expired', () async {
         final client = MockMatrixClient();
+        final room = MockMatrixRoom();
         when(() => client.userID).thenReturn(_matrixUserId);
 
         var loggedIn = false;
@@ -647,6 +749,8 @@ void main() {
         });
 
         when(() => client.joinRoom(any())).thenAnswer((_) async => _testRoomId);
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(() => room.encrypted).thenReturn(true);
 
         await service.joinChannelRoom(
           didManager: didManager,
@@ -661,6 +765,59 @@ void main() {
             did: any(named: 'did'),
           ),
         ).called(1);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // sendRoomEvent
+    // ------------------------------------------------------------------
+
+    group('sendRoomEvent', () {
+      test('throws StateError when room is not encrypted', () async {
+        final client = MockMatrixClient();
+        final room = MockMatrixRoom();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(
+          () => sessionManager.deriveUserId(any(), any()),
+        ).thenReturn(_matrixUserId);
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(() => room.encrypted).thenReturn(false);
+
+        expect(
+          () => service.sendRoomEvent(_testRoomId, 'com.example.message', {
+            'body': 'hello',
+          }, didManager: didManager),
+          throwsStateError,
+        );
+      });
+
+      test('sends event when room is encrypted', () async {
+        final client = MockMatrixClient();
+        final room = MockMatrixRoom();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(() => room.encrypted).thenReturn(true);
+        when(
+          () => room.sendEvent(any(), type: any(named: 'type')),
+        ).thenAnswer((_) async => '\$eventId');
+        when(
+          () => sessionManager.deriveUserId(any(), any()),
+        ).thenReturn(_matrixUserId);
+
+        final eventId = await service.sendRoomEvent(
+          _testRoomId,
+          'com.example.message',
+          {'body': 'hello'},
+          didManager: didManager,
+        );
+
+        expect(eventId, equals('\$eventId'));
       });
     });
   });

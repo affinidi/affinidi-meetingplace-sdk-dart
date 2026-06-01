@@ -172,13 +172,26 @@ class MatrixService {
     String? otherPartyChannelDid,
   }) async {
     final client = await _ensureSession(didManager);
-    return client.joinRoom(
+    final roomId = await client.joinRoom(
       deriveRoomAlias(
         channelDid: channelDid,
         otherPartyChannelDid: otherPartyChannelDid,
         homeserverHost: homeserver.host,
       ),
     );
+    var room = client.getRoomById(roomId);
+    if (room == null) {
+      await client.waitForRoomInSync(roomId, join: true);
+      room = client.getRoomById(roomId);
+    }
+    if (room == null) {
+      throw StateError(
+        'Matrix room $roomId did not appear after joining; '
+        'cannot verify end-to-end encryption state.',
+      );
+    }
+    _assertRoomEncrypted(room, roomId);
+    return roomId;
   }
 
   Future<void> leaveRoom(
@@ -224,6 +237,7 @@ class MatrixService {
     final client = await _ensureSession(didManager);
     final room = client.getRoomById(roomId);
     if (room == null) throw StateError('Matrix room $roomId not found');
+    _assertRoomEncrypted(room, roomId);
 
     if (eventType == 'm.read') {
       final eventId = content['event_id'] as String;
@@ -440,6 +454,15 @@ class MatrixService {
       timestamp: event.originServerTs,
       isFromMe: myUserId != null && event.senderId == myUserId,
     );
+  }
+
+  static void _assertRoomEncrypted(matrix.Room room, String roomId) {
+    if (!room.encrypted) {
+      throw StateError(
+        'Matrix room $roomId does not have end-to-end encryption enabled. '
+        'Refusing to operate on an unencrypted room.',
+      );
+    }
   }
 
   Future<String> _userIdOf(DidManager didManager) async {

@@ -297,6 +297,7 @@ class MeetingPlaceCoreSDK {
     final matrixService = MatrixService(
       config: config,
       controlPlaneSDK: controlPlaneSDK,
+      logger: mpxLogger,
     );
 
     final identityService = IdentityService(

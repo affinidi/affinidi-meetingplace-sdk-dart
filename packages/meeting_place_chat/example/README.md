@@ -12,7 +12,7 @@ Check the sample code to learn how to use Affinidi Meeting Place - Chat SDK pack
 
 ### Running the Examples
 
-Execute the example Dart scripts from the `packages/meeting_place_chat/example` folder. To run them, you need to provide environment variables for `CONTROL_PLANE_DID` and `MEDIATOR_DID`. The examples use the [dotenv](https://pub.dev/packages/dotenv) package to load these values from a local `.env` file for convenience.
+Execute the example Dart scripts from the `packages/meeting_place_chat/example` folder. To run them, you need to provide environment variables for `CONTROL_PLANE_DID`, `MEDIATOR_DID`, `MATRIX_HOMESERVER`, and `VODOZEMAC_LIBRARY_PATH`. The examples use the [dotenv](https://pub.dev/packages/dotenv) package to load these values from a local `.env` file for convenience.
 
 1. **Create your local environment file**
 
@@ -22,7 +22,10 @@ Execute the example Dart scripts from the `packages/meeting_place_chat/example` 
    cp templates/.example.env .env
    ```
 
-   Edit `.env` and update the values for `CONTROL_PLANE_DID` and `MEDIATOR_DID` to match your test environment.
+   Edit `.env` and update the values for `CONTROL_PLANE_DID`, `MEDIATOR_DID`, `MATRIX_HOMESERVER`, and `VODOZEMAC_LIBRARY_PATH` to match your test environment.
+
+   `VODOZEMAC_LIBRARY_PATH` must point to the directory containing your
+   compiled vodozemac native library.
 
 2. **Run the example scripts**
 

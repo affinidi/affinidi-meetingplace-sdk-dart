@@ -6,6 +6,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../utils/print.dart';
 import '../utils/repository/chat_repository_impl.dart';
@@ -13,6 +14,12 @@ import '../utils/sdk.dart';
 import '../utils/storage.dart';
 
 void main() async {
+  final vodozemacLibraryPath = getVodozemacLibraryPath();
+
+  if (!vod.isInitialized()) {
+    await vod.init(libraryPath: vodozemacLibraryPath);
+  }
+
   // Bob approves offer
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 

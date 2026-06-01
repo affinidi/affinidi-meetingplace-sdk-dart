@@ -26,7 +26,7 @@ import 'outreach_invitation_event_handler.dart';
 
 // Batch lists hold DiscoveryEvent (dynamic data); rebuilding typed events
 // avoids a runtime cast failure when deduping ChannelActivity in the batch.
-List<DiscoveryEvent<ChannelActivity>> channelActivityEventsFrom(
+List<DiscoveryEvent<ChannelActivity>> _channelActivityEventsFrom(
   Iterable<DiscoveryEvent> events,
 ) {
   return events
@@ -201,7 +201,7 @@ class ControlPlaneEventManager {
           event.data as OfferFinalised,
         );
       case ControlPlaneEventType.ChannelActivity:
-        final processedChannelActivities = channelActivityEventsFrom(
+        final processedChannelActivities = _channelActivityEventsFrom(
           processedEvents,
         );
 

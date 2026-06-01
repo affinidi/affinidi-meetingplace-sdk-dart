@@ -14,12 +14,18 @@ class LivenessEvidence {
   /// Stable identifier for the liveness vendor, e.g. `aws_rekognition`.
   final String providerId;
 
-  /// Provider-specific session or transaction reference.
+  /// Provider specific session
   final String providerTransactionId;
 
+  /// Vendor reported liveness confidence score for the session.
   final double livenessScore;
+
+  /// Minimum [livenessScore] required to treat the check as passed.
   final double livenessThreshold;
+
+  /// When the liveness check was completed (UTC).
   final DateTime checkedAt;
 
+  /// Whether [livenessScore] meets or exceeds [livenessThreshold].
   bool get isLive => livenessScore >= livenessThreshold;
 }

@@ -75,7 +75,8 @@ throws a `StateError` when it tries to create a Matrix client.
 **Flutter apps** — add [`flutter_vodozemac`](https://pub.dev/packages/flutter_vodozemac)
 to your app's `pubspec.yaml` and initialize it from `main()`:
 
-```dart  
+```dart
+import 'package:flutter/widgets.dart';
 import 'package:flutter_vodozemac/flutter_vodozemac.dart' as fvod;
 
 Future<void> main() async {

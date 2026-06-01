@@ -153,6 +153,40 @@ void main() {
       await ctrl.close();
     });
 
+    test(
+      'R-Card with mismatched issuerDid is discarded — relay attack blocked',
+      () async {
+        final ctrl = StreamController<PlainTextMessage>.broadcast();
+        final manager = makeManager(ctrl);
+        final emitted = <RCard>[];
+        final sub = manager.stream.listen(emitted.add);
+
+        // Send a message where `from` is an attacker DID but the VC blob
+        // was signed by issuerDid — simulates a relay/replay attack.
+        ctrl.add(
+          PlainTextMessage(
+            id: const Uuid().v4(),
+            type: VdipIssuedCredentialMessage.messageType,
+            from: 'did:key:relay-attacker',
+            to: ['did:example:recipient'],
+            body: {
+              'credential': vcBlob,
+              'credential_format': CredentialsSDKConstants.w3cLdV1,
+            },
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(emitted, isEmpty);
+        expect(manager.consumePendingRCard('did:key:relay-attacker'), isNull);
+        expect(manager.consumePendingRCard(issuerDid), isNull);
+
+        await sub.cancel();
+        await manager.close();
+        await ctrl.close();
+      },
+    );
+
     test('consumePendingRCard returns and removes the cached R-Card', () async {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);

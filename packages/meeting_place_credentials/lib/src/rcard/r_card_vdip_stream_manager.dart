@@ -105,15 +105,24 @@ class RCardVdipStreamManager {
     }
 
     final rCard = await _parser.parse(vcBlob: credential);
-    if (rCard != null) {
-      _pendingRCards[from] = rCard;
-      yield rCard;
-    } else {
+    if (rCard == null) {
       yield* Stream.error(
         const FormatException(
           'Failed to parse VDIP R-Card from credential blob',
         ),
       );
+      return;
     }
+
+    if (rCard.issuerDid != from) {
+      _logger.warning(
+        'R-Card issuerDid (${rCard.issuerDid}) does not match message '
+        'sender ($from) — discarding to prevent relay/replay.',
+      );
+      return;
+    }
+
+    _pendingRCards[from] = rCard;
+    yield rCard;
   }
 }

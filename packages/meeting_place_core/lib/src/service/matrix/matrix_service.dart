@@ -117,8 +117,7 @@ class MatrixService {
         matrix.StateEvent(
           type: matrix.EventTypes.Encryption,
           content: {
-            'algorithm':
-                matrix.Client.supportedGroupEncryptionAlgorithms.first,
+            'algorithm': matrix.Client.supportedGroupEncryptionAlgorithms.first,
           },
         ),
       ],

@@ -514,45 +514,49 @@ void main() {
         ).called(1);
       });
 
-      test('requests E2EE on new rooms via m.room.encryption initial state',
-          () async {
-        final client = MockMatrixClient();
-        when(() => client.userID).thenReturn(_matrixUserId);
-        when(() => client.encryptionEnabled).thenReturn(true);
-        when(
-          () => sessionManager.getAuthenticatedClient(_testDid),
-        ).thenAnswer((_) async => client);
-        when(
-          () => sessionManager.deriveUserId(any(), any()),
-        ).thenReturn(_matrixUserId);
-        when(
-          () => client.createRoom(
-            roomAliasName: any(named: 'roomAliasName'),
-            invite: any(named: 'invite'),
-            initialState: any(named: 'initialState'),
-          ),
-        ).thenAnswer((_) async => _testRoomId);
+      test(
+        'requests E2EE on new rooms via m.room.encryption initial state',
+        () async {
+          final client = MockMatrixClient();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(() => client.encryptionEnabled).thenReturn(true);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(
+            () => sessionManager.deriveUserId(any(), any()),
+          ).thenReturn(_matrixUserId);
+          when(
+            () => client.createRoom(
+              roomAliasName: any(named: 'roomAliasName'),
+              invite: any(named: 'invite'),
+              initialState: any(named: 'initialState'),
+            ),
+          ).thenAnswer((_) async => _testRoomId);
 
-        await service.createRoom(
-          didManager: didManager,
-          channelDid: 'did:test:alice',
-          otherPartyChannelDid: 'did:test:bob',
-        );
+          await service.createRoom(
+            didManager: didManager,
+            channelDid: 'did:test:alice',
+            otherPartyChannelDid: 'did:test:bob',
+          );
 
-        final captured = verify(
-          () => client.createRoom(
-            roomAliasName: any(named: 'roomAliasName'),
-            invite: any(named: 'invite'),
-            initialState: captureAny(named: 'initialState'),
-          ),
-        ).captured.single as List<matrix.StateEvent>;
-        expect(captured, hasLength(1));
-        expect(captured.single.type, matrix.EventTypes.Encryption);
-        expect(
-          captured.single.content['algorithm'],
-          matrix.Client.supportedGroupEncryptionAlgorithms.first,
-        );
-      });
+          final captured =
+              verify(
+                    () => client.createRoom(
+                      roomAliasName: any(named: 'roomAliasName'),
+                      invite: any(named: 'invite'),
+                      initialState: captureAny(named: 'initialState'),
+                    ),
+                  ).captured.single
+                  as List<matrix.StateEvent>;
+          expect(captured, hasLength(1));
+          expect(captured.single.type, matrix.EventTypes.Encryption);
+          expect(
+            captured.single.content['algorithm'],
+            matrix.Client.supportedGroupEncryptionAlgorithms.first,
+          );
+        },
+      );
 
       test('throws StateError when client encryption is disabled', () async {
         final client = MockMatrixClient();

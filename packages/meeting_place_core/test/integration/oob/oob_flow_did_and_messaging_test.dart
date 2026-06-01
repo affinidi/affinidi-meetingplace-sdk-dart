@@ -66,28 +66,32 @@ void main() {
     final aliceChannel = await aliceCompleter.future;
     final bobChannel = await bobCompleter.future;
 
-    await fixture.bobSDK.didcomm.sendMessage(
-      PlainTextMessage(
-        id: 'test-message-id',
-        type: Uri.parse('https://example.com/test'),
-        from: bobChannel.permanentChannelDid,
-        to: [bobChannel.otherPartyPermanentChannelDid!],
-        body: {'hello': 'alice'},
+    await fixture.bobSDK.sendMessage(
+      DidCommOutgoingMessage(
+        senderDid: bobChannel.permanentChannelDid!,
+        recipientDid: bobChannel.otherPartyPermanentChannelDid!,
+        payload: PlainTextMessage(
+          id: 'test-message-id',
+          type: Uri.parse('https://example.com/test'),
+          from: bobChannel.permanentChannelDid,
+          to: [bobChannel.otherPartyPermanentChannelDid!],
+          body: {'hello': 'alice'},
+        ),
       ),
-      senderDid: bobChannel.permanentChannelDid!,
-      recipientDid: bobChannel.otherPartyPermanentChannelDid!,
     );
 
-    await fixture.aliceSDK.didcomm.sendMessage(
-      PlainTextMessage(
-        id: 'test-message-id',
-        type: Uri.parse('https://example.com/test'),
-        from: aliceChannel.permanentChannelDid,
-        to: [aliceChannel.otherPartyPermanentChannelDid!],
-        body: {'hello': 'bob'},
+    await fixture.aliceSDK.sendMessage(
+      DidCommOutgoingMessage(
+        senderDid: aliceChannel.permanentChannelDid!,
+        recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
+        payload: PlainTextMessage(
+          id: 'test-message-id',
+          type: Uri.parse('https://example.com/test'),
+          from: aliceChannel.permanentChannelDid,
+          to: [aliceChannel.otherPartyPermanentChannelDid!],
+          body: {'hello': 'bob'},
+        ),
       ),
-      senderDid: aliceChannel.permanentChannelDid!,
-      recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
     );
   });
 }

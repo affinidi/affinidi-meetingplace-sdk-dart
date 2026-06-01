@@ -43,15 +43,17 @@ void main() async {
   prettyPrint('Disposing OOB stream...');
   await oob.stream.dispose();
 
-  final messageSubscription = await aliceSDK.didcomm.subscribe(
-    channel.permanentChannelDid!,
+  final messageStream = await aliceSDK.subscribe(
+    DidCommSubscription(receiverDid: channel.permanentChannelDid!),
   );
 
   final waitForBobsMessage = Completer<PlainTextMessage>();
-  messageSubscription.stream.listen((message) {
-    if (message.plainTextMessage.isOfType(
+  final messageSubscription =
+      messageStream.stream.listen((IncomingMessage message) {
+    final didcommMessage = message as DidCommIncomingMessage;
+    if (didcommMessage.payload.isOfType(
         'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example')) {
-      waitForBobsMessage.complete(message.plainTextMessage);
+      waitForBobsMessage.complete(didcommMessage.payload);
     }
   });
 
@@ -61,5 +63,5 @@ void main() async {
 
   // Close stream
   prettyPrint('Disposing message stream...');
-  await messageSubscription.dispose();
+  await messageSubscription.cancel();
 }

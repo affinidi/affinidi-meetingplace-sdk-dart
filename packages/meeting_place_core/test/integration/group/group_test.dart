@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
@@ -248,25 +247,29 @@ void main() async {
 
       // --- Check that ACLs are not updated yet
       expect(
-        () => bobSDK.didcomm.sendMessage(
-          useChatMessage(
-            acceptResultBob.connectionOffer.permanentChannelDid!,
-            groupDid,
+        () => bobSDK.sendMessage(
+          DidCommOutgoingMessage(
+            senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
+            recipientDid: groupDid,
+            payload: useChatMessage(
+              acceptResultBob.connectionOffer.permanentChannelDid!,
+              groupDid,
+            ),
           ),
-          senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
-          recipientDid: groupDid,
         ),
         throwsA(isA<MeetingPlaceCoreSDKException>()),
       );
 
       expect(
-        () => bobSDK.didcomm.sendMessage(
-          useChatMessage(
-            acceptResultBob.connectionOffer.permanentChannelDid!,
-            groupOwnerDidDoc.id,
+        () => bobSDK.sendMessage(
+          DidCommOutgoingMessage(
+            senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
+            recipientDid: groupOwnerDidDoc.id,
+            payload: useChatMessage(
+              acceptResultBob.connectionOffer.permanentChannelDid!,
+              groupOwnerDidDoc.id,
+            ),
           ),
-          senderDid: acceptResultBob.connectionOffer.permanentChannelDid!,
-          recipientDid: groupOwnerDidDoc.id,
         ),
         throwsA(isA<MeetingPlaceCoreSDKException>()),
       );
@@ -334,39 +337,26 @@ void main() async {
 
       // Verify that ACLs are configured correctly
       expect(
-        bobSDK.didcomm.sendGroupMessage(
-          useChatMessage(acceptResultBobChannelDid.id, groupDid),
-          senderDid: acceptResultBobChannelDid.id,
-          recipientDid: groupDid,
-          increaseSequenceNumber: false,
+        bobSDK.sendMessage(
+          DidCommOutgoingMessage(
+            senderDid: acceptResultBobChannelDid.id,
+            recipientDid: groupOwnerDidDoc.id,
+            payload: useChatMessage(
+              acceptResultBobChannelDid.id,
+              groupOwnerDidDoc.id,
+            ),
+          ),
         ),
         completes,
       );
 
       expect(
-        bobSDK.didcomm.sendMessage(
-          useChatMessage(acceptResultBobChannelDid.id, groupOwnerDidDoc.id),
-          senderDid: acceptResultBobChannelDid.id,
-          recipientDid: groupOwnerDidDoc.id,
-        ),
-        completes,
-      );
-
-      expect(
-        charlieSDK.didcomm.sendGroupMessage(
-          useChatMessage(charlieDidDoc.id, groupDid),
-          senderDid: charlieDidDoc.id,
-          recipientDid: groupDid,
-          increaseSequenceNumber: false,
-        ),
-        completes,
-      );
-
-      expect(
-        charlieSDK.didcomm.sendMessage(
-          useChatMessage(charlieDidDoc.id, groupOwnerDidDoc.id),
-          senderDid: charlieDidDoc.id,
-          recipientDid: groupOwnerDidDoc.id,
+        charlieSDK.sendMessage(
+          DidCommOutgoingMessage(
+            senderDid: charlieDidDoc.id,
+            recipientDid: groupOwnerDidDoc.id,
+            payload: useChatMessage(charlieDidDoc.id, groupOwnerDidDoc.id),
+          ),
         ),
         completes,
       );
@@ -392,27 +382,6 @@ void main() async {
       offerDescription: 'Sample offer description',
       contactCard: aliceCard,
       type: SDKConnectionOfferType.groupInvitation,
-    );
-
-    final groupDidDocument = await UniversalDIDResolver().resolveDid(
-      result.connectionOffer.groupDid!,
-    );
-    final senderDidDocument = await result.groupOwnerDidManager!
-        .getDidDocument();
-
-    final chatMessage = PlainTextMessage(
-      id: const Uuid().v4(),
-      type: Uri.parse('https://affinidi.io/mpx/core-sdk/test'),
-      from: senderDidDocument.id,
-      to: [groupDidDocument.id],
-      body: {'text': '[integration test]: Checking ACL!'},
-    );
-
-    await aliceSDK.didcomm.sendGroupMessage(
-      chatMessage,
-      senderDid: result.connectionOffer.groupOwnerDid!,
-      recipientDid: groupDidDocument.id,
-      increaseSequenceNumber: true,
     );
 
     final acceptResult = await bobSDK.acceptOffer(
@@ -444,26 +413,30 @@ void main() async {
       result.connectionOffer.offerLink,
     );
 
-    final messages = await bobSDK.didcomm.fetchMessages(
-      did: acceptResult.connectionOffer.permanentChannelDid!,
+    final messages = await bobSDK.fetchHistory(
+      DidCommHistoryQuery(
+        receiverDid: acceptResult.connectionOffer.permanentChannelDid!,
+      ),
     );
 
-    final actual = messages.firstWhereOrNull(
-      (m) =>
-          m.plainTextMessage.type.toString() ==
-              MeetingPlaceProtocol.groupMemberInauguration.value &&
-          m.plainTextMessage.from == publishOfferDidDoc.id,
-    );
+    final actual = messages
+        .whereType<DidCommIncomingMessage>()
+        .firstWhereOrNull(
+          (m) =>
+              m.payload.type.toString() ==
+                  MeetingPlaceProtocol.groupMemberInauguration.value &&
+              m.payload.from == publishOfferDidDoc.id,
+        );
 
     expect(actual, isNotNull);
     expect(
-      actual!.plainTextMessage.body?['member_did'],
+      actual!.payload.body?['member_did'],
       acceptResult.connectionOffer.permanentChannelDid!,
     );
 
     // assert group information
-    expect(actual.plainTextMessage.body?['group_did'], group!.did);
-    expect(actual.plainTextMessage.body?['group_public_key'], group.publicKey);
+    expect(actual.payload.body?['group_did'], group!.did);
+    expect(actual.payload.body?['group_public_key'], group.publicKey);
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
@@ -624,16 +597,18 @@ void main() async {
     expect(connectionExp!.status, equals(ConnectionOfferStatus.deleted));
 
     expect(
-      () => aliceSDK.didcomm.sendMessage(
-        PlainTextMessage(
-          id: const Uuid().v4(),
-          type: Uri.parse('https://affinidi.io/mpx/core-sdk/test'),
-          from: result.connectionOffer.groupDid,
-          to: [acceptConnectionOffer.memberDid!],
-          body: {'text': 'Not allowed'},
+      () => aliceSDK.sendMessage(
+        DidCommOutgoingMessage(
+          senderDid: result.connectionOffer.groupDid!,
+          recipientDid: acceptConnectionOffer.memberDid!,
+          payload: PlainTextMessage(
+            id: const Uuid().v4(),
+            type: Uri.parse('https://affinidi.io/mpx/core-sdk/test'),
+            from: result.connectionOffer.groupDid,
+            to: [acceptConnectionOffer.memberDid!],
+            body: {'text': 'Not allowed'},
+          ),
         ),
-        senderDid: result.connectionOffer.groupDid!,
-        recipientDid: acceptConnectionOffer.memberDid!,
       ),
       throwsA(isA<MeetingPlaceCoreSDKException>()),
     );

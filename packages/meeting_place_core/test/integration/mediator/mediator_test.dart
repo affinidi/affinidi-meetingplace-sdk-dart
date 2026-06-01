@@ -7,11 +7,13 @@ import '../../utils/sdk.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
+  late DIDCommTransport aliceDidcomm;
   late MeetingPlaceCoreSDK bobSDK;
+  late DIDCommTransport bobDidcomm;
 
   setUp(() async {
-    aliceSDK = await initSDKInstance();
-    bobSDK = await initSDKInstance();
+    (aliceSDK, aliceDidcomm) = await initSDKWithDidcomm();
+    (bobSDK, bobDidcomm) = await initSDKWithDidcomm();
   });
 
   test('subscription cares only about related messages', () async {
@@ -23,21 +25,15 @@ void main() async {
     final didDocB = await didManagerB.getDidDocument();
 
     // --- Reset messages ---
-    await aliceSDK.didcomm.fetchMessages(
-      did: didDocA.id,
-      deleteOnRetrieve: true,
-    );
+    await aliceDidcomm.fetchMessages(did: didDocA.id, deleteOnRetrieve: true);
 
-    await aliceSDK.didcomm.fetchMessages(
-      did: didDocB.id,
-      deleteOnRetrieve: true,
-    );
+    await aliceDidcomm.fetchMessages(did: didDocB.id, deleteOnRetrieve: true);
 
     // --- Send messages ---
     final sendMessageDid = await bobSDK.generateDid();
     final senderDidDocument = await sendMessageDid.getDidDocument();
 
-    await aliceSDK.didcomm.mediator.updateAcl(
+    await aliceSDK.mediator.updateAcl(
       ownerDidManager: didManagerA,
       acl: AccessListAdd(
         ownerDid: didDocA.id,
@@ -45,7 +41,7 @@ void main() async {
       ),
     );
 
-    await aliceSDK.didcomm.mediator.updateAcl(
+    await aliceSDK.mediator.updateAcl(
       ownerDidManager: didManagerB,
       acl: AccessListAdd(
         ownerDid: didDocB.id,
@@ -53,7 +49,7 @@ void main() async {
       ),
     );
 
-    await bobSDK.didcomm.sendMessage(
+    await bobDidcomm.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
         type: Uri.parse('https://example.com/test'),
@@ -65,7 +61,7 @@ void main() async {
       recipientDid: didDocA.id,
     );
 
-    await bobSDK.didcomm.sendMessage(
+    await bobDidcomm.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
         type: Uri.parse('https://example.com/test'),
@@ -79,7 +75,7 @@ void main() async {
 
     await Future<void>.delayed(const Duration(seconds: 5));
 
-    final messagesA = await aliceSDK.didcomm.fetchMessages(
+    final messagesA = await aliceDidcomm.fetchMessages(
       did: didDocA.id,
       deleteOnRetrieve: false,
     );
@@ -94,7 +90,7 @@ void main() async {
 
     expect(targetMessages.length, 1);
 
-    final messagesB = await aliceSDK.didcomm.fetchMessages(
+    final messagesB = await aliceDidcomm.fetchMessages(
       did: didDocB.id,
       deleteOnRetrieve: false,
     );
@@ -117,9 +113,9 @@ void main() async {
     final didManager2 = await aliceSDK.generateDid();
     final didDoc2 = await didManager2.getDidDocument();
 
-    final channel = await aliceSDK.didcomm.subscribe(didDoc.id);
+    final channel = await aliceDidcomm.subscribe(didDoc.id);
 
-    final differentChannel = await aliceSDK.didcomm.subscribe(didDoc2.id);
+    final differentChannel = await aliceDidcomm.subscribe(didDoc2.id);
 
     expect(channel, isNot(equals(differentChannel)));
     await channel.dispose();

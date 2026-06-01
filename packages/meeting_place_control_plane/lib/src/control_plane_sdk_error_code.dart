@@ -45,6 +45,9 @@ enum ControlPlaneSDKErrorCode {
   // group delete codes
   groupDeleteGeneric('group_delete_generic'),
 
+  // group notify channel codes
+  groupNotifyChannelGeneric('group_notify_channel_generic'),
+
   // group deregister member codes
   groupDeregisterMemberGeneric('group_deregister_member_generic'),
 

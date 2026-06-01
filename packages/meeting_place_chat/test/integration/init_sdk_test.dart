@@ -42,10 +42,10 @@ void main() {
       channel,
       coreSDK: coreSDK,
       chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-      options: ChatSDKOptions(),
+      options: MeetingPlaceChatSDKOptions(),
     );
 
-    expect(chatSDK, isA<MeetingPlaceChatSDK>());
+    expect(chatSDK, isA<IndividualDidcommChatSDK>());
   });
 
   test('individual chat SDK instance for channel type oob', () async {
@@ -54,10 +54,10 @@ void main() {
       channel,
       coreSDK: coreSDK,
       chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-      options: ChatSDKOptions(),
+      options: MeetingPlaceChatSDKOptions(),
     );
 
-    expect(actual, isA<MeetingPlaceChatSDK>());
+    expect(actual, isA<IndividualDidcommChatSDK>());
   });
 
   test('group chat SDK instance for channel type group', () async {
@@ -77,9 +77,9 @@ void main() {
       channel,
       coreSDK: coreSDK,
       chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-      options: ChatSDKOptions(),
+      options: MeetingPlaceChatSDKOptions(),
     );
 
-    expect(actual, isA<MeetingPlaceChatSDK>());
+    expect(actual, isA<GroupMatrixChatSDK>());
   });
 }

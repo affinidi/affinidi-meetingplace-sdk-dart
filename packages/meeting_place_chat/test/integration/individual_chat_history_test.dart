@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
+import '../utils/chat_test_harness.dart';
 import '../utils/contact_card_fixture.dart' as fixtures;
 import '../utils/setup_chat_sdk.dart';
 import '../utils/storage/in_memory_storage.dart';
@@ -21,40 +20,26 @@ void main() {
   });
 
   test('chat history resumes and is chat-scoped', () async {
-    final bobChatCompleted = Completer<void>();
     await fixture.bobChatSDK.startChatSession();
-
-    await fixture.bobChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        if (!bobChatCompleted.isCompleted && data.event is ChatMessageEvent) {
-          bobChatCompleted.complete();
-        }
-      });
-    });
-
-    final aliceDelivered = Completer<void>();
     await fixture.aliceChatSDK.startChatSession();
 
-    await fixture.aliceChatSDK.chatStreamSubscription.then((stream) {
-      stream!.listen((data) {
-        final event = data.event;
-        if (!aliceDelivered.isCompleted &&
-            event is UnhandledChatEvent &&
-            event.type == ChatProtocol.chatDelivered.value) {
-          aliceDelivered.complete();
-        }
-      });
-    });
+    final bobMessage = ChatTestHarness.awaitEvent<ChatMessageEvent>(
+      fixture.bobChatSDK,
+    );
+    final aliceDelivered = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+      fixture.aliceChatSDK,
+      where: (e) => e.type == ChatProtocol.chatDelivered.value,
+    );
 
     await fixture.aliceChatSDK.sendTextMessage('Hello World!');
-    await aliceDelivered.future;
+    await aliceDelivered;
 
-    fixture.aliceChatSDK.endChatSession();
+    await fixture.aliceChatSDK.endChatSession();
 
     // On resume Alice will receive her chat history
     await fixture.aliceChatSDK.startChatSession();
     expect((await fixture.aliceChatSDK.messages).length, equals(1));
-    fixture.aliceChatSDK.endChatSession();
+    await fixture.aliceChatSDK.endChatSession();
 
     // Different chat -> history should be empty
     final setup = SetupChatSdk();
@@ -86,33 +71,25 @@ void main() {
 
     await aliceChatWithCharlie.startChatSession();
     expect((await aliceChatWithCharlie.messages).length, isZero);
-    aliceChatWithCharlie.endChatSession();
+    await aliceChatWithCharlie.endChatSession();
 
-    await bobChatCompleted.future;
+    await bobMessage;
     expect((await fixture.bobChatSDK.messages).length, equals(1));
   });
 
   test('returns new messages from mediator', () async {
     final bobChat = await fixture.bobChatSDK.startChatSession();
     expect(bobChat.messages.length, equals(0));
-    fixture.bobChatSDK.endChatSession();
+    await fixture.bobChatSDK.endChatSession();
 
     await fixture.aliceChatSDK.sendTextMessage('Hello Bob!');
     await fixture.bobChatSDK.startChatSession();
 
-    final completer = Completer<Message>();
-    await fixture.bobChatSDK.chatStreamSubscription.then(
-      (stream) => {
-        stream!.listen((data) {
-          if (data.event is ChatMessageEvent && !completer.isCompleted) {
-            completer.complete(data.chatItem as Message);
-          }
-        }),
-      },
+    final received = await ChatTestHarness.awaitItem(
+      fixture.bobChatSDK,
+      where: (item) => item is Message && item.value == 'Hello Bob!',
     );
-
-    final actual = await completer.future;
-    expect(actual.value, equals('Hello Bob!'));
+    expect((received as Message).value, equals('Hello Bob!'));
   });
 
   test(
@@ -129,7 +106,7 @@ void main() {
 
       await chatSDK.sendTextMessage('Hello World!');
       expect((await chatSDK.messages).length, equals(1));
-      chatSDK.endChatSession();
+      await chatSDK.endChatSession();
 
       final chatSDKNewInstance = await setup.createChatSdk(
         sdkInstance: fixture.aliceSDK,
@@ -138,7 +115,7 @@ void main() {
       );
 
       expect((await chatSDKNewInstance.messages).length, equals(1));
-      chatSDKNewInstance.endChatSession();
+      await chatSDKNewInstance.endChatSession();
     },
   );
 }

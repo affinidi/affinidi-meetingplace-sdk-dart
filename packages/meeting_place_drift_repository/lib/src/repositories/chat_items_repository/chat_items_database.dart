@@ -69,7 +69,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -137,6 +137,15 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
               'ALTER TABLE chat_items_temp RENAME TO chat_items',
             );
           }
+          if (from < 3) {
+            // Add transport_id to record the server-assigned event id for
+            // each outgoing/incoming message. Nullable: existing rows have no
+            // recorded transport id and are backfilled lazily as new traffic
+            // flows through (e.g. via history replay using event.id).
+            await customStatement(
+              'ALTER TABLE chat_items ADD COLUMN transport_id TEXT',
+            );
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
@@ -182,6 +191,12 @@ class ChatItems extends Table {
 
   /// DID of the sender.
   TextColumn get senderDid => text()();
+
+  /// Identifier assigned by the underlying transport once a message has been
+  /// accepted by the server (e.g. a Matrix `event_id`). `null` for messages
+  /// that have not yet been delivered. Used as the relation target when
+  /// sending edits, reactions, or redactions.
+  TextColumn get transportId => text().nullable()();
 
   /// Table primary key definition.
   @override

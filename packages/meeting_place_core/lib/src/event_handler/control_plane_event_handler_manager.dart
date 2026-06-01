@@ -85,6 +85,7 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
+      matrixService: matrixService,
       options: options,
       logger: _logger,
     );
@@ -187,14 +188,9 @@ class ControlPlaneEventManager {
           event.data as OfferFinalised,
         );
       case ControlPlaneEventType.ChannelActivity:
-        final processedChannelActivities = processedEvents
-            .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
-            .cast<DiscoveryEvent<ChannelActivity>>()
-            .toList();
-
         if (_channelActivityEventHandler.hasChannelActivityBeenProcessed(
           event.data as ChannelActivity,
-          processedChannelActivities,
+          processedEvents,
         )) {
           return [];
         }

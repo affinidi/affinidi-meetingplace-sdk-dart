@@ -1,0 +1,39 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
+
+import '../transport/didcomm/protocol.dart' as protocol;
+import 'chat_event.dart';
+import 'chat_event_types.dart';
+import 'incoming_chat_event.dart';
+
+extension MatrixRoomEventToChatEvent on MatrixRoomEvent {
+  ChatEvent toChatEvent() {
+    final chatProtocol = protocol.ChatProtocol.byValue(type);
+    return switch (chatProtocol) {
+      protocol.ChatProtocol.chatEffect => ChatEffectEvent(
+        effectName: content['effect'] as String? ?? '',
+      ),
+      _ => const ChatMessageEvent(),
+    };
+  }
+}
+
+extension IncomingChatEventToChatEvent on IncomingChatEvent {
+  ChatEvent toChatEvent() => switch (type) {
+    ChatEventTypes.chatEffect => ChatEffectEvent(
+      effectName: content['effect'] as String? ?? '',
+    ),
+    _ => const ChatMessageEvent(),
+  };
+}
+
+extension MatrixOutgoingMessageToChatEvent on MatrixOutgoingMessage {
+  ChatEvent toChatEvent() {
+    final chatProtocol = protocol.ChatProtocol.byValue(type);
+    return switch (chatProtocol) {
+      protocol.ChatProtocol.chatEffect => ChatEffectEvent(
+        effectName: content['effect'] as String? ?? '',
+      ),
+      _ => const ChatMessageEvent(),
+    };
+  }
+}

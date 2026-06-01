@@ -16,6 +16,9 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       ? null
       : ContactCard.fromJson(json['contactCard'] as Map<String, dynamic>),
   type: $enumDecode(_$ChannelTypeEnumMap, json['type']),
+  transport:
+      $enumDecodeNullable(_$ChannelTransportEnumMap, json['transport']) ??
+      ChannelTransport.didcomm,
   isConnectionInitiator: json['isConnectionInitiator'] as bool,
   otherPartyContactCard: json['otherPartyContactCard'] == null
       ? null
@@ -32,6 +35,7 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
   messageSyncMarker: json['messageSyncMarker'] == null
       ? null
       : DateTime.parse(json['messageSyncMarker'] as String),
+  matrixSyncMarker: json['matrixSyncMarker'] as String?,
   seqNo: (json['seqNo'] as num?)?.toInt() ?? 0,
   externalRef: json['externalRef'] as String?,
 );
@@ -42,6 +46,7 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'mediatorDid': instance.mediatorDid,
   'offerLink': instance.offerLink,
   'type': _$ChannelTypeEnumMap[instance.type]!,
+  'transport': _$ChannelTransportEnumMap[instance.transport]!,
   'isConnectionInitiator': instance.isConnectionInitiator,
   'contactCard': ?instance.contactCard?.toJson(),
   'otherPartyContactCard': ?instance.otherPartyContactCard?.toJson(),
@@ -52,6 +57,7 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'otherPartyPermanentChannelDid': ?instance.otherPartyPermanentChannelDid,
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
+  'matrixSyncMarker': ?instance.matrixSyncMarker,
   'externalRef': ?instance.externalRef,
   'seqNo': instance.seqNo,
   'messageSyncMarker': ?instance.messageSyncMarker?.toIso8601String(),
@@ -67,4 +73,9 @@ const _$ChannelTypeEnumMap = {
   ChannelType.individual: 'individual',
   ChannelType.group: 'group',
   ChannelType.oob: 'oob',
+};
+
+const _$ChannelTransportEnumMap = {
+  ChannelTransport.didcomm: 'didcomm',
+  ChannelTransport.matrix: 'matrix',
 };

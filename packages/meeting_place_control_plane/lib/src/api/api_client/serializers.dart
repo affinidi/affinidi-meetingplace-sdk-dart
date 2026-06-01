@@ -49,6 +49,8 @@ import 'model/group_delete_input.dart';
 import 'model/group_delete_ok.dart';
 import 'model/group_deregister_member_input.dart';
 import 'model/group_member_deregister_ok.dart';
+import 'model/group_notify_channel_input.dart';
+import 'model/group_notify_channel_ok.dart';
 import 'model/group_send_message.dart';
 import 'model/group_send_message_ok.dart';
 import 'model/invalid_acceptance_error.dart';
@@ -120,6 +122,8 @@ part 'serializers.g.dart';
   GroupDeleteOK,
   GroupDeregisterMemberInput,
   GroupMemberDeregisterOK,
+  GroupNotifyChannelInput,
+  GroupNotifyChannelOK,
   GroupSendMessage,
   GroupSendMessageOK,
   InvalidAcceptanceError,

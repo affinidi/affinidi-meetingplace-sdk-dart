@@ -12,7 +12,7 @@ void main() async {
 
   // Bob registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
-  final notification = await bobSDK.didcomm.registerForNotifications();
+  final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
@@ -54,13 +54,16 @@ void main() async {
   });
 
   // Listen to mediator stream using notification DID
-  prettyPrintGreen('>>> Calling SDK.didcomm.subscribe.listen');
-  final notificationStream =
-      await bobSDK.didcomm.subscribe(notificationDidDocument.id);
+  prettyPrintGreen('>>> Calling SDK.subscribe.listen');
+  final notificationStream = await bobSDK.subscribe(
+    DidCommSubscription(receiverDid: notificationDidDocument.id),
+  );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  notificationStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
+    final didcommMessage = message as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();
   });
 
@@ -70,5 +73,5 @@ void main() async {
   prettyPrintYellow('Received invitation outreach event');
   prettyJsonPrintYellow('Event channel', receivedEvent.channel.toJson());
 
-  await notificationStream.dispose();
+  await notificationSubscription.cancel();
 }

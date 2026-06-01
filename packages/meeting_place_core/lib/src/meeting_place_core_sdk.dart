@@ -146,10 +146,13 @@ class MeetingPlaceCoreSDK {
     required OobService oobService,
     required ChannelService channelService,
     required String mediatorDid,
+    required String controlPlaneDid,
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
     required DIDCommTransport didcommTransport,
-    required MatrixTransport matrixTransport,
+    required MatrixService matrixService,
+    required MessageService messageService,
+    required Future<DidManager> Function(String did) getDidManager,
   }) : _repositoryConfig = repositoryConfig,
        _mediatorSDK = mediatorSDK,
        _controlPlaneSDK = controlPlaneSDK,
@@ -163,10 +166,19 @@ class MeetingPlaceCoreSDK {
        _oobService = oobService,
        _channelService = channelService,
        _mediatorDid = mediatorDid,
+       _controlPlaneDid = controlPlaneDid,
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
-       didcomm = didcommTransport,
-       matrix = matrixTransport;
+       _didcomm = didcommTransport,
+       _messagingService = MessagingService(
+         matrixService: matrixService,
+         messageService: messageService,
+         channelService: channelService,
+         groupRepository: repositoryConfig.groupRepository,
+         didcomm: didcommTransport,
+         getDidManager: getDidManager,
+         errorHandler: sdkErrorHandler,
+       );
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -184,10 +196,11 @@ class MeetingPlaceCoreSDK {
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
 
-  final DIDCommTransport didcomm;
-  final MatrixTransport matrix;
+  final DIDCommTransport _didcomm;
+  final MessagingService _messagingService;
 
   String _mediatorDid;
+  final String _controlPlaneDid;
 
   static const String _className = 'MeetingPlaceCoreSDK';
 
@@ -428,20 +441,16 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       messageService: messageService,
       mediatorService: mediatorService,
-      groupService: groupService,
-      notificationService: notificationService,
       didResolver: didResolver,
       errorHandler: sdkErrorHandler,
-      wallet: wallet,
-      controlPlaneDid: controlPlaneDid,
       getDidManager: (did) =>
           connectionManager.getDidManagerForDid(wallet, did),
       defaultMediatorDid: mediatorDid,
       expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
-      onDeviceRegistered: (device) => controlPlaneSDK.device = device,
     );
 
-    final matrixTransport = MatrixTransport();
+    Future<DidManager> matrixTransportGetDidManager(String did) =>
+        connectionManager.getDidManagerForDid(wallet, did);
 
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
@@ -458,15 +467,24 @@ class MeetingPlaceCoreSDK {
       oobService: oobService,
       channelService: channelService,
       mediatorDid: mediatorDid,
+      controlPlaneDid: controlPlaneDid,
       options: options,
       sdkErrorHandler: sdkErrorHandler,
       didcommTransport: didcommTransport,
-      matrixTransport: matrixTransport,
+      matrixService: matrixService,
+      messageService: messageService,
+      getDidManager: matrixTransportGetDidManager,
     );
   }
 
   /// Returns instance of used low level [ControlPlaneSDK].
   ControlPlaneSDK get discovery => _controlPlaneSDK;
+
+  /// Returns instance of used low level [MeetingPlaceMediatorSDK].
+  ///
+  /// Exposes mediator-side admin operations such as ACL updates and
+  /// out-of-band invitation management.
+  MeetingPlaceMediatorSDK get mediator => _mediatorSDK;
 
   /// Returns the [MeetingPlaceCoreSDKOptions] used to configure the SDK.
   MeetingPlaceCoreSDKOptions get options => _options;
@@ -496,7 +514,7 @@ class MeetingPlaceCoreSDK {
     _mediatorDid = mediatorDid;
     _controlPlaneSDK.mediatorDid = mediatorDid;
     _mediatorSDK.mediatorDid = mediatorDid;
-    didcomm.defaultMediatorDid = mediatorDid;
+    _didcomm.defaultMediatorDid = mediatorDid;
   }
 
   /// Updates the [Device] used for subsequent method invocations.
@@ -659,6 +677,24 @@ class MeetingPlaceCoreSDK {
 
       _controlPlaneSDK.device = device;
       return device;
+    });
+  }
+
+  /// Registers for DIDComm notifications via the mediator.
+  Future<RegisterForDidcommNotificationsResult>
+  registerForDIDCommNotifications({String? mediatorDid, String? recipientDid}) {
+    return _withSdkExceptionHandling(() async {
+      final result = await _notificationService.registerForDIDCommNotifications(
+        wallet: wallet,
+        controlPlaneDid: _controlPlaneDid,
+        recipientDid: recipientDid,
+        mediatorDid: mediatorDid ?? _mediatorDid,
+      );
+      _controlPlaneSDK.device = result.device;
+      return RegisterForDidcommNotificationsResult(
+        recipientDid: result.recipientDid,
+        device: result.device,
+      );
     });
   }
 
@@ -1082,6 +1118,28 @@ class MeetingPlaceCoreSDK {
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
   }
+
+  /// Sends [message] through its transport (Matrix or DIDComm).
+  ///
+  /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
+  /// matrix events that don't produce one, such as `m.read`, `m.typing`,
+  /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
+  Future<String?> sendMessage(OutgoingMessage message) =>
+      _messagingService.sendMessage(message);
+
+  /// Subscribes to incoming messages for the given [subscription].
+  ///
+  /// The returned [IncomingMessageHandle] owns the underlying transport
+  /// subscription. Callers MUST call [IncomingMessageHandle.dispose] when
+  /// they are done; otherwise the potential subscriptions stay open
+  /// and continue consuming messages from the server.
+  Future<IncomingMessageHandle> subscribe(
+    IncomingMessageSubscription subscription,
+  ) => _messagingService.subscribe(subscription);
+
+  /// Fetches historical messages for the given [query].
+  Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) =>
+      _messagingService.fetchHistory(query);
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);

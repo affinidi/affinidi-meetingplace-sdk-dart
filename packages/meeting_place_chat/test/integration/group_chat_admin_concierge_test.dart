@@ -5,6 +5,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
+import '../utils/chat_test_harness.dart';
 import '../utils/sdk.dart';
 import 'utils/group_chat_fixture.dart';
 
@@ -44,11 +45,18 @@ void main() {
     final chat = await newAliceChatSDK.startChatSession();
     expect(chat.messages.whereType<ConciergeMessage>().length, equals(1));
 
+    await fixture.bobChatSDK.startChatSession();
+    final bobGroupUpdated =
+        ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(
+          fixture.bobChatSDK,
+        );
+
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.approveConnectionRequest(conciergeMessage);
 
     expect(conciergeMessage.status, ChatItemStatus.confirmed);
-    newAliceChatSDK.endChatSession();
+    await bobGroupUpdated;
+    await newAliceChatSDK.endChatSession();
   });
 
   test('group admin rejects connection request', () async {
@@ -81,8 +89,14 @@ void main() {
 
     await Future<void>.delayed(const Duration(seconds: 2));
 
+    final bobGroupUpdated =
+        ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(
+          fixture.bobChatSDK,
+        );
+
     final conciergeMessage = chat.messages.whereType<ConciergeMessage>().first;
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
+    await bobGroupUpdated;
 
     final newMemberDidDoc = await acceptance.permanentChannelDid
         .getDidDocument();
@@ -99,7 +113,7 @@ void main() {
       isNull,
     );
 
-    newAliceChatSDK.endChatSession();
+    await newAliceChatSDK.endChatSession();
     // Silence unused variable warning while keeping the original signature.
     // (The SDK is created to mimic a real joining member.)
     // ignore: unnecessary_statements

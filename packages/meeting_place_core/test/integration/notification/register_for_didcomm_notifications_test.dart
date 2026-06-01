@@ -11,7 +11,7 @@ void main() async {
   });
 
   test('register for DIDComm notifications returns new DIDManager', () async {
-    final result = await sdk.didcomm.registerForNotifications(
+    final result = await sdk.registerForDIDCommNotifications(
       mediatorDid: getMediatorDid(),
     );
 
@@ -40,7 +40,7 @@ void main() async {
     final recipientDid = await sdk.generateDid();
     final recipientDidDoc = await recipientDid.getDidDocument();
 
-    final result = await sdk.didcomm.registerForNotifications(
+    final result = await sdk.registerForDIDCommNotifications(
       mediatorDid: 'did:web:other-mediator',
       recipientDid: recipientDidDoc.id,
     );

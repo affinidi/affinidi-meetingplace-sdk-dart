@@ -11,7 +11,7 @@ import '../utils/sdk.dart';
 void main() async {
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
-  final notification = await bobSDK.didcomm.registerForNotifications();
+  final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
 
@@ -48,11 +48,13 @@ void main() async {
     }
   });
 
-  final notificationStream = await bobSDK.didcomm.subscribe(
-    notificationDidDocument.id,
+  final notificationStream = await bobSDK.subscribe(
+    DidCommSubscription(receiverDid: notificationDidDocument.id),
   );
-  notificationStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
+    final didcommMessage = message as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();
   });
 
@@ -62,5 +64,5 @@ void main() async {
 
   prettyJsonPrintYellow('Finalised group channel', finalisedChannel.toJson());
 
-  await notificationStream.dispose();
+  await notificationSubscription.cancel();
 }

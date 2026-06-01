@@ -284,6 +284,7 @@ class ChannelService {
     required String notificationToken,
     required String otherPartyPermanentChannelDid,
     required int sequenceNumber,
+    String? matrixSyncMarker,
   }) {
     if (!channel.isGroup) {
       throw ChannelServiceException.invalidChannelType(
@@ -301,6 +302,7 @@ class ChannelService {
 
     channel.notificationToken = notificationToken;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.matrixSyncMarker = matrixSyncMarker;
     channel.seqNo = sequenceNumber;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);
@@ -322,6 +324,15 @@ class ChannelService {
   }) async {
     channel.seqNo = sequenceNumber;
     channel.messageSyncMarker = messageSyncMarker;
+    return _channelRepository.updateChannel(channel);
+  }
+
+  /// Advances [Channel.matrixSyncMarker] to [eventId] and persists the change.
+  /// Used after a Matrix history fetch or after delivering an event from a
+  /// live subscription, so that future fetches return only newer events.
+  Future<void> updateMatrixSyncMarker(Channel channel, String eventId) async {
+    if (channel.matrixSyncMarker == eventId) return;
+    channel.matrixSyncMarker = eventId;
     return _channelRepository.updateChannel(channel);
   }
 }

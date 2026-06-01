@@ -84,7 +84,7 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
   ContactCard? otherPartyCard,
   ContactCard? channelCard,
   Storage? existingStorage,
-  ChatSDKOptions? options,
+  MeetingPlaceChatSDKOptions? options,
 }) async {
   final storage = existingStorage ?? InMemoryStorage();
   final channel = Channel(
@@ -102,18 +102,18 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
 
   await channelRepository.createChannel(channel);
 
-  return MeetingPlaceChatSDK(
-    sdk: IndividualChatSDK(
-      coreSDK: coreSDK,
-      did: did,
-      otherPartyDid: otherPartyDid,
-      card: card,
-      mediatorDid: getMediatorDid(),
-      chatRepository: ChatRepositoryImpl(storage: storage),
-      options:
-          options ??
-          ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 3)),
-    ),
+  return IndividualMatrixChatSDK(
+    coreSDK: coreSDK,
+    did: did,
+    otherPartyDid: otherPartyDid,
+    card: card,
+    mediatorDid: getMediatorDid(),
+    chatRepository: ChatRepositoryImpl(storage: storage),
+    options:
+        options ??
+        MeetingPlaceChatSDKOptions(
+          chatPresenceSendInterval: const Duration(seconds: 3),
+        ),
   );
 }
 
@@ -141,18 +141,16 @@ Future<MeetingPlaceChatSDK> initGroupChatSDK({
 
   await channelRepository.createChannel(channel);
 
-  return MeetingPlaceChatSDK(
-    sdk: GroupChatSDK(
-      coreSDK: coreSDK,
-      group: group,
-      did: did,
-      otherPartyDid: otherPartyDid,
-      mediatorDid: getMediatorDid(),
-      card: card,
-      chatRepository: ChatRepositoryImpl(storage: storage),
-      options: ChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 3),
-      ),
+  return GroupMatrixChatSDK(
+    coreSDK: coreSDK,
+    group: group,
+    did: did,
+    otherPartyDid: otherPartyDid,
+    mediatorDid: getMediatorDid(),
+    card: card,
+    chatRepository: ChatRepositoryImpl(storage: storage),
+    options: MeetingPlaceChatSDKOptions(
+      chatPresenceSendInterval: const Duration(seconds: 3),
     ),
   );
 }

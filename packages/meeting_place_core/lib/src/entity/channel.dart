@@ -21,6 +21,9 @@ enum ChannelStatus {
 
 enum ChannelType { individual, group, oob }
 
+/// Transport used for message exchange on a channel.
+enum ChannelTransport { didcomm, matrix }
+
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class Channel {
   Channel({
@@ -31,6 +34,7 @@ class Channel {
     required this.status,
     required this.contactCard,
     required this.type,
+    this.transport = ChannelTransport.didcomm,
     required this.isConnectionInitiator,
     this.otherPartyContactCard,
     this.outboundMessageId,
@@ -40,6 +44,7 @@ class Channel {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.messageSyncMarker,
+    this.matrixSyncMarker,
     this.seqNo = 0,
     this.externalRef,
   }) : id = id ?? const Uuid().v4();
@@ -63,6 +68,7 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,
+      transport: ChannelTransport.didcomm,
       isConnectionInitiator: false,
       contactCard: contactCard,
       otherPartyContactCard: connectionOffer.contactCard,
@@ -85,6 +91,7 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
+      transport: ChannelTransport.matrix,
       isConnectionInitiator: false,
       contactCard: card,
       otherPartyContactCard: connectionOffer.contactCard,
@@ -110,6 +117,9 @@ class Channel {
   /// individual connection offer, a group connection offer, or an out-of-band
   /// invitation.
   final ChannelType type;
+
+  /// Transport used to exchange messages on this channel.
+  final ChannelTransport transport;
 
   /// Indicates whether the channel was initiated by the local party or the
   /// other party.
@@ -154,6 +164,11 @@ class Channel {
   /// If connection offer lives on device of accepting party, notification token
   /// is the token shared by the offer owner.
   String? otherPartyNotificationToken;
+
+  /// The Matrix event ID of the most recently fetched event.
+  /// Used as a cursor so that `fetchMatrixRoomHistory` can return only
+  /// events that are newer than this marker.
+  String? matrixSyncMarker;
 
   /// External reference that can be used to correlate the channel with external
   /// systems. This field is not used by the SDK, and can be set by the SDK

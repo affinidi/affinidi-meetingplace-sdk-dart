@@ -179,10 +179,12 @@ void main() {
       await db.close();
     });
 
-    test('adds matrix_room_id column with NULL as default', () async {
-      final schema = await verifier.schemaAt(3);
+    test(
+      'adds matrix_sync_marker and transport columns with sensible defaults',
+      () async {
+        final schema = await verifier.schemaAt(3);
 
-      schema.rawDatabase.execute('''
+        schema.rawDatabase.execute('''
         INSERT INTO channels VALUES (
           'ch-3',
           'did:example:publisher',
@@ -203,66 +205,20 @@ void main() {
         )
       ''');
 
-      final db = ChannelDatabase.forTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 4);
+        final db = ChannelDatabase.forTesting(schema.newConnection());
+        await verifier.migrateAndValidate(db, 4);
 
-      // matrix_room_id must exist and default to NULL for existing rows.
-      final rows = await db.customSelect(
-        'SELECT matrix_room_id FROM channels WHERE id = ?',
-        variables: [const Variable('ch-3')],
-      ).get();
-      expect(rows.single.read<String?>('matrix_room_id'), isNull);
+        final rows = await db.customSelect(
+          'SELECT matrix_sync_marker, transport FROM channels '
+          'WHERE id = ?',
+          variables: [const Variable('ch-3')],
+        ).get();
+        expect(rows.single.read<String?>('matrix_sync_marker'), isNull);
+        // Default value `1` corresponds to ChannelTransport.didcomm.
+        expect(rows.single.read<int>('transport'), equals(1));
 
-      await db.close();
-    });
-  });
-
-  group('v4 → v5 schema migration', () {
-    test('produces the correct v5 schema', () async {
-      final connection = await verifier.startAt(4);
-      final db = ChannelDatabase.forTesting(connection);
-      await verifier.migrateAndValidate(db, 5);
-      await db.close();
-    });
-
-    test('drops matrix_room_id column', () async {
-      final schema = await verifier.schemaAt(4);
-
-      schema.rawDatabase.execute('''
-        INSERT INTO channels VALUES (
-          'ch-4',
-          'did:example:publisher',
-          'did:example:mediator',
-          'offer-link-4',
-          1,
-          1,
-          0,
-          NULL,
-          NULL,
-          'did:example:permanent4',
-          NULL,
-          NULL,
-          NULL,
-          '!room:matrix.example.com',
-          NULL,
-          0,
-          NULL
-        )
-      ''');
-
-      final db = ChannelDatabase.forTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 5);
-
-      // matrix_room_id column must no longer exist.
-      expect(
-        () => db.customSelect(
-          'SELECT matrix_room_id FROM channels WHERE id = ?',
-          variables: [const Variable('ch-4')],
-        ).get(),
-        throwsA(anything),
-      );
-
-      await db.close();
-    });
+        await db.close();
+      },
+    );
   });
 }

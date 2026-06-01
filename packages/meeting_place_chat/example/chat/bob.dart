@@ -18,7 +18,7 @@ void main() async {
 
   // Bob registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
-  final notification = await bobSDK.didcomm.registerForNotifications();
+  final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
       await notification.recipientDid.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
@@ -67,13 +67,16 @@ void main() async {
   });
 
   // Listen to mediator stream using notification DID
-  prettyPrintGreen('>>> Calling SDK.subscribeToMediator');
-  final notificationStream =
-      await bobSDK.didcomm.subscribe(notificationDidDocument.id);
+  prettyPrintGreen('>>> Calling SDK.subscribe');
+  final notificationStream = await bobSDK.subscribe(
+    DidCommSubscription(receiverDid: notificationDidDocument.id),
+  );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  notificationStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
+    final didcommMessage = message as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();
   });
 
@@ -83,15 +86,15 @@ void main() async {
   prettyPrintYellow('Event type: ${offerFinalisedEvent.type.name}');
   prettyJsonPrintYellow('Channel:', offerFinalisedEvent.channel);
 
-  await notificationStream.dispose();
+  await notificationSubscription.cancel();
 
   prettyPrintYellow('Initializing chat...');
   final bobChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
     offerFinalisedEvent.channel,
     coreSDK: bobSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-    options:
-        ChatSDKOptions(chatPresenceSendInterval: const Duration(seconds: 60)),
+    options: MeetingPlaceChatSDKOptions(
+        chatPresenceSendInterval: const Duration(seconds: 60)),
   );
 
   await Future<void>.delayed(const Duration(seconds: 2));
@@ -108,22 +111,26 @@ void main() async {
     });
   });
 
-  prettyPrintGreen('>>> Calling ChatSDK.sendTextMessage("Hi Alice!")');
+  prettyPrintGreen(
+      '>>> Calling MeetingPlaceChatSDK.sendTextMessage("Hi Alice!")');
   await bobChatSDK.sendTextMessage('Hi Alice!');
 
-  prettyPrintGreen('>>> Calling ChatSDK.sendTextMessage("How are you?")');
+  prettyPrintGreen(
+      '>>> Calling MeetingPlaceChatSDK.sendTextMessage("How are you?")');
   await bobChatSDK.sendTextMessage('How are you?');
 
   // Send message manually via core SDK
-  await bobSDK.didcomm.sendMessage(
-    PlainTextMessage(
-      id: const Uuid().v4(),
-      type: Uri.parse(ChatProtocol.chatMessage.value),
-      from: offerFinalisedEvent.channel.permanentChannelDid,
-      to: [offerFinalisedEvent.channel.otherPartyPermanentChannelDid!],
-      body: {'text': 'This is a custom message', 'seqNo': 100},
+  await bobSDK.sendMessage(
+    DidCommOutgoingMessage(
+      senderDid: offerFinalisedEvent.channel.permanentChannelDid!,
+      recipientDid: offerFinalisedEvent.channel.otherPartyPermanentChannelDid!,
+      payload: PlainTextMessage(
+        id: const Uuid().v4(),
+        type: Uri.parse(ChatProtocol.chatMessage.value),
+        from: offerFinalisedEvent.channel.permanentChannelDid,
+        to: [offerFinalisedEvent.channel.otherPartyPermanentChannelDid!],
+        body: {'text': 'This is a custom message', 'seqNo': 100},
+      ),
     ),
-    senderDid: offerFinalisedEvent.channel.permanentChannelDid!,
-    recipientDid: offerFinalisedEvent.channel.otherPartyPermanentChannelDid!,
   );
 }

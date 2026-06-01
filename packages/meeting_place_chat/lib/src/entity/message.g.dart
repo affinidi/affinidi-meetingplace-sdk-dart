@@ -25,6 +25,10 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
   reactions:
       (json['reactions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
+  editedAt: json['editedAt'] == null
+      ? null
+      : DateTime.parse(json['editedAt'] as String),
+  transportId: json['transportId'] as String?,
 );
 
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
@@ -36,6 +40,8 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
   'type': _$ChatItemTypeEnumMap[instance.type]!,
   'status': _$ChatItemStatusEnumMap[instance.status]!,
   'value': instance.value,
+  'editedAt': ?instance.editedAt?.toIso8601String(),
+  'transportId': ?instance.transportId,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
   'reactions': instance.reactions,
 };

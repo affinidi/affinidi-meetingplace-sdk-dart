@@ -51,7 +51,7 @@ class SetupChatSdk {
     ContactCard? card,
     ContactCard? channelCard,
   }) async {
-    await sdkInstance.coreSDK.didcomm.mediator.updateAcl(
+    await sdkInstance.coreSDK.mediator.updateAcl(
       ownerDidManager: sdkInstance.didManager,
       acl: AccessListAdd(
         ownerDid: sdkInstance.didDocument.id,
@@ -59,7 +59,7 @@ class SetupChatSdk {
       ),
     );
 
-    await otherPartySdkInstance.coreSDK.didcomm.mediator.updateAcl(
+    await otherPartySdkInstance.coreSDK.mediator.updateAcl(
       ownerDidManager: otherPartySdkInstance.didManager,
       acl: AccessListAdd(
         ownerDid: otherPartySdkInstance.didDocument.id,

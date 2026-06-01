@@ -34,10 +34,7 @@ void main() {
     final did = await aliceSDK.generateDid();
     final didDoc = await did.getDidDocument();
 
-    final oobUrl = await aliceSDK.didcomm.mediator.createOob(
-      did,
-      getMediatorDid(),
-    );
+    final oobUrl = await aliceSDK.mediator.createOob(did, getMediatorDid());
 
     final response = await Dio().get<Map<String, dynamic>>(oobUrl.toString());
 
@@ -52,7 +49,7 @@ void main() {
       Uri.parse('https://didcomm.org/out-of-band/2.0/invitation'),
     );
 
-    final oobActual = await aliceSDK.didcomm.mediator.getOob(oobUrl);
+    final oobActual = await aliceSDK.mediator.getOob(oobUrl);
     expect(oobActual?.id, actual.id);
   });
 

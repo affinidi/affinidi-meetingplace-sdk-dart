@@ -19,10 +19,7 @@ class MatrixClientCache {
   /// session before invoking this — the `get`-then-`add` sequence runs without
   /// yielding in Dart's single-threaded event loop, so concurrent callers
   /// cannot race past `get`.
-  void add({
-    required String did,
-    required Future<matrix.Client> future,
-  }) {
+  void add({required String did, required Future<matrix.Client> future}) {
     final cacheKey = _getCacheKey(did: did);
     _clientCache[cacheKey] = future;
   }

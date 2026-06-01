@@ -1,6 +1,7 @@
 export 'attachment/attachment_format.dart';
 export 'attachment/attachment_media_type.dart';
 export 'attachment/contact_card_attachment.dart';
+export 'attachment/media_category.dart';
 export 'contact_card/contact_card.dart';
 export 'meeting_place_notification_protocol.dart';
 export 'meeting_place_protocol.dart';

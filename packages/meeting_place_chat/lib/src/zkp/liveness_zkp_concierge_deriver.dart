@@ -27,19 +27,32 @@ abstract final class LivenessZkpConciergeDeriver {
     return LivenessZkpConciergeTypes.isHumanZkpType(item.conciergeType.value);
   }
 
+  static ({bool hasRequest, bool hasProof}) _attachmentKinds(Message message) {
+    if (message.value.isNotEmpty || message.attachments.isEmpty) {
+      return (hasRequest: false, hasProof: false);
+    }
+
+    return (
+      hasRequest:
+          LivenessZkpAttachmentParser.tryParseRequestIn(message.attachments) !=
+          null,
+      hasProof:
+          LivenessZkpAttachmentParser.tryParseProofIn(message.attachments) !=
+          null,
+    );
+  }
+
   static List<LivenessZkpConciergeNotice> deriveNoticesFromMessage(
     Message item, {
     required String contactName,
+    ({bool hasRequest, bool hasProof})? attachmentKinds,
   }) {
     final out = <LivenessZkpConciergeNotice>[];
     if (item.value.isNotEmpty || item.attachments.isEmpty) return out;
 
-    final hasRequest =
-        LivenessZkpAttachmentParser.tryParseRequestIn(item.attachments) != null;
-    final hasProof =
-        LivenessZkpAttachmentParser.tryParseProofIn(item.attachments) != null;
+    final kinds = attachmentKinds ?? _attachmentKinds(item);
 
-    if (hasRequest && !item.isFromMe) {
+    if (kinds.hasRequest && !item.isFromMe) {
       out.add(
         LivenessZkpConciergeMessages.humanZkpRequest(
           chatId: item.chatId,
@@ -50,7 +63,7 @@ abstract final class LivenessZkpConciergeDeriver {
       );
     }
 
-    if (hasProof && item.isFromMe) {
+    if (kinds.hasProof && item.isFromMe) {
       out.add(
         LivenessZkpConciergeMessages.humanZkpProofShared(
           chatId: item.chatId,
@@ -66,10 +79,12 @@ abstract final class LivenessZkpConciergeDeriver {
   static List<ConciergeMessage> deriveConciergeMessagesFromMessage(
     Message item, {
     required String contactName,
+    ({bool hasRequest, bool hasProof})? attachmentKinds,
   }) {
     return deriveNoticesFromMessage(
       item,
       contactName: contactName,
+      attachmentKinds: attachmentKinds,
     ).map(LivenessZkpConciergeChatMapper.toConciergeMessage).toList();
   }
 
@@ -78,32 +93,38 @@ abstract final class LivenessZkpConciergeDeriver {
     List<ChatItem> existing, {
     required String contactName,
   }) {
-    Message? latestIncomingRequest;
-    Message? latestMyProof;
+    ({Message message, bool hasRequest, bool hasProof})? latestIncomingRequest;
+    ({Message message, bool hasRequest, bool hasProof})? latestMyProof;
     Message? latestTheirProof;
 
     for (final item in existing) {
       if (item is! Message || !messageHasZkpAttachments(item)) continue;
 
-      final hasRequest =
-          LivenessZkpAttachmentParser.tryParseRequestIn(item.attachments) !=
-          null;
-      final hasProof =
-          LivenessZkpAttachmentParser.tryParseProofIn(item.attachments) != null;
+      final kinds = _attachmentKinds(item);
 
-      if (hasRequest && !item.isFromMe) {
+      if (kinds.hasRequest && !item.isFromMe) {
         if (latestIncomingRequest == null ||
-            item.dateCreated.isAfter(latestIncomingRequest.dateCreated)) {
-          latestIncomingRequest = item;
+            item.dateCreated.isAfter(
+              latestIncomingRequest.message.dateCreated,
+            )) {
+          latestIncomingRequest = (
+            message: item,
+            hasRequest: kinds.hasRequest,
+            hasProof: kinds.hasProof,
+          );
         }
       }
-      if (hasProof && item.isFromMe) {
+      if (kinds.hasProof && item.isFromMe) {
         if (latestMyProof == null ||
-            item.dateCreated.isAfter(latestMyProof.dateCreated)) {
-          latestMyProof = item;
+            item.dateCreated.isAfter(latestMyProof.message.dateCreated)) {
+          latestMyProof = (
+            message: item,
+            hasRequest: kinds.hasRequest,
+            hasProof: kinds.hasProof,
+          );
         }
       }
-      if (hasProof && !item.isFromMe) {
+      if (kinds.hasProof && !item.isFromMe) {
         if (latestTheirProof == null ||
             item.dateCreated.isAfter(latestTheirProof.dateCreated)) {
           latestTheirProof = item;
@@ -116,14 +137,18 @@ abstract final class LivenessZkpConciergeDeriver {
     if (latestIncomingRequest != null) {
       final fulfilledByMyProof =
           latestMyProof != null &&
-          !latestMyProof.dateCreated.isBefore(
-            latestIncomingRequest.dateCreated,
+          !latestMyProof.message.dateCreated.isBefore(
+            latestIncomingRequest.message.dateCreated,
           );
       if (!fulfilledByMyProof) {
         derived.addAll(
           deriveConciergeMessagesFromMessage(
-            latestIncomingRequest,
+            latestIncomingRequest.message,
             contactName: contactName,
+            attachmentKinds: (
+              hasRequest: latestIncomingRequest.hasRequest,
+              hasProof: latestIncomingRequest.hasProof,
+            ),
           ),
         );
       }
@@ -131,15 +156,19 @@ abstract final class LivenessZkpConciergeDeriver {
     if (latestMyProof != null) {
       derived.addAll(
         deriveConciergeMessagesFromMessage(
-          latestMyProof,
+          latestMyProof.message,
           contactName: contactName,
+          attachmentKinds: (
+            hasRequest: latestMyProof.hasRequest,
+            hasProof: latestMyProof.hasProof,
+          ),
         ),
       );
     }
     final latestRequestNoticeId = latestIncomingRequest == null
         ? null
         : LivenessZkpConciergeIds.requestReceived(
-            latestIncomingRequest.messageId,
+            latestIncomingRequest.message.messageId,
           );
 
     final latestIncomingProofNoticeId = latestTheirProof == null

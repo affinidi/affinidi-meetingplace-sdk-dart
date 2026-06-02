@@ -89,6 +89,37 @@ void main() {
     expect((await fixture.bobChatSDK.messages).length, equals(1));
   });
 
+  test(
+    'replayed history rolls all buffered outbound messages to delivered',
+    () async {
+      await fixture.aliceChatSDK.startChatSession();
+
+      final sentIds = <String>[
+        (await fixture.aliceChatSDK.sendTextMessage('Buffered #1')).messageId,
+        (await fixture.aliceChatSDK.sendTextMessage('Buffered #2')).messageId,
+      ];
+
+      final aliceLatestDelivered = ChatTestHarness.awaitItem(
+        fixture.aliceChatSDK,
+        where: (item) =>
+            item is Message &&
+            item.messageId == sentIds.last &&
+            item.status == ChatItemStatus.delivered,
+      );
+
+      await fixture.bobChatSDK.startChatSession();
+      await aliceLatestDelivered;
+
+      final aliceMessages = await fixture.aliceChatSDK.messages;
+      final byId = {
+        for (final m in aliceMessages.cast<Message>()) m.messageId: m,
+      };
+      for (final id in sentIds) {
+        expect(byId[id]?.status, ChatItemStatus.delivered, reason: 'id=$id');
+      }
+    },
+  );
+
   test('message is shown as sent even for notification error', () async {
     final channel = await fixture.aliceSDK.coreSDK.getChannelByDid(
       fixture.aliceSDK.didDocument.id,

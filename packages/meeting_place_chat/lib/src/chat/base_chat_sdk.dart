@@ -108,6 +108,10 @@ abstract class BaseChatSDK {
   Stream<StreamData> get stream => chatStream.stream;
 
   /// Sends a plain text message with optional attachments.
+  ///
+  /// Currently only a single attachment per message is supported for Matrix
+  /// hosted media. Passing more than one attachment throws an
+  /// [ArgumentError].
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment>? attachments,

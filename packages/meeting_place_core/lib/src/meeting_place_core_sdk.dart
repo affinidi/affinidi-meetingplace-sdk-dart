@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
@@ -1176,7 +1177,7 @@ class MeetingPlaceCoreSDK {
   Future<Uint8List> downloadMedia(
     String mxcUri, {
     required String receiverDid,
-    String? encryptedFileInfoJson,
+    EncryptedFileInfo? encryptedFileInfo,
   }) async {
     return _withSdkExceptionHandling(() async {
       final roomId = await _messagingService.resolveRoomIdForDid(receiverDid);
@@ -1184,7 +1185,7 @@ class MeetingPlaceCoreSDK {
         mxcUri,
         didManager: await getDidManager(receiverDid),
         roomId: roomId,
-        encryptedFileInfo: tryParseEncryptedFileInfoJson(encryptedFileInfoJson),
+        encryptedFileInfo: encryptedFileInfo,
       );
     });
   }

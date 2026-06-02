@@ -25,19 +25,33 @@ class ReceiptHandler {
     final localMessageId = _serverEventIdToMessageId[serverEventId];
     if (localMessageId == null) return;
 
-    final message = await _chatRepository.getMessage(
+    final target = await _chatRepository.getMessage(
       chatId: _chatId,
       messageId: localMessageId,
     );
+    if (target == null || !target.isFromMe) return;
 
-    if (message == null || !message.isFromMe) return;
-    if (message.status == ChatItemStatus.delivered) return;
+    // Matrix `m.read` is cumulative: it acks the named event and every
+    // earlier message from the same sender. Walk back over our own
+    // outgoing messages with status `sent` and mark them delivered too.
+    final allMessages = await _chatRepository.listMessages(_chatId);
+    final cutoff = target.dateCreated;
+    final toMark = allMessages
+        .whereType<Message>()
+        .where(
+          (m) =>
+              m.isFromMe &&
+              m.status == ChatItemStatus.sent &&
+              !m.dateCreated.isAfter(cutoff),
+        )
+        .toList();
 
-    message.status = ChatItemStatus.delivered;
-    await _chatRepository.updateMesssage(message);
-
-    _chatStream.pushData(
-      StreamData(event: const ChatMessageEvent(), chatItem: message),
-    );
+    for (final message in toMark) {
+      message.status = ChatItemStatus.delivered;
+      await _chatRepository.updateMesssage(message);
+      _chatStream.pushData(
+        StreamData(event: const ChatMessageEvent(), chatItem: message),
+      );
+    }
   }
 }

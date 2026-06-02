@@ -19,8 +19,8 @@ Decentralised Identifiers (DIDs), DIDComm v2.1, and Matrix.
 
 Execute the example Dart scripts from the
 `packages/meeting_place_core/example` folder. To run them, you need to
-provide environment variables for `CONTROL_PLANE_DID`, `MEDIATOR_DID`, and
-`MATRIX_HOMESERVER`. The examples use the
+provide environment variables for `CONTROL_PLANE_DID`, `MEDIATOR_DID`,
+`MATRIX_HOMESERVER`, and `VODOZEMAC_LIBRARY_PATH`. The examples use the
 [dotenv](https://pub.dev/packages/dotenv) package to load these values from a
 local `.env` file for convenience.
 
@@ -33,7 +33,11 @@ local `.env` file for convenience.
    ```
 
    Edit `.env` and update the values for `CONTROL_PLANE_DID`,
-   `MEDIATOR_DID`, and `MATRIX_HOMESERVER` to match your test environment.
+   `MEDIATOR_DID`, `MATRIX_HOMESERVER`, and `VODOZEMAC_LIBRARY_PATH`
+   to match your test environment.
+
+   `VODOZEMAC_LIBRARY_PATH` must point to the directory containing your
+   compiled vodozemac native library.
 
 2. **Run the example scripts**
 

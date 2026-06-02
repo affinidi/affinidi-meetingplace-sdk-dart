@@ -28,6 +28,11 @@ Uri getMatrixHomeserver() => switch (
       _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
     };
 
+String getVodozemacLibraryPath() =>
+    Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
+    env['VODOZEMAC_LIBRARY_PATH'] ??
+    (throw Exception('VODOZEMAC_LIBRARY_PATH not set in environment'));
+
 Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();
   final directory = Directory(

@@ -32,13 +32,10 @@ class MediatorService {
     required this.didResolver,
     required MeetingPlaceMediatorSDKOptions options,
     MeetingPlaceMediatorSDKLogger? logger,
-  }) : _options = options,
-       _logger =
-           logger ??
-           DefaultMeetingPlaceMediatorSDKLogger(
-             className: _className,
-             sdkName: sdkName,
-           );
+  })  : _options = options,
+        _logger = logger ??
+            DefaultMeetingPlaceMediatorSDKLogger(
+                className: _className, sdkName: sdkName);
   static const String _className = 'MediatorService';
 
   final SendMessageQueue sendMessageQueue = SendMessageQueue();
@@ -58,67 +55,64 @@ class MediatorService {
     bool fetchMessagesOnConnect = true,
   }) async {
     final methodName = '_initMediatorClient';
-    _logger.info(
-      'Started connecting to mediator: ${mediatorDid.topAndTail()}',
-      name: methodName,
-    );
+    _logger.info('Started connecting to mediator: ${mediatorDid.topAndTail()}',
+        name: methodName);
 
     final didDocument = await didManager.getDidDocument();
     final mediatorDidDocument = await didResolver.resolveDid(mediatorDid);
 
     final authenticationKeyId = didDocument.authentication.first.id;
 
-    final keyAgreementKeyId = didDocument
-        .matchKeysInKeyAgreement(otherDidDocuments: [mediatorDidDocument])
-        .first;
+    final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
+        otherDidDocuments: [mediatorDidDocument]).first;
 
-    return retry(() async {
-      _logger.info(
-        'Initialize mediator client: ${mediatorDid.topAndTail()}',
-        name: methodName,
-      );
+    return retry(
+      () async {
+        _logger.info(
+          'Initialize mediator client: ${mediatorDid.topAndTail()}',
+          name: methodName,
+        );
 
-      final client = MediatorClient(
-        mediatorDidDocument: mediatorDidDocument,
-        keyPair: await didManager.getKeyPairByDidKeyId(keyAgreementKeyId),
-        didKeyId: keyAgreementKeyId,
-        signer: await didManager.getSigner(authenticationKeyId),
-        forwardMessageOptions: const ForwardMessageOptions(
-          shouldSign: true,
-          shouldEncrypt: true,
-          keyWrappingAlgorithm: KeyWrappingAlgorithm.ecdhEs,
-          encryptionAlgorithm: EncryptionAlgorithm.a256cbc,
-        ),
-        webSocketOptions: WebSocketOptions(
-          deleteOnReceive: false,
-          fetchMessagesOnConnect: fetchMessagesOnConnect,
-          pingIntervalInSeconds: _options.websocketPingInterval,
-          statusRequestMessageOptions: const StatusRequestMessageOptions(
-            shouldSend: true,
+        final client = MediatorClient(
+          mediatorDidDocument: mediatorDidDocument,
+          keyPair: await didManager.getKeyPairByDidKeyId(keyAgreementKeyId),
+          didKeyId: keyAgreementKeyId,
+          signer: await didManager.getSigner(authenticationKeyId),
+          forwardMessageOptions: const ForwardMessageOptions(
             shouldSign: true,
             shouldEncrypt: true,
+            keyWrappingAlgorithm: KeyWrappingAlgorithm.ecdhEs,
+            encryptionAlgorithm: EncryptionAlgorithm.a256cbc,
           ),
-          liveDeliveryChangeMessageOptions:
-              const LiveDeliveryChangeMessageOptions(
-                shouldSend: true,
-                shouldSign: true,
-                shouldEncrypt: true,
-              ),
-        ),
-        authorizationProvider: await _getAuthorizationProvider(
-          mediatorDidDocument: mediatorDidDocument,
-          didManager: didManager,
-          reauthenticate: forceNewSession,
-        ),
-      );
+          webSocketOptions: WebSocketOptions(
+            deleteOnReceive: false,
+            fetchMessagesOnConnect: fetchMessagesOnConnect,
+            pingIntervalInSeconds: _options.websocketPingInterval,
+            statusRequestMessageOptions: const StatusRequestMessageOptions(
+              shouldSend: true,
+              shouldSign: true,
+              shouldEncrypt: true,
+            ),
+            liveDeliveryChangeMessageOptions:
+                const LiveDeliveryChangeMessageOptions(
+              shouldSend: true,
+              shouldSign: true,
+              shouldEncrypt: true,
+            ),
+          ),
+          authorizationProvider: await _getAuthorizationProvider(
+            mediatorDidDocument: mediatorDidDocument,
+            didManager: didManager,
+            reauthenticate: forceNewSession,
+          ),
+        );
 
-      _logger.info(
-        'Mediator client initialized: ${mediatorDid.topAndTail()}',
-        name: methodName,
-      );
+        _logger.info('Mediator client initialized: ${mediatorDid.topAndTail()}',
+            name: methodName);
 
-      return client;
-    });
+        return client;
+      },
+    );
   }
 
   Future<MediatorClient> authenticateWithDid({
@@ -130,9 +124,8 @@ class MediatorService {
     final methodName = 'authenticateWithDid';
 
     _logger.info(
-      'Started authenticating to mediator: ${mediatorDid.topAndTail()}',
-      name: methodName,
-    );
+        'Started authenticating to mediator: ${mediatorDid.topAndTail()}',
+        name: methodName);
     try {
       return retry(
         () async => _initMediatorClient(
@@ -185,12 +178,8 @@ class MediatorService {
         maxDelay: _options.maxRetriesDelay,
       );
     } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to fetch OOB invitation from $oobUrl after retries',
-        error: e,
-        stackTrace: stackTrace,
-        name: 'getOob',
-      );
+      _logger.error('Failed to fetch OOB invitation from $oobUrl after retries',
+          error: e, stackTrace: stackTrace, name: 'getOob');
       if (ErrorHandlerUtils.isRetryableError(e)) {
         _logger.error(
           'Network error while fetching OOB invitation from $oobUrl. ',
@@ -257,18 +246,18 @@ class MediatorService {
         name: methodName,
       );
 
-      await _retry(() async {
-        await mediatorClient.sendMessage(
-          ForwardMessageBuilder.build(
+      await _retry(
+        () async {
+          await mediatorClient.sendMessage(ForwardMessageBuilder.build(
             encryptedMessage,
             senderDidDocument: senderDidDocument,
             mediatorClient: mediatorClient,
             next: next,
             ephemeral: ephemeral,
             forwardExpiryInSeconds: forwardExpiryInSeconds,
-          ),
-        );
-      });
+          ));
+        },
+      );
 
       _logger.info(
         'Message sent of type ${message.type.toString()} from '
@@ -390,10 +379,8 @@ class MediatorService {
 
       await streamSubscription.initialize();
 
-      _logger.info(
-        'Subscribed to mediator: ${mediatorDid.topAndTail()}',
-        name: methodName,
-      );
+      _logger.info('Subscribed to mediator: ${mediatorDid.topAndTail()}',
+          name: methodName);
 
       return streamSubscription;
     } catch (e, stackTrace) {
@@ -427,15 +414,17 @@ class MediatorService {
 
       final ownerDidDocument = await ownerDidManager.getDidDocument();
 
-      await _retry(() async {
-        await client.sendAclManagementMessage(
-          AclManagement(
-            from: ownerDidDocument.id,
-            to: [client.mediatorDidDocument.id],
-            body: acl,
-          ),
-        );
-      });
+      await _retry(
+        () async {
+          await client.sendAclManagementMessage(
+            AclManagement(
+              from: ownerDidDocument.id,
+              to: [client.mediatorDidDocument.id],
+              body: acl,
+            ),
+          );
+        },
+      );
 
       _logger.info(
         'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on '
@@ -504,8 +493,8 @@ class MediatorService {
             startFrom = startFrom == null
                 ? messageCreatedTime.toUtc()
                 : (messageCreatedTime.toUtc().isAfter(startFrom!.toUtc())
-                      ? messageCreatedTime.toUtc()
-                      : startFrom);
+                    ? messageCreatedTime.toUtc()
+                    : startFrom);
           }
 
           _logger.info(
@@ -593,13 +582,15 @@ class MediatorService {
     DateTime? startFrom,
     int? maxResults,
   }) async {
-    return _retry(() async {
-      return await client.fetchMessages(
-        deleteOnMediator: deleteOnRetrieve,
-        batchSize: fetchMessagesBatchSize,
-        startFrom: startFrom,
-      );
-    });
+    return _retry(
+      () async {
+        return await client.fetchMessages(
+          deleteOnMediator: deleteOnRetrieve,
+          batchSize: fetchMessagesBatchSize,
+          startFrom: startFrom,
+        );
+      },
+    );
   }
 
   Future<void> delete({
@@ -614,9 +605,11 @@ class MediatorService {
       mediatorDid: mediatorDid,
     );
 
-    await _retry(() async {
-      await client.deleteMessages(messageIds: messageHashes);
-    });
+    await _retry(
+      () async {
+        await client.deleteMessages(messageIds: messageHashes);
+      },
+    );
 
     _logger.info(
       'Completed deleting ${messageHashes.length} message(s) from mediator '
@@ -626,9 +619,8 @@ class MediatorService {
   }
 
   String _getCacheKey(DidDocument mediatorDidDocument, String did) {
-    final mediatorDidDocumentHash = md5
-        .convert(utf8.encode(jsonEncode(mediatorDidDocument)))
-        .toString();
+    final mediatorDidDocumentHash =
+        md5.convert(utf8.encode(jsonEncode(mediatorDidDocument))).toString();
     return '$mediatorDidDocumentHash-$did';
   }
 
@@ -642,9 +634,8 @@ class MediatorService {
 
     if (!reauthenticate && _authorizationProviders.containsKey(cacheKey)) {
       _logger.info(
-        '''Reusing cached authorization provider for DID ${didDocument.id.topAndTail()} and mediator DID ${mediatorDidDocument.id.topAndTail()}''',
-        name: '_getAuthorizationProvider',
-      );
+          '''Reusing cached authorization provider for DID ${didDocument.id.topAndTail()} and mediator DID ${mediatorDidDocument.id.topAndTail()}''',
+          name: '_getAuthorizationProvider');
       return _authorizationProviders[cacheKey]!;
     }
 

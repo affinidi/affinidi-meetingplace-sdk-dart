@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../service/media/encrypted_file_info.dart';
-import '../../service/media/media_service.dart';
+import '../../service/matrix/media/encrypted_file_info.dart';
+import '../../service/matrix/media/media_service.dart';
 import 'attachment_format.dart';
 
 const _uuid = Uuid();

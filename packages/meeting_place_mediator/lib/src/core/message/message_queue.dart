@@ -14,13 +14,12 @@ class MessageQueue {
   MessageQueue({
     required MediatorClient client,
     MeetingPlaceMediatorSDKLogger? logger,
-  }) : _client = client,
-       _logger =
-           logger ??
-           DefaultMeetingPlaceMediatorSDKLogger(
-             className: _className,
-             sdkName: MeetingPlaceMediatorSDK.className,
-           );
+  })  : _client = client,
+        _logger = logger ??
+            DefaultMeetingPlaceMediatorSDKLogger(
+              className: _className,
+              sdkName: MeetingPlaceMediatorSDK.className,
+            );
 
   static final deleteMessageBatchSize = 100;
   static const String _className = 'MessageQueue';
@@ -45,16 +44,9 @@ class MessageQueue {
         name: 'scheduleDeletion',
       );
 
-      unawaited(
-        _client
-            .deleteMessages(messageIds: [messageHash])
-            .then(
-              (_) => _logger.info(
-                'Message $messageHash deleted immediately',
-                name: 'scheduleDeletion',
-              ),
-            ),
-      );
+      unawaited(_client.deleteMessages(messageIds: [messageHash]).then((_) =>
+          _logger.info('Message $messageHash deleted immediately',
+              name: 'scheduleDeletion')));
 
       return;
     }
@@ -75,8 +67,11 @@ class MessageQueue {
     Duration delay,
   ) {
     final methodName = 'scheduleAction';
-    _logger.info('''Started scheduling delete message action in
-      ${delay.inMilliseconds} milliseconds''', name: methodName);
+    _logger.info(
+      '''Started scheduling delete message action in
+      ${delay.inMilliseconds} milliseconds''',
+      name: methodName,
+    );
     _clearSchedule();
 
     _scheduledTimer = Timer(delay, () async {
@@ -94,11 +89,9 @@ class MessageQueue {
         final messagesToDelete = _queue.toList();
 
         // Process messages in batches of DELETE_MESSAGE_BATCH_SIZE
-        for (
-          var i = 0;
-          i < messagesToDelete.length;
-          i += deleteMessageBatchSize
-        ) {
+        for (var i = 0;
+            i < messagesToDelete.length;
+            i += deleteMessageBatchSize) {
           final end = (i + deleteMessageBatchSize < messagesToDelete.length)
               ? i + deleteMessageBatchSize
               : messagesToDelete.length;

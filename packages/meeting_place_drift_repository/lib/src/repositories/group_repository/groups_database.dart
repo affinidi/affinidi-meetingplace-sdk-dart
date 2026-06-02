@@ -40,14 +40,14 @@ class GroupsDatabase extends _$GroupsDatabase {
     bool logStatements = false,
     bool inMemory = false,
   }) : super(
-         openConnection(
-           databaseName: databaseName,
-           passphrase: passphrase,
-           directory: directory,
-           logStatements: logStatements,
-           inMemory: inMemory,
-         ),
-       );
+          openConnection(
+            databaseName: databaseName,
+            passphrase: passphrase,
+            directory: directory,
+            logStatements: logStatements,
+            inMemory: inMemory,
+          ),
+        );
 
   /// Opens a [GroupsDatabase] from an existing [connection].
   ///
@@ -60,19 +60,19 @@ class GroupsDatabase extends _$GroupsDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    beforeOpen: (details) async {
-      await customStatement('PRAGMA foreign_keys = ON');
-    },
-    onUpgrade: (migrator, from, to) async {
-      if (from < 2) {
-        // v1 group_members stored contact fields as individual columns
-        // (first_name, last_name, email, mobile, profile_pic [non-null],
-        // meetingplace_identity_card_color).  v2 replaces them with
-        // contact_info_json and profile_pic (nullable).
-        // SQLite cannot drop or change columns in-place, so we recreate
-        // the table via a temp-table rename.
-        await customStatement('DROP TABLE IF EXISTS group_members_temp');
-        await customStatement("""
+        beforeOpen: (details) async {
+          await customStatement('PRAGMA foreign_keys = ON');
+        },
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            // v1 group_members stored contact fields as individual columns
+            // (first_name, last_name, email, mobile, profile_pic [non-null],
+            // meetingplace_identity_card_color).  v2 replaces them with
+            // contact_info_json and profile_pic (nullable).
+            // SQLite cannot drop or change columns in-place, so we recreate
+            // the table via a temp-table rename.
+            await customStatement('DROP TABLE IF EXISTS group_members_temp');
+            await customStatement("""
               CREATE TABLE group_members_temp (
                 group_id TEXT REFERENCES meeting_place_groups(id) ON DELETE CASCADE NOT NULL,
                 member_did TEXT NOT NULL,
@@ -91,7 +91,7 @@ class GroupsDatabase extends _$GroupsDatabase {
                 profile_pic TEXT NULL
               )
             """);
-        await customStatement("""
+            await customStatement("""
               INSERT INTO group_members_temp (
                 group_id, member_did, group_owner_did, group_did, metadata,
                 accept_offer_as_did, date_added, public_key, membership_type,
@@ -114,13 +114,13 @@ class GroupsDatabase extends _$GroupsDatabase {
                 profile_pic
               FROM group_members
             """);
-        await customStatement('DROP TABLE group_members');
-        await customStatement(
-          'ALTER TABLE group_members_temp RENAME TO group_members',
-        );
-      }
-    },
-  );
+            await customStatement('DROP TABLE group_members');
+            await customStatement(
+              'ALTER TABLE group_members_temp RENAME TO group_members',
+            );
+          }
+        },
+      );
 }
 
 /// Table representing groups in the database.
@@ -159,8 +159,8 @@ class MeetingPlaceGroups extends Table {
 class GroupMembers extends Table {
   /// The group id of the member.
   TextColumn get groupId => text().customConstraint(
-    'REFERENCES meeting_place_groups(id) ON DELETE CASCADE NOT NULL',
-  )();
+        'REFERENCES meeting_place_groups(id) ON DELETE CASCADE NOT NULL',
+      )();
 
   /// The DID of the group member.
   TextColumn get memberDid => text()();

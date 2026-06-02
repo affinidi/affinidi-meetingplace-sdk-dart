@@ -114,12 +114,12 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
                 profile_pic
               FROM connection_contact_cards
             """);
-
             await customStatement('DROP TABLE connection_contact_cards');
             await customStatement(
               '''ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards''',
             );
           }
+
           if (from < 3) {
             await migrator.addColumn(
               connectionOffers,

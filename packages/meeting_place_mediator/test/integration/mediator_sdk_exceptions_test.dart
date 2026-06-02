@@ -62,8 +62,7 @@ void main() async {
               e is MeetingPlaceMediatorSDKException &&
               e.code ==
                   MeetingPlaceMediatorSDKErrorCode
-                      .subscribeToWebsocketError
-                      .value,
+                      .subscribeToWebsocketError.value,
         ),
       ),
     );
@@ -78,9 +77,8 @@ void main() async {
 
     await didManager.addVerificationMethod(keyPair.id);
 
-    final recipientKeyPair = await aliceWallet.generateKey(
-      keyType: KeyType.secp256k1,
-    );
+    final recipientKeyPair =
+        await aliceWallet.generateKey(keyType: KeyType.secp256k1);
     final recipientDidManager = DidKeyManager(
       wallet: aliceWallet,
       store: InMemoryDidStore(),

@@ -186,8 +186,13 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<Message> sendTextMessage(
     String text, {
-    List<ChatAttachment>? attachments,
+    ChatAttachment? attachment,
   }) async {
+    if (attachment != null) {
+      throw ArgumentError(
+        'Hosted media attachments are not supported on DIDComm chat sessions',
+      );
+    }
     assertCanSend();
     final channel = await getChannel();
     channel.increaseSeqNo();

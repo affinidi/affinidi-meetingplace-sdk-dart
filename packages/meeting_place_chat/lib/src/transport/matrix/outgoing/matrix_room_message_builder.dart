@@ -23,7 +23,7 @@ class MatrixRoomMessageBuilder {
       );
     }
 
-    final mxcUri = getMatrixMediaUri(attachment);
+    final mxcUri = MatrixMediaAttachments.mediaUri(attachment);
     if (mxcUri != null) {
       return MediaMessageRoomEvent(
         senderDid: senderDid,
@@ -32,7 +32,7 @@ class MatrixRoomMessageBuilder {
         sizeBytes: attachment.byteCount ?? 0,
         filename: attachment.filename,
         caption: text.isNotEmpty ? text : null,
-        encryptedFileInfo: getMatrixEncryptedFileInfo(attachment),
+        encryptedFileInfo: MatrixMediaAttachments.encryptedFileInfo(attachment),
         notification: notification,
       );
     }

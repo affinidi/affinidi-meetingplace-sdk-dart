@@ -1170,15 +1170,25 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Downloads hosted media from the Matrix homeserver and decrypts it when
-  /// encrypted media metadata is provided.
+  /// Downloads hosted media referenced by [attachment] and decrypts it when
+  /// the attachment carries encryption metadata.
   ///
   /// The room is resolved internally from [receiverDid] via the channel.
-  Future<Uint8List> downloadMedia(
-    String mxcUri, {
+  /// Throws [ArgumentError] if [attachment] does not reference hosted media.
+  Future<Uint8List> downloadMedia({
     required String receiverDid,
-    EncryptedFileInfo? encryptedFileInfo,
+    required Attachment attachment,
   }) async {
+    final mxcUri = getMxcUri(attachment);
+    if (mxcUri == null) {
+      throw ArgumentError.value(
+        attachment,
+        'attachment',
+        'Attachment does not reference hosted media',
+      );
+    }
+    final encryptedFileInfo = getEncryptedFileInfo(attachment);
+
     return _withSdkExceptionHandling(() async {
       final roomId = await _messagingService.resolveRoomIdForDid(receiverDid);
       return _mediaService.download(

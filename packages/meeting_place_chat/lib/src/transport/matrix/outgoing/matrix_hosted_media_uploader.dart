@@ -25,24 +25,25 @@ class MatrixHostedMediaUploader {
 
   static final _dataUriPrefix = RegExp(r'^data:[^,]*;base64,');
 
-  /// Prepares all [attachments] for sending. Returns only non-null results.
+  /// Prepares all [attachments] for sending.
+  ///
+  /// Throws [ArgumentError] if any attachment carries neither base64 data
+  /// nor an `mxc://` URI.
   Future<List<ChatAttachment>> prepareAll(
     List<ChatAttachment> attachments,
   ) async {
     final results = <ChatAttachment>[];
     for (final attachment in attachments) {
-      final prepared = await prepare(attachment);
-      if (prepared != null) results.add(prepared);
+      results.add(await prepare(attachment));
     }
     return results;
   }
 
-  /// Prepares [attachment] for sending. Returns `null` when [attachment] is
-  /// `null`. Throws [ArgumentError] if the attachment carries neither an
-  /// `mxc://` URI nor base64 bytes.
-  Future<ChatAttachment?> prepare(ChatAttachment? attachment) async {
-    if (attachment == null) return null;
-
+  /// Prepares [attachment] for sending.
+  ///
+  /// Throws [ArgumentError] if the attachment carries neither an `mxc://` URI
+  /// nor base64 bytes.
+  Future<ChatAttachment> prepare(ChatAttachment attachment) async {
     if (MatrixMediaAttachments.mediaUri(attachment) != null) {
       return attachment;
     }
@@ -67,12 +68,12 @@ class MatrixHostedMediaUploader {
     return ChatAttachment(
       id: hosted.id,
       description: attachment.description ?? hosted.description,
-      filename: hosted.filename ?? attachment.filename,
-      mediaType: hosted.mediaType ?? attachment.mediaType,
+      filename: attachment.filename ?? hosted.filename,
+      mediaType: attachment.mediaType ?? hosted.mediaType,
       format: hosted.format,
       lastModifiedTime: attachment.lastModifiedTime ?? hosted.lastModifiedTime,
       data: hosted.data,
-      byteCount: hosted.byteCount ?? attachment.byteCount,
+      byteCount: attachment.byteCount ?? hosted.byteCount,
     );
   }
 }

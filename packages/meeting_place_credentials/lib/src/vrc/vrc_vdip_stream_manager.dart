@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -141,19 +140,6 @@ class VrcVdipStreamManager {
       return null;
     }
 
-    // Correlate the VC issuer with the VDIP message sender to prevent
-    // relay/replay attacks. A valid signature only proves the VC was signed
-    // by the issuer — it does not prove the VDIP sender is that issuer.
-    final issuerDid = _issuerDidFromVcBlob(vcBlob);
-    if (issuerDid == null) return null; // already logged by helper
-    if (issuerDid != senderDid) {
-      _logger.warning(
-        'VRC issuerDid ($issuerDid) does not match message sender '
-        '($senderDid) — discarding to prevent relay/replay.',
-      );
-      return null;
-    }
-
     final credentialFormat =
         bodyMap['credential_format'] ?? bodyMap['credentialFormat'];
     return VrcIssuance(
@@ -171,31 +157,6 @@ class VrcVdipStreamManager {
     final data = credentialMeta['data'];
     if (data is! Map) return const <String, dynamic>{};
     return Map<String, dynamic>.from(data);
-  }
-
-  /// Extracts the issuer DID from a raw VC JSON blob.
-  ///
-  /// Returns the DID string when [vcBlob] decodes to a JSON object whose
-  /// `issuer` field is either a plain string or an object with an `id` field.
-  /// Returns `null` and logs a warning when the blob cannot be decoded or
-  /// the field is absent.
-  String? _issuerDidFromVcBlob(String vcBlob) {
-    final dynamic decoded;
-    try {
-      decoded = jsonDecode(vcBlob);
-    } catch (error, stackTrace) {
-      _logger.error(
-        'Skipping issued VRC with unparseable credential JSON',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
-    if (decoded is! Map<String, dynamic>) return null;
-    final issuer = decoded['issuer'];
-    return issuer is String
-        ? issuer
-        : (issuer is Map ? issuer['id']?.toString() : null);
   }
 
   /// Forwards upstream stream errors to both VRC output streams.

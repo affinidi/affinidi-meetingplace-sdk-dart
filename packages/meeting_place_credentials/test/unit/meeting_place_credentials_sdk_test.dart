@@ -448,7 +448,7 @@ void main() {
         PlainTextMessage(
           id: 'msg-3',
           type: VdipIssuedCredentialMessage.messageType,
-          from: issuerDid,
+          from: 'did:key:sender',
           to: const ['did:key:recipient'],
           body: {
             'credential': signedVrcBlob,
@@ -459,10 +459,10 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       expect(events, hasLength(1));
-      expect(events.single.senderDid, issuerDid);
+      expect(events.single.senderDid, 'did:key:sender');
       expect(events.single.vcBlob, signedVrcBlob);
-      expect(sdk.consumePendingVrc(issuerDid), events.single);
-      expect(sdk.consumePendingVrc(issuerDid), isNull);
+      expect(sdk.consumePendingVrc('did:key:sender'), events.single);
+      expect(sdk.consumePendingVrc('did:key:sender'), isNull);
 
       await sub.cancel();
       await sdk.closeCredentialStreams();
@@ -615,14 +615,14 @@ void main() {
       final channel = MockChannel();
       when(() => channel.id).thenReturn('channel-1');
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(issuerDid),
+        () => mockCoreSDK.getChannelByOtherPartyPermanentDid('did:key:sender'),
       ).thenAnswer((_) async => channel);
 
       vdipMessagesCtrl.add(
         PlainTextMessage(
           id: 'msg-10',
           type: VdipIssuedCredentialMessage.messageType,
-          from: issuerDid,
+          from: 'did:key:sender',
           body: {
             'credential': signedVrcBlob,
             'credential_format': CredentialsSDKConstants.w3cLdV1,

@@ -1,5 +1,4 @@
 import 'package:meeting_place_chat/src/transport/matrix/outgoing/media_message_room_event.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -25,20 +24,27 @@ void main() {
     });
 
     test('stores encrypted metadata in file field and omits url', () {
-      final encryptedFileInfo = EncryptedFileInfo(
-        url: 'mxc://matrix.example.com/media999',
-        key: JsonWebKey(k: 'YWJjZA'),
-        iv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        hashes: {'sha256': 'c2hhMjU2'},
-      );
+      final encryptedFileJson = <String, dynamic>{
+        'url': 'mxc://matrix.example.com/media999',
+        'key': {
+          'kty': 'oct',
+          'alg': 'A256CTR',
+          'ext': true,
+          'k': 'YWJjZA',
+          'key_ops': ['encrypt', 'decrypt'],
+        },
+        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        'hashes': {'sha256': 'c2hhMjU2'},
+        'v': 'v2',
+      };
 
       final event = MediaMessageRoomEvent(
         senderDid: 'did:test:alice',
-        mxcUri: encryptedFileInfo.url,
+        mxcUri: 'mxc://matrix.example.com/media999',
         contentType: 'application/pdf',
         sizeBytes: 4321,
         filename: 'file.pdf',
-        encryptedFileInfo: encryptedFileInfo,
+        encryptedFileJson: encryptedFileJson,
       );
 
       expect(event.content['msgtype'], MediaMsgType.file);
@@ -48,7 +54,7 @@ void main() {
         'mimetype': 'application/pdf',
         'size': 4321,
       });
-      expect(event.content['file'], encryptedFileInfo.toJson());
+      expect(event.content['file'], encryptedFileJson);
       expect(event.content.containsKey('url'), isFalse);
     });
   });

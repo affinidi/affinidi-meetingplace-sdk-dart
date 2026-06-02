@@ -23,6 +23,20 @@ class MatrixHostedMediaUploader {
   final MeetingPlaceCoreSDK _coreSDK;
   final String _senderDid;
 
+  static final _dataUriPrefix = RegExp(r'^data:[^,]*;base64,');
+
+  /// Prepares all [attachments] for sending. Returns only non-null results.
+  Future<List<ChatAttachment>> prepareAll(
+    List<ChatAttachment> attachments,
+  ) async {
+    final results = <ChatAttachment>[];
+    for (final attachment in attachments) {
+      final prepared = await prepare(attachment);
+      if (prepared != null) results.add(prepared);
+    }
+    return results;
+  }
+
   /// Prepares [attachment] for sending. Returns `null` when [attachment] is
   /// `null`. Throws [ArgumentError] if the attachment carries neither an
   /// `mxc://` URI nor base64 bytes.
@@ -40,18 +54,25 @@ class MatrixHostedMediaUploader {
       );
     }
 
-    final uploadOutput = await _coreSDK.uploadMedia(
-      base64Decode(const Base64Codec().normalize(base64Content)),
+    final rawBase64 = base64Content.replaceFirst(_dataUriPrefix, '');
+
+    final uploaded = await _coreSDK.uploadMedia(
+      base64Decode(const Base64Codec().normalize(rawBase64)),
       senderDid: _senderDid,
       contentType: attachment.mediaType ?? 'application/octet-stream',
       filename: attachment.filename,
     );
 
-    return attachmentFromMediaUpload(
-      uploadOutput,
-      mediaType: attachment.mediaType ?? 'application/octet-stream',
-      filename: attachment.filename,
-      description: attachment.description,
-    ).toChatAttachment();
+    final hosted = uploaded.toChatAttachment();
+    return ChatAttachment(
+      id: hosted.id,
+      description: attachment.description ?? hosted.description,
+      filename: hosted.filename ?? attachment.filename,
+      mediaType: hosted.mediaType ?? attachment.mediaType,
+      format: hosted.format,
+      lastModifiedTime: attachment.lastModifiedTime ?? hosted.lastModifiedTime,
+      data: hosted.data,
+      byteCount: hosted.byteCount ?? attachment.byteCount,
+    );
   }
 }

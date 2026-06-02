@@ -15,6 +15,7 @@ import 'constants/sdk_constants.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
+import 'protocol/attachment/attachment_media_utils.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
 import 'service/channel/channel_service.dart';
@@ -25,6 +26,7 @@ import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 import 'service/identity/identity_service.dart';
+import 'service/matrix/media/media_service.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
@@ -1152,19 +1154,24 @@ class MeetingPlaceCoreSDK {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
   }
 
-  /// Uploads media to the Matrix homeserver and returns the hosted-media
-  /// output.
-  Future<MediaUploadOutput> uploadMedia(
+  /// Uploads media to the Matrix homeserver and returns a transport-neutral
+  /// [Attachment] carrying the hosted-media reference and encryption metadata.
+  Future<Attachment> uploadMedia(
     Uint8List fileBytes, {
     required String senderDid,
     required String contentType,
     String? filename,
   }) async {
     return _withSdkExceptionHandling(() async {
-      return _mediaService.upload(
+      final output = await _mediaService.upload(
         fileBytes,
         didManager: await getDidManager(senderDid),
         contentType: contentType,
+        filename: filename,
+      );
+      return attachmentFromMediaUpload(
+        output,
+        mediaType: contentType,
         filename: filename,
       );
     });

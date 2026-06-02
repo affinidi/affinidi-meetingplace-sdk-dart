@@ -96,14 +96,16 @@ abstract interface class MeetingPlaceChatSDK {
   /// if no such message exists in this chat.
   Future<ChatItem?> getMessageById(String messageId);
 
-  /// Sends a plain text message with an optional [attachment]. Returns the
-  /// persisted [Message] once it has been dispatched (status reflects whether
-  /// the send succeeded).
+  /// Sends a plain text message with optional [attachments].
   ///
-  /// Currently a single hosted-media [attachment] is supported. SDK consumers
-  /// that need multiple files per message should send them as separate
-  /// messages.
-  Future<Message> sendTextMessage(String text, {ChatAttachment? attachment});
+  /// When [attachments] contains hosted-media entries, the SDK fans out one
+  /// media message per attachment. The [text] caption is included only on the
+  /// first message; subsequent attachments are sent without body text.
+  /// Returns the first persisted [Message].
+  Future<Message> sendTextMessage(
+    String text, {
+    List<ChatAttachment> attachments = const [],
+  });
 
   /// Downloads and decrypts a hosted-media attachment from the homeserver.
   ///

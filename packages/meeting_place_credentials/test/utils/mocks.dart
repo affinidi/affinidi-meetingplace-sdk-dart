@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
-import 'package:meeting_place_credentials/src/vrc/parser/vrc_parser.dart';
 import 'package:meeting_place_credentials/src/vrc/vrc_exchange_client.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';

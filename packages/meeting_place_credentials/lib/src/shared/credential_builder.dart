@@ -4,6 +4,8 @@ import '../rcard/builder/r_card_builder.dart';
 import '../rcard/model/r_card_subject.dart';
 import '../vrc/builder/vrc_builder.dart';
 import '../vrc/model/vrc_credential_subject.dart';
+import '../zkp/builder/liveness_vc_builder.dart';
+import '../zkp/model/liveness_evidence.dart';
 
 /// Builds and signs credentials (R-Card and VRC).
 ///
@@ -49,5 +51,23 @@ class CredentialBuilder {
     issuerDid: issuerDid,
     subject: subject,
     issuerDidManager: issuerDidManager,
+  );
+
+  /// Builds and signs a Liveness Verifiable Credential.
+  ///
+  /// Uses W3C Data Model v2 with a Data Integrity proof. Liveness claims are
+  /// provider-neutral and stored in the credential subject.
+  static Future<VerifiableCredential> buildLiveness({
+    required String issuerDid,
+    required String holderDid,
+    required LivenessEvidence evidence,
+    required DidManager issuerDidManager,
+    Duration validFor = const Duration(days: 5),
+  }) => LivenessVcBuilder.build(
+    issuerDid: issuerDid,
+    holderDid: holderDid,
+    evidence: evidence,
+    issuerDidManager: issuerDidManager,
+    validFor: validFor,
   );
 }

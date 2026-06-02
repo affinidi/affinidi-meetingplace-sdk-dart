@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
-import 'package:meeting_place_credentials/src/vrc/parser/vrc_parser.dart';
 import 'package:meeting_place_credentials/src/vrc/vrc_vdip_stream_manager.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';

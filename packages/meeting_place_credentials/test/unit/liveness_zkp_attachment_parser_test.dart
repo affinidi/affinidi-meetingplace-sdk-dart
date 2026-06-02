@@ -9,7 +9,9 @@ const _testChallengeNonceHex =
     '0123456789abcdef0123456789abcdef';
 
 LivenessCheckRequestPayload _testRequestPayload() =>
-    LivenessCheckRequestPayload(challengeNonceHex: _testChallengeNonceHex);
+    const LivenessCheckRequestPayload(
+      challengeNonceHex: _testChallengeNonceHex,
+    );
 
 void main() {
   group('LivenessZkpAttachmentParser', () {

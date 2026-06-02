@@ -9,6 +9,7 @@ import '../model/liveness_evidence.dart';
 
 /// Builds signed W3C liveness verifiable credentials.
 abstract final class LivenessVcBuilder {
+  /// Builds and signs a liveness credential from normalized evidence.
   static Future<VcDataModelV2> build({
     required String issuerDid,
     required String holderDid,

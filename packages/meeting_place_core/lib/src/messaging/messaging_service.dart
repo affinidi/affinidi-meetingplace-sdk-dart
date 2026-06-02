@@ -238,6 +238,7 @@ class MessagingService {
       type: e.type,
       content: e.content,
       isFromMe: e.isFromMe,
+      stateKey: e.stateKey,
     );
   }
 

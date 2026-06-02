@@ -97,6 +97,18 @@ class GroupDeregisterMemberHandler
         return GroupDeregisterMemberCommandOutput(success: true);
       }
 
+      if (e.response?.statusCode == HttpStatus.notFound) {
+        _logger.warning(
+          '[MPX API] Member ${command.memberId} already not present in '
+          'group ${command.groupId}; treating deregister as success',
+          name: methodName,
+        );
+        // Member was already removed (e.g. previously kicked by the owner).
+        // Subsequent deregister attempts should be a no-op so callers can
+        // continue cleanup without surfacing an error.
+        return GroupDeregisterMemberCommandOutput(success: true);
+      }
+
       rethrow;
     } catch (e, stackTrace) {
       _logger.error(

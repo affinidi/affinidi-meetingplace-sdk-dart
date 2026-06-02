@@ -782,6 +782,90 @@ class GroupService {
     return _groupRepository.getGroupById(groupId);
   }
 
+  /// Removes [memberDid] from the group identified by [groupId].
+  ///
+  /// Owner-initiated moderation. Only the wallet that owns the group can
+  /// successfully execute this operation; if the local wallet does not
+  /// manage `group.ownerDid`, [GroupException.callerIsNotOwner] is thrown.
+  ///
+  /// The owner cannot be removed via this API; use [leaveGroup] for that.
+  Future<void> removeMember({
+    required String groupId,
+    required String memberDid,
+  }) async {
+    final methodName = 'removeMember';
+    final group = await _loadOwnedGroupForRemoval(
+      groupId: groupId,
+      memberDid: memberDid,
+    );
+
+    final ownerIdentity = await _resolveOwnerIdentityOrThrow(group);
+
+    await _kickMemberFromRoom(
+      group: group,
+      memberDid: memberDid,
+      ownerIdentity: ownerIdentity,
+    );
+
+    await _deregisterMember(group: group, memberDid: memberDid);
+
+    _logger.info(
+      'Removed member ${memberDid.topAndTail()} from group $groupId',
+      name: methodName,
+    );
+  }
+
+  Future<void> _kickMemberFromRoom({
+    required Group group,
+    required String memberDid,
+    required PermanentIdentity ownerIdentity,
+  }) async {
+    final roomId = await _matrixService.resolveChannelRoomId(
+      didManager: ownerIdentity.didManager,
+      channelDid: group.did,
+    );
+
+    await _matrixService.kickUser(
+      roomId,
+      did: memberDid,
+      didManager: ownerIdentity.didManager,
+    );
+  }
+
+  Future<Group> _loadOwnedGroupForRemoval({
+    required String groupId,
+    required String memberDid,
+  }) async {
+    final group = await _groupRepository.getGroupById(groupId);
+    if (group == null || group.ownerDid == null || group.publicKey == null) {
+      throw GroupException.notFoundError();
+    }
+
+    if (memberDid == group.ownerDid) {
+      throw GroupException.cannotRemoveOwner();
+    }
+
+    if (!group.members.any((m) => m.did == memberDid)) {
+      throw GroupException.memberDoesNotBelongToGroupError();
+    }
+
+    return group;
+  }
+
+  Future<PermanentIdentity> _resolveOwnerIdentityOrThrow(Group group) async {
+    try {
+      return await _identityService.getPermanentIdentity(
+        _wallet,
+        group.ownerDid!,
+      );
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        GroupException.callerIsNotOwner(innerException: error),
+        stackTrace,
+      );
+    }
+  }
+
   Future<void> sendMessage(
     PlainTextMessage message, {
     required DidManager senderDid,
@@ -1021,10 +1105,17 @@ class GroupService {
     );
     await _matrixService.leaveRoom(roomId, didManager: identity.didManager);
 
+    await _deregisterMember(group: group, memberDid: identity.didDocument.id);
+  }
+
+  Future<void> _deregisterMember({
+    required Group group,
+    required String memberDid,
+  }) async {
     final encryptedMessage = group_message.GroupMessage.encrypt(
       GroupMemberDeregistration.create(
         groupId: group.id,
-        memberDid: identity.didDocument.id,
+        memberDid: memberDid,
       ).toPlainTextMessage(),
       publicKeyBytes: recrypt.PublicKey.fromBase64(
         group.publicKey!,
@@ -1034,7 +1125,7 @@ class GroupService {
     await _controlPlaneSDK.execute(
       cp.GroupDeregisterMemberCommand(
         groupId: group.id,
-        memberId: identity.didDocument.id,
+        memberId: memberDid,
         messageBase64: _encodeEncryptedMessagePayload(encryptedMessage),
       ),
     );

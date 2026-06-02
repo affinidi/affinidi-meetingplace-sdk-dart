@@ -144,6 +144,11 @@ abstract interface class MeetingPlaceChatSDK {
   /// [UnimplementedError].
   Future<void> rejectConnectionRequest(ConciergeMessage message);
 
+  /// Removes [memberDid] from the group. Group chats only — implementations
+  /// for individual chats throw [UnimplementedError]. Caller must be the
+  /// group owner.
+  Future<void> removeMember(String memberDid);
+
   /// Rejects the contact-details update prompted by [message] without
   /// broadcasting any card change; marks the concierge message as confirmed.
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message);

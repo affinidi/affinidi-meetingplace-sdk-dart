@@ -30,6 +30,7 @@ class MatrixIncomingMessage extends IncomingMessage {
     required this.type,
     required this.content,
     this.isFromMe = false,
+    this.stateKey,
   });
 
   final String roomId;
@@ -37,6 +38,11 @@ class MatrixIncomingMessage extends IncomingMessage {
   final String type;
   final Map<String, dynamic> content;
   final bool isFromMe;
+
+  /// Matrix `state_key` for state events. For `m.room.member` events this is
+  /// the Matrix user ID of the user being affected. Null for non-state
+  /// events.
+  final String? stateKey;
 }
 
 /// An [IncomingMessage] received from the DIDComm transport.

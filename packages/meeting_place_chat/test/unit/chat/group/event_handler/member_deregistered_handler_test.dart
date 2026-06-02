@@ -112,6 +112,31 @@ void main() {
       expect(received, isEmpty);
     });
 
+    test('targetDid takes precedence over senderDid for the kicked '
+        'member', () async {
+      final received = <StreamData>[];
+      stream.listen(received.add);
+
+      await buildHandler().handle(
+        IncomingChatEvent(
+          type: ChatEventTypes.memberLeft,
+          senderDid: 'did:test:alice',
+          targetDid: 'did:test:bob',
+          content: const {},
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final alice = group.members.firstWhere((m) => m.did == 'did:test:alice');
+      final bob = group.members.firstWhere((m) => m.did == 'did:test:bob');
+      expect(alice.status, isNot(GroupMemberStatus.deleted));
+      expect(bob.status, GroupMemberStatus.deleted);
+      verify(() => coreSDK.updateGroup(any())).called(1);
+      expect(received.length, 1);
+      final event = received.single.event as ChatMemberDeregisteredEvent;
+      expect(event.memberDid, 'did:test:bob');
+    });
+
     test('skips when the member is already deleted (idempotent)', () async {
       group.members.firstWhere((m) => m.did == 'did:test:bob').status =
           GroupMemberStatus.deleted;

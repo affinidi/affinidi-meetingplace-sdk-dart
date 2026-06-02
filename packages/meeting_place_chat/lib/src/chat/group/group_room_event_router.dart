@@ -1,3 +1,4 @@
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../meeting_place_chat.dart';
@@ -13,10 +14,28 @@ import 'event_handler/member_joined_handler.dart';
 /// [ChatEventHandler]s for group-specific event types.
 class GroupRoomEventRouter extends IncomingRoomEventRouter {
   GroupRoomEventRouter({required GroupMatrixChatSDK chatSDK})
-    : super.withHandlers(
+    : _chatSDK = chatSDK,
+      super.withHandlers(
         matrixHandlers: IncomingRoomEventRouter.buildBaseHandlers(chatSDK),
         chatHandlers: _buildGroupHandlers(chatSDK: chatSDK),
       );
+
+  final GroupMatrixChatSDK _chatSDK;
+
+  /// Resolves the affected user's DID for `m.room.member` events by reverse
+  /// lookup against the group's known members. Returns `null` for other event
+  /// types or when the state key doesn't match any current member.
+  @override
+  String? resolveTargetDid(MatrixRoomEvent event) {
+    if (event.type != matrix.EventTypes.RoomMember) return null;
+    final stateKey = event.stateKey;
+    if (stateKey == null) return null;
+    final serverName = stateKey.split(':').last;
+    for (final m in _chatSDK.group.members) {
+      if (deriveMatrixUserId(m.did, serverName) == stateKey) return m.did;
+    }
+    return null;
+  }
 
   static Map<String, ChatEventHandler> _buildGroupHandlers({
     required GroupMatrixChatSDK chatSDK,

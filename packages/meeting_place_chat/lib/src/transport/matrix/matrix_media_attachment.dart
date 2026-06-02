@@ -74,12 +74,6 @@ class MatrixMediaAttachments {
     return uri.scheme == 'mxc' ? uri.toString() : null;
   }
 
-  /// Extracts Matrix encrypted-file metadata from a hosted-media chat
-  /// attachment.
-  static EncryptedFileInfo? encryptedFileInfo(ChatAttachment attachment) {
-    return tryParseEncryptedFileInfoJson(attachment.data?.json);
-  }
-
   static String? _stringValue(Object? value) => value is String ? value : null;
 
   static Map<String, dynamic>? _mapValue(Object? value) {

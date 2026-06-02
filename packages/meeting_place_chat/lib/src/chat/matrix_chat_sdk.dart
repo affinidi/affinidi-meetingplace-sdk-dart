@@ -256,30 +256,64 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   @override
   Future<Message> sendTextMessage(
     String text, {
-    ChatAttachment? attachment,
+    List<ChatAttachment> attachments = const [],
   }) async {
     assertCanSend();
-    final preparedAttachment = await _hostedMediaUploader.prepare(attachment);
-    final outgoing = _roomMessageBuilder.build(
-      senderDid: did,
-      text: text,
-      notification: buildChannelNotification('chat-activity'),
-      attachment: preparedAttachment,
-    );
-    final message = await _sendRoomEventMessage(
-      outgoing,
-      attachments: preparedAttachment == null ? const [] : [preparedAttachment],
-    );
+
+    final prepared = await _hostedMediaUploader.prepareAll(attachments);
+
+    if (prepared.isEmpty) {
+      final outgoing = _roomMessageBuilder.build(
+        senderDid: did,
+        text: text,
+        notification: buildChannelNotification('chat-activity'),
+      );
+      final message = await _sendRoomEventMessage(outgoing);
+      logger.info(
+        'Text message sent, message id: ${message.messageId}',
+        name: _matrixLogkey,
+      );
+      await coreSDK.sendMessage(
+        ChatTypingNotification(senderDid: did, active: false),
+      );
+      return message;
+    }
+
+    Message? firstMessage;
+    for (var i = 0; i < prepared.length; i++) {
+      final caption = i == 0 ? text : '';
+      final outgoing = _roomMessageBuilder.build(
+        senderDid: did,
+        text: caption,
+        notification: buildChannelNotification('chat-activity'),
+        attachment: prepared[i],
+      );
+      final message = await _sendRoomEventMessage(
+        outgoing,
+        attachments: [prepared[i]],
+      );
+      firstMessage ??= message;
+
+      if (message.status == ChatItemStatus.error) {
+        logger.error(
+          'Media send failed at attachment ${i + 1}/${prepared.length}',
+          name: _matrixLogkey,
+        );
+        await coreSDK.sendMessage(
+          ChatTypingNotification(senderDid: did, active: false),
+        );
+        return message;
+      }
+    }
 
     logger.info(
-      'Text message sent, message id: ${message.messageId}',
+      'Media message(s) sent, count: ${prepared.length}',
       name: _matrixLogkey,
     );
-
     await coreSDK.sendMessage(
       ChatTypingNotification(senderDid: did, active: false),
     );
-    return message;
+    return firstMessage!;
   }
 
   @override

@@ -17,10 +17,9 @@ class MediaMsgType {
 /// A [MatrixOutgoingMessage] for media (file/image/audio/video) messages.
 ///
 /// Builds an `m.room.message` event following the Matrix Client-Server spec:
-/// - Encrypted content: pass `encryptedFileInfo` (the `file` object from the
-///   upload result containing the JWK, IV, and hashes); its JSON form is used
-///   as the `file` field and a top-level `url` is omitted.
-/// - Unencrypted content: omit `encryptedFileInfo`; `mxcUri` is placed in the
+/// - Encrypted content: pass `encryptedFileJson` (the serialized `file` object
+///   from the upload result containing the JWK, IV, and hashes).
+/// - Unencrypted content: omit `encryptedFileJson`; `mxcUri` is placed in the
 ///   top-level `url` field.
 ///
 /// `contentType` and `sizeBytes` are placed inside the `info` sub-object.
@@ -35,7 +34,7 @@ class MediaMessageRoomEvent extends MatrixOutgoingMessage {
     required int sizeBytes,
     String? filename,
     String? caption,
-    EncryptedFileInfo? encryptedFileInfo,
+    Map<String, dynamic>? encryptedFileJson,
     super.notification,
   }) : super(
          type: EventTypes.Message,
@@ -45,7 +44,7 @@ class MediaMessageRoomEvent extends MatrixOutgoingMessage {
            sizeBytes: sizeBytes,
            filename: filename,
            caption: caption,
-           encryptedFileInfo: encryptedFileInfo,
+           encryptedFileJson: encryptedFileJson,
          ),
        );
 
@@ -55,7 +54,7 @@ class MediaMessageRoomEvent extends MatrixOutgoingMessage {
     required int sizeBytes,
     String? filename,
     String? caption,
-    EncryptedFileInfo? encryptedFileInfo,
+    Map<String, dynamic>? encryptedFileJson,
   }) {
     final msgtype = _msgtypeFromContentType(contentType);
     final body = caption ?? filename ?? msgtype;
@@ -72,8 +71,8 @@ class MediaMessageRoomEvent extends MatrixOutgoingMessage {
       content['filename'] = filename;
     }
 
-    if (encryptedFileInfo != null) {
-      content['file'] = encryptedFileInfo.toJson();
+    if (encryptedFileJson != null) {
+      content['file'] = encryptedFileJson;
     } else {
       content['url'] = mxcUri;
     }

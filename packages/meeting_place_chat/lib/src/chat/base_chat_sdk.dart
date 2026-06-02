@@ -107,12 +107,16 @@ abstract class BaseChatSDK {
   /// Stream of live chat events ([StreamData]) for this session.
   Stream<StreamData> get stream => chatStream.stream;
 
-  /// Sends a plain text message with an optional attachment.
+  /// Sends a plain text message with optional [attachments].
   ///
-  /// Currently a single hosted-media [attachment] is supported. SDK consumers
-  /// that need multiple files per message should send them as separate
-  /// messages.
-  Future<Message> sendTextMessage(String text, {ChatAttachment? attachment});
+  /// When [attachments] contains hosted-media entries, the SDK fans out one
+  /// media message per attachment. The [text] caption is included only on the
+  /// first message; subsequent attachments are sent without body text.
+  /// Returns the first persisted [Message].
+  Future<Message> sendTextMessage(
+    String text, {
+    List<ChatAttachment> attachments = const [],
+  });
 
   /// Downloads and decrypts a hosted-media attachment.
   ///

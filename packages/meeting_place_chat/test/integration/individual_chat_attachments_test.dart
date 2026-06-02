@@ -17,7 +17,7 @@ void main() {
     fixture.dispose();
   });
 
-  test('chat message attachments', () async {
+  test('chat message attachments are uploaded as hosted media', () async {
     await fixture.bobChatSDK.startChatSession();
 
     final attachment = ChatAttachment(
@@ -25,7 +25,6 @@ void main() {
       description: 'Sample attachment',
       filename: 'attachment.jpeg',
       mediaType: AttachmentMediaType.imageJpeg.value,
-      format: AttachmentFormat.imageSelfie.value,
       lastModifiedTime: DateTime.now().toUtc(),
       data: ChatAttachmentData(
         base64:
@@ -37,7 +36,7 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     final message = await fixture.aliceChatSDK.sendTextMessage(
       'Hello World!',
-      attachment: attachment,
+      attachments: [attachment],
     );
 
     final receivedItem = await ChatTestHarness.awaitItem(
@@ -45,21 +44,21 @@ void main() {
       where: (item) => item.messageId == message.messageId,
     );
 
-    expect(
-      (receivedItem as Message).attachments.first.toJson(),
-      attachment.toJson(),
-    );
+    final received = (receivedItem as Message).attachments.first;
+    expect(received.format, AttachmentFormat.hostedMedia.value);
+    expect(received.data?.links, isNotEmpty);
+    expect(received.data!.links!.first.scheme, 'mxc');
+    expect(received.mediaType, attachment.mediaType);
+    expect(received.filename, attachment.filename);
 
     final bobMessages = await fixture.bobChatSDK.messages;
-    expect(
-      (bobMessages.first as Message).attachments.first.toJson(),
-      attachment.toJson(),
-    );
+    final bobAttachment = (bobMessages.first as Message).attachments.first;
+    expect(bobAttachment.format, AttachmentFormat.hostedMedia.value);
+    expect(bobAttachment.data?.links?.first.scheme, 'mxc');
 
     final aliceMessages = await fixture.aliceChatSDK.messages;
-    expect(
-      (aliceMessages[0] as Message).attachments[0].toJson(),
-      attachment.toJson(),
-    );
+    final aliceAttachment = (aliceMessages[0] as Message).attachments[0];
+    expect(aliceAttachment.format, AttachmentFormat.hostedMedia.value);
+    expect(aliceAttachment.description, 'Sample attachment');
   });
 }

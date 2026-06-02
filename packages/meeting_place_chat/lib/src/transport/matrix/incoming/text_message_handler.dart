@@ -2,6 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
 import '../../../event/chat_event_conversion.dart';
+import '../matrix_media_attachment.dart';
 import 'message_edit_handler.dart';
 
 /// Handles incoming `m.room.message` events. Persists the message and pushes
@@ -55,6 +56,7 @@ class TextMessageHandler {
         event: event,
         chatId: _chatId,
         senderDid: senderDid,
+        attachments: extractMatrixMediaAttachments(event.content),
       );
 
       final chatItem = await _chatRepository.createMessage(message);
@@ -62,10 +64,12 @@ class TextMessageHandler {
       _chatStream.pushData(
         StreamData(event: event.toChatEvent(), chatItem: chatItem),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       // TODO: fix duplicate handling causing this error
       _logger.error(
-        'Failed to create message from room event: $e',
+        'Failed to create message from room event',
+        error: e,
+        stackTrace: stackTrace,
         name: _logkey,
       );
     }

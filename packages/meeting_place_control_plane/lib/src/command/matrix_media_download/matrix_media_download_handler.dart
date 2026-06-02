@@ -93,14 +93,11 @@ class MatrixMediaDownloadHandler
     MatrixMediaDownloadCommand command,
   ) async {
     try {
-      final challengeResponse = await DidCommChallengeResponse.build(
+      final challengeResponse = await DidCommChallengeResponse.buildForMatrix(
         apiClient: apiClient,
         didManager: command.didManager,
         didResolver: didResolver,
         recipientDid: controlPlaneDid,
-        challengeProvider: DidCommChallengeResponse.matrixChallengeProvider(
-          apiClient.dio,
-        ),
         onEmptyChallenge: (_) {
           _logger.error(
             'Empty challenge returned from matrix challenge',
@@ -111,40 +108,41 @@ class MatrixMediaDownloadHandler
           );
         },
       );
+      try {
+        final urlResponse = await apiClient.dio.post<Map<String, dynamic>>(
+          '/v1/matrix/media/download-url',
+          data: {
+            'challenge_response': challengeResponse.challengeResponse,
+            'homeserver': command.homeserver.toString(),
+            'room_id': command.roomId,
+            'media_uri': command.mxcUri,
+          },
+          options: Options(
+            headers: {Headers.contentTypeHeader: Headers.jsonContentType},
+            contentType: Headers.jsonContentType,
+          ),
+        );
 
-      final urlResponse = await apiClient.dio.post<Map<String, dynamic>>(
-        '/v1/matrix/media/download-url',
-        data: {
-          'challenge_response': challengeResponse.challengeResponse,
-          'homeserver': command.homeserver.toString(),
-          'room_id': command.roomId,
-          'media_uri': command.mxcUri,
-        },
-        options: Options(
-          headers: {Headers.contentTypeHeader: Headers.jsonContentType},
-          contentType: Headers.jsonContentType,
-        ),
-      );
+        final downloadUrl = _parseDownloadUrl(urlResponse.data);
 
-      final downloadUrl = _parseDownloadUrl(urlResponse.data);
+        final mediaResponse = await apiClient.dio.get<dynamic>(
+          downloadUrl,
+          options: Options(responseType: ResponseType.bytes),
+        );
 
-      final mediaResponse = await apiClient.dio.get<dynamic>(
-        downloadUrl,
-        options: Options(responseType: ResponseType.bytes),
-      );
+        return MatrixMediaDownloadCommandOutput(
+          bytes: _parseBytes(mediaResponse.data),
+        );
+      } on DioException catch (e, stackTrace) {
+        _logger.error(
+          'Failed to download Matrix media',
+          error: e,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
 
-      return MatrixMediaDownloadCommandOutput(
-        bytes: _parseBytes(mediaResponse.data),
-      );
-    } on DioException catch (e, stackTrace) {
-      _logger.error(
-        'Failed to download Matrix media',
-        error: e,
-        stackTrace: stackTrace,
-        name: _logKey,
-      );
-
-      Error.throwWithStackTrace(_mapDioException(e), stackTrace);
+        Error.throwWithStackTrace(_mapDioException(e), stackTrace);
+      }
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to download Matrix media',

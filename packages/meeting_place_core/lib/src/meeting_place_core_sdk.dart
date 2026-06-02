@@ -1176,7 +1176,7 @@ class MeetingPlaceCoreSDK {
   Future<Uint8List> downloadMedia(
     String mxcUri, {
     required String receiverDid,
-    EncryptedFileInfo? encryptedFileInfo,
+    String? encryptedFileInfoJson,
   }) async {
     return _withSdkExceptionHandling(() async {
       final roomId = await _messagingService.resolveRoomIdForDid(receiverDid);
@@ -1184,7 +1184,7 @@ class MeetingPlaceCoreSDK {
         mxcUri,
         didManager: await getDidManager(receiverDid),
         roomId: roomId,
-        encryptedFileInfo: encryptedFileInfo,
+        encryptedFileInfo: tryParseEncryptedFileInfoJson(encryptedFileInfoJson),
       );
     });
   }

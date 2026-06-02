@@ -10,24 +10,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
-
-class FakeAuthenticateCommand extends Fake implements AuthenticateCommand {}
-
-class _FakeDidResolver implements DidResolver {
-  _FakeDidResolver(this._documents);
-
-  final Map<String, DidDocument> _documents;
-
-  @override
-  Future<DidDocument> resolveDid(String did) async {
-    final document = _documents[did];
-    if (document == null) {
-      throw Exception('Missing DID document for $did');
-    }
-    return document;
-  }
-}
+import 'mocks.dart';
 
 DidDocument _didDocument(String did, Uri apiBaseUri) => DidDocument.fromJson({
   '@context': ['https://www.w3.org/ns/did/v1'],
@@ -110,7 +93,7 @@ void main() {
     final client = await ControlPlaneApiClient.init(
       options: ControlPlaneApiClientOptions(controlPlaneDid: controlPlaneDid),
       controlPlaneSDK: mockControlPlaneSDK,
-      didResolver: _FakeDidResolver({
+      didResolver: FakeDidResolver({
         controlPlaneDid: _didDocument(controlPlaneDid, apiBaseUri),
       }),
     );

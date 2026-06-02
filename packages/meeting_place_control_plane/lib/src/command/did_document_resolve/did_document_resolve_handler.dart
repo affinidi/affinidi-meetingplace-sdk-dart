@@ -105,7 +105,7 @@ class ResolveDidDocumentHandler
     try {
       Uri.decodeComponent(host);
       return true;
-    } on FormatException {
+    } catch (_) {
       return false;
     }
   }

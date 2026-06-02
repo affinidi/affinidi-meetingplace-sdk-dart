@@ -1,20 +1,16 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:meeting_place_control_plane/src/api/control_plane_api_client.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload_exception.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload_handler.dart';
 import 'package:meeting_place_control_plane/src/control_plane_sdk_error_code.dart';
 import 'package:meeting_place_control_plane/src/core/model/did_document_hosting_record.dart';
 import 'package:meeting_place_control_plane/src/core/model/did_web_proof.dart';
-import 'package:meeting_place_control_plane/src/loggers/control_plane_sdk_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-class MockControlPlaneApiClient extends Mock implements ControlPlaneApiClient {}
-
-class MockControlPlaneSDKLogger extends Mock implements ControlPlaneSDKLogger {}
+import 'mocks.dart';
 
 void main() {
   late MockControlPlaneApiClient mockApiClient;

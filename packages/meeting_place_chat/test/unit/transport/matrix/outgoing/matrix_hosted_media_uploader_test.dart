@@ -53,11 +53,6 @@ void main() {
 
   group('MatrixHostedMediaUploader', () {
     group('prepare', () {
-      test('returns null for null attachment', () async {
-        final result = await uploader.prepare(null);
-        expect(result, isNull);
-      });
-
       test('passes through already-hosted attachment unchanged', () async {
         final hosted = ChatAttachment(
           id: 'existing-id',
@@ -183,8 +178,7 @@ void main() {
 
         final result = await uploader.prepare(attachment);
 
-        expect(result, isNotNull);
-        expect(result!.description, 'User-provided description');
+        expect(result.description, 'User-provided description');
         expect(result.filename, 'vacation.jpg');
         expect(result.mediaType, 'image/jpeg');
         expect(result.lastModifiedTime, lastModified);
@@ -214,10 +208,39 @@ void main() {
 
         final result = await uploader.prepare(attachment);
 
-        expect(result, isNotNull);
-        expect(result!.filename, 'server-name.jpg');
+        expect(result.filename, 'server-name.jpg');
         expect(result.mediaType, 'image/png');
         expect(result.byteCount, 512);
+      });
+
+      test('caller-provided values take precedence over server', () async {
+        when(
+          () => coreSDK.uploadMedia(
+            any(),
+            senderDid: any(named: 'senderDid'),
+            contentType: any(named: 'contentType'),
+            filename: any(named: 'filename'),
+          ),
+        ).thenAnswer(
+          (_) async => hostedAttachment(
+            filename: 'server-assigned.jpg',
+            mediaType: 'image/png',
+            byteCount: 999,
+          ),
+        );
+
+        final attachment = ChatAttachment(
+          filename: 'user-chosen.jpg',
+          mediaType: 'image/jpeg',
+          byteCount: 2048,
+          data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
+        );
+
+        final result = await uploader.prepare(attachment);
+
+        expect(result.filename, 'user-chosen.jpg');
+        expect(result.mediaType, 'image/jpeg');
+        expect(result.byteCount, 2048);
       });
     });
 

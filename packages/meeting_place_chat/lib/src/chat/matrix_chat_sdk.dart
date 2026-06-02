@@ -313,6 +313,8 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     await coreSDK.sendMessage(
       ChatTypingNotification(senderDid: did, active: false),
     );
+    // Loop runs at least once because prepared.isNotEmpty is
+    // guarded above.
     return firstMessage!;
   }
 

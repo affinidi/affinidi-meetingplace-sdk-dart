@@ -12,6 +12,7 @@ import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
 import 'matrix_room_alias.dart';
 import 'matrix_room_event.dart';
+import 'matrix_service_exception.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_subscription_options.dart';
 
@@ -100,10 +101,7 @@ class MatrixService {
     );
     final client = await _ensureSession(didManager);
     if (!client.encryptionEnabled) {
-      throw StateError(
-        'Matrix client encryption is not enabled; cannot create encrypted '
-        'room. Ensure vodozemac initialized successfully before login.',
-      );
+      throw MatrixServiceException.encryptionNotEnabled();
     }
     return client.createRoom(
       roomAliasName: deriveRoomAliasLocalpart(

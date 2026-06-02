@@ -10,6 +10,18 @@ class MatrixServiceException implements SDKException {
     );
   }
 
+  factory MatrixServiceException.encryptionNotEnabled({
+    Object? innerException,
+  }) {
+    return MatrixServiceException(
+      message:
+          'Matrix client encryption is not enabled; cannot create encrypted '
+          'room. Ensure vodozemac initialized successfully before login.',
+      code: MeetingPlaceCoreSDKErrorCode.matrixEncryptionNotEnabled,
+      innerException: innerException,
+    );
+  }
+
   MatrixServiceException({
     required this.message,
     required this.code,

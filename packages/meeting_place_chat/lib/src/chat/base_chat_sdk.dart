@@ -66,6 +66,12 @@ abstract class BaseChatSDK {
   /// Unique chat ID derived from [did] and [otherPartyDid].
   String get chatId => Chat.deriveId(did: did, otherPartyDid: otherPartyDid);
 
+  /// Maximum age at which the original sender can still delete one of their
+  /// own messages for everyone. Mirrors
+  /// [MeetingPlaceChatSDKOptions.deleteMessageWindow] so UI layers can gate
+  /// the delete-for-everyone affordance without reaching into [options].
+  Duration get deleteMessageWindow => options.deleteMessageWindow;
+
   /// Starts a chat session.
   ///
   /// Transport-specific subclasses are responsible for subscribing to the
@@ -135,6 +141,18 @@ abstract class BaseChatSDK {
 
   /// Edits a previously sent text message.
   Future<void> editTextMessage(Message message, String newText);
+
+  /// Deletes a chat message.
+  ///
+  /// When [localOnly] is `false` (the default), broadcasts a transport-level
+  /// redaction so all participants drop the message. Only the original
+  /// sender may perform this, and only within
+  /// [MeetingPlaceChatSDKOptions.deleteMessageWindow].
+  ///
+  /// When [localOnly] is `true`, marks the message as hidden for the local
+  /// user only — no wire traffic, no time limit, applies to any message
+  /// regardless of author.
+  Future<void> deleteMessage(Message message, {bool localOnly = false});
 
   /// Sends a chat effect (visual/animated signal).
   Future<void> sendEffect(Effect effect);

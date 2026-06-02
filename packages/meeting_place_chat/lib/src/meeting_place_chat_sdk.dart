@@ -106,6 +106,18 @@ abstract interface class MeetingPlaceChatSDK {
   /// sender can edit a message; the message must have been delivered.
   Future<void> editTextMessage(Message message, String newText);
 
+  /// Deletes [message]. Only the original sender may delete a message. When
+  /// [localOnly] is `true`, hides the message for the local user without
+  /// sending any wire traffic, with no time limit. When `false` (default),
+  /// broadcasts a redaction so all participants drop the message; allowed
+  /// only within `deleteMessageWindow`.
+  Future<void> deleteMessage(Message message, {bool localOnly = false});
+
+  /// Maximum age at which the original sender can still delete one of their
+  /// own messages for everyone. Mirrors
+  /// [MeetingPlaceChatSDKOptions.deleteMessageWindow].
+  Duration get deleteMessageWindow;
+
   /// Sends a typing / activity indicator for this chat. The signal expires
   /// after the configured `chatActivityExpiry`.
   Future<void> sendChatActivity();

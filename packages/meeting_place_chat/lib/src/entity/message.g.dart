@@ -29,6 +29,8 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
       ? null
       : DateTime.parse(json['editedAt'] as String),
   transportId: json['transportId'] as String?,
+  isDeleted: json['isDeleted'] as bool? ?? false,
+  isDeletedLocally: json['isDeletedLocally'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
@@ -44,6 +46,8 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
   'transportId': ?instance.transportId,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
   'reactions': instance.reactions,
+  'isDeleted': instance.isDeleted,
+  'isDeletedLocally': instance.isDeletedLocally,
 };
 
 const _$ChatItemStatusEnumMap = {

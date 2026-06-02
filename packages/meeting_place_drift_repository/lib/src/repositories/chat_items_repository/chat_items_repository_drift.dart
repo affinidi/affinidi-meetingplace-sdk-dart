@@ -54,6 +54,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                 type: Value(message.type),
                 senderDid: Value(message.senderDid),
                 transportId: Value(message.transportId),
+                isDeleted: Value(message.isDeleted),
+                isDeletedLocally: Value(message.isDeletedLocally),
               ),
             );
         final newMessage = await (_database.select(_database.chatItems)
@@ -337,6 +339,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             type: Value(message.type),
             senderDid: Value(message.senderDid),
             transportId: Value(message.transportId),
+            isDeleted: Value(message.isDeleted),
+            isDeletedLocally: Value(message.isDeletedLocally),
           ),
         );
 
@@ -596,6 +600,8 @@ class _ChatItemMapper {
         reactions: reactions.map((r) => r.value).toList(),
         senderDid: message.senderDid,
         transportId: message.transportId,
+        isDeleted: message.isDeleted,
+        isDeletedLocally: message.isDeletedLocally,
         attachments: attachments.entries
             .map(
               (a) => model.ChatAttachment(

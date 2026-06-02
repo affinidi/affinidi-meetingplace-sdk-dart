@@ -192,6 +192,8 @@ class Message extends ChatItem {
     List<String> reactions = const [],
     this.editedAt,
     this.transportId,
+    this.isDeleted = false,
+    this.isDeletedLocally = false,
   }) : reactions = [...reactions];
 
   /// The plain text content of the message. Mutated in place when the
@@ -212,11 +214,37 @@ class Message extends ChatItem {
   /// [messageId], which may have been generated optimistically before send.
   String? transportId;
 
-  /// Attachments included with the message (e.g., images, files).
-  final List<ChatAttachment> attachments;
+  /// Attachments included with the message (e.g., images, files). Mutated
+  /// in place when the message is tombstoned via [clearContent].
+  List<ChatAttachment> attachments;
 
   /// List of reactions applied to this message.
   List<String> reactions;
+
+  /// Whether the message has been deleted for all participants via a
+  /// transport-level redaction. Set by the original sender's
+  /// `BaseChatSDK.deleteMessage` call, or on receipt of a matching
+  /// `m.room.redaction` event. [value] is preserved so consumers can still
+  /// render a tombstone placeholder.
+  bool isDeleted;
+
+  /// Whether the message has been hidden for the local user only via
+  /// `deleteMessage(localOnly: true)`. Never broadcast; never set by
+  /// incoming events.
+  bool isDeletedLocally;
+
+  /// Wipes the user-visible content of the message in place, leaving only
+  /// the identity / metadata fields (id, sender, timestamps, transport id,
+  /// tombstone flags). Called by `deleteMessage` and on incoming
+  /// `m.room.redaction` so the chat repository never holds the original
+  /// text or attachment references of a deleted message — defending against
+  /// backup or forensic recovery of "deleted" content.
+  void clearContent() {
+    value = '';
+    attachments = [];
+    reactions = [];
+    editedAt = null;
+  }
 
   /// Serializes this [Message] into a JSON object.
   ///

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart';
-import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../api/api_client.dart';
@@ -22,22 +21,6 @@ class DidCommChallengeResponse {
 
   /// Base64-encoded DIDComm packed challenge response payload.
   final String challengeResponse;
-
-  /// Creates a `challengeProvider` callback that requests a challenge from
-  /// the `/v1/matrix/challenge` endpoint via the given [dio] instance.
-  static Future<String?> Function(String did) matrixChallengeProvider(Dio dio) {
-    return (String did) async {
-      final response = await dio.post<Map<String, dynamic>>(
-        '/v1/matrix/challenge',
-        data: {'did': did},
-        options: Options(
-          headers: {Headers.contentTypeHeader: Headers.jsonContentType},
-          contentType: Headers.jsonContentType,
-        ),
-      );
-      return response.data?['challenge'] as String?;
-    };
-  }
 
   /// Builds a base64-encoded DIDComm challenge-response payload that can be
   /// sent to Control Plane endpoints requiring DID-based authentication.
@@ -75,7 +58,7 @@ class DidCommChallengeResponse {
       if (onEmptyChallenge != null) {
         throw onEmptyChallenge(senderDidDocument.id);
       }
-      throw StateError('Empty challenge returned from didChallenge');
+      throw StateError('Empty challenge returned from challenge endpoint');
     }
 
     final recipientDidDocument = await didResolver.resolveDid(recipientDid);

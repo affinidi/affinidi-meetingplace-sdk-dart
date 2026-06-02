@@ -127,6 +127,7 @@ class Message extends ChatItem {
     required MatrixRoomEvent event,
     required String chatId,
     required String senderDid,
+    List<ChatAttachment> attachments = const [],
   }) {
     return Message(
       chatId: chatId,
@@ -139,7 +140,7 @@ class Message extends ChatItem {
       // The status will be updated to delivered/failed based on the delivery
       // outcome.
       status: ChatItemStatus.sent,
-      attachments: _extractMediaAttachment(event.content),
+      attachments: attachments,
       transportId: event.id,
     );
   }
@@ -148,6 +149,7 @@ class Message extends ChatItem {
     required MatrixRoomEvent event,
     required String chatId,
     required String senderDid,
+    List<ChatAttachment> attachments = const [],
   }) {
     return Message(
       chatId: chatId,
@@ -157,7 +159,7 @@ class Message extends ChatItem {
       isFromMe: false,
       dateCreated: event.timestamp,
       status: ChatItemStatus.received,
-      attachments: _extractMediaAttachment(event.content),
+      attachments: attachments,
       transportId: event.id,
     );
   }
@@ -255,53 +257,4 @@ class Message extends ChatItem {
   }
 }
 
-/// Matrix `msgtype` values that carry a media payload.
-const _mediaMsgTypes = {'m.file', 'm.image', 'm.audio', 'm.video'};
-
-/// Extracts a single hosted-media [ChatAttachment] from a Matrix
-/// `m.room.message` content map.
-List<ChatAttachment> _extractMediaAttachment(Map<String, dynamic> content) {
-  final msgtype = _stringValue(content['msgtype']);
-  if (msgtype == null || !_mediaMsgTypes.contains(msgtype)) return [];
-
-  final info = _mapValue(content['info']);
-  final filename =
-      _stringValue(content['filename']) ?? _stringValue(content['body']);
-  final mimetype = _stringValue(info?['mimetype']);
-  final sizeValue = info?['size'];
-  final size = sizeValue is int ? sizeValue : null;
-
-  final fileInfo = _mapValue(content['file']);
-  final mxcUrl = _stringValue(fileInfo?['url']) ?? _stringValue(content['url']);
-
-  if (mxcUrl == null) return [];
-  final mxcUri = Uri.tryParse(mxcUrl);
-  if (mxcUri == null || mxcUri.scheme != 'mxc') return [];
-
-  final links = [mxcUri];
-  String? encryptionJson;
-  String? hash;
-
-  if (fileInfo != null) {
-    encryptionJson = jsonEncode(fileInfo);
-    final hashes = _mapValue(fileInfo['hashes']);
-    hash = _stringValue(hashes?['sha256']);
-  }
-
-  return [
-    ChatAttachment(
-      filename: filename,
-      mediaType: mimetype,
-      format: AttachmentFormat.hostedMedia.value,
-      byteCount: size,
-      data: ChatAttachmentData(links: links, json: encryptionJson, hash: hash),
-    ),
-  ];
-}
-
 String? _stringValue(Object? value) => value is String ? value : null;
-
-Map<String, dynamic>? _mapValue(Object? value) {
-  if (value is! Map) return null;
-  return Map<String, dynamic>.from(value);
-}

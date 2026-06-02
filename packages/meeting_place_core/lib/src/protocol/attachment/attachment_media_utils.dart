@@ -56,12 +56,24 @@ String? getMxcUri(Attachment attachment) {
 /// Extracts [EncryptedFileInfo] from a hosted media attachment.
 /// Returns null if the attachment does not contain encryption metadata.
 EncryptedFileInfo? getEncryptedFileInfo(Attachment attachment) {
-  final jsonStr = attachment.data?.json;
+  return tryParseEncryptedFileInfoJson(attachment.data?.json);
+}
+
+/// Parses hosted-media encryption metadata from a JSON payload.
+///
+/// Returns null when the payload is absent or does not look like a Matrix
+/// encrypted file object.
+EncryptedFileInfo? tryParseEncryptedFileInfoJson(String? jsonStr) {
   if (jsonStr == null || jsonStr.isEmpty) return null;
-  final decoded = jsonDecode(jsonStr);
-  if (decoded is! Map<String, dynamic>) return null;
-  if (!decoded.containsKey('v') || !decoded.containsKey('key')) {
+
+  try {
+    final decoded = jsonDecode(jsonStr);
+    if (decoded is! Map<String, dynamic>) return null;
+    if (!decoded.containsKey('v') || !decoded.containsKey('key')) {
+      return null;
+    }
+    return EncryptedFileInfo.fromJson(decoded);
+  } on FormatException {
     return null;
   }
-  return EncryptedFileInfo.fromJson(decoded);
 }

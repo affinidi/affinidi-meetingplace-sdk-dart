@@ -11,6 +11,7 @@ import '../../meeting_place_chat.dart';
 import '../entity/chat_attachment_conversion.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_media_attachment.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 
@@ -39,6 +40,8 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
   IncomingMessageHandle? _matrixSubscriptionHandle;
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
+  final MatrixRoomMessageBuilder _roomMessageBuilder =
+      const MatrixRoomMessageBuilder();
 
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
@@ -136,16 +139,19 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         continue;
       }
 
+      final attachments = extractMatrixMediaAttachments(e.content);
       final message = e.isFromMe
           ? Message.fromRoomEventSentByMe(
               event: e,
               chatId: chatId,
               senderDid: senderDid,
+              attachments: attachments,
             )
           : Message.fromRoomEventReceivedByMe(
               event: e,
               chatId: chatId,
               senderDid: senderDid,
+              attachments: attachments,
             );
       messagesByEventId[message.messageId] = message;
       ordered.add(message);
@@ -255,8 +261,16 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     final normalizedAttachments = await _prepareAttachmentsForSending(
       attachments,
     );
+    final outgoing = _roomMessageBuilder.build(
+      senderDid: did,
+      text: text,
+      notification: buildChannelNotification('chat-activity'),
+      attachment: normalizedAttachments.isEmpty
+          ? null
+          : normalizedAttachments.first,
+    );
     final message = await _sendRoomEventMessage(
-      _buildOutgoingMessage(text, normalizedAttachments),
+      outgoing,
       attachments: normalizedAttachments,
     );
 
@@ -273,8 +287,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   @override
   Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
-    final didcommAttachment = attachment.toDIDComm();
-    final mxcUri = getMxcUri(didcommAttachment);
+    final mxcUri = getMatrixMediaUri(attachment);
     if (mxcUri == null) {
       throw ArgumentError('Attachment does not contain a hosted media URI');
     }
@@ -282,7 +295,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     return coreSDK.downloadMedia(
       mxcUri,
       receiverDid: did,
-      encryptedFileInfo: getEncryptedFileInfo(didcommAttachment),
+      encryptedFileInfoJson: attachment.data?.json,
     );
   }
 
@@ -743,10 +756,8 @@ abstract class MatrixChatSDK extends BaseChatSDK {
             'messages',
       );
     }
-
     final attachment = attachments.first;
-    final didcommAttachment = attachment.toDIDComm();
-    if (getMxcUri(didcommAttachment) != null) {
+    if (getMatrixMediaUri(attachment) != null) {
       return attachments;
     }
 
@@ -777,46 +788,5 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         description: attachment.description,
       ).toChatAttachment(),
     ];
-  }
-
-  MatrixOutgoingMessage _buildOutgoingMessage(
-    String text,
-    List<ChatAttachment>? attachments,
-  ) {
-    final notification = buildChannelNotification('chat-activity');
-
-    final first = attachments != null && attachments.isNotEmpty
-        ? attachments.first
-        : null;
-    if (first == null) {
-      return TextMessageRoomEvent(
-        senderDid: did,
-        text: text,
-        notification: notification,
-      );
-    }
-
-    final didcommAttachment = first.toDIDComm();
-    final mxcUri = getMxcUri(didcommAttachment);
-    if (mxcUri != null) {
-      final encryptedFileInfo = getEncryptedFileInfo(didcommAttachment);
-
-      return MediaMessageRoomEvent(
-        senderDid: did,
-        mxcUri: mxcUri,
-        contentType: first.mediaType ?? 'application/octet-stream',
-        sizeBytes: first.byteCount ?? 0,
-        filename: first.filename,
-        caption: text.isNotEmpty ? text : null,
-        encryptedFileInfo: encryptedFileInfo,
-        notification: notification,
-      );
-    }
-
-    return TextMessageRoomEvent(
-      senderDid: did,
-      text: text,
-      notification: notification,
-    );
   }
 }

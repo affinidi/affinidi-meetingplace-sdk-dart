@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:meeting_place_control_plane/src/api/api_client.dart';
 import 'package:meeting_place_control_plane/src/api/control_plane_api_client.dart';
 import 'package:meeting_place_control_plane/src/command/matrix_media_download/matrix_media_download.dart';
 import 'package:meeting_place_control_plane/src/command/matrix_media_download/matrix_media_download_exception.dart';
@@ -16,11 +17,15 @@ import 'package:test/test.dart';
 class _MockControlPlaneApiClient extends Mock
     implements ControlPlaneApiClient {}
 
+class _MockDefaultApi extends Mock implements DefaultApi {}
+
 class _MockDio extends Mock implements Dio {}
 
 class _MockDidResolver extends Mock implements DidResolver {}
 
 class _MockLogger extends Mock implements ControlPlaneSDKLogger {}
+
+class _FakeMatrixChallenge extends Fake implements MatrixChallenge {}
 
 Future<DidManager> _newDidManager() async {
   final wallet = PersistentWallet(InMemoryKeyStore());
@@ -31,7 +36,12 @@ Future<DidManager> _newDidManager() async {
 }
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(_FakeMatrixChallenge());
+  });
+
   late _MockControlPlaneApiClient apiClient;
+  late _MockDefaultApi defaultApi;
   late _MockDio dio;
   late _MockDidResolver didResolver;
   late _MockLogger logger;
@@ -46,6 +56,7 @@ void main() {
 
   setUp(() async {
     apiClient = _MockControlPlaneApiClient();
+    defaultApi = _MockDefaultApi();
     dio = _MockDio();
     didResolver = _MockDidResolver();
     logger = _MockLogger();
@@ -55,6 +66,7 @@ void main() {
     controlPlaneDidDocument = await controlPlaneDidManager.getDidDocument();
     controlPlaneDid = controlPlaneDidDocument.id;
 
+    when(() => apiClient.client).thenReturn(defaultApi);
     when(() => apiClient.dio).thenReturn(dio);
     when(
       () => didResolver.resolveDid(controlPlaneDid),
@@ -75,18 +87,20 @@ void main() {
     mxcUri: mxcUri,
   );
 
+  Response<T> ok<T>(T data) => Response<T>(
+    requestOptions: RequestOptions(path: '/'),
+    data: data,
+    statusCode: 200,
+  );
+
   void stubChallengeSuccess() {
     when(
-      () => dio.post<Map<String, dynamic>>(
-        '/v1/matrix/challenge',
-        data: any(named: 'data'),
-        options: any(named: 'options'),
+      () => defaultApi.matrixChallenge(
+        matrixChallenge: any(named: 'matrixChallenge'),
       ),
     ).thenAnswer(
-      (_) async => Response<Map<String, dynamic>>(
-        requestOptions: RequestOptions(path: '/v1/matrix/challenge'),
-        data: {'challenge': 'test-challenge'},
-        statusCode: 200,
+      (_) async => ok(
+        (MatrixChallengeOKBuilder()..challenge = 'test-challenge').build(),
       ),
     );
   }
@@ -156,18 +170,10 @@ void main() {
 
     test('throws invalidResponse when challenge returns empty', () async {
       when(
-        () => dio.post<Map<String, dynamic>>(
-          '/v1/matrix/challenge',
-          data: any(named: 'data'),
-          options: any(named: 'options'),
+        () => defaultApi.matrixChallenge(
+          matrixChallenge: any(named: 'matrixChallenge'),
         ),
-      ).thenAnswer(
-        (_) async => Response<Map<String, dynamic>>(
-          requestOptions: RequestOptions(path: '/v1/matrix/challenge'),
-          data: {'challenge': ''},
-          statusCode: 200,
-        ),
-      );
+      ).thenAnswer((_) async => ok(MatrixChallengeOKBuilder().build()));
 
       await expectLater(
         newHandler().handle(newCommand()),
@@ -177,6 +183,35 @@ void main() {
             'code',
             ControlPlaneSDKErrorCode.matrixMediaDownloadInvalidResponse,
           ),
+        ),
+      );
+    });
+
+    test('wraps matrix challenge failures as generic', () async {
+      final dioError = DioException(
+        requestOptions: RequestOptions(path: '/v1/matrix/challenge'),
+        type: DioExceptionType.badResponse,
+        response: Response(
+          requestOptions: RequestOptions(path: '/v1/matrix/challenge'),
+          statusCode: 403,
+        ),
+      );
+      when(
+        () => defaultApi.matrixChallenge(
+          matrixChallenge: any(named: 'matrixChallenge'),
+        ),
+      ).thenThrow(dioError);
+
+      await expectLater(
+        newHandler().handle(newCommand()),
+        throwsA(
+          isA<MatrixMediaDownloadException>()
+              .having(
+                (e) => e.code,
+                'code',
+                ControlPlaneSDKErrorCode.matrixMediaDownloadGeneric,
+              )
+              .having((e) => e.innerException, 'innerException', dioError),
         ),
       );
     });

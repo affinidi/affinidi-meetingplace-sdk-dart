@@ -117,7 +117,11 @@ abstract class BaseChatSDK {
     List<ChatAttachment>? attachments,
   });
 
-  /// Downloads a hosted-media attachment.
+  /// Downloads and decrypts a hosted-media attachment.
+  ///
+  /// [Message.attachments] only carries the hosted-media reference and
+  /// encryption metadata. Use this helper to fetch the attachment bytes without
+  /// exposing Matrix-specific media details to SDK consumers.
   Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Starts periodic chat presence updates.

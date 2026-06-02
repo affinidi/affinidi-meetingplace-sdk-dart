@@ -99,6 +99,10 @@ abstract interface class MeetingPlaceChatSDK {
   /// Sends a plain text message with optional [attachments]. Returns the
   /// persisted [Message] once it has been dispatched (status reflects whether
   /// the send succeeded).
+  ///
+  /// Currently only a single attachment per message is supported for Matrix
+  /// hosted media. Passing more than one attachment throws an
+  /// [ArgumentError].
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment>? attachments,

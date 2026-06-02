@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 void main() {
   group('VrcVdipStreamManager', () {
     late String signedVrcBlob;
+    late String issuerDid;
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
@@ -19,7 +20,7 @@ void main() {
       final keyPair = await wallet.generateKey();
       await manager.addVerificationMethod(keyPair.id);
       final didDoc = await manager.getDidDocument();
-      final issuerDid = didDoc.id;
+      issuerDid = didDoc.id;
 
       final vc = await CredentialBuilder.buildVrc(
         issuerDid: issuerDid,
@@ -115,7 +116,7 @@ void main() {
           PlainTextMessage(
             id: 'msg-3',
             type: VdipIssuedCredentialMessage.messageType,
-            from: 'did:key:sender',
+            from: issuerDid,
             to: const ['did:key:recipient'],
             body: {
               'credential': signedVrcBlob,
@@ -126,7 +127,7 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 100));
 
         expect(events, hasLength(1));
-        expect(events.single.senderDid, 'did:key:sender');
+        expect(events.single.senderDid, issuerDid);
         expect(events.single.vcBlob, signedVrcBlob);
 
         await sub.cancel();
@@ -198,5 +199,39 @@ void main() {
       await expectLater(manager.close(), completes);
       await ctrl.close();
     });
+
+    test(
+      'discards issued-credential when vcBlob issuerDid does not match sender',
+      () async {
+        final ctrl = StreamController<PlainTextMessage>();
+        final manager = makeManager(ctrl);
+        final events = <VrcIssuance>[];
+        final sub = manager.receivedVrcs.listen(events.add);
+
+        // signedVrcBlob is signed by issuerDid; relay attacker forwards it
+        // with their own DID as the message sender.
+        ctrl.add(
+          PlainTextMessage(
+            id: 'msg-relay',
+            type: VdipIssuedCredentialMessage.messageType,
+            from: 'did:key:relay-attacker',
+            to: const ['did:key:recipient'],
+            body: {
+              'credential': signedVrcBlob,
+              'credential_format': CredentialsSDKConstants.w3cLdV1,
+            },
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(events, isEmpty);
+        expect(manager.consumePendingVrc(issuerDid), isNull);
+        expect(manager.consumePendingVrc('did:key:relay-attacker'), isNull);
+
+        await sub.cancel();
+        await manager.close();
+        await ctrl.close();
+      },
+    );
   });
 }

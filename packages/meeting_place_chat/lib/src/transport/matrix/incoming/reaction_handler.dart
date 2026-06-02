@@ -37,6 +37,12 @@ class ReactionHandler {
     );
     if (message == null || message is! Message) return;
 
+    // The target message is tombstoned for the local user. The reaction
+    // is dropped on the floor — we don't mutate, don't push to the stream,
+    // and don't register it for later redaction matching (because there is
+    // no local state to undo).
+    if (message.isDeleted || message.isDeletedLocally) return;
+
     if (message.reactions.contains(reaction)) return;
 
     message.reactions.add(reaction);

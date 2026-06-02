@@ -328,7 +328,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     return coreSDK.downloadMedia(
       mxcUri,
       receiverDid: did,
-      encryptedFileInfoJson: attachment.data?.json,
+      encryptedFileInfo: getMatrixEncryptedFileInfo(attachment),
     );
   }
 

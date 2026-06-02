@@ -4,11 +4,18 @@ import 'dart:io';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
+  final vodozemacLibraryPath = getVodozemacLibraryPath();
+
+  if (!vod.isInitialized()) {
+    await vod.init(libraryPath: vodozemacLibraryPath);
+  }
+
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
   final notification = await bobSDK.registerForDIDCommNotifications();

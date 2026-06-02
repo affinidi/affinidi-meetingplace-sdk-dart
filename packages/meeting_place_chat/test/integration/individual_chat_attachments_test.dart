@@ -20,26 +20,24 @@ void main() {
   test('chat message attachments', () async {
     await fixture.bobChatSDK.startChatSession();
 
-    final attachments = [
-      ChatAttachment(
-        id: const Uuid().v4(),
-        description: 'Sample attachment',
-        filename: 'attachment.jpeg',
-        mediaType: AttachmentMediaType.imageJpeg.value,
-        format: AttachmentFormat.imageSelfie.value,
-        lastModifiedTime: DateTime.now().toUtc(),
-        data: ChatAttachmentData(
-          base64:
-              'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
-        ),
-        byteCount: 160,
+    final attachment = ChatAttachment(
+      id: const Uuid().v4(),
+      description: 'Sample attachment',
+      filename: 'attachment.jpeg',
+      mediaType: AttachmentMediaType.imageJpeg.value,
+      format: AttachmentFormat.imageSelfie.value,
+      lastModifiedTime: DateTime.now().toUtc(),
+      data: ChatAttachmentData(
+        base64:
+            'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
       ),
-    ];
+      byteCount: 160,
+    );
 
     await fixture.aliceChatSDK.startChatSession();
     final message = await fixture.aliceChatSDK.sendTextMessage(
       'Hello World!',
-      attachments: attachments,
+      attachment: attachment,
     );
 
     final receivedItem = await ChatTestHarness.awaitItem(
@@ -49,19 +47,19 @@ void main() {
 
     expect(
       (receivedItem as Message).attachments.first.toJson(),
-      attachments.first.toJson(),
+      attachment.toJson(),
     );
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(
       (bobMessages.first as Message).attachments.first.toJson(),
-      attachments.first.toJson(),
+      attachment.toJson(),
     );
 
     final aliceMessages = await fixture.aliceChatSDK.messages;
     expect(
       (aliceMessages[0] as Message).attachments[0].toJson(),
-      attachments[0].toJson(),
+      attachment.toJson(),
     );
   });
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
@@ -42,6 +41,8 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
   final MatrixRoomMessageBuilder _roomMessageBuilder =
       const MatrixRoomMessageBuilder();
+  late final MatrixHostedMediaUploader _hostedMediaUploader =
+      MatrixHostedMediaUploader(coreSDK: coreSDK, senderDid: did);
 
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
@@ -172,7 +173,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         continue;
       }
 
-      final attachments = extractMatrixMediaAttachments(e.content);
+      final attachments = MatrixMediaAttachments.extractFromContent(e.content);
       final message = e.isFromMe
           ? Message.fromRoomEventSentByMe(
               event: e,
@@ -288,23 +289,19 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   @override
   Future<Message> sendTextMessage(
     String text, {
-    List<ChatAttachment>? attachments,
+    ChatAttachment? attachment,
   }) async {
     assertCanSend();
-    final normalizedAttachments = await _prepareAttachmentsForSending(
-      attachments,
-    );
+    final preparedAttachment = await _hostedMediaUploader.prepare(attachment);
     final outgoing = _roomMessageBuilder.build(
       senderDid: did,
       text: text,
       notification: buildChannelNotification('chat-activity'),
-      attachment: normalizedAttachments.isEmpty
-          ? null
-          : normalizedAttachments.first,
+      attachment: preparedAttachment,
     );
     final message = await _sendRoomEventMessage(
       outgoing,
-      attachments: normalizedAttachments,
+      attachments: preparedAttachment == null ? const [] : [preparedAttachment],
     );
 
     logger.info(
@@ -320,15 +317,13 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   @override
   Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
-    final mxcUri = getMatrixMediaUri(attachment);
-    if (mxcUri == null) {
+    if (MatrixMediaAttachments.mediaUri(attachment) == null) {
       throw ArgumentError('Attachment does not contain a hosted media URI');
     }
 
     return coreSDK.downloadMedia(
-      mxcUri,
       receiverDid: did,
-      encryptedFileInfo: getMatrixEncryptedFileInfo(attachment),
+      attachment: attachment.toDIDComm(),
     );
   }
 
@@ -775,51 +770,5 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       isFromMe: m.isFromMe,
       stateKey: m.stateKey,
     );
-  }
-
-  Future<List<ChatAttachment>> _prepareAttachmentsForSending(
-    List<ChatAttachment>? attachments,
-  ) async {
-    if (attachments == null || attachments.isEmpty) return const [];
-    if (attachments.length > 1) {
-      throw ArgumentError.value(
-        attachments.length,
-        'attachments',
-        'Multiple attachments are not supported for Matrix hosted media '
-            'messages',
-      );
-    }
-    final attachment = attachments.first;
-    if (getMatrixMediaUri(attachment) != null) {
-      return attachments;
-    }
-
-    final base64Content = attachment.data?.base64;
-    if (base64Content == null || base64Content.isEmpty) {
-      logger.warning(
-        'Attachment has no base64 data and no mxc:// URI; '
-        'cannot upload hosted media.',
-        name: 'MatrixChatSDK',
-      );
-      throw ArgumentError(
-        'Attachment must contain either base64 data or an mxc:// URI',
-      );
-    }
-
-    final uploadOutput = await coreSDK.uploadMedia(
-      base64Decode(const Base64Codec().normalize(base64Content)),
-      senderDid: did,
-      contentType: attachment.mediaType ?? 'application/octet-stream',
-      filename: attachment.filename,
-    );
-
-    return [
-      attachmentFromMediaUpload(
-        uploadOutput,
-        mediaType: attachment.mediaType ?? 'application/octet-stream',
-        filename: attachment.filename,
-        description: attachment.description,
-      ).toChatAttachment(),
-    ];
   }
 }

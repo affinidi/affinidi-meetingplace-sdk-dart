@@ -9,9 +9,8 @@ part of 'access_list_remove.dart';
 AccessListRemove _$AccessListRemoveFromJson(Map<String, dynamic> json) =>
     AccessListRemove(
       ownerDid: json['did_hash'] as String,
-      granteeDids: (json['hashes'] as List<dynamic>)
-          .map((e) => e as String)
-          .toList(),
+      granteeDids:
+          (json['hashes'] as List<dynamic>).map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$AccessListRemoveToJson(AccessListRemove instance) =>

@@ -17,9 +17,9 @@ class MediatorUtils {
     final endpoints = service.toJson()['serviceEndpoint'] as List<Object>;
 
     final mediatorEndpoint = endpoints.cast<Map<String, dynamic>>().firstWhere(
-      (Map<String, dynamic> endpoint) =>
-          (endpoint['uri'] as String).startsWith('http'),
-    );
+          (Map<String, dynamic> endpoint) =>
+              (endpoint['uri'] as String).startsWith('http'),
+        );
 
     return mediatorEndpoint['uri'] as String;
   }

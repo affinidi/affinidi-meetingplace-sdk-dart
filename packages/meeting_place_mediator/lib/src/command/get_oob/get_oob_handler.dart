@@ -9,7 +9,7 @@ import 'get_oob_output.dart';
 class GetOobHandler
     implements MediatorCommandHandler<GetOobCommand, GetOobOutput> {
   GetOobHandler({required MediatorService mediatorService})
-    : _mediatorService = mediatorService;
+      : _mediatorService = mediatorService;
   final MediatorService _mediatorService;
 
   @override

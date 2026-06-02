@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import 'package:ssi/ssi.dart';
 
-import '../../loggers/default_meeting_place_core_sdk_logger.dart';
-import '../../loggers/meeting_place_core_sdk_logger.dart';
-import '../matrix/matrix_service.dart';
+import '../../../loggers/default_meeting_place_core_sdk_logger.dart';
+import '../../../loggers/meeting_place_core_sdk_logger.dart';
+import '../matrix_service.dart';
 import 'encrypted_file_info.dart';
 import 'matrix_media_uri.dart';
 import 'media_encryption_service.dart';

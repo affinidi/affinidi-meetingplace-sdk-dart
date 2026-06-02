@@ -41,12 +41,9 @@ class QueueItem {
 
 class SendMessageQueue {
   SendMessageQueue({MeetingPlaceMediatorSDKLogger? logger})
-    : _logger =
-          logger ??
-          DefaultMeetingPlaceMediatorSDKLogger(
-            className: _className,
-            sdkName: sdkName,
-          );
+      : _logger = logger ??
+            DefaultMeetingPlaceMediatorSDKLogger(
+                className: _className, sdkName: sdkName);
   static const String _className = 'SendMessageQueue';
 
   final Queue<QueueItem> _queue = Queue<QueueItem>();

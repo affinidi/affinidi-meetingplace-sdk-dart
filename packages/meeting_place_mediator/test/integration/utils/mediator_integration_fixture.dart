@@ -21,26 +21,20 @@ class MediatorIntegrationFixture {
     );
 
     final keyPairA = await wallet.generateKey();
-    final didManagerA = DidKeyManager(
-      wallet: wallet,
-      store: InMemoryDidStore(),
-    );
+    final didManagerA =
+        DidKeyManager(wallet: wallet, store: InMemoryDidStore());
     await didManagerA.addVerificationMethod(keyPairA.id);
     fixture.didManagerA = didManagerA;
 
     final keyPairB = await wallet.generateKey();
-    final didManagerB = DidKeyManager(
-      wallet: wallet,
-      store: InMemoryDidStore(),
-    );
+    final didManagerB =
+        DidKeyManager(wallet: wallet, store: InMemoryDidStore());
     await didManagerB.addVerificationMethod(keyPairB.id);
     fixture.didManagerB = didManagerB;
 
     final keyPairC = await wallet.generateKey();
-    final didManagerC = DidKeyManager(
-      wallet: wallet,
-      store: InMemoryDidStore(),
-    );
+    final didManagerC =
+        DidKeyManager(wallet: wallet, store: InMemoryDidStore());
     await didManagerC.addVerificationMethod(keyPairC.id);
     fixture.didManagerC = didManagerC;
 

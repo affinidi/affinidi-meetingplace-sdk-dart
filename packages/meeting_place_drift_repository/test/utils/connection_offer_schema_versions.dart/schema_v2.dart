@@ -9,212 +9,142 @@ class ConnectionOffers extends Table with TableInfo {
   final String? _alias;
   ConnectionOffers(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> offerName = GeneratedColumn<String>(
-    'offer_name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'offer_name', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> offerLink = GeneratedColumn<String>(
-    'offer_link',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'offer_link', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> offerDescription = GeneratedColumn<String>(
-    'offer_description',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'offer_description', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> oobInvitationMessage =
-      GeneratedColumn<String>(
-        'oob_invitation_message',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
+      GeneratedColumn<String>('oob_invitation_message', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> mnemonic = GeneratedColumn<String>(
-    'mnemonic',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'mnemonic', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> expiresAt = GeneratedColumn<String>(
-    'expires_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'expires_at', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'created_at', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> publishOfferDid = GeneratedColumn<String>(
-    'publish_offer_did',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'publish_offer_did', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<int> type = GeneratedColumn<int>(
-    'type',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<int> status = GeneratedColumn<int>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<int> maximumUsage = GeneratedColumn<int>(
-    'maximum_usage',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'maximum_usage', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<int> ownedByMe = GeneratedColumn<int>(
-    'owned_by_me',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL CHECK (owned_by_me IN (0, 1))',
-  );
+      'owned_by_me', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL CHECK (owned_by_me IN (0, 1))');
   late final GeneratedColumn<String> mediatorDid = GeneratedColumn<String>(
-    'mediator_did',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'mediator_did', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> aliasId = GeneratedColumn<String>(
-    'alias_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'alias_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> outboundMessageId =
-      GeneratedColumn<String>(
-        'outbound_message_id',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: 'NULL',
-      );
+      GeneratedColumn<String>('outbound_message_id', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
   late final GeneratedColumn<String> acceptOfferDid = GeneratedColumn<String>(
-    'accept_offer_did',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'accept_offer_did', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> permanentChannelDid =
-      GeneratedColumn<String>(
-        'permanent_channel_did',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: 'NULL',
-      );
+      GeneratedColumn<String>('permanent_channel_did', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
   late final GeneratedColumn<String> otherPartyPermanentChannelDid =
       GeneratedColumn<String>(
-        'other_party_permanent_channel_did',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: 'NULL',
-      );
+          'other_party_permanent_channel_did', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
   late final GeneratedColumn<String> notificationToken =
-      GeneratedColumn<String>(
-        'notification_token',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: 'NULL',
-      );
+      GeneratedColumn<String>('notification_token', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
   late final GeneratedColumn<String> otherPartyNotificationToken =
       GeneratedColumn<String>(
-        'other_party_notification_token',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-        $customConstraints: 'NULL',
-      );
+          'other_party_notification_token', aliasedName, true,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          $customConstraints: 'NULL');
   late final GeneratedColumn<String> externalRef = GeneratedColumn<String>(
-    'external_ref',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'external_ref', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   @override
   List<GeneratedColumn> get $columns => [
-    id,
-    offerName,
-    offerLink,
-    offerDescription,
-    oobInvitationMessage,
-    mnemonic,
-    expiresAt,
-    createdAt,
-    publishOfferDid,
-    type,
-    status,
-    maximumUsage,
-    ownedByMe,
-    mediatorDid,
-    aliasId,
-    outboundMessageId,
-    acceptOfferDid,
-    permanentChannelDid,
-    otherPartyPermanentChannelDid,
-    notificationToken,
-    otherPartyNotificationToken,
-    externalRef,
-  ];
+        id,
+        offerName,
+        offerLink,
+        offerDescription,
+        oobInvitationMessage,
+        mnemonic,
+        expiresAt,
+        createdAt,
+        publishOfferDid,
+        type,
+        status,
+        maximumUsage,
+        ownedByMe,
+        mediatorDid,
+        aliasId,
+        outboundMessageId,
+        acceptOfferDid,
+        permanentChannelDid,
+        otherPartyPermanentChannelDid,
+        notificationToken,
+        otherPartyNotificationToken,
+        externalRef
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -244,66 +174,41 @@ class ConnectionContactCards extends Table with TableInfo {
   final String? _alias;
   ConnectionContactCards(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT',
-  );
-  late final GeneratedColumn<String> connectionOfferId =
-      GeneratedColumn<String>(
-        'connection_offer_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'REFERENCES connection_offers(id)ON DELETE CASCADE UNIQUE NOT NULL',
-      );
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT');
+  late final GeneratedColumn<String> connectionOfferId = GeneratedColumn<
+          String>('connection_offer_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'REFERENCES connection_offers(id)ON DELETE CASCADE UNIQUE NOT NULL');
   late final GeneratedColumn<String> did = GeneratedColumn<String>(
-    'did',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'did', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
-    'type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> contactInfoJson = GeneratedColumn<String>(
-    'contact_info_json',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT \'{}\'',
-    defaultValue: const CustomExpression('\'{}\''),
-  );
+      'contact_info_json', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT \'{}\'',
+      defaultValue: const CustomExpression('\'{}\''));
   late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
-    'profile_pic',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'profile_pic', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    connectionOfferId,
-    did,
-    type,
-    contactInfoJson,
-    profilePic,
-  ];
+  List<GeneratedColumn> get $columns =>
+      [id, connectionOfferId, did, type, contactInfoJson, profilePic];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -330,65 +235,46 @@ class GroupConnectionOffers extends Table with TableInfo {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   GroupConnectionOffers(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<String> connectionOfferId =
-      GeneratedColumn<String>(
-        'connection_offer_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'REFERENCES connection_offers(id)ON DELETE CASCADE UNIQUE NOT NULL',
-      );
+  late final GeneratedColumn<String> connectionOfferId = GeneratedColumn<
+          String>('connection_offer_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints:
+          'REFERENCES connection_offers(id)ON DELETE CASCADE UNIQUE NOT NULL');
   late final GeneratedColumn<String> memberDid = GeneratedColumn<String>(
-    'member_did',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'member_did', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
-    'group_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
+      'group_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> groupOwnerDid = GeneratedColumn<String>(
-    'group_owner_did',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'group_owner_did', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> groupDid = GeneratedColumn<String>(
-    'group_did',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'group_did', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
-    'metadata',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
+      'metadata', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   @override
   List<GeneratedColumn> get $columns => [
-    connectionOfferId,
-    memberDid,
-    groupId,
-    groupOwnerDid,
-    groupDid,
-    metadata,
-  ];
+        connectionOfferId,
+        memberDid,
+        groupId,
+        groupOwnerDid,
+        groupDid,
+        metadata
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -421,30 +307,27 @@ class DatabaseAtV2 extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [
-    connectionOffers,
-    connectionContactCards,
-    groupConnectionOffers,
-  ];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [connectionOffers, connectionContactCards, groupConnectionOffers];
   @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'connection_offers',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [
-        TableUpdate('connection_contact_cards', kind: UpdateKind.delete),
-      ],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'connection_offers',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('group_connection_offers', kind: UpdateKind.delete)],
-    ),
-  ]);
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('connection_offers',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('connection_contact_cards', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('connection_offers',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('group_connection_offers', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
   @override
   int get schemaVersion => 2;
   @override

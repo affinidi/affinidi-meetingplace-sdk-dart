@@ -20,13 +20,13 @@ enum DidcommTypes {
   String get value => stringValues[this]!;
 
   static List<String> get ephemeralTypes => [
-    DidcommTypes.trustPing.value,
-    DidcommTypes.chatActivity.value,
-  ];
+        DidcommTypes.trustPing.value,
+        DidcommTypes.chatActivity.value,
+      ];
 
   static List<String> get telemetryTypes => [
-    DidcommTypes.status.value,
-    DidcommTypes.statusRequest.value,
-    DidcommTypes.problemReport.value,
-  ];
+        DidcommTypes.status.value,
+        DidcommTypes.statusRequest.value,
+        DidcommTypes.problemReport.value,
+      ];
 }

@@ -56,7 +56,7 @@ class TextMessageHandler {
         event: event,
         chatId: _chatId,
         senderDid: senderDid,
-        attachments: extractMatrixMediaAttachments(event.content),
+        attachments: MatrixMediaAttachments.extractFromContent(event.content),
       );
 
       final chatItem = await _chatRepository.createMessage(message);

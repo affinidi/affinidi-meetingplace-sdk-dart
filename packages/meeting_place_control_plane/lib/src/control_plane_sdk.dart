@@ -96,8 +96,8 @@ class ControlPlaneSDK {
   final ControlPlaneSDKLogger _logger;
 
   late final SDKErrorHandler _sdkErrorHandler;
-  late ControlPlaneApiClient _controlPlaneApiClient;
-  late CommandDispatcher _dispatcher;
+  late final ControlPlaneApiClient _controlPlaneApiClient;
+  late final CommandDispatcher _dispatcher;
 
   Device? _device;
   Future<void>? _initializing;

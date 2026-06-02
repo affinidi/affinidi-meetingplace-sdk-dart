@@ -11,13 +11,13 @@ import 'package:uuid/uuid.dart';
 /// - [from]: Sender's DID.
 class OobInvitationMessage extends OutOfBandMessage {
   OobInvitationMessage({required super.id, required super.from})
-    : super(
-        body: {
-          'goal_code': 'connect',
-          'goal': 'Start relationship',
-          'accept': ['didcomm/v2'],
-        },
-      );
+      : super(
+          body: {
+            'goal_code': 'connect',
+            'goal': 'Start relationship',
+            'accept': ['didcomm/v2'],
+          },
+        );
 
   /// Factory constructor to create a [OobInvitationMessage] from JSON.
   ///

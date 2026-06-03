@@ -10,6 +10,7 @@ class MatrixRoomEvent {
     required this.content,
     required this.timestamp,
     this.isFromMe = false,
+    this.stateKey,
   }) : assert(
          senderDid != null || userId != null,
          'Either senderDid or userId must be provided',
@@ -27,6 +28,12 @@ class MatrixRoomEvent {
   final Map<String, dynamic> content;
   final DateTime timestamp;
   final bool isFromMe;
+
+  /// Matrix `state_key` for state events. For `m.room.member` events this is
+  /// the Matrix user ID of the member being affected (e.g. the kicked user
+  /// for a `leave` initiated by a different sender). Null for non-state
+  /// events.
+  final String? stateKey;
 
   final String? _userId;
 

@@ -706,6 +706,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       content: m.content,
       timestamp: m.timestamp,
       isFromMe: m.isFromMe,
+      stateKey: m.stateKey,
     );
   }
 }

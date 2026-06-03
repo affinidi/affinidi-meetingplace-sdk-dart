@@ -26,12 +26,12 @@ class MemberDeregisteredHandler implements ChatEventHandler {
 
   @override
   Future<void> handle(IncomingChatEvent event) async {
-    final senderDid = event.senderDid;
-    if (senderDid == null) return;
-
     final group = _getGroup();
+    final memberDid = event.targetDid ?? event.senderDid;
+    if (memberDid == null) return;
+
     final member = group.members.firstWhere(
-      (member) => member.did == senderDid,
+      (member) => member.did == memberDid,
       orElse: () => throw Exception('Member not found in group'),
     );
 
@@ -45,7 +45,7 @@ class MemberDeregisteredHandler implements ChatEventHandler {
       EventMessage.groupMemberLeft(
         chatId: _chatId,
         groupDid: group.did,
-        memberDid: senderDid,
+        memberDid: memberDid,
         memberCard: member.contactCard.toJson(),
       ),
     );
@@ -54,7 +54,7 @@ class MemberDeregisteredHandler implements ChatEventHandler {
       StreamData(
         event: ChatMemberDeregisteredEvent(
           groupDid: group.did,
-          memberDid: senderDid,
+          memberDid: memberDid,
         ),
         chatItem: chatItem,
       ),

@@ -49,6 +49,22 @@ class GroupException implements SDKException {
       innerException: innerException,
     );
   }
+
+  factory GroupException.callerIsNotOwner({Object? innerException}) {
+    return GroupException(
+      message: 'Group exception: caller is not the group owner.',
+      code: MeetingPlaceCoreSDKErrorCode.groupCallerIsNotOwnerError,
+      innerException: innerException,
+    );
+  }
+
+  factory GroupException.cannotRemoveOwner({Object? innerException}) {
+    return GroupException(
+      message: 'Group exception: the group owner cannot be removed.',
+      code: MeetingPlaceCoreSDKErrorCode.groupCannotRemoveOwnerError,
+      innerException: innerException,
+    );
+  }
   @override
   final String message;
 

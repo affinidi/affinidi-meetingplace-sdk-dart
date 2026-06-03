@@ -59,6 +59,11 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   }
 
   @override
+  Future<void> removeMember(String memberDid) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<void> startChatPresenceUpdates() async =>
       _startChatPresenceInInterval(options.chatPresenceSendInterval.inSeconds);
 

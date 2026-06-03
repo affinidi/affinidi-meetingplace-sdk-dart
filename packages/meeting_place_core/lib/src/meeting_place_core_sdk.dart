@@ -939,6 +939,28 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  /// Removes a member from a group as an owner-initiated moderation action.
+  ///
+  /// Authorization is enforced inside the SDK: only the wallet that manages
+  /// `group.ownerDid` can successfully execute this. A non-owner caller is
+  /// rejected with [MeetingPlaceCoreSDKErrorCode.groupCallerIsNotOwnerError].
+  ///
+  /// Removing the group owner is rejected with
+  /// [MeetingPlaceCoreSDKErrorCode.groupCannotRemoveOwnerError]. Owners that
+  /// want to leave their own group should use [leaveChannel] instead.
+  ///
+  /// **Parameters:**
+  /// - [groupId] - Identifier of the group to remove the member from.
+  /// - [memberDid] - DID of the member to remove.
+  Future<void> removeMemberFromGroup({
+    required String groupId,
+    required String memberDid,
+  }) {
+    return _withSdkExceptionHandling(() {
+      return _groupService.removeMember(groupId: groupId, memberDid: memberDid);
+    });
+  }
+
   /// Sends outreach invitation to owner of [outreachConnectionOffer].
   ///
   /// **Parameters:**

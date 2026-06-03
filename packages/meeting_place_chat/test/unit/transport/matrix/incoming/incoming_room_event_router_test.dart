@@ -12,8 +12,15 @@ class _TestRouter extends IncomingRoomEventRouter {
     required super.matrixHandlers,
     required super.chatHandlers,
     super.chatStream,
+    this.targetDidResolver,
     // ignore: invalid_use_of_protected_member
   }) : super.withHandlers();
+
+  final String? Function(MatrixRoomEvent)? targetDidResolver;
+
+  @override
+  String? resolveTargetDid(MatrixRoomEvent event) =>
+      targetDidResolver?.call(event);
 }
 
 MatrixRoomEvent _event({
@@ -196,6 +203,49 @@ void main() {
       expect(captured.senderDid, 'did:test:alice');
       expect(captured.type, ChatEventTypes.chatEffect);
       expect(captured.content, {'effect': 'confetti'});
+    });
+
+    test('IncomingChatEvent.targetDid is populated from '
+        'resolveTargetDid', () async {
+      final captureRouter = _TestRouter(
+        matrixHandlers: const {},
+        chatHandlers: {ChatEventTypes.memberLeft: memberLeftHandler},
+        targetDidResolver: (_) => 'did:test:bob',
+      );
+
+      await captureRouter.route(
+        _event(
+          type: matrix.EventTypes.RoomMember,
+          senderDid: 'did:test:alice',
+          content: const {'membership': 'leave'},
+        ),
+      );
+
+      final captured =
+          verify(() => memberLeftHandler.handle(captureAny())).captured.single
+              as IncomingChatEvent;
+      expect(captured.senderDid, 'did:test:alice');
+      expect(captured.targetDid, 'did:test:bob');
+    });
+
+    test('IncomingChatEvent.targetDid defaults to null when the base '
+        'router has no resolver', () async {
+      final captureRouter = _TestRouter(
+        matrixHandlers: const {},
+        chatHandlers: {ChatEventTypes.memberLeft: memberLeftHandler},
+      );
+
+      await captureRouter.route(
+        _event(
+          type: matrix.EventTypes.RoomMember,
+          content: const {'membership': 'leave'},
+        ),
+      );
+
+      final captured =
+          verify(() => memberLeftHandler.handle(captureAny())).captured.single
+              as IncomingChatEvent;
+      expect(captured.targetDid, isNull);
     });
   });
 }

@@ -47,6 +47,8 @@ enum MeetingPlaceCoreSDKErrorCode {
   ),
   groupOfferDoesNotExistError('group_offer_does_not_exist_error'),
   groupChannelDoesNotExistError('group_offer_channel_does_not_exist_error'),
+  groupCallerIsNotOwnerError('group_caller_is_not_owner_error'),
+  groupCannotRemoveOwnerError('group_cannot_remove_owner_error'),
 
   // channels
   channelActionNotAllowed('channel_action_not_allowed'),

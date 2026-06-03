@@ -13,7 +13,15 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
 
   @override
   Future<Group> execute() async {
-    _requireGroupOwner();
+    if (!_chatSDK.isGroupOwner) {
+      _chatSDK.logger.error(
+        'Only group owners can approve connection requests.',
+        name: 'approveConnectionRequest',
+      );
+      throw Exception(
+        'Only group owners are allowed to perform approve connection requests',
+      );
+    }
 
     final channel = await _chatSDK.coreSDK.getChannelByOtherPartyPermanentDid(
       message.data['memberDid'] as String,
@@ -56,14 +64,5 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
     _chatSDK.chatStream.pushData(StreamData(chatItem: chatItem));
 
     return updatedGroup;
-  }
-
-  void _requireGroupOwner() {
-    if (_chatSDK.isGroupOwner) return;
-    _chatSDK.logger.error(
-      'Only group owners can approve connection requests.',
-      name: 'approveConnectionRequest',
-    );
-    throw Exception('Only group owners are allowed to perform this action');
   }
 }

@@ -500,6 +500,11 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   Future<void> rejectConnectionRequest(ConciergeMessage message) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> removeMember(String memberDid) {
+    throw UnimplementedError();
+  }
 }
 
 // ignore: unused_element

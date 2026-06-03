@@ -10,6 +10,7 @@ import '../matrix_chat_sdk.dart';
 import 'action/approve_connection_request_action.dart';
 import 'action/propose_profile_update_action.dart';
 import 'action/reject_connection_request_action.dart';
+import 'action/remove_member_action.dart';
 import 'factory/pending_approval_concierge_factory.dart';
 import 'group_room_event_router.dart';
 import 'listener/pending_approvals_listener.dart';
@@ -148,6 +149,16 @@ class GroupMatrixChatSDK extends MatrixChatSDK implements MeetingPlaceChatSDK {
       this,
       message: message,
     ).execute();
+  }
+
+  /// Removes [memberDid] from the group. Owner-only.
+  ///
+  /// Drives the kick + deregistration through the core SDK and updates local
+  /// chat state directly so the initiator's UI reflects the change without
+  /// waiting for a Matrix echo (which is filtered by `excludeSelf`).
+  @override
+  Future<void> removeMember(String memberDid) async {
+    group = await RemoveMemberAction(this, memberDid: memberDid).execute();
   }
 
   /// Creates a local concierge prompting the user to confirm sharing the new

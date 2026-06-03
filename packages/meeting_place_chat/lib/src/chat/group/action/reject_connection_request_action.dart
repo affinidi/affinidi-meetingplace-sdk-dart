@@ -13,7 +13,15 @@ class RejectConnectionRequestAction implements GroupAction<Group> {
 
   @override
   Future<Group> execute() async {
-    _requireGroupOwner();
+    if (!_chatSDK.isGroupOwner) {
+      _chatSDK.logger.error(
+        'Only group owners can reject connection requests.',
+        name: 'rejectConnectionRequest',
+      );
+      throw Exception(
+        'Only group owners are allowed to reject connection requests',
+      );
+    }
 
     final channel = await _chatSDK.coreSDK.getChannelByDid(
       message.data['memberDid'] as String,
@@ -44,14 +52,5 @@ class RejectConnectionRequestAction implements GroupAction<Group> {
     _chatSDK.chatStream.pushData(StreamData(chatItem: message));
 
     return updatedGroup;
-  }
-
-  void _requireGroupOwner() {
-    if (_chatSDK.isGroupOwner) return;
-    _chatSDK.logger.error(
-      'Only group owners can reject connection requests.',
-      name: 'rejectConnectionRequest',
-    );
-    throw Exception('Only group owners are allowed to perform this action');
   }
 }

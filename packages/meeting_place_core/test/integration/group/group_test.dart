@@ -698,5 +698,110 @@ void main() async {
     expect(expChannel, isNull);
   });
 
+  test('Owner removes member from group', () async {
+    final aliceCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:alice',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    );
+    final bobCard = ContactCardFixture.getContactCardFixture(
+      did: 'did:test:bob',
+      contactInfo: {
+        'n': {'given': 'Bob', 'surname': 'A.'},
+      },
+    );
+
+    final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
+      offerName: 'Sample offer',
+      offerDescription: 'Sample offer description',
+      contactCard: aliceCard,
+      type: SDKConnectionOfferType.groupInvitation,
+    );
+
+    final acceptResult = await bobSDK.acceptOffer(
+      connectionOffer: result.connectionOffer,
+      contactCard: bobCard,
+      senderInfo: 'Bob',
+    );
+
+    final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
+      aliceSDK,
+      filter: (event) =>
+          event.type == ControlPlaneEventType.InvitationGroupAccept,
+      expectedNumberOfEvents: 1,
+    );
+
+    await aliceSDK.processControlPlaneEvents();
+    await aliceCompleter.future;
+
+    final channel = await aliceSDK.getChannelByDid(
+      result.connectionOffer.groupDid!,
+    );
+    await aliceSDK.approveConnectionRequest(channel: channel!);
+
+    final groupId = acceptResult.connectionOffer.groupId;
+    final bobDid = acceptResult.connectionOffer.permanentChannelDid!;
+
+    final groupBefore = await aliceSDK.getGroupById(groupId);
+    expect(groupBefore!.members.length, equals(2));
+    expect(groupBefore.members.any((m) => m.did == bobDid), isTrue);
+
+    // Removing the owner is rejected.
+    expect(
+      () => aliceSDK.removeMemberFromGroup(
+        groupId: groupId,
+        memberDid: groupBefore.ownerDid!,
+      ),
+      throwsA(
+        predicate(
+          (e) =>
+              e is MeetingPlaceCoreSDKException &&
+              e.code ==
+                  MeetingPlaceCoreSDKErrorCode
+                      .groupCannotRemoveOwnerError
+                      .value,
+        ),
+      ),
+    );
+
+    // Non-owner caller is rejected (Bob does not own the group).
+    expect(
+      () => bobSDK.removeMemberFromGroup(
+        groupId: groupId,
+        memberDid: bobDid,
+      ),
+      throwsA(isA<MeetingPlaceCoreSDKException>()),
+    );
+
+    // Owner removes Bob.
+    await aliceSDK.removeMemberFromGroup(
+      groupId: groupId,
+      memberDid: bobDid,
+    );
+
+    final groupAfter = await aliceSDK.getGroupById(groupId);
+    expect(groupAfter!.members.length, equals(1));
+    expect(groupAfter.members.any((m) => m.did == bobDid), isFalse);
+
+    // Removing a member that no longer belongs to the group fails.
+    expect(
+      () => aliceSDK.removeMemberFromGroup(
+        groupId: groupId,
+        memberDid: bobDid,
+      ),
+      throwsA(
+        predicate(
+          (e) =>
+              e is MeetingPlaceCoreSDKException &&
+              e.code ==
+                  MeetingPlaceCoreSDKErrorCode
+                      .groupMemberDoesNotBelongToGroupError
+                      .value,
+        ),
+      ),
+    );
+  });
+
   // TODO: Check if ephemeral messages getting deleted
 }

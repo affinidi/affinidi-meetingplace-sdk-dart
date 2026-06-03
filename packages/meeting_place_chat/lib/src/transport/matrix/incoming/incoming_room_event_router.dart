@@ -111,6 +111,7 @@ class IncomingRoomEventRouter {
           type: dispatchKey,
           senderDid: event.senderDid,
           content: event.content,
+          targetDid: resolveTargetDid(event),
         ),
       );
     }
@@ -129,6 +130,13 @@ class IncomingRoomEventRouter {
       ),
     );
   }
+
+  /// Resolves the DID of the user this event affects when it differs from the
+  /// sender (e.g. Matrix `m.room.member` kicks). The base router has no
+  /// member-list context so it returns `null`; chat-specific subclasses
+  /// override this to perform the lookup.
+  @protected
+  String? resolveTargetDid(MatrixRoomEvent event) => null;
 
   /// Translates a Matrix event into a transport-neutral dispatch key, or
   /// returns `null` if the event has no neutral mapping. Matrix-native types

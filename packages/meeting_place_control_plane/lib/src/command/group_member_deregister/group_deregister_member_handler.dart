@@ -97,7 +97,8 @@ class GroupDeregisterMemberHandler
         return GroupDeregisterMemberCommandOutput(success: true);
       }
 
-      if (e.response?.statusCode == HttpStatus.notFound) {
+      if (e.response?.statusCode == HttpStatus.notFound &&
+          data?['errorCode'] == 'member_not_found') {
         _logger.warning(
           '[MPX API] Member ${command.memberId} already not present in '
           'group ${command.groupId}; treating deregister as success',
@@ -105,7 +106,9 @@ class GroupDeregisterMemberHandler
         );
         // Member was already removed (e.g. previously kicked by the owner).
         // Subsequent deregister attempts should be a no-op so callers can
-        // continue cleanup without surfacing an error.
+        // continue cleanup without surfacing an error. A 404 with any other
+        // (or missing) errorCode — e.g. an unknown groupId — falls through
+        // to the rethrow so callers see the real failure.
         return GroupDeregisterMemberCommandOutput(success: true);
       }
 

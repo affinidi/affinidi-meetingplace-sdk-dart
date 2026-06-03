@@ -30,7 +30,6 @@ class RemoveMemberAction implements GroupAction<Group> {
     );
 
     member.status = GroupMemberStatus.deleted;
-    await _chatSDK.coreSDK.updateGroup(group);
 
     final chatItem = await _chatSDK.chatRepository.createMessage(
       EventMessage.groupMemberLeft(

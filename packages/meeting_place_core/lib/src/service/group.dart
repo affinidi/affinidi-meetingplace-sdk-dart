@@ -809,6 +809,9 @@ class GroupService {
 
     await _deregisterMember(group: group, memberDid: memberDid);
 
+    group.members.removeWhere((m) => m.did == memberDid);
+    await _groupRepository.updateGroup(group);
+
     _logger.info(
       'Removed member ${memberDid.topAndTail()} from group $groupId',
       name: methodName,

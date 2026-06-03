@@ -1,5 +1,5 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_control_plane/src/api/control_plane_api_client.dart';
+import 'package:meeting_place_control_plane/src/api/did_web_document_api.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 
@@ -7,7 +7,7 @@ class MockDidResolver extends Mock implements DidResolver {}
 
 class MockControlPlaneSDKLogger extends Mock implements ControlPlaneSDKLogger {}
 
-class MockControlPlaneApiClient extends Mock implements ControlPlaneApiClient {}
+class MockDidWebDocumentApi extends Mock implements DidWebDocumentApi {}
 
 class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
 

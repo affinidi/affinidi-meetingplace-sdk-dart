@@ -3,7 +3,6 @@
 ///
 /// Both `controlProof` (signed by the `controlDid` key) and `proof` (signed by
 /// the new `#auth` key in the DID Document) share this structure.
-/// See the MPX Matrix Integration ADR for the canonical proof payload spec.
 class DidWebProof {
   /// Creates a new instance of [DidWebProof].
   ///

@@ -2,11 +2,11 @@ import '../../core/command/command.dart';
 import '../../core/model/did_web_proof.dart';
 import 'did_document_upload_output.dart';
 
-/// Model that represents the request sent for the [UploadDidDocumentCommand]
+/// Model that represents the request sent for the [UploadDidWebDocumentCommand]
 /// operation.
-class UploadDidDocumentCommand
-    extends DiscoveryCommand<UploadDidDocumentCommandOutput> {
-  /// Creates a new instance of [UploadDidDocumentCommand].
+class UploadDidWebDocumentCommand
+    extends DiscoveryCommand<UploadDidWebDocumentCommandOutput> {
+  /// Creates a new instance of [UploadDidWebDocumentCommand].
   ///
   /// **Parameters:**
   /// - [didDocument]: The DID Document JSON map. Must contain an `id` field
@@ -15,8 +15,7 @@ class UploadDidDocumentCommand
   ///   `controlDid` key.
   /// - [proof]: Compact JWS with an embedded payload, signed by the `#auth`
   ///   key inside [didDocument].
-  /// Both proofs are required by the MPX Matrix Integration ADR.
-  UploadDidDocumentCommand({
+  UploadDidWebDocumentCommand({
     required this.didDocument,
     required this.controlProof,
     required this.proof,

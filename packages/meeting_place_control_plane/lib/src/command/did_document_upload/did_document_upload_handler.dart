@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import '../../api/control_plane_api_client.dart';
+import '../../api/did_web_document_api.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
@@ -17,29 +17,29 @@ import 'did_document_upload_output.dart';
 /// Handles communication with the API server, including sending requests,
 /// receiving responses, and validating the returned data for Upload DID
 /// Document operation.
-class UploadDidDocumentHandler
+class UploadDidWebDocumentHandler
     implements
         CommandHandler<
-          UploadDidDocumentCommand,
-          UploadDidDocumentCommandOutput
+          UploadDidWebDocumentCommand,
+          UploadDidWebDocumentCommandOutput
         > {
-  /// Returns an instance of [UploadDidDocumentHandler].
+  /// Returns an instance of [UploadDidWebDocumentHandler].
   ///
   /// **Parameters:**
-  /// - [apiClient]: An instance of the Control Plane API client object.
-  UploadDidDocumentHandler({
-    required ControlPlaneApiClient apiClient,
+  /// - [didWebDocumentApi]: An instance of the did:web Document API client.
+  UploadDidWebDocumentHandler({
+    required DidWebDocumentApi didWebDocumentApi,
     ControlPlaneSDKLogger? logger,
-  }) : _apiClient = apiClient,
+  }) : _didWebDocumentApi = didWebDocumentApi,
        _logger =
            logger ??
            DefaultControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
-  static const String _className = 'UploadDidDocumentHandler';
+  static const String _className = 'UploadDidWebDocumentHandler';
 
-  final ControlPlaneApiClient _apiClient;
+  final DidWebDocumentApi _didWebDocumentApi;
   final ControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
@@ -52,32 +52,32 @@ class UploadDidDocumentHandler
   /// - [command]: Upload DID Document command object.
   ///
   /// **Returns:**
-  /// - [UploadDidDocumentCommandOutput]: The upload DID document command
+  /// - [UploadDidWebDocumentCommandOutput]: The upload DID document command
   /// output object.
   ///
   /// **Throws:**
-  /// - [UploadDidDocumentException]: Exception thrown by the upload DID
+  /// - [UploadDidWebDocumentException]: Exception thrown by the upload DID
   /// document operation.
   @override
-  Future<UploadDidDocumentCommandOutput> handle(
-    UploadDidDocumentCommand command,
+  Future<UploadDidWebDocumentCommandOutput> handle(
+    UploadDidWebDocumentCommand command,
   ) async {
     final methodName = 'handle';
     _logger.info('Uploading DID document', name: methodName);
 
     try {
-      final record = await _apiClient.uploadDidDocument(
+      final record = await _didWebDocumentApi.uploadDidDocument(
         command.didDocument,
         controlProof: command.controlProof,
         proof: command.proof,
       );
       _logger.info('Uploaded DID document: ${record.did}', name: methodName);
-      return UploadDidDocumentCommandOutput(record: record);
+      return UploadDidWebDocumentCommandOutput(record: record);
     } on DioException catch (e, stackTrace) {
       if (e.response?.statusCode == HttpStatus.conflict) {
         _logger.warning('DID document already registered', name: methodName);
         Error.throwWithStackTrace(
-          UploadDidDocumentException.alreadyRegistered(),
+          UploadDidWebDocumentException.alreadyRegistered(),
           stackTrace,
         );
       }
@@ -89,7 +89,7 @@ class UploadDidDocumentHandler
         name: methodName,
       );
       Error.throwWithStackTrace(
-        UploadDidDocumentException.generic(innerException: e),
+        UploadDidWebDocumentException.generic(innerException: e),
         stackTrace,
       );
     } catch (e, stackTrace) {
@@ -100,7 +100,7 @@ class UploadDidDocumentHandler
         name: methodName,
       );
       Error.throwWithStackTrace(
-        UploadDidDocumentException.generic(innerException: e),
+        UploadDidWebDocumentException.generic(innerException: e),
         stackTrace,
       );
     }

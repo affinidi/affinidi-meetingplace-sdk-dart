@@ -13,9 +13,9 @@ import 'package:test/test.dart';
 import 'mocks.dart';
 
 void main() {
-  late MockControlPlaneApiClient mockApiClient;
+  late MockDidWebDocumentApi mockApi;
   late MockControlPlaneSDKLogger mockLogger;
-  late UploadDidDocumentHandler handler;
+  late UploadDidWebDocumentHandler handler;
 
   final testProof = DidWebProof(
     type: 'JsonWebSignature2020',
@@ -25,23 +25,23 @@ void main() {
     jws: 'test-jws',
   );
 
-  UploadDidDocumentCommand makeCommand() => UploadDidDocumentCommand(
+  UploadDidWebDocumentCommand makeCommand() => UploadDidWebDocumentCommand(
     didDocument: {'id': 'did:web:example.com:user:alice'},
     controlProof: testProof,
     proof: testProof,
   );
 
   setUp(() {
-    mockApiClient = MockControlPlaneApiClient();
+    mockApi = MockDidWebDocumentApi();
     mockLogger = MockControlPlaneSDKLogger();
-    handler = UploadDidDocumentHandler(
-      apiClient: mockApiClient,
+    handler = UploadDidWebDocumentHandler(
+      didWebDocumentApi: mockApi,
       logger: mockLogger,
     );
     registerFallbackValue(testProof);
   });
 
-  group('UploadDidDocumentHandler', () {
+  group('UploadDidWebDocumentHandler', () {
     test('returns output on successful upload', () async {
       final record = DidDocumentHostingRecord(
         did: 'did:web:example.com:user:alice',
@@ -49,7 +49,7 @@ void main() {
         didDocUrl: 'https://example.com/user/alice/did.json',
       );
       when(
-        () => mockApiClient.uploadDidDocument(
+        () => mockApi.uploadDidDocument(
           any(),
           controlProof: any(named: 'controlProof'),
           proof: any(named: 'proof'),
@@ -76,7 +76,7 @@ void main() {
         type: DioExceptionType.badResponse,
       );
       when(
-        () => mockApiClient.uploadDidDocument(
+        () => mockApi.uploadDidDocument(
           any(),
           controlProof: any(named: 'controlProof'),
           proof: any(named: 'proof'),
@@ -86,10 +86,10 @@ void main() {
       expect(
         () => handler.handle(makeCommand()),
         throwsA(
-          isA<UploadDidDocumentException>().having(
+          isA<UploadDidWebDocumentException>().having(
             (e) => e.code,
             'code',
-            ControlPlaneSDKErrorCode.uploadDidDocumentAlreadyRegistered,
+            ControlPlaneSDKErrorCode.uploadDidWebDocumentAlreadyRegistered,
           ),
         ),
       );
@@ -101,7 +101,7 @@ void main() {
         type: DioExceptionType.connectionError,
       );
       when(
-        () => mockApiClient.uploadDidDocument(
+        () => mockApi.uploadDidDocument(
           any(),
           controlProof: any(named: 'controlProof'),
           proof: any(named: 'proof'),
@@ -111,11 +111,11 @@ void main() {
       expect(
         () => handler.handle(makeCommand()),
         throwsA(
-          isA<UploadDidDocumentException>()
+          isA<UploadDidWebDocumentException>()
               .having(
                 (e) => e.code,
                 'code',
-                ControlPlaneSDKErrorCode.uploadDidDocumentGeneric,
+                ControlPlaneSDKErrorCode.uploadDidWebDocumentGeneric,
               )
               .having((e) => e.innerException, 'innerException', dioException),
         ),
@@ -125,7 +125,7 @@ void main() {
     test('throws generic on non-Dio error', () async {
       final error = Exception('unexpected error');
       when(
-        () => mockApiClient.uploadDidDocument(
+        () => mockApi.uploadDidDocument(
           any(),
           controlProof: any(named: 'controlProof'),
           proof: any(named: 'proof'),
@@ -135,11 +135,11 @@ void main() {
       expect(
         () => handler.handle(makeCommand()),
         throwsA(
-          isA<UploadDidDocumentException>()
+          isA<UploadDidWebDocumentException>()
               .having(
                 (e) => e.code,
                 'code',
-                ControlPlaneSDKErrorCode.uploadDidDocumentGeneric,
+                ControlPlaneSDKErrorCode.uploadDidWebDocumentGeneric,
               )
               .having((e) => e.innerException, 'innerException', error),
         ),

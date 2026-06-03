@@ -6,6 +6,7 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_control_plane/src/api/auth_credentials.dart';
 import 'package:meeting_place_control_plane/src/api/control_plane_api_client.dart';
 import 'package:meeting_place_control_plane/src/api/control_plane_api_client_options.dart';
+import 'package:meeting_place_control_plane/src/api/did_web_document_api.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -113,7 +114,7 @@ void main() {
       jws: 'proof-jws',
     );
 
-    await client.uploadDidDocument(
+    await DidWebDocumentApi(dio: client.dio).uploadDidDocument(
       {'id': 'did:web:example.com:user:alice'},
       controlProof: controlProof,
       proof: proof,

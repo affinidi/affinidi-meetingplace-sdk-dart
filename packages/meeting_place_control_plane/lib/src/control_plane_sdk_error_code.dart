@@ -96,12 +96,14 @@ enum ControlPlaneSDKErrorCode {
   matrixTokenGeneric('matrix_token_generic'),
 
   // upload did document codes
-  uploadDidDocumentGeneric('upload_did_document_generic'),
-  uploadDidDocumentAlreadyRegistered('upload_did_document_already_registered'),
+  uploadDidWebDocumentGeneric('upload_did_web_document_generic'),
+  uploadDidWebDocumentAlreadyRegistered(
+    'upload_did_web_document_already_registered',
+  ),
 
   // resolve did document codes
-  resolveDidDocumentInvalidDid('resolve_did_document_invalid_did'),
-  resolveDidDocumentGeneric('resolve_did_document_generic'),
+  resolveDidWebDocumentInvalidDid('resolve_did_web_document_invalid_did'),
+  resolveDidWebDocumentGeneric('resolve_did_web_document_generic'),
 
   // others
   networkError('network_error'),

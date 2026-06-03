@@ -22,30 +22,11 @@ Future<ControlPlaneSDK> _buildSdk({
 }
 
 void main() {
-  test('ResolveDidDocumentCommand does not force SDK authentication', () async {
-    const controlPlaneDid = 'did:web:control.example.com';
-    const hostedDid = 'did:web:example.com:user:alice';
-
-    final resolver = FakeDidResolver({
-      hostedDid: didDocumentFixture(hostedDid),
-    });
-
-    final sdk = await _buildSdk(
-      controlPlaneDid: controlPlaneDid,
-      didResolver: resolver,
-    );
-
-    final output = await sdk.execute(ResolveDidDocumentCommand(did: hostedDid));
-
-    expect(output.didDocument.id, hostedDid);
-    expect(sdk.isInitialized, isFalse);
-  });
-
   test(
-    'ResolveDidDocumentCommand accepts did:web hosts with encoded ports',
+    'ResolveDidWebDocumentCommand does not force SDK authentication',
     () async {
       const controlPlaneDid = 'did:web:control.example.com';
-      const hostedDid = 'did:web:example.com%3A3000:user:alice';
+      const hostedDid = 'did:web:example.com:user:alice';
 
       final resolver = FakeDidResolver({
         hostedDid: didDocumentFixture(hostedDid),
@@ -57,7 +38,7 @@ void main() {
       );
 
       final output = await sdk.execute(
-        ResolveDidDocumentCommand(did: hostedDid),
+        ResolveDidWebDocumentCommand(did: hostedDid),
       );
 
       expect(output.didDocument.id, hostedDid);

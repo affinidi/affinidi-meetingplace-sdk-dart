@@ -4,6 +4,7 @@ import 'package:ssi/ssi.dart';
 
 import 'api/control_plane_api_client.dart';
 import 'api/control_plane_api_client_options.dart';
+import 'api/did_web_document_api.dart';
 import 'command/accept_offer/accept_offer_handler.dart';
 import 'command/accept_offer_group/accept_offer_group_handler.dart';
 import 'command/authenticate/authenticate.dart';
@@ -149,7 +150,7 @@ class ControlPlaneSDK {
 
     _dispatcher = CommandDispatcher();
     _dispatcher.registerHandler(
-      ResolveDidDocumentHandler(didResolver: didResolver, logger: _logger),
+      ResolveDidWebDocumentHandler(didResolver: didResolver, logger: _logger),
     );
     _publicHandlersRegistered = true;
   }
@@ -345,8 +346,8 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      UploadDidDocumentHandler(
-        apiClient: _controlPlaneApiClient,
+      UploadDidWebDocumentHandler(
+        didWebDocumentApi: DidWebDocumentApi(dio: _controlPlaneApiClient.dio),
         logger: _logger,
       ),
     );

@@ -14,17 +14,17 @@ import 'did_document_resolve_output.dart';
 ///
 /// Handles DID resolution by delegating to the injected [DidResolver].
 /// This also handles the exception that are returned by the resolver.
-class ResolveDidDocumentHandler
+class ResolveDidWebDocumentHandler
     implements
         CommandHandler<
-          ResolveDidDocumentCommand,
-          ResolveDidDocumentCommandOutput
+          ResolveDidWebDocumentCommand,
+          ResolveDidWebDocumentCommandOutput
         > {
-  /// Returns an instance of [ResolveDidDocumentHandler].
+  /// Returns an instance of [ResolveDidWebDocumentHandler].
   ///
   /// **Parameters:**
   /// - [didResolver]: An instance of the DID resolver object.
-  ResolveDidDocumentHandler({
+  ResolveDidWebDocumentHandler({
     required DidResolver didResolver,
     ControlPlaneSDKLogger? logger,
   }) : _didResolver = didResolver,
@@ -34,7 +34,7 @@ class ResolveDidDocumentHandler
              className: _className,
              sdkName: sdkName,
            );
-  static const String _className = 'ResolveDidDocumentHandler';
+  static const String _className = 'ResolveDidWebDocumentHandler';
 
   final DidResolver _didResolver;
   final ControlPlaneSDKLogger _logger;
@@ -48,20 +48,20 @@ class ResolveDidDocumentHandler
   /// - [command]: Resolve DID Document command object.
   ///
   /// **Returns:**
-  /// - [ResolveDidDocumentCommandOutput]: The resolve DID document command
+  /// - [ResolveDidWebDocumentCommandOutput]: The resolve DID document command
   /// output object.
   ///
   /// **Throws:**
-  /// - [ResolveDidDocumentException]: Exception thrown by the resolve DID
+  /// - [ResolveDidWebDocumentException]: Exception thrown by the resolve DID
   /// document operation.
   @override
-  Future<ResolveDidDocumentCommandOutput> handle(
-    ResolveDidDocumentCommand command,
+  Future<ResolveDidWebDocumentCommandOutput> handle(
+    ResolveDidWebDocumentCommand command,
   ) async {
     final methodName = 'handle';
 
-    if (!_isValidDidWeb(command.did)) {
-      throw ResolveDidDocumentException.invalidDid(did: command.did);
+    if (!command.did.startsWith('did:web:')) {
+      throw ResolveDidWebDocumentException.invalidDid(did: command.did);
     }
 
     _logger.info(
@@ -75,7 +75,7 @@ class ResolveDidDocumentHandler
         'Resolved DID document for: ${command.did}',
         name: methodName,
       );
-      return ResolveDidDocumentCommandOutput(didDocument: didDocument);
+      return ResolveDidWebDocumentCommandOutput(didDocument: didDocument);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to resolve DID document for: ${command.did}',
@@ -84,29 +84,9 @@ class ResolveDidDocumentHandler
         name: methodName,
       );
       Error.throwWithStackTrace(
-        ResolveDidDocumentException.generic(innerException: e),
+        ResolveDidWebDocumentException.generic(innerException: e),
         stackTrace,
       );
-    }
-  }
-
-  /// Returns true if [did] is a syntactically valid did:web identifier.
-  static bool _isValidDidWeb(String did) {
-    if (!did.startsWith('did:web:') || did.length <= 8) {
-      return false;
-    }
-
-    final methodSpecificId = did.substring('did:web:'.length);
-    final host = methodSpecificId.split(':').first;
-    if (host.isEmpty) {
-      return false;
-    }
-
-    try {
-      Uri.decodeComponent(host);
-      return true;
-    } catch (_) {
-      return false;
     }
   }
 }

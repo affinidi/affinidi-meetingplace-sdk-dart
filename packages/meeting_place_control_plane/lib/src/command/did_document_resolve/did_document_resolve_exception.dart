@@ -2,40 +2,40 @@ import '../../control_plane_sdk_error_code.dart';
 import '../../core/exception/control_plane_exception.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for
-/// throwing specific exceptions related to ResolveDidDocument
+/// throwing specific exceptions related to ResolveDidWebDocument
 /// command/operation.
-class ResolveDidDocumentException implements ControlPlaneException {
-  ResolveDidDocumentException._({
+class ResolveDidWebDocumentException implements ControlPlaneException {
+  ResolveDidWebDocumentException._({
     required this.message,
     required this.code,
     this.innerException,
   });
 
-  /// Creates an `invalidDid` [ResolveDidDocumentException] instance.
+  /// Creates an `invalidDid` [ResolveDidWebDocumentException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
   ///
   /// **Parameters:**
   /// - [did]: The invalid DID string that was provided.
-  factory ResolveDidDocumentException.invalidDid({required String did}) {
-    return ResolveDidDocumentException._(
+  factory ResolveDidWebDocumentException.invalidDid({required String did}) {
+    return ResolveDidWebDocumentException._(
       message: 'DID document resolution failed: invalid did:web DID: $did.',
-      code: ControlPlaneSDKErrorCode.resolveDidDocumentInvalidDid,
+      code: ControlPlaneSDKErrorCode.resolveDidWebDocumentInvalidDid,
     );
   }
 
-  /// Creates a `generic` [ResolveDidDocumentException] instance.
+  /// Creates a `generic` [ResolveDidWebDocumentException] instance.
   ///
   /// This constructor provides the specific message, error code and the actual
   /// exception encountered in the operation.
   ///
   /// **Parameters:**
   /// - [innerException]: The exception object.
-  factory ResolveDidDocumentException.generic({Object? innerException}) {
-    return ResolveDidDocumentException._(
+  factory ResolveDidWebDocumentException.generic({Object? innerException}) {
+    return ResolveDidWebDocumentException._(
       message: 'DID document resolution failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.resolveDidDocumentGeneric,
+      code: ControlPlaneSDKErrorCode.resolveDidWebDocumentGeneric,
       innerException: innerException,
     );
   }

@@ -22,10 +22,12 @@ void main() {
       await fixture.charlieChatSDK.startChatSession();
 
       final aliceSentIds = <String>[
-        (await fixture.aliceChatSDK.sendTextMessage('Group buffered #1'))
-            .messageId,
-        (await fixture.aliceChatSDK.sendTextMessage('Group buffered #2'))
-            .messageId,
+        (await fixture.aliceChatSDK.sendTextMessage(
+          'Group buffered #1',
+        )).messageId,
+        (await fixture.aliceChatSDK.sendTextMessage(
+          'Group buffered #2',
+        )).messageId,
       ];
 
       final aliceLatestDelivered = ChatTestHarness.awaitItem(

@@ -15,7 +15,6 @@ import 'command/delete_pending_notifications/'
     'delete_pending_notifications_handler.dart';
 import 'command/deregister_notification/deregister_notification_handler.dart';
 import 'command/deregister_offer/deregister_offer_handler.dart';
-import 'command/did_document_resolve/did_document_resolve_handler.dart';
 import 'command/did_document_upload/did_document_upload_handler.dart';
 import 'command/finalise_acceptance/finalise_acceptance_handler.dart';
 import 'command/get_oob/get_oob_handler.dart';
@@ -100,10 +99,7 @@ class ControlPlaneSDK {
   late final CommandDispatcher _dispatcher;
 
   Device? _device;
-  Future<void>? _bootstrapping;
-  Future<void>? _authenticating;
-  bool _publicHandlersRegistered = false;
-  bool _handlersRegistered = false;
+  Future<void>? _initializing;
   bool isInitialized = false;
 
   /// Setter method that sets the value of [Device] variable of the
@@ -143,20 +139,8 @@ class ControlPlaneSDK {
 
   /// Private method that initialises the ControlPlaneApiClient.
   /// This is invoked by a public method within the [ControlPlaneSDK].
-  void _registerPublicHandlers() {
-    if (_publicHandlersRegistered) {
-      return;
-    }
-
+  Future<void> _init() async {
     _dispatcher = CommandDispatcher();
-    _dispatcher.registerHandler(
-      ResolveDidWebDocumentHandler(didResolver: didResolver, logger: _logger),
-    );
-    _publicHandlersRegistered = true;
-  }
-
-  Future<void> _bootstrap() async {
-    _registerPublicHandlers();
     _controlPlaneApiClient = await ControlPlaneApiClient.init(
       controlPlaneSDK: this,
       options: ControlPlaneApiClientOptions(
@@ -351,13 +335,11 @@ class ControlPlaneSDK {
         logger: _logger,
       ),
     );
-    _handlersRegistered = true;
-  }
 
-  Future<void> _authenticate() async {
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(
       AuthenticateCommand(controlPlaneDid: controlPlaneDid),
     );
+
     isInitialized = true;
   }
 
@@ -378,46 +360,23 @@ class ControlPlaneSDK {
     _logger.info('Executing command: ${command.runtimeType}', name: methodName);
 
     return _withSdkExceptionHandling(() async {
-      _registerPublicHandlers();
-
-      if (command.requiresBootstrap && !_handlersRegistered) {
-        _bootstrapping ??= _bootstrap()
+      if (!isInitialized) {
+        _initializing ??= _init()
             .then((_) {
-              _logger.info('SDK bootstrap complete', name: methodName);
+              _logger.info('SDK initialization complete', name: methodName);
             })
             .catchError((Object e, StackTrace stackTrace) {
-              _logger.error('SDK bootstrap failed: $e', name: methodName);
-              _bootstrapping = null;
-              _authenticating = null;
-              _handlersRegistered = false;
+              _logger.error('SDK initialization failed: $e', name: methodName);
+              _initializing = null;
               isInitialized = false;
               Error.throwWithStackTrace(e, stackTrace);
             });
 
         _logger.warning(
-          'SDK not bootstrapped, starting bootstrap...',
+          'SDK not initialized, starting initialization...',
           name: methodName,
         );
-        await _bootstrapping;
-      }
-
-      if (command.requiresAuthentication && !isInitialized) {
-        _authenticating ??= _authenticate()
-            .then((_) {
-              _logger.info('SDK authentication complete', name: methodName);
-            })
-            .catchError((Object e, StackTrace stackTrace) {
-              _logger.error('SDK authentication failed: $e', name: methodName);
-              _authenticating = null;
-              isInitialized = false;
-              Error.throwWithStackTrace(e, stackTrace);
-            });
-
-        _logger.warning(
-          'SDK not authenticated, starting authentication...',
-          name: methodName,
-        );
-        await _authenticating;
+        await _initializing;
       }
       return await _dispatcher.dispatch(command);
     });

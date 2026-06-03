@@ -13,7 +13,4 @@ class AuthenticateCommand extends DiscoveryCommand<AuthenticateCommandOutput> {
   /// - AuthenticateCommand instance.
   AuthenticateCommand({required this.controlPlaneDid});
   final String controlPlaneDid;
-
-  @override
-  bool get requiresAuthentication => false;
 }

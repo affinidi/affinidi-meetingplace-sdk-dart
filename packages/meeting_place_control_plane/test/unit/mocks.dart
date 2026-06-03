@@ -3,8 +3,6 @@ import 'package:meeting_place_control_plane/src/api/did_web_document_api.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 
-class MockDidResolver extends Mock implements DidResolver {}
-
 class MockControlPlaneSDKLogger extends Mock implements ControlPlaneSDKLogger {}
 
 class MockDidWebDocumentApi extends Mock implements DidWebDocumentApi {}
@@ -27,10 +25,3 @@ class FakeDidResolver implements DidResolver {
     return document;
   }
 }
-
-DidDocument didDocumentFixture(String did) => DidDocument.fromJson({
-  '@context': ['https://www.w3.org/ns/did/v1'],
-  'id': did,
-  'verificationMethod': const <Object>[],
-  'authentication': const <Object>[],
-});

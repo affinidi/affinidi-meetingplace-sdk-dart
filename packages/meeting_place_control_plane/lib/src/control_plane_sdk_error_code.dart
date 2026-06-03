@@ -101,10 +101,6 @@ enum ControlPlaneSDKErrorCode {
     'upload_did_web_document_already_registered',
   ),
 
-  // resolve did document codes
-  resolveDidWebDocumentInvalidDid('resolve_did_web_document_invalid_did'),
-  resolveDidWebDocumentGeneric('resolve_did_web_document_generic'),
-
   // others
   networkError('network_error'),
   generic('generic');

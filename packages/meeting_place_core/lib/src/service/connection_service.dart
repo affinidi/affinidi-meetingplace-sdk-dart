@@ -131,6 +131,7 @@ class ConnectionService {
         status: ConnectionOfferStatus.published,
         ownedByMe: ownedByMe,
         createdAt: DateTime.now().toUtc(),
+        score: queryOfferResult.score,
       );
 
       _logger.info('''
@@ -160,6 +161,7 @@ class ConnectionService {
         status: ConnectionOfferStatus.published,
         ownedByMe: ownedByMe,
         createdAt: DateTime.now().toUtc(),
+        score: queryOfferResult.score,
       );
 
       _logger.info('''
@@ -187,6 +189,7 @@ class ConnectionService {
     int? maximumUsage,
     String? mediatorDid,
     String? externalRef,
+    int? score,
   }) async {
     final methodName = 'publishOffer';
     _logger.info('Publishing connection offer: $offerName', name: methodName);
@@ -219,6 +222,7 @@ class ConnectionService {
         validUntil: validUntil,
         maximumUsage: maximumUsage,
         mediatorDid: mediatorDid,
+        score: score,
       ),
     );
 
@@ -242,6 +246,7 @@ class ConnectionService {
         ownedByMe: true,
         externalRef: externalRef,
         createdAt: DateTime.now().toUtc(),
+        score: registerOfferOutput.score,
       );
 
       await _connectionOfferRepository.createConnectionOffer(connectionOffer);
@@ -388,6 +393,7 @@ class ConnectionService {
         card: contactCard,
         externalRef: externalRef,
         createdAt: DateTime.now().toUtc(),
+        score: connectionOffer.score,
       );
 
       await _connectionOfferRepository.updateConnectionOffer(
@@ -403,6 +409,7 @@ class ConnectionService {
       card: contactCard,
       externalRef: externalRef,
       createdAt: DateTime.now().toUtc(),
+      score: connectionOffer.score,
     );
 
     await _connectionOfferRepository.createConnectionOffer(

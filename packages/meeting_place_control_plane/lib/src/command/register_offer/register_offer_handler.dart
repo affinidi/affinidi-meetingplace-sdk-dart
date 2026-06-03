@@ -109,7 +109,8 @@ class RegisterOfferHandler
       ..mediatorDid = mediatorForOffer.mediatorDid
       ..mediatorEndpoint = mediatorForOffer.mediatorEndpoint
       ..mediatorWSSEndpoint = mediatorForOffer.mediatorWSSEndpoint
-      ..customPhrase = command.customPhrase;
+      ..customPhrase = command.customPhrase
+      ..score = command.score;
 
     try {
       _logger.info(
@@ -138,6 +139,7 @@ class RegisterOfferHandler
         didcommMessage: command.oobInvitationMessage,
         maximumUsage: response.data!.maximumUsage,
         mediatorDid: mediatorForOffer.mediatorDid,
+        score: response.data!.score,
       );
     } catch (e, stackTrace) {
       if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {

@@ -1,0 +1,475 @@
+{
+  "_meta": {
+    "description": "This file contains a serialized version of schema entities for drift.",
+    "version": "1.3.0"
+  },
+  "options": {
+    "store_date_time_values_as_text": true
+  },
+  "entities": [
+    {
+      "id": 0,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "connection_offers",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": "const Uuid().v4",
+            "dsl_features": []
+          },
+          {
+            "name": "offer_name",
+            "getter_name": "offerName",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "offer_link",
+            "getter_name": "offerLink",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "offer_description",
+            "getter_name": "offerDescription",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "oob_invitation_message",
+            "getter_name": "oobInvitationMessage",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "mnemonic",
+            "getter_name": "mnemonic",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "expires_at",
+            "getter_name": "expiresAt",
+            "moor_type": "dateTime",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "created_at",
+            "getter_name": "createdAt",
+            "moor_type": "dateTime",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "publish_offer_did",
+            "getter_name": "publishOfferDid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "type",
+            "getter_name": "type",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const _ConnectionOfferTypeConverter()",
+              "dart_type_name": "ConnectionOfferType"
+            }
+          },
+          {
+            "name": "status",
+            "getter_name": "status",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const _ConnectionOfferStatusConverter()",
+              "dart_type_name": "ConnectionOfferStatus"
+            }
+          },
+          {
+            "name": "maximum_usage",
+            "getter_name": "maximumUsage",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "owned_by_me",
+            "getter_name": "ownedByMe",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"owned_by_me\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"owned_by_me\" IN (0, 1))"
+            },
+            "default_dart": null,
+            "default_client_dart": "() => false",
+            "dsl_features": []
+          },
+          {
+            "name": "mediator_did",
+            "getter_name": "mediatorDid",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "alias_id",
+            "getter_name": "aliasId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "outbound_message_id",
+            "getter_name": "outboundMessageId",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "accept_offer_did",
+            "getter_name": "acceptOfferDid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "permanent_channel_did",
+            "getter_name": "permanentChannelDid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "other_party_permanent_channel_did",
+            "getter_name": "otherPartyPermanentChannelDid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "notification_token",
+            "getter_name": "notificationToken",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "other_party_notification_token",
+            "getter_name": "otherPartyNotificationToken",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "external_ref",
+            "getter_name": "externalRef",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "score",
+            "getter_name": "score",
+            "moor_type": "int",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": ["id"]
+      }
+    },
+    {
+      "id": 1,
+      "references": [0],
+      "type": "table",
+      "data": {
+        "name": "connection_contact_cards",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "PRIMARY KEY AUTOINCREMENT",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "PRIMARY KEY AUTOINCREMENT"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": ["auto-increment"]
+          },
+          {
+            "name": "connection_offer_id",
+            "getter_name": "connectionOfferId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "connection_offers",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              },
+              "unique"
+            ]
+          },
+          {
+            "name": "did",
+            "getter_name": "did",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "type",
+            "getter_name": "type",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "contact_info_json",
+            "getter_name": "contactInfoJson",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'{}\\'')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "profile_pic",
+            "getter_name": "profilePic",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    },
+    {
+      "id": 2,
+      "references": [0],
+      "type": "table",
+      "data": {
+        "name": "group_connection_offers",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "connection_offer_id",
+            "getter_name": "connectionOfferId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": "REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL",
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "connection_offers",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              },
+              "unique"
+            ]
+          },
+          {
+            "name": "member_did",
+            "getter_name": "memberDid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "group_id",
+            "getter_name": "groupId",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "group_owner_did",
+            "getter_name": "groupOwnerDid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "group_did",
+            "getter_name": "groupDid",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "metadata",
+            "getter_name": "metadata",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": []
+      }
+    }
+  ],
+  "fixed_sql": [
+    {
+      "name": "connection_offers",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"connection_offers\" (\"id\" TEXT NOT NULL, \"offer_name\" TEXT NOT NULL, \"offer_link\" TEXT NOT NULL, \"offer_description\" TEXT NULL, \"oob_invitation_message\" TEXT NOT NULL, \"mnemonic\" TEXT NOT NULL, \"expires_at\" TEXT NULL, \"created_at\" TEXT NOT NULL, \"publish_offer_did\" TEXT NOT NULL, \"type\" INTEGER NOT NULL, \"status\" INTEGER NOT NULL, \"maximum_usage\" INTEGER NULL, \"owned_by_me\" INTEGER NOT NULL CHECK (\"owned_by_me\" IN (0, 1)), \"mediator_did\" TEXT NOT NULL, \"alias_id\" TEXT NULL, \"outbound_message_id\" TEXT NULL, \"accept_offer_did\" TEXT NULL, \"permanent_channel_did\" TEXT NULL, \"other_party_permanent_channel_did\" TEXT NULL, \"notification_token\" TEXT NULL, \"other_party_notification_token\" TEXT NULL, \"external_ref\" TEXT NULL, \"score\" INTEGER NULL, PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "connection_contact_cards",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"connection_contact_cards\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"connection_offer_id\" TEXT REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL, \"did\" TEXT NOT NULL, \"type\" TEXT NOT NULL, \"contact_info_json\" TEXT NOT NULL DEFAULT '{}', \"profile_pic\" TEXT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "group_connection_offers",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"group_connection_offers\" (\"connection_offer_id\" TEXT REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL, \"member_did\" TEXT NULL, \"group_id\" TEXT NOT NULL, \"group_owner_did\" TEXT NULL, \"group_did\" TEXT NULL, \"metadata\" TEXT NULL);"
+        }
+      ]
+    }
+  ]
+}

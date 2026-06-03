@@ -22,6 +22,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
     required this.didcommMessage,
     this.groupId,
     this.groupDid,
+    this.score,
   });
   final String offerName;
   final String offerLink;
@@ -36,6 +37,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   final OobInvitationMessage didcommMessage;
   final String? groupId;
   final String? groupDid;
+  final int? score;
 
   bool get isInvitation => type == OfferType.invitation;
   bool get isGroupInvitation => type == OfferType.groupInvitation;

@@ -16,7 +16,13 @@ class RemoveMemberAction implements GroupAction<Group> {
 
   @override
   Future<Group> execute() async {
-    _requireGroupOwner();
+    if (!_chatSDK.isGroupOwner) {
+      _chatSDK.logger.error(
+        'Only group owners can remove members.',
+        name: 'removeMember',
+      );
+      throw Exception('Only group owners are allowed to remove members');
+    }
 
     final group = _chatSDK.group;
     final member = group.members.firstWhere(
@@ -56,14 +62,5 @@ class RemoveMemberAction implements GroupAction<Group> {
     );
 
     return group;
-  }
-
-  void _requireGroupOwner() {
-    if (_chatSDK.isGroupOwner) return;
-    _chatSDK.logger.error(
-      'Only group owners can remove members.',
-      name: 'removeMember',
-    );
-    throw Exception('Only group owners are allowed to perform this action');
   }
 }

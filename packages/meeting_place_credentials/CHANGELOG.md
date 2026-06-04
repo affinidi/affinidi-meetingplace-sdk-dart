@@ -1,3 +1,7 @@
+## 0.0.1-dev.1
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
 ## 0.0.1-dev.0
 
 - **FEAT**: initial release

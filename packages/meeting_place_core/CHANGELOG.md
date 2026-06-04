@@ -1,3 +1,7 @@
+## 0.0.1-dev.38
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.37
 
  - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).

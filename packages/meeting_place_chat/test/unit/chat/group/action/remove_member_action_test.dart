@@ -114,16 +114,11 @@ void main() {
       when(() => chatSDK.isGroupOwner).thenReturn(false);
 
       await expectLater(
-        () => RemoveMemberAction(
-          chatSDK,
-          memberDid: 'did:test:bob',
-        ).execute(),
+        () => RemoveMemberAction(chatSDK, memberDid: 'did:test:bob').execute(),
         throwsException,
       );
 
-      verify(
-        () => logger.error(any(), name: 'removeMember'),
-      ).called(1);
+      verify(() => logger.error(any(), name: 'removeMember')).called(1);
       verifyNever(
         () => coreSDK.removeMemberFromGroup(
           groupId: any(named: 'groupId'),
@@ -137,10 +132,7 @@ void main() {
       when(() => chatSDK.isGroupOwner).thenReturn(true);
 
       await expectLater(
-        () => RemoveMemberAction(
-          chatSDK,
-          memberDid: 'did:test:eve',
-        ).execute(),
+        () => RemoveMemberAction(chatSDK, memberDid: 'did:test:eve').execute(),
         throwsException,
       );
 
@@ -162,10 +154,7 @@ void main() {
       ).thenThrow(Exception('boom'));
 
       await expectLater(
-        () => RemoveMemberAction(
-          chatSDK,
-          memberDid: 'did:test:bob',
-        ).execute(),
+        () => RemoveMemberAction(chatSDK, memberDid: 'did:test:bob').execute(),
         throwsException,
       );
 

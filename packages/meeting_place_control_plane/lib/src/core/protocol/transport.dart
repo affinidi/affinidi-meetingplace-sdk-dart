@@ -11,9 +11,10 @@ enum OfferTransport {
   /// Parses the string back into an [OfferTransport]. Throws
   /// [ArgumentError] if [value] is not a known transport.
   static OfferTransport fromString(String value) {
-    for (final t in OfferTransport.values) {
-      if (t.value == value) return t;
-    }
-    throw ArgumentError.value(value, 'value', 'Unknown OfferTransport');
+    return OfferTransport.values.firstWhere(
+      (t) => t.value == value,
+      orElse: () =>
+          throw ArgumentError.value(value, 'value', 'Unknown OfferTransport'),
+    );
   }
 }

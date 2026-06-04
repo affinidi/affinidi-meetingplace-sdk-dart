@@ -6,7 +6,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
+import '../../_helpers/mocks.dart';
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 
@@ -19,7 +19,7 @@ const _mxcUri2 = 'mxc://matrix.example.com/upload2';
 final _chatId = Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid);
 
 IndividualMatrixChatSDK _buildSdk({
-  required _MockCoreSDK core,
+  required MockCoreSDK core,
   required _MockChatRepository repo,
 }) => IndividualMatrixChatSDK(
   coreSDK: core,
@@ -53,7 +53,7 @@ Channel _fakeChannel() => Channel(
 );
 
 void main() {
-  late _MockCoreSDK core;
+  late MockCoreSDK core;
   late _MockChatRepository repo;
   late IndividualMatrixChatSDK sdk;
 
@@ -75,7 +75,7 @@ void main() {
   });
 
   setUp(() {
-    core = _MockCoreSDK();
+    core = MockCoreSDK();
     repo = _MockChatRepository();
     sdk = _buildSdk(core: core, repo: repo);
 

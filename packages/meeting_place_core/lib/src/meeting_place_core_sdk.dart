@@ -1177,11 +1177,11 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Downloads hosted media referenced by [attachment] and decrypts it when
-  /// the attachment carries encryption metadata.
+  /// Downloads and decrypts hosted media referenced by [attachment].
   ///
   /// The room is resolved internally from [receiverDid] via the channel.
-  /// Throws [ArgumentError] if [attachment] does not reference hosted media.
+  /// Throws [ArgumentError] if [attachment] does not reference hosted media
+  /// or is missing encryption metadata.
   Future<Uint8List> downloadMedia({
     required String receiverDid,
     required Attachment attachment,
@@ -1195,6 +1195,13 @@ class MeetingPlaceCoreSDK {
       );
     }
     final encryptedFileInfo = getEncryptedFileInfo(attachment);
+    if (encryptedFileInfo == null) {
+      throw ArgumentError.value(
+        attachment,
+        'attachment',
+        'Attachment is missing encryption metadata',
+      );
+    }
 
     return _withSdkExceptionHandling(() async {
       return _mediaService.download(

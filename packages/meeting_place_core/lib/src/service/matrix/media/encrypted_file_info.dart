@@ -7,6 +7,18 @@ const jsonWebKeyType = 'oct';
 const jsonWebKeyAlgorithm = 'A256CTR';
 const jsonWebKeyOperations = ['encrypt', 'decrypt'];
 
+const encryptedFileFieldUrl = 'url';
+const encryptedFileFieldKey = 'key';
+const encryptedFileFieldIv = 'iv';
+const encryptedFileFieldHashes = 'hashes';
+const encryptedFileFieldVersion = 'v';
+
+const jsonWebKeyFieldKty = 'kty';
+const jsonWebKeyFieldAlg = 'alg';
+const jsonWebKeyFieldExt = 'ext';
+const jsonWebKeyFieldK = 'k';
+const jsonWebKeyFieldKeyOps = 'key_ops';
+
 /// Represents the encryption metadata for a file uploaded to a media
 /// repository.
 ///
@@ -66,11 +78,11 @@ class EncryptedFileInfo {
   final String version;
 
   Map<String, dynamic> toJson() => {
-    'url': url,
-    'key': key.toJson(),
-    'iv': iv,
-    'hashes': hashes,
-    'v': version,
+    encryptedFileFieldUrl: url,
+    encryptedFileFieldKey: key.toJson(),
+    encryptedFileFieldIv: iv,
+    encryptedFileFieldHashes: hashes,
+    encryptedFileFieldVersion: version,
   };
 }
 
@@ -98,9 +110,13 @@ class JsonWebKey {
       return JsonWebKey(
         kty: kty,
         alg: alg,
-        ext: json['ext'] is bool ? json['ext'] as bool : true,
+        ext: json[jsonWebKeyFieldExt] is bool
+            ? json[jsonWebKeyFieldExt] as bool
+            : true,
         k: k,
-        keyOps: _parseStringList(json['key_ops']) ?? jsonWebKeyOperations,
+        keyOps:
+            _parseStringList(json[jsonWebKeyFieldKeyOps]) ??
+            jsonWebKeyOperations,
       );
     }
     throw const FormatException(
@@ -128,11 +144,11 @@ class JsonWebKey {
   Uint8List get keyBytes => base64Url.decode(_padBase64(k));
 
   Map<String, dynamic> toJson() => {
-    'kty': kty,
-    'alg': alg,
-    'ext': ext,
-    'k': k,
-    'key_ops': keyOps,
+    jsonWebKeyFieldKty: kty,
+    jsonWebKeyFieldAlg: alg,
+    jsonWebKeyFieldExt: ext,
+    jsonWebKeyFieldK: k,
+    jsonWebKeyFieldKeyOps: keyOps,
   };
 }
 

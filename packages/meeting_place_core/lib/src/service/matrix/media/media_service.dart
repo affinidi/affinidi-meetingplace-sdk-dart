@@ -124,7 +124,6 @@ class MediaService {
   Future<Uint8List> download(
     String mxcUri, {
     required DidManager didManager,
-    required String roomId,
     EncryptedFileInfo? encryptedFileInfo,
   }) async {
     _logger.debug('Downloading media', name: 'MediaService');
@@ -147,7 +146,6 @@ class MediaService {
     final bytes = await _matrixService.downloadMedia(
       mxcUri,
       didManager: didManager,
-      roomId: roomId,
     );
 
     if (encryptedFileInfo != null) {

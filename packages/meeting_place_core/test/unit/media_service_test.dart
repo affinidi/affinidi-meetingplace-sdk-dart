@@ -92,14 +92,12 @@ void main() {
       () => matrixService.downloadMedia(
         'mxc://matrix.example.com/media999',
         didManager: didManager,
-        roomId: '!room:matrix.example.com',
       ),
     ).thenAnswer((_) async => uploadedCiphertext);
 
     final downloaded = await mediaService.download(
       uploadOutput.result.contentUri,
       didManager: didManager,
-      roomId: '!room:matrix.example.com',
       encryptedFileInfo: uploadOutput.encryptedFileInfo,
     );
 
@@ -131,7 +129,6 @@ void main() {
       () => mediaService.download(
         'mxc://matrix.example.com/other-media',
         didManager: didManager,
-        roomId: '!room:matrix.example.com',
         encryptedFileInfo: uploadOutput.encryptedFileInfo,
       ),
       throwsA(

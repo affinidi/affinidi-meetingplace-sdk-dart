@@ -229,4 +229,18 @@ class MeetingPlaceChatSDK implements ChatSDK {
   /// the chat.
   @override
   Future<void> startChatPresenceUpdates() => _sdk.startChatPresenceUpdates();
+
+  /// Creates a local chat message with attachments.
+  ///
+  /// [senderDid] must be the DID of the party who sent the credential —
+  /// pass [Channel.permanentChannelDid] for an outgoing exchange, or
+  /// [Channel.otherPartyPermanentChannelDid] for an incoming one.
+  @override
+  Future<void> createAttachmentMessage({
+    required List<Attachment> attachments,
+    required String senderDid,
+  }) => _sdk.createAttachmentMessage(
+    attachments: attachments,
+    senderDid: senderDid,
+  );
 }

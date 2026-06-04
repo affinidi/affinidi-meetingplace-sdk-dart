@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart' as model;
+import 'package:meeting_place_credentials/meeting_place_credentials.dart'
+    as credentials;
 import 'package:meeting_place_drift_repository/meeting_place_drift_repository.dart';
 import 'package:test/test.dart';
 
@@ -378,6 +380,323 @@ void main() {
         stored.members.single.contactCard.contactInfo['photo'],
         equals('mxc://server/casey-pic'),
       );
+    });
+  });
+
+  group('RCardRepositoryDrift', () {
+    late Directory tempDirectory;
+
+    setUp(() async {
+      tempDirectory = await Directory.systemTemp.createTemp(
+        'r_card_repository_drift_test_',
+      );
+    });
+
+    tearDown(() async {
+      if (await tempDirectory.exists()) {
+        await tempDirectory.delete(recursive: true);
+      }
+    });
+
+    RCardDatabase database() => RCardDatabase(
+      databaseName: 'r_card.sqlite',
+      passphrase: 'test-passphrase',
+      directory: tempDirectory,
+      inMemory: true,
+    );
+
+    credentials.RCard rCard({
+      String subjectDid = 'did:example:subject',
+      String vcBlob = '{"type":["RelationshipCard"]}',
+      String issuerDid = 'did:example:issuer',
+      int version = 1,
+      String? notes,
+    }) => credentials.RCard(
+      subjectDid: subjectDid,
+      vcBlob: vcBlob,
+      issuerDid: issuerDid,
+      version: version,
+      issuanceDate: DateTime.utc(2026, 1, 1),
+      receivedAt: DateTime.utc(2026, 1, 2),
+      notes: notes,
+    );
+
+    test('upsert persists a new R-Card', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = RCardRepositoryDrift(database: db);
+
+      final card = rCard();
+      await repository.upsert(card);
+
+      final stored = await repository.getBySubjectDid(card.subjectDid);
+      expect(stored, isNotNull);
+      expect(stored!.subjectDid, equals(card.subjectDid));
+      expect(stored.vcBlob, equals(card.vcBlob));
+      expect(stored.issuerDid, equals(card.issuerDid));
+      expect(stored.version, equals(1));
+    });
+
+    test('upsert increments version when VC content changes', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = RCardRepositoryDrift(database: db);
+
+      await repository.upsert(rCard(vcBlob: '{"type":["RelationshipCard"]}'));
+      await repository.upsert(
+        rCard(vcBlob: '{"type":["RelationshipCard"],"updated":true}'),
+      );
+
+      final stored = await repository.getBySubjectDid('did:example:subject');
+      expect(stored!.version, equals(2));
+    });
+
+    test(
+      'upsert does not increment version for identical VC content',
+      () async {
+        final db = database();
+        addTearDown(db.close);
+        final repository = RCardRepositoryDrift(database: db);
+
+        final blob = '{"type":["RelationshipCard"]}';
+        await repository.upsert(rCard(vcBlob: blob));
+        await repository.upsert(rCard(vcBlob: blob));
+
+        final stored = await repository.getBySubjectDid('did:example:subject');
+        expect(stored!.version, equals(1));
+      },
+    );
+
+    test('listAll returns cards ordered by receivedAt descending', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = RCardRepositoryDrift(database: db);
+
+      await repository.upsert(
+        credentials.RCard(
+          subjectDid: 'did:example:alice',
+          vcBlob: '{}',
+          issuerDid: 'did:example:issuer',
+          version: 1,
+          issuanceDate: DateTime.utc(2026),
+          receivedAt: DateTime.utc(2026, 1, 1),
+        ),
+      );
+      await repository.upsert(
+        credentials.RCard(
+          subjectDid: 'did:example:bob',
+          vcBlob: '{}',
+          issuerDid: 'did:example:issuer',
+          version: 1,
+          issuanceDate: DateTime.utc(2026),
+          receivedAt: DateTime.utc(2026, 1, 2),
+        ),
+      );
+
+      final all = await repository.listAll();
+      expect(all.length, equals(2));
+      expect(all.first.subjectDid, equals('did:example:bob'));
+    });
+
+    test('updateNotes persists and clears notes', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = RCardRepositoryDrift(database: db);
+
+      await repository.upsert(rCard());
+      await repository.updateNotes('did:example:subject', 'met at conf');
+
+      final withNote = await repository.getBySubjectDid('did:example:subject');
+      expect(withNote!.notes, equals('met at conf'));
+
+      await repository.updateNotes('did:example:subject', null);
+      final cleared = await repository.getBySubjectDid('did:example:subject');
+      expect(cleared!.notes, isNull);
+    });
+
+    test('deleteBySubjectDid removes the record', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = RCardRepositoryDrift(database: db);
+
+      await repository.upsert(rCard());
+      await repository.deleteBySubjectDid('did:example:subject');
+
+      final result = await repository.getBySubjectDid('did:example:subject');
+      expect(result, isNull);
+    });
+
+    test('getBySubjectDid returns null for unknown DID', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = RCardRepositoryDrift(database: db);
+
+      final result = await repository.getBySubjectDid('did:example:unknown');
+      expect(result, isNull);
+    });
+  });
+
+  group('VrcRepositoryDrift', () {
+    late Directory tempDirectory;
+
+    setUp(() async {
+      tempDirectory = await Directory.systemTemp.createTemp(
+        'vrc_repository_drift_test_',
+      );
+    });
+
+    tearDown(() async {
+      if (await tempDirectory.exists()) {
+        await tempDirectory.delete(recursive: true);
+      }
+    });
+
+    VrcDatabase database() => VrcDatabase(
+      databaseName: 'vrc.sqlite',
+      passphrase: 'test-passphrase',
+      directory: tempDirectory,
+      inMemory: true,
+    );
+
+    credentials.Vrc vrc({
+      String id = 'vrc-1',
+      String vcBlob = '{"type":["RelationshipCredential"]}',
+      String channelId = 'channel-1',
+      String holderDid = 'did:example:holder',
+      String issuerDid = 'did:example:issuer',
+      DateTime? issuedAt,
+      String? credentialFormat,
+    }) => credentials.Vrc(
+      id: id,
+      vcBlob: vcBlob,
+      referenceId: channelId,
+      holderDid: holderDid,
+      issuerDid: issuerDid,
+      issuedAt: issuedAt ?? DateTime.utc(2026, 1, 1),
+      credentialFormat: credentialFormat,
+    );
+
+    test('upsert persists a new VRC', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      await repository.upsert(vrc());
+
+      final stored = await repository.getById('vrc-1');
+      expect(stored, isNotNull);
+      expect(stored!.id, equals('vrc-1'));
+      expect(stored.referenceId, equals('channel-1'));
+      expect(stored.holderDid, equals('did:example:holder'));
+      expect(stored.issuerDid, equals('did:example:issuer'));
+    });
+
+    test(
+      'upsert updates metadata without changing vcBlob for same id',
+      () async {
+        final db = database();
+        addTearDown(db.close);
+        final repository = VrcRepositoryDrift(database: db);
+
+        await repository.upsert(vrc(channelId: 'channel-old'));
+        await repository.upsert(vrc(channelId: 'channel-new'));
+
+        final stored = await repository.getById('vrc-1');
+        expect(stored!.referenceId, equals('channel-new'));
+      },
+    );
+
+    test('upsert replaces row when vcBlob changes', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      await repository.upsert(
+        vrc(vcBlob: '{"type":["RelationshipCredential"]}'),
+      );
+      await repository.upsert(
+        vrc(vcBlob: '{"type":["RelationshipCredential"],"updated":true}'),
+      );
+
+      final stored = await repository.getById('vrc-1');
+      expect(stored!.vcBlob, contains('updated'));
+    });
+
+    test('listAll returns all VRCs ordered by issuedAt descending', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      await repository.upsert(
+        vrc(id: 'vrc-old', issuedAt: DateTime.utc(2025, 1, 1)),
+      );
+      await repository.upsert(
+        vrc(id: 'vrc-new', issuedAt: DateTime.utc(2026, 1, 1)),
+      );
+
+      final all = await repository.listAll();
+      expect(all.length, equals(2));
+      expect(all.first.id, equals('vrc-new'));
+    });
+
+    test('listByHolderDid returns only matching VRCs', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      await repository.upsert(vrc(id: 'vrc-a', holderDid: 'did:example:alice'));
+      await repository.upsert(vrc(id: 'vrc-b', holderDid: 'did:example:bob'));
+
+      final aliceVrcs = await repository.listByHolderDid('did:example:alice');
+      expect(aliceVrcs, hasLength(1));
+      expect(aliceVrcs.first.id, equals('vrc-a'));
+    });
+
+    test('countByHolderDid returns correct count', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      await repository.upsert(vrc(id: 'vrc-a', holderDid: 'did:example:alice'));
+      await repository.upsert(vrc(id: 'vrc-b', holderDid: 'did:example:alice'));
+      await repository.upsert(vrc(id: 'vrc-c', holderDid: 'did:example:bob'));
+
+      expect(await repository.countByHolderDid('did:example:alice'), equals(2));
+      expect(await repository.countByHolderDid('did:example:bob'), equals(1));
+    });
+
+    test('deleteById removes the record', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      await repository.upsert(vrc());
+      await repository.deleteById('vrc-1');
+
+      expect(await repository.getById('vrc-1'), isNull);
+    });
+
+    test('getById returns null for unknown id', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      expect(await repository.getById('does-not-exist'), isNull);
+    });
+
+    test('watchAll emits after upsert', () async {
+      final db = database();
+      addTearDown(db.close);
+      final repository = VrcRepositoryDrift(database: db);
+
+      final emitted = <List<credentials.Vrc>>[];
+      final sub = repository.watchAll().listen(emitted.add);
+
+      await repository.upsert(vrc());
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emitted.last, hasLength(1));
+      await sub.cancel();
     });
   });
 }

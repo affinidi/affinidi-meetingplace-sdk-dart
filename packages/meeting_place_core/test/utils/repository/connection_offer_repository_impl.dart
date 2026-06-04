@@ -112,4 +112,12 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
     );
     return getConnectionOfferByOfferLink(offerLink!);
   }
+
+  @override
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
+    String externalRef,
+  ) async {
+    final all = await listConnectionOffers();
+    return all.where((o) => o.externalRef == externalRef).toList();
+  }
 }

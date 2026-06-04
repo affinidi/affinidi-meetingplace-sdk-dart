@@ -179,6 +179,7 @@ class ConnectionOfferRepositoryDrift
               ),
               mediatorDid: Value(connectionOffer.mediatorDid),
               externalRef: Value(connectionOffer.externalRef),
+              score: Value(connectionOffer.score),
             ),
           );
 
@@ -266,6 +267,7 @@ class ConnectionOfferRepositoryDrift
           ),
           mediatorDid: Value(connectionOffer.mediatorDid),
           externalRef: Value(connectionOffer.externalRef),
+          score: Value(connectionOffer.score),
         ),
       );
 
@@ -320,6 +322,35 @@ class ConnectionOfferRepositoryDrift
           (filter) => filter.offerLink.equals(connectionOffer.offerLink),
         ))
         .go();
+  }
+
+  @override
+  Future<List<model.ConnectionOffer>> getConnectionOffersByExternalRef(
+    String externalRef,
+  ) async {
+    final query = _database.select(_database.connectionOffers).join([
+      leftOuterJoin(
+        _database.groupConnectionOffers,
+        _database.groupConnectionOffers.connectionOfferId.equalsExp(
+          _database.connectionOffers.id,
+        ),
+      ),
+      leftOuterJoin(
+        _database.connectionContactCards,
+        _database.connectionContactCards.connectionOfferId.equalsExp(
+          _database.connectionOffers.id,
+        ),
+      ),
+    ])..where(_database.connectionOffers.externalRef.equals(externalRef));
+
+    final rows = await query.get();
+    return rows.map((result) {
+      return _ConnectionOfferMapper.fromDatabaseRecords(
+        result.readTable(_database.connectionOffers),
+        result.readTableOrNull(_database.groupConnectionOffers),
+        result.readTable(_database.connectionContactCards),
+      );
+    }).toList();
   }
 }
 
@@ -379,6 +410,7 @@ class _ConnectionOfferMapper {
         otherPartyNotificationToken:
             connectionOffer.otherPartyNotificationToken,
         externalRef: connectionOffer.externalRef,
+        score: connectionOffer.score,
       );
     }
 
@@ -405,6 +437,7 @@ class _ConnectionOfferMapper {
       notificationToken: connectionOffer.notificationToken,
       otherPartyNotificationToken: connectionOffer.otherPartyNotificationToken,
       externalRef: connectionOffer.externalRef,
+      score: connectionOffer.score,
     );
   }
 }

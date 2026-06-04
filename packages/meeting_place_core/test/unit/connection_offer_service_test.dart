@@ -35,6 +35,7 @@ void main() {
     status: ConnectionOfferStatus.published,
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
+    transport: ChannelTransport.didcomm,
   );
 
   setUp(() {

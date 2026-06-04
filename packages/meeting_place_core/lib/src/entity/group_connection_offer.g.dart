@@ -28,6 +28,7 @@ GroupConnectionOffer _$GroupConnectionOfferFromJson(
   ),
   ownedByMe: json['ownedByMe'] as bool,
   createdAt: DateTime.parse(json['createdAt'] as String),
+  transport: $enumDecode(_$ChannelTransportEnumMap, json['transport']),
   expiresAt: json['expiresAt'] == null
       ? null
       : DateTime.parse(json['expiresAt'] as String),
@@ -66,6 +67,7 @@ Map<String, dynamic> _$GroupConnectionOfferToJson(
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
   'externalRef': ?instance.externalRef,
+  'transport': _$ChannelTransportEnumMap[instance.transport]!,
   'groupId': instance.groupId,
   'groupDid': ?instance.groupDid,
   'groupOwnerDid': ?instance.groupOwnerDid,
@@ -85,4 +87,9 @@ const _$ConnectionOfferStatusEnumMap = {
   ConnectionOfferStatus.accepted: 'accepted',
   ConnectionOfferStatus.channelInaugurated: 'channelInaugurated',
   ConnectionOfferStatus.deleted: 'deleted',
+};
+
+const _$ChannelTransportEnumMap = {
+  ChannelTransport.didcomm: 'didcomm',
+  ChannelTransport.matrix: 'matrix',
 };

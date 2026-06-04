@@ -92,6 +92,9 @@ abstract class QueryOfferOK
   @BuiltValueField(wireName: r'groupDid')
   String? get groupDid;
 
+  @BuiltValueField(wireName: r'transport')
+  String get transport;
+
   QueryOfferOK._();
 
   factory QueryOfferOK([void updates(QueryOfferOKBuilder b)]) = _$QueryOfferOK;
@@ -207,6 +210,11 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
         specifiedType: const FullType(String),
       );
     }
+    yield r'transport';
+    yield serializers.serialize(
+      object.transport,
+      specifiedType: const FullType(String),
+    );
   }
 
   @override
@@ -368,6 +376,15 @@ class _$QueryOfferOKSerializer implements PrimitiveSerializer<QueryOfferOK> {
                   )
                   as String;
           result.groupDid = valueDes;
+          break;
+        case r'transport':
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
+          result.transport = valueDes;
           break;
         default:
           unhandled.add(key);

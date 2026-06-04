@@ -310,6 +310,7 @@ void main() {
         ),
         ownedByMe: true,
         createdAt: DateTime.utc(2026, 1, 1),
+        transport: model.ChannelTransport.didcomm,
       );
 
       await repository.createConnectionOffer(connectionOffer);

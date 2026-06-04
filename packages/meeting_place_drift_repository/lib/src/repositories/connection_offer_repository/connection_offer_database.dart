@@ -66,7 +66,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
 
   /// Current schema version of the database.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   /// Migration strategy applied before opening the database.
   /// Ensures foreign key constraints are enforced.
@@ -117,6 +117,20 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
             await customStatement('DROP TABLE connection_contact_cards');
             await customStatement(
               '''ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards''',
+            );
+          }
+          if (from < 3) {
+            await migrator.addColumn(
+              connectionOffers,
+              connectionOffers.transport,
+            );
+          }
+          if (from < 4) {
+            // Backfill existing rows with the historical default transport
+            // (didcomm = 1). The column is now NOT NULL going forward.
+            await customStatement(
+              'UPDATE connection_offers SET transport = 1 '
+              'WHERE transport IS NULL',
             );
           }
         },
@@ -192,6 +206,13 @@ class ConnectionOffers extends Table {
 
   /// External reference for the connection offer.
   TextColumn get externalRef => text().nullable()();
+
+  /// Chat transport selected by the publisher for this offer.
+  /// Defaults to [ChannelTransport.didcomm] for offers persisted before
+  /// per-offer transport selection existed.
+  IntColumn get transport => integer()
+      .map(const _ChannelTransportConverter())
+      .withDefault(const Constant(1))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -303,6 +324,31 @@ class _ConnectionOfferStatusConverter
 
   @override
   int toSql(ConnectionOfferStatus value) {
+    return value.value;
+  }
+}
+
+extension _ChannelTransportValue on ChannelTransport {
+  int get value {
+    switch (this) {
+      case ChannelTransport.didcomm:
+        return 1;
+      case ChannelTransport.matrix:
+        return 2;
+    }
+  }
+}
+
+class _ChannelTransportConverter extends TypeConverter<ChannelTransport, int> {
+  const _ChannelTransportConverter();
+
+  @override
+  ChannelTransport fromSql(int fromDb) {
+    return ChannelTransport.values.firstWhere((t) => t.value == fromDb);
+  }
+
+  @override
+  int toSql(ChannelTransport value) {
     return value.value;
   }
 }

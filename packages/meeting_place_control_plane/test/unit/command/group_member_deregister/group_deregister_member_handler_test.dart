@@ -25,18 +25,16 @@ Response<GroupMemberDeregisterOK> _ok() => Response<GroupMemberDeregisterOK>(
   statusCode: 200,
 );
 
-DioException _dioError({
-  required int statusCode,
-  Map<String, dynamic>? data,
-}) => DioException(
-  requestOptions: RequestOptions(path: '/v1/group-member-deregister'),
-  type: DioExceptionType.badResponse,
-  response: Response<dynamic>(
-    requestOptions: RequestOptions(path: '/v1/group-member-deregister'),
-    statusCode: statusCode,
-    data: data,
-  ),
-);
+DioException _dioError({required int statusCode, Map<String, dynamic>? data}) =>
+    DioException(
+      requestOptions: RequestOptions(path: '/v1/group-member-deregister'),
+      type: DioExceptionType.badResponse,
+      response: Response<dynamic>(
+        requestOptions: RequestOptions(path: '/v1/group-member-deregister'),
+        statusCode: statusCode,
+        data: data,
+      ),
+    );
 
 void main() {
   setUpAll(() {

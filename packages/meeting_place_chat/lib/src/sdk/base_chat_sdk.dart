@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../handlers/chat_alias_profile_hash_handler.dart';
@@ -266,6 +267,17 @@ abstract class BaseChatSDK {
     }
 
     final messageType = message.plainTextMessage.type.toString();
+
+    if (messageType == VdipClient.issuedCredentialMessageType ||
+        messageType == VdipClient.requestIssuanceMessageType) {
+      _logger.info(
+        'Routing VDIP $messageType to coreSDK.vdip',
+        name: methodName,
+      );
+      coreSDK.vdip.dispatch(message.plainTextMessage);
+      return true;
+    }
+
     final handler = _messageHandlers[messageType];
     if (handler != null) {
       _logger.info('Handling $messageType message', name: methodName);
@@ -299,7 +311,8 @@ abstract class BaseChatSDK {
     final messagesFromMediator = await coreSDK.fetchMessages(
       did: did,
       mediatorDid: mediatorDid,
-      deleteOnRetrieve: false,
+      deleteOnRetrieve: true,
+      deleteFailedMessages: true,
     );
     final newMessages = <Message>[];
     final processedHashes = <String>[];
@@ -715,6 +728,35 @@ abstract class BaseChatSDK {
     _mediatorStreamSubscription = null;
     mediatorStreamFuture = null;
     chatStream.dispose();
+  }
+
+  /// Creates a local chat [Message] with the given attachments.
+  ///
+  /// [senderDid] must be the DID of the party who sent the credential —
+  /// pass [Channel.permanentChannelDid] for an outgoing exchange, or
+  /// [Channel.otherPartyPermanentChannelDid] for an incoming one.
+  Future<void> createAttachmentMessage({
+    required List<Attachment> attachments,
+    required String senderDid,
+  }) async {
+    if (senderDid != did && senderDid != otherPartyDid) {
+      throw Exception(
+        'senderDid $senderDid is not a participant of this chat '
+        '(did=$did, otherPartyDid=$otherPartyDid).',
+      );
+    }
+    final chatMessage = Message(
+      chatId: chatId,
+      messageId: const Uuid().v4(),
+      senderDid: senderDid,
+      isFromMe: senderDid == did,
+      dateCreated: DateTime.now().toUtc(),
+      status: ChatItemStatus.confirmed,
+      value: '',
+      attachments: attachments,
+    );
+    await chatRepository.createMessage(chatMessage);
+    chatStream.pushData(StreamData(chatItem: chatMessage));
   }
 
   @internal

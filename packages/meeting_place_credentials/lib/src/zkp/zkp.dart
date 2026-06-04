@@ -1,0 +1,12 @@
+export 'adapter/liveness_evidence_adapter.dart';
+export 'builder/liveness_vc_builder.dart';
+export 'builder/liveness_zkp_didcomm_attachment_builder.dart';
+export 'model/liveness_check_request_payload.dart';
+export 'model/liveness_credential_constants.dart';
+export 'model/liveness_credential_subject.dart';
+export 'model/liveness_evidence.dart';
+export 'model/liveness_proof_payload.dart';
+export 'model/liveness_zkp_protocol.dart';
+export 'parser/liveness_zkp_attachment_parser.dart';
+export 'service/liveness_vc_issuance_service.dart';
+export 'source/liveness_evidence_source.dart';

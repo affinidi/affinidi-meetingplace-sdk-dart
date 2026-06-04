@@ -1,3 +1,7 @@
+## 0.0.1-dev.18
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
 ## 0.0.1-dev.17
 
  - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).

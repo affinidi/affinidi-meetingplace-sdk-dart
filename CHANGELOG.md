@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.40`](#meeting_place_chat---v001-dev40)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.18`](#meeting_place_control_plane---v001-dev18)
+ - [`meeting_place_core` - `v0.0.1-dev.37`](#meeting_place_core---v001-dev37)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.41`](#meeting_place_drift_repository---v001-dev41)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.40`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.18`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+#### `meeting_place_core` - `v0.0.1-dev.37`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.41`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+
 ## 2026-05-22
 
 ### Changes

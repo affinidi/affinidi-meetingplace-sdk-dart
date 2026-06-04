@@ -1,3 +1,7 @@
+## 0.0.1-dev.37
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
 ## 0.0.1-dev.36
 
  - **REFACTOR**: database schema and update dependencies (#168).

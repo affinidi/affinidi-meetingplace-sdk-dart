@@ -12,7 +12,7 @@ const _uuid = Uuid();
 /// Creates a DIDComm [Attachment] from a media upload result.
 ///
 /// The attachment uses [AttachmentData.links] for the mxc:// URI and
-/// [AttachmentData.json] for the encryption metadata (when E2EE is used).
+/// [AttachmentData.json] for the encryption metadata.
 Attachment attachmentFromMediaUpload(
   MediaUploadOutput uploadOutput, {
   required String mediaType,
@@ -31,8 +31,8 @@ Attachment attachmentFromMediaUpload(
     byteCount: uploadOutput.result.sizeBytes,
     data: AttachmentData(
       links: [Uri.parse(mxcUri)],
-      json: encInfo != null ? jsonEncode(encInfo.toJson()) : null,
-      hash: encInfo?.hashes['sha256'],
+      json: jsonEncode(encInfo.toJson()),
+      hash: encInfo.hashes['sha256'],
     ),
   );
 }

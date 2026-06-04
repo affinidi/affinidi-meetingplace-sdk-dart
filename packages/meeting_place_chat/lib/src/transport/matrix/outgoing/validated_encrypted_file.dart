@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 /// Validated Matrix encrypted-file metadata for an `m.room.message` event.
 ///
 /// This is a transport-layer type that ensures the JSON carried on a
@@ -54,24 +56,28 @@ class ValidatedEncryptedFile {
     Map<String, dynamic> map, {
     String? expectedMxcUri,
   }) {
-    final url = map['url'];
-    if (url is! String || !url.startsWith('mxc://')) return false;
+    final url = map[encryptedFileFieldUrl];
+    if (url is! String || !url.startsWith(matrixMxcUriScheme)) {
+      return false;
+    }
 
     if (expectedMxcUri != null && url != expectedMxcUri) return false;
 
-    final key = map['key'];
+    final key = map[encryptedFileFieldKey];
     if (key is! Map<String, dynamic>) return false;
-    if (key['kty'] != 'oct') return false;
-    if (key['alg'] != 'A256CTR') return false;
-    if (key['k'] is! String) return false;
+    if (key[jsonWebKeyFieldKty] != jsonWebKeyType) return false;
+    if (key[jsonWebKeyFieldAlg] != jsonWebKeyAlgorithm) return false;
+    if (key[jsonWebKeyFieldK] is! String) return false;
 
-    if (map['iv'] is! String) return false;
+    if (map[encryptedFileFieldIv] is! String) return false;
 
-    final hashes = map['hashes'];
+    final hashes = map[encryptedFileFieldHashes];
     if (hashes is! Map<String, dynamic>) return false;
-    if (hashes['sha256'] is! String) return false;
+    if (hashes[encryptedFileSha256Key] is! String) return false;
 
-    if (map['v'] != 'v2') return false;
+    if (map[encryptedFileFieldVersion] != encryptedFileInfoVersion) {
+      return false;
+    }
 
     return true;
   }

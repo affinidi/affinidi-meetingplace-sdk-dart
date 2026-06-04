@@ -41,6 +41,15 @@ class MediaException implements Exception {
     code: codeServerError,
     message: 'Media server returned status $statusCode',
   );
+
+  factory MediaException.decryptionFailed() => MediaException(
+    code: codeDecryptionFailed,
+    message: 'Ciphertext hash mismatch or decryption failed',
+  );
+
+  factory MediaException.invalidMetadata(String reason) =>
+      MediaException(code: codeInvalidMetadata, message: reason);
+
   static const codeTooLarge = 'too_large';
   static const codeForbidden = 'forbidden';
   static const codeNotFound = 'not_found';
@@ -48,6 +57,8 @@ class MediaException implements Exception {
   static const codeNetworkError = 'network_error';
   static const codeInvalidMediaId = 'invalid_media_id';
   static const codeServerError = 'server_error';
+  static const codeDecryptionFailed = 'decryption_failed';
+  static const codeInvalidMetadata = 'invalid_metadata';
 
   final String code;
   final String message;

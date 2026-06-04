@@ -247,7 +247,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<Uint8List> downloadMedia(ChatAttachment attachment) {
     throw UnsupportedError(
-      'Hosted media download is only supported for Matrix chat sessions',
+      'Hosted media download is not supported on DIDComm chat sessions',
     );
   }
 

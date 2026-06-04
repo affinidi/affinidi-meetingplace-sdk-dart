@@ -7,17 +7,17 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
+import '../../../../_helpers/mocks.dart';
 
 void main() {
-  late _MockCoreSDK coreSDK;
+  late MockCoreSDK coreSDK;
   late MatrixHostedMediaUploader uploader;
 
   const senderDid = 'did:test:alice';
   const mxcUri = 'mxc://matrix.example.com/uploaded123';
 
   setUp(() {
-    coreSDK = _MockCoreSDK();
+    coreSDK = MockCoreSDK();
     uploader = MatrixHostedMediaUploader(
       coreSDK: coreSDK,
       senderDid: senderDid,

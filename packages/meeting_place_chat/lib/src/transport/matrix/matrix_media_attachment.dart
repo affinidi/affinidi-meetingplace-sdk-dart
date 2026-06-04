@@ -36,18 +36,19 @@ class MatrixMediaAttachments {
 
     final encryptedFile = _mapValue(content['file']);
     final mxcUrl =
-        _stringValue(encryptedFile?['url']) ?? _stringValue(content['url']);
+        _stringValue(encryptedFile?[encryptedFileFieldUrl]) ??
+        _stringValue(content['url']);
     if (mxcUrl == null) return const [];
 
     final mxcUri = Uri.tryParse(mxcUrl);
-    if (mxcUri == null || mxcUri.scheme != 'mxc') return const [];
+    if (mxcUri == null || mxcUri.scheme != matrixMxcScheme) return const [];
 
     String? encryptionJson;
     String? hash;
     if (encryptedFile != null) {
       encryptionJson = jsonEncode(encryptedFile);
-      final hashes = _mapValue(encryptedFile['hashes']);
-      hash = _stringValue(hashes?['sha256']);
+      final hashes = _mapValue(encryptedFile[encryptedFileFieldHashes]);
+      hash = _stringValue(hashes?[encryptedFileSha256Key]);
     }
 
     return [
@@ -71,7 +72,7 @@ class MatrixMediaAttachments {
     if (links == null || links.isEmpty) return null;
 
     final uri = links.first;
-    return uri.scheme == 'mxc' ? uri.toString() : null;
+    return uri.scheme == matrixMxcScheme ? uri.toString() : null;
   }
 
   static String? _stringValue(Object? value) => value is String ? value : null;

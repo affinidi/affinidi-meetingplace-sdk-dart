@@ -1,6 +1,7 @@
 final _matrixMediaIdPattern = RegExp(r'^[A-Za-z0-9_-]+$');
 
-const matrixMxcUriScheme = 'mxc://';
+const matrixMxcScheme = 'mxc';
+const matrixMxcUriScheme = '$matrixMxcScheme://';
 
 ({String serverName, String mediaId}) parseMatrixMediaUri(String mxcUri) {
   if (!mxcUri.startsWith(matrixMxcUriScheme)) {

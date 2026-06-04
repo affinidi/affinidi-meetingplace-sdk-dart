@@ -109,7 +109,8 @@ class RegisterOfferHandler
       ..mediatorDid = mediatorForOffer.mediatorDid
       ..mediatorEndpoint = mediatorForOffer.mediatorEndpoint
       ..mediatorWSSEndpoint = mediatorForOffer.mediatorWSSEndpoint
-      ..customPhrase = command.customPhrase;
+      ..customPhrase = command.customPhrase
+      ..transport = command.transport.value;
 
     try {
       _logger.info(

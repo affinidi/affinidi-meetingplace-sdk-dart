@@ -35,6 +35,7 @@ void main() async {
       device: device,
       customPhrase: mnemonic,
       type: OfferType.invitation,
+      transport: OfferTransport.didcomm,
       oobInvitationMessage: OobInvitationMessage(
         id: const Uuid().v4(),
         from: 'did:key:1234',

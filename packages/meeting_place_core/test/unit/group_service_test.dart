@@ -68,9 +68,7 @@ Group _group({
   created: DateTime.utc(2026, 1, 1),
   ownerDid: ownerDid,
   publicKey: publicKey,
-  members:
-      members ??
-      [_ownerMember('did:test:alice'), _member('did:test:bob')],
+  members: members ?? [_ownerMember('did:test:alice'), _member('did:test:bob')],
 );
 
 void main() {
@@ -103,10 +101,8 @@ void main() {
       ).thenAnswer((_) async => null);
 
       await expectLater(
-        () => service.removeMember(
-          groupId: 'missing',
-          memberDid: 'did:test:bob',
-        ),
+        () =>
+            service.removeMember(groupId: 'missing', memberDid: 'did:test:bob'),
         throwsA(
           isA<GroupException>().having(
             (e) => e.code,
@@ -123,10 +119,8 @@ void main() {
       ).thenAnswer((_) async => _group(ownerDid: null));
 
       await expectLater(
-        () => service.removeMember(
-          groupId: 'group-1',
-          memberDid: 'did:test:bob',
-        ),
+        () =>
+            service.removeMember(groupId: 'group-1', memberDid: 'did:test:bob'),
         throwsA(
           isA<GroupException>().having(
             (e) => e.code,
@@ -143,10 +137,8 @@ void main() {
       ).thenAnswer((_) async => _group(publicKey: null));
 
       await expectLater(
-        () => service.removeMember(
-          groupId: 'group-1',
-          memberDid: 'did:test:bob',
-        ),
+        () =>
+            service.removeMember(groupId: 'group-1', memberDid: 'did:test:bob'),
         throwsA(
           isA<GroupException>().having(
             (e) => e.code,
@@ -184,16 +176,13 @@ void main() {
       ).thenAnswer((_) async => _group());
 
       await expectLater(
-        () => service.removeMember(
-          groupId: 'group-1',
-          memberDid: 'did:test:eve',
-        ),
+        () =>
+            service.removeMember(groupId: 'group-1', memberDid: 'did:test:eve'),
         throwsA(
           isA<GroupException>().having(
             (e) => e.code,
             'code',
-            MeetingPlaceCoreSDKErrorCode
-                .groupMemberDoesNotBelongToGroupError,
+            MeetingPlaceCoreSDKErrorCode.groupMemberDoesNotBelongToGroupError,
           ),
         ),
       );

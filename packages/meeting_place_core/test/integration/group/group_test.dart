@@ -767,18 +767,12 @@ void main() async {
 
     // Non-owner caller is rejected (Bob does not own the group).
     expect(
-      () => bobSDK.removeMemberFromGroup(
-        groupId: groupId,
-        memberDid: bobDid,
-      ),
+      () => bobSDK.removeMemberFromGroup(groupId: groupId, memberDid: bobDid),
       throwsA(isA<MeetingPlaceCoreSDKException>()),
     );
 
     // Owner removes Bob.
-    await aliceSDK.removeMemberFromGroup(
-      groupId: groupId,
-      memberDid: bobDid,
-    );
+    await aliceSDK.removeMemberFromGroup(groupId: groupId, memberDid: bobDid);
 
     final groupAfter = await aliceSDK.getGroupById(groupId);
     expect(groupAfter!.members.length, equals(1));
@@ -786,10 +780,7 @@ void main() async {
 
     // Removing a member that no longer belongs to the group fails.
     expect(
-      () => aliceSDK.removeMemberFromGroup(
-        groupId: groupId,
-        memberDid: bobDid,
-      ),
+      () => aliceSDK.removeMemberFromGroup(groupId: groupId, memberDid: bobDid),
       throwsA(
         predicate(
           (e) =>

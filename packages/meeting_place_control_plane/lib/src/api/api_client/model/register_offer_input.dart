@@ -110,6 +110,10 @@ abstract class RegisterOfferInput
   @BuiltValueField(wireName: r'metadata')
   String? get metadata;
 
+  /// Chat transport for the offer ("didcomm" or "matrix").
+  @BuiltValueField(wireName: r'transport')
+  String get transport;
+
   RegisterOfferInput._();
 
   factory RegisterOfferInput([void updates(RegisterOfferInputBuilder b)]) =
@@ -230,6 +234,11 @@ class _$RegisterOfferInputSerializer
         specifiedType: const FullType(String),
       );
     }
+    yield r'transport';
+    yield serializers.serialize(
+      object.transport,
+      specifiedType: const FullType(String),
+    );
   }
 
   @override
@@ -398,6 +407,15 @@ class _$RegisterOfferInputSerializer
                   )
                   as String;
           result.metadata = valueDes;
+          break;
+        case r'transport':
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
+          result.transport = valueDes;
           break;
         default:
           unhandled.add(key);

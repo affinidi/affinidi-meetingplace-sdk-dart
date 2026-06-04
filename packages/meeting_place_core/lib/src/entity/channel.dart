@@ -68,7 +68,7 @@ class Channel {
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,
-      transport: ChannelTransport.didcomm,
+      transport: connectionOffer.transport,
       isConnectionInitiator: false,
       contactCard: contactCard,
       otherPartyContactCard: connectionOffer.contactCard,

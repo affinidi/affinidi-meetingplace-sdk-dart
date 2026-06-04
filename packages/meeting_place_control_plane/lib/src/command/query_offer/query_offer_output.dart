@@ -1,6 +1,7 @@
 import '../../core/offer_type.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
+import '../../core/protocol/transport.dart';
 
 abstract class QueryOfferCommandOutput {}
 
@@ -20,6 +21,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
     required this.mediatorDid,
     required this.status,
     required this.didcommMessage,
+    required this.transport,
     this.groupId,
     this.groupDid,
   });
@@ -36,6 +38,9 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   final OobInvitationMessage didcommMessage;
   final String? groupId;
   final String? groupDid;
+
+  /// Transport selected by the publisher.
+  final OfferTransport transport;
 
   bool get isInvitation => type == OfferType.invitation;
   bool get isGroupInvitation => type == OfferType.groupInvitation;

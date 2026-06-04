@@ -139,6 +139,9 @@ class ConnectionService {
         status: ConnectionOfferStatus.published,
         ownedByMe: ownedByMe,
         createdAt: DateTime.now().toUtc(),
+        transport: ChannelTransport.values.byName(
+          queryOfferResult.transport.name,
+        ),
       );
 
       _logger.info('''
@@ -168,6 +171,7 @@ class ConnectionService {
         status: ConnectionOfferStatus.published,
         ownedByMe: ownedByMe,
         createdAt: DateTime.now().toUtc(),
+        transport: ChannelTransport.matrix,
       );
 
       _logger.info('''
@@ -195,6 +199,7 @@ class ConnectionService {
     int? maximumUsage,
     String? mediatorDid,
     String? externalRef,
+    ChannelTransport transport = ChannelTransport.didcomm,
   }) async {
     final methodName = 'publishOffer';
     _logger.info('Publishing connection offer: $offerName', name: methodName);
@@ -227,6 +232,7 @@ class ConnectionService {
         validUntil: validUntil,
         maximumUsage: maximumUsage,
         mediatorDid: mediatorDid,
+        transport: OfferTransport.values.byName(transport.name),
       ),
     );
 
@@ -249,6 +255,7 @@ class ConnectionService {
         ownedByMe: true,
         externalRef: externalRef,
         createdAt: DateTime.now().toUtc(),
+        transport: transport,
       );
 
       await _connectionOfferRepository.createConnectionOffer(connectionOffer);

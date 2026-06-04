@@ -4,6 +4,7 @@ import '../../core/command/command.dart';
 import '../../core/device/device.dart';
 import '../../core/offer_type.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
+import '../../core/protocol/transport.dart';
 import 'register_offer_output.dart';
 
 /// Model that represents the request sent for the [RegisterOfferCommand]
@@ -18,6 +19,7 @@ class RegisterOfferCommand
     required this.device,
     required this.type,
     required this.oobInvitationMessage,
+    required this.transport,
     this.validUntil,
     this.maximumUsage,
     this.customPhrase,
@@ -36,4 +38,7 @@ class RegisterOfferCommand
   final String? customPhrase;
 
   final String? mediatorDid;
+
+  /// Transport selected by the publisher.
+  final OfferTransport transport;
 }

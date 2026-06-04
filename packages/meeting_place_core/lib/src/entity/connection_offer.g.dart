@@ -21,6 +21,7 @@ ConnectionOffer _$ConnectionOfferFromJson(Map<String, dynamic> json) =>
       ),
       ownedByMe: json['ownedByMe'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      transport: $enumDecode(_$ChannelTransportEnumMap, json['transport']),
       expiresAt: json['expiresAt'] == null
           ? null
           : DateTime.parse(json['expiresAt'] as String),
@@ -60,6 +61,7 @@ Map<String, dynamic> _$ConnectionOfferToJson(ConnectionOffer instance) =>
       'notificationToken': ?instance.notificationToken,
       'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
       'externalRef': ?instance.externalRef,
+      'transport': _$ChannelTransportEnumMap[instance.transport]!,
     };
 
 const _$ConnectionOfferTypeEnumMap = {
@@ -74,4 +76,9 @@ const _$ConnectionOfferStatusEnumMap = {
   ConnectionOfferStatus.accepted: 'accepted',
   ConnectionOfferStatus.channelInaugurated: 'channelInaugurated',
   ConnectionOfferStatus.deleted: 'deleted',
+};
+
+const _$ChannelTransportEnumMap = {
+  ChannelTransport.didcomm: 'didcomm',
+  ChannelTransport.matrix: 'matrix',
 };

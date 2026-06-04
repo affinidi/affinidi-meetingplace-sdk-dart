@@ -753,6 +753,7 @@ class MeetingPlaceCoreSDK {
     String? mediatorDid,
     String? metadata,
     String? externalRef,
+    ChannelTransport transport = ChannelTransport.didcomm,
   }) async {
     if (type == sdk.SDKConnectionOfferType.groupInvitation) {
       final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
@@ -788,6 +789,7 @@ class MeetingPlaceCoreSDK {
           mediatorDid: mediatorDid,
           externalRef: externalRef,
           contactCard: contactCard,
+          transport: transport,
         );
 
     return sdk.PublishOfferResult(

@@ -213,6 +213,7 @@ class GroupService {
         ownedByMe: true,
         externalRef: externalRef,
         createdAt: DateTime.now().toUtc(),
+        transport: ChannelTransport.matrix,
       );
 
       await _connectionOfferRepository.createConnectionOffer(connectionOffer);

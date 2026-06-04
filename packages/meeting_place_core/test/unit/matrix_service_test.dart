@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:matrix/matrix_api_lite/generated/fixed_model.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_auth_exception.dart';
@@ -764,6 +767,35 @@ void main() {
             jwt: any(named: 'jwt'),
             did: any(named: 'did'),
           ),
+        ).called(1);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // downloadMedia
+    // ------------------------------------------------------------------
+
+    group('downloadMedia', () {
+      test('delegates to client.getContent and returns bytes', () async {
+        final client = MockMatrixClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+
+        final expectedBytes = Uint8List.fromList([10, 20, 30]);
+        when(
+          () => client.getContent('matrix.example.com', 'abc123'),
+        ).thenAnswer((_) async => FileResponse(data: expectedBytes));
+
+        final result = await service.downloadMedia(
+          'mxc://matrix.example.com/abc123',
+          didManager: didManager,
+        );
+
+        expect(result, equals(expectedBytes));
+        verify(
+          () => client.getContent('matrix.example.com', 'abc123'),
         ).called(1);
       });
     });

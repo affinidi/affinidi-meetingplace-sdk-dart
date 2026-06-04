@@ -1197,11 +1197,9 @@ class MeetingPlaceCoreSDK {
     final encryptedFileInfo = getEncryptedFileInfo(attachment);
 
     return _withSdkExceptionHandling(() async {
-      final roomId = await _messagingService.resolveRoomIdForDid(receiverDid);
       return _mediaService.download(
         mxcUri,
         didManager: await getDidManager(receiverDid),
-        roomId: roomId,
         encryptedFileInfo: encryptedFileInfo,
       );
     });

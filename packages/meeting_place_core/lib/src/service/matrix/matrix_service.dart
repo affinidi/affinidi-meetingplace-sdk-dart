@@ -14,6 +14,7 @@ import 'matrix_room_event.dart';
 import 'matrix_service_exception.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_subscription_options.dart';
+import 'media/matrix_media_uri.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -457,22 +458,16 @@ class MatrixService {
     );
   }
 
-  /// Downloads media from the Matrix homeserver's content repository
-  /// via the control plane download-url endpoint.
+  /// Downloads media from the Matrix homeserver using the user's authenticated
+  /// session, symmetric with [uploadMedia].
   Future<Uint8List> downloadMedia(
     String mxcUri, {
     required DidManager didManager,
-    required String roomId,
   }) async {
-    final mediaDownloadOutput = await _controlPlaneSDK.execute(
-      MatrixMediaDownloadCommand(
-        didManager: didManager,
-        homeserver: homeserver,
-        roomId: roomId,
-        mxcUri: mxcUri,
-      ),
-    );
-    return mediaDownloadOutput.bytes;
+    final client = await _ensureSession(didManager);
+    final (:serverName, :mediaId) = parseMatrixMediaUri(mxcUri);
+    final response = await client.getContent(serverName, mediaId);
+    return response.data;
   }
 
   /// Returns the maximum upload size allowed by the homeserver, in bytes.

@@ -35,6 +35,7 @@ ConnectionOffer _$ConnectionOfferFromJson(Map<String, dynamic> json) =>
       otherPartyNotificationToken:
           json['otherPartyNotificationToken'] as String?,
       externalRef: json['externalRef'] as String?,
+      score: (json['score'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$ConnectionOfferToJson(ConnectionOffer instance) =>
@@ -60,6 +61,7 @@ Map<String, dynamic> _$ConnectionOfferToJson(ConnectionOffer instance) =>
       'notificationToken': ?instance.notificationToken,
       'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
       'externalRef': ?instance.externalRef,
+      'score': ?instance.score,
     };
 
 const _$ConnectionOfferTypeEnumMap = {

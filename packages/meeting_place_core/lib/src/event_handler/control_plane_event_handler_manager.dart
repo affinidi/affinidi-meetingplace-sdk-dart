@@ -12,6 +12,7 @@ import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/connection_service.dart';
 import '../service/mediator/mediator_service.dart';
+import '../vdip/vdip_client.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'control_plane_event_stream_manager.dart';
@@ -22,6 +23,24 @@ import 'invitation_accepted_event_handler.dart';
 import 'invitation_accepted_group_event_handler.dart';
 import 'offer_finalised_event_handler.dart';
 import 'outreach_invitation_event_handler.dart';
+
+// Batch lists hold DiscoveryEvent (dynamic data); rebuilding typed events
+// avoids a runtime cast failure when deduping ChannelActivity in the batch.
+List<DiscoveryEvent<ChannelActivity>> _channelActivityEventsFrom(
+  Iterable<DiscoveryEvent> events,
+) {
+  return events
+      .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
+      .map(
+        (e) => DiscoveryEvent<ChannelActivity>(
+          id: e.id,
+          type: e.type,
+          data: e.data as ChannelActivity,
+          status: e.status,
+        ),
+      )
+      .toList();
+}
 
 class ControlPlaneEventManager {
   ControlPlaneEventManager({
@@ -37,6 +56,7 @@ class ControlPlaneEventManager {
     required ChannelService channelService,
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
+    required VdipClient vdipClient,
     MeetingPlaceCoreSDKLogger? logger,
     ControlPlaneEventHandlerManagerOptions options =
         const ControlPlaneEventHandlerManagerOptions(),
@@ -81,6 +101,7 @@ class ControlPlaneEventManager {
       connectionManager: connectionManager,
       options: options,
       logger: _logger,
+      vdipClient: vdipClient,
     );
     _groupMembershipFinalisedEventHandler =
         GroupMembershipFinalisedEventHandler(
@@ -180,10 +201,9 @@ class ControlPlaneEventManager {
           event.data as OfferFinalised,
         );
       case ControlPlaneEventType.ChannelActivity:
-        final processedChannelActivities = processedEvents
-            .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
-            .cast<DiscoveryEvent<ChannelActivity>>()
-            .toList();
+        final processedChannelActivities = _channelActivityEventsFrom(
+          processedEvents,
+        );
 
         if (_channelActivityEventHandler.hasChannelActivityBeenProcessed(
           event.data as ChannelActivity,

@@ -257,6 +257,15 @@ class $ConnectionOffersTable extends ConnectionOffers
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<int> score = GeneratedColumn<int>(
+    'score',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -281,6 +290,7 @@ class $ConnectionOffersTable extends ConnectionOffers
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
+    score,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -461,6 +471,12 @@ class $ConnectionOffersTable extends ConnectionOffers
         ),
       );
     }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    }
     return context;
   }
 
@@ -562,6 +578,10 @@ class $ConnectionOffersTable extends ConnectionOffers
         DriftSqlType.string,
         data['${effectivePrefix}external_ref'],
       ),
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      ),
     );
   }
 
@@ -642,6 +662,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
 
   /// External reference for the connection offer.
   final String? externalRef;
+
+  /// VRC score of the offer owner.
+  final int? score;
   const ConnectionOffer({
     required this.id,
     required this.offerName,
@@ -665,6 +688,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.externalRef,
+    this.score,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -725,6 +749,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     if (!nullToAbsent || externalRef != null) {
       map['external_ref'] = Variable<String>(externalRef);
     }
+    if (!nullToAbsent || score != null) {
+      map['score'] = Variable<int>(score);
+    }
     return map;
   }
 
@@ -776,6 +803,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       externalRef: externalRef == null && nullToAbsent
           ? const Value.absent()
           : Value(externalRef),
+      score: score == null && nullToAbsent
+          ? const Value.absent()
+          : Value(score),
     );
   }
 
@@ -819,6 +849,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
         json['otherPartyNotificationToken'],
       ),
       externalRef: serializer.fromJson<String?>(json['externalRef']),
+      score: serializer.fromJson<int?>(json['score']),
     );
   }
   @override
@@ -851,6 +882,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
         otherPartyNotificationToken,
       ),
       'externalRef': serializer.toJson<String?>(externalRef),
+      'score': serializer.toJson<int?>(score),
     };
   }
 
@@ -877,6 +909,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     Value<String?> notificationToken = const Value.absent(),
     Value<String?> otherPartyNotificationToken = const Value.absent(),
     Value<String?> externalRef = const Value.absent(),
+    Value<int?> score = const Value.absent(),
   }) => ConnectionOffer(
     id: id ?? this.id,
     offerName: offerName ?? this.offerName,
@@ -914,6 +947,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
         ? otherPartyNotificationToken.value
         : this.otherPartyNotificationToken,
     externalRef: externalRef.present ? externalRef.value : this.externalRef,
+    score: score.present ? score.value : this.score,
   );
   ConnectionOffer copyWithCompanion(ConnectionOffersCompanion data) {
     return ConnectionOffer(
@@ -963,6 +997,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       externalRef: data.externalRef.present
           ? data.externalRef.value
           : this.externalRef,
+      score: data.score.present ? data.score.value : this.score,
     );
   }
 
@@ -992,7 +1027,8 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
-          ..write('externalRef: $externalRef')
+          ..write('externalRef: $externalRef, ')
+          ..write('score: $score')
           ..write(')'))
         .toString();
   }
@@ -1021,6 +1057,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
+    score,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -1049,7 +1086,8 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           other.notificationToken == this.notificationToken &&
           other.otherPartyNotificationToken ==
               this.otherPartyNotificationToken &&
-          other.externalRef == this.externalRef);
+          other.externalRef == this.externalRef &&
+          other.score == this.score);
 }
 
 class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
@@ -1075,6 +1113,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
   final Value<String?> notificationToken;
   final Value<String?> otherPartyNotificationToken;
   final Value<String?> externalRef;
+  final Value<int?> score;
   final Value<int> rowid;
   const ConnectionOffersCompanion({
     this.id = const Value.absent(),
@@ -1099,6 +1138,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
+    this.score = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ConnectionOffersCompanion.insert({
@@ -1124,6 +1164,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
+    this.score = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : offerName = Value(offerName),
        offerLink = Value(offerLink),
@@ -1157,6 +1198,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     Expression<String>? notificationToken,
     Expression<String>? otherPartyNotificationToken,
     Expression<String>? externalRef,
+    Expression<int>? score,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1186,6 +1228,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       if (otherPartyNotificationToken != null)
         'other_party_notification_token': otherPartyNotificationToken,
       if (externalRef != null) 'external_ref': externalRef,
+      if (score != null) 'score': score,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1213,6 +1256,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     Value<String?>? notificationToken,
     Value<String?>? otherPartyNotificationToken,
     Value<String?>? externalRef,
+    Value<int?>? score,
     Value<int>? rowid,
   }) {
     return ConnectionOffersCompanion(
@@ -1240,6 +1284,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef ?? this.externalRef,
+      score: score ?? this.score,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1325,6 +1370,9 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     if (externalRef.present) {
       map['external_ref'] = Variable<String>(externalRef.value);
     }
+    if (score.present) {
+      map['score'] = Variable<int>(score.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1358,6 +1406,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
+          ..write('score: $score, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2316,6 +2365,7 @@ typedef $$ConnectionOffersTableCreateCompanionBuilder =
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
+      Value<int?> score,
       Value<int> rowid,
     });
 typedef $$ConnectionOffersTableUpdateCompanionBuilder =
@@ -2342,6 +2392,7 @@ typedef $$ConnectionOffersTableUpdateCompanionBuilder =
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
+      Value<int?> score,
       Value<int> rowid,
     });
 
@@ -2546,6 +2597,11 @@ class $$ConnectionOffersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> connectionContactCardsRefs(
     Expression<bool> Function($$ConnectionContactCardsTableFilterComposer f) f,
   ) {
@@ -2718,6 +2774,11 @@ class $$ConnectionOffersTableOrderingComposer
     column: $table.externalRef,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ConnectionOffersTableAnnotationComposer
@@ -2819,6 +2880,9 @@ class $$ConnectionOffersTableAnnotationComposer
     column: $table.externalRef,
     builder: (column) => column,
   );
+
+  GeneratedColumn<int> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
 
   Expression<T> connectionContactCardsRefs<T extends Object>(
     Expression<T> Function($$ConnectionContactCardsTableAnnotationComposer a) f,
@@ -2930,6 +2994,7 @@ class $$ConnectionOffersTableTableManager
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
                 Value<String?> externalRef = const Value.absent(),
+                Value<int?> score = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionOffersCompanion(
                 id: id,
@@ -2954,6 +3019,7 @@ class $$ConnectionOffersTableTableManager
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,
+                score: score,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2982,6 +3048,7 @@ class $$ConnectionOffersTableTableManager
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
                 Value<String?> externalRef = const Value.absent(),
+                Value<int?> score = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionOffersCompanion.insert(
                 id: id,
@@ -3006,6 +3073,7 @@ class $$ConnectionOffersTableTableManager
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,
+                score: score,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

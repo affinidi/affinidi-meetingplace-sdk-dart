@@ -34,6 +34,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     super.notificationToken,
     super.otherPartyNotificationToken,
     super.externalRef,
+    super.score,
   });
 
   factory GroupConnectionOffer.fromJson(Map<String, dynamic> json) {
@@ -63,6 +64,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     int? maximumUsage,
     DateTime? createdAt,
     String? externalRef,
+    int? score,
   }) {
     return GroupConnectionOffer(
       groupId: groupId ?? this.groupId,
@@ -93,6 +95,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       externalRef: externalRef,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
+      score: score ?? this.score,
     );
   }
 

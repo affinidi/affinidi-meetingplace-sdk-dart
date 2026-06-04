@@ -15,6 +15,49 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_chat` - `v0.0.1-dev.41`](#meeting_place_chat---v001-dev41)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.19`](#meeting_place_control_plane---v001-dev19)
+ - [`meeting_place_credentials` - `v0.0.1-dev.1`](#meeting_place_credentials---v001-dev1)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.42`](#meeting_place_drift_repository---v001-dev42)
+ - [`meeting_place_core` - `v0.0.1-dev.38`](#meeting_place_core---v001-dev38)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_core` - `v0.0.1-dev.38`
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.41`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.19`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+#### `meeting_place_credentials` - `v0.0.1-dev.1`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.42`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+
+## 2026-06-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_chat` - `v0.0.1-dev.40`](#meeting_place_chat---v001-dev40)
  - [`meeting_place_control_plane` - `v0.0.1-dev.18`](#meeting_place_control_plane---v001-dev18)
  - [`meeting_place_core` - `v0.0.1-dev.37`](#meeting_place_core---v001-dev37)

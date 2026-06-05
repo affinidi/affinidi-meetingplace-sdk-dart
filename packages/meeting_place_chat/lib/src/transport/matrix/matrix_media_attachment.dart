@@ -1,9 +1,19 @@
-import 'dart:convert';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../entity/chat_attachment.dart';
-import 'outgoing/media_message_room_event.dart';
+
+/// Matrix `msgtype` values used for media content.
+///
+/// These match the Matrix Client-Server specification for
+/// `m.room.message` events carrying binary attachments.
+class MediaMsgType {
+  MediaMsgType._();
+
+  static const file = 'm.file';
+  static const image = 'm.image';
+  static const audio = 'm.audio';
+  static const video = 'm.video';
+}
 
 /// Matrix-specific helpers for parsing and inspecting hosted-media attachments
 /// carried inside Matrix room events.
@@ -20,7 +30,11 @@ class MatrixMediaAttachments {
     MediaMsgType.video,
   };
 
-  /// Extracts hosted-media attachments from Matrix `m.room.message` content.
+  /// Extracts display-only attachment metadata from Matrix `m.room.message`
+  /// content. The matrix event id (held by the parent `Message.transportId`)
+  /// is the only reference needed to fetch the bytes via
+  /// `MeetingPlaceChatSDK.downloadMedia(Message)` — the mxc URI and
+  /// encrypted-file metadata are intentionally not surfaced to SDK consumers.
   static List<ChatAttachment> extractFromContent(Map<String, dynamic> content) {
     final msgtype = _stringValue(content['msgtype']);
     if (msgtype == null || !_mediaMsgTypes.contains(msgtype)) {
@@ -34,34 +48,12 @@ class MatrixMediaAttachments {
     final sizeValue = info?['size'];
     final size = sizeValue is int ? sizeValue : null;
 
-    final encryptedFile = _mapValue(content['file']);
-    final mxcUrl =
-        _stringValue(encryptedFile?[encryptedFileFieldUrl]) ??
-        _stringValue(content['url']);
-    if (mxcUrl == null) return const [];
-
-    final mxcUri = Uri.tryParse(mxcUrl);
-    if (mxcUri == null || mxcUri.scheme != matrixMxcScheme) return const [];
-
-    String? encryptionJson;
-    String? hash;
-    if (encryptedFile != null) {
-      encryptionJson = jsonEncode(encryptedFile);
-      final hashes = _mapValue(encryptedFile[encryptedFileFieldHashes]);
-      hash = _stringValue(hashes?[encryptedFileSha256Key]);
-    }
-
     return [
       ChatAttachment(
         filename: filename,
         mediaType: mimeType,
         format: AttachmentFormat.hostedMedia.value,
         byteCount: size,
-        data: ChatAttachmentData(
-          links: [mxcUri],
-          json: encryptionJson,
-          hash: hash,
-        ),
       ),
     ];
   }
@@ -83,15 +75,6 @@ class MatrixMediaAttachments {
     if (filename == null) return '';
     if (body == null || body == filename) return '';
     return body;
-  }
-
-  /// Extracts the `mxc://` URI from a hosted-media chat attachment.
-  static String? mediaUri(ChatAttachment attachment) {
-    final links = attachment.data?.links;
-    if (links == null || links.isEmpty) return null;
-
-    final uri = links.first;
-    return uri.scheme == matrixMxcScheme ? uri.toString() : null;
   }
 
   static String? _stringValue(Object? value) => value is String ? value : null;

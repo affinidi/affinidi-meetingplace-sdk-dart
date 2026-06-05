@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
@@ -7,7 +8,6 @@ import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
-import '../entity/chat_attachment_conversion.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../transport/matrix/matrix_media_attachment.dart';
@@ -41,8 +41,8 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
   final MatrixRoomMessageBuilder _roomMessageBuilder =
       const MatrixRoomMessageBuilder();
-  late final MatrixHostedMediaUploader _hostedMediaUploader =
-      MatrixHostedMediaUploader(coreSDK: coreSDK, senderDid: did);
+
+  static final _dataUriPrefix = RegExp(r'^data:[^,]*;base64,');
 
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
@@ -293,9 +293,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   }) async {
     assertCanSend();
 
-    final prepared = await _hostedMediaUploader.prepareAll(attachments);
-
-    if (prepared.isEmpty) {
+    if (attachments.isEmpty) {
       final outgoing = _roomMessageBuilder.build(
         senderDid: did,
         text: text,
@@ -313,23 +311,18 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     Message? firstMessage;
-    for (var i = 0; i < prepared.length; i++) {
+    for (var i = 0; i < attachments.length; i++) {
+      final attachment = attachments[i];
       final caption = i == 0 ? text : '';
-      final outgoing = _roomMessageBuilder.build(
-        senderDid: did,
-        text: caption,
-        notification: buildChannelNotification('chat-activity'),
-        attachment: prepared[i],
-      );
-      final message = await _sendRoomEventMessage(
-        outgoing,
-        attachments: [prepared[i]],
+      final message = await _sendMediaAttachment(
+        attachment: attachment,
+        caption: caption,
       );
       firstMessage ??= message;
 
       if (message.status == ChatItemStatus.error) {
         logger.error(
-          'Media send failed at attachment ${i + 1}/${prepared.length}',
+          'Media send failed at attachment ${i + 1}/${attachments.length}',
           name: _matrixLogkey,
         );
         await coreSDK.sendMessage(
@@ -340,27 +333,106 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     logger.info(
-      'Media message(s) sent, count: ${prepared.length}',
+      'Media message(s) sent, count: ${attachments.length}',
       name: _matrixLogkey,
     );
     await coreSDK.sendMessage(
       ChatTypingNotification(senderDid: did, active: false),
     );
-    // Loop runs at least once because prepared.isNotEmpty is
-    // guarded above.
+    // Loop runs at least once because attachments.isNotEmpty is guarded above.
     return firstMessage!;
   }
 
-  @override
-  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
-    if (MatrixMediaAttachments.mediaUri(attachment) == null) {
-      throw ArgumentError('Attachment does not contain a hosted media URI');
+  Future<Message> _sendMediaAttachment({
+    required ChatAttachment attachment,
+    required String caption,
+  }) async {
+    final base64Content = attachment.data?.base64;
+    if (base64Content == null || base64Content.isEmpty) {
+      throw ArgumentError('Attachment must contain base64 data to send');
     }
+    final rawBase64 = base64Content.replaceFirst(_dataUriPrefix, '');
+    final bytes = base64Decode(const Base64Codec().normalize(rawBase64));
 
-    return coreSDK.downloadMedia(
-      receiverDid: did,
-      attachment: attachment.toDIDComm(),
+    final channel = await getChannel();
+    channel.increaseSeqNo();
+
+    final messageId = const Uuid().v4();
+    final timestamp = DateTime.now().toUtc();
+    final displayAttachment = ChatAttachment(
+      id: attachment.id,
+      description: attachment.description,
+      filename: attachment.filename,
+      mediaType: attachment.mediaType,
+      // TODO: what attachment format should we use?
+      format: AttachmentFormat.hostedMedia.value,
+      lastModifiedTime: attachment.lastModifiedTime,
+      byteCount: attachment.byteCount ?? bytes.length,
     );
+
+    final createdMessage = await chatRepository.createMessage(
+      Message(
+        chatId: chatId,
+        messageId: messageId,
+        senderDid: did,
+        value: caption,
+        isFromMe: true,
+        dateCreated: timestamp,
+        status: ChatItemStatus.sent,
+        attachments: [displayAttachment],
+      ),
+    );
+
+    try {
+      chatStream.pushData(StreamData(chatItem: createdMessage));
+
+      final eventId = await coreSDK.sendMediaMessage(
+        channel,
+        bytes,
+        contentType: attachment.mediaType ?? 'application/octet-stream',
+        filename: attachment.filename,
+        caption: caption.isEmpty ? null : caption,
+      );
+
+      if (eventId != null) {
+        _serverEventIdToMessageId[eventId] = createdMessage.messageId;
+        (createdMessage as Message).transportId = eventId;
+        await chatRepository.updateMesssage(createdMessage);
+      }
+
+      final updatedMessage = await _updateMessageStatus(
+        chatId: chatId,
+        messageId: createdMessage.messageId,
+      );
+
+      await coreSDK.updateChannel(channel);
+
+      chatStream.pushData(StreamData(chatItem: updatedMessage));
+      return updatedMessage;
+    } catch (e, stackTrace) {
+      createdMessage.status = ChatItemStatus.error;
+      await chatRepository.updateMesssage(createdMessage);
+      logger.error(
+        'Failed to send media attachment',
+        error: e,
+        stackTrace: stackTrace,
+        name: _matrixLogkey,
+      );
+      chatStream.pushData(StreamData(chatItem: createdMessage));
+      return createdMessage as Message;
+    }
+  }
+
+  @override
+  Future<Uint8List> downloadMedia(Message message) async {
+    final eventId = message.transportId;
+    if (eventId == null) {
+      throw StateError(
+        'Message has no transportId; cannot download media before delivery',
+      );
+    }
+    final channel = await getChannel();
+    return coreSDK.downloadMedia(channel, MatrixEventMediaReference(eventId));
   }
 
   /// Sends an `m.read` receipt for [messageId], marking it as delivered.
@@ -648,10 +720,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   String? _resolveSenderDIDFromRoomEvent(MatrixRoomEvent e) => e.senderDid;
 
-  Future<Message> _sendRoomEventMessage(
-    MatrixOutgoingMessage outgoing, {
-    List<ChatAttachment>? attachments,
-  }) async {
+  Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
 
@@ -667,7 +736,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,
-        attachments: attachments ?? const [],
       ),
     );
 

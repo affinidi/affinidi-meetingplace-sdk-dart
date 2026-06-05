@@ -21,21 +21,6 @@ extension ChatAttachmentDataConversion on ChatAttachmentData {
   );
 }
 
-/// Converts [ChatAttachment] → DIDComm [Attachment].
-@internal
-extension ChatAttachmentToDIDComm on ChatAttachment {
-  Attachment toDIDComm() => Attachment(
-    id: id,
-    description: description,
-    filename: filename,
-    mediaType: mediaType,
-    format: format,
-    lastModifiedTime: lastModifiedTime,
-    data: data?.toDIDComm(),
-    byteCount: byteCount,
-  );
-}
-
 /// Converts DIDComm [Attachment] → [ChatAttachment].
 @internal
 extension AttachmentToChatAttachment on Attachment {

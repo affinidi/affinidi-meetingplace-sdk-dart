@@ -13,8 +13,6 @@ class _MockChatRepository extends Mock implements ChatRepository {}
 const _aliceDid = 'did:test:alice';
 const _bobDid = 'did:test:bob';
 const _mediatorDid = 'did:test:mediator';
-const _mxcUri1 = 'mxc://matrix.example.com/upload1';
-const _mxcUri2 = 'mxc://matrix.example.com/upload2';
 
 final _chatId = Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid);
 
@@ -30,15 +28,6 @@ IndividualMatrixChatSDK _buildSdk({
   options: MeetingPlaceChatSDKOptions(
     chatPresenceSendInterval: const Duration(hours: 1),
   ),
-);
-
-Attachment _uploadResult(String mxcUri, {String? filename}) => Attachment(
-  id: 'upload-${mxcUri.hashCode}',
-  filename: filename,
-  mediaType: 'image/jpeg',
-  format: AttachmentFormat.hostedMedia.value,
-  byteCount: 100,
-  data: AttachmentData(links: [Uri.parse(mxcUri)]),
 );
 
 Channel _fakeChannel() => Channel(
@@ -72,12 +61,15 @@ void main() {
     );
     registerFallbackValue(ChatTypingNotification(senderDid: '', active: false));
     registerFallbackValue(_fakeChannel());
+    registerFallbackValue(const MatrixEventMediaReference('fallback'));
   });
 
   setUp(() {
     core = MockCoreSDK();
     repo = _MockChatRepository();
     sdk = _buildSdk(core: core, repo: repo);
+
+    final store = <String, ChatItem>{};
 
     when(
       () => core.getChannelByOtherPartyPermanentDid(any()),
@@ -88,7 +80,9 @@ void main() {
     when(() => core.sendMessage(any())).thenAnswer((_) async => '\$event-id');
 
     when(() => repo.createMessage(any())).thenAnswer((inv) async {
-      return inv.positionalArguments.first as ChatItem;
+      final item = inv.positionalArguments.first as ChatItem;
+      store[item.messageId] = item;
+      return item;
     });
 
     when(
@@ -98,37 +92,30 @@ void main() {
       ),
     ).thenAnswer((inv) async {
       final messageId = inv.namedArguments[#messageId] as String;
-      return Message(
-        chatId: _chatId,
-        messageId: messageId,
-        senderDid: _aliceDid,
-        value: '',
-        isFromMe: true,
-        dateCreated: DateTime.now().toUtc(),
-        status: ChatItemStatus.sent,
-      );
+      return store[messageId];
     });
 
     when(() => repo.updateMesssage(any())).thenAnswer((inv) async {
-      return inv.positionalArguments.first as ChatItem;
+      final item = inv.positionalArguments.first as ChatItem;
+      store[item.messageId] = item;
+      return item;
     });
   });
 
   group('MatrixChatSDK.sendTextMessage multi-attachment', () {
-    test('two attachments produce two separate room event sends', () async {
-      var uploadCount = 0;
+    test('two attachments produce two sendMediaMessage calls', () async {
+      var sendMediaCount = 0;
       when(
-        () => core.uploadMedia(
+        () => core.sendMediaMessage(
           any(),
-          senderDid: any(named: 'senderDid'),
+          any(),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
+          caption: any(named: 'caption'),
         ),
       ).thenAnswer((_) async {
-        uploadCount++;
-        return uploadCount == 1
-            ? _uploadResult(_mxcUri1, filename: 'a.jpg')
-            : _uploadResult(_mxcUri2, filename: 'b.jpg');
+        sendMediaCount++;
+        return '\$event-$sendMediaCount';
       });
 
       final attachments = [
@@ -146,29 +133,33 @@ void main() {
 
       await sdk.sendTextMessage('Hello', attachments: attachments);
 
-      // Two uploads + two room sends + one typing notification
       verify(
-        () => core.uploadMedia(
+        () => core.sendMediaMessage(
           any(),
-          senderDid: any(named: 'senderDid'),
+          any(),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
+          caption: any(named: 'caption'),
         ),
       ).called(2);
 
-      // Two createMessage calls (one per attachment)
       verify(() => repo.createMessage(any())).called(2);
     });
 
-    test('caption is only on the first message body', () async {
+    test('caption is only passed on the first sendMediaMessage', () async {
+      final captions = <String?>[];
       when(
-        () => core.uploadMedia(
+        () => core.sendMediaMessage(
           any(),
-          senderDid: any(named: 'senderDid'),
+          any(),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
+          caption: any(named: 'caption'),
         ),
-      ).thenAnswer((_) async => _uploadResult(_mxcUri1));
+      ).thenAnswer((inv) async {
+        captions.add(inv.namedArguments[#caption] as String?);
+        return '\$event-${captions.length}';
+      });
 
       final attachments = [
         ChatAttachment(
@@ -185,36 +176,27 @@ void main() {
 
       await sdk.sendTextMessage('My caption', attachments: attachments);
 
-      final captured = verify(() => core.sendMessage(captureAny())).captured;
-
-      // Filter out the typing notification — keep only media room events
-      final roomEvents = captured
-          .whereType<MatrixOutgoingMessage>()
-          .where((m) => m is! ChatTypingNotification)
-          .toList();
-
-      expect(roomEvents, hasLength(2));
-      expect(roomEvents[0].content['body'], 'My caption');
-      expect(roomEvents[1].content['body'], 'b.jpg');
+      expect(captions, hasLength(2));
+      expect(captions[0], 'My caption');
+      expect(captions[1], isNull);
     });
 
     test('returns error message and stops on send failure', () async {
       var sendCount = 0;
       when(
-        () => core.uploadMedia(
+        () => core.sendMediaMessage(
           any(),
-          senderDid: any(named: 'senderDid'),
+          any(),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
+          caption: any(named: 'caption'),
         ),
-      ).thenAnswer((_) async => _uploadResult(_mxcUri1));
-
-      when(() => core.sendMessage(any())).thenAnswer((_) async {
+      ).thenAnswer((_) async {
         sendCount++;
         if (sendCount == 1) {
           throw Exception('Network error');
         }
-        return '\$event-id';
+        return '\$event-$sendCount';
       });
 
       final attachments = [
@@ -236,26 +218,22 @@ void main() {
       );
 
       expect(result.status, ChatItemStatus.error);
-
-      // Only one createMessage because second was never attempted
       verify(() => repo.createMessage(any())).called(1);
     });
 
-    test('returns first message on full success', () async {
-      var uploadCount = 0;
+    test('returns first message on full success with transportId', () async {
+      var sendMediaCount = 0;
       when(
-        () => core.uploadMedia(
+        () => core.sendMediaMessage(
           any(),
-          senderDid: any(named: 'senderDid'),
+          any(),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
+          caption: any(named: 'caption'),
         ),
       ).thenAnswer((_) async {
-        uploadCount++;
-        return _uploadResult(
-          'mxc://matrix.example.com/up$uploadCount',
-          filename: 'file$uploadCount.jpg',
-        );
+        sendMediaCount++;
+        return '\$event-$sendMediaCount';
       });
 
       final attachments = [
@@ -278,6 +256,69 @@ void main() {
 
       expect(result.status, ChatItemStatus.sent);
       expect(result.isFromMe, isTrue);
+      expect(result.transportId, '\$event-1');
     });
+
+    test('attachment without base64 data throws ArgumentError', () async {
+      final attachment = ChatAttachment(
+        filename: 'empty.jpg',
+        mediaType: 'image/jpeg',
+      );
+
+      expect(
+        () => sdk.sendTextMessage('Hi', attachments: [attachment]),
+        throwsA(isA<ArgumentError>()),
+      );
+    });
+  });
+
+  group('MatrixChatSDK.downloadMedia', () {
+    test('throws StateError when message has no transportId', () async {
+      final message = Message(
+        chatId: _chatId,
+        messageId: 'local-id',
+        senderDid: _aliceDid,
+        value: '',
+        isFromMe: true,
+        dateCreated: DateTime.now().toUtc(),
+        status: ChatItemStatus.queued,
+      );
+
+      expect(
+        () => sdk.downloadMedia(message),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test(
+      'delegates to coreSDK.downloadMedia with MatrixEventMediaReference',
+      () async {
+        final bytes = Uint8List.fromList([1, 2, 3, 4]);
+        when(
+          () => core.downloadMedia(any(), any()),
+        ).thenAnswer((_) async => bytes);
+
+        final message = Message(
+          chatId: _chatId,
+          messageId: 'local-id',
+          senderDid: _aliceDid,
+          value: '',
+          isFromMe: true,
+          dateCreated: DateTime.now().toUtc(),
+          status: ChatItemStatus.sent,
+          transportId: '\$event-id',
+        );
+
+        final result = await sdk.downloadMedia(message);
+
+        expect(result, bytes);
+        final captured = verify(
+          () => core.downloadMedia(captureAny(), captureAny()),
+        ).captured;
+        final reference = captured[1];
+        expect(reference, isA<MatrixEventMediaReference>());
+        expect((reference as MatrixEventMediaReference).eventId, '\$event-id');
+      },
+    );
   });
 }

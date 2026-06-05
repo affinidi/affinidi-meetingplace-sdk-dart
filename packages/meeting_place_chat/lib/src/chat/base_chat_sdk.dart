@@ -118,12 +118,11 @@ abstract class BaseChatSDK {
     List<ChatAttachment> attachments = const [],
   });
 
-  /// Downloads and decrypts a hosted-media attachment.
-  ///
-  /// [Message.attachments] only carries the hosted-media reference and
-  /// encryption metadata. Use this helper to fetch the attachment bytes without
-  /// exposing Matrix-specific media details to SDK consumers.
-  Future<Uint8List> downloadMedia(ChatAttachment attachment);
+  /// Downloads and decrypts the hosted-media attachment(s) referenced by
+  /// [message]. Resolves the wire-level reference (e.g. the Matrix event id
+  /// stored in [Message.transportId]) via the underlying transport, so SDK
+  /// consumers never see encryption keys or transport URIs.
+  Future<Uint8List> downloadMedia(Message message);
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}

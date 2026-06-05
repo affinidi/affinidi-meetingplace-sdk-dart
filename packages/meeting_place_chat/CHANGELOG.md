@@ -1,3 +1,8 @@
+## 0.0.1-dev.37
+
+ - **BREAKING**: `MeetingPlaceChatSDK.downloadMedia` now takes a `Message` instead of a `ChatAttachment`. The matrix event id stored in `Message.transportId` is the only reference needed to fetch bytes.
+ - **BREAKING**: `ChatAttachment` for matrix media no longer carries the mxc URI or encrypted-file JSON; encryption and upload are owned by CoreSDK via `sendMediaMessage`. Re-sending an already-hosted attachment by mxc URI is no longer supported — resend by bytes.
+
 ## 0.0.1-dev.36
 
  - **FIX**: stop ChatActivityEventHandler from deleting mediator messages (#177).

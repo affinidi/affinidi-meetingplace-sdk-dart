@@ -107,12 +107,11 @@ abstract interface class MeetingPlaceChatSDK {
     List<ChatAttachment> attachments = const [],
   });
 
-  /// Downloads and decrypts a hosted-media attachment from the homeserver.
-  ///
-  /// [Message.attachments] only carries the hosted-media reference and
-  /// encryption metadata. Use this helper to fetch the attachment bytes
-  /// without parsing Matrix-specific media fields in app code.
-  Future<Uint8List> downloadMedia(ChatAttachment attachment);
+  /// Downloads and decrypts the hosted-media attachment(s) referenced by
+  /// [message]. The wire-level reference (e.g. the Matrix event id stored in
+  /// [Message.transportId]) is resolved internally so app code never sees
+  /// encryption keys or transport URIs.
+  Future<Uint8List> downloadMedia(Message message);
 
   /// Edits a previously sent text [message] to [newText]. Only the original
   /// sender can edit a message; the message must have been delivered.

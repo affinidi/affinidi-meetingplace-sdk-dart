@@ -14,7 +14,6 @@ import 'matrix_room_event.dart';
 import 'matrix_service_exception.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_subscription_options.dart';
-import 'media/matrix_media_uri.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -440,34 +439,54 @@ class MatrixService {
     }
   }
 
-  /// Uploads media content to the Matrix homeserver's content repository.
+  /// Sends an `m.room.message` event whose content carries an attachment to
+  /// [roomId]. Constructs the wire-format [matrix.MatrixFile] from [bytes],
+  /// [contentType], and [filename] so callers stay transport-agnostic.
+  /// Encryption is delegated to the matrix Dart SDK: in an encrypted room,
+  /// [matrix.Room.sendFileEvent] uses the room's E2EE session to encrypt the
+  /// bytes, uploads the ciphertext to the homeserver, and posts the event in
+  /// one operation.
   ///
-  /// Uses the authenticated Matrix client to upload raw bytes.
-  /// Returns the mxc:// URI of the uploaded content.
-  Future<Uri> uploadMedia(
-    Uint8List bytes, {
-    required DidManager didManager,
+  /// Returns the server-assigned event id, or `null` if the matrix client
+  /// does not produce one (for example when the event is queued offline).
+  Future<String?> sendFileEvent(
+    String roomId, {
+    required Uint8List bytes,
     required String contentType,
+    required DidManager didManager,
     String? filename,
+    Map<String, dynamic>? extraContent,
   }) async {
     final client = await _ensureSession(didManager);
-    return client.uploadContent(
-      bytes,
-      filename: filename,
-      contentType: contentType,
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    _assertRoomEncrypted(room, roomId);
+    final file = matrix.MatrixFile.fromMimeType(
+      bytes: bytes,
+      name: filename ?? 'file',
+      mimeType: contentType,
     );
+    return room.sendFileEvent(file, extraContent: extraContent);
   }
 
-  /// Downloads media from the Matrix homeserver using the user's authenticated
-  /// session, symmetric with [uploadMedia].
-  Future<Uint8List> downloadMedia(
-    String mxcUri, {
+  /// Downloads and decrypts the attachment carried by the message event
+  /// [eventId] in [roomId]. Symmetric to [sendFileEvent]: the matrix Dart
+  /// SDK retrieves the ciphertext from the homeserver and decrypts it using
+  /// the room's E2EE session.
+  Future<Uint8List> downloadFileForEvent(
+    String roomId,
+    String eventId, {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
-    final (:serverName, :mediaId) = parseMatrixMediaUri(mxcUri);
-    final response = await client.getContent(serverName, mediaId);
-    return response.data;
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    final event = await room.getEventById(eventId);
+    if (event == null) {
+      throw StateError('Matrix event $eventId not found in room $roomId');
+    }
+    final file = await event.downloadAndDecryptAttachment();
+    return file.bytes;
   }
 
   /// Returns the maximum upload size allowed by the homeserver, in bytes.

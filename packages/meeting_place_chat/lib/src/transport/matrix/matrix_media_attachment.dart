@@ -66,6 +66,25 @@ class MatrixMediaAttachments {
     ];
   }
 
+  /// Extracts the user-visible caption from `m.room.message` content.
+  ///
+  /// For media messages (msgtype `m.image`/`m.audio`/`m.video`/`m.file`) the
+  /// `body` field is a caption only when a separate `filename` field is
+  /// present and differs from `body`; otherwise `body` carries the filename
+  /// (or the msgtype as a last-resort placeholder per the Matrix spec) and is
+  /// not user-visible text. Returns `null` for non-media messages so callers
+  /// fall back to `body` for plain text messages.
+  static String? extractCaption(Map<String, dynamic> content) {
+    final msgtype = _stringValue(content['msgtype']);
+    if (msgtype == null || !_mediaMsgTypes.contains(msgtype)) return null;
+
+    final body = _stringValue(content['body']);
+    final filename = _stringValue(content['filename']);
+    if (filename == null) return '';
+    if (body == null || body == filename) return '';
+    return body;
+  }
+
   /// Extracts the `mxc://` URI from a hosted-media chat attachment.
   static String? mediaUri(ChatAttachment attachment) {
     final links = attachment.data?.links;

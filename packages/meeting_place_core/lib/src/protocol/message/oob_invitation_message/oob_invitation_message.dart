@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../service/oob/oob_service_exception.dart';
 import 'oob_invitation_message_body.dart';
 
 class OobInvitationMessage {
@@ -10,9 +11,14 @@ class OobInvitationMessage {
     String base64, [
     Map<String, dynamic> additionalProps = const {},
   ]) {
-    final bytes = base64Url.decode(const Base64Codec().normalize(base64));
-    final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
-    return OobInvitationMessage.fromJson({...json, ...additionalProps});
+    try {
+      final bytes = base64Url.decode(const Base64Codec().normalize(base64));
+      final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+      return OobInvitationMessage.fromJson({...json, ...additionalProps});
+      // ignore: avoid_catching_errors
+    } on TypeError catch (e) {
+      throw OobServiceException.malformedInvitation(innerException: e);
+    }
   }
 
   factory OobInvitationMessage.create({required String from, String? type}) {
@@ -37,19 +43,24 @@ class OobInvitationMessage {
   }
 
   factory OobInvitationMessage.fromJson(Map<String, dynamic> json) {
-    return OobInvitationMessage(
-      id: json['id'] as String,
-      from: json['from'] as String,
-      body: OobInvitationMessageBody.fromJson(
-        json['body'] as Map<String, dynamic>,
-      ),
-      createdTime: json['created_time'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(
-              (json['created_time'] as int) * 1000,
-              isUtc: true,
-            )
-          : null,
-    );
+    try {
+      return OobInvitationMessage(
+        id: json['id'] as String,
+        from: json['from'] as String,
+        body: OobInvitationMessageBody.fromJson(
+          json['body'] as Map<String, dynamic>,
+        ),
+        createdTime: json['created_time'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(
+                (json['created_time'] as int) * 1000,
+                isUtc: true,
+              )
+            : null,
+      );
+      // ignore: avoid_catching_errors
+    } on TypeError catch (e) {
+      throw OobServiceException.malformedInvitation(innerException: e);
+    }
   }
 
   OobInvitationMessage({

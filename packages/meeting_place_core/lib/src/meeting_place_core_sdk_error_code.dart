@@ -58,6 +58,7 @@ enum MeetingPlaceCoreSDKErrorCode {
 
   // oob
   oobInvalidData('oob_invalid_data'),
+  oobMalformedInvitation('oob_malformed_invitation'),
   oobNotFound('oob_not_found'),
   oobInvalidType('oob_invalid_type'),
 

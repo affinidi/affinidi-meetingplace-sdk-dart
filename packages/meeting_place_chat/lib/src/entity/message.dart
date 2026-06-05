@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../transport/didcomm/protocol/chat_message/chat_message.dart';
+import '../transport/matrix/matrix_media_attachment.dart';
 import 'chat_attachment.dart';
 import 'chat_attachment_conversion.dart';
 import 'chat_item.dart';
@@ -133,7 +134,7 @@ class Message extends ChatItem {
       chatId: chatId,
       messageId: event.id,
       senderDid: senderDid,
-      value: _stringValue(event.content['body']) ?? '',
+      value: _valueFromRoomEvent(event),
       isFromMe: true,
       dateCreated: event.timestamp,
       // Set status to sent since this is created for messages sent by me.
@@ -155,7 +156,7 @@ class Message extends ChatItem {
       chatId: chatId,
       messageId: event.id,
       senderDid: senderDid,
-      value: _stringValue(event.content['body']) ?? '',
+      value: _valueFromRoomEvent(event),
       isFromMe: false,
       dateCreated: event.timestamp,
       status: ChatItemStatus.received,
@@ -258,3 +259,9 @@ class Message extends ChatItem {
 }
 
 String? _stringValue(Object? value) => value is String ? value : null;
+
+String _valueFromRoomEvent(MatrixRoomEvent event) {
+  final caption = MatrixMediaAttachments.extractCaption(event.content);
+  if (caption != null) return caption;
+  return _stringValue(event.content['body']) ?? '';
+}

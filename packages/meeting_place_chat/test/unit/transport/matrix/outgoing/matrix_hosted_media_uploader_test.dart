@@ -40,11 +40,15 @@ void main() {
       data: AttachmentData(
         links: [Uri.parse(mxcUri)],
         json: jsonEncode({
-          'url': mxcUri,
-          'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-          'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-          'hashes': {'sha256': 'c2hhMjU2'},
-          'v': 'v2',
+          encryptedFileFieldUrl: mxcUri,
+          encryptedFileFieldKey: {
+            jsonWebKeyFieldKty: jsonWebKeyType,
+            jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+            jsonWebKeyFieldK: 'YWJjZA',
+          },
+          encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+          encryptedFileFieldHashes: {encryptedFileSha256Key: 'c2hhMjU2'},
+          encryptedFileFieldVersion: encryptedFileInfoVersion,
         }),
         hash: 'c2hhMjU2',
       ),

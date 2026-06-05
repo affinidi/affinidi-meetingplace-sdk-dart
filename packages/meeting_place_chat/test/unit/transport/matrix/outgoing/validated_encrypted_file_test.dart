@@ -1,22 +1,23 @@
 import 'dart:convert';
 
 import 'package:meeting_place_chat/src/transport/matrix/outgoing/validated_encrypted_file.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('ValidatedEncryptedFile', () {
     final validMap = {
-      'url': 'mxc://matrix.example.com/media123',
-      'key': {
-        'kty': 'oct',
-        'alg': 'A256CTR',
-        'ext': true,
-        'k': 'YWJjZA',
-        'key_ops': ['encrypt', 'decrypt'],
+      encryptedFileFieldUrl: 'mxc://matrix.example.com/media123',
+      encryptedFileFieldKey: {
+        jsonWebKeyFieldKty: jsonWebKeyType,
+        jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+        jsonWebKeyFieldExt: true,
+        jsonWebKeyFieldK: 'YWJjZA',
+        jsonWebKeyFieldKeyOps: jsonWebKeyOperations,
       },
-      'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-      'hashes': {'sha256': 'c2hhMjU2aGFzaA'},
-      'v': 'v2',
+      encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+      encryptedFileFieldHashes: {encryptedFileSha256Key: 'c2hhMjU2aGFzaA'},
+      encryptedFileFieldVersion: encryptedFileInfoVersion,
     };
 
     final validJson = jsonEncode(validMap);
@@ -25,9 +26,12 @@ void main() {
       final result = ValidatedEncryptedFile.tryParse(validJson);
 
       expect(result, isNotNull);
-      expect(result!.json['url'], 'mxc://matrix.example.com/media123');
-      expect(result.json['iv'], 'MTIzNDU2Nzg5MDEyMzQ1Ng');
-      expect(result.json['v'], 'v2');
+      expect(
+        result!.json[encryptedFileFieldUrl],
+        'mxc://matrix.example.com/media123',
+      );
+      expect(result.json[encryptedFileFieldIv], 'MTIzNDU2Nzg5MDEyMzQ1Ng');
+      expect(result.json[encryptedFileFieldVersion], encryptedFileInfoVersion);
     });
 
     test('returns null for null input', () {
@@ -48,77 +52,100 @@ void main() {
 
     test('rejects missing url', () {
       final json = jsonEncode({
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'sha256': 'abc'},
-        'v': 'v2',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: 'YWJjZA',
+        },
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'abc'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       });
       expect(ValidatedEncryptedFile.tryParse(json), isNull);
     });
 
     test('rejects non-mxc url', () {
       final json = jsonEncode({
-        'url': 'https://not-mxc.com/media',
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'sha256': 'abc'},
-        'v': 'v2',
+        encryptedFileFieldUrl: 'https://not-mxc.com/media',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: 'YWJjZA',
+        },
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'abc'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       });
       expect(ValidatedEncryptedFile.tryParse(json), isNull);
     });
 
     test('rejects missing key fields', () {
       final json = jsonEncode({
-        'url': 'mxc://matrix.example.com/media',
-        'key': {'kty': 'oct'},
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'sha256': 'abc'},
-        'v': 'v2',
+        encryptedFileFieldUrl: 'mxc://matrix.example.com/media',
+        encryptedFileFieldKey: {jsonWebKeyFieldKty: jsonWebKeyType},
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'abc'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       });
       expect(ValidatedEncryptedFile.tryParse(json), isNull);
     });
 
     test('rejects missing iv', () {
       final json = jsonEncode({
-        'url': 'mxc://matrix.example.com/media',
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-        'hashes': {'sha256': 'abc'},
-        'v': 'v2',
+        encryptedFileFieldUrl: 'mxc://matrix.example.com/media',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: 'YWJjZA',
+        },
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'abc'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       });
       expect(ValidatedEncryptedFile.tryParse(json), isNull);
     });
 
     test('rejects missing sha256 hash', () {
       final json = jsonEncode({
-        'url': 'mxc://matrix.example.com/media',
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'md5': 'abc'},
-        'v': 'v2',
+        encryptedFileFieldUrl: 'mxc://matrix.example.com/media',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: 'YWJjZA',
+        },
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {'md5': 'abc'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       });
       expect(ValidatedEncryptedFile.tryParse(json), isNull);
     });
 
     test('rejects missing version', () {
       final json = jsonEncode({
-        'url': 'mxc://matrix.example.com/media',
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'sha256': 'abc'},
+        encryptedFileFieldUrl: 'mxc://matrix.example.com/media',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: 'YWJjZA',
+        },
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'abc'},
       });
       expect(ValidatedEncryptedFile.tryParse(json), isNull);
     });
 
     group('strict value enforcement', () {
       test('rejects version other than v2', () {
-        final json = jsonEncode({...validMap, 'v': 'v1'});
+        final json = jsonEncode({...validMap, encryptedFileFieldVersion: 'v1'});
         expect(ValidatedEncryptedFile.tryParse(json), isNull);
       });
 
       test('rejects key.kty other than oct', () {
         final json = jsonEncode({
           ...validMap,
-          'key': {...validMap['key'] as Map, 'kty': 'RSA'},
+          encryptedFileFieldKey: {
+            ...validMap[encryptedFileFieldKey] as Map,
+            jsonWebKeyFieldKty: 'RSA',
+          },
         });
         expect(ValidatedEncryptedFile.tryParse(json), isNull);
       });
@@ -126,7 +153,10 @@ void main() {
       test('rejects key.alg other than A256CTR', () {
         final json = jsonEncode({
           ...validMap,
-          'key': {...validMap['key'] as Map, 'alg': 'A128CBC'},
+          encryptedFileFieldKey: {
+            ...validMap[encryptedFileFieldKey] as Map,
+            jsonWebKeyFieldAlg: 'A128CBC',
+          },
         });
         expect(ValidatedEncryptedFile.tryParse(json), isNull);
       });

@@ -47,14 +47,14 @@ void main() {
     final received = (receivedItem as Message).attachments.first;
     expect(received.format, AttachmentFormat.hostedMedia.value);
     expect(received.data?.links, isNotEmpty);
-    expect(received.data!.links!.first.scheme, 'mxc');
+    expect(received.data!.links!.first.scheme, matrixMxcScheme);
     expect(received.mediaType, attachment.mediaType);
     expect(received.filename, attachment.filename);
 
     final bobMessages = await fixture.bobChatSDK.messages;
     final bobAttachment = (bobMessages.first as Message).attachments.first;
     expect(bobAttachment.format, AttachmentFormat.hostedMedia.value);
-    expect(bobAttachment.data?.links?.first.scheme, 'mxc');
+    expect(bobAttachment.data?.links?.first.scheme, matrixMxcScheme);
 
     final aliceMessages = await fixture.aliceChatSDK.messages;
     final aliceAttachment = (aliceMessages[0] as Message).attachments[0];

@@ -4,6 +4,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../service/matrix/media/encrypted_file_info.dart';
+import '../../service/matrix/media/matrix_media_uri.dart';
 import '../../service/matrix/media/media_service.dart';
 import 'attachment_format.dart';
 
@@ -32,7 +33,7 @@ Attachment attachmentFromMediaUpload(
     data: AttachmentData(
       links: [Uri.parse(mxcUri)],
       json: jsonEncode(encInfo.toJson()),
-      hash: encInfo.hashes['sha256'],
+      hash: encInfo.hashes[encryptedFileSha256Key],
     ),
   );
 }
@@ -41,7 +42,7 @@ Attachment attachmentFromMediaUpload(
 bool isHostedMediaAttachment(Attachment attachment) {
   return attachment.format == AttachmentFormat.hostedMedia.value ||
       (attachment.data?.links?.isNotEmpty == true &&
-          attachment.data!.links!.first.scheme == 'mxc');
+          attachment.data!.links!.first.scheme == matrixMxcScheme);
 }
 
 /// Extracts the mxc:// URI from a hosted media attachment.
@@ -50,7 +51,7 @@ String? getMxcUri(Attachment attachment) {
   final links = attachment.data?.links;
   if (links == null || links.isEmpty) return null;
   final uri = links.first;
-  return uri.scheme == 'mxc' ? uri.toString() : null;
+  return uri.scheme == matrixMxcScheme ? uri.toString() : null;
 }
 
 /// Extracts [EncryptedFileInfo] from a hosted media attachment.
@@ -69,7 +70,8 @@ EncryptedFileInfo? tryParseEncryptedFileInfoJson(String? jsonStr) {
   try {
     final decoded = jsonDecode(jsonStr);
     if (decoded is! Map<String, dynamic>) return null;
-    if (!decoded.containsKey('v') || !decoded.containsKey('key')) {
+    if (!decoded.containsKey(encryptedFileFieldVersion) ||
+        !decoded.containsKey(encryptedFileFieldKey)) {
       return null;
     }
     return EncryptedFileInfo.fromJson(decoded);

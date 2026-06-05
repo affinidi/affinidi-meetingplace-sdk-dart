@@ -1,80 +1,96 @@
 import 'package:meeting_place_core/src/protocol/message/oob_invitation_message/oob_invitation_message.dart';
+import 'package:meeting_place_core/src/service/oob/oob_service_exception.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('OobInvitationMessage.fromBase64 security tests', () {
-    test('should throw FormatException for JSON number (int cast failure)', () {
-      // Payload "MA" decodes to JSON: 0
-      const payload = 'MA';
-      expect(
-        () => OobInvitationMessage.fromBase64(payload),
-        throwsFormatException,
-      );
-    });
+    test(
+      'should throw OobServiceException for JSON number (int cast failure)',
+      () {
+        // Payload "MA" decodes to JSON: 0
+        const payload = 'MA';
+        expect(
+          () => OobInvitationMessage.fromBase64(payload),
+          throwsA(isA<OobServiceException>()),
+        );
+      },
+    );
 
     test(
-      'should throw FormatException for JSON string (String cast failure)',
+      'should throw OobServiceException for JSON string (String cast failure)',
       () {
         // Payload "IjEi" decodes to JSON: "1"
         const payload = 'IjEi';
         expect(
           () => OobInvitationMessage.fromBase64(payload),
-          throwsFormatException,
+          throwsA(isA<OobServiceException>()),
         );
       },
     );
 
-    test('should throw FormatException for JSON null (Null cast failure)', () {
-      // Payload "bnVsbA" decodes to JSON: null
-      const payload = 'bnVsbA';
-      expect(
-        () => OobInvitationMessage.fromBase64(payload),
-        throwsFormatException,
-      );
-    });
+    test(
+      'should throw OobServiceException for JSON null (Null cast failure)',
+      () {
+        // Payload "bnVsbA" decodes to JSON: null
+        const payload = 'bnVsbA';
+        expect(
+          () => OobInvitationMessage.fromBase64(payload),
+          throwsA(isA<OobServiceException>()),
+        );
+      },
+    );
 
-    test('should throw FormatException for JSON array (List cast failure)', () {
-      // Payload "WzAsIiIse31d" decodes to JSON: [0,"",{}]
-      const payload = 'WzAsIiIse31d';
-      expect(
-        () => OobInvitationMessage.fromBase64(payload),
-        throwsFormatException,
-      );
-    });
+    test(
+      'should throw OobServiceException for JSON array (List cast failure)',
+      () {
+        // Payload "WzAsIiIse31d" decodes to JSON: [0,"",{}]
+        const payload = 'WzAsIiIse31d';
+        expect(
+          () => OobInvitationMessage.fromBase64(payload),
+          throwsA(isA<OobServiceException>()),
+        );
+      },
+    );
 
-    test('should throw FormatException for missing required field "id"', () {
-      // Payload "eyJmcm9tIjoieCJ9" decodes to JSON: {"from":"x"}
-      const payload = 'eyJmcm9tIjoieCJ9';
-      expect(
-        () => OobInvitationMessage.fromBase64(payload),
-        throwsFormatException,
-      );
-    });
+    test(
+      'should throw OobServiceException for missing required field "id"',
+      () {
+        // Payload "eyJmcm9tIjoieCJ9" decodes to JSON: {"from":"x"}
+        const payload = 'eyJmcm9tIjoieCJ9';
+        expect(
+          () => OobInvitationMessage.fromBase64(payload),
+          throwsA(isA<OobServiceException>()),
+        );
+      },
+    );
 
-    test('should throw FormatException for missing required field "body"', () {
-      // Payload "eyJpZCI6ImEiLCJmcm9tIjoiYiJ9"
-      // decodes to JSON: {"id":"a","from":"b"}
-      const payload = 'eyJpZCI6ImEiLCJmcm9tIjoiYiJ9';
-      expect(
-        () => OobInvitationMessage.fromBase64(payload),
-        throwsFormatException,
-      );
-    });
+    test(
+      'should throw OobServiceException for missing required field "body"',
+      () {
+        // Payload "eyJpZCI6ImEiLCJmcm9tIjoiYiJ9"
+        // decodes to JSON: {"id":"a","from":"b"}
+        const payload = 'eyJpZCI6ImEiLCJmcm9tIjoiYiJ9';
+        expect(
+          () => OobInvitationMessage.fromBase64(payload),
+          throwsA(isA<OobServiceException>()),
+        );
+      },
+    );
 
-    test('should throw FormatException for wrong field type '
+    test('should throw OobServiceException for wrong field type '
         '(int instead of String)', () {
       // Payload "eyJpZCI6MSwiZnJvbSI6ImEiLCJib2R5Ijp7fX0"
       // decodes to JSON: {"id":1,"from":"a","body":{}}
       const payload = 'eyJpZCI6MSwiZnJvbSI6ImEiLCJib2R5Ijp7fX0';
       expect(
         () => OobInvitationMessage.fromBase64(payload),
-        throwsFormatException,
+        throwsA(isA<OobServiceException>()),
       );
     });
   });
 
   group('OobInvitationMessage.fromJson security tests', () {
-    test('should throw FormatException for null id field', () {
+    test('should throw OobServiceException for null id field', () {
       final json = {
         'id': null,
         'from': 'did:test:alice',
@@ -84,10 +100,13 @@ void main() {
           'accept': ['didcomm/v2'],
         },
       };
-      expect(() => OobInvitationMessage.fromJson(json), throwsFormatException);
+      expect(
+        () => OobInvitationMessage.fromJson(json),
+        throwsA(isA<OobServiceException>()),
+      );
     });
 
-    test('should throw FormatException for int id field', () {
+    test('should throw OobServiceException for int id field', () {
       final json = {
         'id': 123,
         'from': 'did:test:alice',
@@ -97,10 +116,13 @@ void main() {
           'accept': ['didcomm/v2'],
         },
       };
-      expect(() => OobInvitationMessage.fromJson(json), throwsFormatException);
+      expect(
+        () => OobInvitationMessage.fromJson(json),
+        throwsA(isA<OobServiceException>()),
+      );
     });
 
-    test('should throw FormatException for null from field', () {
+    test('should throw OobServiceException for null from field', () {
       final json = {
         'id': 'test-id',
         'from': null,
@@ -110,24 +132,33 @@ void main() {
           'accept': ['didcomm/v2'],
         },
       };
-      expect(() => OobInvitationMessage.fromJson(json), throwsFormatException);
+      expect(
+        () => OobInvitationMessage.fromJson(json),
+        throwsA(isA<OobServiceException>()),
+      );
     });
 
-    test('should throw FormatException for null body field', () {
+    test('should throw OobServiceException for null body field', () {
       final json = {'id': 'test-id', 'from': 'did:test:alice', 'body': null};
-      expect(() => OobInvitationMessage.fromJson(json), throwsFormatException);
+      expect(
+        () => OobInvitationMessage.fromJson(json),
+        throwsA(isA<OobServiceException>()),
+      );
     });
 
-    test('should throw FormatException for array body field', () {
+    test('should throw OobServiceException for array body field', () {
       final json = {
         'id': 'test-id',
         'from': 'did:test:alice',
         'body': ['not', 'a', 'map'],
       };
-      expect(() => OobInvitationMessage.fromJson(json), throwsFormatException);
+      expect(
+        () => OobInvitationMessage.fromJson(json),
+        throwsA(isA<OobServiceException>()),
+      );
     });
 
-    test('should throw FormatException for string created_time field', () {
+    test('should throw OobServiceException for string created_time field', () {
       final json = {
         'id': 'test-id',
         'from': 'did:test:alice',
@@ -138,7 +169,10 @@ void main() {
         },
         'created_time': 'not-an-int',
       };
-      expect(() => OobInvitationMessage.fromJson(json), throwsFormatException);
+      expect(
+        () => OobInvitationMessage.fromJson(json),
+        throwsA(isA<OobServiceException>()),
+      );
     });
   });
 

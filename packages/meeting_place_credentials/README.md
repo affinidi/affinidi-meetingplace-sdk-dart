@@ -11,9 +11,9 @@ Storage implementations for `RCardRepository` and `VrcRepository` are required. 
 ## Core Concepts
 
 - **[Relationship Card (R-Card)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.cg17eeqde3ek)** - A Verifiable Credential encoding a user's contact information (name, email, phone, company, etc.) as a [jCard (RFC 7095)](https://www.rfc-editor.org/rfc/rfc7095) in the credential subject, exchangeable over DIDComm channels and exportable to [vCard 3.0 (RFC 6350)](https://www.rfc-editor.org/rfc/rfc6350).
-- **[Verifiable Relationship Credential (VRC)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.siks62ntn9c5)** - A Verifiable Credential encoding a mutual relationship between two DIDs (`from` and `to` parties), exchanged via a two-step request-reciprocate handshake over the VDIP protocol.
+- **[Verifiable Relationship Credential (VRC)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.siks62ntn9c5)** - A Verifiable Credential encoding a mutual relationship between two DIDs (`from` and `to` parties), exchanged via a two-step request-response handshake over the VDIP protocol.
 - **[Verifiable Data Issuance Protocol (VDIP)](https://docs.affinidi.com/dev-tools/affinidi-tdk/dart/libraries/vdip/)** - The verifiable-data exchange protocol used to transport credentials and credential requests over an established DIDComm channel.
-- **Liveness Credential** - A Verifiable Credential encoding a face liveness check result such as provider, session ID, score, threshold, pass or fail, and timestamp.
+- **Liveness Credential** - A Verifiable Credential encoding a face liveness check result including provider, session ID, score, threshold, pass or fail, and timestamp.
 - **Zero-Knowledge Proof (ZKP)** - A Groth16 proof derived from a Liveness Credential that proves liveness without revealing the underlying personal or biometric data.
 
 ## Key Features
@@ -53,7 +53,7 @@ and then run the command below to install the package:
 dart pub get
 ```
 
-Visit the pub.dev install page of the Dart package for more information.
+Visit the pub.dev [install page](https://pub.dev/packages/vc_zkp) of the Dart package for more information.
 
 ## Usage
 
@@ -100,7 +100,7 @@ Working code for both flows is included in the [Affinidi Meeting Place Reference
 
 #### R-Card Exchange
 
-An R-Card is a signed W3C Verifiable Credential containing a jCard payload (RFC 7095). It is sent automatically on channel inauguration and can be shared manually at any time.
+An R-Card is a signed W3C Verifiable Credential containing a jCard payload (RFC 7095). It is sent automatically on channel establishment and can be shared manually at any time.
 
 - Receive incoming R-Cards with `credentialsSDK.receivedRCards`
 - Parse contact fields with `RCardSubject.fromVcBlob(rCard.vcBlob)`
@@ -109,7 +109,7 @@ An R-Card is a signed W3C Verifiable Credential containing a jCard payload (RFC 
 
 #### VRC Exchange
 
-A VRC records that two DIDs have a verified relationship. It uses a two-step VDIP handshake where the initiating side requests and the responding side reciprocates.
+A VRC certifies a mutual verified relationship between two DIDs. It uses a two-step VDIP handshake where the initiating side requests and the responding side reciprocates.
 
 - Initiate exchange with `credentialsSDK.requestVrcExchange(channelDid, identityDid, identityName)`
 - Receive inbound requests from `credentialsSDK.receivedVrcRequests`
@@ -119,13 +119,13 @@ A VRC records that two DIDs have a verified relationship. It uses a two-step VDI
 
 ### Human ZKP Feature
 
-The Human ZKP flow lets one participant prove to another that they are a real human without sharing personal or biometric data.
+The Human ZKP flow lets one participant prove human liveness to another participant without sharing personal or biometric data.
 
 The SDK's liveness flow is built around `LivenessEvidenceSource`, `LivenessVcIssuanceService`, and `LivenessCredentialSubject`.
 
-#### Pipeline Stage Map
+#### Pipeline Stages
 
-- Stage 1: An app or provider-specific package implements `LivenessEvidenceSource` to collect `LivenessEvidence`.
+- Stage 1: `LivenessEvidenceSource` collects raw `LivenessEvidence` from an app or provider-specific implementation.
 - Stage 2: `LivenessVcIssuanceService.issue()` signs a W3C Verifiable Credential from the normalised evidence.
 - Stage 3: `LivenessCredentialSubject` models the signed credential subject for downstream transport or proof code.
 
@@ -146,7 +146,7 @@ To run tests in this package from the terminal:
    export MEDIATOR_DID="your:mediator:did"
    ```
 
-   Replace these DIDs with your actual test values.
+   Replace these DIDs with your actual DID values for your environment.
 
 2. Run tests using Melos:
 

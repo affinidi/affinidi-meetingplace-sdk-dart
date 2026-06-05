@@ -18,6 +18,16 @@ class OobServiceException implements SDKException {
     );
   }
 
+  factory OobServiceException.malformedInvitation({Object? innerException}) {
+    return OobServiceException(
+      message: '''OOB Service exception: The OOB invitation data is malformed
+          or contains invalid field types. All required fields (id, from, body)
+          must be present with correct types.''',
+      code: MeetingPlaceCoreSDKErrorCode.oobMalformedInvitation,
+      innerException: innerException,
+    );
+  }
+
   factory OobServiceException.invalidOobType({
     required Uri oobUri,
     required String expectedType,

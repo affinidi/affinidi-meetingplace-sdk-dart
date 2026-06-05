@@ -10,10 +10,10 @@ Storage implementations for `RCardRepository` and `VrcRepository` are required. 
 
 ## Core Concepts
 
-- **[Relationship Card (R-Card)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.cg17eeqde3ek)** - A Verifiable Credential encoding a user's contact information (name, email, phone, company, etc.) as a [jCard (RFC 7095)](https://www.rfc-editor.org/rfc/rfc7095) in the credential subject, exchangeable over DIDComm channels and exportable to [vCard 3.0 (RFC 6350)](https://www.rfc-editor.org/rfc/rfc6350).
-- **[Verifiable Relationship Credential (VRC)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.siks62ntn9c5)** - A Verifiable Credential encoding a mutual relationship between two DIDs (`from` and `to` parties), exchanged via a two-step request-response handshake over the VDIP protocol.
+- **[Relationship Card (R-Card)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.cg17eeqde3ek)** - A Verifiable Credential contains a user's contact information (name, email, phone, company, etc.) as a [jCard (RFC 7095)](https://www.rfc-editor.org/rfc/rfc7095) in the credential subject, exchangeable over DIDComm channels and exportable to [vCard 3.0 (RFC 6350)](https://www.rfc-editor.org/rfc/rfc6350).
+- **[Verifiable Relationship Credential (VRC)](https://docs.google.com/document/d/1RtS86BqyVn3i3mXm48VhC-SRaYvW2W_MvR4w6x9KQWY/edit?tab=t.0#heading=h.siks62ntn9c5)** - A Verifiable Credential containing a mutual relationship between two DIDs (`from` and `to` parties), exchanged via a two-step request-response handshake over the VDIP protocol.
 - **[Verifiable Data Issuance Protocol (VDIP)](https://docs.affinidi.com/dev-tools/affinidi-tdk/dart/libraries/vdip/)** - The verifiable-data exchange protocol used to transport credentials and credential requests over an established DIDComm channel.
-- **Liveness Credential** - A Verifiable Credential encoding a face liveness check result including provider, session ID, score, threshold, pass or fail, and timestamp.
+- **Liveness Credential** - A Verifiable Credential contains a face liveness check result including provider, session ID, score, threshold, pass or fail, and timestamp.
 - **Zero-Knowledge Proof (ZKP)** - A Groth16 proof derived from a Liveness Credential that proves liveness without revealing the underlying personal or biometric data.
 
 ## Key Features
@@ -53,7 +53,7 @@ and then run the command below to install the package:
 dart pub get
 ```
 
-Visit the pub.dev [install page](https://pub.dev/packages/vc_zkp) of the Dart package for more information.
+Visit the pub.dev [install page](https://pub.dev/packages/meeting_place_credentials) of the Dart package for more information.
 
 ## Usage
 

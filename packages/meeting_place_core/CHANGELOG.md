@@ -1,5 +1,9 @@
 ## 0.0.1-dev.39
 
+ - **FIX**: OOB invitation parser pre-auth crash vulnerability (#198).
+
+## 0.0.1-dev.39
+
  - **SECURITY**: fix OobInvitationMessage parser to throw FormatException instead of crashing on malformed input (Audit ref: F-7, TM-7).
 
 ## 0.0.1-dev.38

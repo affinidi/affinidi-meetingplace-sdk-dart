@@ -14,6 +14,8 @@ Decentralised Identifiers (DIDs), DIDComm v2.1, and Matrix.
 | oob/bob.dart | Accepts the out-of-band flow shared by Alice. |
 | outreach/alice.dart | Publishes an outreach invitation. |
 | outreach/bob.dart | Finds and accepts the outreach invitation. |
+| media/alice.dart | Publishes a connection offer, approves Bob's request, and once the channel is inaugurated sends a small file as a media message on the resulting Matrix channel. |
+| media/bob.dart | Accepts Alice's offer, waits for the offer-finalised event (which joins the Matrix room), then downloads the media she posted using `MatrixEventMediaReference`. |
 
 ### Running the Examples
 
@@ -65,6 +67,12 @@ local `.env` file for convenience.
     # Outreach example
     dart run outreach/alice.dart
     dart run outreach/bob.dart
+    ```
+
+    ```bash
+    # Media example (run after the OOB flow completes)
+    dart run media/alice.dart
+    dart run media/bob.dart
     ```
 
    The example utilities will automatically load variables from `.env` in the root of the example folder.

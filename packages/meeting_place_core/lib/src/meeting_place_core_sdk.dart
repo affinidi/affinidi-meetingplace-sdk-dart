@@ -15,7 +15,6 @@ import 'constants/sdk_constants.dart';
 import 'event_handler/control_plane_event_handler_manager.dart';
 import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
-import 'protocol/attachment/attachment_media_utils.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
 import 'service/channel/channel_service.dart';
@@ -26,7 +25,6 @@ import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 import 'service/identity/identity_service.dart';
-import 'service/matrix/media/media_service.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
@@ -154,7 +152,6 @@ class MeetingPlaceCoreSDK {
     required SDKErrorHandler sdkErrorHandler,
     required DIDCommTransport didcommTransport,
     required MatrixService matrixService,
-    required MediaService mediaService,
     required MessageService messageService,
     required Future<DidManager> Function(String did) getDidManager,
   }) : _repositoryConfig = repositoryConfig,
@@ -173,7 +170,6 @@ class MeetingPlaceCoreSDK {
        _controlPlaneDid = controlPlaneDid,
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
-       _mediaService = mediaService,
        _didcomm = didcommTransport,
        _messagingService = MessagingService(
          matrixService: matrixService,
@@ -203,7 +199,6 @@ class MeetingPlaceCoreSDK {
 
   final DIDCommTransport _didcomm;
   final MessagingService _messagingService;
-  final MediaService _mediaService;
 
   String _mediatorDid;
   final String _controlPlaneDid;
@@ -457,10 +452,6 @@ class MeetingPlaceCoreSDK {
 
     Future<DidManager> matrixTransportGetDidManager(String did) =>
         connectionManager.getDidManagerForDid(wallet, did);
-    final mediaService = MediaService(
-      matrixService: matrixService,
-      logger: mpxLogger,
-    );
 
     return MeetingPlaceCoreSDK._(
       wallet: wallet,
@@ -482,7 +473,6 @@ class MeetingPlaceCoreSDK {
       sdkErrorHandler: sdkErrorHandler,
       didcommTransport: didcommTransport,
       matrixService: matrixService,
-      mediaService: mediaService,
       messageService: messageService,
       getDidManager: matrixTransportGetDidManager,
     );
@@ -1154,62 +1144,31 @@ class MeetingPlaceCoreSDK {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
   }
 
-  /// Uploads media to the Matrix homeserver and returns a transport-neutral
-  /// [Attachment] carrying the hosted-media reference and encryption metadata.
-  Future<Attachment> uploadMedia(
+  /// Sends [fileBytes] as a media message on [channel]. The transport
+  /// is selected from [Channel.transport]; encryption, upload, and messaging
+  /// are delegated to the underlying transport.
+  Future<String?> sendMediaMessage(
+    Channel channel,
     Uint8List fileBytes, {
-    required String senderDid,
     required String contentType,
     String? filename,
-  }) async {
-    return _withSdkExceptionHandling(() async {
-      final output = await _mediaService.upload(
-        fileBytes,
-        didManager: await getDidManager(senderDid),
-        contentType: contentType,
-        filename: filename,
-      );
-      return attachmentFromMediaUpload(
-        output,
-        mediaType: contentType,
-        filename: filename,
-      );
-    });
+    String? caption,
+  }) {
+    return _messagingService.sendMediaMessage(
+      channel,
+      fileBytes,
+      contentType: contentType,
+      filename: filename,
+      caption: caption,
+    );
   }
 
-  /// Downloads and decrypts hosted media referenced by [attachment].
-  ///
-  /// The room is resolved internally from [receiverDid] via the channel.
-  /// Throws [ArgumentError] if [attachment] does not reference hosted media
-  /// or is missing encryption metadata.
-  Future<Uint8List> downloadMedia({
-    required String receiverDid,
-    required Attachment attachment,
-  }) async {
-    final mxcUri = getMxcUri(attachment);
-    if (mxcUri == null) {
-      throw ArgumentError.value(
-        attachment,
-        'attachment',
-        'Attachment does not reference hosted media',
-      );
-    }
-    final encryptedFileInfo = getEncryptedFileInfo(attachment);
-    if (encryptedFileInfo == null) {
-      throw ArgumentError.value(
-        attachment,
-        'attachment',
-        'Attachment is missing encryption metadata',
-      );
-    }
-
-    return _withSdkExceptionHandling(() async {
-      return _mediaService.download(
-        mxcUri,
-        didManager: await getDidManager(receiverDid),
-        encryptedFileInfo: encryptedFileInfo,
-      );
-    });
+  /// Downloads and decrypts the media identified by [reference] in [channel].
+  Future<Uint8List> downloadMedia(
+    Channel channel,
+    MediaReference reference,
+  ) {
+    return _messagingService.downloadMedia(channel, reference);
   }
 
   /// Sends [message] through its transport (Matrix or DIDComm).

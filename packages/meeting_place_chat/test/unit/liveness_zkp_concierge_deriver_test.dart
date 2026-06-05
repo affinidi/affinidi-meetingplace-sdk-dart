@@ -97,11 +97,11 @@ void main() {
             attachments: [_zkpRequestAttachment()],
           );
 
-          final result = LivenessZkpConciergeDeriver
-              .appendDerivedHumanZkpConciergeMessages(
-            [request],
-            contactName: contactName,
-          );
+          final result =
+              LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages(
+                [request],
+                contactName: contactName,
+              );
 
           expect(
             _conciergeCount(result, LivenessZkpConciergeTypes.humanZkpRequest),

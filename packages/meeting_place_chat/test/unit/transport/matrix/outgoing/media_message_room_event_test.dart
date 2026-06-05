@@ -1,4 +1,5 @@
 import 'package:meeting_place_chat/src/transport/matrix/outgoing/media_message_room_event.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -25,17 +26,17 @@ void main() {
 
     test('stores encrypted metadata in file field and omits url', () {
       final encryptedFileJson = <String, dynamic>{
-        'url': 'mxc://matrix.example.com/media999',
-        'key': {
-          'kty': 'oct',
-          'alg': 'A256CTR',
-          'ext': true,
-          'k': 'YWJjZA',
-          'key_ops': ['encrypt', 'decrypt'],
+        encryptedFileFieldUrl: 'mxc://matrix.example.com/media999',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldExt: true,
+          jsonWebKeyFieldK: 'YWJjZA',
+          jsonWebKeyFieldKeyOps: jsonWebKeyOperations,
         },
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'sha256': 'c2hhMjU2'},
-        'v': 'v2',
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'c2hhMjU2'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       };
 
       final event = MediaMessageRoomEvent(

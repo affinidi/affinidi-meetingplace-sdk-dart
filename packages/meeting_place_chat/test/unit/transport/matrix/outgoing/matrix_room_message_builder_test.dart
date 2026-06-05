@@ -54,11 +54,15 @@ void main() {
     test('includes validated encrypted file metadata', () {
       const mxcUri = 'mxc://matrix.example.com/enc456';
       final encryptedFile = {
-        'url': mxcUri,
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'sha256': 'c2hhMjU2'},
-        'v': 'v2',
+        encryptedFileFieldUrl: mxcUri,
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: 'YWJjZA',
+        },
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'c2hhMjU2'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       };
 
       final attachment = ChatAttachment(
@@ -86,7 +90,9 @@ void main() {
 
     test('throws ArgumentError when encrypted metadata is invalid', () {
       const mxcUri = 'mxc://matrix.example.com/bad789';
-      final invalidEncryptedFile = {'url': 'https://not-mxc.com/bad'};
+      final invalidEncryptedFile = {
+        encryptedFileFieldUrl: 'https://not-mxc.com/bad',
+      };
 
       final attachment = ChatAttachment(
         filename: 'file.bin',
@@ -113,11 +119,15 @@ void main() {
     test('throws when encrypted URL does not match attachment mxc link', () {
       const mxcUri = 'mxc://matrix.example.com/attachment-link';
       final encryptedFile = {
-        'url': 'mxc://matrix.example.com/different-url',
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': 'YWJjZA'},
-        'iv': 'MTIzNDU2Nzg5MDEyMzQ1Ng',
-        'hashes': {'sha256': 'c2hhMjU2'},
-        'v': 'v2',
+        encryptedFileFieldUrl: 'mxc://matrix.example.com/different-url',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: 'YWJjZA',
+        },
+        encryptedFileFieldIv: 'MTIzNDU2Nzg5MDEyMzQ1Ng',
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'c2hhMjU2'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       };
 
       final attachment = ChatAttachment(
@@ -147,11 +157,15 @@ void main() {
       const secretKey = 'SuperSecretKeyMaterial_abc123';
       const secretIv = 'SecretIV_xyz789';
       final encryptedFile = {
-        'url': 'https://wrong-scheme.com/bad',
-        'key': {'kty': 'oct', 'alg': 'A256CTR', 'k': secretKey},
-        'iv': secretIv,
-        'hashes': {'sha256': 'hashvalue'},
-        'v': 'v2',
+        encryptedFileFieldUrl: 'https://wrong-scheme.com/bad',
+        encryptedFileFieldKey: {
+          jsonWebKeyFieldKty: jsonWebKeyType,
+          jsonWebKeyFieldAlg: jsonWebKeyAlgorithm,
+          jsonWebKeyFieldK: secretKey,
+        },
+        encryptedFileFieldIv: secretIv,
+        encryptedFileFieldHashes: {encryptedFileSha256Key: 'hashvalue'},
+        encryptedFileFieldVersion: encryptedFileInfoVersion,
       };
 
       final attachment = ChatAttachment(

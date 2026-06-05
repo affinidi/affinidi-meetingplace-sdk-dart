@@ -14,6 +14,7 @@ class OobInvitationMessage {
       final bytes = base64Url.decode(const Base64Codec().normalize(base64));
       final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
       return OobInvitationMessage.fromJson({...json, ...additionalProps});
+      // ignore: avoid_catching_errors
     } on TypeError catch (e) {
       throw FormatException('OOB invitation: $e');
     }
@@ -55,6 +56,7 @@ class OobInvitationMessage {
               )
             : null,
       );
+      // ignore: avoid_catching_errors
     } on TypeError catch (e) {
       throw FormatException('OOB invitation: $e');
     }

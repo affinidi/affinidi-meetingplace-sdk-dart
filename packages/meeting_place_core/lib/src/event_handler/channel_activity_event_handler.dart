@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
 
+import '../call/incoming_call_signal.dart';
 import '../entity/channel.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../repository/repository.dart';
@@ -27,6 +30,7 @@ class ChannelActivityEventHandler {
     required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
     required VdipClient vdipClient,
+    required StreamController<IncomingCallSignal> incomingCallSignalController,
   }) : _wallet = wallet,
        _connectionManager = connectionManager,
        _channelService = channelService,
@@ -35,7 +39,8 @@ class ChannelActivityEventHandler {
        _matrixService = matrixService,
        _options = options,
        _logger = logger,
-       _vdipClient = vdipClient;
+       _vdipClient = vdipClient,
+       _incomingCallSignalController = incomingCallSignalController;
 
   final Wallet _wallet;
   final MediatorService _mediatorService;
@@ -46,6 +51,7 @@ class ChannelActivityEventHandler {
   final ControlPlaneEventHandlerManagerOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
   final VdipClient _vdipClient;
+  final StreamController<IncomingCallSignal> _incomingCallSignalController;
 
   static final String _logKey = 'ChannelActivityEventHandler';
 
@@ -56,7 +62,7 @@ class ChannelActivityEventHandler {
     );
 
     switch (channelActivity.type) {
-      case 'channel-inauguration':
+      case ChannelActivityType.channelInauguration:
         _logger.info('Processing channel inauguration event', name: _logKey);
         return ChannelInaugurationEventHandler(
           wallet: _wallet,
@@ -67,7 +73,7 @@ class ChannelActivityEventHandler {
           options: _options,
           logger: _logger,
         ).process(channelActivity);
-      case 'chat-activity':
+      case ChannelActivityType.chatActivity:
         _logger.info('Processing chat activity event', name: _logKey);
         return ChatActivityEventHandler(
           wallet: _wallet,
@@ -93,6 +99,16 @@ class ChannelActivityEventHandler {
           logger: _logger,
           vdipClient: _vdipClient,
         ).process(channelActivity);
+      case ChannelActivityType.callInvite:
+        _logger.info(
+          'Processing call-invite signal for channel ${channelActivity.did}',
+          name: _logKey,
+        );
+        _incomingCallSignalController.add(
+          IncomingCallSignal(ownChannelDid: channelActivity.did),
+        );
+        // Return [] — this is not a chat/badge event; the plugin handles ringing.
+        return [];
       default:
         _logger.warning(
           'Unsupported channel activity type: ${channelActivity.type}',

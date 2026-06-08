@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
@@ -26,6 +27,7 @@ import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 import 'service/identity/did_web_document_service.dart';
 import 'service/identity/identity_service.dart';
+import 'service/matrix/matrix_room_alias.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
@@ -175,6 +177,7 @@ class MeetingPlaceCoreSDK {
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
        _didcomm = didcommTransport,
+       _matrixService = matrixService,
        _messagingService = MessagingService(
          matrixService: matrixService,
          messageService: messageService,
@@ -205,6 +208,7 @@ class MeetingPlaceCoreSDK {
   final VdipClient _vdipClient;
 
   final DIDCommTransport _didcomm;
+  final MatrixService _matrixService;
   final MessagingService _messagingService;
 
   String _mediatorDid;
@@ -554,6 +558,15 @@ class MeetingPlaceCoreSDK {
   Stream<ControlPlaneStreamEvent> get controlPlaneEventsStream {
     return _controlPlaneEventStreamManager.stream;
   }
+
+  /// Broadcast stream of incoming call signals.
+  ///
+  /// Emits an [IncomingCallSignal] whenever a `ChannelActivity` event with
+  /// `type == 'call-invite'` is processed from the control plane. The plugin
+  /// layer subscribes here to lazily activate the callee's Matrix session via
+  /// [activateIncomingCall] and emit an `IncomingCallEvent` to the app.
+  Stream<IncomingCallSignal> get incomingCallSignals =>
+      _controlPlaneEventService.incomingCallSignals;
 
   /// Updates the default mediator DID used for subsequent method invocations
   /// when no mediator DID is provided explicitly.
@@ -1334,6 +1347,43 @@ class MeetingPlaceCoreSDK {
       return _messagingService.downloadMedia(channel, reference);
     });
   }
+  /// Requests a Matrix OpenID token for [didManager].
+  ///
+  /// The returned `OpenIdCredentials` can be passed directly to
+  /// `LiveKitTokenService.fetchToken` to obtain a LiveKit JWT via
+  /// `lk-jwt-service` — no server-side secrets are required on the client.
+  ///
+  /// Throws if the Matrix session has not been established.
+  /// Ensure a Matrix login has been performed first.
+  Future<matrix.OpenIdCredentials> getMatrixOpenIdToken(
+    DidManager didManager,
+  ) => _withSdkExceptionHandling(
+    () => _matrixService.getOpenIdToken(didManager),
+  );
+
+  /// Returns the Matrix device ID for the active session of [didManager].
+  ///
+  /// Pass this to `SfuTokenService.fetchToken` as `deviceId` so lk-jwt-service
+  /// can set the LiveKit participant identity to `userId:deviceId`, matching
+  /// the MatrixRTC participant ID format used for E2EE key distribution.
+  Future<String?> getMatrixDeviceId(DidManager didManager) =>
+      _withSdkExceptionHandling(() => _matrixService.getDeviceId(didManager));
+
+  /// Returns the deterministic LiveKit room name for a channel.
+  ///
+  /// Both parties in the channel derive the same name without coordination —
+  /// pass the local user's [channelDid] and the other party's
+  /// [otherPartyChannelDid] in either order; the result is commutative.
+  ///
+  /// Pass the returned value as the `roomName` argument to
+  /// `LiveKitTokenService.fetchToken`.
+  String livekitRoomName({
+    required String channelDid,
+    String? otherPartyChannelDid,
+  }) => deriveRoomAliasLocalpart(
+    channelDid: channelDid,
+    otherPartyChannelDid: otherPartyChannelDid,
+  );
 
   /// Sends [message] through its transport (Matrix or DIDComm).
   ///
@@ -1345,6 +1395,15 @@ class MeetingPlaceCoreSDK {
       () => _messagingService.sendMessage(message),
     );
   }
+
+  /// Fires a control-plane channel notification without sending a message body.
+  ///
+  /// Use this to nudge the other party's device via FCM when there is no
+  /// accompanying Matrix or DIDComm payload (e.g. a `call-invite` signal).
+  /// The call is fire-and-forget at the transport level — the SDK handles the
+  /// notification token lookup and dispatch internally.
+  Future<void> sendChannelNotification(ChannelNotification notification) =>
+      _messagingService.notifyChannel(notification);
 
   /// Subscribes to incoming messages for the given [subscription].
   ///
@@ -1359,6 +1418,119 @@ class MeetingPlaceCoreSDK {
   /// Fetches historical messages for the given [query].
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) =>
       _messagingService.fetchHistory(query);
+
+  /// Resolves the Matrix room ID for [channel].
+  ///
+  /// Uses the deterministic room alias derived from the channel DIDs. Requires
+  /// a Matrix session for [didManager] to have been established first.
+  Future<String> resolveMatrixRoomIdForChannel({
+    required DidManager didManager,
+    required Channel channel,
+  }) => _withSdkExceptionHandling(
+    () => _matrixService.resolveRoomIdForChannel(
+      didManager: didManager,
+      channel: channel,
+    ),
+  );
+
+  /// Injects the [matrix.VoIP] instance required for MatrixRTC call management.
+  ///
+  /// Call this once at app startup, passing a [matrix.VoIP] created with a
+  /// concrete [matrix.WebRTCDelegate]. Must be called before [startVideoCall],
+  /// [leaveVideoCall], or [watchVideoCall].
+  void initializeMatrixRTC(matrix.VoIP voip) {
+    _matrixService.initializeVoIP(voip);
+  }
+
+  /// Initializes MatrixRTC from a [matrix.WebRTCDelegate] by creating the
+  /// [matrix.VoIP] instance internally.
+  ///
+  /// Call this at app startup before the first [startVideoCall]. Uses the
+  /// authenticated Matrix session for [didManager] to create the VoIP object,
+  /// so the Matrix session must be established first (call
+  /// `loginWithDid` if needed).
+  Future<void> initializeMatrixRTCWithDelegate({
+    required DidManager didManager,
+    required matrix.WebRTCDelegate delegate,
+  }) => _withSdkExceptionHandling(
+    () => _matrixService.initializeVoIPWithDelegate(
+      didManager: didManager,
+      delegate: delegate,
+    ),
+  );
+
+  /// Lazily activates the Matrix session for [didManager] and resolves the
+  /// pending incoming MatrixRTC group call published in [roomId].
+  ///
+  /// Call this after an out-of-band signal (call push or mediator message)
+  /// reports an incoming call for a specific channel. It brings up only that
+  /// one DID's session, initialises VoIP with [delegate] when needed, and
+  /// returns the [matrix.GroupCallSession] the caller can join.
+  ///
+  /// Throws when no group call surfaces in [roomId] within the activation
+  /// timeout.
+  Future<matrix.GroupCallSession> activateIncomingCall({
+    required DidManager didManager,
+    required matrix.WebRTCDelegate delegate,
+    required String roomId,
+  }) => _withSdkExceptionHandling(
+    () => _matrixService.activateIncomingCall(
+      didManager: didManager,
+      delegate: delegate,
+      roomId: roomId,
+    ),
+  );
+
+  /// Returns the Matrix participant identity string for the local device.
+  ///
+  /// The format is `userId:deviceId`. Used as the LiveKit participant identity
+  /// to map per-participant E2EE keys between Matrix and LiveKit.
+  ///
+  /// Returns `null` if no authenticated session exists for [didManager].
+  Future<String?> matrixParticipantId(DidManager didManager) =>
+      _withSdkExceptionHandling(
+        () => _matrixService.ownMatrixIdentity(didManager),
+      );
+
+  /// Creates or joins a MatrixRTC group call in [roomId].
+  ///
+  /// Publishes an `m.call.member` state event so the remote party can discover
+  /// the LiveKit room. The [livekitServiceUrl] and [livekitAlias] identify the
+  /// LiveKit server and room. An optional [callId] may be supplied for
+  /// idempotent session creation; defaults to [roomId].
+  Future<matrix.GroupCallSession> startVideoCall({
+    required DidManager didManager,
+    required String roomId,
+    required String livekitServiceUrl,
+    required String livekitAlias,
+    String? callId,
+  }) => _withSdkExceptionHandling(
+    () => _matrixService.startCall(
+      didManager: didManager,
+      roomId: roomId,
+      livekitServiceUrl: livekitServiceUrl,
+      livekitAlias: livekitAlias,
+      callId: callId,
+    ),
+  );
+
+  /// Leaves the active MatrixRTC group call in [roomId] with [callId].
+  Future<void> leaveVideoCall({
+    required String roomId,
+    required String callId,
+  }) => _withSdkExceptionHandling(
+    () => _matrixService.leaveCall(roomId: roomId, callId: callId),
+  );
+
+  /// Returns a stream of MatrixRTC call events for the given [roomId] and
+  /// [callId].
+  ///
+  /// Returns `null` if VoIP has not been initialized or no session exists for
+  /// the given IDs.
+  Stream<matrix.MatrixRTCCallEvent>? watchVideoCall({
+    required String roomId,
+    required String callId,
+  }) => _matrixService.watchCall(roomId: roomId, callId: callId);
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);

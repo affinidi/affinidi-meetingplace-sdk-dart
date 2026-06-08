@@ -234,6 +234,10 @@ class MessagingService {
     }
   }
 
+  /// Fires a control-plane channel notification without sending a message body.
+  Future<void> notifyChannel(ChannelNotification notification) =>
+      _messageService.notifyChannel(notification);
+
   /// Fetches historical messages for the given [query].
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
     switch (query) {

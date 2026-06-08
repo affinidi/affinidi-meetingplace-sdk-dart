@@ -2,6 +2,17 @@ import 'chat_attachment_data.dart';
 
 export 'chat_attachment_data.dart';
 
+/// App-facing media kind for attachments that need behavior beyond MIME type.
+enum AttachmentMediaKind {
+  /// Short voice message rendered as an inline voice note.
+  voice('voice');
+
+  const AttachmentMediaKind(this.value);
+
+  /// Serialized value used in JSON and Matrix custom metadata.
+  final String value;
+}
+
 /// A transport-agnostic attachment for chat messages.
 ///
 /// [ChatAttachment] replaces the DIDComm-specific `Attachment` type on the
@@ -19,7 +30,45 @@ class ChatAttachment {
     this.data,
     this.byteCount,
     this.transportId,
-  });
+    this.mediaKind,
+    int? durationMs,
+    List<int>? waveform,
+  }) : durationMs = _validateDurationMs(durationMs),
+       waveform = _validateWaveform(waveform);
+
+  /// Creates a voice-message attachment with inline base64 audio bytes.
+  factory ChatAttachment.voiceMessage({
+    required String base64,
+    required int durationMs,
+    String? id,
+    String? description,
+    String? filename,
+    String mediaType = defaultVoiceMediaType,
+    String? format,
+    DateTime? lastModifiedTime,
+    int? byteCount,
+    List<int> waveform = const [],
+  }) {
+    if (base64.isEmpty) {
+      throw ArgumentError.value(base64, 'base64', 'must not be empty');
+    }
+    if (!mediaType.toLowerCase().startsWith('audio/')) {
+      throw ArgumentError.value(mediaType, 'mediaType', 'must be audio/*');
+    }
+    return ChatAttachment(
+      id: id,
+      description: description,
+      filename: filename,
+      mediaType: mediaType,
+      format: format,
+      lastModifiedTime: lastModifiedTime,
+      data: ChatAttachmentData(base64: base64),
+      byteCount: byteCount,
+      mediaKind: AttachmentMediaKind.voice,
+      durationMs: durationMs,
+      waveform: waveform,
+    );
+  }
 
   /// Deserialises a [ChatAttachment] from a JSON map.
   ///
@@ -43,8 +92,14 @@ class ChatAttachment {
           : ChatAttachmentData.fromJson(json['data'] as Map<String, dynamic>),
       byteCount: json['byte_count'] as int?,
       transportId: json['transport_id'] as String?,
+      mediaKind: _mediaKindFromJson(json['media_kind']),
+      durationMs: _durationMsFromJson(json['duration_ms']),
+      waveform: _waveformFromJson(json['waveform']),
     );
   }
+
+  /// Default MIME type used by [ChatAttachment.voiceMessage].
+  static const defaultVoiceMediaType = 'audio/mp4';
 
   /// Unique identifier for the attachment.
   final String? id;
@@ -79,6 +134,15 @@ class ChatAttachment {
   /// transport event.
   String? transportId;
 
+  /// Optional behavior hint beyond MIME type (JSON key: `media_kind`).
+  final AttachmentMediaKind? mediaKind;
+
+  /// Optional media duration in milliseconds (JSON key: `duration_ms`).
+  final int? durationMs;
+
+  /// Optional normalized waveform samples in the 0-100 range.
+  final List<int>? waveform;
+
   /// Serialises this [ChatAttachment] to a JSON map.
   ///
   /// The key names match the DIDComm wire format so that persisted
@@ -97,6 +161,60 @@ class ChatAttachment {
     if (data != null) result['data'] = data!.toJson();
     if (byteCount != null) result['byte_count'] = byteCount;
     if (transportId != null) result['transport_id'] = transportId;
+    if (mediaKind != null) result['media_kind'] = mediaKind!.value;
+    if (durationMs != null) result['duration_ms'] = durationMs;
+    if (waveform != null) result['waveform'] = waveform;
     return result;
+  }
+
+  static int? _validateDurationMs(int? durationMs) {
+    if (durationMs != null && durationMs < 0) {
+      throw ArgumentError.value(durationMs, 'durationMs', 'must be >= 0');
+    }
+    return durationMs;
+  }
+
+  static List<int>? _validateWaveform(List<int>? waveform) {
+    if (waveform == null) return null;
+    for (final sample in waveform) {
+      if (sample < 0 || sample > 100) {
+        throw ArgumentError.value(sample, 'waveform', 'must be 0-100');
+      }
+    }
+    return List.unmodifiable(waveform);
+  }
+
+  static AttachmentMediaKind? _mediaKindFromJson(Object? value) {
+    if (value == null) return null;
+    if (value is! String) {
+      throw const FormatException('Invalid attachment media_kind');
+    }
+    return switch (value) {
+      'voice' => AttachmentMediaKind.voice,
+      _ => throw const FormatException('Invalid attachment media_kind'),
+    };
+  }
+
+  static int? _durationMsFromJson(Object? value) {
+    if (value == null) return null;
+    if (value is! int || value < 0) {
+      throw const FormatException('Invalid attachment duration_ms');
+    }
+    return value;
+  }
+
+  static List<int>? _waveformFromJson(Object? value) {
+    if (value == null) return null;
+    if (value is! List) {
+      throw const FormatException('Invalid attachment waveform');
+    }
+    final samples = <int>[];
+    for (final sample in value) {
+      if (sample is! int || sample < 0 || sample > 100) {
+        throw const FormatException('Invalid attachment waveform');
+      }
+      samples.add(sample);
+    }
+    return List.unmodifiable(samples);
   }
 }

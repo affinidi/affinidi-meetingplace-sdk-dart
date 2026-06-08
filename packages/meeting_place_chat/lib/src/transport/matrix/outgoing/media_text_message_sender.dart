@@ -50,6 +50,9 @@ class MediaTextMessageSender {
     final attachmentBytes = [
       for (final a in attachments) a.decodeInlineBytes(),
     ];
+    final contentTypes = [
+      for (final a in attachments) _contentTypeForAttachment(a),
+    ];
 
     final channel = await _getChannel();
     channel.increaseSeqNo();
@@ -65,10 +68,15 @@ class MediaTextMessageSender {
           id: attachments[i].id,
           description: attachments[i].description,
           filename: attachments[i].filename,
-          mediaType: attachments[i].mediaType,
+          mediaType: attachments[i].mediaKind == AttachmentMediaKind.voice
+              ? contentTypes[i]
+              : attachments[i].mediaType,
           format: AttachmentFormat.hostedMedia.value,
           lastModifiedTime: attachments[i].lastModifiedTime,
           byteCount: attachments[i].byteCount ?? attachmentBytes[i].length,
+          mediaKind: attachments[i].mediaKind,
+          durationMs: attachments[i].durationMs,
+          waveform: attachments[i].waveform,
         ),
     ];
 
@@ -92,10 +100,15 @@ class MediaTextMessageSender {
         final eventId = await _coreSDK.sendMediaMessage(
           channel,
           attachmentBytes[i],
-          contentType: attachment.mediaType ?? 'application/octet-stream',
+          contentType: contentTypes[i],
           filename: attachment.filename,
           caption: caption,
-          extraContent: {MatrixEventField.correlationId: messageId},
+          extraContent: _extraContentForAttachment(
+            attachment,
+            contentType: contentTypes[i],
+            sizeBytes: attachmentBytes[i].length,
+            correlationId: messageId,
+          ),
         );
         if (eventId != null) {
           message.attachments[i].transportId = eventId;
@@ -128,5 +141,38 @@ class MediaTextMessageSender {
     }
 
     return message;
+  }
+
+  static String _contentTypeForAttachment(ChatAttachment attachment) {
+    final mediaType = attachment.mediaType;
+    if (attachment.mediaKind != AttachmentMediaKind.voice) {
+      return mediaType ?? 'application/octet-stream';
+    }
+    if (mediaType == null || mediaType.isEmpty) {
+      return ChatAttachment.defaultVoiceMediaType;
+    }
+    if (!mediaType.toLowerCase().startsWith('audio/')) {
+      throw ArgumentError.value(mediaType, 'mediaType', 'must be audio/*');
+    }
+    return mediaType;
+  }
+
+  static Map<String, dynamic> _extraContentForAttachment(
+    ChatAttachment attachment, {
+    required String contentType,
+    required int sizeBytes,
+    required String correlationId,
+  }) {
+    // Matrix Room.sendFileEvent spreads extraContent after file.info, so voice
+    // metadata must carry the base mimetype and size fields too.
+    final info = MatrixMediaAttachments.buildInfoForAttachment(
+      attachment,
+      contentType: contentType,
+      sizeBytes: sizeBytes,
+    );
+    return {
+      MatrixEventField.correlationId: correlationId,
+      if (info != null) 'info': info,
+    };
   }
 }

@@ -1,8 +1,36 @@
+import 'dart:typed_data';
+
+import 'package:matrix/matrix.dart' as matrix;
+import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_chat/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('Matrix audio MIME handling', () {
+    test('audio/mp4 maps to Matrix m.audio content', () {
+      final file = matrix.MatrixFile.fromMimeType(
+        bytes: Uint8List(1),
+        name: 'voice.m4a',
+        mimeType: AttachmentMediaType.audioMp4.value,
+      );
+
+      expect(file.msgType, MediaMsgType.audio);
+      expect(file.info['mimetype'], AttachmentMediaType.audioMp4.value);
+    });
+
+    test('audio/wav maps to Matrix m.audio content', () {
+      final file = matrix.MatrixFile.fromMimeType(
+        bytes: Uint8List(1),
+        name: 'voice.wav',
+        mimeType: AttachmentMediaType.audioWav.value,
+      );
+
+      expect(file.msgType, MediaMsgType.audio);
+      expect(file.info['mimetype'], AttachmentMediaType.audioWav.value);
+    });
+  });
+
   group('MatrixMediaAttachments.extractCaption', () {
     test('returns null for non-media msgtype', () {
       expect(
@@ -103,6 +131,56 @@ void main() {
       });
 
       expect(attachments.single.filename, 'document.pdf');
+    });
+
+    test('extracts voice metadata from Matrix audio info', () {
+      final attachments = MatrixMediaAttachments.extractFromContent({
+        'msgtype': 'm.audio',
+        'body': 'voice.m4a',
+        'filename': 'voice.m4a',
+        'info': {
+          'mimetype': 'audio/mp4',
+          'size': 4096,
+          'duration': 1200,
+          MatrixMediaAttachments.mediaKindInfoKey: 'voice',
+          MatrixMediaAttachments.waveformInfoKey: [0, 40, 100],
+        },
+      });
+
+      final attachment = attachments.single;
+      expect(attachment.mediaType, AttachmentMediaType.audioMp4.value);
+      expect(attachment.mediaKind, AttachmentMediaKind.voice);
+      expect(attachment.durationMs, 1200);
+      expect(attachment.waveform, [0, 40, 100]);
+    });
+
+    test('keeps generic audio generic without voice metadata', () {
+      final attachments = MatrixMediaAttachments.extractFromContent({
+        'msgtype': 'm.audio',
+        'body': 'track.mp3',
+        'info': {'mimetype': 'audio/mpeg', 'size': 4096, 'duration': 1200},
+      });
+
+      final attachment = attachments.single;
+      expect(attachment.mediaType, AttachmentMediaType.audioMpeg.value);
+      expect(attachment.mediaKind, isNull);
+      expect(attachment.durationMs, 1200);
+      expect(attachment.waveform, isNull);
+    });
+
+    test('ignores malformed voice waveform values', () {
+      final attachments = MatrixMediaAttachments.extractFromContent({
+        'msgtype': 'm.audio',
+        'body': 'voice.m4a',
+        'info': {
+          'mimetype': 'audio/mp4',
+          MatrixMediaAttachments.mediaKindInfoKey: 'voice',
+          MatrixMediaAttachments.waveformInfoKey: [0, 101],
+        },
+      });
+
+      expect(attachments.single.mediaKind, AttachmentMediaKind.voice);
+      expect(attachments.single.waveform, isNull);
     });
   });
 }

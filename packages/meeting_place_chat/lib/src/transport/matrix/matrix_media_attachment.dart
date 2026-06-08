@@ -33,6 +33,15 @@ class MatrixEventField {
 class MatrixMediaAttachments {
   MatrixMediaAttachments._();
 
+  /// Matrix `info` key that distinguishes voice notes from generic audio.
+  static const mediaKindInfoKey = 'io.affinidi.mpx.media_kind';
+
+  /// Matrix `info` key for normalized voice waveform samples.
+  static const waveformInfoKey = 'io.affinidi.mpx.waveform';
+
+  static const _durationInfoKey = 'duration';
+  static const _mediaKindVoiceValue = 'voice';
+
   static const Set<String> _mediaMsgTypes = {
     MediaMsgType.file,
     MediaMsgType.image,
@@ -57,6 +66,7 @@ class MatrixMediaAttachments {
     final mimeType = _stringValue(info?['mimetype']);
     final sizeValue = info?['size'];
     final size = sizeValue is int ? sizeValue : null;
+    final mediaKind = _mediaKindValue(info?[mediaKindInfoKey]);
 
     return [
       ChatAttachment(
@@ -64,8 +74,41 @@ class MatrixMediaAttachments {
         mediaType: mimeType,
         format: AttachmentFormat.hostedMedia.value,
         byteCount: size,
+        mediaKind: mediaKind,
+        durationMs: _durationValue(info?[_durationInfoKey]),
+        waveform: mediaKind == AttachmentMediaKind.voice
+            ? _waveformValue(info?[waveformInfoKey])
+            : null,
       ),
     ];
+  }
+
+  /// Builds Matrix `info` metadata for outgoing hosted-media attachments.
+  static Map<String, dynamic>? buildInfoForAttachment(
+    ChatAttachment attachment, {
+    required String contentType,
+    required int sizeBytes,
+  }) {
+    if (attachment.mediaKind != AttachmentMediaKind.voice) return null;
+
+    final durationMs = attachment.durationMs;
+    if (durationMs == null) {
+      throw ArgumentError.value(
+        durationMs,
+        'durationMs',
+        'Voice attachments require durationMs',
+      );
+    }
+
+    final info = <String, dynamic>{
+      'mimetype': contentType,
+      'size': sizeBytes,
+      mediaKindInfoKey: _mediaKindVoiceValue,
+      _durationInfoKey: durationMs,
+    };
+    final waveform = attachment.waveform;
+    if (waveform != null) info[waveformInfoKey] = waveform;
+    return info;
   }
 
   /// Extracts the user-visible caption from `m.room.message` content.
@@ -88,6 +131,25 @@ class MatrixMediaAttachments {
   }
 
   static String? _stringValue(Object? value) => value is String ? value : null;
+
+  static int? _durationValue(Object? value) {
+    if (value is int && value >= 0) return value;
+    return null;
+  }
+
+  static AttachmentMediaKind? _mediaKindValue(Object? value) {
+    return value == _mediaKindVoiceValue ? AttachmentMediaKind.voice : null;
+  }
+
+  static List<int>? _waveformValue(Object? value) {
+    if (value is! List) return null;
+    final samples = <int>[];
+    for (final sample in value) {
+      if (sample is! int || sample < 0 || sample > 100) return null;
+      samples.add(sample);
+    }
+    return List.unmodifiable(samples);
+  }
 
   static Map<String, dynamic>? _mapValue(Object? value) {
     if (value is! Map) return null;

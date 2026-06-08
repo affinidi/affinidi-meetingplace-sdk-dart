@@ -32,11 +32,11 @@ import 'storage/in_memory_storage.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
-Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
+Future<DatabaseApi> _openMatrixDatabase(
+  Directory directory,
+  MatrixDatabaseContext context,
+) async {
   sqfliteFfiInit();
-  final directory = Directory(
-    '${Directory.systemTemp.path}/meeting_place_core_test_matrix',
-  );
   await directory.create(recursive: true);
   return MatrixSdkDatabase.init(
     context.databaseName,
@@ -46,14 +46,19 @@ Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
   );
 }
 
-MatrixConfig getMatrixConfig() => MatrixConfig(
-  mediatorDid: getMediatorDid(),
-  controlPlaneDid: getControlPlaneDid(),
-  homeserver: getMatrixHomeserver(),
-  databaseFactory: const CallbackMatrixDatabaseFactory(
-    openDatabase: _openMatrixDatabase,
-  ),
-);
+MatrixConfig getMatrixConfig() {
+  final directory = Directory.systemTemp.createTempSync(
+    'meeting_place_core_test_matrix_',
+  );
+  return MatrixConfig(
+    mediatorDid: getMediatorDid(),
+    controlPlaneDid: getControlPlaneDid(),
+    homeserver: getMatrixHomeserver(),
+    databaseFactory: CallbackMatrixDatabaseFactory(
+      openDatabase: (context) => _openMatrixDatabase(directory, context),
+    ),
+  );
+}
 
 Future<MeetingPlaceCoreSDK> initSDKInstance({
   Wallet? wallet,

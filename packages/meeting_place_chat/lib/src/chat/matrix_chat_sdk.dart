@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
@@ -8,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
+import '../entity/chat_attachment_bytes.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../transport/matrix/matrix_media_attachment.dart';
@@ -41,8 +41,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
   final MatrixRoomMessageBuilder _roomMessageBuilder =
       const MatrixRoomMessageBuilder();
-
-  static final _dataUriPrefix = RegExp(r'^data:[^,]*;base64,');
 
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
@@ -347,12 +345,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     required ChatAttachment attachment,
     required String caption,
   }) async {
-    final base64Content = attachment.data?.base64;
-    if (base64Content == null || base64Content.isEmpty) {
+    if (attachment.data?.base64 == null || attachment.data!.base64!.isEmpty) {
       throw ArgumentError('Attachment must contain base64 data to send');
     }
-    final rawBase64 = base64Content.replaceFirst(_dataUriPrefix, '');
-    final bytes = base64Decode(const Base64Codec().normalize(rawBase64));
+    final bytes = attachment.decodeInlineBytes();
 
     final channel = await getChannel();
     channel.increaseSeqNo();

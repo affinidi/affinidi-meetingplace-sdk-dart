@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
+import '../../entity/chat_attachment_conversion.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
 import '../../transport/didcomm/outgoing/outgoing.dart';
 import '../../transport/didcomm/protocol.dart' as protocol;
@@ -188,11 +189,6 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     String text, {
     List<ChatAttachment> attachments = const [],
   }) async {
-    if (attachments.isNotEmpty) {
-      throw ArgumentError(
-        'Hosted media attachments are not supported on DIDComm chat sessions',
-      );
-    }
     assertCanSend();
     final channel = await getChannel();
     channel.increaseSeqNo();
@@ -203,6 +199,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       to: [otherPartyDid],
       text: text,
       seqNo: _seqNo,
+      attachments: attachments.map((a) => a.toDIDComm()).toList(),
     );
 
     final created = await chatRepository.createMessage(

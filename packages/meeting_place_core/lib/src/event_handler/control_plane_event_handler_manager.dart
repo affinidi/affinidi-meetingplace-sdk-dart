@@ -4,6 +4,7 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
+import '../call/incoming_call_signal.dart';
 import '../entity/channel.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
@@ -65,6 +66,8 @@ class ControlPlaneEventManager {
     ControlPlaneEventHandlerManagerOptions options =
         const ControlPlaneEventHandlerManagerOptions(),
   }) : _streamManager = streamManager,
+       _incomingCallSignalController =
+           StreamController<IncomingCallSignal>.broadcast(),
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
     _invitationAcceptHandler = InvitationAcceptedEventHandler(
@@ -109,6 +112,7 @@ class ControlPlaneEventManager {
       options: options,
       logger: _logger,
       vdipClient: vdipClient,
+      incomingCallSignalController: _incomingCallSignalController,
     );
     _groupMembershipFinalisedEventHandler =
         GroupMembershipFinalisedEventHandler(
@@ -139,6 +143,15 @@ class ControlPlaneEventManager {
 
   final MeetingPlaceCoreSDKLogger _logger;
   final ControlPlaneEventStreamManager _streamManager;
+  final StreamController<IncomingCallSignal> _incomingCallSignalController;
+
+  /// Broadcast stream of incoming call signals.
+  ///
+  /// Emits an [IncomingCallSignal] whenever a `ChannelActivity` event with
+  /// `type == 'call-invite'` is processed. The plugin layer subscribes here
+  /// to activate the callee's Matrix session and ring the device.
+  Stream<IncomingCallSignal> get incomingCallSignals =>
+      _incomingCallSignalController.stream;
 
   late final InvitationAcceptedEventHandler _invitationAcceptHandler;
   late final InvitationGroupAcceptedEventHandler

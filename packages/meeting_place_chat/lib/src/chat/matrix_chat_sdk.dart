@@ -57,37 +57,70 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     chatStream = ChatStream();
     _incomingRouter = buildRoomEventRouter();
 
+    // Kick off the live transport subscription. transportSubscriptionFuture
+    // resolves when Matrix auth + room subscribe are ready, matching the
+    // DIDComm SDK semantics and the BaseChatSDK.chatStreamSubscription
+    // contract.
     final subscriptionFuture = subscribeToMatrixRoom();
     transportSubscriptionFuture = subscriptionFuture;
 
     unawaited(proposeProfileUpdate());
 
-    final events = await _fetchRoomHistoryAsRoomEvents();
-    final incomingEvents = events.where((e) => !e.isFromMe).toList();
-
-    for (final event in incomingEvents) {
-      await _handleIncomingRoomEvent(event);
-    }
-
-    final latestReceiptId = _latestReceiptWorthyId(incomingEvents);
-    if (latestReceiptId != null) {
-      await sendChatDeliveredMessage(latestReceiptId);
-    }
-
-    final existingMessages = await chatRepository.listMessages(chatId);
-    final messages = <ChatItem>[...existingMessages];
-
-    final chat = Chat(id: chatId, stream: chatStream, messages: messages);
-
-    unawaited(
-      subscriptionFuture.then((subscription) {
-        _matrixRoomSubscription = subscription;
-      }),
+    // Return the locally persisted snapshot so the UI can render immediately.
+    // Matrix auth, history fetch, and the read receipt run in the background;
+    // any new items they produce flow into the UI through chatStream via the
+    // incoming router's per-event handlers.
+    final persisted = await chatRepository.listMessages(chatId);
+    final chat = Chat(
+      id: chatId,
+      stream: chatStream,
+      messages: <ChatItem>[...persisted],
     );
 
-    logger.info('Chat session initialized,', name: _matrixLogkey);
+    unawaited(_bootstrapTransportInBackground(subscriptionFuture));
+
+    logger.info(
+      'Chat session started; transport sync running in background',
+      name: _matrixLogkey,
+    );
 
     return chat;
+  }
+
+  Future<void> _bootstrapTransportInBackground(
+    Future<StreamSubscription<MatrixRoomEvent>> subscriptionFuture,
+  ) async {
+    try {
+      final subscription = await subscriptionFuture;
+      // end() nulls transportSubscriptionFuture via super.end(); use it as
+      // the liveness flag so we don't write to a disposed stream after
+      // the session was torn down while Matrix auth was in flight.
+      if (transportSubscriptionFuture == null) {
+        await subscription.cancel();
+        return;
+      }
+      _matrixRoomSubscription = subscription;
+
+      final events = await _fetchRoomHistoryAsRoomEvents();
+      final incoming = events.where((e) => !e.isFromMe).toList();
+
+      for (final event in incoming) {
+        if (transportSubscriptionFuture == null) return;
+        await _handleIncomingRoomEvent(event);
+      }
+
+      final latestReceiptId = _latestReceiptWorthyId(incoming);
+      if (latestReceiptId != null && transportSubscriptionFuture != null) {
+        await sendChatDeliveredMessage(latestReceiptId);
+      }
+    } catch (e, st) {
+      logger.error(
+        'Background Matrix sync failed',
+        error: e,
+        stackTrace: st,
+        name: _matrixLogkey,
+      );
+    }
   }
 
   @override

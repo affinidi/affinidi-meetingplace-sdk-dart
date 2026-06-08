@@ -3,7 +3,6 @@ export 'contact_details_update_room_event.dart';
 export 'effect_room_event.dart';
 export 'group_details_update_room_event.dart';
 export 'matrix_custom_outgoing_message.dart';
-export 'matrix_room_message_builder.dart';
 export 'message_edit_room_event.dart';
 export 'profile_hash_room_event.dart';
 export 'profile_request_room_event.dart';

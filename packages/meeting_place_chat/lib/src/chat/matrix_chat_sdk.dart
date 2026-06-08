@@ -39,8 +39,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
   IncomingMessageHandle? _matrixSubscriptionHandle;
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
-  final MatrixRoomMessageBuilder _roomMessageBuilder =
-      const MatrixRoomMessageBuilder();
 
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
@@ -292,7 +290,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     assertCanSend();
 
     if (attachments.isEmpty) {
-      final outgoing = _roomMessageBuilder.build(
+      final outgoing = TextMessageRoomEvent(
         senderDid: did,
         text: text,
         notification: buildChannelNotification('chat-activity'),

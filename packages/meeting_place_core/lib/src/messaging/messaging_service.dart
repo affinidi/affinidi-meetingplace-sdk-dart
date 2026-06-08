@@ -10,7 +10,7 @@ import '../service/channel/channel_service.dart';
 import '../service/matrix/matrix_room_event.dart';
 import '../service/matrix/matrix_service.dart';
 import '../service/matrix/matrix_user_id_binding.dart';
-import '../service/matrix/media/media_exception.dart';
+import '../service/matrix/matrix_media_exception.dart';
 import '../service/mediator/mediator_message.dart';
 import '../service/message/message_service.dart';
 import '../transport/didcomm_transport.dart';
@@ -153,7 +153,7 @@ class MessagingService {
 
     final maxSize = await _matrixService.getMediaConfig(didManager: didManager);
     if (maxSize != null && fileBytes.length > maxSize) {
-      throw MediaException.tooLarge(maxBytes: maxSize);
+      throw MatrixMediaException.tooLarge(maxBytes: maxSize);
     }
 
     final roomId = await _matrixService.resolveRoomIdForChannel(

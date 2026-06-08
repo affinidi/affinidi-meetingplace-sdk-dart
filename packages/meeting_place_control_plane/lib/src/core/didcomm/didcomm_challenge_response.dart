@@ -39,21 +39,54 @@ class DidCommChallengeResponse {
     required DidResolver didResolver,
     required String recipientDid,
     Exception Function(String senderDid)? onEmptyChallenge,
-    Future<String?> Function(String did)? challengeProvider,
   }) async {
     final senderDidDocument = await didManager.getDidDocument();
+    final challengeResponse = await apiClient.client.didChallenge(
+      didChallenge: (DidChallengeBuilder()..did = senderDidDocument.id).build(),
+    );
+    return _buildFromChallenge(
+      senderDidDocument: senderDidDocument,
+      challenge: challengeResponse.data?.challenge,
+      didManager: didManager,
+      didResolver: didResolver,
+      recipientDid: recipientDid,
+      onEmptyChallenge: onEmptyChallenge,
+    );
+  }
 
-    String? challenge;
-    if (challengeProvider != null) {
-      challenge = await challengeProvider(senderDidDocument.id);
-    } else {
-      final challengeBuilder = DidChallengeBuilder()
-        ..did = senderDidDocument.id;
-      final challengeResponse = await apiClient.client.didChallenge(
-        didChallenge: challengeBuilder.build(),
-      );
-      challenge = challengeResponse.data?.challenge;
-    }
+  /// Variant of [build] that fetches the challenge from the Matrix challenge
+  /// endpoint (`/v1/matrix/challenge`) instead of the DID authenticate
+  /// challenge endpoint.
+  static Future<DidCommChallengeResponse> buildForMatrix({
+    required ControlPlaneApiClient apiClient,
+    required DidManager didManager,
+    required DidResolver didResolver,
+    required String recipientDid,
+    Exception Function(String senderDid)? onEmptyChallenge,
+  }) async {
+    final senderDidDocument = await didManager.getDidDocument();
+    final challengeResponse = await apiClient.client.matrixChallenge(
+      matrixChallenge: (MatrixChallengeBuilder()..did = senderDidDocument.id)
+          .build(),
+    );
+    return _buildFromChallenge(
+      senderDidDocument: senderDidDocument,
+      challenge: challengeResponse.data?.challenge,
+      didManager: didManager,
+      didResolver: didResolver,
+      recipientDid: recipientDid,
+      onEmptyChallenge: onEmptyChallenge,
+    );
+  }
+
+  static Future<DidCommChallengeResponse> _buildFromChallenge({
+    required DidDocument senderDidDocument,
+    required String? challenge,
+    required DidManager didManager,
+    required DidResolver didResolver,
+    required String recipientDid,
+    required Exception Function(String senderDid)? onEmptyChallenge,
+  }) async {
     if (challenge == null || challenge.trim().isEmpty) {
       if (onEmptyChallenge != null) {
         throw onEmptyChallenge(senderDidDocument.id);
@@ -80,31 +113,6 @@ class DidCommChallengeResponse {
       challengeResponse: base64Encode(
         utf8.encode(jsonEncode(encryptedMessageAuth)),
       ),
-    );
-  }
-
-  /// Variant of [build] that fetches the challenge from the Matrix challenge
-  /// endpoint (`/v1/matrix/challenge`) instead of the DID authenticate
-  /// challenge endpoint.
-  static Future<DidCommChallengeResponse> buildForMatrix({
-    required ControlPlaneApiClient apiClient,
-    required DidManager didManager,
-    required DidResolver didResolver,
-    required String recipientDid,
-    Exception Function(String senderDid)? onEmptyChallenge,
-  }) {
-    return build(
-      apiClient: apiClient,
-      didManager: didManager,
-      didResolver: didResolver,
-      recipientDid: recipientDid,
-      onEmptyChallenge: onEmptyChallenge,
-      challengeProvider: (String did) async {
-        final response = await apiClient.client.matrixChallenge(
-          matrixChallenge: (MatrixChallengeBuilder()..did = did).build(),
-        );
-        return response.data?.challenge;
-      },
     );
   }
 

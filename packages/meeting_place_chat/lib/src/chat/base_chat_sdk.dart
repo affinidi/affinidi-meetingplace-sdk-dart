@@ -79,15 +79,18 @@ abstract class BaseChatSDK {
   /// [transportSubscriptionFuture] so [chatStreamSubscription] can await it.
   Future<Chat> startChatSession();
 
-  /// Waits until the transport subscription is ready. Stream of live
-  /// chat events ([StreamData]) for this session.
+  /// Stream of live chat events ([StreamData]) for this session.
+  ///
+  /// Resolves as soon as [startChatSession] has been called — the underlying
+  /// [ChatStream] buffers any events pushed before a listener attaches and
+  /// flushes them on first subscription, so callers do not need to wait for
+  /// the transport subscription to be ready.
   ///
   /// **Returns:**
   /// - A [ChatStream] or `null` if the chat session has not yet started
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
     if (transportSubscriptionFuture == null) return null;
-    await transportSubscriptionFuture;
     return chatStream;
   }
 

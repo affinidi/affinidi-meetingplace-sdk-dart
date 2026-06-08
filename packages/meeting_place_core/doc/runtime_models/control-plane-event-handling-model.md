@@ -41,10 +41,14 @@ sequenceDiagram
         Manager->>Handler: process(event)
         Handler->>Mediator: fetch relevant DIDComm message(s)
         Handler-->>Manager: updated Channel(s)
-        Manager->>Stream: push ControlPlaneStreamEvent(channel, type)
+        alt ChannelActivity on non-inaugurated channel
+            Manager-->>Manager: defer acknowledgement, skip stream emission
+        else acknowledged event
+            Manager->>Stream: push ControlPlaneStreamEvent(channel, type)
+        end
     end
 
-    Service->>CP: DeletePendingNotificationsCommand(processed ids)
+    Service->>CP: DeletePendingNotificationsCommand(acknowledged ids)
     Service-->>App: onDone(errors)
 ```
 
@@ -72,7 +76,7 @@ sequenceDiagram
 
 ## Event Stream Semantics
 
-After each event is processed successfully, the manager pushes a `ControlPlaneStreamEvent` to `controlPlaneEventsStream`.
+After each successfully handled event, the manager may push a `ControlPlaneStreamEvent` to `controlPlaneEventsStream`.
 
 Each stream event contains:
 
@@ -80,6 +84,11 @@ Each stream event contains:
 - a `Channel` object representing the updated runtime entity associated with that event
 
 This means stream consumers receive channel-centric updates, not the raw event payloads.
+
+Exception for `ChannelActivity`:
+
+- If the handler returns only channels whose `status` is not `inaugurated`, the manager does not emit a stream event.
+- The event is left pending on the control plane so it can be retried once the channel becomes inaugurated.
 
 ## Event Details
 
@@ -179,7 +188,7 @@ What it means in practice:
 
 Behavior:
 
-The handler fetches mediator messages relevant for sequence tracking, updates `channel.seqNo` and `channel.messageSyncMarker`, and emits the updated channel.
+The handler fetches mediator messages relevant for sequence tracking, updates `channel.seqNo` and `channel.messageSyncMarker`, and returns the updated channel.
 
 What it means in practice:
 
@@ -188,7 +197,8 @@ What it means in practice:
 
 Important nuance:
 
-- Within a single pending-notification batch, only the first `ChannelActivity` for a given `did` is processed. Later `ChannelActivity` events with the same `did` are skipped, regardless of subtype.
+- Within a single pending-notification batch, only the first `ChannelActivity` for a given `did` and `type` pair is processed. Later duplicates in the same batch are skipped.
+- If the channel is not yet `inaugurated`, the handler still runs and local sync metadata is updated, but the manager defers acknowledgement and does not emit a stream event. The pending notification remains on the control plane until the channel becomes inaugurated.
 
 ### InvitationOutreach
 
@@ -211,6 +221,29 @@ What the event means in practice:
 - Events are processed sequentially in the order returned by `GetPendingNotificationsCommand`.
 - For each successfully handled event, one or more updated channels may be returned.
 - A separate `ControlPlaneStreamEvent` is emitted for each returned channel.
+- For `ChannelActivity`, stream emission is skipped when the returned channel is not yet `inaugurated`.
+
+### Acknowledgement and pending-notification deletion
+
+`ControlPlaneEventManager.handleEventsBatch(...)` returns the subset of events that should be deleted from the control plane.
+
+Internally, the manager tracks two lists:
+
+- `processedEventsForDedup`: every event handled in the current batch, used to skip duplicate `ChannelActivity` entries within the batch
+- `acknowledgedEvents`: events whose pending notifications should be deleted
+
+For most event types, a successfully handled event is always acknowledged.
+
+For `ChannelActivity`, acknowledgement is deferred when the handler returns one or more channels and every returned channel has a status other than `inaugurated`. In that case:
+
+- local handler side effects still run
+- no `ControlPlaneStreamEvent` is emitted
+- the event is not included in the returned acknowledged list
+- `ControlPlaneEventService` therefore leaves the pending notification on the control plane
+
+Once the channel becomes `inaugurated`, a later poll can process the same pending notification again, acknowledge it, and emit the stream event.
+
+`ChannelActivity` events that return no channels, such as duplicates skipped within the batch, are still acknowledged.
 
 ### Mediator message handling
 
@@ -228,10 +261,12 @@ What the event means in practice:
 
 Important caveat:
 
-- Even when a handler throws, the event is still added to the processed-events list in the manager.
+- Even when a handler throws, the event is still added to the acknowledged-events list in the manager.
 - The event service therefore deletes the corresponding pending notification from the control plane.
 
 In other words, a failed event is surfaced as an error, but it is not left pending for automatic retry by the control plane event queue.
+
+This error-handling behavior is unchanged by inauguration deferral. Deferred `ChannelActivity` events are not failures; they remain pending intentionally until the channel is inaugurated.
 
 ### Debouncing and queueing
 

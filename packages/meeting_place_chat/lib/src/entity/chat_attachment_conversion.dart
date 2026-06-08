@@ -21,6 +21,23 @@ extension ChatAttachmentDataConversion on ChatAttachmentData {
   );
 }
 
+/// Converts [ChatAttachment] → DIDComm [Attachment]. Used by the DIDComm
+/// transport when sending; the matrix transport never goes through this
+/// path (it uploads via `MeetingPlaceCoreSDK.sendMediaMessage`).
+@internal
+extension ChatAttachmentToDIDComm on ChatAttachment {
+  Attachment toDIDComm() => Attachment(
+    id: id,
+    description: description,
+    filename: filename,
+    mediaType: mediaType,
+    format: format,
+    lastModifiedTime: lastModifiedTime,
+    data: data?.toDIDComm() ?? AttachmentData(),
+    byteCount: byteCount,
+  );
+}
+
 /// Converts DIDComm [Attachment] → [ChatAttachment].
 @internal
 extension AttachmentToChatAttachment on Attachment {

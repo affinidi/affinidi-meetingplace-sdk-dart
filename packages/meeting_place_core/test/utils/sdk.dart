@@ -208,10 +208,18 @@ Uri getMatrixHomeserver() =>
       _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
     };
 
-String getVodozemacLibraryPath() =>
-    Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
-    env['VODOZEMAC_LIBRARY_PATH'] ??
-    (throw Exception('VODOZEMAC_LIBRARY_PATH not set in environment'));
+String getVodozemacLibraryPath() {
+  final override =
+      Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
+      env['VODOZEMAC_LIBRARY_PATH'];
+  if (override != null) return override;
+  if (Platform.isMacOS) return 'test/libvodozemac_bindings_dart.dylib';
+  if (Platform.isLinux) return 'test/libvodozemac_bindings_dart.so';
+  throw Exception(
+    'No bundled vodozemac binary for ${Platform.operatingSystem}; '
+    'set VODOZEMAC_LIBRARY_PATH',
+  );
+}
 
 /// Ensures the vodozemac native library is loaded before any Matrix client is
 /// created. The CoreSDK now requires this (matrix E2EE is on by default), so

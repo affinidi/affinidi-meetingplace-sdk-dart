@@ -83,9 +83,9 @@ void main() {
         () => core.subscribe(any()),
       ).thenAnswer((_) => subscribeCompleter.future);
 
-      when(() => repo.listMessages(any())).thenAnswer(
-        (_) async => [_persistedMessage(1), _persistedMessage(2)],
-      );
+      when(
+        () => repo.listMessages(any()),
+      ).thenAnswer((_) async => [_persistedMessage(1), _persistedMessage(2)]);
     });
 
     tearDown(() async {
@@ -123,59 +123,53 @@ void main() {
       },
     );
 
-    test(
-      'chatStreamSubscription resolves before Matrix subscribe completes, '
-      'so the app can attach a listener immediately',
-      () async {
-        await sdk.startChatSession();
+    test('chatStreamSubscription resolves before Matrix subscribe completes, '
+        'so the app can attach a listener immediately', () async {
+      await sdk.startChatSession();
 
-        // subscribe completer is intentionally still pending here.
-        expect(subscribeCompleter.isCompleted, isFalse);
+      // subscribe completer is intentionally still pending here.
+      expect(subscribeCompleter.isCompleted, isFalse);
 
-        final sentinel = Future<String>.delayed(
-          const Duration(seconds: 1),
-          () => 'still-blocked-on-subscribe',
-        );
+      final sentinel = Future<String>.delayed(
+        const Duration(seconds: 1),
+        () => 'still-blocked-on-subscribe',
+      );
 
-        final winner = await Future.any<Object?>([
-          sdk.chatStreamSubscription,
-          sentinel,
-        ]);
+      final winner = await Future.any<Object?>([
+        sdk.chatStreamSubscription,
+        sentinel,
+      ]);
 
-        expect(
-          winner,
-          isA<ChatStream>(),
-          reason:
-              'chatStreamSubscription must not await the transport — it '
-              'relies on ChatStream\'s buffer-until-listener guarantee.',
-        );
-        expect(subscribeCompleter.isCompleted, isFalse);
-      },
-    );
+      expect(
+        winner,
+        isA<ChatStream>(),
+        reason:
+            'chatStreamSubscription must not await the transport — it '
+            'relies on ChatStream\'s buffer-until-listener guarantee.',
+      );
+      expect(subscribeCompleter.isCompleted, isFalse);
+    });
 
-    test(
-      'events pushed before a listener attaches are flushed once it does, '
-      'so fast local sends are not lost during background sync',
-      () async {
-        await sdk.startChatSession();
+    test('events pushed before a listener attaches are flushed once it does, '
+        'so fast local sends are not lost during background sync', () async {
+      await sdk.startChatSession();
 
-        // Simulate the app sending a message before the listener is attached
-        // (e.g. the user tapped send immediately after opening the chat).
-        final eager = _persistedMessage(99);
-        sdk.chatStream.pushData(StreamData(chatItem: eager));
+      // Simulate the app sending a message before the listener is attached
+      // (e.g. the user tapped send immediately after opening the chat).
+      final eager = _persistedMessage(99);
+      sdk.chatStream.pushData(StreamData(chatItem: eager));
 
-        final stream = await sdk.chatStreamSubscription;
-        expect(stream, isNotNull);
+      final stream = await sdk.chatStreamSubscription;
+      expect(stream, isNotNull);
 
-        final received = await stream!.stream.first.timeout(
-          const Duration(seconds: 1),
-          onTimeout: () => throw StateError(
-            'Buffered event was not flushed to the late-attached listener',
-          ),
-        );
+      final received = await stream!.stream.first.timeout(
+        const Duration(seconds: 1),
+        onTimeout: () => throw StateError(
+          'Buffered event was not flushed to the late-attached listener',
+        ),
+      );
 
-        expect(received.chatItem, same(eager));
-      },
-    );
+      expect(received.chatItem, same(eager));
+    });
   });
 }

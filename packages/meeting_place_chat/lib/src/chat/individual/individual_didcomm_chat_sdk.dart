@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
+import '../../entity/chat_attachment_bytes.dart';
 import '../../entity/chat_attachment_conversion.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
 import '../../transport/didcomm/outgoing/outgoing.dart';
@@ -242,10 +243,11 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<Uint8List> downloadMedia(Message message) {
-    throw UnsupportedError(
-      'Hosted media download is not supported on DIDComm chat sessions',
-    );
+  Future<Uint8List> downloadMedia(Message message) async {
+    if (message.attachments.isEmpty) {
+      throw StateError('Message has no attachments to download');
+    }
+    return message.attachments.first.decodeInlineBytes();
   }
 
   @override

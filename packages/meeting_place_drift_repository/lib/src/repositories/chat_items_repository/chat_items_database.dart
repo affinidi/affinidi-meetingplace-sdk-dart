@@ -69,7 +69,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -158,6 +158,15 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             await customStatement(
               'ALTER TABLE chat_items ADD COLUMN is_deleted_locally INTEGER '
               'NOT NULL DEFAULT 0 CHECK ("is_deleted_locally" IN (0, 1))',
+            );
+          }
+          if (from < 5) {
+            // Add transport_id to attachments so the per-attachment transport
+            // reference (e.g. Matrix event id for hosted media) survives
+            // persist/restore. Without it, receivers reload messages with
+            // null transportId and can never trigger downloadMedia.
+            await customStatement(
+              'ALTER TABLE attachments ADD COLUMN transport_id TEXT',
             );
           }
         },
@@ -282,6 +291,10 @@ class Attachments extends Table {
 
   /// JSON metadata of the attachment.
   TextColumn get json => text().nullable()();
+
+  /// Transport-level reference for downloading the attachment bytes (e.g.
+  /// Matrix event id for hosted media). `null` for inline DIDComm attachments.
+  TextColumn get transportId => text().nullable()();
 }
 
 /// Stores external links tied to an [Attachment].

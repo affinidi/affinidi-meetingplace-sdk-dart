@@ -1008,6 +1008,12 @@ class $AttachmentsTable extends Attachments
   late final GeneratedColumn<String> json = GeneratedColumn<String>(
       'json', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _transportIdMeta =
+      const VerificationMeta('transportId');
+  @override
+  late final GeneratedColumn<String> transportId = GeneratedColumn<String>(
+      'transport_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         messageId,
@@ -1022,7 +1028,8 @@ class $AttachmentsTable extends Attachments
         byteCount,
         hash,
         base64,
-        json
+        json,
+        transportId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1093,6 +1100,12 @@ class $AttachmentsTable extends Attachments
       context.handle(
           _jsonMeta, json.isAcceptableOrUnknown(data['json']!, _jsonMeta));
     }
+    if (data.containsKey('transport_id')) {
+      context.handle(
+          _transportIdMeta,
+          transportId.isAcceptableOrUnknown(
+              data['transport_id']!, _transportIdMeta));
+    }
     return context;
   }
 
@@ -1128,6 +1141,8 @@ class $AttachmentsTable extends Attachments
           .read(DriftSqlType.string, data['${effectivePrefix}base64']),
       json: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}json']),
+      transportId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}transport_id']),
     );
   }
 
@@ -1176,6 +1191,10 @@ class Attachment extends DataClass implements Insertable<Attachment> {
 
   /// JSON metadata of the attachment.
   final String? json;
+
+  /// Transport-level reference for downloading the attachment bytes (e.g.
+  /// Matrix event id for hosted media). `null` for inline DIDComm attachments.
+  final String? transportId;
   const Attachment(
       {required this.messageId,
       required this.attachmentId,
@@ -1189,7 +1208,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       this.byteCount,
       this.hash,
       this.base64,
-      this.json});
+      this.json,
+      this.transportId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1228,6 +1248,9 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     if (!nullToAbsent || json != null) {
       map['json'] = Variable<String>(json);
     }
+    if (!nullToAbsent || transportId != null) {
+      map['transport_id'] = Variable<String>(transportId);
+    }
     return map;
   }
 
@@ -1258,6 +1281,9 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       base64:
           base64 == null && nullToAbsent ? const Value.absent() : Value(base64),
       json: json == null && nullToAbsent ? const Value.absent() : Value(json),
+      transportId: transportId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transportId),
     );
   }
 
@@ -1279,6 +1305,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       hash: serializer.fromJson<String?>(json['hash']),
       base64: serializer.fromJson<String?>(json['base64']),
       json: serializer.fromJson<String?>(json['json']),
+      transportId: serializer.fromJson<String?>(json['transportId']),
     );
   }
   @override
@@ -1298,6 +1325,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       'hash': serializer.toJson<String?>(hash),
       'base64': serializer.toJson<String?>(base64),
       'json': serializer.toJson<String?>(json),
+      'transportId': serializer.toJson<String?>(transportId),
     };
   }
 
@@ -1314,7 +1342,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           Value<int?> byteCount = const Value.absent(),
           Value<String?> hash = const Value.absent(),
           Value<String?> base64 = const Value.absent(),
-          Value<String?> json = const Value.absent()}) =>
+          Value<String?> json = const Value.absent(),
+          Value<String?> transportId = const Value.absent()}) =>
       Attachment(
         messageId: messageId ?? this.messageId,
         attachmentId: attachmentId ?? this.attachmentId,
@@ -1331,6 +1360,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
         hash: hash.present ? hash.value : this.hash,
         base64: base64.present ? base64.value : this.base64,
         json: json.present ? json.value : this.json,
+        transportId: transportId.present ? transportId.value : this.transportId,
       );
   Attachment copyWithCompanion(AttachmentsCompanion data) {
     return Attachment(
@@ -1352,6 +1382,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       hash: data.hash.present ? data.hash.value : this.hash,
       base64: data.base64.present ? data.base64.value : this.base64,
       json: data.json.present ? data.json.value : this.json,
+      transportId:
+          data.transportId.present ? data.transportId.value : this.transportId,
     );
   }
 
@@ -1370,7 +1402,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           ..write('byteCount: $byteCount, ')
           ..write('hash: $hash, ')
           ..write('base64: $base64, ')
-          ..write('json: $json')
+          ..write('json: $json, ')
+          ..write('transportId: $transportId')
           ..write(')'))
         .toString();
   }
@@ -1389,7 +1422,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       byteCount,
       hash,
       base64,
-      json);
+      json,
+      transportId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1406,7 +1440,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           other.byteCount == this.byteCount &&
           other.hash == this.hash &&
           other.base64 == this.base64 &&
-          other.json == this.json);
+          other.json == this.json &&
+          other.transportId == this.transportId);
 }
 
 class AttachmentsCompanion extends UpdateCompanion<Attachment> {
@@ -1423,6 +1458,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
   final Value<String?> hash;
   final Value<String?> base64;
   final Value<String?> json;
+  final Value<String?> transportId;
   const AttachmentsCompanion({
     this.messageId = const Value.absent(),
     this.attachmentId = const Value.absent(),
@@ -1437,6 +1473,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     this.hash = const Value.absent(),
     this.base64 = const Value.absent(),
     this.json = const Value.absent(),
+    this.transportId = const Value.absent(),
   });
   AttachmentsCompanion.insert({
     required String messageId,
@@ -1452,6 +1489,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     this.hash = const Value.absent(),
     this.base64 = const Value.absent(),
     this.json = const Value.absent(),
+    this.transportId = const Value.absent(),
   }) : messageId = Value(messageId);
   static Insertable<Attachment> custom({
     Expression<String>? messageId,
@@ -1467,6 +1505,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     Expression<String>? hash,
     Expression<String>? base64,
     Expression<String>? json,
+    Expression<String>? transportId,
   }) {
     return RawValuesInsertable({
       if (messageId != null) 'message_id': messageId,
@@ -1482,6 +1521,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
       if (hash != null) 'hash': hash,
       if (base64 != null) 'base64': base64,
       if (json != null) 'json': json,
+      if (transportId != null) 'transport_id': transportId,
     });
   }
 
@@ -1498,7 +1538,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
       Value<int?>? byteCount,
       Value<String?>? hash,
       Value<String?>? base64,
-      Value<String?>? json}) {
+      Value<String?>? json,
+      Value<String?>? transportId}) {
     return AttachmentsCompanion(
       messageId: messageId ?? this.messageId,
       attachmentId: attachmentId ?? this.attachmentId,
@@ -1513,6 +1554,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
       hash: hash ?? this.hash,
       base64: base64 ?? this.base64,
       json: json ?? this.json,
+      transportId: transportId ?? this.transportId,
     );
   }
 
@@ -1558,6 +1600,9 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     if (json.present) {
       map['json'] = Variable<String>(json.value);
     }
+    if (transportId.present) {
+      map['transport_id'] = Variable<String>(transportId.value);
+    }
     return map;
   }
 
@@ -1576,7 +1621,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
           ..write('byteCount: $byteCount, ')
           ..write('hash: $hash, ')
           ..write('base64: $base64, ')
-          ..write('json: $json')
+          ..write('json: $json, ')
+          ..write('transportId: $transportId')
           ..write(')'))
         .toString();
   }
@@ -2547,6 +2593,7 @@ typedef $$AttachmentsTableCreateCompanionBuilder = AttachmentsCompanion
   Value<String?> hash,
   Value<String?> base64,
   Value<String?> json,
+  Value<String?> transportId,
 });
 typedef $$AttachmentsTableUpdateCompanionBuilder = AttachmentsCompanion
     Function({
@@ -2563,6 +2610,7 @@ typedef $$AttachmentsTableUpdateCompanionBuilder = AttachmentsCompanion
   Value<String?> hash,
   Value<String?> base64,
   Value<String?> json,
+  Value<String?> transportId,
 });
 
 final class $$AttachmentsTableReferences
@@ -2648,6 +2696,9 @@ class $$AttachmentsTableFilterComposer
 
   ColumnFilters<String> get json => $composableBuilder(
       column: $table.json, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get transportId => $composableBuilder(
+      column: $table.transportId, builder: (column) => ColumnFilters(column));
 
   $$ChatItemsTableFilterComposer get messageId {
     final $$ChatItemsTableFilterComposer composer = $composerBuilder(
@@ -2738,6 +2789,9 @@ class $$AttachmentsTableOrderingComposer
   ColumnOrderings<String> get json => $composableBuilder(
       column: $table.json, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get transportId => $composableBuilder(
+      column: $table.transportId, builder: (column) => ColumnOrderings(column));
+
   $$ChatItemsTableOrderingComposer get messageId {
     final $$ChatItemsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -2803,6 +2857,9 @@ class $$AttachmentsTableAnnotationComposer
 
   GeneratedColumn<String> get json =>
       $composableBuilder(column: $table.json, builder: (column) => column);
+
+  GeneratedColumn<String> get transportId => $composableBuilder(
+      column: $table.transportId, builder: (column) => column);
 
   $$ChatItemsTableAnnotationComposer get messageId {
     final $$ChatItemsTableAnnotationComposer composer = $composerBuilder(
@@ -2883,6 +2940,7 @@ class $$AttachmentsTableTableManager extends RootTableManager<
             Value<String?> hash = const Value.absent(),
             Value<String?> base64 = const Value.absent(),
             Value<String?> json = const Value.absent(),
+            Value<String?> transportId = const Value.absent(),
           }) =>
               AttachmentsCompanion(
             messageId: messageId,
@@ -2898,6 +2956,7 @@ class $$AttachmentsTableTableManager extends RootTableManager<
             hash: hash,
             base64: base64,
             json: json,
+            transportId: transportId,
           ),
           createCompanionCallback: ({
             required String messageId,
@@ -2913,6 +2972,7 @@ class $$AttachmentsTableTableManager extends RootTableManager<
             Value<String?> hash = const Value.absent(),
             Value<String?> base64 = const Value.absent(),
             Value<String?> json = const Value.absent(),
+            Value<String?> transportId = const Value.absent(),
           }) =>
               AttachmentsCompanion.insert(
             messageId: messageId,
@@ -2928,6 +2988,7 @@ class $$AttachmentsTableTableManager extends RootTableManager<
             hash: hash,
             base64: base64,
             json: json,
+            transportId: transportId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

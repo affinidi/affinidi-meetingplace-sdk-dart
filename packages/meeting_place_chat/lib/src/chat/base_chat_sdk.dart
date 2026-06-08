@@ -109,20 +109,22 @@ abstract class BaseChatSDK {
 
   /// Sends a plain text message with optional [attachments].
   ///
-  /// When [attachments] contains hosted-media entries, the SDK fans out one
-  /// media message per attachment. The [text] caption is included only on the
-  /// first message; subsequent attachments are sent without body text.
-  /// Returns the first persisted [Message].
+  /// Text and media travel together: each attachment is sent as a single
+  /// transport event carrying [text] as its caption. When multiple
+  /// attachments are supplied, only the first event carries [text]; the
+  /// rest are sent without a caption. Returns the single persisted
+  /// [Message] carrying all attachments.
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
   });
 
-  /// Downloads and decrypts the hosted-media attachment(s) referenced by
-  /// [message]. Resolves the wire-level reference (e.g. the Matrix event id
-  /// stored in [Message.transportId]) via the underlying transport, so SDK
-  /// consumers never see encryption keys or transport URIs.
-  Future<Uint8List> downloadMedia(Message message);
+  /// Downloads and decrypts the hosted-media bytes referenced by
+  /// [attachment]. Resolves the wire-level reference
+  /// ([ChatAttachment.transportId]) via the underlying transport, so SDK
+  /// consumers never see encryption keys or transport URIs. For DIDComm
+  /// attachments the bytes are decoded inline from [ChatAttachmentData].
+  Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}

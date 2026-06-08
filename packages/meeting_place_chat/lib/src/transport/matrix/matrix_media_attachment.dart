@@ -15,6 +15,16 @@ class MediaMsgType {
   static const video = 'm.video';
 }
 
+/// Custom field keys the SDK adds to matrix event `content`.
+class MatrixEventField {
+  MatrixEventField._();
+
+  /// Correlates several matrix file events emitted by a single
+  /// `sendTextMessage` call so the receiver can coalesce them back into one
+  /// logical `Message` carrying multiple attachments.
+  static const correlationId = 'mp_correlation_id';
+}
+
 /// Matrix-specific helpers for parsing and inspecting hosted-media attachments
 /// carried inside Matrix room events.
 ///

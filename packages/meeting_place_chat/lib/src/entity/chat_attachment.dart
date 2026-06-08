@@ -1,3 +1,5 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import 'chat_attachment_data.dart';
 
 export 'chat_attachment_data.dart';
@@ -43,7 +45,7 @@ class ChatAttachment {
     String? id,
     String? description,
     String? filename,
-    String mediaType = defaultVoiceMediaType,
+    String? mediaType,
     String? format,
     DateTime? lastModifiedTime,
     int? byteCount,
@@ -52,14 +54,19 @@ class ChatAttachment {
     if (base64.isEmpty) {
       throw ArgumentError.value(base64, 'base64', 'must not be empty');
     }
-    if (!mediaType.toLowerCase().startsWith('audio/')) {
-      throw ArgumentError.value(mediaType, 'mediaType', 'must be audio/*');
+    final effectiveMediaType = mediaType ?? defaultVoiceMediaType;
+    if (!effectiveMediaType.toLowerCase().startsWith('audio/')) {
+      throw ArgumentError.value(
+        effectiveMediaType,
+        'mediaType',
+        'must be audio/*',
+      );
     }
     return ChatAttachment(
       id: id,
       description: description,
       filename: filename,
-      mediaType: mediaType,
+      mediaType: effectiveMediaType,
       format: format,
       lastModifiedTime: lastModifiedTime,
       data: ChatAttachmentData(base64: base64),
@@ -99,7 +106,13 @@ class ChatAttachment {
   }
 
   /// Default MIME type used by [ChatAttachment.voiceMessage].
-  static const defaultVoiceMediaType = 'audio/mp4';
+  static final defaultVoiceMediaType = AttachmentMediaType.audioMp4.value;
+
+  /// Minimum normalized waveform sample value.
+  static const waveformMinSample = 0;
+
+  /// Maximum normalized waveform sample value.
+  static const waveformMaxSample = 100;
 
   /// Unique identifier for the attachment.
   final String? id;
@@ -177,7 +190,7 @@ class ChatAttachment {
   static List<int>? _validateWaveform(List<int>? waveform) {
     if (waveform == null) return null;
     for (final sample in waveform) {
-      if (sample < 0 || sample > 100) {
+      if (sample < waveformMinSample || sample > waveformMaxSample) {
         throw ArgumentError.value(sample, 'waveform', 'must be 0-100');
       }
     }
@@ -189,10 +202,10 @@ class ChatAttachment {
     if (value is! String) {
       throw const FormatException('Invalid attachment media_kind');
     }
-    return switch (value) {
-      'voice' => AttachmentMediaKind.voice,
-      _ => throw const FormatException('Invalid attachment media_kind'),
-    };
+    if (value == AttachmentMediaKind.voice.value) {
+      return AttachmentMediaKind.voice;
+    }
+    throw const FormatException('Invalid attachment media_kind');
   }
 
   static int? _durationMsFromJson(Object? value) {
@@ -210,7 +223,9 @@ class ChatAttachment {
     }
     final samples = <int>[];
     for (final sample in value) {
-      if (sample is! int || sample < 0 || sample > 100) {
+      if (sample is! int ||
+          sample < waveformMinSample ||
+          sample > waveformMaxSample) {
         throw const FormatException('Invalid attachment waveform');
       }
       samples.add(sample);

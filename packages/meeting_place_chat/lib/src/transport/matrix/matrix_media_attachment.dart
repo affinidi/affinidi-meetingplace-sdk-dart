@@ -40,8 +40,6 @@ class MatrixMediaAttachments {
   static const waveformInfoKey = 'io.affinidi.mpx.waveform';
 
   static const _durationInfoKey = 'duration';
-  static const _mediaKindVoiceValue = 'voice';
-
   static const Set<String> _mediaMsgTypes = {
     MediaMsgType.file,
     MediaMsgType.image,
@@ -103,7 +101,7 @@ class MatrixMediaAttachments {
     final info = <String, dynamic>{
       'mimetype': contentType,
       'size': sizeBytes,
-      mediaKindInfoKey: _mediaKindVoiceValue,
+      mediaKindInfoKey: AttachmentMediaKind.voice.value,
       _durationInfoKey: durationMs,
     };
     final waveform = attachment.waveform;
@@ -138,14 +136,20 @@ class MatrixMediaAttachments {
   }
 
   static AttachmentMediaKind? _mediaKindValue(Object? value) {
-    return value == _mediaKindVoiceValue ? AttachmentMediaKind.voice : null;
+    return value == AttachmentMediaKind.voice.value
+        ? AttachmentMediaKind.voice
+        : null;
   }
 
   static List<int>? _waveformValue(Object? value) {
     if (value is! List) return null;
     final samples = <int>[];
     for (final sample in value) {
-      if (sample is! int || sample < 0 || sample > 100) return null;
+      if (sample is! int ||
+          sample < ChatAttachment.waveformMinSample ||
+          sample > ChatAttachment.waveformMaxSample) {
+        return null;
+      }
       samples.add(sample);
     }
     return List.unmodifiable(samples);

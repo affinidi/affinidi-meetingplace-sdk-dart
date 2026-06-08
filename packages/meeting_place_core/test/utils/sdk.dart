@@ -21,6 +21,7 @@ import 'package:meeting_place_core/src/utils/cached_did_resolver.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../fixtures/sdk.dart';
 import 'repository/channel_repository_impl.dart';
@@ -98,6 +99,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
   required ChannelRepository? channelRepository,
   required bool buildDidcomm,
 }) async {
+  await ensureVodozemacInitialized();
   final effectiveWallet = wallet ?? PersistentWallet(InMemoryKeyStore());
   final storage = InMemoryStorage();
   final keyRepository = KeyRepositoryImpl(storage: storage);
@@ -205,6 +207,19 @@ Uri getMatrixHomeserver() =>
       final s? => Uri.parse(s),
       _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
     };
+
+String getVodozemacLibraryPath() =>
+    Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
+    env['VODOZEMAC_LIBRARY_PATH'] ??
+    (throw Exception('VODOZEMAC_LIBRARY_PATH not set in environment'));
+
+/// Ensures the vodozemac native library is loaded before any Matrix client is
+/// created. The CoreSDK now requires this (matrix E2EE is on by default), so
+/// every integration test that spins up an SDK must initialize it first.
+Future<void> ensureVodozemacInitialized() async {
+  if (vod.isInitialized()) return;
+  await vod.init(libraryPath: getVodozemacLibraryPath());
+}
 
 ChannelRepository initChannelRepository() {
   return ChannelRepositoryImpl(storage: InMemoryStorage());

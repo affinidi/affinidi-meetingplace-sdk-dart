@@ -147,21 +147,38 @@ class ControlPlaneEventManager {
     final methodName = 'handleEventsBatch';
     _logger.info('Started processing batch of events', name: methodName);
 
-    final processedEvents = <DiscoveryEvent>[];
+    final acknowledgedEvents = <DiscoveryEvent<dynamic>>[];
+    final processedEventsForDedup = <DiscoveryEvent>[];
 
     for (final event in events) {
       try {
         _logger.info('Process event of type ${event.type.name}');
-        final channels = await _processEvent(event, processedEvents);
-        processedEvents.add(event);
+        final channels = await _processEvent(event, processedEventsForDedup);
+        processedEventsForDedup.add(event);
+        final shouldAcknowledge = _acknowledgeEvent(event, channels);
+
+        if (shouldAcknowledge) {
+          acknowledgedEvents.add(event);
+        }
 
         for (final channel in channels) {
+          if (event.type == ControlPlaneEventType.ChannelActivity &&
+              channel.status != ChannelStatus.inaugurated) {
+            _logger.info(
+              'Skip stream emission for non-inaugurated channel activity '
+              '(status: ${channel.status}) did: ${channel.permanentChannelDid}',
+              name: methodName,
+            );
+            continue;
+          }
+
           _streamManager.pushEvent(
             ControlPlaneStreamEvent(channel: channel, type: event.type),
           );
         }
       } on EventHandlerException catch (e, stackTrace) {
-        processedEvents.add(event);
+        processedEventsForDedup.add(event);
+        acknowledgedEvents.add(event);
         _streamManager.addError(e);
         _logger.error(
           'Failed to process event of type ${event.type.name}: ${e.message}',
@@ -170,7 +187,8 @@ class ControlPlaneEventManager {
           name: methodName,
         );
       } catch (e, stackTrace) {
-        processedEvents.add(event);
+        processedEventsForDedup.add(event);
+        acknowledgedEvents.add(event);
         _streamManager.addError(e);
         _logger.error(
           'Failed to process event of type ${event.type.name}',
@@ -182,7 +200,34 @@ class ControlPlaneEventManager {
     }
 
     _logger.info('Completed processing batch of events', name: methodName);
-    return processedEvents;
+    return acknowledgedEvents;
+  }
+
+  bool _acknowledgeEvent(DiscoveryEvent event, List<Channel> channels) {
+    if (event.type != ControlPlaneEventType.ChannelActivity) {
+      return true;
+    }
+
+    if (channels.isEmpty) {
+      return true;
+    }
+
+    final hasOnlyNonInauguratedChannels = channels.every(
+      (channel) => channel.status != ChannelStatus.inaugurated,
+    );
+
+    if (hasOnlyNonInauguratedChannels) {
+      final channelActivity = event.data as ChannelActivity;
+      _logger.info(
+        'Deferring ChannelActivity acknowledgement until channel becomes '
+        'inaugurated. did: ${channelActivity.did}, type: '
+        '${channelActivity.type}',
+        name: '_acknowledgeEvent',
+      );
+      return false;
+    }
+
+    return true;
   }
 
   Future<List<Channel>> _processEvent(

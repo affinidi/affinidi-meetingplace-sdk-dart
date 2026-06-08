@@ -243,11 +243,8 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<Uint8List> downloadMedia(Message message) async {
-    if (message.attachments.isEmpty) {
-      throw StateError('Message has no attachments to download');
-    }
-    return message.attachments.first.decodeInlineBytes();
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
+    return attachment.decodeInlineBytes();
   }
 
   @override

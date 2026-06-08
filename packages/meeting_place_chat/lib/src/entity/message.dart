@@ -129,10 +129,11 @@ class Message extends ChatItem {
     required String chatId,
     required String senderDid,
     List<ChatAttachment> attachments = const [],
+    String? messageId,
   }) {
     return Message(
       chatId: chatId,
-      messageId: event.id,
+      messageId: messageId ?? event.id,
       senderDid: senderDid,
       value: _valueFromRoomEvent(event),
       isFromMe: true,
@@ -151,10 +152,11 @@ class Message extends ChatItem {
     required String chatId,
     required String senderDid,
     List<ChatAttachment> attachments = const [],
+    String? messageId,
   }) {
     return Message(
       chatId: chatId,
-      messageId: event.id,
+      messageId: messageId ?? event.id,
       senderDid: senderDid,
       value: _valueFromRoomEvent(event),
       isFromMe: false,

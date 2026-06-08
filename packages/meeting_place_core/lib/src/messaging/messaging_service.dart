@@ -94,6 +94,7 @@ class MessagingService {
     required String contentType,
     String? filename,
     String? caption,
+    Map<String, dynamic>? extraContent,
   }) {
     return _errorHandler.handleError(() async {
       switch (channel.transport) {
@@ -104,6 +105,7 @@ class MessagingService {
             contentType: contentType,
             filename: filename,
             caption: caption,
+            extraContent: extraContent,
           );
         case ChannelTransport.didcomm:
           // TODO(media-upload): inline-attachment DIDComm path; enforce
@@ -148,6 +150,7 @@ class MessagingService {
     required String contentType,
     String? filename,
     String? caption,
+    Map<String, dynamic>? extraContent,
   }) async {
     final didManager = await _getDidManager(_permanentChannelDid(channel));
 
@@ -161,13 +164,18 @@ class MessagingService {
       channel: channel,
     );
 
+    final mergedExtra = <String, dynamic>{
+      if (caption != null) 'body': caption,
+      ...?extraContent,
+    };
+
     return _matrixService.sendFileEvent(
       roomId,
       bytes: fileBytes,
       contentType: contentType,
       filename: filename,
       didManager: didManager,
-      extraContent: caption == null ? null : {'body': caption},
+      extraContent: mergedExtra.isEmpty ? null : mergedExtra,
     );
   }
 

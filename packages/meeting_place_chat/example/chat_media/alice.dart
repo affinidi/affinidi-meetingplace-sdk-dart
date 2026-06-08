@@ -135,8 +135,10 @@ void main() async {
       },
     );
 
-    prettyPrintGreen('>>> Calling MeetingPlaceChatSDK.downloadMedia(message)');
-    final bytes = await aliceChatSDK.downloadMedia(item);
+    prettyPrintGreen(
+      '>>> Calling MeetingPlaceChatSDK.downloadMedia(attachment)',
+    );
+    final bytes = await aliceChatSDK.downloadMedia(attachment);
 
     final downloadedFile = File(
       '${outputDirectory.path}${Platform.pathSeparator}'

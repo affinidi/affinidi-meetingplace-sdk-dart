@@ -1153,6 +1153,7 @@ class MeetingPlaceCoreSDK {
     required String contentType,
     String? filename,
     String? caption,
+    Map<String, dynamic>? extraContent,
   }) {
     return _messagingService.sendMediaMessage(
       channel,
@@ -1160,6 +1161,7 @@ class MeetingPlaceCoreSDK {
       contentType: contentType,
       filename: filename,
       caption: caption,
+      extraContent: extraContent,
     );
   }
 

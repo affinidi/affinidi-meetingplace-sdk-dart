@@ -57,22 +57,24 @@ void main() {
       final receivedAttachment = receivedMessage.attachments.single;
 
       // Display-only metadata: mxc URI and encryption JSON are stripped on the
-      // SDK boundary; the parent message's transportId is the only reference.
+      // SDK boundary; per-attachment transportId is the only reference.
       expect(receivedAttachment.format, AttachmentFormat.hostedMedia.value);
       expect(receivedAttachment.mediaType, attachment.mediaType);
       expect(receivedAttachment.filename, attachment.filename);
       expect(receivedAttachment.data, isNull);
+      expect(receivedAttachment.transportId, isNotNull);
       expect(receivedMessage.transportId, isNotNull);
       expect(receivedMessage.value, 'Hello World!');
 
       final downloaded = await fixture.bobChatSDK.downloadMedia(
-        receivedMessage,
+        receivedAttachment,
       );
       expect(downloaded, originalBytes);
 
       // Sender side mirrors: stored attachment carries display metadata only,
       // transportId is set after the matrix event is acknowledged.
       expect(sentMessage.attachments.single.data, isNull);
+      expect(sentMessage.attachments.single.transportId, isNotNull);
       expect(sentMessage.transportId, isNotNull);
     },
   );

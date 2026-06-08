@@ -79,6 +79,7 @@ class IncomingRoomEventRouter {
         chatRepository: chatSDK.chatRepository,
         chatStream: chatSDK.chatStream,
         chatId: chatSDK.chatId,
+        serverEventIdToMessageId: chatSDK.serverEventIdToMessageId,
         logger: chatSDK.logger,
         editHandler: MessageEditHandler(
           chatRepository: chatSDK.chatRepository,

@@ -1,3 +1,7 @@
+## 0.0.1-dev.40
+
+ - **FIX**: non inaugurated channel activity (#200).
+
 ## 0.0.1-dev.39
 
  - **FIX**: OOB invitation parser pre-auth crash vulnerability (#198).

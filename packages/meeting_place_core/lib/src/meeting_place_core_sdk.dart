@@ -1166,10 +1166,7 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Downloads and decrypts the media identified by [reference] in [channel].
-  Future<Uint8List> downloadMedia(
-    Channel channel,
-    MediaReference reference,
-  ) {
+  Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) {
     return _messagingService.downloadMedia(channel, reference);
   }
 

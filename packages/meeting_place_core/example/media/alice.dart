@@ -97,7 +97,7 @@ void main() async {
 
   // Hand the event id to Bob so he can fetch and decrypt the bytes.
   File(
-    '${outputDirectory.path}${Platform.pathSeparator}media-${publishOfferResult.connectionOffer.mnemonic}.txt',
+    '''${outputDirectory.path}${Platform.pathSeparator}media-${publishOfferResult.connectionOffer.mnemonic}.txt''',
   ).writeAsStringSync(eventId ?? '');
 
   await notificationSubscription.cancel();

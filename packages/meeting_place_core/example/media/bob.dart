@@ -74,7 +74,7 @@ void main() async {
 
   // Wait for Alice to publish the media event id.
   final eventIdFile = File(
-    '${outputDirectory.path}${Platform.pathSeparator}media-${utf8.decode(mnemonicBytes)}.txt',
+    '''${outputDirectory.path}${Platform.pathSeparator}media-${utf8.decode(mnemonicBytes)}.txt''',
   );
   prettyPrintYellow('=== Waiting for Alice to send a media message...');
   while (!eventIdFile.existsSync() || eventIdFile.readAsStringSync().isEmpty) {

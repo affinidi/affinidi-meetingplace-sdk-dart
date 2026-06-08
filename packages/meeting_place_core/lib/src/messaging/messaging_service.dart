@@ -7,10 +7,10 @@ import '../entity/channel.dart';
 import '../repository/group_repository.dart';
 import '../sdk/sdk_error_handler.dart';
 import '../service/channel/channel_service.dart';
+import '../service/matrix/matrix_media_exception.dart';
 import '../service/matrix/matrix_room_event.dart';
 import '../service/matrix/matrix_service.dart';
 import '../service/matrix/matrix_user_id_binding.dart';
-import '../service/matrix/matrix_media_exception.dart';
 import '../service/mediator/mediator_message.dart';
 import '../service/message/message_service.dart';
 import '../transport/didcomm_transport.dart';
@@ -86,8 +86,8 @@ class MessagingService {
   /// currently throws [UnimplementedError]; inline-attachment support is
   /// deferred to a follow-up.
   ///
-  /// Throws [MediaException.tooLarge] when [fileBytes] exceeds the transport's
-  /// maximum allowed size.
+  /// Throws [MatrixMediaException.tooLarge] when [fileBytes] exceeds the
+  /// transport's maximum allowed size.
   Future<String?> sendMediaMessage(
     Channel channel,
     Uint8List fileBytes, {

@@ -44,8 +44,7 @@ MatrixRoomEvent _imageEvent({
     'body': caption ?? filename,
     'filename': filename,
     'info': {'mimetype': 'image/jpeg', 'size': 1234},
-    if (correlationId != null)
-      MatrixEventField.correlationId: correlationId,
+    if (correlationId != null) MatrixEventField.correlationId: correlationId,
   },
   timestamp: timestamp ?? DateTime.utc(2026, 1, 1, 12),
 );
@@ -122,9 +121,7 @@ void main() {
     test(
       'absent correlationId: legacy one-event-one-Message, keyed on event id',
       () async {
-        await handler.handle(
-          _imageEvent(id: r'$evt-1', filename: 'a.jpg'),
-        );
+        await handler.handle(_imageEvent(id: r'$evt-1', filename: 'a.jpg'));
 
         verify(() => repo.createMessage(any())).called(1);
         expect(store.keys, contains(r'$evt-1'));
@@ -192,78 +189,77 @@ void main() {
       },
     );
 
+    test('out-of-order arrival: second event arrives first, first later '
+        'is appended into the same logical Message', () async {
+      // The "second" matrix event arrives first.
+      await handler.handle(
+        _imageEvent(
+          id: r'$evt-2',
+          filename: 'b.jpg',
+          correlationId: 'corr-uuid',
+        ),
+      );
+      // Then the originally-first event lands.
+      await handler.handle(
+        _imageEvent(
+          id: r'$evt-1',
+          filename: 'a.jpg',
+          correlationId: 'corr-uuid',
+          caption: 'My caption',
+        ),
+      );
+
+      verify(() => repo.createMessage(any())).called(1);
+      verify(() => repo.updateMesssage(any())).called(1);
+      expect(store.keys, ['corr-uuid']);
+
+      final stored = store['corr-uuid']! as Message;
+      expect(stored.attachments, hasLength(2));
+      // Arrival order is preserved (b first, then a). The Message itself
+      // is created from whichever event arrived first.
+      expect(stored.attachments[0].transportId, r'$evt-2');
+      expect(stored.attachments[1].transportId, r'$evt-1');
+      expect(idMap[r'$evt-1'], 'corr-uuid');
+      expect(idMap[r'$evt-2'], 'corr-uuid');
+    });
+
     test(
-      'out-of-order arrival: second event arrives first, first later '
-      'is appended into the same logical Message',
+      'm.replace edit events bypass coalescing and reach edit handler',
       () async {
-        // The "second" matrix event arrives first.
-        await handler.handle(
-          _imageEvent(
-            id: r'$evt-2',
-            filename: 'b.jpg',
-            correlationId: 'corr-uuid',
-          ),
+        // Seed a Message for the edit to target.
+        final original = Message(
+          chatId: _chatId,
+          messageId: r'$orig',
+          senderDid: _aliceDid,
+          value: 'original',
+          isFromMe: false,
+          dateCreated: DateTime.utc(2026, 1, 1, 11),
+          status: ChatItemStatus.received,
         );
-        // Then the originally-first event lands.
-        await handler.handle(
-          _imageEvent(
-            id: r'$evt-1',
-            filename: 'a.jpg',
-            correlationId: 'corr-uuid',
-            caption: 'My caption',
-          ),
+        store[r'$orig'] = original;
+
+        final edit = MatrixRoomEvent(
+          id: r'$edit',
+          type: 'm.room.message',
+          senderDid: _aliceDid,
+          roomId: '!room:server',
+          content: {
+            'msgtype': 'm.text',
+            'body': '* edited',
+            'm.new_content': {'msgtype': 'm.text', 'body': 'edited'},
+            'm.relates_to': {'rel_type': 'm.replace', 'event_id': r'$orig'},
+            // A correlation id on an edit must NOT cause a new Message to be
+            // created — the edit-relation early-return takes precedence.
+            MatrixEventField.correlationId: 'corr-uuid',
+          },
+          timestamp: DateTime.utc(2026, 1, 1, 13),
         );
 
-        verify(() => repo.createMessage(any())).called(1);
-        verify(() => repo.updateMesssage(any())).called(1);
-        expect(store.keys, ['corr-uuid']);
+        await handler.handle(edit);
 
-        final stored = store['corr-uuid']! as Message;
-        expect(stored.attachments, hasLength(2));
-        // Arrival order is preserved (b first, then a). The Message itself
-        // is created from whichever event arrived first.
-        expect(stored.attachments[0].transportId, r'$evt-2');
-        expect(stored.attachments[1].transportId, r'$evt-1');
-        expect(idMap[r'$evt-1'], 'corr-uuid');
-        expect(idMap[r'$evt-2'], 'corr-uuid');
+        verifyNever(() => repo.createMessage(any()));
+        expect(original.value, 'edited');
       },
     );
-
-    test('m.replace edit events bypass coalescing and reach edit handler',
-        () async {
-      // Seed a Message for the edit to target.
-      final original = Message(
-        chatId: _chatId,
-        messageId: r'$orig',
-        senderDid: _aliceDid,
-        value: 'original',
-        isFromMe: false,
-        dateCreated: DateTime.utc(2026, 1, 1, 11),
-        status: ChatItemStatus.received,
-      );
-      store[r'$orig'] = original;
-
-      final edit = MatrixRoomEvent(
-        id: r'$edit',
-        type: 'm.room.message',
-        senderDid: _aliceDid,
-        roomId: '!room:server',
-        content: {
-          'msgtype': 'm.text',
-          'body': '* edited',
-          'm.new_content': {'msgtype': 'm.text', 'body': 'edited'},
-          'm.relates_to': {'rel_type': 'm.replace', 'event_id': r'$orig'},
-          // A correlation id on an edit must NOT cause a new Message to be
-          // created — the edit-relation early-return takes precedence.
-          MatrixEventField.correlationId: 'corr-uuid',
-        },
-        timestamp: DateTime.utc(2026, 1, 1, 13),
-      );
-
-      await handler.handle(edit);
-
-      verifyNever(() => repo.createMessage(any()));
-      expect(original.value, 'edited');
-    });
   });
 }

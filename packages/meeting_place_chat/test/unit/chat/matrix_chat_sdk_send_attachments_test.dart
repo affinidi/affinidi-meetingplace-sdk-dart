@@ -185,48 +185,50 @@ void main() {
       expect(captions[1], isNull);
     });
 
-    test('same correlation id is sent for every attachment in the call',
-        () async {
-      final correlationIds = <String?>[];
-      when(
-        () => core.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          caption: any(named: 'caption'),
-          extraContent: any(named: 'extraContent'),
-        ),
-      ).thenAnswer((inv) async {
-        final extra =
-            inv.namedArguments[#extraContent] as Map<String, dynamic>?;
-        correlationIds.add(extra?[MatrixEventField.correlationId] as String?);
-        return '\$event-${correlationIds.length}';
-      });
+    test(
+      'same correlation id is sent for every attachment in the call',
+      () async {
+        final correlationIds = <String?>[];
+        when(
+          () => core.sendMediaMessage(
+            any(),
+            any(),
+            contentType: any(named: 'contentType'),
+            filename: any(named: 'filename'),
+            caption: any(named: 'caption'),
+            extraContent: any(named: 'extraContent'),
+          ),
+        ).thenAnswer((inv) async {
+          final extra =
+              inv.namedArguments[#extraContent] as Map<String, dynamic>?;
+          correlationIds.add(extra?[MatrixEventField.correlationId] as String?);
+          return '\$event-${correlationIds.length}';
+        });
 
-      final attachments = [
-        ChatAttachment(
-          filename: 'a.jpg',
-          mediaType: 'image/jpeg',
-          data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
-        ),
-        ChatAttachment(
-          filename: 'b.jpg',
-          mediaType: 'image/jpeg',
-          data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
-        ),
-      ];
+        final attachments = [
+          ChatAttachment(
+            filename: 'a.jpg',
+            mediaType: 'image/jpeg',
+            data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
+          ),
+          ChatAttachment(
+            filename: 'b.jpg',
+            mediaType: 'image/jpeg',
+            data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
+          ),
+        ];
 
-      final message = await sdk.sendTextMessage(
-        'Hi',
-        attachments: attachments,
-      );
+        final message = await sdk.sendTextMessage(
+          'Hi',
+          attachments: attachments,
+        );
 
-      expect(correlationIds, hasLength(2));
-      expect(correlationIds[0], isNotNull);
-      expect(correlationIds[0], correlationIds[1]);
-      expect(correlationIds[0], message.messageId);
-    });
+        expect(correlationIds, hasLength(2));
+        expect(correlationIds[0], isNotNull);
+        expect(correlationIds[0], correlationIds[1]);
+        expect(correlationIds[0], message.messageId);
+      },
+    );
 
     test('returns error message and stops on send failure', () async {
       var sendCount = 0;
@@ -269,50 +271,52 @@ void main() {
       verify(() => repo.createMessage(any())).called(1);
     });
 
-    test('returns single logical message on full success with transportId',
-        () async {
-      var sendMediaCount = 0;
-      when(
-        () => core.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          caption: any(named: 'caption'),
-          extraContent: any(named: 'extraContent'),
-        ),
-      ).thenAnswer((_) async {
-        sendMediaCount++;
-        return '\$event-$sendMediaCount';
-      });
+    test(
+      'returns single logical message on full success with transportId',
+      () async {
+        var sendMediaCount = 0;
+        when(
+          () => core.sendMediaMessage(
+            any(),
+            any(),
+            contentType: any(named: 'contentType'),
+            filename: any(named: 'filename'),
+            caption: any(named: 'caption'),
+            extraContent: any(named: 'extraContent'),
+          ),
+        ).thenAnswer((_) async {
+          sendMediaCount++;
+          return '\$event-$sendMediaCount';
+        });
 
-      final attachments = [
-        ChatAttachment(
-          filename: 'first.jpg',
-          mediaType: 'image/jpeg',
-          data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
-        ),
-        ChatAttachment(
-          filename: 'second.jpg',
-          mediaType: 'image/jpeg',
-          data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
-        ),
-      ];
+        final attachments = [
+          ChatAttachment(
+            filename: 'first.jpg',
+            mediaType: 'image/jpeg',
+            data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
+          ),
+          ChatAttachment(
+            filename: 'second.jpg',
+            mediaType: 'image/jpeg',
+            data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
+          ),
+        ];
 
-      final result = await sdk.sendTextMessage(
-        'Both',
-        attachments: attachments,
-      );
+        final result = await sdk.sendTextMessage(
+          'Both',
+          attachments: attachments,
+        );
 
-      expect(result.status, ChatItemStatus.sent);
-      expect(result.isFromMe, isTrue);
-      // The parent Message anchors on the first matrix event id (used as
-      // the target for reactions/edits/redactions).
-      expect(result.transportId, '\$event-1');
-      expect(result.attachments, hasLength(2));
-      expect(result.attachments[0].transportId, '\$event-1');
-      expect(result.attachments[1].transportId, '\$event-2');
-    });
+        expect(result.status, ChatItemStatus.sent);
+        expect(result.isFromMe, isTrue);
+        // The parent Message anchors on the first matrix event id (used as
+        // the target for reactions/edits/redactions).
+        expect(result.transportId, '\$event-1');
+        expect(result.attachments, hasLength(2));
+        expect(result.attachments[0].transportId, '\$event-1');
+        expect(result.attachments[1].transportId, '\$event-2');
+      },
+    );
 
     test('attachment without base64 data throws StateError', () async {
       final attachment = ChatAttachment(
@@ -335,10 +339,7 @@ void main() {
         format: AttachmentFormat.hostedMedia.value,
       );
 
-      expect(
-        () => sdk.downloadMedia(attachment),
-        throwsA(isA<StateError>()),
-      );
+      expect(() => sdk.downloadMedia(attachment), throwsA(isA<StateError>()));
     });
 
     test(

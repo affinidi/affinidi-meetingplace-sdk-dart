@@ -49,8 +49,7 @@ void main() {
         where: (item) =>
             item is Message &&
             item.attachments.isNotEmpty &&
-            item.attachments.first.format ==
-                AttachmentFormat.hostedMedia.value,
+            item.attachments.first.format == AttachmentFormat.hostedMedia.value,
       );
 
       final receivedMessage = receivedItem as Message;

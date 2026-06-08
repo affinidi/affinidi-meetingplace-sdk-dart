@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/sdk/sdk_error_handler.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
-import 'package:meeting_place_core/src/service/matrix/media/media.dart';
+import 'package:meeting_place_core/src/service/matrix/matrix_media_exception.dart';
 import 'package:meeting_place_core/src/service/message/message_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';

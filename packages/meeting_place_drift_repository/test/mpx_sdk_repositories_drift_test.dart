@@ -289,31 +289,30 @@ void main() {
       );
       addTearDown(database.close);
 
-
-        final repository = ConnectionOfferRepositoryDrift(database: database);
-        final connectionOffer = model.ConnectionOffer(
-          offerName: 'Offer name',
-          offerLink: 'https://example.com/offer',
-          mnemonic: 'mnemonic words',
-          publishOfferDid: 'did:example:publisher',
-          mediatorDid: 'did:example:mediator',
-          oobInvitationMessage: 'invitation-message',
-          type: model.ConnectionOfferType.meetingPlaceInvitation,
-          status: model.ConnectionOfferStatus.published,
-          contactCard: model.ContactCard(
-            did: 'did:example:contact',
-            type: 'Person',
-            contactInfo: {
-              'organization': 'Acme',
-              'photo': 'mxc://server/photo',
-              'x-anything': {'value': 'kept'},
-            },
-          ),
-          ownedByMe: true,
-          createdAt: DateTime.utc(2026, 1, 1),
-          transport: model.ChannelTransport.didcomm,
-        );
-        await repository.createConnectionOffer(connectionOffer);
+      final repository = ConnectionOfferRepositoryDrift(database: database);
+      final connectionOffer = model.ConnectionOffer(
+        offerName: 'Offer name',
+        offerLink: 'https://example.com/offer',
+        mnemonic: 'mnemonic words',
+        publishOfferDid: 'did:example:publisher',
+        mediatorDid: 'did:example:mediator',
+        oobInvitationMessage: 'invitation-message',
+        type: model.ConnectionOfferType.meetingPlaceInvitation,
+        status: model.ConnectionOfferStatus.published,
+        contactCard: model.ContactCard(
+          did: 'did:example:contact',
+          type: 'Person',
+          contactInfo: {
+            'organization': 'Acme',
+            'photo': 'mxc://server/photo',
+            'x-anything': {'value': 'kept'},
+          },
+        ),
+        ownedByMe: true,
+        createdAt: DateTime.utc(2026, 1, 1),
+        transport: model.ChannelTransport.didcomm,
+      );
+      await repository.createConnectionOffer(connectionOffer);
 
       final stored = await repository.getConnectionOfferByOfferLink(
         connectionOffer.offerLink,

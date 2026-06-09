@@ -68,9 +68,7 @@ class MediaTextMessageSender {
           id: attachments[i].id,
           description: attachments[i].description,
           filename: attachments[i].filename,
-          mediaType: VoiceMessageMetadata.isVoice(attachments[i])
-              ? contentTypes[i]
-              : attachments[i].mediaType,
+          mediaType: attachments[i].mediaType,
           format: AttachmentFormat.hostedMedia.value,
           lastModifiedTime: attachments[i].lastModifiedTime,
           byteCount: attachments[i].byteCount ?? attachmentBytes[i].length,

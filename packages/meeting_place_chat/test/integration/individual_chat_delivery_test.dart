@@ -12,8 +12,8 @@ void main() {
     fixture = await IndividualChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.dispose();
+  tearDown(() async {
+    await fixture.dispose();
   });
 
   test('alice sends multiple messages', () async {
@@ -43,9 +43,8 @@ void main() {
 
     final deliveredIds = (await aliceDelivered)
         .map((d) => d.event)
-        .whereType<UnhandledChatEvent>()
-        .where((e) => e.type == ChatProtocol.chatDelivered.value)
-        .expand((e) => (e.body!['messages'] as List).cast<String>())
+        .whereType<ChatMessageDeliveredEvent>()
+        .expand((e) => e.messageIds)
         .toSet();
     expect(deliveredIds, containsAll(messageIds));
 
@@ -67,10 +66,10 @@ void main() {
     final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
       fixture.bobChatSDK,
     );
-    final aliceDelivered = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
-      fixture.aliceChatSDK,
-      where: (e) => e.type == ChatProtocol.chatDelivered.value,
-    );
+    final aliceDelivered =
+        ChatTestHarness.awaitEvent<ChatMessageDeliveredEvent>(
+          fixture.aliceChatSDK,
+        );
 
     final sentMessage = await fixture.aliceChatSDK.sendTextMessage(
       'Hello World!',
@@ -121,10 +120,8 @@ void main() {
   );
 
   test('message is shown as sent even for notification error', () async {
-    final channel = await fixture.aliceSDK.coreSDK.getChannelByDid(
-      fixture.aliceSDK.didDocument.id,
-    );
-    channel!.otherPartyNotificationToken = 'invalid_token';
+    final channel = fixture.aliceChannel;
+    channel.otherPartyNotificationToken = 'invalid_token';
     await fixture.aliceSDK.coreSDK.updateChannel(channel);
 
     await fixture.aliceChatSDK.startChatSession();

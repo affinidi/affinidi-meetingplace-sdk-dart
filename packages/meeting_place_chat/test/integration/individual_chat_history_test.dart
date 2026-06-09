@@ -1,5 +1,4 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 import '../utils/chat_test_harness.dart';
@@ -15,8 +14,8 @@ void main() {
     fixture = await IndividualChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.dispose();
+  tearDown(() async {
+    await fixture.dispose();
   });
 
   test('chat history resumes and is chat-scoped', () async {
@@ -47,26 +46,14 @@ void main() {
       fixtures.ContactCardFixture.charliePrimaryCardInfo,
     );
 
-    // Keep behaviour aligned with original test setup: create a reciprocal
-    // Alice-channel on Charlie's repository.
-    await charlieSDK.channelRepository.createChannel(
-      Channel(
-        offerLink: 'charlie',
-        publishOfferDid: '',
-        mediatorDid: '',
-        permanentChannelDid: charlieSDK.didDocument.id,
-        otherPartyPermanentChannelDid: fixture.aliceSDK.didDocument.id,
-        status: ChannelStatus.inaugurated,
-        type: ChannelType.individual,
-        isConnectionInitiator: false,
-        contactCard: charlieSDK.contactCard,
-        otherPartyContactCard: fixture.aliceSDK.contactCard,
-      ),
+    final (aliceCharlieChannel, _) = await setup.establishIndividualConnection(
+      aliceSDK: fixture.aliceSDK,
+      bobSDK: charlieSDK,
     );
 
     final aliceChatWithCharlie = await setup.createChatSdk(
       sdkInstance: fixture.aliceSDK,
-      otherPartySdkInstance: charlieSDK,
+      channel: aliceCharlieChannel,
     );
 
     await aliceChatWithCharlie.startChatSession();
@@ -100,7 +87,7 @@ void main() {
 
       final chatSDK = await setup.createChatSdk(
         sdkInstance: fixture.aliceSDK,
-        otherPartySdkInstance: fixture.bobSDK,
+        channel: fixture.aliceChannel,
         storage: storage,
       );
 
@@ -110,7 +97,7 @@ void main() {
 
       final chatSDKNewInstance = await setup.createChatSdk(
         sdkInstance: fixture.aliceSDK,
-        otherPartySdkInstance: fixture.bobSDK,
+        channel: fixture.aliceChannel,
         storage: storage,
       );
 

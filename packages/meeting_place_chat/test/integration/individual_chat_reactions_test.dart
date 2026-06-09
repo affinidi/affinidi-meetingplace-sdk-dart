@@ -13,8 +13,8 @@ void main() {
     fixture = await IndividualChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.dispose();
+  tearDown(() async {
+    await fixture.dispose();
   });
 
   test('sending reactions to other party', () async {

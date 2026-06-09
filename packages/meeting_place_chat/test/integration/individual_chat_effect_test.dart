@@ -11,8 +11,8 @@ void main() {
     fixture = await IndividualChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.dispose();
+  tearDown(() async {
+    await fixture.dispose();
   });
 
   test('sendEffect delivers ChatEffectEvent to other party', () async {

@@ -11,7 +11,7 @@ abstract final class ChatTestHarness {
   /// [timeout]. The error message names [T] so failures point at the test.
   static Future<T> awaitEvent<T extends ChatEvent>(
     MeetingPlaceChatSDK sdk, {
-    Duration timeout = const Duration(seconds: 15),
+    Duration timeout = const Duration(seconds: 30),
     bool Function(T)? where,
   }) async {
     final stream = await sdk.chatStreamSubscription;

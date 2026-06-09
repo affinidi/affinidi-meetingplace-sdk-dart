@@ -11,8 +11,8 @@ void main() {
     fixture = await IndividualChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.dispose();
+  tearDown(() async {
+    await fixture.dispose();
   });
 
   test('sendCustomEvent delivers message to other party', () async {
@@ -35,7 +35,7 @@ void main() {
     await bobWait;
     final received = (await fixture.bobChatSDK.messages).first as Message;
     expect(received.value, equals('Hello via sendCustomEvent'));
-    expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
+    expect(received.senderDid, equals(fixture.aliceChannel.permanentChannelDid));
   });
 
   test('sendCustomEvent message is persisted in repository', () async {
@@ -58,7 +58,7 @@ void main() {
     await bobWait;
     final received = (await fixture.bobChatSDK.messages).first as Message;
     expect(received.value, equals('Persist test'));
-    expect(received.senderDid, equals(fixture.aliceSDK.didDocument.id));
+    expect(received.senderDid, equals(fixture.aliceChannel.permanentChannelDid));
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(

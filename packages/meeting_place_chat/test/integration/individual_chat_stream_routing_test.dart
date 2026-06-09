@@ -13,16 +13,18 @@ void main() {
     fixture = await IndividualChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.dispose();
+  tearDown(() async {
+    await fixture.dispose();
   });
 
   test('unhandled message is pushed to chat stream', () async {
+    final bobChannelDid = fixture.bobChannel.permanentChannelDid!;
+    final aliceChannelDid = fixture.aliceChannel.permanentChannelDid!;
     final unhandledMessage = PlainTextMessage(
       id: const Uuid().v4(),
       type: Uri.parse('https://example.com/${const Uuid().v4()}'),
-      from: fixture.bobSDK.didDocument.id,
-      to: [fixture.aliceSDK.didDocument.id],
+      from: bobChannelDid,
+      to: [aliceChannelDid],
       body: {'text': 'Hello Alice!'},
     );
 
@@ -34,8 +36,9 @@ void main() {
 
     await fixture.bobSDK.coreSDK.sendMessage(
       DidCommOutgoingMessage(
-        senderDid: fixture.bobSDK.didDocument.id,
-        recipientDid: fixture.aliceSDK.didDocument.id,
+        senderDid: bobChannelDid,
+        recipientDid: aliceChannelDid,
+        mediatorDid: fixture.bobChannel.mediatorDid,
         payload: unhandledMessage,
       ),
     );

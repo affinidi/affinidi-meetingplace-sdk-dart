@@ -1,4 +1,5 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../utils/contact_card_fixture.dart' as fixtures;
 import '../../utils/setup_chat_sdk.dart';
@@ -11,10 +12,16 @@ class IndividualChatFixture {
   late SDKInstance aliceSDK;
   late SDKInstance bobSDK;
 
+  late Channel aliceChannel;
+  late Channel bobChannel;
+
   late MeetingPlaceChatSDK aliceChatSDK;
   late MeetingPlaceChatSDK bobChatSDK;
 
-  static Future<IndividualChatFixture> create({SetupChatSdk? setup}) async {
+  static Future<IndividualChatFixture> create({
+    SetupChatSdk? setup,
+    ChannelTransport transport = ChannelTransport.didcomm,
+  }) async {
     final fixture = IndividualChatFixture._(setup: setup ?? SetupChatSdk());
 
     fixture.aliceSDK = await fixture.setup.createCoreSDK(
@@ -24,20 +31,31 @@ class IndividualChatFixture {
       fixtures.ContactCardFixture.bobPrimaryCardInfo,
     );
 
+    final (aliceChannel, bobChannel) = await fixture.setup
+        .establishIndividualConnection(
+          aliceSDK: fixture.aliceSDK,
+          bobSDK: fixture.bobSDK,
+          transport: transport,
+        );
+    fixture.aliceChannel = aliceChannel;
+    fixture.bobChannel = bobChannel;
+
     fixture.aliceChatSDK = await fixture.setup.createChatSdk(
       sdkInstance: fixture.aliceSDK,
-      otherPartySdkInstance: fixture.bobSDK,
+      channel: aliceChannel,
     );
     fixture.bobChatSDK = await fixture.setup.createChatSdk(
       sdkInstance: fixture.bobSDK,
-      otherPartySdkInstance: fixture.aliceSDK,
+      channel: bobChannel,
     );
 
     return fixture;
   }
 
-  void dispose() {
-    aliceChatSDK.endChatSession();
-    bobChatSDK.endChatSession();
+  Future<void> dispose() async {
+    await aliceChatSDK.endChatSession();
+    await bobChatSDK.endChatSession();
+    await aliceSDK.coreSDK.dispose();
+    await bobSDK.coreSDK.dispose();
   }
 }

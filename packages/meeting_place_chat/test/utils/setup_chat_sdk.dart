@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
+import 'repository/chat_repository_impl.dart';
 import 'sdk.dart';
+import 'storage/in_memory_storage.dart';
 import 'storage/storage.dart';
 
 class SDKInstance {
@@ -44,38 +48,92 @@ class SetupChatSdk {
     );
   }
 
+  /// Runs the real offer/accept/approve handshake between [aliceSDK]
+  /// and [bobSDK]. Returns the two inaugurated channels (Alice's view first).
+  /// After completion the chat-layer transport (matrix room or DIDComm chat
+  /// thread) exists and chat SDKs can be built via
+  /// [MeetingPlaceChatSDK.initialiseFromChannel].
+  ///
+  /// Pass [transport] to select the channel transport. Defaults to
+  /// [ChannelTransport.didcomm] to match [MeetingPlaceCoreSDK.publishOffer].
+  Future<(Channel aliceChannel, Channel bobChannel)>
+  establishIndividualConnection({
+    required SDKInstance aliceSDK,
+    required SDKInstance bobSDK,
+    ChannelTransport transport = ChannelTransport.didcomm,
+  }) async {
+    final offer = await aliceSDK.coreSDK.publishOffer(
+      offerName: 'Sample Offer',
+      offerDescription: 'Sample offer description',
+      contactCard: aliceSDK.contactCard,
+      type: SDKConnectionOfferType.invitation,
+      transport: transport,
+    );
+
+    final findOfferResult = await bobSDK.coreSDK.findOffer(
+      mnemonic: offer.connectionOffer.mnemonic,
+    );
+    await bobSDK.coreSDK.acceptOffer(
+      connectionOffer: findOfferResult.connectionOffer!,
+      contactCard: bobSDK.contactCard,
+      senderInfo: 'Bob',
+    );
+
+    final waitForInvitationAccept = Completer<Channel>();
+    final aliceSub = aliceSDK.coreSDK.controlPlaneEventsStream
+        .where((e) => e.matchesType(ControlPlaneEventType.InvitationAccept))
+        .listen((e) {
+          if (!waitForInvitationAccept.isCompleted) {
+            waitForInvitationAccept.complete(e.channel);
+          }
+        });
+
+    final waitForOfferFinalised = Completer<Channel>();
+    final bobSub = bobSDK.coreSDK.controlPlaneEventsStream
+        .where((e) => e.matchesType(ControlPlaneEventType.OfferFinalised))
+        .listen((e) {
+          if (!waitForOfferFinalised.isCompleted) {
+            waitForOfferFinalised.complete(e.channel);
+          }
+        });
+
+    await aliceSDK.coreSDK.processControlPlaneEvents();
+    final invitationChannel = await waitForInvitationAccept.future;
+
+    final aliceChannel = await aliceSDK.coreSDK.approveConnectionRequest(
+      channel: invitationChannel,
+    );
+
+    await bobSDK.coreSDK.processControlPlaneEvents();
+    final bobChannel = await waitForOfferFinalised.future;
+
+    await aliceSub.cancel();
+    await bobSub.cancel();
+
+    return (aliceChannel, bobChannel);
+  }
+
+  /// Builds a chat SDK against an already-established [channel] (typically
+  /// produced by [establishIndividualConnection]). Delegates to
+  /// [MeetingPlaceChatSDK.initialiseFromChannel] — the production factory.
   Future<MeetingPlaceChatSDK> createChatSdk({
     required SDKInstance sdkInstance,
-    required SDKInstance otherPartySdkInstance,
+    required Channel channel,
     Storage? storage,
     ContactCard? card,
-    ContactCard? channelCard,
+    MeetingPlaceChatSDKOptions? options,
   }) async {
-    await sdkInstance.coreSDK.mediator.updateAcl(
-      ownerDidManager: sdkInstance.didManager,
-      acl: AccessListAdd(
-        ownerDid: sdkInstance.didDocument.id,
-        granteeDids: [otherPartySdkInstance.didDocument.id],
-      ),
-    );
-
-    await otherPartySdkInstance.coreSDK.mediator.updateAcl(
-      ownerDidManager: otherPartySdkInstance.didManager,
-      acl: AccessListAdd(
-        ownerDid: otherPartySdkInstance.didDocument.id,
-        granteeDids: [sdkInstance.didDocument.id],
-      ),
-    );
-
-    return initIndividualChatSDK(
+    final chatStorage = storage ?? InMemoryStorage();
+    return MeetingPlaceChatSDK.initialiseFromChannel(
+      channel,
       coreSDK: sdkInstance.coreSDK,
-      did: sdkInstance.didDocument.id,
-      otherPartyDid: otherPartySdkInstance.didDocument.id,
-      channelRepository: sdkInstance.channelRepository,
-      channelCard: channelCard ?? sdkInstance.contactCard,
+      chatRepository: ChatRepositoryImpl(storage: chatStorage),
       card: card ?? sdkInstance.contactCard,
-      otherPartyCard: otherPartySdkInstance.contactCard,
-      existingStorage: storage,
+      options:
+          options ??
+          MeetingPlaceChatSDKOptions(
+            chatPresenceSendInterval: const Duration(seconds: 3),
+          ),
     );
   }
 }

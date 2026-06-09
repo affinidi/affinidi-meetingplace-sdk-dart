@@ -27,21 +27,21 @@ class GroupDeletionHandler implements ChatEventHandler {
   @override
   Future<void> handle(IncomingChatEvent event) async {
     final group = _getGroup();
+    if (group.isDeleted) return;
 
-    if (!group.isDeleted) {
-      group.markAsDeleted();
-      await _coreSDK.updateGroup(group);
-      _setGroup(group);
+    group.markAsDeleted();
+    await _coreSDK.updateGroup(group);
+    _setGroup(group);
 
-      final chatItem = await _chatRepository.createMessage(
-        EventMessage.groupDeleted(chatId: _chatId, groupDid: group.did),
-      );
-
-      _streamManager.pushData(StreamData(chatItem: chatItem));
-    }
+    final chatItem = await _chatRepository.createMessage(
+      EventMessage.groupDeleted(chatId: _chatId, groupDid: group.did),
+    );
 
     _streamManager.pushData(
-      StreamData(event: ChatGroupDeletedEvent(groupDid: _getGroup().did)),
+      StreamData(
+        event: ChatGroupDeletedEvent(groupDid: group.did),
+        chatItem: chatItem,
+      ),
     );
   }
 }

@@ -51,6 +51,7 @@ Future<DatabaseApi> _openMatrixDatabase(
   MatrixDatabaseContext context,
 ) async {
   sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
   await directory.create(recursive: true);
   return MatrixSdkDatabase.init(
     context.databaseName,

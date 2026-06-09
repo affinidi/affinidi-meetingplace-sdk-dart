@@ -236,7 +236,9 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       chatId: chatId,
     );
     final created = await chatRepository.createMessage(message);
-    chatStream.pushData(StreamData(chatItem: created));
+    chatStream.pushData(
+      StreamData(event: const ChatMessageEvent(), chatItem: created),
+    );
     unawaited(sendChatDeliveredMessage(message.messageId));
   }
 
@@ -269,6 +271,13 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         chatStream.pushData(StreamData(chatItem: target));
       }
     }
+    chatStream.pushData(
+      StreamData(
+        event: ChatMessageDeliveredEvent(
+          messageIds: List<String>.unmodifiable(delivered.body.messages),
+        ),
+      ),
+    );
   }
 
   @override

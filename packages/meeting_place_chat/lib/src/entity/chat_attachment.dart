@@ -19,7 +19,8 @@ class ChatAttachment {
     this.data,
     this.byteCount,
     this.transportId,
-  });
+    Map<String, dynamic>? metadata,
+  }) : metadata = metadata == null ? null : Map.unmodifiable(metadata);
 
   /// Deserialises a [ChatAttachment] from a JSON map.
   ///
@@ -43,6 +44,7 @@ class ChatAttachment {
           : ChatAttachmentData.fromJson(json['data'] as Map<String, dynamic>),
       byteCount: json['byte_count'] as int?,
       transportId: json['transport_id'] as String?,
+      metadata: _metadataFromJson(json['metadata']),
     );
   }
 
@@ -79,6 +81,13 @@ class ChatAttachment {
   /// transport event.
   String? transportId;
 
+  /// Extensible metadata for media kinds that need more than a MIME type
+  /// (JSON key: `metadata`).
+  ///
+  /// The map is opaque to [ChatAttachment]; typed views such as
+  /// `VoiceMessageMetadata` own their own keys. `null` for plain attachments.
+  final Map<String, dynamic>? metadata;
+
   /// Serialises this [ChatAttachment] to a JSON map.
   ///
   /// The key names match the DIDComm wire format so that persisted
@@ -97,6 +106,15 @@ class ChatAttachment {
     if (data != null) result['data'] = data!.toJson();
     if (byteCount != null) result['byte_count'] = byteCount;
     if (transportId != null) result['transport_id'] = transportId;
+    if (metadata != null) result['metadata'] = metadata;
     return result;
+  }
+
+  static Map<String, dynamic>? _metadataFromJson(Object? value) {
+    if (value == null) return null;
+    if (value is! Map) {
+      throw const FormatException('Invalid attachment metadata');
+    }
+    return Map<String, dynamic>.from(value);
   }
 }

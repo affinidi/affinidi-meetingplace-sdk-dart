@@ -5,7 +5,6 @@ import 'package:ssi/ssi.dart';
 
 import '../entity/channel.dart';
 import '../repository/group_repository.dart';
-import '../sdk/sdk_error_handler.dart';
 import '../service/channel/channel_service.dart';
 import '../service/matrix/matrix_media_exception.dart';
 import '../service/matrix/matrix_room_event.dart';
@@ -23,7 +22,8 @@ import 'outgoing_message.dart';
 
 /// Transport-agnostic facade for the send / subscribe / fetchHistory message
 /// operations. Dispatches each call to the appropriate transport (Matrix or
-/// DIDComm) and wraps results in [SDKErrorHandler].
+/// DIDComm). Exception wrapping is handled by the caller (typically the
+/// meeting place core SDK).
 class MessagingService {
   MessagingService({
     required MatrixService matrixService,
@@ -32,14 +32,12 @@ class MessagingService {
     required GroupRepository groupRepository,
     required DIDCommTransport didcomm,
     required Future<DidManager> Function(String did) getDidManager,
-    required SDKErrorHandler errorHandler,
   }) : _matrixService = matrixService,
        _messageService = messageService,
        _channelService = channelService,
        _groupRepository = groupRepository,
        _didcomm = didcomm,
-       _getDidManager = getDidManager,
-       _errorHandler = errorHandler;
+       _getDidManager = getDidManager;
 
   final MatrixService _matrixService;
   final MessageService _messageService;
@@ -47,34 +45,31 @@ class MessagingService {
   final GroupRepository _groupRepository;
   final DIDCommTransport _didcomm;
   final Future<DidManager> Function(String did) _getDidManager;
-  final SDKErrorHandler _errorHandler;
 
   /// Sends [message] through its transport (Matrix or DIDComm).
   ///
   /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
   /// matrix events that don't produce one, such as `m.read`, `m.typing`,
   /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
-  Future<String?> sendMessage(OutgoingMessage message) {
-    return _errorHandler.handleError(() async {
-      return switch (message) {
-        MatrixOutgoingMessage m => await _sendMatrixOutgoing(m),
-        DidCommOutgoingMessage m =>
-          await _didcomm
-              .sendMessage(
-                m.payload,
-                senderDid: m.senderDid,
-                recipientDid: m.recipientDid,
-                mediatorDid: m.mediatorDid,
-                notifyChannelType: m.notifyChannelType,
-                ephemeral: m.ephemeral,
-                forwardExpiryInSeconds: m.forwardExpiryInSeconds,
-              )
-              .then((_) => null),
-        _ => throw ArgumentError(
-          'Unsupported OutgoingMessage subtype: ${message.runtimeType}',
-        ),
-      };
-    });
+  Future<String?> sendMessage(OutgoingMessage message) async {
+    return switch (message) {
+      MatrixOutgoingMessage m => await _sendMatrixOutgoing(m),
+      DidCommOutgoingMessage m =>
+        await _didcomm
+            .sendMessage(
+              m.payload,
+              senderDid: m.senderDid,
+              recipientDid: m.recipientDid,
+              mediatorDid: m.mediatorDid,
+              notifyChannelType: m.notifyChannelType,
+              ephemeral: m.ephemeral,
+              forwardExpiryInSeconds: m.forwardExpiryInSeconds,
+            )
+            .then((_) => null),
+      _ => throw ArgumentError(
+        'Unsupported OutgoingMessage subtype: ${message.runtimeType}',
+      ),
+    };
   }
 
   /// Sends [fileBytes] as a media message on [channel]. The transport
@@ -206,85 +201,90 @@ class MessagingService {
   /// consuming messages from the server.
   Future<IncomingMessageHandle> subscribe(
     IncomingMessageSubscription subscription,
-  ) {
-    return _errorHandler.handleError(() async {
-      switch (subscription) {
-        case MatrixRoomSubscription s:
-          final roomId = await _resolveRoomIdForDid(s.receiverDid);
-          final stream = _matrixService.subscribeToRoom(
-            roomId,
-            didManager: await _getDidManager(s.receiverDid),
-            options: s.options,
-          );
-          // Capture a cutoff so that pre-join events the matrix client loads
-          // into the timeline (via room history visibility) are not delivered
-          // through the live subscription. Catch-up of post-marker events is
-          // the job of fetchHistory.
-          final cutoff = DateTime.now().toUtc();
-          final mapped = stream
-              .where(
-                (e) => !_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff),
-              )
-              .asyncMap((e) async {
-                if (_isTimelineEvent(e)) {
-                  await _advanceMatrixSyncMarker(s.receiverDid, e.id);
-                }
-                return _toMatrixIncoming(e, s.receiverDid);
-              });
-          // Matrix uses an async generator: cancelling the consumer's
-          // listen() terminates the generator and its room listeners. No
-          // separate teardown is required, so dispose is a no-op.
-          return _MatrixIncomingMessageHandle(mapped);
-        case DidCommSubscription s:
-          final sub = await _didcomm.subscribe(
-            s.receiverDid,
-            mediatorDid: s.mediatorDid,
-          );
-          return _DidCommIncomingMessageHandle(
-            stream: sub.stream.map(_toDidCommIncoming),
-            onDispose: sub.dispose,
-          );
-      }
-    });
+  ) async {
+    switch (subscription) {
+      case MatrixRoomSubscription s:
+        final roomId = await _resolveRoomIdForDid(s.receiverDid);
+        final stream = _matrixService.subscribeToRoom(
+          roomId,
+          didManager: await _getDidManager(s.receiverDid),
+          options: s.options,
+        );
+        // Capture a cutoff so that pre-join events the matrix client loads
+        // into the timeline (via room history visibility) are not delivered
+        // through the live subscription. Catch-up of post-marker events is
+        // the job of fetchHistory.
+        final cutoff = DateTime.now().toUtc();
+        final mapped = stream
+            .where(
+              (e) {
+                // ignore: avoid_print
+                print(
+                  'DEBUG matrix sub ${s.receiverDid.substring(0, 12)} '
+                  'event=${e.type} ts=${e.timestamp} cutoff=$cutoff '
+                  'isTimeline=${_isTimelineEvent(e)} '
+                  'pass=${!_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff)}',
+                );
+                return !_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff);
+              },
+            )
+            .asyncMap((e) async {
+              if (_isTimelineEvent(e)) {
+                await _advanceMatrixSyncMarker(s.receiverDid, e.id);
+              }
+              return _toMatrixIncoming(e, s.receiverDid);
+            });
+        // Matrix uses an async generator: cancelling the consumer's
+        // listen() terminates the generator and its room listeners. No
+        // separate teardown is required, so dispose is a no-op.
+        return _MatrixIncomingMessageHandle(mapped);
+      case DidCommSubscription s:
+        final sub = await _didcomm.subscribe(
+          s.receiverDid,
+          mediatorDid: s.mediatorDid,
+        );
+        return _DidCommIncomingMessageHandle(
+          stream: sub.stream.map(_toDidCommIncoming),
+          onDispose: sub.dispose,
+        );
+    }
   }
 
   /// Fetches historical messages for the given [query].
-  Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) {
-    return _errorHandler.handleError(() async {
-      switch (query) {
-        case MatrixRoomHistoryQuery q:
-          final channel = await _channelService.findChannelByDidOrNull(
-            q.receiverDid,
-          );
-          // Prefer the caller-supplied cursor (chat session's own anchor,
-          // typically the latest persisted message's transport id) over the
-          // channel-level sync marker. The marker is owned by the push
-          // pipeline (ChatActivityEventHandler) which uses it for badge-count
-          // bookkeeping and must not be consumed here.
-          final sinceEventId = q.sinceEventId ?? channel?.matrixSyncMarker;
-          final roomId = await _resolveRoomIdForDid(q.receiverDid);
-          final events = await _matrixService.fetchRoomHistory(
-            roomId,
-            didManager: await _getDidManager(q.receiverDid),
-            limit: q.limit,
-            sinceEventId: sinceEventId,
-          );
-          return Future.wait(
-            events.map((e) => _toMatrixIncoming(e, q.receiverDid)),
-          );
-        case DidCommHistoryQuery q:
-          final messages = await _didcomm.fetchMessages(
-            did: q.receiverDid,
-            mediatorDid: q.mediatorDid,
-            deleteOnRetrieve: q.deleteOnRetrieve,
-            deleteFailedMessages: q.deleteFailedMessages,
-          );
-          return messages
-              .take(q.limit)
-              .map<IncomingMessage>(_toDidCommIncoming)
-              .toList();
-      }
-    });
+  Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
+    switch (query) {
+      case MatrixRoomHistoryQuery q:
+        final channel = await _channelService.findChannelByDidOrNull(
+          q.receiverDid,
+        );
+        // Prefer the caller-supplied cursor (chat session's own anchor,
+        // typically the latest persisted message's transport id) over the
+        // channel-level sync marker. The marker is owned by the push
+        // pipeline (ChatActivityEventHandler) which uses it for badge-count
+        // bookkeeping and must not be consumed here.
+        final sinceEventId = q.sinceEventId ?? channel?.matrixSyncMarker;
+        final roomId = await _resolveRoomIdForDid(q.receiverDid);
+        final events = await _matrixService.fetchRoomHistory(
+          roomId,
+          didManager: await _getDidManager(q.receiverDid),
+          limit: q.limit,
+          sinceEventId: sinceEventId,
+        );
+        return Future.wait(
+          events.map((e) => _toMatrixIncoming(e, q.receiverDid)),
+        );
+      case DidCommHistoryQuery q:
+        final messages = await _didcomm.fetchMessages(
+          did: q.receiverDid,
+          mediatorDid: q.mediatorDid,
+          deleteOnRetrieve: q.deleteOnRetrieve,
+          deleteFailedMessages: q.deleteFailedMessages,
+        );
+        return messages
+            .take(q.limit)
+            .map<IncomingMessage>(_toDidCommIncoming)
+            .toList();
+    }
   }
 
   Future<String> _resolveRoomIdForDid(String did) async {
@@ -399,6 +399,9 @@ class MessagingService {
       payload: m.plainTextMessage,
     );
   }
+
+  /// Disposes the underlying matrix service. Safe to call multiple times.
+  Future<void> dispose() => _matrixService.dispose();
 }
 
 class _MatrixIncomingMessageHandle implements IncomingMessageHandle {

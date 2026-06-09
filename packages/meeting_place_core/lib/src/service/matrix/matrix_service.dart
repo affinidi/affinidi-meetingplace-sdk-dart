@@ -537,4 +537,9 @@ class MatrixService {
     }
     return client;
   }
+
+  /// Disposes the underlying session manager, aborting all matrix sync
+  /// loops and closing each cached client's database. Safe to call
+  /// multiple times.
+  Future<void> dispose() => _sessionManager.dispose();
 }

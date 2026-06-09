@@ -193,4 +193,8 @@ class MatrixSessionManager {
   String deriveUserId(String did, String serverName) {
     return deriveMatrixUserId(did, serverName);
   }
+
+  /// Disposes every cached matrix client and clears the session cache.
+  /// Safe to call multiple times.
+  Future<void> dispose() => _clientCache.dispose();
 }

@@ -178,7 +178,6 @@ class MeetingPlaceCoreSDK {
          groupRepository: repositoryConfig.groupRepository,
          didcomm: didcommTransport,
          getDidManager: getDidManager,
-         errorHandler: sdkErrorHandler,
        );
 
   final Wallet wallet;
@@ -1018,6 +1017,15 @@ class MeetingPlaceCoreSDK {
     _controlPlaneEventStreamManager.dispose();
   }
 
+  /// Releases all resources held by the SDK: closes the control plane
+  /// events stream, aborts every cached matrix client's sync loop and
+  /// closes their databases. Safe to call multiple times. After dispose
+  /// the SDK instance must not be used further.
+  Future<void> dispose() async {
+    _controlPlaneEventStreamManager.dispose();
+    await _messagingService.dispose();
+  }
+
   /// A method that deletes all pending discovery events.
   Future<List<String>> deleteControlPlaneEvents() {
     return _controlPlaneEventService.deleteAll();
@@ -1175,8 +1183,11 @@ class MeetingPlaceCoreSDK {
   /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
   /// matrix events that don't produce one, such as `m.read`, `m.typing`,
   /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
-  Future<String?> sendMessage(OutgoingMessage message) =>
-      _messagingService.sendMessage(message);
+  Future<String?> sendMessage(OutgoingMessage message) {
+    return _withSdkExceptionHandling(
+      () => _messagingService.sendMessage(message),
+    );
+  }
 
   /// Subscribes to incoming messages for the given [subscription].
   ///

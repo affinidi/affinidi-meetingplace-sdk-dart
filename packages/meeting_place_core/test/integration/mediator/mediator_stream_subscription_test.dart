@@ -18,8 +18,11 @@ void main() async {
   late DidManager bobDID;
   late DidDocument bobDidDoc;
 
-  Future<void> clearMessageQueue(DidDocument didDoc) async {
-    await aliceDidcomm.fetchMessages(did: didDoc.id, deleteOnRetrieve: true);
+  Future<void> clearMessageQueue(
+    DIDCommTransport transport,
+    DidDocument didDoc,
+  ) async {
+    await transport.fetchMessages(did: didDoc.id, deleteOnRetrieve: true);
   }
 
   setUp(() async {
@@ -37,8 +40,8 @@ void main() async {
       acl: AccessListAdd(ownerDid: aliceDidDoc.id, granteeDids: [bobDidDoc.id]),
     );
 
-    await clearMessageQueue(aliceDidDoc);
-    await clearMessageQueue(bobDidDoc);
+    await clearMessageQueue(aliceDidcomm, aliceDidDoc);
+    await clearMessageQueue(bobDidcomm, bobDidDoc);
   });
 
   Future<void> sendMessageFromBobToAlice({
@@ -156,7 +159,7 @@ void main() async {
     final subscription = await aliceDidcomm.subscribe(
       aliceDidDoc.id,
       options: const MediatorStreamSubscriptionOptions(
-        deleteMessageDelay: Duration(milliseconds: 200),
+        deleteMessageDelay: Duration(milliseconds: 1),
       ),
     );
 
@@ -179,6 +182,7 @@ void main() async {
     await sendMessageFromBobToAlice(type: messageType);
 
     await waitForMessage.future.timeout(const Duration(seconds: 10));
+    await Future<void>.delayed(const Duration(seconds: 2));
 
     final messages = await aliceDidcomm.fetchMessages(
       did: aliceDidDoc.id,

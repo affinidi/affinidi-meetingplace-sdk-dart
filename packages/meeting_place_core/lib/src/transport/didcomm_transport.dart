@@ -53,19 +53,17 @@ class DIDCommTransport {
     String? notifyChannelType,
     bool? ephemeral,
     int? forwardExpiryInSeconds,
-  }) {
-    return _errorHandler.handleError(() async {
-      final senderDidManager = await _getDidManager(senderDid);
-      return _messageService.sendMessage(
-        message,
-        senderDidManager: senderDidManager,
-        recipientDid: recipientDid,
-        mediatorDid: mediatorDid ?? _defaultMediatorDid,
-        notifyChannelType: notifyChannelType,
-        ephemeral: ephemeral ?? false,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
-      );
-    });
+  }) async {
+    final senderDidManager = await _getDidManager(senderDid);
+    return _messageService.sendMessage(
+      message,
+      senderDidManager: senderDidManager,
+      recipientDid: recipientDid,
+      mediatorDid: mediatorDid ?? _defaultMediatorDid,
+      notifyChannelType: notifyChannelType,
+      ephemeral: ephemeral ?? false,
+      forwardExpiryInSeconds: forwardExpiryInSeconds,
+    );
   }
 
   Future<void> queueMessage(

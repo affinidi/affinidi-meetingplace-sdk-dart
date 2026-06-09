@@ -21,6 +21,7 @@ import 'package:meeting_place_core/src/utils/cached_did_resolver.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
 import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../fixtures/sdk.dart';
@@ -37,11 +38,12 @@ Future<DatabaseApi> _openMatrixDatabase(
   MatrixDatabaseContext context,
 ) async {
   sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
   await directory.create(recursive: true);
   return MatrixSdkDatabase.init(
     context.databaseName,
     database: await databaseFactoryFfi.openDatabase(
-      '${directory.path}/${context.databaseName}.sqlite',
+      '${directory.path}/${context.databaseName}_${const Uuid().v4()}.sqlite',
     ),
   );
 }

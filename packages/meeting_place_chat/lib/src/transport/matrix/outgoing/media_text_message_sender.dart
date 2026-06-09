@@ -161,16 +161,13 @@ class MediaTextMessageSender {
     required int sizeBytes,
     required String correlationId,
   }) {
-    // Matrix Room.sendFileEvent spreads extraContent after file.info, so voice
-    // metadata must carry the base mimetype and size fields too.
-    final info = MatrixMediaAttachments.buildInfoForAttachment(
-      attachment,
-      contentType: contentType,
-      sizeBytes: sizeBytes,
-    );
     return {
       MatrixEventField.correlationId: correlationId,
-      if (info != null) 'info': info,
+      ...MatrixMediaAttachments.buildVoiceContent(
+        attachment,
+        contentType: contentType,
+        sizeBytes: sizeBytes,
+      ),
     };
   }
 }

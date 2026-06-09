@@ -138,12 +138,11 @@ void main() {
         'msgtype': 'm.audio',
         'body': 'voice.m4a',
         'filename': 'voice.m4a',
-        'info': {
-          'mimetype': 'audio/mp4',
-          'size': 4096,
+        'info': {'mimetype': 'audio/mp4', 'size': 4096, 'duration': 1200},
+        MatrixMediaAttachments.voiceContentKey: <String, dynamic>{},
+        MatrixMediaAttachments.audioContentKey: {
           'duration': 1200,
-          MatrixMediaAttachments.mediaKindInfoKey: 'voice',
-          MatrixMediaAttachments.waveformInfoKey: [0, 40, 100],
+          'waveform': [0, 40, 100],
         },
       });
 
@@ -172,10 +171,10 @@ void main() {
       final attachments = MatrixMediaAttachments.extractFromContent({
         'msgtype': 'm.audio',
         'body': 'voice.m4a',
-        'info': {
-          'mimetype': 'audio/mp4',
-          MatrixMediaAttachments.mediaKindInfoKey: 'voice',
-          MatrixMediaAttachments.waveformInfoKey: [0, 101],
+        'info': {'mimetype': 'audio/mp4'},
+        MatrixMediaAttachments.voiceContentKey: <String, dynamic>{},
+        MatrixMediaAttachments.audioContentKey: {
+          'waveform': [0, 101],
         },
       });
 

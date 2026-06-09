@@ -353,19 +353,21 @@ void main() {
 
         expect(sentContentType, AttachmentMediaType.audioMp4.value);
         expect(
-          sentExtraContent?[MatrixMediaAttachments.mediaKindInfoKey],
-          isNull,
-        );
-        expect(
           sentExtraContent?[MatrixEventField.correlationId],
           result.messageId,
         );
         expect(sentExtraContent?['info'], {
           'mimetype': AttachmentMediaType.audioMp4.value,
           'size': 3,
-          MatrixMediaAttachments.mediaKindInfoKey: 'voice',
           'duration': 1200,
-          MatrixMediaAttachments.waveformInfoKey: [0, 40, 100],
+        });
+        expect(
+          sentExtraContent?[MatrixMediaAttachments.voiceContentKey],
+          <String, dynamic>{},
+        );
+        expect(sentExtraContent?[MatrixMediaAttachments.audioContentKey], {
+          'duration': 1200,
+          'waveform': [0, 40, 100],
         });
         final voice = VoiceMessageMetadata.of(result.attachments.single);
         expect(VoiceMessageMetadata.isVoice(result.attachments.single), isTrue);

@@ -34,13 +34,13 @@ class MatrixEventField {
 class MatrixMediaAttachments {
   MatrixMediaAttachments._();
 
-  /// Matrix `info` key that distinguishes voice notes from generic audio.
-  static const mediaKindInfoKey = 'io.affinidi.mpx.media_kind';
+  /// MSC3245: content-level voice marker (`org.matrix.msc3245.voice: {}`).
+  static const voiceContentKey = 'org.matrix.msc3245.voice';
 
-  /// Matrix `info` key for normalized voice waveform samples.
-  static const waveformInfoKey = 'io.affinidi.mpx.waveform';
+  /// MSC1767: content-level audio metadata
+  /// (`org.matrix.msc1767.audio: {duration, waveform}`).
+  static const audioContentKey = 'org.matrix.msc1767.audio';
 
-  static const _durationInfoKey = 'duration';
   static const Set<String> _mediaMsgTypes = {
     MediaMsgType.file,
     MediaMsgType.image,
@@ -72,31 +72,37 @@ class MatrixMediaAttachments {
         mediaType: mimeType,
         format: AttachmentFormat.hostedMedia.value,
         byteCount: size,
-        metadata: _voiceMetadata(info),
+        metadata: _voiceMetadata(content, info),
       ),
     ];
   }
 
-  /// Reads voice metadata from Matrix `info`, or `null` for generic media.
-  static Map<String, dynamic>? _voiceMetadata(Map<String, dynamic>? info) {
-    if (info == null ||
-        info[mediaKindInfoKey] != VoiceMessageMetadata.voiceKind) {
-      return null;
-    }
+  /// Reads voice metadata from content-level MSC keys, or `null` for generic
+  /// media.
+  static Map<String, dynamic>? _voiceMetadata(
+    Map<String, dynamic> content,
+    Map<String, dynamic>? info,
+  ) {
+    if (content[voiceContentKey] == null) return null;
+    final audio = _mapValue(content[audioContentKey]);
     return VoiceMessageMetadata(
-      durationMs: _durationValue(info[_durationInfoKey]),
-      waveform: _waveformValue(info[waveformInfoKey]),
+      durationMs: _durationValue(audio?['duration'] ?? info?['duration']),
+      waveform: _waveformValue(audio?['waveform']),
     ).toMetadata();
   }
 
-  /// Builds Matrix `info` metadata for outgoing hosted-media attachments.
-  static Map<String, dynamic>? buildInfoForAttachment(
+  /// Builds the content-level extra fields for outgoing voice attachments.
+  ///
+  /// Returns an empty map for non-voice attachments. For voice, returns an
+  /// `info` override (mimetype + size + duration) plus the MSC3245 voice marker
+  /// and MSC1767 audio block at the top level of the Matrix event content.
+  static Map<String, dynamic> buildVoiceContent(
     ChatAttachment attachment, {
     required String contentType,
     required int sizeBytes,
   }) {
     final voice = VoiceMessageMetadata.of(attachment);
-    if (voice == null) return null;
+    if (voice == null) return const {};
 
     final durationMs = voice.durationMs;
     if (durationMs == null) {
@@ -107,15 +113,19 @@ class MatrixMediaAttachments {
       );
     }
 
-    final info = <String, dynamic>{
-      'mimetype': contentType,
-      'size': sizeBytes,
-      mediaKindInfoKey: VoiceMessageMetadata.voiceKind,
-      _durationInfoKey: durationMs,
-    };
+    final audio = <String, dynamic>{'duration': durationMs};
     final waveform = voice.waveform;
-    if (waveform != null) info[waveformInfoKey] = waveform;
-    return info;
+    if (waveform != null) audio['waveform'] = waveform;
+
+    return {
+      'info': {
+        'mimetype': contentType,
+        'size': sizeBytes,
+        'duration': durationMs,
+      },
+      voiceContentKey: <String, dynamic>{},
+      audioContentKey: audio,
+    };
   }
 
   /// Extracts the user-visible caption from `m.room.message` content.

@@ -7,6 +7,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../entity/channel.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
+import '../../meeting_place_core_sdk_error_code.dart';
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
 import 'matrix_room_alias.dart';
@@ -97,7 +98,11 @@ class MatrixService {
       didDocument.id,
     );
     if (cachedClient != null) {
-      return cachedClient.userID!;
+      final userID = cachedClient.userID;
+      if (userID == null) {
+        throw MatrixServiceException.missingUserId();
+      }
+      return userID;
     }
 
     final matrixTokenOutput = await _controlPlaneSDK.execute(
@@ -527,6 +532,8 @@ class MatrixService {
     final client = await _ensureSession(didManager);
     final config = await client.getConfigAuthed();
     return config.mUploadSize;
+  }
+
   /// Requests a Matrix OpenID token for [didManager].
   ///
   /// Calls `POST /_matrix/client/v3/user/{userId}/openid/request_token` via
@@ -726,7 +733,15 @@ class MatrixService {
   /// Returns `null` if either the user ID or device ID is unavailable from
   /// the active Matrix session.
   Future<String?> ownMatrixIdentity(DidManager didManager) async {
-    final client = await _ensureSession(didManager);
+    final matrix.Client client;
+    try {
+      client = await _ensureSession(didManager);
+    } on MatrixServiceException catch (e) {
+      if (e.code == MeetingPlaceCoreSDKErrorCode.matrixMissingUserId) {
+        return null;
+      }
+      rethrow;
+    }
     final userId = client.userID;
     final deviceId = client.deviceID;
     if (userId == null || deviceId == null) return null;

@@ -379,6 +379,7 @@ void main() {
       when(() => didDocument.id).thenReturn(_testDid);
       when(didManager.getDidDocument).thenAnswer((_) async => didDocument);
       when(() => sessionManager.homeserver).thenReturn(_testHomeserver);
+      when(() => sessionManager.serverName).thenReturn(_testHomeserver.host);
 
       service = MatrixService(
         config: _fakeConfig(),
@@ -975,6 +976,7 @@ void main() {
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
         ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(_matrixUserId);
         when(() => client.getRoomById(any())).thenReturn(null);
 
         await expectLater(

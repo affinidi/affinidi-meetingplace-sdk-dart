@@ -1347,6 +1347,7 @@ class MeetingPlaceCoreSDK {
       return _messagingService.downloadMedia(channel, reference);
     });
   }
+
   /// Requests a Matrix OpenID token for [didManager].
   ///
   /// The returned `OpenIdCredentials` can be passed directly to

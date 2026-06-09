@@ -1,6 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../entity/chat_attachment.dart';
+import '../../entity/voice_message_metadata.dart';
 
 /// Matrix `msgtype` values used for media content.
 ///
@@ -33,6 +34,13 @@ class MatrixEventField {
 class MatrixMediaAttachments {
   MatrixMediaAttachments._();
 
+  /// MSC3245: content-level voice marker (`org.matrix.msc3245.voice: {}`).
+  static const voiceContentKey = 'org.matrix.msc3245.voice';
+
+  /// MSC1767: content-level audio metadata
+  /// (`org.matrix.msc1767.audio: {duration, waveform}`).
+  static const audioContentKey = 'org.matrix.msc1767.audio';
+
   static const Set<String> _mediaMsgTypes = {
     MediaMsgType.file,
     MediaMsgType.image,
@@ -64,8 +72,60 @@ class MatrixMediaAttachments {
         mediaType: mimeType,
         format: AttachmentFormat.hostedMedia.value,
         byteCount: size,
+        metadata: _voiceMetadata(content, info),
       ),
     ];
+  }
+
+  /// Reads voice metadata from content-level MSC keys, or `null` for generic
+  /// media.
+  static Map<String, dynamic>? _voiceMetadata(
+    Map<String, dynamic> content,
+    Map<String, dynamic>? info,
+  ) {
+    if (content[voiceContentKey] == null) return null;
+    final audio = _mapValue(content[audioContentKey]);
+    return VoiceMessageMetadata(
+      durationMs: _durationValue(audio?['duration'] ?? info?['duration']),
+      waveform: _waveformValue(audio?['waveform']),
+    ).toMetadata();
+  }
+
+  /// Builds the content-level extra fields for outgoing voice attachments.
+  ///
+  /// Returns an empty map for non-voice attachments. For voice, returns an
+  /// `info` override (mimetype + size + duration) plus the MSC3245 voice marker
+  /// and MSC1767 audio block at the top level of the Matrix event content.
+  static Map<String, dynamic> buildVoiceContent(
+    ChatAttachment attachment, {
+    required String contentType,
+    required int sizeBytes,
+  }) {
+    final voice = VoiceMessageMetadata.of(attachment);
+    if (voice == null) return const {};
+
+    final durationMs = voice.durationMs;
+    if (durationMs == null) {
+      throw ArgumentError.value(
+        durationMs,
+        'durationMs',
+        'Voice attachments require durationMs',
+      );
+    }
+
+    final audio = <String, dynamic>{'duration': durationMs};
+    final waveform = voice.waveform;
+    if (waveform != null) audio['waveform'] = waveform;
+
+    return {
+      'info': {
+        'mimetype': contentType,
+        'size': sizeBytes,
+        'duration': durationMs,
+      },
+      voiceContentKey: <String, dynamic>{},
+      audioContentKey: audio,
+    };
   }
 
   /// Extracts the user-visible caption from `m.room.message` content.
@@ -88,6 +148,25 @@ class MatrixMediaAttachments {
   }
 
   static String? _stringValue(Object? value) => value is String ? value : null;
+
+  static int? _durationValue(Object? value) {
+    if (value is int && value >= 0) return value;
+    return null;
+  }
+
+  static List<int>? _waveformValue(Object? value) {
+    if (value is! List) return null;
+    final samples = <int>[];
+    for (final sample in value) {
+      if (sample is! int ||
+          sample < VoiceMessageMetadata.waveformMinSample ||
+          sample > VoiceMessageMetadata.waveformMaxSample) {
+        return null;
+      }
+      samples.add(sample);
+    }
+    return List.unmodifiable(samples);
+  }
 
   static Map<String, dynamic>? _mapValue(Object? value) {
     if (value is! Map) return null;

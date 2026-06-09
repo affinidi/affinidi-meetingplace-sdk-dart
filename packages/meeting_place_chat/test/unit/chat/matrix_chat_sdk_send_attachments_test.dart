@@ -318,6 +318,93 @@ void main() {
       },
     );
 
+    test(
+      'voice attachment sends voice metadata as Matrix audio info',
+      () async {
+        Map<String, dynamic>? sentExtraContent;
+        String? sentContentType;
+        when(
+          () => core.sendMediaMessage(
+            any(),
+            any(),
+            contentType: any(named: 'contentType'),
+            filename: any(named: 'filename'),
+            caption: any(named: 'caption'),
+            extraContent: any(named: 'extraContent'),
+          ),
+        ).thenAnswer((inv) async {
+          sentContentType = inv.namedArguments[#contentType] as String?;
+          sentExtraContent =
+              inv.namedArguments[#extraContent] as Map<String, dynamic>?;
+          return '\$voice-event';
+        });
+
+        final result = await sdk.sendTextMessage(
+          'voice note',
+          attachments: [
+            VoiceMessageMetadata.buildAttachment(
+              base64: 'AAAA',
+              durationMs: 1200,
+              filename: 'voice.m4a',
+              waveform: [0, 40, 100],
+            ),
+          ],
+        );
+
+        expect(sentContentType, AttachmentMediaType.audioMp4.value);
+        expect(
+          sentExtraContent?[MatrixEventField.correlationId],
+          result.messageId,
+        );
+        expect(sentExtraContent?['info'], {
+          'mimetype': AttachmentMediaType.audioMp4.value,
+          'size': 3,
+          'duration': 1200,
+        });
+        expect(
+          sentExtraContent?[MatrixMediaAttachments.voiceContentKey],
+          <String, dynamic>{},
+        );
+        expect(sentExtraContent?[MatrixMediaAttachments.audioContentKey], {
+          'duration': 1200,
+          'waveform': [0, 40, 100],
+        });
+        final voice = VoiceMessageMetadata.of(result.attachments.single);
+        expect(VoiceMessageMetadata.isVoice(result.attachments.single), isTrue);
+        expect(voice?.durationMs, 1200);
+        expect(voice?.waveform, [0, 40, 100]);
+      },
+    );
+
+    test('voice attachment defaults missing mediaType to audio/mp4', () async {
+      String? sentContentType;
+      when(
+        () => core.sendMediaMessage(
+          any(),
+          any(),
+          contentType: any(named: 'contentType'),
+          filename: any(named: 'filename'),
+          caption: any(named: 'caption'),
+          extraContent: any(named: 'extraContent'),
+        ),
+      ).thenAnswer((inv) async {
+        sentContentType = inv.namedArguments[#contentType] as String?;
+        return '\$voice-event';
+      });
+
+      await sdk.sendTextMessage(
+        '',
+        attachments: [
+          ChatAttachment(
+            data: ChatAttachmentData(base64: 'AAAA'),
+            metadata: VoiceMessageMetadata(durationMs: 500).toMetadata(),
+          ),
+        ],
+      );
+
+      expect(sentContentType, VoiceMessageMetadata.defaultMediaType);
+    });
+
     test('attachment without base64 data throws StateError', () async {
       final attachment = ChatAttachment(
         filename: 'empty.jpg',

@@ -98,6 +98,12 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         await _handleIncomingReaction(payload);
       case protocol.ChatProtocol.chatDelivered:
         await _handleIncomingDelivered(payload);
+      case protocol.ChatProtocol.chatAliasProfileHash:
+        await _handleIncomingProfileHash(payload);
+      case protocol.ChatProtocol.chatAliasProfileRequest:
+        await _handleIncomingProfileRequest(payload);
+      case protocol.ChatProtocol.chatContactDetailsUpdate:
+        await _handleIncomingContactDetailsUpdate(payload);
       case protocol.ChatProtocol.chatEffect:
         chatStream.pushData(
           StreamData(
@@ -135,6 +141,92 @@ class IndividualDidcommChatSDK extends BaseChatSDK
           ),
         );
     }
+  }
+
+  Future<void> _handleIncomingProfileHash(didcomm.PlainTextMessage p) async {
+    final profileHashMessage =
+        protocol.ChatAliasProfileHash.fromPlainTextMessage(p);
+    final incomingHash = profileHashMessage.body.profileHash;
+
+    final channel = await getChannel();
+    final storedHash = channel.otherPartyContactCard?.profileHash;
+
+    if (storedHash != incomingHash) {
+      await coreSDK.sendMessage(
+        ChatAliasProfileRequestMessage(
+          senderDid: did,
+          recipientDid: otherPartyDid,
+          mediatorDid: mediatorDid,
+          profileHash: incomingHash,
+        ),
+      );
+    }
+
+    chatStream.pushData(
+      StreamData(
+        event: UnhandledChatEvent(
+          type: p.type.toString(),
+          senderDid: p.from,
+          body: p.body ?? const {},
+          createdTime: p.createdTime ?? DateTime.now().toUtc(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleIncomingProfileRequest(didcomm.PlainTextMessage p) async {
+    final profileRequest =
+        protocol.ChatAliasProfileRequest.fromPlainTextMessage(p);
+
+    final channel = await getChannel();
+    final replyTo = channel.otherPartyContactCard?.did ?? profileRequest.from;
+
+    final conciergeMessage = ConciergeMessage(
+      chatId: chatId,
+      messageId: p.id,
+      senderDid: profileRequest.from,
+      isFromMe: false,
+      dateCreated: p.createdTime ?? DateTime.now().toUtc(),
+      status: ChatItemStatus.userInput,
+      conciergeType: ConciergeMessageType.permissionToUpdateProfile,
+      data: {
+        'profileHash': profileRequest.body.profileHash,
+        'replyTo': replyTo,
+      },
+    );
+
+    final created = await chatRepository.createMessage(conciergeMessage);
+    chatStream.pushData(
+      StreamData(
+        event: UnhandledChatEvent(
+          type: p.type.toString(),
+          senderDid: p.from,
+          body: p.body ?? const {},
+          createdTime: p.createdTime ?? DateTime.now().toUtc(),
+        ),
+        chatItem: created,
+      ),
+    );
+  }
+
+  Future<void> _handleIncomingContactDetailsUpdate(
+    didcomm.PlainTextMessage p,
+  ) async {
+    final update = protocol.ChatContactDetailsUpdate.fromPlainTextMessage(p);
+    final updatedCard = ContactCard.fromJson(update.profileDetails);
+
+    final channel = await getChannel();
+    channel.otherPartyContactCard = updatedCard;
+    await coreSDK.updateChannel(channel);
+
+    chatStream.pushData(
+      StreamData(
+        event: ChatContactDetailsUpdateEvent(
+          senderDid: p.from ?? otherPartyDid,
+          contactCard: updatedCard,
+        ),
+      ),
+    );
   }
 
   Future<void> _handleIncomingChatMessage(didcomm.PlainTextMessage p) async {

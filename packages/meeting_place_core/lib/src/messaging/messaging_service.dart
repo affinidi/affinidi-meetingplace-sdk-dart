@@ -402,6 +402,24 @@ class MessagingService {
 
   /// Disposes the underlying matrix service. Safe to call multiple times.
   Future<void> dispose() => _matrixService.dispose();
+
+  /// Test-only helper that forwards to
+  /// [MatrixService.waitForRoomEncryptionReady] for the channel anchored on
+  /// [localDid]. See that method for why callers (test fixtures) need it.
+  Future<void> waitForRoomEncryptionReady({
+    required String localDid,
+    required Iterable<String> expectedDids,
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    final didManager = await _getDidManager(localDid);
+    final roomId = await _resolveRoomIdForDid(localDid);
+    await _matrixService.waitForRoomEncryptionReady(
+      roomId: roomId,
+      didManager: didManager,
+      expectedDids: expectedDids,
+      timeout: timeout,
+    );
+  }
 }
 
 class _MatrixIncomingMessageHandle implements IncomingMessageHandle {

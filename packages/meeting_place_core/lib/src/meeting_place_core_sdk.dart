@@ -8,6 +8,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         DefaultMeetingPlaceMediatorSDKLogger,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
+import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_core.dart';
@@ -553,6 +554,27 @@ class MeetingPlaceCoreSDK {
   Future<DidManager> getDidManager(String did) {
     return _withSdkExceptionHandling(() {
       return _connectionManager.getDidManagerForDid(wallet, did);
+    });
+  }
+
+  /// Test-only helper that drains a matrix sync cycle and forces device-key
+  /// fetches for [expectedDids] on the matrix client owned by [localDid],
+  /// returning once the room state and key catalog can support an encrypted
+  /// send all expected recipients can decrypt. Production callers do not
+  /// need this — see [MatrixService.waitForRoomEncryptionReady] for the
+  /// underlying race it hides.
+  @visibleForTesting
+  Future<void> waitForRoomEncryptionReady({
+    required String localDid,
+    required Iterable<String> expectedDids,
+    Duration timeout = const Duration(seconds: 15),
+  }) {
+    return _withSdkExceptionHandling(() {
+      return _messagingService.waitForRoomEncryptionReady(
+        localDid: localDid,
+        expectedDids: expectedDids,
+        timeout: timeout,
+      );
     });
   }
 

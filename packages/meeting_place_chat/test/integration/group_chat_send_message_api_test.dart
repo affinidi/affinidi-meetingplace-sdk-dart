@@ -53,9 +53,9 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
-    final bobCollect = ChatTestHarness.collect(
+    final bobMessage = ChatTestHarness.awaitItem(
       fixture.bobChatSDK,
-      duration: const Duration(seconds: 20),
+      where: (item) => item is Message && item.value == 'Notify group test',
     );
 
     await fixture.aliceChatSDK.sendCustomEvent(
@@ -63,18 +63,7 @@ void main() {
       payload: {'body': 'Notify group test', 'msgtype': 'm.text'},
     );
 
-    final all = await bobCollect;
-    print('DEBUG bob received ${all.length} stream data:');
-    for (final d in all) {
-      print('  event=${d.event.runtimeType} chatItem=${d.chatItem}');
-    }
-    final received = all
-        .map((d) => d.chatItem)
-        .whereType<Message>()
-        .firstWhere(
-          (m) => m.value == 'Notify group test',
-          orElse: () => throw StateError('no matching message'),
-        );
+    final received = await bobMessage as Message;
     expect(received.value, equals('Notify group test'));
     expect(received.senderDid, equals(fixture.groupOwnerDidDocument.id));
   });

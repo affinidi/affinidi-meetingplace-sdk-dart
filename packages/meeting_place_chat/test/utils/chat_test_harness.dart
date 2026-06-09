@@ -45,7 +45,7 @@ abstract final class ChatTestHarness {
   static Future<ChatItem> awaitItem(
     MeetingPlaceChatSDK sdk, {
     bool Function(ChatItem)? where,
-    Duration timeout = const Duration(seconds: 15),
+    Duration timeout = const Duration(seconds: 30),
   }) async {
     final stream = await sdk.chatStreamSubscription;
     if (stream == null) {

@@ -11,11 +11,12 @@ void main() {
     fixture = await GroupChatFixture.create();
   });
 
-  tearDown(() {
+  tearDownAll(() {
     fixture.disposeSessions();
   });
 
   test('group owner sends message to members', () async {
+    await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
     await fixture.charlieChatSDK.startChatSession();
 
@@ -23,10 +24,14 @@ void main() {
       fixture.bobChatSDK,
       where: (item) => item is Message && item.value == 'Hello Group!',
     );
+
     final charlieMessage = ChatTestHarness.awaitItem(
       fixture.charlieChatSDK,
       where: (item) => item is Message && item.value == 'Hello Group!',
     );
+
+    await fixture.bobChatSDK.chatStreamSubscription;
+    await fixture.charlieChatSDK.chatStreamSubscription;
 
     await fixture.aliceChatSDK.sendTextMessage('Hello Group!');
 

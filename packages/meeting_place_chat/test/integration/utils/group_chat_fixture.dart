@@ -163,6 +163,32 @@ class GroupChatFixture {
       channelRepository: fixture.charlieChannelRepository,
     );
 
+    // Drain matrix sync + force device-key fetches on all three clients so
+    // the first encrypted send creates an outbound megolm session shared
+    // with every member. In production the natural latency between
+    // accept-offer and first send hides this race; tests collapse it to
+    // milliseconds.
+    await Future.wait([
+      fixture.aliceSDK.waitForRoomEncryptionReady(
+        localDid: fixture.groupOwnerDidDocument.id,
+        expectedDids: [fixture.bobMemberDid, fixture.charlieMemberDid],
+      ),
+      fixture.bobSDK.waitForRoomEncryptionReady(
+        localDid: fixture.bobMemberDid,
+        expectedDids: [
+          fixture.groupOwnerDidDocument.id,
+          fixture.charlieMemberDid,
+        ],
+      ),
+      fixture.charlieSDK.waitForRoomEncryptionReady(
+        localDid: fixture.charlieMemberDid,
+        expectedDids: [
+          fixture.groupOwnerDidDocument.id,
+          fixture.bobMemberDid,
+        ],
+      ),
+    ]);
+
     return fixture;
   }
 

@@ -119,6 +119,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
               '''ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards''',
             );
           }
+
           if (from < 3) {
             await migrator.addColumn(
               connectionOffers,

@@ -6,6 +6,8 @@ Check the sample code to learn how to use Affinidi Meeting Place - Chat SDK pack
 |------|----------------------|
 | chat/alice.dart| Publishes connection offer (invitation) and initialises individual chat.|
 | chat/bob.dart | Finds and accepts the connection offer, initialises individual chat. |
+| chat_media/alice.dart | Initialises chat, listens for media messages, and downloads bytes via `downloadMedia(message)`. |
+| chat_media/bob.dart | Sends a hosted-media attachment with a caption via `sendTextMessage(..., attachments: [...])`. |
 | group_chat/alice.dart | Publishes connection offer, approves connection request and initialises group chat. |
 | group_chat/bob.dart | Finds and accepts the connection offer, initialises the group chat after group owner approves connection request. Sends the message. |
 | group_chat/charlie.dart | Finds and accepts the connection offer, initialises the group chat after group owner approves connection request. Receives message on chat stream and sends message back. |
@@ -35,6 +37,12 @@ Execute the example Dart scripts from the `packages/meeting_place_chat/example` 
    # Chat example
    dart run chat/alice.dart
    dart run chat/bob.dart
+   ```
+
+   ```bash
+   # Media exchange example (start alice first, then bob in another terminal)
+   dart run chat_media/alice.dart
+   dart run chat_media/bob.dart
    ```
 
    ```bash

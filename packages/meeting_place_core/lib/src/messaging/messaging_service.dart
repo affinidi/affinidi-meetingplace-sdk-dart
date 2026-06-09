@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:ssi/ssi.dart';
 
@@ -6,6 +7,7 @@ import '../entity/channel.dart';
 import '../repository/group_repository.dart';
 import '../sdk/sdk_error_handler.dart';
 import '../service/channel/channel_service.dart';
+import '../service/matrix/matrix_media_exception.dart';
 import '../service/matrix/matrix_room_event.dart';
 import '../service/matrix/matrix_service.dart';
 import '../service/matrix/matrix_user_id_binding.dart';
@@ -16,6 +18,7 @@ import 'history_query.dart';
 import 'incoming_message.dart';
 import 'incoming_message_handle.dart';
 import 'incoming_message_subscription.dart';
+import 'media_reference.dart';
 import 'outgoing_message.dart';
 
 /// Transport-agnostic facade for the send / subscribe / fetchHistory message
@@ -72,6 +75,119 @@ class MessagingService {
         ),
       };
     });
+  }
+
+  /// Sends [fileBytes] as a media message on [channel]. The transport
+  /// (Matrix or DIDComm) is selected from [Channel.transport]; encryption,
+  /// upload, and event posting are delegated to the underlying transport.
+  ///
+  /// For Matrix channels: returns the server-assigned event id (or `null`
+  /// when the matrix client did not produce one). For DIDComm channels:
+  /// currently throws [UnimplementedError]; inline-attachment support is
+  /// deferred to a follow-up.
+  ///
+  /// Throws [MatrixMediaException.tooLarge] when [fileBytes] exceeds the
+  /// transport's maximum allowed size.
+  Future<String?> sendMediaMessage(
+    Channel channel,
+    Uint8List fileBytes, {
+    required String contentType,
+    String? filename,
+    String? caption,
+    Map<String, dynamic>? extraContent,
+  }) {
+    return _errorHandler.handleError(() async {
+      switch (channel.transport) {
+        case ChannelTransport.matrix:
+          return _sendMatrixMedia(
+            channel,
+            fileBytes,
+            contentType: contentType,
+            filename: filename,
+            caption: caption,
+            extraContent: extraContent,
+          );
+        case ChannelTransport.didcomm:
+          // TODO(media-upload): inline-attachment DIDComm path; enforce
+          // mediator/message-size cap before packaging bytes.
+          throw UnimplementedError(
+            'DIDComm media upload is not implemented yet',
+          );
+      }
+    });
+  }
+
+  /// Downloads and decrypts the media identified by [reference] in [channel].
+  /// Symmetric with [sendMediaMessage]; the [MediaReference] subtype must
+  /// match [Channel.transport] (e.g. [MatrixEventMediaReference] for Matrix).
+  Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) {
+    return _errorHandler.handleError(() async {
+      switch ((channel.transport, reference)) {
+        case (ChannelTransport.matrix, MatrixEventMediaReference ref):
+          final didManager = await _getDidManager(
+            _permanentChannelDid(channel),
+          );
+          final roomId = await _matrixService.resolveRoomIdForChannel(
+            didManager: didManager,
+            channel: channel,
+          );
+          return _matrixService.downloadFileForEvent(
+            roomId,
+            ref.eventId,
+            didManager: didManager,
+          );
+        case (ChannelTransport.didcomm, _):
+          throw UnimplementedError(
+            'DIDComm media download is not implemented yet',
+          );
+      }
+    });
+  }
+
+  Future<String?> _sendMatrixMedia(
+    Channel channel,
+    Uint8List fileBytes, {
+    required String contentType,
+    String? filename,
+    String? caption,
+    Map<String, dynamic>? extraContent,
+  }) async {
+    final didManager = await _getDidManager(_permanentChannelDid(channel));
+
+    final maxSize = await _matrixService.getMediaConfig(didManager: didManager);
+    if (maxSize != null && fileBytes.length > maxSize) {
+      throw MatrixMediaException.tooLarge(maxBytes: maxSize);
+    }
+
+    final roomId = await _matrixService.resolveRoomIdForChannel(
+      didManager: didManager,
+      channel: channel,
+    );
+
+    final mergedExtra = <String, dynamic>{
+      if (caption != null) 'body': caption,
+      ...?extraContent,
+    };
+
+    return _matrixService.sendFileEvent(
+      roomId,
+      bytes: fileBytes,
+      contentType: contentType,
+      filename: filename,
+      didManager: didManager,
+      extraContent: mergedExtra.isEmpty ? null : mergedExtra,
+    );
+  }
+
+  String _permanentChannelDid(Channel channel) {
+    final did = channel.permanentChannelDid;
+    if (did == null) {
+      throw StateError(
+        'Channel ${channel.id} has no permanentChannelDid; '
+        'media operations require an inaugurated channel',
+      );
+    }
+    return did;
   }
 
   /// Subscribes to incoming messages for the given [subscription].

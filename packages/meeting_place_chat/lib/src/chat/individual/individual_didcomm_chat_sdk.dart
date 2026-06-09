@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:didcomm/didcomm.dart' as didcomm;
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -6,6 +7,8 @@ import 'package:uuid/uuid.dart';
 
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
+import '../../entity/chat_attachment_bytes.dart';
+import '../../entity/chat_attachment_conversion.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
 import '../../transport/didcomm/outgoing/outgoing.dart';
 import '../../transport/didcomm/protocol.dart' as protocol;
@@ -185,7 +188,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<Message> sendTextMessage(
     String text, {
-    List<ChatAttachment>? attachments,
+    List<ChatAttachment> attachments = const [],
   }) async {
     assertCanSend();
     final channel = await getChannel();
@@ -197,6 +200,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       to: [otherPartyDid],
       text: text,
       seqNo: _seqNo,
+      attachments: attachments.map((a) => a.toDIDComm()).toList(),
     );
 
     final created = await chatRepository.createMessage(
@@ -236,6 +240,11 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       chatStream.pushData(StreamData(chatItem: created));
       return created as Message;
     }
+  }
+
+  @override
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
+    return attachment.decodeInlineBytes();
   }
 
   @override

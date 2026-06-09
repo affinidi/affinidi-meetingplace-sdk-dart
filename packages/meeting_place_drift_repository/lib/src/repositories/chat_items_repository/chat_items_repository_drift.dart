@@ -95,6 +95,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                       hash: Value(attachment.data?.hash),
                       base64: Value(attachment.data?.base64),
                       json: Value(attachment.data?.json),
+                      transportId: Value(attachment.transportId),
                     ),
                   );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -381,6 +382,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                       hash: Value(attachment.data?.hash),
                       base64: Value(attachment.data?.base64),
                       json: Value(attachment.data?.json),
+                      transportId: Value(attachment.transportId),
                     ),
                   );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -619,7 +621,7 @@ class _ChatItemMapper {
                   json: a.key.json,
                 ),
                 byteCount: a.key.byteCount,
-              ),
+              )..transportId = a.key.transportId,
             )
             .toList(),
       );

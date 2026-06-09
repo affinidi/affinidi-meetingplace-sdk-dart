@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_chat.dart';
@@ -94,13 +96,24 @@ abstract interface class MeetingPlaceChatSDK {
   /// if no such message exists in this chat.
   Future<ChatItem?> getMessageById(String messageId);
 
-  /// Sends a plain text message with optional [attachments]. Returns the
-  /// persisted [Message] once it has been dispatched (status reflects whether
-  /// the send succeeded).
+  /// Sends a plain text message with optional [attachments].
+  ///
+  /// Text and media travel together: each attachment is sent as a single
+  /// transport event carrying [text] as its caption. When multiple
+  /// attachments are supplied, only the first event carries [text]; the
+  /// rest are sent without a caption. Returns the single persisted
+  /// [Message] carrying all attachments.
   Future<Message> sendTextMessage(
     String text, {
-    List<ChatAttachment>? attachments,
+    List<ChatAttachment> attachments = const [],
   });
+
+  /// Downloads and decrypts the hosted-media bytes referenced by
+  /// [attachment]. The wire-level reference
+  /// ([ChatAttachment.transportId] for Matrix; inline base64 for DIDComm)
+  /// is resolved internally so app code never sees encryption keys or
+  /// transport URIs.
+  Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Edits a previously sent text [message] to [newText]. Only the original
   /// sender can edit a message; the message must have been delivered.

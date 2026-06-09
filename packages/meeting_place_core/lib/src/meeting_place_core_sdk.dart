@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
@@ -1141,6 +1142,32 @@ class MeetingPlaceCoreSDK {
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
     return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
+  }
+
+  /// Sends [fileBytes] as a media message on [channel]. The transport
+  /// is selected from [Channel.transport]; encryption, upload, and messaging
+  /// are delegated to the underlying transport.
+  Future<String?> sendMediaMessage(
+    Channel channel,
+    Uint8List fileBytes, {
+    required String contentType,
+    String? filename,
+    String? caption,
+    Map<String, dynamic>? extraContent,
+  }) {
+    return _messagingService.sendMediaMessage(
+      channel,
+      fileBytes,
+      contentType: contentType,
+      filename: filename,
+      caption: caption,
+      extraContent: extraContent,
+    );
+  }
+
+  /// Downloads and decrypts the media identified by [reference] in [channel].
+  Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) {
+    return _messagingService.downloadMedia(channel, reference);
   }
 
   /// Sends [message] through its transport (Matrix or DIDComm).

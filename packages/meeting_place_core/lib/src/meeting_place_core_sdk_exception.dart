@@ -1,4 +1,8 @@
-import '../meeting_place_core.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    show ControlPlaneSDKException;
+import 'package:meeting_place_mediator/meeting_place_mediator.dart'
+    show MeetingPlaceMediatorSDKException;
+
 import 'exception/sdk_exception.dart' show SDKException;
 
 /// The exception that is thrown when an error occurs in the

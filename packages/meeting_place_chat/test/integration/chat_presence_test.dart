@@ -6,7 +6,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 import '../utils/chat_test_harness.dart';
-import '../utils/sdk.dart';
 import 'utils/individual_chat_fixture.dart';
 
 void main() {
@@ -21,11 +20,9 @@ void main() {
   });
 
   test('sends chat presence message in configured interval', () async {
-    final chatSDKWithReducedInterval = await initIndividualChatSDK(
-      coreSDK: fixture.aliceSDK.coreSDK,
-      did: fixture.aliceSDK.didDocument.id,
-      otherPartyDid: fixture.bobSDK.didDocument.id,
-      channelRepository: fixture.aliceSDK.channelRepository,
+    final chatSDKWithReducedInterval = await fixture.setup.createChatSdk(
+      sdkInstance: fixture.aliceSDK,
+      channel: fixture.aliceChannel,
       options: MeetingPlaceChatSDKOptions(
         chatPresenceSendInterval: const Duration(milliseconds: 200),
       ),
@@ -80,7 +77,7 @@ void main() {
 
     final bobMessages = await fixture.bobSDK.coreSDK.fetchHistory(
       DidCommHistoryQuery(
-        receiverDid: fixture.bobSDK.didDocument.id,
+        receiverDid: fixture.bobChannel.permanentChannelDid!,
         deleteOnRetrieve: true,
       ),
     );

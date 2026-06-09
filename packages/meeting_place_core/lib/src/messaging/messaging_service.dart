@@ -217,16 +217,7 @@ class MessagingService {
         final cutoff = DateTime.now().toUtc();
         final mapped = stream
             .where(
-              (e) {
-                // ignore: avoid_print
-                print(
-                  'DEBUG matrix sub ${s.receiverDid.substring(0, 12)} '
-                  'event=${e.type} ts=${e.timestamp} cutoff=$cutoff '
-                  'isTimeline=${_isTimelineEvent(e)} '
-                  'pass=${!_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff)}',
-                );
-                return !_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff);
-              },
+              (e) => !_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff),
             )
             .asyncMap((e) async {
               if (_isTimelineEvent(e)) {

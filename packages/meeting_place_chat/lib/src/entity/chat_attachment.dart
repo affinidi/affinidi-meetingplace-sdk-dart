@@ -18,6 +18,7 @@ class ChatAttachment {
     this.lastModifiedTime,
     this.data,
     this.byteCount,
+    this.transportId,
   });
 
   /// Deserialises a [ChatAttachment] from a JSON map.
@@ -41,6 +42,7 @@ class ChatAttachment {
           ? null
           : ChatAttachmentData.fromJson(json['data'] as Map<String, dynamic>),
       byteCount: json['byte_count'] as int?,
+      transportId: json['transport_id'] as String?,
     );
   }
 
@@ -68,6 +70,15 @@ class ChatAttachment {
   /// Size in bytes (JSON key: `byte_count`).
   final int? byteCount;
 
+  /// Transport-level reference for downloading this attachment's bytes.
+  ///
+  /// For Matrix hosted media, this is the event id of the `m.room.message`
+  /// event carrying the single file. For DIDComm inline attachments this is
+  /// `null` because the bytes ride inside [data]. Populated by the sender
+  /// after upload completes and by the receiver from the originating
+  /// transport event.
+  String? transportId;
+
   /// Serialises this [ChatAttachment] to a JSON map.
   ///
   /// The key names match the DIDComm wire format so that persisted
@@ -85,6 +96,7 @@ class ChatAttachment {
     }
     if (data != null) result['data'] = data!.toJson();
     if (byteCount != null) result['byte_count'] = byteCount;
+    if (transportId != null) result['transport_id'] = transportId;
     return result;
   }
 }

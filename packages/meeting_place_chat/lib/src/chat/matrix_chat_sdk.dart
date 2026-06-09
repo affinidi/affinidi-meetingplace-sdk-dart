@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -8,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_media_attachment.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 
@@ -166,18 +168,50 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         continue;
       }
 
+      final attachments = MatrixMediaAttachments.extractFromContent(e.content);
+      for (final a in attachments) {
+        a.transportId = e.id;
+      }
+
+      final correlationId =
+          e.content[MatrixEventField.correlationId] as String?;
+
+      // Coalesce N file events sharing a correlation id into a single
+      // logical Message — mirrors the live-stream behaviour in
+      // TextMessageHandler so history replay and live arrival agree.
+      if (correlationId != null) {
+        final existing = messagesByEventId[correlationId];
+        if (existing != null) {
+          existing.attachments = [...existing.attachments, ...attachments];
+          // Keep ordering of the parent ChatItem stable; do not re-add.
+          continue;
+        }
+      }
+
+      final logicalId = correlationId ?? e.id;
       final message = e.isFromMe
           ? Message.fromRoomEventSentByMe(
               event: e,
               chatId: chatId,
               senderDid: senderDid,
+              attachments: attachments,
+              messageId: logicalId,
             )
           : Message.fromRoomEventReceivedByMe(
               event: e,
               chatId: chatId,
               senderDid: senderDid,
+              attachments: attachments,
+              messageId: logicalId,
             );
       messagesByEventId[message.messageId] = message;
+      // Edits/redactions target the matrix event id; keep a lookup keyed on
+      // it so `m.replace` and `m.room.redaction` resolve their target after
+      // we move the persisted key onto the logical correlation id.
+      if (message.transportId != null &&
+          message.transportId != message.messageId) {
+        messagesByEventId[message.transportId!] = message;
+      }
       ordered.add(message);
     }
 
@@ -279,26 +313,51 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   @override
   Future<Message> sendTextMessage(
     String text, {
-    List<ChatAttachment>? attachments,
+    List<ChatAttachment> attachments = const [],
   }) async {
     assertCanSend();
-    final message = await _sendRoomEventMessage(
-      TextMessageRoomEvent(
+
+    final Message message;
+    if (attachments.isEmpty) {
+      final outgoing = TextMessageRoomEvent(
         senderDid: did,
         text: text,
         notification: buildChannelNotification('chat-activity'),
-      ),
-    );
-
-    logger.info(
-      'Text message sent, message id: ${message.messageId}',
-      name: _matrixLogkey,
-    );
+      );
+      message = await _sendRoomEventMessage(outgoing);
+      logger.info(
+        'Text message sent, message id: ${message.messageId}',
+        name: _matrixLogkey,
+      );
+    } else {
+      message = await MediaTextMessageSender(
+        coreSDK: coreSDK,
+        did: did,
+        chatId: chatId,
+        chatRepository: chatRepository,
+        chatStream: chatStream,
+        serverEventIdToMessageId: _serverEventIdToMessageId,
+        getChannel: getChannel,
+        logger: logger,
+      ).send(text: text, attachments: attachments);
+    }
 
     await coreSDK.sendMessage(
       ChatTypingNotification(senderDid: did, active: false),
     );
     return message;
+  }
+
+  @override
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
+    final eventId = attachment.transportId;
+    if (eventId == null) {
+      throw StateError(
+        'Attachment has no transportId; cannot download hosted media',
+      );
+    }
+    final channel = await getChannel();
+    return coreSDK.downloadMedia(channel, MatrixEventMediaReference(eventId));
   }
 
   /// Sends an `m.read` receipt for [messageId], marking it as delivered.
@@ -602,7 +661,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,
-        attachments: const [],
       ),
     );
 

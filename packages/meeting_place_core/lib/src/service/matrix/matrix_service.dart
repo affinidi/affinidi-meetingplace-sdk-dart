@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
@@ -436,6 +437,64 @@ class MatrixService {
       await syncSub.cancel();
       await controller.close();
     }
+  }
+
+  /// Sends an `m.room.message` event whose content carries an attachment to
+  /// [roomId]. Constructs the wire-format [matrix.MatrixFile] from [bytes],
+  /// [contentType], and [filename] so callers stay transport-agnostic.
+  /// Encryption is delegated to the matrix Dart SDK: in an encrypted room,
+  /// [matrix.Room.sendFileEvent] uses the room's E2EE session to encrypt the
+  /// bytes, uploads the ciphertext to the homeserver, and posts the event in
+  /// one operation.
+  ///
+  /// Returns the server-assigned event id, or `null` if the matrix client
+  /// does not produce one (for example when the event is queued offline).
+  Future<String?> sendFileEvent(
+    String roomId, {
+    required Uint8List bytes,
+    required String contentType,
+    required DidManager didManager,
+    String? filename,
+    Map<String, dynamic>? extraContent,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    _assertRoomEncrypted(room, roomId);
+    final file = matrix.MatrixFile.fromMimeType(
+      bytes: bytes,
+      name: filename ?? 'file',
+      mimeType: contentType,
+    );
+    return room.sendFileEvent(file, extraContent: extraContent);
+  }
+
+  /// Downloads and decrypts the attachment carried by the message event
+  /// [eventId] in [roomId]. Symmetric to [sendFileEvent]: the matrix Dart
+  /// SDK retrieves the ciphertext from the homeserver and decrypts it using
+  /// the room's E2EE session.
+  Future<Uint8List> downloadFileForEvent(
+    String roomId,
+    String eventId, {
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    final event = await room.getEventById(eventId);
+    if (event == null) {
+      throw StateError('Matrix event $eventId not found in room $roomId');
+    }
+    final file = await event.downloadAndDecryptAttachment();
+    return file.bytes;
+  }
+
+  /// Returns the maximum upload size allowed by the homeserver, in bytes.
+  /// Returns null if the server does not report a limit.
+  Future<int?> getMediaConfig({required DidManager didManager}) async {
+    final client = await _ensureSession(didManager);
+    final config = await client.getConfigAuthed();
+    return config.mUploadSize;
   }
 
   MatrixRoomEvent? _eventToMatrixRoomEvent(

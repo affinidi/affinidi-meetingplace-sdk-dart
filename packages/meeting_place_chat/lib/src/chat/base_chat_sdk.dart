@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 
@@ -108,11 +110,24 @@ abstract class BaseChatSDK {
   /// Stream of live chat events ([StreamData]) for this session.
   Stream<StreamData> get stream => chatStream.stream;
 
-  /// Sends a plain text message with optional attachments.
+  /// Sends a plain text message with optional [attachments].
+  ///
+  /// Text and media travel together: each attachment is sent as a single
+  /// transport event carrying [text] as its caption. When multiple
+  /// attachments are supplied, only the first event carries [text]; the
+  /// rest are sent without a caption. Returns the single persisted
+  /// [Message] carrying all attachments.
   Future<Message> sendTextMessage(
     String text, {
-    List<ChatAttachment>? attachments,
+    List<ChatAttachment> attachments = const [],
   });
+
+  /// Downloads and decrypts the hosted-media bytes referenced by
+  /// [attachment]. Resolves the wire-level reference
+  /// ([ChatAttachment.transportId]) via the underlying transport, so SDK
+  /// consumers never see encryption keys or transport URIs. For DIDComm
+  /// attachments the bytes are decoded inline from [ChatAttachmentData].
+  Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}

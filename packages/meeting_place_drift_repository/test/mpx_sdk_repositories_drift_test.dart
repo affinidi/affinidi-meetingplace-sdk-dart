@@ -312,7 +312,6 @@ void main() {
         createdAt: DateTime.utc(2026, 1, 1),
         transport: model.ChannelTransport.didcomm,
       );
-
       await repository.createConnectionOffer(connectionOffer);
 
       final stored = await repository.getConnectionOfferByOfferLink(

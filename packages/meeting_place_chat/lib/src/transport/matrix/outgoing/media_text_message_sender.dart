@@ -68,15 +68,13 @@ class MediaTextMessageSender {
           id: attachments[i].id,
           description: attachments[i].description,
           filename: attachments[i].filename,
-          mediaType: attachments[i].mediaKind == AttachmentMediaKind.voice
+          mediaType: VoiceMessageMetadata.isVoice(attachments[i])
               ? contentTypes[i]
               : attachments[i].mediaType,
           format: AttachmentFormat.hostedMedia.value,
           lastModifiedTime: attachments[i].lastModifiedTime,
           byteCount: attachments[i].byteCount ?? attachmentBytes[i].length,
-          mediaKind: attachments[i].mediaKind,
-          durationMs: attachments[i].durationMs,
-          waveform: attachments[i].waveform,
+          metadata: attachments[i].metadata,
         ),
     ];
 
@@ -145,11 +143,11 @@ class MediaTextMessageSender {
 
   static String _contentTypeForAttachment(ChatAttachment attachment) {
     final mediaType = attachment.mediaType;
-    if (attachment.mediaKind != AttachmentMediaKind.voice) {
+    if (!VoiceMessageMetadata.isVoice(attachment)) {
       return mediaType ?? 'application/octet-stream';
     }
     if (mediaType == null || mediaType.isEmpty) {
-      return ChatAttachment.defaultVoiceMediaType;
+      return VoiceMessageMetadata.defaultMediaType;
     }
     if (!mediaType.toLowerCase().startsWith('audio/')) {
       throw ArgumentError.value(mediaType, 'mediaType', 'must be audio/*');

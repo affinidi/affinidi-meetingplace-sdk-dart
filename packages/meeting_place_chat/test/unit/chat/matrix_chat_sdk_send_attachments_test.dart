@@ -342,7 +342,7 @@ void main() {
         final result = await sdk.sendTextMessage(
           'voice note',
           attachments: [
-            ChatAttachment.voiceMessage(
+            VoiceMessageMetadata.buildAttachment(
               base64: 'AAAA',
               durationMs: 1200,
               filename: 'voice.m4a',
@@ -367,9 +367,10 @@ void main() {
           'duration': 1200,
           MatrixMediaAttachments.waveformInfoKey: [0, 40, 100],
         });
-        expect(result.attachments.single.mediaKind, AttachmentMediaKind.voice);
-        expect(result.attachments.single.durationMs, 1200);
-        expect(result.attachments.single.waveform, [0, 40, 100]);
+        final voice = VoiceMessageMetadata.of(result.attachments.single);
+        expect(VoiceMessageMetadata.isVoice(result.attachments.single), isTrue);
+        expect(voice?.durationMs, 1200);
+        expect(voice?.waveform, [0, 40, 100]);
       },
     );
 
@@ -393,14 +394,13 @@ void main() {
         '',
         attachments: [
           ChatAttachment(
-            mediaKind: AttachmentMediaKind.voice,
-            durationMs: 500,
             data: ChatAttachmentData(base64: 'AAAA'),
+            metadata: VoiceMessageMetadata(durationMs: 500).toMetadata(),
           ),
         ],
       );
 
-      expect(sentContentType, ChatAttachment.defaultVoiceMediaType);
+      expect(sentContentType, VoiceMessageMetadata.defaultMediaType);
     });
 
     test('attachment without base64 data throws StateError', () async {
@@ -412,17 +412,6 @@ void main() {
       expect(
         () => sdk.sendTextMessage('Hi', attachments: [attachment]),
         throwsA(isA<StateError>()),
-      );
-    });
-
-    test('voice attachment with non-audio mediaType throws ArgumentError', () {
-      expect(
-        () => ChatAttachment.voiceMessage(
-          base64: 'AAAA',
-          durationMs: 100,
-          mediaType: 'image/png',
-        ),
-        throwsA(isA<ArgumentError>()),
       );
     });
   });

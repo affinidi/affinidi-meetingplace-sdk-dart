@@ -1,19 +1,6 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
-
 import 'chat_attachment_data.dart';
 
 export 'chat_attachment_data.dart';
-
-/// App-facing media kind for attachments that need behavior beyond MIME type.
-enum AttachmentMediaKind {
-  /// Short voice message rendered as an inline voice note.
-  voice('voice');
-
-  const AttachmentMediaKind(this.value);
-
-  /// Serialized value used in JSON and Matrix custom metadata.
-  final String value;
-}
 
 /// A transport-agnostic attachment for chat messages.
 ///
@@ -32,50 +19,8 @@ class ChatAttachment {
     this.data,
     this.byteCount,
     this.transportId,
-    this.mediaKind,
-    int? durationMs,
-    List<int>? waveform,
-  }) : durationMs = _validateDurationMs(durationMs),
-       waveform = _validateWaveform(waveform);
-
-  /// Creates a voice-message attachment with inline base64 audio bytes.
-  factory ChatAttachment.voiceMessage({
-    required String base64,
-    required int durationMs,
-    String? id,
-    String? description,
-    String? filename,
-    String? mediaType,
-    String? format,
-    DateTime? lastModifiedTime,
-    int? byteCount,
-    List<int> waveform = const [],
-  }) {
-    if (base64.isEmpty) {
-      throw ArgumentError.value(base64, 'base64', 'must not be empty');
-    }
-    final effectiveMediaType = mediaType ?? defaultVoiceMediaType;
-    if (!effectiveMediaType.toLowerCase().startsWith('audio/')) {
-      throw ArgumentError.value(
-        effectiveMediaType,
-        'mediaType',
-        'must be audio/*',
-      );
-    }
-    return ChatAttachment(
-      id: id,
-      description: description,
-      filename: filename,
-      mediaType: effectiveMediaType,
-      format: format,
-      lastModifiedTime: lastModifiedTime,
-      data: ChatAttachmentData(base64: base64),
-      byteCount: byteCount,
-      mediaKind: AttachmentMediaKind.voice,
-      durationMs: durationMs,
-      waveform: waveform,
-    );
-  }
+    Map<String, dynamic>? metadata,
+  }) : metadata = metadata == null ? null : Map.unmodifiable(metadata);
 
   /// Deserialises a [ChatAttachment] from a JSON map.
   ///
@@ -99,20 +44,9 @@ class ChatAttachment {
           : ChatAttachmentData.fromJson(json['data'] as Map<String, dynamic>),
       byteCount: json['byte_count'] as int?,
       transportId: json['transport_id'] as String?,
-      mediaKind: _mediaKindFromJson(json['media_kind']),
-      durationMs: _durationMsFromJson(json['duration_ms']),
-      waveform: _waveformFromJson(json['waveform']),
+      metadata: _metadataFromJson(json['metadata']),
     );
   }
-
-  /// Default MIME type used by [ChatAttachment.voiceMessage].
-  static final defaultVoiceMediaType = AttachmentMediaType.audioMp4.value;
-
-  /// Minimum normalized waveform sample value.
-  static const waveformMinSample = 0;
-
-  /// Maximum normalized waveform sample value.
-  static const waveformMaxSample = 100;
 
   /// Unique identifier for the attachment.
   final String? id;
@@ -147,14 +81,12 @@ class ChatAttachment {
   /// transport event.
   String? transportId;
 
-  /// Optional behavior hint beyond MIME type (JSON key: `media_kind`).
-  final AttachmentMediaKind? mediaKind;
-
-  /// Optional media duration in milliseconds (JSON key: `duration_ms`).
-  final int? durationMs;
-
-  /// Optional normalized waveform samples in the 0-100 range.
-  final List<int>? waveform;
+  /// Extensible metadata for media kinds that need more than a MIME type
+  /// (JSON key: `metadata`).
+  ///
+  /// The map is opaque to [ChatAttachment]; typed views such as
+  /// `VoiceMessageMetadata` own their own keys. `null` for plain attachments.
+  final Map<String, dynamic>? metadata;
 
   /// Serialises this [ChatAttachment] to a JSON map.
   ///
@@ -174,62 +106,15 @@ class ChatAttachment {
     if (data != null) result['data'] = data!.toJson();
     if (byteCount != null) result['byte_count'] = byteCount;
     if (transportId != null) result['transport_id'] = transportId;
-    if (mediaKind != null) result['media_kind'] = mediaKind!.value;
-    if (durationMs != null) result['duration_ms'] = durationMs;
-    if (waveform != null) result['waveform'] = waveform;
+    if (metadata != null) result['metadata'] = metadata;
     return result;
   }
 
-  static int? _validateDurationMs(int? durationMs) {
-    if (durationMs != null && durationMs < 0) {
-      throw ArgumentError.value(durationMs, 'durationMs', 'must be >= 0');
-    }
-    return durationMs;
-  }
-
-  static List<int>? _validateWaveform(List<int>? waveform) {
-    if (waveform == null) return null;
-    for (final sample in waveform) {
-      if (sample < waveformMinSample || sample > waveformMaxSample) {
-        throw ArgumentError.value(sample, 'waveform', 'must be 0-100');
-      }
-    }
-    return List.unmodifiable(waveform);
-  }
-
-  static AttachmentMediaKind? _mediaKindFromJson(Object? value) {
+  static Map<String, dynamic>? _metadataFromJson(Object? value) {
     if (value == null) return null;
-    if (value is! String) {
-      throw const FormatException('Invalid attachment media_kind');
+    if (value is! Map) {
+      throw const FormatException('Invalid attachment metadata');
     }
-    if (value == AttachmentMediaKind.voice.value) {
-      return AttachmentMediaKind.voice;
-    }
-    throw const FormatException('Invalid attachment media_kind');
-  }
-
-  static int? _durationMsFromJson(Object? value) {
-    if (value == null) return null;
-    if (value is! int || value < 0) {
-      throw const FormatException('Invalid attachment duration_ms');
-    }
-    return value;
-  }
-
-  static List<int>? _waveformFromJson(Object? value) {
-    if (value == null) return null;
-    if (value is! List) {
-      throw const FormatException('Invalid attachment waveform');
-    }
-    final samples = <int>[];
-    for (final sample in value) {
-      if (sample is! int ||
-          sample < waveformMinSample ||
-          sample > waveformMaxSample) {
-        throw const FormatException('Invalid attachment waveform');
-      }
-      samples.add(sample);
-    }
-    return List.unmodifiable(samples);
+    return Map<String, dynamic>.from(value);
   }
 }

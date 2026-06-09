@@ -148,10 +148,11 @@ void main() {
       });
 
       final attachment = attachments.single;
+      final voice = VoiceMessageMetadata.of(attachment);
       expect(attachment.mediaType, AttachmentMediaType.audioMp4.value);
-      expect(attachment.mediaKind, AttachmentMediaKind.voice);
-      expect(attachment.durationMs, 1200);
-      expect(attachment.waveform, [0, 40, 100]);
+      expect(VoiceMessageMetadata.isVoice(attachment), isTrue);
+      expect(voice?.durationMs, 1200);
+      expect(voice?.waveform, [0, 40, 100]);
     });
 
     test('keeps generic audio generic without voice metadata', () {
@@ -163,9 +164,8 @@ void main() {
 
       final attachment = attachments.single;
       expect(attachment.mediaType, AttachmentMediaType.audioMpeg.value);
-      expect(attachment.mediaKind, isNull);
-      expect(attachment.durationMs, 1200);
-      expect(attachment.waveform, isNull);
+      expect(VoiceMessageMetadata.isVoice(attachment), isFalse);
+      expect(attachment.metadata, isNull);
     });
 
     test('ignores malformed voice waveform values', () {
@@ -179,8 +179,9 @@ void main() {
         },
       });
 
-      expect(attachments.single.mediaKind, AttachmentMediaKind.voice);
-      expect(attachments.single.waveform, isNull);
+      final attachment = attachments.single;
+      expect(VoiceMessageMetadata.isVoice(attachment), isTrue);
+      expect(VoiceMessageMetadata.of(attachment)?.waveform, isNull);
     });
   });
 }

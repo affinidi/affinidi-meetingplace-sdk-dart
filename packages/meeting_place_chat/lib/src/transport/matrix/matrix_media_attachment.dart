@@ -1,6 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../entity/chat_attachment.dart';
+import '../../entity/voice_message_metadata.dart';
 
 /// Matrix `msgtype` values used for media content.
 ///
@@ -64,7 +65,6 @@ class MatrixMediaAttachments {
     final mimeType = _stringValue(info?['mimetype']);
     final sizeValue = info?['size'];
     final size = sizeValue is int ? sizeValue : null;
-    final mediaKind = _mediaKindValue(info?[mediaKindInfoKey]);
 
     return [
       ChatAttachment(
@@ -72,13 +72,21 @@ class MatrixMediaAttachments {
         mediaType: mimeType,
         format: AttachmentFormat.hostedMedia.value,
         byteCount: size,
-        mediaKind: mediaKind,
-        durationMs: _durationValue(info?[_durationInfoKey]),
-        waveform: mediaKind == AttachmentMediaKind.voice
-            ? _waveformValue(info?[waveformInfoKey])
-            : null,
+        metadata: _voiceMetadata(info),
       ),
     ];
+  }
+
+  /// Reads voice metadata from Matrix `info`, or `null` for generic media.
+  static Map<String, dynamic>? _voiceMetadata(Map<String, dynamic>? info) {
+    if (info == null ||
+        info[mediaKindInfoKey] != VoiceMessageMetadata.voiceKind) {
+      return null;
+    }
+    return VoiceMessageMetadata(
+      durationMs: _durationValue(info[_durationInfoKey]),
+      waveform: _waveformValue(info[waveformInfoKey]),
+    ).toMetadata();
   }
 
   /// Builds Matrix `info` metadata for outgoing hosted-media attachments.
@@ -87,9 +95,10 @@ class MatrixMediaAttachments {
     required String contentType,
     required int sizeBytes,
   }) {
-    if (attachment.mediaKind != AttachmentMediaKind.voice) return null;
+    final voice = VoiceMessageMetadata.of(attachment);
+    if (voice == null) return null;
 
-    final durationMs = attachment.durationMs;
+    final durationMs = voice.durationMs;
     if (durationMs == null) {
       throw ArgumentError.value(
         durationMs,
@@ -101,10 +110,10 @@ class MatrixMediaAttachments {
     final info = <String, dynamic>{
       'mimetype': contentType,
       'size': sizeBytes,
-      mediaKindInfoKey: AttachmentMediaKind.voice.value,
+      mediaKindInfoKey: VoiceMessageMetadata.voiceKind,
       _durationInfoKey: durationMs,
     };
-    final waveform = attachment.waveform;
+    final waveform = voice.waveform;
     if (waveform != null) info[waveformInfoKey] = waveform;
     return info;
   }
@@ -135,19 +144,13 @@ class MatrixMediaAttachments {
     return null;
   }
 
-  static AttachmentMediaKind? _mediaKindValue(Object? value) {
-    return value == AttachmentMediaKind.voice.value
-        ? AttachmentMediaKind.voice
-        : null;
-  }
-
   static List<int>? _waveformValue(Object? value) {
     if (value is! List) return null;
     final samples = <int>[];
     for (final sample in value) {
       if (sample is! int ||
-          sample < ChatAttachment.waveformMinSample ||
-          sample > ChatAttachment.waveformMaxSample) {
+          sample < VoiceMessageMetadata.waveformMinSample ||
+          sample > VoiceMessageMetadata.waveformMaxSample) {
         return null;
       }
       samples.add(sample);

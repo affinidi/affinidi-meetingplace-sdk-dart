@@ -73,7 +73,9 @@ class MatrixService {
       didDocument.id,
     );
     if (cachedClient != null) {
-      return cachedClient.userID!;
+      final userId = cachedClient.userID;
+      if (userId == null) throw MatrixServiceException.missingUserId();
+      return userId;
     }
 
     final matrixTokenOutput = await _controlPlaneSDK.execute(

@@ -1,3 +1,4 @@
+import 'package:matrix/matrix.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:mocktail/mocktail.dart';
 

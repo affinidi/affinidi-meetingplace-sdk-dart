@@ -22,6 +22,15 @@ class MatrixServiceException implements SDKException {
     );
   }
 
+  factory MatrixServiceException.missingUserId() {
+    return MatrixServiceException(
+      message:
+          'Matrix client has no userID after session establishment; '
+          'this should not happen.',
+      code: MeetingPlaceCoreSDKErrorCode.matrixMissingUserId,
+    );
+  }
+
   MatrixServiceException({
     required this.message,
     required this.code,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
@@ -10,13 +11,62 @@ import '../../utils/individual_chat_fixture.dart';
 
 void main() {
   late IndividualChatFixture fixture;
+  late MeetingPlaceChatSDK aliceChatSDK;
+  late MeetingPlaceChatSDK bobChatSDK;
 
-  setUp(() async {
+  setUpAll(() async {
     fixture = await IndividualChatFixture.create();
   });
 
+  setUp(() async {
+    aliceChatSDK = await fixture.setup.createChatSdk(
+      sdkInstance: fixture.aliceSDK,
+      channel: fixture.aliceChannel,
+    );
+    bobChatSDK = await fixture.setup.createChatSdk(
+      sdkInstance: fixture.bobSDK,
+      channel: fixture.bobChannel,
+    );
+  });
+
   tearDown(() async {
+    await aliceChatSDK.endChatSession();
+    await bobChatSDK.endChatSession();
+  });
+
+  tearDownAll(() async {
     await fixture.dispose();
+  });
+
+  test('sending reactions to other party', () async {
+    await aliceChatSDK.startChatSession();
+    await bobChatSDK.startChatSession();
+
+    final bobChat = ChatTestHarness.awaitEvent<ChatMessageEvent>(bobChatSDK);
+    await aliceChatSDK.sendTextMessage('Hello Bob!');
+    await bobChat;
+
+    final message = (await bobChatSDK.messages).first as Message;
+
+    final aliceReactions = ChatTestHarness.collect(
+      aliceChatSDK,
+      duration: const Duration(seconds: 10),
+    );
+
+    await bobChatSDK.reactOnMessage(message, reaction: '👋');
+    await bobChatSDK.reactOnMessage(message, reaction: '👍');
+    await Future<void>.delayed(const Duration(seconds: 2));
+
+    final twoReactionMessage =
+        await aliceChatSDK.getMessageById(message.messageId) as Message;
+    expect(twoReactionMessage.reactions, equals(['👋', '👍']));
+
+    await bobChatSDK.reactOnMessage(message, reaction: '👋');
+    await aliceReactions;
+
+    final updatedMessage =
+        await aliceChatSDK.getMessageById(message.messageId) as Message;
+    expect(updatedMessage.reactions, equals(['👍']));
   });
 
   test(
@@ -36,18 +86,18 @@ void main() {
         byteCount: originalBytes.length,
       );
 
-      await fixture.bobChatSDK.startChatSession();
-      await fixture.aliceChatSDK.startChatSession();
+      await bobChatSDK.startChatSession();
+      await aliceChatSDK.startChatSession();
 
       final bobItemFuture = ChatTestHarness.awaitItem(
-        fixture.bobChatSDK,
+        bobChatSDK,
         where: (item) =>
             item is Message &&
             item.attachments.isNotEmpty &&
             item.attachments.first.format == AttachmentFormat.hostedMedia.value,
       );
 
-      final sentMessage = await fixture.aliceChatSDK.sendTextMessage(
+      final sentMessage = await aliceChatSDK.sendTextMessage(
         'Hello World!',
         attachments: [attachment],
       );
@@ -57,8 +107,6 @@ void main() {
       final receivedMessage = receivedItem as Message;
       final receivedAttachment = receivedMessage.attachments.single;
 
-      // Display-only metadata: mxc URI and encryption JSON are stripped on the
-      // SDK boundary; per-attachment transportId is the only reference.
       expect(receivedAttachment.format, AttachmentFormat.hostedMedia.value);
       expect(receivedAttachment.mediaType, attachment.mediaType);
       expect(receivedAttachment.filename, attachment.filename);
@@ -67,13 +115,9 @@ void main() {
       expect(receivedMessage.transportId, isNotNull);
       expect(receivedMessage.value, 'Hello World!');
 
-      final downloaded = await fixture.bobChatSDK.downloadMedia(
-        receivedAttachment,
-      );
+      final downloaded = await bobChatSDK.downloadMedia(receivedAttachment);
       expect(downloaded, originalBytes);
 
-      // Sender side mirrors: stored attachment carries display metadata only,
-      // transportId is set after the matrix event is acknowledged.
       expect(sentMessage.attachments.single.data, isNull);
       expect(sentMessage.attachments.single.transportId, isNotNull);
       expect(sentMessage.transportId, isNotNull);

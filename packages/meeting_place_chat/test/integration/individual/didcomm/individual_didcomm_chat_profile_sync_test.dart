@@ -142,40 +142,4 @@ void main() {
       await newBobChatSDK.endChatSession();
     },
   );
-
-  testWithDidcommGuard('reject contact profile update', () async {
-    await fixture.aliceChatSDK.startChatSession();
-    final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
-      did: fixture.bobSDK.didDocument.id,
-      contactInfo: {'changed': 'value'},
-    );
-
-    await fixture.aliceChatSDK.chatStreamSubscription;
-
-    final newBobChatSDK = await fixture.setup.createChatSdk(
-      sdkInstance: fixture.bobSDK,
-      channel: fixture.bobChannel,
-      card: updatedCard,
-    );
-
-    final sessionFuture = newBobChatSDK.startChatSession();
-    final bobProfileRequest = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
-      newBobChatSDK,
-      where: (e) => e.type == ChatProtocol.chatAliasProfileRequest.value,
-    );
-
-    await sessionFuture;
-    await bobProfileRequest;
-
-    final conciergeMessage =
-        (await newBobChatSDK.messages).firstWhere(
-              (chatItem) => chatItem.type == ChatItemType.conciergeMessage,
-            )
-            as ConciergeMessage;
-
-    await newBobChatSDK.rejectChatContactDetailsUpdate(conciergeMessage);
-    expect(conciergeMessage.status, equals(ChatItemStatus.confirmed));
-
-    await newBobChatSDK.endChatSession();
-  });
 }

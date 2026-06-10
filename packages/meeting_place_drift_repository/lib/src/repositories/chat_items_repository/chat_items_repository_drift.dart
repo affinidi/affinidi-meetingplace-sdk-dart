@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart' as model;
 import 'package:synchronized/synchronized.dart';
@@ -96,6 +98,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                       base64: Value(attachment.data?.base64),
                       json: Value(attachment.data?.json),
                       transportId: Value(attachment.transportId),
+                      metadata: Value(_encodeMetadata(attachment.metadata)),
                     ),
                   );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -383,6 +386,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                       base64: Value(attachment.data?.base64),
                       json: Value(attachment.data?.json),
                       transportId: Value(attachment.transportId),
+                      metadata: Value(_encodeMetadata(attachment.metadata)),
                     ),
                   );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -621,6 +625,7 @@ class _ChatItemMapper {
                   json: a.key.json,
                 ),
                 byteCount: a.key.byteCount,
+                metadata: _decodeMetadata(a.key.metadata),
               )..transportId = a.key.transportId,
             )
             .toList(),
@@ -660,4 +665,19 @@ class _ChatItemMapper {
       code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
     );
   }
+}
+
+/// Encodes extensible attachment [metadata] to a JSON string for persistence,
+/// or `null` when there is no metadata.
+String? _encodeMetadata(Map<String, dynamic>? metadata) {
+  if (metadata == null) return null;
+  return jsonEncode(metadata);
+}
+
+/// Decodes persisted attachment metadata from its JSON string [value], or
+/// `null` when absent or malformed.
+Map<String, dynamic>? _decodeMetadata(String? value) {
+  if (value == null || value.isEmpty) return null;
+  final decoded = jsonDecode(value);
+  return decoded is Map<String, dynamic> ? decoded : null;
 }

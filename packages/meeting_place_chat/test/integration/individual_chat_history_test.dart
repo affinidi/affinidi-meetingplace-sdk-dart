@@ -25,13 +25,9 @@ void main() {
     final bobMessage = ChatTestHarness.awaitEvent<ChatMessageEvent>(
       fixture.bobChatSDK,
     );
-    final aliceDelivered = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
-      fixture.aliceChatSDK,
-      where: (e) => e.type == ChatProtocol.chatDelivered.value,
-    );
 
     await fixture.aliceChatSDK.sendTextMessage('Hello World!');
-    await aliceDelivered;
+    await bobMessage;
 
     await fixture.aliceChatSDK.endChatSession();
 
@@ -60,7 +56,6 @@ void main() {
     expect((await aliceChatWithCharlie.messages).length, isZero);
     await aliceChatWithCharlie.endChatSession();
 
-    await bobMessage;
     expect((await fixture.bobChatSDK.messages).length, equals(1));
   });
 

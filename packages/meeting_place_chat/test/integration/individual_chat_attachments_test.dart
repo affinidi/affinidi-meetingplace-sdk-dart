@@ -39,18 +39,20 @@ void main() {
       await fixture.bobChatSDK.startChatSession();
       await fixture.aliceChatSDK.startChatSession();
 
-      final sentMessage = await fixture.aliceChatSDK.sendTextMessage(
-        'Hello World!',
-        attachments: [attachment],
-      );
-
-      final receivedItem = await ChatTestHarness.awaitItem(
+      final bobItemFuture = ChatTestHarness.awaitItem(
         fixture.bobChatSDK,
         where: (item) =>
             item is Message &&
             item.attachments.isNotEmpty &&
             item.attachments.first.format == AttachmentFormat.hostedMedia.value,
       );
+
+      final sentMessage = await fixture.aliceChatSDK.sendTextMessage(
+        'Hello World!',
+        attachments: [attachment],
+      );
+
+      final receivedItem = await bobItemFuture;
 
       final receivedMessage = receivedItem as Message;
       final receivedAttachment = receivedMessage.attachments.single;

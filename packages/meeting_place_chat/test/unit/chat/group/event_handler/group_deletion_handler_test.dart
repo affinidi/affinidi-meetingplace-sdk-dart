@@ -84,9 +84,9 @@ void main() {
         verify(() => coreSDK.updateGroup(any())).called(1);
         verify(() => chatRepository.createMessage(any())).called(1);
 
-        expect(received.length, 2);
+        expect(received.length, 1);
         expect(received[0].chatItem, isA<EventMessage>());
-        final emitted = received[1].event;
+        final emitted = received[0].event;
         expect(emitted, isA<ChatGroupDeletedEvent>());
         expect((emitted as ChatGroupDeletedEvent).groupDid, group.did);
       },

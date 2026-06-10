@@ -91,52 +91,47 @@ class MessagingService {
     String? caption,
     Map<String, dynamic>? extraContent,
   }) {
-    return _errorHandler.handleError(() async {
-      switch (channel.transport) {
-        case ChannelTransport.matrix:
-          return _sendMatrixMedia(
-            channel,
-            fileBytes,
-            contentType: contentType,
-            filename: filename,
-            caption: caption,
-            extraContent: extraContent,
-          );
-        case ChannelTransport.didcomm:
-          // TODO(media-upload): inline-attachment DIDComm path; enforce
-          // mediator/message-size cap before packaging bytes.
-          throw UnimplementedError(
-            'DIDComm media upload is not implemented yet',
-          );
-      }
-    });
+    switch (channel.transport) {
+      case ChannelTransport.matrix:
+        return _sendMatrixMedia(
+          channel,
+          fileBytes,
+          contentType: contentType,
+          filename: filename,
+          caption: caption,
+          extraContent: extraContent,
+        );
+      case ChannelTransport.didcomm:
+        // TODO(media-upload): inline-attachment DIDComm path; enforce
+        // mediator/message-size cap before packaging bytes.
+        throw UnimplementedError('DIDComm media upload is not implemented yet');
+    }
   }
 
   /// Downloads and decrypts the media identified by [reference] in [channel].
   /// Symmetric with [sendMediaMessage]; the [MediaReference] subtype must
   /// match [Channel.transport] (e.g. [MatrixEventMediaReference] for Matrix).
-  Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) {
-    return _errorHandler.handleError(() async {
-      switch ((channel.transport, reference)) {
-        case (ChannelTransport.matrix, MatrixEventMediaReference ref):
-          final didManager = await _getDidManager(
-            _permanentChannelDid(channel),
-          );
-          final roomId = await _matrixService.resolveRoomIdForChannel(
-            didManager: didManager,
-            channel: channel,
-          );
-          return _matrixService.downloadFileForEvent(
-            roomId,
-            ref.eventId,
-            didManager: didManager,
-          );
-        case (ChannelTransport.didcomm, _):
-          throw UnimplementedError(
-            'DIDComm media download is not implemented yet',
-          );
-      }
-    });
+  Future<Uint8List> downloadMedia(
+    Channel channel,
+    MediaReference reference,
+  ) async {
+    switch ((channel.transport, reference)) {
+      case (ChannelTransport.matrix, MatrixEventMediaReference ref):
+        final didManager = await _getDidManager(_permanentChannelDid(channel));
+        final roomId = await _matrixService.resolveRoomIdForChannel(
+          didManager: didManager,
+          channel: channel,
+        );
+        return _matrixService.downloadFileForEvent(
+          roomId,
+          ref.eventId,
+          didManager: didManager,
+        );
+      case (ChannelTransport.didcomm, _):
+        throw UnimplementedError(
+          'DIDComm media download is not implemented yet',
+        );
+    }
   }
 
   Future<String?> _sendMatrixMedia(

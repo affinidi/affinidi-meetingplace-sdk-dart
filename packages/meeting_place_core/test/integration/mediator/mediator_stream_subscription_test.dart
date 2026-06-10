@@ -18,6 +18,16 @@ void main() async {
   late DidManager bobDID;
   late DidDocument bobDidDoc;
 
+  // Swallows a known didcomm 2.3.3 race where Connection.start's unawaited
+  // fetchMessages then-block calls _controller.add after stop() closed it.
+  void swallowDidcommCloseRace(Object error, StackTrace stackTrace) {
+    if (error is StateError &&
+        error.message.contains('Cannot add new events after calling close')) {
+      return;
+    }
+    Zone.root.handleUncaughtError(error, stackTrace);
+  }
+
   Future<void> clearMessageQueue(
     DIDCommTransport transport,
     DidDocument didDoc,
@@ -42,6 +52,13 @@ void main() async {
 
     await clearMessageQueue(aliceDidcomm, aliceDidDoc);
     await clearMessageQueue(bobDidcomm, bobDidDoc);
+  });
+
+  tearDown(() async {
+    await runZonedGuarded(() async {
+      await aliceSDK.dispose();
+      await bobSDK.dispose();
+    }, swallowDidcommCloseRace);
   });
 
   Future<void> sendMessageFromBobToAlice({
@@ -312,7 +329,9 @@ void main() async {
         return MediatorStreamProcessingResult(keepMessage: false);
       },
       onError: (e) {
-        waitForError.complete(true);
+        if (!waitForError.isCompleted) {
+          waitForError.complete(true);
+        }
       },
     );
 
@@ -366,7 +385,9 @@ void main() async {
 
       subscriptionA.listen((message) {
         if (message.plainTextMessage.type == testMessage.type) {
-          subscriptionAReceived.complete(message.plainTextMessage);
+          if (!subscriptionAReceived.isCompleted) {
+            subscriptionAReceived.complete(message.plainTextMessage);
+          }
         }
         return MediatorStreamProcessingResult(
           keepMessage: subscriptionAKeepAlive,
@@ -375,7 +396,9 @@ void main() async {
 
       subscriptionB.listen((message) {
         if (message.plainTextMessage.type == testMessage.type) {
-          subscriptionBReceived.complete(message.plainTextMessage);
+          if (!subscriptionBReceived.isCompleted) {
+            subscriptionBReceived.complete(message.plainTextMessage);
+          }
         }
         return MediatorStreamProcessingResult(
           keepMessage: subscriptionBKeepAlive,

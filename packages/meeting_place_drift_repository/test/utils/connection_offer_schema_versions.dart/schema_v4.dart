@@ -121,6 +121,12 @@ class ConnectionOffers extends Table with TableInfo {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: 'NULL');
+  late final GeneratedColumn<int> transport = GeneratedColumn<int>(
+      'transport', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 1',
+      defaultValue: const CustomExpression('1'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -144,7 +150,8 @@ class ConnectionOffers extends Table with TableInfo {
         otherPartyPermanentChannelDid,
         notificationToken,
         otherPartyNotificationToken,
-        externalRef
+        externalRef,
+        transport
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -297,8 +304,8 @@ class GroupConnectionOffers extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV2 extends GeneratedDatabase {
-  DatabaseAtV2(QueryExecutor e) : super(e);
+class DatabaseAtV4 extends GeneratedDatabase {
+  DatabaseAtV4(QueryExecutor e) : super(e);
   late final ConnectionOffers connectionOffers = ConnectionOffers(this);
   late final ConnectionContactCards connectionContactCards =
       ConnectionContactCards(this);
@@ -330,7 +337,7 @@ class DatabaseAtV2 extends GeneratedDatabase {
         ],
       );
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

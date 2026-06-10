@@ -11,41 +11,65 @@ class ChatItems extends Table with TableInfo {
   ChatItems(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
       'chat_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
       'message_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<String> value = GeneratedColumn<String>(
       'value', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  late final GeneratedColumn<bool> isFromMe = GeneratedColumn<bool>(
-      'is_from_me', aliasedName, false,
-      type: DriftSqlType.bool,
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('CHECK ("is_from_me" IN (0, 1))'),
+      $customConstraints: 'NULL');
+  late final GeneratedColumn<int> isFromMe = GeneratedColumn<int>(
+      'is_from_me', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_from_me IN (0, 1))',
       defaultValue: const CustomExpression('0'));
-  late final GeneratedColumn<DateTime> dateCreated = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> dateCreated = GeneratedColumn<String>(
       'date_created', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<int> status = GeneratedColumn<int>(
       'status', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   late final GeneratedColumn<int> type = GeneratedColumn<int>(
       'type', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  late final GeneratedColumn<int> eventType = GeneratedColumn<int>(
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
       'event_type', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  late final GeneratedColumn<int> conciergeType = GeneratedColumn<int>(
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
+  late final GeneratedColumn<String> conciergeType = GeneratedColumn<String>(
       'concierge_type', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> data = GeneratedColumn<String>(
       'data', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> senderDid = GeneratedColumn<String>(
       'sender_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> transportId = GeneratedColumn<String>(
+      'transport_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   @override
   List<GeneratedColumn> get $columns => [
         chatId,
@@ -58,7 +82,8 @@ class ChatItems extends Table with TableInfo {
         eventType,
         conciergeType,
         data,
-        senderDid
+        senderDid,
+        transportId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -76,6 +101,11 @@ class ChatItems extends Table with TableInfo {
   ChatItems createAlias(String alias) {
     return ChatItems(attachedDatabase, alias);
   }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(message_id)'];
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class Reactions extends Table with TableInfo {
@@ -88,10 +118,12 @@ class Reactions extends Table with TableInfo {
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints:
-          'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL');
+          'REFERENCES chat_items(message_id)ON DELETE CASCADE NOT NULL');
   late final GeneratedColumn<String> value = GeneratedColumn<String>(
       'value', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [messageId, value];
   @override
@@ -110,6 +142,9 @@ class Reactions extends Table with TableInfo {
   Reactions createAlias(String alias) {
     return Reactions(attachedDatabase, alias);
   }
+
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class Attachments extends Table with TableInfo {
@@ -122,47 +157,68 @@ class Attachments extends Table with TableInfo {
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints:
-          'REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL');
+          'REFERENCES chat_items(message_id)ON DELETE CASCADE NOT NULL');
   late final GeneratedColumn<int> attachmentId = GeneratedColumn<int>(
       'attachment_id', aliasedName, false,
       hasAutoIncrement: true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+      $customConstraints: 'NOT NULL PRIMARY KEY AUTOINCREMENT');
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
       'description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> filename = GeneratedColumn<String>(
       'filename', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> mediaType = GeneratedColumn<String>(
       'media_type', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> format = GeneratedColumn<String>(
       'format', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  late final GeneratedColumn<DateTime> lastModifiedTime =
-      GeneratedColumn<DateTime>('last_modified_time', aliasedName, true,
-          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
+  late final GeneratedColumn<String> lastModifiedTime = GeneratedColumn<String>(
+      'last_modified_time', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> jws = GeneratedColumn<String>(
       'jws', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<int> byteCount = GeneratedColumn<int>(
       'byte_count', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> hash = GeneratedColumn<String>(
       'hash', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> base64 = GeneratedColumn<String>(
       'base64', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   late final GeneratedColumn<String> json = GeneratedColumn<String>(
       'json', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: 'NULL');
   @override
   List<GeneratedColumn> get $columns => [
         messageId,
@@ -195,6 +251,9 @@ class Attachments extends Table with TableInfo {
   Attachments createAlias(String alias) {
     return Attachments(attachedDatabase, alias);
   }
+
+  @override
+  bool get dontWriteConstraints => true;
 }
 
 class AttachmentsLinks extends Table with TableInfo {
@@ -207,10 +266,12 @@ class AttachmentsLinks extends Table with TableInfo {
       type: DriftSqlType.int,
       requiredDuringInsert: true,
       $customConstraints:
-          'REFERENCES attachments(attachment_id) ON DELETE CASCADE NOT NULL');
+          'REFERENCES attachments(attachment_id)ON DELETE CASCADE NOT NULL');
   late final GeneratedColumn<String> url = GeneratedColumn<String>(
       'url', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns => [attachmentId, url];
   @override
@@ -229,10 +290,13 @@ class AttachmentsLinks extends Table with TableInfo {
   AttachmentsLinks createAlias(String alias) {
     return AttachmentsLinks(attachedDatabase, alias);
   }
+
+  @override
+  bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV1 extends GeneratedDatabase {
-  DatabaseAtV1(QueryExecutor e) : super(e);
+class DatabaseAtV3 extends GeneratedDatabase {
+  DatabaseAtV3(QueryExecutor e) : super(e);
   late final ChatItems chatItems = ChatItems(this);
   late final Reactions reactions = Reactions(this);
   late final Attachments attachments = Attachments(this);
@@ -244,7 +308,33 @@ class DatabaseAtV1 extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities =>
       [chatItems, reactions, attachments, attachmentsLinks];
   @override
-  int get schemaVersion => 1;
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('chat_items',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('reactions', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('chat_items',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('attachments', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('attachments',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('attachments_links', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
+  @override
+  int get schemaVersion => 3;
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

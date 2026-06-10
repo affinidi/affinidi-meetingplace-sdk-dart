@@ -1,2 +1,6 @@
 timeout: "120s"
-concurrency: 1
+concurrency: 4
+
+tags:
+  serial:
+    concurrency: 1

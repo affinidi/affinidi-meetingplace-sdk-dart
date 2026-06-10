@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
@@ -35,74 +37,220 @@ void main() {
     await fixture.dispose();
   });
 
-  test('sendEffect delivers ChatEffectEvent to other party', () async {
-    await aliceChatSDK.startChatSession();
-    await bobChatSDK.startChatSession();
+  group('messaging', () {
+    test('sendEffect delivers ChatEffectEvent to other party', () async {
+      await aliceChatSDK.startChatSession();
+      await bobChatSDK.startChatSession();
 
-    final bobEffect = ChatTestHarness.awaitEvent<ChatEffectEvent>(
-      bobChatSDK,
-      where: (e) => e.effectName == Effect.confetti.name,
-    );
+      final bobEffect = ChatTestHarness.awaitEvent<ChatEffectEvent>(
+        bobChatSDK,
+        where: (e) => e.effectName == Effect.confetti.name,
+      );
 
-    await aliceChatSDK.sendEffect(Effect.confetti);
+      await aliceChatSDK.sendEffect(Effect.confetti);
 
-    final received = await bobEffect;
-    expect(received.effectName, equals(Effect.confetti.name));
+      final received = await bobEffect;
+      expect(received.effectName, equals(Effect.confetti.name));
+    });
+
+    test('sendCustomEvent delivers message to other party', () async {
+      await aliceChatSDK.startChatSession();
+      await bobChatSDK.startChatSession();
+
+      await bobChatSDK.chatStreamSubscription;
+      final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(bobChatSDK);
+
+      await aliceChatSDK.sendCustomEvent(
+        type: ChatProtocol.chatMessage.value,
+        payload: {
+          'text': 'Hello via sendCustomEvent',
+          'seq_no': 1,
+          'timestamp': DateTime.now().toUtc().toIso8601String(),
+        },
+      );
+
+      await bobWait;
+      final received = (await bobChatSDK.messages).first as Message;
+      expect(received.value, equals('Hello via sendCustomEvent'));
+      expect(
+        received.senderDid,
+        equals(fixture.aliceChannel.permanentChannelDid),
+      );
+    });
+
+    test('unhandled message is pushed to chat stream', () async {
+      final bobChannelDid = fixture.bobChannel.permanentChannelDid!;
+      final aliceChannelDid = fixture.aliceChannel.permanentChannelDid!;
+      final unhandledMessage = PlainTextMessage(
+        id: const Uuid().v4(),
+        type: Uri.parse('https://example.com/${const Uuid().v4()}'),
+        from: bobChannelDid,
+        to: [aliceChannelDid],
+        body: {'text': 'Hello Alice!'},
+      );
+
+      await aliceChatSDK.startChatSession();
+      final waitForUnhandled = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+        aliceChatSDK,
+        where: (e) => e.type == unhandledMessage.type.toString(),
+      );
+
+      await fixture.bobSDK.coreSDK.sendMessage(
+        DidCommOutgoingMessage(
+          senderDid: bobChannelDid,
+          recipientDid: aliceChannelDid,
+          mediatorDid: fixture.bobChannel.mediatorDid,
+          payload: unhandledMessage,
+        ),
+      );
+
+      final received = await waitForUnhandled;
+      expect(received.type, equals(unhandledMessage.type.toString()));
+    });
   });
 
-  test('sendCustomEvent delivers message to other party', () async {
-    await aliceChatSDK.startChatSession();
-    await bobChatSDK.startChatSession();
+  group('delivery', () {
+    test('alice sends multiple messages', () async {
+      await aliceChatSDK.startChatSession();
+      await bobChatSDK.startChatSession();
 
-    await bobChatSDK.chatStreamSubscription;
-    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(bobChatSDK);
+      final bobReceivedTwo = ChatTestHarness.collect(
+        bobChatSDK,
+        duration: const Duration(seconds: 10),
+      );
 
-    await aliceChatSDK.sendCustomEvent(
-      type: ChatProtocol.chatMessage.value,
-      payload: {
-        'text': 'Hello via sendCustomEvent',
-        'seq_no': 1,
-        'timestamp': DateTime.now().toUtc().toIso8601String(),
+      final messageIds = <String>[
+        (await aliceChatSDK.sendTextMessage('Message#1')).messageId,
+        (await aliceChatSDK.sendTextMessage('Message#2')).messageId,
+      ];
+
+      final aliceDelivered = ChatTestHarness.collect(
+        aliceChatSDK,
+        duration: const Duration(seconds: 10),
+      );
+
+      final bobMessageIds = (await bobReceivedTwo)
+          .where((d) => d.event is ChatMessageEvent && d.chatItem != null)
+          .map((d) => d.chatItem!.messageId)
+          .toSet();
+      expect(bobMessageIds.length, equals(2));
+
+      final deliveredIds = (await aliceDelivered)
+          .map((d) => d.event)
+          .whereType<ChatMessageDeliveredEvent>()
+          .expand((e) => e.messageIds)
+          .toSet();
+      expect(deliveredIds, containsAll(messageIds));
+
+      final aliceRepositoryMessages = await aliceChatSDK.messages;
+      expect(aliceRepositoryMessages.length, equals(2));
+      expect(aliceRepositoryMessages[0].status, ChatItemStatus.delivered);
+      expect(aliceRepositoryMessages[1].status, ChatItemStatus.delivered);
+
+      final bobRepositoryMessages = await bobChatSDK.messages;
+      expect(bobRepositoryMessages.length, equals(2));
+      expect(bobRepositoryMessages[0].status, ChatItemStatus.received);
+      expect(bobRepositoryMessages[1].status, ChatItemStatus.received);
+    });
+
+    test(
+      'replayed history rolls all buffered outbound messages to delivered',
+      () async {
+        await aliceChatSDK.startChatSession();
+
+        final sentIds = <String>[
+          (await aliceChatSDK.sendTextMessage('Buffered #1')).messageId,
+          (await aliceChatSDK.sendTextMessage('Buffered #2')).messageId,
+        ];
+
+        final aliceLatestDelivered = ChatTestHarness.awaitItem(
+          aliceChatSDK,
+          where: (item) =>
+              item is Message &&
+              item.messageId == sentIds.last &&
+              item.status == ChatItemStatus.delivered,
+        );
+
+        await bobChatSDK.startChatSession();
+        await aliceLatestDelivered;
+
+        final aliceMessages = await aliceChatSDK.messages;
+        final byId = {
+          for (final m in aliceMessages.cast<Message>()) m.messageId: m,
+        };
+        for (final id in sentIds) {
+          expect(byId[id]?.status, ChatItemStatus.delivered, reason: 'id=$id');
+        }
       },
     );
-
-    await bobWait;
-    final received = (await bobChatSDK.messages).first as Message;
-    expect(received.value, equals('Hello via sendCustomEvent'));
-    expect(
-      received.senderDid,
-      equals(fixture.aliceChannel.permanentChannelDid),
-    );
   });
 
-  test('unhandled message is pushed to chat stream', () async {
-    final bobChannelDid = fixture.bobChannel.permanentChannelDid!;
-    final aliceChannelDid = fixture.aliceChannel.permanentChannelDid!;
-    final unhandledMessage = PlainTextMessage(
-      id: const Uuid().v4(),
-      type: Uri.parse('https://example.com/${const Uuid().v4()}'),
-      from: bobChannelDid,
-      to: [aliceChannelDid],
-      body: {'text': 'Hello Alice!'},
-    );
+  group('presence', () {
+    test('sends chat presence message in configured interval', () async {
+      final chatSDKWithReducedInterval = await fixture.setup.createChatSdk(
+        sdkInstance: fixture.aliceSDK,
+        channel: fixture.aliceChannel,
+        options: MeetingPlaceChatSDKOptions(
+          chatPresenceSendInterval: const Duration(milliseconds: 200),
+        ),
+      );
 
-    await aliceChatSDK.startChatSession();
-    final waitForUnhandled = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
-      aliceChatSDK,
-      where: (e) => e.type == unhandledMessage.type.toString(),
-    );
+      await bobChatSDK.startChatSession();
 
-    await fixture.bobSDK.coreSDK.sendMessage(
-      DidCommOutgoingMessage(
-        senderDid: bobChannelDid,
-        recipientDid: aliceChannelDid,
-        mediatorDid: fixture.bobChannel.mediatorDid,
-        payload: unhandledMessage,
-      ),
-    );
+      final bobEvents = ChatTestHarness.collect(
+        bobChatSDK,
+        duration: const Duration(seconds: 3),
+      );
 
-    final received = await waitForUnhandled;
-    expect(received.type, equals(unhandledMessage.type.toString()));
+      await chatSDKWithReducedInterval.startChatSession();
+
+      final presenceCount = (await bobEvents)
+          .where((d) => d.event is ChatPresenceEvent)
+          .length;
+      expect(presenceCount, greaterThan(1));
+      await chatSDKWithReducedInterval.endChatSession();
+    });
+
+    test('start chat presence updates after restarting chat session', () async {
+      await runZonedGuarded(
+        () async {
+          await bobChatSDK.startChatSession();
+          await bobChatSDK.chatStreamSubscription;
+
+          final bobPresenceFromFirst =
+              ChatTestHarness.awaitEvent<ChatPresenceEvent>(bobChatSDK);
+
+          await aliceChatSDK.startChatSession();
+          await bobPresenceFromFirst.timeout(const Duration(seconds: 10));
+
+          await aliceChatSDK.endChatSession();
+
+          final endChatSessionTime = DateTime.now().toUtc();
+
+          final bobPresenceFromSecond =
+              ChatTestHarness.awaitEvent<ChatPresenceEvent>(
+                bobChatSDK,
+                where: (e) => e.timestamp.isAfter(endChatSessionTime),
+                timeout: const Duration(seconds: 10),
+              );
+
+          await Future<void>.delayed(const Duration(seconds: 1));
+
+          await aliceChatSDK.startChatSession();
+
+          final received = await bobPresenceFromSecond;
+          expect(received.timestamp.isAfter(endChatSessionTime), isTrue);
+        },
+        (error, stackTrace) {
+          if (error is StateError &&
+              error.message.contains(
+                'Cannot add new events after calling close',
+              )) {
+            return;
+          }
+          Error.throwWithStackTrace(error, stackTrace);
+        },
+      );
+    });
   });
-
 }

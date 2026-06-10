@@ -19,23 +19,41 @@ import '../../utils/individual_chat_fixture.dart';
 
 void main() {
   late IndividualChatFixture fixture;
+  late MeetingPlaceChatSDK aliceChatSDK;
+  late MeetingPlaceChatSDK bobChatSDK;
 
-  setUp(() async {
+  setUpAll(() async {
     fixture = await IndividualChatFixture.create(
       transport: ChannelTransport.didcomm,
     );
   });
 
+  setUp(() async {
+    aliceChatSDK = await fixture.setup.createChatSdk(
+      sdkInstance: fixture.aliceSDK,
+      channel: fixture.aliceChannel,
+    );
+    bobChatSDK = await fixture.setup.createChatSdk(
+      sdkInstance: fixture.bobSDK,
+      channel: fixture.bobChannel,
+    );
+  });
+
   tearDown(() async {
+    await aliceChatSDK.endChatSession();
+    await bobChatSDK.endChatSession();
+  });
+
+  tearDownAll(() async {
     await fixture.dispose();
   });
 
   testWithDidcommGuard(
     'alice receives profile hash message from Bob when Bob starts chat',
     () async {
-      await fixture.aliceChatSDK.startChatSession();
+      await aliceChatSDK.startChatSession();
       final aliceProfileHash = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
-        fixture.aliceChatSDK,
+        aliceChatSDK,
         where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
       );
 
@@ -44,7 +62,7 @@ void main() {
       contactCard.contactInfo['changed'] = 'value';
       await fixture.bobSDK.coreSDK.updateChannel(channel);
 
-      await fixture.bobChatSDK.startChatSession();
+      await bobChatSDK.startChatSession();
       final received = await aliceProfileHash;
       expect(received, isA<UnhandledChatEvent>());
     },
@@ -53,9 +71,9 @@ void main() {
   testWithDidcommGuard(
     'Alice does not send profile request if profile hash matches',
     () async {
-      await fixture.aliceChatSDK.startChatSession();
+      await aliceChatSDK.startChatSession();
       final aliceProfileHash = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
-        fixture.aliceChatSDK,
+        aliceChatSDK,
         where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
       );
 
@@ -64,11 +82,10 @@ void main() {
       contactCard.contactInfo['changed'] = 'value';
       await fixture.bobSDK.coreSDK.updateChannel(channel);
 
-      await fixture.bobChatSDK.startChatSession();
+      await bobChatSDK.startChatSession();
 
-      // Collect Bob's events for 3 seconds and verify no profile request fires.
       final bobEvents = ChatTestHarness.collect(
-        fixture.bobChatSDK,
+        bobChatSDK,
         duration: const Duration(seconds: 3),
       );
 
@@ -85,14 +102,13 @@ void main() {
   testWithDidcommGuard(
     'Bob has concierge message after receiving profile hash requets',
     () async {
-      await fixture.aliceChatSDK.startChatSession();
+      await aliceChatSDK.startChatSession();
       final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
         did: fixture.bobSDK.didDocument.id,
         contactInfo: {'changed': 'value'},
       );
 
-      // Ensure Alice's chat stream is initialised.
-      await fixture.aliceChatSDK.chatStreamSubscription;
+      await aliceChatSDK.chatStreamSubscription;
 
       final newBobChatSDK = await fixture.setup.createChatSdk(
         sdkInstance: fixture.bobSDK,
@@ -125,7 +141,7 @@ void main() {
 
       final aliceUpdate =
           ChatTestHarness.awaitEvent<ChatContactDetailsUpdateEvent>(
-            fixture.aliceChatSDK,
+            aliceChatSDK,
           );
 
       await newBobChatSDK.sendChatContactDetailsUpdate(conciergeMessage);

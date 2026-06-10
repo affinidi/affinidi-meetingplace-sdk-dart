@@ -90,6 +90,7 @@ void main() {
     registerFallbackValue(_MockDidDocument());
     registerFallbackValue(_FakePlainTextMessage());
     registerFallbackValue(_FakeChannel());
+    registerFallbackValue(_MockWallet());
     registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(
       cp.FinaliseAcceptanceCommand(
@@ -302,6 +303,99 @@ void main() {
           channelDid: any(named: 'channelDid'),
           otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
           inviteUsers: any(named: 'inviteUsers'),
+        ),
+      );
+    });
+  });
+
+  group('unlink', () {
+    const permanentChannelDid = 'did:test:my-permanent';
+    const otherPartyPermanentDid = 'did:test:other-permanent';
+    const offerLink = 'offer-link';
+    const mediatorDid = 'did:test:mediator';
+    const roomId = '!room:matrix.test';
+
+    late _MockDidManager mockDidManager;
+
+    Channel createUnlinkChannel({
+      required ChannelTransport transport,
+      String? notificationToken,
+    }) => Channel(
+      offerLink: offerLink,
+      publishOfferDid: 'did:test:publish',
+      mediatorDid: mediatorDid,
+      status: ChannelStatus.approved,
+      isConnectionInitiator: true,
+      contactCard: ContactCardFixture.getContactCardFixture(),
+      type: ChannelType.individual,
+      transport: transport,
+      permanentChannelDid: permanentChannelDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentDid,
+      notificationToken: notificationToken,
+    );
+
+    void setUpUnlinkMocks() {
+      mockDidManager = _MockDidManager();
+
+      when(
+        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+      ).thenAnswer((_) async => null);
+
+      when(
+        () => mockMediatorAclService.removePermissionFromChannel(
+          wallet: any(named: 'wallet'),
+          channel: any(named: 'channel'),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockChannelService.deleteChannel(any()),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockConnectionManager.getDidManagerForDid(
+          mockWallet,
+          permanentChannelDid,
+        ),
+      ).thenAnswer((_) async => mockDidManager);
+
+      when(
+        () => mockMatrixService.resolveChannelRoomId(
+          didManager: any(named: 'didManager'),
+          channelDid: any(named: 'channelDid'),
+          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
+        ),
+      ).thenAnswer((_) async => roomId);
+
+      when(
+        () => mockMatrixService.leaveRoom(
+          any(),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async {});
+    }
+
+    test('leaves Matrix room when transport is matrix', () async {
+      setUpUnlinkMocks();
+      final channel = createUnlinkChannel(transport: ChannelTransport.matrix);
+
+      await service.unlink(wallet: mockWallet, channel: channel);
+
+      verify(
+        () => mockMatrixService.leaveRoom(roomId, didManager: mockDidManager),
+      ).called(1);
+    });
+
+    test('does not leave Matrix room when transport is didcomm', () async {
+      setUpUnlinkMocks();
+      final channel = createUnlinkChannel(transport: ChannelTransport.didcomm);
+
+      await service.unlink(wallet: mockWallet, channel: channel);
+
+      verifyNever(
+        () => mockMatrixService.leaveRoom(
+          any(),
+          didManager: any(named: 'didManager'),
         ),
       );
     });

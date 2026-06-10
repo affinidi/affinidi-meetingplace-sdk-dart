@@ -1,13 +1,13 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_control_plane/src/core/command/command.dart';
+import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_stream_manager.dart';
 import 'package:meeting_place_core/src/loggers/meeting_place_core_sdk_logger.dart';
 import 'package:meeting_place_core/src/meeting_place_core_sdk_error_code.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart'
     as core
     show ContactCard;
-import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/connection_service.dart';

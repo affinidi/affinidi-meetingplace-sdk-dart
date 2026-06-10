@@ -278,8 +278,7 @@ class OobService {
         : (await _identityService.createPermanentIdentity(
             _wallet,
             transport: ChannelTransport.matrix,
-          ))
-            .didManager;
+          )).didManager;
 
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();

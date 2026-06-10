@@ -686,6 +686,22 @@ class ConnectionService {
       ),
     );
 
+    if (channel.transport == ChannelTransport.matrix &&
+        channel.permanentChannelDid != null) {
+      final didManager = await _connectionManager.getDidManagerForDid(
+        wallet,
+        channel.permanentChannelDid!,
+      );
+      final roomId = await _matrixService.resolveChannelRoomId(
+        didManager: didManager,
+        channelDid: channel.permanentChannelDid!,
+        otherPartyChannelDid: channel.otherPartyPermanentChannelDid,
+      );
+      networkRequests.add(
+        _matrixService.leaveRoom(roomId, didManager: didManager),
+      );
+    }
+
     await Future.wait(networkRequests);
     await _channelService.deleteChannel(channel);
 

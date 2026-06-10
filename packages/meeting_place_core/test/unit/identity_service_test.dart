@@ -1,7 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/identity/identity_service.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';

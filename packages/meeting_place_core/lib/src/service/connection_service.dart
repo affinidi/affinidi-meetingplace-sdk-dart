@@ -304,6 +304,7 @@ class ConnectionService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: connectionOffer.transport,
     );
 
     final result = await _controlPlaneSDK.execute(
@@ -538,6 +539,7 @@ class ConnectionService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: channel.transport,
     );
 
     if (channel.transport == ChannelTransport.matrix) {

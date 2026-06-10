@@ -1,6 +1,7 @@
 import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
+import '../../entity/channel.dart';
 import '../connection_manager/connection_manager.dart';
 import 'model/ephemeral_identity.dart';
 import 'model/permanent_identity.dart';
@@ -37,15 +38,22 @@ class IdentityService {
     );
   }
 
-  Future<PermanentIdentity> createPermanentIdentity(Wallet wallet) async {
+  Future<PermanentIdentity> createPermanentIdentity(
+    Wallet wallet, {
+    required ChannelTransport transport,
+  }) async {
     final permanentChannelDidManager = await _connectionManager.generateDid(
       wallet,
     );
 
     final didDocument = await permanentChannelDidManager.getDidDocument();
-    final matrixUserId = await _matrixService.loginWithDid(
-      permanentChannelDidManager,
-    );
+
+    String? matrixUserId;
+    if (transport == ChannelTransport.matrix) {
+      matrixUserId = await _matrixService.loginWithDid(
+        permanentChannelDidManager,
+      );
+    }
 
     _logger.info(
       '''Created permanent identity with DID ${didDocument.id} and Matrix user ID $matrixUserId''',

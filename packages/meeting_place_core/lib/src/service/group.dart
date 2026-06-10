@@ -110,6 +110,7 @@ class GroupService {
 
     final ownerIdentity = await _identityService.createPermanentIdentity(
       _wallet,
+      transport: ChannelTransport.matrix,
     );
     final ownerDid = ownerIdentity.didManager;
     final ownerDidDocument = ownerIdentity.didDocument;
@@ -301,6 +302,7 @@ class GroupService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: ChannelTransport.matrix,
     );
     final permanentChannelDidManager = permanentIdentity.didManager;
     final permanentChannelDidDocument = permanentIdentity.didDocument;

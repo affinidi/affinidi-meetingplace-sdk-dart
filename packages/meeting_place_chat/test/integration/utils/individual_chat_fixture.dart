@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
@@ -53,9 +55,22 @@ class IndividualChatFixture {
   }
 
   Future<void> dispose() async {
-    await aliceChatSDK.endChatSession();
-    await bobChatSDK.endChatSession();
-    await aliceSDK.coreSDK.dispose();
-    await bobSDK.coreSDK.dispose();
+    // Swallows a known didcomm 2.3.3 race where fetchMessagesOnConnect's
+    // unawaited then-block calls _controller.add after stop() closed it.
+    // Without this, tests fail "after completion" with StateError.
+    await runZonedGuarded(() async {
+      await aliceChatSDK.endChatSession();
+      await bobChatSDK.endChatSession();
+      await aliceSDK.coreSDK.dispose();
+      await bobSDK.coreSDK.dispose();
+    }, (error, stackTrace) {
+      if (error is StateError &&
+          error.message.contains(
+            'Cannot add new events after calling close',
+          )) {
+        return;
+      }
+      Zone.root.handleUncaughtError(error, stackTrace);
+    });
   }
 }

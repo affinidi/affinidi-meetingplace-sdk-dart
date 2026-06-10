@@ -216,9 +216,7 @@ class MessagingService {
         // the job of fetchHistory.
         final cutoff = DateTime.now().toUtc();
         final mapped = stream
-            .where(
-              (e) => !_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff),
-            )
+            .where((e) => !_isTimelineEvent(e) || !e.timestamp.isBefore(cutoff))
             .asyncMap((e) async {
               if (_isTimelineEvent(e)) {
                 await _advanceMatrixSyncMarker(s.receiverDid, e.id);

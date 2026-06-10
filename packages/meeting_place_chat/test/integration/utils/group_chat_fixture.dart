@@ -182,10 +182,7 @@ class GroupChatFixture {
       ),
       fixture.charlieSDK.waitForRoomEncryptionReady(
         localDid: fixture.charlieMemberDid,
-        expectedDids: [
-          fixture.groupOwnerDidDocument.id,
-          fixture.bobMemberDid,
-        ],
+        expectedDids: [fixture.groupOwnerDidDocument.id, fixture.bobMemberDid],
       ),
     ]);
 

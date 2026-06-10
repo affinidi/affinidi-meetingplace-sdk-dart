@@ -53,33 +53,34 @@ void main() {
   testWithDidcommGuard(
     'Alice does not send profile request if profile hash matches',
     () async {
-    await fixture.aliceChatSDK.startChatSession();
-    final aliceProfileHash = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
-      fixture.aliceChatSDK,
-      where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
-    );
+      await fixture.aliceChatSDK.startChatSession();
+      final aliceProfileHash = ChatTestHarness.awaitEvent<UnhandledChatEvent>(
+        fixture.aliceChatSDK,
+        where: (e) => e.type == ChatProtocol.chatAliasProfileHash.value,
+      );
 
-    final channel = fixture.bobChannel;
-    final contactCard = channel.contactCard!;
-    contactCard.contactInfo['changed'] = 'value';
-    await fixture.bobSDK.coreSDK.updateChannel(channel);
+      final channel = fixture.bobChannel;
+      final contactCard = channel.contactCard!;
+      contactCard.contactInfo['changed'] = 'value';
+      await fixture.bobSDK.coreSDK.updateChannel(channel);
 
-    await fixture.bobChatSDK.startChatSession();
+      await fixture.bobChatSDK.startChatSession();
 
-    // Collect Bob's events for 3 seconds and verify no profile request fires.
-    final bobEvents = ChatTestHarness.collect(
-      fixture.bobChatSDK,
-      duration: const Duration(seconds: 3),
-    );
+      // Collect Bob's events for 3 seconds and verify no profile request fires.
+      final bobEvents = ChatTestHarness.collect(
+        fixture.bobChatSDK,
+        duration: const Duration(seconds: 3),
+      );
 
-    await aliceProfileHash;
+      await aliceProfileHash;
 
-    final bobReceivedProfileRequest = (await bobEvents)
-        .map((d) => d.event)
-        .whereType<UnhandledChatEvent>()
-        .any((e) => e.type == ChatProtocol.chatAliasProfileRequest.value);
-    expect(bobReceivedProfileRequest, isFalse);
-  });
+      final bobReceivedProfileRequest = (await bobEvents)
+          .map((d) => d.event)
+          .whereType<UnhandledChatEvent>()
+          .any((e) => e.type == ChatProtocol.chatAliasProfileRequest.value);
+      expect(bobReceivedProfileRequest, isFalse);
+    },
+  );
 
   testWithDidcommGuard(
     'Bob has concierge message after receiving profile hash requets',
@@ -124,8 +125,8 @@ void main() {
 
       final aliceUpdate =
           ChatTestHarness.awaitEvent<ChatContactDetailsUpdateEvent>(
-        fixture.aliceChatSDK,
-      );
+            fixture.aliceChatSDK,
+          );
 
       await newBobChatSDK.sendChatContactDetailsUpdate(conciergeMessage);
 

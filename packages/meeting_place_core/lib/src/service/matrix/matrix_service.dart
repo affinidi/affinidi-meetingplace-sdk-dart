@@ -579,17 +579,14 @@ class MatrixService {
 
       final room = client.getRoomById(roomId);
       if (room != null) {
-        final participants = await room.requestParticipants(
-          [matrix.Membership.join],
-          true,
-        );
+        final participants = await room.requestParticipants([
+          matrix.Membership.join,
+        ], true);
         final joinedIds = participants.map((p) => p.id).toSet();
         final missingMembership = expectedUserIds.difference(joinedIds);
         final missingKeys = expectedUserIds.where((uid) {
           final keys = client.userDeviceKeys[uid];
-          return keys == null ||
-              keys.outdated ||
-              keys.deviceKeys.isEmpty;
+          return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
         }).toSet();
         if (missingMembership.isEmpty && missingKeys.isEmpty) return;
       }

@@ -19,6 +19,7 @@ void main() {
     await fixture.aliceChatSDK.startChatSession();
     await fixture.bobChatSDK.startChatSession();
 
+    await fixture.bobChatSDK.chatStreamSubscription;
     final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(
       fixture.bobChatSDK,
     );
@@ -35,7 +36,10 @@ void main() {
     await bobWait;
     final received = (await fixture.bobChatSDK.messages).first as Message;
     expect(received.value, equals('Hello via sendCustomEvent'));
-    expect(received.senderDid, equals(fixture.aliceChannel.permanentChannelDid));
+    expect(
+      received.senderDid,
+      equals(fixture.aliceChannel.permanentChannelDid),
+    );
   });
 
   test('sendCustomEvent message is persisted in repository', () async {
@@ -58,7 +62,10 @@ void main() {
     await bobWait;
     final received = (await fixture.bobChatSDK.messages).first as Message;
     expect(received.value, equals('Persist test'));
-    expect(received.senderDid, equals(fixture.aliceChannel.permanentChannelDid));
+    expect(
+      received.senderDid,
+      equals(fixture.aliceChannel.permanentChannelDid),
+    );
 
     final bobMessages = await fixture.bobChatSDK.messages;
     expect(

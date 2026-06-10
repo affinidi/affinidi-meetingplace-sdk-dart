@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';

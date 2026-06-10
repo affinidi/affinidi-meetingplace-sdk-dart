@@ -1,33 +1,39 @@
+@Tags(['integration'])
+library;
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
 import '../utils/oob_flow_fixture.dart';
 
 void main() {
+  Channel? aliceChannel;
+  Channel? bobChannel;
+  Channel? bobChannelBeforeApproval;
+
+  setUpAll(() async {
+    final fixture = await OobFlowFixture.create();
+
+    final oobOfferSession = await fixture.createOobFlow();
+    final oobAcceptanceSession = await fixture.acceptOobFlow(
+      oobOfferSession.oobUrl,
+    );
+
+    bobChannelBeforeApproval = oobAcceptanceSession.channel;
+
+    final aliceFuture = OobFlowFixture.waitForFirstChannelFromCreate(
+      oobOfferSession,
+    );
+    final bobFuture = OobFlowFixture.waitForFirstChannelFromAccept(
+      oobAcceptanceSession,
+    );
+
+    final channels = await Future.wait([aliceFuture, bobFuture]);
+    aliceChannel = channels[0];
+    bobChannel = channels[1];
+  });
+
   group('successful channel creation for OOB flow', () {
-    Channel? aliceChannel;
-    Channel? bobChannel;
-
-    setUpAll(() async {
-      final fixture = await OobFlowFixture.create();
-
-      final oobOfferSession = await fixture.createOobFlow();
-      final oobAcceptanceSession = await fixture.acceptOobFlow(
-        oobOfferSession.oobUrl,
-      );
-
-      final aliceFuture = OobFlowFixture.waitForFirstChannelFromCreate(
-        oobOfferSession,
-      );
-      final bobFuture = OobFlowFixture.waitForFirstChannelFromAccept(
-        oobAcceptanceSession,
-      );
-
-      final channels = await Future.wait([aliceFuture, bobFuture]);
-      aliceChannel = channels[0];
-      bobChannel = channels[1];
-    });
-
     test('permanent dids match', () {
       expect(
         aliceChannel?.permanentChannelDid,
@@ -83,35 +89,26 @@ void main() {
   });
 
   group('channel state before alice approves', () {
-    Channel? bobChannel;
-
-    setUpAll(() async {
-      final fixture = await OobFlowFixture.create();
-      final createOobFlowResult = await fixture.createOobFlow();
-      final acceptOobFlowResult = await fixture.acceptOobFlow(
-        createOobFlowResult.oobUrl,
-      );
-
-      bobChannel = acceptOobFlowResult.channel;
-    });
-
     test('status is waiting for approval', () {
-      expect(bobChannel?.status, ChannelStatus.waitingForApproval);
+      expect(
+        bobChannelBeforeApproval?.status,
+        ChannelStatus.waitingForApproval,
+      );
     });
 
     test('initial values are set', () {
-      expect(bobChannel?.offerLink, isNotNull);
-      expect(bobChannel?.publishOfferDid, isNotNull);
-      expect(bobChannel?.mediatorDid, isNotNull);
-      expect(bobChannel?.outboundMessageId, isNotNull);
-      expect(bobChannel?.acceptOfferDid, isNotNull);
-      expect(bobChannel?.permanentChannelDid, isNotNull);
-      expect(bobChannel?.type, equals(ChannelType.oob));
-      expect(bobChannel?.otherPartyPermanentChannelDid, isNull);
-      expect(bobChannel?.otherPartyContactCard, isNull);
+      expect(bobChannelBeforeApproval?.offerLink, isNotNull);
+      expect(bobChannelBeforeApproval?.publishOfferDid, isNotNull);
+      expect(bobChannelBeforeApproval?.mediatorDid, isNotNull);
+      expect(bobChannelBeforeApproval?.outboundMessageId, isNotNull);
+      expect(bobChannelBeforeApproval?.acceptOfferDid, isNotNull);
+      expect(bobChannelBeforeApproval?.permanentChannelDid, isNotNull);
+      expect(bobChannelBeforeApproval?.type, equals(ChannelType.oob));
+      expect(bobChannelBeforeApproval?.otherPartyPermanentChannelDid, isNull);
+      expect(bobChannelBeforeApproval?.otherPartyContactCard, isNull);
 
       expect(
-        bobChannel?.contactCard?.contactInfo,
+        bobChannelBeforeApproval?.contactCard?.contactInfo,
         equals({
           'n': {'given': 'Bob', 'surname': 'A.'},
         }),
@@ -120,40 +117,33 @@ void main() {
   });
 
   group('channel state after alice approves', () {
-    Channel? bobChannel;
-    Channel? channelBefore;
-
-    setUpAll(() async {
-      final fixture = await OobFlowFixture.create();
-      final createOobFlowResult = await fixture.createOobFlow();
-      final acceptOobFlowResult = await fixture.acceptOobFlow(
-        createOobFlowResult.oobUrl,
-      );
-
-      channelBefore = acceptOobFlowResult.channel;
-      bobChannel = await OobFlowFixture.waitForFirstChannelFromAccept(
-        acceptOobFlowResult,
-      );
-    });
-
     test('status is inaugurated', () {
       expect(bobChannel?.status, ChannelStatus.inaugurated);
     });
 
     test('initial values are still the same', () {
-      expect(bobChannel?.offerLink, channelBefore?.offerLink);
-      expect(bobChannel?.publishOfferDid, channelBefore?.publishOfferDid);
-      expect(bobChannel?.mediatorDid, channelBefore?.mediatorDid);
-      expect(bobChannel?.outboundMessageId, channelBefore?.outboundMessageId);
-      expect(bobChannel?.acceptOfferDid, channelBefore?.acceptOfferDid);
+      expect(bobChannel?.offerLink, bobChannelBeforeApproval?.offerLink);
+      expect(
+        bobChannel?.publishOfferDid,
+        bobChannelBeforeApproval?.publishOfferDid,
+      );
+      expect(bobChannel?.mediatorDid, bobChannelBeforeApproval?.mediatorDid);
+      expect(
+        bobChannel?.outboundMessageId,
+        bobChannelBeforeApproval?.outboundMessageId,
+      );
+      expect(
+        bobChannel?.acceptOfferDid,
+        bobChannelBeforeApproval?.acceptOfferDid,
+      );
       expect(
         bobChannel?.permanentChannelDid,
-        channelBefore!.permanentChannelDid,
+        bobChannelBeforeApproval!.permanentChannelDid,
       );
-      expect(bobChannel?.type, channelBefore!.type);
+      expect(bobChannel?.type, bobChannelBeforeApproval!.type);
       expect(
         bobChannel?.contactCard?.contactInfo,
-        equals(channelBefore?.contactCard?.contactInfo),
+        equals(bobChannelBeforeApproval?.contactCard?.contactInfo),
       );
     });
 

@@ -10,6 +10,9 @@ void main() {
   Channel? aliceChannel;
   Channel? bobChannel;
   Channel? bobChannelBeforeApproval;
+  ChannelStatus? bobStatusBeforeApproval;
+  String? bobOtherPartyDidBeforeApproval;
+  ContactCard? bobOtherPartyCardBeforeApproval;
 
   setUpAll(() async {
     final fixture = await OobFlowFixture.create();
@@ -20,6 +23,11 @@ void main() {
     );
 
     bobChannelBeforeApproval = oobAcceptanceSession.channel;
+    bobStatusBeforeApproval = bobChannelBeforeApproval!.status;
+    bobOtherPartyDidBeforeApproval =
+        bobChannelBeforeApproval!.otherPartyPermanentChannelDid;
+    bobOtherPartyCardBeforeApproval =
+        bobChannelBeforeApproval!.otherPartyContactCard;
 
     final aliceFuture = OobFlowFixture.waitForFirstChannelFromCreate(
       oobOfferSession,
@@ -90,10 +98,7 @@ void main() {
 
   group('channel state before alice approves', () {
     test('status is waiting for approval', () {
-      expect(
-        bobChannelBeforeApproval?.status,
-        ChannelStatus.waitingForApproval,
-      );
+      expect(bobStatusBeforeApproval, ChannelStatus.waitingForApproval);
     });
 
     test('initial values are set', () {
@@ -104,8 +109,8 @@ void main() {
       expect(bobChannelBeforeApproval?.acceptOfferDid, isNotNull);
       expect(bobChannelBeforeApproval?.permanentChannelDid, isNotNull);
       expect(bobChannelBeforeApproval?.type, equals(ChannelType.oob));
-      expect(bobChannelBeforeApproval?.otherPartyPermanentChannelDid, isNull);
-      expect(bobChannelBeforeApproval?.otherPartyContactCard, isNull);
+      expect(bobOtherPartyDidBeforeApproval, isNull);
+      expect(bobOtherPartyCardBeforeApproval, isNull);
 
       expect(
         bobChannelBeforeApproval?.contactCard?.contactInfo,

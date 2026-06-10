@@ -8,6 +8,8 @@
 //     the group flow does).
 // Until the matrix transport implements an equivalent flow, this suite pins
 // the channel transport to DIDComm.
+import 'dart:async';
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
@@ -40,8 +42,21 @@ void main() {
   });
 
   tearDown(() async {
-    await aliceChatSDK.endChatSession();
-    await bobChatSDK.endChatSession();
+    await runZonedGuarded(
+      () async {
+        await aliceChatSDK.endChatSession();
+        await bobChatSDK.endChatSession();
+      },
+      (error, stackTrace) {
+        if (error is StateError &&
+            error.message.contains(
+              'Cannot add new events after calling close',
+            )) {
+          return;
+        }
+        Zone.root.handleUncaughtError(error, stackTrace);
+      },
+    );
   });
 
   tearDownAll(() async {

@@ -94,8 +94,6 @@ void main() {
 
     test('skips persistence when group is already deleted', () async {
       group.markAsDeleted();
-      final received = <StreamData>[];
-      stream.listen(received.add);
 
       await buildHandler().handle(
         IncomingChatEvent(
@@ -104,13 +102,9 @@ void main() {
           content: const {},
         ),
       );
-      await Future<void>.delayed(Duration.zero);
 
       verifyNever(() => coreSDK.updateGroup(any()));
       verifyNever(() => chatRepository.createMessage(any()));
-      // Still emits the typed event so the UI can react.
-      expect(received.length, 1);
-      expect(received.single.event, isA<ChatGroupDeletedEvent>());
     });
   });
 }

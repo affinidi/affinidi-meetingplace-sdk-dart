@@ -149,14 +149,10 @@ void main() {
             contentType: 'image/png',
           ),
           throwsA(
-            isA<MeetingPlaceCoreSDKException>().having(
-              (e) => e.innerException,
-              'innerException',
-              isA<MatrixMediaException>().having(
-                (e) => e.code,
-                'code',
-                MatrixMediaException.codeTooLarge,
-              ),
+            isA<MatrixMediaException>().having(
+              (e) => e.code,
+              'code',
+              MatrixMediaException.codeTooLarge,
             ),
           ),
         );
@@ -182,13 +178,7 @@ void main() {
           Uint8List.fromList([1]),
           contentType: 'image/png',
         ),
-        throwsA(
-          isA<MeetingPlaceCoreSDKException>().having(
-            (e) => e.innerException,
-            'innerException',
-            isA<StateError>(),
-          ),
-        ),
+        throwsA(isA<StateError>()),
       );
     });
   });
@@ -202,13 +192,7 @@ void main() {
           Uint8List.fromList([1]),
           contentType: 'image/png',
         ),
-        throwsA(
-          isA<MeetingPlaceCoreSDKException>().having(
-            (e) => e.innerException,
-            'innerException',
-            isA<UnimplementedError>(),
-          ),
-        ),
+        throwsA(isA<UnimplementedError>()),
       );
     });
   });
@@ -245,13 +229,7 @@ void main() {
           _didcommChannel(),
           const MatrixEventMediaReference(_testEventId),
         ),
-        throwsA(
-          isA<MeetingPlaceCoreSDKException>().having(
-            (e) => e.innerException,
-            'innerException',
-            isA<UnimplementedError>(),
-          ),
-        ),
+        throwsA(isA<UnimplementedError>()),
       );
     });
   });

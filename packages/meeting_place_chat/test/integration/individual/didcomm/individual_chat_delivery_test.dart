@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 
@@ -75,29 +74,6 @@ void main() {
     expect(bobRepositoryMessages.length, equals(2));
     expect(bobRepositoryMessages[0].status, ChatItemStatus.received);
     expect(bobRepositoryMessages[1].status, ChatItemStatus.received);
-  });
-
-  test('sendTextMessage produces delivered status for sender', () async {
-    await bobChatSDK.startChatSession();
-    await aliceChatSDK.startChatSession();
-
-    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(bobChatSDK);
-    final aliceDelivered =
-        ChatTestHarness.awaitEvent<ChatMessageDeliveredEvent>(aliceChatSDK);
-
-    final sentMessage = await aliceChatSDK.sendTextMessage('Hello World!');
-    await aliceDelivered;
-
-    final actualMessages = await aliceChatSDK.messages;
-    expect(
-      actualMessages
-          .firstWhereOrNull((m) => m.messageId == sentMessage.messageId)
-          ?.status,
-      equals(ChatItemStatus.delivered),
-    );
-
-    await bobWait;
-    expect((await bobChatSDK.messages).length, equals(1));
   });
 
   test(

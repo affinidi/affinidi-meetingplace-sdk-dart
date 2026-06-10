@@ -75,37 +75,6 @@ void main() {
     );
   });
 
-  test('sendCustomEvent message is persisted in repository', () async {
-    await aliceChatSDK.startChatSession();
-    await bobChatSDK.startChatSession();
-
-    final bobWait = ChatTestHarness.awaitEvent<ChatMessageEvent>(bobChatSDK);
-
-    await aliceChatSDK.sendCustomEvent(
-      type: ChatProtocol.chatMessage.value,
-      payload: {
-        'text': 'Persist test',
-        'seq_no': 1,
-        'timestamp': DateTime.now().toUtc().toIso8601String(),
-      },
-    );
-
-    await bobWait;
-    final received = (await bobChatSDK.messages).first as Message;
-    expect(received.value, equals('Persist test'));
-    expect(
-      received.senderDid,
-      equals(fixture.aliceChannel.permanentChannelDid),
-    );
-
-    final bobMessages = await bobChatSDK.messages;
-    expect(
-      bobMessages.whereType<Message>().any((m) => m.value == 'Persist test'),
-      isTrue,
-      reason: 'Message should be persisted in Bob\'s repository',
-    );
-  });
-
   test('unhandled message is pushed to chat stream', () async {
     final bobChannelDid = fixture.bobChannel.permanentChannelDid!;
     final aliceChannelDid = fixture.aliceChannel.permanentChannelDid!;

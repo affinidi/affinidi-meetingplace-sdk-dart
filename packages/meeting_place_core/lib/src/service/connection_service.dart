@@ -540,17 +540,19 @@ class ConnectionService {
       wallet,
     );
 
-    final roomId = await _matrixService.createRoom(
-      didManager: permanentIdentity.didManager,
-      channelDid: permanentIdentity.didDocument.id,
-      otherPartyChannelDid: otherPartyPermanentChannelDid,
-      inviteUsers: [otherPartyPermanentChannelDid],
-    );
+    if (channel.transport == ChannelTransport.matrix) {
+      final roomId = await _matrixService.createRoom(
+        didManager: permanentIdentity.didManager,
+        channelDid: permanentIdentity.didDocument.id,
+        otherPartyChannelDid: otherPartyPermanentChannelDid,
+        inviteUsers: [otherPartyPermanentChannelDid],
+      );
 
-    _logger.info(
-      'Matrix room created with ID: ${roomId.topAndTail()}',
-      name: methodName,
-    );
+      _logger.info(
+        'Matrix room created with ID: ${roomId.topAndTail()}',
+        name: methodName,
+      );
+    }
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,

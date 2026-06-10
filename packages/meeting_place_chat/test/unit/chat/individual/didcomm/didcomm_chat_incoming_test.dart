@@ -5,8 +5,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-import '../../utils/repository/chat_repository_impl.dart';
-import '../../utils/storage/in_memory_storage.dart';
+import '../../../../utils/repository/chat_repository_impl.dart';
+import '../../../../utils/storage/in_memory_storage.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 

@@ -7,7 +7,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-import '../../_helpers/mocks.dart';
+import '../../../../_helpers/mocks.dart';
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 

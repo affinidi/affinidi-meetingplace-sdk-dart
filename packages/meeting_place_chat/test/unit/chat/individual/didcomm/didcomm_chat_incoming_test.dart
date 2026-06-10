@@ -10,8 +10,7 @@ import '../../../../utils/storage/in_memory_storage.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
-class _FakeIncomingMessageHandle extends Fake
-    implements IncomingMessageHandle {
+class _FakeIncomingMessageHandle extends Fake implements IncomingMessageHandle {
   _FakeIncomingMessageHandle(this._controller);
 
   final StreamController<IncomingMessage> _controller;
@@ -73,9 +72,9 @@ void main() {
     storage = InMemoryStorage();
     repo = ChatRepositoryImpl(storage: storage);
 
-    when(() => core.subscribe(any())).thenAnswer(
-      (_) async => _FakeIncomingMessageHandle(incomingController),
-    );
+    when(
+      () => core.subscribe(any()),
+    ).thenAnswer((_) async => _FakeIncomingMessageHandle(incomingController));
     when(
       () => core.getChannelByOtherPartyPermanentDid(any()),
     ).thenAnswer((_) async => _fakeChannel());
@@ -190,7 +189,9 @@ void main() {
             type: Uri.parse(ChatProtocol.chatDelivered.value),
             from: _bobDid,
             to: [_aliceDid],
-            body: {'messages': ['msg-sent-1']},
+            body: {
+              'messages': ['msg-sent-1'],
+            },
             createdTime: DateTime.utc(2026),
           ),
         ),

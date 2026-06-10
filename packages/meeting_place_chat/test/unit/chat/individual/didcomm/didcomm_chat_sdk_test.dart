@@ -87,10 +87,7 @@ void main() {
         status: ChatItemStatus.sent,
       );
 
-      expect(
-        () => sdk.deleteMessage(msg),
-        throwsA(isA<UnsupportedError>()),
-      );
+      expect(() => sdk.deleteMessage(msg), throwsA(isA<UnsupportedError>()));
     });
 
     test('throws UnsupportedError with localOnly flag', () {

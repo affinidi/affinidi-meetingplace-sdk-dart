@@ -12,10 +12,10 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
-import '../utils/chat_test_harness.dart';
-import '../utils/contact_card_fixture.dart' as fixtures;
-import '../utils/didcomm_test_zone.dart';
-import 'utils/individual_chat_fixture.dart';
+import '../../../utils/chat_test_harness.dart';
+import '../../../utils/contact_card_fixture.dart' as fixtures;
+import '../../../utils/didcomm_test_zone.dart';
+import '../../utils/individual_chat_fixture.dart';
 
 void main() {
   late IndividualChatFixture fixture;

@@ -1,11 +1,11 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 
-import '../utils/chat_test_harness.dart';
-import '../utils/contact_card_fixture.dart' as fixtures;
-import '../utils/setup_chat_sdk.dart';
-import '../utils/storage/in_memory_storage.dart';
-import 'utils/individual_chat_fixture.dart';
+import '../../../utils/chat_test_harness.dart';
+import '../../../utils/contact_card_fixture.dart' as fixtures;
+import '../../../utils/setup_chat_sdk.dart';
+import '../../../utils/storage/in_memory_storage.dart';
+import '../../utils/individual_chat_fixture.dart';
 
 void main() {
   late IndividualChatFixture fixture;

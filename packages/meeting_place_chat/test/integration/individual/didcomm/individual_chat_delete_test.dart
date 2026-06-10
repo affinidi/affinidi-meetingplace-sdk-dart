@@ -1,8 +1,8 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 
-import '../utils/chat_test_harness.dart';
-import 'utils/individual_chat_fixture.dart';
+import '../../../utils/chat_test_harness.dart';
+import '../../utils/individual_chat_fixture.dart';
 
 void main() {
   late IndividualChatFixture fixture;

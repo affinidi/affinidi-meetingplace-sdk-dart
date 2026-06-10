@@ -5,9 +5,9 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
-import '../utils/chat_test_harness.dart';
-import '../utils/sdk.dart';
-import 'utils/group_chat_fixture.dart';
+import '../../../utils/chat_test_harness.dart';
+import '../../../utils/sdk.dart';
+import '../../utils/group_chat_fixture.dart';
 
 void main() {
   late GroupChatFixture fixture;

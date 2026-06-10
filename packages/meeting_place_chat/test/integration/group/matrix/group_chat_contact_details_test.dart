@@ -2,10 +2,10 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import '../utils/chat_test_harness.dart';
-import '../utils/contact_card_fixture.dart';
-import '../utils/sdk.dart';
-import 'utils/group_chat_fixture.dart';
+import '../../../utils/chat_test_harness.dart';
+import '../../../utils/contact_card_fixture.dart';
+import '../../../utils/sdk.dart';
+import '../../utils/group_chat_fixture.dart';
 
 void main() {
   late GroupChatFixture fixture;

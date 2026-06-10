@@ -1,6 +1,3 @@
-@Tags(['serial'])
-library;
-
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 

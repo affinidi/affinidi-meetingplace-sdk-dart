@@ -1,6 +1,5 @@
 timeout: "90s"
-concurrency: 4
+concurrency: 1
 
 tags:
   integration:
-    concurrency: 1

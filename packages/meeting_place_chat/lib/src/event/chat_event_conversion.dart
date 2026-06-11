@@ -10,9 +10,7 @@ extension MatrixRoomEventToChatEvent on MatrixRoomEvent {
   ChatEvent toChatEvent() {
     // First, try to match against Matrix-specific event types
     if (type == MatrixChatEventType.chatEffect) {
-      return ChatEffectEvent(
-        effectName: content['effect'] as String? ?? '',
-      );
+      return ChatEffectEvent(effectName: content['effect'] as String? ?? '');
     }
 
     // Then, try to match against DIDComm protocol types

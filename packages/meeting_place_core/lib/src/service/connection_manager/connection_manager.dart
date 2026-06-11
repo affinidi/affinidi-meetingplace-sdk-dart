@@ -1,5 +1,6 @@
 import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
@@ -69,8 +70,46 @@ class ConnectionManager {
     }
   }
 
+  Future<DidManager> generateDidWeb(
+    Wallet wallet, {
+    required Uri baseHost,
+  }) async {
+    final methodName = 'generateDidWeb';
+    _logger.info('Generating new did:web DID...', name: methodName);
+
+    await _mutex.acquire();
+
+    try {
+      final lastIndex = await _keyRepository.getLastAccountIndex();
+      final currentIndex = lastIndex + 1;
+
+      final keyId = _buildKeyId(currentIndex);
+      final segment = const Uuid().v4();
+      final domain = baseHost.replace(path: '${baseHost.path}/user/$segment');
+
+      final didManager = await _initDidWebManager(
+        wallet: wallet,
+        keyId: keyId,
+        domain: domain,
+      );
+      final didDoc = await didManager.getDidDocument();
+
+      await _keyRepository.setLastAccountIndex(currentIndex);
+      await _keyRepository.saveKeyIdForDid(keyId: keyId, did: didDoc.id);
+
+      _logger.info(
+        'Generated new did:web DID: ${didDoc.id.topAndTail()} with index: '
+        '$currentIndex',
+        name: methodName,
+      );
+      return didManager;
+    } finally {
+      _mutex.release();
+    }
+  }
+
   Future<DidManager> getDidManagerForDid(Wallet wallet, String did) async {
-    final methodName = 'getKeyPairForConnectionDid';
+    final methodName = 'getDidManagerForDid';
     final keyId = await _keyRepository.getKeyIdByDid(did: did);
     if (keyId == null) {
       _logger.error(
@@ -84,6 +123,11 @@ class ConnectionManager {
       'Retrieved key pair for DID: ${did.topAndTail()}',
       name: methodName,
     );
+
+    if (did.startsWith('did:web:')) {
+      final domain = _domainFromDidWeb(did);
+      return _initDidWebManager(wallet: wallet, keyId: keyId, domain: domain);
+    }
     return _initDidManager(wallet: wallet, keyId: keyId);
   }
 
@@ -99,5 +143,34 @@ class ConnectionManager {
     final didManager = DidKeyManager(store: InMemoryDidStore(), wallet: wallet);
     await didManager.addVerificationMethod(keyId);
     return didManager;
+  }
+
+  Future<DidManager> _initDidWebManager({
+    required Wallet wallet,
+    required String keyId,
+    required Uri domain,
+  }) async {
+    await wallet.generateKey(keyId: keyId);
+    final didManager = DidWebManager(
+      store: InMemoryDidStore(),
+      wallet: wallet,
+      domain: domain,
+    );
+    await didManager.addVerificationMethod(
+      keyId,
+      relationships: {
+        VerificationRelationship.authentication,
+        VerificationRelationship.keyAgreement,
+        VerificationRelationship.assertionMethod,
+      },
+    );
+    return didManager;
+  }
+
+  Uri _domainFromDidWeb(String did) {
+    final withoutPrefix = did.replaceFirst('did:web:', '');
+    var decoded = withoutPrefix.replaceAll('%3A', ':');
+    decoded = decoded.replaceAll(':', '/');
+    return Uri.parse('https://$decoded');
   }
 }

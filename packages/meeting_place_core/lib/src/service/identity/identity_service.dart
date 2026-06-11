@@ -37,15 +37,22 @@ class IdentityService {
     );
   }
 
-  Future<PermanentIdentity> createPermanentIdentity(Wallet wallet) async {
+  Future<PermanentIdentity> createPermanentIdentity(
+    Wallet wallet, {
+    required ChannelTransport transport,
+  }) async {
     final permanentChannelDidManager = await _connectionManager.generateDid(
       wallet,
     );
 
     final didDocument = await permanentChannelDidManager.getDidDocument();
-    final matrixUserId = await _matrixService.loginWithDid(
-      permanentChannelDidManager,
-    );
+
+    String? matrixUserId;
+    if (transport == ChannelTransport.matrix) {
+      matrixUserId = await _matrixService.loginWithDid(
+        permanentChannelDidManager,
+      );
+    }
 
     _logger.info(
       '''Created permanent identity with DID ${didDocument.id} and Matrix user ID $matrixUserId''',

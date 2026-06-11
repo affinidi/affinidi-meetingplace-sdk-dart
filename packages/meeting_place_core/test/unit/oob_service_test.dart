@@ -1,6 +1,7 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_control_plane/src/core/command/command.dart';
+import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_stream_manager.dart';
 import 'package:meeting_place_core/src/loggers/meeting_place_core_sdk_logger.dart';
 import 'package:meeting_place_core/src/meeting_place_core_sdk_error_code.dart';
@@ -77,7 +78,12 @@ class _OobServiceMocks {
       ),
     );
 
-    when(() => identityService.createPermanentIdentity(any())).thenAnswer(
+    when(
+      () => identityService.createPermanentIdentity(
+        any(),
+        transport: any(named: 'transport'),
+      ),
+    ).thenAnswer(
       (_) async => PermanentIdentity(
         didManager: permanentChannelDidManager,
         didDocument: permanentChannelDidDoc,
@@ -141,6 +147,7 @@ void main() {
     registerFallbackValue(FakeDiscoveryCommand<Object?>());
     registerFallbackValue(FakeDiscoveryCommand<GetOobCommandOutput>());
     registerFallbackValue(FakeWallet());
+    registerFallbackValue(ChannelTransport.matrix);
   });
 
   group('OobService', () {

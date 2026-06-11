@@ -304,6 +304,7 @@ class ConnectionService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: connectionOffer.transport,
     );
 
     final result = await _controlPlaneSDK.execute(
@@ -538,19 +539,22 @@ class ConnectionService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: channel.transport,
     );
 
-    final roomId = await _matrixService.createRoom(
-      didManager: permanentIdentity.didManager,
-      channelDid: permanentIdentity.didDocument.id,
-      otherPartyChannelDid: otherPartyPermanentChannelDid,
-      inviteUsers: [otherPartyPermanentChannelDid],
-    );
+    if (channel.transport == ChannelTransport.matrix) {
+      final roomId = await _matrixService.createRoom(
+        didManager: permanentIdentity.didManager,
+        channelDid: permanentIdentity.didDocument.id,
+        otherPartyChannelDid: otherPartyPermanentChannelDid,
+        inviteUsers: [otherPartyPermanentChannelDid],
+      );
 
-    _logger.info(
-      'Matrix room created with ID: ${roomId.topAndTail()}',
-      name: methodName,
-    );
+      _logger.info(
+        'Matrix room created with ID: ${roomId.topAndTail()}',
+        name: methodName,
+      );
+    }
 
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
@@ -681,6 +685,22 @@ class ConnectionService {
         channel: channel,
       ),
     );
+
+    if (channel.transport == ChannelTransport.matrix &&
+        channel.permanentChannelDid != null) {
+      final didManager = await _connectionManager.getDidManagerForDid(
+        wallet,
+        channel.permanentChannelDid!,
+      );
+      final roomId = await _matrixService.resolveChannelRoomId(
+        didManager: didManager,
+        channelDid: channel.permanentChannelDid!,
+        otherPartyChannelDid: channel.otherPartyPermanentChannelDid,
+      );
+      networkRequests.add(
+        _matrixService.leaveRoom(roomId, didManager: didManager),
+      );
+    }
 
     await Future.wait(networkRequests);
     await _channelService.deleteChannel(channel);

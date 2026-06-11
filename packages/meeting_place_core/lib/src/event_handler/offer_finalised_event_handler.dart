@@ -132,11 +132,13 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
-    await _matrixService.joinChannelRoom(
-      didManager: permanentChannelIdentity.didManager,
-      channelDid: permanentChannelIdentity.didDocument.id,
-      otherPartyChannelDid: otherPartyPermanentChannelDid,
-    );
+    if (channel.transport == ChannelTransport.matrix) {
+      await _matrixService.joinChannelRoom(
+        didManager: permanentChannelIdentity.didManager,
+        channelDid: permanentChannelIdentity.didDocument.id,
+        otherPartyChannelDid: otherPartyPermanentChannelDid,
+      );
+    }
 
     await _updateMediatorAcls(
       permanentChannelDidManager: permanentChannelIdentity.didManager,

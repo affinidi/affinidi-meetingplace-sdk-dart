@@ -43,7 +43,33 @@ class ConnectionManager {
   }
 
   Future<DidManager> generateDid(Wallet wallet) async {
-    final methodName = 'generateDid';
+    return _generateDidWithFactory(
+      wallet: wallet,
+      methodName: 'generateDid',
+      factory: (keyId) => _initDidManager(wallet: wallet, keyId: keyId),
+    );
+  }
+
+  Future<DidManager> generateDidWeb(
+    Wallet wallet, {
+    required Uri baseHost,
+  }) async {
+    return _generateDidWithFactory(
+      wallet: wallet,
+      methodName: 'generateDidWeb',
+      factory: (keyId) {
+        final segment = const Uuid().v4();
+        final domain = baseHost.replace(path: '${baseHost.path}/user/$segment');
+        return _initDidWebManager(wallet: wallet, keyId: keyId, domain: domain);
+      },
+    );
+  }
+
+  Future<DidManager> _generateDidWithFactory({
+    required Wallet wallet,
+    required String methodName,
+    required Future<DidManager> Function(String keyId) factory,
+  }) async {
     _logger.info('Generating new DID...', name: methodName);
 
     await _mutex.acquire();
@@ -53,7 +79,7 @@ class ConnectionManager {
       final currentIndex = lastIndex + 1;
 
       final keyId = _buildKeyId(currentIndex);
-      final didManager = await _initDidManager(wallet: wallet, keyId: keyId);
+      final didManager = await factory(keyId);
       final didDoc = await didManager.getDidDocument();
 
       await _keyRepository.setLastAccountIndex(currentIndex);
@@ -61,44 +87,6 @@ class ConnectionManager {
 
       _logger.info(
         'Generated new DID: ${didDoc.id.topAndTail()} with index: '
-        '$currentIndex',
-        name: methodName,
-      );
-      return didManager;
-    } finally {
-      _mutex.release();
-    }
-  }
-
-  Future<DidManager> generateDidWeb(
-    Wallet wallet, {
-    required Uri baseHost,
-  }) async {
-    final methodName = 'generateDidWeb';
-    _logger.info('Generating new did:web DID...', name: methodName);
-
-    await _mutex.acquire();
-
-    try {
-      final lastIndex = await _keyRepository.getLastAccountIndex();
-      final currentIndex = lastIndex + 1;
-
-      final keyId = _buildKeyId(currentIndex);
-      final segment = const Uuid().v4();
-      final domain = baseHost.replace(path: '${baseHost.path}/user/$segment');
-
-      final didManager = await _initDidWebManager(
-        wallet: wallet,
-        keyId: keyId,
-        domain: domain,
-      );
-      final didDoc = await didManager.getDidDocument();
-
-      await _keyRepository.setLastAccountIndex(currentIndex);
-      await _keyRepository.saveKeyIdForDid(keyId: keyId, did: didDoc.id);
-
-      _logger.info(
-        'Generated new did:web DID: ${didDoc.id.topAndTail()} with index: '
         '$currentIndex',
         name: methodName,
       );

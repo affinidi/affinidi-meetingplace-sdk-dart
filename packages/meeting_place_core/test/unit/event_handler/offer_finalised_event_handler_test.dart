@@ -8,34 +8,13 @@ import 'package:meeting_place_core/src/event_handler/offer_finalised_event_handl
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
 import 'package:meeting_place_core/src/protocol/meeting_place_protocol.dart';
-import 'package:meeting_place_core/src/repository/connection_offer_repository.dart';
-import 'package:meeting_place_core/src/service/channel/channel_service.dart';
-import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
-import 'package:meeting_place_core/src/service/identity/identity_service.dart';
 import 'package:meeting_place_core/src/service/identity/model/permanent_identity.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
-import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import 'mocks/mocks.dart';
-
-class _MockIdentityService extends Mock implements IdentityService {}
-
-class _MockMatrixService extends Mock implements MatrixService {}
-
-class _MockDidResolver extends Mock implements DidResolver {}
-
-class _MockChannelService extends Mock implements ChannelService {}
-
-class _MockConnectionOfferRepository extends Mock
-    implements ConnectionOfferRepository {}
-
-class _MockConnectionManager extends Mock implements ConnectionManager {}
-
-class _MockMediatorService extends Mock implements MediatorService {}
 
 class _FakeChannel extends Fake implements Channel {}
 
@@ -48,14 +27,14 @@ class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
 void main() {
   late OfferFinalisedEventHandler handler;
   late MockWallet mockWallet;
-  late _MockIdentityService mockIdentityService;
-  late _MockMatrixService mockMatrixService;
+  late MockIdentityService mockIdentityService;
+  late MockMatrixService mockMatrixService;
   late MockControlPlaneSDK mockControlPlaneSDK;
-  late _MockDidResolver mockDidResolver;
-  late _MockChannelService mockChannelService;
-  late _MockConnectionOfferRepository mockOfferRepo;
-  late _MockConnectionManager mockConnectionManager;
-  late _MockMediatorService mockMediatorService;
+  late MockDidResolver mockDidResolver;
+  late MockChannelService mockChannelService;
+  late MockConnectionOfferRepository mockOfferRepo;
+  late MockConnectionManager mockConnectionManager;
+  late MockMediatorService mockMediatorService;
   late MockDidManager mockAcceptOfferDidManager;
   late MockDidManager mockPermanentDidManager;
 
@@ -120,14 +99,14 @@ void main() {
 
   setUp(() {
     mockWallet = MockWallet();
-    mockIdentityService = _MockIdentityService();
-    mockMatrixService = _MockMatrixService();
+    mockIdentityService = MockIdentityService();
+    mockMatrixService = MockMatrixService();
     mockControlPlaneSDK = MockControlPlaneSDK();
-    mockDidResolver = _MockDidResolver();
-    mockChannelService = _MockChannelService();
-    mockOfferRepo = _MockConnectionOfferRepository();
-    mockConnectionManager = _MockConnectionManager();
-    mockMediatorService = _MockMediatorService();
+    mockDidResolver = MockDidResolver();
+    mockChannelService = MockChannelService();
+    mockOfferRepo = MockConnectionOfferRepository();
+    mockConnectionManager = MockConnectionManager();
+    mockMediatorService = MockMediatorService();
     mockAcceptOfferDidManager = MockDidManager(did: acceptOfferDid);
     mockPermanentDidManager = MockDidManager(did: permanentChannelDid);
 

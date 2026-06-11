@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 
 import '../../../../meeting_place_chat.dart';
 import '../../../chat/matrix_chat_sdk.dart';
+import '../matrix_chat_event_type.dart';
 import 'chat_effect_handler.dart';
 import 'incoming_reaction_state_store.dart';
 import 'message_edit_handler.dart';
@@ -112,7 +113,6 @@ class IncomingRoomEventRouter {
           type: dispatchKey,
           senderDid: event.senderDid,
           content: event.content,
-          targetDid: resolveTargetDid(event),
         ),
       );
     }
@@ -132,13 +132,6 @@ class IncomingRoomEventRouter {
     );
   }
 
-  /// Resolves the DID of the user this event affects when it differs from the
-  /// sender (e.g. Matrix `m.room.member` kicks). The base router has no
-  /// member-list context so it returns `null`; chat-specific subclasses
-  /// override this to perform the lookup.
-  @protected
-  String? resolveTargetDid(MatrixRoomEvent event) => null;
-
   /// Translates a Matrix event into a transport-neutral dispatch key, or
   /// returns `null` if the event has no neutral mapping. Matrix-native types
   /// without a translation (e.g. `m.receipt`) pass through unchanged.
@@ -153,16 +146,13 @@ class IncomingRoomEventRouter {
       }
       return null;
     }
-    if (event.type == MeetingPlaceProtocol.groupDeletion.value) {
-      return ChatEventTypes.groupDeletion;
-    }
     return switch (event.type) {
-      'com.affinidi.chat.group-deletion' => ChatEventTypes.groupDeletion,
-      'com.affinidi.chat.group-details-update' =>
+      MatrixChatEventType.groupDeletion => ChatEventTypes.groupDeletion,
+      MatrixChatEventType.groupDetailsUpdate =>
         ChatEventTypes.groupDetailsUpdate,
-      'com.affinidi.chat.contact-details-update' =>
+      MatrixChatEventType.contactDetailsUpdate =>
         ChatEventTypes.contactDetailsUpdate,
-      'com.affinidi.chat.effect' => ChatEventTypes.chatEffect,
+      MatrixChatEventType.chatEffect => ChatEventTypes.chatEffect,
       _ => event.type,
     };
   }

@@ -18,7 +18,6 @@ class _TestRouter extends IncomingRoomEventRouter {
 
   final String? Function(MatrixRoomEvent)? targetDidResolver;
 
-  @override
   String? resolveTargetDid(MatrixRoomEvent event) =>
       targetDidResolver?.call(event);
 }

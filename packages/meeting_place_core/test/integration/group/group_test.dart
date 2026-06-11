@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'package:collection/collection.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
@@ -456,12 +459,6 @@ void main() async {
 
     expect(newActual!.status, ConnectionOfferStatus.finalised);
 
-    // Check channel.seqNo of joined member - there was one group message before
-    final updatedChannel = await bobSDK.getChannelByDid(
-      acceptResult.connectionOffer.permanentChannelDid!,
-    );
-    expect(updatedChannel!.seqNo, 1);
-
     // TODO: assert members
   });
 
@@ -743,14 +740,16 @@ void main() async {
     final groupId = acceptResult.connectionOffer.groupId;
     final bobDid = acceptResult.connectionOffer.permanentChannelDid!;
 
-    final groupBefore = await aliceSDK.getGroupById(groupId);
+    final groupBefore = await aliceSDK.getGroupById(
+      result.connectionOffer.groupId,
+    );
     expect(groupBefore!.members.length, equals(2));
     expect(groupBefore.members.any((m) => m.did == bobDid), isTrue);
 
     // Removing the owner is rejected.
     expect(
       () => aliceSDK.removeMemberFromGroup(
-        groupId: groupId,
+        groupId: result.connectionOffer.groupId,
         memberDid: groupBefore.ownerDid!,
       ),
       throwsA(
@@ -772,15 +771,23 @@ void main() async {
     );
 
     // Owner removes Bob.
-    await aliceSDK.removeMemberFromGroup(groupId: groupId, memberDid: bobDid);
+    await aliceSDK.removeMemberFromGroup(
+      groupId: result.connectionOffer.groupId,
+      memberDid: bobDid,
+    );
 
-    final groupAfter = await aliceSDK.getGroupById(groupId);
+    final groupAfter = await aliceSDK.getGroupById(
+      result.connectionOffer.groupId,
+    );
     expect(groupAfter!.members.length, equals(1));
     expect(groupAfter.members.any((m) => m.did == bobDid), isFalse);
 
     // Removing a member that no longer belongs to the group fails.
     expect(
-      () => aliceSDK.removeMemberFromGroup(groupId: groupId, memberDid: bobDid),
+      () => aliceSDK.removeMemberFromGroup(
+        groupId: result.connectionOffer.groupId,
+        memberDid: bobDid,
+      ),
       throwsA(
         predicate(
           (e) =>

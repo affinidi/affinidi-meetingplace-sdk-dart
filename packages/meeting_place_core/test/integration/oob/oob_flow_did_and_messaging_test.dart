@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -9,7 +12,7 @@ void main() {
   group('custom did', () {
     late OobFlowFixture fixture;
 
-    setUp(() async {
+    setUpAll(() async {
       fixture = await OobFlowFixture.create();
     });
 

@@ -8,6 +8,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         DefaultMeetingPlaceMediatorSDKLogger,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
+import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_core.dart';
@@ -178,7 +179,6 @@ class MeetingPlaceCoreSDK {
          groupRepository: repositoryConfig.groupRepository,
          didcomm: didcommTransport,
          getDidManager: getDidManager,
-         errorHandler: sdkErrorHandler,
        );
 
   final Wallet wallet;
@@ -554,6 +554,27 @@ class MeetingPlaceCoreSDK {
   Future<DidManager> getDidManager(String did) {
     return _withSdkExceptionHandling(() {
       return _connectionManager.getDidManagerForDid(wallet, did);
+    });
+  }
+
+  /// Test-only helper that drains a matrix sync cycle and forces device-key
+  /// fetches for [expectedDids] on the matrix client owned by [localDid],
+  /// returning once the room state and key catalog can support an encrypted
+  /// send all expected recipients can decrypt. Production callers do not
+  /// need this — see [MatrixService.waitForRoomEncryptionReady] for the
+  /// underlying race it hides.
+  @visibleForTesting
+  Future<void> waitForRoomEncryptionReady({
+    required String localDid,
+    required Iterable<String> expectedDids,
+    Duration timeout = const Duration(seconds: 15),
+  }) {
+    return _withSdkExceptionHandling(() {
+      return _messagingService.waitForRoomEncryptionReady(
+        localDid: localDid,
+        expectedDids: expectedDids,
+        timeout: timeout,
+      );
     });
   }
 
@@ -1018,6 +1039,15 @@ class MeetingPlaceCoreSDK {
     _controlPlaneEventStreamManager.dispose();
   }
 
+  /// Releases all resources held by the SDK: closes the control plane
+  /// events stream, aborts every cached matrix client's sync loop and
+  /// closes their databases. Safe to call multiple times. After dispose
+  /// the SDK instance must not be used further.
+  Future<void> dispose() async {
+    _controlPlaneEventStreamManager.dispose();
+    await _messagingService.dispose();
+  }
+
   /// A method that deletes all pending discovery events.
   Future<List<String>> deleteControlPlaneEvents() {
     return _controlPlaneEventService.deleteAll();
@@ -1167,7 +1197,9 @@ class MeetingPlaceCoreSDK {
 
   /// Downloads and decrypts the media identified by [reference] in [channel].
   Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) {
-    return _messagingService.downloadMedia(channel, reference);
+    return _withSdkExceptionHandling(() {
+      return _messagingService.downloadMedia(channel, reference);
+    });
   }
 
   /// Sends [message] through its transport (Matrix or DIDComm).
@@ -1175,8 +1207,11 @@ class MeetingPlaceCoreSDK {
   /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
   /// matrix events that don't produce one, such as `m.read`, `m.typing`,
   /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
-  Future<String?> sendMessage(OutgoingMessage message) =>
-      _messagingService.sendMessage(message);
+  Future<String?> sendMessage(OutgoingMessage message) {
+    return _withSdkExceptionHandling(
+      () => _messagingService.sendMessage(message),
+    );
+  }
 
   /// Subscribes to incoming messages for the given [subscription].
   ///

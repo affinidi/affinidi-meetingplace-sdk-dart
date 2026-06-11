@@ -120,13 +120,13 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
             );
           }
 
-          if (from < 3) {
+          if (from < 3 && to >= 3) {
             await migrator.addColumn(
               connectionOffers,
               connectionOffers.transport,
             );
           }
-          if (from < 4) {
+          if (from < 4 && to >= 4) {
             // Backfill existing rows with the historical default transport
             // (didcomm = 1). The column is now NOT NULL going forward.
             await customStatement(

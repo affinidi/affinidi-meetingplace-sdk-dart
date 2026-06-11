@@ -537,4 +537,67 @@ class MatrixService {
     }
     return client;
   }
+
+  /// Disposes the underlying session manager, aborting all matrix sync
+  /// loops and closing each cached client's database. Safe to call
+  /// multiple times.
+  Future<void> dispose() => _sessionManager.dispose();
+
+  /// Waits until the matrix client owned by [didManager] has converged on
+  /// the membership and device-key state needed to encrypt a message that
+  /// every DID in [expectedDids] can decrypt.
+  ///
+  /// Matrix creates the outbound megolm session lazily on the first send,
+  /// pulling participants and their device keys from the local cache. If
+  /// sync hasn't yet reflected a recent join (or the joiner's `/keys/query`
+  /// hasn't completed), the session is shared only with stale recipients
+  /// and later messages are unreadable for everyone added since.
+  ///
+  /// In production the natural latency between accept-offer and first
+  /// send hides this race. Tests fire both within milliseconds, so this
+  /// helper drains a sync cycle and forces the device-key fetch up front.
+  /// It is intended for test fixtures only — production code should not
+  /// need to call it.
+  Future<void> waitForRoomEncryptionReady({
+    required String roomId,
+    required DidManager didManager,
+    required Iterable<String> expectedDids,
+    Duration timeout = const Duration(seconds: 15),
+    Duration pollInterval = const Duration(milliseconds: 100),
+  }) async {
+    final client = await _ensureSession(didManager);
+    final expectedUserIds = expectedDids
+        .map((did) => _sessionManager.deriveUserId(did, homeserver.host))
+        .toSet();
+
+    final deadline = DateTime.now().add(timeout);
+    while (true) {
+      await client.oneShotSync();
+      await client.updateUserDeviceKeys(additionalUsers: expectedUserIds);
+      final inFlight = client.userDeviceKeysLoading;
+      if (inFlight != null) await inFlight;
+
+      final room = client.getRoomById(roomId);
+      if (room != null) {
+        final participants = await room.requestParticipants([
+          matrix.Membership.join,
+        ], true);
+        final joinedIds = participants.map((p) => p.id).toSet();
+        final missingMembership = expectedUserIds.difference(joinedIds);
+        final missingKeys = expectedUserIds.where((uid) {
+          final keys = client.userDeviceKeys[uid];
+          return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
+        }).toSet();
+        if (missingMembership.isEmpty && missingKeys.isEmpty) return;
+      }
+
+      if (!DateTime.now().isBefore(deadline)) {
+        throw StateError(
+          'Timed out waiting for matrix room $roomId to converge on '
+          'membership/device-key state for $expectedUserIds',
+        );
+      }
+      await Future<void>.delayed(pollInterval);
+    }
+  }
 }

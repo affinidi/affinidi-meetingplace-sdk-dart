@@ -566,7 +566,7 @@ void main() {
         },
       );
 
-      test('throws StateError when client encryption is disabled', () async {
+      test('throws exception when client encryption is disabled', () async {
         final client = MockMatrixClient();
         when(() => client.userID).thenReturn(_matrixUserId);
         when(() => client.encryptionEnabled).thenReturn(false);
@@ -582,7 +582,13 @@ void main() {
             didManager: didManager,
             channelDid: 'did:test:alice',
           ),
-          throwsStateError,
+          throwsA(
+            isA<MatrixServiceException>().having(
+              (e) => e.message,
+              'message',
+              contains('encryption is not enabled'),
+            ),
+          ),
         );
       });
 

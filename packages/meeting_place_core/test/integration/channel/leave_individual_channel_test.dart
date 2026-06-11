@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'dart:async';
 
 import 'package:didcomm/didcomm.dart';

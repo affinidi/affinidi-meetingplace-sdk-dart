@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_core/src/sdk/sdk_error_handler.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_media_exception.dart';
 import 'package:meeting_place_core/src/service/message/message_service.dart';
@@ -21,8 +20,6 @@ class MockGroupRepository extends Mock implements GroupRepository {}
 class MockDIDCommTransport extends Mock implements DIDCommTransport {}
 
 class MockDidManager extends Mock implements DidManager {}
-
-class MockLogger extends Mock implements MeetingPlaceCoreSDKLogger {}
 
 const _testRoomId = '!room:matrix.example.com';
 const _testDid = 'did:test:alice';
@@ -90,7 +87,6 @@ void main() {
       groupRepository: groupRepository,
       didcomm: didcomm,
       getDidManager: (_) async => didManager,
-      errorHandler: SDKErrorHandler(logger: MockLogger()),
     );
   });
 
@@ -153,14 +149,10 @@ void main() {
             contentType: 'image/png',
           ),
           throwsA(
-            isA<MeetingPlaceCoreSDKException>().having(
-              (e) => e.innerException,
-              'innerException',
-              isA<MatrixMediaException>().having(
-                (e) => e.code,
-                'code',
-                MatrixMediaException.codeTooLarge,
-              ),
+            isA<MatrixMediaException>().having(
+              (e) => e.code,
+              'code',
+              MatrixMediaException.codeTooLarge,
             ),
           ),
         );
@@ -186,13 +178,7 @@ void main() {
           Uint8List.fromList([1]),
           contentType: 'image/png',
         ),
-        throwsA(
-          isA<MeetingPlaceCoreSDKException>().having(
-            (e) => e.innerException,
-            'innerException',
-            isA<StateError>(),
-          ),
-        ),
+        throwsA(isA<StateError>()),
       );
     });
   });
@@ -206,13 +192,7 @@ void main() {
           Uint8List.fromList([1]),
           contentType: 'image/png',
         ),
-        throwsA(
-          isA<MeetingPlaceCoreSDKException>().having(
-            (e) => e.innerException,
-            'innerException',
-            isA<UnimplementedError>(),
-          ),
-        ),
+        throwsA(isA<UnimplementedError>()),
       );
     });
   });
@@ -249,13 +229,7 @@ void main() {
           _didcommChannel(),
           const MatrixEventMediaReference(_testEventId),
         ),
-        throwsA(
-          isA<MeetingPlaceCoreSDKException>().having(
-            (e) => e.innerException,
-            'innerException',
-            isA<UnimplementedError>(),
-          ),
-        ),
+        throwsA(isA<UnimplementedError>()),
       );
     });
   });

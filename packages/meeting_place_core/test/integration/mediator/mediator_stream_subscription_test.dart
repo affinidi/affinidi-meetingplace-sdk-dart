@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -18,8 +21,21 @@ void main() async {
   late DidManager bobDID;
   late DidDocument bobDidDoc;
 
-  Future<void> clearMessageQueue(DidDocument didDoc) async {
-    await aliceDidcomm.fetchMessages(did: didDoc.id, deleteOnRetrieve: true);
+  // Swallows a known didcomm 2.3.3 race where Connection.start's unawaited
+  // fetchMessages then-block calls _controller.add after stop() closed it.
+  void swallowDidcommCloseRace(Object error, StackTrace stackTrace) {
+    if (error is StateError &&
+        error.message.contains('Cannot add new events after calling close')) {
+      return;
+    }
+    Zone.root.handleUncaughtError(error, stackTrace);
+  }
+
+  Future<void> clearMessageQueue(
+    DIDCommTransport transport,
+    DidDocument didDoc,
+  ) async {
+    await transport.fetchMessages(did: didDoc.id, deleteOnRetrieve: true);
   }
 
   setUp(() async {
@@ -37,8 +53,15 @@ void main() async {
       acl: AccessListAdd(ownerDid: aliceDidDoc.id, granteeDids: [bobDidDoc.id]),
     );
 
-    await clearMessageQueue(aliceDidDoc);
-    await clearMessageQueue(bobDidDoc);
+    await clearMessageQueue(aliceDidcomm, aliceDidDoc);
+    await clearMessageQueue(bobDidcomm, bobDidDoc);
+  });
+
+  tearDown(() async {
+    await runZonedGuarded(() async {
+      await aliceSDK.dispose();
+      await bobSDK.dispose();
+    }, swallowDidcommCloseRace);
   });
 
   Future<void> sendMessageFromBobToAlice({
@@ -156,7 +179,7 @@ void main() async {
     final subscription = await aliceDidcomm.subscribe(
       aliceDidDoc.id,
       options: const MediatorStreamSubscriptionOptions(
-        deleteMessageDelay: Duration(milliseconds: 200),
+        deleteMessageDelay: Duration(milliseconds: 1),
       ),
     );
 
@@ -179,6 +202,7 @@ void main() async {
     await sendMessageFromBobToAlice(type: messageType);
 
     await waitForMessage.future.timeout(const Duration(seconds: 10));
+    await Future<void>.delayed(const Duration(seconds: 2));
 
     final messages = await aliceDidcomm.fetchMessages(
       did: aliceDidDoc.id,
@@ -308,7 +332,9 @@ void main() async {
         return MediatorStreamProcessingResult(keepMessage: false);
       },
       onError: (e) {
-        waitForError.complete(true);
+        if (!waitForError.isCompleted) {
+          waitForError.complete(true);
+        }
       },
     );
 
@@ -362,7 +388,9 @@ void main() async {
 
       subscriptionA.listen((message) {
         if (message.plainTextMessage.type == testMessage.type) {
-          subscriptionAReceived.complete(message.plainTextMessage);
+          if (!subscriptionAReceived.isCompleted) {
+            subscriptionAReceived.complete(message.plainTextMessage);
+          }
         }
         return MediatorStreamProcessingResult(
           keepMessage: subscriptionAKeepAlive,
@@ -371,7 +399,9 @@ void main() async {
 
       subscriptionB.listen((message) {
         if (message.plainTextMessage.type == testMessage.type) {
-          subscriptionBReceived.complete(message.plainTextMessage);
+          if (!subscriptionBReceived.isCompleted) {
+            subscriptionBReceived.complete(message.plainTextMessage);
+          }
         }
         return MediatorStreamProcessingResult(
           keepMessage: subscriptionBKeepAlive,

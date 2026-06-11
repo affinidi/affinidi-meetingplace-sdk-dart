@@ -39,6 +39,26 @@ class MatrixClientCache {
     _clientCache.remove(cacheKey);
   }
 
+  /// Disposes every cached client (aborting their sync loops) and clears
+  /// the cache. The underlying database is intentionally left open so
+  /// in-flight sync responses that arrive after `abortSync` returns do
+  /// not crash with `SQLITE_MISUSE` while writing to a closed handle;
+  /// the database file is reaped with the temp directory by the OS or
+  /// by an explicit cleanup. Errors from individual clients are
+  /// swallowed so a single failure cannot block the rest.
+  Future<void> dispose() async {
+    final futures = _clientCache.values.toList();
+    _clientCache.clear();
+    for (final future in futures) {
+      try {
+        final client = await future;
+        await client.dispose(closeDatabase: false);
+      } catch (_) {
+        // Ignore — best-effort cleanup.
+      }
+    }
+  }
+
   String _getCacheKey({required String did}) {
     return '$did._${homeserver.toString()}';
   }

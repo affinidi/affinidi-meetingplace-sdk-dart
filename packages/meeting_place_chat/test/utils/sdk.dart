@@ -6,6 +6,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import 'repository/channel_repository_impl.dart';
 import 'repository/chat_repository_impl.dart';
@@ -24,11 +25,33 @@ Uri getMatrixHomeserver() =>
       _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
     };
 
-Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
-  sqfliteFfiInit();
-  final directory = Directory(
-    '${Directory.systemTemp.path}/meeting_place_chat_test_matrix',
+String getVodozemacLibraryPath() {
+  final override =
+      Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
+      env['VODOZEMAC_LIBRARY_PATH'];
+  if (override != null) return override;
+  if (Platform.isMacOS) return 'test/libvodozemac_bindings_dart.dylib';
+  if (Platform.isLinux) return 'test/libvodozemac_bindings_dart.so';
+  throw Exception(
+    'No bundled vodozemac binary for ${Platform.operatingSystem}; '
+    'set VODOZEMAC_LIBRARY_PATH',
   );
+}
+
+/// Ensures the vodozemac native library is loaded before any Matrix client is
+/// created. The CoreSDK now requires this (matrix E2EE is on by default), so
+/// every integration test that spins up an SDK must initialize it first.
+Future<void> ensureVodozemacInitialized() async {
+  if (vod.isInitialized()) return;
+  await vod.init(libraryPath: getVodozemacLibraryPath());
+}
+
+Future<DatabaseApi> _openMatrixDatabase(
+  Directory directory,
+  MatrixDatabaseContext context,
+) async {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
   await directory.create(recursive: true);
   return MatrixSdkDatabase.init(
     context.databaseName,
@@ -38,20 +61,26 @@ Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
   );
 }
 
-MatrixConfig getMatrixConfig() => MatrixConfig(
-  mediatorDid: getMediatorDid(),
-  controlPlaneDid: getControlPlaneDid(),
-  homeserver: getMatrixHomeserver(),
-  databaseFactory: const CallbackMatrixDatabaseFactory(
-    openDatabase: _openMatrixDatabase,
-  ),
-);
+MatrixConfig getMatrixConfig() {
+  final directory = Directory.systemTemp.createTempSync(
+    'meeting_place_chat_test_matrix_',
+  );
+  return MatrixConfig(
+    mediatorDid: getMediatorDid(),
+    controlPlaneDid: getControlPlaneDid(),
+    homeserver: getMatrixHomeserver(),
+    databaseFactory: CallbackMatrixDatabaseFactory(
+      openDatabase: (context) => _openMatrixDatabase(directory, context),
+    ),
+  );
+}
 
 Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
   Wallet? wallet,
   GroupRepository? groupRepository,
   ChannelRepository? channelRepository,
 }) async {
+  await ensureVodozemacInitialized();
   final storage = InMemoryStorage();
   final sdk = await MeetingPlaceCoreSDK.create(
     wallet: wallet ?? PersistentWallet(InMemoryKeyStore()),

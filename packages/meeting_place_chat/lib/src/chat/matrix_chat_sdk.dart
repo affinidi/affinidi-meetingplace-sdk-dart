@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -9,7 +8,6 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
-import '../transport/matrix/matrix_media_attachment.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 
@@ -127,140 +125,8 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   @override
   Future<List<ChatItem>> get messages async {
-    final methodName = 'messages';
-    logger.info('Retrieving all persisted messages', name: methodName);
-    final events = await _fetchRoomHistoryAsRoomEvents();
-
-    // Persisted tombstone flags (`isDeletedLocally`, `isDeleted`) cannot be
-    // reconstructed from the Matrix timeline alone — local-only hides are
-    // never broadcast, and a redaction event may have been pruned by the
-    // server. Index persisted messages by their `transportId` (server event
-    // id) so we can re-apply both flags onto the freshly rebuilt items.
-    final persisted = await chatRepository.listMessages(chatId);
-    final persistedByTransportId = <String, Message>{
-      for (final m in persisted.whereType<Message>())
-        if (m.transportId != null) m.transportId!: m,
-    };
-
-    final messagesByEventId = <String, Message>{};
-    final ordered = <ChatItem>[];
-    final pendingEdits = <MatrixRoomEvent>[];
-    final pendingRedactions = <MatrixRoomEvent>[];
-
-    for (final e in events) {
-      if (e.type == matrix.EventTypes.Redaction) {
-        pendingRedactions.add(e);
-        continue;
-      }
-
-      final senderDid = _resolveSenderDIDFromRoomEvent(e);
-      if (senderDid == null) {
-        logger.warning(
-          'Could not resolve sender DID for event ${e.id}, skipping event.',
-          name: methodName,
-        );
-        continue;
-      }
-
-      final relatesTo = e.content['m.relates_to'] as Map<String, dynamic>?;
-      if (relatesTo?['rel_type'] == 'm.replace') {
-        pendingEdits.add(e);
-        continue;
-      }
-
-      final attachments = MatrixMediaAttachments.extractFromContent(e.content);
-      for (final a in attachments) {
-        a.transportId = e.id;
-      }
-
-      final correlationId =
-          e.content[MatrixEventField.correlationId] as String?;
-
-      // Coalesce N file events sharing a correlation id into a single
-      // logical Message — mirrors the live-stream behaviour in
-      // TextMessageHandler so history replay and live arrival agree.
-      if (correlationId != null) {
-        final existing = messagesByEventId[correlationId];
-        if (existing != null) {
-          existing.attachments = [...existing.attachments, ...attachments];
-          // Keep ordering of the parent ChatItem stable; do not re-add.
-          continue;
-        }
-      }
-
-      final logicalId = correlationId ?? e.id;
-      final message = e.isFromMe
-          ? Message.fromRoomEventSentByMe(
-              event: e,
-              chatId: chatId,
-              senderDid: senderDid,
-              attachments: attachments,
-              messageId: logicalId,
-            )
-          : Message.fromRoomEventReceivedByMe(
-              event: e,
-              chatId: chatId,
-              senderDid: senderDid,
-              attachments: attachments,
-              messageId: logicalId,
-            );
-      messagesByEventId[message.messageId] = message;
-      // Edits/redactions target the matrix event id; keep a lookup keyed on
-      // it so `m.replace` and `m.room.redaction` resolve their target after
-      // we move the persisted key onto the logical correlation id.
-      if (message.transportId != null &&
-          message.transportId != message.messageId) {
-        messagesByEventId[message.transportId!] = message;
-      }
-      ordered.add(message);
-    }
-
-    for (final edit in pendingEdits) {
-      final target =
-          (edit.content['m.relates_to'] as Map<String, dynamic>?)?['event_id']
-              as String?;
-      final newBody =
-          (edit.content['m.new_content'] as Map<String, dynamic>?)?['body']
-              as String?;
-      if (target == null || newBody == null) continue;
-      final message = messagesByEventId[target];
-      if (message == null) continue;
-      final editorDid = _resolveSenderDIDFromRoomEvent(edit);
-      if (editorDid == null || editorDid != message.senderDid) continue;
-      final lastEditedAt = message.editedAt;
-      if (lastEditedAt != null && !edit.timestamp.isAfter(lastEditedAt)) {
-        continue;
-      }
-      message.value = newBody;
-      message.editedAt = edit.timestamp;
-    }
-
-    for (final redaction in pendingRedactions) {
-      final target = redaction.content['redacts'] as String?;
-      if (target == null) continue;
-      final message = messagesByEventId[target];
-      if (message == null) continue;
-      message.isDeleted = true;
-      message.clearContent();
-    }
-
-    // Re-apply persisted tombstone flags. `isDeletedLocally` is never on the
-    // wire, and `isDeleted` would otherwise depend on the redaction event
-    // still being present in the timeline window we just fetched.
-    for (final entry in messagesByEventId.entries) {
-      final p = persistedByTransportId[entry.key];
-      if (p == null) continue;
-      if (p.isDeletedLocally) {
-        entry.value.isDeletedLocally = true;
-        entry.value.clearContent();
-      }
-      if (p.isDeleted && !entry.value.isDeleted) {
-        entry.value.isDeleted = true;
-        entry.value.clearContent();
-      }
-    }
-
-    return ordered;
+    logger.info('Retrieving all persisted messages', name: 'messages');
+    return chatRepository.listMessages(chatId);
   }
 
   @internal
@@ -642,8 +508,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     _matrixSubscriptionHandle = null;
     await super.end();
   }
-
-  String? _resolveSenderDIDFromRoomEvent(MatrixRoomEvent e) => e.senderDid;
 
   Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
     final channel = await getChannel();

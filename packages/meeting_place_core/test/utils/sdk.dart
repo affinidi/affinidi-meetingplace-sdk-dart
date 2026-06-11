@@ -21,6 +21,8 @@ import 'package:meeting_place_core/src/utils/cached_did_resolver.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../fixtures/sdk.dart';
 import 'repository/channel_repository_impl.dart';
@@ -31,28 +33,34 @@ import 'storage/in_memory_storage.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
-Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
+Future<DatabaseApi> _openMatrixDatabase(
+  Directory directory,
+  MatrixDatabaseContext context,
+) async {
   sqfliteFfiInit();
-  final directory = Directory(
-    '${Directory.systemTemp.path}/meeting_place_core_test_matrix',
-  );
+  databaseFactory = databaseFactoryFfi;
   await directory.create(recursive: true);
   return MatrixSdkDatabase.init(
     context.databaseName,
     database: await databaseFactoryFfi.openDatabase(
-      '${directory.path}/${context.databaseName}.sqlite',
+      '${directory.path}/${context.databaseName}_${const Uuid().v4()}.sqlite',
     ),
   );
 }
 
-MatrixConfig getMatrixConfig() => MatrixConfig(
-  mediatorDid: getMediatorDid(),
-  controlPlaneDid: getControlPlaneDid(),
-  homeserver: getMatrixHomeserver(),
-  databaseFactory: const CallbackMatrixDatabaseFactory(
-    openDatabase: _openMatrixDatabase,
-  ),
-);
+MatrixConfig getMatrixConfig() {
+  final directory = Directory.systemTemp.createTempSync(
+    'meeting_place_core_test_matrix_',
+  );
+  return MatrixConfig(
+    mediatorDid: getMediatorDid(),
+    controlPlaneDid: getControlPlaneDid(),
+    homeserver: getMatrixHomeserver(),
+    databaseFactory: CallbackMatrixDatabaseFactory(
+      openDatabase: (context) => _openMatrixDatabase(directory, context),
+    ),
+  );
+}
 
 Future<MeetingPlaceCoreSDK> initSDKInstance({
   Wallet? wallet,
@@ -98,6 +106,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
   required ChannelRepository? channelRepository,
   required bool buildDidcomm,
 }) async {
+  await ensureVodozemacInitialized();
   final effectiveWallet = wallet ?? PersistentWallet(InMemoryKeyStore());
   final storage = InMemoryStorage();
   final keyRepository = KeyRepositoryImpl(storage: storage);
@@ -205,6 +214,27 @@ Uri getMatrixHomeserver() =>
       final s? => Uri.parse(s),
       _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
     };
+
+String getVodozemacLibraryPath() {
+  final override =
+      Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
+      env['VODOZEMAC_LIBRARY_PATH'];
+  if (override != null) return override;
+  if (Platform.isMacOS) return 'test/libvodozemac_bindings_dart.dylib';
+  if (Platform.isLinux) return 'test/libvodozemac_bindings_dart.so';
+  throw Exception(
+    'No bundled vodozemac binary for ${Platform.operatingSystem}; '
+    'set VODOZEMAC_LIBRARY_PATH',
+  );
+}
+
+/// Ensures the vodozemac native library is loaded before any Matrix client is
+/// created. The CoreSDK now requires this (matrix E2EE is on by default), so
+/// every integration test that spins up an SDK must initialize it first.
+Future<void> ensureVodozemacInitialized() async {
+  if (vod.isInitialized()) return;
+  await vod.init(libraryPath: getVodozemacLibraryPath());
+}
 
 ChannelRepository initChannelRepository() {
   return ChannelRepositoryImpl(storage: InMemoryStorage());

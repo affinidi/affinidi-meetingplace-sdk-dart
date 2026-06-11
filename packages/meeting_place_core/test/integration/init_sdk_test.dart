@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';

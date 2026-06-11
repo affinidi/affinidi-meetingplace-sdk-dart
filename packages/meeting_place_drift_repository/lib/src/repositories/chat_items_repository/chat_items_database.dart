@@ -137,7 +137,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
               'ALTER TABLE chat_items_temp RENAME TO chat_items',
             );
           }
-          if (from < 3) {
+          if (from < 3 && to >= 3) {
             // Add transport_id to record the server-assigned event id for
             // each outgoing/incoming message. Nullable: existing rows have no
             // recorded transport id and are backfilled lazily as new traffic
@@ -146,7 +146,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
               'ALTER TABLE chat_items ADD COLUMN transport_id TEXT',
             );
           }
-          if (from < 4) {
+          if (from < 4 && to >= 4) {
             // Persist tombstone flags so locally-hidden and remotely-redacted
             // messages survive cold start. Without these, `clearContent` wipes
             // the row's text/attachments but the flags themselves are lost on
@@ -160,7 +160,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
               'NOT NULL DEFAULT 0 CHECK ("is_deleted_locally" IN (0, 1))',
             );
           }
-          if (from < 5) {
+          if (from < 5 && to >= 5) {
             // Add transport_id to attachments so the per-attachment transport
             // reference (e.g. Matrix event id for hosted media) survives
             // persist/restore. Without it, receivers reload messages with

@@ -1,5 +1,3 @@
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ContactCard;
 import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
@@ -57,29 +55,10 @@ class IdentityService {
 
     final didDocument = await permanentChannelDidManager.getDidDocument();
 
-    try {
-      await _didWebDocumentService.register(
-        didManager: permanentChannelDidManager,
-        didDocument: didDocument,
-      );
-    } on UploadDidWebDocumentException catch (e) {
-      if (e.code !=
-          ControlPlaneSDKErrorCode.uploadDidWebDocumentAlreadyRegistered) {
-        rethrow;
-      }
-      _logger.warning(
-        'DID document already registered, proceeding',
-        name: _logkey,
-      );
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Error registering DID document',
-        error: e,
-        stackTrace: stackTrace,
-        name: _logkey,
-      );
-      rethrow;
-    }
+    await _didWebDocumentService.register(
+      didManager: permanentChannelDidManager,
+      didDocument: didDocument,
+    );
 
     String? matrixUserId;
     if (transport == ChannelTransport.matrix) {

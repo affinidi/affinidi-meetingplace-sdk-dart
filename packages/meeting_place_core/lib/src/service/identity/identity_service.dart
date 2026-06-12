@@ -2,6 +2,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../../meeting_place_core.dart';
 import '../connection_manager/connection_manager.dart';
+import 'did_web_document_service.dart';
 import 'model/ephemeral_identity.dart';
 import 'model/permanent_identity.dart';
 
@@ -9,14 +10,20 @@ class IdentityService {
   IdentityService({
     required ConnectionManager connectionManager,
     required MatrixService matrixService,
+    required DidWebDocumentService didWebDocumentService,
+    required Uri didWebBaseHost,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _matrixService = matrixService,
+       _didWebDocumentService = didWebDocumentService,
+       _didWebBaseHost = didWebBaseHost,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   final ConnectionManager _connectionManager;
   final MatrixService _matrixService;
+  final DidWebDocumentService _didWebDocumentService;
+  final Uri _didWebBaseHost;
   final MeetingPlaceCoreSDKLogger _logger;
 
   static const String _className = 'IdentityService';
@@ -41,11 +48,17 @@ class IdentityService {
     Wallet wallet, {
     required ChannelTransport transport,
   }) async {
-    final permanentChannelDidManager = await _connectionManager.generateDid(
+    final permanentChannelDidManager = await _connectionManager.generateDidWeb(
       wallet,
+      baseHost: _didWebBaseHost,
     );
 
     final didDocument = await permanentChannelDidManager.getDidDocument();
+
+    await _didWebDocumentService.register(
+      didManager: permanentChannelDidManager,
+      didDocument: didDocument,
+    );
 
     String? matrixUserId;
     if (transport == ChannelTransport.matrix) {

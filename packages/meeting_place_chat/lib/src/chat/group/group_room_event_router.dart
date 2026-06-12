@@ -25,6 +25,7 @@ class GroupRoomEventRouter extends IncomingRoomEventRouter {
   /// Resolves the affected user's DID for `m.room.member` events by reverse
   /// lookup against the group's known members. Returns `null` for other event
   /// types or when the state key doesn't match any current member.
+  @override
   String? resolveTargetDid(MatrixRoomEvent event) {
     if (event.type != matrix.EventTypes.RoomMember) return null;
     final stateKey = event.stateKey;

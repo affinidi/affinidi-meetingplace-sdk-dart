@@ -197,4 +197,29 @@ void main() {
       },
     );
   });
+
+  group('v5 → v6 schema migration', () {
+    test(
+      'succeeds when attachments.metadata already exists (idempotency)',
+      () async {
+        // Reproduces the real device state: a v5 database whose attachments
+        // table already has the metadata column from an intermediate build,
+        // while user_version is still 5. Pre-fix this threw:
+        //   SqliteException(1): duplicate column name: metadata
+        final schema = await verifier.schemaAt(5);
+        schema.rawDatabase
+            .execute('ALTER TABLE attachments ADD COLUMN metadata TEXT');
+
+        final db = ChatItemsDatabase.forTesting(schema.newConnection());
+        // Any query triggers the lazy onUpgrade(5 → 6). Should not throw.
+        final rows = await db
+            .customSelect(
+              'SELECT COUNT(*) AS n FROM attachments WHERE metadata IS NULL',
+            )
+            .get();
+        expect(rows.single.read<int>('n'), 0);
+        await db.close();
+      },
+    );
+  });
 }

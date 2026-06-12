@@ -69,7 +69,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -167,6 +167,15 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             // null transportId and can never trigger downloadMedia.
             await customStatement(
               'ALTER TABLE attachments ADD COLUMN transport_id TEXT',
+            );
+          }
+          if (from < 6 && to >= 6) {
+            // Add metadata to attachments so extensible media-kind metadata
+            // (e.g. the voice marker, duration, and waveform) survives
+            // persist/restore. Without it, received voice messages reload as
+            // generic audio with no duration/waveform until played.
+            await customStatement(
+              'ALTER TABLE attachments ADD COLUMN metadata TEXT',
             );
           }
         },
@@ -295,6 +304,11 @@ class Attachments extends Table {
   /// Transport-level reference for downloading the attachment bytes (e.g.
   /// Matrix event id for hosted media). `null` for inline DIDComm attachments.
   TextColumn get transportId => text().nullable()();
+
+  /// JSON-encoded extensible media-kind metadata (e.g. voice marker, duration,
+  /// and waveform). `null` for attachments without extra metadata. Distinct
+  /// from [json], which carries the attachment's own data payload.
+  TextColumn get metadata => text().nullable()();
 }
 
 /// Stores external links tied to an [Attachment].

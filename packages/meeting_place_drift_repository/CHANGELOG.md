@@ -1,3 +1,31 @@
+## 0.0.1-dev.44
+
+ - Update a dependency to the latest release.
+
+## 0.0.1-dev.43
+
+ - Update a dependency to the latest release.
+
+## 0.0.1-dev.42
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+## 0.0.1-dev.41
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+## 0.0.1-dev.40
+
+ - **REFACTOR**: database schema and update dependencies (#168).
+
+## 0.0.1-dev.39
+
+ - Update a dependency to the latest release.
+
+## 0.0.1-dev.38
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
 ## 0.0.1-dev.37
 
  - Update a dependency to the latest release.

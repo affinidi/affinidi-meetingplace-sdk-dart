@@ -1,3 +1,15 @@
+## 0.0.1-dev.19
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+## 0.0.1-dev.18
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+## 0.0.1-dev.17
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
 ## 0.0.1-dev.16
 
  - **FIX**: improvements and bug fixes (#131).

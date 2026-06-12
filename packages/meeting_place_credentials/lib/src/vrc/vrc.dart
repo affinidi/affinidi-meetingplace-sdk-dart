@@ -1,0 +1,12 @@
+export 'model/vrc.dart';
+export 'model/vrc_constants.dart';
+export 'model/vrc_credential_subject.dart';
+export 'model/vrc_exchange_role.dart';
+export 'model/vrc_exchange_state.dart';
+export 'model/vrc_issuance.dart';
+export 'model/vrc_party.dart';
+export 'model/vrc_processing_result.dart';
+export 'model/vrc_request.dart';
+export 'model/vrc_request_processing_result.dart';
+export 'parser/vrc_parser.dart';
+export 'repository/vrc_repository.dart';

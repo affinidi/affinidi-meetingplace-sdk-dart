@@ -49,14 +49,14 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
     bool logStatements = false,
     bool inMemory = false,
   }) : super(
-          openConnection(
-            databaseName: databaseName,
-            passphrase: passphrase,
-            directory: directory,
-            logStatements: logStatements,
-            inMemory: inMemory,
-          ),
-        );
+         openConnection(
+           databaseName: databaseName,
+           passphrase: passphrase,
+           directory: directory,
+           logStatements: logStatements,
+           inMemory: inMemory,
+         ),
+       );
 
   /// Opens a [ConnectionOfferDatabase] from an existing [connection].
   ///
@@ -72,21 +72,21 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
   /// Ensures foreign key constraints are enforced.
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-        onUpgrade: (migrator, from, to) async {
-          if (from < 2) {
-            // v1 connection_contact_cards stored contact fields as individual
-            // columns (first_name, last_name, email, mobile, profile_pic
-            // [non-null], meetingplace_identity_card_color).  v2 replaces them
-            // with contact_info_json and profile_pic (nullable).
-            // SQLite cannot drop or change columns in-place, so we recreate
-            // the table via a temp-table rename.
-            await customStatement(
-              'DROP TABLE IF EXISTS connection_contact_cards_temp',
-            );
-            await customStatement("""
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        // v1 connection_contact_cards stored contact fields as individual
+        // columns (first_name, last_name, email, mobile, profile_pic
+        // [non-null], meetingplace_identity_card_color).  v2 replaces them
+        // with contact_info_json and profile_pic (nullable).
+        // SQLite cannot drop or change columns in-place, so we recreate
+        // the table via a temp-table rename.
+        await customStatement(
+          'DROP TABLE IF EXISTS connection_contact_cards_temp',
+        );
+        await customStatement("""
               CREATE TABLE connection_contact_cards_temp (
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 connection_offer_id TEXT REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL,
@@ -96,7 +96,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
                 profile_pic TEXT NULL
               )
             """);
-            await customStatement("""
+        await customStatement("""
               INSERT INTO connection_contact_cards_temp (
                 id, connection_offer_id, did, type, contact_info_json, profile_pic
               )
@@ -114,28 +114,26 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
                 profile_pic
               FROM connection_contact_cards
             """);
-            await customStatement('DROP TABLE connection_contact_cards');
-            await customStatement(
-              '''ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards''',
-            );
-          }
+        await customStatement('DROP TABLE connection_contact_cards');
+        await customStatement(
+          '''ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards''',
+        );
+      }
 
-          if (from < 3 && to >= 3) {
-            await migrator.addColumn(
-              connectionOffers,
-              connectionOffers.transport,
-            );
-          }
-          if (from < 4 && to >= 4) {
-            // Backfill existing rows with the historical default transport
-            // (didcomm = 1). The column is now NOT NULL going forward.
-            await customStatement(
-              'UPDATE connection_offers SET transport = 1 '
-              'WHERE transport IS NULL',
-            );
-          }
-        },
-      );
+      if (from < 3 && to >= 3) {
+        await migrator.addColumn(connectionOffers, connectionOffers.transport);
+        await migrator.addColumn(connectionOffers, connectionOffers.score);
+      }
+      if (from < 4 && to >= 4) {
+        // Backfill existing rows with the historical default transport
+        // (didcomm = 1). The column is now NOT NULL going forward.
+        await customStatement(
+          'UPDATE connection_offers SET transport = 1 '
+          'WHERE transport IS NULL',
+        );
+      }
+    },
+  );
 }
 
 /// Table representing connection offers.
@@ -215,6 +213,9 @@ class ConnectionOffers extends Table {
       .map(const _ChannelTransportConverter())
       .withDefault(const Constant(1))();
 
+  /// VRC score of the offer owner.
+  IntColumn get score => integer().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -224,8 +225,8 @@ class ConnectionOffers extends Table {
 class GroupConnectionOffers extends Table {
   ///The connection offer ID this group connection offer is associated with.
   TextColumn get connectionOfferId => text().customConstraint(
-        'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
-      )();
+    'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
+  )();
 
   /// The member DID associated with the group connection offer.
   TextColumn get memberDid => text().nullable()();
@@ -251,8 +252,8 @@ class ConnectionContactCards extends Table {
 
   /// The connection offer ID this contact card is associated with.
   TextColumn get connectionOfferId => text().customConstraint(
-        'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
-      )();
+    'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
+  )();
 
   /// DID of the contact.
   TextColumn get did => text()();

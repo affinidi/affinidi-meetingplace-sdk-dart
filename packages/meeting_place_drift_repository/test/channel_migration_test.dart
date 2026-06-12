@@ -8,11 +8,11 @@ import 'package:test/test.dart';
 import 'utils/channel_schema_versions.dart/schema.dart';
 
 ChannelDatabase _freshDatabase() => ChannelDatabase(
-      databaseName: 'channel_migration_test.db',
-      passphrase: 'test-passphrase',
-      directory: Directory.systemTemp,
-      inMemory: true,
-    );
+  databaseName: 'channel_migration_test.db',
+  passphrase: 'test-passphrase',
+  directory: Directory.systemTemp,
+  inMemory: true,
+);
 
 Future<String?> _field(
   ChannelDatabase db,
@@ -20,11 +20,13 @@ Future<String?> _field(
   int cardType,
   String column,
 ) async {
-  final rows = await db.customSelect(
-    'SELECT $column FROM channel_contact_cards'
-    ' WHERE channel_id = ? AND card_type = ?',
-    variables: [Variable(channelId), Variable(cardType)],
-  ).get();
+  final rows = await db
+      .customSelect(
+        'SELECT $column FROM channel_contact_cards'
+        ' WHERE channel_id = ? AND card_type = ?',
+        variables: [Variable(channelId), Variable(cardType)],
+      )
+      .get();
   return rows.isEmpty ? null : rows.first.read<String?>(column);
 }
 
@@ -56,12 +58,14 @@ void main() {
       await db.close();
     });
 
-    test('adds is_connection_initiator and converts contact columns to JSON',
-        () async {
-      final schema = await verifier.schemaAt(1);
+    test(
+      'adds is_connection_initiator and converts contact columns to JSON',
+      () async {
+        final schema = await verifier.schemaAt(1);
 
-      // Seed a channel row and a contact card with the old individual columns.
-      schema.rawDatabase.execute('''
+        // Seed a channel row and a contact card with the old individual
+        // columns.
+        schema.rawDatabase.execute('''
         INSERT INTO channels VALUES (
           'ch-1',
           'did:example:publisher',
@@ -80,7 +84,7 @@ void main() {
           NULL
         )
       ''');
-      schema.rawDatabase.execute('''
+        schema.rawDatabase.execute('''
         INSERT INTO channel_contact_cards VALUES (
           1,
           'ch-1',
@@ -96,26 +100,29 @@ void main() {
         )
       ''');
 
-      final db = ChannelDatabase.forTesting(schema.newConnection());
-      await verifier.migrateAndValidate(db, 2);
+        final db = ChannelDatabase.forTesting(schema.newConnection());
+        await verifier.migrateAndValidate(db, 2);
 
-      // is_connection_initiator must exist with its default value of 0.
-      final rows = await db.customSelect(
-        'SELECT is_connection_initiator FROM channels WHERE id = ?',
-        variables: [const Variable('ch-1')],
-      ).get();
-      expect(rows.single.read<int>('is_connection_initiator'), equals(0));
+        // is_connection_initiator must exist with its default value of 0.
+        final rows = await db
+            .customSelect(
+              'SELECT is_connection_initiator FROM channels WHERE id = ?',
+              variables: [const Variable('ch-1')],
+            )
+            .get();
+        expect(rows.single.read<int>('is_connection_initiator'), equals(0));
 
-      // contact_info_json must contain the data from the old columns.
-      final json = await _field(db, 'ch-1', 1, 'contact_info_json');
-      expect(json, isNotNull);
-      expect(json, contains('Alice'));
-      expect(json, contains('Jones'));
-      expect(json, contains('alice@example.com'));
-      expect(json, contains('mxc://server/alice-pic'));
+        // contact_info_json must contain the data from the old columns.
+        final json = await _field(db, 'ch-1', 1, 'contact_info_json');
+        expect(json, isNotNull);
+        expect(json, contains('Alice'));
+        expect(json, contains('Jones'));
+        expect(json, contains('alice@example.com'));
+        expect(json, contains('mxc://server/alice-pic'));
 
-      await db.close();
-    });
+        await db.close();
+      },
+    );
   });
 
   group('v2 → v3 schema migration', () {
@@ -208,11 +215,13 @@ void main() {
         final db = ChannelDatabase.forTesting(schema.newConnection());
         await verifier.migrateAndValidate(db, 4);
 
-        final rows = await db.customSelect(
-          'SELECT matrix_sync_marker, transport FROM channels '
-          'WHERE id = ?',
-          variables: [const Variable('ch-3')],
-        ).get();
+        final rows = await db
+            .customSelect(
+              'SELECT matrix_sync_marker, transport FROM channels '
+              'WHERE id = ?',
+              variables: [const Variable('ch-3')],
+            )
+            .get();
         expect(rows.single.read<String?>('matrix_sync_marker'), isNull);
         // Default value `1` corresponds to ChannelTransport.didcomm.
         expect(rows.single.read<int>('transport'), equals(1));

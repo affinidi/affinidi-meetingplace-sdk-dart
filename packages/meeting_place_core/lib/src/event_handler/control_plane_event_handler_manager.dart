@@ -14,6 +14,7 @@ import '../service/connection_service.dart';
 import '../service/identity/identity_service.dart';
 import '../service/matrix/matrix_service.dart';
 import '../service/mediator/mediator_service.dart';
+import '../vdip/vdip_client.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'control_plane_event_stream_manager.dart';
@@ -24,6 +25,24 @@ import 'invitation_accepted_event_handler.dart';
 import 'invitation_accepted_group_event_handler.dart';
 import 'offer_finalised_event_handler.dart';
 import 'outreach_invitation_event_handler.dart';
+
+// Batch lists hold DiscoveryEvent (dynamic data); rebuilding typed events
+// avoids a runtime cast failure when deduping ChannelActivity in the batch.
+List<DiscoveryEvent<ChannelActivity>> _channelActivityEventsFrom(
+  Iterable<DiscoveryEvent> events,
+) {
+  return events
+      .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
+      .map(
+        (e) => DiscoveryEvent<ChannelActivity>(
+          id: e.id,
+          type: e.type,
+          data: e.data as ChannelActivity,
+          status: e.status,
+        ),
+      )
+      .toList();
+}
 
 class ControlPlaneEventManager {
   ControlPlaneEventManager({
@@ -41,6 +60,7 @@ class ControlPlaneEventManager {
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
     required IdentityService identityService,
+    required VdipClient vdipClient,
     MeetingPlaceCoreSDKLogger? logger,
     ControlPlaneEventHandlerManagerOptions options =
         const ControlPlaneEventHandlerManagerOptions(),
@@ -88,6 +108,7 @@ class ControlPlaneEventManager {
       matrixService: matrixService,
       options: options,
       logger: _logger,
+      vdipClient: vdipClient,
     );
     _groupMembershipFinalisedEventHandler =
         GroupMembershipFinalisedEventHandler(
@@ -134,21 +155,38 @@ class ControlPlaneEventManager {
     final methodName = 'handleEventsBatch';
     _logger.info('Started processing batch of events', name: methodName);
 
-    final processedEvents = <DiscoveryEvent>[];
+    final acknowledgedEvents = <DiscoveryEvent<dynamic>>[];
+    final processedEventsForDedup = <DiscoveryEvent>[];
 
     for (final event in events) {
       try {
         _logger.info('Process event of type ${event.type.name}');
-        final channels = await _processEvent(event, processedEvents);
-        processedEvents.add(event);
+        final channels = await _processEvent(event, processedEventsForDedup);
+        processedEventsForDedup.add(event);
+        final shouldAcknowledge = _acknowledgeEvent(event, channels);
+
+        if (shouldAcknowledge) {
+          acknowledgedEvents.add(event);
+        }
 
         for (final channel in channels) {
+          if (event.type == ControlPlaneEventType.ChannelActivity &&
+              channel.status != ChannelStatus.inaugurated) {
+            _logger.info(
+              'Skip stream emission for non-inaugurated channel activity '
+              '(status: ${channel.status}) did: ${channel.permanentChannelDid}',
+              name: methodName,
+            );
+            continue;
+          }
+
           _streamManager.pushEvent(
             ControlPlaneStreamEvent(channel: channel, type: event.type),
           );
         }
       } on EventHandlerException catch (e, stackTrace) {
-        processedEvents.add(event);
+        processedEventsForDedup.add(event);
+        acknowledgedEvents.add(event);
         _streamManager.addError(e);
         _logger.error(
           'Failed to process event of type ${event.type.name}: ${e.message}',
@@ -157,7 +195,8 @@ class ControlPlaneEventManager {
           name: methodName,
         );
       } catch (e, stackTrace) {
-        processedEvents.add(event);
+        processedEventsForDedup.add(event);
+        acknowledgedEvents.add(event);
         _streamManager.addError(e);
         _logger.error(
           'Failed to process event of type ${event.type.name}',
@@ -169,7 +208,34 @@ class ControlPlaneEventManager {
     }
 
     _logger.info('Completed processing batch of events', name: methodName);
-    return processedEvents;
+    return acknowledgedEvents;
+  }
+
+  bool _acknowledgeEvent(DiscoveryEvent event, List<Channel> channels) {
+    if (event.type != ControlPlaneEventType.ChannelActivity) {
+      return true;
+    }
+
+    if (channels.isEmpty) {
+      return true;
+    }
+
+    final hasOnlyNonInauguratedChannels = channels.every(
+      (channel) => channel.status != ChannelStatus.inaugurated,
+    );
+
+    if (hasOnlyNonInauguratedChannels) {
+      final channelActivity = event.data as ChannelActivity;
+      _logger.info(
+        'Deferring ChannelActivity acknowledgement until channel becomes '
+        'inaugurated. did: ${channelActivity.did}, type: '
+        '${channelActivity.type}',
+        name: '_acknowledgeEvent',
+      );
+      return false;
+    }
+
+    return true;
   }
 
   Future<List<Channel>> _processEvent(
@@ -188,9 +254,13 @@ class ControlPlaneEventManager {
           event.data as OfferFinalised,
         );
       case ControlPlaneEventType.ChannelActivity:
+        final processedChannelActivities = _channelActivityEventsFrom(
+          processedEvents,
+        );
+
         if (_channelActivityEventHandler.hasChannelActivityBeenProcessed(
           event.data as ChannelActivity,
-          processedEvents,
+          processedChannelActivities,
         )) {
           return [];
         }

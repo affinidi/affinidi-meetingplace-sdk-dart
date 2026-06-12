@@ -5,7 +5,6 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../entity/entity.dart';
-import '../../event_handler/control_plane_event_handler_manager_options.dart';
 import '../../event_handler/control_plane_event_stream_manager.dart';
 import '../../event_handler/control_plane_stream_event.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
@@ -35,6 +34,7 @@ class OobService {
     required MatrixService matrixService,
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
     required MeetingPlaceCoreSDKLogger logger,
+    void Function(Channel, List<Attachment>)? onAttachmentsReceived,
   }) : _wallet = wallet,
        _mediatorService = mediatorService,
        _connectionService = connectionService,
@@ -44,6 +44,7 @@ class OobService {
        _matrixService = matrixService,
        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
        _controlPlaneSDK = controlPlaneSDK,
+       _onAttachmentsReceived = onAttachmentsReceived,
        _logger = logger;
 
   final Wallet _wallet;
@@ -55,6 +56,7 @@ class OobService {
   final MatrixService _matrixService;
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
   final ControlPlaneSDK _controlPlaneSDK;
+  final void Function(Channel, List<Attachment>)? _onAttachmentsReceived;
   final MeetingPlaceCoreSDKLogger _logger;
 
   static final String _logKey = 'OobService';
@@ -145,6 +147,7 @@ class OobService {
         stream: oobStream,
         existingPermanentChannelDid: did,
         externalRef: externalRef,
+        onAttachmentsReceived: _onAttachmentsReceived,
       );
 
       return MediatorStreamProcessingResult(keepMessage: false);
@@ -243,6 +246,7 @@ class OobService {
         stream: oobStream,
         existingPermanentChannelDid: did,
         externalRef: externalRef,
+        onAttachmentsReceived: _onAttachmentsReceived,
       );
 
       return MediatorStreamProcessingResult(keepMessage: false);
@@ -267,6 +271,7 @@ class OobService {
     required OobStream stream,
     String? existingPermanentChannelDid,
     String? externalRef,
+    void Function(Channel, List<Attachment>)? onAttachmentsReceived,
   }) async {
     final otherPartyPermanentChannelDid = message.body.channelDid;
 
@@ -331,6 +336,11 @@ class OobService {
       ),
     );
 
+    final attachments = message.attachments;
+    if (attachments != null && attachments.isNotEmpty) {
+      onAttachmentsReceived?.call(channel, attachments);
+    }
+
     stream.pushEvent(
       OobStreamData(
         eventType: EventType.connectionSetup,
@@ -346,7 +356,7 @@ class OobService {
     required OobStream stream,
     String? existingPermanentChannelDid,
     String? externalRef,
-    OnAttachmentsReceivedCallback? onAttachmentsReceived,
+    void Function(Channel, List<Attachment>)? onAttachmentsReceived,
   }) async {
     final otherPartyPermanentChannelDid = message.body.channelDid;
 

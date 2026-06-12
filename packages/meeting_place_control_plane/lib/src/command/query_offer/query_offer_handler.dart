@@ -104,6 +104,7 @@ class QueryOfferHandler
         groupDid: response.groupDid,
         groupId: response.groupId,
         transport: OfferTransport.fromString(response.transport),
+        score: response.score,
       );
     } catch (e, stackTrace) {
       if (e is DioException &&

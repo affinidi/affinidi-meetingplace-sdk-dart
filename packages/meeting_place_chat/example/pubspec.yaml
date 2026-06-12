@@ -8,8 +8,8 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
-  meeting_place_chat: ^0.0.1-dev.36
-  meeting_place_core: ^0.0.1-dev.34
+  meeting_place_chat: ^0.0.1-dev.43
+  meeting_place_core: ^0.0.1-dev.40
   pretty_json: ^2.0.0
   sqflite_common_ffi: ">=2.3.4+4 <2.4.0"
   ssi: ^3.3.0

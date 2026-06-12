@@ -8,9 +8,6 @@ import 'package:meeting_place_core/src/event_handler/invitation_accepted_event_h
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
 import 'package:meeting_place_core/src/protocol/meeting_place_protocol.dart';
-import 'package:meeting_place_core/src/repository/connection_offer_repository.dart';
-import 'package:meeting_place_core/src/service/channel/channel_service.dart';
-import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
 import 'package:mocktail/mocktail.dart';
@@ -202,11 +199,3 @@ void main() {
     });
   });
 }
-
-// Mock classes
-class MockConnectionOfferRepository extends Mock
-    implements ConnectionOfferRepository {}
-
-class MockChannelService extends Mock implements ChannelService {}
-
-class MockConnectionManager extends Mock implements ConnectionManager {}

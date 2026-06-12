@@ -41,6 +41,7 @@ GroupConnectionOffer _$GroupConnectionOfferFromJson(
   notificationToken: json['notificationToken'] as String?,
   otherPartyNotificationToken: json['otherPartyNotificationToken'] as String?,
   externalRef: json['externalRef'] as String?,
+  score: (json['score'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$GroupConnectionOfferToJson(
@@ -68,6 +69,7 @@ Map<String, dynamic> _$GroupConnectionOfferToJson(
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
   'externalRef': ?instance.externalRef,
   'transport': _$ChannelTransportEnumMap[instance.transport]!,
+  'score': ?instance.score,
   'groupId': instance.groupId,
   'groupDid': ?instance.groupDid,
   'groupOwnerDid': ?instance.groupOwnerDid,

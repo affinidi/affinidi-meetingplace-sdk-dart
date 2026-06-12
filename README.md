@@ -86,6 +86,24 @@ The Meeting Place SDK also leverages other Affinidi open-sourced SDKS, such as 
 
 - Dart SDK `>=3.0.0 <4.0.0`
 
+## Database Encryption
+
+If your project uses the [Drift Repository SDK](./packages/meeting_place_drift_repository/)
+for local encrypted storage, you **must** add the following to your
+`pubspec.yaml` so that `package:sqlite3` v3 bundles
+[SQLite3MultipleCiphers](https://utelle.github.io/SQLite3MultipleCiphers/):
+
+```yaml
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
+```
+
+Without this, the SDK will throw a `MeetingPlaceCoreRepositoryException` when opening a
+database. See the [Drift Repository README](./packages/meeting_place_drift_repository/README.md#database-encryption-required)
+for details on new-database encryption and SQLCipher migration.
+
 ## Installation
 
 Run:

@@ -38,14 +38,14 @@ class ChannelDatabase extends _$ChannelDatabase {
     bool logStatements = false,
     bool inMemory = false,
   }) : super(
-          openConnection(
-            databaseName: databaseName,
-            passphrase: passphrase,
-            directory: directory,
-            logStatements: logStatements,
-            inMemory: inMemory,
-          ),
-        );
+         openConnection(
+           databaseName: databaseName,
+           passphrase: passphrase,
+           directory: directory,
+           logStatements: logStatements,
+           inMemory: inMemory,
+         ),
+       );
 
   /// Opens a [ChannelDatabase] from an existing [connection].
   ///
@@ -61,77 +61,69 @@ class ChannelDatabase extends _$ChannelDatabase {
   /// Migration strategy to handle database version upgrades.
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-        onUpgrade: (migrator, from, to) async {
-          if (from < 2) {
-            await migrator.addColumn(
-              channels,
-              channels.isConnectionInitiator,
-            );
-            // The v1 channel_contact_cards table stored contact fields as
-            // individual columns (first_name, last_name, email, mobile,
-            // profile_pic, meetingplace_identity_card_color).  Recreate the
-            // table with the v2 shape (contact_info_json JSON blob) and
-            // migrate the existing data by folding the old columns into a
-            // JSON object.  Using a temp-table approach keeps the migration
-            // idempotent: a prior interrupted run leaves no partial state.
-            await customStatement(
-                'DROP TABLE IF EXISTS channel_contact_cards_temp');
-            await customStatement('''
-              CREATE TABLE channel_contact_cards_temp (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                channel_id TEXT REFERENCES channels(id) ON DELETE CASCADE NOT NULL,
-                did TEXT NOT NULL,
-                type TEXT NOT NULL,
-                contact_info_json TEXT NOT NULL DEFAULT '{}',
-                card_type INTEGER NOT NULL,
-                UNIQUE(channel_id, card_type)
-              )
-            ''');
-            await customStatement('''
-              INSERT INTO channel_contact_cards_temp
-                (id, channel_id, did, type, contact_info_json, card_type)
-              SELECT
-                id, channel_id, did, type,
-                json_object(
-                  'n', json_object(
-                    'given', first_name,
-                    'surname', last_name
-                  ),
-                  'email', email,
-                  'mobile', mobile,
-                  'photo', profile_pic,
-                  'color', meetingplace_identity_card_color
-                ),
-                card_type
-              FROM channel_contact_cards
-            ''');
-            await customStatement('DROP TABLE channel_contact_cards');
-            await customStatement(
-              'ALTER TABLE channel_contact_cards_temp '
-              'RENAME TO channel_contact_cards',
-            );
-          }
-          if (from < 3 && to >= 3) {
-            await migrator.addColumn(
-              channelContactCards,
-              channelContactCards.profilePic,
-            );
-          }
-          if (from < 4 && to >= 4) {
-            await migrator.addColumn(
-              channels,
-              channels.matrixSyncMarker,
-            );
-            await migrator.addColumn(
-              channels,
-              channels.transport,
-            );
-          }
-        },
-      );
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(channels, channels.isConnectionInitiator);
+        await customStatement(
+          'DROP TABLE IF EXISTS channel_contact_cards_temp',
+        );
+        await customStatement('''
+          CREATE TABLE channel_contact_cards_temp (
+            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            channel_id TEXT REFERENCES channels(id) ON DELETE CASCADE NOT NULL,
+            did TEXT NOT NULL,
+            type TEXT NOT NULL,
+            contact_info_json TEXT NOT NULL DEFAULT '{}',
+            card_type INTEGER NOT NULL,
+            UNIQUE(channel_id, card_type)
+          )
+        ''');
+        // Note: the JSON keys produced here ('email', 'mobile', 'color') do
+        // not match the nested paths expected by ContactCardFieldsKeys
+        // extensions (['email','type','work'], ['tel','type','cell'],
+        // ['x-meetingplace-identity-card-color']). Extension getters will
+        // therefore resolve to empty string for rows migrated from v1. This
+        // is a known limitation of the original v1→v2 migration that cannot
+        // be corrected without a further schema migration.
+        await customStatement('''
+          INSERT INTO channel_contact_cards_temp
+            (id, channel_id, did, type, contact_info_json, card_type)
+          SELECT
+            id, channel_id, did, type,
+            json_object(
+              'n', json_object(
+                'given', first_name,
+                'surname', last_name
+              ),
+              'email', email,
+              'mobile', mobile,
+              'photo', profile_pic,
+              'color', meetingplace_identity_card_color
+            ),
+            card_type
+          FROM channel_contact_cards
+        ''');
+        await customStatement('DROP TABLE channel_contact_cards');
+        await customStatement(
+          'ALTER TABLE channel_contact_cards_temp RENAME TO '
+          'channel_contact_cards',
+        );
+      }
+      if (from < 3 && to >= 3) {
+        await migrator.addColumn(
+          channelContactCards,
+          channelContactCards.profilePic,
+        );
+      }
+      if (from < 4 && to >= 4) {
+        await migrator.addColumn(channels, channels.transport);
+        await migrator.addColumn(channels, channels.matrixSyncMarker);
+      }
+    },
+  );
 }
 
 /// Table representing chat channels.
@@ -214,8 +206,8 @@ class ChannelContactCards extends Table {
 
   /// ID of the associated channel.
   TextColumn get channelId => text().customConstraint(
-        'REFERENCES channels(id) ON DELETE CASCADE NOT NULL',
-      )();
+    'REFERENCES channels(id) ON DELETE CASCADE NOT NULL',
+  )();
 
   /// DID of the contact.
   TextColumn get did => text()();
@@ -235,8 +227,8 @@ class ChannelContactCards extends Table {
   /// Unique keys for the contact cards table.
   @override
   List<Set<Column>> get uniqueKeys => [
-        {channelId, cardType},
-      ];
+    {channelId, cardType},
+  ];
 }
 
 /// Enumeration representing the type of ContactCard.

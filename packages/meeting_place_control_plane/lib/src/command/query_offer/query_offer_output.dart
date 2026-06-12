@@ -24,6 +24,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
     required this.transport,
     this.groupId,
     this.groupDid,
+    this.score,
   });
   final String offerName;
   final String offerLink;
@@ -38,6 +39,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   final OobInvitationMessage didcommMessage;
   final String? groupId;
   final String? groupDid;
+  final int? score;
 
   /// Transport selected by the publisher.
   final OfferTransport transport;

@@ -309,6 +309,27 @@ void main() {
       ).called(1);
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });
+
+    test('should pass through 401 when response body is a plain String '
+        'instead of a JSON map', () async {
+      final requestOptions = RequestOptions(path: '/secure');
+      final dioError = DioException(
+        requestOptions: requestOptions,
+        type: DioExceptionType.badResponse,
+        response: Response(
+          requestOptions: requestOptions,
+          statusCode: HttpStatus.unauthorized,
+          data: 'Unauthorized',
+        ),
+      );
+
+      when(() => mockErrorHandler.next(any())).thenReturn(null);
+
+      await interceptor.onError(dioError, mockErrorHandler);
+
+      verify(() => mockErrorHandler.next(dioError)).called(1);
+      verifyNever(() => mockControlPlaneSDK.execute(any()));
+    });
   });
 
   group('RefreshAuthCredentialsInterceptor - token validation', () {

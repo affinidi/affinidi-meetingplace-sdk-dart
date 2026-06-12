@@ -3,6 +3,248 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v0.0.1-dev.40`](#meeting_place_core---v001-dev40)
+ - [`meeting_place_chat` - `v0.0.1-dev.43`](#meeting_place_chat---v001-dev43)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.44`](#meeting_place_drift_repository---v001-dev44)
+ - [`meeting_place_credentials` - `v0.0.1-dev.3`](#meeting_place_credentials---v001-dev3)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.43`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.44`
+ - `meeting_place_credentials` - `v0.0.1-dev.3`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.40`
+
+ - **FIX**: non inaugurated channel activity (#200).
+
+
+## 2026-06-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v0.0.1-dev.39`](#meeting_place_core---v001-dev39)
+ - [`meeting_place_chat` - `v0.0.1-dev.42`](#meeting_place_chat---v001-dev42)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.43`](#meeting_place_drift_repository---v001-dev43)
+ - [`meeting_place_credentials` - `v0.0.1-dev.2`](#meeting_place_credentials---v001-dev2)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.42`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.43`
+ - `meeting_place_credentials` - `v0.0.1-dev.2`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.39`
+
+ - **FIX**: OOB invitation parser pre-auth crash vulnerability (#198).
+
+
+## 2026-06-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.41`](#meeting_place_chat---v001-dev41)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.19`](#meeting_place_control_plane---v001-dev19)
+ - [`meeting_place_credentials` - `v0.0.1-dev.1`](#meeting_place_credentials---v001-dev1)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.42`](#meeting_place_drift_repository---v001-dev42)
+ - [`meeting_place_core` - `v0.0.1-dev.38`](#meeting_place_core---v001-dev38)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_core` - `v0.0.1-dev.38`
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.41`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.19`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+#### `meeting_place_credentials` - `v0.0.1-dev.1`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.42`
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+
+## 2026-06-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.40`](#meeting_place_chat---v001-dev40)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.18`](#meeting_place_control_plane---v001-dev18)
+ - [`meeting_place_core` - `v0.0.1-dev.37`](#meeting_place_core---v001-dev37)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.41`](#meeting_place_drift_repository---v001-dev41)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.40`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.18`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+#### `meeting_place_core` - `v0.0.1-dev.37`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.41`
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+
+## 2026-05-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v0.0.1-dev.36`](#meeting_place_core---v001-dev36)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.40`](#meeting_place_drift_repository---v001-dev40)
+ - [`meeting_place_chat` - `v0.0.1-dev.39`](#meeting_place_chat---v001-dev39)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.39`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.36`
+
+ - **REFACTOR**: database schema and update dependencies (#168).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.40`
+
+ - **REFACTOR**: database schema and update dependencies (#168).
+
+
+## 2026-05-19
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.38`](#meeting_place_chat---v001-dev38)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.39`](#meeting_place_drift_repository---v001-dev39)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_drift_repository` - `v0.0.1-dev.39`
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.38`
+
+ - **FIX**: delete mediator messages individually after processing in fetchNewMessages (#178).
+
+
+## 2026-05-19
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_control_plane` - `v0.0.1-dev.17`](#meeting_place_control_plane---v001-dev17)
+ - [`meeting_place_core` - `v0.0.1-dev.35`](#meeting_place_core---v001-dev35)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.38`](#meeting_place_drift_repository---v001-dev38)
+ - [`meeting_place_chat` - `v0.0.1-dev.37`](#meeting_place_chat---v001-dev37)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.37`
+
+---
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.17`
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
+#### `meeting_place_core` - `v0.0.1-dev.35`
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.38`
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
+
 ## 2026-05-19
 
 ### Changes

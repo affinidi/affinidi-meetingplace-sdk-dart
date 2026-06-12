@@ -1,9 +1,30 @@
+## 0.0.1-dev.43
+
+ - Update a dependency to the latest release.
+
+## 0.0.1-dev.42
+
+ - Update a dependency to the latest release.
+
+## 0.0.1-dev.41
+
+ - **FEAT**: add meeting_place_credentials package (#160).
+
+## 0.0.1-dev.40
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+## 0.0.1-dev.39
+
+ - Update a dependency to the latest release.
+
+## 0.0.1-dev.38
+
+ - **FIX**: delete mediator messages individually after processing in fetchNewMessages (#178).
+
 ## 0.0.1-dev.37
 
- - **BREAKING**: `MeetingPlaceChatSDK.downloadMedia` now takes a `ChatAttachment`. The per-attachment `ChatAttachment.transportId` (matrix event id for hosted media, `null` for DIDComm) is the wire reference used to fetch bytes.
- - **BREAKING**: `ChatAttachment` for matrix media no longer carries the mxc URI or encrypted-file JSON; encryption and upload are owned by CoreSDK via `sendMediaMessage`. Re-sending an already-hosted attachment by mxc URI is no longer supported — resend by bytes.
- - **FEAT**: `sendTextMessage(text, attachments: [a, b])` now produces a single logical `Message` carrying multiple `ChatAttachment`s on both sender and receiver. Matrix events (which are still single-file on the wire) are coalesced via an `mp_correlation_id` custom field on event content.
- - **FEAT**: new mutable `ChatAttachment.transportId` field (JSON key `transport_id`) populated by the sender after upload and by the receiver from the matrix event id.
+ - Update a dependency to the latest release.
 
 ## 0.0.1-dev.36
 

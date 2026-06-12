@@ -19,7 +19,6 @@ import 'loggers/logger_adapter.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
 import 'service/channel/channel_service.dart';
-import 'service/config.dart';
 import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
@@ -156,6 +155,9 @@ class MeetingPlaceCoreSDK {
     required MatrixService matrixService,
     required MessageService messageService,
     required Future<DidManager> Function(String did) getDidManager,
+    required StreamController<ChannelAttachmentEvent>
+    channelAttachmentsController,
+    required VdipClient vdipClient,
   }) : _repositoryConfig = repositoryConfig,
        _mediatorSDK = mediatorSDK,
        _controlPlaneSDK = controlPlaneSDK,
@@ -180,7 +182,9 @@ class MeetingPlaceCoreSDK {
          groupRepository: repositoryConfig.groupRepository,
          didcomm: didcommTransport,
          getDidManager: getDidManager,
-       );
+       ),
+       _channelAttachmentsController = channelAttachmentsController,
+       _vdipClient = vdipClient;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -197,6 +201,8 @@ class MeetingPlaceCoreSDK {
   final ChannelService _channelService;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
+  final StreamController<ChannelAttachmentEvent> _channelAttachmentsController;
+  final VdipClient _vdipClient;
 
   final DIDCommTransport _didcomm;
   final MessagingService _messagingService;
@@ -231,6 +237,10 @@ class MeetingPlaceCoreSDK {
     final methodName = 'create';
     final mediatorDid = config.mediatorDid;
     final controlPlaneDid = config.controlPlaneDid;
+
+    final channelAttachmentsController =
+        StreamController<ChannelAttachmentEvent>.broadcast();
+
     final mpxLogger = LoggerAdapter(
       className: _className,
       sdkName: coreSDKName,
@@ -271,6 +281,7 @@ class MeetingPlaceCoreSDK {
     );
 
     final didManager = await connectionManager.generateRootDid(wallet);
+
     final controlPlaneSDK = ControlPlaneSDK(
       didManager: didManager,
       controlPlaneDid: controlPlaneDid,
@@ -281,6 +292,7 @@ class MeetingPlaceCoreSDK {
         maxRetriesDelay: options.maxRetriesDelay,
         connectTimeout: options.connectTimeout,
         receiveTimeout: options.receiveTimeout,
+        idleTimeout: options.idleTimeout,
       ),
       logger: controlPlaneLogger,
     );
@@ -372,6 +384,22 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    final messageService = MessageService(
+      connectionManager: connectionManager,
+      didResolver: didResolver,
+      mediatorService: mediatorService,
+      channelService: channelService,
+      controlPlaneSDK: controlPlaneSDK,
+      logger: mpxLogger,
+    );
+
+    final vdipClient = VdipClient(
+      messageService: messageService,
+      channelService: channelService,
+      connectionManager: connectionManager,
+      wallet: wallet,
+    );
+
     final discoveryEventManager = ControlPlaneEventManager(
       wallet: wallet,
       mediatorSDK: mediatorSDK,
@@ -387,13 +415,20 @@ class MeetingPlaceCoreSDK {
       matrixService: matrixService,
       identityService: identityService,
       didResolver: didResolver,
+      vdipClient: vdipClient,
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
         messageTypesForSequenceTracking:
             options.messageTypesForSequenceTracking,
         onBuildAttachments: options.onBuildAttachments,
-        onAttachmentsReceived: options.onAttachmentsReceived,
+        onAttachmentsReceived: (channel, attachments) =>
+            channelAttachmentsController.add(
+              ChannelAttachmentEvent(
+                channel: channel,
+                attachments: attachments,
+              ),
+            ),
       ),
       logger: mpxLogger,
     );
@@ -419,15 +454,6 @@ class MeetingPlaceCoreSDK {
       didResolver: didResolver,
     );
 
-    final messageService = MessageService(
-      connectionManager: connectionManager,
-      didResolver: didResolver,
-      mediatorService: mediatorService,
-      channelService: channelService,
-      controlPlaneSDK: controlPlaneSDK,
-      logger: mpxLogger,
-    );
-
     final oobService = OobService(
       wallet: wallet,
       mediatorService: mediatorService,
@@ -438,6 +464,10 @@ class MeetingPlaceCoreSDK {
       matrixService: matrixService,
       controlPlaneSDK: controlPlaneSDK,
       controlPlaneEventStreamManager: discoveryEventStreamManager,
+      onAttachmentsReceived: (channel, attachments) =>
+          channelAttachmentsController.add(
+            ChannelAttachmentEvent(channel: channel, attachments: attachments),
+          ),
       logger: mpxLogger,
     );
 
@@ -482,6 +512,8 @@ class MeetingPlaceCoreSDK {
       matrixService: matrixService,
       messageService: messageService,
       getDidManager: matrixTransportGetDidManager,
+      channelAttachmentsController: channelAttachmentsController,
+      vdipClient: vdipClient,
     );
   }
 
@@ -494,8 +526,21 @@ class MeetingPlaceCoreSDK {
   /// out-of-band invitation management.
   MeetingPlaceMediatorSDK get mediator => _mediatorSDK;
 
+  /// Returns the [VdipClient] for sending and receiving VRC credentials
+  /// over the shared DIDComm connection.
+  VdipClient get vdip => _vdipClient;
+
   /// Returns the [MeetingPlaceCoreSDKOptions] used to configure the SDK.
   MeetingPlaceCoreSDKOptions get options => _options;
+
+  /// A broadcast stream that emits a [ChannelAttachmentEvent] whenever
+  /// attachments arrive during connection establishment (channel inauguration
+  /// or OOB acceptance).
+  ///
+  /// Subscribe to this stream to react to incoming attachments — for example,
+  /// to extract and store R-Card credentials sent by the other party.
+  Stream<ChannelAttachmentEvent> get channelAttachments =>
+      _channelAttachmentsController.stream;
 
   /// Returns a stream of [ControlPlaneStreamEvent] events.
   ///
@@ -783,6 +828,7 @@ class MeetingPlaceCoreSDK {
     String? metadata,
     String? externalRef,
     ChannelTransport transport = ChannelTransport.didcomm,
+    int? score,
   }) async {
     if (type == sdk.SDKConnectionOfferType.groupInvitation) {
       final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
@@ -819,6 +865,7 @@ class MeetingPlaceCoreSDK {
           externalRef: externalRef,
           contactCard: contactCard,
           transport: transport,
+          score: score,
         );
 
     return sdk.PublishOfferResult(
@@ -1039,9 +1086,11 @@ class MeetingPlaceCoreSDK {
     );
   }
 
-  /// A method that closes active discovery events stream. This result in not
-  /// pushing
-  /// events to the stream when calling [deleteControlPlaneEvents].
+  /// Closes the control plane events stream.
+  ///
+  /// After calling this, no further events will be emitted on
+  /// [controlPlaneEventsStream]. Call this when the SDK is no longer needed
+  /// (e.g. on sign-out) to release resources.
   void disposeControlPlaneEventsStream() {
     _controlPlaneEventStreamManager.dispose();
   }
@@ -1053,6 +1102,23 @@ class MeetingPlaceCoreSDK {
   Future<void> dispose() async {
     _controlPlaneEventStreamManager.dispose();
     await _messagingService.dispose();
+  }
+
+  /// Closes the [channelAttachments] broadcast stream.
+  ///
+  /// After calling this, no further events will be emitted on
+  /// [channelAttachments]. Call this when the SDK is no longer needed
+  /// (e.g. on sign-out) to release resources.
+  Future<void> closeChannelAttachmentsStream() {
+    return _channelAttachmentsController.close();
+  }
+
+  /// Disposes the [VdipClient] and closes the [vdip] incoming-messages stream.
+  ///
+  /// Call this when the SDK is no longer needed (e.g. on sign-out) to
+  /// release resources held by the VDIP subsystem.
+  Future<void> closeVdipStream() {
+    return _vdipClient.dispose();
   }
 
   /// A method that deletes all pending discovery events.
@@ -1133,6 +1199,66 @@ class MeetingPlaceCoreSDK {
   /// - list of objects with type [ConnectionOffer].
   Future<List<ConnectionOffer>> listConnectionOffers() {
     return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
+  }
+
+  /// Retrieves all [ConnectionOffer] objects matching the given [externalRef].
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
+    String externalRef,
+  ) {
+    return _repositoryConfig.connectionOfferRepository
+        .getConnectionOffersByExternalRef(externalRef);
+  }
+
+  /// Updates the VRC score for the given [offers] on the Control Plane.
+  ///
+  /// [score] — the new trust score (VRC count) to set.
+  /// [offers] — the published [ConnectionOffer] objects to update.
+  Future<UpdateScoreForOffersResult> updateScoreForOffers({
+    required int score,
+    required List<ConnectionOffer> offers,
+  }) {
+    return _withSdkExceptionHandling(() async {
+      final mnemonics = offers.map((o) => o.mnemonic).toList();
+      final output = await _controlPlaneSDK.execute(
+        UpdateOffersScoreCommand(score: score, mnemonics: mnemonics),
+      );
+
+      final updatedMnemonics = output.updatedOffers.toSet();
+      for (final offer in offers) {
+        if (updatedMnemonics.contains(offer.mnemonic)) {
+          await _repositoryConfig.connectionOfferRepository
+              .updateConnectionOffer(offer.copyWith(score: score));
+        }
+      }
+
+      return UpdateScoreForOffersResult(
+        updatedOffers: output.updatedOffers,
+        failedOffers: output.failedOffers,
+      );
+    });
+  }
+
+  /// Updates the VRC score for [offers] in local storage only, without calling
+  /// the control plane API.
+  ///
+  /// Use this for accepted (non-owned) offers where the local user cannot
+  /// update the score remotely — for example, when B accepted A's published
+  /// offer and needs to reflect an updated VRC count without owning the
+  /// mnemonic on the control plane.
+  ///
+  /// **Parameters:**
+  /// - [score] — the new trust score (VRC count) to persist locally.
+  /// - [offers] — the accepted [ConnectionOffer] objects to update in the
+  ///   local repository.
+  Future<void> updateLocalConnectionOffersScore({
+    required int score,
+    required List<ConnectionOffer> offers,
+  }) async {
+    for (final offer in offers) {
+      await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
+        offer.copyWith(score: score),
+      );
+    }
   }
 
   /// Fetches a channel entity from the repository by using repository method

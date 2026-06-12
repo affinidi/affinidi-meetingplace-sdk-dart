@@ -41,6 +41,8 @@ class _$QueryOfferOK extends QueryOfferOK {
   final String? groupDid;
   @override
   final String transport;
+  @override
+  final int? score;
 
   factory _$QueryOfferOK([void Function(QueryOfferOKBuilder)? updates]) =>
       (QueryOfferOKBuilder()..update(updates))._build();
@@ -63,6 +65,7 @@ class _$QueryOfferOK extends QueryOfferOK {
     this.groupId,
     this.groupDid,
     required this.transport,
+    this.score,
   }) : super._();
   @override
   QueryOfferOK rebuild(void Function(QueryOfferOKBuilder) updates) =>
@@ -91,7 +94,8 @@ class _$QueryOfferOK extends QueryOfferOK {
         maximumUsage == other.maximumUsage &&
         groupId == other.groupId &&
         groupDid == other.groupDid &&
-        transport == other.transport;
+        transport == other.transport &&
+        score == other.score;
   }
 
   @override
@@ -114,6 +118,7 @@ class _$QueryOfferOK extends QueryOfferOK {
     _$hash = $jc(_$hash, groupId.hashCode);
     _$hash = $jc(_$hash, groupDid.hashCode);
     _$hash = $jc(_$hash, transport.hashCode);
+    _$hash = $jc(_$hash, score.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -137,7 +142,8 @@ class _$QueryOfferOK extends QueryOfferOK {
           ..add('maximumUsage', maximumUsage)
           ..add('groupId', groupId)
           ..add('groupDid', groupDid)
-          ..add('transport', transport))
+          ..add('transport', transport)
+          ..add('score', score))
         .toString();
   }
 }
@@ -218,6 +224,10 @@ class QueryOfferOKBuilder
   String? get transport => _$this._transport;
   set transport(String? transport) => _$this._transport = transport;
 
+  int? _score;
+  int? get score => _$this._score;
+  set score(int? score) => _$this._score = score;
+
   QueryOfferOKBuilder() {
     QueryOfferOK._defaults(this);
   }
@@ -242,6 +252,7 @@ class QueryOfferOKBuilder
       _groupId = $v.groupId;
       _groupDid = $v.groupDid;
       _transport = $v.transport;
+      _score = $v.score;
       _$v = null;
     }
     return this;
@@ -325,6 +336,7 @@ class QueryOfferOKBuilder
             r'QueryOfferOK',
             'transport',
           ),
+          score: score,
         );
     replace(_$result);
     return _$result;

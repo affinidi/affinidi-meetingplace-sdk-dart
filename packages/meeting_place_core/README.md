@@ -63,7 +63,7 @@ and then run the command below to install the package:
 dart pub get
 ```
 
-Visit the pub.dev install page of the Dart package for more information.
+Visit the pub.dev [install page](https://pub.dev/packages/meeting_place_core) of the Dart package for more information.
 
 ## Initializing the encryption runtime (for Matrix usage)
 

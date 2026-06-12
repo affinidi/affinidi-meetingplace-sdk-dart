@@ -24,6 +24,7 @@ class RegisterOfferCommand
     this.maximumUsage,
     this.customPhrase,
     this.mediatorDid,
+    this.score,
   });
 
   final String offerName;
@@ -41,4 +42,6 @@ class RegisterOfferCommand
 
   /// Transport selected by the publisher.
   final OfferTransport transport;
+
+  final int? score;
 }

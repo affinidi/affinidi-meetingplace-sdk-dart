@@ -3,8 +3,10 @@ import 'dart:async';
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
+import '../../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../../transport/matrix/outgoing/profile_hash_room_event.dart';
 import '../matrix_chat_sdk.dart';
+import 'individual_room_event_router.dart';
 
 /// Matrix-backed implementation of [MeetingPlaceChatSDK] for one-to-one chats.
 ///
@@ -34,6 +36,10 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   static const String _logkey = 'IndividualMatrixChatSDK';
 
   bool _isSendingChatPresence = false;
+
+  @override
+  IncomingRoomEventRouter buildRoomEventRouter() =>
+      IndividualRoomEventRouter(chatSDK: this);
 
   @override
   Future<Chat> startChatSession() async {

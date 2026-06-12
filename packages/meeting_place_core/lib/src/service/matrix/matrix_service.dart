@@ -50,6 +50,14 @@ class MatrixService {
   /// Exposes the homeserver URI from the session manager.
   Uri get homeserver => _sessionManager.homeserver;
 
+  /// The Matrix server name used for user ID and room alias derivation.
+  ///
+  /// In production this equals [homeserver].host. For local development the
+  /// homeserver may be reached via a tunnel whose hostname differs from the
+  /// Synapse `server_name` — use this instead of [homeserver].host wherever
+  /// Matrix identifiers are derived.
+  String get serverName => _sessionManager.serverName;
+
   /// Obtains a Matrix JWT from the control plane for [didManager], logs in,
   /// and returns the Matrix user ID.
   ///

@@ -1,3 +1,5 @@
+export 'src/call/audio_video_call_plugin.dart';
+export 'src/call/incoming_call_event.dart';
 export 'src/chat/chat.dart';
 export 'src/entity/entity.dart';
 export 'src/event/event.dart';

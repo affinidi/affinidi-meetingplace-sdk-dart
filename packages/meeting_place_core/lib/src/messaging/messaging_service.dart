@@ -180,6 +180,14 @@ class MessagingService {
     return did;
   }
 
+  /// Fires a control-plane channel notification without an accompanying message
+  /// body.
+  ///
+  /// Use this to nudge the other party's device via FCM when there is no
+  /// accompanying Matrix or DIDComm payload (e.g. a `call-invite` signal).
+  Future<void> notifyChannel(ChannelNotification notification) =>
+      _messageService.notifyChannel(notification);
+
   /// Subscribes to incoming messages for the given [subscription].
   ///
   /// For [MatrixRoomSubscription], yields events from a single room. Each
@@ -354,7 +362,7 @@ class MessagingService {
     final channel = await _channelService.findChannelByDidOrNull(receiverDid);
     if (channel == null) return null;
 
-    final serverName = _matrixService.homeserver.host;
+    final serverName = _matrixService.serverName;
     bool matches(String did) =>
         deriveMatrixUserId(did, serverName) == matrixUserId;
 

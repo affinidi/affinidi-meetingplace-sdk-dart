@@ -51,6 +51,13 @@ class MatrixSessionManager {
   /// Exposes the homeserver URI from the configuration.
   Uri get homeserver => _config.homeserver;
 
+  /// The Matrix server name used for user ID derivation (`@hash:<serverName>`).
+  ///
+  /// This is the Synapse `server_name`, which equals [homeserver].host in
+  /// production but may differ in local development when clients connect via a
+  /// tunnel URL.
+  String get serverName => _config.serverName;
+
   /// Logs in with [jwt] for the user identified by [did], returning the
   /// Matrix user ID.
   ///

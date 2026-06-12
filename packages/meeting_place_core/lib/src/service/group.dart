@@ -1080,7 +1080,8 @@ class GroupService {
   }) async {
     await _matrixService.sendRoomEvent(
       matrixRoomId,
-      MeetingPlaceProtocol.groupDeletion.value,
+      // TODO: Rework in separate PR to model group lifecycle for matrix events
+      'com.affinidi.chat.group-deletion',
       {'group_id': group.id},
       didManager: memberDidManager,
     );

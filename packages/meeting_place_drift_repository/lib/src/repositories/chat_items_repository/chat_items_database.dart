@@ -174,15 +174,32 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             // (e.g. the voice marker, duration, and waveform) survives
             // persist/restore. Without it, received voice messages reload as
             // generic audio with no duration/waveform until played.
-            await customStatement(
-              'ALTER TABLE attachments ADD COLUMN metadata TEXT',
-            );
+            //
+            // Guarded for idempotency: an intermediate build shipped the
+            // `metadata` column in the table definition while schemaVersion
+            // was still 5, so a database created then already has the column.
+            // Re-adding it here would fail with "duplicate column name".
+            if (!await _columnExists('attachments', 'metadata')) {
+              await customStatement(
+                'ALTER TABLE attachments ADD COLUMN metadata TEXT',
+              );
+            }
           }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
         },
       );
+
+  /// Whether [column] already exists on [table].
+  ///
+  /// Used to keep additive upgrade steps idempotent when a column may have
+  /// been created out-of-band (e.g. by an `onCreate` from an intermediate
+  /// build) before the matching schemaVersion bump shipped.
+  Future<bool> _columnExists(String table, String column) async {
+    final rows = await customSelect('PRAGMA table_info($table)').get();
+    return rows.any((row) => row.read<String>('name') == column);
+  }
 }
 
 /// Stores core metadata for messages and concierge items.

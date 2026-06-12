@@ -129,55 +129,75 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
                 data, sender_did
               FROM chat_items
             ''');
+
         await customStatement('DROP TABLE chat_items');
         await customStatement(
           'ALTER TABLE chat_items_temp RENAME TO chat_items',
         );
-
-        if (from < 3 && to >= 3) {
-          // Add transport_id to record the server-assigned event id for
-          // each outgoing/incoming message. Nullable: existing rows have no
-          // recorded transport id and are backfilled lazily as new traffic
-          // flows through (e.g. via history replay using event.id).
-          await customStatement(
-            'ALTER TABLE chat_items ADD COLUMN transport_id TEXT',
-          );
-        }
-        if (from < 4 && to >= 4) {
-          // Persist tombstone flags so locally-hidden and remotely-redacted
-          // messages survive cold start. Without these, `clearContent` wipes
-          // the row's text/attachments but the flags themselves are lost on
-          // reload, leaving an empty bubble instead of a tombstone.
-          await customStatement(
-            'ALTER TABLE chat_items ADD COLUMN is_deleted INTEGER NOT NULL '
-            'DEFAULT 0 CHECK ("is_deleted" IN (0, 1))',
-          );
-          await customStatement(
-            'ALTER TABLE chat_items ADD COLUMN is_deleted_locally INTEGER '
-            'NOT NULL DEFAULT 0 CHECK ("is_deleted_locally" IN (0, 1))',
-          );
-        }
-        if (from < 5 && to >= 5) {
-          // Add transport_id to attachments so the per-attachment transport
-          // reference (e.g. Matrix event id for hosted media) survives
-          // persist/restore. Without it, receivers reload messages with
-          // null transportId and can never trigger downloadMedia.
-          await customStatement(
-            'ALTER TABLE attachments ADD COLUMN transport_id TEXT',
-          );
-        }
-        if (from < 6 && to >= 6) {
-          // Add metadata to attachments so extensible media-kind metadata
-          // (e.g. the voice marker, duration, and waveform) survives
-          // persist/restore. Without it, received voice messages reload as
-          // generic audio with no duration/waveform until played.
+      }
+      if (from < 3 && to >= 3) {
+        // Add transport_id to record the server-assigned event id for
+        // each outgoing/incoming message. Nullable: existing rows have no
+        // recorded transport id and are backfilled lazily as new traffic
+        // flows through (e.g. via history replay using event.id).
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN transport_id TEXT',
+        );
+      }
+      if (from < 4 && to >= 4) {
+        // Persist tombstone flags so locally-hidden and remotely-redacted
+        // messages survive cold start. Without these, `clearContent` wipes
+        // the row's text/attachments but the flags themselves are lost on
+        // reload, leaving an empty bubble instead of a tombstone.
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN is_deleted INTEGER NOT NULL '
+          'DEFAULT 0 CHECK ("is_deleted" IN (0, 1))',
+        );
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN is_deleted_locally INTEGER '
+          'NOT NULL DEFAULT 0 CHECK ("is_deleted_locally" IN (0, 1))',
+        );
+      }
+      if (from < 5 && to >= 5) {
+        // Add transport_id to attachments so the per-attachment transport
+        // reference (e.g. Matrix event id for hosted media) survives
+        // persist/restore. Without it, receivers reload messages with
+        // null transportId and can never trigger downloadMedia.
+        await customStatement(
+          'ALTER TABLE attachments ADD COLUMN transport_id TEXT',
+        );
+      }
+      if (from < 6 && to >= 6) {
+        // Add metadata to attachments so extensible media-kind metadata
+        // (e.g. the voice marker, duration, and waveform) survives
+        // persist/restore. Without it, received voice messages reload as
+        // generic audio with no duration/waveform until played.
+        //
+        // Guarded for idempotency: an intermediate build shipped the
+        // `metadata` column in the table definition while schemaVersion
+        // was still 5, so a database created then already has the column.
+        // Re-adding it here would fail with "duplicate column name".
+        if (!await _columnExists('attachments', 'metadata')) {
           await customStatement(
             'ALTER TABLE attachments ADD COLUMN metadata TEXT',
           );
         }
       }
     },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
   );
+
+  /// Whether [column] already exists on [table].
+  ///
+  /// Used to keep additive upgrade steps idempotent when a column may have
+  /// been created out-of-band (e.g. by an `onCreate` from an intermediate
+  /// build) before the matching schemaVersion bump shipped.
+  Future<bool> _columnExists(String table, String column) async {
+    final rows = await customSelect('PRAGMA table_info($table)').get();
+    return rows.any((row) => row.read<String>('name') == column);
+  }
 }
 
 /// Stores core metadata for messages and concierge items.

@@ -48,6 +48,10 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   int _seqNo = 0;
 
   @override
+  TransportCapabilities get capabilities =>
+      TransportCapabilities.forTransport(ChannelTransport.didcomm);
+
+  @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
 

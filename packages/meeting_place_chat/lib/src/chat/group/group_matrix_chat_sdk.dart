@@ -47,6 +47,10 @@ class GroupMatrixChatSDK extends MatrixChatSDK implements MeetingPlaceChatSDK {
   static const String _logkey = 'GroupMatrixChatSDK';
 
   @override
+  TransportCapabilities get capabilities =>
+      TransportCapabilities.forTransport(ChannelTransport.matrix);
+
+  @override
   @protected
   IncomingRoomEventRouter buildRoomEventRouter() =>
       GroupRoomEventRouter(chatSDK: this);

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
@@ -40,6 +42,10 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   @override
   IncomingRoomEventRouter buildRoomEventRouter() =>
       IndividualRoomEventRouter(chatSDK: this);
+
+  @override
+  TransportCapabilities get capabilities =>
+      TransportCapabilities.forTransport(ChannelTransport.matrix);
 
   @override
   Future<Chat> startChatSession() async {

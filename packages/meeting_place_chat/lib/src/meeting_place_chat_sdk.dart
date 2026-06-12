@@ -74,6 +74,17 @@ abstract interface class MeetingPlaceChatSDK {
     };
   }
 
+  /// The set of features the underlying transport supports.
+  ///
+  /// Query before exposing UI/actions that depend on a specific capability:
+  ///
+  /// ```dart
+  /// if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
+  ///   // show edit option
+  /// }
+  /// ```
+  TransportCapabilities get capabilities;
+
   /// All messages for this chat, ordered as the underlying transport returns
   /// them. Matrix replays the room timeline; DIDComm returns the locally
   /// persisted set.

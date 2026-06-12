@@ -394,6 +394,32 @@ void main() {
           ).called(1);
         },
       );
+
+      test('disables background sync after login', () async {
+        final mockClient = MockMatrixClient();
+        when(() => mockClient.accessToken).thenReturn(null);
+        when(() => mockClient.userID).thenReturn(_matrixUserId);
+        final loginResponse = matrix.LoginResponse(
+          userId: _matrixUserId,
+          accessToken: 'token',
+          deviceId: 'device',
+          wellKnown: null,
+          expiresInMs: null,
+          refreshToken: null,
+        );
+        when(
+          () => mockClient.login(
+            MatrixSessionManager.jwtLoginType,
+            token: _testJwt,
+          ),
+        ).thenAnswer((_) async => loginResponse);
+
+        cache.seed(_testDid, mockClient);
+
+        await manager.loginWithJwt(jwt: _testJwt, did: _testDid);
+
+        verify(() => mockClient.backgroundSync = false).called(1);
+      });
     });
 
     // ------------------------------------------------------------------
@@ -489,6 +515,79 @@ void main() {
         final id2 = manager.deriveUserId(did, 'server-b.com');
         expect(id1, isNot(equals(id2)));
       });
+    });
+    // ------------------------------------------------------------------
+    // activateSync / deactivateSync
+    // ------------------------------------------------------------------
+
+    group('activateSync / deactivateSync', () {
+      test('first activation enables background sync', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        verify(() => client.backgroundSync = true).called(1);
+      });
+
+      test('subsequent activations do not toggle sync again', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        manager.activateSync(_testDid, client);
+        manager.activateSync(_testDid, client);
+        verify(() => client.backgroundSync = true).called(1);
+      });
+
+      test('deactivating last subscription disables background sync', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        manager.deactivateSync(_testDid, client);
+        verify(() => client.backgroundSync = false).called(1);
+      });
+
+      test('deactivating with remaining subscriptions keeps sync enabled', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        manager.activateSync(_testDid, client);
+        manager.deactivateSync(_testDid, client);
+        verifyNever(() => client.backgroundSync = false);
+      });
+
+      test('different DIDs are tracked independently', () {
+        final clientA = MockMatrixClient();
+        final clientB = MockMatrixClient();
+        manager.activateSync('did:test:a', clientA);
+        manager.activateSync('did:test:b', clientB);
+        manager.deactivateSync('did:test:a', clientA);
+        verify(() => clientA.backgroundSync = false).called(1);
+        verifyNever(() => clientB.backgroundSync = false);
+      });
+
+      test(
+        'replacement client is enabled when DID already has subscriptions',
+        () {
+          final oldClient = MockMatrixClient();
+          final newClient = MockMatrixClient();
+
+          manager.activateSync(_testDid, oldClient);
+          manager.activateSync(_testDid, newClient);
+
+          verify(() => oldClient.backgroundSync = true).called(1);
+          verify(() => newClient.backgroundSync = true).called(1);
+        },
+      );
+
+      test(
+        '''deactivating an old replaced client does not disable replacement client''',
+        () {
+          final oldClient = MockMatrixClient();
+          final newClient = MockMatrixClient();
+
+          manager.activateSync(_testDid, oldClient);
+          manager.activateSync(_testDid, newClient);
+          manager.deactivateSync(_testDid, oldClient);
+
+          verify(() => oldClient.backgroundSync = false).called(1);
+          verifyNever(() => newClient.backgroundSync = false);
+        },
+      );
     });
   });
 
@@ -932,6 +1031,7 @@ void main() {
         ).thenReturn(_matrixUserId);
         when(() => client.getRoomById(_testRoomId)).thenReturn(room);
         when(() => room.encrypted).thenReturn(false);
+        when(client.oneShotSync).thenAnswer((_) async {});
 
         expect(
           () => service.sendRoomEvent(_testRoomId, 'com.example.message', {

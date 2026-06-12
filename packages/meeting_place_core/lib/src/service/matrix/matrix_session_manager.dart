@@ -46,6 +46,13 @@ class MatrixSessionManager {
   /// In-flight login attempts keyed by DID.
   final Map<String, Future<matrix.Client>> _inFlightLogins = {};
 
+  /// Tracks active room subscriptions per DID and per Matrix client.
+  ///
+  /// This lets us handle client replacement for the same DID: when a new
+  /// client is introduced while existing subscriptions are still active,
+  /// background sync is enabled for the new client as well.
+  final Map<String, Map<matrix.Client, int>> _activeSubscriptions = {};
+
   static const _logKey = 'MatrixSessionManager';
 
   /// Exposes the homeserver URI from the configuration.
@@ -202,6 +209,12 @@ class MatrixSessionManager {
         _config.homeserver.host,
       ),
     );
+
+    client.backgroundSync = false;
+    _logger.info(
+      '''Successfully logged in to Matrix as ${client.userID} for DID $did, background sync disabled''',
+      name: _logKey,
+    );
     return client;
   }
 
@@ -238,7 +251,53 @@ class MatrixSessionManager {
     return deriveMatrixUserId(did, serverName);
   }
 
+  /// Enables background sync for [client] when its first subscription for
+  /// [did] is registered.
+  ///
+  /// Subscriptions are tracked per client instance so that, if a session is
+  /// replaced mid-lifecycle, the replacement client is also switched to
+  /// background sync.
+  void activateSync(String did, matrix.Client client) {
+    final subscriptionsByClient = _activeSubscriptions.putIfAbsent(
+      did,
+      () => <matrix.Client, int>{},
+    );
+    final count = subscriptionsByClient[client] ?? 0;
+    subscriptionsByClient[client] = count + 1;
+    if (count == 0) {
+      client.backgroundSync = true;
+      _logger.info('Enabled background sync for DID $did', name: _logKey);
+    }
+  }
+
+  /// Decrements the subscription counter for [did] and [client].
+  ///
+  /// When that client's counter reaches zero, background sync is disabled for
+  /// that client. DID-level tracking is removed once no clients remain.
+  void deactivateSync(String did, matrix.Client client) {
+    final subscriptionsByClient = _activeSubscriptions[did];
+    if (subscriptionsByClient == null) {
+      return;
+    }
+
+    final count = (subscriptionsByClient[client] ?? 0) - 1;
+    if (count <= 0) {
+      subscriptionsByClient.remove(client);
+      client.backgroundSync = false;
+      _logger.info('Disabled background sync for DID $did', name: _logKey);
+    } else {
+      subscriptionsByClient[client] = count;
+    }
+
+    if (subscriptionsByClient.isEmpty) {
+      _activeSubscriptions.remove(did);
+    }
+  }
+
   /// Disposes every cached matrix client and clears the session cache.
   /// Safe to call multiple times.
-  Future<void> dispose() => _clientCache.dispose();
+  Future<void> dispose() {
+    _activeSubscriptions.clear();
+    return _clientCache.dispose();
+  }
 }

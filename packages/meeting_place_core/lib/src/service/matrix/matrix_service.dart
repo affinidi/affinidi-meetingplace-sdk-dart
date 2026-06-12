@@ -260,9 +260,7 @@ class MatrixService {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) throw StateError('Matrix room $roomId not found');
-    _assertRoomEncrypted(room, roomId);
+    final room = await _resolveEncryptedRoom(client, roomId);
 
     if (eventType == 'm.read') {
       final eventId = content['event_id'] as String;
@@ -356,10 +354,8 @@ class MatrixService {
     MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
   }) async* {
     final client = await _ensureSession(didManager);
-    final myUserId = _sessionManager.deriveUserId(
-      (await didManager.getDidDocument()).id,
-      homeserver.host,
-    );
+    final did = (await didManager.getDidDocument()).id;
+    final myUserId = _sessionManager.deriveUserId(did, homeserver.host);
 
     final controller = StreamController<MatrixRoomEvent>();
 
@@ -430,12 +426,14 @@ class MatrixService {
       }
     }, onError: controller.addError);
 
+    _sessionManager.activateSync(did, client);
     try {
       yield* controller.stream;
     } finally {
       await timelineSub.cancel();
       await syncSub.cancel();
       await controller.close();
+      _sessionManager.deactivateSync(did, client);
     }
   }
 
@@ -458,9 +456,7 @@ class MatrixService {
     Map<String, dynamic>? extraContent,
   }) async {
     final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) throw StateError('Matrix room $roomId not found');
-    _assertRoomEncrypted(room, roomId);
+    final room = await _resolveEncryptedRoom(client, roomId);
     final file = matrix.MatrixFile.fromMimeType(
       bytes: bytes,
       name: filename ?? 'file',
@@ -531,6 +527,24 @@ class MatrixService {
       isFromMe: myUserId != null && event.senderId == myUserId,
       stateKey: event.stateKey,
     );
+  }
+
+  /// Returns the [matrix.Room] for [roomId], ensuring it is encrypted.
+  /// If the room is missing or not yet marked as encrypted (e.g. because
+  /// background sync is disabled), performs a one-shot sync to load the
+  /// latest room state before checking again.
+  Future<matrix.Room> _resolveEncryptedRoom(
+    matrix.Client client,
+    String roomId,
+  ) async {
+    var room = client.getRoomById(roomId);
+    if (room == null || !room.encrypted) {
+      await client.oneShotSync();
+      room = client.getRoomById(roomId);
+    }
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    _assertRoomEncrypted(room, roomId);
+    return room;
   }
 
   static void _assertRoomEncrypted(matrix.Room room, String roomId) {

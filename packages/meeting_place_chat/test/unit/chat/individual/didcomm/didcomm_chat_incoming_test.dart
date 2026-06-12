@@ -64,6 +64,7 @@ void main() {
     registerFallbackValue(
       const DidCommSubscription(receiverDid: '', mediatorDid: ''),
     );
+    registerFallbackValue(_fakeChannel());
   });
 
   setUp(() {
@@ -79,6 +80,7 @@ void main() {
       () => core.getChannelByOtherPartyPermanentDid(any()),
     ).thenAnswer((_) async => _fakeChannel());
     when(() => core.sendMessage(any())).thenAnswer((_) async => 'ok');
+    when(() => core.updateChannel(any())).thenAnswer((_) async {});
 
     sdk = IndividualDidcommChatSDK(
       coreSDK: core,
@@ -203,6 +205,79 @@ void main() {
 
       final messages = await sdk.messages;
       expect((messages.first as Message).status, ChatItemStatus.delivered);
+    });
+
+    test('incoming message with higher seqNo updates channel', () async {
+      when(
+        () => core.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => _fakeChannel(seqNo: 5));
+
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatMessageEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'msg-seq-high',
+            type: Uri.parse(ChatProtocol.chatMessage.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'text': 'Higher seqNo',
+              'seq_no': 7,
+              'timestamp': DateTime.utc(2026).toIso8601String(),
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      await eventFuture;
+
+      final captured =
+          verify(() => core.updateChannel(captureAny())).captured.last
+              as Channel;
+      expect(captured.seqNo, 7);
+    });
+
+    test('incoming message with lower seqNo does not update channel', () async {
+      when(
+        () => core.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => _fakeChannel(seqNo: 10));
+
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatMessageEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'msg-seq-low',
+            type: Uri.parse(ChatProtocol.chatMessage.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'text': 'Lower seqNo',
+              'seq_no': 3,
+              'timestamp': DateTime.utc(2026).toIso8601String(),
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      await eventFuture;
+
+      verifyNever(() => core.updateChannel(any()));
     });
   });
 }

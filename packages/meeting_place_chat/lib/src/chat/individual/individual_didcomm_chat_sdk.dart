@@ -75,11 +75,11 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   Future<StreamSubscription<IncomingMessage>> _subscribe() async {
-    final handle = await coreSDK.subscribe(
+    _subscriptionHandle = await coreSDK.subscribe(
       DidCommSubscription(receiverDid: did, mediatorDid: mediatorDid),
     );
-    _subscriptionHandle = handle;
-    return handle.stream
+
+    return _subscriptionHandle!.stream
         .where((m) => m is DidCommIncomingMessage)
         .cast<DidCommIncomingMessage>()
         .where((m) => m.payload.from == otherPartyDid)
@@ -236,9 +236,18 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       chatId: chatId,
     );
     final created = await chatRepository.createMessage(message);
+
+    _seqNo = chatMessage.body.seqNo;
+    final channel = await getChannel();
+    if (channel.seqNo < _seqNo) {
+      channel.seqNo = _seqNo;
+      await coreSDK.updateChannel(channel);
+    }
+
     chatStream.pushData(
       StreamData(event: const ChatMessageEvent(), chatItem: created),
     );
+
     unawaited(sendChatDeliveredMessage(message.messageId));
   }
 

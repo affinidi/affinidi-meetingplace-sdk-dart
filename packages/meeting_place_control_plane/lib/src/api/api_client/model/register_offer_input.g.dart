@@ -196,6 +196,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   final String? metadata;
   @override
   final String transport;
+  @override
+  final int? score;
 
   factory _$RegisterOfferInput([
     void Function(RegisterOfferInputBuilder)? updates,
@@ -219,6 +221,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     this.isSearchable,
     this.metadata,
     required this.transport,
+    this.score,
   }) : super._();
   @override
   RegisterOfferInput rebuild(
@@ -249,7 +252,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
         customPhrase == other.customPhrase &&
         isSearchable == other.isSearchable &&
         metadata == other.metadata &&
-        transport == other.transport;
+        transport == other.transport &&
+        score == other.score;
   }
 
   @override
@@ -272,6 +276,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     _$hash = $jc(_$hash, isSearchable.hashCode);
     _$hash = $jc(_$hash, metadata.hashCode);
     _$hash = $jc(_$hash, transport.hashCode);
+    _$hash = $jc(_$hash, score.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -295,7 +300,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
           ..add('customPhrase', customPhrase)
           ..add('isSearchable', isSearchable)
           ..add('metadata', metadata)
-          ..add('transport', transport))
+          ..add('transport', transport)
+          ..add('score', score))
         .toString();
   }
 }
@@ -379,6 +385,10 @@ class RegisterOfferInputBuilder
   String? get transport => _$this._transport;
   set transport(String? transport) => _$this._transport = transport;
 
+  int? _score;
+  int? get score => _$this._score;
+  set score(int? score) => _$this._score = score;
+
   RegisterOfferInputBuilder() {
     RegisterOfferInput._defaults(this);
   }
@@ -403,6 +413,7 @@ class RegisterOfferInputBuilder
       _isSearchable = $v.isSearchable;
       _metadata = $v.metadata;
       _transport = $v.transport;
+      _score = $v.score;
       _$v = null;
     }
     return this;
@@ -482,6 +493,7 @@ class RegisterOfferInputBuilder
             r'RegisterOfferInput',
             'transport',
           ),
+          score: score,
         );
     replace(_$result);
     return _$result;

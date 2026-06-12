@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'oob_invitation_message_body.g.dart';
 
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
+@JsonSerializable(includeIfNull: false, explicitToJson: true, checked: true)
 class OobInvitationMessageBody {
   factory OobInvitationMessageBody.fromJson(Map<String, dynamic> json) =>
       _$OobInvitationMessageBodyFromJson(json);

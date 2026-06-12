@@ -111,6 +111,10 @@ Serializers _$serializers =
           ..add(RegisterOfferInputOfferTypeEnum.serializer)
           ..add(RegisterOfferInputPlatformTypeEnum.serializer)
           ..add(RegisterOfferOK.serializer)
+          ..add(UpdateOffersScoreError.serializer)
+          ..add(UpdateOffersScoreInput.serializer)
+          ..add(UpdateOffersScoreOK.serializer)
+          ..add(UpdateOffersScoreOKFailedOffersInner.serializer)
           ..addBuilderFactory(
             const FullType(BuiltList, const [
               const FullType(GetPendingNotificationsOKNotificationsInner),
@@ -174,10 +178,24 @@ Serializers _$serializers =
             () => ListBuilder<String>(),
           )
           ..addBuilderFactory(
+            const FullType(BuiltList, const [const FullType(String)]),
+            () => ListBuilder<String>(),
+          )
+          ..addBuilderFactory(
             const FullType(BuiltList, const [
               const FullType(DeletePendingNotificationsOKNotificationsInner),
             ]),
             () => ListBuilder<DeletePendingNotificationsOKNotificationsInner>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [const FullType(String)]),
+            () => ListBuilder<String>(),
+          )
+          ..addBuilderFactory(
+            const FullType(BuiltList, const [
+              const FullType(UpdateOffersScoreOKFailedOffersInner),
+            ]),
+            () => ListBuilder<UpdateOffersScoreOKFailedOffersInner>(),
           ))
         .build();
 

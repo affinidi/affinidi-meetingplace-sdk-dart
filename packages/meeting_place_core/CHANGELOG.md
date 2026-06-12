@@ -1,3 +1,31 @@
+## 0.0.1-dev.40
+
+ - **FIX**: non inaugurated channel activity (#200).
+
+## 0.0.1-dev.39
+
+ - **FIX**: OOB invitation parser pre-auth crash vulnerability (#198).
+
+## 0.0.1-dev.39
+
+ - **SECURITY**: fix OobInvitationMessage parser to throw FormatException instead of crashing on malformed input (Audit ref: F-7, TM-7).
+
+## 0.0.1-dev.38
+
+ - Update a dependency to the latest release.
+
+## 0.0.1-dev.37
+
+ - **FEAT**: add VRC/VDIP channel attachment support to meeting_place_core (#196).
+
+## 0.0.1-dev.36
+
+ - **REFACTOR**: database schema and update dependencies (#168).
+
+## 0.0.1-dev.35
+
+ - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+
 ## 0.0.1-dev.34
 
  - **FIX**: stop ChatActivityEventHandler from deleting mediator messages (#177).

@@ -83,6 +83,10 @@ import 'model/register_offer_group_input.dart';
 import 'model/register_offer_group_ok.dart';
 import 'model/register_offer_input.dart';
 import 'model/register_offer_ok.dart';
+import 'model/update_offers_score_error.dart';
+import 'model/update_offers_score_input.dart';
+import 'model/update_offers_score_ok.dart';
+import 'model/update_offers_score_ok_failed_offers_inner.dart';
 
 part 'serializers.g.dart';
 
@@ -156,6 +160,10 @@ part 'serializers.g.dart';
   RegisterOfferGroupOK,
   RegisterOfferInput,
   RegisterOfferOK,
+  UpdateOffersScoreError,
+  UpdateOffersScoreInput,
+  UpdateOffersScoreOK,
+  UpdateOffersScoreOKFailedOffersInner,
 ])
 Serializers serializers =
     (_$serializers.toBuilder()

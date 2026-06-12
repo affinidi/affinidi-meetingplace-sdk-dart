@@ -1,4 +1,6 @@
 // external exports
+export 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart'
+    show VdipIssuedCredentialBody;
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, MessageWrappingType, PlainTextMessage;
 export 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
@@ -22,6 +24,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MeetingPlaceMediatorSDKException;
 export 'package:ssi/ssi.dart' show DidManager;
 
+export 'src/channel_attachment_event.dart';
 export 'src/entity/entity.dart';
 export 'src/event_handler/control_plane_event_handler_manager_options.dart';
 export 'src/event_handler/control_plane_stream_event.dart';
@@ -37,6 +40,7 @@ export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
 export 'src/sdk/results/register_for_didcomm_notifications_result.dart';
 export 'src/sdk/sdk.dart';
+export 'src/service/config.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
 export 'src/service/matrix/matrix_config.dart';
 export 'src/service/matrix/matrix_read_receipt_event.dart';
@@ -51,3 +55,5 @@ export 'src/service/oob/stream/oob_stream.dart';
 export 'src/service/oob/stream/oob_stream_data.dart';
 export 'src/transport/transport.dart';
 export 'src/utils/contact_card_utils.dart';
+export 'src/vdip/channel_activity_type.dart';
+export 'src/vdip/vdip_client.dart';

@@ -12,306 +12,483 @@ class $ConnectionOffersTable extends ConnectionOffers
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
-      'id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      clientDefault: const Uuid().v4);
-  static const VerificationMeta _offerNameMeta =
-      const VerificationMeta('offerName');
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: const Uuid().v4,
+  );
+  static const VerificationMeta _offerNameMeta = const VerificationMeta(
+    'offerName',
+  );
   @override
   late final GeneratedColumn<String> offerName = GeneratedColumn<String>(
-      'offer_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _offerLinkMeta =
-      const VerificationMeta('offerLink');
+    'offer_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _offerLinkMeta = const VerificationMeta(
+    'offerLink',
+  );
   @override
   late final GeneratedColumn<String> offerLink = GeneratedColumn<String>(
-      'offer_link', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _offerDescriptionMeta =
-      const VerificationMeta('offerDescription');
+    'offer_link',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _offerDescriptionMeta = const VerificationMeta(
+    'offerDescription',
+  );
   @override
   late final GeneratedColumn<String> offerDescription = GeneratedColumn<String>(
-      'offer_description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'offer_description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _oobInvitationMessageMeta =
       const VerificationMeta('oobInvitationMessage');
   @override
   late final GeneratedColumn<String> oobInvitationMessage =
-      GeneratedColumn<String>('oob_invitation_message', aliasedName, false,
-          type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _mnemonicMeta =
-      const VerificationMeta('mnemonic');
+      GeneratedColumn<String>(
+        'oob_invitation_message',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _mnemonicMeta = const VerificationMeta(
+    'mnemonic',
+  );
   @override
   late final GeneratedColumn<String> mnemonic = GeneratedColumn<String>(
-      'mnemonic', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _expiresAtMeta =
-      const VerificationMeta('expiresAt');
+    'mnemonic',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
   @override
   late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
-      'expires_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _createdAtMeta =
-      const VerificationMeta('createdAt');
+    'expires_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-      'created_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _publishOfferDidMeta =
-      const VerificationMeta('publishOfferDid');
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _publishOfferDidMeta = const VerificationMeta(
+    'publishOfferDid',
+  );
   @override
   late final GeneratedColumn<String> publishOfferDid = GeneratedColumn<String>(
-      'publish_offer_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'publish_offer_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<ConnectionOfferType, int> type =
-      GeneratedColumn<int>('type', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<ConnectionOfferType>(
-              $ConnectionOffersTable.$convertertype);
+      GeneratedColumn<int>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<ConnectionOfferType>(
+        $ConnectionOffersTable.$convertertype,
+      );
   @override
   late final GeneratedColumnWithTypeConverter<ConnectionOfferStatus, int>
-      status = GeneratedColumn<int>('status', aliasedName, false,
-              type: DriftSqlType.int, requiredDuringInsert: true)
-          .withConverter<ConnectionOfferStatus>(
-              $ConnectionOffersTable.$converterstatus);
-  static const VerificationMeta _maximumUsageMeta =
-      const VerificationMeta('maximumUsage');
+  status =
+      GeneratedColumn<int>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<ConnectionOfferStatus>(
+        $ConnectionOffersTable.$converterstatus,
+      );
+  static const VerificationMeta _maximumUsageMeta = const VerificationMeta(
+    'maximumUsage',
+  );
   @override
   late final GeneratedColumn<int> maximumUsage = GeneratedColumn<int>(
-      'maximum_usage', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _ownedByMeMeta =
-      const VerificationMeta('ownedByMe');
+    'maximum_usage',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ownedByMeMeta = const VerificationMeta(
+    'ownedByMe',
+  );
   @override
   late final GeneratedColumn<bool> ownedByMe = GeneratedColumn<bool>(
-      'owned_by_me', aliasedName, false,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('CHECK ("owned_by_me" IN (0, 1))'),
-      clientDefault: () => false);
-  static const VerificationMeta _mediatorDidMeta =
-      const VerificationMeta('mediatorDid');
+    'owned_by_me',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("owned_by_me" IN (0, 1))',
+    ),
+    clientDefault: () => false,
+  );
+  static const VerificationMeta _mediatorDidMeta = const VerificationMeta(
+    'mediatorDid',
+  );
   @override
   late final GeneratedColumn<String> mediatorDid = GeneratedColumn<String>(
-      'mediator_did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _aliasIdMeta =
-      const VerificationMeta('aliasId');
+    'mediator_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _aliasIdMeta = const VerificationMeta(
+    'aliasId',
+  );
   @override
   late final GeneratedColumn<String> aliasId = GeneratedColumn<String>(
-      'alias_id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _outboundMessageIdMeta =
-      const VerificationMeta('outboundMessageId');
+    'alias_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _outboundMessageIdMeta = const VerificationMeta(
+    'outboundMessageId',
+  );
   @override
   late final GeneratedColumn<String> outboundMessageId =
-      GeneratedColumn<String>('outbound_message_id', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _acceptOfferDidMeta =
-      const VerificationMeta('acceptOfferDid');
+      GeneratedColumn<String>(
+        'outbound_message_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _acceptOfferDidMeta = const VerificationMeta(
+    'acceptOfferDid',
+  );
   @override
   late final GeneratedColumn<String> acceptOfferDid = GeneratedColumn<String>(
-      'accept_offer_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'accept_offer_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _permanentChannelDidMeta =
       const VerificationMeta('permanentChannelDid');
   @override
   late final GeneratedColumn<String> permanentChannelDid =
-      GeneratedColumn<String>('permanent_channel_did', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
+      GeneratedColumn<String>(
+        'permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _otherPartyPermanentChannelDidMeta =
       const VerificationMeta('otherPartyPermanentChannelDid');
   @override
   late final GeneratedColumn<String> otherPartyPermanentChannelDid =
       GeneratedColumn<String>(
-          'other_party_permanent_channel_did', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _notificationTokenMeta =
-      const VerificationMeta('notificationToken');
+        'other_party_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _notificationTokenMeta = const VerificationMeta(
+    'notificationToken',
+  );
   @override
   late final GeneratedColumn<String> notificationToken =
-      GeneratedColumn<String>('notification_token', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
+      GeneratedColumn<String>(
+        'notification_token',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _otherPartyNotificationTokenMeta =
       const VerificationMeta('otherPartyNotificationToken');
   @override
   late final GeneratedColumn<String> otherPartyNotificationToken =
       GeneratedColumn<String>(
-          'other_party_notification_token', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _externalRefMeta =
-      const VerificationMeta('externalRef');
+        'other_party_notification_token',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _externalRefMeta = const VerificationMeta(
+    'externalRef',
+  );
   @override
   late final GeneratedColumn<String> externalRef = GeneratedColumn<String>(
-      'external_ref', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'external_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<ChannelTransport, int> transport =
-      GeneratedColumn<int>('transport', aliasedName, false,
-              type: DriftSqlType.int,
-              requiredDuringInsert: false,
-              defaultValue: const Constant(1))
-          .withConverter<ChannelTransport>(
-              $ConnectionOffersTable.$convertertransport);
+      GeneratedColumn<int>(
+        'transport',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(1),
+      ).withConverter<ChannelTransport>(
+        $ConnectionOffersTable.$convertertransport,
+      );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<int> score = GeneratedColumn<int>(
+    'score',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        id,
-        offerName,
-        offerLink,
-        offerDescription,
-        oobInvitationMessage,
-        mnemonic,
-        expiresAt,
-        createdAt,
-        publishOfferDid,
-        type,
-        status,
-        maximumUsage,
-        ownedByMe,
-        mediatorDid,
-        aliasId,
-        outboundMessageId,
-        acceptOfferDid,
-        permanentChannelDid,
-        otherPartyPermanentChannelDid,
-        notificationToken,
-        otherPartyNotificationToken,
-        externalRef,
-        transport
-      ];
+    id,
+    offerName,
+    offerLink,
+    offerDescription,
+    oobInvitationMessage,
+    mnemonic,
+    expiresAt,
+    createdAt,
+    publishOfferDid,
+    type,
+    status,
+    maximumUsage,
+    ownedByMe,
+    mediatorDid,
+    aliasId,
+    outboundMessageId,
+    acceptOfferDid,
+    permanentChannelDid,
+    otherPartyPermanentChannelDid,
+    notificationToken,
+    otherPartyNotificationToken,
+    externalRef,
+    transport,
+    score,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'connection_offers';
   @override
-  VerificationContext validateIntegrity(Insertable<ConnectionOffer> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<ConnectionOffer> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('offer_name')) {
-      context.handle(_offerNameMeta,
-          offerName.isAcceptableOrUnknown(data['offer_name']!, _offerNameMeta));
+      context.handle(
+        _offerNameMeta,
+        offerName.isAcceptableOrUnknown(data['offer_name']!, _offerNameMeta),
+      );
     } else if (isInserting) {
       context.missing(_offerNameMeta);
     }
     if (data.containsKey('offer_link')) {
-      context.handle(_offerLinkMeta,
-          offerLink.isAcceptableOrUnknown(data['offer_link']!, _offerLinkMeta));
+      context.handle(
+        _offerLinkMeta,
+        offerLink.isAcceptableOrUnknown(data['offer_link']!, _offerLinkMeta),
+      );
     } else if (isInserting) {
       context.missing(_offerLinkMeta);
     }
     if (data.containsKey('offer_description')) {
       context.handle(
+        _offerDescriptionMeta,
+        offerDescription.isAcceptableOrUnknown(
+          data['offer_description']!,
           _offerDescriptionMeta,
-          offerDescription.isAcceptableOrUnknown(
-              data['offer_description']!, _offerDescriptionMeta));
+        ),
+      );
     }
     if (data.containsKey('oob_invitation_message')) {
       context.handle(
+        _oobInvitationMessageMeta,
+        oobInvitationMessage.isAcceptableOrUnknown(
+          data['oob_invitation_message']!,
           _oobInvitationMessageMeta,
-          oobInvitationMessage.isAcceptableOrUnknown(
-              data['oob_invitation_message']!, _oobInvitationMessageMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_oobInvitationMessageMeta);
     }
     if (data.containsKey('mnemonic')) {
-      context.handle(_mnemonicMeta,
-          mnemonic.isAcceptableOrUnknown(data['mnemonic']!, _mnemonicMeta));
+      context.handle(
+        _mnemonicMeta,
+        mnemonic.isAcceptableOrUnknown(data['mnemonic']!, _mnemonicMeta),
+      );
     } else if (isInserting) {
       context.missing(_mnemonicMeta);
     }
     if (data.containsKey('expires_at')) {
-      context.handle(_expiresAtMeta,
-          expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta));
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta,
-          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
     if (data.containsKey('publish_offer_did')) {
       context.handle(
+        _publishOfferDidMeta,
+        publishOfferDid.isAcceptableOrUnknown(
+          data['publish_offer_did']!,
           _publishOfferDidMeta,
-          publishOfferDid.isAcceptableOrUnknown(
-              data['publish_offer_did']!, _publishOfferDidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_publishOfferDidMeta);
     }
     if (data.containsKey('maximum_usage')) {
       context.handle(
+        _maximumUsageMeta,
+        maximumUsage.isAcceptableOrUnknown(
+          data['maximum_usage']!,
           _maximumUsageMeta,
-          maximumUsage.isAcceptableOrUnknown(
-              data['maximum_usage']!, _maximumUsageMeta));
+        ),
+      );
     }
     if (data.containsKey('owned_by_me')) {
       context.handle(
-          _ownedByMeMeta,
-          ownedByMe.isAcceptableOrUnknown(
-              data['owned_by_me']!, _ownedByMeMeta));
+        _ownedByMeMeta,
+        ownedByMe.isAcceptableOrUnknown(data['owned_by_me']!, _ownedByMeMeta),
+      );
     }
     if (data.containsKey('mediator_did')) {
       context.handle(
+        _mediatorDidMeta,
+        mediatorDid.isAcceptableOrUnknown(
+          data['mediator_did']!,
           _mediatorDidMeta,
-          mediatorDid.isAcceptableOrUnknown(
-              data['mediator_did']!, _mediatorDidMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_mediatorDidMeta);
     }
     if (data.containsKey('alias_id')) {
-      context.handle(_aliasIdMeta,
-          aliasId.isAcceptableOrUnknown(data['alias_id']!, _aliasIdMeta));
+      context.handle(
+        _aliasIdMeta,
+        aliasId.isAcceptableOrUnknown(data['alias_id']!, _aliasIdMeta),
+      );
     }
     if (data.containsKey('outbound_message_id')) {
       context.handle(
+        _outboundMessageIdMeta,
+        outboundMessageId.isAcceptableOrUnknown(
+          data['outbound_message_id']!,
           _outboundMessageIdMeta,
-          outboundMessageId.isAcceptableOrUnknown(
-              data['outbound_message_id']!, _outboundMessageIdMeta));
+        ),
+      );
     }
     if (data.containsKey('accept_offer_did')) {
       context.handle(
+        _acceptOfferDidMeta,
+        acceptOfferDid.isAcceptableOrUnknown(
+          data['accept_offer_did']!,
           _acceptOfferDidMeta,
-          acceptOfferDid.isAcceptableOrUnknown(
-              data['accept_offer_did']!, _acceptOfferDidMeta));
+        ),
+      );
     }
     if (data.containsKey('permanent_channel_did')) {
       context.handle(
+        _permanentChannelDidMeta,
+        permanentChannelDid.isAcceptableOrUnknown(
+          data['permanent_channel_did']!,
           _permanentChannelDidMeta,
-          permanentChannelDid.isAcceptableOrUnknown(
-              data['permanent_channel_did']!, _permanentChannelDidMeta));
+        ),
+      );
     }
     if (data.containsKey('other_party_permanent_channel_did')) {
       context.handle(
+        _otherPartyPermanentChannelDidMeta,
+        otherPartyPermanentChannelDid.isAcceptableOrUnknown(
+          data['other_party_permanent_channel_did']!,
           _otherPartyPermanentChannelDidMeta,
-          otherPartyPermanentChannelDid.isAcceptableOrUnknown(
-              data['other_party_permanent_channel_did']!,
-              _otherPartyPermanentChannelDidMeta));
+        ),
+      );
     }
     if (data.containsKey('notification_token')) {
       context.handle(
+        _notificationTokenMeta,
+        notificationToken.isAcceptableOrUnknown(
+          data['notification_token']!,
           _notificationTokenMeta,
-          notificationToken.isAcceptableOrUnknown(
-              data['notification_token']!, _notificationTokenMeta));
+        ),
+      );
     }
     if (data.containsKey('other_party_notification_token')) {
       context.handle(
+        _otherPartyNotificationTokenMeta,
+        otherPartyNotificationToken.isAcceptableOrUnknown(
+          data['other_party_notification_token']!,
           _otherPartyNotificationTokenMeta,
-          otherPartyNotificationToken.isAcceptableOrUnknown(
-              data['other_party_notification_token']!,
-              _otherPartyNotificationTokenMeta));
+        ),
+      );
     }
     if (data.containsKey('external_ref')) {
       context.handle(
+        _externalRefMeta,
+        externalRef.isAcceptableOrUnknown(
+          data['external_ref']!,
           _externalRefMeta,
-          externalRef.isAcceptableOrUnknown(
-              data['external_ref']!, _externalRefMeta));
+        ),
+      );
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
     }
     return context;
   }
@@ -322,58 +499,108 @@ class $ConnectionOffersTable extends ConnectionOffers
   ConnectionOffer map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ConnectionOffer(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      offerName: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}offer_name'])!,
-      offerLink: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}offer_link'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      offerName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}offer_name'],
+      )!,
+      offerLink: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}offer_link'],
+      )!,
       offerDescription: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}offer_description']),
+        DriftSqlType.string,
+        data['${effectivePrefix}offer_description'],
+      ),
       oobInvitationMessage: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}oob_invitation_message'])!,
-      mnemonic: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}mnemonic'])!,
-      expiresAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}expires_at']),
-      createdAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}oob_invitation_message'],
+      )!,
+      mnemonic: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mnemonic'],
+      )!,
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
       publishOfferDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}publish_offer_did'])!,
-      type: $ConnectionOffersTable.$convertertype.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}type'])!),
-      status: $ConnectionOffersTable.$converterstatus.fromSql(attachedDatabase
-          .typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}status'])!),
-      maximumUsage: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}maximum_usage']),
-      ownedByMe: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}owned_by_me'])!,
-      mediatorDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}mediator_did'])!,
-      aliasId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}alias_id']),
+        DriftSqlType.string,
+        data['${effectivePrefix}publish_offer_did'],
+      )!,
+      type: $ConnectionOffersTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      status: $ConnectionOffersTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      maximumUsage: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}maximum_usage'],
+      ),
+      ownedByMe: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}owned_by_me'],
+      )!,
+      mediatorDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mediator_did'],
+      )!,
+      aliasId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alias_id'],
+      ),
       outboundMessageId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}outbound_message_id']),
+        DriftSqlType.string,
+        data['${effectivePrefix}outbound_message_id'],
+      ),
       acceptOfferDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}accept_offer_did']),
+        DriftSqlType.string,
+        data['${effectivePrefix}accept_offer_did'],
+      ),
       permanentChannelDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}permanent_channel_did']),
+        DriftSqlType.string,
+        data['${effectivePrefix}permanent_channel_did'],
+      ),
       otherPartyPermanentChannelDid: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}other_party_permanent_channel_did']),
+        DriftSqlType.string,
+        data['${effectivePrefix}other_party_permanent_channel_did'],
+      ),
       notificationToken: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}notification_token']),
+        DriftSqlType.string,
+        data['${effectivePrefix}notification_token'],
+      ),
       otherPartyNotificationToken: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}other_party_notification_token']),
-      externalRef: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}external_ref']),
+        DriftSqlType.string,
+        data['${effectivePrefix}other_party_notification_token'],
+      ),
+      externalRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}external_ref'],
+      ),
       transport: $ConnectionOffersTable.$convertertransport.fromSql(
-          attachedDatabase.typeMapping
-              .read(DriftSqlType.int, data['${effectivePrefix}transport'])!),
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}transport'],
+        )!,
+      ),
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      ),
     );
   }
 
@@ -461,30 +688,35 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
   /// Defaults to [ChannelTransport.didcomm] for offers persisted before
   /// per-offer transport selection existed.
   final ChannelTransport transport;
-  const ConnectionOffer(
-      {required this.id,
-      required this.offerName,
-      required this.offerLink,
-      this.offerDescription,
-      required this.oobInvitationMessage,
-      required this.mnemonic,
-      this.expiresAt,
-      required this.createdAt,
-      required this.publishOfferDid,
-      required this.type,
-      required this.status,
-      this.maximumUsage,
-      required this.ownedByMe,
-      required this.mediatorDid,
-      this.aliasId,
-      this.outboundMessageId,
-      this.acceptOfferDid,
-      this.permanentChannelDid,
-      this.otherPartyPermanentChannelDid,
-      this.notificationToken,
-      this.otherPartyNotificationToken,
-      this.externalRef,
-      required this.transport});
+
+  /// VRC score of the offer owner.
+  final int? score;
+  const ConnectionOffer({
+    required this.id,
+    required this.offerName,
+    required this.offerLink,
+    this.offerDescription,
+    required this.oobInvitationMessage,
+    required this.mnemonic,
+    this.expiresAt,
+    required this.createdAt,
+    required this.publishOfferDid,
+    required this.type,
+    required this.status,
+    this.maximumUsage,
+    required this.ownedByMe,
+    required this.mediatorDid,
+    this.aliasId,
+    this.outboundMessageId,
+    this.acceptOfferDid,
+    this.permanentChannelDid,
+    this.otherPartyPermanentChannelDid,
+    this.notificationToken,
+    this.otherPartyNotificationToken,
+    this.externalRef,
+    required this.transport,
+    this.score,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -502,12 +734,14 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['publish_offer_did'] = Variable<String>(publishOfferDid);
     {
-      map['type'] =
-          Variable<int>($ConnectionOffersTable.$convertertype.toSql(type));
+      map['type'] = Variable<int>(
+        $ConnectionOffersTable.$convertertype.toSql(type),
+      );
     }
     {
-      map['status'] =
-          Variable<int>($ConnectionOffersTable.$converterstatus.toSql(status));
+      map['status'] = Variable<int>(
+        $ConnectionOffersTable.$converterstatus.toSql(status),
+      );
     }
     if (!nullToAbsent || maximumUsage != null) {
       map['maximum_usage'] = Variable<int>(maximumUsage);
@@ -527,22 +761,28 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       map['permanent_channel_did'] = Variable<String>(permanentChannelDid);
     }
     if (!nullToAbsent || otherPartyPermanentChannelDid != null) {
-      map['other_party_permanent_channel_did'] =
-          Variable<String>(otherPartyPermanentChannelDid);
+      map['other_party_permanent_channel_did'] = Variable<String>(
+        otherPartyPermanentChannelDid,
+      );
     }
     if (!nullToAbsent || notificationToken != null) {
       map['notification_token'] = Variable<String>(notificationToken);
     }
     if (!nullToAbsent || otherPartyNotificationToken != null) {
-      map['other_party_notification_token'] =
-          Variable<String>(otherPartyNotificationToken);
+      map['other_party_notification_token'] = Variable<String>(
+        otherPartyNotificationToken,
+      );
     }
     if (!nullToAbsent || externalRef != null) {
       map['external_ref'] = Variable<String>(externalRef);
     }
     {
       map['transport'] = Variable<int>(
-          $ConnectionOffersTable.$convertertransport.toSql(transport));
+        $ConnectionOffersTable.$convertertransport.toSql(transport),
+      );
+    }
+    if (!nullToAbsent || score != null) {
+      map['score'] = Variable<int>(score);
     }
     return map;
   }
@@ -583,32 +823,38 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           : Value(permanentChannelDid),
       otherPartyPermanentChannelDid:
           otherPartyPermanentChannelDid == null && nullToAbsent
-              ? const Value.absent()
-              : Value(otherPartyPermanentChannelDid),
+          ? const Value.absent()
+          : Value(otherPartyPermanentChannelDid),
       notificationToken: notificationToken == null && nullToAbsent
           ? const Value.absent()
           : Value(notificationToken),
       otherPartyNotificationToken:
           otherPartyNotificationToken == null && nullToAbsent
-              ? const Value.absent()
-              : Value(otherPartyNotificationToken),
+          ? const Value.absent()
+          : Value(otherPartyNotificationToken),
       externalRef: externalRef == null && nullToAbsent
           ? const Value.absent()
           : Value(externalRef),
       transport: Value(transport),
+      score: score == null && nullToAbsent
+          ? const Value.absent()
+          : Value(score),
     );
   }
 
-  factory ConnectionOffer.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory ConnectionOffer.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ConnectionOffer(
       id: serializer.fromJson<String>(json['id']),
       offerName: serializer.fromJson<String>(json['offerName']),
       offerLink: serializer.fromJson<String>(json['offerLink']),
       offerDescription: serializer.fromJson<String?>(json['offerDescription']),
-      oobInvitationMessage:
-          serializer.fromJson<String>(json['oobInvitationMessage']),
+      oobInvitationMessage: serializer.fromJson<String>(
+        json['oobInvitationMessage'],
+      ),
       mnemonic: serializer.fromJson<String>(json['mnemonic']),
       expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -619,19 +865,25 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       ownedByMe: serializer.fromJson<bool>(json['ownedByMe']),
       mediatorDid: serializer.fromJson<String>(json['mediatorDid']),
       aliasId: serializer.fromJson<String?>(json['aliasId']),
-      outboundMessageId:
-          serializer.fromJson<String?>(json['outboundMessageId']),
+      outboundMessageId: serializer.fromJson<String?>(
+        json['outboundMessageId'],
+      ),
       acceptOfferDid: serializer.fromJson<String?>(json['acceptOfferDid']),
-      permanentChannelDid:
-          serializer.fromJson<String?>(json['permanentChannelDid']),
-      otherPartyPermanentChannelDid:
-          serializer.fromJson<String?>(json['otherPartyPermanentChannelDid']),
-      notificationToken:
-          serializer.fromJson<String?>(json['notificationToken']),
-      otherPartyNotificationToken:
-          serializer.fromJson<String?>(json['otherPartyNotificationToken']),
+      permanentChannelDid: serializer.fromJson<String?>(
+        json['permanentChannelDid'],
+      ),
+      otherPartyPermanentChannelDid: serializer.fromJson<String?>(
+        json['otherPartyPermanentChannelDid'],
+      ),
+      notificationToken: serializer.fromJson<String?>(
+        json['notificationToken'],
+      ),
+      otherPartyNotificationToken: serializer.fromJson<String?>(
+        json['otherPartyNotificationToken'],
+      ),
       externalRef: serializer.fromJson<String?>(json['externalRef']),
       transport: serializer.fromJson<ChannelTransport>(json['transport']),
+      score: serializer.fromJson<int?>(json['score']),
     );
   }
   @override
@@ -656,79 +908,84 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       'outboundMessageId': serializer.toJson<String?>(outboundMessageId),
       'acceptOfferDid': serializer.toJson<String?>(acceptOfferDid),
       'permanentChannelDid': serializer.toJson<String?>(permanentChannelDid),
-      'otherPartyPermanentChannelDid':
-          serializer.toJson<String?>(otherPartyPermanentChannelDid),
+      'otherPartyPermanentChannelDid': serializer.toJson<String?>(
+        otherPartyPermanentChannelDid,
+      ),
       'notificationToken': serializer.toJson<String?>(notificationToken),
-      'otherPartyNotificationToken':
-          serializer.toJson<String?>(otherPartyNotificationToken),
+      'otherPartyNotificationToken': serializer.toJson<String?>(
+        otherPartyNotificationToken,
+      ),
       'externalRef': serializer.toJson<String?>(externalRef),
       'transport': serializer.toJson<ChannelTransport>(transport),
+      'score': serializer.toJson<int?>(score),
     };
   }
 
-  ConnectionOffer copyWith(
-          {String? id,
-          String? offerName,
-          String? offerLink,
-          Value<String?> offerDescription = const Value.absent(),
-          String? oobInvitationMessage,
-          String? mnemonic,
-          Value<DateTime?> expiresAt = const Value.absent(),
-          DateTime? createdAt,
-          String? publishOfferDid,
-          ConnectionOfferType? type,
-          ConnectionOfferStatus? status,
-          Value<int?> maximumUsage = const Value.absent(),
-          bool? ownedByMe,
-          String? mediatorDid,
-          Value<String?> aliasId = const Value.absent(),
-          Value<String?> outboundMessageId = const Value.absent(),
-          Value<String?> acceptOfferDid = const Value.absent(),
-          Value<String?> permanentChannelDid = const Value.absent(),
-          Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-          Value<String?> notificationToken = const Value.absent(),
-          Value<String?> otherPartyNotificationToken = const Value.absent(),
-          Value<String?> externalRef = const Value.absent(),
-          ChannelTransport? transport}) =>
-      ConnectionOffer(
-        id: id ?? this.id,
-        offerName: offerName ?? this.offerName,
-        offerLink: offerLink ?? this.offerLink,
-        offerDescription: offerDescription.present
-            ? offerDescription.value
-            : this.offerDescription,
-        oobInvitationMessage: oobInvitationMessage ?? this.oobInvitationMessage,
-        mnemonic: mnemonic ?? this.mnemonic,
-        expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
-        createdAt: createdAt ?? this.createdAt,
-        publishOfferDid: publishOfferDid ?? this.publishOfferDid,
-        type: type ?? this.type,
-        status: status ?? this.status,
-        maximumUsage:
-            maximumUsage.present ? maximumUsage.value : this.maximumUsage,
-        ownedByMe: ownedByMe ?? this.ownedByMe,
-        mediatorDid: mediatorDid ?? this.mediatorDid,
-        aliasId: aliasId.present ? aliasId.value : this.aliasId,
-        outboundMessageId: outboundMessageId.present
-            ? outboundMessageId.value
-            : this.outboundMessageId,
-        acceptOfferDid:
-            acceptOfferDid.present ? acceptOfferDid.value : this.acceptOfferDid,
-        permanentChannelDid: permanentChannelDid.present
-            ? permanentChannelDid.value
-            : this.permanentChannelDid,
-        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
-            ? otherPartyPermanentChannelDid.value
-            : this.otherPartyPermanentChannelDid,
-        notificationToken: notificationToken.present
-            ? notificationToken.value
-            : this.notificationToken,
-        otherPartyNotificationToken: otherPartyNotificationToken.present
-            ? otherPartyNotificationToken.value
-            : this.otherPartyNotificationToken,
-        externalRef: externalRef.present ? externalRef.value : this.externalRef,
-        transport: transport ?? this.transport,
-      );
+  ConnectionOffer copyWith({
+    String? id,
+    String? offerName,
+    String? offerLink,
+    Value<String?> offerDescription = const Value.absent(),
+    String? oobInvitationMessage,
+    String? mnemonic,
+    Value<DateTime?> expiresAt = const Value.absent(),
+    DateTime? createdAt,
+    String? publishOfferDid,
+    ConnectionOfferType? type,
+    ConnectionOfferStatus? status,
+    Value<int?> maximumUsage = const Value.absent(),
+    bool? ownedByMe,
+    String? mediatorDid,
+    Value<String?> aliasId = const Value.absent(),
+    Value<String?> outboundMessageId = const Value.absent(),
+    Value<String?> acceptOfferDid = const Value.absent(),
+    Value<String?> permanentChannelDid = const Value.absent(),
+    Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
+    Value<String?> notificationToken = const Value.absent(),
+    Value<String?> otherPartyNotificationToken = const Value.absent(),
+    Value<String?> externalRef = const Value.absent(),
+    ChannelTransport? transport,
+    Value<int?> score = const Value.absent(),
+  }) => ConnectionOffer(
+    id: id ?? this.id,
+    offerName: offerName ?? this.offerName,
+    offerLink: offerLink ?? this.offerLink,
+    offerDescription: offerDescription.present
+        ? offerDescription.value
+        : this.offerDescription,
+    oobInvitationMessage: oobInvitationMessage ?? this.oobInvitationMessage,
+    mnemonic: mnemonic ?? this.mnemonic,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    createdAt: createdAt ?? this.createdAt,
+    publishOfferDid: publishOfferDid ?? this.publishOfferDid,
+    type: type ?? this.type,
+    status: status ?? this.status,
+    maximumUsage: maximumUsage.present ? maximumUsage.value : this.maximumUsage,
+    ownedByMe: ownedByMe ?? this.ownedByMe,
+    mediatorDid: mediatorDid ?? this.mediatorDid,
+    aliasId: aliasId.present ? aliasId.value : this.aliasId,
+    outboundMessageId: outboundMessageId.present
+        ? outboundMessageId.value
+        : this.outboundMessageId,
+    acceptOfferDid: acceptOfferDid.present
+        ? acceptOfferDid.value
+        : this.acceptOfferDid,
+    permanentChannelDid: permanentChannelDid.present
+        ? permanentChannelDid.value
+        : this.permanentChannelDid,
+    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
+        ? otherPartyPermanentChannelDid.value
+        : this.otherPartyPermanentChannelDid,
+    notificationToken: notificationToken.present
+        ? notificationToken.value
+        : this.notificationToken,
+    otherPartyNotificationToken: otherPartyNotificationToken.present
+        ? otherPartyNotificationToken.value
+        : this.otherPartyNotificationToken,
+    externalRef: externalRef.present ? externalRef.value : this.externalRef,
+    transport: transport ?? this.transport,
+    score: score.present ? score.value : this.score,
+  );
   ConnectionOffer copyWithCompanion(ConnectionOffersCompanion data) {
     return ConnectionOffer(
       id: data.id.present ? data.id.value : this.id,
@@ -752,8 +1009,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           ? data.maximumUsage.value
           : this.maximumUsage,
       ownedByMe: data.ownedByMe.present ? data.ownedByMe.value : this.ownedByMe,
-      mediatorDid:
-          data.mediatorDid.present ? data.mediatorDid.value : this.mediatorDid,
+      mediatorDid: data.mediatorDid.present
+          ? data.mediatorDid.value
+          : this.mediatorDid,
       aliasId: data.aliasId.present ? data.aliasId.value : this.aliasId,
       outboundMessageId: data.outboundMessageId.present
           ? data.outboundMessageId.value
@@ -773,9 +1031,11 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       otherPartyNotificationToken: data.otherPartyNotificationToken.present
           ? data.otherPartyNotificationToken.value
           : this.otherPartyNotificationToken,
-      externalRef:
-          data.externalRef.present ? data.externalRef.value : this.externalRef,
+      externalRef: data.externalRef.present
+          ? data.externalRef.value
+          : this.externalRef,
       transport: data.transport.present ? data.transport.value : this.transport,
+      score: data.score.present ? data.score.value : this.score,
     );
   }
 
@@ -801,41 +1061,44 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           ..write('acceptOfferDid: $acceptOfferDid, ')
           ..write('permanentChannelDid: $permanentChannelDid, ')
           ..write(
-              'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ')
+            'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
+          )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
-          ..write('transport: $transport')
+          ..write('transport: $transport, ')
+          ..write('score: $score')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hashAll([
-        id,
-        offerName,
-        offerLink,
-        offerDescription,
-        oobInvitationMessage,
-        mnemonic,
-        expiresAt,
-        createdAt,
-        publishOfferDid,
-        type,
-        status,
-        maximumUsage,
-        ownedByMe,
-        mediatorDid,
-        aliasId,
-        outboundMessageId,
-        acceptOfferDid,
-        permanentChannelDid,
-        otherPartyPermanentChannelDid,
-        notificationToken,
-        otherPartyNotificationToken,
-        externalRef,
-        transport
-      ]);
+    id,
+    offerName,
+    offerLink,
+    offerDescription,
+    oobInvitationMessage,
+    mnemonic,
+    expiresAt,
+    createdAt,
+    publishOfferDid,
+    type,
+    status,
+    maximumUsage,
+    ownedByMe,
+    mediatorDid,
+    aliasId,
+    outboundMessageId,
+    acceptOfferDid,
+    permanentChannelDid,
+    otherPartyPermanentChannelDid,
+    notificationToken,
+    otherPartyNotificationToken,
+    externalRef,
+    transport,
+    score,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -864,7 +1127,8 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           other.otherPartyNotificationToken ==
               this.otherPartyNotificationToken &&
           other.externalRef == this.externalRef &&
-          other.transport == this.transport);
+          other.transport == this.transport &&
+          other.score == this.score);
 }
 
 class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
@@ -891,6 +1155,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
   final Value<String?> otherPartyNotificationToken;
   final Value<String?> externalRef;
   final Value<ChannelTransport> transport;
+  final Value<int?> score;
   final Value<int> rowid;
   const ConnectionOffersCompanion({
     this.id = const Value.absent(),
@@ -916,6 +1181,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
     this.transport = const Value.absent(),
+    this.score = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ConnectionOffersCompanion.insert({
@@ -942,16 +1208,17 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
     this.transport = const Value.absent(),
+    this.score = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : offerName = Value(offerName),
-        offerLink = Value(offerLink),
-        oobInvitationMessage = Value(oobInvitationMessage),
-        mnemonic = Value(mnemonic),
-        createdAt = Value(createdAt),
-        publishOfferDid = Value(publishOfferDid),
-        type = Value(type),
-        status = Value(status),
-        mediatorDid = Value(mediatorDid);
+  }) : offerName = Value(offerName),
+       offerLink = Value(offerLink),
+       oobInvitationMessage = Value(oobInvitationMessage),
+       mnemonic = Value(mnemonic),
+       createdAt = Value(createdAt),
+       publishOfferDid = Value(publishOfferDid),
+       type = Value(type),
+       status = Value(status),
+       mediatorDid = Value(mediatorDid);
   static Insertable<ConnectionOffer> custom({
     Expression<String>? id,
     Expression<String>? offerName,
@@ -976,6 +1243,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     Expression<String>? otherPartyNotificationToken,
     Expression<String>? externalRef,
     Expression<int>? transport,
+    Expression<int>? score,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1006,35 +1274,38 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
         'other_party_notification_token': otherPartyNotificationToken,
       if (externalRef != null) 'external_ref': externalRef,
       if (transport != null) 'transport': transport,
+      if (score != null) 'score': score,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  ConnectionOffersCompanion copyWith(
-      {Value<String>? id,
-      Value<String>? offerName,
-      Value<String>? offerLink,
-      Value<String?>? offerDescription,
-      Value<String>? oobInvitationMessage,
-      Value<String>? mnemonic,
-      Value<DateTime?>? expiresAt,
-      Value<DateTime>? createdAt,
-      Value<String>? publishOfferDid,
-      Value<ConnectionOfferType>? type,
-      Value<ConnectionOfferStatus>? status,
-      Value<int?>? maximumUsage,
-      Value<bool>? ownedByMe,
-      Value<String>? mediatorDid,
-      Value<String?>? aliasId,
-      Value<String?>? outboundMessageId,
-      Value<String?>? acceptOfferDid,
-      Value<String?>? permanentChannelDid,
-      Value<String?>? otherPartyPermanentChannelDid,
-      Value<String?>? notificationToken,
-      Value<String?>? otherPartyNotificationToken,
-      Value<String?>? externalRef,
-      Value<ChannelTransport>? transport,
-      Value<int>? rowid}) {
+  ConnectionOffersCompanion copyWith({
+    Value<String>? id,
+    Value<String>? offerName,
+    Value<String>? offerLink,
+    Value<String?>? offerDescription,
+    Value<String>? oobInvitationMessage,
+    Value<String>? mnemonic,
+    Value<DateTime?>? expiresAt,
+    Value<DateTime>? createdAt,
+    Value<String>? publishOfferDid,
+    Value<ConnectionOfferType>? type,
+    Value<ConnectionOfferStatus>? status,
+    Value<int?>? maximumUsage,
+    Value<bool>? ownedByMe,
+    Value<String>? mediatorDid,
+    Value<String?>? aliasId,
+    Value<String?>? outboundMessageId,
+    Value<String?>? acceptOfferDid,
+    Value<String?>? permanentChannelDid,
+    Value<String?>? otherPartyPermanentChannelDid,
+    Value<String?>? notificationToken,
+    Value<String?>? otherPartyNotificationToken,
+    Value<String?>? externalRef,
+    Value<ChannelTransport>? transport,
+    Value<int?>? score,
+    Value<int>? rowid,
+  }) {
     return ConnectionOffersCompanion(
       id: id ?? this.id,
       offerName: offerName ?? this.offerName,
@@ -1061,6 +1332,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef ?? this.externalRef,
       transport: transport ?? this.transport,
+      score: score ?? this.score,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1081,8 +1353,9 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       map['offer_description'] = Variable<String>(offerDescription.value);
     }
     if (oobInvitationMessage.present) {
-      map['oob_invitation_message'] =
-          Variable<String>(oobInvitationMessage.value);
+      map['oob_invitation_message'] = Variable<String>(
+        oobInvitationMessage.value,
+      );
     }
     if (mnemonic.present) {
       map['mnemonic'] = Variable<String>(mnemonic.value);
@@ -1098,11 +1371,13 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     }
     if (type.present) {
       map['type'] = Variable<int>(
-          $ConnectionOffersTable.$convertertype.toSql(type.value));
+        $ConnectionOffersTable.$convertertype.toSql(type.value),
+      );
     }
     if (status.present) {
       map['status'] = Variable<int>(
-          $ConnectionOffersTable.$converterstatus.toSql(status.value));
+        $ConnectionOffersTable.$converterstatus.toSql(status.value),
+      );
     }
     if (maximumUsage.present) {
       map['maximum_usage'] = Variable<int>(maximumUsage.value);
@@ -1123,26 +1398,33 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       map['accept_offer_did'] = Variable<String>(acceptOfferDid.value);
     }
     if (permanentChannelDid.present) {
-      map['permanent_channel_did'] =
-          Variable<String>(permanentChannelDid.value);
+      map['permanent_channel_did'] = Variable<String>(
+        permanentChannelDid.value,
+      );
     }
     if (otherPartyPermanentChannelDid.present) {
-      map['other_party_permanent_channel_did'] =
-          Variable<String>(otherPartyPermanentChannelDid.value);
+      map['other_party_permanent_channel_did'] = Variable<String>(
+        otherPartyPermanentChannelDid.value,
+      );
     }
     if (notificationToken.present) {
       map['notification_token'] = Variable<String>(notificationToken.value);
     }
     if (otherPartyNotificationToken.present) {
-      map['other_party_notification_token'] =
-          Variable<String>(otherPartyNotificationToken.value);
+      map['other_party_notification_token'] = Variable<String>(
+        otherPartyNotificationToken.value,
+      );
     }
     if (externalRef.present) {
       map['external_ref'] = Variable<String>(externalRef.value);
     }
     if (transport.present) {
       map['transport'] = Variable<int>(
-          $ConnectionOffersTable.$convertertransport.toSql(transport.value));
+        $ConnectionOffersTable.$convertertransport.toSql(transport.value),
+      );
+    }
+    if (score.present) {
+      map['score'] = Variable<int>(score.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1172,11 +1454,13 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
           ..write('acceptOfferDid: $acceptOfferDid, ')
           ..write('permanentChannelDid: $permanentChannelDid, ')
           ..write(
-              'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ')
+            'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
+          )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
           ..write('transport: $transport, ')
+          ..write('score: $score, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1192,48 +1476,80 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _connectionOfferIdMeta =
-      const VerificationMeta('connectionOfferId');
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _connectionOfferIdMeta = const VerificationMeta(
+    'connectionOfferId',
+  );
   @override
-  late final GeneratedColumn<String> connectionOfferId = GeneratedColumn<
-          String>('connection_offer_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints:
-          'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL');
+  late final GeneratedColumn<String>
+  connectionOfferId = GeneratedColumn<String>(
+    'connection_offer_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
+  );
   static const VerificationMeta _didMeta = const VerificationMeta('did');
   @override
   late final GeneratedColumn<String> did = GeneratedColumn<String>(
-      'did', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+    'did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
   late final GeneratedColumn<String> type = GeneratedColumn<String>(
-      'type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _contactInfoJsonMeta =
-      const VerificationMeta('contactInfoJson');
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contactInfoJsonMeta = const VerificationMeta(
+    'contactInfoJson',
+  );
   @override
   late final GeneratedColumn<String> contactInfoJson = GeneratedColumn<String>(
-      'contact_info_json', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      defaultValue: const Constant('{}'));
-  static const VerificationMeta _profilePicMeta =
-      const VerificationMeta('profilePic');
+    'contact_info_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _profilePicMeta = const VerificationMeta(
+    'profilePic',
+  );
   @override
   late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
-      'profile_pic', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'profile_pic',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, connectionOfferId, did, type, contactInfoJson, profilePic];
+  List<GeneratedColumn> get $columns => [
+    id,
+    connectionOfferId,
+    did,
+    type,
+    contactInfoJson,
+    profilePic,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1241,8 +1557,9 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
   static const String $name = 'connection_contact_cards';
   @override
   VerificationContext validateIntegrity(
-      Insertable<ConnectionContactCard> instance,
-      {bool isInserting = false}) {
+    Insertable<ConnectionContactCard> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -1250,35 +1567,45 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
     }
     if (data.containsKey('connection_offer_id')) {
       context.handle(
+        _connectionOfferIdMeta,
+        connectionOfferId.isAcceptableOrUnknown(
+          data['connection_offer_id']!,
           _connectionOfferIdMeta,
-          connectionOfferId.isAcceptableOrUnknown(
-              data['connection_offer_id']!, _connectionOfferIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_connectionOfferIdMeta);
     }
     if (data.containsKey('did')) {
       context.handle(
-          _didMeta, did.isAcceptableOrUnknown(data['did']!, _didMeta));
+        _didMeta,
+        did.isAcceptableOrUnknown(data['did']!, _didMeta),
+      );
     } else if (isInserting) {
       context.missing(_didMeta);
     }
     if (data.containsKey('type')) {
       context.handle(
-          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
     } else if (isInserting) {
       context.missing(_typeMeta);
     }
     if (data.containsKey('contact_info_json')) {
       context.handle(
+        _contactInfoJsonMeta,
+        contactInfoJson.isAcceptableOrUnknown(
+          data['contact_info_json']!,
           _contactInfoJsonMeta,
-          contactInfoJson.isAcceptableOrUnknown(
-              data['contact_info_json']!, _contactInfoJsonMeta));
+        ),
+      );
     }
     if (data.containsKey('profile_pic')) {
       context.handle(
-          _profilePicMeta,
-          profilePic.isAcceptableOrUnknown(
-              data['profile_pic']!, _profilePicMeta));
+        _profilePicMeta,
+        profilePic.isAcceptableOrUnknown(data['profile_pic']!, _profilePicMeta),
+      );
     }
     return context;
   }
@@ -1289,18 +1616,30 @@ class $ConnectionContactCardsTable extends ConnectionContactCards
   ConnectionContactCard map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ConnectionContactCard(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
       connectionOfferId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}connection_offer_id'])!,
-      did: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
-      type: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+        DriftSqlType.string,
+        data['${effectivePrefix}connection_offer_id'],
+      )!,
+      did: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}did'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
       contactInfoJson: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}contact_info_json'])!,
-      profilePic: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}profile_pic']),
+        DriftSqlType.string,
+        data['${effectivePrefix}contact_info_json'],
+      )!,
+      profilePic: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}profile_pic'],
+      ),
     );
   }
 
@@ -1329,13 +1668,14 @@ class ConnectionContactCard extends DataClass
 
   /// Profile picture of the contact.
   final String? profilePic;
-  const ConnectionContactCard(
-      {required this.id,
-      required this.connectionOfferId,
-      required this.did,
-      required this.type,
-      required this.contactInfoJson,
-      this.profilePic});
+  const ConnectionContactCard({
+    required this.id,
+    required this.connectionOfferId,
+    required this.did,
+    required this.type,
+    required this.contactInfoJson,
+    this.profilePic,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1363,8 +1703,10 @@ class ConnectionContactCard extends DataClass
     );
   }
 
-  factory ConnectionContactCard.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory ConnectionContactCard.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ConnectionContactCard(
       id: serializer.fromJson<int>(json['id']),
@@ -1388,23 +1730,24 @@ class ConnectionContactCard extends DataClass
     };
   }
 
-  ConnectionContactCard copyWith(
-          {int? id,
-          String? connectionOfferId,
-          String? did,
-          String? type,
-          String? contactInfoJson,
-          Value<String?> profilePic = const Value.absent()}) =>
-      ConnectionContactCard(
-        id: id ?? this.id,
-        connectionOfferId: connectionOfferId ?? this.connectionOfferId,
-        did: did ?? this.did,
-        type: type ?? this.type,
-        contactInfoJson: contactInfoJson ?? this.contactInfoJson,
-        profilePic: profilePic.present ? profilePic.value : this.profilePic,
-      );
+  ConnectionContactCard copyWith({
+    int? id,
+    String? connectionOfferId,
+    String? did,
+    String? type,
+    String? contactInfoJson,
+    Value<String?> profilePic = const Value.absent(),
+  }) => ConnectionContactCard(
+    id: id ?? this.id,
+    connectionOfferId: connectionOfferId ?? this.connectionOfferId,
+    did: did ?? this.did,
+    type: type ?? this.type,
+    contactInfoJson: contactInfoJson ?? this.contactInfoJson,
+    profilePic: profilePic.present ? profilePic.value : this.profilePic,
+  );
   ConnectionContactCard copyWithCompanion(
-      ConnectionContactCardsCompanion data) {
+    ConnectionContactCardsCompanion data,
+  ) {
     return ConnectionContactCard(
       id: data.id.present ? data.id.value : this.id,
       connectionOfferId: data.connectionOfferId.present
@@ -1415,8 +1758,9 @@ class ConnectionContactCard extends DataClass
       contactInfoJson: data.contactInfoJson.present
           ? data.contactInfoJson.value
           : this.contactInfoJson,
-      profilePic:
-          data.profilePic.present ? data.profilePic.value : this.profilePic,
+      profilePic: data.profilePic.present
+          ? data.profilePic.value
+          : this.profilePic,
     );
   }
 
@@ -1435,7 +1779,13 @@ class ConnectionContactCard extends DataClass
 
   @override
   int get hashCode => Object.hash(
-      id, connectionOfferId, did, type, contactInfoJson, profilePic);
+    id,
+    connectionOfferId,
+    did,
+    type,
+    contactInfoJson,
+    profilePic,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1471,9 +1821,9 @@ class ConnectionContactCardsCompanion
     required String type,
     this.contactInfoJson = const Value.absent(),
     this.profilePic = const Value.absent(),
-  })  : connectionOfferId = Value(connectionOfferId),
-        did = Value(did),
-        type = Value(type);
+  }) : connectionOfferId = Value(connectionOfferId),
+       did = Value(did),
+       type = Value(type);
   static Insertable<ConnectionContactCard> custom({
     Expression<int>? id,
     Expression<String>? connectionOfferId,
@@ -1492,13 +1842,14 @@ class ConnectionContactCardsCompanion
     });
   }
 
-  ConnectionContactCardsCompanion copyWith(
-      {Value<int>? id,
-      Value<String>? connectionOfferId,
-      Value<String>? did,
-      Value<String>? type,
-      Value<String>? contactInfoJson,
-      Value<String?>? profilePic}) {
+  ConnectionContactCardsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? connectionOfferId,
+    Value<String>? did,
+    Value<String>? type,
+    Value<String>? contactInfoJson,
+    Value<String?>? profilePic,
+  }) {
     return ConnectionContactCardsCompanion(
       id: id ?? this.id,
       connectionOfferId: connectionOfferId ?? this.connectionOfferId,
@@ -1553,54 +1904,84 @@ class $GroupConnectionOffersTable extends GroupConnectionOffers
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $GroupConnectionOffersTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _connectionOfferIdMeta =
-      const VerificationMeta('connectionOfferId');
+  static const VerificationMeta _connectionOfferIdMeta = const VerificationMeta(
+    'connectionOfferId',
+  );
   @override
-  late final GeneratedColumn<String> connectionOfferId = GeneratedColumn<
-          String>('connection_offer_id', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints:
-          'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL');
-  static const VerificationMeta _memberDidMeta =
-      const VerificationMeta('memberDid');
+  late final GeneratedColumn<String>
+  connectionOfferId = GeneratedColumn<String>(
+    'connection_offer_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints:
+        'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
+  );
+  static const VerificationMeta _memberDidMeta = const VerificationMeta(
+    'memberDid',
+  );
   @override
   late final GeneratedColumn<String> memberDid = GeneratedColumn<String>(
-      'member_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _groupIdMeta =
-      const VerificationMeta('groupId');
+    'member_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
   @override
   late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
-      'group_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _groupOwnerDidMeta =
-      const VerificationMeta('groupOwnerDid');
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupOwnerDidMeta = const VerificationMeta(
+    'groupOwnerDid',
+  );
   @override
   late final GeneratedColumn<String> groupOwnerDid = GeneratedColumn<String>(
-      'group_owner_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _groupDidMeta =
-      const VerificationMeta('groupDid');
+    'group_owner_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _groupDidMeta = const VerificationMeta(
+    'groupDid',
+  );
   @override
   late final GeneratedColumn<String> groupDid = GeneratedColumn<String>(
-      'group_did', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _metadataMeta =
-      const VerificationMeta('metadata');
+    'group_did',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _metadataMeta = const VerificationMeta(
+    'metadata',
+  );
   @override
   late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
-      'metadata', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+    'metadata',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
-        connectionOfferId,
-        memberDid,
-        groupId,
-        groupOwnerDid,
-        groupDid,
-        metadata
-      ];
+    connectionOfferId,
+    memberDid,
+    groupId,
+    groupOwnerDid,
+    groupDid,
+    metadata,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1608,41 +1989,56 @@ class $GroupConnectionOffersTable extends GroupConnectionOffers
   static const String $name = 'group_connection_offers';
   @override
   VerificationContext validateIntegrity(
-      Insertable<GroupConnectionOffer> instance,
-      {bool isInserting = false}) {
+    Insertable<GroupConnectionOffer> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('connection_offer_id')) {
       context.handle(
+        _connectionOfferIdMeta,
+        connectionOfferId.isAcceptableOrUnknown(
+          data['connection_offer_id']!,
           _connectionOfferIdMeta,
-          connectionOfferId.isAcceptableOrUnknown(
-              data['connection_offer_id']!, _connectionOfferIdMeta));
+        ),
+      );
     } else if (isInserting) {
       context.missing(_connectionOfferIdMeta);
     }
     if (data.containsKey('member_did')) {
-      context.handle(_memberDidMeta,
-          memberDid.isAcceptableOrUnknown(data['member_did']!, _memberDidMeta));
+      context.handle(
+        _memberDidMeta,
+        memberDid.isAcceptableOrUnknown(data['member_did']!, _memberDidMeta),
+      );
     }
     if (data.containsKey('group_id')) {
-      context.handle(_groupIdMeta,
-          groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta));
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_groupIdMeta);
     }
     if (data.containsKey('group_owner_did')) {
       context.handle(
+        _groupOwnerDidMeta,
+        groupOwnerDid.isAcceptableOrUnknown(
+          data['group_owner_did']!,
           _groupOwnerDidMeta,
-          groupOwnerDid.isAcceptableOrUnknown(
-              data['group_owner_did']!, _groupOwnerDidMeta));
+        ),
+      );
     }
     if (data.containsKey('group_did')) {
-      context.handle(_groupDidMeta,
-          groupDid.isAcceptableOrUnknown(data['group_did']!, _groupDidMeta));
+      context.handle(
+        _groupDidMeta,
+        groupDid.isAcceptableOrUnknown(data['group_did']!, _groupDidMeta),
+      );
     }
     if (data.containsKey('metadata')) {
-      context.handle(_metadataMeta,
-          metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta));
+      context.handle(
+        _metadataMeta,
+        metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
+      );
     }
     return context;
   }
@@ -1654,17 +2050,29 @@ class $GroupConnectionOffersTable extends GroupConnectionOffers
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return GroupConnectionOffer(
       connectionOfferId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}connection_offer_id'])!,
-      memberDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}member_did']),
-      groupId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}group_id'])!,
-      groupOwnerDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}group_owner_did']),
-      groupDid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}group_did']),
-      metadata: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}metadata']),
+        DriftSqlType.string,
+        data['${effectivePrefix}connection_offer_id'],
+      )!,
+      memberDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}member_did'],
+      ),
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      groupOwnerDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_owner_did'],
+      ),
+      groupDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_did'],
+      ),
+      metadata: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metadata'],
+      ),
     );
   }
 
@@ -1693,13 +2101,14 @@ class GroupConnectionOffer extends DataClass
 
   /// Additional metadata for the group connection offer.
   final String? metadata;
-  const GroupConnectionOffer(
-      {required this.connectionOfferId,
-      this.memberDid,
-      required this.groupId,
-      this.groupOwnerDid,
-      this.groupDid,
-      this.metadata});
+  const GroupConnectionOffer({
+    required this.connectionOfferId,
+    this.memberDid,
+    required this.groupId,
+    this.groupOwnerDid,
+    this.groupDid,
+    this.metadata,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1739,8 +2148,10 @@ class GroupConnectionOffer extends DataClass
     );
   }
 
-  factory GroupConnectionOffer.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory GroupConnectionOffer.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return GroupConnectionOffer(
       connectionOfferId: serializer.fromJson<String>(json['connectionOfferId']),
@@ -1764,22 +2175,23 @@ class GroupConnectionOffer extends DataClass
     };
   }
 
-  GroupConnectionOffer copyWith(
-          {String? connectionOfferId,
-          Value<String?> memberDid = const Value.absent(),
-          String? groupId,
-          Value<String?> groupOwnerDid = const Value.absent(),
-          Value<String?> groupDid = const Value.absent(),
-          Value<String?> metadata = const Value.absent()}) =>
-      GroupConnectionOffer(
-        connectionOfferId: connectionOfferId ?? this.connectionOfferId,
-        memberDid: memberDid.present ? memberDid.value : this.memberDid,
-        groupId: groupId ?? this.groupId,
-        groupOwnerDid:
-            groupOwnerDid.present ? groupOwnerDid.value : this.groupOwnerDid,
-        groupDid: groupDid.present ? groupDid.value : this.groupDid,
-        metadata: metadata.present ? metadata.value : this.metadata,
-      );
+  GroupConnectionOffer copyWith({
+    String? connectionOfferId,
+    Value<String?> memberDid = const Value.absent(),
+    String? groupId,
+    Value<String?> groupOwnerDid = const Value.absent(),
+    Value<String?> groupDid = const Value.absent(),
+    Value<String?> metadata = const Value.absent(),
+  }) => GroupConnectionOffer(
+    connectionOfferId: connectionOfferId ?? this.connectionOfferId,
+    memberDid: memberDid.present ? memberDid.value : this.memberDid,
+    groupId: groupId ?? this.groupId,
+    groupOwnerDid: groupOwnerDid.present
+        ? groupOwnerDid.value
+        : this.groupOwnerDid,
+    groupDid: groupDid.present ? groupDid.value : this.groupDid,
+    metadata: metadata.present ? metadata.value : this.metadata,
+  );
   GroupConnectionOffer copyWithCompanion(GroupConnectionOffersCompanion data) {
     return GroupConnectionOffer(
       connectionOfferId: data.connectionOfferId.present
@@ -1810,7 +2222,13 @@ class GroupConnectionOffer extends DataClass
 
   @override
   int get hashCode => Object.hash(
-      connectionOfferId, memberDid, groupId, groupOwnerDid, groupDid, metadata);
+    connectionOfferId,
+    memberDid,
+    groupId,
+    groupOwnerDid,
+    groupDid,
+    metadata,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1849,8 +2267,8 @@ class GroupConnectionOffersCompanion
     this.groupDid = const Value.absent(),
     this.metadata = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : connectionOfferId = Value(connectionOfferId),
-        groupId = Value(groupId);
+  }) : connectionOfferId = Value(connectionOfferId),
+       groupId = Value(groupId);
   static Insertable<GroupConnectionOffer> custom({
     Expression<String>? connectionOfferId,
     Expression<String>? memberDid,
@@ -1871,14 +2289,15 @@ class GroupConnectionOffersCompanion
     });
   }
 
-  GroupConnectionOffersCompanion copyWith(
-      {Value<String>? connectionOfferId,
-      Value<String?>? memberDid,
-      Value<String>? groupId,
-      Value<String?>? groupOwnerDid,
-      Value<String?>? groupDid,
-      Value<String?>? metadata,
-      Value<int>? rowid}) {
+  GroupConnectionOffersCompanion copyWith({
+    Value<String>? connectionOfferId,
+    Value<String?>? memberDid,
+    Value<String>? groupId,
+    Value<String?>? groupOwnerDid,
+    Value<String?>? groupDid,
+    Value<String?>? metadata,
+    Value<int>? rowid,
+  }) {
     return GroupConnectionOffersCompanion(
       connectionOfferId: connectionOfferId ?? this.connectionOfferId,
       memberDid: memberDid ?? this.memberDid,
@@ -1936,8 +2355,9 @@ abstract class _$ConnectionOfferDatabase extends GeneratedDatabase {
   _$ConnectionOfferDatabase(QueryExecutor e) : super(e);
   $ConnectionOfferDatabaseManager get managers =>
       $ConnectionOfferDatabaseManager(this);
-  late final $ConnectionOffersTable connectionOffers =
-      $ConnectionOffersTable(this);
+  late final $ConnectionOffersTable connectionOffers = $ConnectionOffersTable(
+    this,
+  );
   late final $ConnectionContactCardsTable connectionContactCards =
       $ConnectionContactCardsTable(this);
   late final $GroupConnectionOffersTable groupConnectionOffers =
@@ -1946,130 +2366,165 @@ abstract class _$ConnectionOfferDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [connectionOffers, connectionContactCards, groupConnectionOffers];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    connectionOffers,
+    connectionContactCards,
+    groupConnectionOffers,
+  ];
   @override
-  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
-        [
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('connection_offers',
-                limitUpdateKind: UpdateKind.delete),
-            result: [
-              TableUpdate('connection_contact_cards', kind: UpdateKind.delete),
-            ],
-          ),
-          WritePropagation(
-            on: TableUpdateQuery.onTableName('connection_offers',
-                limitUpdateKind: UpdateKind.delete),
-            result: [
-              TableUpdate('group_connection_offers', kind: UpdateKind.delete),
-            ],
-          ),
-        ],
-      );
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'connection_offers',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [
+        TableUpdate('connection_contact_cards', kind: UpdateKind.delete),
+      ],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'connection_offers',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('group_connection_offers', kind: UpdateKind.delete)],
+    ),
+  ]);
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$ConnectionOffersTableCreateCompanionBuilder
-    = ConnectionOffersCompanion Function({
-  Value<String> id,
-  required String offerName,
-  required String offerLink,
-  Value<String?> offerDescription,
-  required String oobInvitationMessage,
-  required String mnemonic,
-  Value<DateTime?> expiresAt,
-  required DateTime createdAt,
-  required String publishOfferDid,
-  required ConnectionOfferType type,
-  required ConnectionOfferStatus status,
-  Value<int?> maximumUsage,
-  Value<bool> ownedByMe,
-  required String mediatorDid,
-  Value<String?> aliasId,
-  Value<String?> outboundMessageId,
-  Value<String?> acceptOfferDid,
-  Value<String?> permanentChannelDid,
-  Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> notificationToken,
-  Value<String?> otherPartyNotificationToken,
-  Value<String?> externalRef,
-  Value<ChannelTransport> transport,
-  Value<int> rowid,
-});
-typedef $$ConnectionOffersTableUpdateCompanionBuilder
-    = ConnectionOffersCompanion Function({
-  Value<String> id,
-  Value<String> offerName,
-  Value<String> offerLink,
-  Value<String?> offerDescription,
-  Value<String> oobInvitationMessage,
-  Value<String> mnemonic,
-  Value<DateTime?> expiresAt,
-  Value<DateTime> createdAt,
-  Value<String> publishOfferDid,
-  Value<ConnectionOfferType> type,
-  Value<ConnectionOfferStatus> status,
-  Value<int?> maximumUsage,
-  Value<bool> ownedByMe,
-  Value<String> mediatorDid,
-  Value<String?> aliasId,
-  Value<String?> outboundMessageId,
-  Value<String?> acceptOfferDid,
-  Value<String?> permanentChannelDid,
-  Value<String?> otherPartyPermanentChannelDid,
-  Value<String?> notificationToken,
-  Value<String?> otherPartyNotificationToken,
-  Value<String?> externalRef,
-  Value<ChannelTransport> transport,
-  Value<int> rowid,
-});
+typedef $$ConnectionOffersTableCreateCompanionBuilder =
+    ConnectionOffersCompanion Function({
+      Value<String> id,
+      required String offerName,
+      required String offerLink,
+      Value<String?> offerDescription,
+      required String oobInvitationMessage,
+      required String mnemonic,
+      Value<DateTime?> expiresAt,
+      required DateTime createdAt,
+      required String publishOfferDid,
+      required ConnectionOfferType type,
+      required ConnectionOfferStatus status,
+      Value<int?> maximumUsage,
+      Value<bool> ownedByMe,
+      required String mediatorDid,
+      Value<String?> aliasId,
+      Value<String?> outboundMessageId,
+      Value<String?> acceptOfferDid,
+      Value<String?> permanentChannelDid,
+      Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> notificationToken,
+      Value<String?> otherPartyNotificationToken,
+      Value<String?> externalRef,
+      Value<ChannelTransport> transport,
+      Value<int?> score,
+      Value<int> rowid,
+    });
+typedef $$ConnectionOffersTableUpdateCompanionBuilder =
+    ConnectionOffersCompanion Function({
+      Value<String> id,
+      Value<String> offerName,
+      Value<String> offerLink,
+      Value<String?> offerDescription,
+      Value<String> oobInvitationMessage,
+      Value<String> mnemonic,
+      Value<DateTime?> expiresAt,
+      Value<DateTime> createdAt,
+      Value<String> publishOfferDid,
+      Value<ConnectionOfferType> type,
+      Value<ConnectionOfferStatus> status,
+      Value<int?> maximumUsage,
+      Value<bool> ownedByMe,
+      Value<String> mediatorDid,
+      Value<String?> aliasId,
+      Value<String?> outboundMessageId,
+      Value<String?> acceptOfferDid,
+      Value<String?> permanentChannelDid,
+      Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> notificationToken,
+      Value<String?> otherPartyNotificationToken,
+      Value<String?> externalRef,
+      Value<ChannelTransport> transport,
+      Value<int?> score,
+      Value<int> rowid,
+    });
 
-final class $$ConnectionOffersTableReferences extends BaseReferences<
-    _$ConnectionOfferDatabase, $ConnectionOffersTable, ConnectionOffer> {
+final class $$ConnectionOffersTableReferences
+    extends
+        BaseReferences<
+          _$ConnectionOfferDatabase,
+          $ConnectionOffersTable,
+          ConnectionOffer
+        > {
   $$ConnectionOffersTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
 
-  static MultiTypedResultKey<$ConnectionContactCardsTable,
-      List<ConnectionContactCard>> _connectionContactCardsRefsTable(
-          _$ConnectionOfferDatabase db) =>
-      MultiTypedResultKey.fromTable(db.connectionContactCards,
-          aliasName: $_aliasNameGenerator(db.connectionOffers.id,
-              db.connectionContactCards.connectionOfferId));
+  static MultiTypedResultKey<
+    $ConnectionContactCardsTable,
+    List<ConnectionContactCard>
+  >
+  _connectionContactCardsRefsTable(_$ConnectionOfferDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.connectionContactCards,
+        aliasName: $_aliasNameGenerator(
+          db.connectionOffers.id,
+          db.connectionContactCards.connectionOfferId,
+        ),
+      );
 
   $$ConnectionContactCardsTableProcessedTableManager
-      get connectionContactCardsRefs {
-    final manager = $$ConnectionContactCardsTableTableManager(
-            $_db, $_db.connectionContactCards)
-        .filter((f) =>
-            f.connectionOfferId.id.sqlEquals($_itemColumn<String>('id')!));
+  get connectionContactCardsRefs {
+    final manager =
+        $$ConnectionContactCardsTableTableManager(
+          $_db,
+          $_db.connectionContactCards,
+        ).filter(
+          (f) => f.connectionOfferId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
 
-    final cache =
-        $_typedResult.readTableOrNull(_connectionContactCardsRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(
+      _connectionContactCardsRefsTable($_db),
+    );
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
+      manager.$state.copyWith(prefetchedData: cache),
+    );
   }
 
-  static MultiTypedResultKey<$GroupConnectionOffersTable,
-      List<GroupConnectionOffer>> _groupConnectionOffersRefsTable(
-          _$ConnectionOfferDatabase db) =>
-      MultiTypedResultKey.fromTable(db.groupConnectionOffers,
-          aliasName: $_aliasNameGenerator(db.connectionOffers.id,
-              db.groupConnectionOffers.connectionOfferId));
+  static MultiTypedResultKey<
+    $GroupConnectionOffersTable,
+    List<GroupConnectionOffer>
+  >
+  _groupConnectionOffersRefsTable(_$ConnectionOfferDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.groupConnectionOffers,
+        aliasName: $_aliasNameGenerator(
+          db.connectionOffers.id,
+          db.groupConnectionOffers.connectionOfferId,
+        ),
+      );
 
   $$GroupConnectionOffersTableProcessedTableManager
-      get groupConnectionOffersRefs {
-    final manager = $$GroupConnectionOffersTableTableManager(
-            $_db, $_db.groupConnectionOffers)
-        .filter((f) =>
-            f.connectionOfferId.id.sqlEquals($_itemColumn<String>('id')!));
+  get groupConnectionOffersRefs {
+    final manager =
+        $$GroupConnectionOffersTableTableManager(
+          $_db,
+          $_db.groupConnectionOffers,
+        ).filter(
+          (f) => f.connectionOfferId.id.sqlEquals($_itemColumn<String>('id')!),
+        );
 
-    final cache =
-        $_typedResult.readTableOrNull(_groupConnectionOffersRefsTable($_db));
+    final cache = $_typedResult.readTableOrNull(
+      _groupConnectionOffersRefsTable($_db),
+    );
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: cache));
+      manager.$state.copyWith(prefetchedData: cache),
+    );
   }
 }
 
@@ -2083,133 +2538,181 @@ class $$ConnectionOffersTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get offerName => $composableBuilder(
-      column: $table.offerName, builder: (column) => ColumnFilters(column));
+    column: $table.offerName,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get offerLink => $composableBuilder(
-      column: $table.offerLink, builder: (column) => ColumnFilters(column));
+    column: $table.offerLink,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get offerDescription => $composableBuilder(
-      column: $table.offerDescription,
-      builder: (column) => ColumnFilters(column));
+    column: $table.offerDescription,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get oobInvitationMessage => $composableBuilder(
-      column: $table.oobInvitationMessage,
-      builder: (column) => ColumnFilters(column));
+    column: $table.oobInvitationMessage,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get mnemonic => $composableBuilder(
-      column: $table.mnemonic, builder: (column) => ColumnFilters(column));
+    column: $table.mnemonic,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get expiresAt => $composableBuilder(
-      column: $table.expiresAt, builder: (column) => ColumnFilters(column));
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get publishOfferDid => $composableBuilder(
-      column: $table.publishOfferDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.publishOfferDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<ConnectionOfferType, ConnectionOfferType, int>
-      get type => $composableBuilder(
-          column: $table.type,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 
-  ColumnWithTypeConverterFilters<ConnectionOfferStatus, ConnectionOfferStatus,
-          int>
-      get status => $composableBuilder(
-          column: $table.status,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  ColumnWithTypeConverterFilters<
+    ConnectionOfferStatus,
+    ConnectionOfferStatus,
+    int
+  >
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
 
   ColumnFilters<int> get maximumUsage => $composableBuilder(
-      column: $table.maximumUsage, builder: (column) => ColumnFilters(column));
+    column: $table.maximumUsage,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<bool> get ownedByMe => $composableBuilder(
-      column: $table.ownedByMe, builder: (column) => ColumnFilters(column));
+    column: $table.ownedByMe,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get mediatorDid => $composableBuilder(
-      column: $table.mediatorDid, builder: (column) => ColumnFilters(column));
+    column: $table.mediatorDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get aliasId => $composableBuilder(
-      column: $table.aliasId, builder: (column) => ColumnFilters(column));
+    column: $table.aliasId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get outboundMessageId => $composableBuilder(
-      column: $table.outboundMessageId,
-      builder: (column) => ColumnFilters(column));
+    column: $table.outboundMessageId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get acceptOfferDid => $composableBuilder(
-      column: $table.acceptOfferDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.acceptOfferDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.permanentChannelDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get otherPartyPermanentChannelDid => $composableBuilder(
-      column: $table.otherPartyPermanentChannelDid,
-      builder: (column) => ColumnFilters(column));
+    column: $table.otherPartyPermanentChannelDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get notificationToken => $composableBuilder(
-      column: $table.notificationToken,
-      builder: (column) => ColumnFilters(column));
+    column: $table.notificationToken,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get otherPartyNotificationToken => $composableBuilder(
-      column: $table.otherPartyNotificationToken,
-      builder: (column) => ColumnFilters(column));
+    column: $table.otherPartyNotificationToken,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get externalRef => $composableBuilder(
-      column: $table.externalRef, builder: (column) => ColumnFilters(column));
+    column: $table.externalRef,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnWithTypeConverterFilters<ChannelTransport, ChannelTransport, int>
-      get transport => $composableBuilder(
-          column: $table.transport,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
+  get transport => $composableBuilder(
+    column: $table.transport,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
 
   Expression<bool> connectionContactCardsRefs(
-      Expression<bool> Function($$ConnectionContactCardsTableFilterComposer f)
-          f) {
+    Expression<bool> Function($$ConnectionContactCardsTableFilterComposer f) f,
+  ) {
     final $$ConnectionContactCardsTableFilterComposer composer =
         $composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $db.connectionContactCards,
-            getReferencedColumn: (t) => t.connectionOfferId,
-            builder: (joinBuilder,
-                    {$addJoinBuilderToRootComposer,
-                    $removeJoinBuilderFromRootComposer}) =>
-                $$ConnectionContactCardsTableFilterComposer(
-                  $db: $db,
-                  $table: $db.connectionContactCards,
-                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                  joinBuilder: joinBuilder,
-                  $removeJoinBuilderFromRootComposer:
-                      $removeJoinBuilderFromRootComposer,
-                ));
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.connectionContactCards,
+          getReferencedColumn: (t) => t.connectionOfferId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ConnectionContactCardsTableFilterComposer(
+                $db: $db,
+                $table: $db.connectionContactCards,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 
   Expression<bool> groupConnectionOffersRefs(
-      Expression<bool> Function($$GroupConnectionOffersTableFilterComposer f)
-          f) {
+    Expression<bool> Function($$GroupConnectionOffersTableFilterComposer f) f,
+  ) {
     final $$GroupConnectionOffersTableFilterComposer composer =
         $composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $db.groupConnectionOffers,
-            getReferencedColumn: (t) => t.connectionOfferId,
-            builder: (joinBuilder,
-                    {$addJoinBuilderToRootComposer,
-                    $removeJoinBuilderFromRootComposer}) =>
-                $$GroupConnectionOffersTableFilterComposer(
-                  $db: $db,
-                  $table: $db.groupConnectionOffers,
-                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                  joinBuilder: joinBuilder,
-                  $removeJoinBuilderFromRootComposer:
-                      $removeJoinBuilderFromRootComposer,
-                ));
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.groupConnectionOffers,
+          getReferencedColumn: (t) => t.connectionOfferId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$GroupConnectionOffersTableFilterComposer(
+                $db: $db,
+                $table: $db.groupConnectionOffers,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -2224,84 +2727,125 @@ class $$ConnectionOffersTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get offerName => $composableBuilder(
-      column: $table.offerName, builder: (column) => ColumnOrderings(column));
+    column: $table.offerName,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get offerLink => $composableBuilder(
-      column: $table.offerLink, builder: (column) => ColumnOrderings(column));
+    column: $table.offerLink,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get offerDescription => $composableBuilder(
-      column: $table.offerDescription,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.offerDescription,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get oobInvitationMessage => $composableBuilder(
-      column: $table.oobInvitationMessage,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.oobInvitationMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get mnemonic => $composableBuilder(
-      column: $table.mnemonic, builder: (column) => ColumnOrderings(column));
+    column: $table.mnemonic,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
-      column: $table.expiresAt, builder: (column) => ColumnOrderings(column));
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get publishOfferDid => $composableBuilder(
-      column: $table.publishOfferDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.publishOfferDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get status => $composableBuilder(
-      column: $table.status, builder: (column) => ColumnOrderings(column));
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get maximumUsage => $composableBuilder(
-      column: $table.maximumUsage,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.maximumUsage,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<bool> get ownedByMe => $composableBuilder(
-      column: $table.ownedByMe, builder: (column) => ColumnOrderings(column));
+    column: $table.ownedByMe,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get mediatorDid => $composableBuilder(
-      column: $table.mediatorDid, builder: (column) => ColumnOrderings(column));
+    column: $table.mediatorDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get aliasId => $composableBuilder(
-      column: $table.aliasId, builder: (column) => ColumnOrderings(column));
+    column: $table.aliasId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get outboundMessageId => $composableBuilder(
-      column: $table.outboundMessageId,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.outboundMessageId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get acceptOfferDid => $composableBuilder(
-      column: $table.acceptOfferDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.acceptOfferDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.permanentChannelDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get otherPartyPermanentChannelDid =>
       $composableBuilder(
-          column: $table.otherPartyPermanentChannelDid,
-          builder: (column) => ColumnOrderings(column));
+        column: $table.otherPartyPermanentChannelDid,
+        builder: (column) => ColumnOrderings(column),
+      );
 
   ColumnOrderings<String> get notificationToken => $composableBuilder(
-      column: $table.notificationToken,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.notificationToken,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get otherPartyNotificationToken => $composableBuilder(
-      column: $table.otherPartyNotificationToken,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.otherPartyNotificationToken,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get externalRef => $composableBuilder(
-      column: $table.externalRef, builder: (column) => ColumnOrderings(column));
+    column: $table.externalRef,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<int> get transport => $composableBuilder(
-      column: $table.transport, builder: (column) => ColumnOrderings(column));
+    column: $table.transport,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ConnectionOffersTableAnnotationComposer
@@ -2323,10 +2867,14 @@ class $$ConnectionOffersTableAnnotationComposer
       $composableBuilder(column: $table.offerLink, builder: (column) => column);
 
   GeneratedColumn<String> get offerDescription => $composableBuilder(
-      column: $table.offerDescription, builder: (column) => column);
+    column: $table.offerDescription,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get oobInvitationMessage => $composableBuilder(
-      column: $table.oobInvitationMessage, builder: (column) => column);
+    column: $table.oobInvitationMessage,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get mnemonic =>
       $composableBuilder(column: $table.mnemonic, builder: (column) => column);
@@ -2338,7 +2886,9 @@ class $$ConnectionOffersTableAnnotationComposer
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<String> get publishOfferDid => $composableBuilder(
-      column: $table.publishOfferDid, builder: (column) => column);
+    column: $table.publishOfferDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumnWithTypeConverter<ConnectionOfferType, int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
@@ -2347,106 +2897,139 @@ class $$ConnectionOffersTableAnnotationComposer
       $composableBuilder(column: $table.status, builder: (column) => column);
 
   GeneratedColumn<int> get maximumUsage => $composableBuilder(
-      column: $table.maximumUsage, builder: (column) => column);
+    column: $table.maximumUsage,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get ownedByMe =>
       $composableBuilder(column: $table.ownedByMe, builder: (column) => column);
 
   GeneratedColumn<String> get mediatorDid => $composableBuilder(
-      column: $table.mediatorDid, builder: (column) => column);
+    column: $table.mediatorDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get aliasId =>
       $composableBuilder(column: $table.aliasId, builder: (column) => column);
 
   GeneratedColumn<String> get outboundMessageId => $composableBuilder(
-      column: $table.outboundMessageId, builder: (column) => column);
+    column: $table.outboundMessageId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get acceptOfferDid => $composableBuilder(
-      column: $table.acceptOfferDid, builder: (column) => column);
+    column: $table.acceptOfferDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get permanentChannelDid => $composableBuilder(
-      column: $table.permanentChannelDid, builder: (column) => column);
+    column: $table.permanentChannelDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get otherPartyPermanentChannelDid =>
       $composableBuilder(
-          column: $table.otherPartyPermanentChannelDid,
-          builder: (column) => column);
+        column: $table.otherPartyPermanentChannelDid,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<String> get notificationToken => $composableBuilder(
-      column: $table.notificationToken, builder: (column) => column);
+    column: $table.notificationToken,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get otherPartyNotificationToken => $composableBuilder(
-      column: $table.otherPartyNotificationToken, builder: (column) => column);
+    column: $table.otherPartyNotificationToken,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get externalRef => $composableBuilder(
-      column: $table.externalRef, builder: (column) => column);
+    column: $table.externalRef,
+    builder: (column) => column,
+  );
 
   GeneratedColumnWithTypeConverter<ChannelTransport, int> get transport =>
       $composableBuilder(column: $table.transport, builder: (column) => column);
 
+  GeneratedColumn<int> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
   Expression<T> connectionContactCardsRefs<T extends Object>(
-      Expression<T> Function($$ConnectionContactCardsTableAnnotationComposer a)
-          f) {
+    Expression<T> Function($$ConnectionContactCardsTableAnnotationComposer a) f,
+  ) {
     final $$ConnectionContactCardsTableAnnotationComposer composer =
         $composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $db.connectionContactCards,
-            getReferencedColumn: (t) => t.connectionOfferId,
-            builder: (joinBuilder,
-                    {$addJoinBuilderToRootComposer,
-                    $removeJoinBuilderFromRootComposer}) =>
-                $$ConnectionContactCardsTableAnnotationComposer(
-                  $db: $db,
-                  $table: $db.connectionContactCards,
-                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                  joinBuilder: joinBuilder,
-                  $removeJoinBuilderFromRootComposer:
-                      $removeJoinBuilderFromRootComposer,
-                ));
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.connectionContactCards,
+          getReferencedColumn: (t) => t.connectionOfferId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ConnectionContactCardsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.connectionContactCards,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 
   Expression<T> groupConnectionOffersRefs<T extends Object>(
-      Expression<T> Function($$GroupConnectionOffersTableAnnotationComposer a)
-          f) {
+    Expression<T> Function($$GroupConnectionOffersTableAnnotationComposer a) f,
+  ) {
     final $$GroupConnectionOffersTableAnnotationComposer composer =
         $composerBuilder(
-            composer: this,
-            getCurrentColumn: (t) => t.id,
-            referencedTable: $db.groupConnectionOffers,
-            getReferencedColumn: (t) => t.connectionOfferId,
-            builder: (joinBuilder,
-                    {$addJoinBuilderToRootComposer,
-                    $removeJoinBuilderFromRootComposer}) =>
-                $$GroupConnectionOffersTableAnnotationComposer(
-                  $db: $db,
-                  $table: $db.groupConnectionOffers,
-                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                  joinBuilder: joinBuilder,
-                  $removeJoinBuilderFromRootComposer:
-                      $removeJoinBuilderFromRootComposer,
-                ));
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.groupConnectionOffers,
+          getReferencedColumn: (t) => t.connectionOfferId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$GroupConnectionOffersTableAnnotationComposer(
+                $db: $db,
+                $table: $db.groupConnectionOffers,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
 
-class $$ConnectionOffersTableTableManager extends RootTableManager<
-    _$ConnectionOfferDatabase,
-    $ConnectionOffersTable,
-    ConnectionOffer,
-    $$ConnectionOffersTableFilterComposer,
-    $$ConnectionOffersTableOrderingComposer,
-    $$ConnectionOffersTableAnnotationComposer,
-    $$ConnectionOffersTableCreateCompanionBuilder,
-    $$ConnectionOffersTableUpdateCompanionBuilder,
-    (ConnectionOffer, $$ConnectionOffersTableReferences),
-    ConnectionOffer,
-    PrefetchHooks Function(
-        {bool connectionContactCardsRefs, bool groupConnectionOffersRefs})> {
+class $$ConnectionOffersTableTableManager
+    extends
+        RootTableManager<
+          _$ConnectionOfferDatabase,
+          $ConnectionOffersTable,
+          ConnectionOffer,
+          $$ConnectionOffersTableFilterComposer,
+          $$ConnectionOffersTableOrderingComposer,
+          $$ConnectionOffersTableAnnotationComposer,
+          $$ConnectionOffersTableCreateCompanionBuilder,
+          $$ConnectionOffersTableUpdateCompanionBuilder,
+          (ConnectionOffer, $$ConnectionOffersTableReferences),
+          ConnectionOffer,
+          PrefetchHooks Function({
+            bool connectionContactCardsRefs,
+            bool groupConnectionOffersRefs,
+          })
+        > {
   $$ConnectionOffersTableTableManager(
-      _$ConnectionOfferDatabase db, $ConnectionOffersTable table)
-      : super(TableManagerState(
+    _$ConnectionOfferDatabase db,
+    $ConnectionOffersTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
@@ -2455,215 +3038,260 @@ class $$ConnectionOffersTableTableManager extends RootTableManager<
               $$ConnectionOffersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$ConnectionOffersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            Value<String> offerName = const Value.absent(),
-            Value<String> offerLink = const Value.absent(),
-            Value<String?> offerDescription = const Value.absent(),
-            Value<String> oobInvitationMessage = const Value.absent(),
-            Value<String> mnemonic = const Value.absent(),
-            Value<DateTime?> expiresAt = const Value.absent(),
-            Value<DateTime> createdAt = const Value.absent(),
-            Value<String> publishOfferDid = const Value.absent(),
-            Value<ConnectionOfferType> type = const Value.absent(),
-            Value<ConnectionOfferStatus> status = const Value.absent(),
-            Value<int?> maximumUsage = const Value.absent(),
-            Value<bool> ownedByMe = const Value.absent(),
-            Value<String> mediatorDid = const Value.absent(),
-            Value<String?> aliasId = const Value.absent(),
-            Value<String?> outboundMessageId = const Value.absent(),
-            Value<String?> acceptOfferDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
-            Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> notificationToken = const Value.absent(),
-            Value<String?> otherPartyNotificationToken = const Value.absent(),
-            Value<String?> externalRef = const Value.absent(),
-            Value<ChannelTransport> transport = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ConnectionOffersCompanion(
-            id: id,
-            offerName: offerName,
-            offerLink: offerLink,
-            offerDescription: offerDescription,
-            oobInvitationMessage: oobInvitationMessage,
-            mnemonic: mnemonic,
-            expiresAt: expiresAt,
-            createdAt: createdAt,
-            publishOfferDid: publishOfferDid,
-            type: type,
-            status: status,
-            maximumUsage: maximumUsage,
-            ownedByMe: ownedByMe,
-            mediatorDid: mediatorDid,
-            aliasId: aliasId,
-            outboundMessageId: outboundMessageId,
-            acceptOfferDid: acceptOfferDid,
-            permanentChannelDid: permanentChannelDid,
-            otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-            otherPartyNotificationToken: otherPartyNotificationToken,
-            externalRef: externalRef,
-            transport: transport,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            Value<String> id = const Value.absent(),
-            required String offerName,
-            required String offerLink,
-            Value<String?> offerDescription = const Value.absent(),
-            required String oobInvitationMessage,
-            required String mnemonic,
-            Value<DateTime?> expiresAt = const Value.absent(),
-            required DateTime createdAt,
-            required String publishOfferDid,
-            required ConnectionOfferType type,
-            required ConnectionOfferStatus status,
-            Value<int?> maximumUsage = const Value.absent(),
-            Value<bool> ownedByMe = const Value.absent(),
-            required String mediatorDid,
-            Value<String?> aliasId = const Value.absent(),
-            Value<String?> outboundMessageId = const Value.absent(),
-            Value<String?> acceptOfferDid = const Value.absent(),
-            Value<String?> permanentChannelDid = const Value.absent(),
-            Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
-            Value<String?> notificationToken = const Value.absent(),
-            Value<String?> otherPartyNotificationToken = const Value.absent(),
-            Value<String?> externalRef = const Value.absent(),
-            Value<ChannelTransport> transport = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ConnectionOffersCompanion.insert(
-            id: id,
-            offerName: offerName,
-            offerLink: offerLink,
-            offerDescription: offerDescription,
-            oobInvitationMessage: oobInvitationMessage,
-            mnemonic: mnemonic,
-            expiresAt: expiresAt,
-            createdAt: createdAt,
-            publishOfferDid: publishOfferDid,
-            type: type,
-            status: status,
-            maximumUsage: maximumUsage,
-            ownedByMe: ownedByMe,
-            mediatorDid: mediatorDid,
-            aliasId: aliasId,
-            outboundMessageId: outboundMessageId,
-            acceptOfferDid: acceptOfferDid,
-            permanentChannelDid: permanentChannelDid,
-            otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-            notificationToken: notificationToken,
-            otherPartyNotificationToken: otherPartyNotificationToken,
-            externalRef: externalRef,
-            transport: transport,
-            rowid: rowid,
-          ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> offerName = const Value.absent(),
+                Value<String> offerLink = const Value.absent(),
+                Value<String?> offerDescription = const Value.absent(),
+                Value<String> oobInvitationMessage = const Value.absent(),
+                Value<String> mnemonic = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String> publishOfferDid = const Value.absent(),
+                Value<ConnectionOfferType> type = const Value.absent(),
+                Value<ConnectionOfferStatus> status = const Value.absent(),
+                Value<int?> maximumUsage = const Value.absent(),
+                Value<bool> ownedByMe = const Value.absent(),
+                Value<String> mediatorDid = const Value.absent(),
+                Value<String?> aliasId = const Value.absent(),
+                Value<String?> outboundMessageId = const Value.absent(),
+                Value<String?> acceptOfferDid = const Value.absent(),
+                Value<String?> permanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyPermanentChannelDid =
+                    const Value.absent(),
+                Value<String?> notificationToken = const Value.absent(),
+                Value<String?> otherPartyNotificationToken =
+                    const Value.absent(),
+                Value<String?> externalRef = const Value.absent(),
+                Value<ChannelTransport> transport = const Value.absent(),
+                Value<int?> score = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConnectionOffersCompanion(
+                id: id,
+                offerName: offerName,
+                offerLink: offerLink,
+                offerDescription: offerDescription,
+                oobInvitationMessage: oobInvitationMessage,
+                mnemonic: mnemonic,
+                expiresAt: expiresAt,
+                createdAt: createdAt,
+                publishOfferDid: publishOfferDid,
+                type: type,
+                status: status,
+                maximumUsage: maximumUsage,
+                ownedByMe: ownedByMe,
+                mediatorDid: mediatorDid,
+                aliasId: aliasId,
+                outboundMessageId: outboundMessageId,
+                acceptOfferDid: acceptOfferDid,
+                permanentChannelDid: permanentChannelDid,
+                otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                notificationToken: notificationToken,
+                otherPartyNotificationToken: otherPartyNotificationToken,
+                externalRef: externalRef,
+                transport: transport,
+                score: score,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String offerName,
+                required String offerLink,
+                Value<String?> offerDescription = const Value.absent(),
+                required String oobInvitationMessage,
+                required String mnemonic,
+                Value<DateTime?> expiresAt = const Value.absent(),
+                required DateTime createdAt,
+                required String publishOfferDid,
+                required ConnectionOfferType type,
+                required ConnectionOfferStatus status,
+                Value<int?> maximumUsage = const Value.absent(),
+                Value<bool> ownedByMe = const Value.absent(),
+                required String mediatorDid,
+                Value<String?> aliasId = const Value.absent(),
+                Value<String?> outboundMessageId = const Value.absent(),
+                Value<String?> acceptOfferDid = const Value.absent(),
+                Value<String?> permanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyPermanentChannelDid =
+                    const Value.absent(),
+                Value<String?> notificationToken = const Value.absent(),
+                Value<String?> otherPartyNotificationToken =
+                    const Value.absent(),
+                Value<String?> externalRef = const Value.absent(),
+                Value<ChannelTransport> transport = const Value.absent(),
+                Value<int?> score = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConnectionOffersCompanion.insert(
+                id: id,
+                offerName: offerName,
+                offerLink: offerLink,
+                offerDescription: offerDescription,
+                oobInvitationMessage: oobInvitationMessage,
+                mnemonic: mnemonic,
+                expiresAt: expiresAt,
+                createdAt: createdAt,
+                publishOfferDid: publishOfferDid,
+                type: type,
+                status: status,
+                maximumUsage: maximumUsage,
+                ownedByMe: ownedByMe,
+                mediatorDid: mediatorDid,
+                aliasId: aliasId,
+                outboundMessageId: outboundMessageId,
+                acceptOfferDid: acceptOfferDid,
+                permanentChannelDid: permanentChannelDid,
+                otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                notificationToken: notificationToken,
+                otherPartyNotificationToken: otherPartyNotificationToken,
+                externalRef: externalRef,
+                transport: transport,
+                score: score,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$ConnectionOffersTableReferences(db, table, e)
-                  ))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ConnectionOffersTableReferences(db, table, e),
+                ),
+              )
               .toList(),
-          prefetchHooksCallback: (
-              {connectionContactCardsRefs = false,
-              groupConnectionOffersRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (connectionContactCardsRefs) db.connectionContactCards,
-                if (groupConnectionOffersRefs) db.groupConnectionOffers
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (connectionContactCardsRefs)
-                    await $_getPrefetchedData<ConnectionOffer,
-                            $ConnectionOffersTable, ConnectionContactCard>(
-                        currentTable: table,
-                        referencedTable: $$ConnectionOffersTableReferences
-                            ._connectionContactCardsRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$ConnectionOffersTableReferences(db, table, p0)
-                                .connectionContactCardsRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.connectionOfferId == item.id),
-                        typedResults: items),
-                  if (groupConnectionOffersRefs)
-                    await $_getPrefetchedData<ConnectionOffer,
-                            $ConnectionOffersTable, GroupConnectionOffer>(
-                        currentTable: table,
-                        referencedTable: $$ConnectionOffersTableReferences
-                            ._groupConnectionOffersRefsTable(db),
-                        managerFromTypedResult: (p0) =>
-                            $$ConnectionOffersTableReferences(db, table, p0)
-                                .groupConnectionOffersRefs,
-                        referencedItemsForCurrentItem:
-                            (item, referencedItems) => referencedItems
-                                .where((e) => e.connectionOfferId == item.id),
-                        typedResults: items)
-                ];
+          prefetchHooksCallback:
+              ({
+                connectionContactCardsRefs = false,
+                groupConnectionOffersRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (connectionContactCardsRefs) db.connectionContactCards,
+                    if (groupConnectionOffersRefs) db.groupConnectionOffers,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (connectionContactCardsRefs)
+                        await $_getPrefetchedData<
+                          ConnectionOffer,
+                          $ConnectionOffersTable,
+                          ConnectionContactCard
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ConnectionOffersTableReferences
+                              ._connectionContactCardsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ConnectionOffersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).connectionContactCardsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.connectionOfferId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (groupConnectionOffersRefs)
+                        await $_getPrefetchedData<
+                          ConnectionOffer,
+                          $ConnectionOffersTable,
+                          GroupConnectionOffer
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ConnectionOffersTableReferences
+                              ._groupConnectionOffersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ConnectionOffersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).groupConnectionOffersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.connectionOfferId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
-        ));
+        ),
+      );
 }
 
-typedef $$ConnectionOffersTableProcessedTableManager = ProcessedTableManager<
-    _$ConnectionOfferDatabase,
-    $ConnectionOffersTable,
-    ConnectionOffer,
-    $$ConnectionOffersTableFilterComposer,
-    $$ConnectionOffersTableOrderingComposer,
-    $$ConnectionOffersTableAnnotationComposer,
-    $$ConnectionOffersTableCreateCompanionBuilder,
-    $$ConnectionOffersTableUpdateCompanionBuilder,
-    (ConnectionOffer, $$ConnectionOffersTableReferences),
-    ConnectionOffer,
-    PrefetchHooks Function(
-        {bool connectionContactCardsRefs, bool groupConnectionOffersRefs})>;
-typedef $$ConnectionContactCardsTableCreateCompanionBuilder
-    = ConnectionContactCardsCompanion Function({
-  Value<int> id,
-  required String connectionOfferId,
-  required String did,
-  required String type,
-  Value<String> contactInfoJson,
-  Value<String?> profilePic,
-});
-typedef $$ConnectionContactCardsTableUpdateCompanionBuilder
-    = ConnectionContactCardsCompanion Function({
-  Value<int> id,
-  Value<String> connectionOfferId,
-  Value<String> did,
-  Value<String> type,
-  Value<String> contactInfoJson,
-  Value<String?> profilePic,
-});
+typedef $$ConnectionOffersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ConnectionOfferDatabase,
+      $ConnectionOffersTable,
+      ConnectionOffer,
+      $$ConnectionOffersTableFilterComposer,
+      $$ConnectionOffersTableOrderingComposer,
+      $$ConnectionOffersTableAnnotationComposer,
+      $$ConnectionOffersTableCreateCompanionBuilder,
+      $$ConnectionOffersTableUpdateCompanionBuilder,
+      (ConnectionOffer, $$ConnectionOffersTableReferences),
+      ConnectionOffer,
+      PrefetchHooks Function({
+        bool connectionContactCardsRefs,
+        bool groupConnectionOffersRefs,
+      })
+    >;
+typedef $$ConnectionContactCardsTableCreateCompanionBuilder =
+    ConnectionContactCardsCompanion Function({
+      Value<int> id,
+      required String connectionOfferId,
+      required String did,
+      required String type,
+      Value<String> contactInfoJson,
+      Value<String?> profilePic,
+    });
+typedef $$ConnectionContactCardsTableUpdateCompanionBuilder =
+    ConnectionContactCardsCompanion Function({
+      Value<int> id,
+      Value<String> connectionOfferId,
+      Value<String> did,
+      Value<String> type,
+      Value<String> contactInfoJson,
+      Value<String?> profilePic,
+    });
 
-final class $$ConnectionContactCardsTableReferences extends BaseReferences<
-    _$ConnectionOfferDatabase,
-    $ConnectionContactCardsTable,
-    ConnectionContactCard> {
+final class $$ConnectionContactCardsTableReferences
+    extends
+        BaseReferences<
+          _$ConnectionOfferDatabase,
+          $ConnectionContactCardsTable,
+          ConnectionContactCard
+        > {
   $$ConnectionContactCardsTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
 
   static $ConnectionOffersTable _connectionOfferIdTable(
-          _$ConnectionOfferDatabase db) =>
-      db.connectionOffers.createAlias($_aliasNameGenerator(
-          db.connectionContactCards.connectionOfferId, db.connectionOffers.id));
+    _$ConnectionOfferDatabase db,
+  ) => db.connectionOffers.createAlias(
+    $_aliasNameGenerator(
+      db.connectionContactCards.connectionOfferId,
+      db.connectionOffers.id,
+    ),
+  );
 
   $$ConnectionOffersTableProcessedTableManager get connectionOfferId {
     final $_column = $_itemColumn<String>('connection_offer_id')!;
 
-    final manager =
-        $$ConnectionOffersTableTableManager($_db, $_db.connectionOffers)
-            .filter((f) => f.id.sqlEquals($_column));
+    final manager = $$ConnectionOffersTableTableManager(
+      $_db,
+      $_db.connectionOffers,
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_connectionOfferIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
   }
 }
 
@@ -2677,38 +3305,50 @@ class $$ConnectionContactCardsTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get did => $composableBuilder(
-      column: $table.did, builder: (column) => ColumnFilters(column));
+    column: $table.did,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnFilters(column));
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson,
-      builder: (column) => ColumnFilters(column));
+    column: $table.contactInfoJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => ColumnFilters(column));
+    column: $table.profilePic,
+    builder: (column) => ColumnFilters(column),
+  );
 
   $$ConnectionOffersTableFilterComposer get connectionOfferId {
     final $$ConnectionOffersTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.connectionOfferId,
-        referencedTable: $db.connectionOffers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ConnectionOffersTableFilterComposer(
-              $db: $db,
-              $table: $db.connectionOffers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.connectionOfferId,
+      referencedTable: $db.connectionOffers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConnectionOffersTableFilterComposer(
+            $db: $db,
+            $table: $db.connectionOffers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -2723,38 +3363,50 @@ class $$ConnectionContactCardsTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get did => $composableBuilder(
-      column: $table.did, builder: (column) => ColumnOrderings(column));
+    column: $table.did,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.contactInfoJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => ColumnOrderings(column));
+    column: $table.profilePic,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   $$ConnectionOffersTableOrderingComposer get connectionOfferId {
     final $$ConnectionOffersTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.connectionOfferId,
-        referencedTable: $db.connectionOffers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ConnectionOffersTableOrderingComposer(
-              $db: $db,
-              $table: $db.connectionOffers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.connectionOfferId,
+      referencedTable: $db.connectionOffers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConnectionOffersTableOrderingComposer(
+            $db: $db,
+            $table: $db.connectionOffers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -2778,102 +3430,123 @@ class $$ConnectionContactCardsTableAnnotationComposer
       $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<String> get contactInfoJson => $composableBuilder(
-      column: $table.contactInfoJson, builder: (column) => column);
+    column: $table.contactInfoJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get profilePic => $composableBuilder(
-      column: $table.profilePic, builder: (column) => column);
+    column: $table.profilePic,
+    builder: (column) => column,
+  );
 
   $$ConnectionOffersTableAnnotationComposer get connectionOfferId {
     final $$ConnectionOffersTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.connectionOfferId,
-        referencedTable: $db.connectionOffers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ConnectionOffersTableAnnotationComposer(
-              $db: $db,
-              $table: $db.connectionOffers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.connectionOfferId,
+      referencedTable: $db.connectionOffers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConnectionOffersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.connectionOffers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
 
-class $$ConnectionContactCardsTableTableManager extends RootTableManager<
-    _$ConnectionOfferDatabase,
-    $ConnectionContactCardsTable,
-    ConnectionContactCard,
-    $$ConnectionContactCardsTableFilterComposer,
-    $$ConnectionContactCardsTableOrderingComposer,
-    $$ConnectionContactCardsTableAnnotationComposer,
-    $$ConnectionContactCardsTableCreateCompanionBuilder,
-    $$ConnectionContactCardsTableUpdateCompanionBuilder,
-    (ConnectionContactCard, $$ConnectionContactCardsTableReferences),
-    ConnectionContactCard,
-    PrefetchHooks Function({bool connectionOfferId})> {
+class $$ConnectionContactCardsTableTableManager
+    extends
+        RootTableManager<
+          _$ConnectionOfferDatabase,
+          $ConnectionContactCardsTable,
+          ConnectionContactCard,
+          $$ConnectionContactCardsTableFilterComposer,
+          $$ConnectionContactCardsTableOrderingComposer,
+          $$ConnectionContactCardsTableAnnotationComposer,
+          $$ConnectionContactCardsTableCreateCompanionBuilder,
+          $$ConnectionContactCardsTableUpdateCompanionBuilder,
+          (ConnectionContactCard, $$ConnectionContactCardsTableReferences),
+          ConnectionContactCard,
+          PrefetchHooks Function({bool connectionOfferId})
+        > {
   $$ConnectionContactCardsTableTableManager(
-      _$ConnectionOfferDatabase db, $ConnectionContactCardsTable table)
-      : super(TableManagerState(
+    _$ConnectionOfferDatabase db,
+    $ConnectionContactCardsTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$ConnectionContactCardsTableFilterComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createOrderingComposer: () =>
               $$ConnectionContactCardsTableOrderingComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
               $$ConnectionContactCardsTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> connectionOfferId = const Value.absent(),
-            Value<String> did = const Value.absent(),
-            Value<String> type = const Value.absent(),
-            Value<String> contactInfoJson = const Value.absent(),
-            Value<String?> profilePic = const Value.absent(),
-          }) =>
-              ConnectionContactCardsCompanion(
-            id: id,
-            connectionOfferId: connectionOfferId,
-            did: did,
-            type: type,
-            contactInfoJson: contactInfoJson,
-            profilePic: profilePic,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String connectionOfferId,
-            required String did,
-            required String type,
-            Value<String> contactInfoJson = const Value.absent(),
-            Value<String?> profilePic = const Value.absent(),
-          }) =>
-              ConnectionContactCardsCompanion.insert(
-            id: id,
-            connectionOfferId: connectionOfferId,
-            did: did,
-            type: type,
-            contactInfoJson: contactInfoJson,
-            profilePic: profilePic,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> connectionOfferId = const Value.absent(),
+                Value<String> did = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> contactInfoJson = const Value.absent(),
+                Value<String?> profilePic = const Value.absent(),
+              }) => ConnectionContactCardsCompanion(
+                id: id,
+                connectionOfferId: connectionOfferId,
+                did: did,
+                type: type,
+                contactInfoJson: contactInfoJson,
+                profilePic: profilePic,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String connectionOfferId,
+                required String did,
+                required String type,
+                Value<String> contactInfoJson = const Value.absent(),
+                Value<String?> profilePic = const Value.absent(),
+              }) => ConnectionContactCardsCompanion.insert(
+                id: id,
+                connectionOfferId: connectionOfferId,
+                did: did,
+                type: type,
+                contactInfoJson: contactInfoJson,
+                profilePic: profilePic,
+              ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$ConnectionContactCardsTableReferences(db, table, e)
-                  ))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ConnectionContactCardsTableReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({connectionOfferId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
+              addJoins:
+                  <
+                    T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -2884,85 +3557,105 @@ class $$ConnectionContactCardsTableTableManager extends RootTableManager<
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic>>(state) {
-                if (connectionOfferId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.connectionOfferId,
-                    referencedTable: $$ConnectionContactCardsTableReferences
-                        ._connectionOfferIdTable(db),
-                    referencedColumn: $$ConnectionContactCardsTableReferences
-                        ._connectionOfferIdTable(db)
-                        .id,
-                  ) as T;
-                }
+                      dynamic
+                    >
+                  >(state) {
+                    if (connectionOfferId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.connectionOfferId,
+                                referencedTable:
+                                    $$ConnectionContactCardsTableReferences
+                                        ._connectionOfferIdTable(db),
+                                referencedColumn:
+                                    $$ConnectionContactCardsTableReferences
+                                        ._connectionOfferIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
 
-                return state;
-              },
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ));
+        ),
+      );
 }
 
-typedef $$ConnectionContactCardsTableProcessedTableManager
-    = ProcessedTableManager<
-        _$ConnectionOfferDatabase,
-        $ConnectionContactCardsTable,
-        ConnectionContactCard,
-        $$ConnectionContactCardsTableFilterComposer,
-        $$ConnectionContactCardsTableOrderingComposer,
-        $$ConnectionContactCardsTableAnnotationComposer,
-        $$ConnectionContactCardsTableCreateCompanionBuilder,
-        $$ConnectionContactCardsTableUpdateCompanionBuilder,
-        (ConnectionContactCard, $$ConnectionContactCardsTableReferences),
-        ConnectionContactCard,
-        PrefetchHooks Function({bool connectionOfferId})>;
-typedef $$GroupConnectionOffersTableCreateCompanionBuilder
-    = GroupConnectionOffersCompanion Function({
-  required String connectionOfferId,
-  Value<String?> memberDid,
-  required String groupId,
-  Value<String?> groupOwnerDid,
-  Value<String?> groupDid,
-  Value<String?> metadata,
-  Value<int> rowid,
-});
-typedef $$GroupConnectionOffersTableUpdateCompanionBuilder
-    = GroupConnectionOffersCompanion Function({
-  Value<String> connectionOfferId,
-  Value<String?> memberDid,
-  Value<String> groupId,
-  Value<String?> groupOwnerDid,
-  Value<String?> groupDid,
-  Value<String?> metadata,
-  Value<int> rowid,
-});
+typedef $$ConnectionContactCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ConnectionOfferDatabase,
+      $ConnectionContactCardsTable,
+      ConnectionContactCard,
+      $$ConnectionContactCardsTableFilterComposer,
+      $$ConnectionContactCardsTableOrderingComposer,
+      $$ConnectionContactCardsTableAnnotationComposer,
+      $$ConnectionContactCardsTableCreateCompanionBuilder,
+      $$ConnectionContactCardsTableUpdateCompanionBuilder,
+      (ConnectionContactCard, $$ConnectionContactCardsTableReferences),
+      ConnectionContactCard,
+      PrefetchHooks Function({bool connectionOfferId})
+    >;
+typedef $$GroupConnectionOffersTableCreateCompanionBuilder =
+    GroupConnectionOffersCompanion Function({
+      required String connectionOfferId,
+      Value<String?> memberDid,
+      required String groupId,
+      Value<String?> groupOwnerDid,
+      Value<String?> groupDid,
+      Value<String?> metadata,
+      Value<int> rowid,
+    });
+typedef $$GroupConnectionOffersTableUpdateCompanionBuilder =
+    GroupConnectionOffersCompanion Function({
+      Value<String> connectionOfferId,
+      Value<String?> memberDid,
+      Value<String> groupId,
+      Value<String?> groupOwnerDid,
+      Value<String?> groupDid,
+      Value<String?> metadata,
+      Value<int> rowid,
+    });
 
-final class $$GroupConnectionOffersTableReferences extends BaseReferences<
-    _$ConnectionOfferDatabase,
-    $GroupConnectionOffersTable,
-    GroupConnectionOffer> {
+final class $$GroupConnectionOffersTableReferences
+    extends
+        BaseReferences<
+          _$ConnectionOfferDatabase,
+          $GroupConnectionOffersTable,
+          GroupConnectionOffer
+        > {
   $$GroupConnectionOffersTableReferences(
-      super.$_db, super.$_table, super.$_typedResult);
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
 
   static $ConnectionOffersTable _connectionOfferIdTable(
-          _$ConnectionOfferDatabase db) =>
-      db.connectionOffers.createAlias($_aliasNameGenerator(
-          db.groupConnectionOffers.connectionOfferId, db.connectionOffers.id));
+    _$ConnectionOfferDatabase db,
+  ) => db.connectionOffers.createAlias(
+    $_aliasNameGenerator(
+      db.groupConnectionOffers.connectionOfferId,
+      db.connectionOffers.id,
+    ),
+  );
 
   $$ConnectionOffersTableProcessedTableManager get connectionOfferId {
     final $_column = $_itemColumn<String>('connection_offer_id')!;
 
-    final manager =
-        $$ConnectionOffersTableTableManager($_db, $_db.connectionOffers)
-            .filter((f) => f.id.sqlEquals($_column));
+    final manager = $$ConnectionOffersTableTableManager(
+      $_db,
+      $_db.connectionOffers,
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_connectionOfferIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
-        manager.$state.copyWith(prefetchedData: [item]));
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
   }
 }
 
@@ -2976,37 +3669,50 @@ class $$GroupConnectionOffersTableFilterComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnFilters<String> get memberDid => $composableBuilder(
-      column: $table.memberDid, builder: (column) => ColumnFilters(column));
+    column: $table.memberDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get groupId => $composableBuilder(
-      column: $table.groupId, builder: (column) => ColumnFilters(column));
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get groupOwnerDid => $composableBuilder(
-      column: $table.groupOwnerDid, builder: (column) => ColumnFilters(column));
+    column: $table.groupOwnerDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get groupDid => $composableBuilder(
-      column: $table.groupDid, builder: (column) => ColumnFilters(column));
+    column: $table.groupDid,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get metadata => $composableBuilder(
-      column: $table.metadata, builder: (column) => ColumnFilters(column));
+    column: $table.metadata,
+    builder: (column) => ColumnFilters(column),
+  );
 
   $$ConnectionOffersTableFilterComposer get connectionOfferId {
     final $$ConnectionOffersTableFilterComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.connectionOfferId,
-        referencedTable: $db.connectionOffers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ConnectionOffersTableFilterComposer(
-              $db: $db,
-              $table: $db.connectionOffers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.connectionOfferId,
+      referencedTable: $db.connectionOffers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConnectionOffersTableFilterComposer(
+            $db: $db,
+            $table: $db.connectionOffers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -3021,38 +3727,50 @@ class $$GroupConnectionOffersTableOrderingComposer
     super.$removeJoinBuilderFromRootComposer,
   });
   ColumnOrderings<String> get memberDid => $composableBuilder(
-      column: $table.memberDid, builder: (column) => ColumnOrderings(column));
+    column: $table.memberDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get groupId => $composableBuilder(
-      column: $table.groupId, builder: (column) => ColumnOrderings(column));
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get groupOwnerDid => $composableBuilder(
-      column: $table.groupOwnerDid,
-      builder: (column) => ColumnOrderings(column));
+    column: $table.groupOwnerDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get groupDid => $composableBuilder(
-      column: $table.groupDid, builder: (column) => ColumnOrderings(column));
+    column: $table.groupDid,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get metadata => $composableBuilder(
-      column: $table.metadata, builder: (column) => ColumnOrderings(column));
+    column: $table.metadata,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   $$ConnectionOffersTableOrderingComposer get connectionOfferId {
     final $$ConnectionOffersTableOrderingComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.connectionOfferId,
-        referencedTable: $db.connectionOffers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ConnectionOffersTableOrderingComposer(
-              $db: $db,
-              $table: $db.connectionOffers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.connectionOfferId,
+      referencedTable: $db.connectionOffers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConnectionOffersTableOrderingComposer(
+            $db: $db,
+            $table: $db.connectionOffers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
@@ -3073,7 +3791,9 @@ class $$GroupConnectionOffersTableAnnotationComposer
       $composableBuilder(column: $table.groupId, builder: (column) => column);
 
   GeneratedColumn<String> get groupOwnerDid => $composableBuilder(
-      column: $table.groupOwnerDid, builder: (column) => column);
+    column: $table.groupOwnerDid,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get groupDid =>
       $composableBuilder(column: $table.groupDid, builder: (column) => column);
@@ -3083,99 +3803,116 @@ class $$GroupConnectionOffersTableAnnotationComposer
 
   $$ConnectionOffersTableAnnotationComposer get connectionOfferId {
     final $$ConnectionOffersTableAnnotationComposer composer = $composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.connectionOfferId,
-        referencedTable: $db.connectionOffers,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder,
-                {$addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer}) =>
-            $$ConnectionOffersTableAnnotationComposer(
-              $db: $db,
-              $table: $db.connectionOffers,
-              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-              joinBuilder: joinBuilder,
-              $removeJoinBuilderFromRootComposer:
-                  $removeJoinBuilderFromRootComposer,
-            ));
+      composer: this,
+      getCurrentColumn: (t) => t.connectionOfferId,
+      referencedTable: $db.connectionOffers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConnectionOffersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.connectionOffers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
     return composer;
   }
 }
 
-class $$GroupConnectionOffersTableTableManager extends RootTableManager<
-    _$ConnectionOfferDatabase,
-    $GroupConnectionOffersTable,
-    GroupConnectionOffer,
-    $$GroupConnectionOffersTableFilterComposer,
-    $$GroupConnectionOffersTableOrderingComposer,
-    $$GroupConnectionOffersTableAnnotationComposer,
-    $$GroupConnectionOffersTableCreateCompanionBuilder,
-    $$GroupConnectionOffersTableUpdateCompanionBuilder,
-    (GroupConnectionOffer, $$GroupConnectionOffersTableReferences),
-    GroupConnectionOffer,
-    PrefetchHooks Function({bool connectionOfferId})> {
+class $$GroupConnectionOffersTableTableManager
+    extends
+        RootTableManager<
+          _$ConnectionOfferDatabase,
+          $GroupConnectionOffersTable,
+          GroupConnectionOffer,
+          $$GroupConnectionOffersTableFilterComposer,
+          $$GroupConnectionOffersTableOrderingComposer,
+          $$GroupConnectionOffersTableAnnotationComposer,
+          $$GroupConnectionOffersTableCreateCompanionBuilder,
+          $$GroupConnectionOffersTableUpdateCompanionBuilder,
+          (GroupConnectionOffer, $$GroupConnectionOffersTableReferences),
+          GroupConnectionOffer,
+          PrefetchHooks Function({bool connectionOfferId})
+        > {
   $$GroupConnectionOffersTableTableManager(
-      _$ConnectionOfferDatabase db, $GroupConnectionOffersTable table)
-      : super(TableManagerState(
+    _$ConnectionOfferDatabase db,
+    $GroupConnectionOffersTable table,
+  ) : super(
+        TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
               $$GroupConnectionOffersTableFilterComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createOrderingComposer: () =>
               $$GroupConnectionOffersTableOrderingComposer(
-                  $db: db, $table: table),
+                $db: db,
+                $table: table,
+              ),
           createComputedFieldComposer: () =>
               $$GroupConnectionOffersTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<String> connectionOfferId = const Value.absent(),
-            Value<String?> memberDid = const Value.absent(),
-            Value<String> groupId = const Value.absent(),
-            Value<String?> groupOwnerDid = const Value.absent(),
-            Value<String?> groupDid = const Value.absent(),
-            Value<String?> metadata = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              GroupConnectionOffersCompanion(
-            connectionOfferId: connectionOfferId,
-            memberDid: memberDid,
-            groupId: groupId,
-            groupOwnerDid: groupOwnerDid,
-            groupDid: groupDid,
-            metadata: metadata,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String connectionOfferId,
-            Value<String?> memberDid = const Value.absent(),
-            required String groupId,
-            Value<String?> groupOwnerDid = const Value.absent(),
-            Value<String?> groupDid = const Value.absent(),
-            Value<String?> metadata = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              GroupConnectionOffersCompanion.insert(
-            connectionOfferId: connectionOfferId,
-            memberDid: memberDid,
-            groupId: groupId,
-            groupOwnerDid: groupOwnerDid,
-            groupDid: groupDid,
-            metadata: metadata,
-            rowid: rowid,
-          ),
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> connectionOfferId = const Value.absent(),
+                Value<String?> memberDid = const Value.absent(),
+                Value<String> groupId = const Value.absent(),
+                Value<String?> groupOwnerDid = const Value.absent(),
+                Value<String?> groupDid = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GroupConnectionOffersCompanion(
+                connectionOfferId: connectionOfferId,
+                memberDid: memberDid,
+                groupId: groupId,
+                groupOwnerDid: groupOwnerDid,
+                groupDid: groupDid,
+                metadata: metadata,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String connectionOfferId,
+                Value<String?> memberDid = const Value.absent(),
+                required String groupId,
+                Value<String?> groupOwnerDid = const Value.absent(),
+                Value<String?> groupDid = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GroupConnectionOffersCompanion.insert(
+                connectionOfferId: connectionOfferId,
+                memberDid: memberDid,
+                groupId: groupId,
+                groupOwnerDid: groupOwnerDid,
+                groupDid: groupDid,
+                metadata: metadata,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (
-                    e.readTable(table),
-                    $$GroupConnectionOffersTableReferences(db, table, e)
-                  ))
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$GroupConnectionOffersTableReferences(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: ({connectionOfferId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
-              addJoins: <
-                  T extends TableManagerState<
+              addJoins:
+                  <
+                    T extends TableManagerState<
                       dynamic,
                       dynamic,
                       dynamic,
@@ -3186,42 +3923,50 @@ class $$GroupConnectionOffersTableTableManager extends RootTableManager<
                       dynamic,
                       dynamic,
                       dynamic,
-                      dynamic>>(state) {
-                if (connectionOfferId) {
-                  state = state.withJoin(
-                    currentTable: table,
-                    currentColumn: table.connectionOfferId,
-                    referencedTable: $$GroupConnectionOffersTableReferences
-                        ._connectionOfferIdTable(db),
-                    referencedColumn: $$GroupConnectionOffersTableReferences
-                        ._connectionOfferIdTable(db)
-                        .id,
-                  ) as T;
-                }
+                      dynamic
+                    >
+                  >(state) {
+                    if (connectionOfferId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.connectionOfferId,
+                                referencedTable:
+                                    $$GroupConnectionOffersTableReferences
+                                        ._connectionOfferIdTable(db),
+                                referencedColumn:
+                                    $$GroupConnectionOffersTableReferences
+                                        ._connectionOfferIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
 
-                return state;
-              },
+                    return state;
+                  },
               getPrefetchedDataCallback: (items) async {
                 return [];
               },
             );
           },
-        ));
+        ),
+      );
 }
 
-typedef $$GroupConnectionOffersTableProcessedTableManager
-    = ProcessedTableManager<
-        _$ConnectionOfferDatabase,
-        $GroupConnectionOffersTable,
-        GroupConnectionOffer,
-        $$GroupConnectionOffersTableFilterComposer,
-        $$GroupConnectionOffersTableOrderingComposer,
-        $$GroupConnectionOffersTableAnnotationComposer,
-        $$GroupConnectionOffersTableCreateCompanionBuilder,
-        $$GroupConnectionOffersTableUpdateCompanionBuilder,
-        (GroupConnectionOffer, $$GroupConnectionOffersTableReferences),
-        GroupConnectionOffer,
-        PrefetchHooks Function({bool connectionOfferId})>;
+typedef $$GroupConnectionOffersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ConnectionOfferDatabase,
+      $GroupConnectionOffersTable,
+      GroupConnectionOffer,
+      $$GroupConnectionOffersTableFilterComposer,
+      $$GroupConnectionOffersTableOrderingComposer,
+      $$GroupConnectionOffersTableAnnotationComposer,
+      $$GroupConnectionOffersTableCreateCompanionBuilder,
+      $$GroupConnectionOffersTableUpdateCompanionBuilder,
+      (GroupConnectionOffer, $$GroupConnectionOffersTableReferences),
+      GroupConnectionOffer,
+      PrefetchHooks Function({bool connectionOfferId})
+    >;
 
 class $ConnectionOfferDatabaseManager {
   final _$ConnectionOfferDatabase _db;
@@ -3230,7 +3975,9 @@ class $ConnectionOfferDatabaseManager {
       $$ConnectionOffersTableTableManager(_db, _db.connectionOffers);
   $$ConnectionContactCardsTableTableManager get connectionContactCards =>
       $$ConnectionContactCardsTableTableManager(
-          _db, _db.connectionContactCards);
+        _db,
+        _db.connectionContactCards,
+      );
   $$GroupConnectionOffersTableTableManager get groupConnectionOffers =>
       $$GroupConnectionOffersTableTableManager(_db, _db.groupConnectionOffers);
 }

@@ -1,0 +1,111 @@
+import 'dart:convert';
+
+import 'package:meeting_place_credentials/meeting_place_credentials.dart';
+import 'package:ssi/ssi.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('RCardSubject', () {
+    test('fromVcBlob throws FormatException for invalid input', () {
+      expect(() => RCardSubject.fromVcBlob('not-json'), throwsFormatException);
+      expect(() => RCardSubject.fromVcBlob('{}'), throwsFormatException);
+    });
+
+    test('fromVcBlob throws FormatException for a DM v1 R-Card blob', () {
+      const v1Blob =
+          '{"@context":["https://www.w3.org/2018/credentials/v1",'
+          '"https://schema.affinidi.io/TRelationshipCardV1R0.jsonld"],'
+          '"type":["VerifiableCredential","RelationshipCard"],'
+          '"issuer":"did:example:issuer",'
+          '"issuanceDate":"2024-01-01T00:00:00Z",'
+          '"credentialSubject":{"id":"did:example:subject"}}'
+          '}'; // DM v1 — tryParse must reject this
+      expect(() => RCardSubject.fromVcBlob(v1Blob), throwsFormatException);
+    });
+
+    test('name concatenates first and last name', () {
+      const subject = RCardSubject(firstName: 'Alice', lastName: 'Smith');
+      expect(subject.name, 'Alice Smith');
+    });
+
+    test('name trims whitespace and skips nulls', () {
+      const subject = RCardSubject(firstName: ' Bob ', lastName: null);
+      expect(subject.name, 'Bob');
+    });
+  });
+
+  group('RCardVCardExtension', () {
+    test('toVCard contains BEGIN and END markers', () {
+      const subject = RCardSubject(
+        firstName: 'Alice',
+        lastName: 'Smith',
+        email: 'alice@example.com',
+      );
+      final vCard = subject.toVCard();
+      expect(vCard, contains('BEGIN:VCARD'));
+      expect(vCard, contains('END:VCARD'));
+      expect(vCard, contains('EMAIL:alice@example.com'));
+    });
+  });
+
+  group('RCard', () {
+    test('fromVcBlob returns null for invalid JSON', () {
+      expect(RCard.fromVcBlob('did:example:1', 'bad'), isNull);
+    });
+
+    test('fromVcBlob returns null when issuer is missing', () {
+      const blob = '{"credentialSubject": {}}';
+      expect(RCard.fromVcBlob('did:example:1', blob), isNull);
+    });
+
+    test('fromVcBlob parses a minimal valid blob', () async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+      final didManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final keyPair = await wallet.generateKey();
+      await didManager.addVerificationMethod(keyPair.id);
+      final didDoc = await didManager.getDidDocument();
+      final issuerDid = didDoc.id;
+      final vc = await CredentialBuilder.buildRCard(
+        issuerDid: issuerDid,
+        subjectDid: 'did:example:holder',
+        subject: const RCardSubject(firstName: 'Alice'),
+        issuerDidManager: didManager,
+      );
+      expect(
+        vc,
+        isA<VcDataModelV2>(),
+        reason: 'RCardBuilder must produce a DM v2 credential',
+      );
+
+      final card = RCard.fromVcBlob(
+        'did:example:holder',
+        jsonEncode(vc.toJson()),
+      );
+      expect(card, isNotNull);
+      expect(card!.issuerDid, issuerDid);
+      expect(card.subjectDid, 'did:example:holder');
+    });
+  });
+
+  group('credential type constants', () {
+    test('typeRCard is correct', () {
+      expect(RCardConstants.typeRCard, 'RelationshipCard');
+    });
+
+    test('typeRelationshipCredential is correct', () {
+      expect(VrcConstants.typeRelationshipCredential, 'RelationshipCredential');
+    });
+  });
+
+  group('VrcExchangeRole', () {
+    test('has initiator and responder values', () {
+      expect(
+        VrcExchangeRole.values,
+        containsAll([VrcExchangeRole.initiator, VrcExchangeRole.responder]),
+      );
+    });
+  });
+}

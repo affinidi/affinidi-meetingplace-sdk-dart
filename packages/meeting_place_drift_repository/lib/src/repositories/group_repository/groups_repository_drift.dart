@@ -23,7 +23,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   /// **Returns:**
   /// - An instance of [GroupsRepositoryDrift].
   GroupsRepositoryDrift({required db.GroupsDatabase database})
-      : _database = database;
+    : _database = database;
 
   final db.GroupsDatabase _database;
 
@@ -40,7 +40,9 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   @override
   Future<void> createGroup(model.Group group) async {
     await _database.transaction(() async {
-      await _database.into(_database.meetingPlaceGroups).insert(
+      await _database
+          .into(_database.meetingPlaceGroups)
+          .insert(
             db.MeetingPlaceGroupsCompanion(
               id: Value(group.id),
               did: Value(group.did),
@@ -74,8 +76,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
 
       final newGroup = await (_database.select(
         _database.meetingPlaceGroups,
-      )..where((filter) => filter.id.equals(group.id)))
-          .getSingleOrNull();
+      )..where((filter) => filter.id.equals(group.id))).getSingleOrNull();
       if (newGroup == null) {
         throw MeetingPlaceCoreRepositoryException(
           'Group not found',
@@ -96,12 +97,10 @@ class GroupsRepositoryDrift implements model.GroupRepository {
     final results = await Future.wait([
       (_database.select(
         _database.meetingPlaceGroups,
-      )..where((g) => g.id.equals(groupId)))
-          .getSingleOrNull(),
+      )..where((g) => g.id.equals(groupId))).getSingleOrNull(),
       (_database.select(
         _database.groupMembers,
-      )..where((gm) => gm.groupId.equals(groupId)))
-          .get(),
+      )..where((gm) => gm.groupId.equals(groupId))).get(),
     ]);
 
     final group = results[0] as db.MeetingPlaceGroup?;
@@ -122,8 +121,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   Future<model.Group?> getGroupByOfferLink(String offerLink) async {
     final group = await (_database.select(
       _database.meetingPlaceGroups,
-    )..where((g) => g.offerLink.equals(offerLink)))
-        .getSingleOrNull();
+    )..where((g) => g.offerLink.equals(offerLink))).getSingleOrNull();
     if (group == null) return null;
 
     return getGroupById(group.id);
@@ -137,8 +135,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   Future<void> removeGroup(model.Group group) async {
     await (_database.delete(
       _database.meetingPlaceGroups,
-    )..where((filter) => filter.id.equals(group.id)))
-        .go();
+    )..where((filter) => filter.id.equals(group.id))).go();
   }
 
   /// Updates an existing [model.Group] and replaces its members.
@@ -164,8 +161,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
       final groupId = results.id;
       await (_database.update(
         _database.meetingPlaceGroups,
-      )..where((c) => c.id.equals(groupId)))
-          .write(
+      )..where((c) => c.id.equals(groupId))).write(
         db.MeetingPlaceGroupsCompanion(
           id: Value(group.id),
           did: Value(group.did),
@@ -179,8 +175,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
 
       await (_database.delete(
         _database.groupMembers,
-      )..where((a) => a.groupId.equals(groupId)))
-          .go();
+      )..where((a) => a.groupId.equals(groupId))).go();
 
       final groupMembersCompanions = group.members.map((member) {
         final contactCard = member.contactCard;
@@ -215,8 +210,9 @@ class _GroupMapper {
       did: group.did,
       status: group.status,
       offerLink: group.offerLink,
-      members:
-          groupMembers.map(_GroupMemberMapper.fromDatabaseRecords).toList(),
+      members: groupMembers
+          .map(_GroupMemberMapper.fromDatabaseRecords)
+          .toList(),
       created: group.created,
       ownerDid: group.ownerDid,
       publicKey: group.publicKey,

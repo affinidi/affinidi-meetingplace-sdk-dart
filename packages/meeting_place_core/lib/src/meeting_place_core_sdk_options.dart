@@ -8,15 +8,15 @@ import 'entity/channel.dart';
 ///
 /// Called by the SDK when processing connection events that require
 /// sending attachments to the other party.
-typedef OnBuildAttachmentsCallback =
-    Future<List<Attachment>?> Function(Channel channel);
-
-/// Callback invoked when attachments are received from the other party
-/// during connection establishment.
 ///
-/// The app should process these attachments when this callback is invoked.
-typedef OnAttachmentsReceivedCallback =
-    void Function(Channel channel, List<Attachment> attachments);
+/// [getDidManager] is provided by the SDK and resolves a [DidManager] for
+/// any DID managed by the local wallet — use it instead of holding a
+/// reference to the SDK instance.
+typedef OnBuildAttachmentsCallback =
+    Future<List<Attachment>?> Function(
+      Channel channel,
+      Future<DidManager> Function(String did) getDidManager,
+    );
 
 class MeetingPlaceCoreSDKOptions {
   const MeetingPlaceCoreSDKOptions({
@@ -31,13 +31,13 @@ class MeetingPlaceCoreSDKOptions {
     ),
     this.connectTimeout = const Duration(milliseconds: 30000),
     this.receiveTimeout = const Duration(milliseconds: 30000),
+    this.idleTimeout = const Duration(seconds: 3),
     this.signatureScheme = SignatureScheme.ecdsa_p256_sha256,
     this.expectedMessageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
     ],
     this.messageTypesForSequenceTracking = const [],
     this.onBuildAttachments,
-    this.onAttachmentsReceived,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -93,6 +93,13 @@ class MeetingPlaceCoreSDKOptions {
   /// aborted and a timeout error will be triggered.
   final Duration receiveTimeout;
 
+  /// The maximum duration an idle HTTP keep-alive connection is kept open
+  /// before being closed and removed from the connection pool.
+  ///
+  /// Defaults to 3 seconds to match Dio's native adapter behavior.
+  /// Override it when a deployment benefits from longer keep-alive reuse.
+  final Duration idleTimeout;
+
   /// The signature scheme to be used for signing messages.
   final SignatureScheme signatureScheme;
 
@@ -122,11 +129,4 @@ class MeetingPlaceCoreSDKOptions {
   /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments
   /// or onBuildInaugurationMessageAttachments
   final OnBuildAttachmentsCallback? onBuildAttachments;
-
-  /// Callback invoked when attachments are received from the other party
-  /// during connection establishment.
-  ///
-  /// When provided, this callback is invoked by event handlers after they
-  /// receive and process incoming attachments from connection messages.
-  final OnAttachmentsReceivedCallback? onAttachmentsReceived;
 }

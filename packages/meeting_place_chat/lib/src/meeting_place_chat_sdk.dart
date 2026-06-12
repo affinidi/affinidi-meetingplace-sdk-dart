@@ -178,4 +178,14 @@ abstract interface class MeetingPlaceChatSDK {
     required String type,
     required Map<String, dynamic> payload,
   });
+
+  /// Creates a local chat message with attachments.
+  ///
+  /// [senderDid] must be the DID of the party who sent the credential —
+  /// pass [Channel.permanentChannelDid] for an outgoing exchange, or
+  /// [Channel.otherPartyPermanentChannelDid] for an incoming one.
+  Future<void> createAttachmentMessage({
+    required List<ChatAttachment> attachments,
+    required String senderDid,
+  });
 }

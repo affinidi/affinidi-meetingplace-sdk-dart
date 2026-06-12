@@ -1,5 +1,6 @@
 import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
@@ -42,7 +43,33 @@ class ConnectionManager {
   }
 
   Future<DidManager> generateDid(Wallet wallet) async {
-    final methodName = 'generateDid';
+    return _generateDidWithFactory(
+      wallet: wallet,
+      methodName: 'generateDid',
+      factory: (keyId) => _initDidManager(wallet: wallet, keyId: keyId),
+    );
+  }
+
+  Future<DidManager> generateDidWeb(
+    Wallet wallet, {
+    required Uri baseHost,
+  }) async {
+    return _generateDidWithFactory(
+      wallet: wallet,
+      methodName: 'generateDidWeb',
+      factory: (keyId) {
+        final segment = const Uuid().v4();
+        final domain = baseHost.replace(path: '${baseHost.path}/user/$segment');
+        return _initDidWebManager(wallet: wallet, keyId: keyId, domain: domain);
+      },
+    );
+  }
+
+  Future<DidManager> _generateDidWithFactory({
+    required Wallet wallet,
+    required String methodName,
+    required Future<DidManager> Function(String keyId) factory,
+  }) async {
     _logger.info('Generating new DID...', name: methodName);
 
     await _mutex.acquire();
@@ -52,7 +79,7 @@ class ConnectionManager {
       final currentIndex = lastIndex + 1;
 
       final keyId = _buildKeyId(currentIndex);
-      final didManager = await _initDidManager(wallet: wallet, keyId: keyId);
+      final didManager = await factory(keyId);
       final didDoc = await didManager.getDidDocument();
 
       await _keyRepository.setLastAccountIndex(currentIndex);
@@ -70,7 +97,7 @@ class ConnectionManager {
   }
 
   Future<DidManager> getDidManagerForDid(Wallet wallet, String did) async {
-    final methodName = 'getKeyPairForConnectionDid';
+    final methodName = 'getDidManagerForDid';
     final keyId = await _keyRepository.getKeyIdByDid(did: did);
     if (keyId == null) {
       _logger.error(
@@ -84,6 +111,11 @@ class ConnectionManager {
       'Retrieved key pair for DID: ${did.topAndTail()}',
       name: methodName,
     );
+
+    if (did.startsWith('did:web:')) {
+      final domain = _domainFromDidWeb(did);
+      return _initDidWebManager(wallet: wallet, keyId: keyId, domain: domain);
+    }
     return _initDidManager(wallet: wallet, keyId: keyId);
   }
 
@@ -99,5 +131,34 @@ class ConnectionManager {
     final didManager = DidKeyManager(store: InMemoryDidStore(), wallet: wallet);
     await didManager.addVerificationMethod(keyId);
     return didManager;
+  }
+
+  Future<DidManager> _initDidWebManager({
+    required Wallet wallet,
+    required String keyId,
+    required Uri domain,
+  }) async {
+    await wallet.generateKey(keyId: keyId);
+    final didManager = DidWebManager(
+      store: InMemoryDidStore(),
+      wallet: wallet,
+      domain: domain,
+    );
+    await didManager.addVerificationMethod(
+      keyId,
+      relationships: {
+        VerificationRelationship.authentication,
+        VerificationRelationship.keyAgreement,
+        VerificationRelationship.assertionMethod,
+      },
+    );
+    return didManager;
+  }
+
+  Uri _domainFromDidWeb(String did) {
+    final withoutPrefix = did.replaceFirst('did:web:', '');
+    var decoded = withoutPrefix.replaceAll('%3A', ':');
+    decoded = decoded.replaceAll(':', '/');
+    return Uri.parse('https://$decoded');
   }
 }

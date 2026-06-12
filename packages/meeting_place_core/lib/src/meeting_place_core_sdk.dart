@@ -25,6 +25,7 @@ import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
+import 'service/identity/did_web_document_service.dart';
 import 'service/identity/identity_service.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
@@ -317,6 +318,12 @@ class MeetingPlaceCoreSDK {
     final identityService = IdentityService(
       connectionManager: connectionManager,
       matrixService: matrixService,
+      didWebDocumentService: DidWebDocumentService(
+        controlPlaneSDK: controlPlaneSDK,
+        rootDidManager: didManager,
+        audience: controlPlaneDid,
+      ),
+      didWebBaseHost: _didWebBaseHostFromControlPlaneDid(controlPlaneDid),
     );
 
     final connectionService = ConnectionService(
@@ -1229,5 +1236,12 @@ class MeetingPlaceCoreSDK {
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);
+  }
+
+  static Uri _didWebBaseHostFromControlPlaneDid(String controlPlaneDid) {
+    var domain = controlPlaneDid.replaceFirst('did:web:', '');
+    domain = domain.replaceAll('%3A', ':');
+    domain = domain.replaceAll(':', '/');
+    return Uri.parse('https://$domain');
   }
 }

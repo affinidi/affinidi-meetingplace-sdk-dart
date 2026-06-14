@@ -31,6 +31,29 @@ class MatrixServiceException implements SDKException {
     );
   }
 
+  factory MatrixServiceException.voipNotInitialized() {
+    return MatrixServiceException(
+      message:
+          'VoIP not initialized. '
+          'Call initializeMatrixRTC() before starting a call.',
+      code: MeetingPlaceCoreSDKErrorCode.matrixVoipNotInitialized,
+    );
+  }
+
+  factory MatrixServiceException.roomNotFound(String roomId) {
+    return MatrixServiceException(
+      message: 'Matrix room not found: $roomId',
+      code: MeetingPlaceCoreSDKErrorCode.matrixRoomNotFound,
+    );
+  }
+
+  factory MatrixServiceException.incomingCallNotFound(String roomId) {
+    return MatrixServiceException(
+      message: 'No incoming MatrixRTC call found in room: $roomId',
+      code: MeetingPlaceCoreSDKErrorCode.matrixIncomingCallNotFound,
+    );
+  }
+
   MatrixServiceException({
     required this.message,
     required this.code,

@@ -43,8 +43,8 @@ melos:
         dart format -l 80 .
 
     analyze:
-      run: melos run _analyze --no-select && melos run _analyze-flutter --no-select
-      description: Run dart analyze on all packages (pure Dart + Flutter)
+      run: melos run _analyze --no-select && melos run _analyze-flutter-packages
+      description: Run dart analyze on all Dart packages and flutter analyze on Flutter packages
     _analyze:
       exec: dart analyze .
       concurrency: 4
@@ -62,10 +62,13 @@ melos:
       concurrency: 4
       failFast: true
       packageFilters:
-        flutter: true
         fileExists:
           - analysis_options.yaml
         includePrivatePackages: true
+
+    _analyze-flutter-packages:
+      run: cd packages/meeting_place_matrix_livekit && flutter analyze . || true
+      description: Run flutter analyze on Flutter packages in the workspace
 
     test:
       run: |

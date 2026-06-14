@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:meeting_place_chat/meeting_place_chat.dart'
+    show AudioVideoCallParticipant, AudioVideoCallState;
 
 import '../providers/livekit_service_provider.dart';
 import '../services/audio_video_call_service.dart';
@@ -24,11 +26,15 @@ class MeetingPlaceLiveKitVideoView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(
-      audioVideoCallServiceProvider(otherPartyChannelDid).select(
-        (s) => s.participants
-            .where((p) => p.identity == identity)
-            .firstOrNull
-            ?.hasVideo,
+      audioVideoCallServiceProvider(otherPartyChannelDid).select<bool>(
+        (AudioVideoCallState? s) {
+          if (s == null) return false;
+          return s.participants
+              .where((AudioVideoCallParticipant p) => p.identity == identity)
+              .firstOrNull
+              ?.hasVideo ??
+              false;
+        },
       ),
     );
     return ref

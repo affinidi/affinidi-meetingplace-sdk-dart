@@ -1,22 +1,24 @@
 import 'dart:async';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:meeting_place_chat/meeting_place_chat.dart'
+    show
+        AudioVideoCallErrorCode,
+        AudioVideoCallParticipant,
+        AudioVideoCallState,
+        AudioVideoCallStatus;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../constants/audio_video_call_defaults.dart';
 import '../delegates/flutter_matrix_rtc_delegate.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
-import '../models/audio_video_call_error_code.dart';
-import '../models/audio_video_call_participant.dart';
-import '../models/audio_video_call_status.dart';
 import '../providers/livekit_service_provider.dart';
 import '../providers/plugin_core_sdk_provider.dart';
 import '../providers/plugin_logger_provider.dart';
 import '../providers/plugin_options_provider.dart';
 import '../providers/plugin_rtc_delegate_provider.dart';
 import '../utils/string.dart';
-import 'audio_video_call_service_state.dart';
 import 'livekit_service.dart';
 import 'sfu_token_service.dart';
 
@@ -29,8 +31,7 @@ part 'audio_video_call_service.g.dart';
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
 /// - Owns [LiveKitService] and [SfuTokenService] for this call.
-/// - Publishes [AudioVideoCallServiceState] for the presentation layer to
-///   observe.
+/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
 /// Read by AudioVideoCallScreenController via `ref.listen`.
@@ -52,7 +53,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
   BaseKeyProvider? _keyProvider;
 
   @override
-  AudioVideoCallServiceState build(String otherPartyChannelDid) {
+  AudioVideoCallState build(String otherPartyChannelDid) {
     _sdk = ref.read(pluginCoreSdkProvider);
     _e2eeReadyTimeout = ref.read(pluginOptionsProvider).e2eeReadyTimeout;
     _rtcDelegate = ref.read(pluginRtcDelegateProvider);
@@ -77,15 +78,15 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       unawaited(_livekitService.disconnect());
     });
 
-    return AudioVideoCallServiceState();
+    return AudioVideoCallState.initial;
   }
 
-  Future<void> joinCall() async {
+  Future<void> joinCall({bool isCallee = false}) async {
     const methodName = 'joinCall';
     if (_isDisposed) return;
     state = state.copyWith(
       status: AudioVideoCallStatus.connecting,
-      errorCode: null,
+      clearErrorCode: true,
     );
 
     var errorCode = AudioVideoCallErrorCode.unexpected;
@@ -173,28 +174,30 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       _matrixRoomId = matrixRoomId;
       _matrixCallId = matrixRoomId; // callId defaults to roomId in startCall
 
-      // Nudge the callee via the control-plane channel-activity pipeline.
-      // This triggers the same FCM push + CP event processing path used for
-      // chat messages: the callee's app receives a 'call-invite'
-      // ChannelActivity, which the SDK emits on incomingCallSignals, and the
-      // plugin converts to an IncomingCallEvent that rings the device.
-      errorCode = AudioVideoCallErrorCode.callInviteFailed;
-      await _sdk.sendChannelNotification(
-        channel.isGroup
-            ? GroupChannelNotification(
-                offerLink: channel.offerLink,
-                groupDid: otherPartyChannelDid,
-                type: ChannelActivityType.callInvite,
-              )
-            : IndividualChannelNotification(
-                recipientDid: otherPartyChannelDid,
-                type: ChannelActivityType.callInvite,
-              ),
-      );
-      _logger.info(
-        'Sent call-invite nudge to ${otherPartyChannelDid.topAndTail()}',
-        name: methodName,
-      );
+      if (!isCallee) {
+        // Nudge the callee via the control-plane channel-activity pipeline.
+        // This triggers the same FCM push + CP event processing path used for
+        // chat messages: the callee's app receives a 'call-invite'
+        // ChannelActivity, which the SDK emits on incomingCallSignals, and the
+        // plugin converts to an IncomingCallEvent that rings the device.
+        errorCode = AudioVideoCallErrorCode.callInviteFailed;
+        await _sdk.sendChannelNotification(
+          channel.isGroup
+              ? GroupChannelNotification(
+                  offerLink: channel.offerLink,
+                  groupDid: otherPartyChannelDid,
+                  type: ChannelActivityType.callInvite,
+                )
+              : IndividualChannelNotification(
+                  recipientDid: otherPartyChannelDid,
+                  type: ChannelActivityType.callInvite,
+                ),
+        );
+        _logger.info(
+          'Sent call-invite nudge to ${otherPartyChannelDid.topAndTail()}',
+          name: methodName,
+        );
+      }
 
       if (_isDisposed) return;
       state = state.copyWith(

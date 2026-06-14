@@ -1,4 +1,5 @@
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    hide ChannelActivityType;
 import 'package:meeting_place_core/src/event_handler/channel_activity_event_handler.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';

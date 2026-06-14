@@ -1,3 +1,4 @@
+/// The lifecycle phase of an audio/video call.
 enum AudioVideoCallStatus {
   /// No active call.
   idle,
@@ -8,22 +9,22 @@ enum AudioVideoCallStatus {
   /// Callee side: incoming call awaiting accept or decline.
   incoming,
 
-  /// Connecting to the LiveKit room (transport layer).
+  /// Connecting to the call transport layer.
   connecting,
 
-  /// Connected to the room and media is flowing (transport layer).
+  /// Connected to the call transport (media may not be flowing yet).
   connected,
 
-  /// Waiting for E2EE keys from remote participants.
+  /// Waiting for end-to-end encryption keys from remote participants.
   waitingForKeys,
 
-  /// Call is live and media is flowing (UX layer).
+  /// Call is live and media is flowing.
   active,
 
-  /// Leaving the call gracefully (transport layer).
+  /// Leaving the call gracefully.
   disconnecting,
 
-  /// Call transport disconnected (transport layer).
+  /// Transport disconnected.
   disconnected,
 
   /// Remote party declined the call.
@@ -32,7 +33,7 @@ enum AudioVideoCallStatus {
   /// No answer within the timeout window.
   missed,
 
-  /// Call ended normally (UX layer).
+  /// Call ended normally.
   ended,
 
   /// An unrecoverable error occurred.

@@ -1,5 +1,10 @@
-export 'src/call/audio_video_call_plugin.dart';
-export 'src/call/incoming_call_event.dart';
+export 'src/call/contracts/audio_video_call_plugin.dart';
+export 'src/call/contracts/audio_video_call_session.dart';
+export 'src/call/contracts/incoming_audio_video_call_event.dart';
+export 'src/call/models/audio_video_call_error_code.dart';
+export 'src/call/models/audio_video_call_participant.dart';
+export 'src/call/models/audio_video_call_state.dart';
+export 'src/call/models/audio_video_call_status.dart';
 export 'src/chat/chat.dart';
 export 'src/entity/entity.dart';
 export 'src/event/event.dart';

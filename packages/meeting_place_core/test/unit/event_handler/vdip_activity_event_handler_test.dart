@@ -1,7 +1,7 @@
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ContactCard;
+    hide ChannelActivityType, ContactCard;
 import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/event_handler/exceptions/event_handler_exception.dart';
 import 'package:meeting_place_core/src/event_handler/vdip_activity_event_handler.dart';

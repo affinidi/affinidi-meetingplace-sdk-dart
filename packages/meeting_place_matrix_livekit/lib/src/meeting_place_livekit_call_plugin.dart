@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../meeting_place_matrix_livekit.dart' show MeetingPlaceLiveKitVideoView;
 import 'delegates/flutter_matrix_rtc_delegate.dart';
 import 'exceptions/meeting_place_livekit_call_exception.dart';
 import 'meeting_place_livekit_call_plugin_options.dart';
@@ -14,12 +13,28 @@ import 'providers/plugin_logger_provider.dart';
 import 'providers/plugin_options_provider.dart';
 import 'providers/plugin_rtc_delegate_provider.dart';
 import 'services/audio_video_call_service.dart';
-import 'services/audio_video_call_service_state.dart';
+import 'sessions/livekit_call_session.dart';
 import 'utils/string.dart';
-import 'widgets/meeting_place_livekit_video_view.dart'
-    show MeetingPlaceLiveKitVideoView;
 import 'widgets/plugin_scope.dart';
 
+/// Concrete [AudioVideoCallPlugin] backed by Matrix RTC signalling and a
+/// LiveKit SFU for media transport.
+///
+/// Register via `audioVideoCallPluginProvider` in `main.dart`:
+///
+/// ```dart
+/// audioVideoCallPluginProvider.overrideWith((ref) async {
+///   final sdk = await ref.watch(meetingPlaceSdkProvider.future);
+///   final plugin = MeetingPlaceLiveKitCallPlugin(
+///     options: MeetingPlaceLiveKitCallPluginOptions(...),
+///   );
+///   plugin.initialize(sdk: sdk);
+///   return plugin;
+/// }),
+/// ```
+///
+/// Consumers hold [AudioVideoCallPlugin] and [AudioVideoCallSession] only.
+/// The concrete type is referenced exclusively in `main.dart`.
 class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   MeetingPlaceLiveKitCallPlugin({
     required MeetingPlaceLiveKitCallPluginOptions options,
@@ -28,253 +43,209 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className),
        _incomingCallsController =
-           StreamController<IncomingCallEvent>.broadcast(),
+           StreamController<IncomingAudioVideoCallEvent>.broadcast(),
        _rtcDelegate = FlutterMatrixRTCDelegate();
 
   final MeetingPlaceLiveKitCallPluginOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
-  final StreamController<IncomingCallEvent> _incomingCallsController;
+  final StreamController<IncomingAudioVideoCallEvent> _incomingCallsController;
   final FlutterMatrixRTCDelegate _rtcDelegate;
-  // callId → contactId for active incoming calls.
-  // Populated by _emitIncomingCall; consumed by acceptCall / declineCall.
+
+  // callId -> contactId for ringing calls not yet accepted.
   final Map<String, String> _pendingCalls = {};
-  // Non-null while a call is ringing or active.
-  // Any new invite that arrives while this is set is auto-rejected (busy).
+
+  // Non-null while a call is ringing or active (busy guard).
   String? _activeCallId;
-  // otherPartyChannelDid of the current outgoing call, set on joinCall,
-  // cleared on disposeCall. Used by leaveCurrentCall() to clean up on app
-  // lifecycle events.
-  String? _activeOtherPartyChannelDid;
-  // SDK reference and subscription for incoming call signals.
-  // Both set once in initialize() and never changed.
+
+  // contactId of a call accepted via acceptCall() but not yet connected via
+  // startCall(). Cleared on startCall().
+  String? _acceptedContactId;
+
+  // Active session; set on startCall(), cleared on dispose.
+  LiveKitCallSession? _activeSession;
+
   MeetingPlaceCoreSDK? _sdk;
   StreamSubscription<IncomingCallSignal>? _signalSubscription;
 
-  /// Plugin-owned container — created on first [initialize] call.
-  /// Holds all scoped plugin providers (service, livekit, etc.) for the
-  /// duration of the call. App-layer code reads state through [callState]
-  /// and imperative methods on this class; no Riverpod dependency annotation
-  /// is required in the consumer.
-  ProviderContainer? _container;
-
   static const _className = 'MeetingPlaceLiveKitCallPlugin';
+
+  // ---------------------------------------------------------------------------
+  // Plugin lifecycle
+  // ---------------------------------------------------------------------------
+
+  /// Initialises the plugin. Safe to call multiple times — idempotent.
+  void initialize({required MeetingPlaceCoreSDK sdk}) {
+    if (_sdk != null) return;
+    _sdk = sdk;
+    _signalSubscription = sdk.incomingCallSignals.listen(_onIncomingCallSignal);
+    _logger.info('Plugin initialized', name: _className);
+  }
+
+  /// Disposes the plugin entirely.
+  Future<void> dispose() async {
+    await _signalSubscription?.cancel();
+    _signalSubscription = null;
+    await _incomingCallsController.close();
+    _activeSession?.disposeContainer();
+    _activeSession = null;
+    _logger.info('Plugin disposed', name: _className);
+  }
+
+  /// Leaves the currently active call, if any.
+  ///
+  /// Use from app lifecycle callbacks (e.g. [AppLifecycleState.detached]) to
+  /// ensure the LiveKit room is released when the app exits.
+  Future<void> leaveCurrentCall() async {
+    final session = _activeSession;
+    if (session == null) return;
+    _logger.info(
+      'Leaving current call for ${session.otherPartyChannelDid.topAndTail()}',
+      name: _className,
+    );
+    await session.hangUp();
+    _activeSession?.disposeContainer();
+    _activeSession = null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // AudioVideoCallPlugin interface
+  // ---------------------------------------------------------------------------
 
   @override
   bool get isSupported => _options.livekitServiceUrl.host.isNotEmpty;
 
   @override
-  Stream<IncomingCallEvent> get incomingCalls =>
+  Stream<IncomingAudioVideoCallEvent> get incomingCalls =>
       _incomingCallsController.stream;
 
-  // ---------------------------------------------------------------------------
-  // Container lifecycle
-  // ---------------------------------------------------------------------------
-
-  /// Initialises the plugin-owned container.
+  /// The currently active [AudioVideoCallSession], or null if no call is in
+  /// progress.
   ///
-  /// Must be called before `callState`, `joinCall`, `leaveCall`, or any other
-  /// imperative method. Safe to call multiple times — subsequent calls are
-  /// no-ops. Call `disposeCall` when the call is over to release resources.
-  void initialize({required MeetingPlaceCoreSDK sdk}) {
-    const methodName = 'initialize';
-    if (_container != null) {
-      _logger.info('Container already initialized, skipping', name: methodName);
-      return;
-    }
-    _sdk = sdk;
-    _signalSubscription = sdk.incomingCallSignals.listen(_onIncomingCallSignal);
-    _container = ProviderContainer(
-      overrides: [
-        pluginCoreSdkProvider.overrideWithValue(sdk),
-        pluginOptionsProvider.overrideWithValue(_options),
-        pluginRtcDelegateProvider.overrideWithValue(_rtcDelegate),
-        pluginLoggerProvider.overrideWithValue(_logger),
-      ],
+  /// Used by the video-rendering widget (`AudioVideoCallView`) to resolve the
+  /// LiveKit session. Null between calls or after `leaveCurrentCall`.
+  LiveKitCallSession? get activeSession => _activeSession;
+
+  @override
+  Future<AudioVideoCallSession> startCall({required String contactId}) async {
+    const methodName = 'startCall';
+    final sdk = _requireSdk();
+
+    final otherPartyChannelDid = contactId;
+
+    // Dispose any previous session before creating a new one.
+    _activeSession?.disposeContainer();
+    _activeSession = null;
+
+    final container = _buildContainer(sdk);
+    final session = LiveKitCallSession.create(
+      container: container,
+      otherPartyChannelDid: otherPartyChannelDid,
+      logger: _logger,
     );
-    _logger.info('Container created', name: methodName);
-  }
+    _activeSession = session;
 
-  /// Disposes the plugin-owned container, releasing all call resources.
-  ///
-  /// Call after the call screen is dismissed.
-  void disposeCall() {
-    const methodName = 'disposeCall';
-    if (_container == null) {
-      _logger.warning('No active container to dispose', name: methodName);
-      return;
-    }
-    _container?.dispose();
-    _container = null;
-    _activeCallId = null;
-    _activeOtherPartyChannelDid = null;
-    _logger.info('Container disposed', name: methodName);
-  }
+    // If the user tapped Accept in the banner, _acceptedContactId is set.
+    // In that case we join as callee (no call-invite nudge sent).
+    final isCallee = _acceptedContactId == contactId;
+    _acceptedContactId = null;
 
-  /// Disposes the plugin entirely, cancelling the incoming-call signal
-  /// subscription and closing the incoming-calls stream.
-  ///
-  /// Call when the app is being fully torn down. After this, the plugin must
-  /// not be used again.
-  Future<void> dispose() async {
-    final methodName = 'dispose';
-    await _signalSubscription?.cancel();
-    _signalSubscription = null;
-    await _incomingCallsController.close();
-    disposeCall();
-    _logger.info('Plugin disposed', name: methodName);
-  }
-
-  /// Leaves the currently active outgoing call, if any.
-  ///
-  /// Used from app lifecycle callbacks (e.g. [AppLifecycleState.detached]) to
-  /// ensure the LiveKit room and MatrixRTC session are released when the app
-  /// exits. Safe to call when no call is active.
-  Future<void> leaveCurrentCall() async {
-    const methodName = 'leaveCurrentCall';
-    final otherPartyChannelDid = _activeOtherPartyChannelDid;
-    if (otherPartyChannelDid == null || _container == null) return;
     _logger.info(
-      'Leaving current call for ${otherPartyChannelDid.topAndTail()}',
+      'Starting call for ${otherPartyChannelDid.topAndTail()} '
+      '(isCallee=$isCallee)',
       name: methodName,
     );
-    await leaveCall(otherPartyChannelDid);
+
+    // Trigger the LiveKit connection + (for outbound calls) the call-invite
+    // nudge. The session's state stream reflects the connection progress.
+    unawaited(
+      container
+          .read(
+            audioVideoCallServiceProvider(otherPartyChannelDid).notifier,
+          )
+          .joinCall(isCallee: isCallee),
+    );
+
+    return session;
   }
 
-  // ---------------------------------------------------------------------------
-  // Call state stream
-  // ---------------------------------------------------------------------------
-
-  /// Returns a broadcast stream of [AudioVideoCallServiceState] for
-  /// [otherPartyChannelDid].
-  ///
-  /// The stream emits immediately with the current state and continues to emit
-  /// on every change. The caller is responsible for cancelling the
-  /// subscription.
-  ///
-  /// Requires `initialize` to have been called first.
-  Stream<AudioVideoCallServiceState> callState(String otherPartyChannelDid) {
-    final container = _requireContainer();
-    final controller = StreamController<AudioVideoCallServiceState>.broadcast();
-    final sub = container.listen(
-      audioVideoCallServiceProvider(otherPartyChannelDid),
-      (prev, next) {
-        if (!controller.isClosed) controller.add(next);
-      },
-      fireImmediately: true,
-    );
-    const methodName = 'callState';
-    _logger.info(
-      'Call state stream opened for ${otherPartyChannelDid.topAndTail()}',
-      name: methodName,
-    );
-    controller.onCancel = () {
-      sub.close();
-      controller.close();
-      _logger.info(
-        'Call state stream closed for ${otherPartyChannelDid.topAndTail()}',
+  @override
+  Future<void> acceptCall({required String callId}) async {
+    const methodName = 'acceptCall';
+    final contactId = _pendingCalls.remove(callId);
+    if (contactId == null) {
+      _logger.warning(
+        'acceptCall called for unknown callId: $callId',
         name: methodName,
       );
-    };
-    return controller.stream;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Imperative call methods
-  // ---------------------------------------------------------------------------
-
-  /// Joins the LiveKit room for [otherPartyChannelDid].
-  Future<void> joinCall(String otherPartyChannelDid) {
+      return;
+    }
+    _acceptedContactId = contactId;
     _logger.info(
-      'Joining call for ${otherPartyChannelDid.topAndTail()}',
-      name: 'joinCall',
+      'Call $callId accepted for ${contactId.topAndTail()}',
+      name: methodName,
     );
-    _activeOtherPartyChannelDid = otherPartyChannelDid;
-    return _requireContainer()
-        .read(audioVideoCallServiceProvider(otherPartyChannelDid).notifier)
-        .joinCall();
   }
 
-  /// Leaves the current call gracefully.
-  Future<void> leaveCall(String otherPartyChannelDid) {
-    _logger.info(
-      'Leaving call for ${otherPartyChannelDid.topAndTail()}',
-      name: 'leaveCall',
-    );
-    _activeOtherPartyChannelDid = null;
-    return _requireContainer()
-        .read(audioVideoCallServiceProvider(otherPartyChannelDid).notifier)
-        .leaveCall();
-  }
-
-  /// Enables or disables the local microphone.
-  Future<void> setMicrophoneEnabled(String otherPartyChannelDid, bool enabled) {
-    _logger.info('Microphone enabled: $enabled', name: 'setMicrophoneEnabled');
-    return _requireContainer()
-        .read(audioVideoCallServiceProvider(otherPartyChannelDid).notifier)
-        .setMicrophoneEnabled(enabled);
-  }
-
-  /// Enables or disables the local camera.
-  Future<void> setCameraEnabled(String otherPartyChannelDid, bool enabled) {
-    _logger.info('Camera enabled: $enabled', name: 'setCameraEnabled');
-    return _requireContainer()
-        .read(audioVideoCallServiceProvider(otherPartyChannelDid).notifier)
-        .setCameraEnabled(enabled);
-  }
-
-  /// Routes audio through the loudspeaker ([enabled] = true) or earpiece.
-  Future<void> setSpeakerphoneEnabled(
-    String otherPartyChannelDid,
-    bool enabled,
-  ) {
-    _logger.info(
-      'Speakerphone enabled: $enabled',
-      name: 'setSpeakerphoneEnabled',
-    );
-    return _requireContainer()
-        .read(audioVideoCallServiceProvider(otherPartyChannelDid).notifier)
-        .setSpeakerphoneEnabled(enabled);
+  @override
+  Future<void> declineCall({required String callId}) async {
+    _logger.info('Call $callId declined', name: 'declineCall');
+    _pendingCalls.remove(callId);
+    if (_activeCallId == callId) _activeCallId = null;
   }
 
   // ---------------------------------------------------------------------------
-  // Widget scope (for video view)
+  // Widget scope for video rendering
   // ---------------------------------------------------------------------------
 
-  /// Wraps [child] in a Riverpod ProviderScope backed by the plugin container.
+  /// Wraps [child] in the Riverpod scope for the active call session.
   ///
-  /// The call screen must be a descendant of this scope to use
-  /// [MeetingPlaceLiveKitVideoView]. Requires [initialize] to have been called.
+  /// The call screen must be a descendant of this scope so that
+  /// `AudioVideoCallView` can resolve the correct `LiveKitService` instance.
   Widget scope({required Widget child}) {
-    final container = _requireContainer();
-    return PluginScope(container: container, child: child);
+    final session = _requireSession();
+    return PluginScope(container: session.container, child: child);
   }
 
-  /// Builds the video view for the participant [identity] in the call for
-  /// [otherPartyChannelDid].
-  ///
-  /// The view is wrapped in the plugin container scope so it resolves the same
-  /// `LiveKitService` instance the call is driving. Returns an empty box when
-  /// the participant has no active video track. Pass `mirror: true` for the
-  /// local camera preview.
-  Widget videoView({
-    required String otherPartyChannelDid,
-    required String identity,
-    bool mirror = false,
-  }) {
-    return scope(
-      child: MeetingPlaceLiveKitVideoView(
-        otherPartyChannelDid: otherPartyChannelDid,
-        identity: identity,
-        mirror: mirror,
-      ),
-    );
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  MeetingPlaceCoreSDK _requireSdk() {
+    final sdk = _sdk;
+    if (sdk == null) {
+      throw const MeetingPlaceLiveKitCallMisconfiguredException(
+        'MeetingPlaceLiveKitCallPlugin.initialize() must be called '
+        'before startCall or acceptCall.',
+      );
+    }
+    return sdk;
   }
 
-  /// Stores [event] in the pending-call map and emits it on [incomingCalls].
-  ///
-  /// If a call is already ringing or active ([_activeCallId] is set), the
-  /// invite is silently rejected (busy) and never emitted.
-  void _emitIncomingCall(IncomingCallEvent event) {
+  LiveKitCallSession _requireSession() {
+    final session = _activeSession;
+    if (session == null) {
+      throw const MeetingPlaceLiveKitCallMisconfiguredException(
+        'No active session. Call startCall() first.',
+      );
+    }
+    return session;
+  }
+
+  ProviderContainer _buildContainer(MeetingPlaceCoreSDK sdk) =>
+      ProviderContainer(
+        overrides: [
+          pluginCoreSdkProvider.overrideWithValue(sdk),
+          pluginOptionsProvider.overrideWithValue(_options),
+          pluginRtcDelegateProvider.overrideWithValue(_rtcDelegate),
+          pluginLoggerProvider.overrideWithValue(_logger),
+        ],
+      );
+
+  // ---------------------------------------------------------------------------
+  // Incoming call signal handling
+  // ---------------------------------------------------------------------------
+
+  void _emitIncomingCall(IncomingAudioVideoCallEvent event) {
     const methodName = '_emitIncomingCall';
     if (_activeCallId != null) {
       _logger.warning(
@@ -294,22 +265,13 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     );
   }
 
-  /// Handles an [IncomingCallSignal] from the SDK.
-  ///
-  /// Rings the device immediately from the nudge: a `call-invite`
-  /// `ChannelActivity` is only ever sent after the caller has connected to
-  /// LiveKit, so its arrival already means a live call exists. The caller's
-  /// channel DID is the only value the banner needs; all Matrix and LiveKit
-  /// resolution is deferred to [joinCall] on accept, where a brief
-  /// "connecting" state covers the network latency. Drops duplicate signals
-  /// (busy guard in [_emitIncomingCall]) and malformed channels silently.
   Future<void> _onIncomingCallSignal(IncomingCallSignal signal) async {
     const methodName = '_onIncomingCallSignal';
     final sdk = _sdk;
     if (sdk == null) return;
 
     _logger.info(
-      'Incoming call signal received for ${signal.ownChannelDid.topAndTail()}',
+      'Incoming call signal for ${signal.ownChannelDid.topAndTail()}',
       name: methodName,
     );
 
@@ -329,7 +291,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       }
 
       _emitIncomingCall(
-        IncomingCallEvent(
+        IncomingAudioVideoCallEvent(
           callId: callerChannelDid,
           contactId: callerChannelDid,
           isAudioOnly: false,
@@ -350,65 +312,5 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         name: methodName,
       );
     }
-  }
-
-  @override
-  Future<void> startCall({required String contactId}) async {
-    // TODO: signal AudioVideoCallService to initiate call setup.
-  }
-
-  @override
-  Future<void> acceptCall({required String callId}) async {
-    const methodName = 'acceptCall';
-    final contactId = _pendingCalls.remove(callId);
-    if (contactId == null) {
-      _logger.warning(
-        'acceptCall called for unknown callId: $callId',
-        name: methodName,
-      );
-      return;
-    }
-    // _activeCallId stays set: the call transitions from ringing to active.
-    // The app navigates to AudioVideoCallScreen(contactId) which calls
-    // joinCall.
-    _logger.info(
-      'Call $callId accepted for ${contactId.topAndTail()}',
-      name: methodName,
-    );
-  }
-
-  @override
-  Future<void> declineCall({required String callId}) async {
-    _logger.info('Call $callId declined', name: 'declineCall');
-    _pendingCalls.remove(callId);
-    if (_activeCallId == callId) _activeCallId = null;
-  }
-
-  @override
-  Future<void> endCall({required String callId}) async {
-    _logger.info('Call $callId ended', name: 'endCall');
-    if (_activeCallId == callId) _activeCallId = null;
-  }
-
-  /// Called by the call service when the call session ends (hang-up,
-  /// network drop, or remote party leaving). Clears the busy guard so new
-  /// incoming calls can be received.
-  void onCallEnded(String callId) {
-    if (_activeCallId == callId) _activeCallId = null;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
-
-  ProviderContainer _requireContainer() {
-    final c = _container;
-    if (c == null) {
-      throw const MeetingPlaceLiveKitCallMisconfiguredException(
-        'MeetingPlaceLiveKitCallPlugin.initialize() must be called before '
-        'using call state or imperative methods.',
-      );
-    }
-    return c;
   }
 }

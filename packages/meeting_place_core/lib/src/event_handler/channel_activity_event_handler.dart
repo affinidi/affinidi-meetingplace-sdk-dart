@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    hide ChannelActivityType;
 import 'package:ssi/ssi.dart';
 
 import '../entity/channel.dart';

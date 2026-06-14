@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:meeting_place_chat/meeting_place_chat.dart' show AudioVideoCallParticipant;
 import 'package:meeting_place_core/meeting_place_core.dart';
-
-import '../models/audio_video_call_participant.dart';
 
 /// Signature for E2EE state change notifications from [LiveKitService].
 ///

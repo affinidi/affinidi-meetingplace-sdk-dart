@@ -1,7 +1,7 @@
 /// Emitted on `AudioVideoCallPlugin.incomingCalls` when a remote party
 /// initiates a call to the local user.
-class IncomingCallEvent {
-  const IncomingCallEvent({
+class IncomingAudioVideoCallEvent {
+  const IncomingAudioVideoCallEvent({
     required this.callId,
     required this.contactId,
     required this.isAudioOnly,

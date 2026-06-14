@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart'
-    show IncomingCallEvent;
+    show IncomingAudioVideoCallEvent;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix_livekit/meeting_place_matrix_livekit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -59,7 +59,6 @@ void main() {
   });
 
   tearDown(() async {
-    plugin.disposeCall();
     await plugin.dispose();
     await signalController.close();
   });
@@ -86,7 +85,7 @@ void main() {
           (_) async => _channel(ownDid: ownDid, otherPartyDid: null),
         );
 
-        final emitted = <IncomingCallEvent>[];
+        final emitted = <IncomingAudioVideoCallEvent>[];
         final sub = plugin.incomingCalls.listen(emitted.add);
 
         signalController.add(const IncomingCallSignal(ownChannelDid: ownDid));
@@ -101,7 +100,7 @@ void main() {
     test('drops signal when no channel is found for own DID', () async {
       when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer((_) async => null);
 
-      final emitted = <IncomingCallEvent>[];
+      final emitted = <IncomingAudioVideoCallEvent>[];
       final sub = plugin.incomingCalls.listen(emitted.add);
 
       signalController.add(const IncomingCallSignal(ownChannelDid: ownDid));

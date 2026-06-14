@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_chat_event_type.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 
@@ -102,7 +103,9 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       _matrixRoomSubscription = subscription;
 
       final events = await _fetchRoomHistoryAsRoomEvents();
-      final incoming = events.where((e) => !e.isFromMe).toList();
+      final incoming = events
+          .where((e) => !e.isFromMe && e.type != MatrixChatEventType.chatEffect)
+          .toList();
 
       for (final event in incoming) {
         if (transportSubscriptionFuture == null) return;

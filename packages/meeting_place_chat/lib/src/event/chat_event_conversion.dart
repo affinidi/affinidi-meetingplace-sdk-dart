@@ -35,6 +35,12 @@ extension IncomingChatEventToChatEvent on IncomingChatEvent {
 
 extension MatrixOutgoingMessageToChatEvent on MatrixOutgoingMessage {
   ChatEvent toChatEvent() {
+    // First, try to match against Matrix-specific event types (mirrors
+    // MatrixRoomEventToChatEvent so the sender's local echo of an effect is
+    // recognised as a ChatEffectEvent, not a plain message).
+    if (type == MatrixChatEventType.chatEffect) {
+      return ChatEffectEvent(effectName: content['effect'] as String? ?? '');
+    }
     final chatProtocol = protocol.ChatProtocol.byValue(type);
     return switch (chatProtocol) {
       protocol.ChatProtocol.chatEffect => ChatEffectEvent(

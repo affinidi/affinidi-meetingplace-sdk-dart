@@ -6,7 +6,6 @@ repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 
 environment:
   sdk: ^3.8.0
-  flutter: ">=3.19.0"
 
 dependencies:
   dio: ^5.8.0+1

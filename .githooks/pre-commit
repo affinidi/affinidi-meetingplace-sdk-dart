@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+
+echo "Ensuring dependencies are resolved..."
+dart pub get
+
+echo "Running package formatting..."
+dart format -l 80 .
+
+echo "Running melos analyze before commit..."
+melos run analyze --no-select
+
+echo "✅ Pubget, format, and analyze passed. Proceeding with commit."

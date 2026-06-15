@@ -1,5 +1,6 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_chat/src/event/chat_event_conversion.dart';
+import 'package:meeting_place_chat/src/transport/matrix/outgoing/effect_room_event.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
@@ -70,5 +71,42 @@ void main() {
 
       expect(event.toChatEvent(), isA<ChatMessageEvent>());
     });
+  });
+
+  group('MatrixOutgoingMessageToChatEvent (FIX 2 regression)', () {
+    test('EffectRoomEvent with Matrix-native type yields ChatEffectEvent '
+        'so the sender sees their own animation', () {
+      final outgoing = EffectRoomEvent(
+        senderDid: 'did:test:alice',
+        effect: 'confetti',
+      );
+
+      final chatEvent = outgoing.toChatEvent();
+      expect(chatEvent, isA<ChatEffectEvent>());
+      expect((chatEvent as ChatEffectEvent).effectName, 'confetti');
+    });
+
+    test('balloons effect name is preserved through outgoing conversion', () {
+      final outgoing = EffectRoomEvent(
+        senderDid: 'did:test:alice',
+        effect: 'balloons',
+      );
+
+      final chatEvent = outgoing.toChatEvent() as ChatEffectEvent;
+      expect(chatEvent.effectName, 'balloons');
+    });
+
+    test(
+      'missing effect field in outgoing event falls back to empty string',
+      () {
+        final outgoing = EffectRoomEvent(
+          senderDid: 'did:test:alice',
+          effect: '',
+        );
+
+        final chatEvent = outgoing.toChatEvent() as ChatEffectEvent;
+        expect(chatEvent.effectName, '');
+      },
+    );
   });
 }

@@ -10,6 +10,7 @@ class MatrixRoomEvent {
     required this.content,
     required this.timestamp,
     this.isFromMe = false,
+    this.isReplay = false,
     this.stateKey,
   }) : assert(
          senderDid != null || userId != null,
@@ -28,6 +29,11 @@ class MatrixRoomEvent {
   final Map<String, dynamic> content;
   final DateTime timestamp;
   final bool isFromMe;
+
+  /// Whether this event was delivered by a backfill of room history rather
+  /// than the live stream. Handlers for ephemeral, animation-only events
+  /// (e.g. chat effects) use this to avoid re-acting on replayed events.
+  final bool isReplay;
 
   /// Matrix `state_key` for state events. For `m.room.member` events this is
   /// the Matrix user ID of the member being affected (e.g. the kicked user

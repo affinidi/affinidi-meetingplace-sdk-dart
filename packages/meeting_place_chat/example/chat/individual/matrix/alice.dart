@@ -7,10 +7,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:vodozemac/vodozemac.dart' as vod;
 
-import '../utils/print.dart';
-import '../utils/repository/chat_repository_impl.dart';
-import '../utils/sdk.dart';
-import '../utils/storage.dart';
+import '../../../utils/print.dart';
+import '../../../utils/repository/chat_repository_impl.dart';
+import '../../../utils/sdk.dart';
+import '../../../utils/storage.dart';
 
 void main() async {
   final vodozemacLibraryPath = getVodozemacLibraryPath();
@@ -40,6 +40,7 @@ void main() async {
     ),
     type: SDKConnectionOfferType.invitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
+    transport: ChannelTransport.matrix,
   );
 
   final outputDirectory = Directory('.example-output')

@@ -107,7 +107,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
       for (final event in incoming) {
         if (transportSubscriptionFuture == null) return;
-        await _handleIncomingRoomEvent(event, isHistory: true);
+        await _handleIncomingRoomEvent(event);
       }
 
       final latestReceiptId = _latestReceiptWorthyId(incoming);
@@ -151,10 +151,8 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         });
   }
 
-  Future<void> _handleIncomingRoomEvent(
-    MatrixRoomEvent event, {
-    bool isHistory = false,
-  }) => _incomingRouter.route(event, isHistory: isHistory);
+  Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
+      _incomingRouter.route(event);
 
   /// True when [event] is a primary `m.room.message` (i.e. not an edit).
   /// Used to decide whether to issue an `m.read` receipt — edits piggyback on
@@ -651,11 +649,14 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     );
     return incoming
         .whereType<MatrixIncomingMessage>()
-        .map(_toRoomEvent)
+        .map((m) => _toRoomEvent(m, isReplay: true))
         .toList();
   }
 
-  MatrixRoomEvent _toRoomEvent(MatrixIncomingMessage m) {
+  MatrixRoomEvent _toRoomEvent(
+    MatrixIncomingMessage m, {
+    bool isReplay = false,
+  }) {
     return MatrixRoomEvent(
       id: m.eventId,
       type: m.type,
@@ -664,6 +665,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       content: m.content,
       timestamp: m.timestamp,
       isFromMe: m.isFromMe,
+      isReplay: isReplay,
       stateKey: m.stateKey,
     );
   }

@@ -1,5 +1,11 @@
 import 'dart:async';
 
+import 'package:meeting_place_core/meeting_place_core.dart'
+    show
+        CoreSDKStreamSubscription,
+        MediatorMessage,
+        MediatorStreamProcessingResult;
+
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
@@ -36,6 +42,10 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   static const String _logkey = 'IndividualMatrixChatSDK';
 
   bool _isSendingChatPresence = false;
+  Future<
+    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>?
+  >?
+  _vdipSubscription;
 
   @override
   IncomingRoomEventRouter buildRoomEventRouter() =>
@@ -44,12 +54,17 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   @override
   Future<Chat> startChatSession() async {
     final chat = await super.startChatSession();
+    final channel = await getChannel();
+
+    _vdipSubscription = coreSDK.vdip.subscribe(channel);
     unawaited(startChatPresenceUpdates());
     return chat;
   }
 
   @override
   Future<void> endChatSession() async {
+    await _vdipSubscription?.then((subscription) => subscription?.dispose());
+    _vdipSubscription = null;
     await super.end();
     stopChatPresenceInterval();
   }

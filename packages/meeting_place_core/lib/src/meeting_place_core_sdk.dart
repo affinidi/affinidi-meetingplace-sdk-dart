@@ -398,6 +398,7 @@ class MeetingPlaceCoreSDK {
       channelService: channelService,
       connectionManager: connectionManager,
       wallet: wallet,
+      mediatorService: mediatorService,
     );
 
     final discoveryEventManager = ControlPlaneEventManager(

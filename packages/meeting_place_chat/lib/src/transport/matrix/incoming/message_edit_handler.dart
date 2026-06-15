@@ -4,6 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
 import '../../../event/chat_event_conversion.dart';
+import 'target_message_resolver.dart';
 
 /// Handles incoming `m.room.message` events that carry an `m.replace`
 /// relation (Matrix message edits). Mutates the target message's body and
@@ -17,17 +18,19 @@ class MessageEditHandler {
     required MeetingPlaceChatSDKLogger logger,
   }) : _chatRepository = chatRepository,
        _chatStream = chatStream,
-       _chatId = chatId,
-       _serverEventIdToMessageId = serverEventIdToMessageId,
-       _logger = logger;
+       _logger = logger,
+       _resolver = TargetMessageResolver(
+         chatRepository: chatRepository,
+         chatId: chatId,
+         serverEventIdToMessageId: serverEventIdToMessageId,
+       );
 
   static const String _logkey = 'MessageEditHandler';
 
   final ChatRepository _chatRepository;
   final ChatStream _chatStream;
-  final String _chatId;
-  final Map<String, String> _serverEventIdToMessageId;
   final MeetingPlaceChatSDKLogger _logger;
+  final TargetMessageResolver _resolver;
 
   Future<void> handle(MatrixRoomEvent event) async {
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
@@ -36,12 +39,8 @@ class MessageEditHandler {
     final newBody = newContent?['body'] as String?;
     if (targetEventId == null || newBody == null) return;
 
-    final messageId = _serverEventIdToMessageId[targetEventId] ?? targetEventId;
-    final stored = await _chatRepository.getMessage(
-      chatId: _chatId,
-      messageId: messageId,
-    );
-    if (stored == null || stored is! Message) {
+    final stored = await _resolver.resolve(targetEventId);
+    if (stored == null) {
       _logger.info(
         'Edit for unknown message $targetEventId, dropping',
         name: _logkey,
@@ -52,7 +51,7 @@ class MessageEditHandler {
     final senderDid = event.senderDid;
     if (senderDid == null || senderDid != stored.senderDid) {
       _logger.warning(
-        'Edit from non-author for message $messageId, dropping',
+        'Edit from non-author for message ${stored.messageId}, dropping',
         name: _logkey,
       );
       return;

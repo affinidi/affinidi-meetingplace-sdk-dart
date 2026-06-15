@@ -2,6 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../../../meeting_place_chat.dart';
 import 'incoming_reaction_state_store.dart';
+import 'target_message_resolver.dart';
 
 /// Handles `m.reaction` events by appending the reaction to its target
 /// message and remembering the event so a later redaction can undo it.
@@ -14,15 +15,17 @@ class ReactionHandler {
     required IncomingReactionStateStore reactionStateStore,
   }) : _chatRepository = chatRepository,
        _chatStream = chatStream,
-       _chatId = chatId,
-       _serverEventIdToMessageId = serverEventIdToMessageId,
-       _reactionStateStore = reactionStateStore;
+       _reactionStateStore = reactionStateStore,
+       _resolver = TargetMessageResolver(
+         chatRepository: chatRepository,
+         chatId: chatId,
+         serverEventIdToMessageId: serverEventIdToMessageId,
+       );
 
   final ChatRepository _chatRepository;
   final ChatStream _chatStream;
-  final String _chatId;
-  final Map<String, String> _serverEventIdToMessageId;
   final IncomingReactionStateStore _reactionStateStore;
+  final TargetMessageResolver _resolver;
 
   Future<void> handle(MatrixRoomEvent event) async {
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
@@ -30,12 +33,8 @@ class ReactionHandler {
     final reaction = relatesTo?['key'] as String?;
     if (targetEventId == null || reaction == null) return;
 
-    final messageId = _serverEventIdToMessageId[targetEventId] ?? targetEventId;
-    final message = await _chatRepository.getMessage(
-      chatId: _chatId,
-      messageId: messageId,
-    );
-    if (message == null || message is! Message) return;
+    final message = await _resolver.resolve(targetEventId);
+    if (message == null) return;
 
     // The target message is tombstoned for the local user. The reaction
     // is dropped on the floor — we don't mutate, don't push to the stream,
@@ -50,7 +49,7 @@ class ReactionHandler {
     _chatStream.pushData(StreamData(chatItem: message));
     _reactionStateStore.register(
       eventId: event.id,
-      messageId: messageId,
+      messageId: message.messageId,
       reaction: reaction,
     );
   }

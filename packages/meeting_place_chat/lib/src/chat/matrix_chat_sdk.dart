@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 
@@ -648,11 +649,14 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     );
     return incoming
         .whereType<MatrixIncomingMessage>()
-        .map(_toRoomEvent)
+        .map((m) => _toRoomEvent(m, isReplay: true))
         .toList();
   }
 
-  MatrixRoomEvent _toRoomEvent(MatrixIncomingMessage m) {
+  MatrixRoomEvent _toRoomEvent(
+    MatrixIncomingMessage m, {
+    bool isReplay = false,
+  }) {
     return MatrixRoomEvent(
       id: m.eventId,
       type: m.type,
@@ -661,6 +665,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       content: m.content,
       timestamp: m.timestamp,
       isFromMe: m.isFromMe,
+      isReplay: isReplay,
       stateKey: m.stateKey,
     );
   }

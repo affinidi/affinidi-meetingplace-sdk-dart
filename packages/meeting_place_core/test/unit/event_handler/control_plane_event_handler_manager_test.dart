@@ -1,8 +1,8 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_core/src/entity/channel.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_stream_manager.dart';
-import 'package:meeting_place_core/src/event_handler/control_plane_stream_event.dart';
+import 'package:meeting_place_core/src/service/connection_service.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -10,6 +10,13 @@ import 'package:uuid/uuid.dart';
 
 import '../../fixtures/contact_card_fixture.dart';
 import 'mocks/mocks.dart';
+
+class MockConnectionService extends Mock implements ConnectionService {}
+
+class MockMeetingPlaceMediatorSDK extends Mock
+    implements MeetingPlaceMediatorSDK {}
+
+class MockGroupRepository extends Mock implements GroupRepository {}
 
 class RecordingControlPlaneEventStreamManager
     extends ControlPlaneEventStreamManager {

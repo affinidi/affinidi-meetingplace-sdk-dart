@@ -1,6 +1,12 @@
+import 'package:didcomm/didcomm.dart' show Attachment, AttachmentData;
+
 import 'chat_attachment_data.dart';
 
 export 'chat_attachment_data.dart';
+
+/// Public typedef for the core SDK attachment type (`Attachment` from
+/// `package:didcomm`) so consumers don't need a direct didcomm dependency.
+typedef CoreAttachment = Attachment;
 
 /// A transport-agnostic attachment for chat messages.
 ///
@@ -117,4 +123,48 @@ class ChatAttachment {
     }
     return Map<String, dynamic>.from(value);
   }
+}
+
+/// Converts a [ChatAttachment] to the core SDK [CoreAttachment] type.
+extension ChatAttachmentCoreConversion on ChatAttachment {
+  CoreAttachment toCoreAttachment() => CoreAttachment(
+    id: id,
+    description: description,
+    filename: filename,
+    mediaType: mediaType,
+    format: format,
+    lastModifiedTime: lastModifiedTime,
+    data: data != null
+        ? AttachmentData(
+            jws: data!.jws,
+            hash: data!.hash,
+            links: data!.links,
+            base64: data!.base64,
+            json: data!.json,
+          )
+        : AttachmentData(),
+    byteCount: byteCount,
+  );
+}
+
+/// Converts a [CoreAttachment] to a [ChatAttachment].
+extension CoreAttachmentToChatAttachment on CoreAttachment {
+  ChatAttachment toChatAttachment() => ChatAttachment(
+    id: id,
+    description: description,
+    filename: filename,
+    mediaType: mediaType,
+    format: format,
+    lastModifiedTime: lastModifiedTime,
+    data: data == null
+        ? null
+        : ChatAttachmentData(
+            jws: data!.jws,
+            hash: data!.hash,
+            links: data!.links,
+            base64: data!.base64,
+            json: data!.json,
+          ),
+    byteCount: byteCount,
+  );
 }

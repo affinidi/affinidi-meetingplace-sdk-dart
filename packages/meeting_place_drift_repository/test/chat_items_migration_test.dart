@@ -206,8 +206,9 @@ void main() {
         // while user_version is still 5. Pre-fix this threw:
         //   SqliteException(1): duplicate column name: metadata
         final schema = await verifier.schemaAt(5);
-        schema.rawDatabase
-            .execute('ALTER TABLE attachments ADD COLUMN metadata TEXT');
+        schema.rawDatabase.execute(
+          'ALTER TABLE attachments ADD COLUMN metadata TEXT',
+        );
 
         final db = ChatItemsDatabase.forTesting(schema.newConnection());
         // Any query triggers the lazy onUpgrade(5 → 6). Should not throw.

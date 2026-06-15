@@ -293,35 +293,36 @@ void main() {
       verifyNever(() => core.updateChannel(any()));
     });
 
-    test('incoming issued credential emits ChatIssuedCredentialEvent', () async {
-      final chat = await sdk.startChatSession();
+    test(
+      'incoming issued credential emits ChatIssuedCredentialEvent',
+      () async {
+        final chat = await sdk.startChatSession();
 
-      final eventFuture = chat.stream!.stream
-          .where((d) => d.event is ChatIssuedCredentialEvent)
-          .first;
+        final eventFuture = chat.stream!.stream
+            .where((d) => d.event is ChatIssuedCredentialEvent)
+            .first;
 
-      incomingController.add(
-        DidCommIncomingMessage(
-          senderDid: _bobDid,
-          timestamp: DateTime.utc(2026),
-          payload: PlainTextMessage(
-            id: 'issued-credential-1',
-            type: Uri.parse(VdipClient.issuedCredentialMessageType),
-            from: _bobDid,
-            to: [_aliceDid],
-            body: {
-              'credential': 'eyJ2YyI6InRlc3QifQ==',
-            },
-            createdTime: DateTime.utc(2026),
+        incomingController.add(
+          DidCommIncomingMessage(
+            senderDid: _bobDid,
+            timestamp: DateTime.utc(2026),
+            payload: PlainTextMessage(
+              id: 'issued-credential-1',
+              type: Uri.parse(VdipClient.issuedCredentialMessageType),
+              from: _bobDid,
+              to: [_aliceDid],
+              body: {'credential': 'eyJ2YyI6InRlc3QifQ=='},
+              createdTime: DateTime.utc(2026),
+            ),
           ),
-        ),
-      );
+        );
 
-      final streamData = await eventFuture;
-      final event = streamData.event as ChatIssuedCredentialEvent;
-      expect(event.senderDid, _bobDid);
-      expect(event.body['credential'], 'eyJ2YyI6InRlc3QifQ==');
-      verify(() => vdip.dispatch(any())).called(1);
-    });
+        final streamData = await eventFuture;
+        final event = streamData.event as ChatIssuedCredentialEvent;
+        expect(event.senderDid, _bobDid);
+        expect(event.body['credential'], 'eyJ2YyI6InRlc3QifQ==');
+        verify(() => vdip.dispatch(any())).called(1);
+      },
+    );
   });
 }

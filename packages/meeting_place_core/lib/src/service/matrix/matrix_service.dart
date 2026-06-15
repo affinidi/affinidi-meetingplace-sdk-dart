@@ -485,7 +485,25 @@ class MatrixService {
     if (event == null) {
       throw StateError('Matrix event $eventId not found in room $roomId');
     }
-    final file = await event.downloadAndDecryptAttachment();
+
+    // getEventById returns DB-cached events without decrypting them; only its
+    // network path decrypts. Decrypt here so attachments on historical
+    // encrypted events can be downloaded (store:true also repairs the cache).
+    var decryptedEvent = event;
+    if (event.type == matrix.EventTypes.Encrypted && client.encryptionEnabled) {
+      decryptedEvent = await client.encryption!.decryptRoomEvent(
+        event,
+        store: true,
+      );
+    }
+    if (decryptedEvent.type == matrix.EventTypes.Encrypted) {
+      throw MatrixServiceException.mediaDecryptionFailed(
+        roomId: roomId,
+        eventId: eventId,
+      );
+    }
+
+    final file = await decryptedEvent.downloadAndDecryptAttachment();
     return file.bytes;
   }
 

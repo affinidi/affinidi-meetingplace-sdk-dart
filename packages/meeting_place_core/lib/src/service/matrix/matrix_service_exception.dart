@@ -22,6 +22,20 @@ class MatrixServiceException implements SDKException {
     );
   }
 
+  factory MatrixServiceException.mediaDecryptionFailed({
+    required String roomId,
+    required String eventId,
+    Object? innerException,
+  }) {
+    return MatrixServiceException(
+      message:
+          'Matrix event $eventId in room $roomId could not be decrypted '
+          '(megolm key unavailable); its attachment cannot be downloaded.',
+      code: MeetingPlaceCoreSDKErrorCode.matrixMediaDecryptionFailed,
+      innerException: innerException,
+    );
+  }
+
   MatrixServiceException({
     required this.message,
     required this.code,

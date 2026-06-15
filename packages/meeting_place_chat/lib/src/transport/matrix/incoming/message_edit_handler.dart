@@ -36,12 +36,8 @@ class MessageEditHandler {
     final newBody = newContent?['body'] as String?;
     if (targetEventId == null || newBody == null) return;
 
-    final messageId = _serverEventIdToMessageId[targetEventId] ?? targetEventId;
-    final stored = await _chatRepository.getMessage(
-      chatId: _chatId,
-      messageId: messageId,
-    );
-    if (stored == null || stored is! Message) {
+    final stored = await _resolveTargetMessage(targetEventId);
+    if (stored == null) {
       _logger.info(
         'Edit for unknown message $targetEventId, dropping',
         name: _logkey,
@@ -52,7 +48,7 @@ class MessageEditHandler {
     final senderDid = event.senderDid;
     if (senderDid == null || senderDid != stored.senderDid) {
       _logger.warning(
-        'Edit from non-author for message $messageId, dropping',
+        'Edit from non-author for message ${stored.messageId}, dropping',
         name: _logkey,
       );
       return;
@@ -69,5 +65,34 @@ class MessageEditHandler {
     _chatStream.pushData(
       StreamData(event: event.toChatEvent(), chatItem: stored),
     );
+  }
+
+  /// Resolves the local [Message] targeted by an edit's Matrix event id.
+  ///
+  /// The in-memory [_serverEventIdToMessageId] map only covers messages seen
+  /// live this session, so it misses history and cross-session messages. Fall
+  /// back to the persisted `transportId` (the Matrix event id) so edits on
+  /// older messages still resolve instead of being dropped.
+  Future<Message?> _resolveTargetMessage(String targetEventId) async {
+    final mappedId = _serverEventIdToMessageId[targetEventId];
+    if (mappedId != null) {
+      final mapped = await _chatRepository.getMessage(
+        chatId: _chatId,
+        messageId: mappedId,
+      );
+      if (mapped is Message) return mapped;
+    }
+
+    final direct = await _chatRepository.getMessage(
+      chatId: _chatId,
+      messageId: targetEventId,
+    );
+    if (direct is Message) return direct;
+
+    final items = await _chatRepository.listMessages(_chatId);
+    for (final item in items) {
+      if (item is Message && item.transportId == targetEventId) return item;
+    }
+    return null;
   }
 }

@@ -48,6 +48,7 @@ MatrixRoomEvent _editEvent({
 
 Message _message({
   String messageId = r'$orig-1',
+  String transportId = r'$orig-server',
   String value = 'original',
   String senderDid = _aliceDid,
   DateTime? editedAt,
@@ -59,6 +60,7 @@ Message _message({
   isFromMe: false,
   dateCreated: DateTime.utc(2026, 1, 1, 11),
   status: ChatItemStatus.received,
+  transportId: transportId,
   editedAt: editedAt,
 );
 
@@ -68,6 +70,7 @@ void main() {
   late MessageEditHandler handler;
   late Map<String, String> idMap;
   late List<StreamData> emitted;
+  late List<ChatItem> storedItems;
 
   setUpAll(() {
     registerFallbackValue(
@@ -88,6 +91,7 @@ void main() {
     stream = ChatStream();
     idMap = {};
     emitted = [];
+    storedItems = [];
     stream.listen(emitted.add);
 
     handler = MessageEditHandler(
@@ -101,19 +105,24 @@ void main() {
     when(() => repo.updateMesssage(any())).thenAnswer((i) async {
       return i.positionalArguments.first as ChatItem;
     });
+    when(() => repo.listMessages(_chatId)).thenAnswer((_) async => storedItems);
+    when(
+      () => repo.getMessage(
+        chatId: any(named: 'chatId'),
+        messageId: any(named: 'messageId'),
+      ),
+    ).thenAnswer((_) async => null);
   });
 
   group('MessageEditHandler', () {
     test('mutates target value + editedAt and pushes to the stream', () async {
       final stored = _message();
-      when(
-        () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),
-      ).thenAnswer((_) async => stored);
+      storedItems = [stored];
 
       final ts = DateTime.utc(2026, 1, 1, 13);
       await handler.handle(
         _editEvent(
-          targetEventId: stored.messageId,
+          targetEventId: stored.transportId!,
           newBody: 'edited!',
           timestamp: ts,
         ),
@@ -141,15 +150,31 @@ void main() {
       expect(stored.value, 'edited!');
     });
 
+    test('resolves target by transportId for a history message', () async {
+      final stored = _message(messageId: 'local-uuid');
+      storedItems = [stored];
+      when(
+        () => repo.getMessage(
+          chatId: any(named: 'chatId'),
+          messageId: any(named: 'messageId'),
+        ),
+      ).thenAnswer((_) async => null);
+
+      await handler.handle(
+        _editEvent(targetEventId: stored.transportId!, newBody: 'edited!'),
+      );
+
+      expect(stored.value, 'edited!');
+      verify(() => repo.updateMesssage(stored)).called(1);
+    });
+
     test('drops edits from a non-author sender', () async {
       final stored = _message(senderDid: _aliceDid);
-      when(
-        () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),
-      ).thenAnswer((_) async => stored);
+      storedItems = [stored];
 
       await handler.handle(
         _editEvent(
-          targetEventId: stored.messageId,
+          targetEventId: stored.transportId!,
           newBody: 'hijack',
           senderDid: _bobDid,
         ),
@@ -160,6 +185,7 @@ void main() {
     });
 
     test('drops edits whose target is unknown', () async {
+      storedItems = [];
       when(
         () => repo.getMessage(
           chatId: any(named: 'chatId'),
@@ -178,13 +204,11 @@ void main() {
     test('drops stale edits not newer than the existing editedAt', () async {
       final priorEdit = DateTime.utc(2026, 1, 1, 14);
       final stored = _message(value: 'v2', editedAt: priorEdit);
-      when(
-        () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),
-      ).thenAnswer((_) async => stored);
+      storedItems = [stored];
 
       await handler.handle(
         _editEvent(
-          targetEventId: stored.messageId,
+          targetEventId: stored.transportId!,
           newBody: 'older',
           timestamp: DateTime.utc(2026, 1, 1, 13),
         ),
@@ -197,9 +221,7 @@ void main() {
 
     test('ignores events lacking m.new_content.body', () async {
       final stored = _message();
-      when(
-        () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),
-      ).thenAnswer((_) async => stored);
+      storedItems = [stored];
 
       final bad = MatrixRoomEvent(
         id: r'$e',
@@ -211,7 +233,7 @@ void main() {
           'body': '* x',
           'm.relates_to': {
             'rel_type': 'm.replace',
-            'event_id': stored.messageId,
+            'event_id': stored.transportId,
           },
         },
         timestamp: DateTime.utc(2026, 1, 1, 13),

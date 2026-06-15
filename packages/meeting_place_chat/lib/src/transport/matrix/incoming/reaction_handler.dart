@@ -30,12 +30,8 @@ class ReactionHandler {
     final reaction = relatesTo?['key'] as String?;
     if (targetEventId == null || reaction == null) return;
 
-    final messageId = _serverEventIdToMessageId[targetEventId] ?? targetEventId;
-    final message = await _chatRepository.getMessage(
-      chatId: _chatId,
-      messageId: messageId,
-    );
-    if (message == null || message is! Message) return;
+    final message = await _resolveTargetMessage(targetEventId);
+    if (message == null) return;
 
     // The target message is tombstoned for the local user. The reaction
     // is dropped on the floor — we don't mutate, don't push to the stream,
@@ -50,8 +46,37 @@ class ReactionHandler {
     _chatStream.pushData(StreamData(chatItem: message));
     _reactionStateStore.register(
       eventId: event.id,
-      messageId: messageId,
+      messageId: message.messageId,
       reaction: reaction,
     );
+  }
+
+  /// Resolves the local [Message] targeted by a reaction's Matrix event id.
+  ///
+  /// The in-memory [_serverEventIdToMessageId] map only covers messages seen
+  /// live this session, so it misses history and cross-session messages. Fall
+  /// back to the persisted `transportId` (the Matrix event id) so reactions on
+  /// older messages still resolve instead of being dropped.
+  Future<Message?> _resolveTargetMessage(String targetEventId) async {
+    final mappedId = _serverEventIdToMessageId[targetEventId];
+    if (mappedId != null) {
+      final mapped = await _chatRepository.getMessage(
+        chatId: _chatId,
+        messageId: mappedId,
+      );
+      if (mapped is Message) return mapped;
+    }
+
+    final direct = await _chatRepository.getMessage(
+      chatId: _chatId,
+      messageId: targetEventId,
+    );
+    if (direct is Message) return direct;
+
+    final items = await _chatRepository.listMessages(_chatId);
+    for (final item in items) {
+      if (item is Message && item.transportId == targetEventId) return item;
+    }
+    return null;
   }
 }

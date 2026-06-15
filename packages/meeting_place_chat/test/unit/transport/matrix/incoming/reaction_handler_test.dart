@@ -54,6 +54,8 @@ void main() {
   late IncomingReactionStateStore reactionStore;
   late ReactionHandler handler;
   late List<StreamData> emitted;
+  late List<ChatItem> storedItems;
+  late Map<String, String> eventIdMap;
 
   setUpAll(() {
     registerFallbackValue(
@@ -74,29 +76,58 @@ void main() {
     stream = ChatStream();
     reactionStore = IncomingReactionStateStore();
     emitted = [];
+    storedItems = [];
+    eventIdMap = {};
     stream.listen(emitted.add);
 
     handler = ReactionHandler(
       chatRepository: repo,
       chatStream: stream,
       chatId: _chatId,
-      serverEventIdToMessageId: {},
+      serverEventIdToMessageId: eventIdMap,
       reactionStateStore: reactionStore,
     );
 
     when(() => repo.updateMesssage(any())).thenAnswer((i) async {
       return i.positionalArguments.first as ChatItem;
     });
+    when(() => repo.listMessages(_chatId)).thenAnswer((_) async => storedItems);
+    when(
+      () => repo.getMessage(
+        chatId: any(named: 'chatId'),
+        messageId: any(named: 'messageId'),
+      ),
+    ).thenAnswer((_) async => null);
   });
 
   group('ReactionHandler', () {
-    test('appends reaction on a normal message', () async {
+    test('resolves target by transportId and appends reaction', () async {
       final stored = _message();
+      storedItems = [stored];
+      when(
+        () => repo.getMessage(
+          chatId: _chatId,
+          messageId: any(named: 'messageId'),
+        ),
+      ).thenAnswer((_) async => null);
+
+      await handler.handle(_reactionEvent(targetEventId: stored.transportId!));
+
+      expect(stored.reactions, equals(['👍']));
+      verify(() => repo.updateMesssage(stored)).called(1);
+      await Future<void>.delayed(Duration.zero);
+      expect(emitted, hasLength(1));
+    });
+
+    test('resolves target via the live session map when present', () async {
+      final stored = _message();
+      storedItems = [stored];
+      eventIdMap[r'$server-1'] = stored.messageId;
       when(
         () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),
       ).thenAnswer((_) async => stored);
 
-      await handler.handle(_reactionEvent(targetEventId: stored.messageId));
+      await handler.handle(_reactionEvent(targetEventId: r'$server-1'));
 
       expect(stored.reactions, equals(['👍']));
       verify(() => repo.updateMesssage(stored)).called(1);
@@ -106,11 +137,9 @@ void main() {
 
     test('ignores reaction when target is locally deleted', () async {
       final stored = _message(isDeletedLocally: true);
-      when(
-        () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),
-      ).thenAnswer((_) async => stored);
+      storedItems = [stored];
 
-      await handler.handle(_reactionEvent(targetEventId: stored.messageId));
+      await handler.handle(_reactionEvent(targetEventId: stored.transportId!));
 
       expect(stored.reactions, isEmpty);
       verifyNever(() => repo.updateMesssage(any()));
@@ -119,13 +148,26 @@ void main() {
 
     test('ignores reaction when target is wire-deleted', () async {
       final stored = _message(isDeleted: true);
-      when(
-        () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),
-      ).thenAnswer((_) async => stored);
+      storedItems = [stored];
 
-      await handler.handle(_reactionEvent(targetEventId: stored.messageId));
+      await handler.handle(_reactionEvent(targetEventId: stored.transportId!));
 
       expect(stored.reactions, isEmpty);
+      verifyNever(() => repo.updateMesssage(any()));
+      expect(emitted, isEmpty);
+    });
+
+    test('ignores reaction when no message matches', () async {
+      storedItems = [_message()];
+      when(
+        () => repo.getMessage(
+          chatId: _chatId,
+          messageId: any(named: 'messageId'),
+        ),
+      ).thenAnswer((_) async => null);
+
+      await handler.handle(_reactionEvent(targetEventId: r'$unknown-event'));
+
       verifyNever(() => repo.updateMesssage(any()));
       expect(emitted, isEmpty);
     });

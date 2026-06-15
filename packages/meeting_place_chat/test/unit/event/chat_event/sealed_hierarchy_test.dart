@@ -17,6 +17,8 @@ String _describe(ChatEvent event) => switch (event) {
   ChatGroupDeletedEvent() => 'ChatGroupDeletedEvent',
   ChatGroupDetailsUpdateEvent() => 'ChatGroupDetailsUpdateEvent',
   ChatMemberDeregisteredEvent() => 'ChatMemberDeregisteredEvent',
+  ChatRequestIssuanceEvent() => 'ChatRequestIssuanceEvent',
+  ChatIssuedCredentialEvent() => 'ChatIssuedCredentialEvent',
   UnhandledChatEvent() => 'UnhandledChatEvent',
 };
 
@@ -48,6 +50,18 @@ void main() {
       const ChatMemberDeregisteredEvent(
         groupDid: 'did:test:group',
         memberDid: 'did:test:bob',
+      ),
+      ChatRequestIssuanceEvent(
+        senderDid: 'did:test:alice',
+        body: const {},
+        createdTime: now,
+        attachments: const [],
+      ),
+      ChatIssuedCredentialEvent(
+        senderDid: 'did:test:alice',
+        body: const {},
+        createdTime: now,
+        attachments: const [],
       ),
       const UnhandledChatEvent(type: 'unknown'),
     ];

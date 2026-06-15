@@ -89,21 +89,27 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   Future<void> _handleIncoming(DidCommIncomingMessage incoming) async {
     final payload = incoming.payload;
     final type = payload.type.toString();
-    final chatProtocol = protocol.ChatProtocol.byValue(type);
+    final chatProtocol = protocol.ChatProtocol.byValue(type) ?? type;
 
     switch (chatProtocol) {
       case protocol.ChatProtocol.chatMessage:
         await _handleIncomingChatMessage(payload);
+        break;
       case protocol.ChatProtocol.chatReaction:
         await _handleIncomingReaction(payload);
+        break;
       case protocol.ChatProtocol.chatDelivered:
         await _handleIncomingDelivered(payload);
+        break;
       case protocol.ChatProtocol.chatAliasProfileHash:
         await _handleIncomingProfileHash(payload);
+        break;
       case protocol.ChatProtocol.chatAliasProfileRequest:
         await _handleIncomingProfileRequest(payload);
+        break;
       case protocol.ChatProtocol.chatContactDetailsUpdate:
         await _handleIncomingContactDetailsUpdate(payload);
+        break;
       case protocol.ChatProtocol.chatEffect:
         chatStream.pushData(
           StreamData(
@@ -112,6 +118,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
             ),
           ),
         );
+        break;
       case protocol.ChatProtocol.chatActivity:
         final now = DateTime.now().toUtc();
         chatStream.pushData(
@@ -123,12 +130,44 @@ class IndividualDidcommChatSDK extends BaseChatSDK
             ),
           ),
         );
+        break;
       case protocol.ChatProtocol.chatPresence:
         chatStream.pushData(
           StreamData(
             event: ChatPresenceEvent(timestamp: DateTime.now().toUtc()),
           ),
         );
+        break;
+      case final String vdipType
+          when vdipType == VdipClient.requestIssuanceMessageType:
+        coreSDK.vdip.dispatch(incoming.payload);
+
+        chatStream.pushData(
+          StreamData(
+            event: ChatRequestIssuanceEvent(
+              senderDid: payload.from,
+              body: payload.body ?? const {},
+              createdTime: payload.createdTime ?? DateTime.now().toUtc(),
+              attachments: payload.attachments ?? const [],
+            ),
+          ),
+        );
+        break;
+      case final String vdipType
+          when vdipType == VdipClient.issuedCredentialMessageType:
+        coreSDK.vdip.dispatch(incoming.payload);
+
+        chatStream.pushData(
+          StreamData(
+            event: ChatIssuedCredentialEvent(
+              senderDid: payload.from,
+              body: payload.body ?? const {},
+              createdTime: payload.createdTime ?? DateTime.now().toUtc(),
+              attachments: payload.attachments ?? const [],
+            ),
+          ),
+        );
+        break;
       default:
         chatStream.pushData(
           StreamData(

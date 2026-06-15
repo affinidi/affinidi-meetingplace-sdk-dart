@@ -10,6 +10,8 @@ import '../../../../utils/storage/in_memory_storage.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
+class _MockVdipClient extends Mock implements VdipClient {}
+
 class _FakeIncomingMessageHandle extends Fake implements IncomingMessageHandle {
   _FakeIncomingMessageHandle(this._controller);
 
@@ -43,12 +45,20 @@ Channel _fakeChannel({int seqNo = 0}) => Channel(
 
 void main() {
   late _MockCoreSDK core;
+  late _MockVdipClient vdip;
   late StreamController<IncomingMessage> incomingController;
   late InMemoryStorage storage;
   late ChatRepositoryImpl repo;
   late IndividualDidcommChatSDK sdk;
 
   setUpAll(() {
+    registerFallbackValue(
+      PlainTextMessage(
+        id: 'plain-text-fallback',
+        type: Uri.parse('https://example.com/fallback'),
+        body: const {},
+      ),
+    );
     registerFallbackValue(
       DidCommOutgoingMessage(
         senderDid: '',
@@ -69,6 +79,7 @@ void main() {
 
   setUp(() {
     core = _MockCoreSDK();
+    vdip = _MockVdipClient();
     incomingController = StreamController<IncomingMessage>.broadcast();
     storage = InMemoryStorage();
     repo = ChatRepositoryImpl(storage: storage);
@@ -79,6 +90,8 @@ void main() {
     when(
       () => core.getChannelByOtherPartyPermanentDid(any()),
     ).thenAnswer((_) async => _fakeChannel());
+    when(() => core.vdip).thenReturn(vdip);
+    when(() => vdip.dispatch(any())).thenReturn(null);
     when(() => core.sendMessage(any())).thenAnswer((_) async => 'ok');
     when(() => core.updateChannel(any())).thenAnswer((_) async {});
 
@@ -278,6 +291,37 @@ void main() {
       await eventFuture;
 
       verifyNever(() => core.updateChannel(any()));
+    });
+
+    test('incoming issued credential emits ChatIssuedCredentialEvent', () async {
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatIssuedCredentialEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'issued-credential-1',
+            type: Uri.parse(VdipClient.issuedCredentialMessageType),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'credential': 'eyJ2YyI6InRlc3QifQ==',
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      final event = streamData.event as ChatIssuedCredentialEvent;
+      expect(event.senderDid, _bobDid);
+      expect(event.body['credential'], 'eyJ2YyI6InRlc3QifQ==');
+      verify(() => vdip.dispatch(any())).called(1);
     });
   });
 }

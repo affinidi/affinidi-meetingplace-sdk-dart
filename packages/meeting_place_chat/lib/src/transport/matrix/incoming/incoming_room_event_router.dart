@@ -97,9 +97,17 @@ class IncomingRoomEventRouter {
   final Map<String, ChatEventHandler> _chatHandlers;
   final ChatStream? _chatStream;
 
-  Future<void> route(MatrixRoomEvent event) async {
+  /// Routes an incoming [MatrixRoomEvent] to its handler.
+  ///
+  /// When [isHistory] is true the event comes from a backfill of room history
+  /// rather than the live stream. Ephemeral, animation-only events such as
+  /// chat effects must not be replayed in that case, so they are skipped here
+  /// instead of being filtered by the caller.
+  Future<void> route(MatrixRoomEvent event, {bool isHistory = false}) async {
     final dispatchKey = _translate(event);
     if (dispatchKey == null) return;
+
+    if (isHistory && dispatchKey == ChatEventTypes.chatEffect) return;
 
     final matrixHandler = _matrixHandlers[dispatchKey];
     if (matrixHandler != null) {

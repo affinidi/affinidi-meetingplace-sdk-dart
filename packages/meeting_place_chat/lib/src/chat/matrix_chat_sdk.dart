@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
-import '../transport/matrix/matrix_chat_event_type.dart';
+
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 
@@ -103,13 +103,11 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       _matrixRoomSubscription = subscription;
 
       final events = await _fetchRoomHistoryAsRoomEvents();
-      final incoming = events
-          .where((e) => !e.isFromMe && e.type != MatrixChatEventType.chatEffect)
-          .toList();
+      final incoming = events.where((e) => !e.isFromMe).toList();
 
       for (final event in incoming) {
         if (transportSubscriptionFuture == null) return;
-        await _handleIncomingRoomEvent(event);
+        await _handleIncomingRoomEvent(event, isHistory: true);
       }
 
       final latestReceiptId = _latestReceiptWorthyId(incoming);
@@ -153,8 +151,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         });
   }
 
-  Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
-      _incomingRouter.route(event);
+  Future<void> _handleIncomingRoomEvent(
+    MatrixRoomEvent event, {
+    bool isHistory = false,
+  }) => _incomingRouter.route(event, isHistory: isHistory);
 
   /// True when [event] is a primary `m.room.message` (i.e. not an edit).
   /// Used to decide whether to issue an `m.read` receipt — edits piggyback on

@@ -337,7 +337,9 @@ class MeetingPlaceCoreSDK {
       didWebDocumentService: DidWebDocumentService(
         controlPlaneSDK: controlPlaneSDK,
         rootDidManager: didManager,
-        audience: controlPlaneDid,
+        audience: _didWebBaseHostFromControlPlaneDid(
+          controlPlaneDid,
+        ).toString(),
       ),
       didWebBaseHost: _didWebBaseHostFromControlPlaneDid(controlPlaneDid),
     );

@@ -26,16 +26,16 @@ class MeetingPlaceLiveKitVideoView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(
-      audioVideoCallServiceProvider(otherPartyChannelDid).select<bool>(
-        (AudioVideoCallState? s) {
-          if (s == null) return false;
-          return s.participants
-              .where((AudioVideoCallParticipant p) => p.identity == identity)
-              .firstOrNull
-              ?.hasVideo ??
-              false;
-        },
-      ),
+      audioVideoCallServiceProvider(otherPartyChannelDid).select<bool>((
+        AudioVideoCallState? s,
+      ) {
+        if (s == null) return false;
+        return s.participants
+                .where((AudioVideoCallParticipant p) => p.identity == identity)
+                .firstOrNull
+                ?.hasVideo ??
+            false;
+      }),
     );
     return ref
             .read(livekitServiceProvider(otherPartyChannelDid))

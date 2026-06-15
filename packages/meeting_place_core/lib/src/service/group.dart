@@ -181,7 +181,7 @@ class GroupService {
     await _groupRepository.createGroup(group);
 
     try {
-      await (
+      final (roomId, _) = await (
         _matrixService.createRoom(
           didManager: ownerDid,
           channelDid: result.groupDid,
@@ -231,6 +231,7 @@ class GroupService {
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
         externalRef: externalRef,
+        matrixRoomId: roomId,
       );
 
       await _channelService.persistChannel(channel);

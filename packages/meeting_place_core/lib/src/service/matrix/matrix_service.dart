@@ -174,14 +174,18 @@ class MatrixService {
     return roomId;
   }
 
-  /// Resolves the Matrix room ID for [channel] by deriving the appropriate
-  /// alias. Group channels hash only the group DID (carried in
-  /// `otherPartyPermanentChannelDid`); individual channels hash both party
-  /// DIDs commutatively.
+  /// Resolves the Matrix room ID for [channel].
+  ///
+  /// Uses [Channel.matrixRoomId] when available (set at inauguration time) so
+  /// that the lookup works without alias registration. Falls back to alias
+  /// derivation for channels inaugurated before this field was introduced.
   Future<String> resolveRoomIdForChannel({
     required DidManager didManager,
     required Channel channel,
   }) {
+    if (channel.matrixRoomId != null) {
+      return Future.value(channel.matrixRoomId);
+    }
     if (channel.type == ChannelType.group) {
       return resolveChannelRoomId(
         didManager: didManager,

@@ -18,17 +18,31 @@ import '../utils/string.dart';
 /// The session is single-use: once [hangUp] is called the container is
 /// disposed and the session must be discarded.
 class LiveKitCallSession implements AudioVideoCallSession {
-  LiveKitCallSession._({
-    required ProviderContainer container,
-    required String otherPartyChannelDid,
-    required MeetingPlaceCoreSDKLogger logger,
-  }) : _container = container,
-       _otherPartyChannelDid = otherPartyChannelDid,
-       _logger = logger;
+  LiveKitCallSession._(
+    ProviderContainer container,
+    String otherPartyChannelDid,
+    MeetingPlaceCoreSDKLogger logger,
+  ) : _container = container,
+      _otherPartyChannelDid = otherPartyChannelDid,
+      _logger = logger {
+    // Hold a persistent subscription so the autoDispose provider stays alive
+    // for the entire session lifetime, even while joinCall is mid-flight before
+    // the caller has subscribed to the state stream.
+    _stateController = StreamController<AudioVideoCallState>.broadcast();
+    _stateSub = _container.listen(
+      audioVideoCallServiceProvider(_otherPartyChannelDid),
+      (_, AudioVideoCallState next) {
+        if (!_stateController.isClosed) _stateController.add(next);
+      },
+      fireImmediately: true,
+    );
+  }
 
   final ProviderContainer _container;
   final String _otherPartyChannelDid;
   final MeetingPlaceCoreSDKLogger _logger;
+  late final StreamController<AudioVideoCallState> _stateController;
+  late final ProviderSubscription<AudioVideoCallState> _stateSub;
 
   static const _logKey = 'LiveKitCallSession';
 
@@ -37,32 +51,14 @@ class LiveKitCallSession implements AudioVideoCallSession {
     required ProviderContainer container,
     required String otherPartyChannelDid,
     required MeetingPlaceCoreSDKLogger logger,
-  }) => LiveKitCallSession._(
-    container: container,
-    otherPartyChannelDid: otherPartyChannelDid,
-    logger: logger,
-  );
+  }) => LiveKitCallSession._(container, otherPartyChannelDid, logger);
 
   // ---------------------------------------------------------------------------
   // CallSession interface
   // ---------------------------------------------------------------------------
 
   @override
-  Stream<AudioVideoCallState> get state {
-    final controller = StreamController<AudioVideoCallState>.broadcast();
-    final sub = _container.listen(
-      audioVideoCallServiceProvider(_otherPartyChannelDid),
-      (_, AudioVideoCallState next) {
-        if (!controller.isClosed) controller.add(next);
-      },
-      fireImmediately: true,
-    );
-    controller.onCancel = () {
-      sub.close();
-      controller.close();
-    };
-    return controller.stream;
-  }
+  Stream<AudioVideoCallState> get state => _stateController.stream;
 
   @override
   Future<void> setMicrophoneEnabled(bool enabled) {
@@ -121,6 +117,8 @@ class LiveKitCallSession implements AudioVideoCallSession {
       'Disposing session for ${_otherPartyChannelDid.topAndTail()}',
       name: _logKey,
     );
+    _stateSub.close();
+    _stateController.close();
     _container.dispose();
   }
 }

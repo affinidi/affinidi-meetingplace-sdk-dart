@@ -5,6 +5,7 @@
 class AudioVideoCallParticipant {
   const AudioVideoCallParticipant({
     required this.identity,
+    this.did,
     this.hasVideo = false,
     this.hasAudio = false,
     this.isSpeaking = false,
@@ -13,6 +14,14 @@ class AudioVideoCallParticipant {
 
   /// Stable identifier for the participant within the call session.
   final String identity;
+
+  /// Permanent channel DID of the participant, or `null` when it could not be
+  /// resolved from [identity].
+  ///
+  /// The presentation layer uses this to look up a display name (e.g. a group
+  /// member's name) without needing to know how participants are identified at
+  /// the transport layer.
+  final String? did;
 
   /// Whether the participant's video track is currently active.
   final bool hasVideo;
@@ -28,6 +37,7 @@ class AudioVideoCallParticipant {
 
   AudioVideoCallParticipant copyWith({
     String? identity,
+    String? did,
     bool? hasVideo,
     bool? hasAudio,
     bool? isSpeaking,
@@ -35,6 +45,7 @@ class AudioVideoCallParticipant {
   }) {
     return AudioVideoCallParticipant(
       identity: identity ?? this.identity,
+      did: did ?? this.did,
       hasVideo: hasVideo ?? this.hasVideo,
       hasAudio: hasAudio ?? this.hasAudio,
       isSpeaking: isSpeaking ?? this.isSpeaking,

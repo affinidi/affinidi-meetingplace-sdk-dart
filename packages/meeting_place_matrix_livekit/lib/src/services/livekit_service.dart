@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:meeting_place_chat/meeting_place_chat.dart' show AudioVideoCallParticipant;
+import 'package:meeting_place_chat/meeting_place_chat.dart'
+    show AudioVideoCallParticipant;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 /// Signature for E2EE state change notifications from [LiveKitService].
@@ -37,6 +38,12 @@ class LiveKitService {
   bool _isDisposed = false;
   EventsListener<RoomEvent>? _roomListener;
 
+  /// Maps a LiveKit participant identity (a Matrix user id) to the permanent
+  /// channel DID of that participant. Populated at [connect] time so the
+  /// [participants] getter can stamp each domain participant with its DID
+  /// without exposing transport identifiers to higher layers.
+  Map<String, String> _identityToDid = const {};
+
   /// Identity of this client's participant in the room, or `null` when not
   /// connected.
   String? get ownIdentity => _room?.localParticipant?.identity;
@@ -57,9 +64,14 @@ class LiveKitService {
   /// unpublished, muted, or unmuted — for both local and remote participants.
   /// Use this to refresh the participant list in the call service so the UI
   /// stays in sync after camera or microphone toggles.
+  ///
+  /// [identityToDid] maps each expected participant identity (Matrix user id)
+  /// to its permanent channel DID. The [participants] getter uses it to expose
+  /// a DID on each domain participant.
   Future<void> connect({
     required String url,
     required String token,
+    Map<String, String> identityToDid = const {},
     BaseKeyProvider? keyProvider,
     OnE2EEStateChanged? onE2EEStateChanged,
     OnParticipantDisconnected? onParticipantDisconnected,
@@ -67,6 +79,7 @@ class LiveKitService {
   }) async {
     const methodName = 'connect';
     if (_isDisposed) return;
+    _identityToDid = identityToDid;
     _logger.info('url=$url e2ee=${keyProvider != null}', name: methodName);
 
     final e2eeOptions = keyProvider != null
@@ -165,6 +178,7 @@ class LiveKitService {
       if (local != null)
         AudioVideoCallParticipant(
           identity: local.identity,
+          did: _identityToDid[local.identity],
           hasVideo: _hasRenderableVideo(local),
           hasAudio: local.isMicrophoneEnabled(),
           isSpeaking: local.isSpeaking,
@@ -173,6 +187,7 @@ class LiveKitService {
       for (final p in remotes)
         AudioVideoCallParticipant(
           identity: p.identity,
+          did: _identityToDid[p.identity],
           hasVideo: _hasRenderableVideo(p),
           hasAudio: p.isMicrophoneEnabled(),
           isSpeaking: p.isSpeaking,

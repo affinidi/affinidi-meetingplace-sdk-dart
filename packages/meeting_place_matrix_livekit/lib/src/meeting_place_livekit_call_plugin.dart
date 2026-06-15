@@ -159,9 +159,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     // nudge. The session's state stream reflects the connection progress.
     unawaited(
       container
-          .read(
-            audioVideoCallServiceProvider(otherPartyChannelDid).notifier,
-          )
+          .read(audioVideoCallServiceProvider(otherPartyChannelDid).notifier)
           .joinCall(isCallee: isCallee),
     );
 
@@ -205,10 +203,6 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     final session = _requireSession();
     return PluginScope(container: session.container, child: child);
   }
-
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
 
   MeetingPlaceCoreSDK _requireSdk() {
     final sdk = _sdk;

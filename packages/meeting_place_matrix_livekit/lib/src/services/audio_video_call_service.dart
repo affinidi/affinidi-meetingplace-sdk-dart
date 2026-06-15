@@ -126,6 +126,12 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       final openIdToken = await _sdk.getMatrixOpenIdToken(didManager);
       final deviceId = await _sdk.getMatrixDeviceId(didManager);
 
+      final identityToDid = await _buildIdentityToDidMap(
+        channel: channel,
+        ownChannelDid: ownChannelDid,
+        serverName: openIdToken.matrixServerName,
+      );
+
       final tokenResponse = await _livekitTokenService.fetchToken(
         roomName: roomName,
         openIdCredentials: openIdToken,
@@ -157,6 +163,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       await _livekitService.connect(
         url: sfuUrl,
         token: tokenResponse.token,
+        identityToDid: identityToDid,
         keyProvider: keyProvider,
         onE2EEStateChanged: _onE2EEStateChanged,
         onParticipantDisconnected: _onParticipantDisconnected,
@@ -291,9 +298,30 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     await _livekitService.setSpeakerphoneEnabled(enabled);
   }
 
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
+  /// Builds a map from each expected participant identity (Matrix user id) to
+  /// the participant's permanent channel DID.
+  ///
+  /// The Matrix user id is a deterministic hash of the DID and [serverName],
+  /// so reversing it just means deriving the id for every known DID. For a
+  /// group the candidate DIDs are the group members; for a 1:1 call they are
+  /// the local user and the other party. [LiveKitService] consumes this to
+  /// stamp a DID on each domain participant.
+  Future<Map<String, String>> _buildIdentityToDidMap({
+    required Channel channel,
+    required String ownChannelDid,
+    required String serverName,
+  }) async {
+    final dids = <String>{ownChannelDid};
+    if (channel.isGroup) {
+      final group = await _sdk.getGroupByOfferLink(channel.offerLink);
+      if (group != null) {
+        dids.addAll(group.members.map((member) => member.did));
+      }
+    } else {
+      dids.add(otherPartyChannelDid);
+    }
+    return {for (final did in dids) deriveMatrixUserId(did, serverName): did};
+  }
 
   /// Publishes the local microphone and camera tracks after connecting.
   ///

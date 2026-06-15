@@ -7,7 +7,7 @@ part of 'audio_video_call_service.dart';
 // **************************************************************************
 
 String _$audioVideoCallServiceHash() =>
-    r'b4eade870c5d0b5ff0e28e0976d1a1574c4dfb26';
+    r'77d7b88df94b2ade4238d60eec116bfe9340dc07';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -31,10 +31,10 @@ class _SystemHash {
 }
 
 abstract class _$AudioVideoCallService
-    extends BuildlessAutoDisposeNotifier<CallSessionState> {
+    extends BuildlessAutoDisposeNotifier<AudioVideoCallState> {
   late final String otherPartyChannelDid;
 
-  CallSessionState build(String otherPartyChannelDid);
+  AudioVideoCallState build(String otherPartyChannelDid);
 }
 
 /// Orchestrates the full LiveKit call lifecycle for the channel identified
@@ -44,7 +44,7 @@ abstract class _$AudioVideoCallService
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
 /// - Owns [LiveKitService] and [SfuTokenService] for this call.
-/// - Publishes [CallSessionState] for the presentation layer to observe.
+/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
 /// Read by AudioVideoCallScreenController via `ref.listen`.
@@ -61,14 +61,14 @@ const audioVideoCallServiceProvider = AudioVideoCallServiceFamily();
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
 /// - Owns [LiveKitService] and [SfuTokenService] for this call.
-/// - Publishes [CallSessionState] for the presentation layer to observe.
+/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
 /// Read by AudioVideoCallScreenController via `ref.listen`.
 /// Modelled after ChatSessionService.
 ///
 /// Copied from [AudioVideoCallService].
-class AudioVideoCallServiceFamily extends Family<CallSessionState> {
+class AudioVideoCallServiceFamily extends Family<AudioVideoCallState> {
   /// Orchestrates the full LiveKit call lifecycle for the channel identified
   /// by [otherPartyChannelDid] (the other party's permanent channel DID).
   ///
@@ -76,7 +76,7 @@ class AudioVideoCallServiceFamily extends Family<CallSessionState> {
   /// - Resolves the channel, derives the LiveKit room name, obtains the
   ///   local user's DidManager, and exchanges for a LiveKit JWT.
   /// - Owns [LiveKitService] and [SfuTokenService] for this call.
-  /// - Publishes [CallSessionState] for the presentation layer to observe.
+  /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
   /// - Disconnects and releases resources on dispose.
   ///
   /// Read by AudioVideoCallScreenController via `ref.listen`.
@@ -92,7 +92,7 @@ class AudioVideoCallServiceFamily extends Family<CallSessionState> {
   /// - Resolves the channel, derives the LiveKit room name, obtains the
   ///   local user's DidManager, and exchanges for a LiveKit JWT.
   /// - Owns [LiveKitService] and [SfuTokenService] for this call.
-  /// - Publishes [CallSessionState] for the presentation layer to observe.
+  /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
   /// - Disconnects and releases resources on dispose.
   ///
   /// Read by AudioVideoCallScreenController via `ref.listen`.
@@ -147,7 +147,7 @@ class AudioVideoCallServiceFamily extends Family<CallSessionState> {
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
 /// - Owns [LiveKitService] and [SfuTokenService] for this call.
-/// - Publishes [CallSessionState] for the presentation layer to observe.
+/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
 /// Read by AudioVideoCallScreenController via `ref.listen`.
@@ -158,7 +158,7 @@ class AudioVideoCallServiceProvider
     extends
         AutoDisposeNotifierProviderImpl<
           AudioVideoCallService,
-          CallSessionState
+          AudioVideoCallState
         > {
   /// Orchestrates the full LiveKit call lifecycle for the channel identified
   /// by [otherPartyChannelDid] (the other party's permanent channel DID).
@@ -167,7 +167,7 @@ class AudioVideoCallServiceProvider
   /// - Resolves the channel, derives the LiveKit room name, obtains the
   ///   local user's DidManager, and exchanges for a LiveKit JWT.
   /// - Owns [LiveKitService] and [SfuTokenService] for this call.
-  /// - Publishes [CallSessionState] for the presentation layer to observe.
+  /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
   /// - Disconnects and releases resources on dispose.
   ///
   /// Read by AudioVideoCallScreenController via `ref.listen`.
@@ -203,7 +203,9 @@ class AudioVideoCallServiceProvider
   final String otherPartyChannelDid;
 
   @override
-  CallSessionState runNotifierBuild(covariant AudioVideoCallService notifier) {
+  AudioVideoCallState runNotifierBuild(
+    covariant AudioVideoCallService notifier,
+  ) {
     return notifier.build(otherPartyChannelDid);
   }
 
@@ -224,7 +226,7 @@ class AudioVideoCallServiceProvider
   }
 
   @override
-  AutoDisposeNotifierProviderElement<AudioVideoCallService, CallSessionState>
+  AutoDisposeNotifierProviderElement<AudioVideoCallService, AudioVideoCallState>
   createElement() {
     return _AudioVideoCallServiceProviderElement(this);
   }
@@ -247,7 +249,7 @@ class AudioVideoCallServiceProvider
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin AudioVideoCallServiceRef
-    on AutoDisposeNotifierProviderRef<CallSessionState> {
+    on AutoDisposeNotifierProviderRef<AudioVideoCallState> {
   /// The parameter `otherPartyChannelDid` of this provider.
   String get otherPartyChannelDid;
 }
@@ -256,7 +258,7 @@ class _AudioVideoCallServiceProviderElement
     extends
         AutoDisposeNotifierProviderElement<
           AudioVideoCallService,
-          CallSessionState
+          AudioVideoCallState
         >
     with AudioVideoCallServiceRef {
   _AudioVideoCallServiceProviderElement(super.provider);

@@ -14,6 +14,8 @@ String _describe(ChatEvent event) => switch (event) {
   ChatActivityEvent() => 'ChatActivityEvent',
   ChatEffectEvent() => 'ChatEffectEvent',
   ChatContactDetailsUpdateEvent() => 'ChatContactDetailsUpdateEvent',
+  ChatProfileRequestEvent() => 'ChatProfileRequestEvent',
+  ChatProfileHashEvent() => 'ChatProfileHashEvent',
   ChatGroupDeletedEvent() => 'ChatGroupDeletedEvent',
   ChatGroupDetailsUpdateEvent() => 'ChatGroupDetailsUpdateEvent',
   ChatMemberDeregisteredEvent() => 'ChatMemberDeregisteredEvent',
@@ -44,6 +46,14 @@ void main() {
       ChatContactDetailsUpdateEvent(
         senderDid: 'did:test:alice',
         contactCard: contactCard,
+      ),
+      const ChatProfileRequestEvent(
+        senderDid: 'did:test:bob',
+        profileHash: 'abc123',
+      ),
+      const ChatProfileHashEvent(
+        senderDid: 'did:test:bob',
+        profileHash: 'def456',
       ),
       const ChatGroupDeletedEvent(groupDid: 'did:test:group'),
       const ChatGroupDetailsUpdateEvent(),

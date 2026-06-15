@@ -203,11 +203,9 @@ class IndividualDidcommChatSDK extends BaseChatSDK
 
     chatStream.pushData(
       StreamData(
-        event: UnhandledChatEvent(
-          type: p.type.toString(),
-          senderDid: p.from,
-          body: p.body ?? const {},
-          createdTime: p.createdTime ?? DateTime.now().toUtc(),
+        event: ChatProfileHashEvent(
+          senderDid: p.from ?? otherPartyDid,
+          profileHash: incomingHash,
         ),
       ),
     );
@@ -237,11 +235,9 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     final created = await chatRepository.createMessage(conciergeMessage);
     chatStream.pushData(
       StreamData(
-        event: UnhandledChatEvent(
-          type: p.type.toString(),
-          senderDid: p.from,
-          body: p.body ?? const {},
-          createdTime: p.createdTime ?? DateTime.now().toUtc(),
+        event: ChatProfileRequestEvent(
+          senderDid: profileRequest.from,
+          profileHash: profileRequest.body.profileHash,
         ),
         chatItem: created,
       ),

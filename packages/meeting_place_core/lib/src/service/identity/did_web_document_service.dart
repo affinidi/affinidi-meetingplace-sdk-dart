@@ -25,8 +25,25 @@ class DidWebDocumentService {
     required DidManager didManager,
     required DidDocument didDocument,
   }) async {
-    final controlProof = await _createControlProof(didDocument);
-    final proof = await _createDocumentProof(didManager, didDocument);
+    final rootDidDoc = await _rootDidManager.getDidDocument();
+    final didDocBytes = _canonicalizeJson(didDocument.toJson());
+    final didDocHash = _sha256Hash(didDocBytes);
+    final sharedPayload = _buildProofPayload(
+      operation: 'did-document/upload',
+      didDocumentId: didDocument.id,
+      didDocumentHash: didDocHash,
+      controlDid: rootDidDoc.id,
+    );
+    final controlProof = await _createControlProof(
+      didDocument,
+      rootDidDoc: rootDidDoc,
+      sharedPayload: sharedPayload,
+    );
+    final proof = await _createDocumentProof(
+      didManager,
+      didDocument,
+      sharedPayload: sharedPayload,
+    );
 
     await _controlPlaneSDK.execute(
       UploadDidWebDocumentCommand(
@@ -37,23 +54,16 @@ class DidWebDocumentService {
     );
   }
 
-  Future<DidWebProof> _createControlProof(DidDocument newDidDocument) async {
-    final rootDidDoc = await _rootDidManager.getDidDocument();
+  Future<DidWebProof> _createControlProof(
+    DidDocument newDidDocument, {
+    required DidDocument rootDidDoc,
+    required Map<String, dynamic> sharedPayload,
+  }) async {
     final authVm = rootDidDoc.authentication.first;
     final authKeyId = _resolveVmId(authVm, rootDidDoc.id);
 
-    final didDocBytes = _canonicalizeJson(newDidDocument.toJson());
-    final didDocHash = _sha256Hash(didDocBytes);
-
-    final proofPayload = _buildProofPayload(
-      operation: 'did-document/upload',
-      didDocumentId: newDidDocument.id,
-      didDocumentHash: didDocHash,
-      controlDid: rootDidDoc.id,
-    );
-
     final jws = await _createCompactJws(
-      payload: proofPayload,
+      payload: sharedPayload,
       didManager: _rootDidManager,
       verificationMethodId: authKeyId,
     );
@@ -69,25 +79,14 @@ class DidWebDocumentService {
 
   Future<DidWebProof> _createDocumentProof(
     DidManager didManager,
-    DidDocument didDocument,
-  ) async {
+    DidDocument didDocument, {
+    required Map<String, dynamic> sharedPayload,
+  }) async {
     final authVm = didDocument.authentication.first;
     final authKeyId = _resolveVmId(authVm, didDocument.id);
 
-    final didDocBytes = _canonicalizeJson(didDocument.toJson());
-    final didDocHash = _sha256Hash(didDocBytes);
-
-    final rootDidDoc = await _rootDidManager.getDidDocument();
-
-    final proofPayload = _buildProofPayload(
-      operation: 'did-document/upload',
-      didDocumentId: didDocument.id,
-      didDocumentHash: didDocHash,
-      controlDid: rootDidDoc.id,
-    );
-
     final jws = await _createCompactJws(
-      payload: proofPayload,
+      payload: sharedPayload,
       didManager: didManager,
       verificationMethodId: authKeyId,
     );

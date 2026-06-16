@@ -157,6 +157,42 @@ class MatrixSessionManager {
     matrix.Client? existing,
   }) async {
     final client = existing ?? await _createClient(did: did);
+
+    // On a cold start the in-memory cache is empty and a fresh Client is
+    // created with the persistent on-disk database.  Calling login() would
+    // clear that database and generate a new OLM account, which causes
+    // "Upload key failed" because the homeserver already has different OLM
+    // identity keys registered for this device.  Instead, try to restore the
+    // persisted session first so the existing OLM account is reused.
+    if (client.accessToken == null) {
+      await client.init(waitForFirstSync: false);
+    }
+
+    if (_isTokenFresh(client)) {
+      _logger.info(
+        'Restored Matrix session for DID $did, background sync disabled',
+        name: _logKey,
+      );
+      return client;
+    }
+
+    if (client.accessToken != null) {
+      try {
+        await client.refreshAccessToken();
+        client.backgroundSync = false;
+        _logger.info(
+          'Refreshed Matrix token for DID $did, background sync disabled',
+          name: _logKey,
+        );
+        return client;
+      } catch (_) {
+        _logger.warning(
+          '''Failed to refresh Matrix token for DID $did, falling back to full login''',
+          name: _logKey,
+        );
+      }
+    }
+
     await client.login(
       jwtLoginType,
       token: jwt,

@@ -164,7 +164,7 @@ void main() async {
         if (messagesReceived == 2 && !messageCompleter.isCompleted) {
           messageCompleter.complete();
         }
-      }gg
+      }
       return MediatorStreamProcessingResult(keepMessage: false);
     });
 

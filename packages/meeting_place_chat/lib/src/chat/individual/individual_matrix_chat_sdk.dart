@@ -1,11 +1,5 @@
 import 'dart:async';
 
-import 'package:meeting_place_core/meeting_place_core.dart'
-    show
-        CoreSDKStreamSubscription,
-        MediatorMessage,
-        MediatorStreamProcessingResult;
-
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
@@ -53,8 +47,13 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
     final channel = await getChannel();
 
     unawaited(
-      coreSDK.vdip.subscribe(channel).catchError((e) {
-        logger.error('Error subscribing to VDIP channel ${channel.id}: $e');
+      // ignore: body_might_complete_normally_catch_error
+      coreSDK.vdip.subscribe(channel).catchError((Object e, StackTrace _) {
+        logger.error(
+          'Error subscribing to VDIP channel: $e',
+          error: e,
+          name: 'sendMessage',
+        );
       }),
     );
 

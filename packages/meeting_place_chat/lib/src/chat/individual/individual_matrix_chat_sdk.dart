@@ -63,7 +63,7 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
 
   @override
   Future<void> endChatSession() async {
-    await _vdipSubscription?.then((subscription) => subscription?.dispose());
+    await coreSDK.vdip.unsubscribe();
     _vdipSubscription = null;
     await super.end();
     stopChatPresenceInterval();

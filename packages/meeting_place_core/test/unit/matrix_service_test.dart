@@ -140,6 +140,9 @@ void main() {
         final mockClient = MockMatrixClient();
         when(() => mockClient.accessToken).thenReturn(null);
         when(() => mockClient.userID).thenReturn(_matrixUserId);
+        when(
+          () => mockClient.init(waitForFirstSync: false),
+        ).thenAnswer((_) async {});
         final loginResponse = matrix.LoginResponse(
           userId: _matrixUserId,
           accessToken: 'token',
@@ -193,6 +196,9 @@ void main() {
         String? accessToken;
         when(() => mockClient.accessToken).thenAnswer((_) => accessToken);
         when(() => mockClient.userID).thenReturn(_matrixUserId);
+        when(
+          () => mockClient.init(waitForFirstSync: false),
+        ).thenAnswer((_) async {});
         final loginResponse = matrix.LoginResponse(
           userId: _matrixUserId,
           accessToken: 'token',
@@ -230,6 +236,9 @@ void main() {
         final mockClient = MockMatrixClient();
         when(() => mockClient.accessToken).thenReturn(null);
         when(
+          () => mockClient.init(waitForFirstSync: false),
+        ).thenAnswer((_) async {});
+        when(
           () => mockClient.login(any(), token: any(named: 'token')),
         ).thenThrow(Exception('network error'));
 
@@ -245,6 +254,9 @@ void main() {
         final mockClient = MockMatrixClient();
         when(() => mockClient.accessToken).thenReturn(null);
         when(
+          () => mockClient.init(waitForFirstSync: false),
+        ).thenAnswer((_) async {});
+        when(
           () => mockClient.login(any(), token: any(named: 'token')),
         ).thenThrow(Exception('fail'));
 
@@ -257,6 +269,131 @@ void main() {
 
         expect(cache.get(did: _testDid), isNull);
       });
+
+      test(
+        'restores fresh session from persistent DB without calling login',
+        () async {
+          final mockClient = MockMatrixClient();
+          var initialized = false;
+          when(
+            () => mockClient.accessToken,
+          ).thenAnswer((_) => initialized ? 'restored-token' : null);
+          when(() => mockClient.accessTokenExpiresAt).thenAnswer(
+            (_) => initialized
+                ? DateTime.now().add(const Duration(hours: 1))
+                : null,
+          );
+          when(() => mockClient.userID).thenReturn(_matrixUserId);
+          when(() => mockClient.init(waitForFirstSync: false)).thenAnswer((
+            _,
+          ) async {
+            initialized = true;
+          });
+          cache.seed(_testDid, mockClient);
+
+          final userId = await manager.loginWithJwt(
+            jwt: _testJwt,
+            did: _testDid,
+          );
+
+          expect(userId, equals(_matrixUserId));
+          verify(() => mockClient.init(waitForFirstSync: false)).called(1);
+          verifyNever(
+            () => mockClient.login(any(), token: any(named: 'token')),
+          );
+        },
+      );
+
+      test(
+        'refreshes stale token restored from persistent DB without login',
+        () async {
+          final mockClient = MockMatrixClient();
+          var initialized = false;
+          when(
+            () => mockClient.accessToken,
+          ).thenAnswer((_) => initialized ? 'stale-token' : null);
+          when(() => mockClient.accessTokenExpiresAt).thenAnswer(
+            (_) => initialized
+                ? DateTime.now().add(const Duration(seconds: 30))
+                : null,
+          );
+          when(() => mockClient.userID).thenReturn(_matrixUserId);
+          when(() => mockClient.init(waitForFirstSync: false)).thenAnswer((
+            _,
+          ) async {
+            initialized = true;
+          });
+          when(mockClient.refreshAccessToken).thenAnswer((_) async {});
+          cache.seed(_testDid, mockClient);
+
+          final userId = await manager.loginWithJwt(
+            jwt: _testJwt,
+            did: _testDid,
+          );
+
+          expect(userId, equals(_matrixUserId));
+          verify(mockClient.refreshAccessToken).called(1);
+          verifyNever(
+            () => mockClient.login(any(), token: any(named: 'token')),
+          );
+        },
+      );
+
+      test(
+        'falls through to JWT login when refresh fails after DB restore',
+        () async {
+          final mockClient = MockMatrixClient();
+          var initialized = false;
+          when(
+            () => mockClient.accessToken,
+          ).thenAnswer((_) => initialized ? 'stale-token' : null);
+          when(() => mockClient.accessTokenExpiresAt).thenAnswer(
+            (_) => initialized
+                ? DateTime.now().add(const Duration(seconds: 30))
+                : null,
+          );
+          when(() => mockClient.userID).thenReturn(_matrixUserId);
+          when(() => mockClient.init(waitForFirstSync: false)).thenAnswer((
+            _,
+          ) async {
+            initialized = true;
+          });
+          when(
+            mockClient.refreshAccessToken,
+          ).thenThrow(Exception('refresh failed'));
+          final loginResponse = matrix.LoginResponse(
+            userId: _matrixUserId,
+            accessToken: 'new-token',
+            deviceId: 'device',
+            wellKnown: null,
+            expiresInMs: null,
+            refreshToken: null,
+          );
+          when(
+            () => mockClient.login(
+              MatrixSessionManager.jwtLoginType,
+              token: _testJwt,
+              deviceId: any(named: 'deviceId'),
+            ),
+          ).thenAnswer((_) async => loginResponse);
+          cache.seed(_testDid, mockClient);
+
+          final userId = await manager.loginWithJwt(
+            jwt: _testJwt,
+            did: _testDid,
+          );
+
+          expect(userId, equals(_matrixUserId));
+          verify(mockClient.refreshAccessToken).called(1);
+          verify(
+            () => mockClient.login(
+              MatrixSessionManager.jwtLoginType,
+              token: _testJwt,
+              deviceId: any(named: 'deviceId'),
+            ),
+          ).called(1);
+        },
+      );
     });
 
     // ------------------------------------------------------------------

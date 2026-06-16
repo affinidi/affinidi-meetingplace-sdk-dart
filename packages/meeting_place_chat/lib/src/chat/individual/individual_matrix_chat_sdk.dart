@@ -44,12 +44,26 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   @override
   Future<Chat> startChatSession() async {
     final chat = await super.startChatSession();
+    final channel = await getChannel();
+
+    unawaited(
+      // ignore: body_might_complete_normally_catch_error
+      coreSDK.vdip.subscribe(channel).catchError((Object e, StackTrace _) {
+        logger.error(
+          'Error subscribing to VDIP channel: $e',
+          error: e,
+          name: 'sendMessage',
+        );
+      }),
+    );
+
     unawaited(startChatPresenceUpdates());
     return chat;
   }
 
   @override
   Future<void> endChatSession() async {
+    await coreSDK.vdip.unsubscribe();
     await super.end();
     stopChatPresenceInterval();
   }

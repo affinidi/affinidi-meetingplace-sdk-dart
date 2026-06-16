@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
-import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
-import '../entity/channel.dart';
+import '../../meeting_place_core.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
+import '../service/mediator/mediator_service.dart';
+import '../service/mediator/mediator_stream_subscription_wrapper.dart';
 import '../service/message/message_service.dart';
-import 'channel_activity_type.dart';
 
 /// Client for sending and receiving VDIP (Verifiable Data Issuance Protocol)
 /// messages over the shared DIDComm connection managed by
@@ -23,10 +23,12 @@ class VdipClient {
     required ChannelService channelService,
     required ConnectionManager connectionManager,
     required Wallet wallet,
+    required MediatorService mediatorService,
   }) : _messageService = messageService,
        _channelService = channelService,
        _connectionManager = connectionManager,
-       _wallet = wallet;
+       _wallet = wallet,
+       _mediatorService = mediatorService;
 
   /// DIDComm message type for a VDIP issued-credential message.
   static final String issuedCredentialMessageType = VdipIssuedCredentialMessage
@@ -42,9 +44,12 @@ class VdipClient {
   final ChannelService _channelService;
   final ConnectionManager _connectionManager;
   final Wallet _wallet;
+  final MediatorService _mediatorService;
 
   final _incomingController = StreamController<PlainTextMessage>.broadcast();
   final _messageProcessors = <Future<void> Function(PlainTextMessage)>[];
+  MediatorStreamSubscriptionWrapper? _mediatorSubscription;
+  StreamSubscription? _mediatorStreamSubscription;
   var _isDisposed = false;
 
   /// Registers a [processor] that is called for every VDIP message handled
@@ -209,10 +214,77 @@ class VdipClient {
     _incomingController.add(message);
   }
 
+  /// Opens a streaming WebSocket subscription to the mediator for the given
+  /// [Channel], filtering for VDIP message types only.
+  ///
+  /// Incoming VDIP messages are forwarded to [incomingMessages] and processed
+  /// by any registered [messageProcessors]. Messages are deleted from the
+  /// mediator after processing.
+  ///
+  /// This is optional — VDIP messages are also delivered via the Control Plane
+  /// push path (see [dispatch]). Use this for lower-latency delivery when the
+  /// app is in the foreground.
+  ///
+  /// Call [unsubscribe] to close the WebSocket connection.
+  Future<
+    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>
+  >
+  subscribe(Channel channel) async {
+    if (_mediatorSubscription != null) return _mediatorSubscription!;
+
+    final permanentChannelDid = channel.permanentChannelDid;
+    if (permanentChannelDid == null) {
+      throw StateError(
+        'Channel is missing permanentChannelDid — cannot subscribe to VDIP',
+      );
+    }
+
+    final didManager = await _connectionManager.getDidManagerForDid(
+      _wallet,
+      permanentChannelDid,
+    );
+
+    _mediatorSubscription = await _mediatorService.subscribe(
+      didManager: didManager,
+      mediatorDid: channel.mediatorDid,
+    );
+
+    _mediatorStreamSubscription = _mediatorSubscription!.listen((
+      mediatorMessage,
+    ) {
+      final message = mediatorMessage.plainTextMessage;
+      final type = message.type.toString();
+
+      if (type != requestIssuanceMessageType &&
+          type != issuedCredentialMessageType) {
+        return MediatorStreamProcessingResult(keepMessage: true);
+      }
+
+      dispatch(message);
+
+      for (final processor in _messageProcessors) {
+        processor(message);
+      }
+
+      return MediatorStreamProcessingResult(keepMessage: false);
+    });
+
+    return _mediatorSubscription!;
+  }
+
+  /// Closes the streaming WebSocket subscription opened by [subscribe].
+  Future<void> unsubscribe() async {
+    await _mediatorStreamSubscription?.cancel();
+    _mediatorStreamSubscription = null;
+    await _mediatorSubscription?.dispose();
+    _mediatorSubscription = null;
+  }
+
   /// Disposes the [VdipClient] and closes the [incomingMessages] stream.
   Future<void> dispose() async {
     if (_isDisposed || _incomingController.isClosed) return;
     _isDisposed = true;
+    await unsubscribe();
     await _incomingController.close();
   }
 }

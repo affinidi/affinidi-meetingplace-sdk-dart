@@ -7,6 +7,15 @@ import 'package:test/test.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
+class _MockVdipClient extends Mock implements VdipClient {}
+
+class _MockCoreSDKStreamSubscription extends Mock
+    implements
+        CoreSDKStreamSubscription<
+          MediatorMessage,
+          MediatorStreamProcessingResult
+        > {}
+
 class _MockChatRepository extends Mock implements ChatRepository {}
 
 class _FakeHandle implements IncomingMessageHandle {
@@ -26,6 +35,18 @@ class _FakeHandle implements IncomingMessageHandle {
 const _aliceDid = 'did:test:alice';
 const _bobDid = 'did:test:bob';
 const _mediatorDid = 'did:test:mediator';
+
+Channel _fakeChannel() => Channel(
+  offerLink: 'https://example.com/offer',
+  publishOfferDid: _aliceDid,
+  mediatorDid: _mediatorDid,
+  status: ChannelStatus.inaugurated,
+  contactCard: ContactCard(did: _aliceDid, type: 'individual', contactInfo: {}),
+  type: ChannelType.individual,
+  isConnectionInitiator: true,
+  otherPartyPermanentChannelDid: _bobDid,
+  permanentChannelDid: _aliceDid,
+);
 
 IndividualMatrixChatSDK _buildSdk({
   required _MockCoreSDK core,
@@ -63,15 +84,21 @@ void main() {
 
   group('MatrixChatSDK.startChatSession — non-blocking transport sync', () {
     late _MockCoreSDK core;
+    late _MockVdipClient vdip;
+    late _MockCoreSDKStreamSubscription vdipSubscription;
     late _MockChatRepository repo;
     late IndividualMatrixChatSDK sdk;
     late Completer<IncomingMessageHandle> subscribeCompleter;
     late StreamController<IncomingMessage> incomingController;
+    late Channel channel;
 
     setUp(() {
       core = _MockCoreSDK();
+      vdip = _MockVdipClient();
+      vdipSubscription = _MockCoreSDKStreamSubscription();
       repo = _MockChatRepository();
       sdk = _buildSdk(core: core, repo: repo);
+      channel = _fakeChannel();
 
       // Gate Matrix subscribe behind a completer we control. While it is
       // pending the SDK is "blocked on Matrix auth"; completing it lets
@@ -82,6 +109,15 @@ void main() {
       when(
         () => core.subscribe(any()),
       ).thenAnswer((_) => subscribeCompleter.future);
+
+      when(() => core.vdip).thenReturn(vdip);
+      when(
+        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+      ).thenAnswer((_) async => channel);
+      when(
+        () => vdip.subscribe(channel),
+      ).thenAnswer((_) async => vdipSubscription);
+      when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
 
       when(
         () => repo.listMessages(any()),

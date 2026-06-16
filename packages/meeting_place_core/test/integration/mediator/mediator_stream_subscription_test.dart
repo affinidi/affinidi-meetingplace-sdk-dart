@@ -148,7 +148,12 @@ void main() async {
   });
 
   test('processes multiple messages successfully', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+    final subscription = await aliceDidcomm.subscribe(
+      aliceDidDoc.id,
+      options: const MediatorStreamSubscriptionOptions(
+        fetchMessagesOnConnect: false,
+      ),
+    );
 
     var messagesReceived = 0;
     final messageCompleter = Completer<void>();
@@ -156,7 +161,7 @@ void main() async {
     subscription.listen((message) {
       if (message.plainTextMessage.isOfType('https://example.com/test')) {
         messagesReceived++;
-        if (messagesReceived == 2) {
+        if (messagesReceived == 2 && !messageCompleter.isCompleted) {
           messageCompleter.complete();
         }
       }

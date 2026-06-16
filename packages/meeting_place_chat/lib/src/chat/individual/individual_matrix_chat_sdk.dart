@@ -42,10 +42,6 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   static const String _logkey = 'IndividualMatrixChatSDK';
 
   bool _isSendingChatPresence = false;
-  Future<
-    CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>?
-  >?
-  _vdipSubscription;
 
   @override
   IncomingRoomEventRouter buildRoomEventRouter() =>
@@ -56,7 +52,12 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
     final chat = await super.startChatSession();
     final channel = await getChannel();
 
-    _vdipSubscription = coreSDK.vdip.subscribe(channel);
+    unawaited(
+      coreSDK.vdip.subscribe(channel).catchError((e) {
+        logger.error('Error subscribing to VDIP channel ${channel.id}: $e');
+      }),
+    );
+
     unawaited(startChatPresenceUpdates());
     return chat;
   }
@@ -64,7 +65,6 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   @override
   Future<void> endChatSession() async {
     await coreSDK.vdip.unsubscribe();
-    _vdipSubscription = null;
     await super.end();
     stopChatPresenceInterval();
   }

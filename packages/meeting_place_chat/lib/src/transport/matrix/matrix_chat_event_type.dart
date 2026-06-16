@@ -6,4 +6,5 @@ abstract final class MatrixChatEventType {
   static const groupDetailsUpdate = 'com.affinidi.chat.group-details-update';
   static const profileHash = 'com.affinidi.chat.profile-hash';
   static const profileRequest = 'com.affinidi.chat.profile-request';
+  static const presence = 'm.presence';
 }

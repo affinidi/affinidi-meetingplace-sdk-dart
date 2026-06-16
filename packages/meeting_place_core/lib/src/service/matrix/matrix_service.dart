@@ -14,6 +14,7 @@ import 'matrix_room_event.dart';
 import 'matrix_service_exception.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_subscription_options.dart';
+import 'matrix_user_id_binding.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -430,11 +431,54 @@ class MatrixService {
       }
     }, onError: controller.addError);
 
+    StreamSubscription<matrix.CachedPresence>? presenceSub;
+    Timer? presencePollTimer;
+    final otherPartyDid = options.otherPartyDid;
+    if (otherPartyDid != null) {
+      final peerUserId = deriveMatrixUserId(otherPartyDid, homeserver.host);
+
+      void emitPresence(matrix.CachedPresence p) {
+        if (controller.isClosed) return;
+        controller.add(
+          MatrixRoomEvent(
+            id: 'presence_${p.userid}',
+            type: 'm.presence',
+            userId: p.userid,
+            roomId: roomId,
+            content: {'presence': p.presence.name},
+            timestamp: p.lastActiveTimestamp ?? DateTime.now().toUtc(),
+          ),
+        );
+      }
+
+      // Push path: fires whenever Synapse includes a presence event in sync.
+      presenceSub = client.onPresenceChanged.stream
+          .where((p) => p.userid == peerUserId)
+          .listen(emitPresence, onError: controller.addError);
+
+      // Poll path: fetch current presence on an interval so the receiving side
+      // catches updates even when Synapse does not push them proactively.
+      presencePollTimer = Timer.periodic(
+        const Duration(seconds: 30),
+        (_) async {
+          try {
+            final p = await client.fetchCurrentPresence(
+              peerUserId,
+              fetchOnlyFromCached: false,
+            );
+            emitPresence(p);
+          } catch (_) {}
+        },
+      );
+    }
+
     try {
       yield* controller.stream;
     } finally {
       await timelineSub.cancel();
       await syncSub.cancel();
+      await presenceSub?.cancel();
+      presencePollTimer?.cancel();
       await controller.close();
     }
   }
@@ -554,6 +598,28 @@ class MatrixService {
       throw const MatrixAuthException();
     }
     return client;
+  }
+
+  /// Sets the presence status for [didManager] to [presence] via the
+  /// homeserver. Uses two mechanisms:
+  /// 1. [matrix.Client.syncPresence] — piggybacks on every `/sync` request.
+  /// 2. A direct `PUT /_matrix/client/v3/presence/{userId}/status` — flushes
+  ///    immediately without waiting for the next sync cycle.
+  ///
+  /// Pass [matrix.PresenceType.offline] to clear the advertised state.
+  Future<void> setPresence(
+    DidManager didManager,
+    matrix.PresenceType presence,
+  ) async {
+    final client = await _ensureSession(didManager);
+    client.syncPresence =
+        presence == matrix.PresenceType.offline ? null : presence;
+    final myUserId = _sessionManager.deriveUserId(
+      (await didManager.getDidDocument()).id,
+      homeserver.host,
+    );
+    _logger.info('Setting presence for $myUserId to $presence', name: _logKey);
+    await client.setPresence(myUserId, presence);
   }
 
   /// Disposes the underlying session manager, aborting all matrix sync

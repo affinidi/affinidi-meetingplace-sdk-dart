@@ -50,10 +50,12 @@ class MessagingService {
   ///
   /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
   /// matrix events that don't produce one, such as `m.read`, `m.typing`,
-  /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
+  /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage]
+  /// or [MatrixPresenceMessage].
   Future<String?> sendMessage(OutgoingMessage message) async {
     return switch (message) {
       MatrixOutgoingMessage m => await _sendMatrixOutgoing(m),
+      MatrixPresenceMessage m => await _sendMatrixPresence(m),
       DidCommOutgoingMessage m =>
         await _didcomm
             .sendMessage(
@@ -311,6 +313,12 @@ class MessagingService {
     }
 
     return eventId;
+  }
+
+  Future<String?> _sendMatrixPresence(MatrixPresenceMessage m) async {
+    final didManager = await _getDidManager(m.senderDid);
+    await _matrixService.setPresence(didManager, m.presence);
+    return null;
   }
 
   /// Whether [event] represents a real timeline event whose id should be used

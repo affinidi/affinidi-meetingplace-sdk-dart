@@ -41,6 +41,12 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
 
+  /// Hook for subclasses to supply the DID of the other party for presence
+  /// tracking. When non-null the room subscription emits `m.presence` events
+  /// for that peer. Defaults to `null` (no presence tracking).
+  @protected
+  String? get presencePeerDid => null;
+
   /// Hook for subclasses to provide a specialized router.
   @protected
   IncomingRoomEventRouter buildRoomEventRouter() =>
@@ -135,7 +141,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     final handle = await coreSDK.subscribe(
       MatrixRoomSubscription(
         receiverDid: did,
-        options: const MatrixSubscriptionOptions(excludeSelf: true),
+        options: MatrixSubscriptionOptions(
+          excludeSelf: true,
+          otherPartyDid: presencePeerDid,
+        ),
       ),
     );
     _matrixSubscriptionHandle = handle;
@@ -462,16 +471,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     logger.info('Sent chat activity', name: _matrixLogkey);
   }
 
-  /// Matrix has no presence primitive on this branch, so the Matrix transport
-  /// silently swallows presence ticks. The presence loop keeps running so
-  /// future transports can hook in without changing the lifecycle.
+  /// Group and base Matrix chats do not implement presence.
+  /// [IndividualMatrixChatSDK] overrides this to send [MatrixPresenceMessage].
   @override
-  Future<void> sendChatPresence() async {
-    logger.info(
-      'sendChatPresence: no-op (Matrix has no presence primitive)',
-      name: _matrixLogkey,
-    );
-  }
+  Future<void> sendChatPresence() async {}
 
   /// Broadcasts updated contact details as a Matrix room event and confirms
   /// the originating concierge message. Subclasses with additional state

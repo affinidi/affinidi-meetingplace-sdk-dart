@@ -1,6 +1,7 @@
 import '../../../meeting_place_chat.dart';
 import '../../event/chat_event_types.dart';
 import '../../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../../transport/matrix/incoming/presence_handler.dart';
 import '../../transport/matrix/incoming/profile_hash_handler.dart';
 import '../../transport/matrix/incoming/profile_request_handler.dart';
 import '../../transport/matrix/matrix_chat_event_type.dart';
@@ -12,6 +13,9 @@ class IndividualRoomEventRouter extends IncomingRoomEventRouter {
     : super.withHandlers(
         matrixHandlers: {
           ...IncomingRoomEventRouter.buildBaseHandlers(chatSDK),
+          MatrixChatEventType.presence: PresenceHandler(
+            chatStream: chatSDK.chatStream,
+          ).handle,
           MatrixChatEventType.profileHash: ProfileHashHandler(
             coreSDK: chatSDK.coreSDK,
             chatStream: chatSDK.chatStream,

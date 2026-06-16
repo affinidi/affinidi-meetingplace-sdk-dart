@@ -1,4 +1,5 @@
 import 'package:didcomm/didcomm.dart';
+import 'package:matrix/matrix.dart' show PresenceType;
 
 import '../../meeting_place_core.dart' show MeetingPlaceCoreSDK;
 
@@ -102,4 +103,16 @@ class DidCommOutgoingMessage extends OutgoingMessage {
   final String? notifyChannelType;
   final bool ephemeral;
   final int? forwardExpiryInSeconds;
+}
+
+/// Sets the Matrix presence status for [senderDid] via the homeserver's
+/// presence API. Does not produce a room event — the homeserver fans out
+/// the update to the peer's sync stream as an `m.presence` ephemeral event.
+class MatrixPresenceMessage extends OutgoingMessage {
+  const MatrixPresenceMessage({
+    required super.senderDid,
+    required this.presence,
+  });
+
+  final PresenceType presence;
 }

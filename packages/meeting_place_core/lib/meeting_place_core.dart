@@ -3,7 +3,7 @@ export 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart'
     show VdipIssuedCredentialBody;
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, MessageWrappingType, PlainTextMessage;
-export 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
+export 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase, PresenceType;
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         ControlPlaneEventType,

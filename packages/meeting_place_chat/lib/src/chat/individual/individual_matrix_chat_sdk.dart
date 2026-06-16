@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
@@ -38,6 +40,9 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   bool _isSendingChatPresence = false;
 
   @override
+  String? get presencePeerDid => otherPartyDid;
+
+  @override
   IncomingRoomEventRouter buildRoomEventRouter() =>
       IndividualRoomEventRouter(chatSDK: this);
 
@@ -64,6 +69,9 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   @override
   Future<void> endChatSession() async {
     await coreSDK.vdip.unsubscribe();
+    await coreSDK.sendMessage(
+      MatrixPresenceMessage(senderDid: did, presence: PresenceType.offline),
+    );
     await super.end();
     stopChatPresenceInterval();
   }
@@ -104,6 +112,13 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
 
   void stopChatPresenceInterval() {
     _isSendingChatPresence = false;
+  }
+
+  @override
+  Future<void> sendChatPresence() async {
+    await coreSDK.sendMessage(
+      MatrixPresenceMessage(senderDid: did, presence: PresenceType.online),
+    );
   }
 
   @override

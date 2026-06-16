@@ -1,4 +1,5 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../entity/chat_attachment.dart';
 import '../../entity/voice_message_metadata.dart';
@@ -68,6 +69,7 @@ class MatrixMediaAttachments {
 
     return [
       ChatAttachment(
+        id: const Uuid().v4(),
         filename: filename,
         mediaType: mimeType,
         format: AttachmentFormat.hostedMedia.value,

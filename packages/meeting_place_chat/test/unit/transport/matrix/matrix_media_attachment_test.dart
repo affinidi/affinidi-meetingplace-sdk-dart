@@ -114,6 +114,7 @@ void main() {
 
       expect(attachments, hasLength(1));
       final a = attachments.single;
+      expect(a.id, isNotEmpty);
       expect(a.format, AttachmentFormat.hostedMedia.value);
       expect(a.filename, 'photo.jpg');
       expect(a.mediaType, 'image/jpeg');
@@ -131,6 +132,7 @@ void main() {
       });
 
       expect(attachments.single.filename, 'document.pdf');
+      expect(attachments.single.id, isNotEmpty);
     });
 
     test('extracts voice metadata from Matrix audio info', () {
@@ -148,6 +150,7 @@ void main() {
 
       final attachment = attachments.single;
       final voice = VoiceMessageMetadata.of(attachment);
+      expect(attachment.id, isNotEmpty);
       expect(attachment.mediaType, AttachmentMediaType.audioMp4.value);
       expect(VoiceMessageMetadata.isVoice(attachment), isTrue);
       expect(voice?.durationMs, 1200);
@@ -162,6 +165,7 @@ void main() {
       });
 
       final attachment = attachments.single;
+      expect(attachment.id, isNotEmpty);
       expect(attachment.mediaType, AttachmentMediaType.audioMpeg.value);
       expect(VoiceMessageMetadata.isVoice(attachment), isFalse);
       expect(attachment.metadata, isNull);
@@ -179,6 +183,7 @@ void main() {
       });
 
       final attachment = attachments.single;
+      expect(attachment.id, isNotEmpty);
       expect(VoiceMessageMetadata.isVoice(attachment), isTrue);
       expect(VoiceMessageMetadata.of(attachment)?.waveform, isNull);
     });

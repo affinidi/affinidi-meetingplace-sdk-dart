@@ -80,6 +80,7 @@ import 'utils/cached_did_resolver.dart';
 ///     controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
 ///     homeserver: Uri.parse('https://matrix.example.com'),
 ///     databaseFactory: const UnsupportedMatrixDatabaseFactory(),
+///     deviceId: '<YOUR-DEVICE-ID>',
 ///   ),
 /// );
 /// ```

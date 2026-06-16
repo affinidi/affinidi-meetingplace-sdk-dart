@@ -7,10 +7,12 @@ class MatrixConfig extends Config {
     required super.controlPlaneDid,
     required this.homeserver,
     required this.databaseFactory,
+    required this.deviceId,
   });
 
   final Uri homeserver;
   final MatrixDatabaseFactory databaseFactory;
+  final String deviceId;
 }
 
 class MatrixDatabaseContext {

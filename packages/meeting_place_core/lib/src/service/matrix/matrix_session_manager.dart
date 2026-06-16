@@ -157,7 +157,15 @@ class MatrixSessionManager {
     matrix.Client? existing,
   }) async {
     final client = existing ?? await _createClient(did: did);
-    await client.login(jwtLoginType, token: jwt);
+    await client.login(
+      jwtLoginType,
+      token: jwt,
+      deviceId: deriveMatrixDeviceId(
+        _config.deviceId,
+        did,
+        _config.homeserver.host,
+      ),
+    );
     return client;
   }
 

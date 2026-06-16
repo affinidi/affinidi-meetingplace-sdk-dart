@@ -4,6 +4,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
 import 'repository/channel_repository_impl.dart';
 import 'repository/connection_group_offer_repository_impl.dart';
 import 'repository/connection_offer_repository_impl.dart';
@@ -54,6 +55,7 @@ MatrixConfig getMatrixConfig() => MatrixConfig(
       databaseFactory: const CallbackMatrixDatabaseFactory(
         openDatabase: _openMatrixDatabase,
       ),
+      deviceId: const Uuid().v4(),
     );
 
 RepositoryConfig getRepositoryConfig() {

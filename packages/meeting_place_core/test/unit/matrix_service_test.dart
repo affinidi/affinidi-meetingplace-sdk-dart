@@ -73,6 +73,7 @@ MatrixConfig _fakeConfig() => MatrixConfig(
   controlPlaneDid: 'did:test:control-plane',
   homeserver: _testHomeserver,
   databaseFactory: const _NoOpDatabaseFactory(),
+  deviceId: 'TESTDEVICEID',
 );
 
 /// Produces a [MockMatrixClient] that reports a valid, non-expiring session.
@@ -151,6 +152,7 @@ void main() {
           () => mockClient.login(
             MatrixSessionManager.jwtLoginType,
             token: _testJwt,
+            deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer((_) async => loginResponse);
 
@@ -162,6 +164,7 @@ void main() {
           () => mockClient.login(
             MatrixSessionManager.jwtLoginType,
             token: _testJwt,
+            deviceId: any(named: 'deviceId'),
           ),
         ).called(1);
       });
@@ -203,6 +206,7 @@ void main() {
           () => mockClient.login(
             MatrixSessionManager.jwtLoginType,
             token: _testJwt,
+            deviceId: any(named: 'deviceId'),
           ),
         ).thenAnswer((_) async {
           loginCalls++;

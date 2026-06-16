@@ -72,6 +72,7 @@ MatrixConfig getMatrixConfig() {
     databaseFactory: CallbackMatrixDatabaseFactory(
       openDatabase: (context) => _openMatrixDatabase(directory, context),
     ),
+    deviceId: const Uuid().v4(),
   );
 }
 

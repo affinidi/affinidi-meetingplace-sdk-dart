@@ -1,3 +1,7 @@
+## 0.0.1-dev.45
+
+ - **FIX**: add decline zkp request (#227).
+
 ## 0.0.1-dev.44
 
  - Update a dependency to the latest release.

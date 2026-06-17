@@ -84,6 +84,28 @@ void main() {
           LivenessZkpConciergeTypes.humanZkpProofShared,
         );
       });
+
+      test('emits declined notice for incoming declined attachment', () {
+        final notices = LivenessZkpConciergeDeriver.deriveNoticesFromMessage(
+          _zkpMessage(
+            messageId: 'declined-1',
+            isFromMe: false,
+            dateCreated: t0,
+            attachments: [_zkpDeclinedAttachment()],
+          ),
+          contactName: contactName,
+        );
+
+        expect(notices, hasLength(1));
+        expect(
+          notices.single.conciergeType,
+          LivenessZkpConciergeTypes.humanZkpDeclined,
+        );
+        expect(
+          notices.single.messageId,
+          LivenessZkpConciergeIds.declinedReceived('declined-1'),
+        );
+      });
     });
 
     group('appendDerivedHumanZkpConciergeMessages', () {
@@ -286,6 +308,37 @@ void main() {
         );
       });
 
+      test('derives declined notice from latest incoming declined event', () {
+        final olderDeclined = _zkpMessage(
+          messageId: 'declined-old',
+          isFromMe: false,
+          dateCreated: t0,
+          attachments: [_zkpDeclinedAttachment()],
+        );
+        final latestDeclined = _zkpMessage(
+          messageId: 'declined-new',
+          isFromMe: false,
+          dateCreated: t2,
+          attachments: [_zkpDeclinedAttachment()],
+        );
+
+        final result =
+            LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages([
+              olderDeclined,
+              latestDeclined,
+            ], contactName: contactName);
+
+        final notice = _findConcierge(
+          result,
+          LivenessZkpConciergeTypes.humanZkpDeclined,
+        );
+        expect(notice, isNotNull);
+        expect(
+          notice!.messageId,
+          LivenessZkpConciergeIds.declinedReceived('declined-new'),
+        );
+      });
+
       test('leaves non-ZKP chat items unchanged', () {
         final text = Message(
           chatId: chatId,
@@ -352,6 +405,19 @@ Attachment _zkpProofAttachment() {
     data: AttachmentData(json: jsonEncode(payload.toJson())),
   );
 }
+
+Attachment _zkpDeclinedAttachment() => Attachment(
+  id: 'att-declined',
+  mediaType: 'application/json',
+  format: LivenessZkpProtocol.livenessDeclinedFormat,
+  lastModifiedTime: DateTime.utc(2026),
+  data: AttachmentData(
+    json: jsonEncode({
+      LivenessZkpProtocol.typeJsonKey:
+          LivenessZkpProtocol.livenessDeclinedPayloadType,
+    }),
+  ),
+);
 
 ConciergeMessage _conciergeFrom(LivenessZkpConciergeNotice notice) =>
     LivenessZkpConciergeChatMapper.toConciergeMessage(notice);

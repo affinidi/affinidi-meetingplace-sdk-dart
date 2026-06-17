@@ -74,4 +74,20 @@ abstract final class LivenessZkpConciergeMessages {
       data: {'contactName': contactName},
     );
   }
+
+  static LivenessZkpConciergeNotice humanZkpDeclinedReceived({
+    required String chatId,
+    required String messageId,
+    required DateTime dateCreated,
+    required String contactName,
+  }) {
+    return LivenessZkpConciergeNotice(
+      chatId: chatId,
+      messageId: messageId,
+      dateCreated: dateCreated,
+      conciergeType: LivenessZkpConciergeTypes.humanZkpDeclined,
+      isFromMe: false,
+      data: {'contactName': contactName},
+    );
+  }
 }

@@ -51,5 +51,24 @@ void main() {
       final map = jsonDecode(att.data!.json!) as Map<String, dynamic>;
       expect(map, payload.toJson());
     });
+
+    test('buildLivenessDeclined encodes declined payload', () {
+      final list = LivenessZkpDIDCommAttachmentBuilder.buildLivenessDeclined(
+        attachmentId: 'declined-1',
+        lastModified: DateTime.utc(2026, 1, 4),
+      );
+
+      expect(list, hasLength(1));
+      final att = list.single;
+      expect(att.id, 'declined-1');
+      expect(att.format, LivenessZkpProtocol.livenessDeclinedFormat);
+
+      final map = jsonDecode(att.data!.json!) as Map<String, dynamic>;
+      expect(
+        map[LivenessZkpProtocol.typeJsonKey],
+        LivenessZkpProtocol.livenessDeclinedPayloadType,
+      );
+      expect(LivenessZkpAttachmentParser.tryParseDeclined(att), isNotNull);
+    });
   });
 }

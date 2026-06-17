@@ -1,4 +1,3 @@
-@Tags(['serial'])
 library;
 
 import 'dart:async';

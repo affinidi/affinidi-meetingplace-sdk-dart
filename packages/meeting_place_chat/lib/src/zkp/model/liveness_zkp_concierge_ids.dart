@@ -9,6 +9,9 @@ abstract final class LivenessZkpConciergeIds {
   static String proofReceived(String attachmentMessageId) =>
       'zkp-proof-received-$attachmentMessageId';
 
+  static String declinedReceived(String attachmentMessageId) =>
+      'zkp-declined-received-$attachmentMessageId';
+
   static String paused({required String forRequestNoticeMessageId}) =>
       'zkp-paused-$forRequestNoticeMessageId';
 

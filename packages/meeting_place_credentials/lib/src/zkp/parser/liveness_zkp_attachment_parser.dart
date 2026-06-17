@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../model/liveness_check_request_payload.dart';
+import '../model/liveness_declined_payload.dart';
 import '../model/liveness_proof_payload.dart';
 import '../model/liveness_zkp_protocol.dart';
 
@@ -31,6 +32,10 @@ class LivenessZkpAttachmentParser {
   static bool matchesProofFormat(Attachment? attachment) =>
       attachment?.format == LivenessZkpProtocol.livenessProofFormat;
 
+  /// Returns true when the attachment format matches a liveness declined event.
+  static bool matchesDeclinedFormat(Attachment? attachment) =>
+      attachment?.format == LivenessZkpProtocol.livenessDeclinedFormat;
+
   /// Returns true when any attachment has the liveness request format.
   static bool hasRequestFormat(Iterable<Attachment?> attachments) =>
       attachments.any(matchesRequestFormat);
@@ -38,6 +43,10 @@ class LivenessZkpAttachmentParser {
   /// Returns true when any attachment has the liveness proof format.
   static bool hasProofFormat(Iterable<Attachment?> attachments) =>
       attachments.any(matchesProofFormat);
+
+  /// Returns true when any attachment has the liveness declined format.
+  static bool hasDeclinedFormat(Iterable<Attachment?> attachments) =>
+      attachments.any(matchesDeclinedFormat);
 
   /// Returns true when the attachment parses as a liveness request.
   static bool isRequest(Attachment? attachment) =>
@@ -47,6 +56,10 @@ class LivenessZkpAttachmentParser {
   static bool isProof(Attachment? attachment) =>
       tryParseProof(attachment) != null;
 
+  /// Returns true when the attachment parses as a liveness declined payload.
+  static bool isDeclined(Attachment? attachment) =>
+      tryParseDeclined(attachment) != null;
+
   /// Returns true when any attachment in the list parses as a liveness request.
   static bool hasRequest(Iterable<Attachment?> attachments) =>
       tryParseRequestIn(attachments) != null;
@@ -54,6 +67,10 @@ class LivenessZkpAttachmentParser {
   /// Returns true when any attachment in the list parses as a liveness proof.
   static bool hasProof(Iterable<Attachment?> attachments) =>
       tryParseProofIn(attachments) != null;
+
+  /// Returns true when any attachment parses as a liveness declined payload.
+  static bool hasDeclined(Iterable<Attachment?> attachments) =>
+      tryParseDeclinedIn(attachments) != null;
 
   /// Attempts to parse a single attachment as a liveness request payload.
   static LivenessCheckRequestPayload? tryParseRequest(Attachment? attachment) =>
@@ -69,11 +86,21 @@ class LivenessZkpAttachmentParser {
   static LivenessProofPayload? tryParseProof(Attachment? attachment) =>
       instance.parseProof(attachment);
 
+  /// Attempts to parse a single attachment as a liveness declined payload.
+  static LivenessDeclinedPayload? tryParseDeclined(Attachment? attachment) =>
+      instance.parseDeclined(attachment);
+
   /// Attempts to parse the first matching attachment as a liveness proof
   /// payload.
   static LivenessProofPayload? tryParseProofIn(
     Iterable<Attachment?> attachments,
   ) => instance.parseProofIn(attachments);
+
+  /// Attempts to parse the first matching attachment as a liveness declined
+  /// payload.
+  static LivenessDeclinedPayload? tryParseDeclinedIn(
+    Iterable<Attachment?> attachments,
+  ) => instance.parseDeclinedIn(attachments);
 
   /// Parses a single attachment as a liveness request payload.
   LivenessCheckRequestPayload? parseRequest(Attachment? attachment) =>
@@ -92,12 +119,24 @@ class LivenessZkpAttachmentParser {
   LivenessProofPayload? parseProof(Attachment? attachment) =>
       parseProofIn([attachment]);
 
+  /// Parses a single attachment as a liveness declined payload.
+  LivenessDeclinedPayload? parseDeclined(Attachment? attachment) =>
+      parseDeclinedIn([attachment]);
+
   /// Parses the first matching attachment as a liveness proof payload.
   LivenessProofPayload? parseProofIn(Iterable<Attachment?> attachments) =>
       _firstParsed(
         attachments,
         format: LivenessZkpProtocol.livenessProofFormat,
         fromJson: LivenessProofPayload.fromJson,
+      );
+
+  /// Parses the first matching attachment as a liveness declined payload.
+  LivenessDeclinedPayload? parseDeclinedIn(Iterable<Attachment?> attachments) =>
+      _firstParsed(
+        attachments,
+        format: LivenessZkpProtocol.livenessDeclinedFormat,
+        fromJson: LivenessDeclinedPayload.fromJson,
       );
   T? _firstParsed<T>(
     Iterable<Attachment?> attachments, {

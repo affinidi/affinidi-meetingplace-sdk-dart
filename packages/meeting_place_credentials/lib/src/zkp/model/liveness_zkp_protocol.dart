@@ -8,11 +8,18 @@ abstract final class LivenessZkpProtocol {
   /// DIDComm attachment format for liveness proofs.
   static const livenessProofFormat = 'https://affinidi.com/liveness-proof';
 
+  /// DIDComm attachment format for liveness declined responses.
+  static const livenessDeclinedFormat =
+      'https://affinidi.com/liveness-declined';
+
   /// JSON `type` value for liveness check request payloads.
   static const livenessRequestPayloadType = 'liveness_request';
 
   /// JSON `type` value for liveness proof payloads.
   static const livenessProofPayloadType = 'liveness_proof';
+
+  /// JSON `type` value for liveness declined payloads.
+  static const livenessDeclinedPayloadType = 'liveness_declined';
 
   /// JSON field name for payload type discriminators.
   static const typeJsonKey = 'type';

@@ -1,6 +1,6 @@
 name: meeting_place_credentials
 description: Verifiable Relationship Credential (VRC), Relationship Card (R-Card), and liveness credential domain models, builders, and repository interfaces for the Meeting Place SDK.
-version: 0.0.1-dev.3
+version: 0.0.1-dev.5
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
 

@@ -18,7 +18,8 @@ abstract final class LivenessZkpConciergeDeriver {
     return message.attachments.any(
       (attachment) =>
           LivenessZkpAttachmentParser.matchesRequestFormat(attachment) ||
-          LivenessZkpAttachmentParser.matchesProofFormat(attachment),
+          LivenessZkpAttachmentParser.matchesProofFormat(attachment) ||
+          LivenessZkpAttachmentParser.matchesDeclinedFormat(attachment),
     );
   }
 
@@ -27,9 +28,11 @@ abstract final class LivenessZkpConciergeDeriver {
     return LivenessZkpConciergeTypes.isHumanZkpType(item.conciergeType.value);
   }
 
-  static ({bool hasRequest, bool hasProof}) _attachmentKinds(Message message) {
+  static ({bool hasRequest, bool hasProof, bool hasDeclined}) _attachmentKinds(
+    Message message,
+  ) {
     if (message.value.isNotEmpty || message.attachments.isEmpty) {
-      return (hasRequest: false, hasProof: false);
+      return (hasRequest: false, hasProof: false, hasDeclined: false);
     }
 
     return (
@@ -39,13 +42,16 @@ abstract final class LivenessZkpConciergeDeriver {
       hasProof:
           LivenessZkpAttachmentParser.tryParseProofIn(message.attachments) !=
           null,
+      hasDeclined:
+          LivenessZkpAttachmentParser.tryParseDeclinedIn(message.attachments) !=
+          null,
     );
   }
 
   static List<LivenessZkpConciergeNotice> deriveNoticesFromMessage(
     Message item, {
     required String contactName,
-    ({bool hasRequest, bool hasProof})? attachmentKinds,
+    ({bool hasRequest, bool hasProof, bool hasDeclined})? attachmentKinds,
   }) {
     final out = <LivenessZkpConciergeNotice>[];
     if (item.value.isNotEmpty || item.attachments.isEmpty) return out;
@@ -72,6 +78,16 @@ abstract final class LivenessZkpConciergeDeriver {
         ),
       );
     }
+    if (kinds.hasDeclined && !item.isFromMe) {
+      out.add(
+        LivenessZkpConciergeMessages.humanZkpDeclinedReceived(
+          chatId: item.chatId,
+          messageId: LivenessZkpConciergeIds.declinedReceived(item.messageId),
+          dateCreated: item.dateCreated,
+          contactName: contactName,
+        ),
+      );
+    }
 
     return out;
   }
@@ -79,7 +95,7 @@ abstract final class LivenessZkpConciergeDeriver {
   static List<ConciergeMessage> deriveConciergeMessagesFromMessage(
     Message item, {
     required String contactName,
-    ({bool hasRequest, bool hasProof})? attachmentKinds,
+    ({bool hasRequest, bool hasProof, bool hasDeclined})? attachmentKinds,
   }) {
     return deriveNoticesFromMessage(
       item,
@@ -97,8 +113,12 @@ abstract final class LivenessZkpConciergeDeriver {
     List<ChatItem> existing, {
     required String contactName,
   }) {
-    ({Message message, bool hasRequest, bool hasProof})? latestIncomingRequest;
-    ({Message message, bool hasRequest, bool hasProof})? latestMyProof;
+    ({Message message, bool hasRequest, bool hasProof, bool hasDeclined})?
+    latestIncomingRequest;
+    ({Message message, bool hasRequest, bool hasProof, bool hasDeclined})?
+    latestMyProof;
+    ({Message message, bool hasRequest, bool hasProof, bool hasDeclined})?
+    latestTheirDeclined;
     Message? latestTheirProof;
 
     for (final item in existing) {
@@ -115,6 +135,7 @@ abstract final class LivenessZkpConciergeDeriver {
             message: item,
             hasRequest: kinds.hasRequest,
             hasProof: kinds.hasProof,
+            hasDeclined: kinds.hasDeclined,
           );
         }
       }
@@ -125,6 +146,18 @@ abstract final class LivenessZkpConciergeDeriver {
             message: item,
             hasRequest: kinds.hasRequest,
             hasProof: kinds.hasProof,
+            hasDeclined: kinds.hasDeclined,
+          );
+        }
+      }
+      if (kinds.hasDeclined && !item.isFromMe) {
+        if (latestTheirDeclined == null ||
+            item.dateCreated.isAfter(latestTheirDeclined.message.dateCreated)) {
+          latestTheirDeclined = (
+            message: item,
+            hasRequest: kinds.hasRequest,
+            hasProof: kinds.hasProof,
+            hasDeclined: kinds.hasDeclined,
           );
         }
       }
@@ -152,6 +185,7 @@ abstract final class LivenessZkpConciergeDeriver {
             attachmentKinds: (
               hasRequest: latestIncomingRequest.hasRequest,
               hasProof: latestIncomingRequest.hasProof,
+              hasDeclined: latestIncomingRequest.hasDeclined,
             ),
           ),
         );
@@ -165,6 +199,20 @@ abstract final class LivenessZkpConciergeDeriver {
           attachmentKinds: (
             hasRequest: latestMyProof.hasRequest,
             hasProof: latestMyProof.hasProof,
+            hasDeclined: latestMyProof.hasDeclined,
+          ),
+        ),
+      );
+    }
+    if (latestTheirDeclined != null) {
+      derived.addAll(
+        deriveConciergeMessagesFromMessage(
+          latestTheirDeclined.message,
+          contactName: contactName,
+          attachmentKinds: (
+            hasRequest: latestTheirDeclined.hasRequest,
+            hasProof: latestTheirDeclined.hasProof,
+            hasDeclined: latestTheirDeclined.hasDeclined,
           ),
         ),
       );

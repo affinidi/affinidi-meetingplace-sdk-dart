@@ -4,6 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../model/liveness_check_request_payload.dart';
+import '../model/liveness_declined_payload.dart';
 import '../model/liveness_proof_payload.dart';
 import '../model/liveness_zkp_protocol.dart';
 
@@ -38,6 +39,18 @@ abstract final class LivenessZkpDIDCommAttachmentBuilder {
     _jsonAttachment(
       format: LivenessZkpProtocol.livenessProofFormat,
       json: jsonEncode(payload.toJson()),
+      attachmentId: attachmentId,
+      lastModified: lastModified,
+    ),
+  ];
+
+  static List<Attachment> buildLivenessDeclined({
+    String? attachmentId,
+    DateTime? lastModified,
+  }) => [
+    _jsonAttachment(
+      format: LivenessZkpProtocol.livenessDeclinedFormat,
+      json: jsonEncode(const LivenessDeclinedPayload().toJson()),
       attachmentId: attachmentId,
       lastModified: lastModified,
     ),

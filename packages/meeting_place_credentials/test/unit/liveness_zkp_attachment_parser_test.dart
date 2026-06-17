@@ -30,6 +30,13 @@ void main() {
         lastModifiedTime: DateTime.utc(2026),
         data: AttachmentData(json: '{}'),
       );
+      final declinedFormatOnly = Attachment(
+        id: 'd',
+        mediaType: 'application/json',
+        format: LivenessZkpProtocol.livenessDeclinedFormat,
+        lastModifiedTime: DateTime.utc(2026),
+        data: AttachmentData(json: '{}'),
+      );
 
       expect(
         LivenessZkpAttachmentParser.matchesRequestFormat(requestFormatOnly),
@@ -39,8 +46,39 @@ void main() {
         LivenessZkpAttachmentParser.matchesProofFormat(proofFormatOnly),
         isTrue,
       );
+      expect(
+        LivenessZkpAttachmentParser.matchesDeclinedFormat(declinedFormatOnly),
+        isTrue,
+      );
       expect(LivenessZkpAttachmentParser.isRequest(requestFormatOnly), isFalse);
       expect(LivenessZkpAttachmentParser.isProof(proofFormatOnly), isFalse);
+      expect(
+        LivenessZkpAttachmentParser.isDeclined(declinedFormatOnly),
+        isFalse,
+      );
+    });
+
+    test('tryParseDeclinedIn returns payload for valid attachment', () {
+      final attachments = [
+        Attachment(
+          id: 'd1',
+          mediaType: 'application/json',
+          format: LivenessZkpProtocol.livenessDeclinedFormat,
+          lastModifiedTime: DateTime.utc(2026),
+          data: AttachmentData(
+            json: jsonEncode({
+              LivenessZkpProtocol.typeJsonKey:
+                  LivenessZkpProtocol.livenessDeclinedPayloadType,
+            }),
+          ),
+        ),
+      ];
+
+      final parsed = LivenessZkpAttachmentParser.tryParseDeclinedIn(
+        attachments,
+      );
+      expect(parsed, isNotNull);
+      expect(LivenessZkpAttachmentParser.hasDeclined(attachments), isTrue);
     });
 
     test('tryParseProofIn returns payload for valid attachment', () {
@@ -231,6 +269,27 @@ void main() {
       });
       expect(p.proof, 'a');
       expect(p.publicSignals, 'b');
+    });
+  });
+
+  group('LivenessDeclinedPayload.fromJson', () {
+    test('requires liveness_declined type', () {
+      expect(
+        () => LivenessDeclinedPayload.fromJson({}),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => LivenessDeclinedPayload.fromJson({
+          LivenessZkpProtocol.typeJsonKey: 'other',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+
+      final p = LivenessDeclinedPayload.fromJson({
+        LivenessZkpProtocol.typeJsonKey:
+            LivenessZkpProtocol.livenessDeclinedPayloadType,
+      });
+      expect(p, isA<LivenessDeclinedPayload>());
     });
   });
 }

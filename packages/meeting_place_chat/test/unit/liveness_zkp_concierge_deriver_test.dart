@@ -407,12 +407,12 @@ ChatAttachment _zkpProofAttachment() {
   );
 }
 
-Attachment _zkpDeclinedAttachment() => Attachment(
+ChatAttachment _zkpDeclinedAttachment() => ChatAttachment(
   id: 'att-declined',
   mediaType: 'application/json',
   format: LivenessZkpProtocol.livenessDeclinedFormat,
   lastModifiedTime: DateTime.utc(2026),
-  data: AttachmentData(
+  data: ChatAttachmentData(
     json: jsonEncode({
       LivenessZkpProtocol.typeJsonKey:
           LivenessZkpProtocol.livenessDeclinedPayloadType,

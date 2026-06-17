@@ -99,9 +99,14 @@ void main() async {
     );
 
     expect(receivedMessage.plainTextMessage.body!['message'], 'Hello World');
-    await subscription.dispose();
 
-    await sendMessageFromBobToAlice();
+    // Dispose the subscription and verify subsequent sends don't crash.
+    // The didcomm Connection.start callback may fire after the stream is
+    // closed — swallow that known race the same way tearDown does.
+    await runZonedGuarded(() async {
+      await subscription.dispose();
+      await sendMessageFromBobToAlice();
+    }, swallowDidcommCloseRace);
   });
 
   test('returns closed subscription after dispose', () async {
@@ -181,40 +186,42 @@ void main() async {
     // tests are received
     final messageType = 'https://example.com/${const Uuid().v4()}';
 
-    final subscription = await aliceDidcomm.subscribe(
-      aliceDidDoc.id,
-      options: const MediatorStreamSubscriptionOptions(
-        deleteMessageDelay: Duration(milliseconds: 1),
-      ),
-    );
+    await runZonedGuarded(() async {
+      final subscription = await aliceDidcomm.subscribe(
+        aliceDidDoc.id,
+        options: const MediatorStreamSubscriptionOptions(
+          deleteMessageDelay: Duration(milliseconds: 1),
+        ),
+      );
 
-    var messageCount = 0;
-    final waitForMessage = Completer<void>();
+      var messageCount = 0;
+      final waitForMessage = Completer<void>();
 
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType(messageType)) {
-        messageCount++;
-        if (messageCount == 3) {
-          waitForMessage.complete();
-          subscription.dispose();
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType(messageType)) {
+          messageCount++;
+          if (messageCount == 3) {
+            waitForMessage.complete();
+            subscription.dispose();
+          }
         }
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
+        return MediatorStreamProcessingResult(keepMessage: false);
+      });
 
-    await sendMessageFromBobToAlice(type: messageType);
-    await sendMessageFromBobToAlice(type: messageType);
-    await sendMessageFromBobToAlice(type: messageType);
+      await sendMessageFromBobToAlice(type: messageType);
+      await sendMessageFromBobToAlice(type: messageType);
+      await sendMessageFromBobToAlice(type: messageType);
 
-    await waitForMessage.future.timeout(const Duration(seconds: 10));
-    await Future<void>.delayed(const Duration(seconds: 2));
+      await waitForMessage.future.timeout(const Duration(seconds: 10));
+      await Future<void>.delayed(const Duration(seconds: 2));
 
-    final messages = await aliceDidcomm.fetchMessages(
-      did: aliceDidDoc.id,
-      deleteOnRetrieve: true,
-    );
+      final messages = await aliceDidcomm.fetchMessages(
+        did: aliceDidDoc.id,
+        deleteOnRetrieve: true,
+      );
 
-    expect(messages.length, equals(0));
+      expect(messages.length, equals(0));
+    }, swallowDidcommCloseRace);
   });
 
   test('stream can be accessed multiple times', () async {

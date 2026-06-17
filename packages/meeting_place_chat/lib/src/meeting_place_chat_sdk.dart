@@ -74,9 +74,11 @@ abstract interface class MeetingPlaceChatSDK {
     };
   }
 
-  /// The set of features the underlying transport supports.
+  /// The set of features this chat supports.
   ///
-  /// Query before exposing UI/actions that depend on a specific capability:
+  /// Each concrete chat SDK declares its own set, so this reflects both the
+  /// transport and the chat type (individual vs group). Query before exposing
+  /// UI/actions that depend on a specific capability:
   ///
   /// ```dart
   /// if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {

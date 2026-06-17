@@ -48,8 +48,19 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   int _seqNo = 0;
 
   @override
-  TransportCapabilities get capabilities =>
-      TransportCapabilities.forTransport(ChannelTransport.didcomm);
+  TransportCapabilities get capabilities => _capabilities;
+
+  /// Features supported by an individual chat over the DIDComm transport.
+  static const _capabilities = TransportCapabilities({
+    ChatFeature.textMessaging,
+    ChatFeature.mediaAttachments,
+    ChatFeature.reactions,
+    ChatFeature.typingIndicators,
+    ChatFeature.presence,
+    ChatFeature.deliveryReceipts,
+    ChatFeature.effects,
+    ChatFeature.contactDetailsUpdate,
+  });
 
   @override
   Future<Chat> startChatSession() async {

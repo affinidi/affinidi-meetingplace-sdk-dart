@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:matrix/matrix.dart' as matrix;
 
 import '../../loggers/meeting_place_core_sdk_logger.dart';
@@ -30,6 +32,11 @@ class MatrixSessionManager {
   /// The login type for JWT-based authentication with the Matrix homeserver.
   static const String jwtLoginType = 'org.matrix.login.jwt';
 
+  /// Default [loginSyncGracePeriod] used by [loginWithJwt] when no
+  /// override is supplied. Long enough for the Matrix SDK to complete its
+  /// initial one-shot work (OTK upload, key queries, to-device processing).
+  static const Duration loginSyncGracePeriod = Duration(seconds: 10);
+
   /// How early before token expiry we proactively refresh, to avoid clock
   /// skew or latency causing a request to land on an expired token.
   static const Duration tokenGracePeriod = Duration(minutes: 2);
@@ -53,6 +60,11 @@ class MatrixSessionManager {
   /// background sync is enabled for the new client as well.
   final Map<String, Map<matrix.Client, int>> _activeSubscriptions = {};
 
+  /// Pending deactivation timers scheduled by [deactivateSync] when a
+  /// [loginSyncGracePeriod] is set. Cancelled when [activateSync] is called
+  /// again for the same client before the timer fires.
+  final Map<matrix.Client, Timer> _pendingDeactivations = {};
+
   static const _logKey = 'MatrixSessionManager';
 
   /// Exposes the homeserver URI from the configuration.
@@ -73,9 +85,23 @@ class MatrixSessionManager {
   ///
   /// On login failure the cache entry is evicted and a [MatrixServiceException]
   /// is thrown.
+  ///
+  /// [loginSyncGracePeriod] controls how long background sync stays active
+  /// after login before being automatically disabled. Defaults to
+  /// [loginSyncGracePeriod]. Ignored when [keepSyncActiveAfterLogin]
+  /// is `true`.
+  ///
+  /// [keepSyncActiveAfterLogin] when `true`, background sync is never
+  /// automatically disabled — it stays active until [dispose] is called.
+  ///
+  /// **Note**: if a login for [did] is already in flight,
+  /// [loginSyncGracePeriod] and [keepSyncActiveAfterLogin] from this call are
+  /// ignored; the options from the first in-flight call take effect.
   Future<String> loginWithJwt({
     required String jwt,
     required String did,
+    Duration loginSyncGracePeriod = loginSyncGracePeriod,
+    bool keepSyncActiveAfterLogin = false,
   }) async {
     final loginFuture = _inFlightLogins.putIfAbsent(did, () async {
       final cached = _clientCache.get(did: did);
@@ -84,6 +110,9 @@ class MatrixSessionManager {
         try {
           existingClient = await cached;
           if (_isTokenFresh(existingClient)) {
+            if (keepSyncActiveAfterLogin) {
+              _pendingDeactivations.remove(existingClient)?.cancel();
+            }
             return existingClient;
           }
         } catch (_) {
@@ -98,7 +127,13 @@ class MatrixSessionManager {
         name: _logKey,
       );
 
-      final attempt = _login(did: did, jwt: jwt, existing: existingClient);
+      final attempt = _login(
+        did: did,
+        jwt: jwt,
+        existing: existingClient,
+        loginSyncGracePeriod: loginSyncGracePeriod,
+        keepSyncActiveAfterLogin: keepSyncActiveAfterLogin,
+      );
       _clientCache.add(did: did, future: attempt);
 
       try {
@@ -162,8 +197,19 @@ class MatrixSessionManager {
     required String did,
     required String jwt,
     matrix.Client? existing,
+    required Duration loginSyncGracePeriod,
+    required bool keepSyncActiveAfterLogin,
   }) async {
     final client = existing ?? await _createClient(did: did);
+
+    // Captures the per-call sync options so we don't repeat them on every
+    // _schedulePostLoginDeactivation call below.
+    void scheduleDeactivation() => _schedulePostLoginDeactivation(
+      did,
+      client,
+      loginSyncGracePeriod: loginSyncGracePeriod,
+      keepSyncActiveAfterLogin: keepSyncActiveAfterLogin,
+    );
 
     // On a cold start the in-memory cache is empty and a fresh Client is
     // created with the persistent on-disk database.  Calling login() would
@@ -173,31 +219,20 @@ class MatrixSessionManager {
     // persisted session first so the existing OLM account is reused.
     if (client.accessToken == null) {
       await client.init(waitForFirstSync: false);
+      // init() re-enables the sync loop when it restores a persisted session.
+      // Schedule deactivation after the grace period so SDK housekeeping
+      // (OTK upload, key queries) can complete first.
+      scheduleDeactivation();
     }
 
     if (_isTokenFresh(client)) {
-      _logger.info(
-        'Restored Matrix session for DID $did, background sync disabled',
-        name: _logKey,
-      );
+      _logger.info('Restored Matrix session for DID $did', name: _logKey);
       return client;
     }
 
-    if (client.accessToken != null) {
-      try {
-        await client.refreshAccessToken();
-        client.backgroundSync = false;
-        _logger.info(
-          'Refreshed Matrix token for DID $did, background sync disabled',
-          name: _logKey,
-        );
-        return client;
-      } catch (_) {
-        _logger.warning(
-          '''Failed to refresh Matrix token for DID $did, falling back to full login''',
-          name: _logKey,
-        );
-      }
+    if (client.accessToken != null && await _tryRefreshToken(did, client)) {
+      scheduleDeactivation();
+      return client;
     }
 
     await client.login(
@@ -210,12 +245,26 @@ class MatrixSessionManager {
       ),
     );
 
-    client.backgroundSync = false;
-    _logger.info(
-      '''Successfully logged in to Matrix as ${client.userID} for DID $did, background sync disabled''',
-      name: _logKey,
-    );
+    scheduleDeactivation();
     return client;
+  }
+
+  /// Attempts to silently refresh the access token for [client].
+  ///
+  /// Returns `true` on success. On failure, logs a warning and returns `false`
+  /// so [_login] can fall through to a full JWT login.
+  Future<bool> _tryRefreshToken(String did, matrix.Client client) async {
+    try {
+      await client.refreshAccessToken();
+      _logger.info('Refreshed Matrix token for DID $did', name: _logKey);
+      return true;
+    } catch (_) {
+      _logger.warning(
+        '''Failed to refresh Matrix token for DID $did, falling back to full login''',
+        name: _logKey,
+      );
+      return false;
+    }
   }
 
   /// Whether the client's access token is present and outside the
@@ -254,10 +303,18 @@ class MatrixSessionManager {
   /// Enables background sync for [client] when its first subscription for
   /// [did] is registered.
   ///
+  /// Cancels any pending deactivation timer for [client] so that a new
+  /// subscription arriving during the linger window seamlessly reactivates
+  /// sync without an unnecessary stop/start cycle.
+  ///
   /// Subscriptions are tracked per client instance so that, if a session is
   /// replaced mid-lifecycle, the replacement client is also switched to
   /// background sync.
   void activateSync(String did, matrix.Client client) {
+    // Cancel any pending deactivation so re-subscribing during the linger
+    // window is transparent.
+    _pendingDeactivations.remove(client)?.cancel();
+
     final subscriptionsByClient = _activeSubscriptions.putIfAbsent(
       did,
       () => <matrix.Client, int>{},
@@ -272,9 +329,20 @@ class MatrixSessionManager {
 
   /// Decrements the subscription counter for [did] and [client].
   ///
-  /// When that client's counter reaches zero, background sync is disabled for
-  /// that client. DID-level tracking is removed once no clients remain.
-  void deactivateSync(String did, matrix.Client client) {
+  /// When the counter reaches zero the client is considered idle and sync is
+  /// stopped — either immediately (default) or after a delay:
+  ///
+  /// - [lingerDuration] `null`: sync is disabled synchronously.
+  /// - [lingerDuration] a positive [Duration]: sync is disabled after that
+  ///   delay unless [activateSync] is called again before the timer fires.
+  /// - [keepSyncActive] `true`: sync is **never** automatically disabled for
+  ///   this subscription; [lingerDuration] is ignored.
+  void deactivateSync(
+    String did,
+    matrix.Client client, {
+    Duration? lingerDuration,
+    bool keepSyncActive = false,
+  }) {
     final subscriptionsByClient = _activeSubscriptions[did];
     if (subscriptionsByClient == null) {
       return;
@@ -283,8 +351,14 @@ class MatrixSessionManager {
     final count = (subscriptionsByClient[client] ?? 0) - 1;
     if (count <= 0) {
       subscriptionsByClient.remove(client);
-      client.backgroundSync = false;
-      _logger.info('Disabled background sync for DID $did', name: _logKey);
+
+      if (!keepSyncActive) {
+        if (lingerDuration == null || lingerDuration == Duration.zero) {
+          _disableSyncNow(did, client);
+        } else {
+          _scheduleDeactivation(did, client, lingerDuration);
+        }
+      }
     } else {
       subscriptionsByClient[client] = count;
     }
@@ -294,10 +368,96 @@ class MatrixSessionManager {
     }
   }
 
+  /// Returns `true` if [client] has at least one active subscription across
+  /// any DID. Used to check whether sync was re-enabled during a linger window.
+  bool isBackgroundSyncActive(matrix.Client client) {
+    return _activeSubscriptions.values.any(
+      (byClient) => byClient.containsKey(client),
+    );
+  }
+
+  void _disableSyncNow(String did, matrix.Client client) {
+    _pendingDeactivations.remove(client)?.cancel();
+    client.backgroundSync = false;
+    _logger.info('Disabled background sync for DID $did', name: _logKey);
+  }
+
+  /// Schedules post-login sync deactivation using per-call options.
+  ///
+  /// When [keepSyncActiveAfterLogin] is `true`, this is a no-op — sync stays
+  /// active until [dispose] is called.
+  void _schedulePostLoginDeactivation(
+    String did,
+    matrix.Client client, {
+    required Duration loginSyncGracePeriod,
+    required bool keepSyncActiveAfterLogin,
+  }) {
+    if (keepSyncActiveAfterLogin) {
+      _pendingDeactivations.remove(client)?.cancel();
+      return;
+    }
+
+    _scheduleDeactivation(did, client, loginSyncGracePeriod);
+  }
+
+  void _scheduleDeactivation(String did, matrix.Client client, Duration delay) {
+    _pendingDeactivations.remove(client)?.cancel();
+    _logger.info(
+      '''Scheduling background sync deactivation for DID $did in ${delay.inSeconds}s''',
+      name: _logKey,
+    );
+    _pendingDeactivations[client] = Timer(delay, () {
+      _pendingDeactivations.remove(client);
+      if (!isBackgroundSyncActive(client)) {
+        client.backgroundSync = false;
+        _logger.info(
+          'Disabled background sync for DID $did after linger',
+          name: _logKey,
+        );
+      }
+    });
+  }
+
   /// Disposes every cached matrix client and clears the session cache.
   /// Safe to call multiple times.
-  Future<void> dispose() {
+  Future<void> dispose() async {
     _activeSubscriptions.clear();
-    return _clientCache.dispose();
+    for (final timer in _pendingDeactivations.values) {
+      timer.cancel();
+    }
+    _pendingDeactivations.clear();
+    await _disposeClients(_clientCache.removeAll());
+  }
+
+  /// Disposes a single [client], swallowing errors so a failure does not
+  /// propagate to the caller. The database is intentionally left open to
+  /// avoid SQLITE_MISUSE from in-flight sync writes after abortSync returns.
+  Future<void> _disposeClient(matrix.Client client) async {
+    try {
+      await client.dispose(closeDatabase: false);
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Error disposing Matrix client: $e',
+        name: _logKey,
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Disposes all clients in [futures], swallowing individual errors.
+  Future<void> _disposeClients(List<Future<matrix.Client>> futures) async {
+    for (final future in futures) {
+      try {
+        await _disposeClient(await future);
+      } catch (e, stackTrace) {
+        _logger.error(
+          'Error disposing Matrix client: $e',
+          name: _logKey,
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
   }
 }

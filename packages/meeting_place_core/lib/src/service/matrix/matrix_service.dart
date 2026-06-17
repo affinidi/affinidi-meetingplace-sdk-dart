@@ -56,9 +56,20 @@ class MatrixService {
   /// Parameters:
   /// - [didManager]: The DID manager whose DID will be used to obtain the JWT
   ///   and log in to the Matrix homeserver.
+  /// - [loginSyncGracePeriod]: How long background sync stays active after
+  ///   login before being automatically disabled. Defaults to
+  ///   [MatrixSessionManager.loginSyncGracePeriod]. Ignored when
+  ///   [keepSyncActiveAfterLogin] is `true`.
+  /// - [keepSyncActiveAfterLogin]: When `true`, background sync is never
+  ///   automatically disabled after this login — it stays active until
+  ///   [dispose] is called.
   ///
   /// Returns: The Matrix user ID associated with the logged-in session.
-  Future<String> loginWithDid(DidManager didManager) async {
+  Future<String> loginWithDid(
+    DidManager didManager, {
+    Duration loginSyncGracePeriod = MatrixSessionManager.loginSyncGracePeriod,
+    bool keepSyncActiveAfterLogin = false,
+  }) async {
     final didDocument = await didManager.getDidDocument();
 
     final cachedClient = await _sessionManager.getAuthenticatedClient(
@@ -77,6 +88,8 @@ class MatrixService {
     return _sessionManager.loginWithJwt(
       jwt: matrixTokenOutput.token.toJwt(),
       did: didDocument.id,
+      loginSyncGracePeriod: loginSyncGracePeriod,
+      keepSyncActiveAfterLogin: keepSyncActiveAfterLogin,
     );
   }
 
@@ -299,7 +312,11 @@ class MatrixService {
     int limit = 50,
     String? sinceEventId,
   }) async {
-    final client = await _ensureSession(didManager);
+    final client = await _ensureSession(
+      didManager,
+      keepSyncActiveAfterLogin: false,
+    );
+
     final myUserId = _sessionManager.deriveUserId(
       (await didManager.getDidDocument()).id,
       homeserver.host,
@@ -353,7 +370,10 @@ class MatrixService {
     required DidManager didManager,
     MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
   }) async* {
-    final client = await _ensureSession(didManager);
+    final client = await _ensureSession(
+      didManager,
+      keepSyncActiveAfterLogin: true,
+    );
     final did = (await didManager.getDidDocument()).id;
     final myUserId = _sessionManager.deriveUserId(did, homeserver.host);
 
@@ -433,7 +453,12 @@ class MatrixService {
       await timelineSub.cancel();
       await syncSub.cancel();
       await controller.close();
-      _sessionManager.deactivateSync(did, client);
+      _sessionManager.deactivateSync(
+        did,
+        client,
+        lingerDuration: options.syncGracePeriodDuration,
+        keepSyncActive: options.keepSyncActiveOnEnd,
+      );
     }
   }
 
@@ -559,10 +584,16 @@ class MatrixService {
   /// Returns an authenticated client, transparently re-authenticating via
   /// [loginWithDid] when the session has expired or the refresh token is
   /// exhausted.
-  Future<matrix.Client> _ensureSession(DidManager didManager) async {
+  Future<matrix.Client> _ensureSession(
+    DidManager didManager, {
+    bool keepSyncActiveAfterLogin = false,
+  }) async {
     final did = (await didManager.getDidDocument()).id;
 
-    await loginWithDid(didManager);
+    await loginWithDid(
+      didManager,
+      keepSyncActiveAfterLogin: keepSyncActiveAfterLogin,
+    );
     final client = await _sessionManager.getAuthenticatedClient(did);
     if (client == null) {
       throw const MatrixAuthException();

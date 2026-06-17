@@ -9,7 +9,7 @@ import '../../../utils/contact_card_fixture.dart' as fixtures;
 import '../../utils/individual_chat_fixture.dart';
 
 void main() {
-  late IndividualChatFixture fixture;
+  IndividualChatFixture? fixture;
   late MeetingPlaceChatSDK aliceChatSDK;
   late MeetingPlaceChatSDK bobChatSDK;
 
@@ -20,13 +20,13 @@ void main() {
   });
 
   setUp(() async {
-    aliceChatSDK = await fixture.setup.createChatSdk(
-      sdkInstance: fixture.aliceSDK,
-      channel: fixture.aliceChannel,
+    aliceChatSDK = await fixture!.setup.createChatSdk(
+      sdkInstance: fixture!.aliceSDK,
+      channel: fixture!.aliceChannel,
     );
-    bobChatSDK = await fixture.setup.createChatSdk(
-      sdkInstance: fixture.bobSDK,
-      channel: fixture.bobChannel,
+    bobChatSDK = await fixture!.setup.createChatSdk(
+      sdkInstance: fixture!.bobSDK,
+      channel: fixture!.bobChannel,
     );
   });
 
@@ -49,7 +49,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await fixture.dispose();
+    await fixture?.dispose();
   });
 
   test(
@@ -61,10 +61,10 @@ void main() {
         aliceChatSDK,
       );
 
-      final channel = fixture.bobChannel;
+      final channel = fixture!.bobChannel;
       final contactCard = channel.contactCard!;
       contactCard.contactInfo['changed'] = 'value';
-      await fixture.bobSDK.coreSDK.updateChannel(channel);
+      await fixture!.bobSDK.coreSDK.updateChannel(channel);
 
       await bobChatSDK.startChatSession();
 
@@ -80,10 +80,10 @@ void main() {
       aliceChatSDK,
     );
 
-    final channel = fixture.bobChannel;
+    final channel = fixture!.bobChannel;
     final contactCard = channel.contactCard!;
     contactCard.contactInfo['changed'] = 'value';
-    await fixture.bobSDK.coreSDK.updateChannel(channel);
+    await fixture!.bobSDK.coreSDK.updateChannel(channel);
 
     await bobChatSDK.startChatSession();
 
@@ -108,13 +108,13 @@ void main() {
       await aliceChatSDK.chatStreamSubscription;
 
       final updatedCard = fixtures.ContactCardFixture.getContactCardFixture(
-        did: fixture.bobSDK.didDocument.id,
+        did: fixture!.bobSDK.didDocument.id,
         contactInfo: {'changed': 'value'},
       );
 
-      final newBobChatSDK = await fixture.setup.createChatSdk(
-        sdkInstance: fixture.bobSDK,
-        channel: fixture.bobChannel,
+      final newBobChatSDK = await fixture!.setup.createChatSdk(
+        sdkInstance: fixture!.bobSDK,
+        channel: fixture!.bobChannel,
         card: updatedCard,
       );
 
@@ -136,7 +136,7 @@ void main() {
       expect(conciergeMessage.status, ChatItemStatus.userInput);
       expect(conciergeMessage.data, {
         'profileHash': updatedCard.profileHash,
-        'replyTo': fixture.aliceSDK.didDocument.id,
+        'replyTo': fixture!.aliceSDK.didDocument.id,
       });
 
       final aliceUpdate =
@@ -147,8 +147,8 @@ void main() {
       await newBobChatSDK.sendChatContactDetailsUpdate(conciergeMessage);
 
       await aliceUpdate;
-      final aliceChannel = await fixture.aliceSDK.coreSDK.getChannelByDid(
-        fixture.aliceChannel.permanentChannelDid!,
+      final aliceChannel = await fixture!.aliceSDK.coreSDK.getChannelByDid(
+        fixture!.aliceChannel.permanentChannelDid!,
       );
       expect(
         aliceChannel?.otherPartyContactCard?.contactInfo,

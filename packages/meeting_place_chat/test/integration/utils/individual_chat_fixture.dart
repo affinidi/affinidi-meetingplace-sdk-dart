@@ -56,15 +56,19 @@ class IndividualChatFixture {
     // session that both parties can decrypt. In production the natural latency
     // between connection setup and first send hides this race; tests collapse
     // it to milliseconds. Mirrors the same guard in GroupChatFixture.
+    //
+    // Use permanentChannelDid (not the identity DID) because that is what is
+    // used to log into Matrix and is how _resolveRoomIdForDid looks up the
+    // channel. otherPartyPermanentChannelDid is the peer's Matrix identity.
     if (transport == ChannelTransport.matrix) {
       await Future.wait([
         fixture.aliceSDK.coreSDK.waitForRoomEncryptionReady(
-          localDid: fixture.aliceSDK.didDocument.id,
-          expectedDids: [fixture.bobSDK.didDocument.id],
+          localDid: aliceChannel.permanentChannelDid!,
+          expectedDids: [aliceChannel.otherPartyPermanentChannelDid!],
         ),
         fixture.bobSDK.coreSDK.waitForRoomEncryptionReady(
-          localDid: fixture.bobSDK.didDocument.id,
-          expectedDids: [fixture.aliceSDK.didDocument.id],
+          localDid: bobChannel.permanentChannelDid!,
+          expectedDids: [bobChannel.otherPartyPermanentChannelDid!],
         ),
       ]);
     }

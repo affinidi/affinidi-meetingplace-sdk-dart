@@ -122,38 +122,48 @@ void main() async {
   });
 
   test('supports multiple listeners on the same subscription', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+    // Wrap in runZonedGuarded so that Connection.start()'s unawaited
+    // fetchMessages future is spawned inside the guarded zone. Without this,
+    // dispose() closes the stream and the still-in-flight future fires
+    // _controller.add in the test zone → "failed after test completion".
+    await runZonedGuarded(() async {
+      final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
 
-    final listener1Completer = Completer<MediatorMessage>();
-    final listener2Completer = Completer<MediatorMessage>();
+      final listener1Completer = Completer<MediatorMessage>();
+      final listener2Completer = Completer<MediatorMessage>();
 
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        listener1Completer.complete(message);
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          if (!listener1Completer.isCompleted) {
+            listener1Completer.complete(message);
+          }
+        }
+        return MediatorStreamProcessingResult(keepMessage: false);
+      });
 
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        listener2Completer.complete(message);
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          if (!listener2Completer.isCompleted) {
+            listener2Completer.complete(message);
+          }
+        }
+        return MediatorStreamProcessingResult(keepMessage: false);
+      });
 
-    await sendMessageFromBobToAlice();
+      await sendMessageFromBobToAlice();
 
-    final message1 = await listener1Completer.future.timeout(
-      const Duration(seconds: 10),
-    );
+      final message1 = await listener1Completer.future.timeout(
+        const Duration(seconds: 10),
+      );
 
-    final message2 = await listener2Completer.future.timeout(
-      const Duration(seconds: 10),
-    );
+      final message2 = await listener2Completer.future.timeout(
+        const Duration(seconds: 10),
+      );
 
-    expect(message1.plainTextMessage.body!['message'], 'Hello World');
-    expect(message2.plainTextMessage.body!['message'], 'Hello World');
-    await subscription.dispose();
+      expect(message1.plainTextMessage.body!['message'], 'Hello World');
+      expect(message2.plainTextMessage.body!['message'], 'Hello World');
+      await subscription.dispose();
+    }, swallowDidcommCloseRace);
   });
 
   test('processes multiple messages successfully', () async {

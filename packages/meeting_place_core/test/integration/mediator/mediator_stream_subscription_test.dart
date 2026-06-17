@@ -82,28 +82,32 @@ void main() async {
   }
 
   test('successfully subscribes to mediator and receives messages', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
-
-    final messageCompleter = Completer<MediatorMessage>();
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        messageCompleter.complete(message);
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
-
-    await sendMessageFromBobToAlice();
-
-    final receivedMessage = await messageCompleter.future.timeout(
-      const Duration(seconds: 10),
-    );
-
-    expect(receivedMessage.plainTextMessage.body!['message'], 'Hello World');
-
-    // Dispose the subscription and verify subsequent sends don't crash.
-    // The didcomm Connection.start callback may fire after the stream is
-    // closed — swallow that known race the same way tearDown does.
+    // Wrap the entire test body so that Connection.start()'s unawaited
+    // fetchMessages future is spawned inside the guarded zone. Without this,
+    // the unawaited future runs in the test zone and its "Cannot add new events
+    // after calling close" error reaches the test framework before we can
+    // swallow it, causing intermittent CI failures.
     await runZonedGuarded(() async {
+      final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+
+      final messageCompleter = Completer<MediatorMessage>();
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          if (!messageCompleter.isCompleted) {
+            messageCompleter.complete(message);
+          }
+        }
+        return MediatorStreamProcessingResult(keepMessage: false);
+      });
+
+      await sendMessageFromBobToAlice();
+
+      final receivedMessage = await messageCompleter.future.timeout(
+        const Duration(seconds: 10),
+      );
+
+      expect(receivedMessage.plainTextMessage.body!['message'], 'Hello World');
+
       await subscription.dispose();
       await sendMessageFromBobToAlice();
     }, swallowDidcommCloseRace);

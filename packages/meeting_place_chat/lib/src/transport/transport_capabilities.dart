@@ -20,7 +20,9 @@ enum ChatFeature {
   /// Plain text message sending and receiving.
   textMessaging,
 
-  /// Hosted file and image attachments (upload/download via server).
+  /// File and image attachments. Delivered as hosted media on transports with
+  /// a media server (Matrix) and inline within the message on transports
+  /// without one (DIDComm).
   mediaAttachments,
 
   /// Voice-note recording and playback as a hosted media attachment.
@@ -86,6 +88,7 @@ class TransportCapabilities {
 
   static const TransportCapabilities _didcomm = TransportCapabilities({
     ChatFeature.textMessaging,
+    ChatFeature.mediaAttachments,
     ChatFeature.reactions,
     ChatFeature.typingIndicators,
     ChatFeature.presence,

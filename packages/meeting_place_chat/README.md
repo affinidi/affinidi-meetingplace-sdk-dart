@@ -28,6 +28,22 @@ The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and sec
 - Support ContactCard in publishing a connection offer (invitation) and establishing connections with others to chat.
 - Implements the DIDComm Message v2.1 protocol for sending and receiving messages.
 
+## Transport capabilities
+
+Chats run over either DIDComm or Matrix, and the two transports support different features. Every chat SDK exposes its set through the `capabilities` getter on the common `MeetingPlaceChatSDK` interface. Check it before exposing a feature that depends on the transport:
+
+```dart
+if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
+  // show the edit option
+}
+```
+
+- Matrix only: voice messages, message edit, message delete.
+- DIDComm only: presence.
+- Both: text, media attachments, reactions, typing, delivery receipts, effects, contact details.
+
+Each SDK declares its own set in its `capabilities` getter: `IndividualDidcommChatSDK`, `IndividualMatrixChatSDK`, and `GroupMatrixChatSDK`. See [Chat transport capabilities](doc/chat-transport-capabilities.md) for the full matrix and the identity and credential features.
+
 ## Requirements
 
 - Dart SDK `>=3.6.0 <4.0.0`

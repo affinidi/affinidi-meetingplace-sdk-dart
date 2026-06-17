@@ -74,6 +74,19 @@ abstract interface class MeetingPlaceChatSDK {
     };
   }
 
+  /// The set of features this chat supports.
+  ///
+  /// Each concrete chat SDK declares its own set, so this reflects both the
+  /// transport and the chat type (individual vs group). Query before exposing
+  /// UI/actions that depend on a specific capability:
+  ///
+  /// ```dart
+  /// if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
+  ///   // show edit option
+  /// }
+  /// ```
+  TransportCapabilities get capabilities;
+
   /// All messages for this chat, ordered as the underlying transport returns
   /// them. Matrix replays the room timeline; DIDComm returns the locally
   /// persisted set.

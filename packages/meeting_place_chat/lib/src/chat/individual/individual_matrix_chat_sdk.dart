@@ -42,6 +42,23 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
       IndividualRoomEventRouter(chatSDK: this);
 
   @override
+  TransportCapabilities get capabilities => _capabilities;
+
+  /// Features supported by an individual chat over the Matrix transport.
+  static const _capabilities = TransportCapabilities({
+    ChatFeature.textMessaging,
+    ChatFeature.mediaAttachments,
+    ChatFeature.voiceMessages,
+    ChatFeature.reactions,
+    ChatFeature.typingIndicators,
+    ChatFeature.deliveryReceipts,
+    ChatFeature.messageEdit,
+    ChatFeature.messageDelete,
+    ChatFeature.effects,
+    ChatFeature.contactDetailsUpdate,
+  });
+
+  @override
   Future<Chat> startChatSession() async {
     final chat = await super.startChatSession();
     final channel = await getChannel();

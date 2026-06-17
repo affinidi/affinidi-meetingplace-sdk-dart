@@ -50,9 +50,6 @@ enum ChatFeature {
 
   /// Contact-card proposal and acceptance flow.
   contactDetailsUpdate,
-
-  /// Multi-participant group chat rooms.
-  groupChat,
 }
 
 /// The set of [ChatFeature]s supported by a kind of chat.

@@ -23,17 +23,21 @@ The `ChatFeature` enum and the `TransportCapabilities` type live in `transport_c
 | Message delete | Delete a sent message, for everyone or just for yourself | No | Yes |
 | Effects | Visual effects such as confetti | Yes | Yes |
 | Contact details update | Propose and accept contact-card changes | Yes | Yes |
-| Group chat | Multi-participant chat rooms | No | Yes |
+
+Group chat is not in this matrix on purpose. Whether a chat is individual or
+group is set by the channel type, not gated as a per-chat action, so it is not
+a `ChatFeature`. Group chats run on Matrix only and otherwise share the Matrix
+feature set.
 
 ## DIDComm
 
 Supported: text messaging, media attachments, reactions, typing indicators, presence, delivery receipts, effects, contact details update.
 
-Not supported: voice messages, message edit, message delete for everyone, group chat.
+Not supported: voice messages, message edit, message delete for everyone.
 
 ## Matrix
 
-Supported: text messaging, media attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update, group chat.
+Supported: text messaging, media attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update.
 
 Not supported: presence.
 
@@ -41,7 +45,7 @@ Not supported: presence.
 
 | Scope | Features |
 | --- | --- |
-| Matrix only | Voice messages, message edit, message delete, group chat |
+| Matrix only | Voice messages, message edit, message delete |
 | DIDComm only | Presence |
 | Both transports | Text messaging, media attachments, reactions, typing indicators, delivery receipts, effects, contact details update |
 

@@ -38,7 +38,7 @@ if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
 }
 ```
 
-- Matrix only: voice messages, message edit, message delete, group chat.
+- Matrix only: voice messages, message edit, message delete.
 - DIDComm only: presence.
 - Both: text, media attachments, reactions, typing, delivery receipts, effects, contact details.
 

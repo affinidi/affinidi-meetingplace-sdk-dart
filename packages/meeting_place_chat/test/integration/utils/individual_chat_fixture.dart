@@ -51,6 +51,24 @@ class IndividualChatFixture {
       channel: bobChannel,
     );
 
+    // For Matrix transport, drain a sync cycle and force device-key fetches
+    // on both clients so the first encrypted send creates an outbound megolm
+    // session that both parties can decrypt. In production the natural latency
+    // between connection setup and first send hides this race; tests collapse
+    // it to milliseconds. Mirrors the same guard in GroupChatFixture.
+    if (transport == ChannelTransport.matrix) {
+      await Future.wait([
+        fixture.aliceSDK.coreSDK.waitForRoomEncryptionReady(
+          localDid: fixture.aliceSDK.didDocument.id,
+          expectedDids: [fixture.bobSDK.didDocument.id],
+        ),
+        fixture.bobSDK.coreSDK.waitForRoomEncryptionReady(
+          localDid: fixture.bobSDK.didDocument.id,
+          expectedDids: [fixture.aliceSDK.didDocument.id],
+        ),
+      ]);
+    }
+
     return fixture;
   }
 

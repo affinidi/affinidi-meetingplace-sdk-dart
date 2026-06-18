@@ -206,6 +206,7 @@ void main() {
         // while user_version is still 5. Pre-fix this threw:
         //   SqliteException(1): duplicate column name: metadata
         final schema = await verifier.schemaAt(5);
+
         schema.rawDatabase.execute(
           'ALTER TABLE attachments ADD COLUMN metadata TEXT',
         );

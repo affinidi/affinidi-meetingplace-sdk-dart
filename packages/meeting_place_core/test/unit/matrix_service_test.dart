@@ -394,6 +394,93 @@ void main() {
           ).called(1);
         },
       );
+
+      test('disables background sync after login', () async {
+        final mockClient = MockMatrixClient();
+        when(() => mockClient.accessToken).thenReturn(null);
+        when(() => mockClient.userID).thenReturn(_matrixUserId);
+        when(
+          () => mockClient.init(waitForFirstSync: false),
+        ).thenAnswer((_) async {});
+        final loginResponse = matrix.LoginResponse(
+          userId: _matrixUserId,
+          accessToken: 'token',
+          deviceId: 'device',
+          wellKnown: null,
+          expiresInMs: null,
+          refreshToken: null,
+        );
+        when(
+          () => mockClient.login(
+            MatrixSessionManager.jwtLoginType,
+            token: _testJwt,
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer((_) async => loginResponse);
+
+        cache.seed(_testDid, mockClient);
+
+        await manager.loginWithJwt(
+          jwt: _testJwt,
+          did: _testDid,
+          loginSyncGracePeriod: const Duration(milliseconds: 20),
+        );
+
+        // backgroundSync = false must NOT be set synchronously right after
+        // login — it fires after the post-login linger window.
+        verifyNever(() => mockClient.backgroundSync = false);
+
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+
+        verify(() => mockClient.backgroundSync = false).called(1);
+      });
+
+      test(
+        'keepSyncActiveAfterLogin: sync is never disabled after login',
+        () async {
+          final keepActiveCache = _FakeClientCache();
+          final keepActiveManager = MatrixSessionManager(
+            config: _fakeConfig(),
+            logger: _NoOpLogger(),
+            clientCache: keepActiveCache,
+          );
+          final mockClient = MockMatrixClient();
+          when(() => mockClient.accessToken).thenReturn(null);
+          when(() => mockClient.userID).thenReturn(_matrixUserId);
+          when(
+            () => mockClient.init(waitForFirstSync: false),
+          ).thenAnswer((_) async {});
+          final loginResponse = matrix.LoginResponse(
+            userId: _matrixUserId,
+            accessToken: 'token',
+            deviceId: 'device',
+            wellKnown: null,
+            expiresInMs: null,
+            refreshToken: null,
+          );
+          when(
+            () => mockClient.login(
+              MatrixSessionManager.jwtLoginType,
+              token: _testJwt,
+              deviceId: any(named: 'deviceId'),
+            ),
+          ).thenAnswer((_) async => loginResponse);
+
+          keepActiveCache.seed(_testDid, mockClient);
+
+          await keepActiveManager.loginWithJwt(
+            jwt: _testJwt,
+            did: _testDid,
+            keepSyncActiveAfterLogin: true,
+          );
+
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+
+          verifyNever(() => mockClient.backgroundSync = false);
+
+          await keepActiveManager.dispose();
+        },
+      );
     });
 
     // ------------------------------------------------------------------
@@ -489,6 +576,147 @@ void main() {
         final id2 = manager.deriveUserId(did, 'server-b.com');
         expect(id1, isNot(equals(id2)));
       });
+    });
+    // ------------------------------------------------------------------
+    // activateSync / deactivateSync
+    // ------------------------------------------------------------------
+
+    group('activateSync / deactivateSync', () {
+      test('first activation enables background sync', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        verify(() => client.backgroundSync = true).called(1);
+      });
+
+      test('subsequent activations do not toggle sync again', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        manager.activateSync(_testDid, client);
+        manager.activateSync(_testDid, client);
+        verify(() => client.backgroundSync = true).called(1);
+      });
+
+      test('deactivating last subscription disables background sync', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        manager.deactivateSync(_testDid, client);
+        verify(() => client.backgroundSync = false).called(1);
+      });
+
+      test('deactivating with remaining subscriptions keeps sync enabled', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        manager.activateSync(_testDid, client);
+        manager.deactivateSync(_testDid, client);
+        verifyNever(() => client.backgroundSync = false);
+      });
+
+      test('different DIDs are tracked independently', () {
+        final clientA = MockMatrixClient();
+        final clientB = MockMatrixClient();
+        manager.activateSync('did:test:a', clientA);
+        manager.activateSync('did:test:b', clientB);
+        manager.deactivateSync('did:test:a', clientA);
+        verify(() => clientA.backgroundSync = false).called(1);
+        verifyNever(() => clientB.backgroundSync = false);
+      });
+
+      test(
+        'replacement client is enabled when DID already has subscriptions',
+        () {
+          final oldClient = MockMatrixClient();
+          final newClient = MockMatrixClient();
+
+          manager.activateSync(_testDid, oldClient);
+          manager.activateSync(_testDid, newClient);
+
+          verify(() => oldClient.backgroundSync = true).called(1);
+          verify(() => newClient.backgroundSync = true).called(1);
+        },
+      );
+
+      test(
+        '''deactivating an old replaced client does not disable replacement client''',
+        () {
+          final oldClient = MockMatrixClient();
+          final newClient = MockMatrixClient();
+
+          manager.activateSync(_testDid, oldClient);
+          manager.activateSync(_testDid, newClient);
+          manager.deactivateSync(_testDid, oldClient);
+
+          verify(() => oldClient.backgroundSync = false).called(1);
+          verifyNever(() => newClient.backgroundSync = false);
+        },
+      );
+
+      test('keepSyncActive: true skips deactivation entirely', () {
+        final client = MockMatrixClient();
+        manager.activateSync(_testDid, client);
+        manager.deactivateSync(_testDid, client, keepSyncActive: true);
+        verifyNever(() => client.backgroundSync = false);
+      });
+
+      test(
+        'linger: sync is disabled after the linger duration elapses',
+        () async {
+          final client = MockMatrixClient();
+          manager.activateSync(_testDid, client);
+          manager.deactivateSync(
+            _testDid,
+            client,
+            lingerDuration: const Duration(milliseconds: 20),
+          );
+
+          // Immediately after deactivateSync, sync should NOT yet be disabled.
+          verifyNever(() => client.backgroundSync = false);
+
+          // After the linger window, sync should be disabled.
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+          verify(() => client.backgroundSync = false).called(1);
+        },
+      );
+
+      test(
+        'linger: re-subscribing during linger window cancels deactivation',
+        () async {
+          final client = MockMatrixClient();
+          manager.activateSync(_testDid, client);
+          manager.deactivateSync(
+            _testDid,
+            client,
+            lingerDuration: const Duration(milliseconds: 20),
+          );
+
+          // Re-subscribe before the linger expires.
+          manager.activateSync(_testDid, client);
+
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+
+          // backgroundSync should never have been set to false.
+          verifyNever(() => client.backgroundSync = false);
+        },
+      );
+
+      test(
+        'linger: disposing manager cancels pending deactivation timer',
+        () async {
+          final client = MockMatrixClient();
+          manager.activateSync(_testDid, client);
+          manager.deactivateSync(
+            _testDid,
+            client,
+            lingerDuration: const Duration(milliseconds: 20),
+          );
+
+          await manager.dispose();
+
+          // Even after linger would have elapsed, no attempt to set
+          // backgroundSync.
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+          verifyNever(() => client.backgroundSync = false);
+        },
+      );
     });
   });
 
@@ -932,6 +1160,7 @@ void main() {
         ).thenReturn(_matrixUserId);
         when(() => client.getRoomById(_testRoomId)).thenReturn(room);
         when(() => room.encrypted).thenReturn(false);
+        when(client.oneShotSync).thenAnswer((_) async {});
 
         expect(
           () => service.sendRoomEvent(_testRoomId, 'com.example.message', {

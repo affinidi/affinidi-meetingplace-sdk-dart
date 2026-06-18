@@ -56,9 +56,20 @@ class MatrixService {
   /// Parameters:
   /// - [didManager]: The DID manager whose DID will be used to obtain the JWT
   ///   and log in to the Matrix homeserver.
+  /// - [loginSyncGracePeriod]: How long background sync stays active after
+  ///   login before being automatically disabled. Defaults to
+  ///   [MatrixSessionManager.loginSyncGracePeriod]. Ignored when
+  ///   [keepSyncActiveAfterLogin] is `true`.
+  /// - [keepSyncActiveAfterLogin]: When `true`, background sync is never
+  ///   automatically disabled after this login — it stays active until
+  ///   [dispose] is called.
   ///
   /// Returns: The Matrix user ID associated with the logged-in session.
-  Future<String> loginWithDid(DidManager didManager) async {
+  Future<String> loginWithDid(
+    DidManager didManager, {
+    Duration loginSyncGracePeriod = MatrixSessionManager.loginSyncGracePeriod,
+    bool keepSyncActiveAfterLogin = false,
+  }) async {
     final didDocument = await didManager.getDidDocument();
 
     final cachedClient = await _sessionManager.getAuthenticatedClient(
@@ -77,6 +88,8 @@ class MatrixService {
     return _sessionManager.loginWithJwt(
       jwt: matrixTokenOutput.token.toJwt(),
       did: didDocument.id,
+      loginSyncGracePeriod: loginSyncGracePeriod,
+      keepSyncActiveAfterLogin: keepSyncActiveAfterLogin,
     );
   }
 
@@ -260,9 +273,7 @@ class MatrixService {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) throw StateError('Matrix room $roomId not found');
-    _assertRoomEncrypted(room, roomId);
+    final room = await _resolveEncryptedRoom(client, roomId);
 
     if (eventType == 'm.read') {
       final eventId = content['event_id'] as String;
@@ -301,7 +312,11 @@ class MatrixService {
     int limit = 50,
     String? sinceEventId,
   }) async {
-    final client = await _ensureSession(didManager);
+    final client = await _ensureSession(
+      didManager,
+      keepSyncActiveAfterLogin: false,
+    );
+
     final myUserId = _sessionManager.deriveUserId(
       (await didManager.getDidDocument()).id,
       homeserver.host,
@@ -355,11 +370,12 @@ class MatrixService {
     required DidManager didManager,
     MatrixSubscriptionOptions options = const MatrixSubscriptionOptions(),
   }) async* {
-    final client = await _ensureSession(didManager);
-    final myUserId = _sessionManager.deriveUserId(
-      (await didManager.getDidDocument()).id,
-      homeserver.host,
+    final client = await _ensureSession(
+      didManager,
+      keepSyncActiveAfterLogin: true,
     );
+    final did = (await didManager.getDidDocument()).id;
+    final myUserId = _sessionManager.deriveUserId(did, homeserver.host);
 
     final controller = StreamController<MatrixRoomEvent>();
 
@@ -430,12 +446,19 @@ class MatrixService {
       }
     }, onError: controller.addError);
 
+    _sessionManager.activateSync(did, client);
     try {
       yield* controller.stream;
     } finally {
       await timelineSub.cancel();
       await syncSub.cancel();
       await controller.close();
+      _sessionManager.deactivateSync(
+        did,
+        client,
+        lingerDuration: options.syncGracePeriodDuration,
+        keepSyncActive: options.keepSyncActiveOnEnd,
+      );
     }
   }
 
@@ -458,9 +481,7 @@ class MatrixService {
     Map<String, dynamic>? extraContent,
   }) async {
     final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) throw StateError('Matrix room $roomId not found');
-    _assertRoomEncrypted(room, roomId);
+    final room = await _resolveEncryptedRoom(client, roomId);
     final file = matrix.MatrixFile.fromMimeType(
       bytes: bytes,
       name: filename ?? 'file',
@@ -533,6 +554,24 @@ class MatrixService {
     );
   }
 
+  /// Returns the [matrix.Room] for [roomId], ensuring it is encrypted.
+  /// If the room is missing or not yet marked as encrypted (e.g. because
+  /// background sync is disabled), performs a one-shot sync to load the
+  /// latest room state before checking again.
+  Future<matrix.Room> _resolveEncryptedRoom(
+    matrix.Client client,
+    String roomId,
+  ) async {
+    var room = client.getRoomById(roomId);
+    if (room == null || !room.encrypted) {
+      await client.oneShotSync();
+      room = client.getRoomById(roomId);
+    }
+    if (room == null) throw StateError('Matrix room $roomId not found');
+    _assertRoomEncrypted(room, roomId);
+    return room;
+  }
+
   static void _assertRoomEncrypted(matrix.Room room, String roomId) {
     if (!room.encrypted) {
       throw StateError(
@@ -545,10 +584,16 @@ class MatrixService {
   /// Returns an authenticated client, transparently re-authenticating via
   /// [loginWithDid] when the session has expired or the refresh token is
   /// exhausted.
-  Future<matrix.Client> _ensureSession(DidManager didManager) async {
+  Future<matrix.Client> _ensureSession(
+    DidManager didManager, {
+    bool keepSyncActiveAfterLogin = false,
+  }) async {
     final did = (await didManager.getDidDocument()).id;
 
-    await loginWithDid(didManager);
+    await loginWithDid(
+      didManager,
+      keepSyncActiveAfterLogin: keepSyncActiveAfterLogin,
+    );
     final client = await _sessionManager.getAuthenticatedClient(did);
     if (client == null) {
       throw const MatrixAuthException();

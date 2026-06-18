@@ -82,28 +82,32 @@ void main() async {
   }
 
   test('successfully subscribes to mediator and receives messages', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
-
-    final messageCompleter = Completer<MediatorMessage>();
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        messageCompleter.complete(message);
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
-
-    await sendMessageFromBobToAlice();
-
-    final receivedMessage = await messageCompleter.future.timeout(
-      const Duration(seconds: 10),
-    );
-
-    expect(receivedMessage.plainTextMessage.body!['message'], 'Hello World');
-
-    // Dispose the subscription and verify subsequent sends don't crash.
-    // The didcomm Connection.start callback may fire after the stream is
-    // closed — swallow that known race the same way tearDown does.
+    // Wrap the entire test body so that Connection.start()'s unawaited
+    // fetchMessages future is spawned inside the guarded zone. Without this,
+    // the unawaited future runs in the test zone and its "Cannot add new events
+    // after calling close" error reaches the test framework before we can
+    // swallow it, causing intermittent CI failures.
     await runZonedGuarded(() async {
+      final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+
+      final messageCompleter = Completer<MediatorMessage>();
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          if (!messageCompleter.isCompleted) {
+            messageCompleter.complete(message);
+          }
+        }
+        return MediatorStreamProcessingResult(keepMessage: false);
+      });
+
+      await sendMessageFromBobToAlice();
+
+      final receivedMessage = await messageCompleter.future.timeout(
+        const Duration(seconds: 10),
+      );
+
+      expect(receivedMessage.plainTextMessage.body!['message'], 'Hello World');
+
       await subscription.dispose();
       await sendMessageFromBobToAlice();
     }, swallowDidcommCloseRace);
@@ -118,38 +122,48 @@ void main() async {
   });
 
   test('supports multiple listeners on the same subscription', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+    // Wrap in runZonedGuarded so that Connection.start()'s unawaited
+    // fetchMessages future is spawned inside the guarded zone. Without this,
+    // dispose() closes the stream and the still-in-flight future fires
+    // _controller.add in the test zone → "failed after test completion".
+    await runZonedGuarded(() async {
+      final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
 
-    final listener1Completer = Completer<MediatorMessage>();
-    final listener2Completer = Completer<MediatorMessage>();
+      final listener1Completer = Completer<MediatorMessage>();
+      final listener2Completer = Completer<MediatorMessage>();
 
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        listener1Completer.complete(message);
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          if (!listener1Completer.isCompleted) {
+            listener1Completer.complete(message);
+          }
+        }
+        return MediatorStreamProcessingResult(keepMessage: false);
+      });
 
-    subscription.listen((message) {
-      if (message.plainTextMessage.isOfType('https://example.com/test')) {
-        listener2Completer.complete(message);
-      }
-      return MediatorStreamProcessingResult(keepMessage: false);
-    });
+      subscription.listen((message) {
+        if (message.plainTextMessage.isOfType('https://example.com/test')) {
+          if (!listener2Completer.isCompleted) {
+            listener2Completer.complete(message);
+          }
+        }
+        return MediatorStreamProcessingResult(keepMessage: false);
+      });
 
-    await sendMessageFromBobToAlice();
+      await sendMessageFromBobToAlice();
 
-    final message1 = await listener1Completer.future.timeout(
-      const Duration(seconds: 10),
-    );
+      final message1 = await listener1Completer.future.timeout(
+        const Duration(seconds: 10),
+      );
 
-    final message2 = await listener2Completer.future.timeout(
-      const Duration(seconds: 10),
-    );
+      final message2 = await listener2Completer.future.timeout(
+        const Duration(seconds: 10),
+      );
 
-    expect(message1.plainTextMessage.body!['message'], 'Hello World');
-    expect(message2.plainTextMessage.body!['message'], 'Hello World');
-    await subscription.dispose();
+      expect(message1.plainTextMessage.body!['message'], 'Hello World');
+      expect(message2.plainTextMessage.body!['message'], 'Hello World');
+      await subscription.dispose();
+    }, swallowDidcommCloseRace);
   });
 
   test('processes multiple messages successfully', () async {

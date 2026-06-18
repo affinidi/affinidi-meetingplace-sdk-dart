@@ -68,6 +68,7 @@ enum MeetingPlaceCoreSDKErrorCode {
   matrixLoginFailed('matrix_login_failed'),
   matrixEncryptionNotEnabled('matrix_encryption_not_enabled'),
   matrixMediaDecryptionFailed('matrix_media_decryption_failed'),
+
   // others
   mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),
   networkError('network_error'),

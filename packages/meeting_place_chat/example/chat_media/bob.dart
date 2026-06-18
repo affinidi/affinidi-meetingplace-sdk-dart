@@ -102,7 +102,7 @@ void main() async {
   await Future<void>.delayed(const Duration(seconds: 2));
   await bobChatSDK.startChatSession();
 
-  // Build a hosted-media attachment from inline base64 bytes. The SDK
+  // Build a media attachment from inline base64 bytes. The SDK
   // uploads + encrypts the bytes via the matrix transport; the mxc URI
   // and encryption keys never cross the SDK boundary.
   final attachment = ChatAttachment(

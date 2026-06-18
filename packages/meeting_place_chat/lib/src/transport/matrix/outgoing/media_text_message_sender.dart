@@ -5,7 +5,7 @@ import '../../../../meeting_place_chat.dart';
 import '../../../entity/chat_attachment_bytes.dart';
 import '../matrix_media_attachment.dart';
 
-/// Sends `text` + N hosted-media `attachments` as a single logical [Message].
+/// Sends `text` + N media `attachments` as a single logical [Message].
 ///
 /// Matrix's `m.image`/`m.file` events are single-file, so the wire still emits
 /// N events; the receiver coalesces them back into one [Message] via
@@ -69,7 +69,7 @@ class MediaTextMessageSender {
           description: attachments[i].description,
           filename: attachments[i].filename,
           mediaType: attachments[i].mediaType,
-          format: AttachmentFormat.hostedMedia.value,
+          format: attachments[i].format,
           lastModifiedTime: attachments[i].lastModifiedTime,
           byteCount: attachments[i].byteCount ?? attachmentBytes[i].length,
           metadata: attachments[i].metadata,
@@ -161,6 +161,7 @@ class MediaTextMessageSender {
   }) {
     return {
       MatrixEventField.correlationId: correlationId,
+      MatrixEventField.attachmentFormat: attachment.format,
       ...MatrixMediaAttachments.buildVoiceContent(
         attachment,
         contentType: contentType,

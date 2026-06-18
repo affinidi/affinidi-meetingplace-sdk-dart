@@ -174,6 +174,46 @@ void main() {
       );
     });
 
+    test(
+      '''403 with errorCode "group_member_not_in_group" returns success (idempotent)''',
+      () async {
+        when(
+          () => defaultApi.groupMemberDeregister(
+            groupDeregisterMemberInput: any(
+              named: 'groupDeregisterMemberInput',
+            ),
+          ),
+        ).thenThrow(
+          _dioError(
+            statusCode: HttpStatus.forbidden,
+            data: {'errorCode': 'group_member_not_in_group'},
+          ),
+        );
+
+        final output = await newHandler().handle(newCommand());
+
+        expect(output.success, isTrue);
+      },
+    );
+
+    test('403 with a different errorCode rethrows DioException', () async {
+      when(
+        () => defaultApi.groupMemberDeregister(
+          groupDeregisterMemberInput: any(named: 'groupDeregisterMemberInput'),
+        ),
+      ).thenThrow(
+        _dioError(
+          statusCode: HttpStatus.forbidden,
+          data: {'errorCode': 'access_denied'},
+        ),
+      );
+
+      await expectLater(
+        newHandler().handle(newCommand()),
+        throwsA(isA<DioException>()),
+      );
+    });
+
     test('other DioException is rethrown', () async {
       when(
         () => defaultApi.groupMemberDeregister(

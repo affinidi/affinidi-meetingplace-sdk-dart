@@ -106,6 +106,49 @@ void main() {
       client.dispatch(message);
       await expectation;
     });
+
+    test('emits a duplicate message id only once', () async {
+      final messageId = const Uuid().v4();
+      PlainTextMessage buildMessage() => PlainTextMessage(
+        id: messageId,
+        type: VdipIssuedCredentialMessage.messageType,
+        body: {},
+      );
+
+      final received = <PlainTextMessage>[];
+      final subscription = client.incomingMessages.listen(received.add);
+
+      client.dispatch(buildMessage());
+      client.dispatch(buildMessage());
+      await Future<void>.delayed(Duration.zero);
+      await subscription.cancel();
+
+      expect(received, hasLength(1));
+    });
+
+    test('emits messages with distinct ids', () async {
+      final received = <PlainTextMessage>[];
+      final subscription = client.incomingMessages.listen(received.add);
+
+      client.dispatch(
+        PlainTextMessage(
+          id: const Uuid().v4(),
+          type: VdipIssuedCredentialMessage.messageType,
+          body: {},
+        ),
+      );
+      client.dispatch(
+        PlainTextMessage(
+          id: const Uuid().v4(),
+          type: VdipIssuedCredentialMessage.messageType,
+          body: {},
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await subscription.cancel();
+
+      expect(received, hasLength(2));
+    });
   });
 
   group('requestIssuance', () {

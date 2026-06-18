@@ -14,7 +14,6 @@ import '../service/connection_service.dart';
 import '../service/identity/identity_service.dart';
 import '../service/matrix/matrix_service.dart';
 import '../service/mediator/mediator_service.dart';
-import '../vdip/vdip_client.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'control_plane_event_stream_manager.dart';
@@ -60,7 +59,6 @@ class ControlPlaneEventManager {
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
     required IdentityService identityService,
-    required VdipClient vdipClient,
     MeetingPlaceCoreSDKLogger? logger,
     ControlPlaneEventHandlerManagerOptions options =
         const ControlPlaneEventHandlerManagerOptions(),
@@ -108,7 +106,6 @@ class ControlPlaneEventManager {
       matrixService: matrixService,
       options: options,
       logger: _logger,
-      vdipClient: vdipClient,
     );
     _groupMembershipFinalisedEventHandler =
         GroupMembershipFinalisedEventHandler(

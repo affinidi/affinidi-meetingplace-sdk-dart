@@ -417,7 +417,6 @@ class MeetingPlaceCoreSDK {
       matrixService: matrixService,
       identityService: identityService,
       didResolver: didResolver,
-      vdipClient: vdipClient,
       options: ControlPlaneEventHandlerManagerOptions(
         maxRetries: options.eventHandlerMessageFetchMaxRetries,
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,

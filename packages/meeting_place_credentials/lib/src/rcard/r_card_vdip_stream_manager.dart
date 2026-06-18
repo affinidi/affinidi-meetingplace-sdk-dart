@@ -26,7 +26,7 @@ class RCardVdipStreamManager {
     _stream = _controller.stream;
     _subscription = incomingVdipMessages
         .asyncExpand(_parseVdipMessage)
-        .listen(_controller.add, onError: _controller.addError);
+        .listen(_onStreamRCard, onError: _controller.addError);
   }
 
   final RCardParser _parser;
@@ -45,6 +45,17 @@ class RCardVdipStreamManager {
   /// Returns and removes the cached R-Card from [senderDid], or null.
   RCard? consumePendingRCard(String senderDid) =>
       _pendingRCards.remove(senderDid);
+
+  /// Caches the live-stream R-Card for replay, then forwards it to [stream].
+  ///
+  /// Only the live subscription path caches into [_pendingRCards]; the
+  /// persistence-only [processMessage] path must not, otherwise a card that
+  /// was already surfaced live gets re-cached and replayed as a duplicate
+  /// when the chat session is reopened.
+  void _onStreamRCard(RCard rCard) {
+    _pendingRCards[rCard.issuerDid] = rCard;
+    _controller.add(rCard);
+  }
 
   /// Cancels the internal subscription and closes the R-Card output stream.
   Future<void> close() async {
@@ -122,7 +133,6 @@ class RCardVdipStreamManager {
       return;
     }
 
-    _pendingRCards[from] = rCard;
     yield rCard;
   }
 }

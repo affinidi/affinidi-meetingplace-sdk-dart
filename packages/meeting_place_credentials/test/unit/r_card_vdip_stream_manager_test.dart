@@ -265,5 +265,34 @@ void main() {
       await expectLater(manager.close(), completes);
       await ctrl.close();
     });
+
+    test(
+      'processMessage persists without populating the pending cache',
+      () async {
+        final ctrl = StreamController<PlainTextMessage>.broadcast();
+        final manager = makeManager(ctrl);
+
+        final message = PlainTextMessage(
+          id: const Uuid().v4(),
+          type: VdipIssuedCredentialMessage.messageType,
+          from: issuerDid,
+          to: ['did:example:recipient'],
+          body: {
+            'credential': vcBlob,
+            'credential_format': CredentialsSDKConstants.w3cLdV1,
+          },
+        );
+
+        final rCard = await manager.processMessage(message);
+        expect(rCard, isNotNull);
+        expect(rCard!.issuerDid, issuerDid);
+        // The persistence-only path must not cache for replay, otherwise a
+        // card already surfaced live is replayed as a duplicate on reopen.
+        expect(manager.consumePendingRCard(issuerDid), isNull);
+
+        await manager.close();
+        await ctrl.close();
+      },
+    );
   });
 }

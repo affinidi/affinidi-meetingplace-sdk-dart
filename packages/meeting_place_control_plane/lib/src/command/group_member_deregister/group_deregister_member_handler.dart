@@ -112,6 +112,13 @@ class GroupDeregisterMemberHandler
         return GroupDeregisterMemberCommandOutput(success: true);
       }
 
+      if (e.response?.statusCode == HttpStatus.forbidden &&
+          data?['errorCode'] == 'group_member_not_in_group') {
+        // Member has already left group / was kicked by owner, so treat as
+        // success.
+        return GroupDeregisterMemberCommandOutput(success: true);
+      }
+
       rethrow;
     } catch (e, stackTrace) {
       _logger.error(

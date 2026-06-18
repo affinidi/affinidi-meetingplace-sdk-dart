@@ -59,6 +59,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                 transportId: Value(message.transportId),
                 isDeleted: Value(message.isDeleted),
                 isDeletedLocally: Value(message.isDeletedLocally),
+                editedAt: Value(message.editedAt),
               ),
             );
         final newMessage =
@@ -355,6 +356,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             transportId: Value(message.transportId),
             isDeleted: Value(message.isDeleted),
             isDeletedLocally: Value(message.isDeletedLocally),
+            editedAt: Value(message.editedAt),
           ),
         );
 
@@ -615,6 +617,7 @@ class _ChatItemMapper {
         transportId: message.transportId,
         isDeleted: message.isDeleted,
         isDeletedLocally: message.isDeletedLocally,
+        editedAt: message.editedAt,
         attachments: attachments.entries
             .map(
               (a) => model.ChatAttachment(

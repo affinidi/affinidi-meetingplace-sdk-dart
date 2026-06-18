@@ -166,6 +166,17 @@ class $ChatItemsTable extends ChatItems
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _editedAtMeta = const VerificationMeta(
+    'editedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> editedAt = GeneratedColumn<DateTime>(
+    'edited_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     chatId,
@@ -182,6 +193,7 @@ class $ChatItemsTable extends ChatItems
     transportId,
     isDeleted,
     isDeletedLocally,
+    editedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -279,6 +291,12 @@ class $ChatItemsTable extends ChatItems
         ),
       );
     }
+    if (data.containsKey('edited_at')) {
+      context.handle(
+        _editedAtMeta,
+        editedAt.isAcceptableOrUnknown(data['edited_at']!, _editedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -350,6 +368,10 @@ class $ChatItemsTable extends ChatItems
         DriftSqlType.bool,
         data['${effectivePrefix}is_deleted_locally'],
       )!,
+      editedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}edited_at'],
+      ),
     );
   }
 
@@ -416,6 +438,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
   /// `deleteMessage(localOnly: true)`. Never broadcast; persisted so the
   /// local-only hide survives cold start.
   final bool isDeletedLocally;
+
+  /// Timestamp of the most recent edit, or `null` if never edited.
+  final DateTime? editedAt;
   const ChatItem({
     required this.chatId,
     required this.messageId,
@@ -431,6 +456,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     this.transportId,
     required this.isDeleted,
     required this.isDeletedLocally,
+    this.editedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -467,6 +493,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     }
     map['is_deleted'] = Variable<bool>(isDeleted);
     map['is_deleted_locally'] = Variable<bool>(isDeletedLocally);
+    if (!nullToAbsent || editedAt != null) {
+      map['edited_at'] = Variable<DateTime>(editedAt);
+    }
     return map;
   }
 
@@ -494,6 +523,9 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           : Value(transportId),
       isDeleted: Value(isDeleted),
       isDeletedLocally: Value(isDeletedLocally),
+      editedAt: editedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(editedAt),
     );
   }
 
@@ -517,6 +549,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       transportId: serializer.fromJson<String?>(json['transportId']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       isDeletedLocally: serializer.fromJson<bool>(json['isDeletedLocally']),
+      editedAt: serializer.fromJson<DateTime?>(json['editedAt']),
     );
   }
   @override
@@ -537,6 +570,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       'transportId': serializer.toJson<String?>(transportId),
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'isDeletedLocally': serializer.toJson<bool>(isDeletedLocally),
+      'editedAt': serializer.toJson<DateTime?>(editedAt),
     };
   }
 
@@ -555,6 +589,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     Value<String?> transportId = const Value.absent(),
     bool? isDeleted,
     bool? isDeletedLocally,
+    Value<DateTime?> editedAt = const Value.absent(),
   }) => ChatItem(
     chatId: chatId ?? this.chatId,
     messageId: messageId ?? this.messageId,
@@ -572,6 +607,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     transportId: transportId.present ? transportId.value : this.transportId,
     isDeleted: isDeleted ?? this.isDeleted,
     isDeletedLocally: isDeletedLocally ?? this.isDeletedLocally,
+    editedAt: editedAt.present ? editedAt.value : this.editedAt,
   );
   ChatItem copyWithCompanion(ChatItemsCompanion data) {
     return ChatItem(
@@ -597,6 +633,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       isDeletedLocally: data.isDeletedLocally.present
           ? data.isDeletedLocally.value
           : this.isDeletedLocally,
+      editedAt: data.editedAt.present ? data.editedAt.value : this.editedAt,
     );
   }
 
@@ -616,7 +653,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           ..write('senderDid: $senderDid, ')
           ..write('transportId: $transportId, ')
           ..write('isDeleted: $isDeleted, ')
-          ..write('isDeletedLocally: $isDeletedLocally')
+          ..write('isDeletedLocally: $isDeletedLocally, ')
+          ..write('editedAt: $editedAt')
           ..write(')'))
         .toString();
   }
@@ -637,6 +675,7 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     transportId,
     isDeleted,
     isDeletedLocally,
+    editedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -655,7 +694,8 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           other.senderDid == this.senderDid &&
           other.transportId == this.transportId &&
           other.isDeleted == this.isDeleted &&
-          other.isDeletedLocally == this.isDeletedLocally);
+          other.isDeletedLocally == this.isDeletedLocally &&
+          other.editedAt == this.editedAt);
 }
 
 class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
@@ -673,6 +713,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
   final Value<String?> transportId;
   final Value<bool> isDeleted;
   final Value<bool> isDeletedLocally;
+  final Value<DateTime?> editedAt;
   final Value<int> rowid;
   const ChatItemsCompanion({
     this.chatId = const Value.absent(),
@@ -689,6 +730,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     this.transportId = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.isDeletedLocally = const Value.absent(),
+    this.editedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChatItemsCompanion.insert({
@@ -706,6 +748,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     this.transportId = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.isDeletedLocally = const Value.absent(),
+    this.editedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : chatId = Value(chatId),
        messageId = Value(messageId),
@@ -727,6 +770,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     Expression<String>? transportId,
     Expression<bool>? isDeleted,
     Expression<bool>? isDeletedLocally,
+    Expression<DateTime>? editedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -744,6 +788,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       if (transportId != null) 'transport_id': transportId,
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (isDeletedLocally != null) 'is_deleted_locally': isDeletedLocally,
+      if (editedAt != null) 'edited_at': editedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -763,6 +808,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     Value<String?>? transportId,
     Value<bool>? isDeleted,
     Value<bool>? isDeletedLocally,
+    Value<DateTime?>? editedAt,
     Value<int>? rowid,
   }) {
     return ChatItemsCompanion(
@@ -780,6 +826,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       transportId: transportId ?? this.transportId,
       isDeleted: isDeleted ?? this.isDeleted,
       isDeletedLocally: isDeletedLocally ?? this.isDeletedLocally,
+      editedAt: editedAt ?? this.editedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -835,6 +882,9 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     if (isDeletedLocally.present) {
       map['is_deleted_locally'] = Variable<bool>(isDeletedLocally.value);
     }
+    if (editedAt.present) {
+      map['edited_at'] = Variable<DateTime>(editedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -858,6 +908,7 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
           ..write('transportId: $transportId, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('isDeletedLocally: $isDeletedLocally, ')
+          ..write('editedAt: $editedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2264,6 +2315,7 @@ typedef $$ChatItemsTableCreateCompanionBuilder =
       Value<String?> transportId,
       Value<bool> isDeleted,
       Value<bool> isDeletedLocally,
+      Value<DateTime?> editedAt,
       Value<int> rowid,
     });
 typedef $$ChatItemsTableUpdateCompanionBuilder =
@@ -2282,6 +2334,7 @@ typedef $$ChatItemsTableUpdateCompanionBuilder =
       Value<String?> transportId,
       Value<bool> isDeleted,
       Value<bool> isDeletedLocally,
+      Value<DateTime?> editedAt,
       Value<int> rowid,
     });
 
@@ -2421,6 +2474,11 @@ class $$ChatItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> reactionsRefs(
     Expression<bool> Function($$ReactionsTableFilterComposer f) f,
   ) {
@@ -2550,6 +2608,11 @@ class $$ChatItemsTableOrderingComposer
     column: $table.isDeletedLocally,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChatItemsTableAnnotationComposer
@@ -2610,6 +2673,9 @@ class $$ChatItemsTableAnnotationComposer
     column: $table.isDeletedLocally,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get editedAt =>
+      $composableBuilder(column: $table.editedAt, builder: (column) => column);
 
   Expression<T> reactionsRefs<T extends Object>(
     Expression<T> Function($$ReactionsTableAnnotationComposer a) f,
@@ -2704,6 +2770,7 @@ class $$ChatItemsTableTableManager
                 Value<String?> transportId = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<bool> isDeletedLocally = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatItemsCompanion(
                 chatId: chatId,
@@ -2720,6 +2787,7 @@ class $$ChatItemsTableTableManager
                 transportId: transportId,
                 isDeleted: isDeleted,
                 isDeletedLocally: isDeletedLocally,
+                editedAt: editedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2738,6 +2806,7 @@ class $$ChatItemsTableTableManager
                 Value<String?> transportId = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<bool> isDeletedLocally = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatItemsCompanion.insert(
                 chatId: chatId,
@@ -2754,6 +2823,7 @@ class $$ChatItemsTableTableManager
                 transportId: transportId,
                 isDeleted: isDeleted,
                 isDeletedLocally: isDeletedLocally,
+                editedAt: editedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

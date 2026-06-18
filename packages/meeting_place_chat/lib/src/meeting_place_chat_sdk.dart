@@ -126,7 +126,15 @@ abstract interface class MeetingPlaceChatSDK {
   /// ([ChatAttachment.transportId] for Matrix; inline base64 for DIDComm)
   /// is resolved internally so app code never sees encryption keys or
   /// transport URIs.
-  Future<Uint8List> downloadMedia(ChatAttachment attachment);
+  ///
+  /// When [localOnly] is `true`, the bytes are served only from the local
+  /// media cache and the homeserver is never contacted; a cache miss throws
+  /// instead of downloading. Use it to restore already-downloaded media on
+  /// chat re-entry without triggering a network fetch.
+  Future<Uint8List> downloadMedia(
+    ChatAttachment attachment, {
+    bool localOnly = false,
+  });
 
   /// Edits a previously sent text [message] to [newText]. Only the original
   /// sender can edit a message; the message must have been delivered.

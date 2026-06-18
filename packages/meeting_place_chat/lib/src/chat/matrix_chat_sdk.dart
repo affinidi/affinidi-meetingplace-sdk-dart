@@ -216,7 +216,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   }
 
   @override
-  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
+  Future<Uint8List> downloadMedia(
+    ChatAttachment attachment, {
+    bool localOnly = false,
+  }) async {
     final eventId = attachment.transportId;
     if (eventId == null) {
       throw StateError(
@@ -224,7 +227,11 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       );
     }
     final channel = await getChannel();
-    return coreSDK.downloadMedia(channel, MatrixEventMediaReference(eventId));
+    return coreSDK.downloadMedia(
+      channel,
+      MatrixEventMediaReference(eventId),
+      localOnly: localOnly,
+    );
   }
 
   /// Sends an `m.read` receipt for [messageId], marking it as delivered.

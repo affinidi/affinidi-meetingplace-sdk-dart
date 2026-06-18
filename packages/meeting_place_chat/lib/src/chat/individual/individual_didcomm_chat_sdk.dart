@@ -403,7 +403,12 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
+  Future<Uint8List> downloadMedia(
+    ChatAttachment attachment, {
+    bool localOnly = false,
+  }) async {
+    // DIDComm attachments carry their bytes inline, so they are always
+    // available locally; [localOnly] makes no difference here.
     return attachment.decodeInlineBytes();
   }
 

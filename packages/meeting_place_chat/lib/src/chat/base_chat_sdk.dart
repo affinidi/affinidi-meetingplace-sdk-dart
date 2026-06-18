@@ -128,7 +128,13 @@ abstract class BaseChatSDK {
   /// ([ChatAttachment.transportId]) via the underlying transport, so SDK
   /// consumers never see encryption keys or transport URIs. For DIDComm
   /// attachments the bytes are decoded inline from [ChatAttachmentData].
-  Future<Uint8List> downloadMedia(ChatAttachment attachment);
+  ///
+  /// When [localOnly] is `true`, the bytes are served only from the local
+  /// media cache and the homeserver is never contacted; a cache miss throws.
+  Future<Uint8List> downloadMedia(
+    ChatAttachment attachment, {
+    bool localOnly = false,
+  });
 
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}

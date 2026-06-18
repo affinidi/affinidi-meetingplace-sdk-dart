@@ -113,8 +113,9 @@ class MessagingService {
   /// match [Channel.transport] (e.g. [MatrixEventMediaReference] for Matrix).
   Future<Uint8List> downloadMedia(
     Channel channel,
-    MediaReference reference,
-  ) async {
+    MediaReference reference, {
+    bool localOnly = false,
+  }) async {
     switch ((channel.transport, reference)) {
       case (ChannelTransport.matrix, MatrixEventMediaReference ref):
         final didManager = await _getDidManager(_permanentChannelDid(channel));
@@ -126,6 +127,7 @@ class MessagingService {
           roomId,
           ref.eventId,
           didManager: didManager,
+          localOnly: localOnly,
         );
       case (ChannelTransport.didcomm, _):
         throw UnimplementedError(

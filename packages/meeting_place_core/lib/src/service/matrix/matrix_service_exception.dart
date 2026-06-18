@@ -36,6 +36,20 @@ class MatrixServiceException implements SDKException {
     );
   }
 
+  factory MatrixServiceException.mediaNotCachedLocally({
+    required String roomId,
+    required String eventId,
+    Object? innerException,
+  }) {
+    return MatrixServiceException(
+      message:
+          'Matrix event $eventId in room $roomId has no attachment in the '
+          'local media cache; a local-only download cannot be served.',
+      code: MeetingPlaceCoreSDKErrorCode.matrixMediaNotCachedLocally,
+      innerException: innerException,
+    );
+  }
+
   MatrixServiceException({
     required this.message,
     required this.code,

@@ -477,6 +477,7 @@ class MatrixService {
     String roomId,
     String eventId, {
     required DidManager didManager,
+    bool localOnly = false,
   }) async {
     final client = await _ensureSession(didManager);
     final room = client.getRoomById(roomId);
@@ -503,8 +504,25 @@ class MatrixService {
       );
     }
 
-    final file = await decryptedEvent.downloadAndDecryptAttachment();
-    return file.bytes;
+    // When [localOnly] is set, never reach the homeserver: serve the attachment
+    // only if it is already in the on-disk media cache. A cache miss surfaces a
+    // typed exception so callers can keep a download affordance instead of
+    // silently triggering a network fetch.
+    try {
+      final file = await decryptedEvent.downloadAndDecryptAttachment(
+        fromLocalStoreOnly: localOnly,
+      );
+      return file.bytes;
+    } catch (e) {
+      if (localOnly) {
+        throw MatrixServiceException.mediaNotCachedLocally(
+          roomId: roomId,
+          eventId: eventId,
+          innerException: e,
+        );
+      }
+      rethrow;
+    }
   }
 
   /// Returns the maximum upload size allowed by the homeserver, in bytes.

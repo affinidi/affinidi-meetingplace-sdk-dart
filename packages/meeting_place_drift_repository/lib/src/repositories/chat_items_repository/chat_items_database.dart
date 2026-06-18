@@ -68,7 +68,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -183,6 +183,13 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           );
         }
       }
+      if (from < 7 && to >= 7) {
+        // Persist the edit timestamp so the "edited" indicator survives cold
+        // start. Nullable: existing messages have never been edited.
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN edited_at TEXT',
+        );
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -254,6 +261,9 @@ class ChatItems extends Table {
   /// local-only hide survives cold start.
   BoolColumn get isDeletedLocally =>
       boolean().withDefault(const Constant(false))();
+
+  /// Timestamp of the most recent edit, or `null` if never edited.
+  DateTimeColumn get editedAt => dateTime().nullable()();
 
   /// Table primary key definition.
   @override

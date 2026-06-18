@@ -46,8 +46,22 @@ class VdipClient {
   final Wallet _wallet;
   final MediatorService _mediatorService;
 
+  /// Upper bound on the number of recently dispatched message ids retained
+  /// for duplicate detection. Bounded to avoid unbounded memory growth on a
+  /// long-lived client; evicts oldest-first.
+  static const _maxSeenMessageIds = 256;
+
   final _incomingController = StreamController<PlainTextMessage>.broadcast();
   final _messageProcessors = <Future<void> Function(PlainTextMessage)>[];
+
+  /// Ids of VDIP messages already forwarded to [incomingMessages]. A single
+  /// message can be delivered through more than one transport path (the
+  /// foreground mediator WebSocket opened by [subscribe] and the Control Plane
+  /// push wake handled by `VdipActivityEventHandler`), so [dispatch] guards
+  /// against re-emitting the same message id. Insertion-ordered for
+  /// oldest-first eviction.
+  final _seenMessageIds = <String>{};
+
   MediatorStreamSubscriptionWrapper? _mediatorSubscription;
   StreamSubscription? _mediatorStreamSubscription;
   var _isDisposed = false;
@@ -209,9 +223,24 @@ class VdipClient {
   ///
   /// Called internally by ChannelActivityEventHandler when a VDIP
   /// message arrives via the Control Plane push wake path.
+  ///
+  /// Idempotent by [PlainTextMessage.id]: the same message can reach this
+  /// client through both the mediator WebSocket and the Control Plane push
+  /// path, and is forwarded to [incomingMessages] at most once.
   void dispatch(PlainTextMessage message) {
     if (_isDisposed || _incomingController.isClosed) return;
+    if (!_markMessageSeen(message.id)) return;
     _incomingController.add(message);
+  }
+
+  /// Records [messageId] as dispatched, returning `false` if it was already
+  /// seen. Evicts the oldest id once [_maxSeenMessageIds] is exceeded.
+  bool _markMessageSeen(String messageId) {
+    if (!_seenMessageIds.add(messageId)) return false;
+    if (_seenMessageIds.length > _maxSeenMessageIds) {
+      _seenMessageIds.remove(_seenMessageIds.first);
+    }
+    return true;
   }
 
   /// Opens a streaming WebSocket subscription to the mediator for the given
@@ -285,6 +314,7 @@ class VdipClient {
     if (_isDisposed || _incomingController.isClosed) return;
     _isDisposed = true;
     await unsubscribe();
+    _seenMessageIds.clear();
     await _incomingController.close();
   }
 }

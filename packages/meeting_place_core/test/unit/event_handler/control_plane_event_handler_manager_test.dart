@@ -152,7 +152,6 @@ void main() {
       identityService: MockIdentityService(),
       streamManager: streamManager,
       didResolver: MockDidResolver(),
-      vdipClient: MockVdipClient(),
       logger: mockLogger,
     );
   });

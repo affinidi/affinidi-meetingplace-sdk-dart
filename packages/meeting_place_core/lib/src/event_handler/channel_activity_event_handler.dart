@@ -10,7 +10,6 @@ import '../service/connection_manager/connection_manager.dart';
 import '../service/matrix/matrix_service.dart';
 import '../service/mediator/mediator_service.dart';
 import '../vdip/channel_activity_type.dart';
-import '../vdip/vdip_client.dart';
 import 'channel_inauguration_event_handler.dart';
 import 'chat_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
@@ -26,7 +25,6 @@ class ChannelActivityEventHandler {
     required MatrixService matrixService,
     required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
-    required VdipClient vdipClient,
   }) : _wallet = wallet,
        _connectionManager = connectionManager,
        _channelService = channelService,
@@ -34,8 +32,7 @@ class ChannelActivityEventHandler {
        _mediatorService = mediatorService,
        _matrixService = matrixService,
        _options = options,
-       _logger = logger,
-       _vdipClient = vdipClient;
+       _logger = logger;
 
   final Wallet _wallet;
   final MediatorService _mediatorService;
@@ -45,7 +42,6 @@ class ChannelActivityEventHandler {
   final MatrixService _matrixService;
   final ControlPlaneEventHandlerManagerOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
-  final VdipClient _vdipClient;
 
   static final String _logKey = 'ChannelActivityEventHandler';
 
@@ -91,7 +87,6 @@ class ChannelActivityEventHandler {
           channelService: _channelService,
           connectionManager: _connectionManager,
           logger: _logger,
-          vdipClient: _vdipClient,
         ).process(channelActivity);
       default:
         _logger.warning(

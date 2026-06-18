@@ -60,6 +60,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     ChatFeature.deliveryReceipts,
     ChatFeature.effects,
     ChatFeature.contactDetailsUpdate,
+    ChatFeature.humanZkp,
   });
 
   @override

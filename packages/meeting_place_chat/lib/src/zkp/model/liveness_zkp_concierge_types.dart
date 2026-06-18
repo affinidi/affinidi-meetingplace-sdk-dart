@@ -1,6 +1,7 @@
 /// Concierge message type values for the human liveness ZKP chat flow.
 abstract final class LivenessZkpConciergeTypes {
   static const humanZkpRequest = 'humanZkpRequest';
+  static const humanZkpRequestInitiated = 'humanZkpRequestInitiated';
   static const humanZkpPaused = 'humanZkpPaused';
   static const humanZkpDeclined = 'humanZkpDeclined';
   static const humanZkpProofShared = 'humanZkpProofShared';
@@ -8,6 +9,7 @@ abstract final class LivenessZkpConciergeTypes {
 
   static const values = {
     humanZkpRequest,
+    humanZkpRequestInitiated,
     humanZkpPaused,
     humanZkpDeclined,
     humanZkpProofShared,

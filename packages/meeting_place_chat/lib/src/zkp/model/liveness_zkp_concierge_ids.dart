@@ -3,6 +3,9 @@ abstract final class LivenessZkpConciergeIds {
   static String requestReceived(String attachmentMessageId) =>
       'zkp-request-received-$attachmentMessageId';
 
+  static String requestInitiated(String attachmentMessageId) =>
+      'zkp-request-initiated-$attachmentMessageId';
+
   static String proofShared(String attachmentMessageId) =>
       'zkp-proof-shared-$attachmentMessageId';
 

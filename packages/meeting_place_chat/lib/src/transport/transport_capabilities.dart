@@ -50,6 +50,9 @@ enum ChatFeature {
 
   /// Contact-card proposal and acceptance flow.
   contactDetailsUpdate,
+
+  /// Human liveness zero-knowledge proof
+  humanZkp,
 }
 
 /// The set of [ChatFeature]s supported by a kind of chat.

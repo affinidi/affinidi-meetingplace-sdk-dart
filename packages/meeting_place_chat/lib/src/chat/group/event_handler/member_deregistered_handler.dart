@@ -47,9 +47,7 @@ class MemberDeregisteredHandler implements ChatEventHandler {
         groupDid: group.did,
         memberDid: memberDid,
         memberCard: member.contactCard.toJson(),
-        reason: event.targetDid == null
-            ? GroupMemberLeaveReason.leave
-            : GroupMemberLeaveReason.kick,
+        reason: _leaveReasonFor(event, memberDid),
       ),
     );
 
@@ -62,5 +60,16 @@ class MemberDeregisteredHandler implements ChatEventHandler {
         chatItem: chatItem,
       ),
     );
+  }
+
+  GroupMemberLeaveReason _leaveReasonFor(
+    IncomingChatEvent event,
+    String memberDid,
+  ) {
+    final senderDid = event.senderDid;
+    if (senderDid != null && senderDid != memberDid) {
+      return GroupMemberLeaveReason.kick;
+    }
+    return GroupMemberLeaveReason.leave;
   }
 }

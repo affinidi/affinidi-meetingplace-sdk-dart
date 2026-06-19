@@ -35,7 +35,12 @@ class RedactionHandler {
       );
       if (message == null || message is! Message) return;
 
-      if (!message.reactions.remove(entry.reaction)) return;
+      // Remove only the reaction applied by the sender whose event was
+      // redacted, not every reaction sharing the same emoji.
+      final removed = message.reactions.remove(
+        MessageReaction(emoji: entry.emoji, senderDid: entry.senderDid),
+      );
+      if (!removed) return;
 
       await _chatRepository.updateMesssage(message);
       _chatStream.pushData(StreamData(chatItem: message));

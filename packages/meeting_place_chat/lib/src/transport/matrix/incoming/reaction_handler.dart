@@ -31,7 +31,8 @@ class ReactionHandler {
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
     final targetEventId = relatesTo?['event_id'] as String?;
     final reaction = relatesTo?['key'] as String?;
-    if (targetEventId == null || reaction == null) return;
+    final senderDid = event.senderDid;
+    if (targetEventId == null || reaction == null || senderDid == null) return;
 
     final message = await _resolver.resolve(targetEventId);
     if (message == null) return;
@@ -42,15 +43,23 @@ class ReactionHandler {
     // no local state to undo).
     if (message.isDeleted || message.isDeletedLocally) return;
 
-    if (message.reactions.contains(reaction)) return;
-
-    message.reactions.add(reaction);
-    await _chatRepository.updateMesssage(message);
-    _chatStream.pushData(StreamData(chatItem: message));
+    // Reactions are owned: the same emoji from two different participants is
+    // two distinct reactions. Apply the change only when it is new, but always
+    // remember the event id so a later redaction can undo it — including when
+    // the reaction was already applied and is being replayed from history on
+    // chat reopen (otherwise the redaction can't be matched and the reaction
+    // would stick for everyone but its author).
+    final owned = MessageReaction(emoji: reaction, senderDid: senderDid);
+    if (!message.reactions.contains(owned)) {
+      message.reactions.add(owned);
+      await _chatRepository.updateMesssage(message);
+      _chatStream.pushData(StreamData(chatItem: message));
+    }
     _reactionStateStore.register(
       eventId: event.id,
       messageId: message.messageId,
       reaction: reaction,
+      senderDid: senderDid,
     );
   }
 }

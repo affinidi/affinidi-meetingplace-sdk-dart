@@ -23,7 +23,9 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
           .toList() ??
       const [],
   reactions:
-      (json['reactions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      (json['reactions'] as List<dynamic>?)
+          ?.map((e) => MessageReaction.fromJson(e as Map<String, dynamic>))
+          .toList() ??
       const [],
   editedAt: json['editedAt'] == null
       ? null
@@ -45,7 +47,7 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
   'editedAt': ?instance.editedAt?.toIso8601String(),
   'transportId': ?instance.transportId,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
-  'reactions': instance.reactions,
+  'reactions': instance.reactions.map((e) => e.toJson()).toList(),
   'isDeleted': instance.isDeleted,
   'isDeletedLocally': instance.isDeletedLocally,
 };

@@ -253,15 +253,24 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     final methodName = 'reactOnMessage';
     logger.info('Started reacting on message', name: methodName);
 
-    final isRemoving = message.reactions.contains(reaction);
+    // Toggle only the local user's own reaction. A reaction carrying the same
+    // emoji from a different participant is independent and must not be
+    // touched — otherwise reacting with an emoji already present (from someone
+    // else) would be misread as undoing it.
+    final mine = MessageReaction(emoji: reaction, senderDid: did);
+    final isRemoving = message.reactions.contains(mine);
 
     if (isRemoving) {
-      message.reactions.remove(reaction);
+      message.reactions.remove(mine);
     } else {
-      message.reactions.add(reaction);
+      message.reactions.add(mine);
     }
 
     await chatRepository.updateMesssage(message);
+    // Surface the optimistic change immediately so the local user sees their
+    // own add/undo without waiting for a server echo (own events are filtered
+    // from the incoming stream).
+    chatStream.pushData(StreamData(chatItem: message));
 
     final reactionKey = '${message.messageId}:$reaction';
 
@@ -294,11 +303,12 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         name: methodName,
       );
       if (isRemoving) {
-        message.reactions.add(reaction);
+        message.reactions.add(mine);
       } else {
-        message.reactions.remove(reaction);
+        message.reactions.remove(mine);
       }
       await chatRepository.updateMesssage(message);
+      chatStream.pushData(StreamData(chatItem: message));
       Error.throwWithStackTrace(e, stackTrace);
     }
 
@@ -396,7 +406,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
     final previousValue = message.value;
     final previousAttachments = List<ChatAttachment>.from(message.attachments);
-    final previousReactions = List<String>.from(message.reactions);
+    final previousReactions = List<MessageReaction>.from(message.reactions);
     final previousEditedAt = message.editedAt;
 
     message.isDeleted = true;

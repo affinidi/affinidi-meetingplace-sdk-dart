@@ -310,9 +310,18 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     );
     if (target == null) return;
     if (target is Message) {
+      // The DIDComm reaction protocol carries a per-sender snapshot: the
+      // emoji set currently applied by [reaction.from]. Replace only that
+      // sender's reactions, preserving reactions owned by anyone else
+      // (e.g. the local user's own).
+      final from = reaction.from;
       target.reactions
-        ..clear()
-        ..addAll(reaction.body.reactions);
+        ..removeWhere((r) => r.senderDid == from)
+        ..addAll(
+          reaction.body.reactions.map(
+            (emoji) => MessageReaction(emoji: emoji, senderDid: from),
+          ),
+        );
       await chatRepository.updateMesssage(target);
       chatStream.pushData(StreamData(chatItem: target));
     }
@@ -427,13 +436,19 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     required String reaction,
   }) async {
     assertCanSend();
-    final isRemoving = message.reactions.contains(reaction);
+    // Toggle only the local user's own reaction; reactions from the other
+    // party are independent and preserved.
+    final mine = MessageReaction(emoji: reaction, senderDid: did);
+    final isRemoving = message.reactions.contains(mine);
     if (isRemoving) {
-      message.reactions.remove(reaction);
+      message.reactions.remove(mine);
     } else {
-      message.reactions.add(reaction);
+      message.reactions.add(mine);
     }
     await chatRepository.updateMesssage(message);
+    // Surface the optimistic change immediately so the local user sees their
+    // own add/undo without waiting for a round-trip.
+    chatStream.pushData(StreamData(chatItem: message));
 
     try {
       await coreSDK.sendMessage(
@@ -441,17 +456,22 @@ class IndividualDidcommChatSDK extends BaseChatSDK
           senderDid: did,
           recipientDid: otherPartyDid,
           mediatorDid: mediatorDid,
-          reactions: message.reactions,
+          // Wire carries this sender's own emoji snapshot only.
+          reactions: message.reactions
+              .where((r) => r.senderDid == did)
+              .map((r) => r.emoji)
+              .toList(),
           messageId: message.messageId,
         ),
       );
     } catch (e, stackTrace) {
       if (isRemoving) {
-        message.reactions.add(reaction);
+        message.reactions.add(mine);
       } else {
-        message.reactions.remove(reaction);
+        message.reactions.remove(mine);
       }
       await chatRepository.updateMesssage(message);
+      chatStream.pushData(StreamData(chatItem: message));
       logger.error(
         'Failed to send reaction',
         error: e,

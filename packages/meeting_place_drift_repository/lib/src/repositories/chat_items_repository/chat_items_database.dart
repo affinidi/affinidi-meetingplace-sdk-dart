@@ -68,7 +68,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -190,6 +190,18 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           'ALTER TABLE chat_items ADD COLUMN edited_at TEXT',
         );
       }
+      if (from < 8 && to >= 8) {
+        // Persist the reaction owner so the same emoji from different
+        // participants is counted separately and a participant can only
+        // toggle their own reaction. Existing rows predate ownership and are
+        // backfilled with an empty DID (unknown owner).
+        if (!await _columnExists('reactions', 'sender_did')) {
+          await customStatement(
+            'ALTER TABLE reactions ADD COLUMN sender_did TEXT NOT NULL '
+            "DEFAULT ''",
+          );
+        }
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -280,6 +292,10 @@ class Reactions extends Table {
 
   /// The reaction value (e.g., emoji).
   TextColumn get value => text()();
+
+  /// DID of the participant who applied this reaction. Empty string for
+  /// legacy rows persisted before reaction ownership was tracked.
+  TextColumn get senderDid => text().withDefault(const Constant(''))();
 }
 
 /// Stores file or media attachments tied to a [ChatItem].

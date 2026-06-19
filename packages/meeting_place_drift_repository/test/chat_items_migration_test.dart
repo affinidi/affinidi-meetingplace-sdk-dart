@@ -262,4 +262,37 @@ void main() {
       },
     );
   });
+
+  group('v7 → v8 schema migration', () {
+    test('produces the correct v8 schema', () async {
+      final connection = await verifier.startAt(7);
+      final db = ChatItemsDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 8);
+      await db.close();
+    });
+
+    test('backfills reactions.sender_did with an empty owner', () async {
+      final schema = await verifier.schemaAt(7);
+      schema.rawDatabase.execute('''
+        INSERT INTO chat_items (
+          chat_id, message_id, value, is_from_me, date_created,
+          status, "type", sender_did, is_deleted, is_deleted_locally
+        ) VALUES ('c1','m1','hi',0,'2026-01-01T00:00:00.000',4,0,'did:x:a',0,0)
+      ''');
+      schema.rawDatabase.execute(
+        "INSERT INTO reactions (message_id, value) VALUES ('m1','👍')",
+      );
+
+      final db = ChatItemsDatabase.forTesting(schema.newConnection());
+      // Any query triggers the lazy onUpgrade(7 → 8).
+      final rows = await db
+          .customSelect(
+            'SELECT sender_did FROM reactions WHERE message_id = ?',
+            variables: [const Variable('m1')],
+          )
+          .get();
+      expect(rows.single.read<String>('sender_did'), '');
+      await db.close();
+    });
+  });
 }

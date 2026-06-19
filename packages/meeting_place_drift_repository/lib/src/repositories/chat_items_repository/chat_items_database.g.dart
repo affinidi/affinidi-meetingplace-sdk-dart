@@ -943,8 +943,20 @@ class $ReactionsTable extends Reactions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _senderDidMeta = const VerificationMeta(
+    'senderDid',
+  );
   @override
-  List<GeneratedColumn> get $columns => [messageId, value];
+  late final GeneratedColumn<String> senderDid = GeneratedColumn<String>(
+    'sender_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [messageId, value, senderDid];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -973,6 +985,12 @@ class $ReactionsTable extends Reactions
     } else if (isInserting) {
       context.missing(_valueMeta);
     }
+    if (data.containsKey('sender_did')) {
+      context.handle(
+        _senderDidMeta,
+        senderDid.isAcceptableOrUnknown(data['sender_did']!, _senderDidMeta),
+      );
+    }
     return context;
   }
 
@@ -990,6 +1008,10 @@ class $ReactionsTable extends Reactions
         DriftSqlType.string,
         data['${effectivePrefix}value'],
       )!,
+      senderDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sender_did'],
+      )!,
     );
   }
 
@@ -1005,17 +1027,30 @@ class Reaction extends DataClass implements Insertable<Reaction> {
 
   /// The reaction value (e.g., emoji).
   final String value;
-  const Reaction({required this.messageId, required this.value});
+
+  /// DID of the participant who applied this reaction. Empty string for
+  /// legacy rows persisted before reaction ownership was tracked.
+  final String senderDid;
+  const Reaction({
+    required this.messageId,
+    required this.value,
+    required this.senderDid,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['message_id'] = Variable<String>(messageId);
     map['value'] = Variable<String>(value);
+    map['sender_did'] = Variable<String>(senderDid);
     return map;
   }
 
   ReactionsCompanion toCompanion(bool nullToAbsent) {
-    return ReactionsCompanion(messageId: Value(messageId), value: Value(value));
+    return ReactionsCompanion(
+      messageId: Value(messageId),
+      value: Value(value),
+      senderDid: Value(senderDid),
+    );
   }
 
   factory Reaction.fromJson(
@@ -1026,6 +1061,7 @@ class Reaction extends DataClass implements Insertable<Reaction> {
     return Reaction(
       messageId: serializer.fromJson<String>(json['messageId']),
       value: serializer.fromJson<String>(json['value']),
+      senderDid: serializer.fromJson<String>(json['senderDid']),
     );
   }
   @override
@@ -1034,17 +1070,21 @@ class Reaction extends DataClass implements Insertable<Reaction> {
     return <String, dynamic>{
       'messageId': serializer.toJson<String>(messageId),
       'value': serializer.toJson<String>(value),
+      'senderDid': serializer.toJson<String>(senderDid),
     };
   }
 
-  Reaction copyWith({String? messageId, String? value}) => Reaction(
-    messageId: messageId ?? this.messageId,
-    value: value ?? this.value,
-  );
+  Reaction copyWith({String? messageId, String? value, String? senderDid}) =>
+      Reaction(
+        messageId: messageId ?? this.messageId,
+        value: value ?? this.value,
+        senderDid: senderDid ?? this.senderDid,
+      );
   Reaction copyWithCompanion(ReactionsCompanion data) {
     return Reaction(
       messageId: data.messageId.present ? data.messageId.value : this.messageId,
       value: data.value.present ? data.value.value : this.value,
+      senderDid: data.senderDid.present ? data.senderDid.value : this.senderDid,
     );
   }
 
@@ -1052,44 +1092,51 @@ class Reaction extends DataClass implements Insertable<Reaction> {
   String toString() {
     return (StringBuffer('Reaction(')
           ..write('messageId: $messageId, ')
-          ..write('value: $value')
+          ..write('value: $value, ')
+          ..write('senderDid: $senderDid')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(messageId, value);
+  int get hashCode => Object.hash(messageId, value, senderDid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Reaction &&
           other.messageId == this.messageId &&
-          other.value == this.value);
+          other.value == this.value &&
+          other.senderDid == this.senderDid);
 }
 
 class ReactionsCompanion extends UpdateCompanion<Reaction> {
   final Value<String> messageId;
   final Value<String> value;
+  final Value<String> senderDid;
   final Value<int> rowid;
   const ReactionsCompanion({
     this.messageId = const Value.absent(),
     this.value = const Value.absent(),
+    this.senderDid = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ReactionsCompanion.insert({
     required String messageId,
     required String value,
+    this.senderDid = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : messageId = Value(messageId),
        value = Value(value);
   static Insertable<Reaction> custom({
     Expression<String>? messageId,
     Expression<String>? value,
+    Expression<String>? senderDid,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (messageId != null) 'message_id': messageId,
       if (value != null) 'value': value,
+      if (senderDid != null) 'sender_did': senderDid,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1097,11 +1144,13 @@ class ReactionsCompanion extends UpdateCompanion<Reaction> {
   ReactionsCompanion copyWith({
     Value<String>? messageId,
     Value<String>? value,
+    Value<String>? senderDid,
     Value<int>? rowid,
   }) {
     return ReactionsCompanion(
       messageId: messageId ?? this.messageId,
       value: value ?? this.value,
+      senderDid: senderDid ?? this.senderDid,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1115,6 +1164,9 @@ class ReactionsCompanion extends UpdateCompanion<Reaction> {
     if (value.present) {
       map['value'] = Variable<String>(value.value);
     }
+    if (senderDid.present) {
+      map['sender_did'] = Variable<String>(senderDid.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1126,6 +1178,7 @@ class ReactionsCompanion extends UpdateCompanion<Reaction> {
     return (StringBuffer('ReactionsCompanion(')
           ..write('messageId: $messageId, ')
           ..write('value: $value, ')
+          ..write('senderDid: $senderDid, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2913,12 +2966,14 @@ typedef $$ReactionsTableCreateCompanionBuilder =
     ReactionsCompanion Function({
       required String messageId,
       required String value,
+      Value<String> senderDid,
       Value<int> rowid,
     });
 typedef $$ReactionsTableUpdateCompanionBuilder =
     ReactionsCompanion Function({
       Value<String> messageId,
       Value<String> value,
+      Value<String> senderDid,
       Value<int> rowid,
     });
 
@@ -2960,6 +3015,11 @@ class $$ReactionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get senderDid => $composableBuilder(
+    column: $table.senderDid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ChatItemsTableFilterComposer get messageId {
     final $$ChatItemsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2998,6 +3058,11 @@ class $$ReactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get senderDid => $composableBuilder(
+    column: $table.senderDid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ChatItemsTableOrderingComposer get messageId {
     final $$ChatItemsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3033,6 +3098,9 @@ class $$ReactionsTableAnnotationComposer
   });
   GeneratedColumn<String> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get senderDid =>
+      $composableBuilder(column: $table.senderDid, builder: (column) => column);
 
   $$ChatItemsTableAnnotationComposer get messageId {
     final $$ChatItemsTableAnnotationComposer composer = $composerBuilder(
@@ -3088,20 +3156,24 @@ class $$ReactionsTableTableManager
               ({
                 Value<String> messageId = const Value.absent(),
                 Value<String> value = const Value.absent(),
+                Value<String> senderDid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReactionsCompanion(
                 messageId: messageId,
                 value: value,
+                senderDid: senderDid,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String messageId,
                 required String value,
+                Value<String> senderDid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReactionsCompanion.insert(
                 messageId: messageId,
                 value: value,
+                senderDid: senderDid,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

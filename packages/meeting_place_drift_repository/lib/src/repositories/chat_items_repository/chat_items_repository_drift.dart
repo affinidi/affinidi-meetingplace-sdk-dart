@@ -77,7 +77,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         final reactionCompanions = message.reactions.map((reaction) {
           return db.ReactionsCompanion.insert(
             messageId: message.messageId,
-            value: reaction,
+            value: reaction.emoji,
+            senderDid: Value(reaction.senderDid),
           );
         }).toList();
 
@@ -367,7 +368,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         final reactionCompanions = message.reactions.map((reaction) {
           return db.ReactionsCompanion.insert(
             messageId: message.messageId,
-            value: reaction,
+            value: reaction.emoji,
+            senderDid: Value(reaction.senderDid),
           );
         }).toList();
 
@@ -612,7 +614,12 @@ class _ChatItemMapper {
         isFromMe: message.isFromMe,
         dateCreated: message.dateCreated,
         status: message.status,
-        reactions: reactions.map((r) => r.value).toList(),
+        reactions: reactions
+            .map(
+              (r) =>
+                  model.MessageReaction(emoji: r.value, senderDid: r.senderDid),
+            )
+            .toList(),
         senderDid: message.senderDid,
         transportId: message.transportId,
         isDeleted: message.isDeleted,

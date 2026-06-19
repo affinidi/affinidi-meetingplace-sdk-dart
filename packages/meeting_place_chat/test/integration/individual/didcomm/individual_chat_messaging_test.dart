@@ -53,6 +53,24 @@ void main() {
 
   group('messaging', () {
     testWithDidcommGuard(
+      'sendEffect shows ChatEffectEvent on sender device',
+      () async {
+        await aliceChatSDK.startChatSession();
+        await bobChatSDK.startChatSession();
+
+        final aliceEffect = ChatTestHarness.awaitEvent<ChatEffectEvent>(
+          aliceChatSDK,
+          where: (e) => e.effectName == Effect.confetti.name,
+        );
+
+        await aliceChatSDK.sendEffect(Effect.confetti);
+
+        final received = await aliceEffect;
+        expect(received.effectName, equals(Effect.confetti.name));
+      },
+    );
+
+    testWithDidcommGuard(
       'sendEffect delivers ChatEffectEvent to other party',
       () async {
         await aliceChatSDK.startChatSession();

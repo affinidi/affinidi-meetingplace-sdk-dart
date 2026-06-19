@@ -27,7 +27,7 @@ Message _message({
   String messageId = 'local-1',
   String? transportId = r'$server-1',
   bool isDeleted = false,
-  List<String> reactions = const [],
+  List<MessageReaction> reactions = const [],
 }) => Message(
   chatId: _chatId,
   messageId: messageId,
@@ -98,11 +98,14 @@ void main() {
     });
 
     test('removes reaction when redaction targets a reaction', () async {
-      final stored = _message(reactions: ['👍']);
+      final stored = _message(
+        reactions: const [MessageReaction(emoji: '👍', senderDid: _aliceDid)],
+      );
       reactionStore.register(
         eventId: r'$reaction-evt',
         messageId: stored.messageId,
         reaction: '👍',
+        senderDid: _aliceDid,
       );
       when(
         () => repo.getMessage(chatId: _chatId, messageId: stored.messageId),

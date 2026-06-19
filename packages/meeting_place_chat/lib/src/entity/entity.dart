@@ -7,4 +7,5 @@ export 'custom_message.dart';
 export 'effect.dart';
 export 'event_message.dart';
 export 'message.dart';
+export 'message_reaction.dart';
 export 'voice_message_metadata.dart';

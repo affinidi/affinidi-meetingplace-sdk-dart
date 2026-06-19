@@ -38,14 +38,17 @@ void main() {
 
     final twoReactionMessage =
         await fixture.aliceChatSDK.getMessageById(message.messageId) as Message;
-    expect(twoReactionMessage.reactions, equals(['👋', '👍']));
+    expect(
+      twoReactionMessage.reactions.map((r) => r.emoji),
+      equals(['👋', '👍']),
+    );
 
     await fixture.bobChatSDK.reactOnMessage(message, reaction: '👋');
     await aliceReactions;
 
     final updatedMessage =
         await fixture.aliceChatSDK.getMessageById(message.messageId) as Message;
-    expect(updatedMessage.reactions, equals(['👍']));
+    expect(updatedMessage.reactions.map((r) => r.emoji), equals(['👍']));
   });
 
   // SKIP: test fails

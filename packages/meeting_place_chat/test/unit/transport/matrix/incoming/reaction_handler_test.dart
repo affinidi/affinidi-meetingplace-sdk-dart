@@ -35,6 +35,7 @@ Message _message({
   String? transportId = r'$server-1',
   bool isDeleted = false,
   bool isDeletedLocally = false,
+  List<MessageReaction> reactions = const [],
 }) => Message(
   chatId: _chatId,
   messageId: messageId,
@@ -46,6 +47,7 @@ Message _message({
   transportId: transportId,
   isDeleted: isDeleted,
   isDeletedLocally: isDeletedLocally,
+  reactions: reactions,
 );
 
 void main() {
@@ -113,7 +115,10 @@ void main() {
 
       await handler.handle(_reactionEvent(targetEventId: stored.transportId!));
 
-      expect(stored.reactions, equals(['👍']));
+      expect(
+        stored.reactions,
+        equals([const MessageReaction(emoji: '👍', senderDid: _bobDid)]),
+      );
       verify(() => repo.updateMesssage(stored)).called(1);
       await Future<void>.delayed(Duration.zero);
       expect(emitted, hasLength(1));
@@ -129,7 +134,10 @@ void main() {
 
       await handler.handle(_reactionEvent(targetEventId: r'$server-1'));
 
-      expect(stored.reactions, equals(['👍']));
+      expect(
+        stored.reactions,
+        equals([const MessageReaction(emoji: '👍', senderDid: _bobDid)]),
+      );
       verify(() => repo.updateMesssage(stored)).called(1);
       await Future<void>.delayed(Duration.zero);
       expect(emitted, hasLength(1));
@@ -170,6 +178,27 @@ void main() {
 
       verifyNever(() => repo.updateMesssage(any()));
       expect(emitted, isEmpty);
+    });
+
+    test('registers the event for redaction even when the reaction is already '
+        'applied (history replay)', () async {
+      final stored = _message(
+        reactions: const [MessageReaction(emoji: '👍', senderDid: _bobDid)],
+      );
+      storedItems = [stored];
+
+      await handler.handle(
+        _reactionEvent(targetEventId: stored.transportId!, id: r'$evt-9'),
+      );
+
+      // No duplicate mutation, but the event is still remembered so a later
+      // redaction can undo the reaction.
+      verifyNever(() => repo.updateMesssage(any()));
+      expect(emitted, isEmpty);
+      final entry = reactionStore.popByEventId(r'$evt-9');
+      expect(entry, isNotNull);
+      expect(entry!.emoji, '👍');
+      expect(entry.senderDid, _bobDid);
     });
   });
 }

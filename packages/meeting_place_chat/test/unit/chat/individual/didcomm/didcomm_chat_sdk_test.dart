@@ -183,4 +183,75 @@ void main() {
       verify(() => repo.updateMesssage(concierge)).called(1);
     });
   });
+
+  group('reactOnMessage', () {
+    Message buildMessage(List<MessageReaction> reactions) => Message(
+      chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
+      messageId: 'm1',
+      senderDid: _bobDid,
+      value: 'hello',
+      isFromMe: false,
+      dateCreated: DateTime.utc(2026),
+      status: ChatItemStatus.received,
+      reactions: reactions,
+    );
+
+    setUp(() {
+      when(() => core.sendMessage(any())).thenAnswer((_) async => 'ok');
+      when(() => repo.updateMesssage(any())).thenAnswer((inv) async {
+        return inv.positionalArguments.first as ChatItem;
+      });
+    });
+
+    test(
+      'adds my own reaction and preserves the other party reaction',
+      () async {
+        final message = buildMessage(const [
+          MessageReaction(emoji: '❤', senderDid: _bobDid),
+        ]);
+
+        await sdk.reactOnMessage(message, reaction: '❤');
+
+        expect(
+          message.reactions,
+          containsAll(const [
+            MessageReaction(emoji: '❤', senderDid: _bobDid),
+            MessageReaction(emoji: '❤', senderDid: _aliceDid),
+          ]),
+        );
+        expect(message.reactions, hasLength(2));
+      },
+    );
+
+    test('wire snapshot carries only my own emojis', () async {
+      final message = buildMessage(const [
+        MessageReaction(emoji: '❤', senderDid: _bobDid),
+      ]);
+
+      await sdk.reactOnMessage(message, reaction: '👍');
+
+      final captured =
+          verify(() => core.sendMessage(captureAny())).captured.last
+              as DidCommOutgoingMessage;
+      expect(captured.payload.body?['reactions'], equals(['👍']));
+      expect(captured.payload.body?['message_id'], 'm1');
+    });
+
+    test(
+      'reacting again with the same emoji removes only my reaction',
+      () async {
+        final message = buildMessage(const [
+          MessageReaction(emoji: '❤', senderDid: _bobDid),
+          MessageReaction(emoji: '❤', senderDid: _aliceDid),
+        ]);
+
+        await sdk.reactOnMessage(message, reaction: '❤');
+
+        expect(
+          message.reactions,
+          equals(const [MessageReaction(emoji: '❤', senderDid: _bobDid)]),
+        );
+      },
+    );
+  });
 }

@@ -1,24 +1,27 @@
-/// Tracks the (messageId, reaction) tuple associated with each incoming
-/// reaction event so a later redaction can locate and remove it.
+/// Tracks the (messageId, emoji, senderDid) tuple associated with each
+/// incoming reaction event so a later redaction can locate and remove the
+/// exact reaction — the one applied by that sender, not just any reaction
+/// carrying the same emoji.
 class IncomingReactionStateStore {
-  final Map<String, String> _eventIdToReactionKey = {};
+  final Map<String, ({String messageId, String emoji, String senderDid})>
+  _eventIdToReaction = {};
 
   void register({
     required String eventId,
     required String messageId,
     required String reaction,
+    required String senderDid,
   }) {
-    _eventIdToReactionKey[eventId] = '$messageId:$reaction';
+    _eventIdToReaction[eventId] = (
+      messageId: messageId,
+      emoji: reaction,
+      senderDid: senderDid,
+    );
   }
 
-  ({String messageId, String reaction})? popByEventId(String eventId) {
-    final entry = _eventIdToReactionKey.remove(eventId);
-    if (entry == null) return null;
-    final separatorIndex = entry.lastIndexOf(':');
-    if (separatorIndex == -1) return null;
-    return (
-      messageId: entry.substring(0, separatorIndex),
-      reaction: entry.substring(separatorIndex + 1),
-    );
+  ({String messageId, String emoji, String senderDid})? popByEventId(
+    String eventId,
+  ) {
+    return _eventIdToReaction.remove(eventId);
   }
 }

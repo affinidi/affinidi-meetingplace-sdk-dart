@@ -542,12 +542,22 @@ class MatrixService {
   }) {
     final typeStr = event.type;
 
+    final content = Map<String, dynamic>.from(event.content);
+    // Matrix room version 11+ delivers the redaction target in a top-level
+    // `redacts` field instead of inside `content`. Surface it in `content`
+    // so downstream handlers (reaction undo, delete-for-everyone) resolve the
+    // target the same way regardless of room version.
+    final redacts = event.redacts;
+    if (redacts != null && content['redacts'] == null) {
+      content['redacts'] = redacts;
+    }
+
     return MatrixRoomEvent(
       id: event.eventId,
       type: typeStr,
       userId: event.senderId,
       roomId: event.room.id,
-      content: Map<String, dynamic>.from(event.content),
+      content: content,
       timestamp: event.originServerTs,
       isFromMe: myUserId != null && event.senderId == myUserId,
       stateKey: event.stateKey,

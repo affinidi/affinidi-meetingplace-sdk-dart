@@ -325,4 +325,94 @@ void main() {
       },
     );
   });
+
+  group('incoming reaction handling', () {
+    final chatId = Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid);
+
+    Future<void> seedMessage(List<MessageReaction> reactions) async {
+      await repo.createMessage(
+        Message(
+          chatId: chatId,
+          messageId: 'm1',
+          senderDid: _aliceDid,
+          value: 'Hello Bob!',
+          isFromMe: true,
+          dateCreated: DateTime.utc(2026),
+          status: ChatItemStatus.sent,
+          reactions: reactions,
+        ),
+      );
+    }
+
+    DidCommIncomingMessage reactionFromBob(List<String> emojis) =>
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'reaction-1',
+            type: Uri.parse(ChatProtocol.chatReaction.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {'reactions': emojis, 'message_id': 'm1'},
+            createdTime: DateTime.utc(2026),
+          ),
+        );
+
+    test(
+      'same emoji from the other party is added alongside mine, not replacing '
+      'it',
+      () async {
+        await seedMessage(const [
+          MessageReaction(emoji: '❤', senderDid: _aliceDid),
+        ]);
+
+        final chat = await sdk.startChatSession();
+        final updateFuture = chat.stream!.stream
+            .where(
+              (d) => d.chatItem is Message && d.chatItem!.messageId == 'm1',
+            )
+            .first;
+
+        incomingController.add(reactionFromBob(['❤']));
+
+        await updateFuture;
+        final message = await sdk.getMessageById('m1') as Message;
+        expect(
+          message.reactions,
+          containsAll(const [
+            MessageReaction(emoji: '❤', senderDid: _aliceDid),
+            MessageReaction(emoji: '❤', senderDid: _bobDid),
+          ]),
+        );
+        expect(message.reactions, hasLength(2));
+      },
+    );
+
+    test(
+      'the other party undoing their reaction leaves mine untouched',
+      () async {
+        await seedMessage(const [
+          MessageReaction(emoji: '❤', senderDid: _aliceDid),
+          MessageReaction(emoji: '❤', senderDid: _bobDid),
+        ]);
+
+        final chat = await sdk.startChatSession();
+        final updateFuture = chat.stream!.stream
+            .where(
+              (d) => d.chatItem is Message && d.chatItem!.messageId == 'm1',
+            )
+            .first;
+
+        // Empty snapshot from Bob means he removed his reaction.
+        incomingController.add(reactionFromBob(const []));
+
+        await updateFuture;
+        final message = await sdk.getMessageById('m1') as Message;
+        expect(
+          message.reactions,
+          equals(const [MessageReaction(emoji: '❤', senderDid: _aliceDid)]),
+        );
+      },
+    );
+  });
 }

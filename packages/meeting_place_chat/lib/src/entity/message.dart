@@ -5,6 +5,7 @@ import '../transport/didcomm/protocol/chat_message/chat_message.dart';
 import '../transport/matrix/matrix_media_attachment.dart';
 import 'chat_attachment.dart';
 import 'chat_item.dart';
+import 'message_reaction.dart';
 
 part 'message.g.dart';
 
@@ -192,7 +193,7 @@ class Message extends ChatItem {
     super.type = ChatItemType.message,
     required this.value,
     this.attachments = const [],
-    List<String> reactions = const [],
+    List<MessageReaction> reactions = const [],
     this.editedAt,
     this.transportId,
     this.isDeleted = false,
@@ -221,8 +222,11 @@ class Message extends ChatItem {
   /// in place when the message is tombstoned via [clearContent].
   List<ChatAttachment> attachments;
 
-  /// List of reactions applied to this message.
-  List<String> reactions;
+  /// List of reactions applied to this message. Each entry records both the
+  /// emoji and the DID of the participant who applied it, so the same emoji
+  /// from different participants is counted separately and a participant can
+  /// only toggle their own reaction.
+  List<MessageReaction> reactions;
 
   /// Whether the message has been deleted for all participants via a
   /// transport-level redaction. Set by the original sender's

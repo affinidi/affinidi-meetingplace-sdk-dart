@@ -211,6 +211,7 @@ void main() {
           );
 
           final result =
+              // ignore: lines_longer_than_80_chars
               LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages(
                 [myRequest, theirProof],
                 contactName: contactName,

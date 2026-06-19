@@ -29,8 +29,6 @@ class FakeMatrixTokenCommand extends Fake implements MatrixTokenCommand {}
 
 class FakeStateEvent extends Fake implements matrix.StateEvent {}
 
-class FakeSyncUpdate extends Fake implements matrix.SyncUpdate {}
-
 /// A [MatrixClientCache] that accepts pre-seeded [matrix.Client] entries
 /// without going through `MatrixClient.init`.
 class _FakeClientCache extends MatrixClientCache {
@@ -111,7 +109,6 @@ void main() {
   setUpAll(() {
     registerFallbackValue(FakeMatrixTokenCommand());
     registerFallbackValue(<matrix.StateEvent>[FakeStateEvent()]);
-    registerFallbackValue(FakeSyncUpdate());
   });
 
   // =========================================================================
@@ -1030,11 +1027,8 @@ void main() {
           when(() => client.getRoomById(_testRoomId)).thenAnswer((_) {
             return syncCalled ? room : null;
           });
-          when(
-            () => client.waitForRoomInSync(_testRoomId, join: true),
-          ).thenAnswer((_) async {
+          when(client.oneShotSync).thenAnswer((_) async {
             syncCalled = true;
-            return FakeSyncUpdate();
           });
           when(() => room.encrypted).thenReturn(true);
 
@@ -1045,9 +1039,7 @@ void main() {
           );
 
           expect(roomId, equals(_testRoomId));
-          verify(
-            () => client.waitForRoomInSync(_testRoomId, join: true),
-          ).called(1);
+          verify(client.oneShotSync).called(1);
         },
       );
 
@@ -1084,9 +1076,7 @@ void main() {
             () => client.joinRoom(any()),
           ).thenAnswer((_) async => _testRoomId);
           when(() => client.getRoomById(_testRoomId)).thenReturn(null);
-          when(
-            () => client.waitForRoomInSync(_testRoomId, join: true),
-          ).thenAnswer((_) async => FakeSyncUpdate());
+          when(client.oneShotSync).thenAnswer((_) async {});
 
           expect(
             () => service.joinChannelRoom(

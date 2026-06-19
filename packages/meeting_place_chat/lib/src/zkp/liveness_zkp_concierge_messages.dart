@@ -22,6 +22,20 @@ abstract final class LivenessZkpConciergeMessages {
     );
   }
 
+  static LivenessZkpConciergeNotice humanZkpRequestInitiated({
+    required String chatId,
+    required String messageId,
+    required DateTime dateCreated,
+  }) {
+    return LivenessZkpConciergeNotice(
+      chatId: chatId,
+      messageId: messageId,
+      dateCreated: dateCreated,
+      conciergeType: LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+      isFromMe: true,
+    );
+  }
+
   static LivenessZkpConciergeNotice humanZkpPaused({
     required String chatId,
     required DateTime dateCreated,

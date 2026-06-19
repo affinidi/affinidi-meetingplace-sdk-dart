@@ -67,6 +67,31 @@ void main() {
         );
       });
 
+      test(
+        'emits request-initiated notice for outgoing request attachment',
+        () {
+          final notices = LivenessZkpConciergeDeriver.deriveNoticesFromMessage(
+            _zkpMessage(
+              messageId: 'req-out-1',
+              isFromMe: true,
+              dateCreated: t0,
+              attachments: [_zkpRequestAttachment()],
+            ),
+            contactName: contactName,
+          );
+
+          expect(notices, hasLength(1));
+          expect(
+            notices.single.conciergeType,
+            LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+          );
+          expect(
+            notices.single.messageId,
+            LivenessZkpConciergeIds.requestInitiated('req-out-1'),
+          );
+        },
+      );
+
       test('emits proof-shared notice for outgoing proof attachment', () {
         final notices = LivenessZkpConciergeDeriver.deriveNoticesFromMessage(
           _zkpMessage(
@@ -136,6 +161,74 @@ void main() {
               LivenessZkpConciergeTypes.humanZkpRequest,
             )!.messageId,
             LivenessZkpConciergeIds.requestReceived('req-1'),
+          );
+        },
+      );
+
+      test('derives request-initiated notice from latest outgoing request', () {
+        final myRequest = _zkpMessage(
+          messageId: 'req-out-1',
+          isFromMe: true,
+          dateCreated: t1,
+          attachments: [_zkpRequestAttachment()],
+        );
+
+        final result =
+            LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages([
+              myRequest,
+            ], contactName: contactName);
+
+        expect(
+          _conciergeCount(
+            result,
+            LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+          ),
+          1,
+        );
+        expect(
+          _findConcierge(
+            result,
+            LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+          )!.messageId,
+          LivenessZkpConciergeIds.requestInitiated('req-out-1'),
+        );
+      });
+
+      test(
+        'omits request-initiated when peer proof arrives after the request',
+        () {
+          final myRequest = _zkpMessage(
+            messageId: 'req-out-1',
+            isFromMe: true,
+            dateCreated: t1,
+            attachments: [_zkpRequestAttachment()],
+          );
+          final theirProof = _zkpMessage(
+            messageId: 'proof-peer',
+            isFromMe: false,
+            dateCreated: t2,
+            attachments: [_zkpProofAttachment()],
+          );
+
+          final result =
+              LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages(
+                [myRequest, theirProof],
+                contactName: contactName,
+              );
+
+          expect(
+            _conciergeCount(
+              result,
+              LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+            ),
+            0,
+          );
+          expect(
+            _findConcierge(
+              result,
+              LivenessZkpConciergeTypes.humanZkpProofReceived,
+            )!.messageId,
+            LivenessZkpConciergeIds.proofReceived('proof-peer'),
           );
         },
       );

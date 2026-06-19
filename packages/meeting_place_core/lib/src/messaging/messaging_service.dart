@@ -330,8 +330,15 @@ class MessagingService {
           receiverDid: receiverDid,
           matrixUserId: e.userId,
         );
+
+    if (resolved == null) {
+      throw StateError(
+        '''Could not resolve sender DID for Matrix event ${e.id} with userId ${e.userId}''',
+      );
+    }
+
     return MatrixIncomingMessage(
-      senderDid: resolved ?? e.userId,
+      senderDid: resolved,
       timestamp: e.timestamp,
       roomId: e.roomId,
       eventId: e.id,

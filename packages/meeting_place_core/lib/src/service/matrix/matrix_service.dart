@@ -187,7 +187,7 @@ class MatrixService {
     );
     var room = client.getRoomById(roomId);
     if (room == null) {
-      await client.waitForRoomInSync(roomId, join: true);
+      await client.oneShotSync();
       room = client.getRoomById(roomId);
     }
     if (room == null) {

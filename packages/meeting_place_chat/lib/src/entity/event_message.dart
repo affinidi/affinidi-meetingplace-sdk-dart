@@ -67,6 +67,18 @@ final class _CustomEventMessageType extends EventMessageType {
   const _CustomEventMessageType(super.value);
 }
 
+enum GroupMemberLeaveReason {
+  leave,
+  kick;
+
+  static GroupMemberLeaveReason fromJson(String? json) {
+    return values.firstWhere(
+      (reason) => reason.name == json,
+      orElse: () => GroupMemberLeaveReason.leave,
+    );
+  }
+}
+
 class _EventMessageTypeConverter
     extends JsonConverter<EventMessageType, String> {
   const _EventMessageTypeConverter();
@@ -80,8 +92,6 @@ class _EventMessageTypeConverter
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class EventMessage extends ChatItem {
-  static const groupMemberRemovedReason = 'removed';
-
   factory EventMessage.fromJson(Map<String, dynamic> json) {
     return _$EventMessageFromJson(json);
   }
@@ -118,7 +128,7 @@ class EventMessage extends ChatItem {
     required String groupDid,
     required String memberDid,
     required Map<String, dynamic> memberCard,
-    String? reason,
+    GroupMemberLeaveReason reason = GroupMemberLeaveReason.leave,
   }) => EventMessage._groupMember(
     type: EventMessageType.groupMemberLeftGroup,
     chatId: chatId,
@@ -163,7 +173,7 @@ class EventMessage extends ChatItem {
     required String groupDid,
     required String memberDid,
     required Map<String, dynamic> memberCard,
-    String? reason,
+    GroupMemberLeaveReason? reason,
   }) => EventMessage(
     chatId: chatId,
     messageId: const Uuid().v4(),
@@ -175,7 +185,7 @@ class EventMessage extends ChatItem {
     data: {
       'memberDid': memberDid,
       'contactCard': memberCard,
-      if (reason != null) 'reason': reason,
+      if (reason != null) 'reason': reason.name,
     },
   );
 

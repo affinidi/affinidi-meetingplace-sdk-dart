@@ -500,6 +500,9 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<void> sendEffect(Effect effect) async {
     assertCanSend();
+    chatStream.pushData(
+      StreamData(event: ChatEffectEvent(effectName: effect.name)),
+    );
     await coreSDK.sendMessage(
       ChatEffectMessage(
         senderDid: did,

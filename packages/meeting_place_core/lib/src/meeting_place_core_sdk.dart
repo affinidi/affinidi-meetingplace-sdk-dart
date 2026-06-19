@@ -462,7 +462,6 @@ class MeetingPlaceCoreSDK {
       connectionManager: connectionManager,
       identityService: identityService,
       channelService: channelService,
-      matrixService: matrixService,
       controlPlaneSDK: controlPlaneSDK,
       controlPlaneEventStreamManager: discoveryEventStreamManager,
       onAttachmentsReceived: (channel, attachments) =>

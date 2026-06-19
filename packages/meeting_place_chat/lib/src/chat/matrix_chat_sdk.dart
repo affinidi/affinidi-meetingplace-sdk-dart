@@ -11,6 +11,7 @@ import '../transport/matrix/incoming/incoming_room_event_router.dart';
 
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
+import 'typing_indicator_manager.dart';
 
 /// Intermediate [BaseChatSDK] that provides the Matrix transport.
 ///
@@ -36,7 +37,14 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   final Map<String, String> _reactionServerEventIds = {};
   StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
   IncomingMessageHandle? _matrixSubscriptionHandle;
+
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
+
+  late final _typingManager = TypingIndicatorManager(
+    onSetTypingState: setTypingState,
+    expiry: options.chatActivityExpiry,
+    logger: logger,
+  );
 
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
@@ -447,19 +455,25 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     logger.info('Chat effect sent', name: _matrixLogkey);
   }
 
-  /// Sends a typing indicator (`m.typing`) for the configured activity
-  /// expiry. Both group and individual Matrix chats share this impl.
+  /// Sends a typing indicator (`m.typing`) for the configured activity expiry.
+  /// The indicator is cleared automatically after
+  /// [MeetingPlaceChatSDKOptions.chatActivityExpiry] elapses without a new
+  /// call.
   @override
   Future<void> sendChatActivity() async {
     assertCanSend();
+    await _typingManager.sendActivity();
+  }
+
+  Future<void> setTypingState(bool active) async {
     await coreSDK.sendMessage(
       ChatTypingNotification(
         senderDid: did,
-        active: true,
+        active: active,
         timeoutMs: options.chatActivityExpiry.inMilliseconds,
       ),
     );
-    logger.info('Sent chat activity', name: _matrixLogkey);
+    logger.info('Sent chat activity (active=$active)', name: _matrixLogkey);
   }
 
   /// Matrix has no presence primitive on this branch, so the Matrix transport
@@ -503,6 +517,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   @override
   Future<void> end() async {
+    _typingManager.stop();
     await _matrixRoomSubscription?.cancel();
     _matrixRoomSubscription = null;
     await _matrixSubscriptionHandle?.dispose();

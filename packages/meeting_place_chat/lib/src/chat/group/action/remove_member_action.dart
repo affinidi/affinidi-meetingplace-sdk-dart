@@ -43,6 +43,7 @@ class RemoveMemberAction implements GroupAction<Group> {
         groupDid: group.did,
         memberDid: memberDid,
         memberCard: member.contactCard.toJson(),
+        reason: GroupMemberLeaveReason.kick,
       ),
     );
 

@@ -67,6 +67,18 @@ final class _CustomEventMessageType extends EventMessageType {
   const _CustomEventMessageType(super.value);
 }
 
+enum GroupMemberLeaveReason {
+  leave,
+  kick;
+
+  static GroupMemberLeaveReason fromJson(String? json) {
+    return values.firstWhere(
+      (reason) => reason.name == json,
+      orElse: () => GroupMemberLeaveReason.leave,
+    );
+  }
+}
+
 class _EventMessageTypeConverter
     extends JsonConverter<EventMessageType, String> {
   const _EventMessageTypeConverter();
@@ -116,12 +128,14 @@ class EventMessage extends ChatItem {
     required String groupDid,
     required String memberDid,
     required Map<String, dynamic> memberCard,
+    GroupMemberLeaveReason reason = GroupMemberLeaveReason.leave,
   }) => EventMessage._groupMember(
     type: EventMessageType.groupMemberLeftGroup,
     chatId: chatId,
     groupDid: groupDid,
     memberDid: memberDid,
     memberCard: memberCard,
+    reason: reason,
   );
 
   /// Records that the SDK is awaiting [memberDid] to join the group.
@@ -159,6 +173,7 @@ class EventMessage extends ChatItem {
     required String groupDid,
     required String memberDid,
     required Map<String, dynamic> memberCard,
+    GroupMemberLeaveReason? reason,
   }) => EventMessage(
     chatId: chatId,
     messageId: const Uuid().v4(),
@@ -167,7 +182,11 @@ class EventMessage extends ChatItem {
     isFromMe: false,
     dateCreated: DateTime.now().toUtc(),
     status: ChatItemStatus.received,
-    data: {'memberDid': memberDid, 'contactCard': memberCard},
+    data: {
+      'memberDid': memberDid,
+      'contactCard': memberCard,
+      if (reason != null) 'reason': reason.name,
+    },
   );
 
   @_EventMessageTypeConverter()

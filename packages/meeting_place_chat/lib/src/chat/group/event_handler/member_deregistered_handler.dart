@@ -47,6 +47,9 @@ class MemberDeregisteredHandler implements ChatEventHandler {
         groupDid: group.did,
         memberDid: memberDid,
         memberCard: member.contactCard.toJson(),
+        reason: event.targetDid == null
+            ? GroupMemberLeaveReason.leave
+            : GroupMemberLeaveReason.kick,
       ),
     );
 

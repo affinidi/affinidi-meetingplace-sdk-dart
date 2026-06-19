@@ -87,7 +87,12 @@ void main() {
       final bob = group.members.firstWhere((m) => m.did == 'did:test:bob');
       expect(bob.status, GroupMemberStatus.deleted);
       verify(() => coreSDK.updateGroup(any())).called(1);
-      verify(() => chatRepository.createMessage(any())).called(1);
+      final chatItem =
+          verify(
+                () => chatRepository.createMessage(captureAny()),
+              ).captured.single
+              as EventMessage;
+      expect(chatItem.data['reason'], GroupMemberLeaveReason.leave.name);
 
       expect(received.length, 1);
       expect(received.single.event, isA<ChatMemberDeregisteredEvent>());
@@ -132,6 +137,13 @@ void main() {
       expect(alice.status, isNot(GroupMemberStatus.deleted));
       expect(bob.status, GroupMemberStatus.deleted);
       verify(() => coreSDK.updateGroup(any())).called(1);
+      final chatItem =
+          verify(
+                () => chatRepository.createMessage(captureAny()),
+              ).captured.single
+              as EventMessage;
+      expect(chatItem.data['reason'], GroupMemberLeaveReason.kick.name);
+
       expect(received.length, 1);
       final event = received.single.event as ChatMemberDeregisteredEvent;
       expect(event.memberDid, 'did:test:bob');

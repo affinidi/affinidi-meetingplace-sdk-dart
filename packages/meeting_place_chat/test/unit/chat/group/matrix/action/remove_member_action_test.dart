@@ -102,7 +102,13 @@ void main() {
       final bob = result.members.firstWhere((m) => m.did == 'did:test:bob');
       expect(bob.status, GroupMemberStatus.deleted);
 
-      verify(() => chatRepository.createMessage(any())).called(1);
+      final chatItem =
+          verify(
+                () => chatRepository.createMessage(captureAny()),
+              ).captured.single
+              as EventMessage;
+      expect(chatItem.data['reason'], GroupMemberLeaveReason.kick.name);
+
       expect(received.length, 1);
       final event = received.single.event as ChatMemberDeregisteredEvent;
       expect(event.memberDid, 'did:test:bob');

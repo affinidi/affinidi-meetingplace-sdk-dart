@@ -230,7 +230,7 @@ The SDK supports two chat transports: **DIDComm** (the original transport, route
 
 Matrix login is fully managed by the SDK. When the SDK needs to authenticate with the homeserver it calls the Control Plane `/v1/matrix/challenge` and `/v1/matrix/token` endpoints using the caller's DID, obtains a short-lived JWT, and logs in via the `org.matrix.login.jwt` login type. Callers do not handle credentials directly.
 
-Matrix user IDs are derived deterministically: `localpart = sha256(permanentChannelDid + "|" + serverName)`. Never derive or pass Matrix user IDs yourself; the SDK handles this internally.
+Matrix user IDs are derived deterministically: `localpart = sha256(permanentChannelDid + "|" + hostname)`, where `hostname` is the host component of the homeserver URL (no scheme, no port). Never derive or pass Matrix user IDs yourself; the SDK handles this internally.
 
 ### Transport capabilities
 

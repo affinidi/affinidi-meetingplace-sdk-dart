@@ -117,6 +117,32 @@ void main() {
       expect(received, isEmpty);
     });
 
+    test(
+      'records leave when sender matches the resolved target member',
+      () async {
+        final received = <StreamData>[];
+        stream.listen(received.add);
+
+        await buildHandler().handle(
+          IncomingChatEvent(
+            type: ChatEventTypes.memberLeft,
+            senderDid: 'did:test:bob',
+            targetDid: 'did:test:bob',
+            content: const {},
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        final chatItem =
+            verify(
+                  () => chatRepository.createMessage(captureAny()),
+                ).captured.single
+                as EventMessage;
+        expect(chatItem.data['reason'], GroupMemberLeaveReason.leave.name);
+        expect(received.length, 1);
+      },
+    );
+
     test('targetDid takes precedence over senderDid for the kicked '
         'member', () async {
       final received = <StreamData>[];

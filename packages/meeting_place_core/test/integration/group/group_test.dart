@@ -295,8 +295,6 @@ void main() async {
           .getDidDocument();
       final charlieChannel = await aliceSDK.getChannelByDid(charlieDidDoc.id);
 
-      await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
-
       final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         charlieSDK,
         filter: (event) =>
@@ -304,6 +302,7 @@ void main() async {
         expectedNumberOfEvents: 1,
       );
 
+      await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
       await charlieSDK.processControlPlaneEvents();
       await charlieCompleter.future;
 

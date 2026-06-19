@@ -80,6 +80,8 @@ class _EventMessageTypeConverter
 
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class EventMessage extends ChatItem {
+  static const groupMemberRemovedReason = 'removed';
+
   factory EventMessage.fromJson(Map<String, dynamic> json) {
     return _$EventMessageFromJson(json);
   }
@@ -116,12 +118,14 @@ class EventMessage extends ChatItem {
     required String groupDid,
     required String memberDid,
     required Map<String, dynamic> memberCard,
+    String? reason,
   }) => EventMessage._groupMember(
     type: EventMessageType.groupMemberLeftGroup,
     chatId: chatId,
     groupDid: groupDid,
     memberDid: memberDid,
     memberCard: memberCard,
+    reason: reason,
   );
 
   /// Records that the SDK is awaiting [memberDid] to join the group.
@@ -159,6 +163,7 @@ class EventMessage extends ChatItem {
     required String groupDid,
     required String memberDid,
     required Map<String, dynamic> memberCard,
+    String? reason,
   }) => EventMessage(
     chatId: chatId,
     messageId: const Uuid().v4(),
@@ -167,7 +172,11 @@ class EventMessage extends ChatItem {
     isFromMe: false,
     dateCreated: DateTime.now().toUtc(),
     status: ChatItemStatus.received,
-    data: {'memberDid': memberDid, 'contactCard': memberCard},
+    data: {
+      'memberDid': memberDid,
+      'contactCard': memberCard,
+      if (reason != null) 'reason': reason,
+    },
   );
 
   @_EventMessageTypeConverter()

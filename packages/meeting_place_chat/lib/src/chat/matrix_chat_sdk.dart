@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
-
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 import 'typing_indicator_manager.dart';
@@ -510,12 +509,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     unawaited(
-      coreSDK.sendMessage(
-        ContactDetailsUpdateRoomEvent(
-          senderDid: did,
-          profileDetails: c.toJson(),
-        ),
-      ),
+      ContactDetailsUpdateSender(
+        coreSDK: coreSDK,
+        getChannel: getChannel,
+      ).send(senderDid: did, contactCard: c),
     );
 
     message.status = ChatItemStatus.confirmed;

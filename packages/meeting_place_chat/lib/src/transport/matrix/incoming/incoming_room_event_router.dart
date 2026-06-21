@@ -97,6 +97,11 @@ class IncomingRoomEventRouter {
   final Map<String, ChatEventHandler> _chatHandlers;
   final ChatStream? _chatStream;
 
+  // Tracks event IDs already dispatched to chat handlers. Prevents double-
+  // dispatch when fetchRoomHistory's requestHistory() fires onTimelineEvent
+  // for the same events that the bootstrap loop already processed.
+  final _processedChatEventIds = <String>{};
+
   Future<void> route(MatrixRoomEvent event) async {
     final dispatchKey = _translate(event);
     if (dispatchKey == null) return;
@@ -108,6 +113,7 @@ class IncomingRoomEventRouter {
 
     final chatHandler = _chatHandlers[dispatchKey];
     if (chatHandler != null) {
+      if (!_processedChatEventIds.add(event.id)) return;
       return chatHandler.handle(
         IncomingChatEvent(
           type: dispatchKey,

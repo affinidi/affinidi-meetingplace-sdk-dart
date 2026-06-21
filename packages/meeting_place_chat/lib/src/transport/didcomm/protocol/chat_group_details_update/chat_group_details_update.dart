@@ -85,19 +85,23 @@ class ChatGroupDetailsUpdate {
       groupId: group.id,
       groupDid: group.did,
       offerLink: group.offerLink,
-      members: group.members.map(fromGroupMember).toList(),
+      members: group.members.map(_fromGroupMember).toList(),
       adminDids: [group.ownerDid!],
       dateCreated: group.created,
       groupPublicKey: group.publicKey!,
     );
   }
 
-  static ChatGroupDetailsUpdateBodyMember fromGroupMember(
+  static ChatGroupDetailsUpdateBodyMember _fromGroupMember(
     GroupMember groupMember,
   ) {
     return ChatGroupDetailsUpdateBodyMember(
       did: groupMember.did,
-      contactCard: groupMember.contactCard,
+      contactCard: ContactCard(
+        did: groupMember.did,
+        type: groupMember.contactCard.type,
+        contactInfo: {},
+      ),
       dateAdded: groupMember.dateAdded,
       status: groupMember.status.name,
       publicKey: groupMember.publicKey,

@@ -87,11 +87,8 @@ void main() {
     test(
       'adds only newly approved members and emits a chat item per new join',
       () async {
-        when(
-          () => coreSDK.downloadMedia(any(), any()),
-        ).thenAnswer((inv) async {
-          final ref =
-              inv.positionalArguments[1] as MatrixEventMediaReference;
+        when(() => coreSDK.downloadMedia(any(), any())).thenAnswer((inv) async {
+          final ref = inv.positionalArguments[1] as MatrixEventMediaReference;
           if (ref.eventId == '\$bob-card') return _cardBytes('did:test:bob');
           if (ref.eventId == '\$carol-card') {
             return _cardBytes('did:test:carol');

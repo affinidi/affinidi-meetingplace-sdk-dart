@@ -43,10 +43,9 @@ class ContactDetailsUpdateSender {
       extraContent: {GroupDetailsUpdateSender.memberDidKey: senderDid},
     );
 
-    final content =
-        eventId != null
-            ? {contactCardEventIdKey: eventId}
-            : {'profileDetails': contactCard.toJson()};
+    final content = eventId != null
+        ? {contactCardEventIdKey: eventId}
+        : {'profileDetails': contactCard.toJson()};
 
     await _coreSDK.sendMessage(
       _ContactDetailsUpdateWithAttachment(

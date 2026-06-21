@@ -21,7 +21,5 @@ class GroupDetailsUpdateRoomEvent extends MatrixOutgoingMessage {
   GroupDetailsUpdateRoomEvent._({
     required super.senderDid,
     required super.content,
-  }) : super(
-         type: MatrixChatEventType.groupDetailsUpdate,
-       );
+  }) : super(type: MatrixChatEventType.groupDetailsUpdate);
 }

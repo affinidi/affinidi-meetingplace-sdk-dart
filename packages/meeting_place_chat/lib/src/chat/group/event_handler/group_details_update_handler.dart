@@ -90,8 +90,7 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
           membershipType: GroupMembershipType.values.byName(
             member['membership_type'] as String,
           ),
-          contactCard: contactCard ??
-              ContactCard(did: did, type: 'human', contactInfo: {}),
+          contactCard: contactCard,
         );
       }).toList(),
     );
@@ -127,10 +126,10 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
     return cards;
   }
 
-  ContactCard? _resolveContactCard(String did, Group group) {
+  ContactCard _resolveContactCard(String did, Group group) {
     for (final member in group.members) {
       if (member.did == did) return member.contactCard;
     }
-    return null;
+    throw StateError('ContactCard for DID $did not found among group members.');
   }
 }

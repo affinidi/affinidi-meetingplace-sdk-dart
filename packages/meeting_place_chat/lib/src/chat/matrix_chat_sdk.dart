@@ -678,7 +678,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       );
     }
 
-    return events;
+    return events.reversed.toList();
   }
 
   MatrixRoomEvent _toRoomEvent(

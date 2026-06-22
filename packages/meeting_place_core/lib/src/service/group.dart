@@ -702,7 +702,8 @@ class GroupService {
           .map(
             (member) => GroupMemberInaugurationMember(
               did: member.did,
-              contactCard: member.contactCard,
+              contactCardDid: member.contactCard.did,
+              contactCardType: member.contactCard.type,
               status: member.status.name,
               publicKey: member.publicKey,
               membershipType: member.membershipType.name,

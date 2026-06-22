@@ -309,7 +309,7 @@ class MatrixService {
   Future<List<MatrixRoomEvent>> fetchRoomHistory(
     String roomId, {
     required DidManager didManager,
-    int limit = 50,
+    int limit = 100,
     String? sinceEventId,
   }) async {
     final client = await _ensureSession(

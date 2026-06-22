@@ -40,6 +40,8 @@ class TextMessageHandler {
   final MessageEditHandler _editHandler;
 
   Future<void> handle(MatrixRoomEvent event) async {
+    if (event.content.containsKey('mp_member_did')) return;
+
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
     if (relatesTo?['rel_type'] == 'm.replace') {
       return _editHandler.handle(event);

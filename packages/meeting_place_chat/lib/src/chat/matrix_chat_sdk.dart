@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
-
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 import 'typing_indicator_manager.dart';
@@ -153,6 +152,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         .map(_toRoomEvent)
         .listen((event) async {
           await _handleIncomingRoomEvent(event);
+          await chatRepository.updateSyncMarker(
+            chatId: chatId,
+            eventId: event.id,
+          );
           if (_isReceiptWorthy(event)) {
             await sendChatDeliveredMessage(event.id);
           }
@@ -510,12 +513,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     unawaited(
-      coreSDK.sendMessage(
-        ContactDetailsUpdateRoomEvent(
-          senderDid: did,
-          profileDetails: c.toJson(),
-        ),
-      ),
+      ContactDetailsUpdateSender(
+        coreSDK: coreSDK,
+        getChannel: getChannel,
+      ).send(senderDid: did, contactCard: c),
     );
 
     message.status = ChatItemStatus.confirmed;
@@ -659,23 +660,28 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   }
 
   Future<List<MatrixRoomEvent>> _fetchRoomHistoryAsRoomEvents() async {
-    final persisted = await chatRepository.listMessages(chatId);
-    final latestTransportId = persisted
-        .whereType<Message>()
-        .where((m) => m.transportId != null)
-        .fold<Message?>(null, (latest, m) {
-          if (latest == null) return m;
-          return m.dateCreated.isAfter(latest.dateCreated) ? m : latest;
-        })
-        ?.transportId;
+    final syncMarker = await chatRepository.getSyncMarker(chatId);
 
     final incoming = await coreSDK.fetchHistory(
-      MatrixRoomHistoryQuery(receiverDid: did, sinceEventId: latestTransportId),
+      MatrixRoomHistoryQuery(receiverDid: did, sinceEventId: syncMarker),
     );
-    return incoming
+
+    final events = incoming
         .whereType<MatrixIncomingMessage>()
         .map((m) => _toRoomEvent(m, isReplay: true))
         .toList();
+
+    if (events.isNotEmpty) {
+      final currentMarker = await chatRepository.getSyncMarker(chatId);
+      if (currentMarker == syncMarker) {
+        await chatRepository.updateSyncMarker(
+          chatId: chatId,
+          eventId: events.first.id,
+        );
+      }
+    }
+
+    return events.reversed.toList();
   }
 
   MatrixRoomEvent _toRoomEvent(

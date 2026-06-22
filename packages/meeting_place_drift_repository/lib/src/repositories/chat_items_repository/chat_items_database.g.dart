@@ -2304,6 +2304,221 @@ class AttachmentsLinksCompanion extends UpdateCompanion<AttachmentLink> {
   }
 }
 
+class $ChatSyncMarkersTable extends ChatSyncMarkers
+    with TableInfo<$ChatSyncMarkersTable, ChatSyncMarker> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatSyncMarkersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _chatIdMeta = const VerificationMeta('chatId');
+  @override
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+    'chat_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  @override
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [chatId, eventId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_sync_markers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatSyncMarker> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('chat_id')) {
+      context.handle(
+        _chatIdMeta,
+        chatId.isAcceptableOrUnknown(data['chat_id']!, _chatIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chatIdMeta);
+    }
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {chatId};
+  @override
+  ChatSyncMarker map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatSyncMarker(
+      chatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chat_id'],
+      )!,
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+    );
+  }
+
+  @override
+  $ChatSyncMarkersTable createAlias(String alias) {
+    return $ChatSyncMarkersTable(attachedDatabase, alias);
+  }
+}
+
+class ChatSyncMarker extends DataClass implements Insertable<ChatSyncMarker> {
+  final String chatId;
+  final String eventId;
+  const ChatSyncMarker({required this.chatId, required this.eventId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['chat_id'] = Variable<String>(chatId);
+    map['event_id'] = Variable<String>(eventId);
+    return map;
+  }
+
+  ChatSyncMarkersCompanion toCompanion(bool nullToAbsent) {
+    return ChatSyncMarkersCompanion(
+      chatId: Value(chatId),
+      eventId: Value(eventId),
+    );
+  }
+
+  factory ChatSyncMarker.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatSyncMarker(
+      chatId: serializer.fromJson<String>(json['chatId']),
+      eventId: serializer.fromJson<String>(json['eventId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'chatId': serializer.toJson<String>(chatId),
+      'eventId': serializer.toJson<String>(eventId),
+    };
+  }
+
+  ChatSyncMarker copyWith({String? chatId, String? eventId}) => ChatSyncMarker(
+    chatId: chatId ?? this.chatId,
+    eventId: eventId ?? this.eventId,
+  );
+  ChatSyncMarker copyWithCompanion(ChatSyncMarkersCompanion data) {
+    return ChatSyncMarker(
+      chatId: data.chatId.present ? data.chatId.value : this.chatId,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatSyncMarker(')
+          ..write('chatId: $chatId, ')
+          ..write('eventId: $eventId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(chatId, eventId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatSyncMarker &&
+          other.chatId == this.chatId &&
+          other.eventId == this.eventId);
+}
+
+class ChatSyncMarkersCompanion extends UpdateCompanion<ChatSyncMarker> {
+  final Value<String> chatId;
+  final Value<String> eventId;
+  final Value<int> rowid;
+  const ChatSyncMarkersCompanion({
+    this.chatId = const Value.absent(),
+    this.eventId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatSyncMarkersCompanion.insert({
+    required String chatId,
+    required String eventId,
+    this.rowid = const Value.absent(),
+  }) : chatId = Value(chatId),
+       eventId = Value(eventId);
+  static Insertable<ChatSyncMarker> custom({
+    Expression<String>? chatId,
+    Expression<String>? eventId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (chatId != null) 'chat_id': chatId,
+      if (eventId != null) 'event_id': eventId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatSyncMarkersCompanion copyWith({
+    Value<String>? chatId,
+    Value<String>? eventId,
+    Value<int>? rowid,
+  }) {
+    return ChatSyncMarkersCompanion(
+      chatId: chatId ?? this.chatId,
+      eventId: eventId ?? this.eventId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (chatId.present) {
+      map['chat_id'] = Variable<String>(chatId.value);
+    }
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatSyncMarkersCompanion(')
+          ..write('chatId: $chatId, ')
+          ..write('eventId: $eventId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ChatItemsDatabase extends GeneratedDatabase {
   _$ChatItemsDatabase(QueryExecutor e) : super(e);
   $ChatItemsDatabaseManager get managers => $ChatItemsDatabaseManager(this);
@@ -2311,6 +2526,9 @@ abstract class _$ChatItemsDatabase extends GeneratedDatabase {
   late final $ReactionsTable reactions = $ReactionsTable(this);
   late final $AttachmentsTable attachments = $AttachmentsTable(this);
   late final $AttachmentsLinksTable attachmentsLinks = $AttachmentsLinksTable(
+    this,
+  );
+  late final $ChatSyncMarkersTable chatSyncMarkers = $ChatSyncMarkersTable(
     this,
   );
   @override
@@ -2322,6 +2540,7 @@ abstract class _$ChatItemsDatabase extends GeneratedDatabase {
     reactions,
     attachments,
     attachmentsLinks,
+    chatSyncMarkers,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -4138,6 +4357,159 @@ typedef $$AttachmentsLinksTableProcessedTableManager =
       AttachmentLink,
       PrefetchHooks Function({bool attachmentId})
     >;
+typedef $$ChatSyncMarkersTableCreateCompanionBuilder =
+    ChatSyncMarkersCompanion Function({
+      required String chatId,
+      required String eventId,
+      Value<int> rowid,
+    });
+typedef $$ChatSyncMarkersTableUpdateCompanionBuilder =
+    ChatSyncMarkersCompanion Function({
+      Value<String> chatId,
+      Value<String> eventId,
+      Value<int> rowid,
+    });
+
+class $$ChatSyncMarkersTableFilterComposer
+    extends Composer<_$ChatItemsDatabase, $ChatSyncMarkersTable> {
+  $$ChatSyncMarkersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatSyncMarkersTableOrderingComposer
+    extends Composer<_$ChatItemsDatabase, $ChatSyncMarkersTable> {
+  $$ChatSyncMarkersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatSyncMarkersTableAnnotationComposer
+    extends Composer<_$ChatItemsDatabase, $ChatSyncMarkersTable> {
+  $$ChatSyncMarkersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get chatId =>
+      $composableBuilder(column: $table.chatId, builder: (column) => column);
+
+  GeneratedColumn<String> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
+}
+
+class $$ChatSyncMarkersTableTableManager
+    extends
+        RootTableManager<
+          _$ChatItemsDatabase,
+          $ChatSyncMarkersTable,
+          ChatSyncMarker,
+          $$ChatSyncMarkersTableFilterComposer,
+          $$ChatSyncMarkersTableOrderingComposer,
+          $$ChatSyncMarkersTableAnnotationComposer,
+          $$ChatSyncMarkersTableCreateCompanionBuilder,
+          $$ChatSyncMarkersTableUpdateCompanionBuilder,
+          (
+            ChatSyncMarker,
+            BaseReferences<
+              _$ChatItemsDatabase,
+              $ChatSyncMarkersTable,
+              ChatSyncMarker
+            >,
+          ),
+          ChatSyncMarker,
+          PrefetchHooks Function()
+        > {
+  $$ChatSyncMarkersTableTableManager(
+    _$ChatItemsDatabase db,
+    $ChatSyncMarkersTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatSyncMarkersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatSyncMarkersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatSyncMarkersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> chatId = const Value.absent(),
+                Value<String> eventId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatSyncMarkersCompanion(
+                chatId: chatId,
+                eventId: eventId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String chatId,
+                required String eventId,
+                Value<int> rowid = const Value.absent(),
+              }) => ChatSyncMarkersCompanion.insert(
+                chatId: chatId,
+                eventId: eventId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatSyncMarkersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ChatItemsDatabase,
+      $ChatSyncMarkersTable,
+      ChatSyncMarker,
+      $$ChatSyncMarkersTableFilterComposer,
+      $$ChatSyncMarkersTableOrderingComposer,
+      $$ChatSyncMarkersTableAnnotationComposer,
+      $$ChatSyncMarkersTableCreateCompanionBuilder,
+      $$ChatSyncMarkersTableUpdateCompanionBuilder,
+      (
+        ChatSyncMarker,
+        BaseReferences<
+          _$ChatItemsDatabase,
+          $ChatSyncMarkersTable,
+          ChatSyncMarker
+        >,
+      ),
+      ChatSyncMarker,
+      PrefetchHooks Function()
+    >;
 
 class $ChatItemsDatabaseManager {
   final _$ChatItemsDatabase _db;
@@ -4150,4 +4522,6 @@ class $ChatItemsDatabaseManager {
       $$AttachmentsTableTableManager(_db, _db.attachments);
   $$AttachmentsLinksTableTableManager get attachmentsLinks =>
       $$AttachmentsLinksTableTableManager(_db, _db.attachmentsLinks);
+  $$ChatSyncMarkersTableTableManager get chatSyncMarkers =>
+      $$ChatSyncMarkersTableTableManager(_db, _db.chatSyncMarkers);
 }

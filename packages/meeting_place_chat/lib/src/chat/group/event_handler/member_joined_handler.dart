@@ -24,8 +24,11 @@ class MemberJoinedHandler implements ChatEventHandler {
 
   @override
   Future<void> handle(IncomingChatEvent event) async {
-    final senderDid = event.senderDid;
-    if (senderDid == null) return;
+    // targetDid is resolved from the m.room.member stateKey via in-memory
+    // group members, which is more reliable than senderDid (requires persisted
+    // group lookup that may fail if the member isn't yet in the repository).
+    final memberDid = event.targetDid ?? event.senderDid;
+    if (memberDid == null) return;
 
     final group = _getGroup();
     final isGroupOwner = group.ownerDid == _ownDid;
@@ -39,17 +42,10 @@ class MemberJoinedHandler implements ChatEventHandler {
               eventMessage.status != ChatItemStatus.confirmed &&
               eventMessage.eventType ==
                   EventMessageType.awaitingGroupMemberToJoin &&
-              eventMessage.data['memberDid'] == senderDid,
+              eventMessage.data['memberDid'] == memberDid,
         );
 
     if (matchingMessage == null) return;
-
-    final memberDid = matchingMessage.data['memberDid'];
-    if (memberDid is! String) {
-      throw StateError(
-        'Expected awaitingGroupMemberToJoin event to include memberDid.',
-      );
-    }
 
     final contactCardData = matchingMessage.data['contactCard'];
     if (contactCardData is! Map<String, dynamic>) {

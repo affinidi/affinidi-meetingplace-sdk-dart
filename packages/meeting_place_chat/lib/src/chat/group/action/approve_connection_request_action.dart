@@ -47,23 +47,24 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
     final updatedGroup = (await _chatSDK.coreSDK.getGroupById(
       _chatSDK.group.id,
     ))!;
+
+    message.status = ChatItemStatus.confirmed;
+    await _chatSDK.chatRepository.updateMesssage(message);
+
+    _chatSDK.chatStream.pushData(StreamData(chatItem: message));
+    _chatSDK.chatStream.pushData(StreamData(chatItem: chatItem));
+
     await GroupDetailsUpdateSender(coreSDK: _chatSDK.coreSDK).send(
       channel: await _chatSDK.getChannel(),
       senderDid: _chatSDK.did,
       group: updatedGroup,
     );
 
-    message.status = ChatItemStatus.confirmed;
-    await _chatSDK.chatRepository.updateMesssage(message);
-    _chatSDK.chatStream.pushData(StreamData(chatItem: message));
-
     _chatSDK.logger.info(
       'Completed approving connection request for member: '
       '${channel.otherPartyPermanentChannelDid?.topAndTail()}',
       name: 'approveConnectionRequest',
     );
-
-    _chatSDK.chatStream.pushData(StreamData(chatItem: chatItem));
 
     return updatedGroup;
   }

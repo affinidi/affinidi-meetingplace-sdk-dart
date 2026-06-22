@@ -1,3 +1,83 @@
+## 0.0.1-dev.46
+
+### Breaking Changes
+
+- **MeetingPlaceChatSDK** — Converted from a concrete wrapper class to an `abstract interface class`. Previously: a concrete class wrapping either `GroupChatSDK` or `IndividualChatSDK`. Now: an interface implemented by `GroupMatrixChatSDK`, `IndividualMatrixChatSDK`, and `IndividualDidcommChatSDK`.
+  - Previously: `MeetingPlaceChatSDK(sdk: GroupChatSDK(...))`.
+  - **Migration:** Use `MeetingPlaceChatSDK.initialiseFromChannel(channel, ...)` exclusively. The concrete SDK type is chosen automatically by `Channel.transport`.
+
+- **ChatSDKOptions → MeetingPlaceChatSDKOptions** — Renamed configuration class.
+  - Previously: `ChatSDKOptions`.
+  - **Migration:** Replace all references to `ChatSDKOptions` with `MeetingPlaceChatSDKOptions`.
+
+- **sendMessage() removed** — The `sendMessage(PlainTextMessage)` method was removed from the interface.
+  - Previously: Sent raw DIDComm `PlainTextMessage` objects.
+  - **Migration:** Use `sendTextMessage(String text, {List<ChatAttachment> attachments})` instead. Construct a `ChatAttachment` for any media payloads.
+
+- **sendChatDeliveredMessage() signature** — Now accepts a `String messageId` instead of a `PlainTextMessage`.
+  - Previously: `sendChatDeliveredMessage(PlainTextMessage message)`.
+  - **Migration:** Pass the server event ID (String) directly.
+
+- **fetchNewMessages() removed** — The manual fetch method is gone; delivery is now event-driven through the live subscription.
+  - **Migration:** Subscribe to the `ChatStream` returned by `startChatSession()` and use `ChatTestHarness.awaitEvent<T>()` / `ChatTestHarness.awaitItem()` in tests.
+
+- **Attachment → ChatAttachment** — The attachment type used in `sendTextMessage` and `createAttachmentMessage` changed.
+  - Previously: `Attachment` (from DIDComm SDK).
+  - **Migration:** Use `ChatAttachment` for all chat attachment operations. Convert existing DIDComm `Attachment` instances via `toChatAttachment()`.
+
+- **endChatSession()** — Return type changed from `void` to `Future<void>`.
+  - **Migration:** Await the call.
+
+---
+
+### Added
+
+- **TransportCapabilities / ChatFeature** — Per-chat feature capability system. Query `chatSDK.capabilities.supports(ChatFeature.messageEdit)` to gate consumer actions by what the transport supports.
+
+- **ChatFeature.documentAttachments** — New capability flag for Matrix-only document file support (PDF, archives, etc). DIDComm chats do not expose this.
+
+- **sendCustomEvent()** — Transport-neutral escape hatch for sending arbitrary events to participants.
+
+- **editTextMessage()** — Edit a previously sent text message (Matrix only, requires `ChatFeature.messageEdit`).
+
+- **deleteMessage()** — Delete a message for all participants (within `deleteMessageWindow`) or hide locally.
+
+- **downloadMedia()** — Download and decrypt hosted media from a `ChatAttachment`.
+
+- **removeMember()** — Owner can remove a group member. Matrix kick + control-plane deregistration.
+
+- **Message.editedAt** — Timestamp of last edit on a message.
+
+- **Message.transportId** — Server-side event ID used to reference the message in the transport layer.
+
+- **MessageReaction.senderDid** — Reactions now track per-user ownership so each user can independently toggle their own emoji.
+
+- **VoiceMessageMetadata** — Structured metadata for voice-note attachments (duration, waveform).
+
+- **TypingIndicatorManager** — Internal class that debounces typing indicator sends and auto-clears after expiry.
+
+- **UnhandledChatEvent** — Events with no registered handler are surfaced on the stream instead of being silently dropped.
+
+- **ChatEventTypes enum** — Canonical string constants for transport-neutral event types.
+
+---
+
+### Changed
+
+- **MeetingPlaceChatSDK.initialiseFromChannel** — Now dispatches on `Channel.transport` to select the correct individual chat implementation (Matrix or DIDComm). Group channels always route to `GroupMatrixChatSDK`.
+
+- **startChatSession()** — Returns immediately with persisted messages, auth, history replay, and delivery receipts run in the background.
+
+- **Delivery receipts** — Now sent at the SDK level after history replay completes
+
+---
+
+### Fixed
+
+- **startChatSession() race condition** — `transportSubscriptionFuture` is now set before the first await, fixing `chatStreamSubscription is null` errors when callers set up event listeners without awaiting the session.
+
+- **Group member leave reason** — Leave events now include a reason field (voluntary vs kicked).
+
 ## 0.0.1-dev.45
 
  - **FIX**: add decline zkp request (#227).

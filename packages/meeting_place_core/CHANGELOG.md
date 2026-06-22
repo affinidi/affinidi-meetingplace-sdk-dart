@@ -1,3 +1,55 @@
+## 0.0.1-dev.41
+
+### Breaking Changes
+
+- **MeetingPlaceCoreSDK.create()** — `config` parameter — The `create()` factory now accepts a `Config` object (specifically `MatrixConfig`) instead of separate `mediatorDid` and `controlPlaneDid` string parameters. Passing a non-`MatrixConfig` config throws `UnsupportedError`.
+    - Previously: `MeetingPlaceCoreSDK.create(mediatorDid: '...', controlPlaneDid: '...', ...)`.
+    - Migration: Replace the two string parameters with a single Config, optionally using `MatrixConfig` to enable Matrix protocol
+
+- **sendMessage() / queueMessage() / sendGroupMessage()** — Replaced by unified `sendMessage(OutgoingMessage)` returning the server event ID.
+  - Previously: Separate methods for plain text, queued, and group messages.
+  - **Migration:** Construct the appropriate `OutgoingMessage` subclass (e.g. `TextMessageRoomEvent`, `ChatTypingNotification`) and pass to the unified `sendMessage()`.
+
+- **fetchMessages() / subscribeToMediator()** — Replaced by `subscribe(IncomingMessageSubscription)` and `fetchHistory(HistoryQuery)`.
+  - Previously: `fetchMessages(did: ..., mediatorDid: ...)` and `subscribeToMediator(...)`.
+  - **Migration:** Use `subscribe(MatrixRoomSubscription(...))` or `subscribe(DidCommSubscription(...))` for live streams. Use `fetchHistory(MatrixRoomHistoryQuery(...))` or `fetchHistory(DidCommHistoryQuery(...))` for paginated history.
+
+- **ConnectionOffer.transport** — New required field on `ConnectionOffer`.
+  - Previously: No transport field.
+  - **Migration:** Provide `transport: ChannelTransport.didcomm` (or `.matrix`) when constructing `ConnectionOffer`. Existing offers in storage will need a migration.
+
+---
+
+### Added
+
+- **ChannelTransport enum** — `didcomm` | `matrix`. First-class on `Channel` and `ConnectionOffer`.
+
+- **Channel.matrixSyncMarker** — Persisted cursor for Matrix room history pagination.
+
+- **MatrixService** — Full Matrix transport implementation: room creation, encryption, message sending, history fetch, media upload/download, session management.
+
+- **MatrixConfig / MatrixDatabaseFactory** — Configuration for the Matrix transport: homeserver URI, device ID, database factory for OLM/Megolm state.
+
+- **MatrixSessionManager** — Manages matrix client sessions per DID with persistent database-backed OLM state. Prevents device-key conflicts on cold start.
+
+- **MessagingService** — Internal unified messaging layer that resolves transport (Matrix vs DIDComm) per channel and normalises incoming/outgoing messages.
+
+- **downloadMedia(Channel, MediaReference)** — Decrypt and download hosted media from Matrix rooms.
+
+- **removeMemberFromGroup()** — Group owner can kick a member (Matrix room kick + control plane deregistration).
+
+- **MeetingPlaceCoreSDKErrorCode.channelNotificationFailed** — New error code surfaced when push notification delivery fails but the message itself succeeded.
+
+- **did:web identity support** — Permanent identities now use `did:web` backed by control-plane-hosted DID documents.
+
+---
+
+### Fixed
+
+- **Forbidden response on member deregistration** — 403 responses during deregistration are handled gracefully instead of crashing.
+
+- **Duplicate R-Cards** — Prevents duplicate R-Cards from multi-path VDIP delivery.
+
 ## 0.0.1-dev.40
 
  - **FIX**: non inaugurated channel activity (#200).

@@ -1,3 +1,13 @@
+## 0.0.1-dev.46
+
+### Changed
+
+- **Chat items database** — New columns: `editedAt`, `transportId`, `isDeleted`, `isDeletedLocally`, `attachments.metadata`.
+
+- **Channel database** — New columns: `transport`, `matrixSyncMarker`.
+
+- **Connection offer database** — New column: `transport`.
+
 ## 0.0.1-dev.45
 
  - **FIX**: add decline zkp request (#227).

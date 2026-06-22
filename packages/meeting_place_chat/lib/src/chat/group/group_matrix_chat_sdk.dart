@@ -55,6 +55,7 @@ class GroupMatrixChatSDK extends MatrixChatSDK implements MeetingPlaceChatSDK {
   static const _capabilities = TransportCapabilities({
     ChatFeature.textMessaging,
     ChatFeature.mediaAttachments,
+    ChatFeature.documentAttachments,
     ChatFeature.voiceMessages,
     ChatFeature.reactions,
     ChatFeature.typingIndicators,

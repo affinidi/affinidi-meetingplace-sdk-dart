@@ -65,6 +65,11 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     chatStream = ChatStream();
     _incomingRouter = buildRoomEventRouter();
 
+    // Mark the session as active before the first await so that
+    // chatStreamSubscription is non-null for callers that set up event
+    // listeners without awaiting startChatSession().
+    transportSubscriptionFuture = Future.value();
+
     // Snapshot the sync cursor before the live subscription starts.
     // Once subscribeToMatrixRoom() is awaited, newly-arriving Matrix events
     // can advance chatRepository's sync marker; reading it here guarantees

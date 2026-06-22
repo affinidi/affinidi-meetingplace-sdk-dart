@@ -672,10 +672,13 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         .toList();
 
     if (events.isNotEmpty) {
-      await chatRepository.updateSyncMarker(
-        chatId: chatId,
-        eventId: events.first.id,
-      );
+      final currentMarker = await chatRepository.getSyncMarker(chatId);
+      if (currentMarker == syncMarker) {
+        await chatRepository.updateSyncMarker(
+          chatId: chatId,
+          eventId: events.first.id,
+        );
+      }
     }
 
     return events.reversed.toList();

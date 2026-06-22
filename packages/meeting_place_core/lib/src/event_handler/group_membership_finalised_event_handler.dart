@@ -1,5 +1,6 @@
 import 'package:didcomm/didcomm.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
@@ -9,6 +10,7 @@ import '../entity/group.dart';
 import '../entity/group_connection_offer.dart';
 import '../entity/group_member.dart';
 import '../protocol/meeting_place_protocol.dart';
+import '../protocol/contact_card/contact_card.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
 import '../repository/repository.dart';
 import '../service/group/group_exception.dart';
@@ -328,11 +330,17 @@ class GroupMembershipFinalisedEventHandler
         (lm) => lm.did == member.did,
       );
 
+      final contactCard = ContactCard(
+        did: member.contactCardDid,
+        type: member.contactCardType,
+        contactInfo: {},
+      );
+
       if (localMemberIndex == -1) {
         updatedGroup.members.add(
           GroupMember(
             did: member.did,
-            contactCard: member.contactCard,
+            contactCard: contactCard,
             status: GroupMemberStatus.values.byName(member.status),
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,
@@ -347,7 +355,7 @@ class GroupMembershipFinalisedEventHandler
       // TODO: add test case for this specific case
       final existingMember = updatedGroup.members[localMemberIndex];
       updatedGroup.members[localMemberIndex] = existingMember.copyWith(
-        card: member.contactCard,
+        card: contactCard,
         dateAdded: DateTime.now().toUtc(),
         status: GroupMemberStatus.approved,
         publicKey: member.publicKey,

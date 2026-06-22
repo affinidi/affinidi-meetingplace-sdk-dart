@@ -14,13 +14,15 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
     required Group Function() getGroup,
     required void Function(Group) setGroup,
     required Future<Channel> Function() getChannel,
+    required MeetingPlaceChatSDKLogger logger,
   }) : _coreSDK = coreSDK,
        _chatRepository = chatRepository,
        _streamManager = streamManager,
        _chatId = chatId,
        _getGroup = getGroup,
        _setGroup = setGroup,
-       _getChannel = getChannel;
+       _getChannel = getChannel,
+       _logger = logger;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final ChatRepository _chatRepository;
@@ -29,6 +31,7 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
   final Group Function() _getGroup;
   final void Function(Group) _setGroup;
   final Future<Channel> Function() _getChannel;
+  final MeetingPlaceChatSDKLogger _logger;
 
   @override
   Future<void> handle(IncomingChatEvent event) async {
@@ -118,8 +121,12 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
         );
         final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
         cards[did] = ContactCard.fromJson(json);
-      } catch (_) {
-        // Card download failed — the member will keep its stub card.
+      } catch (e, st) {
+        _logger.error(
+          'Failed to download contact card for $did',
+          error: e,
+          stackTrace: st,
+        );
       }
     }
     return cards;

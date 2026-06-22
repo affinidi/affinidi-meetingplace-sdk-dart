@@ -75,6 +75,7 @@ class GroupRoomEventRouter extends IncomingRoomEventRouter {
         getGroup: getGroup,
         setGroup: setGroup,
         getChannel: chatSDK.getChannel,
+        logger: chatSDK.logger,
       ),
       ChatEventTypes.contactDetailsUpdate: ContactDetailsUpdateHandler(
         chatSDK: chatSDK,

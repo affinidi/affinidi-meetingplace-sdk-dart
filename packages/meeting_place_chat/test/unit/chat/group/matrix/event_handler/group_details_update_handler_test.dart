@@ -16,6 +16,8 @@ class _FakeChatItem extends Fake implements ChatItem {}
 
 class _FakeChannel extends Fake implements Channel {}
 
+class _MockLogger extends Mock implements MeetingPlaceChatSDKLogger {}
+
 ContactCard _card(String did) =>
     ContactCard(did: did, type: 'human', contactInfo: {'n': did});
 
@@ -82,6 +84,7 @@ void main() {
       getGroup: () => group,
       setGroup: (g) => group = g,
       getChannel: () async => channel,
+      logger: _MockLogger(),
     );
 
     test(

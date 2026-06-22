@@ -5,22 +5,28 @@ import '../../../../meeting_place_chat.dart';
 
 class MemberJoinedHandler implements ChatEventHandler {
   MemberJoinedHandler({
+    required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
     required ChatStream streamManager,
     required String chatId,
     required String ownDid,
     required Group Function() getGroup,
-  }) : _chatRepository = chatRepository,
+    required void Function(Group) setGroup,
+  }) : _coreSDK = coreSDK,
+       _chatRepository = chatRepository,
        _streamManager = streamManager,
        _chatId = chatId,
        _ownDid = ownDid,
-       _getGroup = getGroup;
+       _getGroup = getGroup,
+       _setGroup = setGroup;
 
+  final MeetingPlaceCoreSDK _coreSDK;
   final ChatRepository _chatRepository;
   final ChatStream _streamManager;
   final String _chatId;
   final String _ownDid;
   final Group Function() _getGroup;
+  final void Function(Group) _setGroup;
 
   @override
   Future<void> handle(IncomingChatEvent event) async {
@@ -66,6 +72,11 @@ class MemberJoinedHandler implements ChatEventHandler {
         memberCard: contactCardData,
       ),
     );
+
+    final updatedGroup = await _coreSDK.getGroupById(group.id);
+    if (updatedGroup != null) {
+      _setGroup(updatedGroup);
+    }
 
     _streamManager.pushData(StreamData(chatItem: chatItem));
   }

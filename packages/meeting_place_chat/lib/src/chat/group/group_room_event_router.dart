@@ -45,11 +45,13 @@ class GroupRoomEventRouter extends IncomingRoomEventRouter {
 
     return {
       ChatEventTypes.memberJoined: MemberJoinedHandler(
+        coreSDK: chatSDK.coreSDK,
         chatRepository: chatSDK.chatRepository,
         streamManager: chatSDK.chatStream,
         chatId: chatSDK.chatId,
         ownDid: chatSDK.did,
         getGroup: getGroup,
+        setGroup: setGroup,
       ),
       ChatEventTypes.memberLeft: MemberDeregisteredHandler(
         coreSDK: chatSDK.coreSDK,

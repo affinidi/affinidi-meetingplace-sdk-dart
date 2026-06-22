@@ -63,7 +63,7 @@ A published invitation contains a description, validity, and a ContactCard conta
 - Reduces spam by requiring the user's consent when other users try to establish a connection.
 - Implement the DIDComm Message v2.1 protocol, and connect and authenticate with different mediators that follow the same protocol.
 - Seamlessly integrates with Self-Sovereign Identity (SSI), including Verifiable Credentials/Presentations.
-- Supports Matrix as a second transport alongside DIDComm for individual and group chat, with per-transport capability declarations so features like message edit, message delete, and voice messages are gated to the transports that support them.
+- Adds Matrix as a secondary transport alongside DIDComm v2.1 for individual and group messaging. Transports declare their supported capabilities, allowing features such as message editing, deletion, and voice messaging to be conditionally enabled based on transport support.
 
 ## Key Components
 
@@ -246,18 +246,18 @@ The table below covers the individual chat SDKs (`IndividualDidcommChatSDK` and 
 
 | Feature | DIDComm | Matrix |
 |---------|:-------:|:------:|
-| Text messaging | ✓ | ✓ |
-| Media attachments | ✓ | ✓ |
-| Reactions | ✓ | ✓ |
-| Typing indicators | ✓ | ✓ |
-| Delivery receipts | ✓ | ✓ |
-| Effects | ✓ | ✓ |
-| Contact details update | ✓ | ✓ |
-| Presence | ✓ | — |
-| Human ZKP | ✓ | — |
-| Voice messages | — | ✓ |
-| Message edit | — | ✓ |
-| Message delete | — | ✓ |
+| Text messaging | 🟢 | 🟢 |
+| Media attachments | 🟢 | 🟢 |
+| Reactions | 🟢 | 🟢 |
+| Typing indicators | 🟢 | 🟢 |
+| Delivery receipts | 🟢 | 🟢 |
+| Effects | 🟢 | 🟢 |
+| Contact details update | 🟢 | 🟢 |
+| Presence | 🟢 | 🔴 |
+| Human ZKP | 🟢 | 🔴 |
+| Voice messages | 🔴 | 🟢 |
+| Message edit | 🔴 | 🟢 |
+| Message delete | 🔴 | 🟢 |
 
 Group chat uses `GroupMatrixChatSDK`, which supports the same features as `IndividualMatrixChatSDK`. See the [Chat SDK README](./packages/meeting_place_chat/README.md) and [chat-transport-capabilities.md](./packages/meeting_place_chat/doc/chat-transport-capabilities.md) for the full reference.
 

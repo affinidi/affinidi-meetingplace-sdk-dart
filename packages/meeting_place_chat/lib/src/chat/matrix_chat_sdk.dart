@@ -65,6 +65,14 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     chatStream = ChatStream();
     _incomingRouter = buildRoomEventRouter();
 
+    // Snapshot the sync cursor before the live subscription starts.
+    // Once subscribeToMatrixRoom() is awaited, newly-arriving Matrix events
+    // can advance chatRepository's sync marker; reading it here guarantees
+    // the bootstrap sees every event that arrived between the previous session
+    // and this one (including m.room.member join events from members who joined
+    // while the chat was closed).
+    final bootstrapCursor = await chatRepository.getSyncMarker(chatId);
+
     // Kick off the live transport subscription. transportSubscriptionFuture
     // resolves when Matrix auth + room subscribe are ready, matching the
     // DIDComm SDK semantics and the BaseChatSDK.chatStreamSubscription
@@ -85,7 +93,9 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       messages: <ChatItem>[...persisted],
     );
 
-    unawaited(_bootstrapTransportInBackground(subscriptionFuture));
+    unawaited(
+      _bootstrapTransportInBackground(subscriptionFuture, bootstrapCursor),
+    );
 
     logger.info(
       'Chat session started; transport sync running in background',
@@ -97,6 +107,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   Future<void> _bootstrapTransportInBackground(
     Future<StreamSubscription<MatrixRoomEvent>> subscriptionFuture,
+    String? bootstrapCursor,
   ) async {
     try {
       final subscription = await subscriptionFuture;
@@ -109,7 +120,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       }
       _matrixRoomSubscription = subscription;
 
-      final events = await _fetchRoomHistoryAsRoomEvents();
+      final events = await _fetchRoomHistoryAsRoomEvents(bootstrapCursor);
       final incoming = events.where((e) => !e.isFromMe).toList();
 
       for (final event in incoming) {
@@ -659,11 +670,11 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     return createdMessage as Message;
   }
 
-  Future<List<MatrixRoomEvent>> _fetchRoomHistoryAsRoomEvents() async {
-    final syncMarker = await chatRepository.getSyncMarker(chatId);
-
+  Future<List<MatrixRoomEvent>> _fetchRoomHistoryAsRoomEvents(
+    String? bootstrapCursor,
+  ) async {
     final incoming = await coreSDK.fetchHistory(
-      MatrixRoomHistoryQuery(receiverDid: did, sinceEventId: syncMarker),
+      MatrixRoomHistoryQuery(receiverDid: did, sinceEventId: bootstrapCursor),
     );
 
     final events = incoming
@@ -673,7 +684,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
     if (events.isNotEmpty) {
       final currentMarker = await chatRepository.getSyncMarker(chatId);
-      if (currentMarker == syncMarker) {
+      if (currentMarker == bootstrapCursor) {
         await chatRepository.updateSyncMarker(
           chatId: chatId,
           eventId: events.first.id,

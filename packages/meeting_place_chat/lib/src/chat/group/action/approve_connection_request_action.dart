@@ -33,6 +33,15 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
       throw Exception(error);
     }
 
+    final chatItem = await _chatSDK.chatRepository.createMessage(
+      EventMessage.awaitingGroupMember(
+        chatId: _chatSDK.chatId,
+        groupDid: _chatSDK.group.did,
+        memberDid: channel.otherPartyPermanentChannelDid!,
+        memberCard: channel.otherPartyContactCard!.toJson(),
+      ),
+    );
+
     await _chatSDK.coreSDK.approveConnectionRequest(channel: channel);
 
     final updatedGroup = (await _chatSDK.coreSDK.getGroupById(
@@ -47,15 +56,6 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
     message.status = ChatItemStatus.confirmed;
     await _chatSDK.chatRepository.updateMesssage(message);
     _chatSDK.chatStream.pushData(StreamData(chatItem: message));
-
-    final chatItem = await _chatSDK.chatRepository.createMessage(
-      EventMessage.awaitingGroupMember(
-        chatId: _chatSDK.chatId,
-        groupDid: updatedGroup.did,
-        memberDid: channel.otherPartyPermanentChannelDid!,
-        memberCard: channel.otherPartyContactCard!.toJson(),
-      ),
-    );
 
     _chatSDK.logger.info(
       'Completed approving connection request for member: '

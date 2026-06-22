@@ -217,7 +217,9 @@ class MessagingService {
                 await _advanceMatrixSyncMarker(s.receiverDid, e.id);
               }
               return _toMatrixIncoming(e, s.receiverDid);
-            });
+            })
+            .where((e) => e != null)
+            .cast<MatrixIncomingMessage>();
         // Matrix uses an async generator: cancelling the consumer's
         // listen() terminates the generator and its room listeners. No
         // separate teardown is required, so dispose is a no-op.
@@ -250,9 +252,10 @@ class MessagingService {
           limit: q.limit,
           sinceEventId: q.sinceEventId,
         );
-        return Future.wait(
+        final results = await Future.wait(
           events.map((e) => _toMatrixIncoming(e, q.receiverDid)),
         );
+        return results.whereType<MatrixIncomingMessage>().toList();
       case DidCommHistoryQuery q:
         final messages = await _didcomm.fetchMessages(
           did: q.receiverDid,
@@ -316,7 +319,7 @@ class MessagingService {
     return event.type != 'm.typing' && event.type != 'm.receipt';
   }
 
-  Future<MatrixIncomingMessage> _toMatrixIncoming(
+  Future<MatrixIncomingMessage?> _toMatrixIncoming(
     MatrixRoomEvent e,
     String receiverDid,
   ) async {
@@ -327,11 +330,7 @@ class MessagingService {
           matrixUserId: e.userId,
         );
 
-    if (resolved == null) {
-      throw StateError(
-        '''Could not resolve sender DID for Matrix event ${e.id} with userId ${e.userId}''',
-      );
-    }
+    if (resolved == null) return null;
 
     return MatrixIncomingMessage(
       senderDid: resolved,

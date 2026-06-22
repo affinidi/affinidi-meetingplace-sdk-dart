@@ -22,7 +22,15 @@ part 'chat_items_database.g.dart';
 ///
 /// Foreign key constraints are enabled via
 /// `PRAGMA foreign_keys = ON` to ensure cascade deletes.
-@DriftDatabase(tables: [ChatItems, Reactions, Attachments, AttachmentsLinks])
+@DriftDatabase(
+  tables: [
+    ChatItems,
+    Reactions,
+    Attachments,
+    AttachmentsLinks,
+    ChatSyncMarkers,
+  ],
+)
 /// Opens or creates the database.
 ///
 /// **Parameters:**
@@ -68,7 +76,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -201,6 +209,13 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
             "DEFAULT ''",
           );
         }
+      }
+      if (from < 9 && to >= 9) {
+        await customStatement(
+          'CREATE TABLE IF NOT EXISTS chat_sync_markers ('
+          'chat_id TEXT NOT NULL PRIMARY KEY, '
+          'event_id TEXT NOT NULL)',
+        );
       }
     },
     beforeOpen: (details) async {
@@ -453,4 +468,13 @@ class _UriConverter extends TypeConverter<Uri, String> {
   String toSql(Uri value) {
     return value.toString();
   }
+}
+
+@DataClassName('ChatSyncMarker')
+class ChatSyncMarkers extends Table {
+  TextColumn get chatId => text()();
+  TextColumn get eventId => text()();
+
+  @override
+  Set<Column> get primaryKey => {chatId};
 }

@@ -238,21 +238,17 @@ class MessagingService {
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
     switch (query) {
       case MatrixRoomHistoryQuery q:
-        final channel = await _channelService.findChannelByDidOrNull(
-          q.receiverDid,
-        );
         // Prefer the caller-supplied cursor (chat session's own anchor,
         // typically the latest persisted message's transport id) over the
         // channel-level sync marker. The marker is owned by the push
         // pipeline (ChatActivityEventHandler) which uses it for badge-count
         // bookkeeping and must not be consumed here.
-        final sinceEventId = q.sinceEventId ?? channel?.matrixSyncMarker;
         final roomId = await _resolveRoomIdForDid(q.receiverDid);
         final events = await _matrixService.fetchRoomHistory(
           roomId,
           didManager: await _getDidManager(q.receiverDid),
           limit: q.limit,
-          sinceEventId: sinceEventId,
+          sinceEventId: q.sinceEventId,
         );
         return Future.wait(
           events.map((e) => _toMatrixIncoming(e, q.receiverDid)),

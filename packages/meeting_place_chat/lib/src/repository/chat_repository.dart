@@ -8,4 +8,9 @@ abstract interface class ChatRepository {
     required String chatId,
     required String messageId,
   });
+  Future<String?> getSyncMarker(String chatId);
+  Future<void> updateSyncMarker({
+    required String chatId,
+    required String eventId,
+  });
 }

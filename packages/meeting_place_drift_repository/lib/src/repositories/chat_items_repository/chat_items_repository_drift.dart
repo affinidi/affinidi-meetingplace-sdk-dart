@@ -553,6 +553,27 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     );
   }
 
+  @override
+  Future<String?> getSyncMarker(String chatId) async {
+    final row = await (_database.select(_database.chatSyncMarkers)
+          ..where((t) => t.chatId.equals(chatId)))
+        .getSingleOrNull();
+    return row?.eventId;
+  }
+
+  @override
+  Future<void> updateSyncMarker({
+    required String chatId,
+    required String eventId,
+  }) async {
+    await _database.into(_database.chatSyncMarkers).insertOnConflictUpdate(
+      db.ChatSyncMarkersCompanion(
+        chatId: Value(chatId),
+        eventId: Value(eventId),
+      ),
+    );
+  }
+
   /// Groups attachments and their associated links by message ID.
   ///
   /// **Returns:**

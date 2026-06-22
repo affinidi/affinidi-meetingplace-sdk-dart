@@ -106,6 +106,33 @@ class ChatItems extends Table with TableInfo {
     requiredDuringInsert: false,
     $customConstraints: 'NULL',
   );
+  late final GeneratedColumn<int> isDeleted = GeneratedColumn<int>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  late final GeneratedColumn<int> isDeletedLocally = GeneratedColumn<int>(
+    'is_deleted_locally',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints:
+        'NOT NULL DEFAULT 0 CHECK (is_deleted_locally IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  late final GeneratedColumn<String> editedAt = GeneratedColumn<String>(
+    'edited_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     chatId,
@@ -120,6 +147,9 @@ class ChatItems extends Table with TableInfo {
     data,
     senderDid,
     transportId,
+    isDeleted,
+    isDeletedLocally,
+    editedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -166,8 +196,17 @@ class Reactions extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
+  late final GeneratedColumn<String> senderDid = GeneratedColumn<String>(
+    'sender_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT \'\'',
+    defaultValue: const CustomExpression('\'\''),
+  );
   @override
-  List<GeneratedColumn> get $columns => [messageId, value];
+  List<GeneratedColumn> get $columns => [messageId, value, senderDid];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -300,6 +339,22 @@ class Attachments extends Table with TableInfo {
     requiredDuringInsert: false,
     $customConstraints: 'NULL',
   );
+  late final GeneratedColumn<String> transportId = GeneratedColumn<String>(
+    'transport_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+    'metadata',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
   @override
   List<GeneratedColumn> get $columns => [
     messageId,
@@ -315,6 +370,8 @@ class Attachments extends Table with TableInfo {
     hash,
     base64,
     json,
+    transportId,
+    metadata,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -382,12 +439,59 @@ class AttachmentsLinks extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
+class ChatSyncMarkers extends Table with TableInfo {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ChatSyncMarkers(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+    'chat_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [chatId, eventId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_sync_markers';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {chatId};
+  @override
+  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
+    throw UnsupportedError('TableInfo.map in schema verification code');
+  }
+
+  @override
+  ChatSyncMarkers createAlias(String alias) {
+    return ChatSyncMarkers(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(chat_id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
 class DatabaseAtV3 extends GeneratedDatabase {
   DatabaseAtV3(QueryExecutor e) : super(e);
   late final ChatItems chatItems = ChatItems(this);
   late final Reactions reactions = Reactions(this);
   late final Attachments attachments = Attachments(this);
   late final AttachmentsLinks attachmentsLinks = AttachmentsLinks(this);
+  late final ChatSyncMarkers chatSyncMarkers = ChatSyncMarkers(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -397,6 +501,7 @@ class DatabaseAtV3 extends GeneratedDatabase {
     reactions,
     attachments,
     attachmentsLinks,
+    chatSyncMarkers,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([

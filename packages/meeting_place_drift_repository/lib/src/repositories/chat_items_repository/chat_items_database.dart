@@ -76,7 +76,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -144,19 +144,9 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
         );
       }
       if (from < 3 && to >= 3) {
-        // Add transport_id to record the server-assigned event id for
-        // each outgoing/incoming message. Nullable: existing rows have no
-        // recorded transport id and are backfilled lazily as new traffic
-        // flows through (e.g. via history replay using event.id).
         await customStatement(
-          'ALTER TABLE chat_items ADD COLUMN transport_id TEXT',
+          'ALTER TABLE chat_items ADD COLUMN transport_id TEXT NULL',
         );
-      }
-      if (from < 4 && to >= 4) {
-        // Persist tombstone flags so locally-hidden and remotely-redacted
-        // messages survive cold start. Without these, `clearContent` wipes
-        // the row's text/attachments but the flags themselves are lost on
-        // reload, leaving an empty bubble instead of a tombstone.
         await customStatement(
           'ALTER TABLE chat_items ADD COLUMN is_deleted INTEGER NOT NULL '
           'DEFAULT 0 CHECK ("is_deleted" IN (0, 1))',
@@ -165,56 +155,24 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           'ALTER TABLE chat_items ADD COLUMN is_deleted_locally INTEGER '
           'NOT NULL DEFAULT 0 CHECK ("is_deleted_locally" IN (0, 1))',
         );
-      }
-      if (from < 5 && to >= 5) {
-        // Add transport_id to attachments so the per-attachment transport
-        // reference (e.g. Matrix event id for hosted media) survives
-        // persist/restore. Without it, receivers reload messages with
-        // null transportId and can never trigger downloadMedia.
         await customStatement(
-          'ALTER TABLE attachments ADD COLUMN transport_id TEXT',
+          'ALTER TABLE chat_items ADD COLUMN edited_at TEXT NULL',
         );
-      }
-      if (from < 6 && to >= 6) {
-        // Add metadata to attachments so extensible media-kind metadata
-        // (e.g. the voice marker, duration, and waveform) survives
-        // persist/restore. Without it, received voice messages reload as
-        // generic audio with no duration/waveform until played.
-        //
-        // Guarded for idempotency: an intermediate build shipped the
-        // `metadata` column in the table definition while schemaVersion
-        // was still 5, so a database created then already has the column.
-        // Re-adding it here would fail with "duplicate column name".
-        if (!await _columnExists('attachments', 'metadata')) {
-          await customStatement(
-            'ALTER TABLE attachments ADD COLUMN metadata TEXT',
-          );
-        }
-      }
-      if (from < 7 && to >= 7) {
-        // Persist the edit timestamp so the "edited" indicator survives cold
-        // start. Nullable: existing messages have never been edited.
         await customStatement(
-          'ALTER TABLE chat_items ADD COLUMN edited_at TEXT',
+          'ALTER TABLE attachments ADD COLUMN transport_id TEXT NULL',
         );
-      }
-      if (from < 8 && to >= 8) {
-        // Persist the reaction owner so the same emoji from different
-        // participants is counted separately and a participant can only
-        // toggle their own reaction. Existing rows predate ownership and are
-        // backfilled with an empty DID (unknown owner).
-        if (!await _columnExists('reactions', 'sender_did')) {
-          await customStatement(
-            'ALTER TABLE reactions ADD COLUMN sender_did TEXT NOT NULL '
-            "DEFAULT ''",
-          );
-        }
-      }
-      if (from < 9 && to >= 9) {
+        await customStatement(
+          'ALTER TABLE attachments ADD COLUMN metadata TEXT NULL',
+        );
+        await customStatement(
+          'ALTER TABLE reactions ADD COLUMN sender_did TEXT NOT NULL '
+          "DEFAULT ''",
+        );
         await customStatement(
           'CREATE TABLE IF NOT EXISTS chat_sync_markers ('
-          'chat_id TEXT NOT NULL PRIMARY KEY, '
-          'event_id TEXT NOT NULL)',
+          'chat_id TEXT NOT NULL, '
+          'event_id TEXT NOT NULL, '
+          'PRIMARY KEY(chat_id))',
         );
       }
     },
@@ -222,16 +180,6 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
-
-  /// Whether [column] already exists on [table].
-  ///
-  /// Used to keep additive upgrade steps idempotent when a column may have
-  /// been created out-of-band (e.g. by an `onCreate` from an intermediate
-  /// build) before the matching schemaVersion bump shipped.
-  Future<bool> _columnExists(String table, String column) async {
-    final rows = await customSelect('PRAGMA table_info($table)').get();
-    return rows.any((row) => row.read<String>('name') == column);
-  }
 }
 
 /// Stores core metadata for messages and concierge items.

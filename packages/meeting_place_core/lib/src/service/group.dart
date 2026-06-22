@@ -1110,9 +1110,16 @@ class GroupService {
       didManager: identity.didManager,
       channelDid: group.did,
     );
-    await _matrixService.leaveRoom(roomId, didManager: identity.didManager);
 
-    await _deregisterMember(group: group, memberDid: identity.didDocument.id);
+    try {
+      await _matrixService.leaveRoom(roomId, didManager: identity.didManager);
+      await _deregisterMember(group: group, memberDid: identity.didDocument.id);
+    } catch (e, stackTrace) {
+      /// Gracefully handle errors during leaving the group, ensuring local
+      /// cleanup is done regardless of remote operation success. Log the error
+      /// for debugging.
+      _logger.error('Failed to leave group', error: e, stackTrace: stackTrace);
+    }
   }
 
   Future<void> _deregisterMember({

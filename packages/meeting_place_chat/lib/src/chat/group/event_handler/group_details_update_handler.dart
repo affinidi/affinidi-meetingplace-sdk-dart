@@ -65,7 +65,6 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
     for (final newMember in newMembers) {
       final did = newMember['did'] as String;
       final card = attachedCards[did] ?? _resolveContactCard(did, group);
-      if (card == null) continue;
       final chatItem = await _chatRepository.createMessage(
         EventMessage.groupMemberJoined(
           chatId: _chatId,

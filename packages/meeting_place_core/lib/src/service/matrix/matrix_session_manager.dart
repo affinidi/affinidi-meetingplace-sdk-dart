@@ -35,7 +35,7 @@ class MatrixSessionManager {
   /// Default [loginSyncGracePeriod] used by [loginWithJwt] when no
   /// override is supplied. Long enough for the Matrix SDK to complete its
   /// initial one-shot work (OTK upload, key queries, to-device processing).
-  static const Duration loginSyncGracePeriod = Duration(seconds: 10);
+  static const Duration loginSyncGracePeriod = Duration(seconds: 30);
 
   /// How early before token expiry we proactively refresh, to avoid clock
   /// skew or latency causing a request to land on an expired token.

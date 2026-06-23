@@ -53,9 +53,11 @@ class MessageService {
     if (notifyChannelType == null) return;
 
     unawaited(
-      _notifyChannel(
-        recipientDid: recipientDid,
-        notifyChannelType: notifyChannelType,
+      notifyChannel(
+        IndividualChannelNotification(
+          recipientDid: recipientDid,
+          type: notifyChannelType,
+        ),
       ).catchError((Object e, StackTrace _) {
         _logger.error(
           '''Failed to send notification for message to ${recipientDid.topAndTail()}''',
@@ -66,28 +68,49 @@ class MessageService {
     );
   }
 
-  Future<void> _notifyChannel({
-    required String recipientDid,
-    required String notifyChannelType,
-  }) async {
-    final channel = await _channelService.findChannelByDidOrNull(recipientDid);
-
-    final otherPartyNotificationToken = channel?.otherPartyNotificationToken;
-    if (otherPartyNotificationToken == null) return;
-
+  /// Fires a control-plane channel notification for the given [notification].
+  ///
+  /// For an [IndividualChannelNotification] this dispatches a
+  /// [NotifyChannelCommand] using the stored
+  /// `Channel.otherPartyNotificationToken` (no-op if missing).
+  /// For a [GroupChannelNotification] this dispatches a
+  /// [GroupNotifyChannelCommand] which fans out to all group members.
+  Future<void> notifyChannel(ChannelNotification notification) async {
     try {
-      await _controlPlaneSDK.execute(
-        NotifyChannelCommand(
-          notificationToken: channel!.otherPartyNotificationToken!,
-          did: recipientDid,
-          type: notifyChannelType,
-        ),
-      );
+      switch (notification) {
+        case IndividualChannelNotification(:final recipientDid, :final type):
+          final channel = await _channelService.findChannelByDidOrNull(
+            recipientDid,
+          );
+          final otherPartyNotificationToken =
+              channel?.otherPartyNotificationToken;
+          if (otherPartyNotificationToken == null) return;
+
+          await _controlPlaneSDK.execute(
+            NotifyChannelCommand(
+              notificationToken: otherPartyNotificationToken,
+              did: recipientDid,
+              type: type,
+            ),
+          );
+        case GroupChannelNotification(
+          :final offerLink,
+          :final groupDid,
+          :final type,
+        ):
+          await _controlPlaneSDK.execute(
+            GroupNotifyChannelCommand(
+              offerLink: offerLink,
+              groupDid: groupDid,
+              type: type,
+            ),
+          );
+      }
     } catch (e) {
       _logger.error(
         'Failed to send notification for channel ',
         error: e,
-        name: 'sendMessage',
+        name: 'notifyChannel',
       );
       throw MessageServiceException.notifyChannelFailed(innerException: e);
     }

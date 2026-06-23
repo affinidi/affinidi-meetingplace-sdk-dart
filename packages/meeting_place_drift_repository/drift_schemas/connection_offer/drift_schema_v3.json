@@ -248,6 +248,18 @@
             "dsl_features": []
           },
           {
+            "name": "transport",
+            "getter_name": "transport",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('1')",
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const _ChannelTransportConverter()",
+              "dart_type_name": "ChannelTransport"
+            },
             "name": "score",
             "getter_name": "score",
             "moor_type": "int",
@@ -261,12 +273,16 @@
         "is_virtual": false,
         "without_rowid": false,
         "constraints": [],
-        "explicit_pk": ["id"]
+        "explicit_pk": [
+          "id"
+        ]
       }
     },
     {
       "id": 1,
-      "references": [0],
+      "references": [
+        0
+      ],
       "type": "table",
       "data": {
         "name": "connection_contact_cards",
@@ -284,7 +300,9 @@
             },
             "default_dart": null,
             "default_client_dart": null,
-            "dsl_features": ["auto-increment"]
+            "dsl_features": [
+              "auto-increment"
+            ]
           },
           {
             "name": "connection_offer_id",
@@ -357,7 +375,9 @@
     },
     {
       "id": 2,
-      "references": [0],
+      "references": [
+        0
+      ],
       "type": "table",
       "data": {
         "name": "group_connection_offers",
@@ -449,7 +469,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"connection_offers\" (\"id\" TEXT NOT NULL, \"offer_name\" TEXT NOT NULL, \"offer_link\" TEXT NOT NULL, \"offer_description\" TEXT NULL, \"oob_invitation_message\" TEXT NOT NULL, \"mnemonic\" TEXT NOT NULL, \"expires_at\" TEXT NULL, \"created_at\" TEXT NOT NULL, \"publish_offer_did\" TEXT NOT NULL, \"type\" INTEGER NOT NULL, \"status\" INTEGER NOT NULL, \"maximum_usage\" INTEGER NULL, \"owned_by_me\" INTEGER NOT NULL CHECK (\"owned_by_me\" IN (0, 1)), \"mediator_did\" TEXT NOT NULL, \"alias_id\" TEXT NULL, \"outbound_message_id\" TEXT NULL, \"accept_offer_did\" TEXT NULL, \"permanent_channel_did\" TEXT NULL, \"other_party_permanent_channel_did\" TEXT NULL, \"notification_token\" TEXT NULL, \"other_party_notification_token\" TEXT NULL, \"external_ref\" TEXT NULL, \"score\" INTEGER NULL, PRIMARY KEY (\"id\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"connection_offers\" (\"id\" TEXT NOT NULL, \"offer_name\" TEXT NOT NULL, \"offer_link\" TEXT NOT NULL, \"offer_description\" TEXT NULL, \"oob_invitation_message\" TEXT NOT NULL, \"mnemonic\" TEXT NOT NULL, \"expires_at\" TEXT NULL, \"created_at\" TEXT NOT NULL, \"publish_offer_did\" TEXT NOT NULL, \"type\" INTEGER NOT NULL, \"status\" INTEGER NOT NULL, \"maximum_usage\" INTEGER NULL, \"owned_by_me\" INTEGER NOT NULL CHECK (\"owned_by_me\" IN (0, 1)), \"mediator_did\" TEXT NOT NULL, \"alias_id\" TEXT NULL, \"outbound_message_id\" TEXT NULL, \"accept_offer_did\" TEXT NULL, \"permanent_channel_did\" TEXT NULL, \"other_party_permanent_channel_did\" TEXT NULL, \"notification_token\" TEXT NULL, \"other_party_notification_token\" TEXT NULL, \"external_ref\" TEXT NULL, \"transport\" INTEGER NOT NULL DEFAULT 1, \"score\" INTEGER NULL, PRIMARY KEY (\"id\"));"
         }
       ]
     },

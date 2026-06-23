@@ -19,12 +19,20 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
   value: json['value'] as String,
   attachments:
       (json['attachments'] as List<dynamic>?)
-          ?.map((e) => Attachment.fromJson(e as Map<String, dynamic>))
+          ?.map((e) => ChatAttachment.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   reactions:
-      (json['reactions'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      (json['reactions'] as List<dynamic>?)
+          ?.map((e) => MessageReaction.fromJson(e as Map<String, dynamic>))
+          .toList() ??
       const [],
+  editedAt: json['editedAt'] == null
+      ? null
+      : DateTime.parse(json['editedAt'] as String),
+  transportId: json['transportId'] as String?,
+  isDeleted: json['isDeleted'] as bool? ?? false,
+  isDeletedLocally: json['isDeletedLocally'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
@@ -36,8 +44,12 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
   'type': _$ChatItemTypeEnumMap[instance.type]!,
   'status': _$ChatItemStatusEnumMap[instance.status]!,
   'value': instance.value,
+  'editedAt': ?instance.editedAt?.toIso8601String(),
+  'transportId': ?instance.transportId,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),
-  'reactions': instance.reactions,
+  'reactions': instance.reactions.map((e) => e.toJson()).toList(),
+  'isDeleted': instance.isDeleted,
+  'isDeletedLocally': instance.isDeletedLocally,
 };
 
 const _$ChatItemStatusEnumMap = {

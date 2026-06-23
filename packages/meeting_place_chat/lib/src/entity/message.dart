@@ -1,9 +1,11 @@
-import 'package:didcomm/didcomm.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../protocol/message/chat_message/chat_message.dart';
-import '../protocol/protocol.dart' as protocol;
+import '../transport/didcomm/protocol/chat_message/chat_message.dart';
+import '../transport/matrix/matrix_media_attachment.dart';
+import 'chat_attachment.dart';
 import 'chat_item.dart';
+import 'message_reaction.dart';
 
 part 'message.g.dart';
 
@@ -15,9 +17,9 @@ part 'message.g.dart';
 /// - User reactions ([reactions])
 ///
 /// A [Message] can be created in three main ways:
-/// - From a **received** [PlainTextMessage]
-/// - From a **sent** `protocol.ChatMessage`
-/// - From any [PlainTextMessage] using the generic factory
+/// - From a received `PlainTextMessage`
+/// - From a sent `ChatMessage`
+/// - From any `PlainTextMessage` using the generic factory
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class Message extends ChatItem {
   /// Factory constructor to create a [Message] from JSON.
@@ -32,13 +34,13 @@ class Message extends ChatItem {
   }
 
   /// Factory constructor to create a [Message]
-  /// from a received [PlainTextMessage].
+  /// from a received `ChatMessage`.
   ///
   /// It sets the status to [ChatItemStatus.received] and marks
   /// the message as not created by the current user (`createdByMe = false`).
   ///
   /// **Parameters:**
-  /// - [message]: The received [PlainTextMessage].
+  /// - [message]: The received `ChatMessage`.
   ///
   /// **Returns:**
   /// - A new [Message] instance representing the received message.
@@ -50,7 +52,9 @@ class Message extends ChatItem {
       message,
       chatId: chatId,
       senderDid: message.from,
-      attachments: message.attachments,
+      attachments: message.attachments
+          .map((a) => a.toChatAttachment())
+          .toList(),
       status: ChatItemStatus.received,
       createdByMe: false,
     );
@@ -65,7 +69,7 @@ class Message extends ChatItem {
   ///  (`createdByMe = true`).
   ///
   /// **Parameters:**
-  /// - [message]: The sent [protocol.ChatMessage].
+  /// - [message]: The sent `ChatMessage`.
   ///
   /// **Returns:**
   /// - A new [Message] instance representing the sent message.
@@ -77,24 +81,25 @@ class Message extends ChatItem {
       chatId: chatId,
       message,
       senderDid: message.from,
-      attachments: message.attachments,
+      attachments: message.attachments
+          .map((a) => a.toChatAttachment())
+          .toList(),
       status: ChatItemStatus.queued,
       createdByMe: true,
     );
   }
 
   /// Generic factory constructor to create a [Message]
-  ///  from any [PlainTextMessage].
+  ///  from any `ChatMessage`.
   ///
   /// Handles both direct and group messages, mapping text and attachments.
-  ///
   /// **Parameters:**
-  /// - [message]: The [PlainTextMessage] to parse.
+  /// - [message]: The `ChatMessage` to parse.
   /// - [chatId]: The chat ID derived from DIDs.
   /// - [senderDid]: DID of the user who sent the message.
   /// - [createdByMe]: Whether the message was created by the current user.
   /// - [status]: The current status of the message.
-  /// - [attachments]: Optional list of [Attachment]s.
+  /// - [attachments]: Optional list of [ChatAttachment]s.
   ///
   /// **Returns:**
   /// - A new [Message] instance.
@@ -104,7 +109,7 @@ class Message extends ChatItem {
     required String senderDid,
     required bool createdByMe,
     required ChatItemStatus status,
-    List<Attachment>? attachments,
+    List<ChatAttachment>? attachments,
   }) {
     return Message(
       chatId: chatId,
@@ -115,6 +120,50 @@ class Message extends ChatItem {
       dateCreated: message.body.timestamp,
       status: status,
       attachments: attachments ?? [],
+      transportId: message.id,
+    );
+  }
+
+  factory Message.fromRoomEventSentByMe({
+    required MatrixRoomEvent event,
+    required String chatId,
+    required String senderDid,
+    List<ChatAttachment> attachments = const [],
+    String? messageId,
+  }) {
+    return Message(
+      chatId: chatId,
+      messageId: messageId ?? event.id,
+      senderDid: senderDid,
+      value: _valueFromRoomEvent(event),
+      isFromMe: true,
+      dateCreated: event.timestamp,
+      // Set status to sent since this is created for messages sent by me.
+      // The status will be updated to delivered/failed based on the delivery
+      // outcome.
+      status: ChatItemStatus.sent,
+      attachments: attachments,
+      transportId: event.id,
+    );
+  }
+
+  factory Message.fromRoomEventReceivedByMe({
+    required MatrixRoomEvent event,
+    required String chatId,
+    required String senderDid,
+    List<ChatAttachment> attachments = const [],
+    String? messageId,
+  }) {
+    return Message(
+      chatId: chatId,
+      messageId: messageId ?? event.id,
+      senderDid: senderDid,
+      value: _valueFromRoomEvent(event),
+      isFromMe: false,
+      dateCreated: event.timestamp,
+      status: ChatItemStatus.received,
+      attachments: attachments,
+      transportId: event.id,
     );
   }
 
@@ -130,8 +179,8 @@ class Message extends ChatItem {
   /// - [status]: Current status of the message.
   /// - [type]: Defaults to [ChatItemType.message].
   /// - [value]: The plain text content of the message.
-  /// - [attachments]: Optional list of [Attachment]s included with the message
-  /// (default: empty list).
+  /// - [attachments]: Optional list of [ChatAttachment]s included with the
+  /// message (default: empty list).
   /// - [reactions]: Optional list of reactions applied to the message
   /// (default: empty list).
   Message({
@@ -144,17 +193,65 @@ class Message extends ChatItem {
     super.type = ChatItemType.message,
     required this.value,
     this.attachments = const [],
-    List<String> reactions = const [],
+    List<MessageReaction> reactions = const [],
+    this.editedAt,
+    this.transportId,
+    this.isDeleted = false,
+    this.isDeletedLocally = false,
   }) : reactions = [...reactions];
 
-  /// The plain text content of the message.
-  final String value;
+  /// The plain text content of the message. Mutated in place when the
+  /// sender edits the message via Matrix's `m.replace` relation.
+  String value;
 
-  /// Attachments included with the message (e.g., images, files).
-  final List<Attachment> attachments;
+  /// Timestamp of the most recent edit, or `null` if the message has never
+  /// been edited. Set from the edit event's server timestamp on incoming
+  /// edits, and from the local clock on outgoing optimistic updates.
+  DateTime? editedAt;
 
-  /// List of reactions applied to this message.
-  List<String> reactions;
+  /// Identifier assigned by the underlying transport (e.g. the Matrix
+  /// `event_id`) once the message has been accepted by the server.
+  ///
+  /// `null` for messages that have not yet been delivered (queued or failed).
+  /// Required as the relation target when sending edits, reactions, or
+  /// redactions — those rely on the transport-assigned id, not the local
+  /// [messageId], which may have been generated optimistically before send.
+  String? transportId;
+
+  /// Attachments included with the message (e.g., images, files). Mutated
+  /// in place when the message is tombstoned via [clearContent].
+  List<ChatAttachment> attachments;
+
+  /// List of reactions applied to this message. Each entry records both the
+  /// emoji and the DID of the participant who applied it, so the same emoji
+  /// from different participants is counted separately and a participant can
+  /// only toggle their own reaction.
+  List<MessageReaction> reactions;
+
+  /// Whether the message has been deleted for all participants via a
+  /// transport-level redaction. Set by the original sender's
+  /// `BaseChatSDK.deleteMessage` call, or on receipt of a matching
+  /// `m.room.redaction` event. [value] is preserved so consumers can still
+  /// render a tombstone placeholder.
+  bool isDeleted;
+
+  /// Whether the message has been hidden for the local user only via
+  /// `deleteMessage(localOnly: true)`. Never broadcast; never set by
+  /// incoming events.
+  bool isDeletedLocally;
+
+  /// Wipes the user-visible content of the message in place, leaving only
+  /// the identity / metadata fields (id, sender, timestamps, transport id,
+  /// tombstone flags). Called by `deleteMessage` and on incoming
+  /// `m.room.redaction` so the chat repository never holds the original
+  /// text or attachment references of a deleted message — defending against
+  /// backup or forensic recovery of "deleted" content.
+  void clearContent() {
+    value = '';
+    attachments = [];
+    reactions = [];
+    editedAt = null;
+  }
 
   /// Serializes this [Message] into a JSON object.
   ///
@@ -164,4 +261,12 @@ class Message extends ChatItem {
   Map<String, dynamic> toJson() {
     return _$MessageToJson(this);
   }
+}
+
+String? _stringValue(Object? value) => value is String ? value : null;
+
+String _valueFromRoomEvent(MatrixRoomEvent event) {
+  final caption = MatrixMediaAttachments.extractCaption(event.content);
+  if (caption != null) return caption;
+  return _stringValue(event.content['body']) ?? '';
 }

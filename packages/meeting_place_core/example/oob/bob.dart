@@ -4,11 +4,18 @@ import 'dart:io';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
+  final vodozemacLibraryPath = getVodozemacLibraryPath();
+
+  if (!vod.isInitialized()) {
+    await vod.init(libraryPath: vodozemacLibraryPath);
+  }
+
   final outputDirectory = Directory('.example-output');
   final oobUrlBytes = File(
     '${outputDirectory.path}${Platform.pathSeparator}oob-url.txt',
@@ -51,15 +58,18 @@ void main() async {
   await acceptance.stream.dispose();
 
   await bobSDK.sendMessage(
-      PlainTextMessage(
+    DidCommOutgoingMessage(
+      senderDid: channel.permanentChannelDid!,
+      recipientDid: channel.otherPartyPermanentChannelDid!,
+      payload: PlainTextMessage(
           id: const Uuid().v4(),
           type: Uri.parse(
               'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example'),
           from: channel.permanentChannelDid,
           to: [channel.otherPartyPermanentChannelDid!],
           body: {'hello': 'world'}),
-      senderDid: channel.permanentChannelDid!,
-      recipientDid: channel.otherPartyPermanentChannelDid!);
+    ),
+  );
 
   prettyPrint('Message sent to Alice');
 }

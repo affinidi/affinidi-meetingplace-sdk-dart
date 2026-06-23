@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../protocol/contact_card/contact_card.dart';
+import 'channel.dart';
 import 'connection_offer.dart';
 
 part 'group_connection_offer.g.dart';
@@ -25,6 +26,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     required super.contactCard,
     required super.ownedByMe,
     required super.createdAt,
+    required super.transport,
     super.expiresAt,
     super.maximumUsage,
     super.outboundMessageId,
@@ -64,6 +66,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     int? maximumUsage,
     DateTime? createdAt,
     String? externalRef,
+    ChannelTransport? transport,
     int? score,
   }) {
     return GroupConnectionOffer(
@@ -95,6 +98,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       externalRef: externalRef,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
+      transport: transport ?? this.transport,
       score: score ?? this.score,
     );
   }

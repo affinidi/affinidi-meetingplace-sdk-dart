@@ -26,7 +26,10 @@ class ContactCard {
     required this.did,
     required this.type,
     required Map<String, dynamic> contactInfo,
-  }) : contactInfo = contactInfo.canonicalized();
+  }) : contactInfo = _stripEmpty(contactInfo).canonicalized();
+
+  static Map<String, dynamic> _stripEmpty(Map<String, dynamic> map) =>
+      Map.of(map)..removeWhere((_, value) => value == null || value == '');
 
   final String did;
   final String type;

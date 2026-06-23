@@ -47,6 +47,8 @@ enum MeetingPlaceCoreSDKErrorCode {
   ),
   groupOfferDoesNotExistError('group_offer_does_not_exist_error'),
   groupChannelDoesNotExistError('group_offer_channel_does_not_exist_error'),
+  groupCallerIsNotOwnerError('group_caller_is_not_owner_error'),
+  groupCannotRemoveOwnerError('group_cannot_remove_owner_error'),
 
   // channels
   channelActionNotAllowed('channel_action_not_allowed'),
@@ -61,6 +63,11 @@ enum MeetingPlaceCoreSDKErrorCode {
   oobMalformedInvitation('oob_malformed_invitation'),
   oobNotFound('oob_not_found'),
   oobInvalidType('oob_invalid_type'),
+
+  // matrix
+  matrixLoginFailed('matrix_login_failed'),
+  matrixEncryptionNotEnabled('matrix_encryption_not_enabled'),
+  matrixMediaDecryptionFailed('matrix_media_decryption_failed'),
 
   // others
   mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),

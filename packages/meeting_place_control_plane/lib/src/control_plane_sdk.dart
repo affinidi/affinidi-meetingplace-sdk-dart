@@ -4,6 +4,7 @@ import 'package:ssi/ssi.dart';
 
 import 'api/control_plane_api_client.dart';
 import 'api/control_plane_api_client_options.dart';
+import 'api/did_web_document_api.dart';
 import 'command/accept_offer/accept_offer_handler.dart';
 import 'command/accept_offer_group/accept_offer_group_handler.dart';
 import 'command/authenticate/authenticate.dart';
@@ -14,13 +15,16 @@ import 'command/delete_pending_notifications/'
     'delete_pending_notifications_handler.dart';
 import 'command/deregister_notification/deregister_notification_handler.dart';
 import 'command/deregister_offer/deregister_offer_handler.dart';
+import 'command/did_document_upload/did_document_upload_handler.dart';
 import 'command/finalise_acceptance/finalise_acceptance_handler.dart';
 import 'command/get_oob/get_oob_handler.dart';
 import 'command/get_pending_notifications/get_pending_notifications_handler.dart';
 import 'command/group_add_member/group_add_member_handler.dart';
 import 'command/group_delete/group_delete_handler.dart';
 import 'command/group_member_deregister/group_deregister_member_handler.dart';
+import 'command/group_notify_channel/group_notify_channel_handler.dart';
 import 'command/group_send_message/group_send_message_handler.dart';
+import 'command/matrix_token/matrix_token_handler.dart';
 import 'command/notify_acceptance/notify_acceptance_handler.dart';
 import 'command/notify_acceptance_group/notify_acceptance_handler.dart';
 import 'command/notify_channel/notify_channel_handler.dart';
@@ -137,6 +141,7 @@ class ControlPlaneSDK {
   /// Private method that initialises the ControlPlaneApiClient.
   /// This is invoked by a public method within the [ControlPlaneSDK].
   Future<void> _init() async {
+    _dispatcher = CommandDispatcher();
     _controlPlaneApiClient = await ControlPlaneApiClient.init(
       controlPlaneSDK: this,
       options: ControlPlaneApiClientOptions(
@@ -151,7 +156,6 @@ class ControlPlaneSDK {
       logger: _logger,
     );
 
-    _dispatcher = CommandDispatcher();
     _dispatcher.registerHandler(
       AuthenticateHandler(
         apiClient: _controlPlaneApiClient,
@@ -283,6 +287,13 @@ class ControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
+      GroupNotifyChannelHandler(
+        apiClient: _controlPlaneApiClient,
+        logger: _logger,
+      ),
+    );
+
+    _dispatcher.registerHandler(
       DeregisterNotificationHandler(
         apiClient: _controlPlaneApiClient,
         logger: _logger,
@@ -309,6 +320,21 @@ class ControlPlaneSDK {
 
     _dispatcher.registerHandler(
       NotifyOutreachHandler(apiClient: _controlPlaneApiClient),
+    );
+
+    _dispatcher.registerHandler(
+      MatrixTokenHandler(
+        apiClient: _controlPlaneApiClient,
+        didResolver: didResolver,
+        controlPlaneDid: controlPlaneDid,
+        logger: _logger,
+      ),
+    );
+
+    _dispatcher.registerHandler(
+      UploadDidWebDocumentHandler(
+        didWebDocumentApi: DidWebDocumentApi(dio: _controlPlaneApiClient.dio),
+      ),
     );
 
     _dispatcher.registerHandler(
@@ -343,16 +369,13 @@ class ControlPlaneSDK {
 
     return _withSdkExceptionHandling(() async {
       if (!isInitialized) {
-        // Ensure only one initialization happens, even with concurrent calls
         _initializing ??= _init()
             .then((_) {
               _logger.info('SDK initialization complete', name: methodName);
             })
             .catchError((Object e, StackTrace stackTrace) {
               _logger.error('SDK initialization failed: $e', name: methodName);
-              // Reset to allow retry on next execute call
               _initializing = null;
-              // Clean up partial state
               isInitialized = false;
               Error.throwWithStackTrace(e, stackTrace);
             });

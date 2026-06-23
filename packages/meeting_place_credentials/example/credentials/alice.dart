@@ -104,9 +104,13 @@ Future<void> main() async {
   // Mirrors the Chat SDK pattern: use the notification DID subscription only
   // until the permanent channel is established, then switch to the channel DID.
   prettyPrintGreen('>>> Subscribing to mediator');
-  final notificationStream = await coreSDK.subscribeToMediator(notificationDid);
+  final notificationStream = await coreSDK.subscribe(
+    DidCommSubscription(receiverDid: notificationDid),
+  );
   notificationStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Notification', data.plainTextMessage.toJson());
+    final didcommMessage = data as DidCommIncomingMessage;
+
+    prettyJsonPrintYellow('Notification', didcommMessage.payload.toJson());
     await coreSDK.processControlPlaneEvents();
   });
 
@@ -138,11 +142,12 @@ Future<void> main() async {
   // so VDIP messages stored there are delivered directly.
   await notificationStream.dispose();
   prettyPrintGreen('>>> Subscribing to channel DID for VDIP messages');
-  final channelStream = await coreSDK.subscribeToMediator(
-    aliceChannel.permanentChannelDid!,
+  final channelStream = await coreSDK.subscribe(
+    DidCommSubscription(receiverDid: aliceChannel.permanentChannelDid!),
   );
   channelStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Channel message', data.plainTextMessage.toJson());
+    final didcommMessage = data as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Channel message', didcommMessage.payload.toJson());
     await coreSDK.processControlPlaneEvents();
   });
   // Fetch any events already queued before we subscribed.

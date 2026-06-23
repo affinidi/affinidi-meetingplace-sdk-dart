@@ -66,7 +66,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
 
   /// Current schema version of the database.
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// Migration strategy applied before opening the database.
   /// Ensures foreign key constraints are enforced.
@@ -77,46 +77,60 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
     },
     onUpgrade: (migrator, from, to) async {
       if (from < 2) {
+        // v1 connection_contact_cards stored contact fields as individual
+        // columns (first_name, last_name, email, mobile, profile_pic
+        // [non-null], meetingplace_identity_card_color).  v2 replaces them
+        // with contact_info_json and profile_pic (nullable).
+        // SQLite cannot drop or change columns in-place, so we recreate
+        // the table via a temp-table rename.
         await customStatement(
           'DROP TABLE IF EXISTS connection_contact_cards_temp',
         );
         await customStatement("""
-          CREATE TABLE connection_contact_cards_temp (
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            connection_offer_id TEXT REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL,
-            did TEXT NOT NULL,
-            type TEXT NOT NULL,
-            contact_info_json TEXT NOT NULL DEFAULT '{}',
-            profile_pic TEXT NULL
-          )
-        """);
+              CREATE TABLE connection_contact_cards_temp (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                connection_offer_id TEXT REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL,
+                did TEXT NOT NULL,
+                type TEXT NOT NULL,
+                contact_info_json TEXT NOT NULL DEFAULT '{}',
+                profile_pic TEXT NULL
+              )
+            """);
         await customStatement("""
-          INSERT INTO connection_contact_cards_temp (
-            id, connection_offer_id, did, type, contact_info_json, profile_pic
-          )
-          SELECT
-            id, connection_offer_id, did, type,
-            json_object(
-              'n', json_object(
-                'given', first_name,
-                'surname', last_name
-              ),
-              'email', email,
-              'mobile', mobile,
-              'color', meetingplace_identity_card_color
-            ),
-            profile_pic
-          FROM connection_contact_cards
-        """);
+              INSERT INTO connection_contact_cards_temp (
+                id, connection_offer_id, did, type, contact_info_json, profile_pic
+              )
+              SELECT
+                id, connection_offer_id, did, type,
+                json_object(
+                  'n', json_object(
+                    'given', first_name,
+                    'surname', last_name
+                  ),
+                  'email', email,
+                  'mobile', mobile,
+                  'color', meetingplace_identity_card_color
+                ),
+                profile_pic
+              FROM connection_contact_cards
+            """);
         await customStatement('DROP TABLE connection_contact_cards');
         await customStatement(
-          'ALTER TABLE connection_contact_cards_temp RENAME TO '
-          'connection_contact_cards',
+          '''ALTER TABLE connection_contact_cards_temp RENAME TO connection_contact_cards''',
         );
       }
 
       if (from < 3 && to >= 3) {
+        await migrator.addColumn(connectionOffers, connectionOffers.transport);
         await migrator.addColumn(connectionOffers, connectionOffers.score);
+      }
+      if (from < 4 && to >= 4) {
+        // Backfill existing rows with the historical default transport
+        // (didcomm = 1). The column is now NOT NULL going forward.
+        await customStatement(
+          'UPDATE connection_offers SET transport = 1 '
+          'WHERE transport IS NULL',
+        );
       }
     },
   );
@@ -191,6 +205,13 @@ class ConnectionOffers extends Table {
 
   /// External reference for the connection offer.
   TextColumn get externalRef => text().nullable()();
+
+  /// Chat transport selected by the publisher for this offer.
+  /// Defaults to [ChannelTransport.didcomm] for offers persisted before
+  /// per-offer transport selection existed.
+  IntColumn get transport => integer()
+      .map(const _ChannelTransportConverter())
+      .withDefault(const Constant(1))();
 
   /// VRC score of the offer owner.
   IntColumn get score => integer().nullable()();
@@ -305,6 +326,31 @@ class _ConnectionOfferStatusConverter
 
   @override
   int toSql(ConnectionOfferStatus value) {
+    return value.value;
+  }
+}
+
+extension _ChannelTransportValue on ChannelTransport {
+  int get value {
+    switch (this) {
+      case ChannelTransport.didcomm:
+        return 1;
+      case ChannelTransport.matrix:
+        return 2;
+    }
+  }
+}
+
+class _ChannelTransportConverter extends TypeConverter<ChannelTransport, int> {
+  const _ChannelTransportConverter();
+
+  @override
+  ChannelTransport fromSql(int fromDb) {
+    return ChannelTransport.values.firstWhere((t) => t.value == fromDb);
+  }
+
+  @override
+  int toSql(ChannelTransport value) {
     return value.value;
   }
 }

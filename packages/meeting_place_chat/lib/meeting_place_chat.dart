@@ -1,19 +1,12 @@
-// external exports
-export 'package:didcomm/didcomm.dart'
-    show Attachment, AttachmentData, PlainTextMessage;
-
-export 'src/effect.dart';
+export 'src/chat/chat.dart';
 export 'src/entity/entity.dart';
-export 'src/loggers/meeting_place_chat_sdk_logger.dart';
+export 'src/event/event.dart';
+export 'src/logger/meeting_place_chat_sdk_logger.dart';
 export 'src/meeting_place_chat_sdk.dart';
-export 'src/protocol/protocol.dart';
+export 'src/meeting_place_chat_sdk_options.dart';
 export 'src/repository/chat_repository.dart';
-export 'src/sdk/chat.dart';
-export 'src/sdk/chat_sdk.dart';
-export 'src/sdk/chat_sdk_options.dart';
-export 'src/sdk/group_chat_sdk.dart';
-export 'src/sdk/individual_chat_sdk.dart';
-export 'src/service/chat_stream.dart';
+export 'src/transport/didcomm/chat_protocol.dart';
+export 'src/transport/transport_capabilities.dart';
 export 'src/zkp/liveness_zkp_concierge_chat_mapper.dart';
 export 'src/zkp/liveness_zkp_concierge_deriver.dart';
 export 'src/zkp/liveness_zkp_concierge_messages.dart';

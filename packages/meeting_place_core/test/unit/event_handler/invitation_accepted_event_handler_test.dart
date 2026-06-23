@@ -52,6 +52,7 @@ void main() {
     ),
     ownedByMe: true,
     createdAt: DateTime.now().toUtc(),
+    transport: ChannelTransport.didcomm,
   );
 
   final event = cp.InvitationAccept(

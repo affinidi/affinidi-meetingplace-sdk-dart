@@ -3,6 +3,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../meeting_place_core.dart';
 import '../protocol/protocol.dart' as protocol;
+import '../service/identity/identity_service.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
@@ -18,11 +19,17 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required DidResolver didResolver,
+    required MatrixService matrixService,
+    required IdentityService identityService,
   }) : _controlPlaneSDK = controlPlaneSDK,
-       _didResolver = didResolver;
+       _didResolver = didResolver,
+       _matrixService = matrixService,
+       _identityService = identityService;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
+  final MatrixService _matrixService;
+  final IdentityService _identityService;
 
   Future<List<Channel>> process(OfferFinalised event) async {
     logger.info(
@@ -108,8 +115,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       acceptOfferDid,
     );
 
-    final permanentChannelDidManager = await connectionManager
-        .getDidManagerForDid(wallet, permanentChannelDid);
+    final permanentChannelIdentity = await _identityService
+        .getPermanentIdentity(wallet, permanentChannelDid);
 
     final connectionRequestApprovalMessage =
         protocol.ConnectionRequestApproval.fromPlainTextMessage(message);
@@ -121,13 +128,21 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       is $otherPartyPermanentChannelDid''', name: 'processMessage');
 
     final notificationToken = await _registerNotificationToken(
-      permanentChannelDid,
+      permanentChannelIdentity.didDocument.id,
       otherPartyPermanentChannelDid,
     );
 
+    if (channel.transport == ChannelTransport.matrix) {
+      await _matrixService.joinChannelRoom(
+        didManager: permanentChannelIdentity.didManager,
+        channelDid: permanentChannelIdentity.didDocument.id,
+        otherPartyChannelDid: otherPartyPermanentChannelDid,
+      );
+    }
+
     await _updateMediatorAcls(
-      permanentChannelDidManager: permanentChannelDidManager,
-      permanentChannelDid: permanentChannelDid,
+      permanentChannelDidManager: permanentChannelIdentity.didManager,
+      permanentChannelDid: permanentChannelIdentity.didDocument.id,
       acceptOfferDidManager: acceptOfferDidManager,
       acceptOfferDid: acceptOfferDid,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
@@ -137,8 +152,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
 
     await _sendChannelInaugurationMessage(
       channel: channel,
-      permanentChannelDidManager: permanentChannelDidManager,
-      permanentChannelDid: permanentChannelDid,
+      permanentChannelDidManager: permanentChannelIdentity.didManager,
+      permanentChannelDid: permanentChannelIdentity.didDocument.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       notificationToken: notificationToken,
     );

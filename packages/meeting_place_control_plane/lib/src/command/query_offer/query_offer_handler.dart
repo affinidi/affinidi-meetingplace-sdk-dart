@@ -11,6 +11,7 @@ import '../../core/command/command_handler.dart';
 import '../../core/offer_type.dart';
 import '../../core/protocol/contact_card/contact_card_impl.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
+import '../../core/protocol/transport.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
 import 'query_offer.dart';
@@ -102,6 +103,7 @@ class QueryOfferHandler
         ),
         groupDid: response.groupDid,
         groupId: response.groupId,
+        transport: OfferTransport.fromString(response.transport),
         score: response.score,
       );
     } catch (e, stackTrace) {

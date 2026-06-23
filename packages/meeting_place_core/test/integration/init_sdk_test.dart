@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -72,8 +75,7 @@ void main() async {
         channelRepository: ChannelRepositoryImpl(storage: storage),
         keyRepository: KeyRepositoryImpl(storage: storage),
       ),
-      mediatorDid: getMediatorDid(),
-      controlPlaneDid: getControlPlaneDid(),
+      config: getMatrixConfig(),
     );
 
     await minimumSDK.registerForPushNotifications(const Uuid().v4());

@@ -197,6 +197,47 @@ void main() {
         expect(result.eventType, equals(callStarted));
       });
     });
+
+    group('Message attachments', () {
+      test(
+        'voice attachment metadata round-trips through persistence',
+        () async {
+          final attachment = VoiceMessageMetadata.buildAttachment(
+            base64: 'AAAA',
+            durationMs: 11000,
+            waveform: const [0, 50, 100, 25],
+            filename: 'voice.wav',
+            mediaType: 'audio/wav',
+            format: model.AttachmentFormat.hostedMedia.value,
+          )..transportId = '\$event-id';
+
+          await repository.createMessage(
+            Message(
+              chatId: 'chat-1',
+              messageId: 'msg-voice',
+              senderDid: 'did:example:alice',
+              isFromMe: false,
+              dateCreated: DateTime.utc(2026),
+              status: ChatItemStatus.received,
+              value: '',
+              attachments: [attachment],
+            ),
+          );
+
+          final stored = await repository.getMessage(
+            chatId: 'chat-1',
+            messageId: 'msg-voice',
+          );
+
+          expect(stored, isA<Message>());
+          final storedAttachment = (stored! as Message).attachments.single;
+          expect(VoiceMessageMetadata.isVoice(storedAttachment), isTrue);
+          final voice = VoiceMessageMetadata.of(storedAttachment);
+          expect(voice?.durationMs, equals(11000));
+          expect(voice?.waveform, equals(const [0, 50, 100, 25]));
+        },
+      );
+    });
   });
 
   group('contactInfoJson persistence', () {
@@ -312,6 +353,7 @@ void main() {
           ),
           ownedByMe: true,
           createdAt: DateTime.utc(2026, 1, 1),
+          transport: model.ChannelTransport.didcomm,
         );
 
         await repository.createConnectionOffer(connectionOffer);

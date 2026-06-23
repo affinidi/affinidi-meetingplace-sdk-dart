@@ -45,6 +45,9 @@ enum ControlPlaneSDKErrorCode {
   // group delete codes
   groupDeleteGeneric('group_delete_generic'),
 
+  // group notify channel codes
+  groupNotifyChannelGeneric('group_notify_channel_generic'),
+
   // group deregister member codes
   groupDeregisterMemberGeneric('group_deregister_member_generic'),
 
@@ -87,6 +90,16 @@ enum ControlPlaneSDKErrorCode {
   validateOfferPhraseRateLimit('validate_offer_phrase_rate_limit'),
   validateOfferPhraseTimeout('validate_offer_phrase_timeout'),
   validateOfferPhraseGeneric('validate_offer_phrase_generic'),
+
+  // matrix token codes
+  matrixTokenInvalidResponse('matrix_token_invalid_response'),
+  matrixTokenGeneric('matrix_token_generic'),
+
+  // upload did document codes
+  uploadDidWebDocumentGeneric('upload_did_web_document_generic'),
+  uploadDidWebDocumentAlreadyRegistered(
+    'upload_did_web_document_already_registered',
+  ),
 
   // others
   networkError('network_error'),

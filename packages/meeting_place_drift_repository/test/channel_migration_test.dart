@@ -177,4 +177,57 @@ void main() {
       await db.close();
     });
   });
+
+  group('v3 → v4 schema migration', () {
+    test('produces the correct v4 schema', () async {
+      final connection = await verifier.startAt(3);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 4);
+      await db.close();
+    });
+
+    test(
+      'adds matrix_sync_marker and transport columns with sensible defaults',
+      () async {
+        final schema = await verifier.schemaAt(3);
+
+        schema.rawDatabase.execute('''
+        INSERT INTO channels VALUES (
+          'ch-3',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-3',
+          1,
+          1,
+          0,
+          NULL,
+          NULL,
+          'did:example:permanent3',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          0,
+          NULL
+        )
+      ''');
+
+        final db = ChannelDatabase.forTesting(schema.newConnection());
+        await verifier.migrateAndValidate(db, 4);
+
+        final rows = await db
+            .customSelect(
+              'SELECT matrix_sync_marker, transport FROM channels '
+              'WHERE id = ?',
+              variables: [const Variable('ch-3')],
+            )
+            .get();
+        expect(rows.single.read<String?>('matrix_sync_marker'), isNull);
+        // Default value `1` corresponds to ChannelTransport.didcomm.
+        expect(rows.single.read<int>('transport'), equals(1));
+
+        await db.close();
+      },
+    );
+  });
 }

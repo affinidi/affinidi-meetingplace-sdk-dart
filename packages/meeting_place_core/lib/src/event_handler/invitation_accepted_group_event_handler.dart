@@ -88,7 +88,6 @@ class InvitationGroupAcceptedEventHandler
     final invitationAcceptance = InvitationAcceptanceGroup.fromPlainTextMessage(
       message,
     );
-
     final otherPartyPermanentChannelDid = invitationAcceptance.body.channelDid;
 
     logger.info(
@@ -120,6 +119,7 @@ class InvitationGroupAcceptedEventHandler
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
+      transport: ChannelTransport.matrix,
       isConnectionInitiator: true,
       contactCard: connection.contactCard,
       otherPartyContactCard: otherPartyContactCard,

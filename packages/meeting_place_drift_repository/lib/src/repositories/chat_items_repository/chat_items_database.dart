@@ -22,7 +22,15 @@ part 'chat_items_database.g.dart';
 ///
 /// Foreign key constraints are enabled via
 /// `PRAGMA foreign_keys = ON` to ensure cascade deletes.
-@DriftDatabase(tables: [ChatItems, Reactions, Attachments, AttachmentsLinks])
+@DriftDatabase(
+  tables: [
+    ChatItems,
+    Reactions,
+    Attachments,
+    AttachmentsLinks,
+    ChatSyncMarkers,
+  ],
+)
 /// Opens or creates the database.
 ///
 /// **Parameters:**
@@ -68,7 +76,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -129,9 +137,42 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
                 data, sender_did
               FROM chat_items
             ''');
+
         await customStatement('DROP TABLE chat_items');
         await customStatement(
           'ALTER TABLE chat_items_temp RENAME TO chat_items',
+        );
+      }
+      if (from < 3 && to >= 3) {
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN transport_id TEXT NULL',
+        );
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN is_deleted INTEGER NOT NULL '
+          'DEFAULT 0 CHECK ("is_deleted" IN (0, 1))',
+        );
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN is_deleted_locally INTEGER '
+          'NOT NULL DEFAULT 0 CHECK ("is_deleted_locally" IN (0, 1))',
+        );
+        await customStatement(
+          'ALTER TABLE chat_items ADD COLUMN edited_at TEXT NULL',
+        );
+        await customStatement(
+          'ALTER TABLE attachments ADD COLUMN transport_id TEXT NULL',
+        );
+        await customStatement(
+          'ALTER TABLE attachments ADD COLUMN metadata TEXT NULL',
+        );
+        await customStatement(
+          'ALTER TABLE reactions ADD COLUMN sender_did TEXT NOT NULL '
+          "DEFAULT ''",
+        );
+        await customStatement(
+          'CREATE TABLE IF NOT EXISTS chat_sync_markers ('
+          'chat_id TEXT NOT NULL, '
+          'event_id TEXT NOT NULL, '
+          'PRIMARY KEY(chat_id))',
         );
       }
     },
@@ -180,6 +221,25 @@ class ChatItems extends Table {
   /// DID of the sender.
   TextColumn get senderDid => text()();
 
+  /// Identifier assigned by the underlying transport once a message has been
+  /// accepted by the server (e.g. a Matrix `event_id`). `null` for messages
+  /// that have not yet been delivered. Used as the relation target when
+  /// sending edits, reactions, or redactions.
+  TextColumn get transportId => text().nullable()();
+
+  /// Whether the message has been redacted for all participants via the
+  /// transport. Persisted so the tombstone state survives cold start.
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+
+  /// Whether the message has been hidden for the local user only via
+  /// `deleteMessage(localOnly: true)`. Never broadcast; persisted so the
+  /// local-only hide survives cold start.
+  BoolColumn get isDeletedLocally =>
+      boolean().withDefault(const Constant(false))();
+
+  /// Timestamp of the most recent edit, or `null` if never edited.
+  DateTimeColumn get editedAt => dateTime().nullable()();
+
   /// Table primary key definition.
   @override
   Set<Column> get primaryKey => {messageId};
@@ -195,6 +255,10 @@ class Reactions extends Table {
 
   /// The reaction value (e.g., emoji).
   TextColumn get value => text()();
+
+  /// DID of the participant who applied this reaction. Empty string for
+  /// legacy rows persisted before reaction ownership was tracked.
+  TextColumn get senderDid => text().withDefault(const Constant(''))();
 }
 
 /// Stores file or media attachments tied to a [ChatItem].
@@ -240,6 +304,15 @@ class Attachments extends Table {
 
   /// JSON metadata of the attachment.
   TextColumn get json => text().nullable()();
+
+  /// Transport-level reference for downloading the attachment bytes (e.g.
+  /// Matrix event id for hosted media). `null` for inline DIDComm attachments.
+  TextColumn get transportId => text().nullable()();
+
+  /// JSON-encoded extensible media-kind metadata (e.g. voice marker, duration,
+  /// and waveform). `null` for attachments without extra metadata. Distinct
+  /// from [json], which carries the attachment's own data payload.
+  TextColumn get metadata => text().nullable()();
 }
 
 /// Stores external links tied to an [Attachment].
@@ -343,4 +416,13 @@ class _UriConverter extends TypeConverter<Uri, String> {
   String toSql(Uri value) {
     return value.toString();
   }
+}
+
+@DataClassName('ChatSyncMarker')
+class ChatSyncMarkers extends Table {
+  TextColumn get chatId => text()();
+  TextColumn get eventId => text()();
+
+  @override
+  Set<Column> get primaryKey => {chatId};
 }

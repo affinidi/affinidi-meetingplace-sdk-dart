@@ -125,6 +125,58 @@ class $ChatItemsTable extends ChatItems
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _transportIdMeta = const VerificationMeta(
+    'transportId',
+  );
+  @override
+  late final GeneratedColumn<String> transportId = GeneratedColumn<String>(
+    'transport_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isDeletedLocallyMeta = const VerificationMeta(
+    'isDeletedLocally',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeletedLocally = GeneratedColumn<bool>(
+    'is_deleted_locally',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted_locally" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _editedAtMeta = const VerificationMeta(
+    'editedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> editedAt = GeneratedColumn<DateTime>(
+    'edited_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     chatId,
@@ -138,6 +190,10 @@ class $ChatItemsTable extends ChatItems
     conciergeType,
     data,
     senderDid,
+    transportId,
+    isDeleted,
+    isDeletedLocally,
+    editedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -211,6 +267,36 @@ class $ChatItemsTable extends ChatItems
     } else if (isInserting) {
       context.missing(_senderDidMeta);
     }
+    if (data.containsKey('transport_id')) {
+      context.handle(
+        _transportIdMeta,
+        transportId.isAcceptableOrUnknown(
+          data['transport_id']!,
+          _transportIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('is_deleted_locally')) {
+      context.handle(
+        _isDeletedLocallyMeta,
+        isDeletedLocally.isAcceptableOrUnknown(
+          data['is_deleted_locally']!,
+          _isDeletedLocallyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('edited_at')) {
+      context.handle(
+        _editedAtMeta,
+        editedAt.isAcceptableOrUnknown(data['edited_at']!, _editedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -270,6 +356,22 @@ class $ChatItemsTable extends ChatItems
         DriftSqlType.string,
         data['${effectivePrefix}sender_did'],
       )!,
+      transportId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transport_id'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      isDeletedLocally: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted_locally'],
+      )!,
+      editedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}edited_at'],
+      ),
     );
   }
 
@@ -321,6 +423,24 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
 
   /// DID of the sender.
   final String senderDid;
+
+  /// Identifier assigned by the underlying transport once a message has been
+  /// accepted by the server (e.g. a Matrix `event_id`). `null` for messages
+  /// that have not yet been delivered. Used as the relation target when
+  /// sending edits, reactions, or redactions.
+  final String? transportId;
+
+  /// Whether the message has been redacted for all participants via the
+  /// transport. Persisted so the tombstone state survives cold start.
+  final bool isDeleted;
+
+  /// Whether the message has been hidden for the local user only via
+  /// `deleteMessage(localOnly: true)`. Never broadcast; persisted so the
+  /// local-only hide survives cold start.
+  final bool isDeletedLocally;
+
+  /// Timestamp of the most recent edit, or `null` if never edited.
+  final DateTime? editedAt;
   const ChatItem({
     required this.chatId,
     required this.messageId,
@@ -333,6 +453,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     this.conciergeType,
     this.data,
     required this.senderDid,
+    this.transportId,
+    required this.isDeleted,
+    required this.isDeletedLocally,
+    this.editedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -364,6 +488,14 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       );
     }
     map['sender_did'] = Variable<String>(senderDid);
+    if (!nullToAbsent || transportId != null) {
+      map['transport_id'] = Variable<String>(transportId);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['is_deleted_locally'] = Variable<bool>(isDeletedLocally);
+    if (!nullToAbsent || editedAt != null) {
+      map['edited_at'] = Variable<DateTime>(editedAt);
+    }
     return map;
   }
 
@@ -386,6 +518,14 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           : Value(conciergeType),
       data: data == null && nullToAbsent ? const Value.absent() : Value(data),
       senderDid: Value(senderDid),
+      transportId: transportId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transportId),
+      isDeleted: Value(isDeleted),
+      isDeletedLocally: Value(isDeletedLocally),
+      editedAt: editedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(editedAt),
     );
   }
 
@@ -406,6 +546,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       conciergeType: serializer.fromJson<String?>(json['conciergeType']),
       data: serializer.fromJson<Map<String, dynamic>?>(json['data']),
       senderDid: serializer.fromJson<String>(json['senderDid']),
+      transportId: serializer.fromJson<String?>(json['transportId']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      isDeletedLocally: serializer.fromJson<bool>(json['isDeletedLocally']),
+      editedAt: serializer.fromJson<DateTime?>(json['editedAt']),
     );
   }
   @override
@@ -423,6 +567,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
       'conciergeType': serializer.toJson<String?>(conciergeType),
       'data': serializer.toJson<Map<String, dynamic>?>(data),
       'senderDid': serializer.toJson<String>(senderDid),
+      'transportId': serializer.toJson<String?>(transportId),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'isDeletedLocally': serializer.toJson<bool>(isDeletedLocally),
+      'editedAt': serializer.toJson<DateTime?>(editedAt),
     };
   }
 
@@ -438,6 +586,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     Value<String?> conciergeType = const Value.absent(),
     Value<Map<String, dynamic>?> data = const Value.absent(),
     String? senderDid,
+    Value<String?> transportId = const Value.absent(),
+    bool? isDeleted,
+    bool? isDeletedLocally,
+    Value<DateTime?> editedAt = const Value.absent(),
   }) => ChatItem(
     chatId: chatId ?? this.chatId,
     messageId: messageId ?? this.messageId,
@@ -452,6 +604,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
         : this.conciergeType,
     data: data.present ? data.value : this.data,
     senderDid: senderDid ?? this.senderDid,
+    transportId: transportId.present ? transportId.value : this.transportId,
+    isDeleted: isDeleted ?? this.isDeleted,
+    isDeletedLocally: isDeletedLocally ?? this.isDeletedLocally,
+    editedAt: editedAt.present ? editedAt.value : this.editedAt,
   );
   ChatItem copyWithCompanion(ChatItemsCompanion data) {
     return ChatItem(
@@ -470,6 +626,14 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           : this.conciergeType,
       data: data.data.present ? data.data.value : this.data,
       senderDid: data.senderDid.present ? data.senderDid.value : this.senderDid,
+      transportId: data.transportId.present
+          ? data.transportId.value
+          : this.transportId,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      isDeletedLocally: data.isDeletedLocally.present
+          ? data.isDeletedLocally.value
+          : this.isDeletedLocally,
+      editedAt: data.editedAt.present ? data.editedAt.value : this.editedAt,
     );
   }
 
@@ -486,7 +650,11 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           ..write('eventType: $eventType, ')
           ..write('conciergeType: $conciergeType, ')
           ..write('data: $data, ')
-          ..write('senderDid: $senderDid')
+          ..write('senderDid: $senderDid, ')
+          ..write('transportId: $transportId, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isDeletedLocally: $isDeletedLocally, ')
+          ..write('editedAt: $editedAt')
           ..write(')'))
         .toString();
   }
@@ -504,6 +672,10 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
     conciergeType,
     data,
     senderDid,
+    transportId,
+    isDeleted,
+    isDeletedLocally,
+    editedAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -519,7 +691,11 @@ class ChatItem extends DataClass implements Insertable<ChatItem> {
           other.eventType == this.eventType &&
           other.conciergeType == this.conciergeType &&
           other.data == this.data &&
-          other.senderDid == this.senderDid);
+          other.senderDid == this.senderDid &&
+          other.transportId == this.transportId &&
+          other.isDeleted == this.isDeleted &&
+          other.isDeletedLocally == this.isDeletedLocally &&
+          other.editedAt == this.editedAt);
 }
 
 class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
@@ -534,6 +710,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
   final Value<String?> conciergeType;
   final Value<Map<String, dynamic>?> data;
   final Value<String> senderDid;
+  final Value<String?> transportId;
+  final Value<bool> isDeleted;
+  final Value<bool> isDeletedLocally;
+  final Value<DateTime?> editedAt;
   final Value<int> rowid;
   const ChatItemsCompanion({
     this.chatId = const Value.absent(),
@@ -547,6 +727,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     this.conciergeType = const Value.absent(),
     this.data = const Value.absent(),
     this.senderDid = const Value.absent(),
+    this.transportId = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isDeletedLocally = const Value.absent(),
+    this.editedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChatItemsCompanion.insert({
@@ -561,6 +745,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     this.conciergeType = const Value.absent(),
     this.data = const Value.absent(),
     required String senderDid,
+    this.transportId = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isDeletedLocally = const Value.absent(),
+    this.editedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : chatId = Value(chatId),
        messageId = Value(messageId),
@@ -579,6 +767,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     Expression<String>? conciergeType,
     Expression<String>? data,
     Expression<String>? senderDid,
+    Expression<String>? transportId,
+    Expression<bool>? isDeleted,
+    Expression<bool>? isDeletedLocally,
+    Expression<DateTime>? editedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -593,6 +785,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       if (conciergeType != null) 'concierge_type': conciergeType,
       if (data != null) 'data': data,
       if (senderDid != null) 'sender_did': senderDid,
+      if (transportId != null) 'transport_id': transportId,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (isDeletedLocally != null) 'is_deleted_locally': isDeletedLocally,
+      if (editedAt != null) 'edited_at': editedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -609,6 +805,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     Value<String?>? conciergeType,
     Value<Map<String, dynamic>?>? data,
     Value<String>? senderDid,
+    Value<String?>? transportId,
+    Value<bool>? isDeleted,
+    Value<bool>? isDeletedLocally,
+    Value<DateTime?>? editedAt,
     Value<int>? rowid,
   }) {
     return ChatItemsCompanion(
@@ -623,6 +823,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
       conciergeType: conciergeType ?? this.conciergeType,
       data: data ?? this.data,
       senderDid: senderDid ?? this.senderDid,
+      transportId: transportId ?? this.transportId,
+      isDeleted: isDeleted ?? this.isDeleted,
+      isDeletedLocally: isDeletedLocally ?? this.isDeletedLocally,
+      editedAt: editedAt ?? this.editedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -669,6 +873,18 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
     if (senderDid.present) {
       map['sender_did'] = Variable<String>(senderDid.value);
     }
+    if (transportId.present) {
+      map['transport_id'] = Variable<String>(transportId.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (isDeletedLocally.present) {
+      map['is_deleted_locally'] = Variable<bool>(isDeletedLocally.value);
+    }
+    if (editedAt.present) {
+      map['edited_at'] = Variable<DateTime>(editedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -689,6 +905,10 @@ class ChatItemsCompanion extends UpdateCompanion<ChatItem> {
           ..write('conciergeType: $conciergeType, ')
           ..write('data: $data, ')
           ..write('senderDid: $senderDid, ')
+          ..write('transportId: $transportId, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isDeletedLocally: $isDeletedLocally, ')
+          ..write('editedAt: $editedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -723,8 +943,20 @@ class $ReactionsTable extends Reactions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _senderDidMeta = const VerificationMeta(
+    'senderDid',
+  );
   @override
-  List<GeneratedColumn> get $columns => [messageId, value];
+  late final GeneratedColumn<String> senderDid = GeneratedColumn<String>(
+    'sender_did',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [messageId, value, senderDid];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -753,6 +985,12 @@ class $ReactionsTable extends Reactions
     } else if (isInserting) {
       context.missing(_valueMeta);
     }
+    if (data.containsKey('sender_did')) {
+      context.handle(
+        _senderDidMeta,
+        senderDid.isAcceptableOrUnknown(data['sender_did']!, _senderDidMeta),
+      );
+    }
     return context;
   }
 
@@ -770,6 +1008,10 @@ class $ReactionsTable extends Reactions
         DriftSqlType.string,
         data['${effectivePrefix}value'],
       )!,
+      senderDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sender_did'],
+      )!,
     );
   }
 
@@ -785,17 +1027,30 @@ class Reaction extends DataClass implements Insertable<Reaction> {
 
   /// The reaction value (e.g., emoji).
   final String value;
-  const Reaction({required this.messageId, required this.value});
+
+  /// DID of the participant who applied this reaction. Empty string for
+  /// legacy rows persisted before reaction ownership was tracked.
+  final String senderDid;
+  const Reaction({
+    required this.messageId,
+    required this.value,
+    required this.senderDid,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['message_id'] = Variable<String>(messageId);
     map['value'] = Variable<String>(value);
+    map['sender_did'] = Variable<String>(senderDid);
     return map;
   }
 
   ReactionsCompanion toCompanion(bool nullToAbsent) {
-    return ReactionsCompanion(messageId: Value(messageId), value: Value(value));
+    return ReactionsCompanion(
+      messageId: Value(messageId),
+      value: Value(value),
+      senderDid: Value(senderDid),
+    );
   }
 
   factory Reaction.fromJson(
@@ -806,6 +1061,7 @@ class Reaction extends DataClass implements Insertable<Reaction> {
     return Reaction(
       messageId: serializer.fromJson<String>(json['messageId']),
       value: serializer.fromJson<String>(json['value']),
+      senderDid: serializer.fromJson<String>(json['senderDid']),
     );
   }
   @override
@@ -814,17 +1070,21 @@ class Reaction extends DataClass implements Insertable<Reaction> {
     return <String, dynamic>{
       'messageId': serializer.toJson<String>(messageId),
       'value': serializer.toJson<String>(value),
+      'senderDid': serializer.toJson<String>(senderDid),
     };
   }
 
-  Reaction copyWith({String? messageId, String? value}) => Reaction(
-    messageId: messageId ?? this.messageId,
-    value: value ?? this.value,
-  );
+  Reaction copyWith({String? messageId, String? value, String? senderDid}) =>
+      Reaction(
+        messageId: messageId ?? this.messageId,
+        value: value ?? this.value,
+        senderDid: senderDid ?? this.senderDid,
+      );
   Reaction copyWithCompanion(ReactionsCompanion data) {
     return Reaction(
       messageId: data.messageId.present ? data.messageId.value : this.messageId,
       value: data.value.present ? data.value.value : this.value,
+      senderDid: data.senderDid.present ? data.senderDid.value : this.senderDid,
     );
   }
 
@@ -832,44 +1092,51 @@ class Reaction extends DataClass implements Insertable<Reaction> {
   String toString() {
     return (StringBuffer('Reaction(')
           ..write('messageId: $messageId, ')
-          ..write('value: $value')
+          ..write('value: $value, ')
+          ..write('senderDid: $senderDid')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(messageId, value);
+  int get hashCode => Object.hash(messageId, value, senderDid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Reaction &&
           other.messageId == this.messageId &&
-          other.value == this.value);
+          other.value == this.value &&
+          other.senderDid == this.senderDid);
 }
 
 class ReactionsCompanion extends UpdateCompanion<Reaction> {
   final Value<String> messageId;
   final Value<String> value;
+  final Value<String> senderDid;
   final Value<int> rowid;
   const ReactionsCompanion({
     this.messageId = const Value.absent(),
     this.value = const Value.absent(),
+    this.senderDid = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ReactionsCompanion.insert({
     required String messageId,
     required String value,
+    this.senderDid = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : messageId = Value(messageId),
        value = Value(value);
   static Insertable<Reaction> custom({
     Expression<String>? messageId,
     Expression<String>? value,
+    Expression<String>? senderDid,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (messageId != null) 'message_id': messageId,
       if (value != null) 'value': value,
+      if (senderDid != null) 'sender_did': senderDid,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -877,11 +1144,13 @@ class ReactionsCompanion extends UpdateCompanion<Reaction> {
   ReactionsCompanion copyWith({
     Value<String>? messageId,
     Value<String>? value,
+    Value<String>? senderDid,
     Value<int>? rowid,
   }) {
     return ReactionsCompanion(
       messageId: messageId ?? this.messageId,
       value: value ?? this.value,
+      senderDid: senderDid ?? this.senderDid,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -895,6 +1164,9 @@ class ReactionsCompanion extends UpdateCompanion<Reaction> {
     if (value.present) {
       map['value'] = Variable<String>(value.value);
     }
+    if (senderDid.present) {
+      map['sender_did'] = Variable<String>(senderDid.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -906,6 +1178,7 @@ class ReactionsCompanion extends UpdateCompanion<Reaction> {
     return (StringBuffer('ReactionsCompanion(')
           ..write('messageId: $messageId, ')
           ..write('value: $value, ')
+          ..write('senderDid: $senderDid, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1056,6 +1329,28 @@ class $AttachmentsTable extends Attachments
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _transportIdMeta = const VerificationMeta(
+    'transportId',
+  );
+  @override
+  late final GeneratedColumn<String> transportId = GeneratedColumn<String>(
+    'transport_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _metadataMeta = const VerificationMeta(
+    'metadata',
+  );
+  @override
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+    'metadata',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     messageId,
@@ -1071,6 +1366,8 @@ class $AttachmentsTable extends Attachments
     hash,
     base64,
     json,
+    transportId,
+    metadata,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1170,6 +1467,21 @@ class $AttachmentsTable extends Attachments
         json.isAcceptableOrUnknown(data['json']!, _jsonMeta),
       );
     }
+    if (data.containsKey('transport_id')) {
+      context.handle(
+        _transportIdMeta,
+        transportId.isAcceptableOrUnknown(
+          data['transport_id']!,
+          _transportIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('metadata')) {
+      context.handle(
+        _metadataMeta,
+        metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
+      );
+    }
     return context;
   }
 
@@ -1231,6 +1543,14 @@ class $AttachmentsTable extends Attachments
         DriftSqlType.string,
         data['${effectivePrefix}json'],
       ),
+      transportId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transport_id'],
+      ),
+      metadata: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}metadata'],
+      ),
     );
   }
 
@@ -1279,6 +1599,15 @@ class Attachment extends DataClass implements Insertable<Attachment> {
 
   /// JSON metadata of the attachment.
   final String? json;
+
+  /// Transport-level reference for downloading the attachment bytes (e.g.
+  /// Matrix event id for hosted media). `null` for inline DIDComm attachments.
+  final String? transportId;
+
+  /// JSON-encoded extensible media-kind metadata (e.g. voice marker, duration,
+  /// and waveform). `null` for attachments without extra metadata. Distinct
+  /// from [json], which carries the attachment's own data payload.
+  final String? metadata;
   const Attachment({
     required this.messageId,
     required this.attachmentId,
@@ -1293,6 +1622,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     this.hash,
     this.base64,
     this.json,
+    this.transportId,
+    this.metadata,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1332,6 +1663,12 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     if (!nullToAbsent || json != null) {
       map['json'] = Variable<String>(json);
     }
+    if (!nullToAbsent || transportId != null) {
+      map['transport_id'] = Variable<String>(transportId);
+    }
+    if (!nullToAbsent || metadata != null) {
+      map['metadata'] = Variable<String>(metadata);
+    }
     return map;
   }
 
@@ -1364,6 +1701,12 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           ? const Value.absent()
           : Value(base64),
       json: json == null && nullToAbsent ? const Value.absent() : Value(json),
+      transportId: transportId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transportId),
+      metadata: metadata == null && nullToAbsent
+          ? const Value.absent()
+          : Value(metadata),
     );
   }
 
@@ -1388,6 +1731,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       hash: serializer.fromJson<String?>(json['hash']),
       base64: serializer.fromJson<String?>(json['base64']),
       json: serializer.fromJson<String?>(json['json']),
+      transportId: serializer.fromJson<String?>(json['transportId']),
+      metadata: serializer.fromJson<String?>(json['metadata']),
     );
   }
   @override
@@ -1407,6 +1752,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       'hash': serializer.toJson<String?>(hash),
       'base64': serializer.toJson<String?>(base64),
       'json': serializer.toJson<String?>(json),
+      'transportId': serializer.toJson<String?>(transportId),
+      'metadata': serializer.toJson<String?>(metadata),
     };
   }
 
@@ -1424,6 +1771,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     Value<String?> hash = const Value.absent(),
     Value<String?> base64 = const Value.absent(),
     Value<String?> json = const Value.absent(),
+    Value<String?> transportId = const Value.absent(),
+    Value<String?> metadata = const Value.absent(),
   }) => Attachment(
     messageId: messageId ?? this.messageId,
     attachmentId: attachmentId ?? this.attachmentId,
@@ -1440,6 +1789,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     hash: hash.present ? hash.value : this.hash,
     base64: base64.present ? base64.value : this.base64,
     json: json.present ? json.value : this.json,
+    transportId: transportId.present ? transportId.value : this.transportId,
+    metadata: metadata.present ? metadata.value : this.metadata,
   );
   Attachment copyWithCompanion(AttachmentsCompanion data) {
     return Attachment(
@@ -1462,6 +1813,10 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       hash: data.hash.present ? data.hash.value : this.hash,
       base64: data.base64.present ? data.base64.value : this.base64,
       json: data.json.present ? data.json.value : this.json,
+      transportId: data.transportId.present
+          ? data.transportId.value
+          : this.transportId,
+      metadata: data.metadata.present ? data.metadata.value : this.metadata,
     );
   }
 
@@ -1480,7 +1835,9 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           ..write('byteCount: $byteCount, ')
           ..write('hash: $hash, ')
           ..write('base64: $base64, ')
-          ..write('json: $json')
+          ..write('json: $json, ')
+          ..write('transportId: $transportId, ')
+          ..write('metadata: $metadata')
           ..write(')'))
         .toString();
   }
@@ -1500,6 +1857,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     hash,
     base64,
     json,
+    transportId,
+    metadata,
   );
   @override
   bool operator ==(Object other) =>
@@ -1517,7 +1876,9 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           other.byteCount == this.byteCount &&
           other.hash == this.hash &&
           other.base64 == this.base64 &&
-          other.json == this.json);
+          other.json == this.json &&
+          other.transportId == this.transportId &&
+          other.metadata == this.metadata);
 }
 
 class AttachmentsCompanion extends UpdateCompanion<Attachment> {
@@ -1534,6 +1895,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
   final Value<String?> hash;
   final Value<String?> base64;
   final Value<String?> json;
+  final Value<String?> transportId;
+  final Value<String?> metadata;
   const AttachmentsCompanion({
     this.messageId = const Value.absent(),
     this.attachmentId = const Value.absent(),
@@ -1548,6 +1911,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     this.hash = const Value.absent(),
     this.base64 = const Value.absent(),
     this.json = const Value.absent(),
+    this.transportId = const Value.absent(),
+    this.metadata = const Value.absent(),
   });
   AttachmentsCompanion.insert({
     required String messageId,
@@ -1563,6 +1928,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     this.hash = const Value.absent(),
     this.base64 = const Value.absent(),
     this.json = const Value.absent(),
+    this.transportId = const Value.absent(),
+    this.metadata = const Value.absent(),
   }) : messageId = Value(messageId);
   static Insertable<Attachment> custom({
     Expression<String>? messageId,
@@ -1578,6 +1945,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     Expression<String>? hash,
     Expression<String>? base64,
     Expression<String>? json,
+    Expression<String>? transportId,
+    Expression<String>? metadata,
   }) {
     return RawValuesInsertable({
       if (messageId != null) 'message_id': messageId,
@@ -1593,6 +1962,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
       if (hash != null) 'hash': hash,
       if (base64 != null) 'base64': base64,
       if (json != null) 'json': json,
+      if (transportId != null) 'transport_id': transportId,
+      if (metadata != null) 'metadata': metadata,
     });
   }
 
@@ -1610,6 +1981,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     Value<String?>? hash,
     Value<String?>? base64,
     Value<String?>? json,
+    Value<String?>? transportId,
+    Value<String?>? metadata,
   }) {
     return AttachmentsCompanion(
       messageId: messageId ?? this.messageId,
@@ -1625,6 +1998,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
       hash: hash ?? this.hash,
       base64: base64 ?? this.base64,
       json: json ?? this.json,
+      transportId: transportId ?? this.transportId,
+      metadata: metadata ?? this.metadata,
     );
   }
 
@@ -1670,6 +2045,12 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     if (json.present) {
       map['json'] = Variable<String>(json.value);
     }
+    if (transportId.present) {
+      map['transport_id'] = Variable<String>(transportId.value);
+    }
+    if (metadata.present) {
+      map['metadata'] = Variable<String>(metadata.value);
+    }
     return map;
   }
 
@@ -1688,7 +2069,9 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
           ..write('byteCount: $byteCount, ')
           ..write('hash: $hash, ')
           ..write('base64: $base64, ')
-          ..write('json: $json')
+          ..write('json: $json, ')
+          ..write('transportId: $transportId, ')
+          ..write('metadata: $metadata')
           ..write(')'))
         .toString();
   }
@@ -1921,6 +2304,221 @@ class AttachmentsLinksCompanion extends UpdateCompanion<AttachmentLink> {
   }
 }
 
+class $ChatSyncMarkersTable extends ChatSyncMarkers
+    with TableInfo<$ChatSyncMarkersTable, ChatSyncMarker> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatSyncMarkersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _chatIdMeta = const VerificationMeta('chatId');
+  @override
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+    'chat_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  @override
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [chatId, eventId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_sync_markers';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatSyncMarker> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('chat_id')) {
+      context.handle(
+        _chatIdMeta,
+        chatId.isAcceptableOrUnknown(data['chat_id']!, _chatIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chatIdMeta);
+    }
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {chatId};
+  @override
+  ChatSyncMarker map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatSyncMarker(
+      chatId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}chat_id'],
+      )!,
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+    );
+  }
+
+  @override
+  $ChatSyncMarkersTable createAlias(String alias) {
+    return $ChatSyncMarkersTable(attachedDatabase, alias);
+  }
+}
+
+class ChatSyncMarker extends DataClass implements Insertable<ChatSyncMarker> {
+  final String chatId;
+  final String eventId;
+  const ChatSyncMarker({required this.chatId, required this.eventId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['chat_id'] = Variable<String>(chatId);
+    map['event_id'] = Variable<String>(eventId);
+    return map;
+  }
+
+  ChatSyncMarkersCompanion toCompanion(bool nullToAbsent) {
+    return ChatSyncMarkersCompanion(
+      chatId: Value(chatId),
+      eventId: Value(eventId),
+    );
+  }
+
+  factory ChatSyncMarker.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatSyncMarker(
+      chatId: serializer.fromJson<String>(json['chatId']),
+      eventId: serializer.fromJson<String>(json['eventId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'chatId': serializer.toJson<String>(chatId),
+      'eventId': serializer.toJson<String>(eventId),
+    };
+  }
+
+  ChatSyncMarker copyWith({String? chatId, String? eventId}) => ChatSyncMarker(
+    chatId: chatId ?? this.chatId,
+    eventId: eventId ?? this.eventId,
+  );
+  ChatSyncMarker copyWithCompanion(ChatSyncMarkersCompanion data) {
+    return ChatSyncMarker(
+      chatId: data.chatId.present ? data.chatId.value : this.chatId,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatSyncMarker(')
+          ..write('chatId: $chatId, ')
+          ..write('eventId: $eventId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(chatId, eventId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatSyncMarker &&
+          other.chatId == this.chatId &&
+          other.eventId == this.eventId);
+}
+
+class ChatSyncMarkersCompanion extends UpdateCompanion<ChatSyncMarker> {
+  final Value<String> chatId;
+  final Value<String> eventId;
+  final Value<int> rowid;
+  const ChatSyncMarkersCompanion({
+    this.chatId = const Value.absent(),
+    this.eventId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatSyncMarkersCompanion.insert({
+    required String chatId,
+    required String eventId,
+    this.rowid = const Value.absent(),
+  }) : chatId = Value(chatId),
+       eventId = Value(eventId);
+  static Insertable<ChatSyncMarker> custom({
+    Expression<String>? chatId,
+    Expression<String>? eventId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (chatId != null) 'chat_id': chatId,
+      if (eventId != null) 'event_id': eventId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatSyncMarkersCompanion copyWith({
+    Value<String>? chatId,
+    Value<String>? eventId,
+    Value<int>? rowid,
+  }) {
+    return ChatSyncMarkersCompanion(
+      chatId: chatId ?? this.chatId,
+      eventId: eventId ?? this.eventId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (chatId.present) {
+      map['chat_id'] = Variable<String>(chatId.value);
+    }
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatSyncMarkersCompanion(')
+          ..write('chatId: $chatId, ')
+          ..write('eventId: $eventId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$ChatItemsDatabase extends GeneratedDatabase {
   _$ChatItemsDatabase(QueryExecutor e) : super(e);
   $ChatItemsDatabaseManager get managers => $ChatItemsDatabaseManager(this);
@@ -1928,6 +2526,9 @@ abstract class _$ChatItemsDatabase extends GeneratedDatabase {
   late final $ReactionsTable reactions = $ReactionsTable(this);
   late final $AttachmentsTable attachments = $AttachmentsTable(this);
   late final $AttachmentsLinksTable attachmentsLinks = $AttachmentsLinksTable(
+    this,
+  );
+  late final $ChatSyncMarkersTable chatSyncMarkers = $ChatSyncMarkersTable(
     this,
   );
   @override
@@ -1939,6 +2540,7 @@ abstract class _$ChatItemsDatabase extends GeneratedDatabase {
     reactions,
     attachments,
     attachmentsLinks,
+    chatSyncMarkers,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1982,6 +2584,10 @@ typedef $$ChatItemsTableCreateCompanionBuilder =
       Value<String?> conciergeType,
       Value<Map<String, dynamic>?> data,
       required String senderDid,
+      Value<String?> transportId,
+      Value<bool> isDeleted,
+      Value<bool> isDeletedLocally,
+      Value<DateTime?> editedAt,
       Value<int> rowid,
     });
 typedef $$ChatItemsTableUpdateCompanionBuilder =
@@ -1997,6 +2603,10 @@ typedef $$ChatItemsTableUpdateCompanionBuilder =
       Value<String?> conciergeType,
       Value<Map<String, dynamic>?> data,
       Value<String> senderDid,
+      Value<String?> transportId,
+      Value<bool> isDeleted,
+      Value<bool> isDeletedLocally,
+      Value<DateTime?> editedAt,
       Value<int> rowid,
     });
 
@@ -2121,6 +2731,26 @@ class $$ChatItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get transportId => $composableBuilder(
+    column: $table.transportId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeletedLocally => $composableBuilder(
+    column: $table.isDeletedLocally,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> reactionsRefs(
     Expression<bool> Function($$ReactionsTableFilterComposer f) f,
   ) {
@@ -2235,6 +2865,26 @@ class $$ChatItemsTableOrderingComposer
     column: $table.senderDid,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get transportId => $composableBuilder(
+    column: $table.transportId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeletedLocally => $composableBuilder(
+    column: $table.isDeletedLocally,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get editedAt => $composableBuilder(
+    column: $table.editedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChatItemsTableAnnotationComposer
@@ -2282,6 +2932,22 @@ class $$ChatItemsTableAnnotationComposer
 
   GeneratedColumn<String> get senderDid =>
       $composableBuilder(column: $table.senderDid, builder: (column) => column);
+
+  GeneratedColumn<String> get transportId => $composableBuilder(
+    column: $table.transportId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeletedLocally => $composableBuilder(
+    column: $table.isDeletedLocally,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get editedAt =>
+      $composableBuilder(column: $table.editedAt, builder: (column) => column);
 
   Expression<T> reactionsRefs<T extends Object>(
     Expression<T> Function($$ReactionsTableAnnotationComposer a) f,
@@ -2373,6 +3039,10 @@ class $$ChatItemsTableTableManager
                 Value<String?> conciergeType = const Value.absent(),
                 Value<Map<String, dynamic>?> data = const Value.absent(),
                 Value<String> senderDid = const Value.absent(),
+                Value<String?> transportId = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isDeletedLocally = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatItemsCompanion(
                 chatId: chatId,
@@ -2386,6 +3056,10 @@ class $$ChatItemsTableTableManager
                 conciergeType: conciergeType,
                 data: data,
                 senderDid: senderDid,
+                transportId: transportId,
+                isDeleted: isDeleted,
+                isDeletedLocally: isDeletedLocally,
+                editedAt: editedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2401,6 +3075,10 @@ class $$ChatItemsTableTableManager
                 Value<String?> conciergeType = const Value.absent(),
                 Value<Map<String, dynamic>?> data = const Value.absent(),
                 required String senderDid,
+                Value<String?> transportId = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isDeletedLocally = const Value.absent(),
+                Value<DateTime?> editedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatItemsCompanion.insert(
                 chatId: chatId,
@@ -2414,6 +3092,10 @@ class $$ChatItemsTableTableManager
                 conciergeType: conciergeType,
                 data: data,
                 senderDid: senderDid,
+                transportId: transportId,
+                isDeleted: isDeleted,
+                isDeletedLocally: isDeletedLocally,
+                editedAt: editedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2503,12 +3185,14 @@ typedef $$ReactionsTableCreateCompanionBuilder =
     ReactionsCompanion Function({
       required String messageId,
       required String value,
+      Value<String> senderDid,
       Value<int> rowid,
     });
 typedef $$ReactionsTableUpdateCompanionBuilder =
     ReactionsCompanion Function({
       Value<String> messageId,
       Value<String> value,
+      Value<String> senderDid,
       Value<int> rowid,
     });
 
@@ -2550,6 +3234,11 @@ class $$ReactionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get senderDid => $composableBuilder(
+    column: $table.senderDid,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ChatItemsTableFilterComposer get messageId {
     final $$ChatItemsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2588,6 +3277,11 @@ class $$ReactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get senderDid => $composableBuilder(
+    column: $table.senderDid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ChatItemsTableOrderingComposer get messageId {
     final $$ChatItemsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2623,6 +3317,9 @@ class $$ReactionsTableAnnotationComposer
   });
   GeneratedColumn<String> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get senderDid =>
+      $composableBuilder(column: $table.senderDid, builder: (column) => column);
 
   $$ChatItemsTableAnnotationComposer get messageId {
     final $$ChatItemsTableAnnotationComposer composer = $composerBuilder(
@@ -2678,20 +3375,24 @@ class $$ReactionsTableTableManager
               ({
                 Value<String> messageId = const Value.absent(),
                 Value<String> value = const Value.absent(),
+                Value<String> senderDid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReactionsCompanion(
                 messageId: messageId,
                 value: value,
+                senderDid: senderDid,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String messageId,
                 required String value,
+                Value<String> senderDid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReactionsCompanion.insert(
                 messageId: messageId,
                 value: value,
+                senderDid: senderDid,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -2776,6 +3477,8 @@ typedef $$AttachmentsTableCreateCompanionBuilder =
       Value<String?> hash,
       Value<String?> base64,
       Value<String?> json,
+      Value<String?> transportId,
+      Value<String?> metadata,
     });
 typedef $$AttachmentsTableUpdateCompanionBuilder =
     AttachmentsCompanion Function({
@@ -2792,6 +3495,8 @@ typedef $$AttachmentsTableUpdateCompanionBuilder =
       Value<String?> hash,
       Value<String?> base64,
       Value<String?> json,
+      Value<String?> transportId,
+      Value<String?> metadata,
     });
 
 final class $$AttachmentsTableReferences
@@ -2913,6 +3618,16 @@ class $$AttachmentsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get transportId => $composableBuilder(
+    column: $table.transportId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ChatItemsTableFilterComposer get messageId {
     final $$ChatItemsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -3031,6 +3746,16 @@ class $$AttachmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get transportId => $composableBuilder(
+    column: $table.transportId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get metadata => $composableBuilder(
+    column: $table.metadata,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ChatItemsTableOrderingComposer get messageId {
     final $$ChatItemsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3105,6 +3830,14 @@ class $$AttachmentsTableAnnotationComposer
 
   GeneratedColumn<String> get json =>
       $composableBuilder(column: $table.json, builder: (column) => column);
+
+  GeneratedColumn<String> get transportId => $composableBuilder(
+    column: $table.transportId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get metadata =>
+      $composableBuilder(column: $table.metadata, builder: (column) => column);
 
   $$ChatItemsTableAnnotationComposer get messageId {
     final $$ChatItemsTableAnnotationComposer composer = $composerBuilder(
@@ -3198,6 +3931,8 @@ class $$AttachmentsTableTableManager
                 Value<String?> hash = const Value.absent(),
                 Value<String?> base64 = const Value.absent(),
                 Value<String?> json = const Value.absent(),
+                Value<String?> transportId = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
               }) => AttachmentsCompanion(
                 messageId: messageId,
                 attachmentId: attachmentId,
@@ -3212,6 +3947,8 @@ class $$AttachmentsTableTableManager
                 hash: hash,
                 base64: base64,
                 json: json,
+                transportId: transportId,
+                metadata: metadata,
               ),
           createCompanionCallback:
               ({
@@ -3228,6 +3965,8 @@ class $$AttachmentsTableTableManager
                 Value<String?> hash = const Value.absent(),
                 Value<String?> base64 = const Value.absent(),
                 Value<String?> json = const Value.absent(),
+                Value<String?> transportId = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
               }) => AttachmentsCompanion.insert(
                 messageId: messageId,
                 attachmentId: attachmentId,
@@ -3242,6 +3981,8 @@ class $$AttachmentsTableTableManager
                 hash: hash,
                 base64: base64,
                 json: json,
+                transportId: transportId,
+                metadata: metadata,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -3616,6 +4357,159 @@ typedef $$AttachmentsLinksTableProcessedTableManager =
       AttachmentLink,
       PrefetchHooks Function({bool attachmentId})
     >;
+typedef $$ChatSyncMarkersTableCreateCompanionBuilder =
+    ChatSyncMarkersCompanion Function({
+      required String chatId,
+      required String eventId,
+      Value<int> rowid,
+    });
+typedef $$ChatSyncMarkersTableUpdateCompanionBuilder =
+    ChatSyncMarkersCompanion Function({
+      Value<String> chatId,
+      Value<String> eventId,
+      Value<int> rowid,
+    });
+
+class $$ChatSyncMarkersTableFilterComposer
+    extends Composer<_$ChatItemsDatabase, $ChatSyncMarkersTable> {
+  $$ChatSyncMarkersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatSyncMarkersTableOrderingComposer
+    extends Composer<_$ChatItemsDatabase, $ChatSyncMarkersTable> {
+  $$ChatSyncMarkersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get chatId => $composableBuilder(
+    column: $table.chatId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChatSyncMarkersTableAnnotationComposer
+    extends Composer<_$ChatItemsDatabase, $ChatSyncMarkersTable> {
+  $$ChatSyncMarkersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get chatId =>
+      $composableBuilder(column: $table.chatId, builder: (column) => column);
+
+  GeneratedColumn<String> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
+}
+
+class $$ChatSyncMarkersTableTableManager
+    extends
+        RootTableManager<
+          _$ChatItemsDatabase,
+          $ChatSyncMarkersTable,
+          ChatSyncMarker,
+          $$ChatSyncMarkersTableFilterComposer,
+          $$ChatSyncMarkersTableOrderingComposer,
+          $$ChatSyncMarkersTableAnnotationComposer,
+          $$ChatSyncMarkersTableCreateCompanionBuilder,
+          $$ChatSyncMarkersTableUpdateCompanionBuilder,
+          (
+            ChatSyncMarker,
+            BaseReferences<
+              _$ChatItemsDatabase,
+              $ChatSyncMarkersTable,
+              ChatSyncMarker
+            >,
+          ),
+          ChatSyncMarker,
+          PrefetchHooks Function()
+        > {
+  $$ChatSyncMarkersTableTableManager(
+    _$ChatItemsDatabase db,
+    $ChatSyncMarkersTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatSyncMarkersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatSyncMarkersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatSyncMarkersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> chatId = const Value.absent(),
+                Value<String> eventId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ChatSyncMarkersCompanion(
+                chatId: chatId,
+                eventId: eventId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String chatId,
+                required String eventId,
+                Value<int> rowid = const Value.absent(),
+              }) => ChatSyncMarkersCompanion.insert(
+                chatId: chatId,
+                eventId: eventId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChatSyncMarkersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$ChatItemsDatabase,
+      $ChatSyncMarkersTable,
+      ChatSyncMarker,
+      $$ChatSyncMarkersTableFilterComposer,
+      $$ChatSyncMarkersTableOrderingComposer,
+      $$ChatSyncMarkersTableAnnotationComposer,
+      $$ChatSyncMarkersTableCreateCompanionBuilder,
+      $$ChatSyncMarkersTableUpdateCompanionBuilder,
+      (
+        ChatSyncMarker,
+        BaseReferences<
+          _$ChatItemsDatabase,
+          $ChatSyncMarkersTable,
+          ChatSyncMarker
+        >,
+      ),
+      ChatSyncMarker,
+      PrefetchHooks Function()
+    >;
 
 class $ChatItemsDatabaseManager {
   final _$ChatItemsDatabase _db;
@@ -3628,4 +4522,6 @@ class $ChatItemsDatabaseManager {
       $$AttachmentsTableTableManager(_db, _db.attachments);
   $$AttachmentsLinksTableTableManager get attachmentsLinks =>
       $$AttachmentsLinksTableTableManager(_db, _db.attachmentsLinks);
+  $$ChatSyncMarkersTableTableManager get chatSyncMarkers =>
+      $$ChatSyncMarkersTableTableManager(_db, _db.chatSyncMarkers);
 }

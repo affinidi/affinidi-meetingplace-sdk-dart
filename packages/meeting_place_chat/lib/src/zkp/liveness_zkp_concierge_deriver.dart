@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 
+import '../entity/chat_attachment_conversion.dart';
 import '../entity/chat_item.dart';
 import '../entity/concierge_message.dart';
 import '../entity/message.dart';
@@ -17,9 +18,15 @@ abstract final class LivenessZkpConciergeDeriver {
 
     return message.attachments.any(
       (attachment) =>
-          LivenessZkpAttachmentParser.matchesRequestFormat(attachment) ||
-          LivenessZkpAttachmentParser.matchesProofFormat(attachment) ||
-          LivenessZkpAttachmentParser.matchesDeclinedFormat(attachment),
+          LivenessZkpAttachmentParser.matchesRequestFormat(
+            attachment.toDIDComm(),
+          ) ||
+          LivenessZkpAttachmentParser.matchesProofFormat(
+            attachment.toDIDComm(),
+          ) ||
+          LivenessZkpAttachmentParser.matchesDeclinedFormat(
+            attachment.toDIDComm(),
+          ),
     );
   }
 
@@ -37,13 +44,19 @@ abstract final class LivenessZkpConciergeDeriver {
 
     return (
       hasRequest:
-          LivenessZkpAttachmentParser.tryParseRequestIn(message.attachments) !=
+          LivenessZkpAttachmentParser.tryParseRequestIn(
+            message.attachments.map((a) => a.toDIDComm()),
+          ) !=
           null,
       hasProof:
-          LivenessZkpAttachmentParser.tryParseProofIn(message.attachments) !=
+          LivenessZkpAttachmentParser.tryParseProofIn(
+            message.attachments.map((a) => a.toDIDComm()),
+          ) !=
           null,
       hasDeclined:
-          LivenessZkpAttachmentParser.tryParseDeclinedIn(message.attachments) !=
+          LivenessZkpAttachmentParser.tryParseDeclinedIn(
+            message.attachments.map((a) => a.toDIDComm()),
+          ) !=
           null,
     );
   }
@@ -65,6 +78,16 @@ abstract final class LivenessZkpConciergeDeriver {
           messageId: LivenessZkpConciergeIds.requestReceived(item.messageId),
           dateCreated: item.dateCreated,
           contactName: contactName,
+        ),
+      );
+    }
+
+    if (kinds.hasRequest && item.isFromMe) {
+      out.add(
+        LivenessZkpConciergeMessages.humanZkpRequestInitiated(
+          chatId: item.chatId,
+          messageId: LivenessZkpConciergeIds.requestInitiated(item.messageId),
+          dateCreated: item.dateCreated,
         ),
       );
     }
@@ -116,6 +139,8 @@ abstract final class LivenessZkpConciergeDeriver {
     ({Message message, bool hasRequest, bool hasProof, bool hasDeclined})?
     latestIncomingRequest;
     ({Message message, bool hasRequest, bool hasProof, bool hasDeclined})?
+    latestMyRequest;
+    ({Message message, bool hasRequest, bool hasProof, bool hasDeclined})?
     latestMyProof;
     ({Message message, bool hasRequest, bool hasProof, bool hasDeclined})?
     latestTheirDeclined;
@@ -132,6 +157,17 @@ abstract final class LivenessZkpConciergeDeriver {
               latestIncomingRequest.message.dateCreated,
             )) {
           latestIncomingRequest = (
+            message: item,
+            hasRequest: kinds.hasRequest,
+            hasProof: kinds.hasProof,
+            hasDeclined: kinds.hasDeclined,
+          );
+        }
+      }
+      if (kinds.hasRequest && item.isFromMe) {
+        if (latestMyRequest == null ||
+            item.dateCreated.isAfter(latestMyRequest.message.dateCreated)) {
+          latestMyRequest = (
             message: item,
             hasRequest: kinds.hasRequest,
             hasProof: kinds.hasProof,
@@ -186,6 +222,31 @@ abstract final class LivenessZkpConciergeDeriver {
               hasRequest: latestIncomingRequest.hasRequest,
               hasProof: latestIncomingRequest.hasProof,
               hasDeclined: latestIncomingRequest.hasDeclined,
+            ),
+          ),
+        );
+      }
+    }
+    if (latestMyRequest != null) {
+      final fulfilledByTheirProof =
+          latestTheirProof != null &&
+          !latestTheirProof.dateCreated.isBefore(
+            latestMyRequest.message.dateCreated,
+          );
+      final fulfilledByTheirDeclined =
+          latestTheirDeclined != null &&
+          !latestTheirDeclined.message.dateCreated.isBefore(
+            latestMyRequest.message.dateCreated,
+          );
+      if (!fulfilledByTheirProof && !fulfilledByTheirDeclined) {
+        derived.addAll(
+          deriveConciergeMessagesFromMessage(
+            latestMyRequest.message,
+            contactName: contactName,
+            attachmentKinds: (
+              hasRequest: latestMyRequest.hasRequest,
+              hasProof: latestMyRequest.hasProof,
+              hasDeclined: latestMyRequest.hasDeclined,
             ),
           ),
         );

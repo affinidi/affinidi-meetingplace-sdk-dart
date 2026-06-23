@@ -1,13 +1,9 @@
-import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
-
-import '../exceptions/meeting_place_core_repository_error_code.dart';
-import '../exceptions/meeting_place_core_repository_exception.dart';
 
 /// Class with implementations specific to native platforms
 class DatabasePlatform {
@@ -18,64 +14,25 @@ class DatabasePlatform {
     bool logStatements = false,
   }) {
     final dbPath = p.join(directory.path, databaseName);
-    final escapedPassphrase = passphrase.replaceAll("'", "''");
 
     final sqliteDb = sqlite3.open(dbPath);
+    sqliteDb.execute("PRAGMA key = '$passphrase';");
 
-    // PRAGMA cipher is sqlite3mc-specific and replaces the old
-    // PRAGMA cipher_version check that only worked with SQLCipher.
-    final cipherCheck = sqliteDb.select('PRAGMA cipher;');
-    if (cipherCheck.isEmpty) {
-      sqliteDb.close();
-      throw MeetingPlaceCoreRepositoryException(
-        'Database encryption not available. '
-        'Add to pubspec.yaml: '
-        'hooks: user_defines: sqlite3: source: sqlite3mc',
-        code: MeetingPlaceCoreRepositoryErrorCode.encryptionNotAvailable,
-      );
+    final cipherVersion = sqliteDb.select('PRAGMA cipher_version;');
+    if (cipherVersion.isEmpty) {
+      throw UnsupportedError('SQLCipher not available');
     }
 
-    // Try default sqlite3mc cipher first — used for new databases and
-    // databases already created with the current sqlite3mc build.
-    try {
-      sqliteDb.execute("PRAGMA key = '$escapedPassphrase';");
-      sqliteDb.select('SELECT count(*) FROM sqlite_master;');
-      return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
-    } on SqliteException catch (e) {
-      developer.log(
-        'Default sqlite3mc cipher failed, retrying with SQLCipher '
-        'legacy mode: $e',
-        name: 'DatabasePlatform',
-      );
-      sqliteDb.close();
-    }
+    sqliteDb.select('SELECT count(*) FROM sqlite_master;');
 
-    // Default cipher failed — database was created with SQLCipher.
-    // Reopen in compatibility mode (legacy only for migration).
-    final legacyDb = sqlite3.open(dbPath);
-    try {
-      legacyDb.execute("PRAGMA cipher = 'sqlcipher';");
-      legacyDb.execute('PRAGMA legacy = 4;');
-      legacyDb.execute("PRAGMA key = '$escapedPassphrase';");
-      legacyDb.select('SELECT count(*) FROM sqlite_master;');
-      return NativeDatabase.opened(legacyDb, logStatements: logStatements);
-    } catch (e, st) {
-      developer.log(
-        'SQLCipher legacy mode failed: $e',
-        name: 'DatabasePlatform',
-        error: e,
-        stackTrace: st,
-      );
-      legacyDb.close();
-      rethrow;
-    }
+    return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
   }
 
-  /// Creates a database for native platform using SQLite with encryption.
+  /// Creates a database for native platform using SQLite and SQLCipher.
   ///
   /// **Parameters:**
   /// - [databaseName]: The name of the database file.
-  /// - [passphrase]: The passphrase used to open the encrypted database.
+  /// - [passphrase]: The passphrase used to encrypt the database.
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
@@ -96,27 +53,35 @@ class DatabasePlatform {
     );
   }
 
-  static NativeDatabase _openInMemoryDatabase({bool logStatements = false}) {
-    return NativeDatabase.memory(logStatements: logStatements);
+  static NativeDatabase _openInMemoryDatabase({
+    required String passphrase,
+    bool logStatements = false,
+  }) {
+    final sqliteDb = sqlite3.openInMemory();
+    sqliteDb.execute("PRAGMA key = '$passphrase';");
+
+    return NativeDatabase.opened(sqliteDb, logStatements: logStatements);
   }
 
-  /// Creates an in-memory database for native platform using SQLite.
-  ///
-  /// In-memory databases do not use file-based encryption.
+  /// Creates an in-memory database for native platform using SQLite and
+  /// SQLCipher.
   ///
   /// **Parameters:**
-  /// - [passphrase]: Accepted for API consistency with [createDatabase] but
-  /// not applied to the in-memory database.
+  /// - [passphrase]: The passphrase used to encrypt the database.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
   ///
   /// **Returns:**
-  /// - A [QueryExecutor] instance connected to the in-memory database.
+  /// - A [QueryExecutor] instance connected to the encrypted in-memory
+  /// database.
   static Future<QueryExecutor> createInMemoryDatabase({
     required String passphrase,
     bool logStatements = false,
   }) async {
-    return _openInMemoryDatabase(logStatements: logStatements);
+    return _openInMemoryDatabase(
+      passphrase: passphrase,
+      logStatements: logStatements,
+    );
   }
 
   /// Information about the database platform.
@@ -132,13 +97,10 @@ class DatabasePlatform {
 ///
 /// **Parameters:**
 /// - [databaseName]: The name of the database file.
-/// - [passphrase]: The passphrase used to open the encrypted database when
-///   [inMemory] is `false`.
+/// - [passphrase]: The passphrase used to encrypt the database.
 /// - [directory]: The directory where the database file is stored.
 /// - [logStatements]: A boolean indicating whether to log SQL statements
 /// (default is false).
-/// - [inMemory]: When `true`, returns an in-memory database and skips
-///   file-based encryption configuration.
 /// - [lazy]: When `true` (default), wraps the connection in a [LazyDatabase]
 /// that defers opening until the first query. When `false`, opens the
 /// database immediately and returns the executor directly.
@@ -156,6 +118,7 @@ QueryExecutor openConnection({
   if (!lazy) {
     if (inMemory) {
       return DatabasePlatform._openInMemoryDatabase(
+        passphrase: passphrase,
         logStatements: logStatements,
       );
     }
@@ -170,13 +133,14 @@ QueryExecutor openConnection({
   if (inMemory) {
     return LazyDatabase(() async {
       return DatabasePlatform._openInMemoryDatabase(
+        passphrase: passphrase,
         logStatements: logStatements,
       );
     });
   }
 
   return LazyDatabase(() async {
-    return DatabasePlatform.createDatabase(
+    return DatabasePlatform._openDatabase(
       databaseName: databaseName,
       passphrase: passphrase,
       directory: directory,

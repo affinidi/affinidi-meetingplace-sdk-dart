@@ -1,6 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
 import '../protocol/contact_card/contact_card.dart';
+import 'channel.dart';
 
 part 'connection_offer.g.dart';
 
@@ -31,6 +32,7 @@ class ConnectionOffer {
     required this.contactCard,
     required this.ownedByMe,
     required this.createdAt,
+    required this.transport,
     this.expiresAt,
     this.maximumUsage,
     this.offerDescription,
@@ -80,6 +82,14 @@ class ConnectionOffer {
 
   final String? externalRef;
 
+  /// Transport selected by the publisher for this offer. Determines which
+  /// transport ([ChannelTransport]) for messaging the resulting [Channel]
+  /// will use.
+  ///
+  /// Only meaningful for individual offers. Group offers always use
+  /// [ChannelTransport.matrix] regardless of this value.
+  final ChannelTransport transport;
+
   /// VRC score of the offer owner.
   final int? score;
 
@@ -104,6 +114,7 @@ class ConnectionOffer {
     int? maximumUsage,
     String? externalRef,
     DateTime? createdAt,
+    ChannelTransport? transport,
     int? score,
   }) {
     return ConnectionOffer(
@@ -130,6 +141,7 @@ class ConnectionOffer {
       externalRef: externalRef ?? this.externalRef,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
+      transport: transport ?? this.transport,
       score: score ?? this.score,
     );
   }

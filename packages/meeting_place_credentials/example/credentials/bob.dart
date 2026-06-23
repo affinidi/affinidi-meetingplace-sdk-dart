@@ -71,9 +71,12 @@ Future<void> main() async {
 
   // ── 6. Subscribe to mediator (notification DID for initial handshake) ──
   prettyPrintGreen('>>> Subscribing to mediator');
-  final notificationStream = await coreSDK.subscribeToMediator(notificationDid);
+  final notificationStream = await coreSDK.subscribe(
+    DidCommSubscription(receiverDid: notificationDid),
+  );
   notificationStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Notification', data.plainTextMessage.toJson());
+    final didcommMessage = data as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Notification', didcommMessage.payload.toJson());
     await coreSDK.processControlPlaneEvents();
   });
 
@@ -103,11 +106,12 @@ Future<void> main() async {
   // Chat SDK: dispose the handshake stream, subscribe to the channel inbox.
   await notificationStream.dispose();
   prettyPrintGreen('>>> Subscribing to channel DID for VDIP messages');
-  final channelStream = await coreSDK.subscribeToMediator(
-    bobChannel.permanentChannelDid!,
+  final channelStream = await coreSDK.subscribe(
+    DidCommSubscription(receiverDid: bobChannel.permanentChannelDid!),
   );
   channelStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Channel message', data.plainTextMessage.toJson());
+    final didcommMessage = data as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Channel message', didcommMessage.payload.toJson());
     await coreSDK.processControlPlaneEvents();
   });
   // Fetch any events already queued before we subscribed.

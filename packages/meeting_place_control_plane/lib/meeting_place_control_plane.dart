@@ -6,6 +6,8 @@ export 'src/control_plane_sdk_options.dart';
 export 'src/core/device/device.dart';
 export 'src/core/device/device_platform.dart';
 export 'src/core/event/event.dart';
+export 'src/core/model/did_document_hosting_record.dart';
+export 'src/core/model/did_web_proof.dart';
 export 'src/core/offer_type.dart';
 export 'src/core/protocol/protocol.dart';
 export 'src/loggers/control_plane_sdk_logger.dart';

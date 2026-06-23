@@ -195,6 +195,8 @@ class _$RegisterOfferInput extends RegisterOfferInput {
   @override
   final String? metadata;
   @override
+  final String transport;
+  @override
   final int? score;
 
   factory _$RegisterOfferInput([
@@ -218,6 +220,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     this.customPhrase,
     this.isSearchable,
     this.metadata,
+    required this.transport,
     this.score,
   }) : super._();
   @override
@@ -249,6 +252,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
         customPhrase == other.customPhrase &&
         isSearchable == other.isSearchable &&
         metadata == other.metadata &&
+        transport == other.transport &&
         score == other.score;
   }
 
@@ -271,6 +275,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
     _$hash = $jc(_$hash, customPhrase.hashCode);
     _$hash = $jc(_$hash, isSearchable.hashCode);
     _$hash = $jc(_$hash, metadata.hashCode);
+    _$hash = $jc(_$hash, transport.hashCode);
     _$hash = $jc(_$hash, score.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -295,6 +300,7 @@ class _$RegisterOfferInput extends RegisterOfferInput {
           ..add('customPhrase', customPhrase)
           ..add('isSearchable', isSearchable)
           ..add('metadata', metadata)
+          ..add('transport', transport)
           ..add('score', score))
         .toString();
   }
@@ -375,6 +381,10 @@ class RegisterOfferInputBuilder
   String? get metadata => _$this._metadata;
   set metadata(String? metadata) => _$this._metadata = metadata;
 
+  String? _transport;
+  String? get transport => _$this._transport;
+  set transport(String? transport) => _$this._transport = transport;
+
   int? _score;
   int? get score => _$this._score;
   set score(int? score) => _$this._score = score;
@@ -402,6 +412,7 @@ class RegisterOfferInputBuilder
       _customPhrase = $v.customPhrase;
       _isSearchable = $v.isSearchable;
       _metadata = $v.metadata;
+      _transport = $v.transport;
       _score = $v.score;
       _$v = null;
     }
@@ -477,6 +488,11 @@ class RegisterOfferInputBuilder
           customPhrase: customPhrase,
           isSearchable: isSearchable,
           metadata: metadata,
+          transport: BuiltValueNullFieldError.checkNotNull(
+            transport,
+            r'RegisterOfferInput',
+            'transport',
+          ),
           score: score,
         );
     replace(_$result);

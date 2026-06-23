@@ -109,6 +109,7 @@ class InvitationAcceptedEventHandler
       outboundMessageId: message.id,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,
+      transport: connection.transport,
       isConnectionInitiator: true,
       contactCard: connection.contactCard,
       otherPartyContactCard: invitationAcceptance.contactCard,

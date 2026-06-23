@@ -13,6 +13,7 @@ import '../../utils/string.dart';
 import '../channel/channel_service.dart';
 import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
+import '../identity/identity_service.dart';
 import '../mediator/mediator_service.dart';
 import 'oob_service_exception.dart';
 import 'session/oob_acceptance_session.dart';
@@ -26,6 +27,7 @@ class OobService {
     required MediatorService mediatorService,
     required ConnectionService connectionService,
     required ConnectionManager connectionManager,
+    required IdentityService identityService,
     required ChannelService channelService,
     required ControlPlaneSDK controlPlaneSDK,
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
@@ -35,6 +37,7 @@ class OobService {
        _mediatorService = mediatorService,
        _connectionService = connectionService,
        _connectionManager = connectionManager,
+       _identityService = identityService,
        _channelService = channelService,
        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
        _controlPlaneSDK = controlPlaneSDK,
@@ -45,6 +48,7 @@ class OobService {
   final MediatorService _mediatorService;
   final ConnectionService _connectionService;
   final ConnectionManager _connectionManager;
+  final IdentityService _identityService;
   final ChannelService _channelService;
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
   final ControlPlaneSDK _controlPlaneSDK;
@@ -63,29 +67,31 @@ class OobService {
     _logger.info('Started creating OOB invitation', name: _logKey);
 
     // Create OOB data
-    final oobDidManager = await _connectionManager.generateDid(_wallet);
-    final oobDidDoc = await oobDidManager.getDidDocument();
+    final oobIdentity = await _identityService.createEphemeralIdentity(_wallet);
     final oobMessage = OobInvitationMessage.create(
-      from: oobDidDoc.id,
+      from: oobIdentity.didDocument.id,
       type: type,
     );
 
-    _logger.info('''Setup OOB invitation for ${oobDidDoc.id.topAndTail()} on
-      $mediatorDid''', name: _logKey);
+    _logger.info(
+      '''Setup OOB invitation for ${oobIdentity.didDocument.id.topAndTail()} on
+      $mediatorDid''',
+      name: _logKey,
+    );
 
     // Authenticate with the mediator before updating ACLs and
     // subscribing to messages. This ensures authentication occurs only once,
     // even though the following operations run in parallel.
     await _mediatorService.authenticate(
-      didManager: oobDidManager,
+      didManager: oobIdentity.didManager,
       mediatorDid: mediatorDid,
     );
 
     final (_, oobOutput, subscription) = await (
       _mediatorService.updateAcl(
-        ownerDidManager: oobDidManager,
+        ownerDidManager: oobIdentity.didManager,
         mediatorDid: mediatorDid,
-        acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
+        acl: AclSet.toPublic(ownerDid: oobIdentity.didDocument.id),
       ),
       _controlPlaneSDK.execute(
         CreateOobCommand(
@@ -94,7 +100,7 @@ class OobService {
         ),
       ),
       _mediatorService.subscribe(
-        didManager: oobDidManager,
+        didManager: oobIdentity.didManager,
         mediatorDid: mediatorDid,
       ),
     ).wait;
@@ -110,8 +116,8 @@ class OobService {
     );
 
     final session = OobOfferSession(
-      didManager: oobDidManager,
-      didDocument: oobDidDoc,
+      didManager: oobIdentity.didManager,
+      didDocument: oobIdentity.didDocument,
       oobInvitationMessage: oobMessage,
       oobUrl: Uri.parse(oobOutput.oobUrl),
       contactCard: contactCard,
@@ -145,7 +151,7 @@ class OobService {
 
     _logger.info(
       ''''Listening for messages on mediator channel $mediatorDid and OOB DID
-      ${oobDidDoc.id.topAndTail()}''',
+      ${oobIdentity.didDocument.id.topAndTail()}''',
       name: _logKey,
     );
 
@@ -163,14 +169,16 @@ class OobService {
   }) async {
     _logger.info('Started accepting OOB invitation', name: _logKey);
 
-    final acceptOfferDid = await _connectionManager.generateDid(_wallet);
-    final acceptOfferDidDoc = await acceptOfferDid.getDidDocument();
+    final acceptOfferIdentity = await _identityService.createEphemeralIdentity(
+      _wallet,
+    );
 
-    final permanentChannelDid = did != null
-        ? await _connectionManager.getDidManagerForDid(_wallet, did)
-        : await _connectionManager.generateDid(_wallet);
-
-    final permanentChannelDidDoc = await permanentChannelDid.getDidDocument();
+    final permanentIdentity = did != null
+        ? await _identityService.getPermanentIdentity(_wallet, did)
+        : await _identityService.createPermanentIdentity(
+            _wallet,
+            transport: ChannelTransport.didcomm,
+          );
 
     final (invitationMessage, mediatorDid) = await _fetchOobInvitation(
       oobUri: oobUri,
@@ -183,16 +191,17 @@ class OobService {
       mediatorDid: mediatorDid,
       status: ChannelStatus.waitingForApproval,
       outboundMessageId: invitationMessage.id,
-      acceptOfferDid: acceptOfferDidDoc.id,
-      permanentChannelDid: permanentChannelDidDoc.id,
+      acceptOfferDid: acceptOfferIdentity.didDocument.id,
+      permanentChannelDid: permanentIdentity.didDocument.id,
       type: ChannelType.oob,
+      transport: ChannelTransport.didcomm,
       isConnectionInitiator: false,
       contactCard: contactCard,
       externalRef: externalRef,
     );
 
     final streamSubscription = await _mediatorService.subscribe(
-      didManager: acceptOfferDid,
+      didManager: acceptOfferIdentity.didManager,
       mediatorDid: mediatorDid,
     );
 
@@ -203,8 +212,8 @@ class OobService {
 
     final session = OobAcceptanceSession(
       channel: channel,
-      permanentChannelDidManager: permanentChannelDid,
-      permanentChannelDidDocument: permanentChannelDidDoc,
+      permanentChannelDidManager: permanentIdentity.didManager,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       stream: oobStream,
       mediatorDid: mediatorDid,
     );
@@ -240,8 +249,8 @@ class OobService {
     });
 
     await _connectionService.sendAcceptOfferToMediator(
-      acceptOfferDid: acceptOfferDid,
-      permanentChannelDidDocument: permanentChannelDidDoc,
+      acceptOfferDid: acceptOfferIdentity.didManager,
+      permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: mediatorDid,
       acceptContactCard: contactCard,
@@ -267,7 +276,10 @@ class OobService {
             _wallet,
             existingPermanentChannelDid,
           )
-        : await _connectionManager.generateDid(_wallet);
+        : (await _identityService.createPermanentIdentity(
+            _wallet,
+            transport: ChannelTransport.didcomm,
+          )).didManager;
 
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();
@@ -292,6 +304,7 @@ class OobService {
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       status: ChannelStatus.inaugurated,
       type: ChannelType.oob,
+      transport: ChannelTransport.didcomm,
       isConnectionInitiator: true,
       contactCard: session.contactCard,
       otherPartyContactCard: message.contactCard,

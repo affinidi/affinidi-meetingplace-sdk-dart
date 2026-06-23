@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'dart:async';
 
 import 'package:didcomm/didcomm.dart';
@@ -98,14 +101,16 @@ void main() async {
     // Bob is not allowed to send messages to Alice anymore
     expect(
       () => bobSDK.sendMessage(
-        PlainTextMessage(
-          id: const Uuid().v4(),
-          type: Uri.parse('https://affinidi.io/test'),
-          from: bobChannel.permanentChannelDid,
-          to: [bobChannel.otherPartyPermanentChannelDid!],
+        DidCommOutgoingMessage(
+          senderDid: bobChannel.permanentChannelDid!,
+          recipientDid: bobChannel.otherPartyPermanentChannelDid!,
+          payload: PlainTextMessage(
+            id: const Uuid().v4(),
+            type: Uri.parse('https://affinidi.io/test'),
+            from: bobChannel.permanentChannelDid,
+            to: [bobChannel.otherPartyPermanentChannelDid!],
+          ),
         ),
-        senderDid: bobChannel.permanentChannelDid!,
-        recipientDid: bobChannel.otherPartyPermanentChannelDid!,
       ),
       throwsA(predicate(assertMediatorClientException)),
     );
@@ -128,14 +133,16 @@ void main() async {
     // Alice is not allowed to send messages to Bob anymore
     expect(
       () => aliceSDK.sendMessage(
-        PlainTextMessage(
-          id: const Uuid().v4(),
-          type: Uri.parse('https://affinidi.io/test'),
-          from: aliceChannel.permanentChannelDid,
-          to: [aliceChannel.otherPartyPermanentChannelDid!],
+        DidCommOutgoingMessage(
+          senderDid: aliceChannel.permanentChannelDid!,
+          recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
+          payload: PlainTextMessage(
+            id: const Uuid().v4(),
+            type: Uri.parse('https://affinidi.io/test'),
+            from: aliceChannel.permanentChannelDid,
+            to: [aliceChannel.otherPartyPermanentChannelDid!],
+          ),
         ),
-        senderDid: aliceChannel.permanentChannelDid!,
-        recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
       ),
       throwsA(predicate(assertMediatorClientException)),
     );

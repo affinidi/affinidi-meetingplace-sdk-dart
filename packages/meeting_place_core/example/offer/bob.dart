@@ -4,11 +4,18 @@ import 'dart:io';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
+  final vodozemacLibraryPath = getVodozemacLibraryPath();
+
+  if (!vod.isInitialized()) {
+    await vod.init(libraryPath: vodozemacLibraryPath);
+  }
+
   // Bob approves offer
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
@@ -63,13 +70,16 @@ void main() async {
   });
 
   // Listen to mediator stream using notification DID
-  prettyPrintGreen('>>> Calling SDK.subscribeToMediator');
-  final notificationStream =
-      await bobSDK.subscribeToMediator(notificationDidDocument.id);
+  prettyPrintGreen('>>> Calling SDK.subscribe');
+  final notificationStream = await bobSDK.subscribe(
+    DidCommSubscription(receiverDid: notificationDidDocument.id),
+  );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  notificationStream.stream.listen((data) async {
-    prettyJsonPrintYellow('Received message', data.plainTextMessage.toJson());
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
+    final didcommMessage = message as DidCommIncomingMessage;
+    prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();
   });
 
@@ -79,5 +89,5 @@ void main() async {
   prettyPrintYellow('Event type: ${offerFinalisedEvent.type.name}');
   prettyJsonPrintYellow('Channel:', offerFinalisedEvent.channel);
 
-  await notificationStream.dispose();
+  await notificationSubscription.cancel();
 }

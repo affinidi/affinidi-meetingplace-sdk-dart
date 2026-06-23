@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -9,7 +12,7 @@ void main() {
   group('custom did', () {
     late OobFlowFixture fixture;
 
-    setUp(() async {
+    setUpAll(() async {
       fixture = await OobFlowFixture.create();
     });
 
@@ -67,27 +70,31 @@ void main() {
     final bobChannel = await bobCompleter.future;
 
     await fixture.bobSDK.sendMessage(
-      PlainTextMessage(
-        id: 'test-message-id',
-        type: Uri.parse('https://example.com/test'),
-        from: bobChannel.permanentChannelDid,
-        to: [bobChannel.otherPartyPermanentChannelDid!],
-        body: {'hello': 'alice'},
+      DidCommOutgoingMessage(
+        senderDid: bobChannel.permanentChannelDid!,
+        recipientDid: bobChannel.otherPartyPermanentChannelDid!,
+        payload: PlainTextMessage(
+          id: 'test-message-id',
+          type: Uri.parse('https://example.com/test'),
+          from: bobChannel.permanentChannelDid,
+          to: [bobChannel.otherPartyPermanentChannelDid!],
+          body: {'hello': 'alice'},
+        ),
       ),
-      senderDid: bobChannel.permanentChannelDid!,
-      recipientDid: bobChannel.otherPartyPermanentChannelDid!,
     );
 
     await fixture.aliceSDK.sendMessage(
-      PlainTextMessage(
-        id: 'test-message-id',
-        type: Uri.parse('https://example.com/test'),
-        from: aliceChannel.permanentChannelDid,
-        to: [aliceChannel.otherPartyPermanentChannelDid!],
-        body: {'hello': 'bob'},
+      DidCommOutgoingMessage(
+        senderDid: aliceChannel.permanentChannelDid!,
+        recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
+        payload: PlainTextMessage(
+          id: 'test-message-id',
+          type: Uri.parse('https://example.com/test'),
+          from: aliceChannel.permanentChannelDid,
+          to: [aliceChannel.otherPartyPermanentChannelDid!],
+          body: {'hello': 'bob'},
+        ),
       ),
-      senderDid: aliceChannel.permanentChannelDid!,
-      recipientDid: aliceChannel.otherPartyPermanentChannelDid!,
     );
   });
 }

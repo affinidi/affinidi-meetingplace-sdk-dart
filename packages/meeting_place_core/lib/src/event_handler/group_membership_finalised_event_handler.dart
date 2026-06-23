@@ -1,5 +1,6 @@
 import 'package:didcomm/didcomm.dart';
-import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
@@ -8,10 +9,12 @@ import '../entity/connection_offer.dart';
 import '../entity/group.dart';
 import '../entity/group_connection_offer.dart';
 import '../entity/group_member.dart';
+import '../protocol/contact_card/contact_card.dart';
 import '../protocol/meeting_place_protocol.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
 import '../repository/repository.dart';
 import '../service/group/group_exception.dart';
+import '../service/matrix/matrix_service.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
@@ -30,12 +33,15 @@ class GroupMembershipFinalisedEventHandler
     required super.logger,
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
+    required MatrixService matrixService,
     required GroupRepository groupRepository,
   }) : _groupRepository = groupRepository,
-       _controlPlaneSDK = controlPlaneSDK;
+       _controlPlaneSDK = controlPlaneSDK,
+       _matrixService = matrixService;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
+  final MatrixService _matrixService;
 
   Future<List<Channel>> process(GroupMembershipFinalised event) async {
     logger.info('''Starting processing event of type
@@ -153,6 +159,16 @@ class GroupMembershipFinalisedEventHandler
       permanentChannelDid,
     );
 
+    final roomID = await _matrixService.joinChannelRoom(
+      didManager: didManager,
+      channelDid: groupMemberInaugurationMessage.body.groupDid,
+    );
+
+    final initialMatrixSyncMarker = await _matrixService.getLatestEventId(
+      roomID,
+      didManager: didManager,
+    );
+
     await _updateMediatorAcls(
       didManager: didManager,
       permanentChannelDid: permanentChannelDid,
@@ -185,6 +201,7 @@ class GroupMembershipFinalisedEventHandler
       channel,
       notificationToken: notificationToken,
       otherPartyPermanentChannelDid: updatedGroup.did,
+      matrixSyncMarker: initialMatrixSyncMarker,
       sequenceNumber: event.startSeqNo,
     );
 
@@ -313,11 +330,17 @@ class GroupMembershipFinalisedEventHandler
         (lm) => lm.did == member.did,
       );
 
+      final contactCard = ContactCard(
+        did: member.contactCardDid,
+        type: member.contactCardType,
+        contactInfo: {},
+      );
+
       if (localMemberIndex == -1) {
         updatedGroup.members.add(
           GroupMember(
             did: member.did,
-            contactCard: member.contactCard,
+            contactCard: contactCard,
             status: GroupMemberStatus.values.byName(member.status),
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,
@@ -332,7 +355,7 @@ class GroupMembershipFinalisedEventHandler
       // TODO: add test case for this specific case
       final existingMember = updatedGroup.members[localMemberIndex];
       updatedGroup.members[localMemberIndex] = existingMember.copyWith(
-        card: member.contactCard,
+        card: contactCard,
         dateAdded: DateTime.now().toUtc(),
         status: GroupMemberStatus.approved,
         publicKey: member.publicKey,

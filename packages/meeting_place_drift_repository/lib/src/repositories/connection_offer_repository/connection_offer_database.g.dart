@@ -257,6 +257,18 @@ class $ConnectionOffersTable extends ConnectionOffers
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<ChannelTransport, int> transport =
+      GeneratedColumn<int>(
+        'transport',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(1),
+      ).withConverter<ChannelTransport>(
+        $ConnectionOffersTable.$convertertransport,
+      );
   static const VerificationMeta _scoreMeta = const VerificationMeta('score');
   @override
   late final GeneratedColumn<int> score = GeneratedColumn<int>(
@@ -290,6 +302,7 @@ class $ConnectionOffersTable extends ConnectionOffers
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
+    transport,
     score,
   ];
   @override
@@ -578,6 +591,12 @@ class $ConnectionOffersTable extends ConnectionOffers
         DriftSqlType.string,
         data['${effectivePrefix}external_ref'],
       ),
+      transport: $ConnectionOffersTable.$convertertransport.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}transport'],
+        )!,
+      ),
       score: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}score'],
@@ -594,6 +613,8 @@ class $ConnectionOffersTable extends ConnectionOffers
       const _ConnectionOfferTypeConverter();
   static TypeConverter<ConnectionOfferStatus, int> $converterstatus =
       const _ConnectionOfferStatusConverter();
+  static TypeConverter<ChannelTransport, int> $convertertransport =
+      const _ChannelTransportConverter();
 }
 
 class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
@@ -663,6 +684,11 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
   /// External reference for the connection offer.
   final String? externalRef;
 
+  /// Chat transport selected by the publisher for this offer.
+  /// Defaults to [ChannelTransport.didcomm] for offers persisted before
+  /// per-offer transport selection existed.
+  final ChannelTransport transport;
+
   /// VRC score of the offer owner.
   final int? score;
   const ConnectionOffer({
@@ -688,6 +714,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.externalRef,
+    required this.transport,
     this.score,
   });
   @override
@@ -749,6 +776,11 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     if (!nullToAbsent || externalRef != null) {
       map['external_ref'] = Variable<String>(externalRef);
     }
+    {
+      map['transport'] = Variable<int>(
+        $ConnectionOffersTable.$convertertransport.toSql(transport),
+      );
+    }
     if (!nullToAbsent || score != null) {
       map['score'] = Variable<int>(score);
     }
@@ -803,6 +835,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       externalRef: externalRef == null && nullToAbsent
           ? const Value.absent()
           : Value(externalRef),
+      transport: Value(transport),
       score: score == null && nullToAbsent
           ? const Value.absent()
           : Value(score),
@@ -849,6 +882,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
         json['otherPartyNotificationToken'],
       ),
       externalRef: serializer.fromJson<String?>(json['externalRef']),
+      transport: serializer.fromJson<ChannelTransport>(json['transport']),
       score: serializer.fromJson<int?>(json['score']),
     );
   }
@@ -882,6 +916,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
         otherPartyNotificationToken,
       ),
       'externalRef': serializer.toJson<String?>(externalRef),
+      'transport': serializer.toJson<ChannelTransport>(transport),
       'score': serializer.toJson<int?>(score),
     };
   }
@@ -909,6 +944,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     Value<String?> notificationToken = const Value.absent(),
     Value<String?> otherPartyNotificationToken = const Value.absent(),
     Value<String?> externalRef = const Value.absent(),
+    ChannelTransport? transport,
     Value<int?> score = const Value.absent(),
   }) => ConnectionOffer(
     id: id ?? this.id,
@@ -947,6 +983,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
         ? otherPartyNotificationToken.value
         : this.otherPartyNotificationToken,
     externalRef: externalRef.present ? externalRef.value : this.externalRef,
+    transport: transport ?? this.transport,
     score: score.present ? score.value : this.score,
   );
   ConnectionOffer copyWithCompanion(ConnectionOffersCompanion data) {
@@ -997,6 +1034,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       externalRef: data.externalRef.present
           ? data.externalRef.value
           : this.externalRef,
+      transport: data.transport.present ? data.transport.value : this.transport,
       score: data.score.present ? data.score.value : this.score,
     );
   }
@@ -1028,6 +1066,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
+          ..write('transport: $transport, ')
           ..write('score: $score')
           ..write(')'))
         .toString();
@@ -1057,6 +1096,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
+    transport,
     score,
   ]);
   @override
@@ -1087,6 +1127,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           other.otherPartyNotificationToken ==
               this.otherPartyNotificationToken &&
           other.externalRef == this.externalRef &&
+          other.transport == this.transport &&
           other.score == this.score);
 }
 
@@ -1113,6 +1154,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
   final Value<String?> notificationToken;
   final Value<String?> otherPartyNotificationToken;
   final Value<String?> externalRef;
+  final Value<ChannelTransport> transport;
   final Value<int?> score;
   final Value<int> rowid;
   const ConnectionOffersCompanion({
@@ -1138,6 +1180,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
+    this.transport = const Value.absent(),
     this.score = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1164,6 +1207,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
+    this.transport = const Value.absent(),
     this.score = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : offerName = Value(offerName),
@@ -1198,6 +1242,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     Expression<String>? notificationToken,
     Expression<String>? otherPartyNotificationToken,
     Expression<String>? externalRef,
+    Expression<int>? transport,
     Expression<int>? score,
     Expression<int>? rowid,
   }) {
@@ -1228,6 +1273,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       if (otherPartyNotificationToken != null)
         'other_party_notification_token': otherPartyNotificationToken,
       if (externalRef != null) 'external_ref': externalRef,
+      if (transport != null) 'transport': transport,
       if (score != null) 'score': score,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1256,6 +1302,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     Value<String?>? notificationToken,
     Value<String?>? otherPartyNotificationToken,
     Value<String?>? externalRef,
+    Value<ChannelTransport>? transport,
     Value<int?>? score,
     Value<int>? rowid,
   }) {
@@ -1284,6 +1331,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef ?? this.externalRef,
+      transport: transport ?? this.transport,
       score: score ?? this.score,
       rowid: rowid ?? this.rowid,
     );
@@ -1370,6 +1418,11 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     if (externalRef.present) {
       map['external_ref'] = Variable<String>(externalRef.value);
     }
+    if (transport.present) {
+      map['transport'] = Variable<int>(
+        $ConnectionOffersTable.$convertertransport.toSql(transport.value),
+      );
+    }
     if (score.present) {
       map['score'] = Variable<int>(score.value);
     }
@@ -1406,6 +1459,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
+          ..write('transport: $transport, ')
           ..write('score: $score, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2365,6 +2419,7 @@ typedef $$ConnectionOffersTableCreateCompanionBuilder =
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
+      Value<ChannelTransport> transport,
       Value<int?> score,
       Value<int> rowid,
     });
@@ -2392,6 +2447,7 @@ typedef $$ConnectionOffersTableUpdateCompanionBuilder =
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
+      Value<ChannelTransport> transport,
       Value<int?> score,
       Value<int> rowid,
     });
@@ -2597,6 +2653,12 @@ class $$ConnectionOffersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<ChannelTransport, ChannelTransport, int>
+  get transport => $composableBuilder(
+    column: $table.transport,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
   ColumnFilters<int> get score => $composableBuilder(
     column: $table.score,
     builder: (column) => ColumnFilters(column),
@@ -2775,6 +2837,11 @@ class $$ConnectionOffersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get transport => $composableBuilder(
+    column: $table.transport,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get score => $composableBuilder(
     column: $table.score,
     builder: (column) => ColumnOrderings(column),
@@ -2880,6 +2947,9 @@ class $$ConnectionOffersTableAnnotationComposer
     column: $table.externalRef,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<ChannelTransport, int> get transport =>
+      $composableBuilder(column: $table.transport, builder: (column) => column);
 
   GeneratedColumn<int> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
@@ -2994,6 +3064,7 @@ class $$ConnectionOffersTableTableManager
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
                 Value<String?> externalRef = const Value.absent(),
+                Value<ChannelTransport> transport = const Value.absent(),
                 Value<int?> score = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionOffersCompanion(
@@ -3019,6 +3090,7 @@ class $$ConnectionOffersTableTableManager
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,
+                transport: transport,
                 score: score,
                 rowid: rowid,
               ),
@@ -3048,6 +3120,7 @@ class $$ConnectionOffersTableTableManager
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
                 Value<String?> externalRef = const Value.absent(),
+                Value<ChannelTransport> transport = const Value.absent(),
                 Value<int?> score = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionOffersCompanion.insert(
@@ -3073,6 +3146,7 @@ class $$ConnectionOffersTableTableManager
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,
+                transport: transport,
                 score: score,
                 rowid: rowid,
               ),

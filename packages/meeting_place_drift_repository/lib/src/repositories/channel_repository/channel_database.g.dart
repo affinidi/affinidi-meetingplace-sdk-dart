@@ -69,6 +69,16 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         type: DriftSqlType.int,
         requiredDuringInsert: true,
       ).withConverter<ChannelType>($ChannelsTable.$convertertype);
+  @override
+  late final GeneratedColumnWithTypeConverter<ChannelTransport, int> transport =
+      GeneratedColumn<int>(
+        'transport',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(1),
+      ).withConverter<ChannelTransport>($ChannelsTable.$convertertransport);
   static const VerificationMeta _isConnectionInitiatorMeta =
       const VerificationMeta('isConnectionInitiator');
   @override
@@ -184,6 +194,17 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _matrixSyncMarkerMeta = const VerificationMeta(
+    'matrixSyncMarker',
+  );
+  @override
+  late final GeneratedColumn<String> matrixSyncMarker = GeneratedColumn<String>(
+    'matrix_sync_marker',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -192,6 +213,7 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
     offerLink,
     status,
     type,
+    transport,
     isConnectionInitiator,
     outboundMessageId,
     acceptOfferDid,
@@ -202,6 +224,7 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
     externalRef,
     seqNo,
     messageSyncMarker,
+    matrixSyncMarker,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -337,6 +360,15 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         ),
       );
     }
+    if (data.containsKey('matrix_sync_marker')) {
+      context.handle(
+        _matrixSyncMarkerMeta,
+        matrixSyncMarker.isAcceptableOrUnknown(
+          data['matrix_sync_marker']!,
+          _matrixSyncMarkerMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -372,6 +404,12 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}type'],
+        )!,
+      ),
+      transport: $ChannelsTable.$convertertransport.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}transport'],
         )!,
       ),
       isConnectionInitiator: attachedDatabase.typeMapping.read(
@@ -414,6 +452,10 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}message_sync_marker'],
       ),
+      matrixSyncMarker: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}matrix_sync_marker'],
+      ),
     );
   }
 
@@ -426,6 +468,8 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
       const _ChannelStatusConverter();
   static TypeConverter<ChannelType, int> $convertertype =
       const _ChannelTypeConverter();
+  static TypeConverter<ChannelTransport, int> $convertertransport =
+      const _ChannelTransportConverter();
 }
 
 class Channel extends DataClass implements Insertable<Channel> {
@@ -446,6 +490,13 @@ class Channel extends DataClass implements Insertable<Channel> {
 
   /// Type of the channel.
   final ChannelType type;
+
+  /// Transport used by the channel.
+  ///
+  /// Defaults to `didcomm` (value `1`) so existing rows have a sane value when
+  /// the column is added by the v5→v6 migration. The migration then backfills
+  /// rows with a `matrix_room_id` to `matrix` (value `2`).
+  final ChannelTransport transport;
 
   /// Indicates whether the channel was initiated by the local party or the
   /// other party.
@@ -478,6 +529,9 @@ class Channel extends DataClass implements Insertable<Channel> {
 
   /// Message sync marker for the channel.
   final DateTime? messageSyncMarker;
+
+  /// Matrix sync marker for the channel.
+  final String? matrixSyncMarker;
   const Channel({
     required this.id,
     required this.publishOfferDid,
@@ -485,6 +539,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     required this.offerLink,
     required this.status,
     required this.type,
+    required this.transport,
     required this.isConnectionInitiator,
     this.outboundMessageId,
     this.acceptOfferDid,
@@ -495,6 +550,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     this.externalRef,
     required this.seqNo,
     this.messageSyncMarker,
+    this.matrixSyncMarker,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -510,6 +566,11 @@ class Channel extends DataClass implements Insertable<Channel> {
     }
     {
       map['type'] = Variable<int>($ChannelsTable.$convertertype.toSql(type));
+    }
+    {
+      map['transport'] = Variable<int>(
+        $ChannelsTable.$convertertransport.toSql(transport),
+      );
     }
     map['is_connection_initiator'] = Variable<bool>(isConnectionInitiator);
     if (!nullToAbsent || outboundMessageId != null) {
@@ -541,6 +602,9 @@ class Channel extends DataClass implements Insertable<Channel> {
     if (!nullToAbsent || messageSyncMarker != null) {
       map['message_sync_marker'] = Variable<DateTime>(messageSyncMarker);
     }
+    if (!nullToAbsent || matrixSyncMarker != null) {
+      map['matrix_sync_marker'] = Variable<String>(matrixSyncMarker);
+    }
     return map;
   }
 
@@ -552,6 +616,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink: Value(offerLink),
       status: Value(status),
       type: Value(type),
+      transport: Value(transport),
       isConnectionInitiator: Value(isConnectionInitiator),
       outboundMessageId: outboundMessageId == null && nullToAbsent
           ? const Value.absent()
@@ -580,6 +645,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: messageSyncMarker == null && nullToAbsent
           ? const Value.absent()
           : Value(messageSyncMarker),
+      matrixSyncMarker: matrixSyncMarker == null && nullToAbsent
+          ? const Value.absent()
+          : Value(matrixSyncMarker),
     );
   }
 
@@ -595,6 +663,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink: serializer.fromJson<String>(json['offerLink']),
       status: serializer.fromJson<ChannelStatus>(json['status']),
       type: serializer.fromJson<ChannelType>(json['type']),
+      transport: serializer.fromJson<ChannelTransport>(json['transport']),
       isConnectionInitiator: serializer.fromJson<bool>(
         json['isConnectionInitiator'],
       ),
@@ -619,6 +688,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: serializer.fromJson<DateTime?>(
         json['messageSyncMarker'],
       ),
+      matrixSyncMarker: serializer.fromJson<String?>(json['matrixSyncMarker']),
     );
   }
   @override
@@ -631,6 +701,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       'offerLink': serializer.toJson<String>(offerLink),
       'status': serializer.toJson<ChannelStatus>(status),
       'type': serializer.toJson<ChannelType>(type),
+      'transport': serializer.toJson<ChannelTransport>(transport),
       'isConnectionInitiator': serializer.toJson<bool>(isConnectionInitiator),
       'outboundMessageId': serializer.toJson<String?>(outboundMessageId),
       'acceptOfferDid': serializer.toJson<String?>(acceptOfferDid),
@@ -645,6 +716,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       'externalRef': serializer.toJson<String?>(externalRef),
       'seqNo': serializer.toJson<int>(seqNo),
       'messageSyncMarker': serializer.toJson<DateTime?>(messageSyncMarker),
+      'matrixSyncMarker': serializer.toJson<String?>(matrixSyncMarker),
     };
   }
 
@@ -655,6 +727,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     String? offerLink,
     ChannelStatus? status,
     ChannelType? type,
+    ChannelTransport? transport,
     bool? isConnectionInitiator,
     Value<String?> outboundMessageId = const Value.absent(),
     Value<String?> acceptOfferDid = const Value.absent(),
@@ -665,6 +738,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     Value<String?> externalRef = const Value.absent(),
     int? seqNo,
     Value<DateTime?> messageSyncMarker = const Value.absent(),
+    Value<String?> matrixSyncMarker = const Value.absent(),
   }) => Channel(
     id: id ?? this.id,
     publishOfferDid: publishOfferDid ?? this.publishOfferDid,
@@ -672,6 +746,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     offerLink: offerLink ?? this.offerLink,
     status: status ?? this.status,
     type: type ?? this.type,
+    transport: transport ?? this.transport,
     isConnectionInitiator: isConnectionInitiator ?? this.isConnectionInitiator,
     outboundMessageId: outboundMessageId.present
         ? outboundMessageId.value
@@ -696,6 +771,9 @@ class Channel extends DataClass implements Insertable<Channel> {
     messageSyncMarker: messageSyncMarker.present
         ? messageSyncMarker.value
         : this.messageSyncMarker,
+    matrixSyncMarker: matrixSyncMarker.present
+        ? matrixSyncMarker.value
+        : this.matrixSyncMarker,
   );
   Channel copyWithCompanion(ChannelsCompanion data) {
     return Channel(
@@ -709,6 +787,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       offerLink: data.offerLink.present ? data.offerLink.value : this.offerLink,
       status: data.status.present ? data.status.value : this.status,
       type: data.type.present ? data.type.value : this.type,
+      transport: data.transport.present ? data.transport.value : this.transport,
       isConnectionInitiator: data.isConnectionInitiator.present
           ? data.isConnectionInitiator.value
           : this.isConnectionInitiator,
@@ -737,6 +816,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: data.messageSyncMarker.present
           ? data.messageSyncMarker.value
           : this.messageSyncMarker,
+      matrixSyncMarker: data.matrixSyncMarker.present
+          ? data.matrixSyncMarker.value
+          : this.matrixSyncMarker,
     );
   }
 
@@ -749,6 +831,7 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('offerLink: $offerLink, ')
           ..write('status: $status, ')
           ..write('type: $type, ')
+          ..write('transport: $transport, ')
           ..write('isConnectionInitiator: $isConnectionInitiator, ')
           ..write('outboundMessageId: $outboundMessageId, ')
           ..write('acceptOfferDid: $acceptOfferDid, ')
@@ -760,7 +843,8 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
-          ..write('messageSyncMarker: $messageSyncMarker')
+          ..write('messageSyncMarker: $messageSyncMarker, ')
+          ..write('matrixSyncMarker: $matrixSyncMarker')
           ..write(')'))
         .toString();
   }
@@ -773,6 +857,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     offerLink,
     status,
     type,
+    transport,
     isConnectionInitiator,
     outboundMessageId,
     acceptOfferDid,
@@ -783,6 +868,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     externalRef,
     seqNo,
     messageSyncMarker,
+    matrixSyncMarker,
   );
   @override
   bool operator ==(Object other) =>
@@ -794,6 +880,7 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.offerLink == this.offerLink &&
           other.status == this.status &&
           other.type == this.type &&
+          other.transport == this.transport &&
           other.isConnectionInitiator == this.isConnectionInitiator &&
           other.outboundMessageId == this.outboundMessageId &&
           other.acceptOfferDid == this.acceptOfferDid &&
@@ -805,7 +892,8 @@ class Channel extends DataClass implements Insertable<Channel> {
               this.otherPartyNotificationToken &&
           other.externalRef == this.externalRef &&
           other.seqNo == this.seqNo &&
-          other.messageSyncMarker == this.messageSyncMarker);
+          other.messageSyncMarker == this.messageSyncMarker &&
+          other.matrixSyncMarker == this.matrixSyncMarker);
 }
 
 class ChannelsCompanion extends UpdateCompanion<Channel> {
@@ -815,6 +903,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String> offerLink;
   final Value<ChannelStatus> status;
   final Value<ChannelType> type;
+  final Value<ChannelTransport> transport;
   final Value<bool> isConnectionInitiator;
   final Value<String?> outboundMessageId;
   final Value<String?> acceptOfferDid;
@@ -825,6 +914,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String?> externalRef;
   final Value<int> seqNo;
   final Value<DateTime?> messageSyncMarker;
+  final Value<String?> matrixSyncMarker;
   final Value<int> rowid;
   const ChannelsCompanion({
     this.id = const Value.absent(),
@@ -833,6 +923,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.offerLink = const Value.absent(),
     this.status = const Value.absent(),
     this.type = const Value.absent(),
+    this.transport = const Value.absent(),
     this.isConnectionInitiator = const Value.absent(),
     this.outboundMessageId = const Value.absent(),
     this.acceptOfferDid = const Value.absent(),
@@ -843,6 +934,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.externalRef = const Value.absent(),
     this.seqNo = const Value.absent(),
     this.messageSyncMarker = const Value.absent(),
+    this.matrixSyncMarker = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChannelsCompanion.insert({
@@ -852,6 +944,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     required String offerLink,
     required ChannelStatus status,
     required ChannelType type,
+    this.transport = const Value.absent(),
     this.isConnectionInitiator = const Value.absent(),
     this.outboundMessageId = const Value.absent(),
     this.acceptOfferDid = const Value.absent(),
@@ -862,6 +955,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.externalRef = const Value.absent(),
     required int seqNo,
     this.messageSyncMarker = const Value.absent(),
+    this.matrixSyncMarker = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : publishOfferDid = Value(publishOfferDid),
        mediatorDid = Value(mediatorDid),
@@ -876,6 +970,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? offerLink,
     Expression<int>? status,
     Expression<int>? type,
+    Expression<int>? transport,
     Expression<bool>? isConnectionInitiator,
     Expression<String>? outboundMessageId,
     Expression<String>? acceptOfferDid,
@@ -886,6 +981,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? externalRef,
     Expression<int>? seqNo,
     Expression<DateTime>? messageSyncMarker,
+    Expression<String>? matrixSyncMarker,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -895,6 +991,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       if (offerLink != null) 'offer_link': offerLink,
       if (status != null) 'status': status,
       if (type != null) 'type': type,
+      if (transport != null) 'transport': transport,
       if (isConnectionInitiator != null)
         'is_connection_initiator': isConnectionInitiator,
       if (outboundMessageId != null) 'outbound_message_id': outboundMessageId,
@@ -909,6 +1006,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       if (externalRef != null) 'external_ref': externalRef,
       if (seqNo != null) 'seq_no': seqNo,
       if (messageSyncMarker != null) 'message_sync_marker': messageSyncMarker,
+      if (matrixSyncMarker != null) 'matrix_sync_marker': matrixSyncMarker,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -920,6 +1018,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Value<String>? offerLink,
     Value<ChannelStatus>? status,
     Value<ChannelType>? type,
+    Value<ChannelTransport>? transport,
     Value<bool>? isConnectionInitiator,
     Value<String?>? outboundMessageId,
     Value<String?>? acceptOfferDid,
@@ -930,6 +1029,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Value<String?>? externalRef,
     Value<int>? seqNo,
     Value<DateTime?>? messageSyncMarker,
+    Value<String?>? matrixSyncMarker,
     Value<int>? rowid,
   }) {
     return ChannelsCompanion(
@@ -939,6 +1039,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       offerLink: offerLink ?? this.offerLink,
       status: status ?? this.status,
       type: type ?? this.type,
+      transport: transport ?? this.transport,
       isConnectionInitiator:
           isConnectionInitiator ?? this.isConnectionInitiator,
       outboundMessageId: outboundMessageId ?? this.outboundMessageId,
@@ -952,6 +1053,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       externalRef: externalRef ?? this.externalRef,
       seqNo: seqNo ?? this.seqNo,
       messageSyncMarker: messageSyncMarker ?? this.messageSyncMarker,
+      matrixSyncMarker: matrixSyncMarker ?? this.matrixSyncMarker,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -979,6 +1081,11 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     if (type.present) {
       map['type'] = Variable<int>(
         $ChannelsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (transport.present) {
+      map['transport'] = Variable<int>(
+        $ChannelsTable.$convertertransport.toSql(transport.value),
       );
     }
     if (isConnectionInitiator.present) {
@@ -1019,6 +1126,9 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     if (messageSyncMarker.present) {
       map['message_sync_marker'] = Variable<DateTime>(messageSyncMarker.value);
     }
+    if (matrixSyncMarker.present) {
+      map['matrix_sync_marker'] = Variable<String>(matrixSyncMarker.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1034,6 +1144,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('offerLink: $offerLink, ')
           ..write('status: $status, ')
           ..write('type: $type, ')
+          ..write('transport: $transport, ')
           ..write('isConnectionInitiator: $isConnectionInitiator, ')
           ..write('outboundMessageId: $outboundMessageId, ')
           ..write('acceptOfferDid: $acceptOfferDid, ')
@@ -1046,6 +1157,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
           ..write('messageSyncMarker: $messageSyncMarker, ')
+          ..write('matrixSyncMarker: $matrixSyncMarker, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1572,6 +1684,7 @@ typedef $$ChannelsTableCreateCompanionBuilder =
       required String offerLink,
       required ChannelStatus status,
       required ChannelType type,
+      Value<ChannelTransport> transport,
       Value<bool> isConnectionInitiator,
       Value<String?> outboundMessageId,
       Value<String?> acceptOfferDid,
@@ -1582,6 +1695,7 @@ typedef $$ChannelsTableCreateCompanionBuilder =
       Value<String?> externalRef,
       required int seqNo,
       Value<DateTime?> messageSyncMarker,
+      Value<String?> matrixSyncMarker,
       Value<int> rowid,
     });
 typedef $$ChannelsTableUpdateCompanionBuilder =
@@ -1592,6 +1706,7 @@ typedef $$ChannelsTableUpdateCompanionBuilder =
       Value<String> offerLink,
       Value<ChannelStatus> status,
       Value<ChannelType> type,
+      Value<ChannelTransport> transport,
       Value<bool> isConnectionInitiator,
       Value<String?> outboundMessageId,
       Value<String?> acceptOfferDid,
@@ -1602,6 +1717,7 @@ typedef $$ChannelsTableUpdateCompanionBuilder =
       Value<String?> externalRef,
       Value<int> seqNo,
       Value<DateTime?> messageSyncMarker,
+      Value<String?> matrixSyncMarker,
       Value<int> rowid,
     });
 
@@ -1678,6 +1794,12 @@ class $$ChannelsTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
+  ColumnWithTypeConverterFilters<ChannelTransport, ChannelTransport, int>
+  get transport => $composableBuilder(
+    column: $table.transport,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
   ColumnFilters<bool> get isConnectionInitiator => $composableBuilder(
     column: $table.isConnectionInitiator,
     builder: (column) => ColumnFilters(column),
@@ -1725,6 +1847,11 @@ class $$ChannelsTableFilterComposer
 
   ColumnFilters<DateTime> get messageSyncMarker => $composableBuilder(
     column: $table.messageSyncMarker,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get matrixSyncMarker => $composableBuilder(
+    column: $table.matrixSyncMarker,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1793,6 +1920,11 @@ class $$ChannelsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get transport => $composableBuilder(
+    column: $table.transport,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isConnectionInitiator => $composableBuilder(
     column: $table.isConnectionInitiator,
     builder: (column) => ColumnOrderings(column),
@@ -1843,6 +1975,11 @@ class $$ChannelsTableOrderingComposer
     column: $table.messageSyncMarker,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get matrixSyncMarker => $composableBuilder(
+    column: $table.matrixSyncMarker,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChannelsTableAnnotationComposer
@@ -1875,6 +2012,9 @@ class $$ChannelsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<ChannelType, int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ChannelTransport, int> get transport =>
+      $composableBuilder(column: $table.transport, builder: (column) => column);
 
   GeneratedColumn<bool> get isConnectionInitiator => $composableBuilder(
     column: $table.isConnectionInitiator,
@@ -1922,6 +2062,11 @@ class $$ChannelsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get messageSyncMarker => $composableBuilder(
     column: $table.messageSyncMarker,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get matrixSyncMarker => $composableBuilder(
+    column: $table.matrixSyncMarker,
     builder: (column) => column,
   );
 
@@ -1986,6 +2131,7 @@ class $$ChannelsTableTableManager
                 Value<String> offerLink = const Value.absent(),
                 Value<ChannelStatus> status = const Value.absent(),
                 Value<ChannelType> type = const Value.absent(),
+                Value<ChannelTransport> transport = const Value.absent(),
                 Value<bool> isConnectionInitiator = const Value.absent(),
                 Value<String?> outboundMessageId = const Value.absent(),
                 Value<String?> acceptOfferDid = const Value.absent(),
@@ -1998,6 +2144,7 @@ class $$ChannelsTableTableManager
                 Value<String?> externalRef = const Value.absent(),
                 Value<int> seqNo = const Value.absent(),
                 Value<DateTime?> messageSyncMarker = const Value.absent(),
+                Value<String?> matrixSyncMarker = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChannelsCompanion(
                 id: id,
@@ -2006,6 +2153,7 @@ class $$ChannelsTableTableManager
                 offerLink: offerLink,
                 status: status,
                 type: type,
+                transport: transport,
                 isConnectionInitiator: isConnectionInitiator,
                 outboundMessageId: outboundMessageId,
                 acceptOfferDid: acceptOfferDid,
@@ -2016,6 +2164,7 @@ class $$ChannelsTableTableManager
                 externalRef: externalRef,
                 seqNo: seqNo,
                 messageSyncMarker: messageSyncMarker,
+                matrixSyncMarker: matrixSyncMarker,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2026,6 +2175,7 @@ class $$ChannelsTableTableManager
                 required String offerLink,
                 required ChannelStatus status,
                 required ChannelType type,
+                Value<ChannelTransport> transport = const Value.absent(),
                 Value<bool> isConnectionInitiator = const Value.absent(),
                 Value<String?> outboundMessageId = const Value.absent(),
                 Value<String?> acceptOfferDid = const Value.absent(),
@@ -2038,6 +2188,7 @@ class $$ChannelsTableTableManager
                 Value<String?> externalRef = const Value.absent(),
                 required int seqNo,
                 Value<DateTime?> messageSyncMarker = const Value.absent(),
+                Value<String?> matrixSyncMarker = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChannelsCompanion.insert(
                 id: id,
@@ -2046,6 +2197,7 @@ class $$ChannelsTableTableManager
                 offerLink: offerLink,
                 status: status,
                 type: type,
+                transport: transport,
                 isConnectionInitiator: isConnectionInitiator,
                 outboundMessageId: outboundMessageId,
                 acceptOfferDid: acceptOfferDid,
@@ -2056,6 +2208,7 @@ class $$ChannelsTableTableManager
                 externalRef: externalRef,
                 seqNo: seqNo,
                 messageSyncMarker: messageSyncMarker,
+                matrixSyncMarker: matrixSyncMarker,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

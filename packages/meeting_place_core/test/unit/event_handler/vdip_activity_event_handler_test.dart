@@ -24,12 +24,10 @@ void main() {
   late MockChannelService mockChannelService;
   late MockConnectionManager mockConnectionManager;
   late MockDidManager mockDidManager;
-  late MockVdipClient mockVdipClient;
 
   const permanentChannelDid = 'did:key:permanent-channel';
   const channelDid = 'did:key:channel';
   const mediatorDid = 'did:web:mediator';
-  const messageHash = 'hash-123';
 
   final channel = Channel(
     offerLink: 'offer-link',
@@ -54,6 +52,8 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(const FetchMessagesOptions());
+    registerFallbackValue(MockDidManager(did: 'did:key:fallback-did-manager'));
+    registerFallbackValue(<String>[]);
     registerFallbackValue(
       PlainTextMessage(
         id: const Uuid().v4(),
@@ -85,10 +85,9 @@ void main() {
     mockChannelService = MockChannelService();
     mockConnectionManager = MockConnectionManager();
     mockDidManager = MockDidManager(did: permanentChannelDid);
-    mockVdipClient = MockVdipClient();
 
     when(
-      () => mockLogger.warning(any(), name: any(named: 'name')),
+      () => mockLogger.info(any(), name: any(named: 'name')),
     ).thenReturn(null);
 
     handler = VdipActivityEventHandler(
@@ -97,7 +96,6 @@ void main() {
       channelService: mockChannelService,
       connectionManager: mockConnectionManager,
       logger: mockLogger,
-      vdipClient: mockVdipClient,
     );
 
     when(
@@ -112,17 +110,6 @@ void main() {
     ).thenAnswer((_) async => mockDidManager);
 
     when(
-      () => mockMediatorService.deleteMessages(
-        didManager: mockDidManager,
-        mediatorDid: mediatorDid,
-        messageHashes: [messageHash],
-      ),
-    ).thenAnswer((_) async {});
-
-    when(() => mockVdipClient.dispatch(any())).thenReturn(null);
-    when(() => mockVdipClient.messageProcessors).thenReturn(const []);
-
-    when(
       () => mockChannelService.updateChannelSequence(
         any(),
         sequenceNumber: any(named: 'sequenceNumber'),
@@ -132,14 +119,16 @@ void main() {
   });
 
   group('VdipActivityEventHandler', () {
-    test('fetches, dispatches, and deletes VDIP messages', () async {
+    test('advances seqNo and marker from fetched messages without dispatching '
+        'or deleting', () async {
+      final createdTime = DateTime.utc(2026, 6, 18, 12);
       final mediatorMessage = MediatorMessage(
         plainTextMessage: PlainTextMessage(
           id: const Uuid().v4(),
-          type: VdipRequestIssuanceMessage.messageType,
+          type: VdipIssuedCredentialMessage.messageType,
           body: {},
+          createdTime: createdTime,
         ),
-        messageHash: messageHash,
       );
 
       when(
@@ -171,24 +160,44 @@ void main() {
         ]),
       );
       expect(options.deleteOnRetrieve, isFalse);
+      expect(options.startFrom, channel.messageSyncMarker);
 
-      verify(
-        () => mockVdipClient.dispatch(mediatorMessage.plainTextMessage),
-      ).called(1);
-      verify(
-        () => mockMediatorService.deleteMessages(
-          didManager: mockDidManager,
-          mediatorDid: mediatorDid,
-          messageHashes: [messageHash],
-        ),
-      ).called(1);
       verify(
         () => mockChannelService.updateChannelSequence(
           channel,
           sequenceNumber: channel.seqNo + 1,
-          messageSyncMarker: channel.messageSyncMarker,
+          messageSyncMarker: createdTime,
         ),
       ).called(1);
+
+      verifyNever(
+        () => mockMediatorService.deleteMessages(
+          didManager: any(named: 'didManager'),
+          mediatorDid: any(named: 'mediatorDid'),
+          messageHashes: any(named: 'messageHashes'),
+        ),
+      );
+    });
+
+    test('does not update sequence when no new messages are fetched', () async {
+      when(
+        () => mockMediatorService.fetchMessages(
+          didManager: mockDidManager,
+          mediatorDid: mediatorDid,
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer((_) async => []);
+
+      final result = await handler.process(event);
+
+      expect(result, [channel]);
+      verifyNever(
+        () => mockChannelService.updateChannelSequence(
+          any(),
+          sequenceNumber: any(named: 'sequenceNumber'),
+          messageSyncMarker: any(named: 'messageSyncMarker'),
+        ),
+      );
     });
 
     test('throws domain exception when channel lacks permanent DID', () async {
@@ -221,47 +230,5 @@ void main() {
         ),
       );
     });
-
-    test(
-      'logs warning and skips deletion when message hash is missing',
-      () async {
-        final mediatorMessage = MediatorMessage(
-          plainTextMessage: PlainTextMessage(
-            id: const Uuid().v4(),
-            type: VdipRequestIssuanceMessage.messageType,
-            body: {},
-          ),
-        );
-
-        when(
-          () => mockMediatorService.fetchMessages(
-            didManager: mockDidManager,
-            mediatorDid: mediatorDid,
-            options: any(named: 'options'),
-          ),
-        ).thenAnswer((_) async => [mediatorMessage]);
-
-        final result = await handler.process(event);
-
-        expect(result, [channel]);
-        verify(
-          () => mockVdipClient.dispatch(mediatorMessage.plainTextMessage),
-        ).called(1);
-        verifyNever(
-          () => mockMediatorService.deleteMessages(
-            didManager: mockDidManager,
-            mediatorDid: mediatorDid,
-            messageHashes: [messageHash],
-          ),
-        );
-        verify(
-          () => mockLogger.warning(
-            'Skipping VDIP mediator message deletion because message hash is '
-            'missing',
-            name: 'VdipActivityEventHandler',
-          ),
-        ).called(1);
-      },
-    );
   });
 }

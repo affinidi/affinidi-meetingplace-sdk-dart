@@ -67,6 +67,31 @@ void main() {
         );
       });
 
+      test(
+        'emits request-initiated notice for outgoing request attachment',
+        () {
+          final notices = LivenessZkpConciergeDeriver.deriveNoticesFromMessage(
+            _zkpMessage(
+              messageId: 'req-out-1',
+              isFromMe: true,
+              dateCreated: t0,
+              attachments: [_zkpRequestAttachment()],
+            ),
+            contactName: contactName,
+          );
+
+          expect(notices, hasLength(1));
+          expect(
+            notices.single.conciergeType,
+            LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+          );
+          expect(
+            notices.single.messageId,
+            LivenessZkpConciergeIds.requestInitiated('req-out-1'),
+          );
+        },
+      );
+
       test('emits proof-shared notice for outgoing proof attachment', () {
         final notices = LivenessZkpConciergeDeriver.deriveNoticesFromMessage(
           _zkpMessage(
@@ -120,6 +145,7 @@ void main() {
           );
 
           final result =
+              // ignore: lines_longer_than_80_chars
               LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages(
                 [request],
                 contactName: contactName,
@@ -135,6 +161,75 @@ void main() {
               LivenessZkpConciergeTypes.humanZkpRequest,
             )!.messageId,
             LivenessZkpConciergeIds.requestReceived('req-1'),
+          );
+        },
+      );
+
+      test('derives request-initiated notice from latest outgoing request', () {
+        final myRequest = _zkpMessage(
+          messageId: 'req-out-1',
+          isFromMe: true,
+          dateCreated: t1,
+          attachments: [_zkpRequestAttachment()],
+        );
+
+        final result =
+            LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages([
+              myRequest,
+            ], contactName: contactName);
+
+        expect(
+          _conciergeCount(
+            result,
+            LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+          ),
+          1,
+        );
+        expect(
+          _findConcierge(
+            result,
+            LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+          )!.messageId,
+          LivenessZkpConciergeIds.requestInitiated('req-out-1'),
+        );
+      });
+
+      test(
+        'omits request-initiated when peer proof arrives after the request',
+        () {
+          final myRequest = _zkpMessage(
+            messageId: 'req-out-1',
+            isFromMe: true,
+            dateCreated: t1,
+            attachments: [_zkpRequestAttachment()],
+          );
+          final theirProof = _zkpMessage(
+            messageId: 'proof-peer',
+            isFromMe: false,
+            dateCreated: t2,
+            attachments: [_zkpProofAttachment()],
+          );
+
+          final result =
+              // ignore: lines_longer_than_80_chars
+              LivenessZkpConciergeDeriver.appendDerivedHumanZkpConciergeMessages(
+                [myRequest, theirProof],
+                contactName: contactName,
+              );
+
+          expect(
+            _conciergeCount(
+              result,
+              LivenessZkpConciergeTypes.humanZkpRequestInitiated,
+            ),
+            0,
+          );
+          expect(
+            _findConcierge(
+              result,
+              LivenessZkpConciergeTypes.humanZkpProofReceived,
+            )!.messageId,
+            LivenessZkpConciergeIds.proofReceived('proof-peer'),
           );
         },
       );
@@ -365,7 +460,7 @@ Message _zkpMessage({
   required String messageId,
   required bool isFromMe,
   required DateTime dateCreated,
-  required List<Attachment> attachments,
+  required List<ChatAttachment> attachments,
 }) {
   return Message(
     chatId: 'chat-1',
@@ -379,12 +474,12 @@ Message _zkpMessage({
   );
 }
 
-Attachment _zkpRequestAttachment() => Attachment(
+ChatAttachment _zkpRequestAttachment() => ChatAttachment(
   id: 'att-req',
   mediaType: 'application/json',
   format: LivenessZkpProtocol.livenessCheckRequestFormat,
   lastModifiedTime: DateTime.utc(2026),
-  data: AttachmentData(
+  data: ChatAttachmentData(
     json: jsonEncode({
       LivenessZkpProtocol.typeJsonKey:
           LivenessZkpProtocol.livenessRequestPayloadType,
@@ -395,23 +490,23 @@ Attachment _zkpRequestAttachment() => Attachment(
   ),
 );
 
-Attachment _zkpProofAttachment() {
+ChatAttachment _zkpProofAttachment() {
   const payload = LivenessProofPayload(proof: 'p', publicSignals: 's');
-  return Attachment(
+  return ChatAttachment(
     id: 'att-proof',
     mediaType: 'application/json',
     format: LivenessZkpProtocol.livenessProofFormat,
     lastModifiedTime: DateTime.utc(2026),
-    data: AttachmentData(json: jsonEncode(payload.toJson())),
+    data: ChatAttachmentData(json: jsonEncode(payload.toJson())),
   );
 }
 
-Attachment _zkpDeclinedAttachment() => Attachment(
+ChatAttachment _zkpDeclinedAttachment() => ChatAttachment(
   id: 'att-declined',
   mediaType: 'application/json',
   format: LivenessZkpProtocol.livenessDeclinedFormat,
   lastModifiedTime: DateTime.utc(2026),
-  data: AttachmentData(
+  data: ChatAttachmentData(
     json: jsonEncode({
       LivenessZkpProtocol.typeJsonKey:
           LivenessZkpProtocol.livenessDeclinedPayloadType,

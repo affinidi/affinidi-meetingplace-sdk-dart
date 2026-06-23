@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart' as model;
 import 'package:synchronized/synchronized.dart';
@@ -54,6 +56,10 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                 status: Value(message.status),
                 type: Value(message.type),
                 senderDid: Value(message.senderDid),
+                transportId: Value(message.transportId),
+                isDeleted: Value(message.isDeleted),
+                isDeletedLocally: Value(message.isDeletedLocally),
+                editedAt: Value(message.editedAt),
               ),
             );
         final newMessage =
@@ -71,7 +77,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         final reactionCompanions = message.reactions.map((reaction) {
           return db.ReactionsCompanion.insert(
             messageId: message.messageId,
-            value: reaction,
+            value: reaction.emoji,
+            senderDid: Value(reaction.senderDid),
           );
         }).toList();
 
@@ -96,6 +103,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                   hash: Value(attachment.data?.hash),
                   base64: Value(attachment.data?.base64),
                   json: Value(attachment.data?.json),
+                  transportId: Value(attachment.transportId),
+                  metadata: Value(_encodeMetadata(attachment.metadata)),
                 ),
               );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -345,6 +354,10 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
             status: Value(message.status),
             type: Value(message.type),
             senderDid: Value(message.senderDid),
+            transportId: Value(message.transportId),
+            isDeleted: Value(message.isDeleted),
+            isDeletedLocally: Value(message.isDeletedLocally),
+            editedAt: Value(message.editedAt),
           ),
         );
 
@@ -355,7 +368,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         final reactionCompanions = message.reactions.map((reaction) {
           return db.ReactionsCompanion.insert(
             messageId: message.messageId,
-            value: reaction,
+            value: reaction.emoji,
+            senderDid: Value(reaction.senderDid),
           );
         }).toList();
 
@@ -384,6 +398,8 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                   hash: Value(attachment.data?.hash),
                   base64: Value(attachment.data?.base64),
                   json: Value(attachment.data?.json),
+                  transportId: Value(attachment.transportId),
+                  metadata: Value(_encodeMetadata(attachment.metadata)),
                 ),
               );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -537,6 +553,29 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     );
   }
 
+  @override
+  Future<String?> getSyncMarker(String chatId) async {
+    final row = await (_database.select(
+      _database.chatSyncMarkers,
+    )..where((t) => t.chatId.equals(chatId))).getSingleOrNull();
+    return row?.eventId;
+  }
+
+  @override
+  Future<void> updateSyncMarker({
+    required String chatId,
+    required String eventId,
+  }) async {
+    await _database
+        .into(_database.chatSyncMarkers)
+        .insertOnConflictUpdate(
+          db.ChatSyncMarkersCompanion(
+            chatId: Value(chatId),
+            eventId: Value(eventId),
+          ),
+        );
+  }
+
   /// Groups attachments and their associated links by message ID.
   ///
   /// **Returns:**
@@ -598,18 +637,27 @@ class _ChatItemMapper {
         isFromMe: message.isFromMe,
         dateCreated: message.dateCreated,
         status: message.status,
-        reactions: reactions.map((r) => r.value).toList(),
+        reactions: reactions
+            .map(
+              (r) =>
+                  model.MessageReaction(emoji: r.value, senderDid: r.senderDid),
+            )
+            .toList(),
         senderDid: message.senderDid,
+        transportId: message.transportId,
+        isDeleted: message.isDeleted,
+        isDeletedLocally: message.isDeletedLocally,
+        editedAt: message.editedAt,
         attachments: attachments.entries
             .map(
-              (a) => model.Attachment(
+              (a) => model.ChatAttachment(
                 id: a.key.id,
                 description: a.key.description,
                 filename: a.key.filename,
                 mediaType: a.key.mediaType,
                 format: a.key.format,
                 lastModifiedTime: a.key.lastModifiedTime,
-                data: model.AttachmentData(
+                data: model.ChatAttachmentData(
                   jws: a.key.jws,
                   hash: a.key.hash,
                   links: a.value.map((l) => l.url).toList(),
@@ -617,7 +665,8 @@ class _ChatItemMapper {
                   json: a.key.json,
                 ),
                 byteCount: a.key.byteCount,
-              ),
+                metadata: _decodeMetadata(a.key.metadata),
+              )..transportId = a.key.transportId,
             )
             .toList(),
       );
@@ -656,4 +705,19 @@ class _ChatItemMapper {
       code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
     );
   }
+}
+
+/// Encodes extensible attachment [metadata] to a JSON string for persistence,
+/// or `null` when there is no metadata.
+String? _encodeMetadata(Map<String, dynamic>? metadata) {
+  if (metadata == null) return null;
+  return jsonEncode(metadata);
+}
+
+/// Decodes persisted attachment metadata from its JSON string [value], or
+/// `null` when absent or malformed.
+Map<String, dynamic>? _decodeMetadata(String? value) {
+  if (value == null || value.isEmpty) return null;
+  final decoded = jsonDecode(value);
+  return decoded is Map<String, dynamic> ? decoded : null;
 }

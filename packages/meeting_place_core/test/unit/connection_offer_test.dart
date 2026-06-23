@@ -21,6 +21,7 @@ void main() {
     status: ConnectionOfferStatus.published,
     ownedByMe: true,
     createdAt: DateTime.utc(2024),
+    transport: ChannelTransport.didcomm,
   );
 
   group('ConnectionOffer score', () {

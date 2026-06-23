@@ -19,4 +19,13 @@ class FakeChatRepository implements ChatRepository {
 
   @override
   Future<ChatItem> updateMesssage(ChatItem message) async => message;
+
+  @override
+  Future<String?> getSyncMarker(String chatId) async => null;
+
+  @override
+  Future<void> updateSyncMarker({
+    required String chatId,
+    required String eventId,
+  }) async {}
 }

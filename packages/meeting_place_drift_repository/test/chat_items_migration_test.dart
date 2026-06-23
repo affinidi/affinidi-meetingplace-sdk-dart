@@ -169,6 +169,45 @@ void main() {
     );
 
     test(
+      'group member kick reason round-trips through repository data',
+      () async {
+        final message = EventMessage.groupMemberLeft(
+          chatId: 'c1',
+          groupDid: 'did:x:group',
+          memberDid: 'did:x:bob',
+          memberCard: const {
+            'did': 'did:x:bob',
+            'type': 'human',
+            'contactInfo': {
+              'n': {'given': 'Bob'},
+            },
+          },
+          reason: GroupMemberLeaveReason.kick,
+        );
+
+        await repository.createMessage(message);
+        final stored = await repository.getMessage(
+          chatId: 'c1',
+          messageId: message.messageId,
+        );
+
+        expect(stored, isA<EventMessage>());
+        final eventMessage = stored! as EventMessage;
+        expect(
+          eventMessage.eventType,
+          equals(EventMessageType.groupMemberLeftGroup),
+        );
+        expect(eventMessage.data['reason'], GroupMemberLeaveReason.kick.name);
+        expect(
+          GroupMemberLeaveReason.fromJson(
+            eventMessage.data['reason'] as String,
+          ),
+          equals(GroupMemberLeaveReason.kick),
+        );
+      },
+    );
+
+    test(
       'ConciergeMessage with string type round-trips through v2 schema',
       () async {
         final message = ConciergeMessage(
@@ -195,5 +234,14 @@ void main() {
         );
       },
     );
+  });
+
+  group('v2 → v3 schema migration', () {
+    test('produces the correct v3 schema', () async {
+      final connection = await verifier.startAt(2);
+      final db = ChatItemsDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 3);
+      await db.close();
+    });
   });
 }

@@ -190,6 +190,15 @@ class ConnectionOffers extends Table with TableInfo {
     requiredDuringInsert: false,
     $customConstraints: 'NULL',
   );
+  late final GeneratedColumn<int> transport = GeneratedColumn<int>(
+    'transport',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 1',
+    defaultValue: const CustomExpression('1'),
+  );
   late final GeneratedColumn<int> score = GeneratedColumn<int>(
     'score',
     aliasedName,
@@ -222,6 +231,7 @@ class ConnectionOffers extends Table with TableInfo {
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
+    transport,
     score,
   ];
   @override

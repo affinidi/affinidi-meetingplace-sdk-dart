@@ -1,3 +1,17 @@
+## 0.0.1-dev.20
+
+### Added
+
+- **MatrixTokenCommand** — Obtain a Matrix access token via DIDComm challenge-response authentication against the control plane.
+
+- **GroupNotifyChannelCommand** — Notify group members of channel events via the control plane.
+
+- **UploadDidWebDocumentCommand** — Upload a `did:web` DID Document to be hosted by the control plane.
+
+- **GroupDeregisterMemberHandler** — Deregister a member from a group via the control plane (owner-only).
+
+- **DIDComm challenge-response authentication** — Extracted into a reusable `DIDCommChallengeResponse` class supporting general id auth and matrix auth flows.
+
 ## 0.0.1-dev.19
 
  - **FEAT**: add meeting_place_credentials package (#160).

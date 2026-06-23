@@ -110,6 +110,7 @@ class RegisterOfferHandler
       ..mediatorEndpoint = mediatorForOffer.mediatorEndpoint
       ..mediatorWSSEndpoint = mediatorForOffer.mediatorWSSEndpoint
       ..customPhrase = command.customPhrase
+      ..transport = command.transport.value
       ..score = command.score;
 
     try {

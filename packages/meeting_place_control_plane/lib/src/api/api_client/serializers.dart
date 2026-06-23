@@ -49,10 +49,16 @@ import 'model/group_delete_input.dart';
 import 'model/group_delete_ok.dart';
 import 'model/group_deregister_member_input.dart';
 import 'model/group_member_deregister_ok.dart';
+import 'model/group_notify_channel_input.dart';
+import 'model/group_notify_channel_ok.dart';
 import 'model/group_send_message.dart';
 import 'model/group_send_message_ok.dart';
 import 'model/invalid_acceptance_error.dart';
 import 'model/invalid_offer_error.dart';
+import 'model/matrix_challenge.dart';
+import 'model/matrix_challenge_ok.dart';
+import 'model/matrix_token.dart';
+import 'model/matrix_token_ok.dart';
 import 'model/not_found_error.dart';
 import 'model/not_found_error_details_inner.dart';
 import 'model/notify_accept_offer_group_input.dart';
@@ -120,10 +126,16 @@ part 'serializers.g.dart';
   GroupDeleteOK,
   GroupDeregisterMemberInput,
   GroupMemberDeregisterOK,
+  GroupNotifyChannelInput,
+  GroupNotifyChannelOK,
   GroupSendMessage,
   GroupSendMessageOK,
   InvalidAcceptanceError,
   InvalidOfferError,
+  MatrixChallenge,
+  MatrixChallengeOK,
+  MatrixToken,
+  MatrixTokenOK,
   NotFoundError,
   NotFoundErrorDetailsInner,
   NotifyAcceptOfferGroupInput,

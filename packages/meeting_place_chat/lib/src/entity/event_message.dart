@@ -1,4 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:uuid/uuid.dart';
+
 import 'chat_item.dart';
 
 part 'event_message.g.dart';
@@ -65,6 +67,18 @@ final class _CustomEventMessageType extends EventMessageType {
   const _CustomEventMessageType(super.value);
 }
 
+enum GroupMemberLeaveReason {
+  leave,
+  kick;
+
+  static GroupMemberLeaveReason fromJson(String? json) {
+    return values.firstWhere(
+      (reason) => reason.name == json,
+      orElse: () => GroupMemberLeaveReason.leave,
+    );
+  }
+}
+
 class _EventMessageTypeConverter
     extends JsonConverter<EventMessageType, String> {
   const _EventMessageTypeConverter();
@@ -93,6 +107,87 @@ class EventMessage extends ChatItem {
     required this.data,
     super.type = ChatItemType.eventMessage,
   });
+
+  /// Records that [memberDid] joined the group identified by [groupDid].
+  factory EventMessage.groupMemberJoined({
+    required String chatId,
+    required String groupDid,
+    required String memberDid,
+    required Map<String, dynamic> memberCard,
+  }) => EventMessage._groupMember(
+    type: EventMessageType.groupMemberJoinedGroup,
+    chatId: chatId,
+    groupDid: groupDid,
+    memberDid: memberDid,
+    memberCard: memberCard,
+  );
+
+  /// Records that [memberDid] left the group identified by [groupDid].
+  factory EventMessage.groupMemberLeft({
+    required String chatId,
+    required String groupDid,
+    required String memberDid,
+    required Map<String, dynamic> memberCard,
+    GroupMemberLeaveReason reason = GroupMemberLeaveReason.leave,
+  }) => EventMessage._groupMember(
+    type: EventMessageType.groupMemberLeftGroup,
+    chatId: chatId,
+    groupDid: groupDid,
+    memberDid: memberDid,
+    memberCard: memberCard,
+    reason: reason,
+  );
+
+  /// Records that the SDK is awaiting [memberDid] to join the group.
+  factory EventMessage.awaitingGroupMember({
+    required String chatId,
+    required String groupDid,
+    required String memberDid,
+    required Map<String, dynamic> memberCard,
+  }) => EventMessage._groupMember(
+    type: EventMessageType.awaitingGroupMemberToJoin,
+    chatId: chatId,
+    groupDid: groupDid,
+    memberDid: memberDid,
+    memberCard: memberCard,
+  );
+
+  /// Records that the group identified by [groupDid] was deleted.
+  factory EventMessage.groupDeleted({
+    required String chatId,
+    required String groupDid,
+  }) => EventMessage(
+    chatId: chatId,
+    messageId: const Uuid().v4(),
+    senderDid: groupDid,
+    eventType: EventMessageType.groupDeleted,
+    isFromMe: false,
+    dateCreated: DateTime.now().toUtc(),
+    status: ChatItemStatus.received,
+    data: const {},
+  );
+
+  factory EventMessage._groupMember({
+    required EventMessageType type,
+    required String chatId,
+    required String groupDid,
+    required String memberDid,
+    required Map<String, dynamic> memberCard,
+    GroupMemberLeaveReason? reason,
+  }) => EventMessage(
+    chatId: chatId,
+    messageId: const Uuid().v4(),
+    senderDid: groupDid,
+    eventType: type,
+    isFromMe: false,
+    dateCreated: DateTime.now().toUtc(),
+    status: ChatItemStatus.received,
+    data: {
+      'memberDid': memberDid,
+      'contactCard': memberCard,
+      if (reason != null) 'reason': reason.name,
+    },
+  );
 
   @_EventMessageTypeConverter()
   final EventMessageType eventType;

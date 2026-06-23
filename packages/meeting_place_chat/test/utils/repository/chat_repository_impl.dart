@@ -15,6 +15,7 @@ class ChatRepositoryImpl implements ChatRepository {
   /// Prefix used for message keys in storage.
   static final String prefix = 'chat_';
   final Storage _storage;
+  final Map<String, String> _syncMarkers = {};
 
   /// Persists a new chat message into storage.
   ///
@@ -125,5 +126,18 @@ class ChatRepositoryImpl implements ChatRepository {
     return message != null
         ? Message.fromJson(jsonDecode(message) as Map<String, dynamic>)
         : null;
+  }
+
+  @override
+  Future<String?> getSyncMarker(String chatId) async {
+    return _syncMarkers[chatId];
+  }
+
+  @override
+  Future<void> updateSyncMarker({
+    required String chatId,
+    required String eventId,
+  }) async {
+    _syncMarkers[chatId] = eventId;
   }
 }

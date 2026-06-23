@@ -3,11 +3,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
+  final vodozemacLibraryPath = getVodozemacLibraryPath();
+
+  if (!vod.isInitialized()) {
+    await vod.init(libraryPath: vodozemacLibraryPath);
+  }
+
   final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
   final aliceWaitFor = Completer<Channel>();
 
@@ -43,15 +50,17 @@ void main() async {
   prettyPrint('Disposing OOB stream...');
   await oob.stream.dispose();
 
-  final messageSubscription = await aliceSDK.subscribeToMediator(
-    channel.permanentChannelDid!,
+  final messageStream = await aliceSDK.subscribe(
+    DidCommSubscription(receiverDid: channel.permanentChannelDid!),
   );
 
   final waitForBobsMessage = Completer<PlainTextMessage>();
-  messageSubscription.stream.listen((message) {
-    if (message.plainTextMessage.isOfType(
+  final messageSubscription =
+      messageStream.stream.listen((IncomingMessage message) {
+    final didcommMessage = message as DidCommIncomingMessage;
+    if (didcommMessage.payload.isOfType(
         'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example')) {
-      waitForBobsMessage.complete(message.plainTextMessage);
+      waitForBobsMessage.complete(didcommMessage.payload);
     }
   });
 
@@ -61,5 +70,5 @@ void main() async {
 
   // Close stream
   prettyPrint('Disposing message stream...');
-  await messageSubscription.dispose();
+  await messageSubscription.cancel();
 }

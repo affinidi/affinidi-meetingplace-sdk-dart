@@ -12,7 +12,6 @@ void main() {
   late ChannelActivityEventHandler handler;
   late MockLogger mockLogger;
   late MockConnectionOfferRepository mockConnectionOfferRepository;
-  late MockVdipClient mockVdipClient;
 
   final event = ChannelActivity(
     id: const Uuid().v4(),
@@ -29,7 +28,6 @@ void main() {
   setUp(() {
     mockLogger = MockLogger();
     mockConnectionOfferRepository = MockConnectionOfferRepository();
-    mockVdipClient = MockVdipClient();
 
     when(
       () => mockLogger.info(any(), name: any(named: 'name')),
@@ -40,10 +38,10 @@ void main() {
       mediatorService: MockMediatorService(),
       connectionManager: MockConnectionManager(),
       channelService: MockChannelService(),
+      matrixService: MockMatrixService(),
       connectionOfferRepository: mockConnectionOfferRepository,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: mockLogger,
-      vdipClient: mockVdipClient,
     );
   });
 

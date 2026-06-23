@@ -110,6 +110,10 @@ abstract class RegisterOfferInput
   @BuiltValueField(wireName: r'metadata')
   String? get metadata;
 
+  /// Chat transport for the offer ("didcomm" or "matrix").
+  @BuiltValueField(wireName: r'transport')
+  String get transport;
+
   /// VRC score of the offer owner.
   @BuiltValueField(wireName: r'score')
   int? get score;
@@ -234,6 +238,13 @@ class _$RegisterOfferInputSerializer
         specifiedType: const FullType(String),
       );
     }
+
+    yield r'transport';
+    yield serializers.serialize(
+      object.transport,
+      specifiedType: const FullType(String),
+    );
+
     if (object.score != null) {
       yield r'score';
       yield serializers.serialize(
@@ -410,6 +421,17 @@ class _$RegisterOfferInputSerializer
                   as String;
           result.metadata = valueDes;
           break;
+
+        case r'transport':
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
+          result.transport = valueDes;
+          break;
+
         case r'score':
           final valueDes =
               serializers.deserialize(value, specifiedType: const FullType(int))

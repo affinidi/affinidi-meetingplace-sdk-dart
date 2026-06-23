@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:ssi/ssi.dart';
 
 import '../../api/api_client.dart';
@@ -7,10 +5,9 @@ import '../../api/auth_credentials.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../core/protocol/message/auth_challenge.dart';
+import '../../core/didcomm/didcomm_challenge_response.dart';
 import '../../loggers/control_plane_sdk_logger.dart';
 import '../../loggers/default_control_plane_sdk_logger.dart';
-import '../../utils/didcomm.dart';
 import '../../utils/string.dart';
 import 'authenticate.dart';
 import 'authenticate_exception.dart';
@@ -67,48 +64,26 @@ class AuthenticateHandler
     final methodName = '_getCredentials';
     _logger.info('Starting getting credentials', name: methodName);
 
-    final senderDidDocument = await _didManager.getDidDocument();
-    final challengeBuilder = DidChallengeBuilder()..did = senderDidDocument.id;
-
-    final challengeResponse = await _apiClient.client.didChallenge(
-      didChallenge: challengeBuilder.build(),
-    );
-
-    final challenge = challengeResponse.data?.challenge;
-    if (challenge == null) {
-      _logger.error(
-        'Empty challenge returned from didChallenge',
-        name: methodName,
-      );
-      throw AuthenticateException.emptyChallengeReturned(
-        did: senderDidDocument.id,
-      );
-    }
-
-    /// Construct a plain text message that we will
-    /// later encrypt before sending. Note that the
-    /// [type] must be the known verb for the mediator
-    /// to initiate an auth challenge
-    final plaintextAuth = MeetingplaceAuthChallenge.create(
-      from: senderDidDocument.id,
-      to: [authServiceDidDocument.id],
-      challenge: challenge,
-    );
-
-    final encryptedMessageAuth = await signAndEncryptMessage(
-      plaintextAuth,
-      senderDidManager: _didManager,
-      recipientDidDocument: authServiceDidDocument,
+    final challengeResponse = await DidCommChallengeResponse.build(
+      apiClient: _apiClient,
+      didManager: _didManager,
+      didResolver: _didResolver,
+      recipientDid: authServiceDidDocument.id,
+      onEmptyChallenge: (senderDid) {
+        _logger.error(
+          'Empty challenge returned from didChallenge',
+          name: methodName,
+        );
+        return AuthenticateException.emptyChallengeReturned(did: senderDid);
+      },
     );
 
     final didAuthenticateBuilder = DidAuthenticateBuilder()
-      ..challengeResponse = base64Encode(
-        utf8.encode(jsonEncode(encryptedMessageAuth)),
-      );
+      ..challengeResponse = challengeResponse.challengeResponse;
 
     _logger.info(
       '[MPX API] Sending authentication request to /did-authenticate '
-      'for DID: ${senderDidDocument.id.topAndTail()}',
+      'for DID: ${challengeResponse.senderDid.topAndTail()}',
       name: methodName,
     );
     final response = await _apiClient.client.didAuthenticate(

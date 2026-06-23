@@ -11,8 +11,9 @@ import '../repository/repository.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/connection_service.dart';
+import '../service/identity/identity_service.dart';
+import '../service/matrix/matrix_service.dart';
 import '../service/mediator/mediator_service.dart';
-import '../vdip/vdip_client.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'control_plane_event_stream_manager.dart';
@@ -54,9 +55,10 @@ class ControlPlaneEventManager {
     required GroupRepository groupRepository,
     required ChannelRepository channelRepository,
     required ChannelService channelService,
+    required MatrixService matrixService,
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
-    required VdipClient vdipClient,
+    required IdentityService identityService,
     MeetingPlaceCoreSDKLogger? logger,
     ControlPlaneEventHandlerManagerOptions options =
         const ControlPlaneEventHandlerManagerOptions(),
@@ -88,8 +90,10 @@ class ControlPlaneEventManager {
       controlPlaneSDK: controlPlaneSDK,
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
+      matrixService: matrixService,
       connectionManager: connectionManager,
       didResolver: didResolver,
+      identityService: identityService,
       options: options,
       logger: _logger,
     );
@@ -99,15 +103,16 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
+      matrixService: matrixService,
       options: options,
       logger: _logger,
-      vdipClient: vdipClient,
     );
     _groupMembershipFinalisedEventHandler =
         GroupMembershipFinalisedEventHandler(
           wallet: wallet,
           mediatorService: mediatorService,
           controlPlaneSDK: controlPlaneSDK,
+          matrixService: matrixService,
           connectionManager: connectionManager,
           connectionOfferRepository: connectionOfferRepository,
           groupRepository: groupRepository,

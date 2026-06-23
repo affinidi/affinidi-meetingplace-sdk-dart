@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -7,11 +10,13 @@ import '../../utils/sdk.dart';
 
 void main() async {
   late MeetingPlaceCoreSDK aliceSDK;
+  late DIDCommTransport aliceDidcomm;
   late MeetingPlaceCoreSDK bobSDK;
+  late DIDCommTransport bobDidcomm;
 
   setUp(() async {
-    aliceSDK = await initSDKInstance();
-    bobSDK = await initSDKInstance();
+    (aliceSDK, aliceDidcomm) = await initSDKWithDidcomm();
+    (bobSDK, bobDidcomm) = await initSDKWithDidcomm();
   });
 
   test('subscription cares only about related messages', () async {
@@ -23,15 +28,9 @@ void main() async {
     final didDocB = await didManagerB.getDidDocument();
 
     // --- Reset messages ---
-    await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerA,
-      deleteOnRetrieve: true,
-    );
+    await aliceDidcomm.fetchMessages(did: didDocA.id, deleteOnRetrieve: true);
 
-    await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerB,
-      deleteOnRetrieve: true,
-    );
+    await aliceDidcomm.fetchMessages(did: didDocB.id, deleteOnRetrieve: true);
 
     // --- Send messages ---
     final sendMessageDid = await bobSDK.generateDid();
@@ -53,7 +52,7 @@ void main() async {
       ),
     );
 
-    await bobSDK.mediator.sendMessage(
+    await bobDidcomm.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
         type: Uri.parse('https://example.com/test'),
@@ -61,12 +60,11 @@ void main() async {
         to: [didDocA.id],
         body: {'fooA': 'barA'},
       ),
-      senderDidManager: sendMessageDid,
-      recipientDidDocument: didDocA,
-      next: didDocA.id,
+      senderDid: senderDidDocument.id,
+      recipientDid: didDocA.id,
     );
 
-    await bobSDK.mediator.sendMessage(
+    await bobDidcomm.sendMessage(
       PlainTextMessage(
         id: const Uuid().v4(),
         type: Uri.parse('https://example.com/test'),
@@ -74,32 +72,37 @@ void main() async {
         to: [didDocB.id],
         body: {'fooB': 'barB'},
       ),
-      senderDidManager: sendMessageDid,
-      recipientDidDocument: didDocB,
-      next: didDocB.id,
+      senderDid: senderDidDocument.id,
+      recipientDid: didDocB.id,
     );
 
     await Future<void>.delayed(const Duration(seconds: 5));
 
-    final messagesA = await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerA,
+    final messagesA = await aliceDidcomm.fetchMessages(
+      did: didDocA.id,
+      deleteOnRetrieve: false,
     );
 
     final targetMessages = messagesA
         .where(
-          (mes) => mes.message!.type.toString() == 'https://example.com/test',
+          (mes) =>
+              mes.plainTextMessage.type.toString() ==
+              'https://example.com/test',
         )
         .toList();
 
     expect(targetMessages.length, 1);
 
-    final messagesB = await aliceSDK.mediator.fetchMessages(
-      didManager: didManagerB,
+    final messagesB = await aliceDidcomm.fetchMessages(
+      did: didDocB.id,
+      deleteOnRetrieve: false,
     );
 
     final targetMessagesB = messagesB
         .where(
-          (mes) => mes.message!.type.toString() == 'https://example.com/test',
+          (mes) =>
+              mes.plainTextMessage.type.toString() ==
+              'https://example.com/test',
         )
         .toList();
 
@@ -108,13 +111,14 @@ void main() async {
 
   test('different stream for each mediator session', () async {
     final didManager = await aliceSDK.generateDid();
+    final didDoc = await didManager.getDidDocument();
+
     final didManager2 = await aliceSDK.generateDid();
+    final didDoc2 = await didManager2.getDidDocument();
 
-    final channel = await aliceSDK.mediator.subscribeToMessages(didManager);
+    final channel = await aliceDidcomm.subscribe(didDoc.id);
 
-    final differentChannel = await aliceSDK.mediator.subscribeToMessages(
-      didManager2,
-    );
+    final differentChannel = await aliceDidcomm.subscribe(didDoc2.id);
 
     expect(channel, isNot(equals(differentChannel)));
     await channel.dispose();

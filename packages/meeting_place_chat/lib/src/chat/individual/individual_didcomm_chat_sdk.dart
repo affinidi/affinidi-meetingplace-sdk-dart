@@ -483,6 +483,14 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
+  Future<void> updateMessage(Message message) {
+    throw UnimplementedError(
+      'updateMessage is not supported on the DIDComm individual chat SDK. '
+      'Calls use Matrix transport only.',
+    );
+  }
+
+  @override
   Future<void> editTextMessage(Message message, String newText) {
     throw UnimplementedError(
       'editTextMessage is not yet supported on the DIDComm individual chat '

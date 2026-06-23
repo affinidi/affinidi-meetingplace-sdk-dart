@@ -1,3 +1,4 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../entity/chat_attachment.dart';
@@ -25,12 +26,13 @@ class MatrixEventField {
   /// logical `Message` carrying multiple attachments.
   static const correlationId = 'mp_correlation_id';
 
-  /// Stores the [ChatAttachment.format] for media events so the receiver
-  /// can reconstruct the original format of each attachment.
-  static const attachmentFormat = 'mp_attachment_format';
+  /// Content-level array carrying metadata-only attachments (no byte payload),
+  /// such as call chat items. Each entry is a serialized [ChatAttachment]
+  /// limited to its id and metadata map.
+  static const attachmentsMetadata = 'mp_attachments_metadata';
 }
 
-/// Matrix-specific helpers for parsing and inspecting media attachments
+/// Matrix-specific helpers for parsing and inspecting hosted-media attachments
 /// carried inside Matrix room events.
 ///
 /// All methods are static; this class exists purely to scope the helpers to
@@ -69,18 +71,54 @@ class MatrixMediaAttachments {
     final mimeType = _stringValue(info?['mimetype']);
     final sizeValue = info?['size'];
     final size = sizeValue is int ? sizeValue : null;
-    final format = _stringValue(content[MatrixEventField.attachmentFormat]);
 
     return [
       ChatAttachment(
         id: const Uuid().v4(),
         filename: filename,
         mediaType: mimeType,
-        format: format,
+        format: AttachmentFormat.hostedMedia.value,
         byteCount: size,
         metadata: _voiceMetadata(content, info),
       ),
     ];
+  }
+
+  /// Serializes metadata-only [attachments] (no byte payload) into the
+  /// content-level array stored under [MatrixEventField.attachmentsMetadata].
+  static List<Map<String, dynamic>> buildMetadataAttachmentsContent(
+    List<ChatAttachment> attachments,
+  ) {
+    return [
+      for (final a in attachments)
+        <String, dynamic>{
+          if (a.id != null) 'id': a.id,
+          'metadata': a.metadata ?? <String, dynamic>{},
+        },
+    ];
+  }
+
+  /// Reconstructs metadata-only attachments from Matrix `m.room.message`
+  /// content previously built by [buildMetadataAttachmentsContent]. Returns an
+  /// empty list when the content carries no metadata-attachments array.
+  static List<ChatAttachment> extractMetadataAttachments(
+    Map<String, dynamic> content,
+  ) {
+    final raw = content[MatrixEventField.attachmentsMetadata];
+    if (raw is! List) return const [];
+
+    final result = <ChatAttachment>[];
+    for (final entry in raw) {
+      if (entry is! Map) continue;
+      final map = Map<String, dynamic>.from(entry);
+      result.add(
+        ChatAttachment(
+          id: _stringValue(map['id']) ?? const Uuid().v4(),
+          metadata: _mapValue(map['metadata']),
+        ),
+      );
+    }
+    return result;
   }
 
   /// Reads voice metadata from content-level MSC keys, or `null` for generic

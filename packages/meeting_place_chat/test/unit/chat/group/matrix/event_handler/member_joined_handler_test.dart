@@ -4,8 +4,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
-
 class _MockChatRepository extends Mock implements ChatRepository {}
 
 class _FakeChatItem extends Fake implements ChatItem {}
@@ -41,13 +39,11 @@ void main() {
   setUpAll(() => registerFallbackValue(_FakeChatItem()));
 
   group('MemberJoinedHandler', () {
-    late _MockCoreSDK coreSDK;
     late _MockChatRepository chatRepository;
     late ChatStream stream;
     late Group group;
 
     setUp(() {
-      coreSDK = _MockCoreSDK();
       chatRepository = _MockChatRepository();
       stream = ChatStream();
       group = _groupOwnedBy('did:test:alice');
@@ -58,18 +54,15 @@ void main() {
       when(
         () => chatRepository.updateMesssage(any()),
       ).thenAnswer((inv) async => inv.positionalArguments.first as ChatItem);
-      when(() => coreSDK.getGroupById(any())).thenAnswer((_) async => group);
     });
 
     MemberJoinedHandler buildHandler({String ownDid = 'did:test:alice'}) =>
         MemberJoinedHandler(
-          coreSDK: coreSDK,
           chatRepository: chatRepository,
           streamManager: stream,
           chatId: 'chat-1',
           ownDid: ownDid,
           getGroup: () => group,
-          setGroup: (g) => group = g,
         );
 
     test(

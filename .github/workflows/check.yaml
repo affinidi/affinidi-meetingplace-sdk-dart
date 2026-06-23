@@ -1,14 +1,14 @@
 name: Pull Request Checks
 
-on: 
+on:
   pull_request:
-     
+
 jobs:
   dart-pipeline:
     uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
     secrets: inherit
     with:
-      flutter-version: '3.41.9'
+      flutter-version: "3.41.9"
       package: true
       pana_min_score: 160
       env_vars: |

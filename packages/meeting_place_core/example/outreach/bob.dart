@@ -47,7 +47,9 @@ void main() async {
   );
 
   prettyJsonPrintYellow(
-      'Connection offer', publishOfferResult.connectionOffer.toJson());
+    'Connection offer',
+    publishOfferResult.connectionOffer.toJson(),
+  );
 
   // Listen on control plane events stream to wait for outreach invitation
   prettyPrintYellow('Listen on new events...');
@@ -67,8 +69,9 @@ void main() async {
   );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage message,
+  ) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();

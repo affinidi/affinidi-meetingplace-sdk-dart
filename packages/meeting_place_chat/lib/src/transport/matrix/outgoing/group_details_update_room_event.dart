@@ -4,22 +4,12 @@ import '../../didcomm/protocol/chat_group_details_update/chat_group_details_upda
 import '../matrix_chat_event_type.dart';
 
 class GroupDetailsUpdateRoomEvent extends MatrixOutgoingMessage {
-  factory GroupDetailsUpdateRoomEvent({
-    required String senderDid,
-    required Group group,
-  }) {
-    final update = ChatGroupDetailsUpdate.fromGroup(
-      group,
-      senderDid: senderDid,
-    );
-    return GroupDetailsUpdateRoomEvent._(
-      senderDid: senderDid,
-      content: update.body.toJson(),
-    );
-  }
-
-  GroupDetailsUpdateRoomEvent._({
-    required super.senderDid,
-    required super.content,
-  }) : super(type: MatrixChatEventType.groupDetailsUpdate);
+  GroupDetailsUpdateRoomEvent({required super.senderDid, required Group group})
+    : super(
+        type: MatrixChatEventType.groupDetailsUpdate,
+        content: ChatGroupDetailsUpdate.fromGroup(
+          group,
+          senderDid: senderDid,
+        ).body.toJson(),
+      );
 }

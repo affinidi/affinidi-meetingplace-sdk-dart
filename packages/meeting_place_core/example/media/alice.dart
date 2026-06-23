@@ -42,9 +42,7 @@ void main() async {
     ..createSync(recursive: true);
   File(
     '${outputDirectory.path}${Platform.pathSeparator}storage.txt',
-  ).writeAsBytesSync(
-    utf8.encode(publishOfferResult.connectionOffer.mnemonic),
-  );
+  ).writeAsBytesSync(utf8.encode(publishOfferResult.connectionOffer.mnemonic));
 
   // Listen for Bob's invitation acceptance + matrix-join readiness.
   final waitForInvitationAccept = Completer<ControlPlaneStreamEvent>();
@@ -62,8 +60,9 @@ void main() async {
   final notificationStream = await aliceSDK.subscribe(
     DidCommSubscription(receiverDid: notificationDidDocument.id),
   );
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage _) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage _,
+  ) async {
     await aliceSDK.processControlPlaneEvents();
   });
 

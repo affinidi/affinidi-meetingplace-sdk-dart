@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:uuid/uuid.dart';
 
+import '../call/call_decline_signal.dart';
+import '../call/incoming_call_signal.dart';
 import '../event_handler/control_plane_event_handler_manager.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
@@ -26,6 +28,18 @@ class ControlPlaneEventService {
   final List<Object> _errors = [];
 
   bool _queued = false;
+
+  /// Broadcast stream of incoming call signals.
+  ///
+  /// Delegates to [ControlPlaneEventManager.incomingCallSignals].
+  Stream<IncomingCallSignal> get incomingCallSignals =>
+      _discoveryEventManager.incomingCallSignals;
+
+  /// Broadcast stream of call-decline signals.
+  ///
+  /// Delegates to [ControlPlaneEventManager.callDeclineSignals].
+  Stream<CallDeclineSignal> get callDeclineSignals =>
+      _discoveryEventManager.callDeclineSignals;
 
   Future<void> processEvents({
     required Duration debounceEvents,

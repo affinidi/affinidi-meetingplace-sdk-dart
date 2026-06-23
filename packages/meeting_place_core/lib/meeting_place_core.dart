@@ -3,7 +3,15 @@ export 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart'
     show VdipIssuedCredentialBody;
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, MessageWrappingType, PlainTextMessage;
-export 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
+export 'package:matrix/matrix.dart'
+    show
+        DatabaseApi,
+        GroupCallSession,
+        MatrixRTCCallEvent,
+        MatrixSdkDatabase,
+        OpenIdCredentials,
+        VoIP,
+        WebRTCDelegate;
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         ControlPlaneEventType,
@@ -24,6 +32,10 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MeetingPlaceMediatorSDKException;
 export 'package:ssi/ssi.dart' show DidManager;
 
+export 'src/call/call_decline_signal.dart';
+export 'src/call/call_media_type.dart';
+export 'src/call/incoming_call_signal.dart';
+export 'src/call/mpx_call_event_type.dart';
 export 'src/channel_attachment_event.dart';
 export 'src/entity/entity.dart';
 export 'src/event_handler/control_plane_event_handler_manager_options.dart';
@@ -46,6 +58,7 @@ export 'src/service/matrix/matrix_config.dart';
 export 'src/service/matrix/matrix_read_receipt_event.dart';
 export 'src/service/matrix/matrix_room_event.dart';
 export 'src/service/matrix/matrix_service.dart';
+export 'src/service/matrix/matrix_service_exception.dart';
 export 'src/service/matrix/matrix_subscription_options.dart';
 export 'src/service/matrix/matrix_user_id_binding.dart';
 export 'src/service/mediator/mediator_message.dart';

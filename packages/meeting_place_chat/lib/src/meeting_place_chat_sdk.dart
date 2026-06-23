@@ -87,6 +87,15 @@ abstract interface class MeetingPlaceChatSDK {
   /// ```
   TransportCapabilities get capabilities;
 
+  /// The DID of the local party (this client).
+  String get did;
+
+  /// The DID of the other party.
+  String get otherPartyDid;
+
+  /// The unique chat ID for this session.
+  String get chatId;
+
   /// All messages for this chat, ordered as the underlying transport returns
   /// them. Matrix replays the room timeline; DIDComm returns the locally
   /// persisted set.
@@ -121,7 +130,7 @@ abstract interface class MeetingPlaceChatSDK {
     List<ChatAttachment> attachments = const [],
   });
 
-  /// Downloads and decrypts the media bytes referenced by
+  /// Downloads and decrypts the hosted-media bytes referenced by
   /// [attachment]. The wire-level reference
   /// ([ChatAttachment.transportId] for Matrix; inline base64 for DIDComm)
   /// is resolved internally so app code never sees encryption keys or
@@ -131,6 +140,14 @@ abstract interface class MeetingPlaceChatSDK {
   /// Edits a previously sent text [message] to [newText]. Only the original
   /// sender can edit a message; the message must have been delivered.
   Future<void> editTextMessage(Message message, String newText);
+
+  /// Applies [message]'s current field values to the local store and pushes
+  /// the updated item to the chat stream, without sending anything over the
+  /// wire. Use for per-side metadata updates (e.g. call status, duration)
+  /// that differ per participant and must not propagate to the other party.
+  ///
+  /// Only available on Matrix chats. DIDComm chats throw [UnimplementedError].
+  Future<void> updateMessage(Message message);
 
   /// Deletes [message]. Only the original sender may delete a message. When
   /// [localOnly] is `true`, hides the message for the local user without

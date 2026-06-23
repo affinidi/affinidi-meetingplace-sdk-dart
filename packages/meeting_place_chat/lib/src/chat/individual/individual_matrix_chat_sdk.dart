@@ -52,7 +52,6 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   static const _capabilities = TransportCapabilities({
     ChatFeature.textMessaging,
     ChatFeature.mediaAttachments,
-    ChatFeature.documentAttachments,
     ChatFeature.voiceMessages,
     ChatFeature.reactions,
     ChatFeature.typingIndicators,

@@ -150,44 +150,6 @@
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
-          },
-          {
-            "name": "is_deleted",
-            "getter_name": "isDeleted",
-            "moor_type": "bool",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "CHECK (\"is_deleted\" IN (0, 1))",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "CHECK (\"is_deleted\" IN (0, 1))"
-            },
-            "default_dart": "const CustomExpression('0')",
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "is_deleted_locally",
-            "getter_name": "isDeletedLocally",
-            "moor_type": "bool",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "CHECK (\"is_deleted_locally\" IN (0, 1))",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "CHECK (\"is_deleted_locally\" IN (0, 1))"
-            },
-            "default_dart": "const CustomExpression('0')",
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "edited_at",
-            "getter_name": "editedAt",
-            "moor_type": "dateTime",
-            "nullable": true,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
           }
         ],
         "is_virtual": false,
@@ -237,16 +199,6 @@
             "nullable": false,
             "customConstraints": null,
             "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "sender_did",
-            "getter_name": "senderDid",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": "const CustomExpression('\\'\\'')",
             "default_client_dart": null,
             "dsl_features": []
           }
@@ -413,26 +365,6 @@
             "default_dart": null,
             "default_client_dart": null,
             "dsl_features": []
-          },
-          {
-            "name": "transport_id",
-            "getter_name": "transportId",
-            "moor_type": "string",
-            "nullable": true,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "metadata",
-            "getter_name": "metadata",
-            "moor_type": "string",
-            "nullable": true,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
           }
         ],
         "is_virtual": false,
@@ -491,43 +423,6 @@
         "without_rowid": false,
         "constraints": []
       }
-    },
-    {
-      "id": 4,
-      "references": [],
-      "type": "table",
-      "data": {
-        "name": "chat_sync_markers",
-        "was_declared_in_moor": false,
-        "columns": [
-          {
-            "name": "chat_id",
-            "getter_name": "chatId",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "event_id",
-            "getter_name": "eventId",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          }
-        ],
-        "is_virtual": false,
-        "without_rowid": false,
-        "constraints": [],
-        "explicit_pk": [
-          "chat_id"
-        ]
-      }
     }
   ],
   "fixed_sql": [
@@ -536,7 +431,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"chat_items\" (\"chat_id\" TEXT NOT NULL, \"message_id\" TEXT NOT NULL, \"value\" TEXT NULL, \"is_from_me\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_from_me\" IN (0, 1)), \"date_created\" TEXT NOT NULL, \"status\" INTEGER NOT NULL, \"type\" INTEGER NOT NULL, \"event_type\" TEXT NULL, \"concierge_type\" TEXT NULL, \"data\" TEXT NULL, \"sender_did\" TEXT NOT NULL, \"transport_id\" TEXT NULL, \"is_deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_deleted\" IN (0, 1)), \"is_deleted_locally\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_deleted_locally\" IN (0, 1)), \"edited_at\" TEXT NULL, PRIMARY KEY (\"message_id\"));"
+          "sql": "CREATE TABLE IF NOT EXISTS \"chat_items\" (\"chat_id\" TEXT NOT NULL, \"message_id\" TEXT NOT NULL, \"value\" TEXT NULL, \"is_from_me\" INTEGER NOT NULL DEFAULT 0 CHECK (\"is_from_me\" IN (0, 1)), \"date_created\" TEXT NOT NULL, \"status\" INTEGER NOT NULL, \"type\" INTEGER NOT NULL, \"event_type\" TEXT NULL, \"concierge_type\" TEXT NULL, \"data\" TEXT NULL, \"sender_did\" TEXT NOT NULL, \"transport_id\" TEXT NULL, PRIMARY KEY (\"message_id\"));"
         }
       ]
     },
@@ -545,7 +440,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"reactions\" (\"message_id\" TEXT REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL, \"value\" TEXT NOT NULL, \"sender_did\" TEXT NOT NULL DEFAULT '');"
+          "sql": "CREATE TABLE IF NOT EXISTS \"reactions\" (\"message_id\" TEXT REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL, \"value\" TEXT NOT NULL);"
         }
       ]
     },
@@ -554,7 +449,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"attachments\" (\"message_id\" TEXT REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL, \"attachment_id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"id\" TEXT NULL, \"description\" TEXT NULL, \"filename\" TEXT NULL, \"media_type\" TEXT NULL, \"format\" TEXT NULL, \"last_modified_time\" TEXT NULL, \"jws\" TEXT NULL, \"byte_count\" INTEGER NULL, \"hash\" TEXT NULL, \"base64\" TEXT NULL, \"json\" TEXT NULL, \"transport_id\" TEXT NULL, \"metadata\" TEXT NULL);"
+          "sql": "CREATE TABLE IF NOT EXISTS \"attachments\" (\"message_id\" TEXT REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL, \"attachment_id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"id\" TEXT NULL, \"description\" TEXT NULL, \"filename\" TEXT NULL, \"media_type\" TEXT NULL, \"format\" TEXT NULL, \"last_modified_time\" TEXT NULL, \"jws\" TEXT NULL, \"byte_count\" INTEGER NULL, \"hash\" TEXT NULL, \"base64\" TEXT NULL, \"json\" TEXT NULL);"
         }
       ]
     },
@@ -564,15 +459,6 @@
         {
           "dialect": "sqlite",
           "sql": "CREATE TABLE IF NOT EXISTS \"attachments_links\" (\"attachment_id\" INTEGER REFERENCES attachments(attachment_id) ON DELETE CASCADE NOT NULL, \"url\" TEXT NOT NULL);"
-        }
-      ]
-    },
-    {
-      "name": "chat_sync_markers",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"chat_sync_markers\" (\"chat_id\" TEXT NOT NULL, \"event_id\" TEXT NOT NULL, PRIMARY KEY (\"chat_id\"));"
         }
       ]
     }

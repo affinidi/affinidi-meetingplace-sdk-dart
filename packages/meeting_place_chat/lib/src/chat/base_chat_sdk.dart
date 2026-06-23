@@ -123,7 +123,7 @@ abstract class BaseChatSDK {
     List<ChatAttachment> attachments = const [],
   });
 
-  /// Downloads and decrypts the media bytes referenced by
+  /// Downloads and decrypts the hosted-media bytes referenced by
   /// [attachment]. Resolves the wire-level reference
   /// ([ChatAttachment.transportId]) via the underlying transport, so SDK
   /// consumers never see encryption keys or transport URIs. For DIDComm

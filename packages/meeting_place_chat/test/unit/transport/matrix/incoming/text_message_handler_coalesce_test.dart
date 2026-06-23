@@ -115,6 +115,10 @@ void main() {
       store[item.messageId] = item;
       return item;
     });
+
+    when(
+      () => repo.listMessages(any()),
+    ).thenAnswer((_) async => store.values.toList());
   });
 
   group('TextMessageHandler coalescing', () {
@@ -130,9 +134,39 @@ void main() {
         expect(stored.transportId, r'$evt-1');
         expect(stored.attachments, hasLength(1));
         expect(stored.attachments.single.transportId, r'$evt-1');
-        expect(idMap, isEmpty);
+        expect(idMap[r'$evt-1'], r'$evt-1');
       },
     );
+
+    test('re-delivered event is skipped instead of duplicated', () async {
+      await handler.handle(_imageEvent(id: r'$evt-dup', filename: 'a.jpg'));
+      await handler.handle(_imageEvent(id: r'$evt-dup', filename: 'a.jpg'));
+
+      verify(() => repo.createMessage(any())).called(1);
+    });
+
+    test('own echoed message (already in id map) is skipped', () async {
+      idMap[r'$evt-mine'] = 'local-message-id';
+
+      await handler.handle(_imageEvent(id: r'$evt-mine', filename: 'a.jpg'));
+
+      verifyNever(() => repo.createMessage(any()));
+      expect(emitted, isEmpty);
+    });
+
+    test('concurrent live and history delivery of the same event creates one '
+        'Message', () async {
+      final live = handler.handle(
+        _imageEvent(id: r'$evt-race', filename: 'a.jpg'),
+      );
+      final history = handler.handle(
+        _imageEvent(id: r'$evt-race', filename: 'a.jpg'),
+      );
+
+      await Future.wait([live, history]);
+
+      verify(() => repo.createMessage(any())).called(1);
+    });
 
     test(
       'correlationId miss: creates one Message keyed on the correlation id',

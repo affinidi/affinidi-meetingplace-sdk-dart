@@ -181,7 +181,7 @@ class GroupService {
     await _groupRepository.createGroup(group);
 
     try {
-      await (
+      final (roomId, _) = await (
         _matrixService.createRoom(
           didManager: ownerDid,
           channelDid: result.groupDid,
@@ -231,6 +231,7 @@ class GroupService {
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
         externalRef: externalRef,
+        matrixRoomId: roomId,
       );
 
       await _channelService.persistChannel(channel);
@@ -702,8 +703,7 @@ class GroupService {
           .map(
             (member) => GroupMemberInaugurationMember(
               did: member.did,
-              contactCardDid: member.contactCard.did,
-              contactCardType: member.contactCard.type,
+              contactCard: member.contactCard,
               status: member.status.name,
               publicKey: member.publicKey,
               membershipType: member.membershipType.name,
@@ -1111,16 +1111,9 @@ class GroupService {
       didManager: identity.didManager,
       channelDid: group.did,
     );
+    await _matrixService.leaveRoom(roomId, didManager: identity.didManager);
 
-    try {
-      await _matrixService.leaveRoom(roomId, didManager: identity.didManager);
-      await _deregisterMember(group: group, memberDid: identity.didDocument.id);
-    } catch (e, stackTrace) {
-      /// Gracefully handle errors during leaving the group, ensuring local
-      /// cleanup is done regardless of remote operation success. Log the error
-      /// for debugging.
-      _logger.error('Failed to leave group', error: e, stackTrace: stackTrace);
-    }
+    await _deregisterMember(group: group, memberDid: identity.didDocument.id);
   }
 
   Future<void> _deregisterMember({

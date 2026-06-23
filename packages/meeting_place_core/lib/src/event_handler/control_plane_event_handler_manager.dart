@@ -4,6 +4,8 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
+import '../call/call_decline_signal.dart';
+import '../call/incoming_call_signal.dart';
 import '../entity/channel.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
@@ -63,6 +65,10 @@ class ControlPlaneEventManager {
     ControlPlaneEventHandlerManagerOptions options =
         const ControlPlaneEventHandlerManagerOptions(),
   }) : _streamManager = streamManager,
+       _incomingCallSignalController =
+           StreamController<IncomingCallSignal>.broadcast(),
+       _callDeclineSignalController =
+           StreamController<CallDeclineSignal>.broadcast(),
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className) {
     _invitationAcceptHandler = InvitationAcceptedEventHandler(
@@ -106,6 +112,8 @@ class ControlPlaneEventManager {
       matrixService: matrixService,
       options: options,
       logger: _logger,
+      incomingCallSignalController: _incomingCallSignalController,
+      callDeclineSignalController: _callDeclineSignalController,
     );
     _groupMembershipFinalisedEventHandler =
         GroupMembershipFinalisedEventHandler(
@@ -136,6 +144,24 @@ class ControlPlaneEventManager {
 
   final MeetingPlaceCoreSDKLogger _logger;
   final ControlPlaneEventStreamManager _streamManager;
+  final StreamController<IncomingCallSignal> _incomingCallSignalController;
+  final StreamController<CallDeclineSignal> _callDeclineSignalController;
+
+  /// Broadcast stream of incoming call signals.
+  ///
+  /// Emits an [IncomingCallSignal] whenever a `ChannelActivity` event with
+  /// `type == 'call-invite'` is processed. The plugin layer subscribes here
+  /// to activate the callee's Matrix session and ring the device.
+  Stream<IncomingCallSignal> get incomingCallSignals =>
+      _incomingCallSignalController.stream;
+
+  /// Broadcast stream of call-decline signals.
+  ///
+  /// Emits a [CallDeclineSignal] whenever a `ChannelActivity` event with
+  /// `type == 'call-decline'` is processed. The plugin layer subscribes here
+  /// to emit `AudioVideoCallStatus.declined` on the active outgoing session.
+  Stream<CallDeclineSignal> get callDeclineSignals =>
+      _callDeclineSignalController.stream;
 
   late final InvitationAcceptedEventHandler _invitationAcceptHandler;
   late final InvitationGroupAcceptedEventHandler

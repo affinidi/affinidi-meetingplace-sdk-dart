@@ -62,8 +62,9 @@ void main() async {
   final notificationStream = await bobSDK.subscribe(
     DidCommSubscription(receiverDid: notificationDidDocument.id),
   );
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage _) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage _,
+  ) async {
     await bobSDK.processControlPlaneEvents();
   });
 

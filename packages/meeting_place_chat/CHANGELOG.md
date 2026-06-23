@@ -1,3 +1,7 @@
+## 0.0.1-dev.47
+
+ - **FIX**: apply incoming profile updates in individual Matrix chat (#247).
+
 ## 0.0.1-dev.46
 
  - **FIX**: add Matrix transport support alongside DIDComm.

@@ -1,0 +1,40 @@
+import 'package:meeting_place_chat/meeting_place_chat.dart'
+    show AudioVideoCallParticipant;
+import 'package:meeting_place_matrix_livekit/src/services/livekit_service.dart';
+
+class FakeLiveKitService extends LiveKitService {
+  final List<bool> micCalls = [];
+  final List<bool> cameraCalls = [];
+  final List<bool> speakerCalls = [];
+  int switchCameraCalls = 0;
+  int disconnectCalls = 0;
+  List<AudioVideoCallParticipant> fakeParticipants = [];
+
+  // Control whether disconnect throws an exception (for testing error paths)
+  Exception? disconnectThrows;
+
+  @override
+  Future<void> setMicrophoneEnabled(bool enabled) async =>
+      micCalls.add(enabled);
+
+  @override
+  Future<void> setCameraEnabled(bool enabled) async => cameraCalls.add(enabled);
+
+  @override
+  Future<void> switchCamera() async => switchCameraCalls++;
+
+  @override
+  Future<void> setSpeakerphoneEnabled(bool enabled) async =>
+      speakerCalls.add(enabled);
+
+  @override
+  Future<void> disconnect() async {
+    disconnectCalls++;
+    if (disconnectThrows != null) {
+      throw disconnectThrows!;
+    }
+  }
+
+  @override
+  List<AudioVideoCallParticipant> get participants => fakeParticipants;
+}

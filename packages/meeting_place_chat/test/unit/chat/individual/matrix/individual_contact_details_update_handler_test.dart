@@ -14,8 +14,6 @@ class _FakeChannel extends Fake implements Channel {}
 
 class _MockChannel extends Mock implements Channel {}
 
-class _MockLogger extends Mock implements MeetingPlaceChatSDKLogger {}
-
 const _senderDid = 'did:test:bob';
 const _otherPartyDid = 'did:test:bob';
 
@@ -47,13 +45,11 @@ void main() {
     late _MockCoreSDK coreSDK;
     late ChatStream chatStream;
     late _MockChannel channel;
-    late _MockLogger logger;
 
     setUp(() {
       coreSDK = _MockCoreSDK();
       chatStream = ChatStream();
       channel = _MockChannel();
-      logger = _MockLogger();
 
       when(() => channel.otherPartyContactCard = any()).thenAnswer((_) {
         return null;
@@ -69,8 +65,6 @@ void main() {
           coreSDK: coreSDK,
           chatStream: chatStream,
           otherPartyDid: _otherPartyDid,
-          getChannel: () async => channel,
-          logger: logger,
         );
 
     test('handles inline profileDetails', () async {

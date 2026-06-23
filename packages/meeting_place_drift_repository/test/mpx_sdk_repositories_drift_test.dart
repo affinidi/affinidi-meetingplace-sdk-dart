@@ -208,7 +208,7 @@ void main() {
             waveform: const [0, 50, 100, 25],
             filename: 'voice.wav',
             mediaType: 'audio/wav',
-            format: model.AttachmentFormat.hostedMedia.value,
+            format: 'test-format',
           )..transportId = '\$event-id';
 
           await repository.createMessage(

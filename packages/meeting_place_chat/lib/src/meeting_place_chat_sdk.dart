@@ -121,7 +121,7 @@ abstract interface class MeetingPlaceChatSDK {
     List<ChatAttachment> attachments = const [],
   });
 
-  /// Downloads and decrypts the hosted-media bytes referenced by
+  /// Downloads and decrypts the media bytes referenced by
   /// [attachment]. The wire-level reference
   /// ([ChatAttachment.transportId] for Matrix; inline base64 for DIDComm)
   /// is resolved internally so app code never sees encryption keys or

@@ -1,4 +1,3 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../entity/chat_attachment.dart';
@@ -25,9 +24,13 @@ class MatrixEventField {
   /// `sendTextMessage` call so the receiver can coalesce them back into one
   /// logical `Message` carrying multiple attachments.
   static const correlationId = 'mp_correlation_id';
+
+  /// Stores the [ChatAttachment.format] for media events so the receiver
+  /// can reconstruct the original format of each attachment.
+  static const attachmentFormat = 'mp_attachment_format';
 }
 
-/// Matrix-specific helpers for parsing and inspecting hosted-media attachments
+/// Matrix-specific helpers for parsing and inspecting media attachments
 /// carried inside Matrix room events.
 ///
 /// All methods are static; this class exists purely to scope the helpers to
@@ -66,13 +69,14 @@ class MatrixMediaAttachments {
     final mimeType = _stringValue(info?['mimetype']);
     final sizeValue = info?['size'];
     final size = sizeValue is int ? sizeValue : null;
+    final format = _stringValue(content[MatrixEventField.attachmentFormat]);
 
     return [
       ChatAttachment(
         id: const Uuid().v4(),
         filename: filename,
         mediaType: mimeType,
-        format: AttachmentFormat.hostedMedia.value,
+        format: format,
         byteCount: size,
         metadata: _voiceMetadata(content, info),
       ),

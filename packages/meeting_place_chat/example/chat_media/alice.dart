@@ -119,9 +119,6 @@ void main() async {
     final item = data.chatItem;
     if (item is! Message) return;
     if (item.attachments.isEmpty) return;
-    if (item.attachments.first.format != AttachmentFormat.hostedMedia.value) {
-      return;
-    }
 
     final attachment = item.attachments.single;
     prettyJsonPrintYellow(

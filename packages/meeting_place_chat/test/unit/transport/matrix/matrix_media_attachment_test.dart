@@ -115,7 +115,7 @@ void main() {
       expect(attachments, hasLength(1));
       final a = attachments.single;
       expect(a.id, isNotEmpty);
-      expect(a.format, AttachmentFormat.hostedMedia.value);
+      expect(a.format, isNull);
       expect(a.filename, 'photo.jpg');
       expect(a.mediaType, 'image/jpeg');
       expect(a.byteCount, 12345);

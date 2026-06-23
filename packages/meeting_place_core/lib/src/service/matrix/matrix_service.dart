@@ -297,15 +297,15 @@ class MatrixService {
     return room.sendEvent(content, type: eventType);
   }
 
-  /// Returns recent events from [roomId] as [MatrixRoomEvent]s.
+  /// Returns events from [roomId] that arrived after [sinceEventId].
   ///
-  /// Parameters:
-  /// - [roomId]: The ID of the Matrix room to fetch history from.
-  /// - [didManager]: The DID manager used to ensure an authenticated session.
-  /// - [limit]: Maximum number of events to return (default: 50).
-  /// - [sinceEventId]: When non-null, stops walking the timeline at this
-  ///   event id (exclusive), so only events strictly newer than the marker
-  ///   are returned.
+  /// Uses the `/context/{eventId}` endpoint to obtain a fresh pagination
+  /// token from the stable event ID, then calls `/messages?from=token&dir=f`
+  /// to fetch newer events. Event IDs are permanently stable identifiers,
+  /// unlike pagination tokens which may expire on Synapse after ~5 minutes.
+  ///
+  /// When [sinceEventId] is null, fetches the most recent [limit] events
+  /// from the room timeline (initial load / no prior cursor).
   Future<List<MatrixRoomEvent>> fetchRoomHistory(
     String roomId, {
     required DidManager didManager,
@@ -317,25 +317,103 @@ class MatrixService {
       keepSyncActiveAfterLogin: false,
     );
 
-    final myUserId = _sessionManager.deriveUserId(
+    final room = client.getRoomById(roomId);
+    if (room == null) return <MatrixRoomEvent>[];
+
+    final userId = _sessionManager.deriveUserId(
       (await didManager.getDidDocument()).id,
       homeserver.host,
     );
-    final room = client.getRoomById(roomId);
-    if (room == null) return [];
 
-    final timeline = await room.getTimeline(limit: limit);
-
-    if (timeline.events.length < limit && timeline.canRequestHistory) {
-      await timeline.requestHistory(historyCount: limit);
+    if (sinceEventId != null) {
+      return _fetchRoomHistoryFromEventId(
+        roomId,
+        sinceEventId: sinceEventId,
+        limit: limit,
+        room: room,
+        client: client,
+        myUserId: userId,
+      );
     }
 
-    final events = timeline.events
-        .takeWhile((e) => sinceEventId == null || e.eventId != sinceEventId)
-        .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
-        .whereType<MatrixRoomEvent>();
+    final resp = await client.getRoomEvents(
+      roomId,
+      matrix.Direction.b,
+      limit: limit,
+    );
 
-    return events.take(limit).toList();
+    final rawEvents = resp.chunk
+        .map((e) => matrix.Event.fromMatrixEvent(e, room))
+        .toList();
+
+    await _decryptEvents(rawEvents, room, client);
+
+    return rawEvents.reversed
+        .map((e) => _eventToMatrixRoomEvent(e, myUserId: userId))
+        .whereType<MatrixRoomEvent>()
+        .toList();
+  }
+
+  /// Resolves a fresh pagination token from [sinceEventId] via `/context`,
+  /// then fetches the events that followed it via `/messages?dir=f`.
+  Future<List<MatrixRoomEvent>> _fetchRoomHistoryFromEventId(
+    String roomId, {
+    required String sinceEventId,
+    required int limit,
+    required matrix.Room room,
+    required matrix.Client client,
+    required String myUserId,
+  }) async {
+    final context = await client.getEventContext(
+      roomId,
+      sinceEventId,
+      limit: 0,
+    );
+    final token = context.end;
+    if (token == null) return <MatrixRoomEvent>[];
+
+    final resp = await client.getRoomEvents(
+      roomId,
+      matrix.Direction.f,
+      from: token,
+      limit: limit,
+    );
+
+    final rawEvents = resp.chunk
+        .map((e) => matrix.Event.fromMatrixEvent(e, room))
+        .toList();
+
+    await _decryptEvents(rawEvents, room, client);
+
+    return rawEvents
+        .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
+        .whereType<MatrixRoomEvent>()
+        .toList();
+  }
+
+  Future<void> _decryptEvents(
+    List<matrix.Event> events,
+    matrix.Room room,
+    matrix.Client client,
+  ) async {
+    if (!room.encrypted || !client.encryptionEnabled) return;
+    for (var i = 0; i < events.length; i++) {
+      if (events[i].type == matrix.EventTypes.Encrypted) {
+        events[i] = await client.encryption!.decryptRoomEvent(events[i]);
+      }
+    }
+  }
+
+  /// Performs a single Matrix sync round-trip for the session associated with
+  /// [didManager], updating the local event database with any events that
+  /// arrived since the last sync.
+  ///
+  /// Call this before [fetchRoomHistory] in contexts where a push notification
+  /// may have arrived before the background sync loop had a chance to deliver
+  /// the triggering event to the local database.
+  Future<void> oneShotSync({required DidManager didManager}) async {
+    final client = await _ensureSession(didManager);
+    await client.oneShotSync();
   }
 
   /// Returns the most recent event id in [roomId], or `null` if the room is

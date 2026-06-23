@@ -8,6 +8,8 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_media_attachment.dart';
+
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 import 'typing_indicator_manager.dart';
@@ -65,14 +67,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     chatStream = ChatStream();
     _incomingRouter = buildRoomEventRouter();
 
-    // Snapshot the sync cursor before the live subscription starts.
-    // Once subscribeToMatrixRoom() is awaited, newly-arriving Matrix events
-    // can advance chatRepository's sync marker; reading it here guarantees
-    // the bootstrap sees every event that arrived between the previous session
-    // and this one (including m.room.member join events from members who joined
-    // while the chat was closed).
-    final bootstrapCursor = await chatRepository.getSyncMarker(chatId);
-
     // Kick off the live transport subscription. transportSubscriptionFuture
     // resolves when Matrix auth + room subscribe are ready, matching the
     // DIDComm SDK semantics and the BaseChatSDK.chatStreamSubscription
@@ -93,9 +87,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       messages: <ChatItem>[...persisted],
     );
 
-    unawaited(
-      _bootstrapTransportInBackground(subscriptionFuture, bootstrapCursor),
-    );
+    unawaited(_bootstrapTransportInBackground(subscriptionFuture));
 
     logger.info(
       'Chat session started; transport sync running in background',
@@ -107,7 +99,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
 
   Future<void> _bootstrapTransportInBackground(
     Future<StreamSubscription<MatrixRoomEvent>> subscriptionFuture,
-    String? bootstrapCursor,
   ) async {
     try {
       final subscription = await subscriptionFuture;
@@ -120,7 +111,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       }
       _matrixRoomSubscription = subscription;
 
-      final events = await _fetchRoomHistoryAsRoomEvents(bootstrapCursor);
+      final events = await _fetchRoomHistoryAsRoomEvents();
       final incoming = events.where((e) => !e.isFromMe).toList();
 
       for (final event in incoming) {
@@ -163,10 +154,6 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         .map(_toRoomEvent)
         .listen((event) async {
           await _handleIncomingRoomEvent(event);
-          await chatRepository.updateSyncMarker(
-            chatId: chatId,
-            eventId: event.id,
-          );
           if (_isReceiptWorthy(event)) {
             await sendChatDeliveredMessage(event.id);
           }
@@ -217,6 +204,17 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       logger.info(
         'Text message sent, message id: ${message.messageId}',
         name: _matrixLogkey,
+      );
+    } else if (attachments.every(
+      (a) =>
+          a.data == null &&
+          a.filename == null &&
+          a.mediaType == null &&
+          a.format == null,
+    )) {
+      message = await _sendMetadataAttachmentsMessage(
+        text: text,
+        attachments: attachments,
       );
     } else {
       message =
@@ -332,6 +330,16 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     logger.info('Completed reacting on message', name: methodName);
+  }
+
+  /// Applies [message]'s current field values to the local store and pushes
+  /// the updated item to the chat stream, without sending anything over the
+  /// network. Use for per-side metadata updates (e.g. call status, duration)
+  /// that differ per participant and must not propagate to the other party.
+  Future<void> updateMessage(Message message) async {
+    await chatRepository.updateMesssage(message);
+    chatStream.pushData(StreamData(chatItem: message));
+    logger.info('updateMessage: ${message.messageId}', name: _matrixLogkey);
   }
 
   @override
@@ -529,10 +537,12 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     unawaited(
-      ContactDetailsUpdateSender(
-        coreSDK: coreSDK,
-        getChannel: getChannel,
-      ).send(senderDid: did, contactCard: c),
+      coreSDK.sendMessage(
+        ContactDetailsUpdateRoomEvent(
+          senderDid: did,
+          profileDetails: c.toJson(),
+        ),
+      ),
     );
 
     message.status = ChatItemStatus.confirmed;
@@ -552,7 +562,41 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     await super.end();
   }
 
-  Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
+  /// Sends a chat message whose attachments carry only metadata (no byte
+  /// payload), such as a call chat item. Unlike [MediaTextMessageSender] this
+  /// path performs no media upload: it emits a single `m.text` room event with
+  /// the attachment metadata embedded in the event content, persists a
+  /// [Message] carrying the attachments for the sender, and lets the receiver
+  /// reconstruct them via [MatrixMediaAttachments.extractMetadataAttachments].
+  Future<Message> _sendMetadataAttachmentsMessage({
+    required String text,
+    required List<ChatAttachment> attachments,
+  }) async {
+    final outgoing = MatrixCustomOutgoingMessage(
+      senderDid: did,
+      type: 'm.room.message',
+      content: {
+        'body': text,
+        'msgtype': 'm.text',
+        MatrixEventField.attachmentsMetadata:
+            MatrixMediaAttachments.buildMetadataAttachmentsContent(attachments),
+      },
+    );
+    final message = await _sendRoomEventMessage(
+      outgoing,
+      attachments: attachments,
+    );
+    logger.info(
+      'Metadata-attachment message sent, message id: ${message.messageId}',
+      name: _matrixLogkey,
+    );
+    return message;
+  }
+
+  Future<Message> _sendRoomEventMessage(
+    MatrixOutgoingMessage outgoing, {
+    List<ChatAttachment> attachments = const [],
+  }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
 
@@ -568,6 +612,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,
+        attachments: attachments,
       ),
     );
 

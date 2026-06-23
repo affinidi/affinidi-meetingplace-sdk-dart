@@ -479,7 +479,7 @@ void main() {
       final attachment = ChatAttachment(
         filename: 'noref.bin',
         mediaType: 'application/octet-stream',
-        format: 'test-format',
+        format: AttachmentFormat.hostedMedia.value,
       );
 
       expect(() => sdk.downloadMedia(attachment), throwsA(isA<StateError>()));
@@ -496,7 +496,7 @@ void main() {
         final attachment = ChatAttachment(
           filename: 'one.bin',
           mediaType: 'application/octet-stream',
-          format: 'test-format',
+          format: AttachmentFormat.hostedMedia.value,
           transportId: '\$event-id',
         );
 

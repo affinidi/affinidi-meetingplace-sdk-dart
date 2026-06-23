@@ -61,6 +61,11 @@ void main() async {
     await runZonedGuarded(() async {
       await aliceSDK.dispose();
       await bobSDK.dispose();
+      // Pump the event loop so unawaited didcomm internals (Connection.start's
+      // fetchMessages continuation) fire while this zone is still active and
+      // the race error can be swallowed — not after it exits and the test
+      // framework catches it as a post-completion failure.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
     }, swallowDidcommCloseRace);
   });
 

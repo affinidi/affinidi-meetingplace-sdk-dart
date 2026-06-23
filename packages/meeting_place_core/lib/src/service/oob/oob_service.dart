@@ -14,6 +14,7 @@ import '../channel/channel_service.dart';
 import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
 import '../identity/identity_service.dart';
+import '../matrix/matrix_service.dart';
 import '../mediator/mediator_service.dart';
 import 'oob_service_exception.dart';
 import 'session/oob_acceptance_session.dart';
@@ -30,6 +31,7 @@ class OobService {
     required IdentityService identityService,
     required ChannelService channelService,
     required ControlPlaneSDK controlPlaneSDK,
+    required MatrixService matrixService,
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
     required MeetingPlaceCoreSDKLogger logger,
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
@@ -39,6 +41,7 @@ class OobService {
        _connectionManager = connectionManager,
        _identityService = identityService,
        _channelService = channelService,
+       _matrixService = matrixService,
        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
        _controlPlaneSDK = controlPlaneSDK,
        _onAttachmentsReceived = onAttachmentsReceived,
@@ -50,6 +53,7 @@ class OobService {
   final ConnectionManager _connectionManager;
   final IdentityService _identityService;
   final ChannelService _channelService;
+  final MatrixService _matrixService;
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
   final ControlPlaneSDK _controlPlaneSDK;
   final void Function(Channel, List<Attachment>)? _onAttachmentsReceived;
@@ -284,6 +288,13 @@ class OobService {
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();
 
+    final roomId = await _matrixService.createRoom(
+      didManager: permanentChannelDidManager,
+      channelDid: permanentChannelDidDoc.id,
+      otherPartyChannelDid: otherPartyPermanentChannelDid,
+      inviteUsers: [otherPartyPermanentChannelDid],
+    );
+
     await _connectionService.sendConnectionRequestApprovalToMediator(
       offerPublishedDid: session.didManager,
       permanentChannelDid: permanentChannelDidManager,
@@ -309,6 +320,7 @@ class OobService {
       contactCard: session.contactCard,
       otherPartyContactCard: message.contactCard,
       externalRef: externalRef,
+      matrixRoomId: roomId,
     );
 
     await _channelService.persistChannel(channel);

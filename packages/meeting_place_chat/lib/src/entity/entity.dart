@@ -1,3 +1,4 @@
+export 'call_metadata.dart';
 export 'chat.dart';
 export 'chat_attachment.dart';
 export 'chat_attachment_data.dart';

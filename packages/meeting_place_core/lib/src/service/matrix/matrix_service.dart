@@ -7,6 +7,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../entity/channel.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
+import '../../meeting_place_core_sdk_error_code.dart';
 import 'matrix_auth_exception.dart';
 import 'matrix_config.dart';
 import 'matrix_room_alias.dart';
@@ -14,6 +15,9 @@ import 'matrix_room_event.dart';
 import 'matrix_service_exception.dart';
 import 'matrix_session_manager.dart';
 import 'matrix_subscription_options.dart';
+import 'rtc/matrix_rtc_call_scope.dart';
+import 'rtc/matrix_rtc_call_type.dart';
+import 'rtc/matrix_rtc_defaults.dart';
 
 /// High-level Matrix service that orchestrates JWT acquisition and room
 /// operations.
@@ -47,8 +51,47 @@ class MatrixService {
 
   static const _logKey = 'MatrixService';
 
+  /// Power level required to enable MatrixRTC group calls via
+  /// [matrix.Room.enableGroupCalls]. Both the room creator and every invited
+  /// participant must hold this level so either party can start a call.
+  static const _groupCallPowerLevel = 100;
+
+  /// Key for the per-user power level map in the Matrix `m.room.power_levels`
+  /// content. Defined by the Matrix spec; extracted here to avoid a bare
+  /// string literal next to the numeric power level.
+  static const _powerLevelUsersKey = 'users';
+
+  /// VoIP instance for MatrixRTC call management. Set via [initializeVoIP]
+  /// or [initializeVoIPWithDelegate] before calling [startCall].
+  matrix.VoIP? _voip;
+
+  /// The VoIP instance whose [matrix.VoIP.onIncomingGroupCall] stream is
+  /// currently subscribed.
+  ///
+  /// That stream is single-subscription, so the service listens to it exactly
+  /// once per VoIP instance (see [_ensureIncomingGroupCallListener]) rather
+  /// than re-listening on every [activateIncomingCall] call.
+  matrix.VoIP? _incomingCallListenerVoip;
+
+  /// Subscription to [matrix.VoIP.onIncomingGroupCall] for the VoIP instance
+  /// referenced by [_incomingCallListenerVoip].
+  StreamSubscription<matrix.GroupCallSession>? _incomingGroupCallSubscription;
+
+  /// In-flight [activateIncomingCall] requests waiting for their group call to
+  /// surface in room state.
+  final List<({String roomId, Completer<matrix.GroupCallSession> completer})>
+  _pendingActivations = [];
+
   /// Exposes the homeserver URI from the session manager.
   Uri get homeserver => _sessionManager.homeserver;
+
+  /// The Matrix server name used for user ID and room alias derivation.
+  ///
+  /// In production this equals [homeserver].host. For local development the
+  /// homeserver may be reached via a tunnel whose hostname differs from the
+  /// Synapse `server_name` — use this instead of [homeserver].host wherever
+  /// Matrix identifiers are derived.
+  String get serverName => _sessionManager.serverName;
 
   /// Obtains a Matrix JWT from the control plane for [didManager], logs in,
   /// and returns the Matrix user ID.
@@ -76,7 +119,11 @@ class MatrixService {
       didDocument.id,
     );
     if (cachedClient != null) {
-      return cachedClient.userID!;
+      final userID = cachedClient.userID;
+      if (userID == null) {
+        throw MatrixServiceException.missingUserId();
+      }
+      return userID;
     }
 
     final matrixTokenOutput = await _controlPlaneSDK.execute(
@@ -100,6 +147,14 @@ class MatrixService {
   /// [otherPartyChannelDid]; for group channels pass only [channelDid].
   /// See [deriveRoomAliasLocalpart] for the localpart semantics.
   ///
+  /// Both the creator and every invited user are granted power level 100 so
+  /// either party can start or join a MatrixRTC group call regardless of who
+  /// created the room. The group-call member state event requires power 50 by
+  /// default, but only a power-100 user can enable group calls for the room
+  /// (`Room.enableGroupCalls`), so a non-creator party would otherwise be
+  /// unable to join. Co-owning the room is the expected model for a
+  /// peer-to-peer channel and keeps the default per-event protections intact.
+  ///
   /// Returns: The ID of the newly created Matrix room.
   Future<String> createRoom({
     required DidManager didManager,
@@ -111,14 +166,26 @@ class MatrixService {
     if (!client.encryptionEnabled) {
       throw MatrixServiceException.encryptionNotEnabled();
     }
+    final creatorUserId = client.userID;
+    if (creatorUserId == null) {
+      throw MatrixServiceException.missingUserId();
+    }
+    final invitedUserIds = inviteUsers
+        ?.map((did) => _sessionManager.deriveUserId(did, serverName))
+        .toList();
     return client.createRoom(
       roomAliasName: deriveRoomAliasLocalpart(
         channelDid: channelDid,
         otherPartyChannelDid: otherPartyChannelDid,
       ),
-      invite: inviteUsers
-          ?.map((did) => _sessionManager.deriveUserId(did, homeserver.host))
-          .toList(),
+      invite: invitedUserIds,
+      powerLevelContentOverride: {
+        _powerLevelUsersKey: {
+          creatorUserId: _groupCallPowerLevel,
+          for (final userId in invitedUserIds ?? const <String>[])
+            userId: _groupCallPowerLevel,
+        },
+      },
       initialState: [
         matrix.StateEvent(
           type: matrix.EventTypes.Encryption,
@@ -140,7 +207,7 @@ class MatrixService {
     final alias = deriveRoomAlias(
       channelDid: channelDid,
       otherPartyChannelDid: otherPartyChannelDid,
-      homeserverHost: homeserver.host,
+      homeserverHost: serverName,
     );
     final response = await client.getRoomIdByAlias(alias);
     final roomId = response.roomId;
@@ -150,14 +217,18 @@ class MatrixService {
     return roomId;
   }
 
-  /// Resolves the Matrix room ID for [channel] by deriving the appropriate
-  /// alias. Group channels hash only the group DID (carried in
-  /// `otherPartyPermanentChannelDid`); individual channels hash both party
-  /// DIDs commutatively.
+  /// Resolves the Matrix room ID for [channel].
+  ///
+  /// Uses [Channel.matrixRoomId] when available (set at inauguration time) so
+  /// that the lookup works without alias registration. Falls back to alias
+  /// derivation for channels inaugurated before this field was introduced.
   Future<String> resolveRoomIdForChannel({
     required DidManager didManager,
     required Channel channel,
   }) {
+    if (channel.matrixRoomId != null) {
+      return Future.value(channel.matrixRoomId);
+    }
     if (channel.type == ChannelType.group) {
       return resolveChannelRoomId(
         didManager: didManager,
@@ -182,7 +253,7 @@ class MatrixService {
       deriveRoomAlias(
         channelDid: channelDid,
         otherPartyChannelDid: otherPartyChannelDid,
-        homeserverHost: homeserver.host,
+        homeserverHost: serverName,
       ),
     );
     var room = client.getRoomById(roomId);
@@ -221,7 +292,7 @@ class MatrixService {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
-    final userId = _sessionManager.deriveUserId(did, homeserver.host);
+    final userId = _sessionManager.deriveUserId(did, serverName);
     await client.inviteUser(roomId, userId);
   }
 
@@ -238,7 +309,7 @@ class MatrixService {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
-    final userId = _sessionManager.deriveUserId(did, homeserver.host);
+    final userId = _sessionManager.deriveUserId(did, serverName);
     final room = client.getRoomById(roomId);
     if (room == null) {
       throw StateError('Matrix room $roomId not found');
@@ -314,18 +385,25 @@ class MatrixService {
   Future<List<MatrixRoomEvent>> fetchRoomHistory(
     String roomId, {
     required DidManager didManager,
-    int limit = 100,
+    int limit = 50,
     String? sinceEventId,
+    bool forceSync = false,
   }) async {
     final client = await _ensureSession(
       didManager,
       keepSyncActiveAfterLogin: false,
     );
 
-    final myUserId = _sessionManager.deriveUserId(
-      (await didManager.getDidDocument()).id,
-      homeserver.host,
-    );
+    if (forceSync) {
+      await client.oneShotSync();
+    }
+
+    final myUserId =
+        client.userID ??
+        _sessionManager.deriveUserId(
+          (await didManager.getDidDocument()).id,
+          serverName,
+        );
     final room = client.getRoomById(roomId);
     if (room == null) return [];
 
@@ -405,7 +483,9 @@ class MatrixService {
       keepSyncActiveAfterLogin: true,
     );
     final did = (await didManager.getDidDocument()).id;
-    final myUserId = _sessionManager.deriveUserId(did, homeserver.host);
+
+    final myUserId =
+        client.userID ?? _sessionManager.deriveUserId(did, homeserver.host);
 
     final controller = StreamController<MatrixRoomEvent>();
 
@@ -564,6 +644,344 @@ class MatrixService {
     final client = await _ensureSession(didManager);
     final config = await client.getConfigAuthed();
     return config.mUploadSize;
+  }
+
+  /// Requests a Matrix OpenID token for [didManager].
+  ///
+  /// Calls `POST /_matrix/client/v3/user/{userId}/openid/request_token` via
+  /// the authenticated Matrix client. The returned [matrix.OpenIdCredentials]
+  /// can be passed to lk-jwt-service to obtain a LiveKit JWT without
+  /// exposing any server-side secrets to the client.
+  ///
+  /// Throws [MatrixAuthException] if no active session exists for
+  /// [didManager]. Call [loginWithDid] first.
+  Future<matrix.OpenIdCredentials> getOpenIdToken(DidManager didManager) async {
+    final client = await _ensureSession(didManager);
+    final userId = client.userID;
+    if (userId == null) {
+      throw MatrixServiceException.missingUserId();
+    }
+    return client.requestOpenIdToken(userId, {});
+  }
+
+  // ---------------------------------------------------------------------------
+  // MatrixRTC / VoIP
+  // ---------------------------------------------------------------------------
+
+  /// Injects the [matrix.VoIP] instance required for MatrixRTC call management.
+  ///
+  /// Must be called once at app startup before [startCall], [leaveCall], or
+  /// [watchCall]. The VoIP instance must be created in the Flutter layer using
+  /// a concrete [matrix.WebRTCDelegate] implementation.
+  void initializeVoIP(matrix.VoIP voip) {
+    _voip = voip;
+  }
+
+  /// Creates a [matrix.VoIP] instance from [delegate] and an authenticated
+  /// client for [didManager], then stores it for call operations.
+  ///
+  /// Preferred over [initializeVoIP] when the caller cannot hold a
+  /// [matrix.Client] reference directly. Must be called before [startCall].
+  Future<void> initializeVoIPWithDelegate({
+    required DidManager didManager,
+    required matrix.WebRTCDelegate delegate,
+  }) async {
+    final client = await _ensureSession(didManager);
+    _voip = matrix.VoIP(client, delegate);
+  }
+
+  /// Lazily activates the single Matrix session for [didManager] and resolves
+  /// the pending incoming MatrixRTC group call published in [roomId].
+  ///
+  /// This is the on-demand counterpart to [startCall]. Instead of holding a
+  /// background sync at rest, the caller invokes this only after an
+  /// out-of-band signal (a call push or mediator message) reports an incoming
+  /// call for a specific channel. It logs in that one DID's Matrix session,
+  /// initialises VoIP with [delegate] when needed, and returns the
+  /// [matrix.GroupCallSession] the remote party created in [roomId].
+  ///
+  /// The membership is usually already present in room state, in which case
+  /// this returns immediately. Otherwise it waits for the next sync to deliver
+  /// it, up to [timeout].
+  ///
+  /// Throws [MatrixServiceException.incomingCallNotFound] if no group call
+  /// surfaces within [timeout].
+  Future<matrix.GroupCallSession> activateIncomingCall({
+    required DidManager didManager,
+    required matrix.WebRTCDelegate delegate,
+    required String roomId,
+    Duration timeout = MatrixRtcDefaults.incomingCallActivationTimeout,
+  }) async {
+    _logger.info('Activating incoming call for room $roomId', name: _logKey);
+
+    final client = await _ensureSession(didManager);
+    final voip = _voip ??= matrix.VoIP(client, delegate);
+
+    final existing = _findGroupCallForRoom(voip, roomId);
+    if (existing != null) {
+      _logger.info(
+        'Found existing group call ${existing.groupCallId} in room $roomId',
+        name: _logKey,
+      );
+      return existing;
+    }
+
+    final completer = Completer<matrix.GroupCallSession>();
+    final activation = (roomId: roomId, completer: completer);
+    _pendingActivations.add(activation);
+
+    // Subscribe once per VoIP instance to its single-subscription
+    // onIncomingGroupCall stream so memberships that arrive in a later sync
+    // resolve the activation.
+    _ensureIncomingGroupCallListener(voip);
+
+    // Drive VoIP discovery eagerly: a freshly authenticated session resolves
+    // the room only via its alias directory and has not synced the room, so
+    // the caller's m.call.member state event is not yet visible to the VoIP
+    // constructor backfill. Loading the room and replaying its call
+    // memberships covers that gap without depending on onRoomState firing for
+    // state that predates the VoIP instance.
+    unawaited(_discoverExistingGroupCall(voip, client, roomId));
+
+    try {
+      return await completer.future.timeout(timeout);
+    } on TimeoutException {
+      _logger.warning(
+        'No incoming call surfaced in room $roomId within '
+        '${timeout.inSeconds}s',
+        name: _logKey,
+      );
+      throw MatrixServiceException.incomingCallNotFound(roomId);
+    } finally {
+      _pendingActivations.remove(activation);
+    }
+  }
+
+  /// Listens to [voip]'s single-subscription [matrix.VoIP.onIncomingGroupCall]
+  /// stream exactly once, cancelling any subscription to a previous instance.
+  ///
+  /// onIncomingGroupCall fires synchronously inside
+  /// `createGroupCallFromRoomStateEvent` right after `setGroupCallById`,
+  /// covering both the VoIP constructor backfill and the onRoomState-from-sync
+  /// path. Listening here once per instance avoids the "Stream has already
+  /// been listened to" error that re-listening per call would cause on the
+  /// cached VoIP instance.
+  void _ensureIncomingGroupCallListener(matrix.VoIP voip) {
+    if (identical(_incomingCallListenerVoip, voip)) return;
+    _incomingGroupCallSubscription?.cancel();
+    _incomingCallListenerVoip = voip;
+    _incomingGroupCallSubscription = voip.onIncomingGroupCall.stream.listen(
+      (_) => _resolvePendingActivations(voip),
+    );
+  }
+
+  void _resolvePendingActivations(matrix.VoIP voip) {
+    for (final activation in List.of(_pendingActivations)) {
+      if (activation.completer.isCompleted) continue;
+      final session = _findGroupCallForRoom(voip, activation.roomId);
+      if (session != null) activation.completer.complete(session);
+    }
+  }
+
+  /// Loads [roomId] when the session has not synced it yet, then replays every
+  /// call membership already present in its state through
+  /// [matrix.VoIP.createGroupCallFromRoomStateEvent], which is idempotent.
+  ///
+  /// This is the deterministic counterpart to the onIncomingGroupCall listener:
+  /// the listener only covers memberships that arrive in a future sync, whereas
+  /// the caller's m.call.member event is typically already in the room state by
+  /// the time the callee activates. Best-effort by design; any failure leaves
+  /// the activation to resolve via the listener or time out.
+  Future<void> _discoverExistingGroupCall(
+    matrix.VoIP voip,
+    matrix.Client client,
+    String roomId,
+  ) async {
+    try {
+      if (client.getRoomById(roomId) == null) {
+        await client.waitForRoomInSync(roomId, join: true);
+      }
+      final room = client.getRoomById(roomId);
+      if (room == null) {
+        _logger.warning(
+          'Room $roomId did not load after sync; relying on '
+          'onIncomingGroupCall for incoming call discovery',
+          name: _logKey,
+        );
+        return;
+      }
+      for (final memberships in room.getCallMembershipsFromRoom(voip).values) {
+        for (final membership in memberships) {
+          await voip.createGroupCallFromRoomStateEvent(membership);
+        }
+      }
+      _resolvePendingActivations(voip);
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Eager incoming call discovery failed for room $roomId',
+        error: e,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+    }
+  }
+
+  matrix.GroupCallSession? _findGroupCallForRoom(
+    matrix.VoIP voip,
+    String roomId,
+  ) {
+    for (final entry in voip.groupCalls.entries) {
+      if (entry.key.roomId == roomId) return entry.value;
+    }
+    return null;
+  }
+
+  /// Returns `true` when [roomId] already has at least one non-expired
+  /// `m.call.member` state event, i.e. a MatrixRTC call is already in
+  /// progress.
+  ///
+  /// Used to make call initiation idempotent: a caller that re-enters a room
+  /// it already published a membership for (for example after an app restart)
+  /// must rejoin the existing call instead of broadcasting a fresh
+  /// call-invite. Returns `false` when VoIP is not initialised or the room
+  /// has not yet synced.
+  Future<bool> hasActiveCallMembership({
+    required DidManager didManager,
+    required String roomId,
+  }) async =>
+      (await activeCallId(didManager: didManager, roomId: roomId)) != null;
+
+  /// Returns the callId of the first non-expired MatrixRTC call membership in
+  /// [roomId], or `null` when no call is in progress.
+  ///
+  /// A device joining or rejoining an in-progress call must reuse this exact
+  /// callId so its E2EE key exchange lands in the same call generation. A
+  /// fresh caller passes a newly minted callId instead, so stale to-device
+  /// encryption keys from a previous, ended call generation are routed to a
+  /// dead session and dropped rather than overwriting the current key.
+  ///
+  /// Returns `null` when VoIP is not initialised or the room has not synced.
+  Future<String?> activeCallId({
+    required DidManager didManager,
+    required String roomId,
+  }) async {
+    final voip = _voip;
+    if (voip == null) return null;
+
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) return null;
+
+    for (final memberships in room.getCallMembershipsFromRoom(voip).values) {
+      for (final membership in memberships) {
+        if (!membership.isExpired) return membership.callId;
+      }
+    }
+    return null;
+  }
+
+  /// Returns the Matrix participant identity string for the local device.
+  ///
+  /// The format is `userId:deviceId` (e.g. `@abc:localhost:9000:DEVICEID`).
+  /// This value is used as the LiveKit participant identity so that
+  /// per-participant E2EE keys can be mapped between Matrix and LiveKit.
+  ///
+  /// Returns `null` if either the user ID or device ID is unavailable from
+  /// the active Matrix session.
+  Future<String?> ownMatrixIdentity(DidManager didManager) async {
+    final matrix.Client client;
+    try {
+      client = await _ensureSession(didManager);
+    } on MatrixServiceException catch (e) {
+      if (e.code == MeetingPlaceCoreSDKErrorCode.matrixMissingUserId) {
+        return null;
+      }
+      rethrow;
+    }
+    final userId = client.userID;
+    final deviceId = client.deviceID;
+    if (userId == null || deviceId == null) return null;
+    return '$userId:$deviceId';
+  }
+
+  /// Returns the Matrix device ID for the active session of [didManager].
+  ///
+  /// Returns `null` if no active session exists or the device ID is not yet
+  /// assigned. Used when requesting a LiveKit JWT from lk-jwt-service so the
+  /// participant identity matches the MatrixRTC participant ID format
+  /// (`userId:deviceId`).
+  Future<String?> getDeviceId(DidManager didManager) async {
+    final client = await _ensureSession(didManager);
+    return client.deviceID;
+  }
+
+  /// Creates or joins a MatrixRTC group call in [roomId] using the LiveKit
+  /// SFU backend.
+  ///
+  /// Publishes an `m.call.member` state event so the remote party can
+  /// discover the LiveKit room. Call [initializeVoIP] before invoking this.
+  ///
+  /// Parameters:
+  /// - [didManager]: The DID manager for the local participant.
+  /// - [roomId]: Matrix room ID for the call.
+  /// - [livekitServiceUrl]: WebSocket URL of the LiveKit server.
+  /// - [livekitAlias]: Unique call identifier within the LiveKit server.
+  /// - [callId]: Stable MatrixRTC call ID; defaults to [roomId].
+  Future<matrix.GroupCallSession> startCall({
+    required DidManager didManager,
+    required String roomId,
+    required String livekitServiceUrl,
+    required String livekitAlias,
+    String? callId,
+  }) async {
+    final voip = _voip;
+    if (voip == null) throw MatrixServiceException.voipNotInitialized();
+
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) throw MatrixServiceException.roomNotFound(roomId);
+
+    final backend = matrix.LiveKitBackend(
+      livekitServiceUrl: livekitServiceUrl,
+      livekitAlias: livekitAlias,
+      e2eeEnabled: MatrixRtcDefaults.e2eeEnabled,
+    );
+
+    final session = await voip.fetchOrCreateGroupCall(
+      callId ?? roomId,
+      room,
+      backend,
+      MatrixRtcCallType.call.value,
+      MatrixRtcCallScope.room.value,
+      preShareKey: MatrixRtcDefaults.preShareKey,
+    );
+
+    if (session.state != matrix.GroupCallState.entered) {
+      await session.enter();
+    }
+
+    return session;
+  }
+
+  /// Leaves the active MatrixRTC group call in [roomId] with [callId].
+  Future<void> leaveCall({
+    required String roomId,
+    required String callId,
+  }) async {
+    final session = _voip?.getGroupCallById(roomId, callId);
+    if (session == null) return;
+    await session.leave();
+  }
+
+  /// Returns a stream of [matrix.MatrixRTCCallEvent]s for the given call.
+  ///
+  /// Returns `null` if VoIP is not initialized or no session exists for the
+  /// given IDs.
+  Stream<matrix.MatrixRTCCallEvent>? watchCall({
+    required String roomId,
+    required String callId,
+  }) {
+    return _voip?.getGroupCallById(roomId, callId)?.matrixRTCEventStream.stream;
   }
 
   MatrixRoomEvent? _eventToMatrixRoomEvent(

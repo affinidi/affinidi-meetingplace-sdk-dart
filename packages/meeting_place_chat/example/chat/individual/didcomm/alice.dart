@@ -83,8 +83,9 @@ void main() async {
   );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage message,
+  ) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await aliceSDK.processControlPlaneEvents();
@@ -117,7 +118,8 @@ void main() async {
     coreSDK: aliceSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
     options: MeetingPlaceChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 60)),
+      chatPresenceSendInterval: const Duration(seconds: 60),
+    ),
   );
 
   await aliceChatSDK.startChatSession();

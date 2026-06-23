@@ -97,10 +97,6 @@ class RCardRepositoryDrift implements model.RCardRepository {
     )..where((t) => t.subjectDid.equals(subjectDid))).go();
   }
 
-  // ---------------------------------------------------------------------------
-  // Private helpers
-  // ---------------------------------------------------------------------------
-
   model.RCard _mapRow(db.RCardRow row) {
     return model.RCard(
       subjectDid: row.subjectDid,

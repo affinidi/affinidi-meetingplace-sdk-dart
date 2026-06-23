@@ -193,6 +193,14 @@ class MessagingService {
     return did;
   }
 
+  /// Fires a control-plane channel notification without an accompanying message
+  /// body.
+  ///
+  /// Use this to nudge the other party's device via FCM when there is no
+  /// accompanying Matrix or DIDComm payload (e.g. a `call-invite` signal).
+  Future<void> notifyChannel(ChannelNotification notification) =>
+      _messageService.notifyChannel(notification);
+
   /// Subscribes to incoming messages for the given [subscription].
   ///
   /// For [MatrixRoomSubscription], yields events from a single room. Each
@@ -230,9 +238,7 @@ class MessagingService {
                 await _advanceMatrixSyncMarker(s.receiverDid, e.id);
               }
               return _toMatrixIncoming(e, s.receiverDid);
-            })
-            .where((e) => e != null)
-            .cast<MatrixIncomingMessage>();
+            });
         // Matrix uses an async generator: cancelling the consumer's
         // listen() terminates the generator and its room listeners. No
         // separate teardown is required, so dispose is a no-op.
@@ -338,7 +344,7 @@ class MessagingService {
     return event.type != 'm.typing' && event.type != 'm.receipt';
   }
 
-  Future<MatrixIncomingMessage?> _toMatrixIncoming(
+  Future<MatrixIncomingMessage> _toMatrixIncoming(
     MatrixRoomEvent e,
     String receiverDid,
   ) async {
@@ -349,7 +355,11 @@ class MessagingService {
           matrixUserId: e.userId,
         );
 
-    if (resolved == null) return null;
+    if (resolved == null) {
+      throw StateError(
+        '''Could not resolve sender DID for Matrix event ${e.id} with userId ${e.userId}''',
+      );
+    }
 
     return MatrixIncomingMessage(
       senderDid: resolved,
@@ -375,7 +385,7 @@ class MessagingService {
     final channel = await _channelService.findChannelByDidOrNull(receiverDid);
     if (channel == null) return null;
 
-    final serverName = _matrixService.homeserver.host;
+    final serverName = _matrixService.serverName;
     bool matches(String did) =>
         deriveMatrixUserId(did, serverName) == matrixUserId;
 

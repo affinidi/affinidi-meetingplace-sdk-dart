@@ -79,7 +79,7 @@ void main() {
   //           item is Message &&
   //           item.attachments.isNotEmpty &&
   //        item.attachments.first.format ==
-  //  'media-format',
+  //  AttachmentFormat.hostedMedia.value,
   //     );
 
   //     final sentMessage = await fixture.aliceChatSDK.sendTextMessage(
@@ -92,7 +92,7 @@ void main() {
   //     final receivedMessage = receivedItem as Message;
   //     final receivedAttachment = receivedMessage.attachments.single;
 
-  //     expect(receivedAttachment.format, 'media-format');
+  //     expect(receivedAttachment.format, AttachmentFormat.hostedMedia.value);
   //     expect(receivedAttachment.mediaType, attachment.mediaType);
   //     expect(receivedAttachment.filename, attachment.filename);
   //     expect(receivedAttachment.data, isNull);

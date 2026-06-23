@@ -14,6 +14,7 @@ import 'package:meeting_place_core/src/service/connection_service.dart';
 import 'package:meeting_place_core/src/service/identity/identity_service.dart';
 import 'package:meeting_place_core/src/service/identity/model/ephemeral_identity.dart';
 import 'package:meeting_place_core/src/service/identity/model/permanent_identity.dart';
+import 'package:meeting_place_core/src/service/matrix/matrix_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:meeting_place_core/src/service/oob/oob_service.dart';
 import 'package:meeting_place_core/src/service/oob/oob_service_exception.dart';
@@ -38,6 +39,8 @@ class MockConnectionService extends Mock implements ConnectionService {}
 class MockChannelService extends Mock implements ChannelService {}
 
 class MockIdentityService extends Mock implements IdentityService {}
+
+class MockMatrixService extends Mock implements MatrixService {}
 
 class MockControlPlaneEventStreamManager extends Mock
     implements ControlPlaneEventStreamManager {}
@@ -94,6 +97,7 @@ class _OobServiceMocks {
   final connectionService = MockConnectionService();
   final channelService = MockChannelService();
   final identityService = MockIdentityService();
+  final matrixService = MockMatrixService();
   final controlPlaneEventStreamManager = MockControlPlaneEventStreamManager();
   final logger = MockLogger();
 
@@ -123,6 +127,7 @@ class _OobServiceMocks {
       identityService: identityService,
       channelService: channelService,
       controlPlaneSDK: controlPlaneSDK,
+      matrixService: MockMatrixService(),
       controlPlaneEventStreamManager: controlPlaneEventStreamManager,
       logger: logger,
     );

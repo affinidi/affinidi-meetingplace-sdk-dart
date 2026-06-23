@@ -9,8 +9,6 @@ class _MockBaseChatSDK extends Mock implements BaseChatSDK {}
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
-class _FakeChannel extends Fake implements Channel {}
-
 ContactCard _card(String did, {String name = 'Original'}) =>
     ContactCard(did: did, type: 'human', contactInfo: {'n': name});
 
@@ -62,7 +60,6 @@ void main() {
       streamManager: stream,
       getGroup: () => group,
       setGroup: (g) => group = g,
-      getChannel: () async => _FakeChannel(),
     );
 
     test(

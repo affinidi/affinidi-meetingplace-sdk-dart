@@ -141,6 +141,16 @@ melos gen
 `melos gen` regenerates the `build_runner` outputs used across the
 workspace packages.
 
+## Git Hooks
+
+The repo includes a pre-commit hook at `.githooks/pre-commit` that runs `dart format` and `melos analyze` before every commit.
+
+After cloning the repo, run this once to activate it for that clone and all future worktrees created from it:
+
+```sh
+git config core.hooksPath .githooks
+```
+
 ## Usage
 
 > **Note:** The SDK can be used with or without Matrix. `MatrixConfig` is a subtype of `Config` — pass a `MatrixConfig` to enable the Matrix transport, or pass a non‑Matrix `Config` (or the default `Config` implementation) to use DIDComm-only.

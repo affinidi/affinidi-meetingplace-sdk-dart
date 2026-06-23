@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR
+
+[ -d "$HOME/fvm/default/bin" ] && export PATH="$HOME/fvm/default/bin:$PATH"
+
+echo "Running package formatting..."
+dart format -l 80 .
+
+echo "Running melos analyze before commit..."
+melos run analyze --no-select
+
+echo "✅ Format and analyze passed. Proceeding with commit."

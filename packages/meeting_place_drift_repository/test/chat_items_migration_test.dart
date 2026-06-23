@@ -236,11 +236,62 @@ void main() {
     );
   });
 
-  group('v2 → v3 schema migration', () {
-    test('produces the correct v3 schema', () async {
-      final connection = await verifier.startAt(2);
+  group('v5 → v6 schema migration', () {
+    test(
+      'succeeds when attachments.metadata already exists (idempotency)',
+      () async {
+        // Reproduces the real device state: a v5 database whose attachments
+        // table already has the metadata column from an intermediate build,
+        // while user_version is still 5. Pre-fix this threw:
+        //   SqliteException(1): duplicate column name: metadata
+        final schema = await verifier.schemaAt(5);
+
+        schema.rawDatabase.execute(
+          'ALTER TABLE attachments ADD COLUMN metadata TEXT',
+        );
+
+        final db = ChatItemsDatabase.forTesting(schema.newConnection());
+        // Any query triggers the lazy onUpgrade(5 → 6). Should not throw.
+        final rows = await db
+            .customSelect(
+              'SELECT COUNT(*) AS n FROM attachments WHERE metadata IS NULL',
+            )
+            .get();
+        expect(rows.single.read<int>('n'), 0);
+        await db.close();
+      },
+    );
+  });
+
+  group('v7 → v8 schema migration', () {
+    test('produces the correct v8 schema', () async {
+      final connection = await verifier.startAt(7);
       final db = ChatItemsDatabase.forTesting(connection);
-      await verifier.migrateAndValidate(db, 3);
+      await verifier.migrateAndValidate(db, 8);
+      await db.close();
+    });
+
+    test('backfills reactions.sender_did with an empty owner', () async {
+      final schema = await verifier.schemaAt(7);
+      schema.rawDatabase.execute('''
+        INSERT INTO chat_items (
+          chat_id, message_id, value, is_from_me, date_created,
+          status, "type", sender_did, is_deleted, is_deleted_locally
+        ) VALUES ('c1','m1','hi',0,'2026-01-01T00:00:00.000',4,0,'did:x:a',0,0)
+      ''');
+      schema.rawDatabase.execute(
+        "INSERT INTO reactions (message_id, value) VALUES ('m1','👍')",
+      );
+
+      final db = ChatItemsDatabase.forTesting(schema.newConnection());
+      // Any query triggers the lazy onUpgrade(7 → 8).
+      final rows = await db
+          .customSelect(
+            'SELECT sender_did FROM reactions WHERE message_id = ?',
+            variables: [const Variable('m1')],
+          )
+          .get();
+      expect(rows.single.read<String>('sender_did'), '');
       await db.close();
     });
   });

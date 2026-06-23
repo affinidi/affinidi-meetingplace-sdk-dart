@@ -30,6 +30,8 @@ class IndividualRoomEventRouter extends IncomingRoomEventRouter {
                 coreSDK: chatSDK.coreSDK,
                 chatStream: chatSDK.chatStream,
                 otherPartyDid: chatSDK.otherPartyDid,
+                getChannel: chatSDK.getChannel,
+                logger: chatSDK.logger,
               ).handle,
         },
         chatHandlers: const {},

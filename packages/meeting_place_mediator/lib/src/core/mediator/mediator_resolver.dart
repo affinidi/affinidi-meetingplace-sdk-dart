@@ -13,7 +13,9 @@ class MediatorResolver {
   MediatorResolver({MeetingPlaceMediatorSDKLogger? logger, Dio? dio})
       : _logger = logger ??
             DefaultMeetingPlaceMediatorSDKLogger(
-                className: _className, sdkName: sdkName),
+              className: _className,
+              sdkName: sdkName,
+            ),
         _dio = dio ??
             (() {
               final baseDio = Dio(

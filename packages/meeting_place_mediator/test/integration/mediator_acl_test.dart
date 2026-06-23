@@ -19,19 +19,21 @@ void main() {
     final senderDidDoc = await fixture.didManagerB.getDidDocument();
 
     final testMessage = PlainTextMessage(
-        id: const Uuid().v4(),
-        type: Uri.parse('https://affinidi.com/test/1.0/message'),
-        to: [recipientDidDoc.id],
-        from: senderDidDoc.id,
-        body: {'text': 'Sample message'});
+      id: const Uuid().v4(),
+      type: Uri.parse('https://affinidi.com/test/1.0/message'),
+      to: [recipientDidDoc.id],
+      from: senderDidDoc.id,
+      body: {'text': 'Sample message'},
+    );
 
     await fixture.sdk.updateAcl(
       ownerDidManager: fixture.didManagerA,
       acl: AclSet.toPublic(ownerDid: recipientDidDoc.id),
     );
 
-    final subscription =
-        await fixture.sdk.subscribeToMessages(fixture.didManagerA);
+    final subscription = await fixture.sdk.subscribeToMessages(
+      fixture.didManagerA,
+    );
 
     final waitForMessage = Completer<PlainTextMessage>();
     subscription.listen((PlainTextMessage msg) {
@@ -59,11 +61,12 @@ void main() {
     final senderDidDoc = await fixture.didManagerB.getDidDocument();
 
     final testMessage = PlainTextMessage(
-        id: const Uuid().v4(),
-        type: Uri.parse('https://affinidi.com/test/1.0/message'),
-        to: [recipientDidDoc.id],
-        from: senderDidDoc.id,
-        body: {'text': 'Sample message'});
+      id: const Uuid().v4(),
+      type: Uri.parse('https://affinidi.com/test/1.0/message'),
+      to: [recipientDidDoc.id],
+      from: senderDidDoc.id,
+      body: {'text': 'Sample message'},
+    );
 
     await fixture.sdk.updateAcl(
       ownerDidManager: fixture.didManagerA,
@@ -73,8 +76,9 @@ void main() {
       ),
     );
 
-    final subscription =
-        await fixture.sdk.subscribeToMessages(fixture.didManagerA);
+    final subscription = await fixture.sdk.subscribeToMessages(
+      fixture.didManagerA,
+    );
 
     final waitForMessage = Completer<PlainTextMessage>();
     subscription.listen((PlainTextMessage msg) {
@@ -97,15 +101,18 @@ void main() {
     expect(receivedMessage.to, contains(recipientDidDoc.id));
 
     expect(
-        () => fixture.sdk.sendMessage(
-              testMessage,
-              senderDidManager: fixture.didManagerC,
-              recipientDidDocument: recipientDidDoc,
-            ),
-        throwsA(isA<MeetingPlaceMediatorSDKException>().having(
+      () => fixture.sdk.sendMessage(
+        testMessage,
+        senderDidManager: fixture.didManagerC,
+        recipientDidDocument: recipientDidDoc,
+      ),
+      throwsA(
+        isA<MeetingPlaceMediatorSDKException>().having(
           (e) => e.code,
           'code',
           MeetingPlaceMediatorSDKErrorCode.sendMessageError.value,
-        )));
+        ),
+      ),
+    );
   });
 }

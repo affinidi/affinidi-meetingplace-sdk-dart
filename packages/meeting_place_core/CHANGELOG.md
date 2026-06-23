@@ -1,5 +1,9 @@
 ## 0.0.1-dev.41
 
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+## 0.0.1-dev.41
+
 ### Breaking Changes
 
 - **MeetingPlaceCoreSDK.create()** — `config` parameter — The `create()` factory now accepts a `Config` object (specifically `MatrixConfig`) instead of separate `mediatorDid` and `controlPlaneDid` string parameters. Passing a non-`MatrixConfig` config throws `UnsupportedError`.

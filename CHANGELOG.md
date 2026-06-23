@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.46`](#meeting_place_chat---v001-dev46)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.20`](#meeting_place_control_plane---v001-dev20)
+ - [`meeting_place_core` - `v0.0.1-dev.41`](#meeting_place_core---v001-dev41)
+ - [`meeting_place_credentials` - `v0.0.1-dev.6`](#meeting_place_credentials---v001-dev6)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.46`](#meeting_place_drift_repository---v001-dev46)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.46`
+
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.20`
+
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+#### `meeting_place_core` - `v0.0.1-dev.41`
+
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+#### `meeting_place_credentials` - `v0.0.1-dev.6`
+
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.46`
+
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+
 ## 2026-06-17
 
 ### Changes

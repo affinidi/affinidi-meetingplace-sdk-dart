@@ -1,5 +1,9 @@
 ## 0.0.1-dev.46
 
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+## 0.0.1-dev.46
+
 ### Changed
 
 - **Chat items database** — New columns: `editedAt`, `transportId`, `isDeleted`, `isDeletedLocally`, `attachments.metadata`.

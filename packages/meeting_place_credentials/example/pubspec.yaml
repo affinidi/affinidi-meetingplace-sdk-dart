@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   dotenv: ^4.2.0
-  meeting_place_core: ^0.0.1-dev.40
+  meeting_place_core: ^0.0.1-dev.41
   meeting_place_credentials:
     path: ../
   pretty_json: ^2.0.0

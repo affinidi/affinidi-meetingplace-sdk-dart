@@ -1,5 +1,9 @@
 ## 0.0.1-dev.20
 
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+## 0.0.1-dev.20
+
 ### Added
 
 - **MatrixTokenCommand** — Obtain a Matrix access token via DIDComm challenge-response authentication against the control plane.

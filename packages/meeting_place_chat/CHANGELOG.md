@@ -1,5 +1,9 @@
 ## 0.0.1-dev.46
 
+ - **FIX**: add Matrix transport support alongside DIDComm.
+
+## 0.0.1-dev.46
+
 ### Breaking Changes
 
 - **MeetingPlaceChatSDK** — Converted from a concrete wrapper class to an `abstract interface class`. Previously: a concrete class wrapping either `GroupChatSDK` or `IndividualChatSDK`. Now: an interface implemented by `GroupMatrixChatSDK`, `IndividualMatrixChatSDK`, and `IndividualDidcommChatSDK`.

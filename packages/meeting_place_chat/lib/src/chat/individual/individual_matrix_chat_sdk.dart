@@ -70,15 +70,18 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
 
     unawaited(
       // ignore: body_might_complete_normally_catch_error
-      coreSDK.vdip.subscribe(channel).then((_) {
-        _subscribeToIssuedCredentials(channel);
-      }).catchError((Object e, StackTrace _) {
-        logger.error(
-          'Error subscribing to VDIP channel: $e',
-          error: e,
-          name: 'sendMessage',
-        );
-      }),
+      coreSDK.vdip
+          .subscribe(channel)
+          .then((_) {
+            _subscribeToIssuedCredentials(channel);
+          })
+          .catchError((Object e, StackTrace _) {
+            logger.error(
+              'Error subscribing to VDIP channel: $e',
+              error: e,
+              name: 'sendMessage',
+            );
+          }),
     );
 
     unawaited(startChatPresenceUpdates());

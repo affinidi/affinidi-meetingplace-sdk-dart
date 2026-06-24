@@ -228,56 +228,59 @@ void main() {
       );
     });
 
-    test('does not count a message whose createdTime does not exceed existing marker', () async {
-      final existingMarker = DateTime.utc(2026, 6, 18, 12);
-      final channelWithMarker = Channel(
-        offerLink: 'offer-link',
-        publishOfferDid: channelDid,
-        mediatorDid: mediatorDid,
-        status: ChannelStatus.inaugurated,
-        isConnectionInitiator: true,
-        contactCard: ContactCard(
-          did: 'did:key:other-party',
-          type: 'individual',
-          contactInfo: const {'fullName': 'Alice'},
-        ),
-        type: ChannelType.individual,
-        permanentChannelDid: permanentChannelDid,
-      )..messageSyncMarker = existingMarker;
-
-      when(
-        () => mockChannelService.findChannelByDid(channelDid),
-      ).thenAnswer((_) async => channelWithMarker);
-
-      when(
-        () => mockMediatorService.fetchMessages(
-          didManager: mockDidManager,
+    test(
+      '''does not count a message whose createdTime does not exceed existing marker''',
+      () async {
+        final existingMarker = DateTime.utc(2026, 6, 18, 12);
+        final channelWithMarker = Channel(
+          offerLink: 'offer-link',
+          publishOfferDid: channelDid,
           mediatorDid: mediatorDid,
-          options: any(named: 'options'),
-        ),
-      ).thenAnswer(
-        (_) async => [
-          MediatorMessage(
-            plainTextMessage: PlainTextMessage(
-              id: const Uuid().v4(),
-              type: VdipIssuedCredentialMessage.messageType,
-              body: {},
-              createdTime: DateTime.utc(2026, 6, 18, 11),
-            ),
+          status: ChannelStatus.inaugurated,
+          isConnectionInitiator: true,
+          contactCard: ContactCard(
+            did: 'did:key:other-party',
+            type: 'individual',
+            contactInfo: const {'fullName': 'Alice'},
           ),
-        ],
-      );
+          type: ChannelType.individual,
+          permanentChannelDid: permanentChannelDid,
+        )..messageSyncMarker = existingMarker;
 
-      await handler.process(event);
+        when(
+          () => mockChannelService.findChannelByDid(channelDid),
+        ).thenAnswer((_) async => channelWithMarker);
 
-      verifyNever(
-        () => mockChannelService.updateChannelSequence(
-          any(),
-          sequenceNumber: any(named: 'sequenceNumber'),
-          messageSyncMarker: any(named: 'messageSyncMarker'),
-        ),
-      );
-    });
+        when(
+          () => mockMediatorService.fetchMessages(
+            didManager: mockDidManager,
+            mediatorDid: mediatorDid,
+            options: any(named: 'options'),
+          ),
+        ).thenAnswer(
+          (_) async => [
+            MediatorMessage(
+              plainTextMessage: PlainTextMessage(
+                id: const Uuid().v4(),
+                type: VdipIssuedCredentialMessage.messageType,
+                body: {},
+                createdTime: DateTime.utc(2026, 6, 18, 11),
+              ),
+            ),
+          ],
+        );
+
+        await handler.process(event);
+
+        verifyNever(
+          () => mockChannelService.updateChannelSequence(
+            any(),
+            sequenceNumber: any(named: 'sequenceNumber'),
+            messageSyncMarker: any(named: 'messageSyncMarker'),
+          ),
+        );
+      },
+    );
 
     test('throws domain exception when channel lacks permanent DID', () async {
       final channelWithoutPermanentDid = Channel(

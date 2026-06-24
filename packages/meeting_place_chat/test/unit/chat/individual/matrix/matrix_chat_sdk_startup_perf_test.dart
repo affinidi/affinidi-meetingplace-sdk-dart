@@ -235,13 +235,19 @@ void main() {
       incomingController = StreamController<IncomingMessage>.broadcast();
       vdipIncomingController = StreamController<PlainTextMessage>.broadcast();
 
-      when(() => core.subscribe(any())).thenAnswer((_) => subscribeCompleter.future);
+      when(
+        () => core.subscribe(any()),
+      ).thenAnswer((_) => subscribeCompleter.future);
       when(() => core.vdip).thenReturn(vdip);
       when(
         () => core.getChannelByOtherPartyPermanentDid(_bobDid),
       ).thenAnswer((_) async => channel);
-      when(() => vdip.subscribe(channel)).thenAnswer((_) async => vdipSubscription);
-      when(() => vdip.incomingMessages).thenAnswer((_) => vdipIncomingController.stream);
+      when(
+        () => vdip.subscribe(channel),
+      ).thenAnswer((_) async => vdipSubscription);
+      when(
+        () => vdip.incomingMessages,
+      ).thenAnswer((_) => vdipIncomingController.stream);
       when(() => core.updateChannel(channel)).thenAnswer((_) async {});
       when(() => repo.listMessages(any())).thenAnswer((_) async => []);
       when(() => repo.getSyncMarker(any())).thenAnswer((_) async => null);
@@ -255,24 +261,27 @@ void main() {
       await vdipIncomingController.close();
     });
 
-    test('updates messageSyncMarker and persists channel when issued credential arrives', () async {
-      await sdk.startChatSession();
-      await Future<void>.delayed(Duration.zero); // drain .then() microtask
+    test(
+      '''updates messageSyncMarker and persists channel when issued credential arrives''',
+      () async {
+        await sdk.startChatSession();
+        await Future<void>.delayed(Duration.zero); // drain .then() microtask
 
-      final createdTime = DateTime.utc(2026, 6, 18, 12);
-      vdipIncomingController.add(
-        PlainTextMessage(
-          id: const Uuid().v4(),
-          type: Uri.parse(VdipClient.issuedCredentialMessageType),
-          body: {},
-          createdTime: createdTime,
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
+        final createdTime = DateTime.utc(2026, 6, 18, 12);
+        vdipIncomingController.add(
+          PlainTextMessage(
+            id: const Uuid().v4(),
+            type: Uri.parse(VdipClient.issuedCredentialMessageType),
+            body: {},
+            createdTime: createdTime,
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      expect(channel.messageSyncMarker, equals(createdTime));
-      verify(() => core.updateChannel(channel)).called(1);
-    });
+        expect(channel.messageSyncMarker, equals(createdTime));
+        verify(() => core.updateChannel(channel)).called(1);
+      },
+    );
 
     test('does not update channel when message has no createdTime', () async {
       await sdk.startChatSession();
@@ -291,26 +300,29 @@ void main() {
       verifyNever(() => core.updateChannel(channel));
     });
 
-    test('does not regress marker when incoming createdTime is older than existing', () async {
-      final existingMarker = DateTime.utc(2026, 6, 18, 12);
-      channel.messageSyncMarker = existingMarker;
+    test(
+      '''does not regress marker when incoming createdTime is older than existing''',
+      () async {
+        final existingMarker = DateTime.utc(2026, 6, 18, 12);
+        channel.messageSyncMarker = existingMarker;
 
-      await sdk.startChatSession();
-      await Future<void>.delayed(Duration.zero);
+        await sdk.startChatSession();
+        await Future<void>.delayed(Duration.zero);
 
-      vdipIncomingController.add(
-        PlainTextMessage(
-          id: const Uuid().v4(),
-          type: Uri.parse(VdipClient.issuedCredentialMessageType),
-          body: {},
-          createdTime: DateTime.utc(2026, 6, 18, 11),
-        ),
-      );
-      await Future<void>.delayed(Duration.zero);
+        vdipIncomingController.add(
+          PlainTextMessage(
+            id: const Uuid().v4(),
+            type: Uri.parse(VdipClient.issuedCredentialMessageType),
+            body: {},
+            createdTime: DateTime.utc(2026, 6, 18, 11),
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
 
-      expect(channel.messageSyncMarker, equals(existingMarker));
-      verifyNever(() => core.updateChannel(channel));
-    });
+        expect(channel.messageSyncMarker, equals(existingMarker));
+        verifyNever(() => core.updateChannel(channel));
+      },
+    );
 
     test('ignores non-issuedCredential messages on incomingMessages', () async {
       await sdk.startChatSession();

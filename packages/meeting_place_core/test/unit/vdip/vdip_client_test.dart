@@ -230,6 +230,27 @@ void main() {
         () => mockConnectionManager.getDidManagerForDid(mockWallet, senderDid),
       ).called(1);
     });
+
+    test('sets a non-null createdTime on the issued credential message', () async {
+      await client.sendIssuedCredential(
+        senderDid: senderDid,
+        recipientDid: recipientDid,
+        body: mockBody,
+      );
+
+      final captured = verify(
+        () => mockMessageService.sendMessage(
+          captureAny(),
+          senderDidManager: mockDidManager,
+          recipientDid: recipientDid,
+          mediatorDid: mediatorDid,
+          notifyChannelType: any(named: 'notifyChannelType'),
+        ),
+      )..called(1);
+
+      final message = captured.captured.single as PlainTextMessage;
+      expect(message.createdTime, isNotNull);
+    });
   });
 
   group('subscribe', () {

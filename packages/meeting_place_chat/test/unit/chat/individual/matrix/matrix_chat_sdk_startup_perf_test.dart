@@ -4,6 +4,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
@@ -208,6 +209,125 @@ void main() {
       );
 
       expect(received.chatItem, same(eager));
+    });
+  });
+
+  group('IndividualMatrixChatSDK._subscribeToIssuedCredentials', () {
+    late _MockCoreSDK core;
+    late _MockVdipClient vdip;
+    late _MockCoreSDKStreamSubscription vdipSubscription;
+    late _MockChatRepository repo;
+    late IndividualMatrixChatSDK sdk;
+    late Completer<IncomingMessageHandle> subscribeCompleter;
+    late StreamController<IncomingMessage> incomingController;
+    late StreamController<PlainTextMessage> vdipIncomingController;
+    late Channel channel;
+
+    setUp(() {
+      core = _MockCoreSDK();
+      vdip = _MockVdipClient();
+      vdipSubscription = _MockCoreSDKStreamSubscription();
+      repo = _MockChatRepository();
+      sdk = _buildSdk(core: core, repo: repo);
+      channel = _fakeChannel();
+
+      subscribeCompleter = Completer<IncomingMessageHandle>();
+      incomingController = StreamController<IncomingMessage>.broadcast();
+      vdipIncomingController = StreamController<PlainTextMessage>.broadcast();
+
+      when(() => core.subscribe(any())).thenAnswer((_) => subscribeCompleter.future);
+      when(() => core.vdip).thenReturn(vdip);
+      when(
+        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+      ).thenAnswer((_) async => channel);
+      when(() => vdip.subscribe(channel)).thenAnswer((_) async => vdipSubscription);
+      when(() => vdip.incomingMessages).thenAnswer((_) => vdipIncomingController.stream);
+      when(() => core.updateChannel(channel)).thenAnswer((_) async {});
+      when(() => repo.listMessages(any())).thenAnswer((_) async => []);
+      when(() => repo.getSyncMarker(any())).thenAnswer((_) async => null);
+    });
+
+    tearDown(() async {
+      if (!subscribeCompleter.isCompleted) {
+        subscribeCompleter.complete(_FakeHandle(incomingController));
+      }
+      await incomingController.close();
+      await vdipIncomingController.close();
+    });
+
+    test('updates messageSyncMarker and persists channel when issued credential arrives', () async {
+      await sdk.startChatSession();
+      await Future<void>.delayed(Duration.zero); // drain .then() microtask
+
+      final createdTime = DateTime.utc(2026, 6, 18, 12);
+      vdipIncomingController.add(
+        PlainTextMessage(
+          id: const Uuid().v4(),
+          type: Uri.parse(VdipClient.issuedCredentialMessageType),
+          body: {},
+          createdTime: createdTime,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(channel.messageSyncMarker, equals(createdTime));
+      verify(() => core.updateChannel(channel)).called(1);
+    });
+
+    test('does not update channel when message has no createdTime', () async {
+      await sdk.startChatSession();
+      await Future<void>.delayed(Duration.zero);
+
+      vdipIncomingController.add(
+        PlainTextMessage(
+          id: const Uuid().v4(),
+          type: Uri.parse(VdipClient.issuedCredentialMessageType),
+          body: {},
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(channel.messageSyncMarker, isNull);
+      verifyNever(() => core.updateChannel(channel));
+    });
+
+    test('does not regress marker when incoming createdTime is older than existing', () async {
+      final existingMarker = DateTime.utc(2026, 6, 18, 12);
+      channel.messageSyncMarker = existingMarker;
+
+      await sdk.startChatSession();
+      await Future<void>.delayed(Duration.zero);
+
+      vdipIncomingController.add(
+        PlainTextMessage(
+          id: const Uuid().v4(),
+          type: Uri.parse(VdipClient.issuedCredentialMessageType),
+          body: {},
+          createdTime: DateTime.utc(2026, 6, 18, 11),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(channel.messageSyncMarker, equals(existingMarker));
+      verifyNever(() => core.updateChannel(channel));
+    });
+
+    test('ignores non-issuedCredential messages on incomingMessages', () async {
+      await sdk.startChatSession();
+      await Future<void>.delayed(Duration.zero);
+
+      vdipIncomingController.add(
+        PlainTextMessage(
+          id: const Uuid().v4(),
+          type: Uri.parse(VdipClient.requestIssuanceMessageType),
+          body: {},
+          createdTime: DateTime.utc(2026, 6, 18, 12),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(channel.messageSyncMarker, isNull);
+      verifyNever(() => core.updateChannel(channel));
     });
   });
 }

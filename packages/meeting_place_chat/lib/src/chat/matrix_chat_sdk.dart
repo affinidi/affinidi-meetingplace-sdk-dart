@@ -219,16 +219,21 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         name: _matrixLogkey,
       );
     } else {
-      message = await MediaTextMessageSender(
-        coreSDK: coreSDK,
-        did: did,
-        chatId: chatId,
-        chatRepository: chatRepository,
-        chatStream: chatStream,
-        serverEventIdToMessageId: _serverEventIdToMessageId,
-        getChannel: getChannel,
-        logger: logger,
-      ).send(text: text, attachments: attachments);
+      message =
+          await MediaTextMessageSender(
+            coreSDK: coreSDK,
+            did: did,
+            chatId: chatId,
+            chatRepository: chatRepository,
+            chatStream: chatStream,
+            serverEventIdToMessageId: _serverEventIdToMessageId,
+            getChannel: getChannel,
+            logger: logger,
+          ).send(
+            text: text,
+            attachments: attachments,
+            notification: buildChannelNotification('chat-activity'),
+          );
     }
 
     await coreSDK.sendMessage(

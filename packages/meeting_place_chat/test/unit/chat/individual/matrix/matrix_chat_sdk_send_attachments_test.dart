@@ -61,6 +61,12 @@ void main() {
     registerFallbackValue(ChatTypingNotification(senderDid: '', active: false));
     registerFallbackValue(_fakeChannel());
     registerFallbackValue(const MatrixEventMediaReference('fallback'));
+    registerFallbackValue(
+      const IndividualChannelNotification(
+        recipientDid: 'did:test:fb',
+        type: 'chat-activity',
+      ),
+    );
   });
 
   setUp(() {
@@ -112,6 +118,7 @@ void main() {
           filename: any(named: 'filename'),
           caption: any(named: 'caption'),
           extraContent: any(named: 'extraContent'),
+          notification: any(named: 'notification'),
         ),
       ).thenAnswer((_) async {
         sendMediaCount++;
@@ -141,6 +148,7 @@ void main() {
           filename: any(named: 'filename'),
           caption: any(named: 'caption'),
           extraContent: any(named: 'extraContent'),
+          notification: any(named: 'notification'),
         ),
       ).called(2);
 
@@ -159,6 +167,7 @@ void main() {
           filename: any(named: 'filename'),
           caption: any(named: 'caption'),
           extraContent: any(named: 'extraContent'),
+          notification: any(named: 'notification'),
         ),
       ).thenAnswer((inv) async {
         captions.add(inv.namedArguments[#caption] as String?);
@@ -197,6 +206,7 @@ void main() {
             filename: any(named: 'filename'),
             caption: any(named: 'caption'),
             extraContent: any(named: 'extraContent'),
+            notification: any(named: 'notification'),
           ),
         ).thenAnswer((inv) async {
           final extra =
@@ -240,6 +250,7 @@ void main() {
           filename: any(named: 'filename'),
           caption: any(named: 'caption'),
           extraContent: any(named: 'extraContent'),
+          notification: any(named: 'notification'),
         ),
       ).thenAnswer((_) async {
         sendCount++;
@@ -283,6 +294,7 @@ void main() {
             filename: any(named: 'filename'),
             caption: any(named: 'caption'),
             extraContent: any(named: 'extraContent'),
+            notification: any(named: 'notification'),
           ),
         ).thenAnswer((_) async {
           sendMediaCount++;
@@ -331,6 +343,7 @@ void main() {
             filename: any(named: 'filename'),
             caption: any(named: 'caption'),
             extraContent: any(named: 'extraContent'),
+            notification: any(named: 'notification'),
           ),
         ).thenAnswer((inv) async {
           sentContentType = inv.namedArguments[#contentType] as String?;
@@ -386,6 +399,7 @@ void main() {
           filename: any(named: 'filename'),
           caption: any(named: 'caption'),
           extraContent: any(named: 'extraContent'),
+          notification: any(named: 'notification'),
         ),
       ).thenAnswer((inv) async {
         sentContentType = inv.namedArguments[#contentType] as String?;
@@ -416,6 +430,48 @@ void main() {
         throwsA(isA<StateError>()),
       );
     });
+
+    test(
+      'notification is passed only on the last sendMediaMessage call',
+      () async {
+        final notifications = <ChannelNotification?>[];
+        when(
+          () => core.sendMediaMessage(
+            any(),
+            any(),
+            contentType: any(named: 'contentType'),
+            filename: any(named: 'filename'),
+            caption: any(named: 'caption'),
+            extraContent: any(named: 'extraContent'),
+            notification: any(named: 'notification'),
+          ),
+        ).thenAnswer((inv) async {
+          notifications.add(
+            inv.namedArguments[#notification] as ChannelNotification?,
+          );
+          return '\$event-${notifications.length}';
+        });
+
+        final attachments = [
+          ChatAttachment(
+            filename: 'a.jpg',
+            mediaType: 'image/jpeg',
+            data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
+          ),
+          ChatAttachment(
+            filename: 'b.jpg',
+            mediaType: 'image/jpeg',
+            data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
+          ),
+        ];
+
+        await sdk.sendTextMessage('Hello', attachments: attachments);
+
+        expect(notifications, hasLength(2));
+        expect(notifications[0], isNull);
+        expect(notifications[1], isNotNull);
+      },
+    );
   });
 
   group('MatrixChatSDK.downloadMedia', () {

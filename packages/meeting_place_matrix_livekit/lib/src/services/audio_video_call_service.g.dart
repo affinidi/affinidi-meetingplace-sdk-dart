@@ -65,6 +65,8 @@ final class AudioVideoCallServiceProvider
   static const $allTransitiveDependencies1 = pluginOptionsProvider;
   static const $allTransitiveDependencies2 = pluginRtcDelegateProvider;
   static const $allTransitiveDependencies3 = pluginLoggerProvider;
+  static const $allTransitiveDependencies4 = sfuTokenServiceProvider;
+  static const $allTransitiveDependencies5 = livekitKeyProviderFactoryProvider;
 
   @override
   String debugGetCreateSourceHash() => _$audioVideoCallServiceHash();
@@ -100,7 +102,7 @@ final class AudioVideoCallServiceProvider
 }
 
 String _$audioVideoCallServiceHash() =>
-    r'8fec102abe01ae0757dc222be77940d7d19e20e5';
+    r'f50a2f6bced7e6c41c4de01b47056865bd9df0d8';
 
 /// Orchestrates the full LiveKit call lifecycle for the channel identified
 /// by [otherPartyChannelDid] (the other party's permanent channel DID).
@@ -133,12 +135,16 @@ final class AudioVideoCallServiceFamily extends $Family
           pluginOptionsProvider,
           pluginRtcDelegateProvider,
           pluginLoggerProvider,
+          sfuTokenServiceProvider,
+          livekitKeyProviderFactoryProvider,
         ],
         $allTransitiveDependencies: const <ProviderOrFamily>{
           AudioVideoCallServiceProvider.$allTransitiveDependencies0,
           AudioVideoCallServiceProvider.$allTransitiveDependencies1,
           AudioVideoCallServiceProvider.$allTransitiveDependencies2,
           AudioVideoCallServiceProvider.$allTransitiveDependencies3,
+          AudioVideoCallServiceProvider.$allTransitiveDependencies4,
+          AudioVideoCallServiceProvider.$allTransitiveDependencies5,
         },
         isAutoDispose: true,
       );

@@ -135,6 +135,7 @@ class VdipClient {
         comment: options.comment,
         credentialMeta: options.credentialMeta,
       ),
+      createdTime: DateTime.now().toUtc(),
     );
     await _messageService.sendMessage(
       message,

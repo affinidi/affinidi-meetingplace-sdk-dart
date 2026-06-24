@@ -15,11 +15,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../constants/audio_video_call_defaults.dart';
 import '../delegates/flutter_matrix_rtc_delegate.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
+import '../providers/livekit_key_provider_factory_provider.dart';
 import '../providers/livekit_service_provider.dart';
 import '../providers/plugin_core_sdk_provider.dart';
 import '../providers/plugin_logger_provider.dart';
 import '../providers/plugin_options_provider.dart';
 import '../providers/plugin_rtc_delegate_provider.dart';
+import '../providers/sfu_token_service_provider.dart';
 import '../transport/call_invite_room_event.dart';
 import '../utils/string.dart';
 import 'livekit_service.dart';
@@ -40,7 +42,14 @@ part 'audio_video_call_service.g.dart';
 /// Read by AudioVideoCallScreenController via `ref.listen`.
 /// Modelled after ChatSessionService.
 @Riverpod(
-  dependencies: [pluginCoreSdk, pluginOptions, pluginRtcDelegate, pluginLogger],
+  dependencies: [
+    pluginCoreSdk,
+    pluginOptions,
+    pluginRtcDelegate,
+    pluginLogger,
+    sfuTokenService,
+    livekitKeyProviderFactory,
+  ],
 )
 class AudioVideoCallService extends _$AudioVideoCallService {
   static const _logKey = 'AudioVideoCallService';
@@ -52,6 +61,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
   late SfuTokenService _livekitTokenService;
   late LiveKitService _livekitService;
   late FlutterMatrixRTCDelegate _rtcDelegate;
+  late KeyProviderFactory _keyProviderFactory;
   bool _isDisposed = false;
   bool _isTearingDown = false;
   Timer? _e2eeReadyTimer;
@@ -103,11 +113,9 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     _e2eeReadyTimeout = ref.read(pluginOptionsProvider).e2eeReadyTimeout;
     _outgoingCallTimeout = ref.read(pluginOptionsProvider).outgoingCallTimeout;
     _rtcDelegate = ref.read(pluginRtcDelegateProvider);
-    _livekitTokenService = SfuTokenService(
-      serviceUrl: ref.read(pluginOptionsProvider).livekitServiceUrl,
-      logger: _logger,
-    );
+    _livekitTokenService = ref.read(sfuTokenServiceProvider);
     _livekitService = ref.watch(livekitServiceProvider(otherPartyChannelDid));
+    _keyProviderFactory = ref.read(livekitKeyProviderFactoryProvider);
 
     ref.onDispose(() {
       _isDisposed = true;
@@ -167,13 +175,31 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       );
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
-      final (:callAlreadyInProgress, :callId) = await _connectToLiveKit(
+      final (
+        :callAlreadyInProgress,
+        :callId,
+        :keyProvider,
+      ) = await _prepareCallSession(
         didManager: didManager,
+        matrixRoomId: matrixRoomId,
+        isRecipient: isRecipient,
+      );
+
+      if (!isRecipient) {
+        errorCode = AudioVideoCallErrorCode.callInviteFailed;
+        await _sendCallInvite(
+          channel: channel,
+          callAlreadyInProgress: callAlreadyInProgress,
+          mediaType: mediaType,
+        );
+      }
+
+      errorCode = AudioVideoCallErrorCode.connectionFailed;
+      await _connectLiveKitRoom(
         sfuUrl: sfuUrl,
         sfuToken: sfuToken,
         participantIdToDid: participantIdToDid,
-        matrixRoomId: matrixRoomId,
-        isRecipient: isRecipient,
+        keyProvider: keyProvider,
       );
 
       final isJoiningExistingCall = isRecipient || callAlreadyInProgress;
@@ -190,15 +216,6 @@ class AudioVideoCallService extends _$AudioVideoCallService {
         sfuUrl: sfuUrl,
         roomName: roomName,
       );
-
-      if (!isRecipient) {
-        errorCode = AudioVideoCallErrorCode.callInviteFailed;
-        await _sendCallInvite(
-          channel: channel,
-          callAlreadyInProgress: callAlreadyInProgress,
-          mediaType: mediaType,
-        );
-      }
 
       if (_isDisposed) {
         _logger.info(
@@ -366,16 +383,21 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     );
   }
 
-  /// Initialises MatrixRTC, checks for an in-progress call, creates the E2EE
-  /// key provider, and connects the LiveKit room.
+  /// Initialises MatrixRTC, checks for an in-progress call, and creates the
+  /// E2EE key provider.
+  ///
+  /// This is the cheap preparation phase that must complete before the
+  /// call-invite nudge is sent, so the rejoin decision is known. It does not
+  /// connect the LiveKit room: see [_connectLiveKitRoom].
   ///
   /// Returns whether a call was already in progress in the room before this
-  /// device joined (rejoin scenario) and the callId to register against.
-  Future<({bool callAlreadyInProgress, String callId})> _connectToLiveKit({
+  /// device joined (rejoin scenario), the callId to register against, and the
+  /// key provider for the LiveKit connection.
+  Future<
+    ({bool callAlreadyInProgress, String callId, BaseKeyProvider keyProvider})
+  >
+  _prepareCallSession({
     required DidManager didManager,
-    required String sfuUrl,
-    required String sfuToken,
-    required Map<String, String> participantIdToDid,
     required String matrixRoomId,
     required bool isRecipient,
   }) async {
@@ -384,12 +406,6 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       delegate: _rtcDelegate,
     );
 
-    // Capture the in-progress call's callId BEFORE startVideoCall publishes our
-    // own membership. A non-expired membership already present means this is a
-    // rejoin/answer: we must reuse its callId so key exchange lands in the same
-    // generation. A fresh caller mints a new callId so stale to-device keys
-    // from a previous, ended call generation are routed to a dead session and
-    // cannot overwrite the current key at index 0.
     final existingCallId = await _resolveExistingCallId(
       didManager: didManager,
       roomId: matrixRoomId,
@@ -406,20 +422,31 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       name: _logKey,
     );
 
-    final keyProvider = await BaseKeyProvider.create(
+    final keyProvider = await _keyProviderFactory(
       sharedKey: AudioVideoCallDefaults.sharedKeyEncryption,
     );
     _keyProvider = keyProvider;
     if (AudioVideoCallDefaults.sharedKeyEncryption) {
-      // Both participants derive the same key from the shared room id, so no
-      // key crosses the network and there is no late-joiner exchange to race.
-      // matrix's per-participant distribution stays disabled (the delegate
-      // keyProvider is left null) so it cannot overwrite the shared key.
       await keyProvider.setSharedKey('mpx-call-shared-key:$matrixRoomId');
     } else {
       _rtcDelegate.updateKeyProvider(keyProvider);
     }
 
+    return (
+      callAlreadyInProgress: callAlreadyInProgress,
+      callId: callId,
+      keyProvider: keyProvider,
+    );
+  }
+
+  /// Connects the LiveKit room. This is the heavy phase (SFU handshake and
+  /// E2EE negotiation) and runs after the call-invite nudge has been sent.
+  Future<void> _connectLiveKitRoom({
+    required String sfuUrl,
+    required String sfuToken,
+    required Map<String, String> participantIdToDid,
+    required BaseKeyProvider keyProvider,
+  }) async {
     await _livekitService.connect(
       url: sfuUrl,
       token: sfuToken,
@@ -429,8 +456,6 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       onParticipantDisconnected: _onParticipantDisconnected,
       onParticipantsChanged: _onParticipantsChanged,
     );
-
-    return (callAlreadyInProgress: callAlreadyInProgress, callId: callId);
   }
 
   /// Resolves the callId of the in-progress call in [roomId], or `null` when
@@ -731,6 +756,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       );
       return;
     }
+
     // Ratchet own key so the departed participant cannot decrypt future media.
     // Only valid with per-participant keys: ratcheting a shared key on one side
     // would desync the room.
@@ -768,15 +794,6 @@ class AudioVideoCallService extends _$AudioVideoCallService {
         );
       }
     } else if (e2eeState == E2EEState.kMissingKey) {
-      // Track the missing key to drive the waitingForKeys -> active state
-      // transition. We deliberately do NOT send an explicit
-      // encryption_keys_request: matrix's native membership-driven exchange
-      // already delivers the publisher key on join, and an explicit request
-      // arriving after a membership re-sync makes the publisher's matrix layer
-      // lose its local key, regenerate it, and churn index 0 with an
-      // inconsistent key, stranding this decoder on a black frame. Instead we
-      // force the SFU to resend a keyframe so the decoder recovers once the
-      // native key lands, since the FrameCryptor only reports state on edges.
       _participantsMissingKey.add(participantId);
       _scheduleKeyframeNudge(participantId);
     }

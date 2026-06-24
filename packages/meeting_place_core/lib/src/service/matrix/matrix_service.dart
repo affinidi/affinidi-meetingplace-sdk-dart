@@ -297,15 +297,20 @@ class MatrixService {
     return room.sendEvent(content, type: eventType);
   }
 
-  /// Returns events from [roomId] that arrived after [sinceEventId].
+  /// Returns recent events from [roomId] as [MatrixRoomEvent]s.
   ///
-  /// Uses the `/context/{eventId}` endpoint to obtain a fresh pagination
-  /// token from the stable event ID, then calls `/messages?from=token&dir=f`
-  /// to fetch newer events. Event IDs are permanently stable identifiers,
-  /// unlike pagination tokens which may expire on Synapse after ~5 minutes.
+  /// When [sinceEventId] is provided, uses `/context/{sinceEventId}` to obtain
+  /// a precise pagination token at that position and sets it as `prev_batch`
+  /// before calling `requestHistory(direction: f)`. This ensures only events
+  /// strictly newer than [sinceEventId] are fetched from the homeserver.
   ///
-  /// When [sinceEventId] is null, fetches the most recent [limit] events
-  /// from the room timeline (initial load / no prior cursor).
+  /// When [sinceEventId] is null, calls `requestHistory(direction: f)` from
+  /// the room's existing `prev_batch`, pulling any events newer than the local
+  /// database into the local database before reading the timeline.
+  ///
+  /// Using `getTimeline` (rather than the raw HTTP API) means the Matrix SDK
+  /// handles decryption — including automatically retrying when a missing
+  /// session key arrives later via background sync.
   Future<List<MatrixRoomEvent>> fetchRoomHistory(
     String roomId, {
     required DidManager didManager,
@@ -317,91 +322,38 @@ class MatrixService {
       keepSyncActiveAfterLogin: false,
     );
 
-    final room = client.getRoomById(roomId);
-    if (room == null) return <MatrixRoomEvent>[];
-
-    final userId = _sessionManager.deriveUserId(
+    final myUserId = _sessionManager.deriveUserId(
       (await didManager.getDidDocument()).id,
       homeserver.host,
     );
+    final room = client.getRoomById(roomId);
+    if (room == null) return [];
 
     if (sinceEventId != null) {
-      return _fetchRoomHistoryFromEventId(
+      final context = await client.getEventContext(
         roomId,
-        sinceEventId: sinceEventId,
-        limit: limit,
-        room: room,
-        client: client,
-        myUserId: userId,
+        sinceEventId,
+        limit: 0,
       );
-    }
-
-    final resp = await client.getRoomEvents(
-      roomId,
-      matrix.Direction.b,
-      limit: limit,
-    );
-
-    final rawEvents = resp.chunk
-        .map((e) => matrix.Event.fromMatrixEvent(e, room))
-        .toList();
-
-    await _decryptEvents(rawEvents, room, client);
-
-    return rawEvents.reversed
-        .map((e) => _eventToMatrixRoomEvent(e, myUserId: userId))
-        .whereType<MatrixRoomEvent>()
-        .toList();
-  }
-
-  /// Resolves a fresh pagination token from [sinceEventId] via `/context`,
-  /// then fetches the events that followed it via `/messages?dir=f`.
-  Future<List<MatrixRoomEvent>> _fetchRoomHistoryFromEventId(
-    String roomId, {
-    required String sinceEventId,
-    required int limit,
-    required matrix.Room room,
-    required matrix.Client client,
-    required String myUserId,
-  }) async {
-    final context = await client.getEventContext(
-      roomId,
-      sinceEventId,
-      limit: 0,
-    );
-    final token = context.end;
-    if (token == null) return <MatrixRoomEvent>[];
-
-    final resp = await client.getRoomEvents(
-      roomId,
-      matrix.Direction.f,
-      from: token,
-      limit: limit,
-    );
-
-    final rawEvents = resp.chunk
-        .map((e) => matrix.Event.fromMatrixEvent(e, room))
-        .toList();
-
-    await _decryptEvents(rawEvents, room, client);
-
-    return rawEvents
-        .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
-        .whereType<MatrixRoomEvent>()
-        .toList();
-  }
-
-  Future<void> _decryptEvents(
-    List<matrix.Event> events,
-    matrix.Room room,
-    matrix.Client client,
-  ) async {
-    if (!room.encrypted || !client.encryptionEnabled) return;
-    for (var i = 0; i < events.length; i++) {
-      if (events[i].type == matrix.EventTypes.Encrypted) {
-        events[i] = await client.encryption!.decryptRoomEvent(events[i]);
+      final token = context.end;
+      if (token != null) {
+        room.prev_batch = token;
       }
     }
+
+    await room.requestHistory(
+      historyCount: limit,
+      direction: matrix.Direction.f,
+    );
+
+    final timeline = await room.getTimeline(limit: limit);
+
+    final events = timeline.events
+        .takeWhile((e) => sinceEventId == null || e.eventId != sinceEventId)
+        .map((e) => _eventToMatrixRoomEvent(e, myUserId: myUserId))
+        .whereType<MatrixRoomEvent>();
+
+    return events.take(limit).toList();
   }
 
   /// Performs a single Matrix sync round-trip for the session associated with

@@ -238,7 +238,9 @@ class MessagingService {
                 await _advanceMatrixSyncMarker(s.receiverDid, e.id);
               }
               return _toMatrixIncoming(e, s.receiverDid);
-            });
+            })
+            .where((e) => e != null)
+            .cast<MatrixIncomingMessage>();
         // Matrix uses an async generator: cancelling the consumer's
         // listen() terminates the generator and its room listeners. No
         // separate teardown is required, so dispose is a no-op.
@@ -344,7 +346,7 @@ class MessagingService {
     return event.type != 'm.typing' && event.type != 'm.receipt';
   }
 
-  Future<MatrixIncomingMessage> _toMatrixIncoming(
+  Future<MatrixIncomingMessage?> _toMatrixIncoming(
     MatrixRoomEvent e,
     String receiverDid,
   ) async {
@@ -355,11 +357,10 @@ class MessagingService {
           matrixUserId: e.userId,
         );
 
-    if (resolved == null) {
-      throw StateError(
-        '''Could not resolve sender DID for Matrix event ${e.id} with userId ${e.userId}''',
-      );
-    }
+    // A sender we cannot reverse-resolve to a known DID (e.g. a state event
+    // or a member not yet present in the local group copy) is skipped rather
+    // than surfaced, so it cannot crash the subscription stream.
+    if (resolved == null) return null;
 
     return MatrixIncomingMessage(
       senderDid: resolved,

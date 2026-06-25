@@ -57,20 +57,17 @@ class MediatorStreamSubscription {
     }
 
     try {
-      _client.listenForIncomingMessages(_onIncomingMessage, onDone: _onDone);
+      _client.listenForIncomingMessages(
+        _onIncomingMessage,
+        onDone: _onDone,
+      );
 
       await ConnectionPool.instance.startConnections();
-      _logger.info(
-        'Mediator stream subscription initialized',
-        name: methodName,
-      );
+      _logger.info('Mediator stream subscription initialized',
+          name: methodName);
     } on StateError catch (e, stackTrace) {
-      _logger.error(
-        'Mediator client already connected.',
-        name: methodName,
-        error: e,
-        stackTrace: stackTrace,
-      );
+      _logger.error('Mediator client already connected.',
+          name: methodName, error: e, stackTrace: stackTrace);
     } catch (e) {
       rethrow;
     }
@@ -97,10 +94,8 @@ class MediatorStreamSubscription {
     }
 
     _controller.add(data);
-    _logger.info(
-      'Data pushed to stream - ${data.message.id}',
-      name: methodName,
-    );
+    _logger.info('Data pushed to stream - ${data.message.id}',
+        name: methodName);
   }
 
   MediatorStreamSubscription listen(
@@ -120,10 +115,8 @@ class MediatorStreamSubscription {
           }
 
           if (!processingResult.keepMessage) {
-            _messageQueue.scheduleDeletion(
-              data.messageHash,
-              delay: _deleteMessageDelay,
-            );
+            _messageQueue.scheduleDeletion(data.messageHash,
+                delay: _deleteMessageDelay);
           }
         } catch (e, stackTrace) {
           _logger.error(
@@ -143,9 +136,8 @@ class MediatorStreamSubscription {
 
     if (_eventBuffer.isNotEmpty) {
       _logger.info(
-        'Flushing ${_eventBuffer.length} buffered event(s) to the stream',
-        name: 'listen',
-      );
+          'Flushing ${_eventBuffer.length} buffered event(s) to the stream',
+          name: 'listen');
 
       _eventBuffer.forEach(_controller.add);
       _eventBuffer.clear();
@@ -183,12 +175,10 @@ class MediatorStreamSubscription {
         ),
       );
 
-      _pushMessage(
-        MediatorStreamData(
-          message: decryptedMessage,
-          messageHash: _hashMessage(message),
-        ),
-      );
+      _pushMessage(MediatorStreamData(
+        message: decryptedMessage,
+        messageHash: _hashMessage(message),
+      ));
 
       _logger.info('Completed processing incoming message', name: methodName);
     } catch (e, stackTrace) {
@@ -264,7 +254,10 @@ class MediatorStreamSubscription {
           'Re-establishing WebSocket connection...',
           name: methodName,
         );
-        _client.listenForIncomingMessages(_onIncomingMessage, onDone: _onDone);
+        _client.listenForIncomingMessages(
+          _onIncomingMessage,
+          onDone: _onDone,
+        );
 
         await ConnectionPool.instance.startConnections();
         _logger.info(

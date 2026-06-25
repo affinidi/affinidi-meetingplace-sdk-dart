@@ -62,14 +62,12 @@ void main() async {
       senderDid: channel.permanentChannelDid!,
       recipientDid: channel.otherPartyPermanentChannelDid!,
       payload: PlainTextMessage(
-        id: const Uuid().v4(),
-        type: Uri.parse(
-          'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example',
-        ),
-        from: channel.permanentChannelDid,
-        to: [channel.otherPartyPermanentChannelDid!],
-        body: {'hello': 'world'},
-      ),
+          id: const Uuid().v4(),
+          type: Uri.parse(
+              'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example'),
+          from: channel.permanentChannelDid,
+          to: [channel.otherPartyPermanentChannelDid!],
+          body: {'hello': 'world'}),
     ),
   );
 

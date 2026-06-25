@@ -32,9 +32,7 @@ class MeetingPlaceMediatorSDK {
         _options = options,
         _logger = logger ??
             DefaultMeetingPlaceMediatorSDKLogger(
-              className: className,
-              sdkName: sdkName,
-            ) {
+                className: className, sdkName: sdkName) {
     _mediatorService = MediatorService(
       didResolver: didResolver,
       options: _options,
@@ -171,7 +169,9 @@ class MeetingPlaceMediatorSDK {
   /// Throws a [MediatorException] if there is an error during retrieval.
   Future<OobInvitationMessage?> getOob(Uri oobUrl) {
     return _withSdkExceptionHandling(() async {
-      final output = await _execute(GetOobCommand(oobUrl: oobUrl));
+      final output = await _execute(
+        GetOobCommand(oobUrl: oobUrl),
+      );
       return output.oobInvitationMessage;
     });
   }

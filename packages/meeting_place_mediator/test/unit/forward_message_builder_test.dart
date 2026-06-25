@@ -25,14 +25,17 @@ void main() {
         recipients: [],
       );
 
-      senderDidDocument = DidDocument.create(id: 'did:key:z6MkTestSender');
+      senderDidDocument = DidDocument.create(
+        id: 'did:key:z6MkTestSender',
+      );
 
-      mediatorDidDocument = DidDocument.create(id: 'did:key:z6MkTestMediator');
+      mediatorDidDocument = DidDocument.create(
+        id: 'did:key:z6MkTestMediator',
+      );
 
       mediatorClient = MockMediatorClient();
-      when(
-        () => mediatorClient.mediatorDidDocument,
-      ).thenReturn(mediatorDidDocument);
+      when(() => mediatorClient.mediatorDidDocument)
+          .thenReturn(mediatorDidDocument);
     });
 
     test('builds forward message with required fields', () {
@@ -115,15 +118,13 @@ void main() {
       final expectedMax = afterCreation.add(const Duration(seconds: 3600));
 
       expect(
-        result.expiresTime!.isAfter(
-          expectedMin.subtract(const Duration(seconds: 1)),
-        ),
+        result.expiresTime!
+            .isAfter(expectedMin.subtract(const Duration(seconds: 1))),
         isTrue,
       );
       expect(
-        result.expiresTime!.isBefore(
-          expectedMax.add(const Duration(seconds: 1)),
-        ),
+        result.expiresTime!
+            .isBefore(expectedMax.add(const Duration(seconds: 1))),
         isTrue,
       );
     });

@@ -456,6 +456,12 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
   }
 
+  Future<void> updateMessage(Message message) async {
+    await chatRepository.updateMesssage(message);
+    chatStream.pushData(StreamData(chatItem: message));
+    logger.info('updateMessage: ${message.messageId}', name: _matrixLogkey);
+  }
+
   /// Dispatches an arbitrary Matrix room event into the underlying room.
   ///
   /// Low-level escape hatch: the SDK does not persist a [ChatItem] or push to

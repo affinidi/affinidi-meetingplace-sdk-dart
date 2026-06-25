@@ -498,6 +498,12 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
+  Future<void> updateMessage(Message message) async {
+    await chatRepository.updateMesssage(message);
+    chatStream.pushData(StreamData(chatItem: message));
+  }
+
+  @override
   Future<void> sendEffect(Effect effect) async {
     assertCanSend();
     chatStream.pushData(

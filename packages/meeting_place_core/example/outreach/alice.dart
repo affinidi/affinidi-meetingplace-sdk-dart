@@ -60,9 +60,8 @@ void main() async {
   );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  final notificationSubscription = notificationStream.stream.listen((
-    IncomingMessage message,
-  ) async {
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await aliceSDK.processControlPlaneEvents();

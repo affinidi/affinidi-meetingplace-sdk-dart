@@ -1,3 +1,7 @@
+## 0.0.1-dev.42
+
+ - **FIX**: handle sync markers correctly (#246).
+
 ## 0.0.1-dev.41
 
  - **FIX**: add Matrix transport support alongside DIDComm.

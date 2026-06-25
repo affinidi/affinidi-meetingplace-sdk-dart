@@ -1,3 +1,7 @@
+## 0.0.1-dev.7
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.6
 
  - **FIX**: add Matrix transport support alongside DIDComm.

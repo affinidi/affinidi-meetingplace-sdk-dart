@@ -1,3 +1,7 @@
+## 0.0.1-dev.48
+
+ - **FIX**: handle sync markers correctly (#246).
+
 ## 0.0.1-dev.47
 
  - **FIX**: apply incoming profile updates in individual Matrix chat (#247).

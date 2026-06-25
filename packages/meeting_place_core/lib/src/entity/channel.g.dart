@@ -36,7 +36,6 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       ? null
       : DateTime.parse(json['messageSyncMarker'] as String),
   matrixSyncMarker: json['matrixSyncMarker'] as String?,
-  matrixRoomId: json['matrixRoomId'] as String?,
   seqNo: (json['seqNo'] as num?)?.toInt() ?? 0,
   externalRef: json['externalRef'] as String?,
 );
@@ -59,7 +58,6 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
   'matrixSyncMarker': ?instance.matrixSyncMarker,
-  'matrixRoomId': ?instance.matrixRoomId,
   'externalRef': ?instance.externalRef,
   'seqNo': instance.seqNo,
   'messageSyncMarker': ?instance.messageSyncMarker?.toIso8601String(),

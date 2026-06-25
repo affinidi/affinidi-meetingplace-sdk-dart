@@ -8,6 +8,8 @@ import 'package:meeting_place_core/src/service/connection_service.dart';
 import 'package:meeting_place_core/src/service/group.dart';
 import 'package:meeting_place_core/src/service/group/group_exception.dart';
 import 'package:meeting_place_core/src/service/identity/identity_service.dart';
+import 'package:meeting_place_core/src/service/identity/model/permanent_identity.dart';
+import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -42,6 +44,18 @@ class _MockMatrixService extends Mock implements MatrixService {}
 
 class _MockDidResolver extends Mock implements DidResolver {}
 
+class _MockDidManager extends Mock implements DidManager {}
+
+class _FakeAclBody extends Fake implements AclBody {}
+
+class _MockDidDocument extends Mock implements DidDocument {
+  _MockDidDocument(this._id);
+  final String _id;
+
+  @override
+  String get id => _id;
+}
+
 GroupMember _ownerMember(String did) => GroupMember.admin(
   did: did,
   publicKey: 'pk-$did',
@@ -72,6 +86,12 @@ Group _group({
 );
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(_MockWallet());
+    registerFallbackValue(_MockDidManager());
+    registerFallbackValue(_FakeAclBody());
+  });
+
   group('GroupService.removeMember validation', () {
     late _MockGroupRepository groupRepository;
     late GroupService service;
@@ -186,6 +206,118 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('GroupService.leaveGroup - _leaveGroupAsMember error handling', () {
+    late _MockGroupRepository groupRepository;
+    late _MockMatrixService matrixService;
+    late _MockIdentityService identityService;
+    late _MockChannelService channelService;
+    late _MockConnectionOfferRepository connectionOfferRepository;
+    late _MockMediatorSDK mediatorSDK;
+    late GroupService service;
+
+    final memberDidManager = _MockDidManager();
+    final memberDidDocument = _MockDidDocument('did:test:bob');
+
+    setUp(() {
+      groupRepository = _MockGroupRepository();
+      matrixService = _MockMatrixService();
+      identityService = _MockIdentityService();
+      channelService = _MockChannelService();
+      connectionOfferRepository = _MockConnectionOfferRepository();
+      mediatorSDK = _MockMediatorSDK();
+
+      service = GroupService(
+        wallet: _MockWallet(),
+        connectionManager: _MockConnectionManager(),
+        connectionOfferRepository: connectionOfferRepository,
+        groupRepository: groupRepository,
+        keyRepository: _MockKeyRepository(),
+        channelService: channelService,
+        offerService: _MockConnectionOfferService(),
+        connectionService: _MockConnectionService(),
+        identityService: identityService,
+        controlPlaneSDK: _MockControlPlaneSDK(),
+        mediatorSDK: mediatorSDK,
+        matrixService: matrixService,
+        didResolver: _MockDidResolver(),
+      );
+    });
+
+    test('completes without throwing when leaveRoom throws', () async {
+      final grp = _group();
+      final channel = Channel(
+        offerLink: 'offer://test',
+        publishOfferDid: 'did:test:publish',
+        mediatorDid: 'did:test:mediator',
+        status: ChannelStatus.approved,
+        contactCard: ContactCardFixture.getContactCardFixture(),
+        type: ChannelType.group,
+        isConnectionInitiator: false,
+        permanentChannelDid: 'did:test:bob',
+      );
+
+      when(
+        () => groupRepository.getGroupByOfferLink('offer://test'),
+      ).thenAnswer((_) async => grp);
+
+      when(
+        () => identityService.getPermanentIdentity(any(), 'did:test:bob'),
+      ).thenAnswer(
+        (_) async => PermanentIdentity(
+          didManager: memberDidManager,
+          didDocument: memberDidDocument,
+        ),
+      );
+
+      when(
+        () => matrixService.resolveChannelRoomId(
+          didManager: memberDidManager,
+          channelDid: 'did:test:group',
+        ),
+      ).thenAnswer((_) async => '!room:matrix.org');
+
+      when(
+        () => matrixService.leaveRoom(
+          '!room:matrix.org',
+          didManager: memberDidManager,
+        ),
+      ).thenThrow(Exception('Matrix server unavailable'));
+
+      when(
+        () => connectionOfferRepository.getConnectionOfferByOfferLink(
+          'offer://test',
+        ),
+      ).thenAnswer((_) async => null);
+
+      when(
+        () => channelService.deleteChannel(channel),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mediatorSDK.updateAcl(
+          ownerDidManager: memberDidManager,
+          mediatorDid: 'did:test:mediator',
+          acl: any(named: 'acl'),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        memberDidManager.getDidDocument,
+      ).thenAnswer((_) async => memberDidDocument);
+
+      when(() => groupRepository.removeGroup(grp)).thenAnswer((_) async {});
+
+      await expectLater(service.leaveGroup(channel), completes);
+
+      verify(
+        () => matrixService.leaveRoom(
+          '!room:matrix.org',
+          didManager: memberDidManager,
+        ),
+      ).called(1);
     });
   });
 }

@@ -123,6 +123,8 @@ void main() {
       when(
         () => repo.listMessages(any()),
       ).thenAnswer((_) async => [_persistedMessage(1), _persistedMessage(2)]);
+
+      when(() => repo.getSyncMarker(any())).thenAnswer((_) async => null);
     });
 
     tearDown(() async {

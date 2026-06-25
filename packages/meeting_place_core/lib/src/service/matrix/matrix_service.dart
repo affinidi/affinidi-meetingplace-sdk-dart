@@ -299,13 +299,18 @@ class MatrixService {
 
   /// Returns recent events from [roomId] as [MatrixRoomEvent]s.
   ///
-  /// Parameters:
-  /// - [roomId]: The ID of the Matrix room to fetch history from.
-  /// - [didManager]: The DID manager used to ensure an authenticated session.
-  /// - [limit]: Maximum number of events to return (default: 50).
-  /// - [sinceEventId]: When non-null, stops walking the timeline at this
-  ///   event id (exclusive), so only events strictly newer than the marker
-  ///   are returned.
+  /// When [sinceEventId] is provided, uses `/context/{sinceEventId}` to obtain
+  /// a precise pagination token at that position and sets it as `prev_batch`
+  /// before calling `requestHistory(direction: f)`. This ensures only events
+  /// strictly newer than [sinceEventId] are fetched from the homeserver.
+  ///
+  /// When [sinceEventId] is null, calls `requestHistory(direction: f)` from
+  /// the room's existing `prev_batch`, pulling any events newer than the local
+  /// database into the local database before reading the timeline.
+  ///
+  /// Using `getTimeline` (rather than the raw HTTP API) means the Matrix SDK
+  /// handles decryption — including automatically retrying when a missing
+  /// session key arrives later via background sync.
   Future<List<MatrixRoomEvent>> fetchRoomHistory(
     String roomId, {
     required DidManager didManager,
@@ -324,11 +329,24 @@ class MatrixService {
     final room = client.getRoomById(roomId);
     if (room == null) return [];
 
-    final timeline = await room.getTimeline(limit: limit);
-
-    if (timeline.events.length < limit && timeline.canRequestHistory) {
-      await timeline.requestHistory(historyCount: limit);
+    if (sinceEventId != null) {
+      final context = await client.getEventContext(
+        roomId,
+        sinceEventId,
+        limit: 0,
+      );
+      final token = context.end;
+      if (token != null) {
+        room.prev_batch = token;
+      }
     }
+
+    await room.requestHistory(
+      historyCount: limit,
+      direction: matrix.Direction.f,
+    );
+
+    final timeline = await room.getTimeline(limit: limit);
 
     final events = timeline.events
         .takeWhile((e) => sinceEventId == null || e.eventId != sinceEventId)
@@ -336,6 +354,18 @@ class MatrixService {
         .whereType<MatrixRoomEvent>();
 
     return events.take(limit).toList();
+  }
+
+  /// Performs a single Matrix sync round-trip for the session associated with
+  /// [didManager], updating the local event database with any events that
+  /// arrived since the last sync.
+  ///
+  /// Call this before [fetchRoomHistory] in contexts where a push notification
+  /// may have arrived before the background sync loop had a chance to deliver
+  /// the triggering event to the local database.
+  Future<void> oneShotSync({required DidManager didManager}) async {
+    final client = await _ensureSession(didManager);
+    await client.oneShotSync();
   }
 
   /// Returns the most recent event id in [roomId], or `null` if the room is

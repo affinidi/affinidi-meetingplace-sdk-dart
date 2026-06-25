@@ -96,19 +96,13 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
   }
 
   Future<void> _syncFromMatrixRoom(Channel channel) async {
-    // Sync from the channel's matrixSyncMarker forward: count new inbound
-    // matrix events to bump seqNo (SDK consumers derive a badge count from
-    // the delta) and advance the marker to the latest delivered event so
-    // subsequent push notifications only see newly arrived messages. The
-    // chat session does NOT depend on this marker for its own catch-up
-    // (see BaseChatSDK._fetchRoomHistoryAsRoomEvents which anchors on the
-    // latest persisted message's transport id instead), so advancing here
-    // is safe.
     final didManager = await findDidManager(channel);
+
     final roomId = await _matrixService.resolveRoomIdForChannel(
       didManager: didManager,
       channel: channel,
     );
+
     final events = await _matrixService.fetchRoomHistory(
       roomId,
       didManager: didManager,
@@ -121,7 +115,8 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
     if (inboundChatCount > 0) {
       channel.seqNo += inboundChatCount;
     }
-    await channelService.updateMatrixSyncMarker(channel, events.first.id);
+
+    await channelService.updateMatrixSyncMarker(channel, events.last.id);
   }
 
   /// True for incoming `m.room.message` events that introduce a new message

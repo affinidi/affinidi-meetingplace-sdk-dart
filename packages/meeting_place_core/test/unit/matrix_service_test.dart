@@ -109,6 +109,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(FakeMatrixTokenCommand());
     registerFallbackValue(<matrix.StateEvent>[FakeStateEvent()]);
+    registerFallbackValue(matrix.Direction.b);
   });
 
   // =========================================================================
@@ -1134,6 +1135,120 @@ void main() {
     });
 
     // ------------------------------------------------------------------
+    // fetchRoomHistory
+    // ------------------------------------------------------------------
+
+    group('fetchRoomHistory', () {
+      late MockMatrixClient client;
+      late MockMatrixRoom room;
+
+      setUp(() {
+        client = MockMatrixClient();
+        room = MockMatrixRoom();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(
+          () => sessionManager.deriveUserId(any(), any()),
+        ).thenReturn(_matrixUserId);
+        when(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: any<matrix.Direction>(named: 'direction'),
+          ),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => room.getTimeline(limit: any(named: 'limit')),
+        ).thenAnswer((_) async => _FakeTimeline());
+      });
+
+      test('returns empty list when room is not found', () async {
+        when(() => client.getRoomById(_testRoomId)).thenReturn(null);
+
+        final result = await service.fetchRoomHistory(
+          _testRoomId,
+          didManager: didManager,
+        );
+
+        expect(result, isEmpty);
+      });
+
+      test('with sinceEventId: resolves context token, sets prev_batch and '
+          'calls requestHistory forward', () async {
+        const anchorEventId = r'$anchor-event';
+        const paginationToken = 'fwd-token-123';
+
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).thenAnswer((_) async => _FakeEventContext(end: paginationToken));
+
+        await service.fetchRoomHistory(
+          _testRoomId,
+          didManager: didManager,
+          sinceEventId: anchorEventId,
+        );
+
+        verify(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).called(1);
+        verify(() => room.prev_batch = paginationToken).called(1);
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
+
+      test('with sinceEventId and null context.end: skips setting prev_batch '
+          'but still calls requestHistory forward', () async {
+        const anchorEventId = r'$anchor-event';
+
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).thenAnswer((_) async => _FakeEventContext(end: null));
+
+        await service.fetchRoomHistory(
+          _testRoomId,
+          didManager: didManager,
+          sinceEventId: anchorEventId,
+        );
+
+        verifyNever(() => room.prev_batch = any());
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
+
+      test('without sinceEventId: calls requestHistory forward without '
+          'getEventContext', () async {
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+
+        await service.fetchRoomHistory(_testRoomId, didManager: didManager);
+
+        verifyNever(
+          () =>
+              client.getEventContext(any(), any(), limit: any(named: 'limit')),
+        );
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
+    });
+
+    // ------------------------------------------------------------------
     // sendRoomEvent
     // ------------------------------------------------------------------
 
@@ -1207,6 +1322,22 @@ MatrixTokenCommandOutput _stubMatrixToken(
     ),
   ).thenAnswer((_) async => output);
   return output;
+}
+
+class _FakeEventContext extends Fake implements matrix.EventContext {
+  _FakeEventContext({this.end});
+
+  @override
+  final String? end;
+}
+
+class _FakeTimeline extends Fake implements matrix.Timeline {
+  _FakeTimeline({List<matrix.Event> events = const []}) : _events = events;
+
+  final List<matrix.Event> _events;
+
+  @override
+  List<matrix.Event> get events => _events;
 }
 
 class _FakeMatrixLoginToken extends Fake implements MatrixLoginToken {

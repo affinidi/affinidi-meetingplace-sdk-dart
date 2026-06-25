@@ -90,6 +90,7 @@ class MessagingService {
     String? filename,
     String? caption,
     Map<String, dynamic>? extraContent,
+    ChannelNotification? notification,
   }) {
     switch (channel.transport) {
       case ChannelTransport.matrix:
@@ -100,6 +101,7 @@ class MessagingService {
           filename: filename,
           caption: caption,
           extraContent: extraContent,
+          notification: notification,
         );
       case ChannelTransport.didcomm:
         // TODO(media-upload): inline-attachment DIDComm path; enforce
@@ -141,6 +143,7 @@ class MessagingService {
     String? filename,
     String? caption,
     Map<String, dynamic>? extraContent,
+    ChannelNotification? notification,
   }) async {
     final didManager = await _getDidManager(_permanentChannelDid(channel));
 
@@ -159,7 +162,7 @@ class MessagingService {
       ...?extraContent,
     };
 
-    return _matrixService.sendFileEvent(
+    final eventId = await _matrixService.sendFileEvent(
       roomId,
       bytes: fileBytes,
       contentType: contentType,
@@ -167,6 +170,16 @@ class MessagingService {
       didManager: didManager,
       extraContent: mergedExtra.isEmpty ? null : mergedExtra,
     );
+
+    if (notification != null) {
+      unawaited(
+        _messageService
+            .notifyChannel(notification)
+            .catchError((Object _, StackTrace _) {}),
+      );
+    }
+
+    return eventId;
   }
 
   String _permanentChannelDid(Channel channel) {
@@ -240,21 +253,27 @@ class MessagingService {
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
     switch (query) {
       case MatrixRoomHistoryQuery q:
-        // Prefer the caller-supplied cursor (chat session's own anchor,
-        // typically the latest persisted message's transport id) over the
-        // channel-level sync marker. The marker is owned by the push
-        // pipeline (ChatActivityEventHandler) which uses it for badge-count
-        // bookkeeping and must not be consumed here.
         final roomId = await _resolveRoomIdForDid(q.receiverDid);
+
         final events = await _matrixService.fetchRoomHistory(
           roomId,
           didManager: await _getDidManager(q.receiverDid),
           limit: q.limit,
           sinceEventId: q.sinceEventId,
         );
+
         final results = await Future.wait(
           events.map((e) => _toMatrixIncoming(e, q.receiverDid)),
         );
+
+        final channel = await _channelService.findChannelByDidOrNull(
+          q.receiverDid,
+        );
+
+        if (q.updateChannelSyncMarker && events.isNotEmpty && channel != null) {
+          await _channelService.updateMatrixSyncMarker(channel, events.last.id);
+        }
+
         return results.whereType<MatrixIncomingMessage>().toList();
       case DidCommHistoryQuery q:
         final messages = await _didcomm.fetchMessages(

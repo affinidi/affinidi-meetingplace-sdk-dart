@@ -191,6 +191,30 @@ void main() {
 
       verify(() => mockChannelService.findChannelByDid(recipientDid)).called(1);
     });
+
+    test(
+      'sets a non-null createdTime on the request issuance message',
+      () async {
+        await client.requestIssuance(
+          senderDid: senderDid,
+          recipientDid: recipientDid,
+          options: const RequestCredentialsOptions(proposalId: 'proposal-1'),
+        );
+
+        final captured = verify(
+          () => mockMessageService.sendMessage(
+            captureAny(),
+            senderDidManager: mockDidManager,
+            recipientDid: recipientDid,
+            mediatorDid: mediatorDid,
+            notifyChannelType: any(named: 'notifyChannelType'),
+          ),
+        )..called(1);
+
+        final message = captured.captured.single as PlainTextMessage;
+        expect(message.createdTime, isNotNull);
+      },
+    );
   });
 
   group('sendIssuedCredential', () {
@@ -230,6 +254,30 @@ void main() {
         () => mockConnectionManager.getDidManagerForDid(mockWallet, senderDid),
       ).called(1);
     });
+
+    test(
+      'sets a non-null createdTime on the issued credential message',
+      () async {
+        await client.sendIssuedCredential(
+          senderDid: senderDid,
+          recipientDid: recipientDid,
+          body: mockBody,
+        );
+
+        final captured = verify(
+          () => mockMessageService.sendMessage(
+            captureAny(),
+            senderDidManager: mockDidManager,
+            recipientDid: recipientDid,
+            mediatorDid: mediatorDid,
+            notifyChannelType: any(named: 'notifyChannelType'),
+          ),
+        )..called(1);
+
+        final message = captured.captured.single as PlainTextMessage;
+        expect(message.createdTime, isNotNull);
+      },
+    );
   });
 
   group('subscribe', () {

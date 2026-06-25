@@ -53,6 +53,9 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
 
     _chatSDK.chatStream.pushData(StreamData(chatItem: message));
     _chatSDK.chatStream.pushData(StreamData(chatItem: chatItem));
+    _chatSDK.chatStream.pushData(
+      StreamData(event: const ChatGroupDetailsUpdateEvent()),
+    );
 
     await GroupDetailsUpdateSender(coreSDK: _chatSDK.coreSDK).send(
       channel: await _chatSDK.getChannel(),

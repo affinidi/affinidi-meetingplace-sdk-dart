@@ -44,6 +44,7 @@ class MediaTextMessageSender {
   Future<Message> send({
     required String text,
     required List<ChatAttachment> attachments,
+    ChannelNotification? notification,
   }) async {
     // Decode bytes up-front so a malformed attachment fails before any
     // partial wire traffic is sent.
@@ -93,6 +94,7 @@ class MediaTextMessageSender {
       for (var i = 0; i < attachments.length; i++) {
         final attachment = attachments[i];
         final caption = i == 0 && text.isNotEmpty ? text : null;
+        final isLast = i == attachments.length - 1;
         final eventId = await _coreSDK.sendMediaMessage(
           channel,
           attachmentBytes[i],
@@ -105,6 +107,7 @@ class MediaTextMessageSender {
             sizeBytes: attachmentBytes[i].length,
             correlationId: messageId,
           ),
+          notification: isLast ? notification : null,
         );
         if (eventId != null) {
           message.attachments[i].transportId = eventId;

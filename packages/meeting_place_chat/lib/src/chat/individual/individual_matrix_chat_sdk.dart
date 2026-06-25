@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:meeting_place_core/meeting_place_core.dart'
+    show Channel, PlainTextMessage, VdipClient;
+
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
@@ -36,6 +39,7 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
   static const String _logkey = 'IndividualMatrixChatSDK';
 
   bool _isSendingChatPresence = false;
+  StreamSubscription<PlainTextMessage>? _vdipMessageSubscription;
 
   @override
   IncomingRoomEventRouter buildRoomEventRouter() =>
@@ -66,13 +70,18 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
 
     unawaited(
       // ignore: body_might_complete_normally_catch_error
-      coreSDK.vdip.subscribe(channel).catchError((Object e, StackTrace _) {
-        logger.error(
-          'Error subscribing to VDIP channel: $e',
-          error: e,
-          name: 'sendMessage',
-        );
-      }),
+      coreSDK.vdip
+          .subscribe(channel)
+          .then((_) {
+            _subscribeToIssuedCredentials(channel);
+          })
+          .catchError((Object e, StackTrace _) {
+            logger.error(
+              'Error subscribing to VDIP channel: $e',
+              error: e,
+              name: 'sendMessage',
+            );
+          }),
     );
 
     unawaited(startChatPresenceUpdates());
@@ -81,6 +90,8 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
 
   @override
   Future<void> endChatSession() async {
+    await _vdipMessageSubscription?.cancel();
+    _vdipMessageSubscription = null;
     await coreSDK.vdip.unsubscribe();
     await super.end();
     stopChatPresenceInterval();
@@ -122,6 +133,23 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
 
   void stopChatPresenceInterval() {
     _isSendingChatPresence = false;
+  }
+
+  void _subscribeToIssuedCredentials(Channel channel) {
+    _vdipMessageSubscription = coreSDK.vdip.incomingMessages
+        .where(
+          (msg) =>
+              msg.type.toString() == VdipClient.issuedCredentialMessageType,
+        )
+        .listen((message) async {
+          final createdTime = message.createdTime?.toUtc();
+          if (createdTime == null) return;
+          final marker = channel.messageSyncMarker;
+          if (marker == null || createdTime.compareTo(marker) > 0) {
+            channel.messageSyncMarker = createdTime;
+            await coreSDK.updateChannel(channel);
+          }
+        });
   }
 
   @override

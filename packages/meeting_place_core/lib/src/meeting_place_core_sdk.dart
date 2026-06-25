@@ -1317,6 +1317,7 @@ class MeetingPlaceCoreSDK {
     String? filename,
     String? caption,
     Map<String, dynamic>? extraContent,
+    ChannelNotification? notification,
   }) {
     return _messagingService.sendMediaMessage(
       channel,
@@ -1325,6 +1326,7 @@ class MeetingPlaceCoreSDK {
       filename: filename,
       caption: caption,
       extraContent: extraContent,
+      notification: notification,
     );
   }
 

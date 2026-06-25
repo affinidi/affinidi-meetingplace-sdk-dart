@@ -15,17 +15,21 @@ sealed class HistoryQuery {
 class MatrixRoomHistoryQuery extends HistoryQuery {
   const MatrixRoomHistoryQuery({
     required super.receiverDid,
-    this.sinceEventId,
     super.limit,
+    this.sinceEventId,
+    this.updateChannelSyncMarker = true,
   });
 
-  /// Optional anchor event id. When provided, only events that come after
-  /// (i.e., were stored more recently than) this event id are returned. When
-  /// null, the call falls back to the channel's persisted `matrixSyncMarker`.
-  /// Use this when the caller (e.g., a chat session) owns its own cursor —
-  /// typically the latest persisted message's transport id — independent of
-  /// the channel-level sync marker advanced by the push pipeline.
+  /// Optional anchor event id. When provided, fetches events that arrived
+  /// after this event (exclusive) by resolving a fresh pagination token via
+  /// the `/context` endpoint. Event IDs are stable and never expire. When
+  /// null, falls back to the channel's persisted `matrixSyncMarker`.
   final String? sinceEventId;
+
+  /// Whether to update the channel's `matrixSyncMarker` to the latest
+  /// delivered event. Defaults to true. Set to false when the caller wants to
+  /// fetch history without advancing the channel's marker.
+  final bool updateChannelSyncMarker;
 }
 
 /// Fetch queued DIDComm messages for the receiver DID.

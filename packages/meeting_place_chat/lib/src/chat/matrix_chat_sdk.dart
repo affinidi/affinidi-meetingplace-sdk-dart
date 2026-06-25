@@ -219,16 +219,21 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         name: _matrixLogkey,
       );
     } else {
-      message = await MediaTextMessageSender(
-        coreSDK: coreSDK,
-        did: did,
-        chatId: chatId,
-        chatRepository: chatRepository,
-        chatStream: chatStream,
-        serverEventIdToMessageId: _serverEventIdToMessageId,
-        getChannel: getChannel,
-        logger: logger,
-      ).send(text: text, attachments: attachments);
+      message =
+          await MediaTextMessageSender(
+            coreSDK: coreSDK,
+            did: did,
+            chatId: chatId,
+            chatRepository: chatRepository,
+            chatStream: chatStream,
+            serverEventIdToMessageId: _serverEventIdToMessageId,
+            getChannel: getChannel,
+            logger: logger,
+          ).send(
+            text: text,
+            attachments: attachments,
+            notification: buildChannelNotification('chat-activity'),
+          );
     }
 
     await coreSDK.sendMessage(
@@ -673,11 +678,15 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   Future<List<MatrixRoomEvent>> _fetchRoomHistoryAsRoomEvents(
     String? bootstrapCursor,
   ) async {
-    final incoming = await coreSDK.fetchHistory(
-      MatrixRoomHistoryQuery(receiverDid: did, sinceEventId: bootstrapCursor),
+    final historyEvents = await coreSDK.fetchHistory(
+      MatrixRoomHistoryQuery(
+        receiverDid: did,
+        sinceEventId: bootstrapCursor,
+        updateChannelSyncMarker: false,
+      ),
     );
 
-    final events = incoming
+    final events = historyEvents
         .whereType<MatrixIncomingMessage>()
         .map((m) => _toRoomEvent(m, isReplay: true))
         .toList();
@@ -687,7 +696,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       if (currentMarker == bootstrapCursor) {
         await chatRepository.updateSyncMarker(
           chatId: chatId,
-          eventId: events.first.id,
+          eventId: events.last.id,
         );
       }
     }

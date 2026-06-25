@@ -66,6 +66,12 @@ void main() {
   setUpAll(() {
     registerFallbackValue(MockDidManager());
     registerFallbackValue(Uint8List(0));
+    registerFallbackValue(
+      const IndividualChannelNotification(
+        recipientDid: 'did:test:fb',
+        type: 'chat-activity',
+      ),
+    );
   });
 
   setUp(() {
@@ -176,6 +182,78 @@ void main() {
         ),
         throwsA(isA<StateError>()),
       );
+    });
+
+    test('calls notifyChannel when notification is provided', () async {
+      final channel = _matrixChannel();
+      when(
+        () => matrixService.getMediaConfig(didManager: didManager),
+      ).thenAnswer((_) async => null);
+      when(
+        () => matrixService.resolveRoomIdForChannel(
+          didManager: didManager,
+          channel: channel,
+        ),
+      ).thenAnswer((_) async => _testRoomId);
+      when(
+        () => matrixService.sendFileEvent(
+          _testRoomId,
+          bytes: any(named: 'bytes'),
+          contentType: any(named: 'contentType'),
+          filename: any(named: 'filename'),
+          didManager: didManager,
+          extraContent: any(named: 'extraContent'),
+        ),
+      ).thenAnswer((_) async => _testEventId);
+      when(() => messageService.notifyChannel(any())).thenAnswer((_) async {});
+
+      const notification = IndividualChannelNotification(
+        recipientDid: 'did:test:bob',
+        type: 'chat-activity',
+      );
+
+      await messagingService.sendMediaMessage(
+        channel,
+        Uint8List.fromList([1, 2, 3]),
+        contentType: 'image/png',
+        notification: notification,
+      );
+
+      // notifyChannel is fired unawaited; give the microtask queue a turn.
+      await Future<void>.delayed(Duration.zero);
+
+      verify(() => messageService.notifyChannel(notification)).called(1);
+    });
+
+    test('does not call notifyChannel when notification is null', () async {
+      final channel = _matrixChannel();
+      when(
+        () => matrixService.getMediaConfig(didManager: didManager),
+      ).thenAnswer((_) async => null);
+      when(
+        () => matrixService.resolveRoomIdForChannel(
+          didManager: didManager,
+          channel: channel,
+        ),
+      ).thenAnswer((_) async => _testRoomId);
+      when(
+        () => matrixService.sendFileEvent(
+          _testRoomId,
+          bytes: any(named: 'bytes'),
+          contentType: any(named: 'contentType'),
+          filename: any(named: 'filename'),
+          didManager: didManager,
+          extraContent: any(named: 'extraContent'),
+        ),
+      ).thenAnswer((_) async => _testEventId);
+
+      await messagingService.sendMediaMessage(
+        channel,
+        Uint8List.fromList([1, 2, 3]),
+        contentType: 'image/png',
+      );
+
+      verifyNever(() => messageService.notifyChannel(any()));
     });
   });
 

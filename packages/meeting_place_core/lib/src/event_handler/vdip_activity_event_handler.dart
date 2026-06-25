@@ -76,13 +76,12 @@ class VdipActivityEventHandler {
 
     var processedCount = 0;
     for (final message in messages) {
-      processedCount++;
-
       final createdTime = message.plainTextMessage.createdTime?.toUtc();
       if (createdTime != null &&
           (messageSyncMarker == null ||
               createdTime.compareTo(messageSyncMarker) > 0)) {
         messageSyncMarker = createdTime;
+        processedCount++;
       }
     }
 

@@ -1155,7 +1155,7 @@ void main() {
         when(
           () => room.requestHistory(
             historyCount: any(named: 'historyCount'),
-            direction: any(named: 'direction'),
+            direction: any<matrix.Direction>(named: 'direction'),
           ),
         ).thenAnswer((_) async => 0);
         when(
@@ -1174,96 +1174,78 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test(
-        'with sinceEventId: resolves context token, sets prev_batch and '
-        'calls requestHistory forward',
-        () async {
-          const anchorEventId = r'$anchor-event';
-          const paginationToken = 'fwd-token-123';
+      test('with sinceEventId: resolves context token, sets prev_batch and '
+          'calls requestHistory forward', () async {
+        const anchorEventId = r'$anchor-event';
+        const paginationToken = 'fwd-token-123';
 
-          when(() => client.getRoomById(_testRoomId)).thenReturn(room);
-          when(
-            () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
-          ).thenAnswer((_) async => _FakeEventContext(end: paginationToken));
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).thenAnswer((_) async => _FakeEventContext(end: paginationToken));
 
-          await service.fetchRoomHistory(
-            _testRoomId,
-            didManager: didManager,
-            sinceEventId: anchorEventId,
-          );
+        await service.fetchRoomHistory(
+          _testRoomId,
+          didManager: didManager,
+          sinceEventId: anchorEventId,
+        );
 
-          verify(
-            () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
-          ).called(1);
-          verify(() => room.prev_batch = paginationToken).called(1);
-          verify(
-            () => room.requestHistory(
-              historyCount: any(named: 'historyCount'),
-              direction: matrix.Direction.f,
-            ),
-          ).called(1);
-          verify(
-            () => room.getTimeline(limit: any(named: 'limit')),
-          ).called(1);
-        },
-      );
+        verify(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).called(1);
+        verify(() => room.prev_batch = paginationToken).called(1);
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
 
-      test(
-        'with sinceEventId and null context.end: skips setting prev_batch '
-        'but still calls requestHistory forward',
-        () async {
-          const anchorEventId = r'$anchor-event';
+      test('with sinceEventId and null context.end: skips setting prev_batch '
+          'but still calls requestHistory forward', () async {
+        const anchorEventId = r'$anchor-event';
 
-          when(() => client.getRoomById(_testRoomId)).thenReturn(room);
-          when(
-            () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
-          ).thenAnswer((_) async => _FakeEventContext(end: null));
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).thenAnswer((_) async => _FakeEventContext(end: null));
 
-          await service.fetchRoomHistory(
-            _testRoomId,
-            didManager: didManager,
-            sinceEventId: anchorEventId,
-          );
+        await service.fetchRoomHistory(
+          _testRoomId,
+          didManager: didManager,
+          sinceEventId: anchorEventId,
+        );
 
-          verifyNever(() => room.prev_batch = any());
-          verify(
-            () => room.requestHistory(
-              historyCount: any(named: 'historyCount'),
-              direction: matrix.Direction.f,
-            ),
-          ).called(1);
-          verify(
-            () => room.getTimeline(limit: any(named: 'limit')),
-          ).called(1);
-        },
-      );
+        verifyNever(() => room.prev_batch = any());
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
 
-      test(
-        'without sinceEventId: calls requestHistory forward without '
-        'getEventContext',
-        () async {
-          when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+      test('without sinceEventId: calls requestHistory forward without '
+          'getEventContext', () async {
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
 
-          await service.fetchRoomHistory(_testRoomId, didManager: didManager);
+        await service.fetchRoomHistory(_testRoomId, didManager: didManager);
 
-          verifyNever(
-            () => client.getEventContext(
-              any(),
-              any(),
-              limit: any(named: 'limit'),
-            ),
-          );
-          verify(
-            () => room.requestHistory(
-              historyCount: any(named: 'historyCount'),
-              direction: matrix.Direction.f,
-            ),
-          ).called(1);
-          verify(
-            () => room.getTimeline(limit: any(named: 'limit')),
-          ).called(1);
-        },
-      );
+        verifyNever(
+          () =>
+              client.getEventContext(any(), any(), limit: any(named: 'limit')),
+        );
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
     });
 
     // ------------------------------------------------------------------

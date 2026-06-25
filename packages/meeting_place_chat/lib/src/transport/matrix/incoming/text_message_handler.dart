@@ -40,6 +40,8 @@ class TextMessageHandler {
   final MessageEditHandler _editHandler;
 
   Future<void> handle(MatrixRoomEvent event) async {
+    if (event.content.containsKey('mp_member_did')) return;
+
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
     if (relatesTo?['rel_type'] == 'm.replace') {
       return _editHandler.handle(event);
@@ -54,42 +56,16 @@ class TextMessageHandler {
       return;
     }
 
-    // Reserve this event id before any await to prevent duplicate messages.
-    if (_serverEventIdToMessageId.containsKey(event.id)) {
-      _logger.warning(
-        'Skipping duplicate room event ${event.id}, already reserved.',
-        name: _logkey,
-      );
-      return;
-    }
-    _serverEventIdToMessageId[event.id] = event.id;
-
     try {
-      // Skip events already stored in a previous session.
-      if (await _persistedHasEvent(event.id)) {
-        _logger.info(
-          'Skipping room event ${event.id}, already persisted.',
-          name: _logkey,
-        );
-        return;
-      }
-
-      final attachments = [
-        ...MatrixMediaAttachments.extractFromContent(event.content),
-      ];
+      final attachments = MatrixMediaAttachments.extractFromContent(
+        event.content,
+      );
       // Stamp the matrix event id on each extracted attachment so the
       // receiver can download bytes per-attachment without consulting the
       // parent Message.
       for (final a in attachments) {
         a.transportId = event.id;
       }
-
-      // Metadata-only attachments (e.g. call chat items) ride inside the event
-      // content and carry no downloadable bytes, so they are not stamped with
-      // a transport id.
-      final metadataAttachments =
-          MatrixMediaAttachments.extractMetadataAttachments(event.content);
-      attachments.addAll(metadataAttachments);
 
       final correlationId =
           event.content[MatrixEventField.correlationId] as String?;
@@ -154,21 +130,5 @@ class TextMessageHandler {
         name: _logkey,
       );
     }
-  }
-
-  /// True when an event with [eventId] is already stored from a previous
-  /// session. The in-memory reservation in [handle] covers the current
-  /// session; this falls back to the persisted store, matching either the
-  /// optimistic own-sent message (`transportId`) or a previously stored
-  /// incoming message (`messageId`/`transportId`).
-  Future<bool> _persistedHasEvent(String eventId) async {
-    final items = await _chatRepository.listMessages(_chatId);
-    for (final item in items) {
-      if (item is Message &&
-          (item.transportId == eventId || item.messageId == eventId)) {
-        return true;
-      }
-    }
-    return false;
   }
 }

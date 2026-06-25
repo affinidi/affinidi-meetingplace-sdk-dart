@@ -36,8 +36,10 @@ class RejectConnectionRequestAction implements GroupAction<Group> {
     final updatedGroup = await _chatSDK.coreSDK.rejectConnectionRequest(
       channel: channel,
     );
-    await _chatSDK.coreSDK.sendMessage(
-      GroupDetailsUpdateRoomEvent(senderDid: _chatSDK.did, group: updatedGroup),
+    await GroupDetailsUpdateSender(coreSDK: _chatSDK.coreSDK).send(
+      channel: await _chatSDK.getChannel(),
+      senderDid: _chatSDK.did,
+      group: updatedGroup,
     );
 
     message.status = ChatItemStatus.confirmed;

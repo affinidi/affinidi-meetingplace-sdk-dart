@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart'
     show AudioVideoCallParticipant, AudioVideoCallState;
 
@@ -40,9 +41,14 @@ class MeetingPlaceLiveKitVideoView extends ConsumerWidget {
             false;
       }),
     );
-    return ref
-            .read(livekitServiceProvider(otherPartyChannelDid))
-            .buildVideoView(participantId, mirror: mirror) ??
-        const SizedBox.shrink();
+    final track = ref
+        .read(livekitServiceProvider(otherPartyChannelDid))
+        .renderableVideoTrackFor(participantId);
+    if (track == null) return const SizedBox.shrink();
+    return VideoTrackRenderer(
+      track,
+      fit: VideoViewFit.cover,
+      mirrorMode: mirror ? VideoViewMirrorMode.mirror : VideoViewMirrorMode.off,
+    );
   }
 }

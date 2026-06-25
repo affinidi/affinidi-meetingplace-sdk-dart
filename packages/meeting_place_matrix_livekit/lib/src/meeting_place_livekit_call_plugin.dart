@@ -221,7 +221,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   /// Wraps [child] in the Riverpod scope for the active call session.
   ///
   /// The call screen must be a descendant of this scope so that
-  /// `AudioVideoCallView` can resolve the correct `LiveKitService` instance.
+  /// `AudioVideoCallView` can resolve the correct `LivekitService` instance.
   Widget scope({required Widget child}) {
     final session = _requireSession();
     return PluginScope(container: session.container, child: child);

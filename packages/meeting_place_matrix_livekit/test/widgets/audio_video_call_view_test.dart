@@ -23,7 +23,7 @@ class _StubAudioVideoCallService extends AudioVideoCallService {
 const _otherPartyDid = 'did:key:view-test-other';
 
 ProviderContainer _buildSessionContainer() {
-  final fakeService = FakeLiveKitService();
+  final fakeService = FakeLivekitService();
   return ProviderContainer(
     overrides: [
       audioVideoCallServiceProvider(

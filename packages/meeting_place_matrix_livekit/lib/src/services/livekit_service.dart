@@ -6,14 +6,14 @@ import 'package:meeting_place_chat/meeting_place_chat.dart'
     show AudioVideoCallParticipant;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-/// Signature for E2EE state change notifications from [LiveKitService].
+/// Signature for E2EE state change notifications from [LivekitService].
 ///
 /// [participantId] is the participant's stable identifier.
 /// [state] is the new [E2EEState] reported by the FrameCryptor.
 typedef OnE2EEStateChanged =
     void Function(String participantId, E2EEState state);
 
-/// Signature for participant departure notifications from [LiveKitService].
+/// Signature for participant departure notifications from [LivekitService].
 ///
 /// Called when another participant disconnects from the room.
 /// [participantId] is the identifier of the participant who left.
@@ -26,11 +26,11 @@ typedef OnParticipantDisconnected = void Function(String participantId);
 /// [AudioVideoCallParticipant] domain objects before publishing.
 ///
 /// Modelled after the MatrixService session lifecycle pattern.
-class LiveKitService {
-  LiveKitService({MeetingPlaceCoreSDKLogger? logger})
+class LivekitService {
+  LivekitService({MeetingPlaceCoreSDKLogger? logger})
     : _logger = logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _logKey);
 
-  static const _logKey = 'LiveKitService';
+  static const _logKey = 'LivekitService';
 
   final MeetingPlaceCoreSDKLogger _logger;
   Room? _room;
@@ -52,9 +52,9 @@ class LiveKitService {
   /// [url] is the LiveKit server URL (e.g. `wss://livekit.example.com`).
   /// [token] is the JWT obtained from lk-jwt-service via `SfuTokenService`.
   ///
-  /// Pass a [keyProvider] to enable per-participant E2EE via FrameCryptor.
-  /// When provided, [onE2EEStateChanged] is called whenever a participant's
-  /// encryption state changes.
+  /// [keyProvider] enables per-participant E2EE via FrameCryptor. All call
+  /// traffic is encrypted, so it is always required. [onE2EEStateChanged] is
+  /// called whenever a participant's encryption state changes.
   ///
   /// [onParticipantDisconnected] is called when another participant leaves
   /// the room, giving the owner the opportunity to rotate encryption keys.
@@ -70,33 +70,28 @@ class LiveKitService {
   Future<void> connect({
     required String url,
     required String token,
+    required BaseKeyProvider keyProvider,
     Map<String, String> participantIdToDid = const {},
-    BaseKeyProvider? keyProvider,
     OnE2EEStateChanged? onE2EEStateChanged,
     OnParticipantDisconnected? onParticipantDisconnected,
     void Function()? onParticipantsChanged,
   }) async {
     if (_isDisposed) return;
     _participantIdToDid = participantIdToDid;
-    _logger.info(
-      'connect: url=$url e2ee=${keyProvider != null}',
-      name: _logKey,
-    );
+    _logger.info('connect: url=$url', name: _logKey);
 
-    final e2eeOptions = keyProvider != null
-        ? E2EEOptions(keyProvider: keyProvider)
-        : null;
+    final e2eeOptions = E2EEOptions(keyProvider: keyProvider);
 
     final room = Room(roomOptions: RoomOptions(e2eeOptions: e2eeOptions));
 
     final needsListener =
-        (e2eeOptions != null && onE2EEStateChanged != null) ||
+        onE2EEStateChanged != null ||
         onParticipantDisconnected != null ||
         onParticipantsChanged != null;
 
     if (needsListener) {
       final listener = room.createListener();
-      if (e2eeOptions != null && onE2EEStateChanged != null) {
+      if (onE2EEStateChanged != null) {
         listener.on<TrackE2EEStateEvent>((event) {
           onE2EEStateChanged(event.participant.identity, event.state);
         });

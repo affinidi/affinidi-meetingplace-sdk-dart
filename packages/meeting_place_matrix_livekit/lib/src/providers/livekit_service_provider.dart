@@ -7,14 +7,14 @@ import '../services/livekit_service.dart';
 
 part 'livekit_service_provider.g.dart';
 
-/// [LiveKitService] instance scoped to a single call session identified by
+/// [LivekitService] instance scoped to a single call session identified by
 /// [otherPartyChannelDid].
 ///
 /// Auto-disposed when the last watcher is disposed, which triggers
-/// [LiveKitService.disconnect] and releases the room.
+/// [LivekitService.disconnect] and releases the room.
 @riverpod
-LiveKitService livekitService(Ref ref, String otherPartyChannelDid) {
-  final service = LiveKitService(logger: ref.read(pluginLoggerProvider));
+LivekitService livekitService(Ref ref, String otherPartyChannelDid) {
+  final service = LivekitService(logger: ref.read(pluginLoggerProvider));
   ref.onDispose(() => unawaited(service.disconnect()));
   return service;
 }

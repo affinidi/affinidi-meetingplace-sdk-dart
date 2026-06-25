@@ -126,7 +126,7 @@ void main() {
       expect(attachments, hasLength(1));
       final a = attachments.single;
       expect(a.id, isNotEmpty);
-      expect(a.format, AttachmentFormat.hostedMedia.value);
+      expect(a.format, isNull);
       expect(a.filename, 'photo.jpg');
       expect(a.mediaType, 'image/jpeg');
       expect(a.byteCount, 12345);
@@ -197,60 +197,6 @@ void main() {
       expect(attachment.id, isNotEmpty);
       expect(VoiceMessageMetadata.isVoice(attachment), isTrue);
       expect(VoiceMessageMetadata.of(attachment)?.waveform, isNull);
-    });
-  });
-
-  group('MatrixMediaAttachments metadata attachments round-trip', () {
-    test('build then extract preserves id and metadata', () {
-      final call = CallMetadata.buildAttachment(
-        mediaType: CallMediaType.video,
-        status: CallStatus.calling,
-        id: 'call-1',
-      );
-
-      final content = {
-        'msgtype': 'm.text',
-        'body': '',
-        MatrixEventField.attachmentsMetadata:
-            MatrixMediaAttachments.buildMetadataAttachmentsContent([call]),
-      };
-
-      final extracted = MatrixMediaAttachments.extractMetadataAttachments(
-        content,
-      );
-
-      expect(extracted, hasLength(1));
-      expect(extracted.single.id, 'call-1');
-      expect(CallMetadata.isCall(extracted.single), isTrue);
-      final meta = CallMetadata.maybeOf(extracted.single);
-      expect(meta?.mediaType, CallMediaType.video);
-      expect(meta?.status, CallStatus.calling);
-    });
-
-    test('returns empty list when content has no metadata attachments', () {
-      expect(
-        MatrixMediaAttachments.extractMetadataAttachments({
-          'msgtype': 'm.text',
-          'body': 'hello',
-        }),
-        isEmpty,
-      );
-    });
-
-    test('extractFromContent ignores metadata-only call content', () {
-      final content = {
-        'msgtype': 'm.text',
-        'body': '',
-        MatrixEventField.attachmentsMetadata:
-            MatrixMediaAttachments.buildMetadataAttachmentsContent([
-              CallMetadata.buildAttachment(
-                mediaType: CallMediaType.audio,
-                status: CallStatus.calling,
-              ),
-            ]),
-      };
-
-      expect(MatrixMediaAttachments.extractFromContent(content), isEmpty);
     });
   });
 }

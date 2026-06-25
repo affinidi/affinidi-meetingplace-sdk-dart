@@ -63,6 +63,7 @@ A published invitation contains a description, validity, and a ContactCard conta
 - Reduces spam by requiring the user's consent when other users try to establish a connection.
 - Implement the DIDComm Message v2.1 protocol, and connect and authenticate with different mediators that follow the same protocol.
 - Seamlessly integrates with Self-Sovereign Identity (SSI), including Verifiable Credentials/Presentations.
+- Matrix serves as an optional secondary transport alongside DIDComm v2.1 for one-to-one and group messaging. Transports declare their supported capabilities, allowing features such as message editing, deletion, and voice messaging to be conditionally enabled based on transport support.
 
 ## Key Components
 
@@ -84,7 +85,7 @@ The Meeting Place SDK also leverages other Affinidi open-sourced SDKS, such as 
 
 ## Requirements
 
-- Dart SDK `>=3.0.0 <4.0.0`
+- Dart SDK `>=3.8.0 <4.0.0`
 
 ## Database Encryption
 
@@ -142,48 +143,119 @@ workspace packages.
 
 ## Usage
 
+> **Note:** The SDK can be used with or without Matrix. `MatrixConfig` is a subtype of `Config` — pass a `MatrixConfig` to enable the Matrix transport, or pass a non‑Matrix `Config` (or the default `Config` implementation) to use DIDComm-only.
+>
+> If using Matrix, the vodozemac encryption runtime must be initialised once before calling `MeetingPlaceCoreSDK.create()`; otherwise the SDK will throw a `StateError` on the first Matrix login. For Flutter apps, add [`flutter_vodozemac`](https://pub.dev/packages/flutter_vodozemac) and call `await fvod.init()` in `main()`. For pure-Dart apps, build the native library and call `await vod.init(libraryPath: '...')`. See the [Core SDK README](./packages/meeting_place_core/README.md#initializing-the-encryption-runtime-for-matrix-usage) for full details.
+>
+> The example below demonstrates creating the SDK with Matrix enabled.
+
 ```dart
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
 void main() async {
-   final storage = InMemoryStorage();
+  // Initialise the vodozemac encryption runtime once before creating the SDK.
+  await vod.init(libraryPath: '/path/to/vodozemac/dylib/dir');
 
-   final aliceSDK = MeetingPlaceCoreSDK.create(
-      wallet: PersistentWallet(InMemoryKeyStore()),
-      repositoryConfig: RepositoryConfig(
-         connectionOfferRepository: ConnectionOfferRepositoryImpl(storage: storage),
-         groupRepository: GroupRepositoryImpl(storage: storage),
-         channelRepository: ChannelRepositoryImpl(storage: storage),
-         keyRepository: KeyRepositoryImpl(storage: storage),
-      ),
-      mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
-      controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
-   );
+  final storage = InMemoryStorage();
 
-   await aliceSDK.registerForPushNotifications(const Uuid().v4());
+  final matrixConfig = MatrixConfig(
+    mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
+    controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
+    homeserver: Uri.parse('https://matrix.yourdomain.com'),
+    deviceId: const Uuid().v4(),
+    // Implement openDatabase to return a DatabaseApi backed by your storage.
+    // See packages/meeting_place_core/example/ for platform-specific examples.
+    databaseFactory: CallbackMatrixDatabaseFactory(
+      openDatabase: (context) async => openYourMatrixDatabase(context),
+    ),
+  );
 
-   final publishOfferResult = await aliceSDK.publishOffer(
-      offerName: 'Example offer',
-      offerDescription: 'Example offer to test.',
-         contactCard: ContactCard(
-            did: 'did:test:alice',
-            type: 'human',
-            contactInfo: {
-               'n': {'given': 'Alice'},
-            },
-         ),
-      publishAsGroup: false,
-      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
+  final aliceSDK = await MeetingPlaceCoreSDK.create(
+    wallet: PersistentWallet(InMemoryKeyStore()),
+    repositoryConfig: RepositoryConfig(
+      connectionOfferRepository: ConnectionOfferRepositoryImpl(storage: storage),
+      groupRepository: GroupRepositoryImpl(storage: storage),
+      channelRepository: ChannelRepositoryImpl(storage: storage),
+      keyRepository: KeyRepositoryImpl(storage: storage),
+    ),
+    config: matrixConfig,
+  );
+
+  await aliceSDK.registerForPushNotifications(const Uuid().v4());
+
+  final publishOfferResult = await aliceSDK.publishOffer(
+    offerName: 'Example offer',
+    offerDescription: 'Example offer to test.',
+    contactCard: ContactCard(
+      did: 'did:test:alice',
+      type: 'human',
+      contactInfo: {
+        'n': {'given': 'Alice'},
+      },
+    ),
+    publishAsGroup: false,
+    validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
   );
 }
 ```
 
 For more examples and runnable scripts, go to the [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_core/example).
+
+## Matrix Transport
+
+The SDK supports two chat transports: **DIDComm** (the original transport, routed via a mediator) and **Matrix** (backed by a Matrix homeserver for persistent room-based messaging).
+
+### MatrixConfig
+
+`MeetingPlaceCoreSDK.create()` requires a `MatrixConfig` (a subtype of `Config`):
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mediatorDid` | `String` | DID of the DIDComm mediator. |
+| `controlPlaneDid` | `String` | DID of the Control Plane API server. |
+| `homeserver` | `Uri` | Base URI of the Matrix homeserver (e.g. `https://matrix.yourdomain.com`). |
+| `deviceId` | `String` | Stable per-device identifier. Used to derive a deterministic Matrix device ID. |
+| `databaseFactory` | `MatrixDatabaseFactory` | Factory that opens the Matrix client database. Implement `openDatabase(MatrixDatabaseContext)` to return a `DatabaseApi` backed by your preferred storage. |
+
+### Authentication
+
+Matrix login is fully managed by the SDK. When the SDK needs to authenticate with the homeserver it calls the Control Plane `/v1/matrix/challenge` and `/v1/matrix/token` endpoints using the caller's DID, obtains a short-lived JWT, and logs in via the `org.matrix.login.jwt` login type. Callers do not handle credentials directly.
+
+Matrix user IDs are derived deterministically: `localpart = sha256(permanentChannelDid + "|" + hostname)`, where `hostname` is the host component of the homeserver URL (no scheme, no port). Never derive or pass Matrix user IDs yourself; the SDK handles this internally.
+
+### Transport capabilities
+
+The two transports support different features. Query `chatSDK.capabilities` before exposing UI actions that depend on a specific feature:
+
+```dart
+if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
+  // show edit option
+}
+```
+
+The table below covers the individual chat SDKs (`IndividualDidcommChatSDK` and `IndividualMatrixChatSDK`):
+
+| Feature | DIDComm | Matrix |
+|---------|:-------:|:------:|
+| Text messaging | 🟢 | 🟢 |
+| Media attachments | 🟢 | 🟢 |
+| Reactions | 🟢 | 🟢 |
+| Typing indicators | 🟢 | 🟢 |
+| Delivery receipts | 🟢 | 🟢 |
+| Effects | 🟢 | 🟢 |
+| Contact details update | 🟢 | 🟢 |
+| Presence | 🟢 | 🔴 |
+| Human ZKP | 🟢 | 🔴 |
+| Voice messages | 🔴 | 🟢 |
+| Message edit | 🔴 | 🟢 |
+| Message delete | 🔴 | 🟢 |
+
+Group chat uses `GroupMatrixChatSDK`, which supports the same features as `IndividualMatrixChatSDK`. See the [Chat SDK README](./packages/meeting_place_chat/README.md) and [chat-transport-capabilities.md](./packages/meeting_place_chat/doc/chat-transport-capabilities.md) for the full reference.
 
 ## Support & feedback
 

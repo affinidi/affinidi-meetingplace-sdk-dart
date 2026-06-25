@@ -219,9 +219,9 @@ class MatrixService {
 
   /// Resolves the Matrix room ID for [channel].
   ///
-  /// Uses [Channel.matrixRoomId] when available (set at inauguration time) so
-  /// that the lookup works without alias registration. Falls back to alias
-  /// derivation for channels inaugurated before this field was introduced.
+  /// Attempts to use the stored room ID when available (set at inauguration
+  /// time) so that the lookup works without alias registration. Falls back to
+  /// alias derivation for channels that predate this field.
   Future<String> resolveRoomIdForChannel({
     required DidManager didManager,
     required Channel channel,

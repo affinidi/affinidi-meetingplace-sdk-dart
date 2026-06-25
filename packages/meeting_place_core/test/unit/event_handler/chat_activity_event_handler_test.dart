@@ -1,5 +1,5 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ContactCard;
+    hide ChannelActivityType, ContactCard;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/event_handler/chat_activity_event_handler.dart';
 import 'package:mocktail/mocktail.dart';

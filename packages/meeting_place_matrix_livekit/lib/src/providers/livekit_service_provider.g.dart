@@ -8,29 +8,29 @@ part of 'livekit_service_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// [LiveKitService] instance scoped to a single call session identified by
+/// [LivekitService] instance scoped to a single call session identified by
 /// [otherPartyChannelDid].
 ///
 /// Auto-disposed when the last watcher is disposed, which triggers
-/// [LiveKitService.disconnect] and releases the room.
+/// [LivekitService.disconnect] and releases the room.
 
 @ProviderFor(livekitService)
 const livekitServiceProvider = LivekitServiceFamily._();
 
-/// [LiveKitService] instance scoped to a single call session identified by
+/// [LivekitService] instance scoped to a single call session identified by
 /// [otherPartyChannelDid].
 ///
 /// Auto-disposed when the last watcher is disposed, which triggers
-/// [LiveKitService.disconnect] and releases the room.
+/// [LivekitService.disconnect] and releases the room.
 
 final class LivekitServiceProvider
-    extends $FunctionalProvider<LiveKitService, LiveKitService, LiveKitService>
-    with $Provider<LiveKitService> {
-  /// [LiveKitService] instance scoped to a single call session identified by
+    extends $FunctionalProvider<LivekitService, LivekitService, LivekitService>
+    with $Provider<LivekitService> {
+  /// [LivekitService] instance scoped to a single call session identified by
   /// [otherPartyChannelDid].
   ///
   /// Auto-disposed when the last watcher is disposed, which triggers
-  /// [LiveKitService.disconnect] and releases the room.
+  /// [LivekitService.disconnect] and releases the room.
   const LivekitServiceProvider._({
     required LivekitServiceFamily super.from,
     required String super.argument,
@@ -54,20 +54,20 @@ final class LivekitServiceProvider
 
   @$internal
   @override
-  $ProviderElement<LiveKitService> $createElement($ProviderPointer pointer) =>
+  $ProviderElement<LivekitService> $createElement($ProviderPointer pointer) =>
       $ProviderElement(pointer);
 
   @override
-  LiveKitService create(Ref ref) {
+  LivekitService create(Ref ref) {
     final argument = this.argument as String;
     return livekitService(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(LiveKitService value) {
+  Override overrideWithValue(LivekitService value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<LiveKitService>(value),
+      providerOverride: $SyncValueProvider<LivekitService>(value),
     );
   }
 
@@ -84,14 +84,14 @@ final class LivekitServiceProvider
 
 String _$livekitServiceHash() => r'722acff1fd0c978b9046a4765a510864015b6872';
 
-/// [LiveKitService] instance scoped to a single call session identified by
+/// [LivekitService] instance scoped to a single call session identified by
 /// [otherPartyChannelDid].
 ///
 /// Auto-disposed when the last watcher is disposed, which triggers
-/// [LiveKitService.disconnect] and releases the room.
+/// [LivekitService.disconnect] and releases the room.
 
 final class LivekitServiceFamily extends $Family
-    with $FunctionalFamilyOverride<LiveKitService, String> {
+    with $FunctionalFamilyOverride<LivekitService, String> {
   const LivekitServiceFamily._()
     : super(
         retry: null,
@@ -101,11 +101,11 @@ final class LivekitServiceFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// [LiveKitService] instance scoped to a single call session identified by
+  /// [LivekitService] instance scoped to a single call session identified by
   /// [otherPartyChannelDid].
   ///
   /// Auto-disposed when the last watcher is disposed, which triggers
-  /// [LiveKitService.disconnect] and releases the room.
+  /// [LivekitService.disconnect] and releases the room.
 
   LivekitServiceProvider call(String otherPartyChannelDid) =>
       LivekitServiceProvider._(argument: otherPartyChannelDid, from: this);

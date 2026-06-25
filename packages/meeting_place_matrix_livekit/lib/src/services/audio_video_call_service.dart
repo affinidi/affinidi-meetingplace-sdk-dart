@@ -35,7 +35,7 @@ part 'audio_video_call_service.g.dart';
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LiveKitService] and [SfuTokenService] for this call.
+/// - Owns [LivekitService] and [SfuTokenService] for this call.
 /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
@@ -59,7 +59,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
   late Duration _e2eeReadyTimeout;
   late Duration _outgoingCallTimeout;
   late SfuTokenService _livekitTokenService;
-  late LiveKitService _livekitService;
+  late LivekitService _livekitService;
   late FlutterMatrixRTCDelegate _rtcDelegate;
   late KeyProviderFactory _keyProviderFactory;
   bool _isDisposed = false;
@@ -650,7 +650,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
   /// The Matrix user id is a deterministic hash of the DID and [serverName],
   /// so reversing it just means deriving the id for every known DID. For a
   /// group the candidate DIDs are the group members; for a 1:1 call they are
-  /// the local user and the other party. [LiveKitService] consumes this to
+  /// the local user and the other party. [LivekitService] consumes this to
   /// stamp a DID on each domain participant.
   Future<Map<String, String>> _buildParticipantIdToDidMap({
     required Channel channel,

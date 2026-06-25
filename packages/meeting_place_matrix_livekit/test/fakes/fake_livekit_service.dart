@@ -3,7 +3,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart'
     show AudioVideoCallParticipant;
 import 'package:meeting_place_matrix_livekit/src/services/livekit_service.dart';
 
-class FakeLiveKitService extends LiveKitService {
+class FakeLivekitService extends LivekitService {
   final List<bool> micCalls = [];
   final List<bool> cameraCalls = [];
   final List<bool> speakerCalls = [];
@@ -23,8 +23,8 @@ class FakeLiveKitService extends LiveKitService {
   Future<void> connect({
     required String url,
     required String token,
+    required BaseKeyProvider keyProvider,
     Map<String, String> participantIdToDid = const {},
-    BaseKeyProvider? keyProvider,
     OnE2EEStateChanged? onE2EEStateChanged,
     OnParticipantDisconnected? onParticipantDisconnected,
     void Function()? onParticipantsChanged,

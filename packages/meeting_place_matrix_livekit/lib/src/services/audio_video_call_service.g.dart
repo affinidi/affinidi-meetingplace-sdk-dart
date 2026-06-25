@@ -14,7 +14,7 @@ part of 'audio_video_call_service.dart';
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LiveKitService] and [SfuTokenService] for this call.
+/// - Owns [LivekitService] and [SfuTokenService] for this call.
 /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
@@ -30,7 +30,7 @@ const audioVideoCallServiceProvider = AudioVideoCallServiceFamily._();
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LiveKitService] and [SfuTokenService] for this call.
+/// - Owns [LivekitService] and [SfuTokenService] for this call.
 /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
@@ -44,7 +44,7 @@ final class AudioVideoCallServiceProvider
   /// Responsibilities:
   /// - Resolves the channel, derives the LiveKit room name, obtains the
   ///   local user's DidManager, and exchanges for a LiveKit JWT.
-  /// - Owns [LiveKitService] and [SfuTokenService] for this call.
+  /// - Owns [LivekitService] and [SfuTokenService] for this call.
   /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
   /// - Disconnects and releases resources on dispose.
   ///
@@ -110,7 +110,7 @@ String _$audioVideoCallServiceHash() =>
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LiveKitService] and [SfuTokenService] for this call.
+/// - Owns [LivekitService] and [SfuTokenService] for this call.
 /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
@@ -155,7 +155,7 @@ final class AudioVideoCallServiceFamily extends $Family
   /// Responsibilities:
   /// - Resolves the channel, derives the LiveKit room name, obtains the
   ///   local user's DidManager, and exchanges for a LiveKit JWT.
-  /// - Owns [LiveKitService] and [SfuTokenService] for this call.
+  /// - Owns [LivekitService] and [SfuTokenService] for this call.
   /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
   /// - Disconnects and releases resources on dispose.
   ///
@@ -178,7 +178,7 @@ final class AudioVideoCallServiceFamily extends $Family
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LiveKitService] and [SfuTokenService] for this call.
+/// - Owns [LivekitService] and [SfuTokenService] for this call.
 /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///

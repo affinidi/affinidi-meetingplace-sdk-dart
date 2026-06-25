@@ -67,7 +67,7 @@ OpenIdCredentials _stubOpenIdCredentials() => OpenIdCredentials(
 
 ProviderContainer _buildContainer({
   required MockMeetingPlaceCoreSDK mockSdk,
-  required FakeLiveKitService fakeService,
+  required FakeLivekitService fakeService,
   MockSfuTokenService? mockTokenService,
   bool useFakeKeyProvider = false,
 }) => ProviderContainer(
@@ -104,12 +104,12 @@ void main() {
   });
 
   late MockMeetingPlaceCoreSDK mockSdk;
-  late FakeLiveKitService fakeService;
+  late FakeLivekitService fakeService;
   late ProviderContainer container;
 
   setUp(() {
     mockSdk = MockMeetingPlaceCoreSDK();
-    fakeService = FakeLiveKitService();
+    fakeService = FakeLivekitService();
     container = _buildContainer(mockSdk: mockSdk, fakeService: fakeService);
     // Hold a listener so the auto-dispose provider stays alive for the test.
     container.listen(
@@ -166,7 +166,7 @@ void main() {
     });
 
     test('completes successfully and transitions to disconnected even when '
-        'LiveKitService disconnect throws', () async {
+        'LivekitService disconnect throws', () async {
       final service = container.read(
         audioVideoCallServiceProvider(_otherPartyDid).notifier,
       );

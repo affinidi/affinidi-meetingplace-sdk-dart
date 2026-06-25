@@ -33,6 +33,37 @@ void main() {
     });
   });
 
+  group('isRinging', () {
+    test('is false initially', () {
+      expect(manager.isRinging(_callId), isFalse);
+    });
+
+    test('is true after registerIncomingCall for that callId', () {
+      manager.registerIncomingCall(
+        callId: _callId,
+        otherPartyChannelDid: _otherPartyDid,
+      );
+      expect(manager.isRinging(_callId), isTrue);
+    });
+
+    test('is false for a different callId', () {
+      manager.registerIncomingCall(
+        callId: _callId,
+        otherPartyChannelDid: _otherPartyDid,
+      );
+      expect(manager.isRinging('other-call'), isFalse);
+    });
+
+    test('is false after the call is declined', () {
+      manager.registerIncomingCall(
+        callId: _callId,
+        otherPartyChannelDid: _otherPartyDid,
+      );
+      manager.declineCall(_callId);
+      expect(manager.isRinging(_callId), isFalse);
+    });
+  });
+
   group('registerIncomingCall', () {
     test('returns true and registers the call when not busy', () {
       final result = manager.registerIncomingCall(

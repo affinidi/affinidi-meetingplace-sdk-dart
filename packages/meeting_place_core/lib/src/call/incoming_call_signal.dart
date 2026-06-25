@@ -25,7 +25,8 @@ class IncomingCallSignal {
 
   /// Whether the call carries video or is audio-only.
   ///
-  /// Derived from the `mpx.call.invite` Matrix room event sent by the caller
-  /// alongside the `call-invite` nudge.
+  /// Set by the caller on the `call-invite` control-plane nudge and delivered
+  /// via `ChannelActivity.mediaType`, so the incoming-call UI can render the
+  /// correct media type immediately without a follow-up fetch.
   final CallMediaType mediaType;
 }

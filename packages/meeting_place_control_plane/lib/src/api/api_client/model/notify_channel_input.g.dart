@@ -13,6 +13,8 @@ class _$NotifyChannelInput extends NotifyChannelInput {
   final String did;
   @override
   final String type;
+  @override
+  final String? mediaType;
 
   factory _$NotifyChannelInput([
     void Function(NotifyChannelInputBuilder)? updates,
@@ -22,6 +24,7 @@ class _$NotifyChannelInput extends NotifyChannelInput {
     required this.notificationChannelId,
     required this.did,
     required this.type,
+    this.mediaType,
   }) : super._();
   @override
   NotifyChannelInput rebuild(
@@ -38,7 +41,8 @@ class _$NotifyChannelInput extends NotifyChannelInput {
     return other is NotifyChannelInput &&
         notificationChannelId == other.notificationChannelId &&
         did == other.did &&
-        type == other.type;
+        type == other.type &&
+        mediaType == other.mediaType;
   }
 
   @override
@@ -47,6 +51,7 @@ class _$NotifyChannelInput extends NotifyChannelInput {
     _$hash = $jc(_$hash, notificationChannelId.hashCode);
     _$hash = $jc(_$hash, did.hashCode);
     _$hash = $jc(_$hash, type.hashCode);
+    _$hash = $jc(_$hash, mediaType.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -56,7 +61,8 @@ class _$NotifyChannelInput extends NotifyChannelInput {
     return (newBuiltValueToStringHelper(r'NotifyChannelInput')
           ..add('notificationChannelId', notificationChannelId)
           ..add('did', did)
-          ..add('type', type))
+          ..add('type', type)
+          ..add('mediaType', mediaType))
         .toString();
   }
 }
@@ -78,6 +84,10 @@ class NotifyChannelInputBuilder
   String? get type => _$this._type;
   set type(String? type) => _$this._type = type;
 
+  String? _mediaType;
+  String? get mediaType => _$this._mediaType;
+  set mediaType(String? mediaType) => _$this._mediaType = mediaType;
+
   NotifyChannelInputBuilder() {
     NotifyChannelInput._defaults(this);
   }
@@ -88,6 +98,7 @@ class NotifyChannelInputBuilder
       _notificationChannelId = $v.notificationChannelId;
       _did = $v.did;
       _type = $v.type;
+      _mediaType = $v.mediaType;
       _$v = null;
     }
     return this;
@@ -125,6 +136,7 @@ class NotifyChannelInputBuilder
             r'NotifyChannelInput',
             'type',
           ),
+          mediaType: mediaType,
         );
     replace(_$result);
     return _$result;

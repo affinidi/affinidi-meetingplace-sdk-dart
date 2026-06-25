@@ -406,7 +406,7 @@ class MeetingPlaceCoreSDK {
       mediatorService: mediatorService,
     );
 
-    final discoveryEventManager = ControlPlaneEventManager(
+    final controlPlaneEventManager = ControlPlaneEventManager(
       wallet: wallet,
       mediatorSDK: mediatorSDK,
       mediatorService: mediatorService,
@@ -439,9 +439,9 @@ class MeetingPlaceCoreSDK {
     );
 
     // TODO: combine manager and service?
-    final discoveryEventService = ControlPlaneEventService(
+    final controlPlaneEventService = ControlPlaneEventService(
       controlPlaneSDK: controlPlaneSDK,
-      discoveryEventManager: discoveryEventManager,
+      controlPlaneEventManager: controlPlaneEventManager,
       logger: mpxLogger,
     );
 
@@ -502,7 +502,7 @@ class MeetingPlaceCoreSDK {
       controlPlaneSDK: controlPlaneSDK,
       connectionManager: connectionManager,
       connectionService: connectionService,
-      controlPlaneEventService: discoveryEventService,
+      controlPlaneEventService: controlPlaneEventService,
       controlPlaneEventStreamManager: discoveryEventStreamManager,
       groupService: groupService,
       notificationService: notificationService,

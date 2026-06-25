@@ -12,17 +12,17 @@ import '../loggers/meeting_place_core_sdk_logger.dart';
 class ControlPlaneEventService {
   ControlPlaneEventService({
     required ControlPlaneSDK controlPlaneSDK,
-    required ControlPlaneEventManager discoveryEventManager,
+    required ControlPlaneEventManager controlPlaneEventManager,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _controlPlaneSDK = controlPlaneSDK,
-       _discoveryEventManager = discoveryEventManager,
+       _controlPlaneEventManager = controlPlaneEventManager,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
-  static const String _className = 'DiscoveryEventService';
+  static const String _className = 'ControlPlaneEventService';
 
   final ControlPlaneSDK _controlPlaneSDK;
-  final ControlPlaneEventManager _discoveryEventManager;
+  final ControlPlaneEventManager _controlPlaneEventManager;
   final MeetingPlaceCoreSDKLogger _logger;
   final List<String> _queue = [];
   final List<Object> _errors = [];
@@ -33,13 +33,13 @@ class ControlPlaneEventService {
   ///
   /// Delegates to [ControlPlaneEventManager.incomingCallSignals].
   Stream<IncomingCallSignal> get incomingCallSignals =>
-      _discoveryEventManager.incomingCallSignals;
+      _controlPlaneEventManager.incomingCallSignals;
 
   /// Broadcast stream of call-decline signals.
   ///
   /// Delegates to [ControlPlaneEventManager.callDeclineSignals].
   Stream<CallDeclineSignal> get callDeclineSignals =>
-      _discoveryEventManager.callDeclineSignals;
+      _controlPlaneEventManager.callDeclineSignals;
 
   Future<void> processEvents({
     required Duration debounceEvents,
@@ -56,9 +56,9 @@ class ControlPlaneEventService {
         _queued = true;
         _logger.info('Debounce...');
         await Future<void>.delayed(debounceEvents);
-        _logger.info('Start processing discovery events..');
+        _logger.info('Start processing control plane events..');
         await _process(processId: processId, onDone: onDone);
-        _logger.info('Processing discovery events done..');
+        _logger.info('Processing control plane events done..');
         _queued = false;
       } finally {
         _queued = false;
@@ -97,7 +97,7 @@ class ControlPlaneEventService {
         return;
       }
 
-      final processedEvents = await _discoveryEventManager.handleEventsBatch(
+      final processedEvents = await _controlPlaneEventManager.handleEventsBatch(
         result.events,
       );
 

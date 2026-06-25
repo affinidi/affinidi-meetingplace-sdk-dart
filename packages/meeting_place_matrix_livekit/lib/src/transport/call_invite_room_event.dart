@@ -3,9 +3,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 /// A [MatrixOutgoingMessage] that writes a `mpx.call.invite` timeline event
 /// to the shared Matrix room.
 ///
-/// The event carries the call's [CallMediaType] so the recipient's
-/// `ChannelActivityEventHandler` can read it when processing the
-/// `call-invite` control-plane nudge.
+/// The event carries the call's [CallMediaType] both in its timeline content
+/// and on the accompanying `call-invite` control-plane nudge, so the
+/// recipient's incoming-call UI can render the correct media type immediately
+/// from the nudge without a follow-up fetch.
 class CallInviteRoomEvent extends MatrixOutgoingMessage {
   CallInviteRoomEvent({
     required super.senderDid,
@@ -17,6 +18,7 @@ class CallInviteRoomEvent extends MatrixOutgoingMessage {
          notification: IndividualChannelNotification(
            recipientDid: recipientDid,
            type: ChannelActivityType.callInvite,
+           mediaType: mediaType,
          ),
        );
 }

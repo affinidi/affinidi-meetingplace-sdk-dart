@@ -15,6 +15,9 @@ class PendingCallManager {
   /// True while a call is ringing or active on this device.
   bool get isBusy => _activeCallId != null;
 
+  /// True while [callId] is registered as a ringing (not yet accepted) call.
+  bool isRinging(String callId) => _pendingCalls.containsKey(callId);
+
   /// Registers [callId] as a new incoming ringing call.
   ///
   /// Returns false if a call is already active (caller should auto-reject).

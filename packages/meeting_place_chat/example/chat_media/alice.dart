@@ -78,9 +78,8 @@ void main() async {
   );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  final notificationSubscription = notificationStream.stream.listen((
-    IncomingMessage message,
-  ) async {
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await aliceSDK.processControlPlaneEvents();
@@ -120,18 +119,18 @@ void main() async {
     final item = data.chatItem;
     if (item is! Message) return;
     if (item.attachments.isEmpty) return;
-    if (item.attachments.first.format != AttachmentFormat.hostedMedia.value) {
-      return;
-    }
 
     final attachment = item.attachments.single;
-    prettyJsonPrintYellow('Received media message', {
-      'transportId': item.transportId,
-      'caption': item.value,
-      'filename': attachment.filename,
-      'mediaType': attachment.mediaType,
-      'byteCount': attachment.byteCount,
-    });
+    prettyJsonPrintYellow(
+      'Received media message',
+      {
+        'transportId': item.transportId,
+        'caption': item.value,
+        'filename': attachment.filename,
+        'mediaType': attachment.mediaType,
+        'byteCount': attachment.byteCount,
+      },
+    );
 
     prettyPrintGreen(
       '>>> Calling MeetingPlaceChatSDK.downloadMedia(attachment)',
@@ -143,6 +142,8 @@ void main() async {
       '${attachment.filename ?? 'download.bin'}',
     );
     downloadedFile.writeAsBytesSync(bytes);
-    prettyPrintYellow('Wrote ${bytes.length} bytes to ${downloadedFile.path}');
+    prettyPrintYellow(
+      'Wrote ${bytes.length} bytes to ${downloadedFile.path}',
+    );
   });
 }

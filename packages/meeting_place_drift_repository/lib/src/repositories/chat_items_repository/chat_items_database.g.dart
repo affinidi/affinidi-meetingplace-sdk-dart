@@ -2387,10 +2387,7 @@ class $ChatSyncMarkersTable extends ChatSyncMarkers
 }
 
 class ChatSyncMarker extends DataClass implements Insertable<ChatSyncMarker> {
-  /// The chat channel ID this marker belongs to.
   final String chatId;
-
-  /// The Matrix event ID of the last synced event.
   final String eventId;
   const ChatSyncMarker({required this.chatId, required this.eventId});
   @override

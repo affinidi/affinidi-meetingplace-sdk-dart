@@ -556,7 +556,6 @@ class ConnectionService {
         otherPartyChannelDid: otherPartyPermanentChannelDid,
         inviteUsers: [otherPartyPermanentChannelDid],
       );
-      channel.matrixRoomId = roomId;
 
       _logger.info(
         'Matrix room created with ID: ${roomId.topAndTail()}',

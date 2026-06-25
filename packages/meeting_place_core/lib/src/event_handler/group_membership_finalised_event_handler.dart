@@ -163,7 +163,6 @@ class GroupMembershipFinalisedEventHandler
       didManager: didManager,
       channelDid: groupMemberInaugurationMessage.body.groupDid,
     );
-    channel.matrixRoomId = roomID;
 
     final initialMatrixSyncMarker = await _matrixService.getLatestEventId(
       roomID,

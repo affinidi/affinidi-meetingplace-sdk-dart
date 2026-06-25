@@ -226,9 +226,6 @@ class MatrixService {
     required DidManager didManager,
     required Channel channel,
   }) {
-    if (channel.matrixRoomId != null) {
-      return Future.value(channel.matrixRoomId);
-    }
     if (channel.type == ChannelType.group) {
       return resolveChannelRoomId(
         didManager: didManager,

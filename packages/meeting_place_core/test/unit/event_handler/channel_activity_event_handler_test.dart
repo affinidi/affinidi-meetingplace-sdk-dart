@@ -5,13 +5,9 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
 import 'package:meeting_place_core/src/call/call_decline_signal.dart';
 import 'package:meeting_place_core/src/call/call_media_type.dart';
 import 'package:meeting_place_core/src/call/incoming_call_signal.dart';
-import 'package:meeting_place_core/src/call/mpx_call_event_type.dart';
-import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/event_handler/channel_activity_event_handler.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
-import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_room_event.dart';
 import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -141,230 +137,60 @@ void main() {
 
     group('call-invite media type', () {
       const ownChannelDid = 'did:key:ownChannelDid';
-      const roomId = 'room-1';
 
-      late MockChannelService channelService;
-      late MockConnectionManager connectionManager;
-      late MockMatrixService matrixService;
-      late MockWallet wallet;
-      late MockDidManager didManager;
-
-      Channel buildChannel() => Channel(
-        offerLink: 'offer-link',
-        publishOfferDid: ownChannelDid,
-        mediatorDid: 'did:web:mediator',
-        status: ChannelStatus.inaugurated,
-        isConnectionInitiator: false,
-        contactCard: ContactCard(
-          did: ownChannelDid,
-          type: 'individual',
-          contactInfo: const {'fullName': 'Alice'},
-        ),
-        type: ChannelType.individual,
-        transport: ChannelTransport.matrix,
-        permanentChannelDid: ownChannelDid,
-        matrixRoomId: roomId,
-        matrixSyncMarker: 'evt-marker',
-      );
-
-      MatrixRoomEvent inviteEvent(String mediaType) => MatrixRoomEvent(
-        id: 'invite-evt',
-        type: MpxCallEventType.callInvite,
-        senderDid: 'did:key:caller',
-        roomId: roomId,
-        content: {'mediaType': mediaType},
-        timestamp: DateTime.now(),
-      );
-
-      ChannelActivityEventHandler buildHandler(
-        StreamController<IncomingCallSignal> controller,
-      ) => ChannelActivityEventHandler(
-        wallet: wallet,
-        mediatorService: MockMediatorService(),
-        connectionManager: connectionManager,
-        channelService: channelService,
-        connectionOfferRepository: MockConnectionOfferRepository(),
-        matrixService: matrixService,
-        options: const ControlPlaneEventHandlerManagerOptions(),
-        logger: DefaultMeetingPlaceCoreSDKLogger(),
-        incomingCallSignalController: controller,
-        callDeclineSignalController:
-            StreamController<CallDeclineSignal>.broadcast(),
-      );
-
-      setUp(() {
-        channelService = MockChannelService();
-        connectionManager = MockConnectionManager();
-        matrixService = MockMatrixService();
-        wallet = MockWallet();
-        didManager = MockDidManager(did: ownChannelDid);
-
-        when(
-          () => channelService.findChannelByDid(any()),
-        ).thenAnswer((_) async => buildChannel());
-        when(
-          () => connectionManager.getDidManagerForDid(wallet, any()),
-        ).thenAnswer((_) async => didManager);
-      });
-
-      Future<IncomingCallSignal> emitFor(String mediaType) async {
-        when(
-          () => matrixService.fetchRoomHistory(
-            any(),
-            didManager: didManager,
-            forceSync: any(named: 'forceSync'),
-          ),
-        ).thenAnswer((_) async => [inviteEvent(mediaType)]);
-
-        final controller = StreamController<IncomingCallSignal>();
-        final handler = buildHandler(controller);
-        final signalFuture = controller.stream.first;
-        await handler.process(
-          ChannelActivity(
-            id: 'evt-media',
-            did: ownChannelDid,
-            type: ChannelActivityType.callInvite,
-          ),
-        );
-        final signal = await signalFuture;
+      Future<List<IncomingCallSignal>> collectSignals(
+        ChannelActivity activity,
+      ) async {
+        final controller = StreamController<IncomingCallSignal>.broadcast();
+        final handler = makeHandler(controller);
+        final signals = <IncomingCallSignal>[];
+        final sub = controller.stream.listen(signals.add);
+        await handler.process(activity);
+        await pumpEventQueue();
+        await sub.cancel();
         await controller.close();
-        return signal;
+        return signals;
       }
 
-      test('reads audio media type from the call invite room event', () async {
-        final signal = await emitFor('audio');
-        expect(signal.mediaType, CallMediaType.audio);
-      });
-
-      test('reads video media type from the call invite room event', () async {
-        final signal = await emitFor('video');
-        expect(signal.mediaType, CallMediaType.video);
-      });
-
-      test('defaults to video when room ID is null', () async {
-        final channelWithoutRoom = Channel(
-          offerLink: 'offer-link',
-          publishOfferDid: ownChannelDid,
-          mediatorDid: 'did:web:mediator',
-          status: ChannelStatus.inaugurated,
-          isConnectionInitiator: false,
-          contactCard: ContactCard(
-            did: ownChannelDid,
-            type: 'individual',
-            contactInfo: const {'fullName': 'Alice'},
-          ),
-          type: ChannelType.individual,
-          transport: ChannelTransport.matrix,
-          permanentChannelDid: ownChannelDid,
-          matrixRoomId: null,
-          matrixSyncMarker: 'evt-marker',
-        );
-        when(
-          () => channelService.findChannelByDid(any()),
-        ).thenAnswer((_) async => channelWithoutRoom);
-
-        final controller = StreamController<IncomingCallSignal>();
-        final handler = buildHandler(controller);
-        final signalFuture = controller.stream.first;
-        await handler.process(
-          ChannelActivity(
-            id: 'evt-no-room',
-            did: ownChannelDid,
-            type: ChannelActivityType.callInvite,
-          ),
-        );
-        final signal = await signalFuture;
-        await controller.close();
-
-        expect(signal.mediaType, CallMediaType.video);
-      });
-
-      test('defaults to video when no invite event in room history', () async {
-        when(
-          () => matrixService.fetchRoomHistory(any(), didManager: didManager),
-        ).thenAnswer((_) async => []);
-
-        final controller = StreamController<IncomingCallSignal>();
-        final handler = buildHandler(controller);
-        final signalFuture = controller.stream.first;
-        await handler.process(
-          ChannelActivity(
-            id: 'evt-empty-history',
-            did: ownChannelDid,
-            type: ChannelActivityType.callInvite,
-          ),
-        );
-        final signal = await signalFuture;
-        await controller.close();
-
-        expect(signal.mediaType, CallMediaType.video);
-      });
-
-      test(
-        'defaults to video when mediaType is missing from event content',
-        () async {
-          when(
-            () => matrixService.fetchRoomHistory(any(), didManager: didManager),
-          ).thenAnswer(
-            (_) async => [
-              MatrixRoomEvent(
-                id: 'invite-evt',
-                type: MpxCallEventType.callInvite,
-                senderDid: 'did:key:caller',
-                roomId: roomId,
-                content: {}, // Missing 'mediaType'
-                timestamp: DateTime.now(),
-              ),
-            ],
-          );
-
-          final controller = StreamController<IncomingCallSignal>();
-          final handler = buildHandler(controller);
-          final signalFuture = controller.stream.first;
-          await handler.process(
+      Future<List<IncomingCallSignal>> emitFor(String? mediaType) =>
+          collectSignals(
             ChannelActivity(
-              id: 'evt-missing-media',
+              id: 'evt-media',
               did: ownChannelDid,
               type: ChannelActivityType.callInvite,
+              mediaType: mediaType,
             ),
           );
-          final signal = await signalFuture;
-          await controller.close();
 
-          expect(signal.mediaType, CallMediaType.video);
-        },
-      );
+      test('emits a single signal carrying the nudge media type', () async {
+        final signals = await emitFor('audio');
 
-      test('defaults to video when mediaType value is unknown', () async {
-        when(
-          () => matrixService.fetchRoomHistory(any(), didManager: didManager),
-        ).thenAnswer(
-          (_) async => [
-            MatrixRoomEvent(
-              id: 'invite-evt',
-              type: MpxCallEventType.callInvite,
-              senderDid: 'did:key:caller',
-              roomId: roomId,
-              content: {'mediaType': 'invalid-type'},
-              timestamp: DateTime.now(),
-            ),
-          ],
-        );
+        expect(signals, hasLength(1));
+        expect(signals.single.ownChannelDid, ownChannelDid);
+      });
 
-        final controller = StreamController<IncomingCallSignal>();
-        final handler = buildHandler(controller);
-        final signalFuture = controller.stream.first;
-        await handler.process(
-          ChannelActivity(
-            id: 'evt-invalid-media',
-            did: ownChannelDid,
-            type: ChannelActivityType.callInvite,
-          ),
-        );
-        final signal = await signalFuture;
-        await controller.close();
+      test('maps audio media type from the nudge', () async {
+        final signals = await emitFor('audio');
 
-        expect(signal.mediaType, CallMediaType.video);
+        expect(signals.single.mediaType, CallMediaType.audio);
+      });
+
+      test('maps video media type from the nudge', () async {
+        final signals = await emitFor('video');
+
+        expect(signals.single.mediaType, CallMediaType.video);
+      });
+
+      test('defaults to video when the nudge has no media type', () async {
+        final signals = await emitFor(null);
+
+        expect(signals.single.mediaType, CallMediaType.video);
+      });
+
+      test('defaults to video when the media type value is unknown', () async {
+        final signals = await emitFor('invalid-type');
+
+        expect(signals.single.mediaType, CallMediaType.video);
       });
     });
 

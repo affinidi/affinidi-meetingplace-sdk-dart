@@ -14,6 +14,7 @@ part 'notify_channel_input.g.dart';
 /// * [notificationChannelId] - The channel ID to send the notification.
 /// * [did] - The DID for identifying the activity.
 /// * [type] - The type of activity.
+/// * [mediaType] - Optional media type for call-invite activities (audio or video).
 @BuiltValue()
 abstract class NotifyChannelInput
     implements Built<NotifyChannelInput, NotifyChannelInputBuilder> {
@@ -28,6 +29,10 @@ abstract class NotifyChannelInput
   /// The type of activity.
   @BuiltValueField(wireName: r'type')
   String get type;
+
+  /// Optional media type for call-invite activities (audio or video).
+  @BuiltValueField(wireName: r'mediaType')
+  String? get mediaType;
 
   NotifyChannelInput._();
 
@@ -70,6 +75,13 @@ class _$NotifyChannelInputSerializer
       object.type,
       specifiedType: const FullType(String),
     );
+    if (object.mediaType != null) {
+      yield r'mediaType';
+      yield serializers.serialize(
+        object.mediaType,
+        specifiedType: const FullType(String),
+      );
+    }
   }
 
   @override
@@ -123,6 +135,15 @@ class _$NotifyChannelInputSerializer
                   )
                   as String;
           result.type = valueDes;
+          break;
+        case r'mediaType':
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
+          result.mediaType = valueDes;
           break;
         default:
           unhandled.add(key);

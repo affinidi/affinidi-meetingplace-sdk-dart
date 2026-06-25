@@ -115,4 +115,48 @@ void main() {
       await sub.cancel();
     });
   });
+
+  group('media type', () {
+    test('emits the call with an audio media type', () async {
+      when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer(
+        (_) async => _channel(ownDid: ownDid, otherPartyDid: callerDid),
+      );
+
+      final emitted = <IncomingAudioVideoCallEvent>[];
+      final sub = plugin.incomingCalls.listen(emitted.add);
+
+      signalController.add(
+        const IncomingCallSignal(
+          ownChannelDid: ownDid,
+          mediaType: CallMediaType.audio,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emitted, hasLength(1));
+      expect(emitted.single.mediaType, CallMediaType.audio);
+      await sub.cancel();
+    });
+
+    test('emits the call with a video media type', () async {
+      when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer(
+        (_) async => _channel(ownDid: ownDid, otherPartyDid: callerDid),
+      );
+
+      final emitted = <IncomingAudioVideoCallEvent>[];
+      final sub = plugin.incomingCalls.listen(emitted.add);
+
+      signalController.add(
+        const IncomingCallSignal(
+          ownChannelDid: ownDid,
+          mediaType: CallMediaType.video,
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(emitted, hasLength(1));
+      expect(emitted.single.mediaType, CallMediaType.video);
+      await sub.cancel();
+    });
+  });
 }

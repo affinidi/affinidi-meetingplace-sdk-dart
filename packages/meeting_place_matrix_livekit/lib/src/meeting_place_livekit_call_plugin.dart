@@ -305,13 +305,12 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         );
       }
 
-      _emitIncomingCall(
-        IncomingAudioVideoCallEvent(
-          callId: callerChannelDid,
-          otherPartyChannelDid: callerChannelDid,
-          mediaType: signal.mediaType,
-        ),
+      final event = IncomingAudioVideoCallEvent(
+        callId: callerChannelDid,
+        otherPartyChannelDid: callerChannelDid,
+        mediaType: signal.mediaType,
       );
+      _emitIncomingCall(event);
     } on MeetingPlaceLiveKitCallOperationException catch (e) {
       _logger.warning(
         'Dropping incoming call signal for'

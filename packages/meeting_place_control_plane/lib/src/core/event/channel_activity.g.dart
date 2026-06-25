@@ -13,4 +13,5 @@ ChannelActivity _$ChannelActivityFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String,
       pendingCount: (json['pendingCount'] as num?)?.toInt() ?? 0,
       isEmpty: json['isEmpty'] as bool? ?? false,
+      mediaType: json['mediaType'] as String?,
     );

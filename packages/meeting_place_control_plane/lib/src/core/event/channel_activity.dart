@@ -17,6 +17,7 @@ class ChannelActivity {
     required this.type,
     this.pendingCount = 0,
     this.isEmpty = false,
+    this.mediaType,
   });
 
   final String id;
@@ -24,6 +25,12 @@ class ChannelActivity {
   final String type; // TODO: use enum
   final int pendingCount;
   final bool isEmpty;
+
+  /// Optional media type for `call-invite` activities (`audio` or `video`).
+  ///
+  /// Set by the caller when nudging the recipient so the incoming-call UI can
+  /// render the correct media type immediately, without a follow-up fetch.
+  final String? mediaType;
 
   static ChannelActivity fromJson(Map<String, dynamic> json) {
     return _$ChannelActivityFromJson(json);

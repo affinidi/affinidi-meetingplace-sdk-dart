@@ -8,7 +8,6 @@ import 'package:ssi/ssi.dart';
 import '../call/call_decline_signal.dart';
 import '../call/call_media_type.dart';
 import '../call/incoming_call_signal.dart';
-import '../call/mpx_call_event_type.dart';
 import '../entity/channel.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../repository/repository.dart';
@@ -108,14 +107,12 @@ class ChannelActivityEventHandler {
           ' ${channelActivity.did.topAndTail()}',
           name: _logKey,
         );
-        final mediaType = await _fetchCallMediaType(channelActivity);
         _incomingCallSignalController.add(
           IncomingCallSignal(
             ownChannelDid: channelActivity.did,
-            mediaType: mediaType,
+            mediaType: _parseMediaType(channelActivity.mediaType),
           ),
         );
-        // Return [] — this is not a chat/badge event; the plugin handles ringing.
         return [];
       case ChannelActivityType.callDecline:
         _logger.info(
@@ -148,93 +145,11 @@ class ChannelActivityEventHandler {
         null;
   }
 
-  /// Fetches the [CallMediaType] for an incoming `call-invite` by reading the
-  /// `mpx.call.invite` Matrix room event written by the caller.
-  ///
-  /// Forces a one-shot sync first, because the control-plane nudge usually
-  /// arrives before the Matrix room event has reached the recipient's local
-  /// timeline. The sync pulls the latest server-side events in one round-trip,
-  /// so this stays snappy and deterministic.
-  ///
-  /// Falls back to [CallMediaType.video] when the event is missing or the
-  /// Matrix room is unavailable.
-  Future<CallMediaType> _fetchCallMediaType(
-    ChannelActivity channelActivity,
-  ) async {
-    try {
-      final channel = await _channelService.findChannelByDid(
-        channelActivity.did,
-      );
-      final roomId = channel.matrixRoomId;
-      if (roomId == null) {
-        _logger.warning(
-          'No Matrix room ID for channel, defaulting to video',
-          name: _logKey,
-        );
-        return CallMediaType.video;
-      }
-
-      final did =
-          channel.permanentChannelDid ??
-          (throw StateError(
-            'Channel has no permanentChannelDid: ${channel.id}',
-          ));
-      final didManager = await _connectionManager.getDidManagerForDid(
-        _wallet,
-        did,
-      );
-
-      final history = await _matrixService.fetchRoomHistory(
-        roomId,
-        didManager: didManager,
-        forceSync: true,
-      );
-
-      final inviteEvent = history.firstWhereOrNull(
-        (e) => e.type == MpxCallEventType.callInvite,
-      );
-      if (inviteEvent == null) {
-        _logger.warning(
-          'No mpx.call.invite event in room history (fetched ${history.length}'
-          ' events), defaulting to video',
-          name: _logKey,
-        );
-        return CallMediaType.video;
-      }
-
-      final mediaTypeStr = inviteEvent.content['mediaType'] as String?;
-      if (mediaTypeStr == null) {
-        _logger.warning(
-          'mediaType not found in invite event content, defaulting to video',
-          name: _logKey,
-        );
-        return CallMediaType.video;
-      }
-
-      final mediaType = CallMediaType.values.firstWhereOrNull(
-        (m) => m.name == mediaTypeStr,
-      );
-      if (mediaType == null) {
-        _logger.warning(
-          'Unknown mediaType value: $mediaTypeStr, defaulting to video',
-          name: _logKey,
-        );
-        return CallMediaType.video;
-      }
-
-      _logger.info(
-        'Resolved call media type: ${mediaType.name}',
-        name: _logKey,
-      );
-      return mediaType;
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to fetch call media type, defaulting to video',
-        error: e,
-        stackTrace: stackTrace,
-        name: _logKey,
-      );
-      return CallMediaType.video;
-    }
+  /// Maps the control-plane `call-invite` media-type string to a
+  /// [CallMediaType], falling back to [CallMediaType.video] when the caller
+  /// did not supply one (e.g. an older client).
+  CallMediaType _parseMediaType(String? mediaType) {
+    return CallMediaType.values.firstWhereOrNull((m) => m.name == mediaType) ??
+        CallMediaType.video;
   }
 }

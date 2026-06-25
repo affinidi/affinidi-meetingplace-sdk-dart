@@ -1,10 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart'
     show AudioVideoCallParticipant;
 import 'package:meeting_place_core/meeting_place_core.dart';
+
+import 'participant_video_extension.dart';
+import 'room_participants_extension.dart';
 
 /// Signature for E2EE state change notifications from [LivekitService].
 ///
@@ -211,61 +213,16 @@ class LivekitService {
   }
 
   /// Snapshot of all current participants mapped to domain objects.
-  List<AudioVideoCallParticipant> get participants {
-    final room = _room;
-    if (room == null) return const [];
+  List<AudioVideoCallParticipant> get participants =>
+      _room?.toParticipants(_participantIdToDid) ?? const [];
 
-    final self = room.localParticipant;
-    final peers = room.remoteParticipants.values;
-
-    return [
-      if (self != null)
-        AudioVideoCallParticipant(
-          participantId: self.identity,
-          did: _participantIdToDid[self.identity],
-          hasVideo: _hasRenderableVideo(self),
-          hasAudio: self.isMicrophoneEnabled(),
-          isSpeaking: self.isSpeaking,
-          isSelf: true,
-        ),
-      for (final p in peers)
-        AudioVideoCallParticipant(
-          participantId: p.identity,
-          did: _participantIdToDid[p.identity],
-          hasVideo: _hasRenderableVideo(p),
-          hasAudio: p.isMicrophoneEnabled(),
-          isSpeaking: p.isSpeaking,
-        ),
-    ];
-  }
-
-  /// Whether [participant] has a subscribed, unmuted video track that can
-  /// actually be rendered right now.
+  /// Returns the renderable video track for [participantId], or `null` when
+  /// the room is not connected, the participant is not found, or they have no
+  /// active video track.
   ///
-  /// This intentionally mirrors the track selection in [buildVideoView] so the
-  /// `hasVideo` flag never reports `true` for a track that would render blank.
-  /// A remote's camera publication can exist and be unmuted before its track
-  /// is subscribed and decodable on this device; until then the tile shows the
-  /// avatar placeholder rather than an empty frame.
-  bool _hasRenderableVideo(Participant participant) =>
-      _renderableVideoTrack(participant) != null;
-
-  VideoTrack? _renderableVideoTrack(Participant participant) {
-    final pubs = participant.videoTrackPublications;
-    final pub = pubs
-        .where((pub) => pub.track != null && !pub.muted)
-        .firstOrNull;
-    return pub?.track as VideoTrack?;
-  }
-
-  /// Builds a video view widget for the participant with [participantId].
-  ///
-  /// Returns `null` when the room is not connected, the participant is not
-  /// found, or the participant has no active video track.
-  ///
-  /// Pass `mirror: true` for the local camera preview to match the
-  /// selfie-camera convention.
-  Widget? buildVideoView(String participantId, {bool mirror = false}) {
+  /// Consumer widgets use this to build `VideoTrackRenderer` directly, keeping
+  /// the Flutter rendering concern out of this service.
+  VideoTrack? renderableVideoTrackFor(String participantId) {
     final room = _room;
     if (room == null) return null;
 
@@ -275,15 +232,6 @@ class LivekitService {
     } else {
       participant = room.remoteParticipants[participantId];
     }
-    if (participant == null) return null;
-
-    final videoTrack = _renderableVideoTrack(participant);
-    if (videoTrack == null) return null;
-
-    return VideoTrackRenderer(
-      videoTrack,
-      fit: VideoViewFit.cover,
-      mirrorMode: mirror ? VideoViewMirrorMode.mirror : VideoViewMirrorMode.off,
-    );
+    return participant?.renderableVideoTrack;
   }
 }

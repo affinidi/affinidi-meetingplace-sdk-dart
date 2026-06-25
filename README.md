@@ -63,7 +63,7 @@ A published invitation contains a description, validity, and a ContactCard conta
 - Reduces spam by requiring the user's consent when other users try to establish a connection.
 - Implement the DIDComm Message v2.1 protocol, and connect and authenticate with different mediators that follow the same protocol.
 - Seamlessly integrates with Self-Sovereign Identity (SSI), including Verifiable Credentials/Presentations.
-- Adds Matrix as a secondary transport alongside DIDComm v2.1 for individual and group messaging. Transports declare their supported capabilities, allowing features such as message editing, deletion, and voice messaging to be conditionally enabled based on transport support.
+- Matrix serves as an optional secondary transport alongside DIDComm v2.1 for one-to-one and group messaging. Transports declare their supported capabilities, allowing features such as message editing, deletion, and voice messaging to be conditionally enabled based on transport support.
 
 ## Key Components
 
@@ -143,15 +143,11 @@ workspace packages.
 
 ## Usage
 
-> **Note:** `MeetingPlaceCoreSDK.create()` requires a `MatrixConfig`. Initialise the
-> vodozemac encryption runtime once before calling `create()`, otherwise the SDK throws a
-> `StateError` on the first Matrix login.
+> **Note:** The SDK can be used with or without Matrix. `MatrixConfig` is a subtype of `Config` — pass a `MatrixConfig` to enable the Matrix transport, or pass a non‑Matrix `Config` (or the default `Config` implementation) to use DIDComm-only.
 >
-> For Flutter apps, add [`flutter_vodozemac`](https://pub.dev/packages/flutter_vodozemac) and
-> call `await fvod.init()` in `main()`. For pure-Dart apps, build the native library and call
-> `await vod.init(libraryPath: '...')`. See the
-> [Core SDK README](./packages/meeting_place_core/README.md#initializing-the-encryption-runtime-for-matrix-usage)
-> for full details.
+> If using Matrix, the vodozemac encryption runtime must be initialised once before calling `MeetingPlaceCoreSDK.create()`; otherwise the SDK will throw a `StateError` on the first Matrix login. For Flutter apps, add [`flutter_vodozemac`](https://pub.dev/packages/flutter_vodozemac) and call `await fvod.init()` in `main()`. For pure-Dart apps, build the native library and call `await vod.init(libraryPath: '...')`. See the [Core SDK README](./packages/meeting_place_core/README.md#initializing-the-encryption-runtime-for-matrix-usage) for full details.
+>
+> The example below demonstrates creating the SDK with Matrix enabled.
 
 ```dart
 import 'dart:async';

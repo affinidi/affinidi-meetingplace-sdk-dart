@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 4;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -121,9 +121,6 @@ class ChannelDatabase extends _$ChannelDatabase {
       if (from < 4 && to >= 4) {
         await migrator.addColumn(channels, channels.transport);
         await migrator.addColumn(channels, channels.matrixSyncMarker);
-      }
-      if (from < 5 && to >= 5) {
-        await migrator.addColumn(channels, channels.matrixRoomId);
       }
     },
   );
@@ -195,9 +192,6 @@ class Channels extends Table {
 
   /// Matrix sync marker for the channel.
   TextColumn get matrixSyncMarker => text().nullable()();
-
-  /// Matrix room ID for the channel, set at inauguration time.
-  TextColumn get matrixRoomId => text().nullable()();
 
   /// Primary key for the channels table.
   @override

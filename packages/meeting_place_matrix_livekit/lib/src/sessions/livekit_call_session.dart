@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart'
     show AudioVideoCallSession, AudioVideoCallState;
 import 'package:meeting_place_core/meeting_place_core.dart'
     show MeetingPlaceCoreSDKLogger;
+import 'package:riverpod/riverpod.dart';
 
 import '../services/audio_video_call_service.dart';
 import '../utils/string.dart';

@@ -8,31 +8,31 @@ part of 'plugin_rtc_delegate_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Shared [FlutterMatrixRTCDelegate] instance for this call session.
+/// Shared [matrix.WebRTCDelegate] instance for this call session.
 ///
-/// Overridden in the `ProviderScope` via `MeetingPlaceLiveKitCallPlugin.scope`;
-/// constructed by `MeetingPlaceLiveKitCallPlugin` and not exposed to the app.
+/// Overridden in the plugin's isolated [ProviderContainer] by
+/// [MeetingPlaceLiveKitCallPlugin] at session creation time.
 
 @ProviderFor(pluginRtcDelegate)
 const pluginRtcDelegateProvider = PluginRtcDelegateProvider._();
 
-/// Shared [FlutterMatrixRTCDelegate] instance for this call session.
+/// Shared [matrix.WebRTCDelegate] instance for this call session.
 ///
-/// Overridden in the `ProviderScope` via `MeetingPlaceLiveKitCallPlugin.scope`;
-/// constructed by `MeetingPlaceLiveKitCallPlugin` and not exposed to the app.
+/// Overridden in the plugin's isolated [ProviderContainer] by
+/// [MeetingPlaceLiveKitCallPlugin] at session creation time.
 
 final class PluginRtcDelegateProvider
     extends
         $FunctionalProvider<
-          FlutterMatrixRTCDelegate,
-          FlutterMatrixRTCDelegate,
-          FlutterMatrixRTCDelegate
+          matrix.WebRTCDelegate,
+          matrix.WebRTCDelegate,
+          matrix.WebRTCDelegate
         >
-    with $Provider<FlutterMatrixRTCDelegate> {
-  /// Shared [FlutterMatrixRTCDelegate] instance for this call session.
+    with $Provider<matrix.WebRTCDelegate> {
+  /// Shared [matrix.WebRTCDelegate] instance for this call session.
   ///
-  /// Overridden in the `ProviderScope` via `MeetingPlaceLiveKitCallPlugin.scope`;
-  /// constructed by `MeetingPlaceLiveKitCallPlugin` and not exposed to the app.
+  /// Overridden in the plugin's isolated [ProviderContainer] by
+  /// [MeetingPlaceLiveKitCallPlugin] at session creation time.
   const PluginRtcDelegateProvider._()
     : super(
         from: null,
@@ -49,22 +49,22 @@ final class PluginRtcDelegateProvider
 
   @$internal
   @override
-  $ProviderElement<FlutterMatrixRTCDelegate> $createElement(
+  $ProviderElement<matrix.WebRTCDelegate> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  FlutterMatrixRTCDelegate create(Ref ref) {
+  matrix.WebRTCDelegate create(Ref ref) {
     return pluginRtcDelegate(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(FlutterMatrixRTCDelegate value) {
+  Override overrideWithValue(matrix.WebRTCDelegate value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<FlutterMatrixRTCDelegate>(value),
+      providerOverride: $SyncValueProvider<matrix.WebRTCDelegate>(value),
     );
   }
 }
 
-String _$pluginRtcDelegateHash() => r'6565c1df4ae1a63b6bd5a30389bf043e677ae8aa';
+String _$pluginRtcDelegateHash() => r'f3537004921d80058e5fc11833834b8f4e144ba4';

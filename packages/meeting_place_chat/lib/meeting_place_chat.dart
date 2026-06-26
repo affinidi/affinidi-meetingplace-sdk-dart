@@ -1,6 +1,6 @@
 export 'package:meeting_place_core/meeting_place_core.dart' show CallMediaType;
 
-export 'src/call/call.dart';
+export 'src/transport/matrix/call/call.dart';
 export 'src/chat/chat.dart';
 export 'src/entity/entity.dart';
 export 'src/event/event.dart';

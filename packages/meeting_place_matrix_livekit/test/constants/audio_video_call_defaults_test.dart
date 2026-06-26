@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:meeting_place_matrix_livekit/src/constants/audio_video_call_defaults.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AudioVideoCallDefaults', () {

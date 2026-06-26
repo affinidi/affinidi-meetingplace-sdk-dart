@@ -1,18 +1,21 @@
 import 'dart:async';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart'
     show IncomingAudioVideoCallEvent;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix_livekit/meeting_place_matrix_livekit.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
 
+import 'fakes/fake_fallbacks.dart';
 import 'mocks/mocks.dart';
 
 MeetingPlaceLiveKitCallPlugin _plugin() => MeetingPlaceLiveKitCallPlugin(
   options: MeetingPlaceLiveKitCallPluginOptions(
     livekitServiceUrl: Uri.parse('https://livekit.example.com'),
   ),
+  rtcDelegate: FakeWebRTCDelegate(),
+  roomFactory: fakeLiveKitRoomFactory(),
 );
 
 Channel _channel({required String ownDid, required String? otherPartyDid}) =>

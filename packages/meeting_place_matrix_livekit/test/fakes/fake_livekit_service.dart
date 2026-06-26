@@ -1,16 +1,19 @@
-import 'package:livekit_client/livekit_client.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart'
     show AudioVideoCallParticipant;
-import 'package:meeting_place_matrix_livekit/src/services/livekit_service.dart';
+import 'package:meeting_place_matrix_livekit/src/interfaces/livekit_room.dart';
 
-class FakeLivekitService extends LivekitService {
+/// Test double for [LiveKitRoom] that records calls and returns
+/// configurable stub data. Replaces the old `FakeLivekitService`.
+class FakeLiveKitRoom implements LiveKitRoom {
   final List<bool> micCalls = [];
   final List<bool> cameraCalls = [];
   final List<bool> speakerCalls = [];
   int switchCameraCalls = 0;
   int disconnectCalls = 0;
   int connectCalls = 0;
+  final List<String> sharedKeysCalled = [];
   List<AudioVideoCallParticipant> fakeParticipants = [];
+  String? fakeOwnParticipantId;
 
   /// Records the name of each operation as it completes, in call order.
   /// Tests can append to this list from SDK stubs to verify ordering.
@@ -20,12 +23,28 @@ class FakeLivekitService extends LivekitService {
   Exception? disconnectThrows;
 
   @override
+  String? get ownParticipantId => fakeOwnParticipantId;
+
+  @override
+  List<AudioVideoCallParticipant> get participants => fakeParticipants;
+
+  @override
+  Future<void> setSharedKey(String key) async {
+    sharedKeysCalled.add(key);
+    callOrder.add('setSharedKey');
+  }
+
+  @override
+  Future<void> ratchetKey(String participantId, int keyIndex) async {
+    callOrder.add('ratchetKey');
+  }
+
+  @override
   Future<void> connect({
     required String url,
     required String token,
-    required BaseKeyProvider keyProvider,
     Map<String, String> participantIdToDid = const {},
-    OnE2EEStateChanged? onE2EEStateChanged,
+    OnCallE2EEStateChanged? onE2EEStateChanged,
     OnParticipantDisconnected? onParticipantDisconnected,
     void Function()? onParticipantsChanged,
   }) async {
@@ -48,13 +67,16 @@ class FakeLivekitService extends LivekitService {
       speakerCalls.add(enabled);
 
   @override
+  Future<void> forceRemoteKeyframe(String participantId) async {
+    callOrder.add('forceRemoteKeyframe:$participantId');
+  }
+
+  @override
   Future<void> disconnect() async {
     disconnectCalls++;
+    callOrder.add('disconnect');
     if (disconnectThrows != null) {
       throw disconnectThrows!;
     }
   }
-
-  @override
-  List<AudioVideoCallParticipant> get participants => fakeParticipants;
 }

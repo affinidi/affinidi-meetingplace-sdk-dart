@@ -10,10 +10,8 @@ class NotifyChannelCommand
     required this.notificationToken,
     required this.did,
     required this.type,
-    this.mediaType,
   });
   final String notificationToken;
   final String did;
   final String type;
-  final String? mediaType;
 }

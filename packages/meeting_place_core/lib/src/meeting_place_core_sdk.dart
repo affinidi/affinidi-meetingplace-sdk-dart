@@ -562,9 +562,10 @@ class MeetingPlaceCoreSDK {
   /// Broadcast stream of incoming call signals.
   ///
   /// Emits an [IncomingCallSignal] whenever a `ChannelActivity` event with
-  /// `type == 'call-invite'` is processed from the control plane. The plugin
-  /// layer subscribes here to lazily activate the recipient's Matrix session
-  /// via [activateIncomingCall] and emit an `IncomingCallEvent` to the app.
+  /// `type == 'call-invite-video'` or `type == 'call-invite-audio'` is
+  /// processed from the control plane. The plugin layer subscribes here to
+  /// lazily activate the recipient's Matrix session via [activateIncomingCall]
+  /// and emit an `IncomingCallEvent` to the app.
   Stream<IncomingCallSignal> get incomingCallSignals =>
       _controlPlaneEventService.incomingCallSignals;
 

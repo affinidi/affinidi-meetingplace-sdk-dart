@@ -2,7 +2,6 @@ import 'package:didcomm/didcomm.dart';
 
 import '../../meeting_place_core.dart' show MeetingPlaceCoreSDK;
 
-import '../call/call_media_type.dart';
 import '../meeting_place_core_sdk.dart' show MeetingPlaceCoreSDK;
 
 /// A message that can be sent through [MeetingPlaceCoreSDK.sendMessage],
@@ -62,16 +61,11 @@ class IndividualChannelNotification extends ChannelNotification {
   const IndividualChannelNotification({
     required this.recipientDid,
     required super.type,
-    this.mediaType,
   });
 
   /// DID of the recipient whose `Channel.otherPartyNotificationToken` is
   /// used to address the notification.
   final String recipientDid;
-
-  /// Optional media type for a `call-invite` notification, so the recipient's
-  /// incoming-call UI can render the correct type without a follow-up fetch.
-  final CallMediaType? mediaType;
 }
 
 /// Notifies all members of a group chat via the control-plane group-notify

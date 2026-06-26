@@ -101,16 +101,29 @@ class ChannelActivityEventHandler {
           connectionManager: _connectionManager,
           logger: _logger,
         ).process(channelActivity);
-      case ChannelActivityType.callInvite:
+      case ChannelActivityType.callInviteVideo:
         _logger.info(
-          'Processing call-invite signal for channel'
+          'Processing call-invite-video signal for channel'
           ' ${channelActivity.did.topAndTail()}',
           name: _logKey,
         );
         _incomingCallSignalController.add(
           IncomingCallSignal(
             ownChannelDid: channelActivity.did,
-            mediaType: _parseMediaType(channelActivity.mediaType),
+            mediaType: CallMediaType.video,
+          ),
+        );
+        return [];
+      case ChannelActivityType.callInviteAudio:
+        _logger.info(
+          'Processing call-invite-audio signal for channel'
+          ' ${channelActivity.did.topAndTail()}',
+          name: _logKey,
+        );
+        _incomingCallSignalController.add(
+          IncomingCallSignal(
+            ownChannelDid: channelActivity.did,
+            mediaType: CallMediaType.audio,
           ),
         );
         return [];
@@ -143,13 +156,5 @@ class ChannelActivityEventHandler {
               (event.data as ChannelActivity).type == channelActivity.type,
         ) !=
         null;
-  }
-
-  /// Maps the control-plane `call-invite` media-type string to a
-  /// [CallMediaType], falling back to [CallMediaType.video] when the caller
-  /// did not supply one (e.g. an older client).
-  CallMediaType _parseMediaType(String? mediaType) {
-    return CallMediaType.values.firstWhereOrNull((m) => m.name == mediaType) ??
-        CallMediaType.video;
   }
 }

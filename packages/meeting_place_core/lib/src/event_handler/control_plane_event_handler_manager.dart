@@ -150,8 +150,9 @@ class ControlPlaneEventManager {
   /// Broadcast stream of incoming call signals.
   ///
   /// Emits an [IncomingCallSignal] whenever a `ChannelActivity` event with
-  /// `type == 'call-invite'` is processed. The plugin layer subscribes here
-  /// to activate the callee's Matrix session and ring the device.
+  /// `type == 'call-invite-video'` or `type == 'call-invite-audio'` is
+  /// processed. The plugin layer subscribes here to activate the callee's
+  /// Matrix session and ring the device.
   Stream<IncomingCallSignal> get incomingCallSignals =>
       _incomingCallSignalController.stream;
 

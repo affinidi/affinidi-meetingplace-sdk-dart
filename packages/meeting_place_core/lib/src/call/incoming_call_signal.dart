@@ -2,8 +2,9 @@ import '../call/call_media_type.dart';
 
 class IncomingCallSignal {
   /// Emitted on `MeetingPlaceCoreSDK.incomingCallSignals` when a
-  /// `ChannelActivity(type: 'call-invite')` event is received from the control
-  /// plane.
+  /// `ChannelActivity(type: 'call-invite-video')` or
+  /// `ChannelActivity(type: 'call-invite-audio')` event is received from the
+  /// control plane.
   ///
   /// This is a pure-Dart, transport-agnostic signal. The plugin layer
   /// (`MeetingPlaceLiveKitCallPlugin`) subscribes to this stream and calls
@@ -25,8 +26,7 @@ class IncomingCallSignal {
 
   /// Whether the call carries video or is audio-only.
   ///
-  /// Set by the caller on the `call-invite` control-plane nudge and delivered
-  /// via `ChannelActivity.mediaType`, so the incoming-call UI can render the
-  /// correct media type immediately without a follow-up fetch.
+  /// Derived from the `ChannelActivity.type` value: `call-invite` signals
+  /// video, `call-invite-audio` signals audio-only.
   final CallMediaType mediaType;
 }

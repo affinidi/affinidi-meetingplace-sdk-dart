@@ -432,6 +432,37 @@ void main() {
     });
 
     test(
+      'metadata-only attachment sends via sendMessage with mpx.call.item msgtype',
+      () async {
+        final callMetadata = {'call_status': 'calling', 'media_kind': 'call'};
+        final attachment = ChatAttachment(metadata: callMetadata);
+
+        final capturedMessages = <MatrixOutgoingMessage>[];
+        when(() => core.sendMessage(any())).thenAnswer((inv) async {
+          capturedMessages.add(
+            inv.positionalArguments.first as MatrixOutgoingMessage,
+          );
+          return '\$call-event-id';
+        });
+
+        final message = await sdk.sendTextMessage(
+          '',
+          attachments: [attachment],
+        );
+
+        final callItemEvent = capturedMessages.firstWhere(
+          (m) => m.content['msgtype'] == MediaMsgType.callItem,
+        );
+        expect(
+          callItemEvent.content[MatrixEventField.callMetadata],
+          callMetadata,
+        );
+        expect(message.attachments, hasLength(1));
+        expect(message.attachments.first.metadata, callMetadata);
+      },
+    );
+
+    test(
       'notification is passed only on the last sendMediaMessage call',
       () async {
         final notifications = <ChannelNotification?>[];

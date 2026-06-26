@@ -218,6 +218,17 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         'Text message sent, message id: ${message.messageId}',
         name: _matrixLogkey,
       );
+    } else if (attachments.every((a) => a.data == null && a.metadata != null)) {
+      final outgoing = MetadataMessageRoomEvent(
+        senderDid: did,
+        metadata: attachments.first.metadata ?? {},
+        notification: buildChannelNotification('chat-activity'),
+      );
+      message = await _sendRoomEventMessage(outgoing, attachments: attachments);
+      logger.info(
+        'Metadata-only message sent, message id: ${message.messageId}',
+        name: _matrixLogkey,
+      );
     } else {
       message =
           await MediaTextMessageSender(
@@ -558,7 +569,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     await super.end();
   }
 
-  Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
+  Future<Message> _sendRoomEventMessage(
+    MatrixOutgoingMessage outgoing, {
+    List<ChatAttachment> attachments = const [],
+  }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
 
@@ -574,6 +588,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,
+        attachments: attachments,
       ),
     );
 

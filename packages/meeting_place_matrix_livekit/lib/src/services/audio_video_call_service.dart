@@ -497,7 +497,9 @@ class AudioVideoCallService extends _$AudioVideoCallService {
         GroupChannelNotification(
           offerLink: channel.offerLink,
           groupDid: otherPartyChannelDid,
-          type: ChannelActivityType.callInvite,
+          type: mediaType == CallMediaType.audio
+              ? ChannelActivityType.callInviteAudio
+              : ChannelActivityType.callInviteVideo,
         ),
       );
     } else {

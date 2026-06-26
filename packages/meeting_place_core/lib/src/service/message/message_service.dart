@@ -78,11 +78,7 @@ class MessageService {
   Future<void> notifyChannel(ChannelNotification notification) async {
     try {
       switch (notification) {
-        case IndividualChannelNotification(
-          :final recipientDid,
-          :final type,
-          :final mediaType,
-        ):
+        case IndividualChannelNotification(:final recipientDid, :final type):
           final channel = await _channelService.findChannelByDidOrNull(
             recipientDid,
           );
@@ -95,7 +91,6 @@ class MessageService {
               notificationToken: otherPartyNotificationToken,
               did: recipientDid,
               type: type,
-              mediaType: mediaType?.name,
             ),
           );
         case GroupChannelNotification(

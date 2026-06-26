@@ -109,7 +109,7 @@ void main() {
           ChannelActivity(
             id: 'evt-1',
             did: 'did:key:ownChannelDid',
-            type: ChannelActivityType.callInvite,
+            type: ChannelActivityType.callInviteVideo,
           ),
         );
 
@@ -127,7 +127,7 @@ void main() {
         ChannelActivity(
           id: 'evt-2',
           did: 'did:key:ownChannelDid',
-          type: ChannelActivityType.callInvite,
+          type: ChannelActivityType.callInviteVideo,
         ),
       );
 
@@ -152,45 +152,32 @@ void main() {
         return signals;
       }
 
-      Future<List<IncomingCallSignal>> emitFor(String? mediaType) =>
-          collectSignals(
-            ChannelActivity(
-              id: 'evt-media',
-              did: ownChannelDid,
-              type: ChannelActivityType.callInvite,
-              mediaType: mediaType,
-            ),
-          );
-
-      test('emits a single signal carrying the nudge media type', () async {
-        final signals = await emitFor('audio');
+      test('call-invite emits a single video signal', () async {
+        final signals = await collectSignals(
+          ChannelActivity(
+            id: 'evt-media',
+            did: ownChannelDid,
+            type: ChannelActivityType.callInviteVideo,
+          ),
+        );
 
         expect(signals, hasLength(1));
         expect(signals.single.ownChannelDid, ownChannelDid);
+        expect(signals.single.mediaType, CallMediaType.video);
       });
 
-      test('maps audio media type from the nudge', () async {
-        final signals = await emitFor('audio');
+      test('call-invite-audio emits a single audio signal', () async {
+        final signals = await collectSignals(
+          ChannelActivity(
+            id: 'evt-media-audio',
+            did: ownChannelDid,
+            type: ChannelActivityType.callInviteAudio,
+          ),
+        );
 
+        expect(signals, hasLength(1));
+        expect(signals.single.ownChannelDid, ownChannelDid);
         expect(signals.single.mediaType, CallMediaType.audio);
-      });
-
-      test('maps video media type from the nudge', () async {
-        final signals = await emitFor('video');
-
-        expect(signals.single.mediaType, CallMediaType.video);
-      });
-
-      test('defaults to video when the nudge has no media type', () async {
-        final signals = await emitFor(null);
-
-        expect(signals.single.mediaType, CallMediaType.video);
-      });
-
-      test('defaults to video when the media type value is unknown', () async {
-        final signals = await emitFor('invalid-type');
-
-        expect(signals.single.mediaType, CallMediaType.video);
       });
     });
 

@@ -8,12 +8,12 @@ abstract final class ChannelActivityType {
   static const chatActivity = 'chat-activity';
   static const channelInauguration = 'channel-inauguration';
 
-  /// Signals that the sender has initiated a video/audio call on this channel.
+  /// Signals that the sender has initiated a video call on this channel.
   ///
   /// Triggers lazy on-demand activation of the callee's Matrix session and
   /// emits an `IncomingCallSignal` on the SDK's `incomingCallSignals` stream.
   /// Does not increment the badge count.
-  static const callInvite = 'call-invite';
+  static const callInviteVideo = 'call-invite-video';
 
   /// Signals that the recipient (callee) has declined a call before answering.
   ///

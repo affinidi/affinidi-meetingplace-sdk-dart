@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 /// concrete type name, exercised below.
 String _describe(ChatEvent event) => switch (event) {
   ChatMessageEvent() => 'ChatMessageEvent',
+  ChatMessageUpdatedEvent() => 'ChatMessageUpdatedEvent',
   ChatMessageDeliveredEvent() => 'ChatMessageDeliveredEvent',
   ChatPresenceEvent() => 'ChatPresenceEvent',
   ChatActivityEvent() => 'ChatActivityEvent',
@@ -35,6 +36,7 @@ void main() {
 
     final events = <ChatEvent>[
       const ChatMessageEvent(),
+      const ChatMessageUpdatedEvent(),
       const ChatMessageDeliveredEvent(messageIds: ['m1']),
       ChatPresenceEvent(timestamp: now),
       ChatActivityEvent(

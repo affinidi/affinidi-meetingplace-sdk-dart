@@ -1,14 +1,15 @@
 import 'dart:async';
 
-import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:riverpod/riverpod.dart';
 
-import 'delegates/flutter_matrix_rtc_delegate.dart';
 import 'exceptions/meeting_place_livekit_call_exception.dart';
+import 'interfaces/livekit_room.dart';
 import 'meeting_place_livekit_call_plugin_options.dart';
 import 'pending_call_manager.dart';
+import 'providers/livekit_room_provider.dart';
 import 'providers/plugin_core_sdk_provider.dart';
 import 'providers/plugin_logger_provider.dart';
 import 'providers/plugin_options_provider.dart';
@@ -16,7 +17,9 @@ import 'providers/plugin_rtc_delegate_provider.dart';
 import 'services/audio_video_call_service.dart';
 import 'sessions/livekit_call_session.dart';
 import 'utils/string.dart';
-import 'widgets/plugin_scope.dart';
+
+/// Factory that produces a [LiveKitRoom] for a given call session.
+typedef LiveKitRoomFactory = LiveKitRoom Function(String otherPartyChannelDid);
 
 /// Concrete [AudioVideoCallPlugin] backed by Matrix RTC signalling and a
 /// LiveKit SFU for media transport.
@@ -39,19 +42,23 @@ import 'widgets/plugin_scope.dart';
 class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   MeetingPlaceLiveKitCallPlugin({
     required MeetingPlaceLiveKitCallPluginOptions options,
+    required matrix.WebRTCDelegate rtcDelegate,
+    required LiveKitRoomFactory roomFactory,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _options = options,
+       _rtcDelegate = rtcDelegate,
+       _roomFactory = roomFactory,
        _logger = logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _logKey),
        _incomingCallsController =
            StreamController<IncomingAudioVideoCallEvent>.broadcast(),
-       _cancelledCallsController = StreamController<String>.broadcast(),
-       _rtcDelegate = FlutterMatrixRTCDelegate();
+       _cancelledCallsController = StreamController<String>.broadcast();
 
   final MeetingPlaceLiveKitCallPluginOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
   final StreamController<IncomingAudioVideoCallEvent> _incomingCallsController;
   final StreamController<String> _cancelledCallsController;
-  final FlutterMatrixRTCDelegate _rtcDelegate;
+  final matrix.WebRTCDelegate _rtcDelegate;
+  final LiveKitRoomFactory _roomFactory;
   final PendingCallManager _pendingCallManager = PendingCallManager();
 
   // Active session; set on startCall(), cleared on dispose.
@@ -100,8 +107,8 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
 
   /// Leaves the currently active call, if any.
   ///
-  /// Use from app lifecycle callbacks (e.g. [AppLifecycleState.detached]) to
-  /// ensure the LiveKit room is released when the app exits.
+  /// Use from app lifecycle callbacks to ensure the LiveKit room is released
+  /// when the app exits.
   Future<void> leaveCurrentCall() async {
     final session = _activeSession;
     if (session == null) {
@@ -214,19 +221,6 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Widget scope for video rendering
-  // ---------------------------------------------------------------------------
-
-  /// Wraps [child] in the Riverpod scope for the active call session.
-  ///
-  /// The call screen must be a descendant of this scope so that
-  /// `AudioVideoCallView` can resolve the correct `LivekitService` instance.
-  Widget scope({required Widget child}) {
-    final session = _requireSession();
-    return PluginScope(container: session.container, child: child);
-  }
-
   MeetingPlaceCoreSDK _requireSdk() {
     final sdk = _sdk;
     if (sdk == null) {
@@ -238,16 +232,6 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     return sdk;
   }
 
-  LiveKitCallSession _requireSession() {
-    final session = _activeSession;
-    if (session == null) {
-      throw const MeetingPlaceLiveKitCallMisconfiguredException(
-        'No active session. Call startCall() first.',
-      );
-    }
-    return session;
-  }
-
   ProviderContainer _buildContainer(MeetingPlaceCoreSDK sdk) =>
       ProviderContainer(
         overrides: [
@@ -255,6 +239,11 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
           pluginOptionsProvider.overrideWithValue(_options),
           pluginRtcDelegateProvider.overrideWithValue(_rtcDelegate),
           pluginLoggerProvider.overrideWithValue(_logger),
+          livekitRoomProvider.overrideWith((ref, did) {
+            final room = _roomFactory(did);
+            ref.onDispose(() => unawaited(room.disconnect()));
+            return room;
+          }),
         ],
       );
 

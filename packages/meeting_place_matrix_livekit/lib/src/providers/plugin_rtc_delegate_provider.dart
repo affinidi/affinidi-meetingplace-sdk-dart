@@ -1,17 +1,21 @@
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../delegates/flutter_matrix_rtc_delegate.dart';
+import '../../meeting_place_matrix_livekit.dart'
+    show MeetingPlaceLiveKitCallPlugin;
 import '../exceptions/meeting_place_livekit_call_exception.dart';
+import '../meeting_place_livekit_call_plugin.dart'
+    show MeetingPlaceLiveKitCallPlugin;
 
 part 'plugin_rtc_delegate_provider.g.dart';
 
-/// Shared [FlutterMatrixRTCDelegate] instance for this call session.
+/// Shared [matrix.WebRTCDelegate] instance for this call session.
 ///
-/// Overridden in the `ProviderScope` via `MeetingPlaceLiveKitCallPlugin.scope`;
-/// constructed by `MeetingPlaceLiveKitCallPlugin` and not exposed to the app.
+/// Overridden in the plugin's isolated [ProviderContainer] by
+/// [MeetingPlaceLiveKitCallPlugin] at session creation time.
 @Riverpod(keepAlive: true)
-FlutterMatrixRTCDelegate pluginRtcDelegate(Ref ref) =>
+matrix.WebRTCDelegate pluginRtcDelegate(Ref ref) =>
     throw const MeetingPlaceLiveKitCallMisconfiguredException(
       'pluginRtcDelegateProvider must be overridden via '
-      'MeetingPlaceLiveKitCallPlugin.scope',
+      'MeetingPlaceLiveKitCallPlugin.',
     );

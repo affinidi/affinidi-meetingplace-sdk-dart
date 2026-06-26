@@ -66,4 +66,11 @@ abstract interface class AudioVideoCallPlugin {
   /// Parameters:
   /// * [callId] — must match [IncomingAudioVideoCallEvent.callId].
   Future<void> declineCall({required String callId});
+
+  /// Leaves the currently active call, if any, and clears the busy guard.
+  ///
+  /// Safe to call when no call is active. Must be called after every call ends
+  /// (whether by local hangup, remote hangup, or timeout) so a subsequent
+  /// incoming call is not auto-rejected.
+  Future<void> leaveCurrentCall();
 }

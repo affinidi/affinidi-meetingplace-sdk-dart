@@ -105,29 +105,6 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     _logger.info('Plugin disposed', name: _logKey);
   }
 
-  /// Leaves the currently active call, if any.
-  ///
-  /// Use from app lifecycle callbacks to ensure the LiveKit room is released
-  /// when the app exits.
-  Future<void> leaveCurrentCall() async {
-    final session = _activeSession;
-    if (session == null) {
-      _logger.info(
-        'leaveCurrentCall: no active session to leave',
-        name: _logKey,
-      );
-      return;
-    }
-    _logger.info(
-      'Leaving current call for ${session.otherPartyChannelDid.topAndTail()}',
-      name: _logKey,
-    );
-    await session.hangUp();
-    _activeSession?.disposeContainer();
-    _activeSession = null;
-    _pendingCallManager.clearActiveCall();
-  }
-
   // ---------------------------------------------------------------------------
   // AudioVideoCallPlugin interface
   // ---------------------------------------------------------------------------
@@ -226,6 +203,30 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         ),
       );
     }
+  }
+
+  /// Leaves the currently active call, if any.
+  ///
+  /// Use from app lifecycle callbacks to ensure the LiveKit room is released
+  /// when the app exits.
+  @override
+  Future<void> leaveCurrentCall() async {
+    final session = _activeSession;
+    if (session == null) {
+      _logger.info(
+        'leaveCurrentCall: no active session to leave',
+        name: _logKey,
+      );
+      return;
+    }
+    _logger.info(
+      'Leaving current call for ${session.otherPartyChannelDid.topAndTail()}',
+      name: _logKey,
+    );
+    await session.hangUp();
+    _activeSession?.disposeContainer();
+    _activeSession = null;
+    _pendingCallManager.clearActiveCall();
   }
 
   MeetingPlaceCoreSDK _requireSdk() {

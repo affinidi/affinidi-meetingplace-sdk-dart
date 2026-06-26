@@ -8,6 +8,7 @@ workspace:
   - packages/meeting_place_control_plane
   - packages/meeting_place_core
   - packages/meeting_place_core/example
+  - packages/meeting_place_matrix_livekit
   - packages/meeting_place_mediator
   - packages/meeting_place_drift_repository
   - packages/meeting_place_credentials
@@ -23,18 +24,12 @@ dev_dependencies:
   test: ^1.24.0
 
 melos:
-  command:
-    bootstrap:
-      hooks:
-        post: |
-          (cd packages/meeting_place_matrix_livekit && flutter pub get) 2>&1 | sed 's/^/[meeting_place_matrix_livekit]: /'
-
   scripts:
     pubget:
-      run: |
-        melos exec -- dart pub get
-        (cd packages/meeting_place_matrix_livekit && flutter pub get) 2>&1 | sed 's/^/[meeting_place_matrix_livekit]: /'
-      noSelect: true
+      exec: dart pub get
+      packageFilters:
+        fileExists:
+          - pubspec.yaml
 
     gen:
       run: |
@@ -46,12 +41,12 @@ melos:
         melos exec --scope=meeting_place_core -- dart run build_runner build --delete-conflicting-outputs
         melos exec --scope=meeting_place_chat -- dart run build_runner build --delete-conflicting-outputs
         melos exec --scope=meeting_place_drift_repository -- dart run build_runner build --delete-conflicting-outputs
-        (cd packages/meeting_place_matrix_livekit && dart run build_runner build --delete-conflicting-outputs) 2>&1 | sed 's/^/[meeting_place_matrix_livekit]: /'
+        melos exec --scope=meeting_place_matrix_livekit -- dart run build_runner build --delete-conflicting-outputs
         dart format -l 80 .
 
     analyze:
-      run: melos run _analyze --no-select && melos run _analyze-flutter-packages
-      description: Run dart analyze on all Dart packages and flutter analyze on Flutter packages
+      run: melos run _analyze --no-select
+      description: Run dart analyze on all packages
     _analyze:
       exec: dart analyze .
       concurrency: 4
@@ -64,10 +59,6 @@ melos:
           - "api_client"
         includePrivatePackages: true
         #diff: 'origin/main'
-
-    _analyze-flutter-packages:
-      run: cd packages/meeting_place_matrix_livekit && flutter analyze .
-      description: Run flutter analyze on the Flutter plugin package
 
     test:
       run: |

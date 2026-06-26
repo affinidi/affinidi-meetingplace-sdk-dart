@@ -20,7 +20,9 @@ class PendingCallManager {
 
   /// Registers [callId] as a new incoming ringing call.
   ///
-  /// Returns false if a call is already active (caller should auto-reject).
+  /// Returns false when [isBusy] — a call is already ringing or active.
+  /// The caller is responsible for logging and silently dropping the event;
+  /// no busy signal is sent back to the remote party.
   bool registerIncomingCall({
     required String callId,
     required String otherPartyChannelDid,

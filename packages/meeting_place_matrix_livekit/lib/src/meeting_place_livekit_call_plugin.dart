@@ -157,9 +157,16 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     final sdk = _requireSdk();
 
     // Dispose any previous session before creating a new one.
-    _activeSession?.disposeContainer();
-    _activeSession = null;
-    _pendingCallManager.clearActiveCall();
+    if (_activeSession != null) {
+      _logger.warning(
+        'startCall: disposing previous active session for '
+        '${_activeSession!.otherPartyChannelDid.topAndTail()}',
+        name: _logKey,
+      );
+      _activeSession!.disposeContainer();
+      _activeSession = null;
+      _pendingCallManager.clearActiveCall();
+    }
 
     final container = _buildContainer(sdk);
     final session = LiveKitCallSession.create(

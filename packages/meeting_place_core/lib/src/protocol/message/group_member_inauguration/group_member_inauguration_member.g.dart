@@ -14,7 +14,6 @@ GroupMemberInaugurationMember _$GroupMemberInaugurationMemberFromJson(
   contactCardType: json['contactCardType'] as String,
   membershipType: json['membershipType'] as String,
   status: json['status'] as String,
-  publicKey: json['publicKey'] as String,
 );
 
 Map<String, dynamic> _$GroupMemberInaugurationMemberToJson(
@@ -25,5 +24,4 @@ Map<String, dynamic> _$GroupMemberInaugurationMemberToJson(
   'contactCardType': instance.contactCardType,
   'membershipType': instance.membershipType,
   'status': instance.status,
-  'publicKey': instance.publicKey,
 };

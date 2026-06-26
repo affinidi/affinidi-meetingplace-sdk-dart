@@ -58,13 +58,11 @@ class _MockDidDocument extends Mock implements DidDocument {
 
 GroupMember _ownerMember(String did) => GroupMember.admin(
   did: did,
-  publicKey: 'pk-$did',
   contactCard: ContactCardFixture.getContactCardFixture(did: did),
 );
 
 GroupMember _member(String did) => GroupMember(
   did: did,
-  publicKey: 'pk-$did',
   dateAdded: DateTime.utc(2026, 1, 1),
   status: GroupMemberStatus.approved,
   membershipType: GroupMembershipType.member,

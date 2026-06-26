@@ -71,9 +71,7 @@ class GroupAddMemberHandler
       ..memberDid = command.memberDid
       ..acceptOfferAsDid = command.acceptOfferDid
       ..offerLink = command.offerLink
-      ..publicKey = command.publicKey
-      ..contactCard = command.contactCard?.toBase64()
-      ..reencryptionKey = command.reencryptionKey;
+      ..contactCard = command.contactCard?.toBase64();
 
     try {
       _logger.info(

@@ -103,7 +103,6 @@ class InvitationGroupAcceptedEventHandler
     group.members.add(
       GroupMember.pendingMember(
         did: otherPartyPermanentChannelDid,
-        publicKey: invitationAcceptance.body.publicKey,
         contactCard: otherPartyContactCard,
       ),
     );

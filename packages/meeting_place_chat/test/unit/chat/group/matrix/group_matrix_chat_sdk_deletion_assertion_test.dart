@@ -21,7 +21,6 @@ Group _group({GroupStatus status = GroupStatus.created}) => Group(
   members: [
     GroupMember.admin(
       did: 'did:test:alice',
-      publicKey: 'pk-alice',
       contactCard: _card('did:test:alice'),
     ),
   ],

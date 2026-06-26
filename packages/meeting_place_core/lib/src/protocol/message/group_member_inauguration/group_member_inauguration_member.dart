@@ -15,7 +15,6 @@ class GroupMemberInaugurationMember {
     required this.contactCardType,
     required this.membershipType,
     required this.status,
-    required this.publicKey,
   });
 
   final String did;
@@ -23,7 +22,6 @@ class GroupMemberInaugurationMember {
   final String contactCardType;
   final String membershipType;
   final String status;
-  final String publicKey;
 
   bool get isAdmin => membershipType == GroupMembershipType.admin.name;
 

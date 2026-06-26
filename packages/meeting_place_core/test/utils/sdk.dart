@@ -169,7 +169,6 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
   );
   final mediatorService = MediatorService(
     mediatorSDK: mediatorSDK,
-    keyRepository: keyRepository,
     logger: logger,
   );
   final channelService = ChannelService(

@@ -44,8 +44,6 @@ import '../model/group_deregister_member_input.dart';
 import '../model/group_member_deregister_ok.dart';
 import '../model/group_notify_channel_input.dart';
 import '../model/group_notify_channel_ok.dart';
-import '../model/group_send_message.dart';
-import '../model/group_send_message_ok.dart';
 import '../model/matrix_challenge.dart';
 import '../model/matrix_challenge_ok.dart';
 import '../model/matrix_token.dart';
@@ -1720,112 +1718,6 @@ class DefaultApi {
     }
 
     return Response<GroupMemberDeregisterOK>(
-      data: _responseData,
-      headers: _response.headers,
-      isRedirect: _response.isRedirect,
-      requestOptions: _response.requestOptions,
-      redirects: _response.redirects,
-      statusCode: _response.statusCode,
-      statusMessage: _response.statusMessage,
-      extra: _response.extra,
-    );
-  }
-
-  /// groupSendMessage
-  /// Sends a message to the group chat.
-  ///
-  /// Parameters:
-  /// * [groupSendMessage] - List of required and optional parameters to send a
-  ///   group chat message.
-  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
-  /// * [headers] - Can be used to add additional headers to the request
-  /// * [extras] - Can be used to add flags to the request
-  /// * [validateStatus] - A [ValidateStatus] callback that can be used to
-  ///   determine request success based on the HTTP status of the response
-  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send
-  ///   progress
-  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the
-  ///   receive progress
-  ///
-  /// Returns a [Future] containing a [Response] with a [GroupSendMessageOK] as
-  /// data
-  /// Throws [DioException] if API call or serialization fails
-  Future<Response<GroupSendMessageOK>> groupSendMessage({
-    required GroupSendMessage groupSendMessage,
-    CancelToken? cancelToken,
-    Map<String, dynamic>? headers,
-    Map<String, dynamic>? extra,
-    ValidateStatus? validateStatus,
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-  }) async {
-    final _path = r'/v1/group-send-message';
-    final _options = Options(
-      method: r'POST',
-      headers: <String, dynamic>{...?headers},
-      extra: <String, dynamic>{
-        'secure': <Map<String, String>>[
-          {
-            'type': 'apiKey',
-            'name': 'DidCommTokenAuth',
-            'keyName': 'authorization',
-            'where': 'header',
-          },
-        ],
-        ...?extra,
-      },
-      contentType: 'application/json',
-      validateStatus: validateStatus,
-    );
-
-    dynamic _bodyData;
-
-    try {
-      const _type = FullType(GroupSendMessage);
-      _bodyData = _serializers.serialize(
-        groupSendMessage,
-        specifiedType: _type,
-      );
-    } catch (error, stackTrace) {
-      throw DioException(
-        requestOptions: _options.compose(_dio.options, _path),
-        type: DioExceptionType.unknown,
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-
-    final _response = await _dio.request<Object>(
-      _path,
-      data: _bodyData,
-      options: _options,
-      cancelToken: cancelToken,
-      onSendProgress: onSendProgress,
-      onReceiveProgress: onReceiveProgress,
-    );
-
-    GroupSendMessageOK? _responseData;
-
-    try {
-      final rawResponse = _response.data;
-      _responseData = rawResponse == null
-          ? null
-          : _serializers.deserialize(
-                  rawResponse,
-                  specifiedType: const FullType(GroupSendMessageOK),
-                )
-                as GroupSendMessageOK;
-    } catch (error, stackTrace) {
-      throw DioException(
-        requestOptions: _response.requestOptions,
-        response: _response,
-        type: DioExceptionType.unknown,
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-
-    return Response<GroupSendMessageOK>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

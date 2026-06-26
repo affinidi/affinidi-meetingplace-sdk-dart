@@ -345,7 +345,6 @@ class GroupMembershipFinalisedEventHandler
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,
             ),
-            publicKey: member.publicKey,
             dateAdded: DateTime.now().toUtc(),
           ),
         );
@@ -358,7 +357,6 @@ class GroupMembershipFinalisedEventHandler
         card: contactCard,
         dateAdded: DateTime.now().toUtc(),
         status: GroupMemberStatus.approved,
-        publicKey: member.publicKey,
         membershipType: GroupMembershipType.values.byName(
           member.membershipType,
         ),

@@ -23,13 +23,7 @@ Group _group() => Group(
   created: DateTime.utc(2026, 1, 1),
   ownerDid: 'did:test:owner',
   publicKey: 'pk',
-  members: [
-    GroupMember.admin(
-      did: 'did:test:owner',
-      publicKey: 'pk',
-      contactCard: _card(),
-    ),
-  ],
+  members: [GroupMember.admin(did: 'did:test:owner', contactCard: _card())],
 );
 
 void main() {

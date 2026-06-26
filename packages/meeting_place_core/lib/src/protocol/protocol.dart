@@ -9,7 +9,6 @@ export 'message/connection_request_approval/connection_request_approval.dart';
 export 'message/group_deletion/group_deletion.dart';
 export 'message/group_member_deregistration/group_member_deregistration.dart';
 export 'message/group_member_inauguration/group_member_inauguration.dart';
-export 'message/group_message/group_message.dart';
 export 'message/invitation_acceptance/invitation_acceptance.dart';
 export 'message/invitation_acceptance_group/invitation_acceptance_group.dart';
 export 'message/oob_invitation_message/oob_invitation_message.dart';

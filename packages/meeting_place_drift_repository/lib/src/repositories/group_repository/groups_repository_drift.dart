@@ -60,7 +60,6 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           groupId: group.id,
           memberDid: member.did,
           dateAdded: Value(member.dateAdded),
-          publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
           identityDid: contactCard.did,
@@ -183,7 +182,6 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           groupId: group.id,
           memberDid: member.did,
           dateAdded: Value(member.dateAdded),
-          publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
           identityDid: contactCard.did,
@@ -228,7 +226,6 @@ class _GroupMemberMapper {
       status: groupMember.status,
       membershipType: groupMember.membershipType,
       contactCard: _makeContactCardFromDb(groupMember),
-      publicKey: groupMember.publicKey,
     );
   }
 

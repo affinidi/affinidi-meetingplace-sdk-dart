@@ -104,7 +104,6 @@ class ChatGroupDetailsUpdate {
       ),
       dateAdded: groupMember.dateAdded,
       status: groupMember.status.name,
-      publicKey: groupMember.publicKey,
       membershipType: groupMember.membershipType.name,
     );
   }

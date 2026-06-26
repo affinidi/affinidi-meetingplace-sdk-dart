@@ -51,9 +51,6 @@ enum ControlPlaneSDKErrorCode {
   // group deregister member codes
   groupDeregisterMemberGeneric('group_deregister_member_generic'),
 
-  // group deregister member codes
-  groupSendMessageGeneric('group_send_message_generic'),
-
   // notify acceptance codes
   notifyAcceptanceGeneric('notify_acceptance_generic'),
 

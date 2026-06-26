@@ -20,13 +20,7 @@ Group _groupOwnedBy(String ownerDid) => Group(
   created: DateTime.utc(2026, 1, 1),
   ownerDid: ownerDid,
   publicKey: 'pk',
-  members: [
-    GroupMember.admin(
-      did: ownerDid,
-      publicKey: 'pk',
-      contactCard: _card(ownerDid),
-    ),
-  ],
+  members: [GroupMember.admin(did: ownerDid, contactCard: _card(ownerDid))],
 );
 
 EventMessage _awaitingMessage(String memberDid) =>

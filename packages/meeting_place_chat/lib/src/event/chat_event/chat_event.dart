@@ -3,6 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import '../../entity/chat_attachment.dart';
 
 part 'chat_message_event.dart';
+part 'chat_message_updated_event.dart';
 part 'chat_message_delivered_event.dart';
 part 'chat_presence_event.dart';
 part 'chat_activity_event.dart';

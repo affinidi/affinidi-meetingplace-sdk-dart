@@ -381,7 +381,6 @@ class MeetingPlaceCoreSDK {
 
     final mediatorService = MediatorService(
       mediatorSDK: mediatorSDK,
-      keyRepository: repositoryConfig.keyRepository,
       logger: mpxLogger,
     );
 

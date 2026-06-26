@@ -116,8 +116,6 @@ class RegisterOfferGroupHandler
       ..customPhrase = command.customPhrase
       ..metadata = command.metadata
       ..adminDid = command.adminDid
-      ..adminPublicKey = command.adminPublicKey
-      ..adminReencryptionKey = command.adminReencryptionKey
       ..memberContactCard = base64Url.encode(utf8.encode('{}'));
 
     try {

@@ -35,8 +35,6 @@ void main() async {
       device: device,
       customPhrase: mnemonic,
       adminDid: 'did:key:1234',
-      adminPublicKey: 'sample-public-key',
-      adminReencryptionKey: 'sample-reencryption-key',
       oobInvitationMessage: OobInvitationMessage(
         id: const Uuid().v4(),
         from: 'did:key:1234',

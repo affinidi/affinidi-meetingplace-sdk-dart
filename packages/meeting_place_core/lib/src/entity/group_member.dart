@@ -18,12 +18,10 @@ enum GroupMembershipType { admin, member }
 class GroupMember {
   factory GroupMember.pendingMember({
     required String did,
-    required String publicKey,
     required ContactCard contactCard,
   }) {
     return GroupMember(
       did: did,
-      publicKey: publicKey,
       dateAdded: DateTime.now().toUtc(),
       status: GroupMemberStatus.pendingApproval,
       membershipType: GroupMembershipType.member,
@@ -33,12 +31,10 @@ class GroupMember {
 
   factory GroupMember.admin({
     required String did,
-    required String publicKey,
     required ContactCard contactCard,
   }) {
     return GroupMember(
       did: did,
-      publicKey: publicKey,
       dateAdded: DateTime.now().toUtc(),
       status: GroupMemberStatus.approved,
       membershipType: GroupMembershipType.admin,
@@ -56,13 +52,11 @@ class GroupMember {
     required this.status,
     required this.membershipType,
     required this.contactCard,
-    required this.publicKey,
   });
 
   final String did;
   final DateTime dateAdded;
   final GroupMembershipType membershipType;
-  final String publicKey;
   ContactCard contactCard;
 
   GroupMemberStatus status;
@@ -77,7 +71,6 @@ class GroupMember {
     GroupMemberStatus? status,
     GroupMembershipType? membershipType,
     ContactCard? card,
-    String? publicKey,
   }) {
     return GroupMember(
       did: did ?? this.did,
@@ -85,7 +78,6 @@ class GroupMember {
       status: status ?? this.status,
       membershipType: membershipType ?? this.membershipType,
       contactCard: card ?? contactCard,
-      publicKey: publicKey ?? this.publicKey,
     );
   }
 }

@@ -49,7 +49,6 @@ ChatGroupDetailsUpdateBodyMember _$ChatGroupDetailsUpdateBodyMemberFromJson(
   ),
   dateAdded: DateTime.parse(json['date_added'] as String),
   status: json['status'] as String,
-  publicKey: json['public_key'] as String,
   membershipType: json['membership_type'] as String,
 );
 
@@ -60,6 +59,5 @@ Map<String, dynamic> _$ChatGroupDetailsUpdateBodyMemberToJson(
   'contact_card': instance.contactCard.toJson(),
   'date_added': instance.dateAdded.toIso8601String(),
   'status': instance.status,
-  'public_key': instance.publicKey,
   'membership_type': instance.membershipType,
 };

@@ -34,7 +34,6 @@ Group _initialGroup() => Group(
   members: [
     GroupMember.admin(
       did: 'did:test:alice',
-      publicKey: 'pk-alice',
       contactCard: _card('did:test:alice'),
     ),
   ],

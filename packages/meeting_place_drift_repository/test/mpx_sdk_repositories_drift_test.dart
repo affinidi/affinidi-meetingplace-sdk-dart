@@ -395,7 +395,6 @@ void main() {
             dateAdded: DateTime.utc(2026, 1, 2),
             status: model.GroupMemberStatus.approved,
             membershipType: model.GroupMembershipType.admin,
-            publicKey: 'public-key',
             contactCard: model.ContactCard(
               did: 'did:example:identity',
               type: 'Person',

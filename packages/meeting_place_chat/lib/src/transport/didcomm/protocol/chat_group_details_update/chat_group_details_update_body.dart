@@ -57,7 +57,6 @@ class ChatGroupDetailsUpdateBodyMember {
     required this.contactCard,
     required this.dateAdded,
     required this.status,
-    required this.publicKey,
     required this.membershipType,
   });
 
@@ -72,9 +71,6 @@ class ChatGroupDetailsUpdateBodyMember {
 
   @JsonKey(name: 'status')
   final String status;
-
-  @JsonKey(name: 'public_key')
-  final String publicKey;
 
   @JsonKey(name: 'membership_type')
   final String membershipType;

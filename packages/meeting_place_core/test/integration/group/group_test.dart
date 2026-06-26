@@ -327,16 +327,6 @@ void main() async {
       await bobCompleter.future;
       // await charlieWaitForChatGroupDetailsUpdate.future;
 
-      // Verify that chat group contacts details update was sent
-      // TODO: move this test case to chat SDK because responsibility has
-      // changed
-      // expect(receivedChatGroupDetailsUpdateMessage, isNotNull);
-      // expect(
-      //   receivedChatGroupDetailsUpdateMessage
-      //       .body?['group_message']['members'][1]['status'],
-      //   equals('approved'),
-      // );
-
       // Verify that ACLs are configured correctly
       expect(
         bobSDK.sendMessage(

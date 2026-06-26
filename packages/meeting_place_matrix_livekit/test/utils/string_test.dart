@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:meeting_place_matrix_livekit/src/utils/string.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('topAndTail', () {

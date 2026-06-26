@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:livekit_client/livekit_client.dart';
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix_livekit/src/services/sfu_token_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -15,8 +15,6 @@ class MockGroupCallSession extends Mock implements GroupCallSession {}
 
 class MockDidManager extends Mock implements DidManager {}
 
-class MockWebRTCDelegate extends Mock implements WebRTCDelegate {}
+class MockWebRTCDelegate extends Mock implements matrix.WebRTCDelegate {}
 
 class MockSfuTokenService extends Mock implements SfuTokenService {}
-
-class MockBaseKeyProvider extends Mock implements BaseKeyProvider {}

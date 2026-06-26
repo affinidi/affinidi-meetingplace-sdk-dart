@@ -1,5 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:meeting_place_matrix_livekit/meeting_place_matrix_livekit.dart';
+import 'package:test/test.dart';
+
+import 'fakes/fake_fallbacks.dart';
 
 MeetingPlaceLiveKitCallPlugin _plugin({Uri? livekitServiceUrl}) =>
     MeetingPlaceLiveKitCallPlugin(
@@ -7,6 +9,8 @@ MeetingPlaceLiveKitCallPlugin _plugin({Uri? livekitServiceUrl}) =>
         livekitServiceUrl:
             livekitServiceUrl ?? Uri.parse('https://livekit.example.com'),
       ),
+      rtcDelegate: FakeWebRTCDelegate(),
+      roomFactory: fakeLiveKitRoomFactory(),
     );
 
 void main() {

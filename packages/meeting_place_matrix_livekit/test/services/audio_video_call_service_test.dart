@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:matrix/matrix.dart' show OpenIdCredentials;
 import 'package:meeting_place_chat/meeting_place_chat.dart'
     show
@@ -17,11 +15,9 @@ import 'package:meeting_place_core/meeting_place_core.dart'
         ChannelType,
         ContactCard,
         DefaultMeetingPlaceCoreSDKLogger;
-import 'package:meeting_place_matrix_livekit/src/delegates/flutter_matrix_rtc_delegate.dart';
 import 'package:meeting_place_matrix_livekit/src/meeting_place_livekit_call_plugin_options.dart';
 import 'package:meeting_place_matrix_livekit/src/models/sfu_token_response.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/livekit_key_provider_factory_provider.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/livekit_service_provider.dart';
+import 'package:meeting_place_matrix_livekit/src/providers/livekit_room_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/providers/plugin_core_sdk_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/providers/plugin_logger_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/providers/plugin_options_provider.dart';
@@ -29,8 +25,9 @@ import 'package:meeting_place_matrix_livekit/src/providers/plugin_rtc_delegate_p
 import 'package:meeting_place_matrix_livekit/src/providers/sfu_token_service_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/services/audio_video_call_service.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:riverpod/riverpod.dart';
+import 'package:test/test.dart';
 
-import '../fakes/fake_base_key_provider.dart';
 import '../fakes/fake_fallbacks.dart';
 import '../fakes/fake_livekit_service.dart';
 import '../mocks/mocks.dart';
@@ -67,9 +64,8 @@ OpenIdCredentials _stubOpenIdCredentials() => OpenIdCredentials(
 
 ProviderContainer _buildContainer({
   required MockMeetingPlaceCoreSDK mockSdk,
-  required FakeLivekitService fakeService,
+  required FakeLiveKitRoom fakeRoom,
   MockSfuTokenService? mockTokenService,
-  bool useFakeKeyProvider = false,
 }) => ProviderContainer(
   overrides: [
     pluginCoreSdkProvider.overrideWith((ref) => mockSdk),
@@ -82,15 +78,10 @@ ProviderContainer _buildContainer({
         livekitSfuUrl: Uri.parse(_sfuUrl),
       ),
     ),
-    pluginRtcDelegateProvider.overrideWith((ref) => FlutterMatrixRTCDelegate()),
-    livekitServiceProvider(_otherPartyDid).overrideWith((ref) => fakeService),
+    pluginRtcDelegateProvider.overrideWith((ref) => MockWebRTCDelegate()),
+    livekitRoomProvider(_otherPartyDid).overrideWith((ref) => fakeRoom),
     if (mockTokenService != null)
       sfuTokenServiceProvider.overrideWith((ref) => mockTokenService),
-    if (useFakeKeyProvider)
-      livekitKeyProviderFactoryProvider.overrideWith(
-        (ref) =>
-            ({required bool sharedKey}) async => FakeBaseKeyProvider(),
-      ),
   ],
 );
 
@@ -104,13 +95,13 @@ void main() {
   });
 
   late MockMeetingPlaceCoreSDK mockSdk;
-  late FakeLivekitService fakeService;
+  late FakeLiveKitRoom fakeService;
   late ProviderContainer container;
 
   setUp(() {
     mockSdk = MockMeetingPlaceCoreSDK();
-    fakeService = FakeLivekitService();
-    container = _buildContainer(mockSdk: mockSdk, fakeService: fakeService);
+    fakeService = FakeLiveKitRoom();
+    container = _buildContainer(mockSdk: mockSdk, fakeRoom: fakeService);
     // Hold a listener so the auto-dispose provider stays alive for the test.
     container.listen(
       audioVideoCallServiceProvider(_otherPartyDid),
@@ -301,9 +292,8 @@ void main() {
       // Wire a container with the token service override.
       final c = _buildContainer(
         mockSdk: mockSdk,
-        fakeService: fakeService,
+        fakeRoom: fakeService,
         mockTokenService: mockTokenService,
-        useFakeKeyProvider: true,
       );
       c.listen(audioVideoCallServiceProvider(_otherPartyDid), (_, _) {});
       addTearDown(c.dispose);

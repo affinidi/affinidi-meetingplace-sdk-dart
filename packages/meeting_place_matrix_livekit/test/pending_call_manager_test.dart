@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:meeting_place_matrix_livekit/src/pending_call_manager.dart';
+import 'package:test/test.dart';
 
 const _callId = 'call-001';
 const _otherPartyDid = 'did:key:other-party';

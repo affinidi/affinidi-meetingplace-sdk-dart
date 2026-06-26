@@ -1,13 +1,6 @@
 export 'package:meeting_place_core/meeting_place_core.dart' show CallMediaType;
 
-export 'src/call/contracts/audio_video_call_plugin.dart';
-export 'src/call/contracts/audio_video_call_session.dart';
-export 'src/call/contracts/incoming_audio_video_call_event.dart';
-export 'src/call/models/audio_video_call_error_code.dart';
-export 'src/call/models/audio_video_call_participant.dart';
-export 'src/call/models/audio_video_call_state.dart';
-export 'src/call/models/audio_video_call_status.dart';
-export 'src/call/models/call_role.dart';
+export 'src/call/call.dart';
 export 'src/chat/chat.dart';
 export 'src/entity/entity.dart';
 export 'src/event/event.dart';

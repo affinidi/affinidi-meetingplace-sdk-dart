@@ -1,45 +1,57 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart'
     show AudioVideoCallState;
+import 'package:meeting_place_core/meeting_place_core.dart'
+    show DefaultMeetingPlaceCoreSDKLogger;
 import 'package:meeting_place_matrix_livekit/meeting_place_matrix_livekit.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:test/test.dart';
 
+import '../fakes/fake_livekit_service.dart';
 import '../mocks/mocks.dart';
+
+AudioVideoCallService _buildService() => AudioVideoCallService(
+  otherPartyChannelDid: 'did:peer:other-party',
+  sdk: MockMeetingPlaceCoreSDK(),
+  options: MeetingPlaceLiveKitCallPluginOptions(
+    livekitServiceUrl: Uri.parse('https://livekit.example.com'),
+  ),
+  rtcDelegate: MockWebRTCDelegate(),
+  logger: DefaultMeetingPlaceCoreSDKLogger(className: 'test'),
+  livekitTokenService: MockSfuTokenService(),
+  room: FakeLiveKitRoom(),
+);
 
 void main() {
   const otherPartyChannelDid = 'did:peer:other-party';
 
-  late ProviderContainer container;
   late MockMeetingPlaceCoreSDKLogger logger;
   late LiveKitCallSession session;
+  late AudioVideoCallService service;
 
   setUp(() {
-    container = ProviderContainer();
     logger = MockMeetingPlaceCoreSDKLogger();
+    service = _buildService();
     session = LiveKitCallSession.create(
-      container: container,
+      service: service,
       otherPartyChannelDid: otherPartyChannelDid,
       logger: logger,
     );
   });
+
+  tearDown(() async => session.dispose());
 
   group('plugin-internal accessors', () {
     test('exposes the injected otherPartyChannelDid', () {
       expect(session.otherPartyChannelDid, otherPartyChannelDid);
     });
 
-    test('exposes the injected container', () {
-      expect(session.container, same(container));
+    test('room getter returns the service room', () {
+      expect(session.room, same(service.room));
     });
   });
 
-  group('disposeContainer', () {
-    test('disposes the backing container', () {
-      final probe = Provider<int>((ref) => 1);
-
-      session.disposeContainer();
-
-      expect(() => container.read(probe), throwsStateError);
+  group('dispose', () {
+    test('disposes without throwing', () async {
+      await expectLater(session.dispose(), completes);
     });
   });
 

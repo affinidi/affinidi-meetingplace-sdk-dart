@@ -1,49 +1,42 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart'
-    show AudioVideoCallSession, AudioVideoCallState;
+    show AudioVideoCallSession, AudioVideoCallState, CallMediaType;
 import 'package:meeting_place_core/meeting_place_core.dart'
     show MeetingPlaceCoreSDKLogger;
-import 'package:riverpod/riverpod.dart';
 
+import '../interfaces/livekit_room.dart';
 import '../services/audio_video_call_service.dart';
 import '../utils/string.dart';
 
 /// Concrete [AudioVideoCallSession] for a LiveKit-backed call.
 ///
-/// Wraps the plugin-scoped [ProviderContainer] and delegates all operations to
-/// `AudioVideoCallService`. Created by `MeetingPlaceLiveKitCallPlugin` on
-/// `startCall` or `acceptCall` and handed to the caller as the live handle.
+/// Wraps an [AudioVideoCallService] and delegates all operations to it.
+/// Created by `MeetingPlaceLiveKitCallPlugin` on `startCall` or `acceptCall`
+/// and handed to the caller as the live handle.
 ///
-/// The session is single-use: once [hangUp] is called the container is
-/// disposed and the session must be discarded.
+/// The session is single-use: once [hangUp] is called the service is disposed
+/// and the session must be discarded.
 class LiveKitCallSession implements AudioVideoCallSession {
-  LiveKitCallSession._(
-    ProviderContainer container,
-    String otherPartyChannelDid,
-    MeetingPlaceCoreSDKLogger logger,
-  ) : _container = container,
-      _otherPartyChannelDid = otherPartyChannelDid,
-      _logger = logger {
-    // Hold a persistent subscription so the autoDispose provider stays alive
-    // for the entire session lifetime, even while joinCall is mid-flight before
-    // the caller has subscribed to the state stream.
+  LiveKitCallSession._({
+    required AudioVideoCallService service,
+    required String otherPartyChannelDid,
+    required MeetingPlaceCoreSDKLogger logger,
+  }) : _service = service,
+       _otherPartyChannelDid = otherPartyChannelDid,
+       _logger = logger {
     _stateController = StreamController<AudioVideoCallState>.broadcast();
-    _stateSub = _container.listen(
-      audioVideoCallServiceProvider(_otherPartyChannelDid),
-      (_, AudioVideoCallState next) {
-        _latestState = next;
-        if (!_stateController.isClosed) _stateController.add(next);
-      },
-      fireImmediately: true,
-    );
+    _stateSub = service.stateStream.listen((AudioVideoCallState next) {
+      _latestState = next;
+      if (!_stateController.isClosed) _stateController.add(next);
+    });
   }
 
-  final ProviderContainer _container;
+  final AudioVideoCallService _service;
   final String _otherPartyChannelDid;
   final MeetingPlaceCoreSDKLogger _logger;
   late final StreamController<AudioVideoCallState> _stateController;
-  late final ProviderSubscription<AudioVideoCallState> _stateSub;
+  late final StreamSubscription<AudioVideoCallState> _stateSub;
 
   // Latest state pushed by the service. Replayed to late subscribers so a
   // transient emission (e.g. the one carrying ownRole) is never missed if
@@ -54,13 +47,17 @@ class LiveKitCallSession implements AudioVideoCallSession {
 
   /// Factory used only by `MeetingPlaceLiveKitCallPlugin`.
   static LiveKitCallSession create({
-    required ProviderContainer container,
+    required AudioVideoCallService service,
     required String otherPartyChannelDid,
     required MeetingPlaceCoreSDKLogger logger,
-  }) => LiveKitCallSession._(container, otherPartyChannelDid, logger);
+  }) => LiveKitCallSession._(
+    service: service,
+    otherPartyChannelDid: otherPartyChannelDid,
+    logger: logger,
+  );
 
   // ---------------------------------------------------------------------------
-  // CallSession interface
+  // AudioVideoCallSession interface
   // ---------------------------------------------------------------------------
 
   @override
@@ -84,33 +81,25 @@ class LiveKitCallSession implements AudioVideoCallSession {
   @override
   Future<void> setMicrophoneEnabled(bool enabled) {
     _logger.info('Microphone enabled: $enabled', name: _logKey);
-    return _container
-        .read(audioVideoCallServiceProvider(_otherPartyChannelDid).notifier)
-        .setMicrophoneEnabled(enabled);
+    return _service.setMicrophoneEnabled(enabled);
   }
 
   @override
   Future<void> setCameraEnabled(bool enabled) {
     _logger.info('Camera enabled: $enabled', name: _logKey);
-    return _container
-        .read(audioVideoCallServiceProvider(_otherPartyChannelDid).notifier)
-        .setCameraEnabled(enabled);
+    return _service.setCameraEnabled(enabled);
   }
 
   @override
   Future<void> switchCamera() {
     _logger.info('Switching camera', name: _logKey);
-    return _container
-        .read(audioVideoCallServiceProvider(_otherPartyChannelDid).notifier)
-        .switchCamera();
+    return _service.switchCamera();
   }
 
   @override
   Future<void> setSpeakerphoneEnabled(bool enabled) {
     _logger.info('Speakerphone enabled: $enabled', name: _logKey);
-    return _container
-        .read(audioVideoCallServiceProvider(_otherPartyChannelDid).notifier)
-        .setSpeakerphoneEnabled(enabled);
+    return _service.setSpeakerphoneEnabled(enabled);
   }
 
   @override
@@ -119,35 +108,44 @@ class LiveKitCallSession implements AudioVideoCallSession {
       'Hanging up call for ${_otherPartyChannelDid.topAndTail()}',
       name: _logKey,
     );
-    return _container
-        .read(audioVideoCallServiceProvider(_otherPartyChannelDid).notifier)
-        .leaveCall();
+    return _service.leaveCall();
   }
 
   // ---------------------------------------------------------------------------
   // Plugin-internal accessors
   // ---------------------------------------------------------------------------
 
-  /// The other party's channel DID used to key the call service provider.
+  /// The other party's channel DID used to key this call session.
   String get otherPartyChannelDid => _otherPartyChannelDid;
 
-  /// The Riverpod container backing this session.
+  /// The LiveKit room backing this session.
   ///
-  /// Accessible to plugin-internal code (`MeetingPlaceLiveKitCallPlugin` and
-  /// `AudioVideoCallView`) to resolve providers scoped to this call.
-  ProviderContainer get container => _container;
+  /// Exposed so Flutter consumer widgets can access the room for video
+  /// rendering without going through Riverpod providers.
+  LiveKitRoom get room => _service.room;
 
-  /// Disposes the Riverpod container backing this session.
+  /// Initiates the call connection. Plugin-internal — called by
+  /// `MeetingPlaceLiveKitCallPlugin` immediately after creating the session.
+  Future<void> joinCall({
+    bool isRecipient = false,
+    CallMediaType mediaType = CallMediaType.video,
+  }) => _service.joinCall(isRecipient: isRecipient, mediaType: mediaType);
+
+  /// Notifies the service that the callee declined. Plugin-internal — called
+  /// by `MeetingPlaceLiveKitCallPlugin` when a decline signal is received.
+  void notifyDeclined() => _service.notifyDeclined();
+
+  /// Disposes the service backing this session.
   ///
   /// Called by `MeetingPlaceLiveKitCallPlugin` when the session is no longer
   /// needed. After disposal the session must not be used again.
-  void disposeContainer() {
+  Future<void> dispose() async {
     _logger.info(
       'Disposing session for ${_otherPartyChannelDid.topAndTail()}',
       name: _logKey,
     );
-    _stateSub.close();
-    _stateController.close();
-    _container.dispose();
+    await _stateSub.cancel();
+    await _stateController.close();
+    await _service.dispose();
   }
 }

@@ -3,18 +3,13 @@ import 'dart:async';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:riverpod/riverpod.dart';
 
 import 'exceptions/meeting_place_livekit_call_exception.dart';
 import 'interfaces/livekit_room.dart';
 import 'meeting_place_livekit_call_plugin_options.dart';
 import 'pending_call_manager.dart';
-import 'providers/livekit_room_provider.dart';
-import 'providers/plugin_core_sdk_provider.dart';
-import 'providers/plugin_logger_provider.dart';
-import 'providers/plugin_options_provider.dart';
-import 'providers/plugin_rtc_delegate_provider.dart';
 import 'services/audio_video_call_service.dart';
+import 'services/sfu_token_service.dart';
 import 'sessions/livekit_call_session.dart';
 import 'utils/string.dart';
 
@@ -99,7 +94,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     _declineSignalSubscription = null;
     await _incomingCallsController.close();
     await _cancelledCallsController.close();
-    _activeSession?.disposeContainer();
+    await _activeSession?.dispose();
     _activeSession = null;
     _pendingCallManager.clearActiveCall();
     _logger.info('Plugin disposed', name: _logKey);
@@ -140,16 +135,14 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         '${_activeSession!.otherPartyChannelDid.topAndTail()}',
         name: _logKey,
       );
-      _activeSession!.disposeContainer();
+      unawaited(_activeSession!.dispose());
       _activeSession = null;
       _pendingCallManager.clearActiveCall();
     }
 
-    final container = _buildContainer(sdk);
-    final session = LiveKitCallSession.create(
-      container: container,
+    final session = _buildSession(
+      sdk: sdk,
       otherPartyChannelDid: otherPartyChannelDid,
-      logger: _logger,
     );
     _activeSession = session;
 
@@ -165,11 +158,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
 
     // Trigger the LiveKit connection + (for outbound calls) the call-invite
     // nudge. The session's state stream reflects the connection progress.
-    unawaited(
-      container
-          .read(audioVideoCallServiceProvider(otherPartyChannelDid).notifier)
-          .joinCall(isRecipient: isRecipient, mediaType: mediaType),
-    );
+    unawaited(session.joinCall(isRecipient: isRecipient, mediaType: mediaType));
 
     return session;
   }
@@ -224,7 +213,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       name: _logKey,
     );
     await session.hangUp();
-    _activeSession?.disposeContainer();
+    await _activeSession?.dispose();
     _activeSession = null;
     _pendingCallManager.clearActiveCall();
   }
@@ -240,20 +229,30 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     return sdk;
   }
 
-  ProviderContainer _buildContainer(MeetingPlaceCoreSDK sdk) =>
-      ProviderContainer(
-        overrides: [
-          pluginCoreSdkProvider.overrideWithValue(sdk),
-          pluginOptionsProvider.overrideWithValue(_options),
-          pluginRtcDelegateProvider.overrideWithValue(_rtcDelegate),
-          pluginLoggerProvider.overrideWithValue(_logger),
-          livekitRoomProvider.overrideWith((ref, did) {
-            final room = _roomFactory(did);
-            ref.onDispose(() => unawaited(room.disconnect()));
-            return room;
-          }),
-        ],
-      );
+  LiveKitCallSession _buildSession({
+    required MeetingPlaceCoreSDK sdk,
+    required String otherPartyChannelDid,
+  }) {
+    final tokenService = SfuTokenService(
+      serviceUrl: _options.livekitServiceUrl,
+      logger: _logger,
+    );
+    final room = _roomFactory(otherPartyChannelDid);
+    final service = AudioVideoCallService(
+      otherPartyChannelDid: otherPartyChannelDid,
+      sdk: sdk,
+      options: _options,
+      rtcDelegate: _rtcDelegate,
+      logger: _logger,
+      livekitTokenService: tokenService,
+      room: room,
+    );
+    return LiveKitCallSession.create(
+      service: service,
+      otherPartyChannelDid: otherPartyChannelDid,
+      logger: _logger,
+    );
+  }
 
   // ---------------------------------------------------------------------------
   // Incoming call signal handling
@@ -363,13 +362,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         '${otherPartyChannelDid.topAndTail()}',
         name: _logKey,
       );
-      session.container
-          .read(
-            audioVideoCallServiceProvider(
-              session.otherPartyChannelDid,
-            ).notifier,
-          )
-          .notifyDeclined();
+      session.notifyDeclined();
       return;
     }
 

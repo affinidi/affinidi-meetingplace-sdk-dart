@@ -112,7 +112,7 @@ void main() {
           mediaType: CallMediaType.video,
         );
 
-        // Two separate rooms = two separate ProviderContainers created.
+        // Two separate rooms = two separate sessions created.
         expect(rooms.length, 2);
         // First room was disconnected — not abandoned.
         expect(

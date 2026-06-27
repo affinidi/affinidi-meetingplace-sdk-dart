@@ -10,23 +10,15 @@ import 'package:meeting_place_chat/meeting_place_chat.dart'
         CallMediaType,
         CallRole;
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../constants/audio_video_call_defaults.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../interfaces/livekit_room.dart';
+import '../meeting_place_livekit_call_plugin_options.dart';
 import '../models/call_e2ee_state.dart';
-import '../providers/livekit_room_provider.dart';
-import '../providers/plugin_core_sdk_provider.dart';
-import '../providers/plugin_logger_provider.dart';
-import '../providers/plugin_options_provider.dart';
-import '../providers/plugin_rtc_delegate_provider.dart';
-import '../providers/sfu_token_service_provider.dart';
 import '../transport/call_invite_room_event.dart';
 import '../utils/string.dart';
 import 'sfu_token_service.dart';
-
-part 'audio_video_call_service.g.dart';
 
 /// Orchestrates the full LiveKit call lifecycle for the channel identified
 /// by the other party's permanent channel DID.
@@ -38,28 +30,42 @@ part 'audio_video_call_service.g.dart';
 /// - Publishes the call state for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
-/// Read by the app's call screen controller via provider listeners.
-/// Modelled after ChatSessionService.
-@Riverpod(
-  dependencies: [
-    pluginCoreSdk,
-    pluginOptions,
-    pluginRtcDelegate,
-    pluginLogger,
-    sfuTokenService,
-    livekitRoom,
-  ],
-)
-class AudioVideoCallService extends _$AudioVideoCallService {
+/// Call [dispose] when the session ends to release the LiveKit room and
+/// cancel all timers. Modelled after ChatSessionService.
+class AudioVideoCallService {
+  AudioVideoCallService({
+    required this.otherPartyChannelDid,
+    required MeetingPlaceCoreSDK sdk,
+    required MeetingPlaceLiveKitCallPluginOptions options,
+    required matrix.WebRTCDelegate rtcDelegate,
+    required MeetingPlaceCoreSDKLogger logger,
+    required SfuTokenService livekitTokenService,
+    required LiveKitRoom room,
+  }) : _sdk = sdk,
+       _e2eeReadyTimeout = options.e2eeReadyTimeout,
+       _outgoingCallTimeout = options.outgoingCallTimeout,
+       _livekitSfuUrl = options.livekitSfuUrl,
+       _rtcDelegate = rtcDelegate,
+       _logger = logger,
+       _livekitTokenService = livekitTokenService,
+       _room = room;
+
   static const _logKey = 'AudioVideoCallService';
 
-  late final MeetingPlaceCoreSDKLogger _logger = ref.read(pluginLoggerProvider);
-  late MeetingPlaceCoreSDK _sdk;
-  late Duration _e2eeReadyTimeout;
-  late Duration _outgoingCallTimeout;
-  late SfuTokenService _livekitTokenService;
-  late LiveKitRoom _room;
-  late matrix.WebRTCDelegate _rtcDelegate;
+  final String otherPartyChannelDid;
+  final MeetingPlaceCoreSDKLogger _logger;
+  final MeetingPlaceCoreSDK _sdk;
+  final Duration _e2eeReadyTimeout;
+  final Duration _outgoingCallTimeout;
+  final Uri? _livekitSfuUrl;
+  final SfuTokenService _livekitTokenService;
+  final LiveKitRoom _room;
+  final matrix.WebRTCDelegate _rtcDelegate;
+
+  AudioVideoCallState _state = AudioVideoCallState.initial;
+  final StreamController<AudioVideoCallState> _stateController =
+      StreamController<AudioVideoCallState>.broadcast();
+
   bool _isDisposed = false;
   bool _isTearingDown = false;
   Timer? _e2eeReadyTimer;
@@ -104,32 +110,52 @@ class AudioVideoCallService extends _$AudioVideoCallService {
   /// to deliver and apply the publisher key before each retry.
   static const _keyframeNudgeInterval = Duration(seconds: 2);
 
-  @override
-  AudioVideoCallState build(String otherPartyChannelDid) {
-    _sdk = ref.read(pluginCoreSdkProvider);
-    _e2eeReadyTimeout = ref.read(pluginOptionsProvider).e2eeReadyTimeout;
-    _outgoingCallTimeout = ref.read(pluginOptionsProvider).outgoingCallTimeout;
-    _rtcDelegate = ref.read(pluginRtcDelegateProvider);
-    _livekitTokenService = ref.read(sfuTokenServiceProvider);
-    _room = ref.watch(livekitRoomProvider(otherPartyChannelDid));
+  // ---------------------------------------------------------------------------
+  // Getters
+  // ---------------------------------------------------------------------------
 
-    ref.onDispose(() {
-      _isDisposed = true;
-      _e2eeReadyTimer?.cancel();
-      _outgoingCallTimer?.cancel();
-      _cancelKeyframeNudges();
-      final roomId = _matrixRoomId;
-      final callId = _matrixCallId;
-      if (roomId != null && callId != null) {
-        unawaited(_sdk.leaveVideoCall(roomId: roomId, callId: callId));
-      }
-      // Ensure the LiveKit room is always released, even if leaveCall() was
-      // never called (e.g. screen popped mid-call or app killed).
-      unawaited(_room.disconnect());
-    });
+  AudioVideoCallState get state => _state;
 
-    return AudioVideoCallState.initial;
+  /// Live stream of [AudioVideoCallState] emitted on every change.
+  Stream<AudioVideoCallState> get stateStream => _stateController.stream;
+
+  /// The LiveKit room backing this call session.
+  LiveKitRoom get room => _room;
+
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
+
+  /// Releases all resources held by this service.
+  ///
+  /// Cancels timers, leaves the Matrix call if in progress, and disconnects
+  /// the LiveKit room. Must be called when the session ends. The service must
+  /// not be used after [dispose] returns.
+  Future<void> dispose() async {
+    if (_isDisposed) return;
+    _isDisposed = true;
+    _e2eeReadyTimer?.cancel();
+    _outgoingCallTimer?.cancel();
+    _cancelKeyframeNudges();
+    final roomId = _matrixRoomId;
+    final callId = _matrixCallId;
+    if (roomId != null && callId != null) {
+      unawaited(_sdk.leaveVideoCall(roomId: roomId, callId: callId));
+    }
+    // Ensure the LiveKit room is always released, even if leaveCall() was
+    // never called (e.g. screen popped mid-call or app killed).
+    unawaited(_room.disconnect());
+    await _stateController.close();
   }
+
+  void _setState(AudioVideoCallState value) {
+    _state = value;
+    if (!_stateController.isClosed) _stateController.add(value);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Public lifecycle methods
+  // ---------------------------------------------------------------------------
 
   Future<void> joinCall({
     bool isRecipient = false,
@@ -144,9 +170,11 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     _participantsKeyed.clear();
     _participantsMissingKey.clear();
     _cancelKeyframeNudges();
-    state = state.copyWith(
-      status: AudioVideoCallStatus.connecting,
-      clearErrorCode: true,
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.connecting,
+        clearErrorCode: true,
+      ),
     );
 
     var errorCode = AudioVideoCallErrorCode.unexpected;
@@ -193,8 +221,10 @@ class AudioVideoCallService extends _$AudioVideoCallService {
 
       final isJoiningExistingCall = isRecipient || callAlreadyInProgress;
       // Emit the device's role early so the call chat item appears immediately.
-      state = state.copyWith(
-        ownRole: isJoiningExistingCall ? CallRole.recipient : CallRole.caller,
+      _setState(
+        _state.copyWith(
+          ownRole: isJoiningExistingCall ? CallRole.recipient : CallRole.caller,
+        ),
       );
 
       await _enableLocalMedia(mediaType: mediaType);
@@ -224,20 +254,24 @@ class AudioVideoCallService extends _$AudioVideoCallService {
           '(${_outgoingCallTimeout.inSeconds}s)',
           name: _logKey,
         );
-        state = state.copyWith(
-          status: AudioVideoCallStatus.outgoingRinging,
-          participants: _room.participants,
-          ownRole: ownRole,
+        _setState(
+          _state.copyWith(
+            status: AudioVideoCallStatus.outgoingRinging,
+            participants: _room.participants,
+            ownRole: ownRole,
+          ),
         );
         _outgoingCallTimer = Timer(
           _outgoingCallTimeout,
           _onOutgoingCallTimeout,
         );
       } else {
-        state = state.copyWith(
-          status: AudioVideoCallStatus.waitingForKeys,
-          participants: _room.participants,
-          ownRole: ownRole,
+        _setState(
+          _state.copyWith(
+            status: AudioVideoCallStatus.waitingForKeys,
+            participants: _room.participants,
+            ownRole: ownRole,
+          ),
         );
         _e2eeReadyTimer = Timer(_e2eeReadyTimeout, _onE2EETimeout);
       }
@@ -256,9 +290,11 @@ class AudioVideoCallService extends _$AudioVideoCallService {
         stackTrace: stackTrace,
         name: _logKey,
       );
-      state = state.copyWith(
-        status: AudioVideoCallStatus.error,
-        errorCode: errorCode,
+      _setState(
+        _state.copyWith(
+          status: AudioVideoCallStatus.error,
+          errorCode: errorCode,
+        ),
       );
     } catch (e, stackTrace) {
       if (_isDisposed || _isTearingDown) {
@@ -274,9 +310,11 @@ class AudioVideoCallService extends _$AudioVideoCallService {
         stackTrace: stackTrace,
         name: _logKey,
       );
-      state = state.copyWith(
-        status: AudioVideoCallStatus.error,
-        errorCode: AudioVideoCallErrorCode.unexpected,
+      _setState(
+        _state.copyWith(
+          status: AudioVideoCallStatus.error,
+          errorCode: AudioVideoCallErrorCode.unexpected,
+        ),
       );
     } finally {
       // If the call setup did not complete successfully, stop the LiveKit room
@@ -354,9 +392,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       openIdCredentials: openIdToken,
       deviceId: deviceId,
     );
-    final sfuUrl =
-        ref.read(pluginOptionsProvider).livekitSfuUrl?.toString() ??
-        tokenResponse.url;
+    final sfuUrl = _livekitSfuUrl?.toString() ?? tokenResponse.url;
     if (sfuUrl == null) {
       throw const MeetingPlaceLiveKitCallOperationException(
         'No LiveKit SFU URL available: set livekitSfuUrl in plugin options '
@@ -530,10 +566,10 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       AudioVideoCallStatus.outgoingRinging,
     };
     final cancelledBeforeAnswer =
-        state.ownRole == CallRole.caller &&
+        _state.ownRole == CallRole.caller &&
         !_hasPeer &&
-        preAnswerStatuses.contains(state.status);
-    state = state.copyWith(status: AudioVideoCallStatus.disconnecting);
+        preAnswerStatuses.contains(_state.status);
+    _setState(_state.copyWith(status: AudioVideoCallStatus.disconnecting));
     _e2eeReadyTimer?.cancel();
     _outgoingCallTimer?.cancel();
     _cancelKeyframeNudges();
@@ -560,9 +596,11 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       );
     } finally {
       if (!_isDisposed) {
-        state = state.copyWith(
-          status: AudioVideoCallStatus.disconnected,
-          participants: <AudioVideoCallParticipant>[],
+        _setState(
+          _state.copyWith(
+            status: AudioVideoCallStatus.disconnected,
+            participants: <AudioVideoCallParticipant>[],
+          ),
         );
       }
     }
@@ -578,7 +616,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       return;
     }
     await _room.setMicrophoneEnabled(enabled);
-    state = state.copyWith(participants: _room.participants);
+    _setState(_state.copyWith(participants: _room.participants));
   }
 
   /// Enables or disables the local camera.
@@ -591,7 +629,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       return;
     }
     await _room.setCameraEnabled(enabled);
-    state = state.copyWith(participants: _room.participants);
+    _setState(_state.copyWith(participants: _room.participants));
   }
 
   /// Switches between front and rear camera.
@@ -681,7 +719,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       return;
     }
 
-    if (state.status == AudioVideoCallStatus.outgoingRinging && _hasPeer) {
+    if (_state.status == AudioVideoCallStatus.outgoingRinging && _hasPeer) {
       _logger.info(
         '_onParticipantsChanged: Other participant joined, '
         'outgoingRinging -> waitingForKeys',
@@ -689,14 +727,16 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       );
       _outgoingCallTimer?.cancel();
       _outgoingCallTimer = null;
-      state = state.copyWith(
-        status: AudioVideoCallStatus.waitingForKeys,
-        participants: _room.participants,
+      _setState(
+        _state.copyWith(
+          status: AudioVideoCallStatus.waitingForKeys,
+          participants: _room.participants,
+        ),
       );
       _e2eeReadyTimer ??= Timer(_e2eeReadyTimeout, _onE2EETimeout);
       return;
     }
-    state = state.copyWith(participants: _room.participants);
+    _setState(_state.copyWith(participants: _room.participants));
   }
 
   /// Whether any participant other than this device is currently in the room.
@@ -739,7 +779,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
         unawaited(_room.ratchetKey(ownParticipantId, 0));
       }
     }
-    state = state.copyWith(participants: _room.participants);
+    _setState(_state.copyWith(participants: _room.participants));
   }
 
   void _onE2EEStateChanged(String participantId, CallE2EEState e2eeState) {
@@ -759,11 +799,13 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       _participantsMissingKey.remove(participantId);
       _cancelKeyframeNudge(participantId);
       _e2eeReadyTimer?.cancel();
-      if (state.status == AudioVideoCallStatus.waitingForKeys ||
-          state.status == AudioVideoCallStatus.connected) {
-        state = state.copyWith(
-          status: AudioVideoCallStatus.active,
-          participants: _room.participants,
+      if (_state.status == AudioVideoCallStatus.waitingForKeys ||
+          _state.status == AudioVideoCallStatus.connected) {
+        _setState(
+          _state.copyWith(
+            status: AudioVideoCallStatus.active,
+            participants: _room.participants,
+          ),
         );
       }
     } else if (e2eeState == CallE2EEState.missingKey) {
@@ -833,7 +875,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       );
       return;
     }
-    if (state.status != AudioVideoCallStatus.outgoingRinging) return;
+    if (_state.status != AudioVideoCallStatus.outgoingRinging) return;
     _logger.info(
       '_onOutgoingCallTimeout: No answer after '
       '${_outgoingCallTimeout.inSeconds}s, '
@@ -849,9 +891,11 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     }
     unawaited(_room.disconnect());
     _sendCallCancelToRecipient();
-    state = state.copyWith(
-      status: AudioVideoCallStatus.missed,
-      participants: <AudioVideoCallParticipant>[],
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.missed,
+        participants: <AudioVideoCallParticipant>[],
+      ),
     );
   }
 
@@ -864,7 +908,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       _logger.info('notifyDeclined: Skipping, service disposed', name: _logKey);
       return;
     }
-    if (state.status != AudioVideoCallStatus.outgoingRinging) return;
+    if (_state.status != AudioVideoCallStatus.outgoingRinging) return;
     _logger.info(
       'notifyDeclined: Callee declined, leaving room and emitting declined',
       name: _logKey,
@@ -879,9 +923,11 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       unawaited(_sdk.leaveVideoCall(roomId: roomId, callId: callId));
     }
     unawaited(_room.disconnect());
-    state = state.copyWith(
-      status: AudioVideoCallStatus.declined,
-      participants: <AudioVideoCallParticipant>[],
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.declined,
+        participants: <AudioVideoCallParticipant>[],
+      ),
     );
   }
 
@@ -890,12 +936,14 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       _logger.info('_onE2EETimeout: Skipping, service disposed', name: _logKey);
       return;
     }
-    if (state.status == AudioVideoCallStatus.waitingForKeys) {
+    if (_state.status == AudioVideoCallStatus.waitingForKeys) {
       // Transition to connected anyway — the call is usable even if E2EE
       // keys for some remote participants haven't arrived yet.
-      state = state.copyWith(
-        status: AudioVideoCallStatus.connected,
-        participants: _room.participants,
+      _setState(
+        _state.copyWith(
+          status: AudioVideoCallStatus.connected,
+          participants: _room.participants,
+        ),
       );
     }
   }

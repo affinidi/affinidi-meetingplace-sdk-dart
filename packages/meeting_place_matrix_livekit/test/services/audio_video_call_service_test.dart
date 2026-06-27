@@ -2,11 +2,7 @@ import 'dart:async';
 
 import 'package:matrix/matrix.dart' show OpenIdCredentials;
 import 'package:meeting_place_chat/meeting_place_chat.dart'
-    show
-        AudioVideoCallParticipant,
-        AudioVideoCallState,
-        AudioVideoCallStatus,
-        CallMediaType;
+    show AudioVideoCallParticipant, AudioVideoCallStatus, CallMediaType;
 import 'package:meeting_place_core/meeting_place_core.dart'
     show
         Channel,
@@ -17,15 +13,8 @@ import 'package:meeting_place_core/meeting_place_core.dart'
         DefaultMeetingPlaceCoreSDKLogger;
 import 'package:meeting_place_matrix_livekit/src/meeting_place_livekit_call_plugin_options.dart';
 import 'package:meeting_place_matrix_livekit/src/models/sfu_token_response.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/livekit_room_provider.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/plugin_core_sdk_provider.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/plugin_logger_provider.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/plugin_options_provider.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/plugin_rtc_delegate_provider.dart';
-import 'package:meeting_place_matrix_livekit/src/providers/sfu_token_service_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/services/audio_video_call_service.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:test/test.dart';
 
 import '../fakes/fake_fallbacks.dart';
@@ -62,27 +51,21 @@ OpenIdCredentials _stubOpenIdCredentials() => OpenIdCredentials(
   tokenType: 'Bearer',
 );
 
-ProviderContainer _buildContainer({
-  required MockMeetingPlaceCoreSDK mockSdk,
-  required FakeLiveKitRoom fakeRoom,
-  MockSfuTokenService? mockTokenService,
-}) => ProviderContainer(
-  overrides: [
-    pluginCoreSdkProvider.overrideWith((ref) => mockSdk),
-    pluginLoggerProvider.overrideWith(
-      (ref) => DefaultMeetingPlaceCoreSDKLogger(className: 'test'),
-    ),
-    pluginOptionsProvider.overrideWith(
-      (ref) => MeetingPlaceLiveKitCallPluginOptions(
-        livekitServiceUrl: Uri.parse('https://livekit.test'),
-        livekitSfuUrl: Uri.parse(_sfuUrl),
-      ),
-    ),
-    pluginRtcDelegateProvider.overrideWith((ref) => MockWebRTCDelegate()),
-    livekitRoomProvider(_otherPartyDid).overrideWith((ref) => fakeRoom),
-    if (mockTokenService != null)
-      sfuTokenServiceProvider.overrideWith((ref) => mockTokenService),
-  ],
+AudioVideoCallService _buildService({
+  required MockMeetingPlaceCoreSDK sdk,
+  required FakeLiveKitRoom room,
+  MockSfuTokenService? tokenService,
+}) => AudioVideoCallService(
+  otherPartyChannelDid: _otherPartyDid,
+  sdk: sdk,
+  options: MeetingPlaceLiveKitCallPluginOptions(
+    livekitServiceUrl: Uri.parse('https://livekit.test'),
+    livekitSfuUrl: Uri.parse(_sfuUrl),
+  ),
+  rtcDelegate: MockWebRTCDelegate(),
+  logger: DefaultMeetingPlaceCoreSDKLogger(className: 'test'),
+  livekitTokenService: tokenService ?? MockSfuTokenService(),
+  room: room,
 );
 
 void main() {
@@ -95,42 +78,29 @@ void main() {
   });
 
   late MockMeetingPlaceCoreSDK mockSdk;
-  late FakeLiveKitRoom fakeService;
-  late ProviderContainer container;
+  late FakeLiveKitRoom fakeRoom;
+  late AudioVideoCallService service;
 
   setUp(() {
     mockSdk = MockMeetingPlaceCoreSDK();
-    fakeService = FakeLiveKitRoom();
-    container = _buildContainer(mockSdk: mockSdk, fakeRoom: fakeService);
-    // Hold a listener so the auto-dispose provider stays alive for the test.
-    container.listen(
-      audioVideoCallServiceProvider(_otherPartyDid),
-      (previous, next) {},
-    );
+    fakeRoom = FakeLiveKitRoom();
+    service = _buildService(sdk: mockSdk, room: fakeRoom);
   });
 
-  tearDown(() => container.dispose());
+  tearDown(() async => service.dispose());
 
   group('initial state', () {
-    test('is AudioVideoCallState.initial', () {
-      expect(
-        container.read(audioVideoCallServiceProvider(_otherPartyDid)),
-        AudioVideoCallState.initial,
-      );
+    test('status is initial', () {
+      expect(service.state.status, AudioVideoCallStatus.idle);
     });
   });
 
   group('leaveCall', () {
     test('transitions to disconnected when not previously joined', () async {
-      await container
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .leaveCall();
+      await service.leaveCall();
 
-      expect(
-        container.read(audioVideoCallServiceProvider(_otherPartyDid)).status,
-        AudioVideoCallStatus.disconnected,
-      );
-      expect(fakeService.disconnectCalls, 1);
+      expect(service.state.status, AudioVideoCallStatus.disconnected);
+      expect(fakeRoom.disconnectCalls, 1);
     });
 
     test('completes successfully and transitions to disconnected even when SDK '
@@ -142,69 +112,40 @@ void main() {
         ),
       ).thenThrow(Exception('Teardown failed'));
 
-      // Should not throw, should complete normally.
-      await container
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .leaveCall();
+      await service.leaveCall();
 
-      // State must be disconnected despite the SDK exception.
-      expect(
-        container.read(audioVideoCallServiceProvider(_otherPartyDid)).status,
-        AudioVideoCallStatus.disconnected,
-      );
-      // LiveKit must still be disconnected.
-      expect(fakeService.disconnectCalls, 1);
+      expect(service.state.status, AudioVideoCallStatus.disconnected);
+      expect(fakeRoom.disconnectCalls, 1);
     });
 
     test('completes successfully and transitions to disconnected even when '
         'LivekitService disconnect throws', () async {
-      final service = container.read(
-        audioVideoCallServiceProvider(_otherPartyDid).notifier,
-      );
-      fakeService.disconnectThrows = TimeoutException(
-        'Room disconnect timeout',
-      );
+      fakeRoom.disconnectThrows = TimeoutException('Room disconnect timeout');
 
-      // Should not throw, should complete normally.
       await service.leaveCall();
 
-      // State must be disconnected despite the disconnect exception.
-      expect(
-        container.read(audioVideoCallServiceProvider(_otherPartyDid)).status,
-        AudioVideoCallStatus.disconnected,
-      );
-      // disconnect was called and threw.
-      expect(fakeService.disconnectCalls, 1);
+      expect(service.state.status, AudioVideoCallStatus.disconnected);
+      expect(fakeRoom.disconnectCalls, 1);
 
-      // Clear exception before teardown to avoid onDispose errors.
-      fakeService.disconnectThrows = null;
+      fakeRoom.disconnectThrows = null;
     });
 
     test(
       'completes successfully when both SDK and LiveKit teardown throw',
       () async {
-        final service = container.read(
-          audioVideoCallServiceProvider(_otherPartyDid).notifier,
-        );
         when(
           () => mockSdk.leaveVideoCall(
             roomId: any(named: 'roomId'),
             callId: any(named: 'callId'),
           ),
         ).thenThrow(Exception('SDK error'));
+        fakeRoom.disconnectThrows = Exception('LiveKit error');
 
-        fakeService.disconnectThrows = Exception('LiveKit error');
-
-        // Should not throw despite both throwing.
         await service.leaveCall();
 
-        expect(
-          container.read(audioVideoCallServiceProvider(_otherPartyDid)).status,
-          AudioVideoCallStatus.disconnected,
-        );
+        expect(service.state.status, AudioVideoCallStatus.disconnected);
 
-        // Clear exception before teardown to avoid onDispose errors.
-        fakeService.disconnectThrows = null;
+        fakeRoom.disconnectThrows = null;
       },
     );
   });
@@ -218,51 +159,38 @@ void main() {
         hasAudio: true,
         isSpeaking: false,
       );
-      fakeService.fakeParticipants = [participant];
+      fakeRoom.fakeParticipants = [participant];
 
-      await container
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .setMicrophoneEnabled(true);
+      await service.setMicrophoneEnabled(true);
 
-      expect(fakeService.micCalls, [true]);
-      expect(
-        container
-            .read(audioVideoCallServiceProvider(_otherPartyDid))
-            .participants,
-        [participant],
-      );
+      expect(fakeRoom.micCalls, [true]);
+      expect(service.state.participants, [participant]);
     });
   });
 
   group('setCameraEnabled', () {
     test('forwards to the live service and refreshes participants', () async {
-      fakeService.fakeParticipants = [];
+      fakeRoom.fakeParticipants = [];
 
-      await container
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .setCameraEnabled(false);
+      await service.setCameraEnabled(false);
 
-      expect(fakeService.cameraCalls, [false]);
+      expect(fakeRoom.cameraCalls, [false]);
     });
   });
 
   group('setSpeakerphoneEnabled', () {
     test('forwards to the live service', () async {
-      await container
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .setSpeakerphoneEnabled(true);
+      await service.setSpeakerphoneEnabled(true);
 
-      expect(fakeService.speakerCalls, [true]);
+      expect(fakeRoom.speakerCalls, [true]);
     });
   });
 
   group('switchCamera', () {
     test('forwards to the live service', () async {
-      await container
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .switchCamera();
+      await service.switchCamera();
 
-      expect(fakeService.switchCameraCalls, 1);
+      expect(fakeRoom.switchCameraCalls, 1);
     });
   });
 
@@ -272,31 +200,23 @@ void main() {
         () => mockSdk.getChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
 
-      await container
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .joinCall();
+      await service.joinCall();
 
-      expect(
-        container.read(audioVideoCallServiceProvider(_otherPartyDid)).status,
-        AudioVideoCallStatus.error,
-      );
-      // LiveKit room must be released even when join fails.
-      expect(fakeService.disconnectCalls, 1);
+      expect(service.state.status, AudioVideoCallStatus.error);
+      expect(fakeRoom.disconnectCalls, 1);
     });
 
     test('sends call-invite nudge before connecting to LiveKit', () async {
       final mockTokenService = MockSfuTokenService();
       final mockDidManager = MockDidManager();
       final mockGroupCallSession = MockGroupCallSession();
-
-      // Wire a container with the token service override.
-      final c = _buildContainer(
-        mockSdk: mockSdk,
-        fakeRoom: fakeService,
-        mockTokenService: mockTokenService,
+      final room = FakeLiveKitRoom();
+      final svc = _buildService(
+        sdk: mockSdk,
+        room: room,
+        tokenService: mockTokenService,
       );
-      c.listen(audioVideoCallServiceProvider(_otherPartyDid), (_, _) {});
-      addTearDown(c.dispose);
+      addTearDown(svc.dispose);
 
       when(
         () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
@@ -352,9 +272,8 @@ void main() {
         ),
       ).thenAnswer((_) async => null);
 
-      // Record that the nudge was sent, in call-order.
       when(() => mockSdk.sendMessage(any())).thenAnswer((_) async {
-        fakeService.callOrder.add('nudge');
+        room.callOrder.add('nudge');
         return null;
       });
 
@@ -375,13 +294,10 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      await c
-          .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
-          .joinCall(mediaType: CallMediaType.video);
+      await svc.joinCall(mediaType: CallMediaType.video);
 
-      // Nudge must have fired before LiveKit connect.
-      expect(fakeService.callOrder, containsAllInOrder(['nudge', 'connect']));
-      expect(fakeService.connectCalls, 1);
+      expect(room.callOrder, containsAllInOrder(['nudge', 'connect']));
+      expect(room.connectCalls, 1);
     });
   });
 }

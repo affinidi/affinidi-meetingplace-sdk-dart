@@ -5,6 +5,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import 'exceptions/meeting_place_livekit_call_exception.dart';
+import 'handlers/call_signal_handler.dart';
 import 'interfaces/livekit_room.dart';
 import 'meeting_place_livekit_call_plugin_options.dart';
 import 'pending_call_manager.dart';
@@ -60,6 +61,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   LiveKitCallSession? _activeSession;
 
   MeetingPlaceCoreSDK? _sdk;
+  CallSignalHandler? _signalHandler;
   StreamSubscription<IncomingCallSignal>? _signalSubscription;
   StreamSubscription<CallDeclineSignal>? _declineSignalSubscription;
 
@@ -79,9 +81,27 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       return;
     }
     _sdk = sdk;
-    _signalSubscription = sdk.incomingCallSignals.listen(_onIncomingCallSignal);
+    _signalHandler = CallSignalHandler(
+      sdk: sdk,
+      pendingCallManager: _pendingCallManager,
+      logger: _logger,
+      getActiveSession: () => _activeSession,
+      onIncomingCall: (event) {
+        if (!_incomingCallsController.isClosed) {
+          _incomingCallsController.add(event);
+        }
+      },
+      onCallCancelled: (otherPartyChannelDid) {
+        if (!_cancelledCallsController.isClosed) {
+          _cancelledCallsController.add(otherPartyChannelDid);
+        }
+      },
+    );
+    _signalSubscription = sdk.incomingCallSignals.listen(
+      _signalHandler!.onIncomingCallSignal,
+    );
     _declineSignalSubscription = sdk.callDeclineSignals.listen(
-      _onCallDeclineSignal,
+      _signalHandler!.onCallDeclineSignal,
     );
     _logger.info('Plugin initialized', name: _logKey);
   }
@@ -92,6 +112,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     _signalSubscription = null;
     await _declineSignalSubscription?.cancel();
     _declineSignalSubscription = null;
+    _signalHandler = null;
     await _incomingCallsController.close();
     await _cancelledCallsController.close();
     await _activeSession?.dispose();
@@ -252,128 +273,5 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       otherPartyChannelDid: otherPartyChannelDid,
       logger: _logger,
     );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Incoming call signal handling
-  // ---------------------------------------------------------------------------
-
-  void _emitIncomingCall(IncomingAudioVideoCallEvent event) {
-    final registered = _pendingCallManager.registerIncomingCall(
-      callId: event.callId,
-      otherPartyChannelDid: event.otherPartyChannelDid,
-    );
-    if (!registered) {
-      _logger.warning(
-        'Incoming call ${event.callId} auto-rejected: already in a call',
-        name: _logKey,
-      );
-      return;
-    }
-    _incomingCallsController.add(event);
-    _logger.info(
-      'Incoming call: callId=${event.callId} '
-      'from=${event.otherPartyChannelDid.topAndTail()}',
-      name: _logKey,
-    );
-  }
-
-  Future<void> _onIncomingCallSignal(IncomingCallSignal signal) async {
-    final sdk = _sdk!;
-
-    _logger.info(
-      'Incoming call signal for ${signal.ownChannelDid.topAndTail()}',
-      name: _logKey,
-    );
-
-    try {
-      final channel = await sdk.getChannelByDid(signal.ownChannelDid);
-      if (channel == null) {
-        throw MeetingPlaceLiveKitCallOperationException(
-          'No channel found for own DID ${signal.ownChannelDid.topAndTail()}',
-        );
-      }
-
-      final callerChannelDid = channel.otherPartyPermanentChannelDid;
-      if (callerChannelDid == null) {
-        throw MeetingPlaceLiveKitCallOperationException(
-          'Channel ${channel.id} has no otherPartyPermanentChannelDid',
-        );
-      }
-
-      final event = IncomingAudioVideoCallEvent(
-        callId: callerChannelDid,
-        otherPartyChannelDid: callerChannelDid,
-        mediaType: signal.mediaType,
-      );
-      _emitIncomingCall(event);
-    } on MeetingPlaceLiveKitCallOperationException catch (e) {
-      _logger.warning(
-        'Dropping incoming call signal for'
-        ' ${signal.ownChannelDid.topAndTail()}: ${e.message}',
-        name: _logKey,
-      );
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Unexpected error handling incoming call signal for'
-        ' ${signal.ownChannelDid.topAndTail()}',
-        error: e,
-        stackTrace: stackTrace,
-        name: _logKey,
-      );
-    }
-  }
-
-  Future<void> _onCallDeclineSignal(CallDeclineSignal signal) async {
-    _logger.info(
-      'Call-decline signal for ${signal.ownChannelDid.topAndTail()}',
-      name: _logKey,
-    );
-
-    String? otherPartyChannelDid;
-    final sdk = _sdk;
-    if (sdk != null) {
-      try {
-        final channel = await sdk.getChannelByDid(signal.ownChannelDid);
-        otherPartyChannelDid = channel?.otherPartyPermanentChannelDid;
-      } catch (e, stackTrace) {
-        _logger.error(
-          'Failed to resolve channel for call-decline signal',
-          error: e,
-          stackTrace: stackTrace,
-          name: _logKey,
-        );
-      }
-    }
-
-    if (otherPartyChannelDid == null) {
-      _logger.warning(
-        '_onCallDeclineSignal: could not resolve other party DID, ignoring',
-        name: _logKey,
-      );
-      return;
-    }
-
-    final session = _activeSession;
-    if (session != null &&
-        session.otherPartyChannelDid == otherPartyChannelDid) {
-      _logger.info(
-        '_onCallDeclineSignal: Callee declined outgoing call to '
-        '${otherPartyChannelDid.topAndTail()}',
-        name: _logKey,
-      );
-      session.notifyDeclined();
-      return;
-    }
-
-    _pendingCallManager.removePendingByDid(otherPartyChannelDid);
-    _logger.info(
-      '_onCallDeclineSignal: Caller ${otherPartyChannelDid.topAndTail()} '
-      'cancelled before answer; notifying app',
-      name: _logKey,
-    );
-    if (!_cancelledCallsController.isClosed) {
-      _cancelledCallsController.add(otherPartyChannelDid);
-    }
   }
 }

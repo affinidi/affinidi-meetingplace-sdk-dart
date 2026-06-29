@@ -1,14 +1,15 @@
 import 'dart:async';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ChannelActivityType, ContactCard;
+    hide ContactCard;
+import 'package:meeting_place_core/meeting_place_core.dart'
+    show ChannelActivityType;
 import 'package:meeting_place_core/src/call/call_decline_signal.dart';
 import 'package:meeting_place_core/src/call/call_media_type.dart';
 import 'package:meeting_place_core/src/call/incoming_call_signal.dart';
 import 'package:meeting_place_core/src/event_handler/channel_activity_event_handler.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
 import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_logger.dart';
-import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';

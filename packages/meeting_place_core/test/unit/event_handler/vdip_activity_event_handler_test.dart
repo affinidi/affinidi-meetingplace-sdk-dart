@@ -1,7 +1,9 @@
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ChannelActivityType, ContactCard;
+    hide ContactCard;
+import 'package:meeting_place_core/meeting_place_core.dart'
+    show ChannelActivityType;
 import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/event_handler/exceptions/event_handler_exception.dart';
 import 'package:meeting_place_core/src/event_handler/vdip_activity_event_handler.dart';
@@ -9,7 +11,6 @@ import 'package:meeting_place_core/src/meeting_place_core_sdk_error_code.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
-import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';

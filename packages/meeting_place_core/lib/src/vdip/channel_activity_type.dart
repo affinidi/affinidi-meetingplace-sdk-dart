@@ -17,13 +17,19 @@ abstract final class ChannelActivityType {
 
   /// Signals that the sender has initiated an audio-only call on this channel.
   ///
-  /// Identical to [callInviteVideo] in handling except that the receiver renders
-  /// audio-only incoming-call UI instead of video.
-  static const callInviteAudio = 'call-invite-audio';
+  /// Identical to [callInviteVideo] in handling except that the receiver
+  /// renders audio-only incoming-call UI instead of video.
+  static const String callInviteAudio = 'call-invite-audio';
 
   /// Signals that the recipient (callee) has declined a call before answering.
+  ///
+  /// Sent by the callee to the caller's channel DID. The caller reacts by
+  /// emitting `AudioVideoCallStatus.declined` on the active session.
   static const String callDecline = 'call-decline';
 
+  /// Signals that the sender requests VDIP credential issuance.
   static const String vdipRequestIssuance = 'vdip-request-issuance';
+
+  /// Signals that VDIP credentials were issued and are available.
   static const String vdipIssuedCredentials = 'vdip-issued-credentials';
 }

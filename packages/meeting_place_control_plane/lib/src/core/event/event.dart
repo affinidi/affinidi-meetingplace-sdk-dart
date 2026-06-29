@@ -1,5 +1,4 @@
 export 'channel_activity.dart';
-export 'channel_activity_type.dart';
 export 'discovery_event.dart';
 export 'discovery_event_type.dart';
 export 'group_membership_finalised.dart';

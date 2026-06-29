@@ -46,8 +46,9 @@ class CallMetadata {
     final metadata = attachment.metadata;
     if (metadata == null || metadata[mediaKindKey] != callKind) return null;
     final mediaType = _mediaTypeFromMetadata(metadata[callMediaTypeKey]);
+    if (mediaType == null) return null;
     final status = _statusFromMetadata(metadata[statusKey]);
-    if (mediaType == null || status == null) return null;
+    if (status == null) return null;
     return CallMetadata(
       mediaType: mediaType,
       status: status,
@@ -122,6 +123,7 @@ class CallMetadata {
   }
 
   static CallMediaType? _mediaTypeFromMetadata(Object? value) {
+    if (value is! String) return null;
     for (final type in CallMediaType.values) {
       if (type.name == value) return type;
     }
@@ -129,6 +131,7 @@ class CallMetadata {
   }
 
   static CallStatus? _statusFromMetadata(Object? value) {
+    if (value is! String) return null;
     for (final status in CallStatus.values) {
       if (status.name == value) return status;
     }

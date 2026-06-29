@@ -207,11 +207,12 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     assertCanSend();
 
     final Message message;
+    final notification = buildChannelNotification('chat-activity');
     if (attachments.isEmpty) {
       final outgoing = TextMessageRoomEvent(
         senderDid: did,
         text: text,
-        notification: buildChannelNotification('chat-activity'),
+        notification: notification,
       );
       message = await _sendRoomEventMessage(outgoing);
       logger.info(
@@ -222,7 +223,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       final outgoing = MetadataMessageRoomEvent(
         senderDid: did,
         metadata: attachments.first.metadata ?? {},
-        notification: buildChannelNotification('chat-activity'),
+        notification: notification,
       );
       message = await _sendRoomEventMessage(outgoing, attachments: attachments);
       logger.info(
@@ -230,21 +231,16 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         name: _matrixLogkey,
       );
     } else {
-      message =
-          await MediaTextMessageSender(
-            coreSDK: coreSDK,
-            did: did,
-            chatId: chatId,
-            chatRepository: chatRepository,
-            chatStream: chatStream,
-            serverEventIdToMessageId: _serverEventIdToMessageId,
-            getChannel: getChannel,
-            logger: logger,
-          ).send(
-            text: text,
-            attachments: attachments,
-            notification: buildChannelNotification('chat-activity'),
-          );
+      message = await MediaTextMessageSender(
+        coreSDK: coreSDK,
+        did: did,
+        chatId: chatId,
+        chatRepository: chatRepository,
+        chatStream: chatStream,
+        serverEventIdToMessageId: _serverEventIdToMessageId,
+        getChannel: getChannel,
+        logger: logger,
+      ).send(text: text, attachments: attachments, notification: notification);
     }
 
     await coreSDK.sendMessage(

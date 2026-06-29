@@ -25,14 +25,14 @@ The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and sec
 - End-to-end encryption for secure and private communication.
 - Support for individual chats over DIDComm or Matrix.
 - Support for Matrix group chats.
-- Matrix chat features such as voice messages, reactions, edit messages, delete messages, typing indicators, delivery receipts, and media attachments.
+- Matrix based chat features such as voice messages, reactions, edit messages, delete messages, typing indicators, delivery receipts, and media attachments.
 - Notifies connections for contact details update (e.g., name change).
 - Supports ContactCard in publishing a connection offer (invitation) and establishing connections with others to chat.
-- Implements the DIDComm Message v2.1 protocol for sending and receiving messages.
+- Supports DIDComm Message v2.1 and Matrix based transports for sending and receiving messages.
 
 ## Transport Capabilities
 
-Chats can run over DIDComm or Matrix. Each transport supports a different set of features. Check `capabilities` before showing a feature in your app:
+Chats can run over DIDComm or Matrix based transport. Each transport supports a different set of features. Check `capabilities` before showing a feature in your app:
 
 ```dart
 if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
@@ -40,11 +40,24 @@ if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
 }
 ```
 
-| Scope | Supported features |
-|-------|--------------------|
-| **Matrix only** | Group chat, voice messages, edit messages, delete messages |
-| **DIDComm only** | Presence, which means online or last-seen status |
-| **Both** | Text, media attachments, reactions, typing indicators, delivery receipts, visual effects, contact details update |
+Individual chats can use DIDComm based transport or Matrix based transport. Group chats require Matrix based transport.
+
+| Feature | DIDComm based transport | Matrix based transport |
+|---------|-------------------------|------------------------|
+| Individual chat | 🟢 | 🟢 |
+| Group chat | 🔴 | 🟢 |
+| Text messages | 🟢 | 🟢 |
+| Image attachments | 🟢<br><sub>Auto downloads</sub> | 🟢 |
+| File/document attachments | 🔴 | 🟢 |
+| Audio/video attachments | 🔴 | 🟢 |
+| Voice messages | 🔴 | 🟢 |
+| Message edit/delete | 🔴 | 🟢 |
+| Reactions | 🟢 | 🟢 |
+| Typing indicators | 🟢 | 🟢 |
+| Delivery receipts | 🟢 | 🟢 |
+| Visual effects | 🟢 | 🟢 |
+| Contact details update | 🟢 | 🟢 |
+| Presence Indicator | 🟢 | 🔴 |
 
 Each SDK declares its own set in its `capabilities` getter: `IndividualDidcommChatSDK`, `IndividualMatrixChatSDK`, and `GroupMatrixChatSDK`. See [Chat transport capabilities](doc/chat-transport-capabilities.md) for the full list.
 
@@ -55,14 +68,14 @@ Most apps should not create a concrete chat SDK directly. Call `MeetingPlaceChat
 | SDK | When it is used |
 |-----|-----------------|
 | `IndividualDidcommChatSDK` | One-to-one DIDComm chats. Use this for DIDComm-only flows and presence. |
-| `IndividualMatrixChatSDK` | One-to-one Matrix chats. Use this for richer chat actions such as voice messages, edit, and delete. |
+| `IndividualMatrixChatSDK` | One-to-one Matrix based chats. Use this for richer chat actions such as voice messages, edit, and delete. |
 | `GroupMatrixChatSDK` | Group chats. Group chat always uses Matrix and also supports group membership actions. |
 
 ## Matrix Requirements
 
 Matrix-backed chats need the Core SDK to be configured for Matrix first. The chat package uses Core for Matrix login, room access, media upload/download, and end-to-end encryption.
 
-Before starting a Matrix chat, make sure:
+Before starting a Matrix based chat, make sure:
 
 - The Core SDK was created with `MatrixConfig`.
 - `MatrixConfig.homeserver` points to your Matrix homeserver.

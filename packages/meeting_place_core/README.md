@@ -33,11 +33,24 @@ The Core SDK facilitates seamless, secure, and authentic communication between p
 
 Apps can use DIDComm, Matrix, or both for chat. The Chat SDK exposes the supported features through `capabilities`.
 
-| Scope | Supported features |
-|-------|--------------------|
-| **Matrix only** | Group chat, voice messages, edit messages, delete messages |
-| **DIDComm only** | Presence, which means online or last-seen status |
-| **Both** | Text, media attachments, reactions, typing indicators, delivery receipts, visual effects, contact details update |
+Individual chats can use DIDComm based transport or Matrix based transport. Group chats require Matrix based transport.
+
+| Feature | DIDComm based transport | Matrix based transport |
+|---------|-------------------------|------------------------|
+| Individual chat | 🟢 | 🟢 |
+| Group chat | 🔴 | 🟢 |
+| Text messages | 🟢 | 🟢 |
+| Image attachments | 🟢<br><sub>Auto downloads</sub> | 🟢 |
+| File/document attachments | 🔴 | 🟢 |
+| Audio/video attachments | 🔴 | 🟢 |
+| Voice messages | 🔴 | 🟢 |
+| Message edit/delete | 🔴 | 🟢 |
+| Reactions | 🟢 | 🟢 |
+| Typing indicators | 🟢 | 🟢 |
+| Delivery receipts | 🟢 | 🟢 |
+| Visual effects | 🟢 | 🟢 |
+| Contact details update | 🟢 | 🟢 |
+| Presence Indicator | 🟢 | 🔴 |
 
 Use Matrix when you need richer chat features or group chat. Use DIDComm when you need a direct DIDComm-based chat flow.
 

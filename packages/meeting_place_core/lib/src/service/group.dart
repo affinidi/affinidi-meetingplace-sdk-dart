@@ -18,6 +18,7 @@ import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
 import '../repository/repository.dart';
+import '../transport/meeting_place_transport.dart';
 import '../utils/string.dart';
 import 'channel/channel_service.dart';
 import 'connection_manager/connection_manager.dart';
@@ -30,7 +31,6 @@ import 'group/group_message.dart' as group_message;
 import 'group_service/accept_group_offer_result.dart';
 import 'identity/identity_service.dart';
 import 'identity/model/permanent_identity.dart';
-import 'matrix/matrix_service.dart';
 
 class GroupService {
   GroupService({
@@ -45,7 +45,7 @@ class GroupService {
     required IdentityService identityService,
     required cp.ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required DidResolver didResolver,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _wallet = wallet,
@@ -59,7 +59,7 @@ class GroupService {
        _identityService = identityService,
        _controlPlaneSDK = controlPlaneSDK,
        _mediatorSDK = mediatorSDK,
-       _matrixService = matrixService,
+       _channelTransport = channelTransport,
        _didResolver = didResolver,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
@@ -80,7 +80,7 @@ class GroupService {
 
   final cp.ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceMediatorSDK _mediatorSDK;
-  final MatrixService _matrixService;
+  final MeetingPlaceTransport _channelTransport;
 
   final _recrypt = recrypt.Recrypt();
 
@@ -110,7 +110,6 @@ class GroupService {
 
     final ownerIdentity = await _identityService.createPermanentIdentity(
       _wallet,
-      transport: ChannelTransport.matrix,
     );
     final ownerDid = ownerIdentity.didManager;
     final ownerDidDocument = ownerIdentity.didDocument;
@@ -181,11 +180,22 @@ class GroupService {
     await _groupRepository.createGroup(group);
 
     try {
+      final channel = Channel(
+        offerLink: result.offerLink,
+        publishOfferDid: oobDidDoc.id,
+        mediatorDid: result.mediatorDid,
+        status: ChannelStatus.inaugurated,
+        contactCard: card,
+        type: ChannelType.group,
+        isConnectionInitiator: true,
+        permanentChannelDid: ownerDidDocument.id,
+        otherPartyPermanentChannelDid: result.groupDid,
+        externalRef: externalRef,
+        transport: ChannelTransport.matrix,
+      );
+
       await (
-        _matrixService.createRoom(
-          didManager: ownerDid,
-          channelDid: result.groupDid,
-        ),
+        _channelTransport.setupChannel(channel: channel, didManager: ownerDid),
         _allowGroupToMessageGroupOwner(
           groupOwnerDid: ownerDid,
           mediatorDid: result.mediatorDid,
@@ -193,7 +203,6 @@ class GroupService {
         ),
       ).wait;
 
-      final oobDidDoc = await oobDidManager.getDidDocument();
       final connectionOffer = GroupConnectionOffer(
         groupId: result.groupId,
         groupDid: result.groupDid,
@@ -218,21 +227,6 @@ class GroupService {
       );
 
       await _connectionOfferRepository.createConnectionOffer(connectionOffer);
-
-      final channel = Channel(
-        offerLink: result.offerLink,
-        publishOfferDid: oobDidDoc.id,
-        mediatorDid: result.mediatorDid,
-        status: ChannelStatus.inaugurated,
-        contactCard: card,
-        type: ChannelType.group,
-        transport: ChannelTransport.matrix,
-        isConnectionInitiator: true,
-        permanentChannelDid: ownerDidDocument.id,
-        otherPartyPermanentChannelDid: result.groupDid,
-        externalRef: externalRef,
-      );
-
       await _channelService.persistChannel(channel);
 
       _logger.info(
@@ -302,7 +296,6 @@ class GroupService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
-      transport: ChannelTransport.matrix,
     );
     final permanentChannelDidManager = permanentIdentity.didManager;
     final permanentChannelDidDocument = permanentIdentity.didDocument;
@@ -665,14 +658,11 @@ class GroupService {
       group.ownerDid!,
     );
 
-    final roomId = await _matrixService.resolveChannelRoomId(
-      didManager: ownerIdentity.didManager,
-      channelDid: group.did,
-    );
-
-    await _matrixService.inviteUser(
-      roomId,
-      did: member.did,
+    final groupChannel = await _channelService
+        .findChannelByOtherPartyPermanentChannelDid(group.did);
+    await _channelTransport.inviteToChannel(
+      channel: groupChannel,
+      participantDid: member.did,
       didManager: ownerIdentity.didManager,
     );
 
@@ -827,14 +817,11 @@ class GroupService {
     required String memberDid,
     required PermanentIdentity ownerIdentity,
   }) async {
-    final roomId = await _matrixService.resolveChannelRoomId(
-      didManager: ownerIdentity.didManager,
-      channelDid: group.did,
-    );
-
-    await _matrixService.kickUser(
-      roomId,
-      did: memberDid,
+    final groupChannel = await _channelService
+        .findChannelByOtherPartyPermanentChannelDid(group.did);
+    await _channelTransport.removeFromChannel(
+      channel: groupChannel,
+      participantDid: memberDid,
       didManager: ownerIdentity.didManager,
     );
   }
@@ -1002,14 +989,10 @@ class GroupService {
     );
 
     if (group.isMemberOfTypeAdmin(memberDid)) {
-      final roomId = await _matrixService.resolveChannelRoomId(
-        didManager: memberIdentity.didManager,
-        channelDid: group.did,
-      );
       await _leaveGroupAsAdmin(
         group,
         memberDid,
-        matrixRoomId: roomId,
+        channel: channel,
         memberDidManager: memberIdentity.didManager,
       );
     } else {
@@ -1076,14 +1059,13 @@ class GroupService {
   Future<void> _leaveGroupAsAdmin(
     Group group,
     String memberDid, {
-    required String matrixRoomId,
+    required Channel channel,
     required DidManager memberDidManager,
   }) async {
-    await _matrixService.sendRoomEvent(
-      matrixRoomId,
-      // TODO: Rework in separate PR to model group lifecycle for matrix events
-      'com.affinidi.chat.group-deletion',
-      {'group_id': group.id},
+    await _channelTransport.sendEvent(
+      channel: channel,
+      type: 'com.affinidi.chat.group-deletion',
+      content: {'group_id': group.id},
       didManager: memberDidManager,
     );
 
@@ -1107,13 +1089,11 @@ class GroupService {
     required PermanentIdentity identity,
     required Channel channel,
   }) async {
-    final roomId = await _matrixService.resolveChannelRoomId(
-      didManager: identity.didManager,
-      channelDid: group.did,
-    );
-
     try {
-      await _matrixService.leaveRoom(roomId, didManager: identity.didManager);
+      await _channelTransport.leaveChannel(
+        channel: channel,
+        didManager: identity.didManager,
+      );
       await _deregisterMember(group: group, memberDid: identity.didDocument.id);
     } catch (e, stackTrace) {
       /// Gracefully handle errors during leaving the group, ensuring local

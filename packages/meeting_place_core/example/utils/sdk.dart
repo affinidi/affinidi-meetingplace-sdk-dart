@@ -1,10 +1,7 @@
 import 'dart:io';
-
 import 'package:dotenv/dotenv.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
-import 'package:uuid/uuid.dart';
 import 'repository/channel_repository_impl.dart';
 import 'repository/connection_group_offer_repository_impl.dart';
 import 'repository/connection_offer_repository_impl.dart';
@@ -23,39 +20,21 @@ String getMediatorDid() =>
     env['MEDIATOR_DID'] ??
     (throw Exception('MEDIATOR_DID not set in environment'));
 
-Uri getMatrixHomeserver() => switch (
-        Platform.environment['MATRIX_HOMESERVER'] ?? env['MATRIX_HOMESERVER']) {
-      final s? => Uri.parse(s),
-      _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
-    };
-
-String getVodozemacLibraryPath() =>
-    Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
-    env['VODOZEMAC_LIBRARY_PATH'] ??
-    (throw Exception('VODOZEMAC_LIBRARY_PATH not set in environment'));
-
-Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
-  sqfliteFfiInit();
-  final directory = Directory(
-    '${Directory.systemTemp.path}/meeting_place_core_example_matrix',
-  );
-  await directory.create(recursive: true);
-  return MatrixSdkDatabase.init(
-    context.databaseName,
-    database: await databaseFactoryFfi.openDatabase(
-      '${directory.path}/${context.databaseName}.sqlite',
-    ),
+String getVodozemacLibraryPath() {
+  final override = Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
+      env['VODOZEMAC_LIBRARY_PATH'];
+  if (override != null) return override;
+  if (Platform.isMacOS) return 'example/libvodozemac_bindings_dart.dylib';
+  if (Platform.isLinux) return 'example/libvodozemac_bindings_dart.so';
+  throw Exception(
+    'No bundled vodozemac binary for ${Platform.operatingSystem}; '
+    'set VODOZEMAC_LIBRARY_PATH',
   );
 }
 
-MatrixConfig getMatrixConfig() => MatrixConfig(
+Config getConfig() => Config(
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
-      homeserver: getMatrixHomeserver(),
-      databaseFactory: const CallbackMatrixDatabaseFactory(
-        openDatabase: _openMatrixDatabase,
-      ),
-      deviceId: const Uuid().v4(),
     );
 
 RepositoryConfig getRepositoryConfig() {
@@ -72,7 +51,7 @@ Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
   return MeetingPlaceCoreSDK.create(
     wallet: wallet,
     repositoryConfig: getRepositoryConfig(),
-    config: getMatrixConfig(),
+    config: getConfig(),
     logger: DefaultMeetingPlaceCoreSDKLogger(),
   );
 }

@@ -32,6 +32,7 @@ import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_service.dart';
 import 'service/outreach/outreach_service.dart';
+import 'transport/nop_transport.dart';
 import 'utils/cached_did_resolver.dart';
 
 /// # Meeting Place Core SDK
@@ -75,13 +76,11 @@ import 'utils/cached_did_resolver.dart';
 /// final sdk = MeetingPlaceCoreSDK.create(
 ///   wallet: wallet,
 ///   repositoryConfig: repositoryConfig,
-///   config: MatrixConfig(
+///   config: Config(
 ///     mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
 ///     controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
-///     homeserver: Uri.parse('https://matrix.example.com'),
-///     databaseFactory: const UnsupportedMatrixDatabaseFactory(),
-///     deviceId: '<YOUR-DEVICE-ID>',
 ///   ),
+///   channelTransport: channelTransport,
 /// );
 /// ```
 ///
@@ -153,7 +152,7 @@ class MeetingPlaceCoreSDK {
     required MeetingPlaceCoreSDKOptions options,
     required SDKErrorHandler sdkErrorHandler,
     required DIDCommTransport didcommTransport,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required MessageService messageService,
     required Future<DidManager> Function(String did) getDidManager,
     required StreamController<ChannelAttachmentEvent>
@@ -176,16 +175,44 @@ class MeetingPlaceCoreSDK {
        _options = options,
        _sdkErrorHandler = sdkErrorHandler,
        _didcomm = didcommTransport,
+       _channelTransport = channelTransport,
+       _messageService = messageService,
        _messagingService = MessagingService(
-         matrixService: matrixService,
+         channelTransport: channelTransport,
          messageService: messageService,
-         channelService: channelService,
-         groupRepository: repositoryConfig.groupRepository,
          didcomm: didcommTransport,
          getDidManager: getDidManager,
        ),
        _channelAttachmentsController = channelAttachmentsController,
        _vdipClient = vdipClient;
+
+  /// Constructs a subclass from an existing [base] instance, sharing all of
+  /// its internal services. Intended for SDK extension packages that need to
+  /// subclass [MeetingPlaceCoreSDK] from outside this library.
+  MeetingPlaceCoreSDK.extend(MeetingPlaceCoreSDK base)
+    : wallet = base.wallet,
+      _repositoryConfig = base._repositoryConfig,
+      _mediatorSDK = base._mediatorSDK,
+      _controlPlaneSDK = base._controlPlaneSDK,
+      _connectionManager = base._connectionManager,
+      _connectionService = base._connectionService,
+      _controlPlaneEventService = base._controlPlaneEventService,
+      _controlPlaneEventStreamManager = base._controlPlaneEventStreamManager,
+      _groupService = base._groupService,
+      _notificationService = base._notificationService,
+      _outreachService = base._outreachService,
+      _oobService = base._oobService,
+      _channelService = base._channelService,
+      _mediatorDid = base._mediatorDid,
+      _controlPlaneDid = base._controlPlaneDid,
+      _options = base._options,
+      _sdkErrorHandler = base._sdkErrorHandler,
+      _didcomm = base._didcomm,
+      _channelTransport = base._channelTransport,
+      _messageService = base._messageService,
+      _messagingService = base._messagingService,
+      _channelAttachmentsController = base._channelAttachmentsController,
+      _vdipClient = base._vdipClient;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -206,6 +233,8 @@ class MeetingPlaceCoreSDK {
   final VdipClient _vdipClient;
 
   final DIDCommTransport _didcomm;
+  final MeetingPlaceTransport _channelTransport;
+  final MessageService _messageService;
   final MessagingService _messagingService;
 
   String _mediatorDid;
@@ -220,9 +249,12 @@ class MeetingPlaceCoreSDK {
   /// different algorithms for signing and verifying VC and VP.
   /// - [repositoryConfig]: A repository object which defines the storage,
   /// group, key and channel repository objects.
-  /// - [config]: Base SDK configuration. Pass [MatrixConfig] to enable
-  ///   matrix-backed features, or [Config] for mediator/control-plane-only
-  ///   initialization.
+  /// - [config]: Base SDK configuration (provides mediatorDid and
+  ///   controlPlaneDid).
+  /// - [channelTransportFactory]: Optional factory that receives the
+  ///   internally-created [ControlPlaneSDK] and returns the
+  ///   [MeetingPlaceTransport] for channel operations (Matrix rooms, file
+  ///   transfer, etc.). If omitted, channel operations are no-ops.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
   ///
   /// **Returns:**
@@ -232,6 +264,7 @@ class MeetingPlaceCoreSDK {
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
     required Config config,
+    MeetingPlaceTransport Function(ControlPlaneSDK)? channelTransportFactory,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -298,6 +331,9 @@ class MeetingPlaceCoreSDK {
       logger: controlPlaneLogger,
     );
 
+    final channelTransport =
+        channelTransportFactory?.call(controlPlaneSDK) ?? NopTransport();
+
     final mediatorSDK = MeetingPlaceMediatorSDK(
       mediatorDid: mediatorDid,
       didResolver: didResolver,
@@ -310,27 +346,9 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
-    if (config is! MatrixConfig) {
-      // TODO(MA): Allow creating a setup that does not need matrix and can work
-      // with any mediator that implements the expected interfaces,
-      // like in the original version of the SDK. This will require some
-      // refactoring to separate the core logic from matrix-specific
-      // implementations, but will make the SDK more flexible and adaptable to
-      // different environments and use cases.
-      throw UnsupportedError(
-        '''Unsupported config type. Expected MatrixConfig for this version of the SDK.''',
-      );
-    }
-
-    final matrixService = MatrixService(
-      config: config,
-      controlPlaneSDK: controlPlaneSDK,
-      logger: mpxLogger,
-    );
-
     final identityService = IdentityService(
       connectionManager: connectionManager,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       didWebDocumentService: DidWebDocumentService(
         controlPlaneSDK: controlPlaneSDK,
         rootDidManager: didManager,
@@ -353,7 +371,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       logger: mpxLogger,
     );
 
@@ -374,7 +392,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       identityService: identityService,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       didResolver: didResolver,
       logger: mpxLogger,
     );
@@ -414,7 +432,7 @@ class MeetingPlaceCoreSDK {
       channelRepository: repositoryConfig.channelRepository,
       channelService: channelService,
       streamManager: discoveryEventStreamManager,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       identityService: identityService,
       didResolver: didResolver,
       options: ControlPlaneEventHandlerManagerOptions(
@@ -487,10 +505,10 @@ class MeetingPlaceCoreSDK {
       expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
     );
 
-    Future<DidManager> matrixTransportGetDidManager(String did) =>
+    Future<DidManager> channelTransportGetDidManager(String did) =>
         connectionManager.getDidManagerForDid(wallet, did);
 
-    return MeetingPlaceCoreSDK._(
+    final init = MeetingPlaceCoreSDK._(
       wallet: wallet,
       repositoryConfig: repositoryConfig,
       mediatorSDK: mediatorSDK,
@@ -509,12 +527,14 @@ class MeetingPlaceCoreSDK {
       options: options,
       sdkErrorHandler: sdkErrorHandler,
       didcommTransport: didcommTransport,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       messageService: messageService,
-      getDidManager: matrixTransportGetDidManager,
+      getDidManager: channelTransportGetDidManager,
       channelAttachmentsController: channelAttachmentsController,
       vdipClient: vdipClient,
     );
+
+    return init;
   }
 
   /// Returns instance of used low level [ControlPlaneSDK].
@@ -613,21 +633,19 @@ class MeetingPlaceCoreSDK {
   /// fetches for [expectedDids] on the matrix client owned by [localDid],
   /// returning once the room state and key catalog can support an encrypted
   /// send all expected recipients can decrypt. Production callers do not
-  /// need this — see [MatrixService.waitForRoomEncryptionReady] for the
-  /// underlying race it hides.
+  /// need this.
+  ///
+  /// Overridden by `MatrixMeetingPlaceSDK`. Throws [UnsupportedError] on
+  /// non-Matrix SDKs.
   @visibleForTesting
   Future<void> waitForRoomEncryptionReady({
     required String localDid,
     required Iterable<String> expectedDids,
     Duration timeout = const Duration(seconds: 15),
   }) {
-    return _withSdkExceptionHandling(() {
-      return _messagingService.waitForRoomEncryptionReady(
-        localDid: localDid,
-        expectedDids: expectedDids,
-        timeout: timeout,
-      );
-    });
+    throw UnsupportedError(
+      'waitForRoomEncryptionReady requires MatrixMeetingPlaceSDK.',
+    );
   }
 
   /// Creates an Out-Of-Band invitation for a User.
@@ -1337,9 +1355,7 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Sends [message] through its transport (Matrix or DIDComm).
-  ///
-  /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
+  /// Returns the transport event id for the outgoing message (or `null` for
   /// matrix events that don't produce one, such as `m.read`, `m.typing`,
   /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
   Future<String?> sendMessage(OutgoingMessage message) {
@@ -1365,6 +1381,34 @@ class MeetingPlaceCoreSDK {
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);
   }
+
+  // ---------------------------------------------------------------------------
+  // Protected transport helpers — available to subclasses (e.g.
+  // MatrixMeetingPlaceSDK) that need direct access to low-level services for
+  // transport-specific overrides of subscribe/sendMessage/fetchHistory.
+  // ---------------------------------------------------------------------------
+
+  @protected
+  MeetingPlaceTransport get channelTransport => _channelTransport;
+
+  @protected
+  GroupRepository get groupRepository => _repositoryConfig.groupRepository;
+
+  @protected
+  Future<Channel> findChannelByDid(String did) =>
+      _channelService.findChannelByDid(did);
+
+  @protected
+  Future<Channel?> findChannelByDidOrNull(String did) =>
+      _channelService.findChannelByDidOrNull(did);
+
+  @protected
+  Future<void> updateMatrixSyncMarker(Channel channel, String eventId) =>
+      _channelService.updateMatrixSyncMarker(channel, eventId);
+
+  @protected
+  Future<void> notifyChannel(ChannelNotification notification) =>
+      _messageService.notifyChannel(notification);
 
   static Uri _didWebBaseHostFromControlPlaneDid(String controlPlaneDid) {
     var domain = controlPlaneDid.replaceFirst('did:web:', '');

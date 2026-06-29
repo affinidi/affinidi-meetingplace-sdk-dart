@@ -11,4 +11,4 @@ enum ControlPlaneEventType {
   InvitationOutreach,
 }
 
-enum DiscoveryEventStatus { Unknown, New, Deleted, Processed }
+enum ControlPlaneEventStatus { Unknown, New, Deleted, Processed }

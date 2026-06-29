@@ -3,9 +3,8 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
-import '../service/matrix/matrix_room_event.dart';
-import '../service/matrix/matrix_service.dart';
 import '../service/mediator/fetch_messages_options.dart';
+import '../transport/meeting_place_transport.dart';
 import 'base_event_handler.dart';
 
 class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
@@ -15,12 +14,12 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
     required super.connectionManager,
     required super.connectionOfferRepository,
     required super.channelService,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required super.options,
     required super.logger,
-  }) : _matrixService = matrixService;
+  }) : _channelTransport = channelTransport;
 
-  final MatrixService _matrixService;
+  final MeetingPlaceTransport _channelTransport;
 
   static final String _logKey = 'ChatActivityEventHandler';
 
@@ -32,11 +31,10 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
 
     try {
       final channel = await channelService.findChannelByDid(event.did);
-      switch (channel.transport) {
-        case ChannelTransport.didcomm:
-          await _syncFromMediator(channel);
-        case ChannelTransport.matrix:
-          await _syncFromMatrixRoom(channel);
+      if (channel.transport == ChannelTransport.didcomm) {
+        await _syncFromMediator(channel);
+      } else {
+        await _syncFromChannelTransport(channel);
       }
 
       logger.info(
@@ -95,41 +93,25 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
     );
   }
 
-  Future<void> _syncFromMatrixRoom(Channel channel) async {
+  Future<void> _syncFromChannelTransport(Channel channel) async {
     final didManager = await findDidManager(channel);
 
-    final roomId = await _matrixService.resolveRoomIdForChannel(
-      didManager: didManager,
+    final events = await _channelTransport.fetchHistory(
       channel: channel,
-    );
-
-    final events = await _matrixService.fetchRoomHistory(
-      roomId,
       didManager: didManager,
-      sinceEventId: channel.matrixSyncMarker,
+      since: channel.matrixSyncMarker,
     );
 
     if (events.isEmpty) return;
 
-    final inboundChatCount = events.where(_isInboundNewMessage).length;
+    final inboundChatCount = events
+        .where(_channelTransport.isNewInboundMessage)
+        .length;
     if (inboundChatCount > 0) {
       channel.seqNo += inboundChatCount;
     }
 
     await channelService.updateMatrixSyncMarker(channel, events.last.id);
-  }
-
-  /// True for incoming `m.room.message` events that introduce a new message
-  /// to the conversation. Edits arrive with the same `m.room.message` type
-  /// but carry an `m.replace` relation and mutate an existing message in
-  /// place (see TextMessageHandler / MessageEditHandler), so they must not
-  /// contribute to the unread/badge count derived from seqNo.
-  bool _isInboundNewMessage(MatrixRoomEvent e) {
-    if (e.isFromMe) return false;
-    if (e.type != 'm.room.message') return false;
-    final relatesTo = e.content['m.relates_to'];
-    if (relatesTo is Map && relatesTo['rel_type'] == 'm.replace') return false;
-    return true;
   }
 
   @override

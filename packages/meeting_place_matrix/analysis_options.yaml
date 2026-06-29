@@ -1,0 +1,10 @@
+include: package:dart_flutter_team_lints/analysis_options.yaml
+
+linter:
+  rules:
+    - avoid_print
+    - sort_constructors_first
+
+analyzer:
+  errors:
+    avoid_print: error

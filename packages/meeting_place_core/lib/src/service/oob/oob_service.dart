@@ -175,10 +175,7 @@ class OobService {
 
     final permanentIdentity = did != null
         ? await _identityService.getPermanentIdentity(_wallet, did)
-        : await _identityService.createPermanentIdentity(
-            _wallet,
-            transport: ChannelTransport.didcomm,
-          );
+        : await _identityService.createPermanentIdentity(_wallet);
 
     final (invitationMessage, mediatorDid) = await _fetchOobInvitation(
       oobUri: oobUri,
@@ -194,10 +191,10 @@ class OobService {
       acceptOfferDid: acceptOfferIdentity.didDocument.id,
       permanentChannelDid: permanentIdentity.didDocument.id,
       type: ChannelType.oob,
-      transport: ChannelTransport.didcomm,
       isConnectionInitiator: false,
       contactCard: contactCard,
       externalRef: externalRef,
+      transport: ChannelTransport.didcomm,
     );
 
     final streamSubscription = await _mediatorService.subscribe(
@@ -276,10 +273,7 @@ class OobService {
             _wallet,
             existingPermanentChannelDid,
           )
-        : (await _identityService.createPermanentIdentity(
-            _wallet,
-            transport: ChannelTransport.didcomm,
-          )).didManager;
+        : (await _identityService.createPermanentIdentity(_wallet)).didManager;
 
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();
@@ -304,11 +298,11 @@ class OobService {
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       status: ChannelStatus.inaugurated,
       type: ChannelType.oob,
-      transport: ChannelTransport.didcomm,
       isConnectionInitiator: true,
       contactCard: session.contactCard,
       otherPartyContactCard: message.contactCard,
       externalRef: externalRef,
+      transport: ChannelTransport.didcomm,
     );
 
     await _channelService.persistChannel(channel);

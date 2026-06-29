@@ -10,18 +10,23 @@ import 'package:meeting_place_chat/meeting_place_chat.dart'
         CallMediaType,
         CallRole;
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart'
+    show deriveMatrixUserId;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../constants/audio_video_call_defaults.dart';
+import '../core_sdk_extensions.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../interfaces/livekit_room.dart';
 import '../models/call_e2ee_state.dart';
 import '../providers/livekit_room_provider.dart';
+import '../providers/matrix_call_service_provider.dart';
 import '../providers/plugin_core_sdk_provider.dart';
 import '../providers/plugin_logger_provider.dart';
 import '../providers/plugin_options_provider.dart';
 import '../providers/plugin_rtc_delegate_provider.dart';
 import '../providers/sfu_token_service_provider.dart';
+import '../services/matrix_call_service.dart';
 import '../transport/call_invite_room_event.dart';
 import '../utils/string.dart';
 import 'sfu_token_service.dart';
@@ -55,6 +60,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
 
   late final MeetingPlaceCoreSDKLogger _logger = ref.read(pluginLoggerProvider);
   late MeetingPlaceCoreSDK _sdk;
+  late MatrixCallService _callService;
   late Duration _e2eeReadyTimeout;
   late Duration _outgoingCallTimeout;
   late SfuTokenService _livekitTokenService;
@@ -107,6 +113,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
   @override
   AudioVideoCallState build(String otherPartyChannelDid) {
     _sdk = ref.read(pluginCoreSdkProvider);
+    _callService = ref.read(matrixCallServiceProvider);
     _e2eeReadyTimeout = ref.read(pluginOptionsProvider).e2eeReadyTimeout;
     _outgoingCallTimeout = ref.read(pluginOptionsProvider).outgoingCallTimeout;
     _rtcDelegate = ref.read(pluginRtcDelegateProvider);
@@ -121,7 +128,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
       final roomId = _matrixRoomId;
       final callId = _matrixCallId;
       if (roomId != null && callId != null) {
-        unawaited(_sdk.leaveVideoCall(roomId: roomId, callId: callId));
+        unawaited(_callService.leaveCall(roomId: roomId, callId: callId));
       }
       // Ensure the LiveKit room is always released, even if leaveCall() was
       // never called (e.g. screen popped mid-call or app killed).
@@ -338,12 +345,12 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     required String roomName,
   }) async {
     final didManager = await _sdk.getDidManager(ownChannelDid);
-    final matrixRoomId = await _sdk.resolveMatrixRoomIdForChannel(
+    final matrixRoomId = await _callService.resolveRoomIdForChannel(
       didManager: didManager,
       channel: channel,
     );
-    final openIdToken = await _sdk.getMatrixOpenIdToken(didManager);
-    final deviceId = await _sdk.getMatrixDeviceId(didManager);
+    final openIdToken = await _callService.getOpenIdToken(didManager);
+    final deviceId = await _callService.getDeviceId(didManager);
     final participantIdToDid = await _buildParticipantIdToDidMap(
       channel: channel,
       ownChannelDid: ownChannelDid,
@@ -386,7 +393,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     required String matrixRoomId,
     required bool isRecipient,
   }) async {
-    await _sdk.initializeMatrixRTCWithDelegate(
+    await _callService.initializeVoIPWithDelegate(
       didManager: didManager,
       delegate: _rtcDelegate,
     );
@@ -443,7 +450,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
   }) async {
     final attempts = isRecipient ? _recipientCallIdDiscoveryAttempts : 1;
     for (var attempt = 0; attempt < attempts; attempt++) {
-      final callId = await _sdk.activeVideoCallId(
+      final callId = await _callService.activeCallId(
         didManager: didManager,
         roomId: roomId,
       );
@@ -464,7 +471,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     required String sfuUrl,
     required String roomName,
   }) async {
-    await _sdk.startVideoCall(
+    await _callService.startCall(
       didManager: didManager,
       roomId: matrixRoomId,
       callId: callId,
@@ -547,7 +554,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
 
     try {
       if (roomId != null && callId != null) {
-        await _sdk.leaveVideoCall(roomId: roomId, callId: callId);
+        await _callService.leaveCall(roomId: roomId, callId: callId);
       }
       await _room.disconnect();
     } catch (e, stackTrace) {
@@ -843,7 +850,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     _matrixRoomId = null;
     _matrixCallId = null;
     if (roomId != null && callId != null) {
-      unawaited(_sdk.leaveVideoCall(roomId: roomId, callId: callId));
+      unawaited(_callService.leaveCall(roomId: roomId, callId: callId));
     }
     unawaited(_room.disconnect());
     _sendCallCancelToRecipient();
@@ -874,7 +881,7 @@ class AudioVideoCallService extends _$AudioVideoCallService {
     _matrixRoomId = null;
     _matrixCallId = null;
     if (roomId != null && callId != null) {
-      unawaited(_sdk.leaveVideoCall(roomId: roomId, callId: callId));
+      unawaited(_callService.leaveCall(roomId: roomId, callId: callId));
     }
     unawaited(_room.disconnect());
     state = state.copyWith(

@@ -6,6 +6,9 @@
 /// add their own reference shape without breaking the public surface.
 sealed class MediaReference {
   const MediaReference();
+
+  /// Transport-assigned identifier used to retrieve the media bytes.
+  String get fileId;
 }
 
 /// Reference to a media payload posted as a Matrix `m.room.message` event.
@@ -15,4 +18,7 @@ final class MatrixEventMediaReference extends MediaReference {
   /// Server-assigned event id returned by `MessagingService.sendMediaMessage`
   /// for Matrix channels.
   final String eventId;
+
+  @override
+  String get fileId => eventId;
 }

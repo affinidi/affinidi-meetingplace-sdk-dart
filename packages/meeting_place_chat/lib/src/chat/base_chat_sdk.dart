@@ -185,7 +185,6 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
-  @internal
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(

@@ -13,7 +13,7 @@ import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../repository/repository.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
-import '../service/matrix/matrix_service.dart';
+import '../transport/meeting_place_transport.dart';
 import '../service/mediator/mediator_service.dart';
 import '../utils/string.dart';
 import '../vdip/channel_activity_type.dart';
@@ -29,7 +29,7 @@ class ChannelActivityEventHandler {
     required ConnectionManager connectionManager,
     required ChannelService channelService,
     required ConnectionOfferRepository connectionOfferRepository,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
     required StreamController<IncomingCallSignal> incomingCallSignalController,
@@ -39,7 +39,7 @@ class ChannelActivityEventHandler {
        _channelService = channelService,
        _connectionOfferRepository = connectionOfferRepository,
        _mediatorService = mediatorService,
-       _matrixService = matrixService,
+       _channelTransport = channelTransport,
        _options = options,
        _logger = logger,
        _incomingCallSignalController = incomingCallSignalController,
@@ -50,7 +50,7 @@ class ChannelActivityEventHandler {
   final ConnectionOfferRepository _connectionOfferRepository;
   final ChannelService _channelService;
   final ConnectionManager _connectionManager;
-  final MatrixService _matrixService;
+  final MeetingPlaceTransport _channelTransport;
   final ControlPlaneEventHandlerManagerOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
   final StreamController<IncomingCallSignal> _incomingCallSignalController;
@@ -84,7 +84,7 @@ class ChannelActivityEventHandler {
           connectionOfferRepository: _connectionOfferRepository,
           channelService: _channelService,
           mediatorService: _mediatorService,
-          matrixService: _matrixService,
+          channelTransport: _channelTransport,
           options: _options,
           logger: _logger,
         ).process(channelActivity);

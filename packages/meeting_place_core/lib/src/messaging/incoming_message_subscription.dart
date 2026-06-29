@@ -1,6 +1,6 @@
 import '../../meeting_place_core.dart' show MeetingPlaceCoreSDK;
 import '../meeting_place_core_sdk.dart' show MeetingPlaceCoreSDK;
-import '../service/matrix/matrix_subscription_options.dart';
+import '../transport/transport_subscription_options.dart';
 
 /// Specifies what to subscribe to when calling [MeetingPlaceCoreSDK.subscribe].
 ///
@@ -20,10 +20,10 @@ sealed class IncomingMessageSubscription {
 class MatrixRoomSubscription extends IncomingMessageSubscription {
   const MatrixRoomSubscription({
     required super.receiverDid,
-    this.options = const MatrixSubscriptionOptions(),
+    this.options = const TransportSubscriptionOptions(),
   });
 
-  final MatrixSubscriptionOptions options;
+  final TransportSubscriptionOptions options;
 }
 
 /// Subscribe to incoming DIDComm messages for the receiver DID.

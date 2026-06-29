@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:riverpod/riverpod.dart';
 
 import 'exceptions/meeting_place_livekit_call_exception.dart';
@@ -10,11 +11,13 @@ import 'interfaces/livekit_room.dart';
 import 'meeting_place_livekit_call_plugin_options.dart';
 import 'pending_call_manager.dart';
 import 'providers/livekit_room_provider.dart';
+import 'providers/matrix_call_service_provider.dart';
 import 'providers/plugin_core_sdk_provider.dart';
 import 'providers/plugin_logger_provider.dart';
 import 'providers/plugin_options_provider.dart';
 import 'providers/plugin_rtc_delegate_provider.dart';
 import 'services/audio_video_call_service.dart';
+import 'services/matrix_call_service.dart';
 import 'sessions/livekit_call_session.dart';
 import 'utils/string.dart';
 
@@ -65,6 +68,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   LiveKitCallSession? _activeSession;
 
   MeetingPlaceCoreSDK? _sdk;
+  MatrixCallService? _callService;
   StreamSubscription<IncomingCallSignal>? _signalSubscription;
   StreamSubscription<CallDeclineSignal>? _declineSignalSubscription;
 
@@ -75,7 +79,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   // ---------------------------------------------------------------------------
 
   /// Initialises the plugin. Safe to call multiple times — idempotent.
-  void initialize({required MeetingPlaceCoreSDK sdk}) {
+  void initialize({required MatrixMeetingPlaceSDK sdk}) {
     if (_sdk != null) {
       _logger.info(
         'initialize: already initialized, ignoring repeat call',
@@ -84,6 +88,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       return;
     }
     _sdk = sdk;
+    _callService = MatrixCallService(matrixService: sdk.matrixService);
     _signalSubscription = sdk.incomingCallSignals.listen(_onIncomingCallSignal);
     _declineSignalSubscription = sdk.callDeclineSignals.listen(
       _onCallDeclineSignal,
@@ -102,6 +107,8 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     _activeSession?.disposeContainer();
     _activeSession = null;
     _pendingCallManager.clearActiveCall();
+    _callService?.dispose();
+    _callService = null;
     _logger.info('Plugin disposed', name: _logKey);
   }
 
@@ -239,6 +246,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
           pluginOptionsProvider.overrideWithValue(_options),
           pluginRtcDelegateProvider.overrideWithValue(_rtcDelegate),
           pluginLoggerProvider.overrideWithValue(_logger),
+          matrixCallServiceProvider.overrideWithValue(_callService!),
           livekitRoomProvider.overrideWith((ref, did) {
             final room = _roomFactory(did);
             ref.onDispose(() => unawaited(room.disconnect()));

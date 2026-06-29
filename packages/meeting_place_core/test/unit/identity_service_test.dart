@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 
 class _MockConnectionManager extends Mock implements ConnectionManager {}
 
-class _MockMatrixService extends Mock implements MatrixService {}
+class _MockMatrixTransport extends Mock implements MeetingPlaceTransport {}
 
 class _MockWallet extends Mock implements Wallet {}
 
@@ -25,7 +25,7 @@ class _MockDidWebDocumentService extends Mock
 
 void main() {
   late _MockConnectionManager mockConnectionManager;
-  late _MockMatrixService mockMatrixService;
+  late _MockMatrixTransport mockMatrixService;
   late _MockWallet mockWallet;
   late _MockDidManager mockDidManager;
   late _MockDidDocument mockDidDocument;
@@ -40,7 +40,7 @@ void main() {
 
   setUp(() {
     mockConnectionManager = _MockConnectionManager();
-    mockMatrixService = _MockMatrixService();
+    mockMatrixService = _MockMatrixTransport();
     mockWallet = _MockWallet();
     mockDidManager = _MockDidManager();
     mockDidDocument = _MockDidDocument();
@@ -48,7 +48,7 @@ void main() {
 
     service = IdentityService(
       connectionManager: mockConnectionManager,
-      matrixService: mockMatrixService,
+      channelTransport: mockMatrixService,
       didWebDocumentService: mockDidDocumentService,
       didWebBaseHost: Uri.parse('https://example.com'),
     );
@@ -72,29 +72,14 @@ void main() {
   });
 
   group('createPermanentIdentity', () {
-    test('calls loginWithDid when transport is matrix', () async {
+    test('calls authenticate on channel transport', () async {
       when(
-        () => mockMatrixService.loginWithDid(any()),
-      ).thenAnswer((_) async => '@user:matrix.test');
+        () => mockMatrixService.authenticate(any()),
+      ).thenAnswer((_) async {});
 
-      final result = await service.createPermanentIdentity(
-        mockWallet,
-        transport: ChannelTransport.matrix,
-      );
+      final result = await service.createPermanentIdentity(mockWallet);
 
-      verify(() => mockMatrixService.loginWithDid(mockDidManager)).called(1);
-      expect(result.matrixUserId, equals('@user:matrix.test'));
-      expect(result.didManager, equals(mockDidManager));
-      expect(result.didDocument, equals(mockDidDocument));
-    });
-
-    test('does not call loginWithDid when transport is didcomm', () async {
-      final result = await service.createPermanentIdentity(
-        mockWallet,
-        transport: ChannelTransport.didcomm,
-      );
-
-      verifyNever(() => mockMatrixService.loginWithDid(any()));
+      verify(() => mockMatrixService.authenticate(mockDidManager)).called(1);
       expect(result.matrixUserId, isNull);
       expect(result.didManager, equals(mockDidManager));
       expect(result.didDocument, equals(mockDidDocument));

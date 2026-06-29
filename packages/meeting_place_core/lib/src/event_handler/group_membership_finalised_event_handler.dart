@@ -14,7 +14,7 @@ import '../protocol/meeting_place_protocol.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
 import '../repository/repository.dart';
 import '../service/group/group_exception.dart';
-import '../service/matrix/matrix_service.dart';
+import '../transport/meeting_place_transport.dart';
 import '../service/mediator/fetch_messages_options.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
@@ -33,15 +33,15 @@ class GroupMembershipFinalisedEventHandler
     required super.logger,
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required GroupRepository groupRepository,
   }) : _groupRepository = groupRepository,
        _controlPlaneSDK = controlPlaneSDK,
-       _matrixService = matrixService;
+       _channelTransport = channelTransport;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
-  final MatrixService _matrixService;
+  final MeetingPlaceTransport _channelTransport;
 
   Future<List<Channel>> process(GroupMembershipFinalised event) async {
     logger.info('''Starting processing event of type
@@ -159,13 +159,15 @@ class GroupMembershipFinalisedEventHandler
       permanentChannelDid,
     );
 
-    final roomID = await _matrixService.joinChannelRoom(
+    channel.otherPartyPermanentChannelDid ??=
+        groupMemberInaugurationMessage.body.groupDid;
+    await _channelTransport.joinChannel(
+      channel: channel,
       didManager: didManager,
-      channelDid: groupMemberInaugurationMessage.body.groupDid,
     );
 
-    final initialMatrixSyncMarker = await _matrixService.getLatestEventId(
-      roomID,
+    final initialMatrixSyncMarker = await _channelTransport.getLastEventId(
+      channel: channel,
       didManager: didManager,
     );
 

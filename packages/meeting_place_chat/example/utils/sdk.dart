@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
@@ -68,11 +68,27 @@ RepositoryConfig getRepositoryConfig() {
   );
 }
 
-Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
+Future<MeetingPlaceCoreSDK> initCoreSDK({required Wallet wallet}) {
+  final config = getMatrixConfig();
   return MeetingPlaceCoreSDK.create(
     wallet: wallet,
     repositoryConfig: getRepositoryConfig(),
-    config: getMatrixConfig(),
+    config: config,
+    channelTransportFactory: (controlPlaneSDK) => MatrixTransport(
+      matrixService: MatrixService(
+        config: config,
+        controlPlaneSDK: controlPlaneSDK,
+        logger: DefaultMeetingPlaceCoreSDKLogger(className: 'MatrixService'),
+      ),
+    ),
     logger: DefaultMeetingPlaceCoreSDKLogger(),
   );
 }
+
+Future<MatrixMeetingPlaceSDK> initMatrixSDK({required Wallet wallet}) =>
+    MatrixMeetingPlaceSDK.create(
+      wallet: wallet,
+      repositoryConfig: getRepositoryConfig(),
+      config: getMatrixConfig(),
+      logger: DefaultMeetingPlaceCoreSDKLogger(),
+    );

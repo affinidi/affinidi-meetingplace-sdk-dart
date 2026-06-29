@@ -3,15 +3,6 @@ export 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart'
     show VdipIssuedCredentialBody;
 export 'package:didcomm/didcomm.dart'
     show Attachment, AttachmentData, MessageWrappingType, PlainTextMessage;
-export 'package:matrix/matrix.dart'
-    show
-        DatabaseApi,
-        GroupCallSession,
-        MatrixRTCCallEvent,
-        MatrixSdkDatabase,
-        OpenIdCredentials,
-        VoIP,
-        WebRTCDelegate;
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         ControlPlaneEventType,
@@ -54,13 +45,6 @@ export 'src/sdk/results/register_for_didcomm_notifications_result.dart';
 export 'src/sdk/sdk.dart';
 export 'src/service/config.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
-export 'src/service/matrix/matrix_config.dart';
-export 'src/service/matrix/matrix_read_receipt_event.dart';
-export 'src/service/matrix/matrix_room_event.dart';
-export 'src/service/matrix/matrix_service.dart';
-export 'src/service/matrix/matrix_service_exception.dart';
-export 'src/service/matrix/matrix_subscription_options.dart';
-export 'src/service/matrix/matrix_user_id_binding.dart';
 export 'src/service/mediator/mediator_message.dart';
 export 'src/service/oob/session/oob_acceptance_session.dart';
 export 'src/service/oob/session/oob_offer_session.dart';

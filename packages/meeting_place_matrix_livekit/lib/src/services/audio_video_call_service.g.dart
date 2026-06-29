@@ -9,46 +9,46 @@ part of 'audio_video_call_service.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Orchestrates the full LiveKit call lifecycle for the channel identified
-/// by [otherPartyChannelDid] (the other party's permanent channel DID).
+/// by the other party's permanent channel DID.
 ///
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LivekitService] and [SfuTokenService] for this call.
-/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
+/// - Owns LivekitService and SfuTokenService for this call.
+/// - Publishes the call state for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
-/// Read by AudioVideoCallScreenController via `ref.listen`.
+/// Read by the app's call screen controller via provider listeners.
 /// Modelled after ChatSessionService.
 
 @ProviderFor(AudioVideoCallService)
 const audioVideoCallServiceProvider = AudioVideoCallServiceFamily._();
 
 /// Orchestrates the full LiveKit call lifecycle for the channel identified
-/// by [otherPartyChannelDid] (the other party's permanent channel DID).
+/// by the other party's permanent channel DID.
 ///
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LivekitService] and [SfuTokenService] for this call.
-/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
+/// - Owns LivekitService and SfuTokenService for this call.
+/// - Publishes the call state for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
-/// Read by AudioVideoCallScreenController via `ref.listen`.
+/// Read by the app's call screen controller via provider listeners.
 /// Modelled after ChatSessionService.
 final class AudioVideoCallServiceProvider
     extends $NotifierProvider<AudioVideoCallService, AudioVideoCallState> {
   /// Orchestrates the full LiveKit call lifecycle for the channel identified
-  /// by [otherPartyChannelDid] (the other party's permanent channel DID).
+  /// by the other party's permanent channel DID.
   ///
   /// Responsibilities:
   /// - Resolves the channel, derives the LiveKit room name, obtains the
   ///   local user's DidManager, and exchanges for a LiveKit JWT.
-  /// - Owns [LivekitService] and [SfuTokenService] for this call.
-  /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
+  /// - Owns LivekitService and SfuTokenService for this call.
+  /// - Publishes the call state for the presentation layer to observe.
   /// - Disconnects and releases resources on dispose.
   ///
-  /// Read by AudioVideoCallScreenController via `ref.listen`.
+  /// Read by the app's call screen controller via provider listeners.
   /// Modelled after ChatSessionService.
   const AudioVideoCallServiceProvider._({
     required AudioVideoCallServiceFamily super.from,
@@ -105,16 +105,16 @@ String _$audioVideoCallServiceHash() =>
     r'ac7f2d98a0ea44ba55bcd1d426de2d2be480e4fd';
 
 /// Orchestrates the full LiveKit call lifecycle for the channel identified
-/// by [otherPartyChannelDid] (the other party's permanent channel DID).
+/// by the other party's permanent channel DID.
 ///
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LivekitService] and [SfuTokenService] for this call.
-/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
+/// - Owns LivekitService and SfuTokenService for this call.
+/// - Publishes the call state for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
-/// Read by AudioVideoCallScreenController via `ref.listen`.
+/// Read by the app's call screen controller via provider listeners.
 /// Modelled after ChatSessionService.
 
 final class AudioVideoCallServiceFamily extends $Family
@@ -150,16 +150,16 @@ final class AudioVideoCallServiceFamily extends $Family
       );
 
   /// Orchestrates the full LiveKit call lifecycle for the channel identified
-  /// by [otherPartyChannelDid] (the other party's permanent channel DID).
+  /// by the other party's permanent channel DID.
   ///
   /// Responsibilities:
   /// - Resolves the channel, derives the LiveKit room name, obtains the
   ///   local user's DidManager, and exchanges for a LiveKit JWT.
-  /// - Owns [LivekitService] and [SfuTokenService] for this call.
-  /// - Publishes [AudioVideoCallState] for the presentation layer to observe.
+  /// - Owns LivekitService and SfuTokenService for this call.
+  /// - Publishes the call state for the presentation layer to observe.
   /// - Disconnects and releases resources on dispose.
   ///
-  /// Read by AudioVideoCallScreenController via `ref.listen`.
+  /// Read by the app's call screen controller via provider listeners.
   /// Modelled after ChatSessionService.
 
   AudioVideoCallServiceProvider call(String otherPartyChannelDid) =>
@@ -173,16 +173,16 @@ final class AudioVideoCallServiceFamily extends $Family
 }
 
 /// Orchestrates the full LiveKit call lifecycle for the channel identified
-/// by [otherPartyChannelDid] (the other party's permanent channel DID).
+/// by the other party's permanent channel DID.
 ///
 /// Responsibilities:
 /// - Resolves the channel, derives the LiveKit room name, obtains the
 ///   local user's DidManager, and exchanges for a LiveKit JWT.
-/// - Owns [LivekitService] and [SfuTokenService] for this call.
-/// - Publishes [AudioVideoCallState] for the presentation layer to observe.
+/// - Owns LivekitService and SfuTokenService for this call.
+/// - Publishes the call state for the presentation layer to observe.
 /// - Disconnects and releases resources on dispose.
 ///
-/// Read by AudioVideoCallScreenController via `ref.listen`.
+/// Read by the app's call screen controller via provider listeners.
 /// Modelled after ChatSessionService.
 
 abstract class _$AudioVideoCallService extends $Notifier<AudioVideoCallState> {

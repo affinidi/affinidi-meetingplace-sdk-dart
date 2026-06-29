@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:matrix/matrix.dart' show OpenIdCredentials;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../exceptions/meeting_place_livekit_call_exception.dart';

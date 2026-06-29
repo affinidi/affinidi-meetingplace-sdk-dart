@@ -76,10 +76,7 @@ class _OobServiceMocks {
     );
 
     when(
-      () => identityService.createPermanentIdentity(
-        any(),
-        transport: any(named: 'transport'),
-      ),
+      () => identityService.createPermanentIdentity(any()),
     ).thenAnswer(
       (_) async => PermanentIdentity(
         didManager: permanentChannelDidManager,

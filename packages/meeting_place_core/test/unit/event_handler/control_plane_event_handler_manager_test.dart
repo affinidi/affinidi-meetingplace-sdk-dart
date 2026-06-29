@@ -148,7 +148,7 @@ void main() {
       groupRepository: MockGroupRepository(),
       channelRepository: MockChannelRepository(),
       channelService: mockChannelService,
-      matrixService: MockMatrixService(),
+      channelTransport: MockMatrixService(),
       identityService: MockIdentityService(),
       streamManager: streamManager,
       didResolver: MockDidResolver(),

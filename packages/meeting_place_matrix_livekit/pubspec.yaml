@@ -16,6 +16,8 @@ dependencies:
     path: ../meeting_place_chat
   meeting_place_core:
     path: ../meeting_place_core
+  meeting_place_matrix:
+    path: ../meeting_place_matrix
   riverpod: ^3.0.3
   riverpod_annotation: ^3.0.3
 

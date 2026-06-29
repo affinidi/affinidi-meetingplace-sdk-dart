@@ -5,6 +5,7 @@ import '../../meeting_place_core.dart';
 import '../protocol/protocol.dart' as protocol;
 import '../service/identity/identity_service.dart';
 import '../service/mediator/fetch_messages_options.dart';
+import '../transport/meeting_place_transport.dart';
 import '../utils/string.dart';
 import 'base_event_handler.dart';
 
@@ -19,16 +20,16 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required DidResolver didResolver,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required IdentityService identityService,
   }) : _controlPlaneSDK = controlPlaneSDK,
        _didResolver = didResolver,
-       _matrixService = matrixService,
+       _channelTransport = channelTransport,
        _identityService = identityService;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
-  final MatrixService _matrixService;
+  final MeetingPlaceTransport _channelTransport;
   final IdentityService _identityService;
 
   Future<List<Channel>> process(OfferFinalised event) async {
@@ -132,13 +133,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
-    if (channel.transport == ChannelTransport.matrix) {
-      await _matrixService.joinChannelRoom(
-        didManager: permanentChannelIdentity.didManager,
-        channelDid: permanentChannelIdentity.didDocument.id,
-        otherPartyChannelDid: otherPartyPermanentChannelDid,
-      );
-    }
+    channel.otherPartyPermanentChannelDid ??= otherPartyPermanentChannelDid;
+    await _channelTransport.joinChannel(
+      channel: channel,
+      didManager: permanentChannelIdentity.didManager,
+    );
 
     await _updateMediatorAcls(
       permanentChannelDidManager: permanentChannelIdentity.didManager,

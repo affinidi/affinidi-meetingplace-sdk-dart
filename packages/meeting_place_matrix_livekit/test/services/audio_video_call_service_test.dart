@@ -18,6 +18,7 @@ import 'package:meeting_place_core/meeting_place_core.dart'
 import 'package:meeting_place_matrix_livekit/src/meeting_place_livekit_call_plugin_options.dart';
 import 'package:meeting_place_matrix_livekit/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix_livekit/src/providers/livekit_room_provider.dart';
+import 'package:meeting_place_matrix_livekit/src/providers/matrix_call_service_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/providers/plugin_core_sdk_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/providers/plugin_logger_provider.dart';
 import 'package:meeting_place_matrix_livekit/src/providers/plugin_options_provider.dart';
@@ -64,6 +65,7 @@ OpenIdCredentials _stubOpenIdCredentials() => OpenIdCredentials(
 
 ProviderContainer _buildContainer({
   required MockMeetingPlaceCoreSDK mockSdk,
+  required MockMatrixCallService mockCallService,
   required FakeLiveKitRoom fakeRoom,
   MockSfuTokenService? mockTokenService,
 }) => ProviderContainer(
@@ -80,6 +82,7 @@ ProviderContainer _buildContainer({
     ),
     pluginRtcDelegateProvider.overrideWith((ref) => MockWebRTCDelegate()),
     livekitRoomProvider(_otherPartyDid).overrideWith((ref) => fakeRoom),
+    matrixCallServiceProvider.overrideWith((ref) => mockCallService),
     if (mockTokenService != null)
       sfuTokenServiceProvider.overrideWith((ref) => mockTokenService),
   ],
@@ -95,13 +98,19 @@ void main() {
   });
 
   late MockMeetingPlaceCoreSDK mockSdk;
+  late MockMatrixCallService mockCallService;
   late FakeLiveKitRoom fakeService;
   late ProviderContainer container;
 
   setUp(() {
     mockSdk = MockMeetingPlaceCoreSDK();
+    mockCallService = MockMatrixCallService();
     fakeService = FakeLiveKitRoom();
-    container = _buildContainer(mockSdk: mockSdk, fakeRoom: fakeService);
+    container = _buildContainer(
+      mockSdk: mockSdk,
+      mockCallService: mockCallService,
+      fakeRoom: fakeService,
+    );
     // Hold a listener so the auto-dispose provider stays alive for the test.
     container.listen(
       audioVideoCallServiceProvider(_otherPartyDid),
@@ -133,10 +142,10 @@ void main() {
       expect(fakeService.disconnectCalls, 1);
     });
 
-    test('completes successfully and transitions to disconnected even when SDK '
-        'leaveVideoCall throws', () async {
+    test('completes successfully and transitions to disconnected even when '
+        'callService leaveCall throws', () async {
       when(
-        () => mockSdk.leaveVideoCall(
+        () => mockCallService.leaveCall(
           roomId: any(named: 'roomId'),
           callId: any(named: 'callId'),
         ),
@@ -147,7 +156,7 @@ void main() {
           .read(audioVideoCallServiceProvider(_otherPartyDid).notifier)
           .leaveCall();
 
-      // State must be disconnected despite the SDK exception.
+      // State must be disconnected despite the exception.
       expect(
         container.read(audioVideoCallServiceProvider(_otherPartyDid)).status,
         AudioVideoCallStatus.disconnected,
@@ -181,17 +190,17 @@ void main() {
     });
 
     test(
-      'completes successfully when both SDK and LiveKit teardown throw',
+      '''completes successfully when both call service and LiveKit teardown throw''',
       () async {
         final service = container.read(
           audioVideoCallServiceProvider(_otherPartyDid).notifier,
         );
         when(
-          () => mockSdk.leaveVideoCall(
+          () => mockCallService.leaveCall(
             roomId: any(named: 'roomId'),
             callId: any(named: 'callId'),
           ),
-        ).thenThrow(Exception('SDK error'));
+        ).thenThrow(Exception('Call service error'));
 
         fakeService.disconnectThrows = Exception('LiveKit error');
 
@@ -292,6 +301,7 @@ void main() {
       // Wire a container with the token service override.
       final c = _buildContainer(
         mockSdk: mockSdk,
+        mockCallService: mockCallService,
         fakeRoom: fakeService,
         mockTokenService: mockTokenService,
       );
@@ -303,29 +313,22 @@ void main() {
       ).thenAnswer((_) async => _stubChannel());
 
       when(
-        () => mockSdk.livekitRoomName(
-          channelDid: any(named: 'channelDid'),
-          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
-        ),
-      ).thenReturn('test-room');
-
-      when(
         () => mockSdk.getDidManager(any()),
       ).thenAnswer((_) async => mockDidManager);
 
       when(
-        () => mockSdk.resolveMatrixRoomIdForChannel(
+        () => mockCallService.resolveRoomIdForChannel(
           didManager: any(named: 'didManager'),
           channel: any(named: 'channel'),
         ),
       ).thenAnswer((_) async => _matrixRoomId);
 
       when(
-        () => mockSdk.getMatrixOpenIdToken(any()),
+        () => mockCallService.getOpenIdToken(any()),
       ).thenAnswer((_) async => _stubOpenIdCredentials());
 
       when(
-        () => mockSdk.getMatrixDeviceId(any()),
+        () => mockCallService.getDeviceId(any()),
       ).thenAnswer((_) async => 'DEVICE1');
 
       when(
@@ -339,14 +342,14 @@ void main() {
       );
 
       when(
-        () => mockSdk.initializeMatrixRTCWithDelegate(
+        () => mockCallService.initializeVoIPWithDelegate(
           didManager: any(named: 'didManager'),
           delegate: any(named: 'delegate'),
         ),
       ).thenAnswer((_) async {});
 
       when(
-        () => mockSdk.activeVideoCallId(
+        () => mockCallService.activeCallId(
           didManager: any(named: 'didManager'),
           roomId: any(named: 'roomId'),
         ),
@@ -359,7 +362,7 @@ void main() {
       });
 
       when(
-        () => mockSdk.startVideoCall(
+        () => mockCallService.startCall(
           didManager: any(named: 'didManager'),
           roomId: any(named: 'roomId'),
           callId: any(named: 'callId'),
@@ -369,7 +372,7 @@ void main() {
       ).thenAnswer((_) async => mockGroupCallSession);
 
       when(
-        () => mockSdk.leaveVideoCall(
+        () => mockCallService.leaveCall(
           roomId: any(named: 'roomId'),
           callId: any(named: 'callId'),
         ),

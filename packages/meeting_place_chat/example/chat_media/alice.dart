@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:vodozemac/vodozemac.dart' as vod;
@@ -19,7 +20,8 @@ void main() async {
     await vod.init(libraryPath: vodozemacLibraryPath);
   }
 
-  final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final aliceSDK =
+      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
@@ -100,7 +102,7 @@ void main() async {
   await notificationSubscription.cancel();
 
   prettyPrintYellow('Initializing chat...');
-  final aliceChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
+  final aliceChatSDK = await initialiseChatFromChannel(
     channel,
     coreSDK: aliceSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),

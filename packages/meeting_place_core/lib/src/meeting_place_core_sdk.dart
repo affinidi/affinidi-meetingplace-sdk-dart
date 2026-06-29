@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
@@ -27,7 +26,6 @@ import 'service/control_plane_event_service.dart';
 import 'service/group.dart';
 import 'service/identity/did_web_document_service.dart';
 import 'service/identity/identity_service.dart';
-import 'service/matrix/matrix_room_alias.dart';
 import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
@@ -35,6 +33,88 @@ import 'service/notification_service/notification_service.dart';
 import 'service/oob/oob_service.dart';
 import 'service/outreach/outreach_service.dart';
 import 'utils/cached_did_resolver.dart';
+import 'transport/nop_transport.dart';
+
+/// Opaque bundle of every service built by [MeetingPlaceCoreSDK.create].
+///
+/// Passed to [MeetingPlaceCoreSDK.fromInit] — and subclass constructors that
+/// call `super.fromInit` — so that [MeetingPlaceCoreSDK] can be subclassed
+/// from outside this library without exposing internal service types in the
+/// public API. External code holds instances but cannot read their fields.
+class MeetingPlaceCoreSDKInit {
+  MeetingPlaceCoreSDKInit._({
+    required Wallet wallet,
+    required RepositoryConfig repositoryConfig,
+    required MeetingPlaceMediatorSDK mediatorSDK,
+    required ControlPlaneSDK controlPlaneSDK,
+    required ConnectionManager connectionManager,
+    required ConnectionService connectionService,
+    required ControlPlaneEventService controlPlaneEventService,
+    required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
+    required GroupService groupService,
+    required NotificationService notificationService,
+    required OutreachService outreachService,
+    required OobService oobService,
+    required ChannelService channelService,
+    required String mediatorDid,
+    required String controlPlaneDid,
+    required MeetingPlaceCoreSDKOptions options,
+    required SDKErrorHandler sdkErrorHandler,
+    required DIDCommTransport didcommTransport,
+    required MeetingPlaceTransport channelTransport,
+    required MessageService messageService,
+    required Future<DidManager> Function(String did) getDidManager,
+    required StreamController<ChannelAttachmentEvent>
+    channelAttachmentsController,
+    required VdipClient vdipClient,
+  }) : _wallet = wallet,
+       _repositoryConfig = repositoryConfig,
+       _mediatorSDK = mediatorSDK,
+       _controlPlaneSDK = controlPlaneSDK,
+       _connectionManager = connectionManager,
+       _connectionService = connectionService,
+       _controlPlaneEventService = controlPlaneEventService,
+       _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
+       _groupService = groupService,
+       _notificationService = notificationService,
+       _outreachService = outreachService,
+       _oobService = oobService,
+       _channelService = channelService,
+       _mediatorDid = mediatorDid,
+       _controlPlaneDid = controlPlaneDid,
+       _options = options,
+       _sdkErrorHandler = sdkErrorHandler,
+       _didcommTransport = didcommTransport,
+       _channelTransport = channelTransport,
+       _messageService = messageService,
+       _getDidManager = getDidManager,
+       _channelAttachmentsController = channelAttachmentsController,
+       _vdipClient = vdipClient;
+
+  final Wallet _wallet;
+  final RepositoryConfig _repositoryConfig;
+  final MeetingPlaceMediatorSDK _mediatorSDK;
+  final ControlPlaneSDK _controlPlaneSDK;
+  final ConnectionManager _connectionManager;
+  final ConnectionService _connectionService;
+  final ControlPlaneEventService _controlPlaneEventService;
+  final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
+  final GroupService _groupService;
+  final NotificationService _notificationService;
+  final OutreachService _outreachService;
+  final OobService _oobService;
+  final ChannelService _channelService;
+  final String _mediatorDid;
+  final String _controlPlaneDid;
+  final MeetingPlaceCoreSDKOptions _options;
+  final SDKErrorHandler _sdkErrorHandler;
+  final DIDCommTransport _didcommTransport;
+  final MeetingPlaceTransport _channelTransport;
+  final MessageService _messageService;
+  final Future<DidManager> Function(String did) _getDidManager;
+  final StreamController<ChannelAttachmentEvent> _channelAttachmentsController;
+  final VdipClient _vdipClient;
+}
 
 /// # Meeting Place Core SDK
 /// The Affinidi Meeting Place - Core SDK provides a high-level interface for
@@ -77,13 +157,11 @@ import 'utils/cached_did_resolver.dart';
 /// final sdk = MeetingPlaceCoreSDK.create(
 ///   wallet: wallet,
 ///   repositoryConfig: repositoryConfig,
-///   config: MatrixConfig(
+///   config: Config(
 ///     mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
 ///     controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
-///     homeserver: Uri.parse('https://matrix.example.com'),
-///     databaseFactory: const UnsupportedMatrixDatabaseFactory(),
-///     deviceId: '<YOUR-DEVICE-ID>',
 ///   ),
+///   channelTransport: channelTransport,
 /// );
 /// ```
 ///
@@ -136,59 +214,38 @@ class MeetingPlaceCoreSDK {
   /// - The initializer list (`: _repositoryConfig = repositoryConfig, ...`) is
   ///   used to assign values to private fields that cannot be assigned
   ///   directly using `this`.
-  MeetingPlaceCoreSDK._({
-    required this.wallet,
-    required RepositoryConfig repositoryConfig,
-    required MeetingPlaceMediatorSDK mediatorSDK,
-    required ControlPlaneSDK controlPlaneSDK,
-    required ConnectionManager connectionManager,
-    required ConnectionService connectionService,
-    required ControlPlaneEventService controlPlaneEventService,
-    required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
-    required GroupService groupService,
-    required NotificationService notificationService,
-    required OutreachService outreachService,
-    required OobService oobService,
-    required ChannelService channelService,
-    required String mediatorDid,
-    required String controlPlaneDid,
-    required MeetingPlaceCoreSDKOptions options,
-    required SDKErrorHandler sdkErrorHandler,
-    required DIDCommTransport didcommTransport,
-    required MatrixService matrixService,
-    required MessageService messageService,
-    required Future<DidManager> Function(String did) getDidManager,
-    required StreamController<ChannelAttachmentEvent>
-    channelAttachmentsController,
-    required VdipClient vdipClient,
-  }) : _repositoryConfig = repositoryConfig,
-       _mediatorSDK = mediatorSDK,
-       _controlPlaneSDK = controlPlaneSDK,
-       _connectionManager = connectionManager,
-       _connectionService = connectionService,
-       _controlPlaneEventService = controlPlaneEventService,
-       _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
-       _groupService = groupService,
-       _notificationService = notificationService,
-       _outreachService = outreachService,
-       _oobService = oobService,
-       _channelService = channelService,
-       _mediatorDid = mediatorDid,
-       _controlPlaneDid = controlPlaneDid,
-       _options = options,
-       _sdkErrorHandler = sdkErrorHandler,
-       _didcomm = didcommTransport,
-       _matrixService = matrixService,
-       _messagingService = MessagingService(
-         matrixService: matrixService,
-         messageService: messageService,
-         channelService: channelService,
-         groupRepository: repositoryConfig.groupRepository,
-         didcomm: didcommTransport,
-         getDidManager: getDidManager,
-       ),
-       _channelAttachmentsController = channelAttachmentsController,
-       _vdipClient = vdipClient;
+  /// For use by subclasses only. Constructs the SDK from the opaque
+  /// [MeetingPlaceCoreSDKInit] bundle produced by [create]. Do not call
+  /// directly — obtain a bundle via the [$factory] parameter of [create].
+  MeetingPlaceCoreSDK.fromInit(MeetingPlaceCoreSDKInit init)
+    : wallet = init._wallet,
+      _repositoryConfig = init._repositoryConfig,
+      _mediatorSDK = init._mediatorSDK,
+      _controlPlaneSDK = init._controlPlaneSDK,
+      _connectionManager = init._connectionManager,
+      _connectionService = init._connectionService,
+      _controlPlaneEventService = init._controlPlaneEventService,
+      _controlPlaneEventStreamManager = init._controlPlaneEventStreamManager,
+      _groupService = init._groupService,
+      _notificationService = init._notificationService,
+      _outreachService = init._outreachService,
+      _oobService = init._oobService,
+      _channelService = init._channelService,
+      _mediatorDid = init._mediatorDid,
+      _controlPlaneDid = init._controlPlaneDid,
+      _options = init._options,
+      _sdkErrorHandler = init._sdkErrorHandler,
+      _didcomm = init._didcommTransport,
+      _messagingService = MessagingService(
+        channelTransport: init._channelTransport,
+        messageService: init._messageService,
+        channelService: init._channelService,
+        groupRepository: init._repositoryConfig.groupRepository,
+        didcomm: init._didcommTransport,
+        getDidManager: init._getDidManager,
+      ),
+      _channelAttachmentsController = init._channelAttachmentsController,
+      _vdipClient = init._vdipClient;
 
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
@@ -209,7 +266,7 @@ class MeetingPlaceCoreSDK {
   final VdipClient _vdipClient;
 
   final DIDCommTransport _didcomm;
-  final MatrixService _matrixService;
+
   final MessagingService _messagingService;
 
   String _mediatorDid;
@@ -224,9 +281,13 @@ class MeetingPlaceCoreSDK {
   /// different algorithms for signing and verifying VC and VP.
   /// - [repositoryConfig]: A repository object which defines the storage,
   /// group, key and channel repository objects.
-  /// - [config]: Base SDK configuration. Pass [MatrixConfig] to enable
-  ///   matrix-backed features, or [Config] for mediator/control-plane-only
-  ///   initialization.
+  /// - [config]: Base SDK configuration (provides mediatorDid and
+  ///   controlPlaneDid).
+  /// - [channelTransportFactory]: Optional factory that receives the
+  ///   internally-created [ControlPlaneSDK] and returns the
+  ///   [MeetingPlaceTransport] for channel operations (Matrix rooms, file
+  ///   transfer, etc.). If omitted, channel operations are no-ops. Use
+  ///   [MatrixMeetingPlaceSDK.create] for the standard Matrix transport.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
   ///
   /// **Returns:**
@@ -236,6 +297,8 @@ class MeetingPlaceCoreSDK {
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
     required Config config,
+    MeetingPlaceTransport Function(ControlPlaneSDK)? channelTransportFactory,
+    MeetingPlaceCoreSDK Function(MeetingPlaceCoreSDKInit)? $factory,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -302,6 +365,8 @@ class MeetingPlaceCoreSDK {
       logger: controlPlaneLogger,
     );
 
+    final channelTransport = channelTransportFactory?.call(controlPlaneSDK) ?? NopTransport();
+
     final mediatorSDK = MeetingPlaceMediatorSDK(
       mediatorDid: mediatorDid,
       didResolver: didResolver,
@@ -314,27 +379,9 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
-    if (config is! MatrixConfig) {
-      // TODO(MA): Allow creating a setup that does not need matrix and can work
-      // with any mediator that implements the expected interfaces,
-      // like in the original version of the SDK. This will require some
-      // refactoring to separate the core logic from matrix-specific
-      // implementations, but will make the SDK more flexible and adaptable to
-      // different environments and use cases.
-      throw UnsupportedError(
-        '''Unsupported config type. Expected MatrixConfig for this version of the SDK.''',
-      );
-    }
-
-    final matrixService = MatrixService(
-      config: config,
-      controlPlaneSDK: controlPlaneSDK,
-      logger: mpxLogger,
-    );
-
     final identityService = IdentityService(
       connectionManager: connectionManager,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       didWebDocumentService: DidWebDocumentService(
         controlPlaneSDK: controlPlaneSDK,
         rootDidManager: didManager,
@@ -357,7 +404,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       logger: mpxLogger,
     );
 
@@ -378,7 +425,7 @@ class MeetingPlaceCoreSDK {
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       identityService: identityService,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       didResolver: didResolver,
       logger: mpxLogger,
     );
@@ -418,7 +465,7 @@ class MeetingPlaceCoreSDK {
       channelRepository: repositoryConfig.channelRepository,
       channelService: channelService,
       streamManager: discoveryEventStreamManager,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       identityService: identityService,
       didResolver: didResolver,
       options: ControlPlaneEventHandlerManagerOptions(
@@ -491,10 +538,10 @@ class MeetingPlaceCoreSDK {
       expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
     );
 
-    Future<DidManager> matrixTransportGetDidManager(String did) =>
+    Future<DidManager> channelTransportGetDidManager(String did) =>
         connectionManager.getDidManagerForDid(wallet, did);
 
-    return MeetingPlaceCoreSDK._(
+    final init = MeetingPlaceCoreSDKInit._(
       wallet: wallet,
       repositoryConfig: repositoryConfig,
       mediatorSDK: mediatorSDK,
@@ -513,12 +560,14 @@ class MeetingPlaceCoreSDK {
       options: options,
       sdkErrorHandler: sdkErrorHandler,
       didcommTransport: didcommTransport,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       messageService: messageService,
-      getDidManager: matrixTransportGetDidManager,
+      getDidManager: channelTransportGetDidManager,
       channelAttachmentsController: channelAttachmentsController,
       vdipClient: vdipClient,
     );
+
+    return $factory?.call(init) ?? MeetingPlaceCoreSDK.fromInit(init);
   }
 
   /// Returns instance of used low level [ControlPlaneSDK].
@@ -634,7 +683,7 @@ class MeetingPlaceCoreSDK {
   /// fetches for [expectedDids] on the matrix client owned by [localDid],
   /// returning once the room state and key catalog can support an encrypted
   /// send all expected recipients can decrypt. Production callers do not
-  /// need this — see [MatrixService.waitForRoomEncryptionReady] for the
+  /// need this — see [MatrixTransport.awaitChannelReady] for the
   /// underlying race it hides.
   @visibleForTesting
   Future<void> waitForRoomEncryptionReady({
@@ -1358,45 +1407,6 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Requests a Matrix OpenID token for [didManager].
-  ///
-  /// The returned `OpenIdCredentials` can be passed directly to
-  /// `LiveKitTokenService.fetchToken` to obtain a LiveKit JWT via
-  /// `lk-jwt-service` — no server-side secrets are required on the client.
-  ///
-  /// Throws if the Matrix session has not been established.
-  /// Ensure a Matrix login has been performed first.
-  Future<matrix.OpenIdCredentials> getMatrixOpenIdToken(
-    DidManager didManager,
-  ) => _withSdkExceptionHandling(
-    () => _matrixService.getOpenIdToken(didManager),
-  );
-
-  /// Returns the Matrix device ID for the active session of [didManager].
-  ///
-  /// Pass this to `SfuTokenService.fetchToken` as `deviceId` so lk-jwt-service
-  /// can set the LiveKit participant identity to `userId:deviceId`, matching
-  /// the MatrixRTC participant ID format used for E2EE key distribution.
-  Future<String?> getMatrixDeviceId(DidManager didManager) =>
-      _withSdkExceptionHandling(() => _matrixService.getDeviceId(didManager));
-
-  /// Returns the deterministic LiveKit room name for a channel.
-  ///
-  /// Both parties in the channel derive the same name without coordination —
-  /// pass the local user's [channelDid] and the other party's
-  /// [otherPartyChannelDid] in either order; the result is commutative.
-  ///
-  /// Pass the returned value as the `roomName` argument to
-  /// `LiveKitTokenService.fetchToken`.
-  String livekitRoomName({
-    required String channelDid,
-    String? otherPartyChannelDid,
-  }) => deriveRoomAliasLocalpart(
-    channelDid: channelDid,
-    otherPartyChannelDid: otherPartyChannelDid,
-  );
-
-  /// Sends [message] through its transport (Matrix or DIDComm).
   ///
   /// Returns the Matrix event id for [MatrixOutgoingMessage] (or `null` for
   /// matrix events that don't produce one, such as `m.read`, `m.typing`,
@@ -1429,149 +1439,6 @@ class MeetingPlaceCoreSDK {
   /// Fetches historical messages for the given [query].
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) =>
       _messagingService.fetchHistory(query);
-
-  /// Resolves the Matrix room ID for [channel].
-  ///
-  /// Uses the deterministic room alias derived from the channel DIDs. Requires
-  /// a Matrix session for [didManager] to have been established first.
-  Future<String> resolveMatrixRoomIdForChannel({
-    required DidManager didManager,
-    required Channel channel,
-  }) => _withSdkExceptionHandling(
-    () => _matrixService.resolveRoomIdForChannel(
-      didManager: didManager,
-      channel: channel,
-    ),
-  );
-
-  /// Injects the [matrix.VoIP] instance required for MatrixRTC call management.
-  ///
-  /// Call this once at app startup, passing a [matrix.VoIP] created with a
-  /// concrete [matrix.WebRTCDelegate]. Must be called before [startVideoCall],
-  /// [leaveVideoCall], or [watchVideoCall].
-  void initializeMatrixRTC(matrix.VoIP voip) {
-    _matrixService.initializeVoIP(voip);
-  }
-
-  /// Initializes MatrixRTC from a [matrix.WebRTCDelegate] by creating the
-  /// [matrix.VoIP] instance internally.
-  ///
-  /// Call this at app startup before the first [startVideoCall]. Uses the
-  /// authenticated Matrix session for [didManager] to create the VoIP object,
-  /// so the Matrix session must be established first (call
-  /// `loginWithDid` if needed).
-  Future<void> initializeMatrixRTCWithDelegate({
-    required DidManager didManager,
-    required matrix.WebRTCDelegate delegate,
-  }) => _withSdkExceptionHandling(
-    () => _matrixService.initializeVoIPWithDelegate(
-      didManager: didManager,
-      delegate: delegate,
-    ),
-  );
-
-  /// Lazily activates the Matrix session for [didManager] and resolves the
-  /// pending incoming MatrixRTC group call published in [roomId].
-  ///
-  /// Call this after an out-of-band signal (call push or mediator message)
-  /// reports an incoming call for a specific channel. It brings up only that
-  /// one DID's session, initialises VoIP with [delegate] when needed, and
-  /// returns the [matrix.GroupCallSession] the caller can join.
-  ///
-  /// Throws when no group call surfaces in [roomId] within the activation
-  /// timeout.
-  Future<matrix.GroupCallSession> activateIncomingCall({
-    required DidManager didManager,
-    required matrix.WebRTCDelegate delegate,
-    required String roomId,
-  }) => _withSdkExceptionHandling(
-    () => _matrixService.activateIncomingCall(
-      didManager: didManager,
-      delegate: delegate,
-      roomId: roomId,
-    ),
-  );
-
-  /// Returns the Matrix participant identity string for the local device.
-  ///
-  /// The format is `userId:deviceId`. Used as the LiveKit participant identity
-  /// to map per-participant E2EE keys between Matrix and LiveKit.
-  ///
-  /// Returns `null` if no authenticated session exists for [didManager].
-  Future<String?> matrixParticipantId(DidManager didManager) =>
-      _withSdkExceptionHandling(
-        () => _matrixService.ownMatrixIdentity(didManager),
-      );
-
-  /// Creates or joins a MatrixRTC group call in [roomId].
-  ///
-  /// Publishes an `m.call.member` state event so the remote party can discover
-  /// the LiveKit room. The [livekitServiceUrl] and [livekitAlias] identify the
-  /// LiveKit server and room. An optional [callId] may be supplied for
-  /// idempotent session creation; defaults to [roomId].
-  Future<matrix.GroupCallSession> startVideoCall({
-    required DidManager didManager,
-    required String roomId,
-    required String livekitServiceUrl,
-    required String livekitAlias,
-    String? callId,
-  }) => _withSdkExceptionHandling(
-    () => _matrixService.startCall(
-      didManager: didManager,
-      roomId: roomId,
-      livekitServiceUrl: livekitServiceUrl,
-      livekitAlias: livekitAlias,
-      callId: callId,
-    ),
-  );
-
-  /// Returns `true` when [roomId] already has an active (non-expired)
-  /// MatrixRTC call membership.
-  ///
-  /// Call before initiating an outbound call to decide whether to broadcast a
-  /// fresh call-invite or simply rejoin a call that is already in progress
-  /// (for example after an app restart re-enters the call screen).
-  Future<bool> hasActiveVideoCall({
-    required DidManager didManager,
-    required String roomId,
-  }) => _withSdkExceptionHandling(
-    () => _matrixService.hasActiveCallMembership(
-      didManager: didManager,
-      roomId: roomId,
-    ),
-  );
-
-  /// Returns the callId of the active (non-expired) MatrixRTC call in [roomId],
-  /// or `null` when no call is in progress.
-  ///
-  /// A device joining or rejoining an in-progress call must reuse this exact
-  /// callId. A fresh caller generates a new callId instead, so stale E2EE keys
-  /// from a previous, ended call generation are dropped rather than
-  /// overwriting the current key at index 0.
-  Future<String?> activeVideoCallId({
-    required DidManager didManager,
-    required String roomId,
-  }) => _withSdkExceptionHandling(
-    () => _matrixService.activeCallId(didManager: didManager, roomId: roomId),
-  );
-
-  /// Leaves the active MatrixRTC group call in [roomId] with [callId].
-  Future<void> leaveVideoCall({
-    required String roomId,
-    required String callId,
-  }) => _withSdkExceptionHandling(
-    () => _matrixService.leaveCall(roomId: roomId, callId: callId),
-  );
-
-  /// Returns a stream of MatrixRTC call events for the given [roomId] and
-  /// [callId].
-  ///
-  /// Returns `null` if VoIP has not been initialized or no session exists for
-  /// the given IDs.
-  Stream<matrix.MatrixRTCCallEvent>? watchVideoCall({
-    required String roomId,
-    required String callId,
-  }) => _matrixService.watchCall(roomId: roomId, callId: callId);
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);

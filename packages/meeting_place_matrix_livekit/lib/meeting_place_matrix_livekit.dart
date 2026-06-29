@@ -7,3 +7,6 @@ export 'src/providers/livekit_room_provider.dart';
 export 'src/providers/plugin_logger_provider.dart';
 export 'src/services/audio_video_call_service.dart';
 export 'src/sessions/livekit_call_session.dart';
+
+export 'package:meeting_place_matrix/meeting_place_matrix.dart'
+    show MatrixMeetingPlaceSDK;

@@ -34,7 +34,8 @@ class _MockDidResolver extends Mock implements DidResolver {}
 
 class _MockChannelService extends Mock implements ChannelService {}
 
-class _MockMatrixService extends Mock implements MatrixService {}
+class _MockMeetingPlaceTransport extends Mock
+    implements MeetingPlaceTransport {}
 
 class _MockWallet extends Mock implements Wallet {}
 
@@ -56,7 +57,7 @@ void main() {
   late _MockConnectionOfferService mockOfferService;
   late _MockDidResolver mockDidResolver;
   late _MockChannelService mockChannelService;
-  late _MockMatrixService mockMatrixService;
+  late _MockMeetingPlaceTransport mockMatrixTransport;
   late _MockWallet mockWallet;
   late ConnectionService service;
 
@@ -70,7 +71,7 @@ void main() {
     mockOfferService = _MockConnectionOfferService();
     mockDidResolver = _MockDidResolver();
     mockChannelService = _MockChannelService();
-    mockMatrixService = _MockMatrixService();
+    mockMatrixTransport = _MockMeetingPlaceTransport();
     mockWallet = _MockWallet();
 
     service = ConnectionService(
@@ -83,7 +84,7 @@ void main() {
       offerService: mockOfferService,
       didResolver: mockDidResolver,
       channelService: mockChannelService,
-      matrixService: mockMatrixService,
+      channelTransport: mockMatrixTransport,
     );
 
     registerFallbackValue(_MockDidManager());
@@ -192,10 +193,7 @@ void main() {
       ).thenAnswer((_) async => createOffer(transport: transport));
 
       when(
-        () => mockIdentityService.createPermanentIdentity(
-          mockWallet,
-          transport: any(named: 'transport'),
-        ),
+        () => mockIdentityService.createPermanentIdentity(mockWallet),
       ).thenAnswer(
         (_) async => PermanentIdentity(
           didManager: mockPermanentDidManager,
@@ -265,13 +263,12 @@ void main() {
       final channel = createChannel(transport: ChannelTransport.matrix);
 
       when(
-        () => mockMatrixService.createRoom(
+        () => mockMatrixTransport.setupChannel(
+          channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
-          channelDid: any(named: 'channelDid'),
-          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
-          inviteUsers: any(named: 'inviteUsers'),
+          participantDids: any(named: 'participantDids'),
         ),
-      ).thenAnswer((_) async => '!room:matrix.test');
+      ).thenAnswer((_) async {});
 
       await service.approveConnectionRequest(
         wallet: mockWallet,
@@ -279,11 +276,10 @@ void main() {
       );
 
       verify(
-        () => mockMatrixService.createRoom(
+        () => mockMatrixTransport.setupChannel(
+          channel: any(named: 'channel'),
           didManager: mockPermanentDidManager,
-          channelDid: permanentDid,
-          otherPartyChannelDid: otherPartyPermanentDid,
-          inviteUsers: [otherPartyPermanentDid],
+          participantDids: [otherPartyPermanentDid],
         ),
       ).called(1);
     });
@@ -298,11 +294,10 @@ void main() {
       );
 
       verifyNever(
-        () => mockMatrixService.createRoom(
+        () => mockMatrixTransport.setupChannel(
+          channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
-          channelDid: any(named: 'channelDid'),
-          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
-          inviteUsers: any(named: 'inviteUsers'),
+          participantDids: any(named: 'participantDids'),
         ),
       );
     });
@@ -313,7 +308,6 @@ void main() {
     const otherPartyPermanentDid = 'did:test:other-permanent';
     const offerLink = 'offer-link';
     const mediatorDid = 'did:test:mediator';
-    const roomId = '!room:matrix.test';
 
     late _MockDidManager mockDidManager;
 
@@ -360,16 +354,8 @@ void main() {
       ).thenAnswer((_) async => mockDidManager);
 
       when(
-        () => mockMatrixService.resolveChannelRoomId(
-          didManager: any(named: 'didManager'),
-          channelDid: any(named: 'channelDid'),
-          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
-        ),
-      ).thenAnswer((_) async => roomId);
-
-      when(
-        () => mockMatrixService.leaveRoom(
-          any(),
+        () => mockMatrixTransport.leaveChannel(
+          channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
         ),
       ).thenAnswer((_) async {});
@@ -382,7 +368,10 @@ void main() {
       await service.unlink(wallet: mockWallet, channel: channel);
 
       verify(
-        () => mockMatrixService.leaveRoom(roomId, didManager: mockDidManager),
+        () => mockMatrixTransport.leaveChannel(
+          channel: any(named: 'channel'),
+          didManager: mockDidManager,
+        ),
       ).called(1);
     });
 
@@ -393,8 +382,8 @@ void main() {
       await service.unlink(wallet: mockWallet, channel: channel);
 
       verifyNever(
-        () => mockMatrixService.leaveRoom(
-          any(),
+        () => mockMatrixTransport.leaveChannel(
+          channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
         ),
       );

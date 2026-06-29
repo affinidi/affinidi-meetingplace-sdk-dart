@@ -11,7 +11,6 @@ import 'mocks/mocks.dart';
 const _permanentChannelDid = 'did:key:permanent-channel';
 const _channelDid = 'did:key:channel';
 const _mediatorDid = 'did:web:mediator';
-const _testRoomId = '!room123:matrix.example.com';
 
 Channel _matrixChannel({String? matrixSyncMarker, int seqNo = 0}) {
   return Channel(
@@ -33,39 +32,39 @@ Channel _matrixChannel({String? matrixSyncMarker, int seqNo = 0}) {
   );
 }
 
-MatrixRoomEvent _inboundMessage({
+TransportEvent _inboundMessage({
   required String id,
   Map<String, dynamic>? content,
 }) {
-  return MatrixRoomEvent(
+  return TransportEvent(
     id: id,
     type: 'm.room.message',
-    userId: '@sender:matrix.example.com',
-    roomId: _testRoomId,
+    senderId: '@sender:matrix.example.com',
+    channelId: _permanentChannelDid,
     content: content ?? const {'msgtype': 'm.text', 'body': 'hello'},
     timestamp: DateTime.now().toUtc(),
     isFromMe: false,
   );
 }
 
-MatrixRoomEvent _outboundMessage({required String id}) {
-  return MatrixRoomEvent(
+TransportEvent _outboundMessage({required String id}) {
+  return TransportEvent(
     id: id,
     type: 'm.room.message',
-    userId: '@me:matrix.example.com',
-    roomId: _testRoomId,
+    senderId: '@me:matrix.example.com',
+    channelId: _permanentChannelDid,
     content: const {'msgtype': 'm.text', 'body': 'hi'},
     timestamp: DateTime.now().toUtc(),
     isFromMe: true,
   );
 }
 
-MatrixRoomEvent _editMessage({required String id, required String replacesId}) {
-  return MatrixRoomEvent(
+TransportEvent _editMessage({required String id, required String replacesId}) {
+  return TransportEvent(
     id: id,
     type: 'm.room.message',
-    userId: '@sender:matrix.example.com',
-    roomId: _testRoomId,
+    senderId: '@sender:matrix.example.com',
+    channelId: _permanentChannelDid,
     content: {
       'msgtype': 'm.text',
       'body': 'edited',
@@ -140,7 +139,7 @@ void main() {
       connectionManager: mockConnectionManager,
       connectionOfferRepository: mockConnectionOfferRepository,
       channelService: mockChannelService,
-      matrixService: mockMatrixService,
+      channelTransport: mockMatrixService,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: mockLogger,
     );
@@ -151,13 +150,6 @@ void main() {
         _permanentChannelDid,
       ),
     ).thenAnswer((_) async => mockDidManager);
-
-    when(
-      () => mockMatrixService.resolveRoomIdForChannel(
-        didManager: any(named: 'didManager'),
-        channel: any(named: 'channel'),
-      ),
-    ).thenAnswer((_) async => _testRoomId);
 
     when(
       () => mockChannelService.updateMatrixSyncMarker(any(), any()),
@@ -178,8 +170,8 @@ void main() {
           () => mockChannelService.findChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchRoomHistory(
-            any(),
+          () => mockMatrixService.fetchHistory(
+            channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             sinceEventId: any(named: 'sinceEventId'),
             limit: any(named: 'limit'),
@@ -196,7 +188,7 @@ void main() {
     );
 
     test(
-      'passes channel matrixSyncMarker as sinceEventId to fetchRoomHistory',
+      'passes channel matrixSyncMarker as sinceEventId to fetchHistory',
       () async {
         const marker = r'$stored-marker';
         final channel = _matrixChannel(matrixSyncMarker: marker);
@@ -205,8 +197,8 @@ void main() {
           () => mockChannelService.findChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchRoomHistory(
-            any(),
+          () => mockMatrixService.fetchHistory(
+            channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             sinceEventId: any(named: 'sinceEventId'),
             limit: any(named: 'limit'),
@@ -216,8 +208,8 @@ void main() {
         await handler.process(channelActivity);
 
         final verification = verify(
-          () => mockMatrixService.fetchRoomHistory(
-            _testRoomId,
+          () => mockMatrixService.fetchHistory(
+            channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             sinceEventId: captureAny(named: 'sinceEventId'),
             limit: any(named: 'limit'),
@@ -236,8 +228,8 @@ void main() {
           () => mockChannelService.findChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchRoomHistory(
-            any(),
+          () => mockMatrixService.fetchHistory(
+            channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             sinceEventId: any(named: 'sinceEventId'),
             limit: any(named: 'limit'),
@@ -266,8 +258,8 @@ void main() {
           () => mockChannelService.findChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchRoomHistory(
-            any(),
+          () => mockMatrixService.fetchHistory(
+            channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             sinceEventId: any(named: 'sinceEventId'),
             limit: any(named: 'limit'),
@@ -293,8 +285,8 @@ void main() {
           () => mockChannelService.findChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchRoomHistory(
-            any(),
+          () => mockMatrixService.fetchHistory(
+            channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             sinceEventId: any(named: 'sinceEventId'),
             limit: any(named: 'limit'),
@@ -322,8 +314,8 @@ void main() {
         () => mockChannelService.findChannelByDid(_channelDid),
       ).thenAnswer((_) async => channel);
       when(
-        () => mockMatrixService.fetchRoomHistory(
-          any(),
+        () => mockMatrixService.fetchHistory(
+          channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
           sinceEventId: any(named: 'sinceEventId'),
           limit: any(named: 'limit'),

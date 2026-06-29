@@ -114,8 +114,7 @@ class SetupChatSdk {
   }
 
   /// Builds a chat SDK against an already-established [channel] (typically
-  /// produced by [establishIndividualConnection]). Delegates to
-  /// [MeetingPlaceChatSDK.initialiseFromChannel] — the production factory.
+  /// produced by [establishIndividualConnection]).
   Future<MeetingPlaceChatSDK> createChatSdk({
     required SDKInstance sdkInstance,
     required Channel channel,
@@ -124,9 +123,11 @@ class SetupChatSdk {
     MeetingPlaceChatSDKOptions? options,
   }) async {
     final chatStorage = storage ?? InMemoryStorage();
-    return MeetingPlaceChatSDK.initialiseFromChannel(
-      channel,
+    return IndividualDidcommChatSDK(
       coreSDK: sdkInstance.coreSDK,
+      did: channel.permanentChannelDid!,
+      otherPartyDid: channel.otherPartyPermanentChannelDid!,
+      mediatorDid: channel.mediatorDid,
       chatRepository: ChatRepositoryImpl(storage: chatStorage),
       card: card ?? sdkInstance.contactCard,
       options:

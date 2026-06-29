@@ -14,7 +14,7 @@ import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/connection_service.dart';
 import '../service/identity/identity_service.dart';
-import '../service/matrix/matrix_service.dart';
+import '../transport/meeting_place_transport.dart';
 import '../service/mediator/mediator_service.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
@@ -57,7 +57,7 @@ class ControlPlaneEventManager {
     required GroupRepository groupRepository,
     required ChannelRepository channelRepository,
     required ChannelService channelService,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
     required IdentityService identityService,
@@ -96,7 +96,7 @@ class ControlPlaneEventManager {
       controlPlaneSDK: controlPlaneSDK,
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       connectionManager: connectionManager,
       didResolver: didResolver,
       identityService: identityService,
@@ -109,7 +109,7 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       options: options,
       logger: _logger,
       incomingCallSignalController: _incomingCallSignalController,
@@ -120,7 +120,7 @@ class ControlPlaneEventManager {
           wallet: wallet,
           mediatorService: mediatorService,
           controlPlaneSDK: controlPlaneSDK,
-          matrixService: matrixService,
+          channelTransport: channelTransport,
           connectionManager: connectionManager,
           connectionOfferRepository: connectionOfferRepository,
           groupRepository: groupRepository,

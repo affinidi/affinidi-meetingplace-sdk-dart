@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
@@ -21,7 +22,8 @@ void main() async {
   }
 
   // Bob approves offer
-  final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final bobSDK =
+      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
   // Bob registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
@@ -96,7 +98,7 @@ void main() async {
   await notificationSubscription.cancel();
 
   prettyPrintYellow('Initializing chat...');
-  final bobChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
+  final bobChatSDK = await initialiseChatFromChannel(
     offerFinalisedEvent.channel,
     coreSDK: bobSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),

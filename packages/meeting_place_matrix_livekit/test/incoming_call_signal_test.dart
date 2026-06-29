@@ -53,6 +53,7 @@ void main() {
     mockSdk = MockMeetingPlaceCoreSDK();
     signalController = StreamController<IncomingCallSignal>.broadcast();
 
+    when(() => mockSdk.matrixService).thenReturn(MockMatrixService());
     when(
       () => mockSdk.incomingCallSignals,
     ).thenAnswer((_) => signalController.stream);

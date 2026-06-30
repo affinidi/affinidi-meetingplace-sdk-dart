@@ -2,7 +2,7 @@
 
 ![Affinidi Meeting Place](https://raw.githubusercontent.com/affinidi/affinidi-meetingplace-sdk-dart/main/assets/images/meetingplace-banner.png)
 
-The Affinidi Meeting Place - Core SDK for Dart provides the toolkits to build a messaging app for a safe and secure method to discover, connect, and communicate between individuals, businesses, and AI agents using Decentralised Identifiers (DIDs) and DIDComm v2.1 protocol. DIDComm v2.1 protocol enables a secure and private communication between entities using Decentralised Identifiers (DIDs) as the basis of the user's identity when communicating, instead of the usual email address or phone number.
+The Affinidi Meeting Place - Core SDK for Dart provides tools to build a secure messaging app for individuals, businesses, and AI agents. It supports Decentralised Identifiers (DIDs), DIDComm v2.1, and Matrix. DIDs let users communicate without using an email address or phone number as their main identity.
 
 The Core SDK facilitates seamless, secure, and authentic communication between parties, ensuring trust in digital interactions.
 
@@ -23,10 +23,40 @@ The Core SDK facilitates seamless, secure, and authentic communication between p
 ## Key Features
 
 - Support for multiple digital identities, ensuring privacy and anonymity when interacting with different entities across systems.
-- End-to-end encryption of messages for more secure and private communication.
+- End-to-end encryption for secure and private communication.
 - Reduces spam by requiring the user's consent when other users try to establish a connection through the discovery mechanism.
-- Implement the DIDComm Message v2.1 protocol, and connect and authenticate with different mediators that follow the same protocol.
+- Implements the DIDComm Message v2.1 protocol, and connects and authenticates with mediators that follow the same protocol.
+- Supports Matrix-backed chat for richer features such as group chat, voice messages, edit messages, and delete messages.
 - Seamlessly integrates with Self-Sovereign Identity (SSI), including Verifiable Credentials/Presentations.
+
+## Chat Transport Capabilities
+
+Apps can use DIDComm, Matrix, or both for chat. The Chat SDK exposes the supported features through `capabilities`.
+
+Individual chats can use DIDComm based transport or Matrix based transport. Group chats require Matrix based transport.
+
+| Feature | DIDComm based transport | Matrix based transport |
+|---------|-------------------------|------------------------|
+| Individual chat | 🟢 | 🟢 |
+| Group chat | 🔴 | 🟢 |
+| Text messages | 🟢 | 🟢 |
+| Image attachments | 🟢<br><sub>Auto downloads</sub> | 🟢 |
+| File/document attachments | 🔴 | 🟢 |
+| Audio/video attachments | 🔴 | 🟢 |
+| Voice messages | 🔴 | 🟢 |
+| Message edit/delete | 🔴 | 🟢 |
+| Reactions | 🟢 | 🟢 |
+| Typing indicators | 🟢 | 🟢 |
+| Delivery receipts | 🟢 | 🟢 |
+| Visual effects | 🟢 | 🟢 |
+| Contact details update | 🟢 | 🟢 |
+| Presence Indicator | 🟢 | 🔴 |
+
+Use Matrix when you need richer chat features or group chat. Use DIDComm when you need a direct DIDComm-based chat flow.
+
+## Core and Chat SDK Roles
+
+Use the Core SDK to create identities, publish and accept offers, approve connection requests, and create channels. Use the Chat SDK after a channel exists to send messages and handle chat actions.
 
 ## Decentralised Identity
 
@@ -40,7 +70,7 @@ Leveraging the DID and DIDComm protocol, it guarantees:
 
 ## Requirements
 
-- Dart SDK `>=3.6.0 <4.0.0`
+- Dart SDK `^3.8.0`
 
 ## Installation
 
@@ -102,49 +132,67 @@ Future<void> main() async {
 }
 ```
 
-## Usage
+## Matrix Setup in Core
+
+This SDK version expects `MatrixConfig` when creating `MeetingPlaceCoreSDK`. Core uses Matrix for Matrix-backed individual chats, group chat, encrypted room events, media upload/download, and Matrix user login.
+
+Matrix login is handled through the Control Plane. The SDK asks the Control Plane for a short-lived Matrix JWT for the user's DID, then logs in to the configured homeserver with `org.matrix.login.jwt`.
+
+To enable Matrix, provide:
+
+| Setting | What it is used for |
+|---------|---------------------|
+| `mediatorDid` | DIDComm mediator used for discovery and connection flows. |
+| `controlPlaneDid` | Control Plane DID used for discovery and Matrix JWT login. |
+| `homeserver` | Matrix homeserver URL. |
+| `databaseFactory` | Opens the local Matrix database for sessions, sync state, and encryption data. |
+| `deviceId` | Device identifier used for Matrix device binding. |
+
+For group chat, publish a group offer. Core creates the owner Matrix user, creates the encrypted Matrix room, sends the room details through the connection flow, and joins approved members to the room.
+
+Typical flow:
+
+1. Create the Core SDK with `MatrixConfig`.
+2. Publish an individual or group offer.
+3. The other party accepts the offer.
+4. The offer owner approves the request.
+5. Core returns a `Channel`; pass it to the Chat SDK to start messaging.
+
+## Quick Start
+
+The app provides the wallet, repositories, Matrix database factory, and device ID.
 
 ```dart
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
-void main() async {
-   final storage = InMemoryStorage();
+final coreSDK = await MeetingPlaceCoreSDK.create(
+  wallet: wallet,
+  repositoryConfig: repositoryConfig,
+  config: MatrixConfig(
+    mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
+    controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
+    homeserver: Uri.parse('https://matrix.example.com'),
+    databaseFactory: matrixDatabaseFactory,
+    deviceId: deviceId,
+  ),
+);
 
-   final aliceSDK = MeetingPlaceCoreSDK.create(
-      wallet: PersistentWallet(InMemoryKeyStore()),
-      repositoryConfig: RepositoryConfig(
-         connectionOfferRepository: ConnectionOfferRepositoryImpl(storage: storage),
-         groupRepository: GroupRepositoryImpl(storage: storage),
-         channelRepository: ChannelRepositoryImpl(storage: storage),
-         keyRepository: KeyRepositoryImpl(storage: storage),
-      ),
-      config: Config(
-         mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
-         controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
-      ),
-   );
+await coreSDK.registerForPushNotifications(const Uuid().v4());
 
-   await aliceSDK.registerForPushNotifications(const Uuid().v4());
-
-    final publishOfferResult = await aliceSDK.publishOffer(
-         offerName: 'Example offer',
-         offerDescription: 'Example offer to test.',
-         contactCard: ContactCard(
-            did: 'did:test:alice',
-            type: 'human',
-            contactInfo: {
-               'n': {'given': 'Alice'},
-            },
-         ),
-         publishAsGroup: false,
-         validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-   );
-}
+final publishOfferResult = await coreSDK.publishOffer(
+  offerName: 'Example offer',
+  offerDescription: 'Example offer to test.',
+  contactCard: ContactCard(
+    did: 'did:test:alice',
+    type: 'human',
+    contactInfo: {
+      'n': {'given': 'Alice'},
+    },
+  ),
+  publishAsGroup: false,
+  validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
+);
 ```
 
 For more sample usage, go to [example folder](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/tree/main/packages/meeting_place_core/example).

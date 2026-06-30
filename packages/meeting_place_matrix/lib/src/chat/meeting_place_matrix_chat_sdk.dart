@@ -9,7 +9,6 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_matrix.dart';
 import '../constants.dart';
 import '../event/chat_event_conversion.dart';
-import '../logger/default_meeting_place_matrix_sdk_logger.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'typing_indicator_manager.dart';

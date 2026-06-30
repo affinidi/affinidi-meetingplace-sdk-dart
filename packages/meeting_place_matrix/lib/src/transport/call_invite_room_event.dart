@@ -20,8 +20,8 @@ class CallInviteRoomEvent extends MatrixOutgoingMessage {
          notification: IndividualChannelNotification(
            recipientDid: recipientDid,
            type: mediaType == CallMediaType.audio
-               ? ChannelActivityType.callInviteAudio
-               : ChannelActivityType.callInviteVideo,
+               ? CallChannelActivityType.callInviteAudio
+               : CallChannelActivityType.callInviteVideo,
          ),
        );
 }

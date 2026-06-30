@@ -3,7 +3,6 @@ import 'package:meeting_place_core/meeting_place_core.dart'
 
 import 'exception/matrix_sdk_exception.dart';
 
-// TODO(SR): Use matrix SDK specific error codes
 class MatrixServiceException implements MatrixSDKException {
   factory MatrixServiceException.loginFailed({Object? innerException}) {
     return MatrixServiceException(
@@ -44,8 +43,7 @@ class MatrixServiceException implements MatrixSDKException {
       message:
           'Matrix client has no userID after session establishment; '
           'this should not happen.',
-      // code: MeetingPlaceCoreSDKErrorCode.matrixMissingUserId,
-      code: MeetingPlaceCoreSDKErrorCode.generic,
+      code: MeetingPlaceCoreSDKErrorCode.matrixMissingUserId,
     );
   }
 
@@ -54,24 +52,21 @@ class MatrixServiceException implements MatrixSDKException {
       message:
           'VoIP not initialized. '
           'Call initializeMatrixRTC() before starting a call.',
-      // code: MeetingPlaceCoreSDKErrorCode.matrixVoipNotInitialized,
-      code: MeetingPlaceCoreSDKErrorCode.generic,
+      code: MeetingPlaceCoreSDKErrorCode.matrixVoipNotInitialized,
     );
   }
 
   factory MatrixServiceException.roomNotFound(String roomId) {
     return MatrixServiceException(
       message: 'Matrix room not found: $roomId',
-      // code: MeetingPlaceCoreSDKErrorCode.matrixRoomNotFound,
-      code: MeetingPlaceCoreSDKErrorCode.generic,
+      code: MeetingPlaceCoreSDKErrorCode.matrixRoomNotFound,
     );
   }
 
   factory MatrixServiceException.incomingCallNotFound(String roomId) {
     return MatrixServiceException(
       message: 'No incoming MatrixRTC call found in room: $roomId',
-      // code: MeetingPlaceCoreSDKErrorCode.matrixIncomingCallNotFound,
-      code: MeetingPlaceCoreSDKErrorCode.generic,
+      code: MeetingPlaceCoreSDKErrorCode.matrixIncomingCallNotFound,
     );
   }
 

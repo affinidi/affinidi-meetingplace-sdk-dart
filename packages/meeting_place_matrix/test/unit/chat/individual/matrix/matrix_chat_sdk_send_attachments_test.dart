@@ -452,7 +452,7 @@ void main() {
     });
 
     test(
-      'metadata-only attachment sends via sendMessage with mpx.call.item msgtype',
+      '''metadata-only attachment sends via sendMessage with mpx.call.item msgtype''',
       () async {
         final callMetadata = {'call_status': 'calling', 'media_kind': 'call'};
         final attachment = ChatAttachment(metadata: callMetadata);

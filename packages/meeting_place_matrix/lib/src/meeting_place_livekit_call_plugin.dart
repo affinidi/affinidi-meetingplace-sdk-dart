@@ -204,7 +204,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         sdk.notifyChannel(
           IndividualChannelNotification(
             recipientDid: callerChannelDid,
-            type: ChannelActivityType.callDecline,
+            type: CallChannelActivityType.callDecline,
           ),
         ),
       );

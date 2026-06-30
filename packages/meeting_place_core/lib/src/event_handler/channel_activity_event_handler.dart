@@ -52,7 +52,7 @@ class ChannelActivityEventHandler {
     );
 
     switch (channelActivity.type) {
-      case 'channel-inauguration':
+      case ChannelActivityType.channelInauguration:
         _logger.info('Processing channel inauguration event', name: _logKey);
         return ChannelInaugurationEventHandler(
           wallet: _wallet,
@@ -63,7 +63,7 @@ class ChannelActivityEventHandler {
           options: _options,
           logger: _logger,
         ).process(channelActivity);
-      case 'chat-activity':
+      case ChannelActivityType.chatActivity:
         _logger.info('Processing chat activity event', name: _logKey);
         return ChatActivityEventHandler(
           wallet: _wallet,
@@ -89,11 +89,11 @@ class ChannelActivityEventHandler {
           logger: _logger,
         ).process(channelActivity);
       default:
-        _logger.warning(
-          'Unsupported channel activity type: ${channelActivity.type}',
-          name: _logKey,
+        // TODO(SR): Handle error path.
+        final channel = await _channelService.findChannelByDid(
+          channelActivity.did,
         );
-        return [];
+        return [channel];
     }
   }
 

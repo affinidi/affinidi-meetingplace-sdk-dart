@@ -219,8 +219,8 @@ class MatrixCallAdapter {
           offerLink: channel.offerLink,
           groupDid: _otherPartyChannelDid,
           type: mediaType == CallMediaType.audio
-              ? ChannelActivityType.callInviteAudio
-              : ChannelActivityType.callInviteVideo,
+              ? CallChannelActivityType.callInviteAudio
+              : CallChannelActivityType.callInviteVideo,
         ),
       );
     } else {
@@ -249,7 +249,7 @@ class MatrixCallAdapter {
       _sdk.notifyChannel(
         IndividualChannelNotification(
           recipientDid: _otherPartyChannelDid,
-          type: ChannelActivityType.callDecline,
+          type: CallChannelActivityType.callDecline,
         ),
       ),
     );

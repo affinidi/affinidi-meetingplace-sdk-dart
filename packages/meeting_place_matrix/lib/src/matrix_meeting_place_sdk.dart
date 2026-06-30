@@ -9,17 +9,8 @@ import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_matrix.dart';
-import 'call/call_decline_signal.dart';
-import 'call/incoming_call_signal.dart';
-import 'logger/default_meeting_place_matrix_sdk_logger.dart';
-import 'matrix_config.dart';
-import 'matrix_incoming_message.dart';
-import 'matrix_outgoing_message.dart';
-import 'matrix_room_history_query.dart';
-import 'matrix_room_subscription.dart';
+
 import 'matrix_sender_did_resolver.dart';
-import 'matrix_service.dart';
-import 'matrix_transport.dart';
 
 /// A [MeetingPlaceCoreSDK] backed by a Matrix homeserver.
 ///
@@ -90,16 +81,37 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   /// processed from the control plane. The plugin layer subscribes here to
   /// lazily activate the recipient's Matrix session via [activateIncomingCall]
   /// and emit an `IncomingCallEvent` to the app.
-  Stream<IncomingCallSignal> get incomingCallSignals =>
-      _controlPlaneEventService.incomingCallSignals;
+  Stream<IncomingCallSignal> get incomingCallSignals => _coreSDK
+      .controlPlaneEventsStream
+      .where(
+        (e) =>
+            e.activityType == CallChannelActivityType.callInviteAudio ||
+            e.activityType == CallChannelActivityType.callInviteVideo,
+      )
+      .asyncMap((e) async {
+        return IncomingCallSignal(
+          ownChannelDid: e.channel.permanentChannelDid!,
+          mediaType: e.activityType == CallChannelActivityType.callInviteVideo
+              ? CallMediaType.video
+              : CallMediaType.audio,
+        );
+      });
 
   /// Broadcast stream of call-decline signals.
   ///
   /// Emits a [CallDeclineSignal] whenever a `ChannelActivity` event with
   /// `type == 'call-decline'` is received. The plugin layer subscribes here
   /// to emit `AudioVideoCallStatus.declined` on the active outgoing session.
-  Stream<CallDeclineSignal> get callDeclineSignals =>
-      _controlPlaneEventService.callDeclineSignals;
+  Stream<CallDeclineSignal> get callDeclineSignals => _coreSDK
+      .controlPlaneEventsStream
+      .where((e) => e.activityType == CallChannelActivityType.callDecline)
+      .asyncMap((e) async {
+        return CallDeclineSignal(
+          // TODO(SR): Rename to permanentChannelDID to be consistent +
+          //  error path?
+          ownChannelDid: e.channel.permanentChannelDid!,
+        );
+      });
 
   // ---------------------------------------------------------------------------
   // MeetingPlaceCoreSDK — delegated members

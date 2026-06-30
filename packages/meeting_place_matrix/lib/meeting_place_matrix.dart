@@ -30,6 +30,7 @@ export 'package:meeting_place_core/meeting_place_core.dart'
         MeetingPlaceCoreSDKOptions,
         RepositoryConfig;
 
+export 'src/call/call_channel_activity_type.dart';
 export 'src/call/call_decline_signal.dart';
 export 'src/call/call_media_type.dart';
 export 'src/call/incoming_call_signal.dart';

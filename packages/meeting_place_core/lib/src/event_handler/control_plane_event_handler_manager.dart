@@ -178,7 +178,13 @@ class ControlPlaneEventManager {
           }
 
           _streamManager.pushEvent(
-            ControlPlaneStreamEvent(channel: channel, type: event.type),
+            ControlPlaneStreamEvent(
+              channel: channel,
+              type: event.type,
+              activityType: event.type == ControlPlaneEventType.ChannelActivity
+                  ? (event.data as ChannelActivity).type
+                  : null,
+            ),
           );
         }
       } on EventHandlerException catch (e, stackTrace) {

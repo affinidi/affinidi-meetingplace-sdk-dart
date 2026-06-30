@@ -89,7 +89,10 @@ class ChannelActivityEventHandler {
           logger: _logger,
         ).process(channelActivity);
       default:
-        // TODO(SR): Handle error path.
+        _logger.info(
+          '''Unhandled channel activity type: ${channelActivity.type} — forwarding to stream''',
+          name: _logKey,
+        );
         final channel = await _channelService.findChannelByDid(
           channelActivity.did,
         );

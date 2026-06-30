@@ -68,5 +68,6 @@ export 'src/models/call_e2ee_state.dart';
 export 'src/services/audio_video_call_service.dart';
 export 'src/sessions/livekit_call_session.dart';
 export 'src/transport/matrix/call/call.dart';
+export 'src/transport/matrix/call/contracts/audio_video_call_plugin.dart';
 export 'src/transport/matrix/matrix_chat_event_type.dart';
 export 'src/transport/matrix/matrix_media_attachment.dart';

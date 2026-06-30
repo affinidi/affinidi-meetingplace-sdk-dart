@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart'
     show
         Channel,
@@ -141,7 +142,7 @@ class MatrixTransport implements MeetingPlaceTransport {
       final isTimeline = e.type != 'm.typing' && e.type != 'm.receipt';
       if (isTimeline && e.timestamp.isBefore(cutoff)) continue;
 
-      final senderDid =
+      final resolvedDid =
           e.senderDid ??
           _resolveSenderDid(
             matrixUserId: e.userId,
@@ -149,6 +150,16 @@ class MatrixTransport implements MeetingPlaceTransport {
             participantDids: participantDids,
             serverName: _matrixService.homeserver.host,
           );
+
+      // For m.room.member events, fall back to the sender's Matrix user ID
+      // when a DID can't be resolved from the static participantDids snapshot
+      // (e.g. a member who joined after the subscription was created). The
+      // actual member DID is resolved downstream by
+      // GroupRoomEventRouter.resolveTargetDid via stateKey lookup against the
+      // live group.members list.
+      final senderDid =
+          resolvedDid ??
+          (e.type == matrix.EventTypes.RoomMember ? e.userId : null);
 
       if (senderDid == null && isTimeline) continue;
 

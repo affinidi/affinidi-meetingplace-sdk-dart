@@ -48,6 +48,7 @@ class AudioVideoCallService {
          logger: logger,
          otherPartyChannelDid: otherPartyChannelDid,
          livekitSfuUrl: options.livekitSfuUrl,
+         sfuAllowedHosts: options.sfuAllowedHosts,
          livekitTokenService: livekitTokenService,
          rtcDelegate: rtcDelegate,
        ) {

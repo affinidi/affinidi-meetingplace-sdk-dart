@@ -6,6 +6,7 @@ class MeetingPlaceLiveKitCallPluginOptions {
   const MeetingPlaceLiveKitCallPluginOptions({
     required this.livekitServiceUrl,
     this.livekitSfuUrl,
+    this.sfuAllowedHosts = const [],
     this.e2eeReadyTimeout = const Duration(seconds: 10),
     this.outgoingCallTimeout = const Duration(seconds: 60),
   });
@@ -28,6 +29,16 @@ class MeetingPlaceLiveKitCallPluginOptions {
   /// In production, omit this field — the SFU URL from the lk-jwt-service
   /// response is used directly.
   final Uri? livekitSfuUrl;
+
+  /// Allowlist of SFU hostnames the client is permitted to connect to.
+  ///
+  /// Supports wildcard prefixes (e.g. `*.meetingplace.affinidi.io`).
+  /// When non-empty, any server-supplied URL whose host is not in this list
+  /// causes [fetchCallCredentials] to throw before any connection is attempted.
+  ///
+  /// Recommended for production: set to your LiveKit domain(s).
+  /// Example: `['*.meetingplace.affinidi.io', 'livekit.example.com']`
+  final List<String> sfuAllowedHosts;
 
   /// How long to wait for E2EE keys from all remote participants before
   /// transitioning the call to the connected status without confirmed

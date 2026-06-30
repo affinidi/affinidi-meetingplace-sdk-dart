@@ -1,3 +1,7 @@
+## 0.0.1-dev.49
+
+ - **FIX**: split media capabilities into images and videos (#254).
+
 ## 0.0.1-dev.48
 
  - **FIX**: handle sync markers correctly (#246).

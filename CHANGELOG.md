@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.49`](#meeting_place_chat---v001-dev49)
+ - [`meeting_place_core` - `v0.0.1-dev.43`](#meeting_place_core---v001-dev43)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.49`](#meeting_place_drift_repository---v001-dev49)
+ - [`meeting_place_credentials` - `v0.0.1-dev.8`](#meeting_place_credentials---v001-dev8)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_drift_repository` - `v0.0.1-dev.49`
+ - `meeting_place_credentials` - `v0.0.1-dev.8`
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.49`
+
+ - **FIX**: split media capabilities into images and videos (#254).
+
+#### `meeting_place_core` - `v0.0.1-dev.43`
+
+ - **FIX**: split media capabilities into images and videos (#254).
+
+
 ## 2026-06-25
 
 ### Changes

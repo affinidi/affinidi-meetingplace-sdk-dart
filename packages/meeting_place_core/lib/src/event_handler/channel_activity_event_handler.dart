@@ -9,7 +9,7 @@ import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/mediator/mediator_service.dart';
 import '../transport/meeting_place_transport.dart';
-import '../vdip/channel_activity_type.dart';
+import 'channel_activity_type.dart';
 import 'channel_inauguration_event_handler.dart';
 import 'chat_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';

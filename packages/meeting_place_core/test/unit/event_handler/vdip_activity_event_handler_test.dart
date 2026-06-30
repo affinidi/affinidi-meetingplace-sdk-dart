@@ -9,7 +9,7 @@ import 'package:meeting_place_core/src/meeting_place_core_sdk_error_code.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
 import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
-import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';
+import 'package:meeting_place_core/src/event_handler/channel_activity_type.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';

@@ -48,5 +48,5 @@ export 'src/service/oob/stream/oob_stream.dart';
 export 'src/service/oob/stream/oob_stream_data.dart';
 export 'src/transport/transport.dart';
 export 'src/utils/contact_card_utils.dart';
-export 'src/vdip/channel_activity_type.dart';
+export 'src/event_handler/channel_activity_type.dart';
 export 'src/vdip/vdip_client.dart';

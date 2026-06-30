@@ -10,7 +10,7 @@ import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_stream_subscription_wrapper.dart';
 import 'package:meeting_place_core/src/service/message/message_service.dart';
-import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';
+import 'package:meeting_place_core/src/event_handler/channel_activity_type.dart';
 import 'package:meeting_place_core/src/vdip/vdip_client.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show MediatorStreamProcessingResult;

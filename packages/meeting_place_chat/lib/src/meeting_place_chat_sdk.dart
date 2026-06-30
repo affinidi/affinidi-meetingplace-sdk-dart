@@ -115,6 +115,10 @@ abstract interface class MeetingPlaceChatSDK {
   /// only within `deleteMessageWindow`.
   Future<void> deleteMessage(Message message, {bool localOnly = false});
 
+  /// Updates a persisted [message] in the local repository and re-emits it
+  /// to the chat stream so the UI reflects the change immediately.
+  Future<void> updateMessage(Message message);
+
   /// Maximum age at which the original sender can still delete one of their
   /// own messages for everyone. Mirrors
   /// [MeetingPlaceChatSDKOptions.deleteMessageWindow].

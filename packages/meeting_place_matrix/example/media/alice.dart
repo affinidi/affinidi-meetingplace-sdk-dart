@@ -18,7 +18,7 @@ void main() async {
   }
 
   final aliceSDK =
-      await initCoreSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();

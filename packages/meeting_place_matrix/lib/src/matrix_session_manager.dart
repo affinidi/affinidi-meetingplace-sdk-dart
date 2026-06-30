@@ -2,13 +2,9 @@ import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
 
-import 'package:meeting_place_core/meeting_place_core.dart'
-    show MeetingPlaceCoreSDKLogger;
+import '../meeting_place_matrix.dart';
 import 'matrix_client.dart';
 import 'matrix_client_cache.dart';
-import 'matrix_config.dart';
-import 'matrix_service_exception.dart';
-import 'matrix_user_id_binding.dart';
 
 /// Manages the lifecycle of Matrix client sessions for individual DIDs.
 ///
@@ -23,7 +19,7 @@ import 'matrix_user_id_binding.dart';
 class MatrixSessionManager {
   MatrixSessionManager({
     required MatrixConfig config,
-    required MeetingPlaceCoreSDKLogger logger,
+    required MeetingPlaceMatrixSDKLogger logger,
     MatrixClientCache? clientCache,
   }) : _config = config,
        _logger = logger,
@@ -49,7 +45,7 @@ class MatrixSessionManager {
   final MatrixClientCache _clientCache;
 
   /// Logger for session manager operations and errors.
-  final MeetingPlaceCoreSDKLogger _logger;
+  final MeetingPlaceMatrixSDKLogger _logger;
 
   /// In-flight login attempts keyed by DID.
   final Map<String, Future<matrix.Client>> _inFlightLogins = {};
@@ -70,6 +66,11 @@ class MatrixSessionManager {
 
   /// Exposes the homeserver URI from the configuration.
   Uri get homeserver => _config.homeserver;
+
+  /// This is the Synapse `server_name`, which equals [homeserver].host in
+  /// production but may differ in local development when clients connect via a
+  /// tunnel URL.
+  String get serverName => _config.serverName;
 
   /// Logs in with [jwt] for the user identified by [did], returning the
   /// Matrix user ID.

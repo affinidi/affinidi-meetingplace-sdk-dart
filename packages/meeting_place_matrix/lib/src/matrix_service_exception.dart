@@ -3,6 +3,7 @@ import 'package:meeting_place_core/meeting_place_core.dart'
 
 import 'exception/matrix_sdk_exception.dart';
 
+// TODO(SR): Use matrix SDK specific error codes
 class MatrixServiceException implements MatrixSDKException {
   factory MatrixServiceException.loginFailed({Object? innerException}) {
     return MatrixServiceException(
@@ -35,6 +36,42 @@ class MatrixServiceException implements MatrixSDKException {
           '(megolm key unavailable); its attachment cannot be downloaded.',
       code: MeetingPlaceCoreSDKErrorCode.matrixMediaDecryptionFailed,
       innerException: innerException,
+    );
+  }
+
+  factory MatrixServiceException.missingUserId() {
+    return MatrixServiceException(
+      message:
+          'Matrix client has no userID after session establishment; '
+          'this should not happen.',
+      // code: MeetingPlaceCoreSDKErrorCode.matrixMissingUserId,
+      code: MeetingPlaceCoreSDKErrorCode.generic,
+    );
+  }
+
+  factory MatrixServiceException.voipNotInitialized() {
+    return MatrixServiceException(
+      message:
+          'VoIP not initialized. '
+          'Call initializeMatrixRTC() before starting a call.',
+      // code: MeetingPlaceCoreSDKErrorCode.matrixVoipNotInitialized,
+      code: MeetingPlaceCoreSDKErrorCode.generic,
+    );
+  }
+
+  factory MatrixServiceException.roomNotFound(String roomId) {
+    return MatrixServiceException(
+      message: 'Matrix room not found: $roomId',
+      // code: MeetingPlaceCoreSDKErrorCode.matrixRoomNotFound,
+      code: MeetingPlaceCoreSDKErrorCode.generic,
+    );
+  }
+
+  factory MatrixServiceException.incomingCallNotFound(String roomId) {
+    return MatrixServiceException(
+      message: 'No incoming MatrixRTC call found in room: $roomId',
+      // code: MeetingPlaceCoreSDKErrorCode.matrixIncomingCallNotFound,
+      code: MeetingPlaceCoreSDKErrorCode.generic,
     );
   }
 

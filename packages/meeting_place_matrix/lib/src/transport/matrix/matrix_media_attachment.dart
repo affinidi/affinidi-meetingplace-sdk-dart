@@ -11,6 +11,9 @@ class MediaMsgType {
   static const image = 'm.image';
   static const audio = 'm.audio';
   static const video = 'm.video';
+
+  /// Custom msgtype for call chat items. Not a standard Matrix msgtype.
+  static const callItem = 'mpx.call.item';
 }
 
 /// Custom field keys the SDK adds to matrix event `content`.
@@ -29,6 +32,10 @@ class MatrixEventField {
   /// Stores the [ChatAttachment.format] for media events so the receiver
   /// can reconstruct the original format of each attachment.
   static const attachmentFormat = 'mp_attachment_format';
+
+  /// Embeds call item metadata in [MediaMsgType.callItem] events so the
+  /// receiver can reconstruct the [ChatAttachment] without a file download.
+  static const callMetadata = 'mp_call_metadata';
 }
 
 /// Matrix-specific helpers for parsing and inspecting media attachments
@@ -53,6 +60,8 @@ class MatrixMediaAttachments {
     MediaMsgType.video,
   };
 
+  static const Set<String> _metadataOnlyMsgTypes = {MediaMsgType.callItem};
+
   /// Extracts display-only attachment metadata from Matrix `m.room.message`
   /// content. The matrix event id (held by the parent `Message.transportId`)
   /// is the only reference needed to fetch the bytes via
@@ -60,7 +69,13 @@ class MatrixMediaAttachments {
   /// encrypted-file metadata are intentionally not surfaced to SDK consumers.
   static List<ChatAttachment> extractFromContent(Map<String, dynamic> content) {
     final msgtype = _stringValue(content['msgtype']);
-    if (msgtype == null || !_mediaMsgTypes.contains(msgtype)) {
+    if (msgtype == null) return const <ChatAttachment>[];
+
+    if (_metadataOnlyMsgTypes.contains(msgtype)) {
+      return _extractMetadataOnlyAttachments(content, msgtype);
+    }
+
+    if (!_mediaMsgTypes.contains(msgtype)) {
       return const [];
     }
 
@@ -86,6 +101,20 @@ class MatrixMediaAttachments {
         metadata: _voiceMetadata(content, info),
       ),
     ];
+  }
+
+  /// Extracts metadata-only attachments from custom Matrix event msgtypes
+  /// (e.g. [MediaMsgType.callItem]).
+  static List<ChatAttachment> _extractMetadataOnlyAttachments(
+    Map<String, dynamic> content,
+    String msgtype,
+  ) {
+    if (msgtype == MediaMsgType.callItem) {
+      final metadata = _mapValue(content[MatrixEventField.callMetadata]);
+      if (metadata == null) return const [];
+      return [ChatAttachment(id: const Uuid().v4(), metadata: metadata)];
+    }
+    return const [];
   }
 
   /// Reads voice metadata from content-level MSC keys, or `null` for generic

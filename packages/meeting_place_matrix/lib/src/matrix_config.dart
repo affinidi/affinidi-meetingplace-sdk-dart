@@ -1,18 +1,28 @@
 import 'package:matrix/matrix.dart' show DatabaseApi;
-import 'package:meeting_place_core/meeting_place_core.dart' show Config;
+import 'package:meeting_place_core/meeting_place_core.dart';
 
 class MatrixConfig extends Config {
-  const MatrixConfig({
+  MatrixConfig({
     required super.mediatorDid,
     required super.controlPlaneDid,
     required this.homeserver,
     required this.databaseFactory,
     required this.deviceId,
-  });
+    String? serverName,
+  }) : serverName = serverName ?? homeserver.host;
 
   final Uri homeserver;
   final MatrixDatabaseFactory databaseFactory;
   final String deviceId;
+
+  /// The Matrix server name used for user ID derivation (`@hash:<serverName>`).
+  ///
+  /// In production this equals [homeserver].host. For local development the
+  /// homeserver may be reached via a tunnel (e.g. ngrok) whose hostname
+  /// differs from the Synapse `server_name` — pass this field explicitly so
+  /// all clients derive consistent user IDs regardless of which URL they use
+  /// to connect.
+  final String serverName;
 }
 
 class MatrixDatabaseContext {

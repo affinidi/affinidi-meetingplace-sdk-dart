@@ -219,15 +219,15 @@ class MatrixCallService {
     return null;
   }
 
-  /// Returns `true` when [roomId] already has at least one non-expired
-  /// `m.call.member` state event, i.e. a MatrixRTC call is already in
-  /// progress.
+  /// Returns `true` when [roomId] has at least one non-expired
+  /// `m.call.member` state event published by a participant other than this
+  /// device, i.e. a MatrixRTC call is already in progress.
   ///
-  /// Used to make call initiation idempotent: a caller that re-enters a room
-  /// it already published a membership for (for example after an app restart)
-  /// must rejoin the existing call instead of broadcasting a fresh
-  /// call-invite. Returns `false` when VoIP is not initialised or the room
-  /// has not yet synced.
+  /// Used to make call initiation idempotent: a device that re-enters a room
+  /// where the peer is still in the call must rejoin the existing call instead
+  /// of broadcasting a fresh call-invite. This device's own stale membership
+  /// is ignored. Returns `false` when VoIP is not initialised or the room has
+  /// not yet synced.
   Future<bool> hasActiveCallMembership({
     required DidManager didManager,
     required String roomId,
@@ -235,13 +235,21 @@ class MatrixCallService {
       (await activeCallId(didManager: didManager, roomId: roomId)) != null;
 
   /// Returns the callId of the first non-expired MatrixRTC call membership in
-  /// [roomId], or `null` when no call is in progress.
+  /// [roomId] published by a participant other than this device, or `null`
+  /// when no call is in progress.
   ///
   /// A device joining or rejoining an in-progress call must reuse this exact
   /// callId so its E2EE key exchange lands in the same call generation. A
   /// fresh caller passes a newly minted callId instead, so stale to-device
   /// encryption keys from a previous, ended call generation are routed to a
   /// dead session and dropped rather than overwriting the current key.
+  ///
+  /// This device's own membership is ignored. After an app restart a stale,
+  /// not-yet-expired `m.call.member` event published by this device can linger
+  /// in the room; counting it would misclassify a fresh outgoing call as a
+  /// rejoin and suppress the call-invite. A genuine in-progress call always
+  /// carries the peer's membership, so excluding self preserves correct rejoin
+  /// detection while letting a fresh caller start cleanly.
   ///
   /// Returns `null` when VoIP is not initialised or the room has not synced.
   Future<String?> activeCallId({
@@ -255,9 +263,16 @@ class MatrixCallService {
     final room = client.getRoomById(roomId);
     if (room == null) return null;
 
+    final ownUserId = client.userID;
+    final ownDeviceId = client.deviceID;
     for (final memberships in room.getCallMembershipsFromRoom(voip).values) {
       for (final membership in memberships) {
-        if (!membership.isExpired) return membership.callId;
+        if (membership.isExpired) continue;
+        final isOwnMembership =
+            membership.userId == ownUserId &&
+            membership.deviceId == ownDeviceId;
+        if (isOwnMembership) continue;
+        return membership.callId;
       }
     }
     return null;

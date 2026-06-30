@@ -10,6 +10,8 @@ class MockVoIP extends Mock implements matrix.VoIP {}
 
 class MockDidManager extends Mock implements DidManager {}
 
+class MockMatrixRoom extends Mock implements matrix.Room {}
+
 class _NoOpLogger implements MeetingPlaceCoreSDKLogger {
   @override
   void info(String message, {String name = ''}) {}
@@ -31,6 +33,47 @@ class _NoOpLogger implements MeetingPlaceCoreSDKLogger {
 
 const _roomId = '!room123:matrix.example.com';
 const _callId = 'call-1';
+const _ownUserId = '@own:matrix.example.com';
+const _ownDeviceId = 'OWNDEVICE';
+const _peerUserId = '@peer:matrix.example.com';
+const _peerDeviceId = 'PEERDEVICE';
+const _peerCallId = 'peer-call-1';
+
+matrix.Event _memberEvent({
+  required matrix.Room room,
+  required matrix.VoIP voip,
+  required String userId,
+  required String deviceId,
+  required String callId,
+}) {
+  return matrix.Event(
+    content: {
+      'memberships': [
+        matrix.CallMembership(
+          userId: userId,
+          callId: callId,
+          backend: matrix.LiveKitBackend(
+            livekitServiceUrl: 'wss://livekit.example.com',
+            livekitAlias: 'alias',
+          ),
+          deviceId: deviceId,
+          expiresTs: DateTime.now()
+              .add(const Duration(hours: 12))
+              .millisecondsSinceEpoch,
+          roomId: _roomId,
+          membershipId: 'session-$deviceId',
+          voip: voip,
+        ).toJson(),
+      ],
+    },
+    type: matrix.EventTypes.GroupCallMember,
+    eventId: 'evt-$userId',
+    senderId: userId,
+    originServerTs: DateTime.now(),
+    room: room,
+    stateKey: userId,
+  );
+}
 
 void main() {
   late MockMatrixClient client;
@@ -104,6 +147,71 @@ void main() {
         roomId: _roomId,
       );
       expect(result, isNull);
+    });
+
+    test('ignores this device\'s own stale membership', () async {
+      final voip = MockVoIP();
+      final room = MockMatrixRoom();
+      when(() => voip.timeouts).thenReturn(matrix.CallTimeouts());
+      service.initializeVoIP(voip);
+
+      when(() => client.userID).thenReturn(_ownUserId);
+      when(() => client.deviceID).thenReturn(_ownDeviceId);
+      when(() => client.getRoomById(_roomId)).thenReturn(room);
+      when(() => room.id).thenReturn(_roomId);
+      when(() => room.states).thenReturn({
+        matrix.EventTypes.GroupCallMember: {
+          _ownUserId: _memberEvent(
+            room: room,
+            voip: voip,
+            userId: _ownUserId,
+            deviceId: _ownDeviceId,
+            callId: _callId,
+          ),
+        },
+      });
+
+      final result = await service.activeCallId(
+        didManager: didManager,
+        roomId: _roomId,
+      );
+      expect(result, isNull);
+    });
+
+    test('returns the peer call id when the peer is in the call', () async {
+      final voip = MockVoIP();
+      final room = MockMatrixRoom();
+      when(() => voip.timeouts).thenReturn(matrix.CallTimeouts());
+      service.initializeVoIP(voip);
+
+      when(() => client.userID).thenReturn(_ownUserId);
+      when(() => client.deviceID).thenReturn(_ownDeviceId);
+      when(() => client.getRoomById(_roomId)).thenReturn(room);
+      when(() => room.id).thenReturn(_roomId);
+      when(() => room.states).thenReturn({
+        matrix.EventTypes.GroupCallMember: {
+          _ownUserId: _memberEvent(
+            room: room,
+            voip: voip,
+            userId: _ownUserId,
+            deviceId: _ownDeviceId,
+            callId: _callId,
+          ),
+          _peerUserId: _memberEvent(
+            room: room,
+            voip: voip,
+            userId: _peerUserId,
+            deviceId: _peerDeviceId,
+            callId: _peerCallId,
+          ),
+        },
+      });
+
+      final result = await service.activeCallId(
+        didManager: didManager,
+        roomId: _roomId,
+      );
+      expect(result, _peerCallId);
     });
   });
 

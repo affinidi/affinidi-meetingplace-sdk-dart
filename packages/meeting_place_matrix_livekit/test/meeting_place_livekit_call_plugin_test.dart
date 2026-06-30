@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:meeting_place_chat/meeting_place_chat.dart'
+    show AudioVideoCallParticipant, AudioVideoCallState;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix_livekit/meeting_place_matrix_livekit.dart';
 import 'package:mocktail/mocktail.dart';
@@ -124,5 +128,89 @@ void main() {
         expect(session1, isNot(same(session2)));
       },
     );
+
+    test(
+      'releases busy guard when session stream closes without terminal status',
+      () async {
+        final stateControllers = <StreamController<AudioVideoCallState>>[];
+
+        final plugin = _plugin(
+          roomFactory: (did) {
+            final room = _SimpleFakeRoom(stateControllers);
+            return room;
+          },
+        );
+        plugin.initialize(sdk: _mockSdk());
+        addTearDown(() async => plugin.dispose());
+
+        await plugin.startCall(
+          otherPartyChannelDid: 'did:key:caller1',
+          mediaType: CallMediaType.video,
+        );
+        expect(stateControllers, isNotEmpty);
+
+        await stateControllers.last.close();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        final session2 = await plugin.startCall(
+          otherPartyChannelDid: 'did:key:caller2',
+          mediaType: CallMediaType.video,
+        );
+
+        expect(session2, isNotNull);
+        expect(stateControllers.length, 2);
+      },
+    );
   });
+}
+
+class _SimpleFakeRoom implements LiveKitRoom {
+  _SimpleFakeRoom(this.controllers);
+
+  final List<StreamController<AudioVideoCallState>> controllers;
+  late final StreamController<AudioVideoCallState> _state =
+      StreamController<AudioVideoCallState>.broadcast();
+
+  @override
+  String? get ownParticipantId => null;
+
+  @override
+  List<AudioVideoCallParticipant> get participants => [];
+
+  @override
+  Future<void> setSharedKey(String key) async {}
+
+  @override
+  Future<void> ratchetKey(String participantId, int keyIndex) async {}
+
+  @override
+  Future<void> connect({
+    required String url,
+    required String token,
+    Map<String, String> participantIdToDid = const {},
+    OnCallE2EEStateChanged? onE2EEStateChanged,
+    OnParticipantDisconnected? onParticipantDisconnected,
+    void Function()? onParticipantsChanged,
+  }) async {
+    controllers.add(_state);
+    _state.add(AudioVideoCallState.initial);
+  }
+
+  @override
+  Future<void> disconnect() async => _state.close();
+
+  @override
+  Future<void> setMicrophoneEnabled(bool enabled) async {}
+
+  @override
+  Future<void> setCameraEnabled(bool enabled) async {}
+
+  @override
+  Future<void> switchCamera() async {}
+
+  @override
+  Future<void> setSpeakerphoneEnabled(bool enabled) async {}
+
+  @override
+  Future<void> forceRemoteKeyframe(String participantId) async {}
 }

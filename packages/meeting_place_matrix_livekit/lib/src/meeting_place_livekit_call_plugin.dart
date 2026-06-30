@@ -166,6 +166,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       otherPartyChannelDid: otherPartyChannelDid,
     );
     _activeSession = session;
+    _watchForSessionEnd(session);
 
     final (:isRecipient, :pendingCallId) = _pendingCallManager.resolveRole(
       otherPartyChannelDid,
@@ -237,6 +238,43 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     await _activeSession?.dispose();
     _activeSession = null;
     _pendingCallManager.clearActiveCall();
+  }
+
+  // Subscribes to [session]'s state stream and auto-clears [_activeSession]
+  // and [_pendingCallManager] when a call-end status is emitted.
+  //
+  // This ensures the busy guard is released regardless of whether the call ends
+  // via the user hanging up, a remote hang-up, or a timeout — without requiring
+  // the app to call [leaveCurrentCall] on every code path.
+  void _watchForSessionEnd(LiveKitCallSession session) {
+    const endedStatuses = {
+      AudioVideoCallStatus.ended,
+      AudioVideoCallStatus.declined,
+      AudioVideoCallStatus.missed,
+      AudioVideoCallStatus.disconnected,
+      AudioVideoCallStatus.error,
+    };
+
+    void release(String reason) {
+      if (_activeSession == session) {
+        _logger.info(
+          'watchForSessionEnd: $reason — releasing busy guard for '
+          '${session.otherPartyChannelDid.topAndTail()}',
+          name: _logKey,
+        );
+        _activeSession = null;
+        _pendingCallManager.clearActiveCall();
+      }
+    }
+
+    session.state
+        .where((s) => endedStatuses.contains(s.status))
+        .listen(
+          (_) => release('call ended'),
+          onDone: () => release('session stream closed'),
+          onError: (_) => release('session stream error'),
+          cancelOnError: true,
+        );
   }
 
   MeetingPlaceCoreSDK _requireSdk() {

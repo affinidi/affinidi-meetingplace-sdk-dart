@@ -599,10 +599,13 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @override
   Future<void> end() async {
     _typingManager.stop();
-    await _matrixRoomSubscription?.cancel();
-    _matrixRoomSubscription = null;
     await _matrixSubscriptionHandle?.dispose();
     _matrixSubscriptionHandle = null;
+    // cancel() propagates to the Matrix long-poll and may never resolve if
+    // the SDK waits for the in-flight HTTP request to complete. Fire and
+    // forget: the subscription stops delivering events immediately.
+    unawaited(_matrixRoomSubscription?.cancel());
+    _matrixRoomSubscription = null;
     await super.end();
   }
 

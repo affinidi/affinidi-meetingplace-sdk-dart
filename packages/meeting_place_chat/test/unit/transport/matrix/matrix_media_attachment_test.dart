@@ -29,6 +29,17 @@ void main() {
       expect(file.msgType, MediaMsgType.audio);
       expect(file.info['mimetype'], AttachmentMediaType.audioWav.value);
     });
+
+    test('video/mp4 maps to Matrix m.video content', () {
+      final file = matrix.MatrixFile.fromMimeType(
+        bytes: Uint8List(1),
+        name: 'clip.mp4',
+        mimeType: AttachmentMediaType.videoMp4.value,
+      );
+
+      expect(file.msgType, MediaMsgType.video);
+      expect(file.info['mimetype'], AttachmentMediaType.videoMp4.value);
+    });
   });
 
   group('MatrixMediaAttachments.extractCaption', () {

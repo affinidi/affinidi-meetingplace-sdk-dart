@@ -243,7 +243,9 @@ The table below covers the individual chat SDKs (`IndividualDidcommChatSDK` and 
 | Feature | DIDComm | Matrix |
 |---------|:-------:|:------:|
 | Text messaging | 🟢 | 🟢 |
-| Media attachments | 🟢 | 🟢 |
+| Image attachments | 🟢 | 🟢 |
+| Video attachments | 🔴 | 🟢 |
+| Document attachments | 🔴 | 🟢 |
 | Reactions | 🟢 | 🟢 |
 | Typing indicators | 🟢 | 🟢 |
 | Delivery receipts | 🟢 | 🟢 |

@@ -54,7 +54,8 @@ class GroupMatrixChatSDK extends MatrixChatSDK implements MeetingPlaceChatSDK {
   /// membership itself is a property of the channel, not a gated chat feature.
   static const _capabilities = TransportCapabilities({
     ChatFeature.textMessaging,
-    ChatFeature.mediaAttachments,
+    ChatFeature.imageAttachments,
+    ChatFeature.videoAttachments,
     ChatFeature.documentAttachments,
     ChatFeature.voiceMessages,
     ChatFeature.reactions,

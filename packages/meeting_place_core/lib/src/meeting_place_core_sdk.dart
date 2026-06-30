@@ -186,34 +186,6 @@ class MeetingPlaceCoreSDK {
        _channelAttachmentsController = channelAttachmentsController,
        _vdipClient = vdipClient;
 
-  /// Constructs a subclass from an existing [base] instance, sharing all of
-  /// its internal services. Intended for SDK extension packages that need to
-  /// subclass [MeetingPlaceCoreSDK] from outside this library.
-  MeetingPlaceCoreSDK.extend(MeetingPlaceCoreSDK base)
-    : wallet = base.wallet,
-      _repositoryConfig = base._repositoryConfig,
-      _mediatorSDK = base._mediatorSDK,
-      _controlPlaneSDK = base._controlPlaneSDK,
-      _connectionManager = base._connectionManager,
-      _connectionService = base._connectionService,
-      _controlPlaneEventService = base._controlPlaneEventService,
-      _controlPlaneEventStreamManager = base._controlPlaneEventStreamManager,
-      _groupService = base._groupService,
-      _notificationService = base._notificationService,
-      _outreachService = base._outreachService,
-      _oobService = base._oobService,
-      _channelService = base._channelService,
-      _mediatorDid = base._mediatorDid,
-      _controlPlaneDid = base._controlPlaneDid,
-      _options = base._options,
-      _sdkErrorHandler = base._sdkErrorHandler,
-      _didcomm = base._didcomm,
-      _channelTransport = base._channelTransport,
-      _messageService = base._messageService,
-      _messagingService = base._messagingService,
-      _channelAttachmentsController = base._channelAttachmentsController,
-      _vdipClient = base._vdipClient;
-
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
   final MeetingPlaceMediatorSDK _mediatorSDK;
@@ -1382,31 +1354,17 @@ class MeetingPlaceCoreSDK {
     return _sdkErrorHandler.handleError(operation);
   }
 
-  // ---------------------------------------------------------------------------
-  // Protected transport helpers — available to subclasses (e.g.
-  // MatrixMeetingPlaceSDK) that need direct access to low-level services for
-  // transport-specific overrides of subscribe/sendMessage/fetchHistory.
-  // ---------------------------------------------------------------------------
-
-  @protected
   MeetingPlaceTransport get channelTransport => _channelTransport;
 
-  @protected
-  GroupRepository get groupRepository => _repositoryConfig.groupRepository;
-
-  @protected
   Future<Channel> findChannelByDid(String did) =>
       _channelService.findChannelByDid(did);
 
-  @protected
   Future<Channel?> findChannelByDidOrNull(String did) =>
       _channelService.findChannelByDidOrNull(did);
 
-  @protected
   Future<void> updateMatrixSyncMarker(Channel channel, String eventId) =>
       _channelService.updateMatrixSyncMarker(channel, eventId);
 
-  @protected
   Future<void> notifyChannel(ChannelNotification notification) =>
       _messageService.notifyChannel(notification);
 

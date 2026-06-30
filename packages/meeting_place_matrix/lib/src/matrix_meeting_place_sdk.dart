@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    show ControlPlaneSDK;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
@@ -14,17 +17,20 @@ import 'matrix_transport.dart';
 
 /// A [MeetingPlaceCoreSDK] backed by a Matrix homeserver.
 ///
-/// Extends [MeetingPlaceCoreSDK] so consumers interact with a single object
-/// and do not need to declare `meeting_place_core` as an explicit dependency.
-/// The additional [matrixService] field exposes matrix-specific APIs for
-/// consumers that need them (e.g. `meeting_place_matrix_livekit`).
+/// Implements [MeetingPlaceCoreSDK] via composition, delegating all core
+/// behaviour to an inner [_coreSDK] instance and intercepting only
+/// Matrix-specific transport calls. The additional [matrixService] field
+/// exposes matrix-specific APIs for consumers that need them
+/// (e.g. `meeting_place_matrix_livekit`).
 ///
 /// Use [MeetingPlaceMatrixSDK.create] to instantiate.
-class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
+class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({
-    required MeetingPlaceCoreSDK base,
+    required MeetingPlaceCoreSDK coreSDK,
     required this.matrixService,
-  }) : super.extend(base);
+  }) : _coreSDK = coreSDK;
+
+  final MeetingPlaceCoreSDK _coreSDK;
 
   /// The underlying [MatrixService] — exposed for matrix-specific consumers
   /// (e.g. `meeting_place_matrix_livekit`) that need VoIP or OpenID token
@@ -40,7 +46,7 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
   }) async {
     MatrixService? matrixServiceRef;
 
-    final base = await MeetingPlaceCoreSDK.create(
+    final coreSDK = await MeetingPlaceCoreSDK.create(
       wallet: wallet,
       repositoryConfig: repositoryConfig,
       config: config,
@@ -60,10 +66,304 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
     );
 
     return MeetingPlaceMatrixSDK._(
-      base: base,
+      coreSDK: coreSDK,
       matrixService: matrixServiceRef!,
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // MeetingPlaceCoreSDK — delegated members
+  // ---------------------------------------------------------------------------
+
+  @override
+  Wallet get wallet => _coreSDK.wallet;
+
+  @override
+  VdipClient get vdip => _coreSDK.vdip;
+
+  @override
+  MeetingPlaceCoreSDKOptions get options => _coreSDK.options;
+
+  @override
+  Stream<ChannelAttachmentEvent> get channelAttachments =>
+      _coreSDK.channelAttachments;
+
+  @override
+  Stream<ControlPlaneStreamEvent> get controlPlaneEventsStream =>
+      _coreSDK.controlPlaneEventsStream;
+
+  @override
+  MeetingPlaceTransport get channelTransport => _coreSDK.channelTransport;
+
+  @override
+  ControlPlaneSDK get discovery => _coreSDK.discovery;
+
+  @override
+  MeetingPlaceMediatorSDK get mediator => _coreSDK.mediator;
+
+  @override
+  set mediatorDid(String mediatorDid) => _coreSDK.mediatorDid = mediatorDid;
+
+  @override
+  set device(Device device) => _coreSDK.device = device;
+
+  @override
+  Future<DidManager> generateDid() => _coreSDK.generateDid();
+
+  @override
+  Future<DidManager> getDidManager(String did) => _coreSDK.getDidManager(did);
+
+  @override
+  Future<OobOfferSession> createOobFlow({
+    required ContactCard contactCard,
+    String? type,
+    String? did,
+    String? mediatorDid,
+    String? externalRef,
+  }) => _coreSDK.createOobFlow(
+    contactCard: contactCard,
+    type: type,
+    did: did,
+    mediatorDid: mediatorDid,
+    externalRef: externalRef,
+  );
+
+  @override
+  Future<OobAcceptanceSession> acceptOobFlow(
+    Uri oobUrl, {
+    required ContactCard contactCard,
+    String? type,
+    String? externalRef,
+    String? did,
+    List<Attachment>? attachments,
+  }) => _coreSDK.acceptOobFlow(
+    oobUrl,
+    contactCard: contactCard,
+    type: type,
+    externalRef: externalRef,
+    did: did,
+    attachments: attachments,
+  );
+
+  @override
+  Future<ValidateOfferPhraseResult> validateOfferPhrase(String phrase) =>
+      _coreSDK.validateOfferPhrase(phrase);
+
+  @override
+  Future<Device> registerForPushNotifications(String deviceToken) =>
+      _coreSDK.registerForPushNotifications(deviceToken);
+
+  @override
+  Future<RegisterForDidcommNotificationsResult>
+  registerForDIDCommNotifications({
+    String? mediatorDid,
+    String? recipientDid,
+  }) => _coreSDK.registerForDIDCommNotifications(
+    mediatorDid: mediatorDid,
+    recipientDid: recipientDid,
+  );
+
+  @override
+  Future<PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>({
+    required String offerName,
+    required SDKConnectionOfferType type,
+    required ContactCard contactCard,
+    required String offerDescription,
+    String? customPhrase,
+    DateTime? validUntil,
+    int? maximumUsage,
+    String? mediatorDid,
+    String? metadata,
+    String? externalRef,
+    ChannelTransport transport = ChannelTransport.didcomm,
+    int? score,
+  }) => _coreSDK.publishOffer(
+    offerName: offerName,
+    type: type,
+    contactCard: contactCard,
+    offerDescription: offerDescription,
+    customPhrase: customPhrase,
+    validUntil: validUntil,
+    maximumUsage: maximumUsage,
+    mediatorDid: mediatorDid,
+    metadata: metadata,
+    externalRef: externalRef,
+    transport: transport,
+    score: score,
+  );
+
+  @override
+  Future<FindOfferResult> findOffer({required String mnemonic}) =>
+      _coreSDK.findOffer(mnemonic: mnemonic);
+
+  @override
+  Future<AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
+    required T connectionOffer,
+    required ContactCard contactCard,
+    required String senderInfo,
+    String? externalRef,
+  }) => _coreSDK.acceptOffer(
+    connectionOffer: connectionOffer,
+    contactCard: contactCard,
+    senderInfo: senderInfo,
+    externalRef: externalRef,
+  );
+
+  @override
+  Future<Channel> approveConnectionRequest({
+    required Channel channel,
+    List<Attachment>? attachments,
+  }) => _coreSDK.approveConnectionRequest(
+    channel: channel,
+    attachments: attachments,
+  );
+
+  @override
+  Future<Group> rejectConnectionRequest({required Channel channel}) =>
+      _coreSDK.rejectConnectionRequest(channel: channel);
+
+  @override
+  Future<void> leaveChannel(Channel channel) => _coreSDK.leaveChannel(channel);
+
+  @override
+  Future<void> removeMemberFromGroup({
+    required String groupId,
+    required String memberDid,
+  }) => _coreSDK.removeMemberFromGroup(groupId: groupId, memberDid: memberDid);
+
+  @override
+  Future<void> sendOutreachInvitation({
+    required ConnectionOffer outreachConnectionOffer,
+    required ConnectionOffer inviteToConnectionOffer,
+    required String messageToInclude,
+    required String senderInfo,
+  }) => _coreSDK.sendOutreachInvitation(
+    outreachConnectionOffer: outreachConnectionOffer,
+    inviteToConnectionOffer: inviteToConnectionOffer,
+    messageToInclude: messageToInclude,
+    senderInfo: senderInfo,
+  );
+
+  @override
+  Future<void> processControlPlaneEvents({
+    void Function(List<Object> errors)? onDone,
+  }) => _coreSDK.processControlPlaneEvents(onDone: onDone);
+
+  @override
+  void disposeControlPlaneEventsStream() =>
+      _coreSDK.disposeControlPlaneEventsStream();
+
+  @override
+  Future<void> dispose() => _coreSDK.dispose();
+
+  @override
+  Future<void> closeChannelAttachmentsStream() =>
+      _coreSDK.closeChannelAttachmentsStream();
+
+  @override
+  Future<void> closeVdipStream() => _coreSDK.closeVdipStream();
+
+  @override
+  Future<List<String>> deleteControlPlaneEvents() =>
+      _coreSDK.deleteControlPlaneEvents();
+
+  @override
+  Future<ConnectionOffer?> getConnectionOffer(String offerLink) =>
+      _coreSDK.getConnectionOffer(offerLink);
+
+  @override
+  Future<ConnectionOffer> markConnectionOfferAsDeleted(
+    ConnectionOffer connectionOffer,
+  ) => _coreSDK.markConnectionOfferAsDeleted(connectionOffer);
+
+  @override
+  Future<void> deleteConnectionOffer(ConnectionOffer connectionOffer) =>
+      _coreSDK.deleteConnectionOffer(connectionOffer);
+
+  @override
+  Future<Group?> getGroupByOfferLink(String offerLink) =>
+      _coreSDK.getGroupByOfferLink(offerLink);
+
+  @override
+  Future<Group?> getGroupById(String groupId) => _coreSDK.getGroupById(groupId);
+
+  @override
+  Future<void> updateGroup(Group group) => _coreSDK.updateGroup(group);
+
+  @override
+  Future<List<ConnectionOffer>> listConnectionOffers() =>
+      _coreSDK.listConnectionOffers();
+
+  @override
+  Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
+    String externalRef,
+  ) => _coreSDK.getConnectionOffersByExternalRef(externalRef);
+
+  @override
+  Future<UpdateScoreForOffersResult> updateScoreForOffers({
+    required int score,
+    required List<ConnectionOffer> offers,
+  }) => _coreSDK.updateScoreForOffers(score: score, offers: offers);
+
+  @override
+  Future<void> updateLocalConnectionOffersScore({
+    required int score,
+    required List<ConnectionOffer> offers,
+  }) => _coreSDK.updateLocalConnectionOffersScore(score: score, offers: offers);
+
+  @override
+  Future<Channel?> getChannelByDid(String did) => _coreSDK.getChannelByDid(did);
+
+  @override
+  Future<Channel?> getChannelByOtherPartyPermanentDid(String did) =>
+      _coreSDK.getChannelByOtherPartyPermanentDid(did);
+
+  @override
+  Future<void> updateChannel(Channel channel) =>
+      _coreSDK.updateChannel(channel);
+
+  @override
+  Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) =>
+      _coreSDK.getMediatorDidFromUrl(mediatorEndpoint);
+
+  @override
+  Future<String?> sendMediaMessage(
+    Channel channel,
+    Uint8List fileBytes, {
+    required String contentType,
+    String? filename,
+    String? caption,
+    Map<String, dynamic>? extraContent,
+    ChannelNotification? notification,
+  }) => _coreSDK.sendMediaMessage(
+    channel,
+    fileBytes,
+    contentType: contentType,
+    filename: filename,
+    caption: caption,
+    extraContent: extraContent,
+    notification: notification,
+  );
+
+  @override
+  Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) =>
+      _coreSDK.downloadMedia(channel, reference);
+
+  @override
+  Future<Channel> findChannelByDid(String did) =>
+      _coreSDK.findChannelByDid(did);
+
+  @override
+  Future<Channel?> findChannelByDidOrNull(String did) =>
+      _coreSDK.findChannelByDidOrNull(did);
+
+  @override
+  Future<void> updateMatrixSyncMarker(Channel channel, String eventId) =>
+      _coreSDK.updateMatrixSyncMarker(channel, eventId);
+
+  @override
+  Future<void> notifyChannel(ChannelNotification notification) =>
+      _coreSDK.notifyChannel(notification);
 
   // ---------------------------------------------------------------------------
   // Matrix transport overrides
@@ -75,10 +375,10 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
   ) async {
     switch (subscription) {
       case MatrixRoomSubscription s:
-        final channel = await findChannelByDid(s.receiverDid);
-        final didManager = await getDidManager(s.receiverDid);
+        final channel = await _coreSDK.findChannelByDid(s.receiverDid);
+        final didManager = await _coreSDK.getDidManager(s.receiverDid);
         final participantDids = await _fetchParticipantDids(channel);
-        final stream = channelTransport.subscribe(
+        final stream = _coreSDK.channelTransport.subscribe(
           channel: channel,
           didManager: didManager,
           options: s.options,
@@ -95,9 +395,9 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
             .cast<MatrixIncomingMessage>();
         return _MatrixIncomingMessageHandle(mapped);
       case DidCommSubscription _:
-        return super.subscribe(subscription);
+        return _coreSDK.subscribe(subscription);
       default:
-        return super.subscribe(subscription);
+        return _coreSDK.subscribe(subscription);
     }
   }
 
@@ -105,9 +405,9 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
   Future<String?> sendMessage(OutgoingMessage message) async {
     switch (message) {
       case MatrixOutgoingMessage m:
-        final channel = await findChannelByDid(m.senderDid);
-        final didManager = await getDidManager(m.senderDid);
-        final eventId = await channelTransport.sendEvent(
+        final channel = await _coreSDK.findChannelByDid(m.senderDid);
+        final didManager = await _coreSDK.getDidManager(m.senderDid);
+        final eventId = await _coreSDK.channelTransport.sendEvent(
           channel: channel,
           type: m.type,
           content: m.content,
@@ -116,12 +416,14 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
         final notification = m.notification;
         if (notification != null) {
           unawaited(
-            notifyChannel(notification).catchError((Object _, StackTrace _) {}),
+            _coreSDK
+                .notifyChannel(notification)
+                .catchError((Object _, StackTrace _) {}),
           );
         }
         return eventId;
       default:
-        return super.sendMessage(message);
+        return _coreSDK.sendMessage(message);
     }
   }
 
@@ -129,25 +431,25 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
     switch (query) {
       case MatrixRoomHistoryQuery q:
-        final channel = await findChannelByDid(q.receiverDid);
-        final didManager = await getDidManager(q.receiverDid);
-        final events = await channelTransport.fetchHistory(
+        final channel = await _coreSDK.findChannelByDid(q.receiverDid);
+        final didManager = await _coreSDK.getDidManager(q.receiverDid);
+        final events = await _coreSDK.channelTransport.fetchHistory(
           channel: channel,
           didManager: didManager,
           limit: q.limit,
           since: q.since,
         );
         if (q.updateChannelSyncMarker && events.isNotEmpty) {
-          await updateMatrixSyncMarker(channel, events.last.id);
+          await _coreSDK.updateMatrixSyncMarker(channel, events.last.id);
         }
         return events
             .map(_toMatrixIncoming)
             .whereType<MatrixIncomingMessage>()
             .toList();
       case DidCommHistoryQuery _:
-        return super.fetchHistory(query);
+        return _coreSDK.fetchHistory(query);
       default:
-        return super.fetchHistory(query);
+        return _coreSDK.fetchHistory(query);
     }
   }
 
@@ -158,8 +460,8 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
     required Iterable<String> expectedDids,
     Duration timeout = const Duration(seconds: 15),
   }) async {
-    final channel = await findChannelByDid(localDid);
-    final didManager = await getDidManager(localDid);
+    final channel = await _coreSDK.findChannelByDid(localDid);
+    final didManager = await _coreSDK.getDidManager(localDid);
     final roomId = await matrixService.resolveRoomIdForChannel(
       didManager: didManager,
       channel: channel,
@@ -171,10 +473,6 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
       timeout: timeout,
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // Private Matrix helpers
-  // ---------------------------------------------------------------------------
 
   bool _isTimelineEvent(TransportEvent event) {
     return event.type != 'm.typing' && event.type != 'm.receipt';
@@ -199,14 +497,14 @@ class MeetingPlaceMatrixSDK extends MeetingPlaceCoreSDK {
     String receiverDid,
     String eventId,
   ) async {
-    final channel = await findChannelByDidOrNull(receiverDid);
+    final channel = await _coreSDK.findChannelByDidOrNull(receiverDid);
     if (channel == null) return;
-    await updateMatrixSyncMarker(channel, eventId);
+    await _coreSDK.updateMatrixSyncMarker(channel, eventId);
   }
 
   Future<List<String>> _fetchParticipantDids(Channel channel) async {
     if (channel.type == ChannelType.group) {
-      final group = await getGroupByOfferLink(channel.offerLink);
+      final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
       if (group == null) return [];
       return group.members.map((m) => m.did).toList();
     }

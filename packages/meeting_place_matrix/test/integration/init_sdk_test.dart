@@ -26,6 +26,7 @@ void main() {
     type: type,
     permanentChannelDid: 'did:key:123',
     otherPartyPermanentChannelDid: 'did:key:456',
+    transport: ChannelTransport.matrix,
   );
 
   setUpAll(() async {

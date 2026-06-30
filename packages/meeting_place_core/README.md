@@ -41,8 +41,8 @@ Individual chats can use DIDComm based transport or Matrix based transport. Grou
 | Group chat | 🔴 | 🟢 |
 | Text messages | 🟢 | 🟢 |
 | Image attachments | 🟢<br><sub>Auto downloads</sub> | 🟢 |
+| Video attachments | 🔴 | 🟢 |
 | File/document attachments | 🔴 | 🟢 |
-| Audio/video attachments | 🔴 | 🟢 |
 | Voice messages | 🔴 | 🟢 |
 | Message edit/delete | 🔴 | 🟢 |
 | Reactions | 🟢 | 🟢 |

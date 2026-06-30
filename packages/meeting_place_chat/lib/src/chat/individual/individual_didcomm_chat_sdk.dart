@@ -53,7 +53,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   /// Features supported by an individual chat over the DIDComm transport.
   static const _capabilities = TransportCapabilities({
     ChatFeature.textMessaging,
-    ChatFeature.mediaAttachments,
+    ChatFeature.imageAttachments,
     ChatFeature.reactions,
     ChatFeature.typingIndicators,
     ChatFeature.presence,

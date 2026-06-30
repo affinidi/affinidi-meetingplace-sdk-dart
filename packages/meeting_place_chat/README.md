@@ -25,7 +25,7 @@ The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and sec
 - End-to-end encryption for secure and private communication.
 - Support for individual chats over DIDComm or Matrix.
 - Support for Matrix group chats.
-- Matrix based chat features such as voice messages, reactions, edit messages, delete messages, typing indicators, delivery receipts, and media attachments.
+- Matrix based chat features such as image attachments, video attachments, voice messages, reactions, edit messages, delete messages, typing indicators, and delivery receipts.
 - Notifies connections for contact details update (e.g., name change).
 - Supports ContactCard in publishing a connection offer (invitation) and establishing connections with others to chat.
 - Supports DIDComm Message v2.1 and Matrix based transports for sending and receiving messages.
@@ -46,8 +46,8 @@ if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
 | Group chat | ❌ | ✅ |
 | Text messages | ✅ | ✅ |
 | Image attachments | ✅<br><sub>Auto downloads</sub> | ✅ |
+| Video attachments | ❌ | ✅ |
 | File/document attachments | ❌ | ✅ |
-| Audio/video attachments | ❌ | ✅ |
 | Voice messages | ❌ | ✅ |
 | Message edit/delete | ❌ | ✅ |
 | Reactions | ✅ | ✅ |

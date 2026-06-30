@@ -13,7 +13,9 @@ The `ChatFeature` enum and the `TransportCapabilities` type live in `transport_c
 | Feature | Description | DIDComm | Matrix |
 | --- | --- | :---: | :---: |
 | Text messaging | Send and receive plain text messages | Yes | Yes |
-| Media attachments | Send and receive files and images (hosted media on Matrix, inline on DIDComm) | Yes | Yes |
+| Image attachments | Send and receive images (hosted media on Matrix, inline on DIDComm) | Yes | Yes |
+| Video attachments | Send and receive video files | No | Yes |
+| Document attachments | Send and receive non-media files such as PDF and office documents | No | Yes |
 | Voice messages | Record and play voice notes as hosted media | No | Yes |
 | Reactions | Add emoji reactions to messages | Yes | Yes |
 | Typing indicators | Show a typing indicator to the other participant | Yes | Yes |
@@ -32,13 +34,13 @@ feature set.
 
 ## DIDComm
 
-Supported: text messaging, media attachments, reactions, typing indicators, presence, delivery receipts, effects, contact details update, human ZKP liveness.
+Supported: text messaging, image attachments, reactions, typing indicators, presence, delivery receipts, effects, contact details update, human ZKP liveness.
 
 Not supported: voice messages, message edit, message delete for everyone.
 
 ## Matrix
 
-Supported: text messaging, media attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update.
+Supported: text messaging, image attachments, video attachments, document attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update.
 
 Not supported: presence.
 
@@ -46,9 +48,9 @@ Not supported: presence.
 
 | Scope | Features |
 | --- | --- |
-| Matrix only | Voice messages, message edit, message delete |
+| Matrix only | Video attachments, document attachments, voice messages, message edit, message delete |
 | DIDComm only | Presence |
-| Both transports | Text messaging, media attachments, reactions, typing indicators, delivery receipts, effects, contact details update |
+| Both transports | Text messaging, image attachments, reactions, typing indicators, delivery receipts, effects, contact details update |
 
 ## Identity and credential features
 
@@ -67,7 +69,8 @@ Human ZKP liveness is in the `ChatFeature` enum because it is supported on indiv
 
 On loading a chat, the app stores the channel's transport and gates the UI to match. When the active transport does not support a feature, the app:
 
-- Hides the media attachment button when media attachments are unsupported.
+- Hides image attachment actions when image attachments are unsupported.
+- Hides video attachment actions when video attachments are unsupported.
 - Hides the voice message control when voice messages are unsupported.
 - Hides both delete actions (delete for everyone and delete for me) when message delete is unsupported.
 - Hides the presence indicator when presence is unsupported.

@@ -17,11 +17,13 @@ enum ChatFeature {
   /// Plain text message sending and receiving.
   textMessaging,
 
-  /// Image and inline media attachments. Delivered as hosted media on
-  /// transports with a media server (Matrix) and inline within the message on
-  /// transports without one (DIDComm). Document files are gated separately by
-  /// [documentAttachments].
-  mediaAttachments,
+  /// Image attachments. Offered on transports with a media server that can
+  /// host and serve images content.
+  imageAttachments,
+
+  /// Video attachments. Offered on transports with a media server that can
+  /// host and serve video content.
+  videoAttachments,
 
   /// Document file attachments (e.g. PDF, office documents, archives). Only
   /// offered on transports with a media server that can host arbitrary files;

@@ -40,24 +40,22 @@ if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
 }
 ```
 
-Individual chats can use DIDComm based transport or Matrix based transport. Group chats require Matrix based transport.
-
 | Feature | DIDComm based transport | Matrix based transport |
 |---------|-------------------------|------------------------|
-| Individual chat | 🟢 | 🟢 |
-| Group chat | 🔴 | 🟢 |
-| Text messages | 🟢 | 🟢 |
-| Image attachments | 🟢<br><sub>Auto downloads</sub> | 🟢 |
-| File/document attachments | 🔴 | 🟢 |
-| Audio/video attachments | 🔴 | 🟢 |
-| Voice messages | 🔴 | 🟢 |
-| Message edit/delete | 🔴 | 🟢 |
-| Reactions | 🟢 | 🟢 |
-| Typing indicators | 🟢 | 🟢 |
-| Delivery receipts | 🟢 | 🟢 |
-| Visual effects | 🟢 | 🟢 |
-| Contact details update | 🟢 | 🟢 |
-| Presence Indicator | 🟢 | 🔴 |
+| Individual chat | ✅ | ✅ |
+| Group chat | ❌ | ✅ |
+| Text messages | ✅ | ✅ |
+| Image attachments | ✅<br><sub>Auto downloads</sub> | ✅ |
+| File/document attachments | ❌ | ✅ |
+| Audio/video attachments | ❌ | ✅ |
+| Voice messages | ❌ | ✅ |
+| Message edit/delete | ❌ | ✅ |
+| Reactions | ✅ | ✅ |
+| Typing indicators | ✅ | ✅ |
+| Delivery receipts | ✅ | ✅ |
+| Visual effects | ✅ | ✅ |
+| Contact details update | ✅ | ✅ |
+| Presence Indicator | ✅ | ❌ |
 
 Each SDK declares its own set in its `capabilities` getter: `IndividualDidcommChatSDK`, `IndividualMatrixChatSDK`, and `GroupMatrixChatSDK`. See [Chat transport capabilities](doc/chat-transport-capabilities.md) for the full list.
 

@@ -57,7 +57,7 @@ void main() {
     ).thenReturn(null);
   });
 
-  CallSignalHandler _handler({
+  CallSignalHandler handler0({
     MockLiveKitCallSession? activeSession,
     List<IncomingAudioVideoCallEvent>? emittedIncoming,
     List<String>? emittedCancelled,
@@ -83,7 +83,7 @@ void main() {
         ).thenAnswer((_) async => _channel());
 
         final emitted = <IncomingAudioVideoCallEvent>[];
-        final handler = _handler(emittedIncoming: emitted);
+        final handler = handler0(emittedIncoming: emitted);
 
         await handler.onIncomingCallSignal(
           const IncomingCallSignal(ownChannelDid: _ownDid),
@@ -100,7 +100,7 @@ void main() {
       when(() => sdk.getChannelByDid(_ownDid)).thenAnswer((_) async => null);
 
       final emitted = <IncomingAudioVideoCallEvent>[];
-      final handler = _handler(emittedIncoming: emitted);
+      final handler = handler0(emittedIncoming: emitted);
 
       await handler.onIncomingCallSignal(
         const IncomingCallSignal(ownChannelDid: _ownDid),
@@ -117,7 +117,7 @@ void main() {
         ).thenAnswer((_) async => _channel(otherPartyDid: null));
 
         final emitted = <IncomingAudioVideoCallEvent>[];
-        final handler = _handler(emittedIncoming: emitted);
+        final handler = handler0(emittedIncoming: emitted);
 
         await handler.onIncomingCallSignal(
           const IncomingCallSignal(ownChannelDid: _ownDid),
@@ -132,7 +132,7 @@ void main() {
         () => sdk.getChannelByDid(_ownDid),
       ).thenAnswer((_) async => _channel());
 
-      final handler = _handler();
+      final handler = handler0();
 
       // First call registers successfully.
       await handler.onIncomingCallSignal(
@@ -169,7 +169,7 @@ void main() {
         when(() => session.otherPartyChannelDid).thenReturn(_callerDid);
         when(session.notifyDeclined).thenReturn(null);
 
-        final handler = _handler(activeSession: session);
+        final handler = handler0(activeSession: session);
 
         await handler.onCallDeclineSignal(
           const CallDeclineSignal(ownChannelDid: _ownDid),
@@ -187,7 +187,7 @@ void main() {
         ).thenAnswer((_) async => _channel());
 
         final cancelled = <String>[];
-        final handler = _handler(emittedCancelled: cancelled);
+        final handler = handler0(emittedCancelled: cancelled);
 
         // Register a pending call so removePendingByDid has something to act on
         pendingCallManager.registerIncomingCall(
@@ -209,7 +209,7 @@ void main() {
       ).thenThrow(Exception('network error'));
 
       final cancelled = <String>[];
-      final handler = _handler(emittedCancelled: cancelled);
+      final handler = handler0(emittedCancelled: cancelled);
 
       await handler.onCallDeclineSignal(
         const CallDeclineSignal(ownChannelDid: _ownDid),

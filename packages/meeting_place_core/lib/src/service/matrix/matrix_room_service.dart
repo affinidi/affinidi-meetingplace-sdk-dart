@@ -5,6 +5,7 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:ssi/ssi.dart';
 
 import '../../entity/channel.dart';
+import '../../loggers/meeting_place_core_sdk_logger.dart';
 import 'matrix_room_alias.dart';
 import 'matrix_room_event.dart';
 import 'matrix_service_exception.dart';
@@ -23,11 +24,16 @@ class MatrixRoomService {
   MatrixRoomService({
     required EnsureMatrixSession ensureSession,
     required MatrixSessionManager sessionManager,
+    required MeetingPlaceCoreSDKLogger logger,
   }) : _ensureSession = ensureSession,
-       _sessionManager = sessionManager;
+       _sessionManager = sessionManager,
+       _logger = logger;
 
   final EnsureMatrixSession _ensureSession;
   final MatrixSessionManager _sessionManager;
+  final MeetingPlaceCoreSDKLogger _logger;
+
+  static const _logKey = 'MatrixRoomService';
 
   /// Power level required to enable MatrixRTC group calls via
   /// [matrix.Room.enableGroupCalls]. Both the room creator and every invited
@@ -322,14 +328,22 @@ class MatrixRoomService {
     if (room == null) return [];
 
     if (sinceEventId != null) {
-      final context = await client.getEventContext(
-        roomId,
-        sinceEventId,
-        limit: 0,
-      );
-      final token = context.end;
-      if (token != null) {
-        room.prev_batch = token;
+      try {
+        final context = await client.getEventContext(
+          roomId,
+          sinceEventId,
+          limit: 0,
+        );
+        final token = context.end;
+        if (token != null) {
+          room.prev_batch = token;
+        }
+      } on matrix.MatrixException catch (e) {
+        _logger.warning(
+          'fetchRoomHistory: getEventContext returned ${e.errcode} for '
+          'sinceEventId=$sinceEventId — falling back to room.prev_batch',
+          name: _logKey,
+        );
       }
     }
 

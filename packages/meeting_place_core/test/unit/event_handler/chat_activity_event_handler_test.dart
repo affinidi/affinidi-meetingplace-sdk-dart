@@ -170,8 +170,8 @@ void main() {
       () async {
         final channel = _matrixChannel(matrixSyncMarker: r'$prev');
         final events = [
-          _inboundMessage(id: r'$evt1'),
-          _inboundMessage(id: r'$evt2'),
+          _inboundMessage(id: r'$newest'),
+          _inboundMessage(id: r'$older'),
         ];
 
         when(
@@ -190,7 +190,7 @@ void main() {
 
         expect(channel.seqNo, equals(2));
         verify(
-          () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt2'),
+          () => mockChannelService.updateMatrixSyncMarker(channel, r'$newest'),
         ).called(1);
       },
     );
@@ -258,8 +258,8 @@ void main() {
       () async {
         final channel = _matrixChannel();
         final events = [
-          _outboundMessage(id: r'$evt1'),
-          _outboundMessage(id: r'$evt2'),
+          _outboundMessage(id: r'$newest'),
+          _outboundMessage(id: r'$older'),
         ];
 
         when(
@@ -278,7 +278,7 @@ void main() {
 
         expect(channel.seqNo, equals(0));
         verify(
-          () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt2'),
+          () => mockChannelService.updateMatrixSyncMarker(channel, r'$newest'),
         ).called(1);
       },
     );
@@ -310,12 +310,12 @@ void main() {
       },
     );
 
-    test('updates sync marker to last event id (not first)', () async {
+    test('updates sync marker to newest event id (first, not last)', () async {
       final channel = _matrixChannel();
       final events = [
-        _inboundMessage(id: r'$evt-first'),
+        _inboundMessage(id: r'$evt-newest'),
         _inboundMessage(id: r'$evt-middle'),
-        _inboundMessage(id: r'$evt-last'),
+        _inboundMessage(id: r'$evt-oldest'),
       ];
 
       when(
@@ -333,10 +333,12 @@ void main() {
       await handler.process(channelActivity);
 
       verify(
-        () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt-last'),
+        () =>
+            mockChannelService.updateMatrixSyncMarker(channel, r'$evt-newest'),
       ).called(1);
       verifyNever(
-        () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt-first'),
+        () =>
+            mockChannelService.updateMatrixSyncMarker(channel, r'$evt-oldest'),
       );
     });
   });

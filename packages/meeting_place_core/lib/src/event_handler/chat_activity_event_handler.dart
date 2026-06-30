@@ -116,7 +116,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       channel.seqNo += inboundChatCount;
     }
 
-    await channelService.updateMatrixSyncMarker(channel, events.last.id);
+    await channelService.updateMatrixSyncMarker(channel, events.first.id);
   }
 
   /// True for incoming `m.room.message` events that introduce a new message

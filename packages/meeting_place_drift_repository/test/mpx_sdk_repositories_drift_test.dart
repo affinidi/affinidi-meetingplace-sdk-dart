@@ -203,6 +203,7 @@ void main() {
         'voice attachment metadata round-trips through persistence',
         () async {
           final attachment = VoiceMessageMetadata.buildAttachment(
+            id: 'attachment-voice-1',
             base64: 'AAAA',
             durationMs: 11000,
             waveform: const [0, 50, 100, 25],

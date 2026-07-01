@@ -76,7 +76,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -173,6 +173,68 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           'chat_id TEXT NOT NULL, '
           'event_id TEXT NOT NULL, '
           'PRIMARY KEY(chat_id))',
+        );
+      }
+      if (from < 4 && to >= 4) {
+        await customStatement('DROP TABLE IF EXISTS attachments_temp');
+        await customStatement('''
+              CREATE TABLE attachments_temp (
+                message_id TEXT REFERENCES chat_items(message_id) ON DELETE CASCADE NOT NULL,
+                attachment_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                id TEXT NOT NULL,
+                description TEXT NULL,
+                filename TEXT NULL,
+                media_type TEXT NULL,
+                format TEXT NULL,
+                last_modified_time TEXT NULL,
+                jws TEXT NULL,
+                byte_count INTEGER NULL,
+                hash TEXT NULL,
+                base64 TEXT NULL,
+                json TEXT NULL,
+                transport_id TEXT NULL,
+                metadata TEXT NULL
+              )
+            ''');
+        await customStatement('''
+              INSERT INTO attachments_temp (
+                message_id,
+                attachment_id,
+                id,
+                description,
+                filename,
+                media_type,
+                format,
+                last_modified_time,
+                jws,
+                byte_count,
+                hash,
+                base64,
+                json,
+                transport_id,
+                metadata
+              )
+              SELECT
+                message_id,
+                attachment_id,
+                COALESCE(id, 'legacy-attachment:' || CAST(attachment_id AS TEXT)),
+                description,
+                filename,
+                media_type,
+                format,
+                last_modified_time,
+                jws,
+                byte_count,
+                hash,
+                base64,
+                json,
+                transport_id,
+                metadata
+              FROM attachments
+            ''');
+        await customStatement('DROP TABLE attachments');
+        await customStatement(
+          'ALTER TABLE attachments_temp RENAME TO attachments',
         );
       }
     },
@@ -273,7 +335,7 @@ class Attachments extends Table {
   IntColumn get attachmentId => integer().autoIncrement()();
 
   /// Unique identifier for the attachment.
-  TextColumn get id => text().nullable()();
+  TextColumn get id => text()();
 
   /// Description of the attachment.
   TextColumn get description => text().nullable()();

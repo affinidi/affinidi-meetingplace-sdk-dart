@@ -41,22 +41,29 @@ extension ChatAttachmentToDIDComm on ChatAttachment {
 /// Converts DIDComm [Attachment] → [ChatAttachment].
 @internal
 extension AttachmentToChatAttachment on Attachment {
-  ChatAttachment toChatAttachment() => ChatAttachment(
-    id: id,
-    description: description,
-    filename: filename,
-    mediaType: mediaType,
-    format: format,
-    lastModifiedTime: lastModifiedTime,
-    data: data == null
-        ? null
-        : ChatAttachmentData(
-            jws: data!.jws,
-            hash: data!.hash,
-            links: data!.links,
-            base64: data!.base64,
-            json: data!.json,
-          ),
-    byteCount: byteCount,
-  );
+  ChatAttachment toChatAttachment() {
+    final id = this.id;
+    if (id == null || id.isEmpty) {
+      throw const FormatException('Attachment id must not be null or empty');
+    }
+
+    return ChatAttachment(
+      id: id,
+      description: description,
+      filename: filename,
+      mediaType: mediaType,
+      format: format,
+      lastModifiedTime: lastModifiedTime,
+      data: data == null
+          ? null
+          : ChatAttachmentData(
+              jws: data!.jws,
+              hash: data!.hash,
+              links: data!.links,
+              base64: data!.base64,
+              json: data!.json,
+            ),
+      byteCount: byteCount,
+    );
+  }
 }

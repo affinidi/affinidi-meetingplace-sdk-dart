@@ -33,7 +33,7 @@ class VoiceMessageMetadata {
   static ChatAttachment buildAttachment({
     required String base64,
     required int durationMs,
-    String? id,
+    required String id,
     String? description,
     String? filename,
     String? mediaType,

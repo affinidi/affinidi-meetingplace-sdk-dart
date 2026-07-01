@@ -127,11 +127,13 @@ void main() {
 
       final attachments = [
         ChatAttachment(
+          id: 'attachment-1',
           filename: 'a.jpg',
           mediaType: 'image/jpeg',
           data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
         ),
         ChatAttachment(
+          id: 'attachment-2',
           filename: 'b.jpg',
           mediaType: 'image/jpeg',
           data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
@@ -176,11 +178,13 @@ void main() {
 
       final attachments = [
         ChatAttachment(
+          id: 'attachment-1',
           filename: 'a.jpg',
           mediaType: 'image/jpeg',
           data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
         ),
         ChatAttachment(
+          id: 'attachment-2',
           filename: 'b.jpg',
           mediaType: 'image/jpeg',
           data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
@@ -198,6 +202,7 @@ void main() {
       'same correlation id is sent for every attachment in the call',
       () async {
         final correlationIds = <String?>[];
+        final attachmentIds = <String?>[];
         when(
           () => core.sendMediaMessage(
             any(),
@@ -212,16 +217,19 @@ void main() {
           final extra =
               inv.namedArguments[#extraContent] as Map<String, dynamic>?;
           correlationIds.add(extra?[MatrixEventField.correlationId] as String?);
+          attachmentIds.add(extra?[MatrixEventField.attachmentId] as String?);
           return '\$event-${correlationIds.length}';
         });
 
         final attachments = [
           ChatAttachment(
+            id: 'attachment-1',
             filename: 'a.jpg',
             mediaType: 'image/jpeg',
             data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
           ),
           ChatAttachment(
+            id: 'attachment-2',
             filename: 'b.jpg',
             mediaType: 'image/jpeg',
             data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
@@ -237,6 +245,7 @@ void main() {
         expect(correlationIds[0], isNotNull);
         expect(correlationIds[0], correlationIds[1]);
         expect(correlationIds[0], message.messageId);
+        expect(attachmentIds, ['attachment-1', 'attachment-2']);
       },
     );
 
@@ -262,11 +271,13 @@ void main() {
 
       final attachments = [
         ChatAttachment(
+          id: 'attachment-1',
           filename: 'a.jpg',
           mediaType: 'image/jpeg',
           data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
         ),
         ChatAttachment(
+          id: 'attachment-2',
           filename: 'b.jpg',
           mediaType: 'image/jpeg',
           data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
@@ -303,11 +314,13 @@ void main() {
 
         final attachments = [
           ChatAttachment(
+            id: 'attachment-1',
             filename: 'first.jpg',
             mediaType: 'image/jpeg',
             data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
           ),
           ChatAttachment(
+            id: 'attachment-2',
             filename: 'second.jpg',
             mediaType: 'image/jpeg',
             data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
@@ -358,6 +371,7 @@ void main() {
             VoiceMessageMetadata.buildAttachment(
               base64: 'AAAA',
               durationMs: 1200,
+              id: 'voice-attachment-1',
               filename: 'voice.m4a',
               waveform: [0, 40, 100],
             ),
@@ -368,6 +382,10 @@ void main() {
         expect(
           sentExtraContent?[MatrixEventField.correlationId],
           result.messageId,
+        );
+        expect(
+          sentExtraContent?[MatrixEventField.attachmentId],
+          'voice-attachment-1',
         );
         expect(sentExtraContent?['info'], {
           'mimetype': AttachmentMediaType.audioMp4.value,
@@ -410,6 +428,7 @@ void main() {
         '',
         attachments: [
           ChatAttachment(
+            id: 'voice-attachment-1',
             data: ChatAttachmentData(base64: 'AAAA'),
             metadata: VoiceMessageMetadata(durationMs: 500).toMetadata(),
           ),
@@ -421,6 +440,7 @@ void main() {
 
     test('attachment without base64 data throws StateError', () async {
       final attachment = ChatAttachment(
+        id: 'attachment-1',
         filename: 'empty.jpg',
         mediaType: 'image/jpeg',
       );
@@ -454,11 +474,13 @@ void main() {
 
         final attachments = [
           ChatAttachment(
+            id: 'attachment-1',
             filename: 'a.jpg',
             mediaType: 'image/jpeg',
             data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
           ),
           ChatAttachment(
+            id: 'attachment-2',
             filename: 'b.jpg',
             mediaType: 'image/jpeg',
             data: ChatAttachmentData(base64: '/9j/4AAQSkZJRg=='),
@@ -477,6 +499,7 @@ void main() {
   group('MatrixChatSDK.downloadMedia', () {
     test('throws StateError when attachment has no transportId', () async {
       final attachment = ChatAttachment(
+        id: 'attachment-1',
         filename: 'noref.bin',
         mediaType: 'application/octet-stream',
         format: 'test-format',
@@ -494,6 +517,7 @@ void main() {
         ).thenAnswer((_) async => bytes);
 
         final attachment = ChatAttachment(
+          id: 'attachment-1',
           filename: 'one.bin',
           mediaType: 'application/octet-stream',
           format: 'test-format',

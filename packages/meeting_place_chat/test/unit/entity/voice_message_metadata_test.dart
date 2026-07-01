@@ -5,6 +5,7 @@ void main() {
   group('VoiceMessageMetadata.buildAttachment', () {
     test('creates voice attachment metadata', () {
       final attachment = VoiceMessageMetadata.buildAttachment(
+        id: 'voice-attachment-1',
         base64: 'AAAA',
         durationMs: 1200,
         filename: 'voice.m4a',
@@ -21,6 +22,7 @@ void main() {
 
     test('round-trips JSON metadata', () {
       final attachment = VoiceMessageMetadata.buildAttachment(
+        id: 'voice-attachment-1',
         base64: 'AAAA',
         durationMs: 1200,
         waveform: [0, 50, 100],
@@ -37,6 +39,7 @@ void main() {
     test('rejects invalid duration and waveform', () {
       expect(
         () => VoiceMessageMetadata.buildAttachment(
+          id: 'voice-attachment-1',
           base64: 'AAAA',
           durationMs: -1,
         ),
@@ -44,6 +47,7 @@ void main() {
       );
       expect(
         () => VoiceMessageMetadata.buildAttachment(
+          id: 'voice-attachment-1',
           base64: 'AAAA',
           durationMs: 1,
           waveform: [101],
@@ -54,7 +58,11 @@ void main() {
 
     test('rejects empty base64 payload', () {
       expect(
-        () => VoiceMessageMetadata.buildAttachment(base64: '', durationMs: 1),
+        () => VoiceMessageMetadata.buildAttachment(
+          id: 'voice-attachment-1',
+          base64: '',
+          durationMs: 1,
+        ),
         throwsA(isA<ArgumentError>()),
       );
     });
@@ -62,6 +70,7 @@ void main() {
     test('rejects non-audio mediaType', () {
       expect(
         () => VoiceMessageMetadata.buildAttachment(
+          id: 'voice-attachment-1',
           base64: 'AAAA',
           durationMs: 100,
           mediaType: 'image/png',
@@ -74,6 +83,7 @@ void main() {
   group('VoiceMessageMetadata.of', () {
     test('returns null for a plain attachment', () {
       final attachment = ChatAttachment(
+        id: 'attachment-1',
         filename: 'photo.jpg',
         mediaType: 'image/jpeg',
       );

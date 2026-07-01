@@ -1,3 +1,7 @@
+## 0.0.1-dev.50
+
+ - **FIX**: persist attachment IDs (#256).
+
 ## 0.0.1-dev.49
 
  - **FIX**: split media capabilities into images and videos (#254).

@@ -9,9 +9,7 @@ import 'fakes/fake_fallbacks.dart';
 import 'mocks/mocks.dart';
 
 MeetingPlaceLiveKitCallPlugin _plugin() => MeetingPlaceLiveKitCallPlugin(
-  options: MeetingPlaceLiveKitCallPluginOptions(
-    livekitServiceUrl: Uri.parse('https://livekit.example.com'),
-  ),
+  livekitServiceUrl: Uri.parse('https://livekit.example.com'),
   rtcDelegate: FakeWebRTCDelegate(),
   roomFactory: fakeLiveKitRoomFactory(),
 );

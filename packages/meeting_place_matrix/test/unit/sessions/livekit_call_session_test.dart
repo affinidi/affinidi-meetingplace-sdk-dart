@@ -7,9 +7,9 @@ import '../mocks/mocks.dart';
 AudioVideoCallService _buildService() => AudioVideoCallService(
   otherPartyChannelDid: 'did:peer:other-party',
   sdk: MockMeetingPlaceMatrixSDK(),
-  options: MeetingPlaceLiveKitCallPluginOptions(
-    livekitServiceUrl: Uri.parse('https://livekit.example.com'),
-  ),
+  livekitSfuUrl: null,
+  e2eeReadyTimeout: const Duration(seconds: 10),
+  outgoingCallTimeout: const Duration(seconds: 60),
   rtcDelegate: MockWebRTCDelegate(),
   logger: DefaultMeetingPlaceMatrixSDKLogger(className: 'test'),
   livekitTokenService: MockSfuTokenService(),

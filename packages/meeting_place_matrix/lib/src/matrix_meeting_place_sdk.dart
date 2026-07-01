@@ -26,7 +26,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({
     required MeetingPlaceCoreSDK coreSDK,
     required this.matrixService,
+    MeetingPlaceLiveKitCallPlugin? callPlugin,
   }) : _coreSDK = coreSDK,
+       _callPlugin = callPlugin,
        _senderDidResolver = MatrixSenderDidResolver(
          coreSDK: coreSDK,
          matrixService: matrixService,
@@ -36,11 +38,16 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   final MeetingPlaceCoreSDK _coreSDK;
   final MatrixSenderDidResolver _senderDidResolver;
   final CallSignalMapper _callSignalMapper;
+  final MeetingPlaceLiveKitCallPlugin? _callPlugin;
 
   /// The underlying [MatrixService] — exposed for matrix-specific consumers
   /// (e.g. `meeting_place_matrix`) that need VoIP or OpenID token
   /// operations without those APIs leaking through [MeetingPlaceCoreSDK].
   final MatrixService matrixService;
+
+  /// The audio/video call plugin, or `null` if [MatrixConfig.livekitServiceUrl]
+  /// was not set or no rtcDelegate / roomFactory were provided to [create].
+  MeetingPlaceLiveKitCallPlugin? get callPlugin => _callPlugin;
 
   static Future<MeetingPlaceMatrixSDK> create({
     required Wallet wallet,
@@ -48,6 +55,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required MatrixConfig config,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
+    matrix.WebRTCDelegate? rtcDelegate,
+    LiveKitRoomFactory? roomFactory,
   }) async {
     MatrixService? matrixServiceRef;
 
@@ -71,10 +80,29 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       },
     );
 
-    return MeetingPlaceMatrixSDK._(
+    final sdk = MeetingPlaceMatrixSDK._(
       coreSDK: coreSDK,
       matrixService: matrixServiceRef!,
     );
+
+    final livekitUrl = config.livekitServiceUrl;
+    if (livekitUrl != null && rtcDelegate != null && roomFactory != null) {
+      final plugin = MeetingPlaceLiveKitCallPlugin(
+        livekitServiceUrl: livekitUrl,
+        livekitSfuUrl: config.livekitSfuUrl,
+        outgoingCallTimeout: config.outgoingCallTimeout,
+        rtcDelegate: rtcDelegate,
+        roomFactory: roomFactory,
+      );
+      plugin.initialize(sdk: sdk);
+      return MeetingPlaceMatrixSDK._(
+        coreSDK: coreSDK,
+        matrixService: matrixServiceRef!,
+        callPlugin: plugin,
+      );
+    }
+
+    return sdk;
   }
 
   /// Broadcast stream of call signals from the control plane.
@@ -269,7 +297,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.disposeControlPlaneEventsStream();
 
   @override
-  Future<void> dispose() => _coreSDK.dispose();
+  Future<void> dispose() async {
+    await _callPlugin?.dispose();
+    return _coreSDK.dispose();
+  }
 
   @override
   Future<void> closeChannelAttachmentsStream() =>

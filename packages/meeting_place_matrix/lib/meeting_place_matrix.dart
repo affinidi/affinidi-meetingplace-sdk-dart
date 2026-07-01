@@ -63,7 +63,6 @@ export 'src/matrix_subscription_options.dart';
 export 'src/matrix_transport.dart';
 export 'src/matrix_user_id_binding.dart';
 export 'src/meeting_place_livekit_call_plugin.dart';
-export 'src/meeting_place_livekit_call_plugin_options.dart';
 export 'src/models/call_e2ee_state.dart';
 export 'src/services/audio_video_call_service.dart';
 export 'src/sessions/livekit_call_session.dart';

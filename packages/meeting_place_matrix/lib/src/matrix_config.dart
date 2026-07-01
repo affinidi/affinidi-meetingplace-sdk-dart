@@ -9,6 +9,9 @@ class MatrixConfig extends Config {
     required this.databaseFactory,
     required this.deviceId,
     String? serverName,
+    this.livekitServiceUrl,
+    this.livekitSfuUrl,
+    this.outgoingCallTimeout = const Duration(seconds: 10),
   }) : serverName = serverName ?? homeserver.host;
 
   final Uri homeserver;
@@ -23,6 +26,19 @@ class MatrixConfig extends Config {
   /// all clients derive consistent user IDs regardless of which URL they use
   /// to connect.
   final String serverName;
+
+  /// URL of the lk-jwt-service that issues LiveKit JWTs. Required for
+  /// audio/video calls; when omitted the call plugin is not created.
+  final Uri? livekitServiceUrl;
+
+  /// WebSocket URL of the LiveKit SFU. Overrides the URL from the token
+  /// response — useful for local development where the container-internal
+  /// hostname is not reachable from the device.
+  final Uri? livekitSfuUrl;
+
+  /// How long the caller waits for the remote party to answer before the
+  /// call is automatically ended and reported as missed. Defaults to 10 s.
+  final Duration outgoingCallTimeout;
 }
 
 class MatrixDatabaseContext {

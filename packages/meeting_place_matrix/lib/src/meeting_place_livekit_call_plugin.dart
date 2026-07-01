@@ -15,28 +15,22 @@ typedef LiveKitRoomFactory = LiveKitRoom Function(String otherPartyChannelDid);
 /// Concrete [AudioVideoCallPlugin] backed by Matrix RTC signalling and a
 /// LiveKit SFU for media transport.
 ///
-/// Register via `audioVideoCallPluginProvider` in `main.dart`:
-///
-/// ```dart
-/// audioVideoCallPluginProvider.overrideWith((ref) async {
-///   final sdk = await ref.watch(meetingPlaceSdkProvider.future);
-///   final plugin = MeetingPlaceLiveKitCallPlugin(
-///     options: MeetingPlaceLiveKitCallPluginOptions(...),
-///   );
-///   plugin.initialize(sdk: sdk);
-///   return plugin;
-/// }),
-/// ```
-///
-/// Consumers hold [AudioVideoCallPlugin] and [AudioVideoCallSession] only.
-/// The concrete type is referenced exclusively in `main.dart`.
+/// Construct the plugin and pass it alongside the [MeetingPlaceMatrixSDK]
+/// when calling [MeetingPlaceMatrixSDK.create].  The SDK will call
+/// [initialize] automatically; consumers never need to call it directly.
 class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   MeetingPlaceLiveKitCallPlugin({
-    required MeetingPlaceLiveKitCallPluginOptions options,
+    required Uri livekitServiceUrl,
+    Uri? livekitSfuUrl,
+    Duration outgoingCallTimeout = const Duration(seconds: 60),
+    Duration e2eeReadyTimeout = const Duration(seconds: 10),
     required matrix.WebRTCDelegate rtcDelegate,
     required LiveKitRoomFactory roomFactory,
     MeetingPlaceMatrixSDKLogger? logger,
-  }) : _options = options,
+  }) : _livekitServiceUrl = livekitServiceUrl,
+       _livekitSfuUrl = livekitSfuUrl,
+       _outgoingCallTimeout = outgoingCallTimeout,
+       _e2eeReadyTimeout = e2eeReadyTimeout,
        _rtcDelegate = rtcDelegate,
        _roomFactory = roomFactory,
        _logger =
@@ -45,7 +39,10 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
            StreamController<IncomingAudioVideoCallEvent>.broadcast(),
        _cancelledCallsController = StreamController<String>.broadcast();
 
-  final MeetingPlaceLiveKitCallPluginOptions _options;
+  final Uri _livekitServiceUrl;
+  final Uri? _livekitSfuUrl;
+  final Duration _outgoingCallTimeout;
+  final Duration _e2eeReadyTimeout;
   final MeetingPlaceMatrixSDKLogger _logger;
   final StreamController<IncomingAudioVideoCallEvent> _incomingCallsController;
   final StreamController<String> _cancelledCallsController;
@@ -114,7 +111,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   // ---------------------------------------------------------------------------
 
   @override
-  bool get isSupported => _options.livekitServiceUrl.host.isNotEmpty;
+  bool get isSupported => _livekitServiceUrl.host.isNotEmpty;
 
   @override
   Stream<IncomingAudioVideoCallEvent> get incomingCalls =>
@@ -281,14 +278,16 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     required String otherPartyChannelDid,
   }) {
     final tokenService = SfuTokenService(
-      serviceUrl: _options.livekitServiceUrl,
+      serviceUrl: _livekitServiceUrl,
       logger: _logger,
     );
     final room = _roomFactory(otherPartyChannelDid);
     final service = AudioVideoCallService(
       otherPartyChannelDid: otherPartyChannelDid,
       sdk: sdk,
-      options: _options,
+      livekitSfuUrl: _livekitSfuUrl,
+      e2eeReadyTimeout: _e2eeReadyTimeout,
+      outgoingCallTimeout: _outgoingCallTimeout,
       rtcDelegate: _rtcDelegate,
       logger: _logger,
       livekitTokenService: tokenService,

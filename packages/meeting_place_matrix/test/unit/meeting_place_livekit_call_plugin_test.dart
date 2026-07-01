@@ -10,10 +10,8 @@ MeetingPlaceLiveKitCallPlugin _plugin({
   Uri? livekitServiceUrl,
   LiveKitRoomFactory? roomFactory,
 }) => MeetingPlaceLiveKitCallPlugin(
-  options: MeetingPlaceLiveKitCallPluginOptions(
-    livekitServiceUrl:
-        livekitServiceUrl ?? Uri.parse('https://livekit.example.com'),
-  ),
+  livekitServiceUrl:
+      livekitServiceUrl ?? Uri.parse('https://livekit.example.com'),
   rtcDelegate: FakeWebRTCDelegate(),
   roomFactory: roomFactory ?? fakeLiveKitRoomFactory(),
 );

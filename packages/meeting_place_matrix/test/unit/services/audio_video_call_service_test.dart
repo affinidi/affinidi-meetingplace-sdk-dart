@@ -48,10 +48,9 @@ AudioVideoCallService _buildService({
 }) => AudioVideoCallService(
   otherPartyChannelDid: _otherPartyDid,
   sdk: sdk,
-  options: MeetingPlaceLiveKitCallPluginOptions(
-    livekitServiceUrl: Uri.parse('https://livekit.test'),
-    livekitSfuUrl: Uri.parse(_sfuUrl),
-  ),
+  livekitSfuUrl: Uri.parse(_sfuUrl),
+  e2eeReadyTimeout: const Duration(seconds: 10),
+  outgoingCallTimeout: const Duration(seconds: 60),
   rtcDelegate: MockWebRTCDelegate(),
   logger: DefaultMeetingPlaceMatrixSDKLogger(className: 'test'),
   livekitTokenService: tokenService ?? MockSfuTokenService(),

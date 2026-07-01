@@ -40,6 +40,7 @@ export 'src/chat/group/group_matrix_chat_sdk.dart';
 export 'src/chat/group/listener/pending_approvals_listener.dart';
 export 'src/chat/individual/individual_matrix_chat_sdk.dart';
 export 'src/chat/meeting_place_matrix_chat_sdk.dart';
+export 'src/entity/call_metadata.dart';
 export 'src/exception/matrix_sdk_exception.dart';
 export 'src/exceptions/meeting_place_livekit_call_exception.dart';
 export 'src/interfaces/livekit_room.dart';

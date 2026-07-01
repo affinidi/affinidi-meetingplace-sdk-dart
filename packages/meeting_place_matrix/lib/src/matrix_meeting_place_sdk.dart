@@ -29,11 +29,11 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({
     required MeetingPlaceCoreSDK coreSDK,
     required this.matrixService,
-  })  : _coreSDK = coreSDK,
-        _senderDidResolver = MatrixSenderDidResolver(
-          coreSDK: coreSDK,
-          matrixService: matrixService,
-        );
+  }) : _coreSDK = coreSDK,
+       _senderDidResolver = MatrixSenderDidResolver(
+         coreSDK: coreSDK,
+         matrixService: matrixService,
+       );
 
   final MeetingPlaceCoreSDK _coreSDK;
   final MatrixSenderDidResolver _senderDidResolver;
@@ -383,7 +383,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       case MatrixRoomSubscription s:
         final channel = await _coreSDK.findChannelByDid(s.receiverDid);
         final didManager = await _coreSDK.getDidManager(s.receiverDid);
-        final participantDids = await _senderDidResolver.fetchParticipantDids(channel);
+        final participantDids = await _senderDidResolver.fetchParticipantDids(
+          channel,
+        );
         final stream = _coreSDK.channelTransport.subscribe(
           channel: channel,
           didManager: didManager,

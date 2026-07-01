@@ -86,9 +86,7 @@ void main() {
         options: TransportSubscriptionOptions(excludeSelf: true),
       ),
     );
-    registerFallbackValue(
-      const MatrixRoomHistoryQuery(receiverDid: ''),
-    );
+    registerFallbackValue(const MatrixRoomHistoryQuery(receiverDid: ''));
     registerFallbackValue(_FakeOutgoingMessage());
     registerFallbackValue(
       Message(
@@ -120,9 +118,9 @@ void main() {
       liveEvents = StreamController<IncomingMessage>.broadcast();
 
       final channel = _fakeChannel();
-      when(() => core.subscribe(any())).thenAnswer(
-        (_) async => _FakeHandle(liveEvents),
-      );
+      when(
+        () => core.subscribe(any()),
+      ).thenAnswer((_) async => _FakeHandle(liveEvents));
       when(() => core.vdip).thenReturn(vdip);
       when(
         () => core.getChannelByOtherPartyPermanentDid(_bobDid),

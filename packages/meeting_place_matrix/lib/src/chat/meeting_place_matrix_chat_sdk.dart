@@ -231,10 +231,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   // bootstrap's getEventContext call.
   Future<void> _advanceSyncMarker(MatrixRoomEvent event) async {
     if (event.type == 'm.typing') return;
-    await chatRepository.updateSyncMarker(
-      chatId: chatId,
-      eventId: event.id,
-    );
+    await chatRepository.updateSyncMarker(chatId: chatId, eventId: event.id);
   }
 
   /// True when [event] is a primary `m.room.message` (i.e. not an edit).

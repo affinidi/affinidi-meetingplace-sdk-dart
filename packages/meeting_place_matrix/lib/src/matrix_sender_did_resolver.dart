@@ -7,8 +7,8 @@ class MatrixSenderDidResolver {
   MatrixSenderDidResolver({
     required MeetingPlaceCoreSDK coreSDK,
     required MatrixService matrixService,
-  })  : _coreSDK = coreSDK,
-        _matrixService = matrixService;
+  }) : _coreSDK = coreSDK,
+       _matrixService = matrixService;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final MatrixService _matrixService;

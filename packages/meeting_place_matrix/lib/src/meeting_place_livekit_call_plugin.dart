@@ -58,8 +58,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
 
   MeetingPlaceMatrixSDK? _sdk;
   CallSignalHandler? _signalHandler;
-  StreamSubscription<IncomingCallSignal>? _signalSubscription;
-  StreamSubscription<CallDeclineSignal>? _declineSignalSubscription;
+  StreamSubscription<CallSignal>? _signalSubscription;
 
   static const _logKey = 'MeetingPlaceLiveKitCallPlugin';
 
@@ -93,12 +92,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         }
       },
     );
-    _signalSubscription = sdk.incomingCallSignals.listen(
-      _signalHandler!.onIncomingCallSignal,
-    );
-    _declineSignalSubscription = sdk.callDeclineSignals.listen(
-      _signalHandler!.onCallDeclineSignal,
-    );
+    _signalSubscription = sdk.callSignals.listen(_signalHandler!.handle);
     _logger.info('Plugin initialized', name: _logKey);
   }
 
@@ -106,8 +100,6 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   Future<void> dispose() async {
     await _signalSubscription?.cancel();
     _signalSubscription = null;
-    await _declineSignalSubscription?.cancel();
-    _declineSignalSubscription = null;
     _signalHandler = null;
     await _incomingCallsController.close();
     await _cancelledCallsController.close();

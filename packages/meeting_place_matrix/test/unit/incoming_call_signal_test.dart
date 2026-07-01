@@ -38,7 +38,7 @@ void main() {
   const ownDid = 'did:key:ownChannelDid';
 
   late MockMeetingPlaceMatrixSDK mockSdk;
-  late StreamController<IncomingCallSignal> signalController;
+  late StreamController<CallSignal> signalController;
   late MeetingPlaceLiveKitCallPlugin plugin;
 
   setUpAll(() {
@@ -49,15 +49,9 @@ void main() {
 
   setUp(() {
     mockSdk = MockMeetingPlaceMatrixSDK();
-    signalController = StreamController<IncomingCallSignal>.broadcast();
+    signalController = StreamController<CallSignal>.broadcast();
 
-    when(
-      () => mockSdk.incomingCallSignals,
-    ).thenAnswer((_) => signalController.stream);
-
-    when(
-      () => mockSdk.callDeclineSignals,
-    ).thenAnswer((_) => const Stream.empty());
+    when(() => mockSdk.callSignals).thenAnswer((_) => signalController.stream);
 
     plugin = _plugin();
     plugin.initialize(sdk: mockSdk);

@@ -1,15 +1,12 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/event_handler/channel_activity_event_handler.dart';
-import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
-import 'package:meeting_place_core/src/event_handler/channel_activity_type.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import 'mocks/mocks.dart';
-
 import '../../fixtures/contact_card_fixture.dart';
+import 'mocks/mocks.dart';
 
 void main() {
   late ChannelActivityEventHandler handler;
@@ -75,7 +72,7 @@ void main() {
     });
 
     test(
-      'process returns channel for unhandled activity type (e.g. call-invite-video)',
+      '''process returns channel for unhandled activity type (e.g. call-invite-video)''',
       () async {
         const channelDid = 'did:key:channel';
         final channel = Channel(

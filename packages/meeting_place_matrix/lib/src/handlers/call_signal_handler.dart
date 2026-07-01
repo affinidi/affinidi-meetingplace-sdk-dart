@@ -32,6 +32,12 @@ class CallSignalHandler {
 
   static const _logKey = 'CallSignalHandler';
 
+  /// Dispatches [signal] to the appropriate handler based on its runtime type.
+  Future<void> handle(CallSignal signal) => switch (signal) {
+    IncomingCallSignal s => onIncomingCallSignal(s),
+    CallDeclineSignal s => onCallDeclineSignal(s),
+  };
+
   /// Handles an incoming call signal from the SDK.
   ///
   /// Registers `event` with the pending-call manager before notifying the app

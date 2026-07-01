@@ -31,9 +31,8 @@ export 'package:meeting_place_core/meeting_place_core.dart'
         RepositoryConfig;
 
 export 'src/call/call_channel_activity_type.dart';
-export 'src/call/call_decline_signal.dart';
 export 'src/call/call_media_type.dart';
-export 'src/call/incoming_call_signal.dart';
+export 'src/call/call_signal.dart';
 export 'src/call/mpx_call_event_type.dart';
 export 'src/chat/group/action/group_action.dart';
 export 'src/chat/group/group_matrix_chat_sdk.dart';

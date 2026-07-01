@@ -20,8 +20,7 @@ MeetingPlaceLiveKitCallPlugin _plugin({
 
 MockMeetingPlaceMatrixSDK _mockSdk() {
   final sdk = MockMeetingPlaceMatrixSDK();
-  when(() => sdk.incomingCallSignals).thenAnswer((_) => const Stream.empty());
-  when(() => sdk.callDeclineSignals).thenAnswer((_) => const Stream.empty());
+  when(() => sdk.callSignals).thenAnswer((_) => const Stream.empty());
   when(
     () => sdk.getChannelByOtherPartyPermanentDid(any()),
   ).thenThrow(Exception('stub: not needed for this test'));

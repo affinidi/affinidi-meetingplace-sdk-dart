@@ -3,13 +3,14 @@ import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    show ControlPlaneSDK;
+    show ChannelActivity, ControlPlaneSDK;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_matrix.dart';
 
+import 'call/call_signal_mapper.dart';
 import 'matrix_sender_did_resolver.dart';
 
 /// A [MeetingPlaceCoreSDK] backed by a Matrix homeserver.
@@ -29,10 +30,12 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
        _senderDidResolver = MatrixSenderDidResolver(
          coreSDK: coreSDK,
          matrixService: matrixService,
-       );
+       ),
+       _callSignalMapper = CallSignalMapper(coreSDK.controlPlaneEventsStream);
 
   final MeetingPlaceCoreSDK _coreSDK;
   final MatrixSenderDidResolver _senderDidResolver;
+  final CallSignalMapper _callSignalMapper;
 
   /// The underlying [MatrixService] — exposed for matrix-specific consumers
   /// (e.g. `meeting_place_matrix`) that need VoIP or OpenID token
@@ -74,44 +77,14 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     );
   }
 
-  /// Broadcast stream of incoming call signals.
+  /// Broadcast stream of call signals from the control plane.
   ///
-  /// Emits an [IncomingCallSignal] whenever a `ChannelActivity` event with
-  /// `type == 'call-invite-video'` or `type == 'call-invite-audio'` is
-  /// processed from the control plane. The plugin layer subscribes here to
-  /// lazily activate the recipient's Matrix session via [activateIncomingCall]
-  /// and emit an `IncomingCallEvent` to the app.
-  Stream<IncomingCallSignal> get incomingCallSignals => _coreSDK
-      .controlPlaneEventsStream
-      .where(
-        (e) =>
-            e.activityType == CallChannelActivityType.callInviteAudio ||
-            e.activityType == CallChannelActivityType.callInviteVideo,
-      )
-      .asyncMap((e) async {
-        return IncomingCallSignal(
-          ownChannelDid: e.channel.permanentChannelDid!,
-          mediaType: e.activityType == CallChannelActivityType.callInviteVideo
-              ? CallMediaType.video
-              : CallMediaType.audio,
-        );
-      });
-
-  /// Broadcast stream of call-decline signals.
+  /// Emits a [CallSignal] for each call-related [ChannelActivity] event:
+  /// - [IncomingCallSignal] for `call-invite-video` and `call-invite-audio`
+  /// - [CallDeclineSignal] for `call-decline`
   ///
-  /// Emits a [CallDeclineSignal] whenever a `ChannelActivity` event with
-  /// `type == 'call-decline'` is received. The plugin layer subscribes here
-  /// to emit `AudioVideoCallStatus.declined` on the active outgoing session.
-  Stream<CallDeclineSignal> get callDeclineSignals => _coreSDK
-      .controlPlaneEventsStream
-      .where((e) => e.activityType == CallChannelActivityType.callDecline)
-      .asyncMap((e) async {
-        return CallDeclineSignal(
-          // TODO(SR): Rename to permanentChannelDID to be consistent +
-          //  error path?
-          ownChannelDid: e.channel.permanentChannelDid!,
-        );
-      });
+  /// The plugin layer subscribes once and switches on the concrete type.
+  Stream<CallSignal> get callSignals => _callSignalMapper.callSignals;
 
   // ---------------------------------------------------------------------------
   // MeetingPlaceCoreSDK — delegated members

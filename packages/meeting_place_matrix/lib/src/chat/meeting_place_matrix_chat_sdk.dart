@@ -216,10 +216,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         .map(_toRoomEvent)
         .listen((event) async {
           await _handleIncomingRoomEvent(event);
-          await chatRepository.updateSyncMarker(
-            chatId: chatId,
-            eventId: event.id,
-          );
+          await _advanceSyncMarker(event);
           if (_isReceiptWorthy(event)) {
             await sendChatDeliveredMessage(event.id);
           }
@@ -228,6 +225,17 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
 
   Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
       _incomingRouter.route(event);
+
+  // m.typing events carry a synthetic local ID that is never persisted on the
+  // server; storing it as the sync marker causes M_NOT_FOUND on the next
+  // bootstrap's getEventContext call.
+  Future<void> _advanceSyncMarker(MatrixRoomEvent event) async {
+    if (event.type == 'm.typing') return;
+    await chatRepository.updateSyncMarker(
+      chatId: chatId,
+      eventId: event.id,
+    );
+  }
 
   /// True when [event] is a primary `m.room.message` (i.e. not an edit).
   /// Used to decide whether to issue an `m.read` receipt — edits piggyback on

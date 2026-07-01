@@ -12,6 +12,7 @@ import 'matrix_incoming_message.dart';
 import 'matrix_outgoing_message.dart';
 import 'matrix_room_history_query.dart';
 import 'matrix_room_subscription.dart';
+import 'matrix_sender_did_resolver.dart';
 import 'matrix_service.dart';
 import 'matrix_transport.dart';
 
@@ -28,9 +29,14 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({
     required MeetingPlaceCoreSDK coreSDK,
     required this.matrixService,
-  }) : _coreSDK = coreSDK;
+  })  : _coreSDK = coreSDK,
+        _senderDidResolver = MatrixSenderDidResolver(
+          coreSDK: coreSDK,
+          matrixService: matrixService,
+        );
 
   final MeetingPlaceCoreSDK _coreSDK;
+  final MatrixSenderDidResolver _senderDidResolver;
 
   /// The underlying [MatrixService] — exposed for matrix-specific consumers
   /// (e.g. `meeting_place_matrix_livekit`) that need VoIP or OpenID token
@@ -377,7 +383,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       case MatrixRoomSubscription s:
         final channel = await _coreSDK.findChannelByDid(s.receiverDid);
         final didManager = await _coreSDK.getDidManager(s.receiverDid);
-        final participantDids = await _fetchParticipantDids(channel);
+        final participantDids = await _senderDidResolver.fetchParticipantDids(channel);
         final stream = _coreSDK.channelTransport.subscribe(
           channel: channel,
           didManager: didManager,
@@ -389,7 +395,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
               if (_isTimelineEvent(e)) {
                 await _advanceMatrixSyncMarker(s.receiverDid, e.id);
               }
-              return _toMatrixIncoming(e);
+              return _toMatrixIncoming(e, s.receiverDid);
             })
             .where((e) => e != null)
             .cast<MatrixIncomingMessage>();
@@ -439,13 +445,14 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
           limit: q.limit,
           since: q.since,
         );
+
         if (q.updateChannelSyncMarker && events.isNotEmpty) {
           await _coreSDK.updateMatrixSyncMarker(channel, events.last.id);
         }
-        return events
-            .map(_toMatrixIncoming)
-            .whereType<MatrixIncomingMessage>()
-            .toList();
+
+        return Future.wait(
+          events.map((e) => _toMatrixIncoming(e, q.receiverDid)),
+        ).then((mapped) => mapped.whereType<MatrixIncomingMessage>().toList());
       case DidCommHistoryQuery _:
         return _coreSDK.fetchHistory(query);
       default:
@@ -478,11 +485,20 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     return event.type != 'm.typing' && event.type != 'm.receipt';
   }
 
-  MatrixIncomingMessage? _toMatrixIncoming(TransportEvent e) {
-    final senderDid = e.senderDid;
-    if (senderDid == null) return null;
+  Future<MatrixIncomingMessage?> _toMatrixIncoming(
+    TransportEvent e,
+    String receiverDid,
+  ) async {
+    final resolved =
+        e.senderDid ??
+        await _senderDidResolver.resolve(
+          receiverDid: receiverDid,
+          matrixUserId: e.metadata?['sender_id'] as String,
+        );
+    if (resolved == null) return null;
+
     return MatrixIncomingMessage(
-      senderDid: senderDid,
+      senderDid: resolved,
       timestamp: e.timestamp,
       roomId: e.channelId,
       eventId: e.id,
@@ -500,17 +516,6 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     final channel = await _coreSDK.findChannelByDidOrNull(receiverDid);
     if (channel == null) return;
     await _coreSDK.updateMatrixSyncMarker(channel, eventId);
-  }
-
-  Future<List<String>> _fetchParticipantDids(Channel channel) async {
-    if (channel.type == ChannelType.group) {
-      final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
-      if (group == null) return [];
-      return group.members.map((m) => m.did).toList();
-    }
-    final peer = channel.otherPartyPermanentChannelDid;
-    if (peer != null) return [peer];
-    return [];
   }
 }
 

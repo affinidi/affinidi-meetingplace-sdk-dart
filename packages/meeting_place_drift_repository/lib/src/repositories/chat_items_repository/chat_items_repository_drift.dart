@@ -92,7 +92,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
               .insert(
                 db.AttachmentsCompanion.insert(
                   messageId: message.messageId,
-                  id: Value(attachment.id),
+                  id: attachment.id,
                   description: Value(attachment.description),
                   filename: Value(attachment.filename),
                   mediaType: Value(attachment.mediaType),
@@ -387,7 +387,7 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
               .insert(
                 db.AttachmentsCompanion.insert(
                   messageId: message.messageId,
-                  id: Value(attachment.id),
+                  id: attachment.id,
                   description: Value(attachment.description),
                   filename: Value(attachment.filename),
                   mediaType: Value(attachment.mediaType),

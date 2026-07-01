@@ -244,4 +244,47 @@ void main() {
       await db.close();
     });
   });
+
+  group('v3 → v4 schema migration', () {
+    test('produces the correct v4 schema', () async {
+      final connection = await verifier.startAt(3);
+      final db = ChatItemsDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 4);
+      await db.close();
+    });
+
+    test('backfills legacy attachment rows with null ids', () async {
+      final schema = await verifier.schemaAt(3);
+      schema.rawDatabase.execute('''
+        INSERT INTO chat_items (
+          chat_id, message_id, value, is_from_me, date_created, status, type,
+          event_type, concierge_type, data, sender_did, transport_id,
+          is_deleted, is_deleted_locally, edited_at
+        ) VALUES (
+          'c1', 'm1', 'hello', 0, '2026-01-01T00:00:00.000', 4, 1,
+          NULL, NULL, NULL, 'did:x:a', NULL, 0, 0, NULL
+        )
+      ''');
+      schema.rawDatabase.execute('''
+        INSERT INTO attachments (
+          message_id, attachment_id, id, description, filename, media_type,
+          format, last_modified_time, jws, byte_count, hash, base64, json,
+          transport_id, metadata
+        ) VALUES (
+          'm1', 7, NULL, NULL, 'a.jpg', 'image/jpeg', NULL, NULL, NULL,
+          NULL, NULL, NULL, NULL, NULL, NULL
+        )
+      ''');
+
+      final db = ChatItemsDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 4);
+
+      final rows = await db
+          .customSelect('SELECT id FROM attachments WHERE attachment_id = 7')
+          .getSingle();
+      expect(rows.read<String>('id'), 'legacy-attachment:7');
+
+      await db.close();
+    });
+  });
 }

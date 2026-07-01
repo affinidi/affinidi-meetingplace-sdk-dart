@@ -16,7 +16,7 @@ typedef CoreAttachment = Attachment;
 /// persisted messages remain readable.
 class ChatAttachment {
   ChatAttachment({
-    this.id,
+    required this.id,
     this.description,
     this.filename,
     this.mediaType,
@@ -33,8 +33,13 @@ class ChatAttachment {
   /// The key names match the DIDComm wire format so that persisted
   /// messages remain fully round-trippable.
   factory ChatAttachment.fromJson(Map<String, dynamic> json) {
+    final id = json['id'];
+    if (id is! String || id.isEmpty) {
+      throw const FormatException('Missing or invalid attachment id');
+    }
+
     return ChatAttachment(
-      id: json['id'] as String?,
+      id: id,
       description: json['description'] as String?,
       filename: json['filename'] as String?,
       mediaType: json['media_type'] as String?,
@@ -55,7 +60,7 @@ class ChatAttachment {
   }
 
   /// Unique identifier for the attachment.
-  final String? id;
+  final String id;
 
   /// Human-readable description of the attachment content.
   final String? description;
@@ -100,7 +105,7 @@ class ChatAttachment {
   /// messages remain fully round-trippable.
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{};
-    if (id != null) result['id'] = id;
+    result['id'] = id;
     if (description != null) result['description'] = description;
     if (filename != null) result['filename'] = filename;
     if (mediaType != null) result['media_type'] = mediaType;
@@ -149,22 +154,31 @@ extension ChatAttachmentCoreConversion on ChatAttachment {
 
 /// Converts a [CoreAttachment] to a [ChatAttachment].
 extension CoreAttachmentToChatAttachment on CoreAttachment {
-  ChatAttachment toChatAttachment() => ChatAttachment(
-    id: id,
-    description: description,
-    filename: filename,
-    mediaType: mediaType,
-    format: format,
-    lastModifiedTime: lastModifiedTime,
-    data: data == null
-        ? null
-        : ChatAttachmentData(
-            jws: data!.jws,
-            hash: data!.hash,
-            links: data!.links,
-            base64: data!.base64,
-            json: data!.json,
-          ),
-    byteCount: byteCount,
-  );
+  ChatAttachment toChatAttachment() {
+    final id = this.id;
+    if (id == null || id.isEmpty) {
+      throw const FormatException(
+        'CoreAttachment id must not be null or empty',
+      );
+    }
+
+    return ChatAttachment(
+      id: id,
+      description: description,
+      filename: filename,
+      mediaType: mediaType,
+      format: format,
+      lastModifiedTime: lastModifiedTime,
+      data: data == null
+          ? null
+          : ChatAttachmentData(
+              jws: data!.jws,
+              hash: data!.hash,
+              links: data!.links,
+              base64: data!.base64,
+              json: data!.json,
+            ),
+      byteCount: byteCount,
+    );
+  }
 }

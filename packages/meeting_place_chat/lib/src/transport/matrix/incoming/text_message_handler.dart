@@ -102,7 +102,16 @@ class TextMessageHandler {
       _serverEventIdToMessageId[event.id] = correlationId;
 
       if (existing is Message) {
-        existing.attachments = [...existing.attachments, ...attachments];
+        final existingAttachmentIds = existing.attachments
+            .map((attachment) => attachment.id)
+            .toSet();
+        final attachmentsToAdd = <ChatAttachment>[];
+        for (final attachment in attachments) {
+          if (existingAttachmentIds.add(attachment.id)) {
+            attachmentsToAdd.add(attachment);
+          }
+        }
+        existing.attachments = [...existing.attachments, ...attachmentsToAdd];
         await _chatRepository.updateMesssage(existing);
         _chatStream.pushData(
           StreamData(event: event.toChatEvent(), chatItem: existing),

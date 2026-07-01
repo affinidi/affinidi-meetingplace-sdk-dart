@@ -1224,9 +1224,9 @@ class $AttachmentsTable extends Attachments
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
-    true,
+    false,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _descriptionMeta = const VerificationMeta(
     'description',
@@ -1400,6 +1400,8 @@ class $AttachmentsTable extends Attachments
     }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('description')) {
       context.handle(
@@ -1502,7 +1504,7 @@ class $AttachmentsTable extends Attachments
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
-      ),
+      )!,
       description: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}description'],
@@ -1568,7 +1570,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
   final int attachmentId;
 
   /// Unique identifier for the attachment.
-  final String? id;
+  final String id;
 
   /// Description of the attachment.
   final String? description;
@@ -1611,7 +1613,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
   const Attachment({
     required this.messageId,
     required this.attachmentId,
-    this.id,
+    required this.id,
     this.description,
     this.filename,
     this.mediaType,
@@ -1630,9 +1632,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     final map = <String, Expression>{};
     map['message_id'] = Variable<String>(messageId);
     map['attachment_id'] = Variable<int>(attachmentId);
-    if (!nullToAbsent || id != null) {
-      map['id'] = Variable<String>(id);
-    }
+    map['id'] = Variable<String>(id);
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
@@ -1676,7 +1676,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     return AttachmentsCompanion(
       messageId: Value(messageId),
       attachmentId: Value(attachmentId),
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      id: Value(id),
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
@@ -1718,7 +1718,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     return Attachment(
       messageId: serializer.fromJson<String>(json['messageId']),
       attachmentId: serializer.fromJson<int>(json['attachmentId']),
-      id: serializer.fromJson<String?>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
       description: serializer.fromJson<String?>(json['description']),
       filename: serializer.fromJson<String?>(json['filename']),
       mediaType: serializer.fromJson<String?>(json['mediaType']),
@@ -1741,7 +1741,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     return <String, dynamic>{
       'messageId': serializer.toJson<String>(messageId),
       'attachmentId': serializer.toJson<int>(attachmentId),
-      'id': serializer.toJson<String?>(id),
+      'id': serializer.toJson<String>(id),
       'description': serializer.toJson<String?>(description),
       'filename': serializer.toJson<String?>(filename),
       'mediaType': serializer.toJson<String?>(mediaType),
@@ -1760,7 +1760,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
   Attachment copyWith({
     String? messageId,
     int? attachmentId,
-    Value<String?> id = const Value.absent(),
+    String? id,
     Value<String?> description = const Value.absent(),
     Value<String?> filename = const Value.absent(),
     Value<String?> mediaType = const Value.absent(),
@@ -1776,7 +1776,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
   }) => Attachment(
     messageId: messageId ?? this.messageId,
     attachmentId: attachmentId ?? this.attachmentId,
-    id: id.present ? id.value : this.id,
+    id: id ?? this.id,
     description: description.present ? description.value : this.description,
     filename: filename.present ? filename.value : this.filename,
     mediaType: mediaType.present ? mediaType.value : this.mediaType,
@@ -1884,7 +1884,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
 class AttachmentsCompanion extends UpdateCompanion<Attachment> {
   final Value<String> messageId;
   final Value<int> attachmentId;
-  final Value<String?> id;
+  final Value<String> id;
   final Value<String?> description;
   final Value<String?> filename;
   final Value<String?> mediaType;
@@ -1917,7 +1917,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
   AttachmentsCompanion.insert({
     required String messageId,
     this.attachmentId = const Value.absent(),
-    this.id = const Value.absent(),
+    required String id,
     this.description = const Value.absent(),
     this.filename = const Value.absent(),
     this.mediaType = const Value.absent(),
@@ -1930,7 +1930,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     this.json = const Value.absent(),
     this.transportId = const Value.absent(),
     this.metadata = const Value.absent(),
-  }) : messageId = Value(messageId);
+  }) : messageId = Value(messageId),
+       id = Value(id);
   static Insertable<Attachment> custom({
     Expression<String>? messageId,
     Expression<int>? attachmentId,
@@ -1970,7 +1971,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
   AttachmentsCompanion copyWith({
     Value<String>? messageId,
     Value<int>? attachmentId,
-    Value<String?>? id,
+    Value<String>? id,
     Value<String?>? description,
     Value<String?>? filename,
     Value<String?>? mediaType,
@@ -3466,7 +3467,7 @@ typedef $$AttachmentsTableCreateCompanionBuilder =
     AttachmentsCompanion Function({
       required String messageId,
       Value<int> attachmentId,
-      Value<String?> id,
+      required String id,
       Value<String?> description,
       Value<String?> filename,
       Value<String?> mediaType,
@@ -3484,7 +3485,7 @@ typedef $$AttachmentsTableUpdateCompanionBuilder =
     AttachmentsCompanion Function({
       Value<String> messageId,
       Value<int> attachmentId,
-      Value<String?> id,
+      Value<String> id,
       Value<String?> description,
       Value<String?> filename,
       Value<String?> mediaType,
@@ -3920,7 +3921,7 @@ class $$AttachmentsTableTableManager
               ({
                 Value<String> messageId = const Value.absent(),
                 Value<int> attachmentId = const Value.absent(),
-                Value<String?> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<String?> filename = const Value.absent(),
                 Value<String?> mediaType = const Value.absent(),
@@ -3954,7 +3955,7 @@ class $$AttachmentsTableTableManager
               ({
                 required String messageId,
                 Value<int> attachmentId = const Value.absent(),
-                Value<String?> id = const Value.absent(),
+                required String id,
                 Value<String?> description = const Value.absent(),
                 Value<String?> filename = const Value.absent(),
                 Value<String?> mediaType = const Value.absent(),

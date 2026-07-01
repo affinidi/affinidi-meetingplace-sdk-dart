@@ -112,6 +112,7 @@ void main() {
         'msgtype': 'm.image',
         'body': 'photo.jpg',
         'filename': 'photo.jpg',
+        MatrixEventField.attachmentId: 'attachment-1',
         'url': 'mxc://matrix.example.com/abc123',
         'file': {
           'url': 'mxc://matrix.example.com/abc123',
@@ -125,7 +126,7 @@ void main() {
 
       expect(attachments, hasLength(1));
       final a = attachments.single;
-      expect(a.id, isNotEmpty);
+      expect(a.id, 'attachment-1');
       expect(a.format, isNull);
       expect(a.filename, 'photo.jpg');
       expect(a.mediaType, 'image/jpeg');
@@ -138,12 +139,23 @@ void main() {
       final attachments = MatrixMediaAttachments.extractFromContent({
         'msgtype': 'm.file',
         'body': 'document.pdf',
+        MatrixEventField.attachmentId: 'attachment-2',
         'url': 'mxc://matrix.example.com/xyz',
         'info': {'mimetype': 'application/pdf', 'size': 100},
       });
 
       expect(attachments.single.filename, 'document.pdf');
-      expect(attachments.single.id, isNotEmpty);
+      expect(attachments.single.id, 'attachment-2');
+    });
+
+    test('preserves attachment id from matrix content when present', () {
+      final attachments = MatrixMediaAttachments.extractFromContent({
+        'msgtype': 'm.file',
+        'body': 'document.pdf',
+        MatrixEventField.attachmentId: 'attachment-2',
+      });
+
+      expect(attachments.single.id, 'attachment-2');
     });
 
     test('extracts voice metadata from Matrix audio info', () {
@@ -151,6 +163,7 @@ void main() {
         'msgtype': 'm.audio',
         'body': 'voice.m4a',
         'filename': 'voice.m4a',
+        MatrixEventField.attachmentId: 'attachment-3',
         'info': {'mimetype': 'audio/mp4', 'size': 4096, 'duration': 1200},
         MatrixMediaAttachments.voiceContentKey: <String, dynamic>{},
         MatrixMediaAttachments.audioContentKey: {
@@ -161,7 +174,7 @@ void main() {
 
       final attachment = attachments.single;
       final voice = VoiceMessageMetadata.of(attachment);
-      expect(attachment.id, isNotEmpty);
+      expect(attachment.id, 'attachment-3');
       expect(attachment.mediaType, AttachmentMediaType.audioMp4.value);
       expect(VoiceMessageMetadata.isVoice(attachment), isTrue);
       expect(voice?.durationMs, 1200);
@@ -172,11 +185,12 @@ void main() {
       final attachments = MatrixMediaAttachments.extractFromContent({
         'msgtype': 'm.audio',
         'body': 'track.mp3',
+        MatrixEventField.attachmentId: 'attachment-4',
         'info': {'mimetype': 'audio/mpeg', 'size': 4096, 'duration': 1200},
       });
 
       final attachment = attachments.single;
-      expect(attachment.id, isNotEmpty);
+      expect(attachment.id, 'attachment-4');
       expect(attachment.mediaType, AttachmentMediaType.audioMpeg.value);
       expect(VoiceMessageMetadata.isVoice(attachment), isFalse);
       expect(attachment.metadata, isNull);
@@ -186,6 +200,7 @@ void main() {
       final attachments = MatrixMediaAttachments.extractFromContent({
         'msgtype': 'm.audio',
         'body': 'voice.m4a',
+        MatrixEventField.attachmentId: 'attachment-5',
         'info': {'mimetype': 'audio/mp4'},
         MatrixMediaAttachments.voiceContentKey: <String, dynamic>{},
         MatrixMediaAttachments.audioContentKey: {
@@ -194,7 +209,7 @@ void main() {
       });
 
       final attachment = attachments.single;
-      expect(attachment.id, isNotEmpty);
+      expect(attachment.id, 'attachment-5');
       expect(VoiceMessageMetadata.isVoice(attachment), isTrue);
       expect(VoiceMessageMetadata.of(attachment)?.waveform, isNull);
     });

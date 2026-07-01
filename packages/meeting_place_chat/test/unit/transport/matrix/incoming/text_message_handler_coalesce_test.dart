@@ -30,6 +30,7 @@ const _aliceDid = 'did:test:alice';
 MatrixRoomEvent _imageEvent({
   required String id,
   required String filename,
+  required String attachmentId,
   String? correlationId,
   String? caption,
   String senderDid = _aliceDid,
@@ -44,6 +45,7 @@ MatrixRoomEvent _imageEvent({
     'body': caption ?? filename,
     'filename': filename,
     'info': {'mimetype': 'image/jpeg', 'size': 1234},
+    MatrixEventField.attachmentId: attachmentId,
     if (correlationId != null) MatrixEventField.correlationId: correlationId,
   },
   timestamp: timestamp ?? DateTime.utc(2026, 1, 1, 12),
@@ -121,7 +123,13 @@ void main() {
     test(
       'absent correlationId: legacy one-event-one-Message, keyed on event id',
       () async {
-        await handler.handle(_imageEvent(id: r'$evt-1', filename: 'a.jpg'));
+        await handler.handle(
+          _imageEvent(
+            id: r'$evt-1',
+            attachmentId: 'attachment-1',
+            filename: 'a.jpg',
+          ),
+        );
 
         verify(() => repo.createMessage(any())).called(1);
         expect(store.keys, contains(r'$evt-1'));
@@ -140,6 +148,7 @@ void main() {
         await handler.handle(
           _imageEvent(
             id: r'$evt-1',
+            attachmentId: 'attachment-1',
             filename: 'a.jpg',
             correlationId: 'corr-uuid',
             caption: 'My caption',
@@ -151,6 +160,7 @@ void main() {
         final stored = store['corr-uuid']! as Message;
         expect(stored.messageId, 'corr-uuid');
         expect(stored.attachments, hasLength(1));
+        expect(stored.attachments.single.id, 'attachment-1');
         expect(stored.attachments.single.transportId, r'$evt-1');
         expect(idMap[r'$evt-1'], 'corr-uuid');
       },
@@ -162,6 +172,7 @@ void main() {
         await handler.handle(
           _imageEvent(
             id: r'$evt-1',
+            attachmentId: 'attachment-1',
             filename: 'a.jpg',
             correlationId: 'corr-uuid',
           ),
@@ -169,6 +180,7 @@ void main() {
         await handler.handle(
           _imageEvent(
             id: r'$evt-2',
+            attachmentId: 'attachment-2',
             filename: 'b.jpg',
             correlationId: 'corr-uuid',
           ),
@@ -189,12 +201,35 @@ void main() {
       },
     );
 
+    test(
+      'reprocessing the same correlated event does not duplicate attachments',
+      () async {
+        final event = _imageEvent(
+          id: r'$evt-1',
+          attachmentId: 'attachment-1',
+          filename: 'a.jpg',
+          correlationId: 'corr-uuid',
+        );
+
+        await handler.handle(event);
+        await handler.handle(event);
+
+        verify(() => repo.createMessage(any())).called(1);
+        verify(() => repo.updateMesssage(any())).called(1);
+
+        final stored = store['corr-uuid']! as Message;
+        expect(stored.attachments, hasLength(1));
+        expect(stored.attachments.single.transportId, r'$evt-1');
+      },
+    );
+
     test('out-of-order arrival: second event arrives first, first later '
         'is appended into the same logical Message', () async {
       // The "second" matrix event arrives first.
       await handler.handle(
         _imageEvent(
           id: r'$evt-2',
+          attachmentId: 'attachment-2',
           filename: 'b.jpg',
           correlationId: 'corr-uuid',
         ),
@@ -203,6 +238,7 @@ void main() {
       await handler.handle(
         _imageEvent(
           id: r'$evt-1',
+          attachmentId: 'attachment-1',
           filename: 'a.jpg',
           correlationId: 'corr-uuid',
           caption: 'My caption',

@@ -54,6 +54,7 @@ class MediaTextMessageSender {
     final contentTypes = [
       for (final a in attachments) _contentTypeForAttachment(a),
     ];
+    final attachmentIds = [for (final a in attachments) a.id];
 
     final channel = await _getChannel();
     channel.increaseSeqNo();
@@ -66,7 +67,7 @@ class MediaTextMessageSender {
     final displayAttachments = [
       for (var i = 0; i < attachments.length; i++)
         ChatAttachment(
-          id: attachments[i].id,
+          id: attachmentIds[i],
           description: attachments[i].description,
           filename: attachments[i].filename,
           mediaType: attachments[i].mediaType,
@@ -103,6 +104,7 @@ class MediaTextMessageSender {
           caption: caption,
           extraContent: _extraContentForAttachment(
             attachment,
+            attachmentId: attachmentIds[i],
             contentType: contentTypes[i],
             sizeBytes: attachmentBytes[i].length,
             correlationId: messageId,
@@ -158,13 +160,16 @@ class MediaTextMessageSender {
 
   static Map<String, dynamic> _extraContentForAttachment(
     ChatAttachment attachment, {
+    required String attachmentId,
     required String contentType,
     required int sizeBytes,
     required String correlationId,
   }) {
     return {
       MatrixEventField.correlationId: correlationId,
-      MatrixEventField.attachmentFormat: attachment.format,
+      MatrixEventField.attachmentId: attachmentId,
+      if (attachment.format != null)
+        MatrixEventField.attachmentFormat: attachment.format,
       ...MatrixMediaAttachments.buildVoiceContent(
         attachment,
         contentType: contentType,

@@ -1,5 +1,3 @@
-import 'package:uuid/uuid.dart';
-
 import '../../entity/chat_attachment.dart';
 import '../../entity/voice_message_metadata.dart';
 
@@ -24,6 +22,10 @@ class MatrixEventField {
   /// `sendTextMessage` call so the receiver can coalesce them back into one
   /// logical `Message` carrying multiple attachments.
   static const correlationId = 'mp_correlation_id';
+
+  /// Stores the caller-supplied [ChatAttachment.id] for media events so the
+  /// receiver can preserve attachment identity across the Matrix transport.
+  static const attachmentId = 'mp_attachment_id';
 
   /// Stores the [ChatAttachment.format] for media events so the receiver
   /// can reconstruct the original format of each attachment.
@@ -69,11 +71,15 @@ class MatrixMediaAttachments {
     final mimeType = _stringValue(info?['mimetype']);
     final sizeValue = info?['size'];
     final size = sizeValue is int ? sizeValue : null;
+    final attachmentId = _stringValue(content[MatrixEventField.attachmentId]);
     final format = _stringValue(content[MatrixEventField.attachmentFormat]);
+    if (attachmentId == null || attachmentId.isEmpty) {
+      throw const FormatException('Matrix media attachment id is required');
+    }
 
     return [
       ChatAttachment(
-        id: const Uuid().v4(),
+        id: attachmentId,
         filename: filename,
         mediaType: mimeType,
         format: format,

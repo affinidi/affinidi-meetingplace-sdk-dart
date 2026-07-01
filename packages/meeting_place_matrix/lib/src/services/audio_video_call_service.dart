@@ -421,11 +421,9 @@ class AudioVideoCallService {
     if (mediaType == CallMediaType.audio) return;
     try {
       await _room.setCameraEnabled(true);
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to enable camera',
-        error: e,
-        stackTrace: stackTrace,
+    } catch (e) {
+      _logger.warning(
+        '_enableLocalMedia: camera unavailable, continuing with audio only',
         name: _logKey,
       );
     }

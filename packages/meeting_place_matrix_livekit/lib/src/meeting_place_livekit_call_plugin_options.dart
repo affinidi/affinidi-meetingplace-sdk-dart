@@ -6,6 +6,7 @@ class MeetingPlaceLiveKitCallPluginOptions {
   const MeetingPlaceLiveKitCallPluginOptions({
     required this.livekitServiceUrl,
     this.livekitSfuUrl,
+    this.sfuAllowedHosts = const [],
     this.e2eeReadyTimeout = const Duration(seconds: 10),
     this.outgoingCallTimeout = const Duration(seconds: 60),
   });
@@ -25,9 +26,32 @@ class MeetingPlaceLiveKitCallPluginOptions {
   /// runs inside Docker and its `LIVEKIT_URL` is a container-internal
   /// hostname that the Flutter app cannot resolve (e.g. `ws://livekit:7880`).
   ///
+  /// Because the value is controlled by the application (not the server), a
+  /// cleartext `ws://` scheme is permitted here for local development. A
+  /// server-supplied URL (when this field is null) must always use `wss://`.
+  ///
   /// In production, omit this field — the SFU URL from the lk-jwt-service
   /// response is used directly.
   final Uri? livekitSfuUrl;
+
+  /// Allowlist of SFU hostnames the client is permitted to connect to.
+  ///
+  /// Supports single-label wildcard prefixes: `*.meetingplace.affinidi.io`
+  /// matches `sfu.meetingplace.affinidi.io` but not the apex
+  /// `meetingplace.affinidi.io` nor deeper subdomains such as
+  /// `a.b.meetingplace.affinidi.io`. All other entries require an exact match.
+  ///
+  /// **Security requirement**: When [livekitSfuUrl] is null (production mode),
+  /// this list MUST be non-empty. The plugin constructor throws immediately if
+  /// a server-supplied URL would be used without an allowlist, preventing
+  /// compromised JWT services from redirecting media to attacker-controlled
+  /// servers.
+  ///
+  /// When [livekitSfuUrl] is set (dev/test mode), this validation is optional
+  /// since the URL is controlled by the application.
+  ///
+  /// Example: `['*.meetingplace.affinidi.io', 'livekit.example.com']`
+  final List<String> sfuAllowedHosts;
 
   /// How long to wait for E2EE keys from all remote participants before
   /// transitioning the call to the connected status without confirmed

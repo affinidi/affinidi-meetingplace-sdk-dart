@@ -47,7 +47,20 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
        _logger = logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _logKey),
        _incomingCallsController =
            StreamController<IncomingAudioVideoCallEvent>.broadcast(),
-       _cancelledCallsController = StreamController<String>.broadcast();
+       _cancelledCallsController = StreamController<String>.broadcast() {
+    // Fail fast on insecure configuration: when the SFU URL is server-supplied
+    // (livekitSfuUrl is null), an allowlist is mandatory to stop a compromised
+    // lk-jwt-service from redirecting media to an attacker-controlled SFU.
+    if (options.livekitSfuUrl == null && options.sfuAllowedHosts.isEmpty) {
+      throw ArgumentError.value(
+        options.sfuAllowedHosts,
+        'options.sfuAllowedHosts',
+        'must be non-empty when livekitSfuUrl is null (production mode) to '
+            'prevent a compromised lk-jwt-service from redirecting media to '
+            'an attacker-controlled SFU',
+      );
+    }
+  }
 
   final MeetingPlaceLiveKitCallPluginOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;

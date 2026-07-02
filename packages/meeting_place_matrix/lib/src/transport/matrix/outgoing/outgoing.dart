@@ -1,3 +1,4 @@
+export 'call_item_room_event.dart';
 export 'chat_typing_notification.dart';
 export 'contact_details_update_room_event.dart';
 export 'contact_details_update_sender.dart';
@@ -7,7 +8,6 @@ export 'group_details_update_sender.dart';
 export 'matrix_custom_outgoing_message.dart';
 export 'media_text_message_sender.dart';
 export 'message_edit_room_event.dart';
-export 'metadata_message_room_event.dart';
 export 'profile_hash_room_event.dart';
 export 'profile_request_room_event.dart';
 export 'reaction_room_event.dart';

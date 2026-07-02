@@ -233,10 +233,11 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     await chatRepository.updateSyncMarker(chatId: chatId, eventId: event.id);
   }
 
-  /// True when [event] is a primary `m.room.message` (i.e. not an edit).
-  /// Used to decide whether to issue an `m.read` receipt — edits piggyback on
-  /// the receipt for the original message.
+  /// True when [event] is a primary `m.room.message` (i.e. not an edit) or a
+  /// `mpx.call.item`. Used to decide whether to issue an `m.read` receipt —
+  /// edits piggyback on the receipt for the original message.
   static bool _isReceiptWorthy(MatrixRoomEvent event) {
+    if (event.type == MpxCallEventType.callItem) return true;
     if (event.type != 'm.room.message') return false;
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
     return relatesTo?['rel_type'] != 'm.replace';
@@ -277,7 +278,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         name: _matrixLogkey,
       );
     } else if (attachments.every((a) => a.data == null && a.metadata != null)) {
-      final outgoing = MetadataMessageRoomEvent(
+      final outgoing = CallItemRoomEvent(
         senderDid: did,
         metadata: attachments.first.metadata ?? {},
         notification: notification,

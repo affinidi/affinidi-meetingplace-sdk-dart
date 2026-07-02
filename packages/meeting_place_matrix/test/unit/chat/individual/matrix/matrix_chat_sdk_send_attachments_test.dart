@@ -453,7 +453,7 @@ void main() {
     });
 
     test(
-      '''metadata-only attachment sends via sendMessage with mpx.call.item msgtype''',
+      '''metadata-only attachment sends as mpx.call.item room event''',
       () async {
         final callMetadata = {'call_status': 'calling', 'media_kind': 'call'};
         final attachment = ChatAttachment(
@@ -475,7 +475,7 @@ void main() {
         );
 
         final callItemEvent = capturedMessages.firstWhere(
-          (m) => m.content['msgtype'] == MediaMsgType.callItem,
+          (m) => m.type == MpxCallEventType.callItem,
         );
         expect(
           callItemEvent.content[MatrixEventField.callMetadata],

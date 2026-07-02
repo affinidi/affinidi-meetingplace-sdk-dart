@@ -64,8 +64,8 @@ class CallMetadata {
   static ChatAttachment buildAttachment({
     required CallMediaType mediaType,
     required CallStatus status,
+    required String id,
     int? durationMs,
-    String? id,
   }) {
     final call = CallMetadata(
       mediaType: mediaType,

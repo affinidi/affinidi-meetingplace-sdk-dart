@@ -1,4 +1,5 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:uuid/uuid.dart';
 
 /// Matrix `msgtype` values used for media content.
 ///

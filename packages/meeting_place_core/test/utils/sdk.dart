@@ -154,7 +154,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
     didResolver: didResolver,
     mediatorService: mediatorService,
     channelService: channelService,
-    controlPlaneSDK: sdk.discovery,
+    controlPlaneSDK: sdk.controlPlaneSDK,
     logger: logger,
   );
   final errorHandler = SDKErrorHandler(logger: logger);

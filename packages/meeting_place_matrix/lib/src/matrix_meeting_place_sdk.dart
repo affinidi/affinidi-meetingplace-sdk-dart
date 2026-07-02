@@ -139,7 +139,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceTransport get channelTransport => _coreSDK.channelTransport;
 
   @override
-  ControlPlaneSDK get discovery => _coreSDK.discovery;
+  ControlPlaneSDK get controlPlaneSDK => _coreSDK.controlPlaneSDK;
 
   @override
   MeetingPlaceMediatorSDK get mediator => _coreSDK.mediator;

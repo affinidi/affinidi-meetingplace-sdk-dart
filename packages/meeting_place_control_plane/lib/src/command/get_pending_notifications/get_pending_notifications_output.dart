@@ -5,5 +5,5 @@ import '../../core/event/discovery_event.dart';
 class GetPendingNotificationsCommandOutput {
   /// Creates a new instance of [GetPendingNotificationsCommandOutput].
   GetPendingNotificationsCommandOutput({required this.events});
-  final List<DiscoveryEvent> events;
+  final List<ControlPlaneEvent> events;
 }

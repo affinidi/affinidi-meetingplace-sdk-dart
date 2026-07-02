@@ -38,7 +38,7 @@ void main() {
       mediatorService: MockMediatorService(),
       connectionManager: MockConnectionManager(),
       channelService: MockChannelService(),
-      matrixService: MockMatrixService(),
+      channelTransport: MockMeetingPlaceTransport(),
       connectionOfferRepository: mockConnectionOfferRepository,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: mockLogger,
@@ -48,11 +48,11 @@ void main() {
   group('ChannelActivityEventHandler', () {
     test('dedupe treats different activity types on same DID as distinct', () {
       final processedEvents = [
-        DiscoveryEvent<ChannelActivity>(
+        ControlPlaneEvent<ChannelActivity>(
           id: const Uuid().v4(),
           type: ControlPlaneEventType.ChannelActivity,
           data: event,
-          status: DiscoveryEventStatus.New,
+          status: ControlPlaneEventStatus.New,
         ),
       ];
 

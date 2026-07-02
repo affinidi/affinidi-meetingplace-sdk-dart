@@ -7,12 +7,10 @@ import 'package:uuid/uuid.dart';
 
 import '../../../meeting_place_chat.dart';
 import '../../constants.dart';
-import '../../entity/chat_attachment_bytes.dart';
 import '../../entity/chat_attachment_conversion.dart';
 import '../../logger/default_meeting_place_chat_sdk_logger.dart';
 import '../../transport/didcomm/outgoing/outgoing.dart';
 import '../../transport/didcomm/protocol.dart' as protocol;
-import '../base_chat_sdk.dart';
 
 /// DIDComm-backed implementation of [MeetingPlaceChatSDK] for one-to-one chats.
 ///

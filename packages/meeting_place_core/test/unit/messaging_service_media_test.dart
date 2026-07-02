@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_core/src/service/matrix/matrix_media_exception.dart';
 import 'package:meeting_place_core/src/service/message/message_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -11,13 +10,19 @@ import 'event_handler/mocks/mocks.dart';
 
 class MockMessageService extends Mock implements MessageService {}
 
-class MockGroupRepository extends Mock implements GroupRepository {}
-
 class MockDIDCommTransport extends Mock implements DIDCommTransport {}
 
-class MockDidManager extends Mock implements DidManager {}
+class _MockDidManager extends Mock implements DidManager {}
 
-const _testRoomId = '!room:matrix.example.com';
+class _FakeChannel extends Fake implements Channel {}
+
+class _TestMediaReference extends MediaReference {
+  const _TestMediaReference(this.fileId);
+
+  @override
+  final String fileId;
+}
+
 const _testDid = 'did:test:alice';
 const _testEventId = '\$evt-1';
 
@@ -55,16 +60,15 @@ Channel _didcommChannel() {
 }
 
 void main() {
-  late MockMatrixService matrixService;
+  late MockMeetingPlaceTransport meetingPlaceTransport;
   late MockMessageService messageService;
-  late MockChannelService channelService;
-  late MockGroupRepository groupRepository;
   late MockDIDCommTransport didcomm;
-  late MockDidManager didManager;
+  late _MockDidManager didManager;
   late MessagingService messagingService;
 
   setUpAll(() {
-    registerFallbackValue(MockDidManager());
+    registerFallbackValue(_MockDidManager());
+    registerFallbackValue(_FakeChannel());
     registerFallbackValue(Uint8List(0));
     registerFallbackValue(
       const IndividualChannelNotification(
@@ -75,42 +79,29 @@ void main() {
   });
 
   setUp(() {
-    matrixService = MockMatrixService();
+    meetingPlaceTransport = MockMeetingPlaceTransport();
     messageService = MockMessageService();
-    channelService = MockChannelService();
-    groupRepository = MockGroupRepository();
     didcomm = MockDIDCommTransport();
-    didManager = MockDidManager();
+    didManager = _MockDidManager();
 
     messagingService = MessagingService(
-      matrixService: matrixService,
+      channelTransport: meetingPlaceTransport,
       messageService: messageService,
-      channelService: channelService,
-      groupRepository: groupRepository,
       didcomm: didcomm,
       getDidManager: (_) async => didManager,
     );
   });
 
   group('sendMediaMessage (matrix)', () {
-    test('uploads via sendFileEvent and returns the event id', () async {
+    test('uploads via sendFile and returns the event id', () async {
       final channel = _matrixChannel();
       when(
-        () => matrixService.getMediaConfig(didManager: didManager),
-      ).thenAnswer((_) async => 1024);
-      when(
-        () => matrixService.resolveRoomIdForChannel(
-          didManager: didManager,
-          channel: channel,
-        ),
-      ).thenAnswer((_) async => _testRoomId);
-      when(
-        () => matrixService.sendFileEvent(
-          _testRoomId,
+        () => meetingPlaceTransport.sendFile(
+          channel: any(named: 'channel'),
           bytes: any(named: 'bytes'),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
-          didManager: didManager,
+          didManager: any(named: 'didManager'),
           extraContent: any(named: 'extraContent'),
         ),
       ).thenAnswer((_) async => _testEventId);
@@ -125,52 +116,16 @@ void main() {
 
       expect(eventId, equals(_testEventId));
       verify(
-        () => matrixService.sendFileEvent(
-          _testRoomId,
+        () => meetingPlaceTransport.sendFile(
+          channel: any(named: 'channel'),
           bytes: any(named: 'bytes'),
           contentType: 'image/png',
           filename: 'pic.png',
-          didManager: didManager,
+          didManager: any(named: 'didManager'),
           extraContent: {'body': 'a caption'},
         ),
       ).called(1);
     });
-
-    test(
-      'throws MediaException.tooLarge when bytes exceed homeserver limit',
-      () async {
-        final channel = _matrixChannel();
-        when(
-          () => matrixService.getMediaConfig(didManager: didManager),
-        ).thenAnswer((_) async => 8);
-
-        await expectLater(
-          () => messagingService.sendMediaMessage(
-            channel,
-            Uint8List(64),
-            contentType: 'image/png',
-          ),
-          throwsA(
-            isA<MatrixMediaException>().having(
-              (e) => e.code,
-              'code',
-              MatrixMediaException.codeTooLarge,
-            ),
-          ),
-        );
-
-        verifyNever(
-          () => matrixService.sendFileEvent(
-            any(),
-            bytes: any(named: 'bytes'),
-            contentType: any(named: 'contentType'),
-            filename: any(named: 'filename'),
-            didManager: any(named: 'didManager'),
-            extraContent: any(named: 'extraContent'),
-          ),
-        );
-      },
-    );
 
     test('throws StateError when channel has no permanentChannelDid', () async {
       final channel = _matrixChannel(permanentDid: null);
@@ -187,21 +142,12 @@ void main() {
     test('calls notifyChannel when notification is provided', () async {
       final channel = _matrixChannel();
       when(
-        () => matrixService.getMediaConfig(didManager: didManager),
-      ).thenAnswer((_) async => null);
-      when(
-        () => matrixService.resolveRoomIdForChannel(
-          didManager: didManager,
-          channel: channel,
-        ),
-      ).thenAnswer((_) async => _testRoomId);
-      when(
-        () => matrixService.sendFileEvent(
-          _testRoomId,
+        () => meetingPlaceTransport.sendFile(
+          channel: any(named: 'channel'),
           bytes: any(named: 'bytes'),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
-          didManager: didManager,
+          didManager: any(named: 'didManager'),
           extraContent: any(named: 'extraContent'),
         ),
       ).thenAnswer((_) async => _testEventId);
@@ -228,21 +174,12 @@ void main() {
     test('does not call notifyChannel when notification is null', () async {
       final channel = _matrixChannel();
       when(
-        () => matrixService.getMediaConfig(didManager: didManager),
-      ).thenAnswer((_) async => null);
-      when(
-        () => matrixService.resolveRoomIdForChannel(
-          didManager: didManager,
-          channel: channel,
-        ),
-      ).thenAnswer((_) async => _testRoomId);
-      when(
-        () => matrixService.sendFileEvent(
-          _testRoomId,
+        () => meetingPlaceTransport.sendFile(
+          channel: any(named: 'channel'),
           bytes: any(named: 'bytes'),
           contentType: any(named: 'contentType'),
           filename: any(named: 'filename'),
-          didManager: didManager,
+          didManager: any(named: 'didManager'),
           extraContent: any(named: 'extraContent'),
         ),
       ).thenAnswer((_) async => _testEventId);
@@ -272,36 +209,37 @@ void main() {
   });
 
   group('downloadMedia', () {
-    test('delegates to matrixService.downloadFileForEvent', () async {
+    test('delegates to matrixService.downloadFile', () async {
       final channel = _matrixChannel();
       final bytes = Uint8List.fromList([7, 8, 9]);
       when(
-        () => matrixService.resolveRoomIdForChannel(
-          didManager: didManager,
-          channel: channel,
-        ),
-      ).thenAnswer((_) async => _testRoomId);
-      when(
-        () => matrixService.downloadFileForEvent(
-          _testRoomId,
-          _testEventId,
-          didManager: didManager,
+        () => meetingPlaceTransport.downloadFile(
+          channel: any(named: 'channel'),
+          fileId: any(named: 'fileId'),
+          didManager: any(named: 'didManager'),
         ),
       ).thenAnswer((_) async => bytes);
 
       final result = await messagingService.downloadMedia(
         channel,
-        const MatrixEventMediaReference(_testEventId),
+        const _TestMediaReference(_testEventId),
       );
 
       expect(result, equals(bytes));
+      verify(
+        () => meetingPlaceTransport.downloadFile(
+          channel: any(named: 'channel'),
+          fileId: _testEventId,
+          didManager: any(named: 'didManager'),
+        ),
+      ).called(1);
     });
 
     test('throws UnimplementedError for DIDComm channels', () async {
       await expectLater(
         () => messagingService.downloadMedia(
           _didcommChannel(),
-          const MatrixEventMediaReference(_testEventId),
+          const _TestMediaReference(_testEventId),
         ),
         throwsA(isA<UnimplementedError>()),
       );

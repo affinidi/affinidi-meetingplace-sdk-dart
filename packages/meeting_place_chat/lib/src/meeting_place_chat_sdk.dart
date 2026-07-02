@@ -6,11 +6,8 @@ import '../meeting_place_chat.dart';
 
 /// Public interface for a single chat session in the Meeting Place SDK.
 ///
-/// A [MeetingPlaceChatSDK] is always scoped to one chat — either an individual
-/// chat with one peer or a group chat — and is obtained via
-/// [MeetingPlaceChatSDK.initialiseFromChannel]. The concrete implementation
-/// ([GroupMatrixChatSDK], [IndividualMatrixChatSDK], or
-/// [IndividualDidcommChatSDK]) is selected from the underlying channel.
+/// A [MeetingPlaceChatSDK] is always scoped to one chat. The concrete
+/// implementation is selected from the underlying channel.
 ///
 /// Responsibilities:
 /// - Lifecycle: start/end the chat session and expose the live event stream.
@@ -19,62 +16,41 @@ import '../meeting_place_chat.dart';
 /// - Membership: approve/reject pending connection requests (group only).
 /// - Contact details: propose, accept, or reject contact-card updates.
 abstract interface class MeetingPlaceChatSDK {
-  /// Builds the right [MeetingPlaceChatSDK] implementation for [channel].
-  ///
-  /// Groups always use Matrix. Individual channels dispatch on
-  /// [Channel.transport] between [IndividualMatrixChatSDK] and
-  /// [IndividualDidcommChatSDK].
-  static Future<MeetingPlaceChatSDK> initialiseFromChannel(
+  /// Creates a [MeetingPlaceChatSDK] instance based on [Channel].
+  static MeetingPlaceChatSDK initialiseChatFromChannel(
     Channel channel, {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
     required MeetingPlaceChatSDKOptions options,
     ContactCard? card,
     MeetingPlaceChatSDKLogger? logger,
-  }) async {
+  }) {
     if (channel.type == ChannelType.group) {
-      final group =
-          await coreSDK.getGroupByOfferLink(channel.offerLink) ??
-          (throw Exception('Group not found'));
-
-      return GroupMatrixChatSDK(
-        coreSDK: coreSDK,
-        group: group,
-        did: channel.permanentChannelDid!,
-        otherPartyDid: channel.otherPartyPermanentChannelDid!,
-        mediatorDid: channel.mediatorDid,
-        chatRepository: chatRepository,
-        options: options,
-        card: card,
-        logger: logger,
+      throw ArgumentError(
+        'Group channels are not supported by meeting_place_chat. '
+        'Use meeting_place_matrix instead.',
       );
     }
 
-    return switch (channel.transport) {
-      ChannelTransport.matrix => IndividualMatrixChatSDK(
-        coreSDK: coreSDK,
-        did: channel.permanentChannelDid!,
-        otherPartyDid: channel.otherPartyPermanentChannelDid!,
-        mediatorDid: channel.mediatorDid,
-        chatRepository: chatRepository,
-        options: options,
-        card: card,
-        logger: logger,
-      ),
-      ChannelTransport.didcomm => IndividualDidcommChatSDK(
-        coreSDK: coreSDK,
-        did: channel.permanentChannelDid!,
-        otherPartyDid: channel.otherPartyPermanentChannelDid!,
-        mediatorDid: channel.mediatorDid,
-        chatRepository: chatRepository,
-        options: options,
-        card: card,
-        logger: logger,
-      ),
-    };
+    if (channel.transport != ChannelTransport.didcomm) {
+      throw ArgumentError(
+        'Transport ${channel.transport} is not supported by meeting_place_chat.'
+        'Use meeting_place_matrix for Matrix channels.',
+      );
+    }
+
+    return IndividualDidcommChatSDK(
+      coreSDK: coreSDK,
+      did: channel.permanentChannelDid!,
+      otherPartyDid: channel.otherPartyPermanentChannelDid!,
+      mediatorDid: channel.mediatorDid,
+      chatRepository: chatRepository,
+      options: options,
+      card: card,
+      logger: logger,
+    );
   }
 
-  /// The set of features this chat supports.
   ///
   /// Each concrete chat SDK declares its own set, so this reflects both the
   /// transport and the chat type (individual vs group). Query before exposing

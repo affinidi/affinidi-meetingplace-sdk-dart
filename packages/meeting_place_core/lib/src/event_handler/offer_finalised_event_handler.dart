@@ -19,16 +19,16 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     required super.options,
     required ControlPlaneSDK controlPlaneSDK,
     required DidResolver didResolver,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required IdentityService identityService,
   }) : _controlPlaneSDK = controlPlaneSDK,
        _didResolver = didResolver,
-       _matrixService = matrixService,
+       _channelTransport = channelTransport,
        _identityService = identityService;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
-  final MatrixService _matrixService;
+  final MeetingPlaceTransport _channelTransport;
   final IdentityService _identityService;
 
   Future<List<Channel>> process(OfferFinalised event) async {
@@ -132,11 +132,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
-    if (channel.transport == ChannelTransport.matrix) {
-      await _matrixService.joinChannelRoom(
+    channel.otherPartyPermanentChannelDid ??= otherPartyPermanentChannelDid;
+    if (channel.transport != ChannelTransport.didcomm) {
+      await _channelTransport.joinChannel(
+        channel: channel,
         didManager: permanentChannelIdentity.didManager,
-        channelDid: permanentChannelIdentity.didDocument.id,
-        otherPartyChannelDid: otherPartyPermanentChannelDid,
       );
     }
 

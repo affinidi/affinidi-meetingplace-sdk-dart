@@ -1,5 +1,6 @@
 export 'chat.dart';
 export 'chat_attachment.dart';
+export 'chat_attachment_bytes.dart';
 export 'chat_attachment_data.dart';
 export 'chat_item.dart';
 export 'concierge_message.dart';

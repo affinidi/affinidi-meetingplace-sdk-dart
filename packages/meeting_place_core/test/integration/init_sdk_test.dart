@@ -75,7 +75,7 @@ void main() async {
         channelRepository: ChannelRepositoryImpl(storage: storage),
         keyRepository: KeyRepositoryImpl(storage: storage),
       ),
-      config: getMatrixConfig(),
+      config: getConfig(),
     );
 
     await minimumSDK.registerForPushNotifications(const Uuid().v4());

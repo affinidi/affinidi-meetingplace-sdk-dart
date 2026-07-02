@@ -88,7 +88,9 @@ void main() async {
     // after calling close" error reaches the test framework before we can
     // swallow it, causing intermittent CI failures.
     await runZonedGuarded(() async {
-      final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+      final subscription = await aliceDidcomm.subscribeToMediator(
+        aliceDidDoc.id,
+      );
 
       final messageCompleter = Completer<MediatorMessage>();
       subscription.listen((message) {
@@ -114,7 +116,7 @@ void main() async {
   });
 
   test('returns closed subscription after dispose', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+    final subscription = await aliceDidcomm.subscribeToMediator(aliceDidDoc.id);
     expect(subscription.isClosed, false);
 
     await subscription.dispose();
@@ -127,7 +129,9 @@ void main() async {
     // dispose() closes the stream and the still-in-flight future fires
     // _controller.add in the test zone → "failed after test completion".
     await runZonedGuarded(() async {
-      final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+      final subscription = await aliceDidcomm.subscribeToMediator(
+        aliceDidDoc.id,
+      );
 
       final listener1Completer = Completer<MediatorMessage>();
       final listener2Completer = Completer<MediatorMessage>();
@@ -167,7 +171,7 @@ void main() async {
   });
 
   test('processes multiple messages successfully', () async {
-    final subscription = await aliceDidcomm.subscribe(
+    final subscription = await aliceDidcomm.subscribeToMediator(
       aliceDidDoc.id,
       options: const MediatorStreamSubscriptionOptions(
         fetchMessagesOnConnect: false,
@@ -201,7 +205,7 @@ void main() async {
     final messageType = 'https://example.com/${const Uuid().v4()}';
 
     await runZonedGuarded(() async {
-      final subscription = await aliceDidcomm.subscribe(
+      final subscription = await aliceDidcomm.subscribeToMediator(
         aliceDidDoc.id,
         options: const MediatorStreamSubscriptionOptions(
           deleteMessageDelay: Duration(milliseconds: 1),
@@ -239,7 +243,7 @@ void main() async {
   });
 
   test('stream can be accessed multiple times', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+    final subscription = await aliceDidcomm.subscribeToMediator(aliceDidDoc.id);
 
     final stream1 = subscription.stream;
     final stream2 = subscription.stream;
@@ -249,7 +253,7 @@ void main() async {
   });
 
   test('timeout applies correctly to the stream', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+    final subscription = await aliceDidcomm.subscribeToMediator(aliceDidDoc.id);
     final timeoutCompleter = Completer<bool>();
 
     subscription.timeout(
@@ -270,8 +274,12 @@ void main() async {
     final otherDidManager = await aliceSDK.generateDid();
     final otherDidDoc = await otherDidManager.getDidDocument();
 
-    final subscription1 = await aliceDidcomm.subscribe(aliceDidDoc.id);
-    final subscription2 = await aliceDidcomm.subscribe(otherDidDoc.id);
+    final subscription1 = await aliceDidcomm.subscribeToMediator(
+      aliceDidDoc.id,
+    );
+    final subscription2 = await aliceDidcomm.subscribeToMediator(
+      otherDidDoc.id,
+    );
 
     expect(subscription1, isNot(equals(subscription2)));
 
@@ -280,7 +288,7 @@ void main() async {
   });
 
   test('onDone callback is invoked when stream closes', () async {
-    final subscription = await aliceDidcomm.subscribe(aliceDidDoc.id);
+    final subscription = await aliceDidcomm.subscribeToMediator(aliceDidDoc.id);
     final doneCompleter = Completer<bool>();
 
     subscription.listen((message) {
@@ -300,7 +308,7 @@ void main() async {
   test(
     'deletes messages in queue even after subscription was disposed',
     () async {
-      final subscription = await aliceDidcomm.subscribe(
+      final subscription = await aliceDidcomm.subscribeToMediator(
         aliceDidDoc.id,
         options: const MediatorStreamSubscriptionOptions(
           deleteMessageDelay: Duration(seconds: 3),
@@ -342,7 +350,7 @@ void main() async {
   );
 
   test('invokes onError callback when listener throws exception', () async {
-    final subscription = await aliceDidcomm.subscribe(
+    final subscription = await aliceDidcomm.subscribeToMediator(
       aliceDidDoc.id,
       options: const MediatorStreamSubscriptionOptions(
         deleteMessageDelay: Duration(seconds: 3),
@@ -391,12 +399,12 @@ void main() async {
         deleteMessageDelay: null,
       );
 
-      final subscriptionA = await aliceDidcomm.subscribe(
+      final subscriptionA = await aliceDidcomm.subscribeToMediator(
         aliceDidDoc.id,
         options: subscriptionOptions,
       );
 
-      final subscriptionB = await aliceDidcomm.subscribe(
+      final subscriptionB = await aliceDidcomm.subscribeToMediator(
         aliceDidDoc.id,
         options: subscriptionOptions,
       );

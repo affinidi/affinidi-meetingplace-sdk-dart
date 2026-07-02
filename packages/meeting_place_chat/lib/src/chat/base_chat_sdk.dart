@@ -79,7 +79,7 @@ abstract class BaseChatSDK {
   ///
   /// Transport-specific subclasses are responsible for subscribing to the
   /// incoming stream and replaying any history. They must also assign
-  /// [transportSubscriptionFuture] so [chatStreamSubscription] can await it.
+  /// [transportSubscriptionFuture] so callers can await transport readiness.
   Future<Chat> startChatSession();
 
   /// Stream of live chat events ([StreamData]) for this session.
@@ -94,6 +94,7 @@ abstract class BaseChatSDK {
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
     if (transportSubscriptionFuture == null) return null;
+    await transportSubscriptionFuture;
     return chatStream;
   }
 
@@ -185,7 +186,6 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
-  @internal
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(

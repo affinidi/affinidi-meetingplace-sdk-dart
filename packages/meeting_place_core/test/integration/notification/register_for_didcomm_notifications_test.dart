@@ -32,8 +32,8 @@ void main() async {
       type: SDKConnectionOfferType.invitation,
     );
 
-    expect(sdk.discovery.device.deviceToken, result.device.deviceToken);
-    expect(sdk.discovery.device.platformType, PlatformType.didcomm);
+    expect(sdk.controlPlaneSDK.device.deviceToken, result.device.deviceToken);
+    expect(sdk.controlPlaneSDK.device.platformType, PlatformType.didcomm);
     expect(result.recipientDid, isA<DidManager>());
 
     // TODO: test notifications

@@ -9,7 +9,6 @@ import 'package:uuid/uuid.dart';
 import '../../meeting_place_matrix.dart';
 import '../constants.dart';
 import '../event/chat_event_conversion.dart';
-import '../logger/default_meeting_place_matrix_sdk_logger.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'typing_indicator_manager.dart';
@@ -234,10 +233,11 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     await chatRepository.updateSyncMarker(chatId: chatId, eventId: event.id);
   }
 
-  /// True when [event] is a primary `m.room.message` (i.e. not an edit).
-  /// Used to decide whether to issue an `m.read` receipt — edits piggyback on
-  /// the receipt for the original message.
+  /// True when [event] is a primary `m.room.message` (i.e. not an edit) or a
+  /// `mpx.call.item`. Used to decide whether to issue an `m.read` receipt —
+  /// edits piggyback on the receipt for the original message.
   static bool _isReceiptWorthy(MatrixRoomEvent event) {
+    if (event.type == MpxCallEventType.callItem) return true;
     if (event.type != 'm.room.message') return false;
     final relatesTo = event.content['m.relates_to'] as Map<String, dynamic>?;
     return relatesTo?['rel_type'] != 'm.replace';
@@ -265,33 +265,40 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     assertCanSend();
 
     final Message message;
+    final notification = buildChannelNotification('chat-activity');
     if (attachments.isEmpty) {
       final outgoing = TextMessageRoomEvent(
         senderDid: did,
         text: text,
-        notification: buildChannelNotification('chat-activity'),
+        notification: notification,
       );
       message = await _sendRoomEventMessage(outgoing);
       logger.info(
         'Text message sent, message id: ${message.messageId}',
         name: _matrixLogkey,
       );
+    } else if (attachments.every((a) => a.data == null && a.metadata != null)) {
+      final outgoing = CallItemRoomEvent(
+        senderDid: did,
+        metadata: attachments.first.metadata ?? {},
+        notification: notification,
+      );
+      message = await _sendRoomEventMessage(outgoing, attachments: attachments);
+      logger.info(
+        'Metadata-only message sent, message id: ${message.messageId}',
+        name: _matrixLogkey,
+      );
     } else {
-      message =
-          await MediaTextMessageSender(
-            coreSDK: coreSDK,
-            did: did,
-            chatId: chatId,
-            chatRepository: chatRepository,
-            chatStream: chatStream,
-            serverEventIdToMessageId: _serverEventIdToMessageId,
-            getChannel: getChannel,
-            logger: logger,
-          ).send(
-            text: text,
-            attachments: attachments,
-            notification: buildChannelNotification('chat-activity'),
-          );
+      message = await MediaTextMessageSender(
+        coreSDK: coreSDK,
+        did: did,
+        chatId: chatId,
+        chatRepository: chatRepository,
+        chatStream: chatStream,
+        serverEventIdToMessageId: _serverEventIdToMessageId,
+        getChannel: getChannel,
+        logger: logger,
+      ).send(text: text, attachments: attachments, notification: notification);
     }
 
     await coreSDK.sendMessage(
@@ -514,6 +521,15 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     }
   }
 
+  @override
+  Future<void> updateMessage(Message message) async {
+    await chatRepository.updateMesssage(message);
+    chatStream.pushData(
+      StreamData(event: const ChatMessageUpdatedEvent(), chatItem: message),
+    );
+    logger.info('updateMessage: ${message.messageId}', name: _matrixLogkey);
+  }
+
   /// Dispatches an arbitrary Matrix room event into the underlying room.
   ///
   /// Low-level escape hatch: the SDK does not persist a [ChatItem] or push to
@@ -614,7 +630,10 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     await super.end();
   }
 
-  Future<Message> _sendRoomEventMessage(MatrixOutgoingMessage outgoing) async {
+  Future<Message> _sendRoomEventMessage(
+    MatrixOutgoingMessage outgoing, {
+    List<ChatAttachment> attachments = const [],
+  }) async {
     final channel = await getChannel();
     channel.increaseSeqNo();
 
@@ -630,6 +649,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,
+        attachments: attachments,
       ),
     );
 

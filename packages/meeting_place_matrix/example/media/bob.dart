@@ -19,7 +19,7 @@ void main() async {
   }
 
   final bobSDK =
-      await initCoreSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await bobSDK.registerForDIDCommNotifications();

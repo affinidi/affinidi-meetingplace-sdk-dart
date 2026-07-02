@@ -25,6 +25,7 @@ export 'package:ssi/ssi.dart' show DidManager;
 
 export 'src/channel_attachment_event.dart';
 export 'src/entity/entity.dart';
+export 'src/event_handler/channel_activity_type.dart';
 export 'src/event_handler/control_plane_event_handler_manager_options.dart';
 export 'src/event_handler/control_plane_stream_event.dart';
 export 'src/loggers/default_meeting_place_core_sdk_logger.dart';
@@ -48,5 +49,4 @@ export 'src/service/oob/stream/oob_stream.dart';
 export 'src/service/oob/stream/oob_stream_data.dart';
 export 'src/transport/transport.dart';
 export 'src/utils/contact_card_utils.dart';
-export 'src/vdip/channel_activity_type.dart';
 export 'src/vdip/vdip_client.dart';

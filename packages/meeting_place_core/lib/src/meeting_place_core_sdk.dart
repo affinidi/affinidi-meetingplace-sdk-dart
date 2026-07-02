@@ -510,7 +510,7 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Returns instance of used low level [ControlPlaneSDK].
-  ControlPlaneSDK get discovery => _controlPlaneSDK;
+  ControlPlaneSDK get controlPlaneSDK => _controlPlaneSDK;
 
   /// Returns instance of used low level [MeetingPlaceMediatorSDK].
   ///

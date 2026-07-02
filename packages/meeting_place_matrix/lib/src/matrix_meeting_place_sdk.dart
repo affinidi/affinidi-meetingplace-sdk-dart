@@ -1,20 +1,17 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    show ControlPlaneSDK;
+    show ChannelActivity, ControlPlaneSDK;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
-import 'matrix_config.dart';
-import 'matrix_incoming_message.dart';
-import 'matrix_outgoing_message.dart';
-import 'matrix_room_history_query.dart';
-import 'matrix_room_subscription.dart';
+import '../meeting_place_matrix.dart';
+
+import 'call/call_signal_mapper.dart';
 import 'matrix_sender_did_resolver.dart';
-import 'matrix_service.dart';
-import 'matrix_transport.dart';
 
 /// A [MeetingPlaceCoreSDK] backed by a Matrix homeserver.
 ///
@@ -22,26 +19,101 @@ import 'matrix_transport.dart';
 /// behaviour to an inner [_coreSDK] instance and intercepting only
 /// Matrix-specific transport calls. The additional [matrixService] field
 /// exposes matrix-specific APIs for consumers that need them
-/// (e.g. `meeting_place_matrix_livekit`).
+/// (e.g. `meeting_place_matrix`).
 ///
 /// Use [MeetingPlaceMatrixSDK.create] to instantiate.
 class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({
     required MeetingPlaceCoreSDK coreSDK,
     required this.matrixService,
+    MeetingPlaceLiveKitCallPlugin? callPlugin,
   }) : _coreSDK = coreSDK,
+       _callPlugin = callPlugin,
        _senderDidResolver = MatrixSenderDidResolver(
          coreSDK: coreSDK,
          matrixService: matrixService,
-       );
+       ),
+       _callSignalMapper = CallSignalMapper(coreSDK.controlPlaneEventsStream);
 
   final MeetingPlaceCoreSDK _coreSDK;
   final MatrixSenderDidResolver _senderDidResolver;
+  final CallSignalMapper _callSignalMapper;
+  final MeetingPlaceLiveKitCallPlugin? _callPlugin;
 
   /// The underlying [MatrixService] — exposed for matrix-specific consumers
-  /// (e.g. `meeting_place_matrix_livekit`) that need VoIP or OpenID token
+  /// (e.g. `meeting_place_matrix`) that need VoIP or OpenID token
   /// operations without those APIs leaking through [MeetingPlaceCoreSDK].
   final MatrixService matrixService;
+
+  /// Whether audio/video calling is available.
+  ///
+  /// Returns `false` when no call plugin was configured (i.e.
+  /// [MatrixConfig.livekitServiceUrl] was not set or no
+  /// rtcDelegate / roomFactory were passed to [create]).
+  bool get isCallSupported => _callPlugin != null;
+
+  /// Stream of incoming call events. Empty when no plugin is configured.
+  Stream<IncomingAudioVideoCallEvent> get incomingCalls =>
+      _callPlugin?.incomingCalls ?? const Stream.empty();
+
+  /// Stream of cancelled call IDs. Empty when no plugin is configured.
+  Stream<String> get cancelledCalls =>
+      _callPlugin?.cancelledCalls ?? const Stream.empty();
+
+  /// Starts an outbound call and returns a live session handle.
+  ///
+  /// Throws [MeetingPlaceLiveKitCallOperationException] when no call plugin is
+  /// configured. Check [isCallSupported] before calling.
+  Future<AudioVideoCallSession> startCall({
+    required String otherPartyChannelDid,
+    required CallMediaType mediaType,
+  }) {
+    final plugin = _callPlugin;
+    if (plugin == null) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Call plugin not configured — set livekitServiceUrl, rtcDelegate, and roomFactory in MatrixConfig/create()',
+      );
+    }
+    return plugin.startCall(
+      otherPartyChannelDid: otherPartyChannelDid,
+      mediaType: mediaType,
+    );
+  }
+
+  /// Accepts an incoming call by its [callId].
+  ///
+  /// Throws [MeetingPlaceLiveKitCallOperationException] when no call plugin is
+  /// configured.
+  Future<void> acceptCall({required String callId}) {
+    final plugin = _callPlugin;
+    if (plugin == null) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Call plugin not configured',
+      );
+    }
+    return plugin.acceptCall(callId: callId);
+  }
+
+  /// Declines an incoming call by its [callId].
+  ///
+  /// Throws [MeetingPlaceLiveKitCallOperationException] when no call plugin is
+  /// configured.
+  Future<void> declineCall({required String callId}) {
+    final plugin = _callPlugin;
+    if (plugin == null) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Call plugin not configured',
+      );
+    }
+    return plugin.declineCall(callId: callId);
+  }
+
+  /// Leaves the current active call. No-op when no plugin is configured.
+  Future<void> leaveCurrentCall() =>
+      _callPlugin?.leaveCurrentCall() ?? Future.value();
+
+  /// The active call session, or `null` when no call is in progress.
+  LiveKitCallSession? get activeCallSession => _callPlugin?.activeSession;
 
   static Future<MeetingPlaceMatrixSDK> create({
     required Wallet wallet,
@@ -49,6 +121,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required MatrixConfig config,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
+    matrix.WebRTCDelegate? rtcDelegate,
+    LiveKitRoomFactory? roomFactory,
   }) async {
     MatrixService? matrixServiceRef;
 
@@ -62,20 +136,49 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         final svc = MatrixService(
           config: config,
           controlPlaneSDK: controlPlaneSDK,
-          logger:
-              logger ??
-              DefaultMeetingPlaceCoreSDKLogger(className: 'MatrixService'),
+          // TODO(SR): Inject correct logger instance.
+          logger: DefaultMeetingPlaceMatrixSDKLogger(
+            className: 'MatrixService',
+          ),
         );
         matrixServiceRef = svc;
         return MatrixTransport(matrixService: svc);
       },
     );
 
-    return MeetingPlaceMatrixSDK._(
+    final sdk = MeetingPlaceMatrixSDK._(
       coreSDK: coreSDK,
       matrixService: matrixServiceRef!,
     );
+
+    final livekitUrl = config.livekitServiceUrl;
+    if (livekitUrl != null && rtcDelegate != null && roomFactory != null) {
+      final plugin = MeetingPlaceLiveKitCallPlugin(
+        livekitServiceUrl: livekitUrl,
+        livekitSfuUrl: config.livekitSfuUrl,
+        outgoingCallTimeout: config.outgoingCallTimeout,
+        rtcDelegate: rtcDelegate,
+        roomFactory: roomFactory,
+      );
+      plugin.initialize(sdk: sdk);
+      return MeetingPlaceMatrixSDK._(
+        coreSDK: coreSDK,
+        matrixService: matrixServiceRef!,
+        callPlugin: plugin,
+      );
+    }
+
+    return sdk;
   }
+
+  /// Broadcast stream of call signals from the control plane.
+  ///
+  /// Emits a [CallSignal] for each call-related [ChannelActivity] event:
+  /// - [IncomingCallSignal] for `call-invite-video` and `call-invite-audio`
+  /// - [CallDeclineSignal] for `call-decline`
+  ///
+  /// The plugin layer subscribes once and switches on the concrete type.
+  Stream<CallSignal> get callSignals => _callSignalMapper.callSignals;
 
   // ---------------------------------------------------------------------------
   // MeetingPlaceCoreSDK — delegated members
@@ -102,7 +205,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceTransport get channelTransport => _coreSDK.channelTransport;
 
   @override
-  ControlPlaneSDK get discovery => _coreSDK.discovery;
+  ControlPlaneSDK get controlPlaneSDK => _coreSDK.controlPlaneSDK;
 
   @override
   MeetingPlaceMediatorSDK get mediator => _coreSDK.mediator;
@@ -260,7 +363,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.disposeControlPlaneEventsStream();
 
   @override
-  Future<void> dispose() => _coreSDK.dispose();
+  Future<void> dispose() async {
+    await _callPlugin?.dispose();
+    return _coreSDK.dispose();
+  }
 
   @override
   Future<void> closeChannelAttachmentsStream() =>

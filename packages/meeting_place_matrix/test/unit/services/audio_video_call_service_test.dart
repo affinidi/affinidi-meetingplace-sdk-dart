@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart'
     show
-        CallChannelActivityType,
         Channel,
         ChannelStatus,
         ChannelTransport,

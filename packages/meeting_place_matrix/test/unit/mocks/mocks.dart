@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
-import 'package:meeting_place_matrix/src/matrix_service.dart';
 import 'package:meeting_place_matrix/src/services/sfu_token_service.dart';
 import 'package:mocktail/mocktail.dart';
 

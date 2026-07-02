@@ -1,6 +1,5 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
-import 'package:meeting_place_matrix/src/matrix_room_alias.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/matrix_call_adapter.dart';
 import 'package:mocktail/mocktail.dart';

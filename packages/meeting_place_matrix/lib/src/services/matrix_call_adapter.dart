@@ -5,8 +5,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_matrix.dart';
 import '../logger/top_and_tail_extension.dart';
-import '../matrix_room_alias.dart';
-import '../matrix_service.dart';
 import '../transport/call_invite_room_event.dart';
 import 'sfu_token_service.dart';
 

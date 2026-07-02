@@ -26,6 +26,10 @@ class MeetingPlaceLiveKitCallPluginOptions {
   /// runs inside Docker and its `LIVEKIT_URL` is a container-internal
   /// hostname that the Flutter app cannot resolve (e.g. `ws://livekit:7880`).
   ///
+  /// Because the value is controlled by the application (not the server), a
+  /// cleartext `ws://` scheme is permitted here for local development. A
+  /// server-supplied URL (when this field is null) must always use `wss://`.
+  ///
   /// In production, omit this field — the SFU URL from the lk-jwt-service
   /// response is used directly.
   final Uri? livekitSfuUrl;

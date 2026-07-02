@@ -284,7 +284,8 @@ class MatrixCallAdapter {
   ///
   /// Throws [MeetingPlaceLiveKitCallOperationException] if:
   /// - The URL is null, empty, or invalid.
-  /// - The scheme is not `wss`.
+  /// - The scheme is not `wss` (server-supplied URLs), or not `wss`/`ws`
+  ///   (app-supplied URLs, where [isServerSupplied] is false).
   /// - [isServerSupplied] is true and [allowedHosts] is empty (production
   ///   mode requires allowlist).
   /// - The host is not in [allowedHosts] when the list is non-empty.
@@ -302,9 +303,17 @@ class MatrixCallAdapter {
       );
     }
     final uri = Uri.tryParse(rawUrl);
-    if (uri == null || uri.scheme != 'wss') {
+    // Server-supplied URLs must use wss:// (TLS). App-supplied URLs
+    // (livekitSfuUrl) may use ws:// for local development, since the
+    // application controls the value and it cannot be tampered with by a
+    // compromised JWT service.
+    final schemeIsAllowed = isServerSupplied
+        ? uri?.scheme == 'wss'
+        : uri?.scheme == 'wss' || uri?.scheme == 'ws';
+    if (uri == null || !schemeIsAllowed) {
+      final allowedSchemes = isServerSupplied ? 'wss://' : 'wss:// or ws://';
       throw MeetingPlaceLiveKitCallOperationException(
-        'SFU URL must use wss:// scheme, got: ${uri?.scheme ?? "null"}',
+        'SFU URL must use $allowedSchemes scheme, got: ${uri?.scheme ?? "null"}',
       );
     }
     // Production requirement: server-supplied URLs must have allowlist

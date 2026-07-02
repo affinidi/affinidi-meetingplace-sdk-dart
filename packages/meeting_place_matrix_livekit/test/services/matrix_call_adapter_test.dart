@@ -270,23 +270,74 @@ void main() {
   });
 
   group('SFU URL validation (SEC fix)', () {
+    test('accepts explicit wss:// URL in dev mode without allowlist', () async {
+      final channel = _stubChannel();
+      final didManager = MockDidManager();
+      when(
+        () => sdk.getDidManager(_ownDid),
+      ).thenAnswer((_) async => didManager);
+      when(
+        () => sdk.resolveMatrixRoomIdForChannel(
+          didManager: didManager,
+          channel: channel,
+        ),
+      ).thenAnswer((_) async => _matrixRoomId);
+      when(
+        () => sdk.getMatrixOpenIdToken(didManager),
+      ).thenAnswer((_) async => _stubOpenIdCredentials());
+      when(
+        () => sdk.getMatrixDeviceId(didManager),
+      ).thenAnswer((_) async => 'DEVICE1');
+      when(
+        () => tokenService.fetchToken(
+          roomName: _roomName,
+          openIdCredentials: any(named: 'openIdCredentials'),
+          deviceId: 'DEVICE1',
+        ),
+      ).thenAnswer(
+        (_) async => const SfuTokenResponse(
+          token: _sfuToken,
+          url: null, // server returns no URL
+        ),
+      );
+
+      // Dev mode: explicit livekitSfuUrl, empty allowlist is OK
+      final adapterDevMode = _buildAdapter(
+        sdk: sdk,
+        tokenService: tokenService,
+        livekitSfuUrl: Uri.parse('wss://dev.example.com'),
+        sfuAllowedHosts: [],
+      );
+
+      final result = await adapterDevMode.fetchCallCredentials(
+        channel: channel,
+        ownChannelDid: _ownDid,
+        roomName: _roomName,
+      );
+
+      expect(result.sfuUrl, 'wss://dev.example.com');
+    });
+
     test(
-      'accepts explicit wss:// URL in dev mode without allowlist',
+      'accepts explicit ws:// URL in dev mode (local Docker development)',
       () async {
         final channel = _stubChannel();
         final didManager = MockDidManager();
-        when(() => sdk.getDidManager(_ownDid))
-            .thenAnswer((_) async => didManager);
+        when(
+          () => sdk.getDidManager(_ownDid),
+        ).thenAnswer((_) async => didManager);
         when(
           () => sdk.resolveMatrixRoomIdForChannel(
             didManager: didManager,
             channel: channel,
           ),
         ).thenAnswer((_) async => _matrixRoomId);
-        when(() => sdk.getMatrixOpenIdToken(didManager))
-            .thenAnswer((_) async => _stubOpenIdCredentials());
-        when(() => sdk.getMatrixDeviceId(didManager))
-            .thenAnswer((_) async => 'DEVICE1');
+        when(
+          () => sdk.getMatrixOpenIdToken(didManager),
+        ).thenAnswer((_) async => _stubOpenIdCredentials());
+        when(
+          () => sdk.getMatrixDeviceId(didManager),
+        ).thenAnswer((_) async => 'DEVICE1');
         when(
           () => tokenService.fetchToken(
             roomName: _roomName,
@@ -294,27 +345,26 @@ void main() {
             deviceId: 'DEVICE1',
           ),
         ).thenAnswer(
-          (_) async => const SfuTokenResponse(
-            token: _sfuToken,
-            url: null, // server returns no URL
-          ),
+          (_) async => const SfuTokenResponse(token: _sfuToken, url: null),
         );
 
-        // Dev mode: explicit livekitSfuUrl, empty allowlist is OK
-        final adapterDevMode = _buildAdapter(
+        // Dev mode: app-supplied ws:// URL (e.g. container-internal hostname)
+        // is permitted because the application controls the value; it cannot
+        // be tampered with by a compromised JWT service.
+        final adapterDevWs = _buildAdapter(
           sdk: sdk,
           tokenService: tokenService,
-          livekitSfuUrl: Uri.parse('wss://dev.example.com'),
+          livekitSfuUrl: Uri.parse('ws://livekit:7880'),
           sfuAllowedHosts: [],
         );
 
-        final result = await adapterDevMode.fetchCallCredentials(
+        final result = await adapterDevWs.fetchCallCredentials(
           channel: channel,
           ownChannelDid: _ownDid,
           roomName: _roomName,
         );
 
-        expect(result.sfuUrl, 'wss://dev.example.com');
+        expect(result.sfuUrl, 'ws://livekit:7880');
       },
     );
 
@@ -627,18 +677,21 @@ void main() {
       () async {
         final channel = _stubChannel();
         final didManager = MockDidManager();
-        when(() => sdk.getDidManager(_ownDid))
-            .thenAnswer((_) async => didManager);
+        when(
+          () => sdk.getDidManager(_ownDid),
+        ).thenAnswer((_) async => didManager);
         when(
           () => sdk.resolveMatrixRoomIdForChannel(
             didManager: didManager,
             channel: channel,
           ),
         ).thenAnswer((_) async => _matrixRoomId);
-        when(() => sdk.getMatrixOpenIdToken(didManager))
-            .thenAnswer((_) async => _stubOpenIdCredentials());
-        when(() => sdk.getMatrixDeviceId(didManager))
-            .thenAnswer((_) async => 'DEVICE1');
+        when(
+          () => sdk.getMatrixOpenIdToken(didManager),
+        ).thenAnswer((_) async => _stubOpenIdCredentials());
+        when(
+          () => sdk.getMatrixDeviceId(didManager),
+        ).thenAnswer((_) async => 'DEVICE1');
         when(
           () => tokenService.fetchToken(
             roomName: _roomName,

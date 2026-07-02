@@ -45,9 +45,75 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   /// operations without those APIs leaking through [MeetingPlaceCoreSDK].
   final MatrixService matrixService;
 
-  /// The audio/video call plugin, or `null` if [MatrixConfig.livekitServiceUrl]
-  /// was not set or no rtcDelegate / roomFactory were provided to [create].
-  MeetingPlaceLiveKitCallPlugin? get callPlugin => _callPlugin;
+  /// Whether audio/video calling is available.
+  ///
+  /// Returns `false` when no call plugin was configured (i.e.
+  /// [MatrixConfig.livekitServiceUrl] was not set or no
+  /// rtcDelegate / roomFactory were passed to [create]).
+  bool get isCallSupported => _callPlugin != null;
+
+  /// Stream of incoming call events. Empty when no plugin is configured.
+  Stream<IncomingAudioVideoCallEvent> get incomingCalls =>
+      _callPlugin?.incomingCalls ?? const Stream.empty();
+
+  /// Stream of cancelled call IDs. Empty when no plugin is configured.
+  Stream<String> get cancelledCalls =>
+      _callPlugin?.cancelledCalls ?? const Stream.empty();
+
+  /// Starts an outbound call and returns a live session handle.
+  ///
+  /// Throws [MeetingPlaceLiveKitCallOperationException] when no call plugin is
+  /// configured. Check [isCallSupported] before calling.
+  Future<AudioVideoCallSession> startCall({
+    required String otherPartyChannelDid,
+    required CallMediaType mediaType,
+  }) {
+    final plugin = _callPlugin;
+    if (plugin == null) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Call plugin not configured — set livekitServiceUrl, rtcDelegate, and roomFactory in MatrixConfig/create()',
+      );
+    }
+    return plugin.startCall(
+      otherPartyChannelDid: otherPartyChannelDid,
+      mediaType: mediaType,
+    );
+  }
+
+  /// Accepts an incoming call by its [callId].
+  ///
+  /// Throws [MeetingPlaceLiveKitCallOperationException] when no call plugin is
+  /// configured.
+  Future<void> acceptCall({required String callId}) {
+    final plugin = _callPlugin;
+    if (plugin == null) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Call plugin not configured',
+      );
+    }
+    return plugin.acceptCall(callId: callId);
+  }
+
+  /// Declines an incoming call by its [callId].
+  ///
+  /// Throws [MeetingPlaceLiveKitCallOperationException] when no call plugin is
+  /// configured.
+  Future<void> declineCall({required String callId}) {
+    final plugin = _callPlugin;
+    if (plugin == null) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Call plugin not configured',
+      );
+    }
+    return plugin.declineCall(callId: callId);
+  }
+
+  /// Leaves the current active call. No-op when no plugin is configured.
+  Future<void> leaveCurrentCall() =>
+      _callPlugin?.leaveCurrentCall() ?? Future.value();
+
+  /// The active call session, or `null` when no call is in progress.
+  LiveKitCallSession? get activeCallSession => _callPlugin?.activeSession;
 
   static Future<MeetingPlaceMatrixSDK> create({
     required Wallet wallet,

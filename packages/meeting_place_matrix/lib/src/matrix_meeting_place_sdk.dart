@@ -502,31 +502,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     }
   }
 
-  /// Requests a Matrix OpenID token for [didManager].
-  ///
-  /// The returned `OpenIdCredentials` can be passed directly to
-  /// `LiveKitTokenService.fetchToken` to obtain a LiveKit JWT via
-  /// `lk-jwt-service` — no server-side secrets are required on the client.
-  ///
-  /// Throws if the Matrix session has not been established.
-  /// Ensure a Matrix login has been performed first.
-  ///
-  /// TODO(SR): Is this needed on consumer side?
-  Future<matrix.OpenIdCredentials> getMatrixOpenIdToken(
-    DidManager didManager,
-  ) => matrixService.getOpenIdToken(didManager);
-
-  /// Returns the Matrix device ID for the active session of [didManager].
-  ///
-  /// Pass this to `SfuTokenService.fetchToken` as `deviceId` so lk-jwt-service
-  /// can set the LiveKit participant identity to `userId:deviceId`, matching
-  /// the MatrixRTC participant ID format used for E2EE key distribution.
-  ///
-  /// TODO(SR): Is this needed on consumer side?
-  Future<String?> getMatrixDeviceId(DidManager didManager) =>
-      matrixService.getDeviceId(didManager);
-
-  /// Returns the deterministic LiveKit room name for a channel.
+/// Returns the deterministic LiveKit room name for a channel.
   ///
   /// Both parties in the channel derive the same name without coordination —
   /// pass the local user's [channelDid] and the other party's

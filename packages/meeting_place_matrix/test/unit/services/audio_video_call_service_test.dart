@@ -1,7 +1,14 @@
 import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart'
-    show Channel, ChannelStatus, ChannelTransport, ChannelType, ContactCard;
+    show
+        CallChannelActivityType,
+        Channel,
+        ChannelStatus,
+        ChannelTransport,
+        ChannelType,
+        ContactCard,
+        IndividualChannelNotification;
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:mocktail/mocktail.dart';
@@ -64,14 +71,23 @@ void main() {
     registerFallbackValue(FakeOutgoingMessage());
     registerFallbackValue(FakeOpenIdCredentials());
     registerFallbackValue(FakeWebRTCDelegate());
+    registerFallbackValue(
+      const IndividualChannelNotification(
+        recipientDid: 'did:key:fallback',
+        type: CallChannelActivityType.callDecline,
+      ),
+    );
   });
 
   late MockMeetingPlaceMatrixSDK mockSdk;
+  late MockMatrixService mockMatrixService;
   late FakeLiveKitRoom fakeRoom;
   late AudioVideoCallService service;
 
   setUp(() {
     mockSdk = MockMeetingPlaceMatrixSDK();
+    mockMatrixService = MockMatrixService();
+    when(() => mockSdk.matrixService).thenReturn(mockMatrixService);
     fakeRoom = FakeLiveKitRoom();
     service = _buildService(sdk: mockSdk, room: fakeRoom);
   });
@@ -93,9 +109,9 @@ void main() {
     });
 
     test('completes successfully and transitions to disconnected even when SDK '
-        'leaveVideoCall throws', () async {
+        'leaveCall throws', () async {
       when(
-        () => mockSdk.leaveVideoCall(
+        () => mockMatrixService.leaveCall(
           roomId: any(named: 'roomId'),
           callId: any(named: 'callId'),
         ),
@@ -123,7 +139,7 @@ void main() {
       'completes successfully when both SDK and LiveKit teardown throw',
       () async {
         when(
-          () => mockSdk.leaveVideoCall(
+          () => mockMatrixService.leaveCall(
             roomId: any(named: 'roomId'),
             callId: any(named: 'callId'),
           ),
@@ -212,29 +228,22 @@ void main() {
       ).thenAnswer((_) async => _stubChannel());
 
       when(
-        () => mockSdk.livekitRoomName(
-          channelDid: any(named: 'channelDid'),
-          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
-        ),
-      ).thenReturn('test-room');
-
-      when(
         () => mockSdk.getDidManager(any()),
       ).thenAnswer((_) async => mockDidManager);
 
       when(
-        () => mockSdk.resolveMatrixRoomIdForChannel(
+        () => mockMatrixService.resolveRoomIdForChannel(
           didManager: any(named: 'didManager'),
           channel: any(named: 'channel'),
         ),
       ).thenAnswer((_) async => _matrixRoomId);
 
       when(
-        () => mockSdk.getMatrixOpenIdToken(any()),
+        () => mockMatrixService.getOpenIdToken(any()),
       ).thenAnswer((_) async => _stubOpenIdCredentials());
 
       when(
-        () => mockSdk.getMatrixDeviceId(any()),
+        () => mockMatrixService.getDeviceId(any()),
       ).thenAnswer((_) async => 'DEVICE1');
 
       when(
@@ -248,26 +257,21 @@ void main() {
       );
 
       when(
-        () => mockSdk.initializeMatrixRTCWithDelegate(
+        () => mockMatrixService.initializeVoIPWithDelegate(
           didManager: any(named: 'didManager'),
           delegate: any(named: 'delegate'),
         ),
       ).thenAnswer((_) async {});
 
       when(
-        () => mockSdk.activeVideoCallId(
+        () => mockMatrixService.activeCallId(
           didManager: any(named: 'didManager'),
           roomId: any(named: 'roomId'),
         ),
       ).thenAnswer((_) async => null);
 
-      when(() => mockSdk.sendMessage(any())).thenAnswer((_) async {
-        room.callOrder.add('nudge');
-        return null;
-      });
-
       when(
-        () => mockSdk.startVideoCall(
+        () => mockMatrixService.startCall(
           didManager: any(named: 'didManager'),
           roomId: any(named: 'roomId'),
           callId: any(named: 'callId'),
@@ -277,7 +281,21 @@ void main() {
       ).thenAnswer((_) async => mockGroupCallSession);
 
       when(
-        () => mockSdk.leaveVideoCall(
+        () => mockMatrixService.sendRoomEvent(
+          any(),
+          any(),
+          any(),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async {
+        room.callOrder.add('nudge');
+        return null;
+      });
+
+      when(() => mockSdk.notifyChannel(any())).thenAnswer((_) async {});
+
+      when(
+        () => mockMatrixService.leaveCall(
           roomId: any(named: 'roomId'),
           callId: any(named: 'callId'),
         ),

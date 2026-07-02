@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
-import 'package:mocktail/mocktail.dart' show Fake;
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 import '../fakes/fake_livekit_service.dart';
@@ -28,17 +28,21 @@ AudioVideoCallParticipant _self() =>
 AudioVideoCallParticipant _peer(String id) =>
     AudioVideoCallParticipant(participantId: id);
 
-AudioVideoCallService _buildService() => AudioVideoCallService(
-  otherPartyChannelDid: 'did:peer:other-party',
-  sdk: MockMeetingPlaceMatrixSDK(),
-  livekitSfuUrl: null,
-  e2eeReadyTimeout: const Duration(seconds: 10),
-  outgoingCallTimeout: const Duration(seconds: 60),
-  rtcDelegate: MockWebRTCDelegate(),
-  logger: DefaultMeetingPlaceMatrixSDKLogger(className: 'test'),
-  livekitTokenService: MockSfuTokenService(),
-  room: FakeLiveKitRoom(),
-);
+AudioVideoCallService _buildService() {
+  final sdk = MockMeetingPlaceMatrixSDK();
+  when(() => sdk.matrixService).thenReturn(MockMatrixService());
+  return AudioVideoCallService(
+    otherPartyChannelDid: 'did:peer:other-party',
+    sdk: sdk,
+    livekitSfuUrl: null,
+    e2eeReadyTimeout: const Duration(seconds: 10),
+    outgoingCallTimeout: const Duration(seconds: 60),
+    rtcDelegate: MockWebRTCDelegate(),
+    logger: DefaultMeetingPlaceMatrixSDKLogger(className: 'test'),
+    livekitTokenService: MockSfuTokenService(),
+    room: FakeLiveKitRoom(),
+  );
+}
 
 void main() {
   const otherPartyChannelDid = 'did:peer:other-party';

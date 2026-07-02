@@ -5,6 +5,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_matrix.dart';
 import '../logger/top_and_tail_extension.dart';
+import '../matrix_room_alias.dart';
+import '../matrix_service.dart';
 import '../transport/call_invite_room_event.dart';
 import 'sfu_token_service.dart';
 
@@ -19,20 +21,23 @@ import 'sfu_token_service.dart';
 /// remains unchanged.
 class MatrixCallAdapter {
   MatrixCallAdapter({
-    required MeetingPlaceMatrixSDK sdk,
+    required MatrixService matrixService,
+    required MeetingPlaceCoreSDK coreSDK,
     required MeetingPlaceMatrixSDKLogger logger,
     required String otherPartyChannelDid,
     required Uri? livekitSfuUrl,
     required SfuTokenService livekitTokenService,
     required matrix.WebRTCDelegate rtcDelegate,
-  }) : _sdk = sdk,
+  }) : _matrixService = matrixService,
+       _coreSDK = coreSDK,
        _logger = logger,
        _otherPartyChannelDid = otherPartyChannelDid,
        _livekitSfuUrl = livekitSfuUrl,
        _livekitTokenService = livekitTokenService,
        _rtcDelegate = rtcDelegate;
 
-  final MeetingPlaceMatrixSDK _sdk;
+  final MatrixService _matrixService;
+  final MeetingPlaceCoreSDK _coreSDK;
   final MeetingPlaceMatrixSDKLogger _logger;
   final String _otherPartyChannelDid;
   final Uri? _livekitSfuUrl;
@@ -64,7 +69,7 @@ class MatrixCallAdapter {
   /// permanentChannelDid cannot be resolved.
   Future<({Channel channel, String ownChannelDid, String roomName})>
   resolveChannel() async {
-    final channel = await _sdk.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
       _otherPartyChannelDid,
     );
     if (channel == null) {
@@ -79,8 +84,8 @@ class MatrixCallAdapter {
       );
     }
     final roomName = channel.isGroup
-        ? _sdk.livekitRoomName(channelDid: _otherPartyChannelDid)
-        : _sdk.livekitRoomName(
+        ? deriveRoomAliasLocalpart(channelDid: _otherPartyChannelDid)
+        : deriveRoomAliasLocalpart(
             channelDid: ownChannelDid,
             otherPartyChannelDid: _otherPartyChannelDid,
           );
@@ -107,13 +112,13 @@ class MatrixCallAdapter {
     required String ownChannelDid,
     required String roomName,
   }) async {
-    final didManager = await _sdk.getDidManager(ownChannelDid);
-    final matrixRoomId = await _sdk.resolveMatrixRoomIdForChannel(
+    final didManager = await _coreSDK.getDidManager(ownChannelDid);
+    final matrixRoomId = await _matrixService.resolveRoomIdForChannel(
       didManager: didManager,
       channel: channel,
     );
-    final openIdToken = await _sdk.getMatrixOpenIdToken(didManager);
-    final deviceId = await _sdk.getMatrixDeviceId(didManager);
+    final openIdToken = await _matrixService.getOpenIdToken(didManager);
+    final deviceId = await _matrixService.getDeviceId(didManager);
     final participantIdToDid = await _buildParticipantIdToDidMap(
       channel: channel,
       ownChannelDid: ownChannelDid,
@@ -153,7 +158,7 @@ class MatrixCallAdapter {
     required String matrixRoomId,
     required bool isRecipient,
   }) async {
-    await _sdk.initializeMatrixRTCWithDelegate(
+    await _matrixService.initializeVoIPWithDelegate(
       didManager: didManager,
       delegate: _rtcDelegate,
     );
@@ -185,7 +190,7 @@ class MatrixCallAdapter {
     required String sfuUrl,
     required String roomName,
   }) async {
-    await _sdk.startVideoCall(
+    await _matrixService.startCall(
       didManager: didManager,
       roomId: matrixRoomId,
       callId: callId,
@@ -203,6 +208,7 @@ class MatrixCallAdapter {
   Future<void> sendCallInvite({
     required Channel channel,
     required bool callAlreadyInProgress,
+    required String matrixRoomId,
     CallMediaType mediaType = CallMediaType.video,
   }) async {
     if (callAlreadyInProgress) {
@@ -214,7 +220,7 @@ class MatrixCallAdapter {
       return;
     }
     if (channel.isGroup) {
-      await _sdk.notifyChannel(
+      await _coreSDK.notifyChannel(
         GroupChannelNotification(
           offerLink: channel.offerLink,
           groupDid: _otherPartyChannelDid,
@@ -224,12 +230,23 @@ class MatrixCallAdapter {
         ),
       );
     } else {
-      await _sdk.sendMessage(
-        CallInviteRoomEvent(
-          senderDid: channel.permanentChannelDid!,
-          mediaType: mediaType,
-          recipientDid: _otherPartyChannelDid,
-        ),
+      final senderDid = channel.permanentChannelDid!;
+      final event = CallInviteRoomEvent(
+        senderDid: senderDid,
+        mediaType: mediaType,
+        recipientDid: _otherPartyChannelDid,
+      );
+      final didManager = await _coreSDK.getDidManager(senderDid);
+      await _matrixService.sendRoomEvent(
+        matrixRoomId,
+        event.type,
+        event.content,
+        didManager: didManager,
+      );
+      unawaited(
+        _coreSDK
+            .notifyChannel(event.notification!)
+            .catchError((Object _, StackTrace _) {}),
       );
     }
     _logger.info(
@@ -246,7 +263,7 @@ class MatrixCallAdapter {
       name: _logKey,
     );
     unawaited(
-      _sdk.notifyChannel(
+      _coreSDK.notifyChannel(
         IndividualChannelNotification(
           recipientDid: _otherPartyChannelDid,
           type: CallChannelActivityType.callDecline,
@@ -265,7 +282,7 @@ class MatrixCallAdapter {
     _matrixRoomId = null;
     _matrixCallId = null;
     if (roomId != null && callId != null) {
-      await _sdk.leaveVideoCall(roomId: roomId, callId: callId);
+      await _matrixService.leaveCall(roomId: roomId, callId: callId);
     }
   }
 
@@ -283,7 +300,7 @@ class MatrixCallAdapter {
   }) async {
     final attempts = isRecipient ? _recipientCallIdDiscoveryAttempts : 1;
     for (var attempt = 0; attempt < attempts; attempt++) {
-      final callId = await _sdk.activeVideoCallId(
+      final callId = await _matrixService.activeCallId(
         didManager: didManager,
         roomId: roomId,
       );
@@ -302,7 +319,7 @@ class MatrixCallAdapter {
   }) async {
     final dids = <String>{ownChannelDid};
     if (channel.isGroup) {
-      final group = await _sdk.getGroupByOfferLink(channel.offerLink);
+      final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
       if (group != null) {
         dids.addAll(group.members.map((member) => member.did));
       }

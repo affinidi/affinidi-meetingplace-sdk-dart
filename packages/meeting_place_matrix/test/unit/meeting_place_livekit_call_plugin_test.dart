@@ -18,6 +18,7 @@ MeetingPlaceLiveKitCallPlugin _plugin({
 
 MockMeetingPlaceMatrixSDK _mockSdk() {
   final sdk = MockMeetingPlaceMatrixSDK();
+  when(() => sdk.matrixService).thenReturn(MockMatrixService());
   when(() => sdk.callSignals).thenAnswer((_) => const Stream.empty());
   when(
     () => sdk.getChannelByOtherPartyPermanentDid(any()),

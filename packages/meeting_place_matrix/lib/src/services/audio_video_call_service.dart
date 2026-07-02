@@ -35,7 +35,8 @@ class AudioVideoCallService {
        _e2eeReadyTimeout = e2eeReadyTimeout,
        _outgoingCallTimeout = outgoingCallTimeout,
        _coordinator = MatrixCallAdapter(
-         sdk: sdk,
+         matrixService: sdk.matrixService,
+         coreSDK: sdk,
          logger: logger,
          otherPartyChannelDid: otherPartyChannelDid,
          livekitSfuUrl: livekitSfuUrl,
@@ -167,6 +168,7 @@ class AudioVideoCallService {
         await _coordinator.sendCallInvite(
           channel: channel,
           callAlreadyInProgress: callAlreadyInProgress,
+          matrixRoomId: matrixRoomId,
           mediaType: mediaType,
         );
       }

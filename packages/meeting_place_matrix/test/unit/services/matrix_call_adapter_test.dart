@@ -1,5 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/matrix_room_alias.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/matrix_call_adapter.dart';
 import 'package:mocktail/mocktail.dart';
@@ -41,10 +42,12 @@ OpenIdCredentials _stubOpenIdCredentials() => OpenIdCredentials(
 );
 
 MatrixCallAdapter _buildAdapter({
-  required MockMeetingPlaceMatrixSDK sdk,
+  required MockMatrixService matrixService,
+  required MockMeetingPlaceCoreSDK coreSDK,
   required MockSfuTokenService tokenService,
 }) => MatrixCallAdapter(
-  sdk: sdk,
+  matrixService: matrixService,
+  coreSDK: coreSDK,
   logger: DefaultMeetingPlaceMatrixSDKLogger(className: 'test'),
   otherPartyChannelDid: _otherPartyDid,
   livekitSfuUrl: Uri.parse(_sfuUrl),
@@ -59,16 +62,28 @@ void main() {
     registerFallbackValue(FakeOutgoingMessage());
     registerFallbackValue(FakeOpenIdCredentials());
     registerFallbackValue(FakeWebRTCDelegate());
+    registerFallbackValue(
+      const IndividualChannelNotification(
+        recipientDid: 'did:key:fallback',
+        type: CallChannelActivityType.callDecline,
+      ),
+    );
   });
 
-  late MockMeetingPlaceMatrixSDK sdk;
+  late MockMatrixService matrixService;
+  late MockMeetingPlaceCoreSDK coreSDK;
   late MockSfuTokenService tokenService;
   late MatrixCallAdapter adapter;
 
   setUp(() {
-    sdk = MockMeetingPlaceMatrixSDK();
+    matrixService = MockMatrixService();
+    coreSDK = MockMeetingPlaceCoreSDK();
     tokenService = MockSfuTokenService();
-    adapter = _buildAdapter(sdk: sdk, tokenService: tokenService);
+    adapter = _buildAdapter(
+      matrixService: matrixService,
+      coreSDK: coreSDK,
+      tokenService: tokenService,
+    );
   });
 
   group('resolveChannel', () {
@@ -77,26 +92,26 @@ void main() {
       () async {
         final channel = _stubChannel();
         when(
-          () => sdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => channel);
-        when(
-          () => sdk.livekitRoomName(
-            channelDid: _ownDid,
-            otherPartyChannelDid: _otherPartyDid,
-          ),
-        ).thenReturn(_roomName);
 
         final result = await adapter.resolveChannel();
 
         expect(result.channel, same(channel));
         expect(result.ownChannelDid, _ownDid);
-        expect(result.roomName, _roomName);
+        expect(
+          result.roomName,
+          deriveRoomAliasLocalpart(
+            channelDid: _ownDid,
+            otherPartyChannelDid: _otherPartyDid,
+          ),
+        );
       },
     );
 
     test('throws operation exception when channel is missing', () async {
       when(
-        () => sdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => null);
 
       expect(
@@ -111,19 +126,19 @@ void main() {
       final channel = _stubChannel();
       final didManager = MockDidManager();
       when(
-        () => sdk.getDidManager(_ownDid),
+        () => coreSDK.getDidManager(_ownDid),
       ).thenAnswer((_) async => didManager);
       when(
-        () => sdk.resolveMatrixRoomIdForChannel(
+        () => matrixService.resolveRoomIdForChannel(
           didManager: didManager,
           channel: channel,
         ),
       ).thenAnswer((_) async => _matrixRoomId);
       when(
-        () => sdk.getMatrixOpenIdToken(didManager),
+        () => matrixService.getOpenIdToken(didManager),
       ).thenAnswer((_) async => _stubOpenIdCredentials());
       when(
-        () => sdk.getMatrixDeviceId(didManager),
+        () => matrixService.getDeviceId(didManager),
       ).thenAnswer((_) async => 'DEVICE1');
       when(
         () => tokenService.fetchToken(
@@ -156,13 +171,13 @@ void main() {
     test('uses existing call id when Matrix reports an active call', () async {
       final didManager = MockDidManager();
       when(
-        () => sdk.initializeMatrixRTCWithDelegate(
+        () => matrixService.initializeVoIPWithDelegate(
           didManager: didManager,
           delegate: any(named: 'delegate'),
         ),
       ).thenAnswer((_) async {});
       when(
-        () => sdk.activeVideoCallId(
+        () => matrixService.activeCallId(
           didManager: didManager,
           roomId: _matrixRoomId,
         ),
@@ -181,13 +196,13 @@ void main() {
     test('generates a new call id when no active call exists', () async {
       final didManager = MockDidManager();
       when(
-        () => sdk.initializeMatrixRTCWithDelegate(
+        () => matrixService.initializeVoIPWithDelegate(
           didManager: didManager,
           delegate: any(named: 'delegate'),
         ),
       ).thenAnswer((_) async {});
       when(
-        () => sdk.activeVideoCallId(
+        () => matrixService.activeCallId(
           didManager: didManager,
           roomId: _matrixRoomId,
         ),
@@ -209,7 +224,7 @@ void main() {
       final didManager = MockDidManager();
       final groupCallSession = MockGroupCallSession();
       when(
-        () => sdk.startVideoCall(
+        () => matrixService.startCall(
           didManager: didManager,
           roomId: _matrixRoomId,
           callId: 'call-id',
@@ -218,7 +233,7 @@ void main() {
         ),
       ).thenAnswer((_) async => groupCallSession);
       when(
-        () => sdk.leaveVideoCall(roomId: _matrixRoomId, callId: 'call-id'),
+        () => matrixService.leaveCall(roomId: _matrixRoomId, callId: 'call-id'),
       ).thenAnswer((_) async {});
 
       await adapter.registerMatrixCall(
@@ -232,7 +247,7 @@ void main() {
       await adapter.leaveCall();
 
       verify(
-        () => sdk.leaveVideoCall(roomId: _matrixRoomId, callId: 'call-id'),
+        () => matrixService.leaveCall(roomId: _matrixRoomId, callId: 'call-id'),
       ).called(1);
       expect(adapter.matrixRoomId, isNull);
       expect(adapter.matrixCallId, isNull);
@@ -242,24 +257,54 @@ void main() {
   group('sendCallInvite', () {
     test('sends individual call invite with requested media type', () async {
       final channel = _stubChannel();
-      when(() => sdk.sendMessage(any())).thenAnswer((_) async => null);
+      final didManager = MockDidManager();
+
+      when(
+        () => coreSDK.getDidManager(_ownDid),
+      ).thenAnswer((_) async => didManager);
+      when(
+        () => matrixService.sendRoomEvent(
+          _matrixRoomId,
+          any(),
+          any(),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async => 'event-id');
+      when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
       await adapter.sendCallInvite(
         channel: channel,
         callAlreadyInProgress: false,
+        matrixRoomId: _matrixRoomId,
         mediaType: CallMediaType.audio,
       );
 
-      verify(() => sdk.sendMessage(any())).called(1);
+      verify(
+        () => matrixService.sendRoomEvent(
+          _matrixRoomId,
+          any(),
+          any(),
+          didManager: any(named: 'didManager'),
+        ),
+      ).called(1);
     });
 
     test('does not send invite when rejoining an in-progress call', () async {
       await adapter.sendCallInvite(
         channel: _stubChannel(),
         callAlreadyInProgress: true,
+        matrixRoomId: _matrixRoomId,
       );
 
-      verifyNever(() => sdk.sendMessage(any()));
+      verifyNever(
+        () => matrixService.sendRoomEvent(
+          any(),
+          any(),
+          any(),
+          didManager: any(named: 'didManager'),
+        ),
+      );
+      verifyNever(() => coreSDK.notifyChannel(any()));
     });
   });
 }

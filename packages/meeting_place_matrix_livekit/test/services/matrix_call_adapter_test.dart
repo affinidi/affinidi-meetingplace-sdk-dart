@@ -462,6 +462,67 @@ void main() {
       expect(result.sfuUrl, 'wss://livekit.meetingplace.affinidi.io');
     });
 
+    test(
+      'rejects deeper subdomain not covered by single-label wildcard',
+      () async {
+        final channel = _stubChannel();
+        final didManager = MockDidManager();
+        when(
+          () => sdk.getDidManager(_ownDid),
+        ).thenAnswer((_) async => didManager);
+        when(
+          () => sdk.resolveMatrixRoomIdForChannel(
+            didManager: didManager,
+            channel: channel,
+          ),
+        ).thenAnswer((_) async => _matrixRoomId);
+        when(
+          () => sdk.getMatrixOpenIdToken(didManager),
+        ).thenAnswer((_) async => _stubOpenIdCredentials());
+        when(
+          () => sdk.getMatrixDeviceId(didManager),
+        ).thenAnswer((_) async => 'DEVICE1');
+        when(
+          () => tokenService.fetchToken(
+            roomName: _roomName,
+            openIdCredentials: any(named: 'openIdCredentials'),
+            deviceId: 'DEVICE1',
+          ),
+        ).thenAnswer(
+          (_) async => const SfuTokenResponse(
+            token: _sfuToken,
+            // Deeper subdomain: `*.meetingplace.affinidi.io` must NOT match.
+            url: 'wss://evil.sub.meetingplace.affinidi.io',
+          ),
+        );
+
+        final adapterWildcard = _buildAdapter(
+          sdk: sdk,
+          tokenService: tokenService,
+          useDefaultSfuUrl: false,
+          sfuAllowedHosts: ['*.meetingplace.affinidi.io'],
+        );
+
+        expect(
+          () => adapterWildcard.fetchCallCredentials(
+            channel: channel,
+            ownChannelDid: _ownDid,
+            roomName: _roomName,
+          ),
+          throwsA(
+            isA<MeetingPlaceLiveKitCallOperationException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                'SFU host "evil.sub.meetingplace.affinidi.io" is not in the '
+                'allowlist',
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
     test('rejects ws:// URL (non-TLS)', () async {
       final channel = _stubChannel();
       final didManager = MockDidManager();

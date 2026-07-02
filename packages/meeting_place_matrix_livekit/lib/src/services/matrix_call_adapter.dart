@@ -316,7 +316,9 @@ class MatrixCallAdapter {
         'SFU URL must use $allowedSchemes scheme, got: ${uri?.scheme ?? "null"}',
       );
     }
-    // Production requirement: server-supplied URLs must have allowlist
+    // Production requirement: server-supplied URLs must have allowlist. This
+    // is also enforced eagerly in the plugin constructor; kept here as a
+    // defense-in-depth check at the connection choke point.
     if (isServerSupplied && allowedHosts.isEmpty) {
       throw const MeetingPlaceLiveKitCallOperationException(
         'Security violation: sfuAllowedHosts must be configured when using '
@@ -327,20 +329,34 @@ class MatrixCallAdapter {
     }
     if (allowedHosts.isNotEmpty) {
       final host = uri.host;
-      final allowed = allowedHosts.any(
-        (pattern) => pattern.startsWith('*.')
-            ? host.endsWith(
-                pattern.substring(1),
-              ) // *.affinidi.io → checks .affinidi.io suffix
-            : host == pattern,
-      );
-      if (!allowed) {
+      if (!_hostMatchesAllowlist(host, allowedHosts)) {
         throw MeetingPlaceLiveKitCallOperationException(
           'SFU host "$host" is not in the allowlist',
         );
       }
     }
     return uri;
+  }
+
+  /// Returns whether [host] matches any entry in [allowedHosts].
+  ///
+  /// A `*.` prefix is a single-label wildcard: `*.affinidi.io` matches
+  /// `livekit.affinidi.io` but not the apex `affinidi.io` nor deeper
+  /// subdomains such as `evil.sub.affinidi.io`. All other entries require an
+  /// exact host match.
+  bool _hostMatchesAllowlist(String host, List<String> allowedHosts) {
+    return allowedHosts.any((pattern) {
+      if (pattern.startsWith('*.')) {
+        final suffix = pattern.substring(
+          1,
+        ); // '*.affinidi.io' -> '.affinidi.io'
+        if (!host.endsWith(suffix)) return false;
+        final label = host.substring(0, host.length - suffix.length);
+        // Wildcard covers exactly one label; reject empty or dotted labels.
+        return label.isNotEmpty && !label.contains('.');
+      }
+      return host == pattern;
+    });
   }
 
   Future<String?> _resolveExistingCallId({

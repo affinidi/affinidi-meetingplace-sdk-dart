@@ -16,6 +16,7 @@ MeetingPlaceLiveKitCallPlugin _plugin({
   options: MeetingPlaceLiveKitCallPluginOptions(
     livekitServiceUrl:
         livekitServiceUrl ?? Uri.parse('https://livekit.example.com'),
+    sfuAllowedHosts: const ['*.example.com'],
   ),
   rtcDelegate: FakeWebRTCDelegate(),
   roomFactory: roomFactory ?? fakeLiveKitRoomFactory(),
@@ -47,6 +48,46 @@ void main() {
     test('returns false when livekitServiceUrl host is empty', () {
       final plugin = _plugin(livekitServiceUrl: Uri());
       expect(plugin.isSupported, isFalse);
+    });
+  });
+
+  group('secure configuration', () {
+    test(
+      'constructor throws when sfuAllowedHosts is empty in production mode',
+      () {
+        expect(
+          () => MeetingPlaceLiveKitCallPlugin(
+            options: MeetingPlaceLiveKitCallPluginOptions(
+              livekitServiceUrl: Uri.parse('https://livekit.example.com'),
+              // livekitSfuUrl omitted (null) => server-supplied production URL
+              // with no allowlist must fail fast.
+            ),
+            rtcDelegate: FakeWebRTCDelegate(),
+            roomFactory: fakeLiveKitRoomFactory(),
+          ),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('must be non-empty when livekitSfuUrl is null'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test('constructor succeeds in dev mode without allowlist', () {
+      expect(
+        () => MeetingPlaceLiveKitCallPlugin(
+          options: MeetingPlaceLiveKitCallPluginOptions(
+            livekitServiceUrl: Uri.parse('https://livekit.example.com'),
+            livekitSfuUrl: Uri.parse('ws://livekit:7880'),
+          ),
+          rtcDelegate: FakeWebRTCDelegate(),
+          roomFactory: fakeLiveKitRoomFactory(),
+        ),
+        returnsNormally,
+      );
     });
   });
 

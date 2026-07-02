@@ -36,12 +36,16 @@ class MeetingPlaceLiveKitCallPluginOptions {
 
   /// Allowlist of SFU hostnames the client is permitted to connect to.
   ///
-  /// Supports wildcard prefixes (e.g. `*.meetingplace.affinidi.io`).
+  /// Supports single-label wildcard prefixes: `*.meetingplace.affinidi.io`
+  /// matches `sfu.meetingplace.affinidi.io` but not the apex
+  /// `meetingplace.affinidi.io` nor deeper subdomains such as
+  /// `a.b.meetingplace.affinidi.io`. All other entries require an exact match.
   ///
   /// **Security requirement**: When [livekitSfuUrl] is null (production mode),
-  /// this list MUST be non-empty. The SDK will throw an exception if a
-  /// server-supplied URL is used without an allowlist, preventing compromised
-  /// JWT services from redirecting media to attacker-controlled servers.
+  /// this list MUST be non-empty. The plugin constructor throws immediately if
+  /// a server-supplied URL would be used without an allowlist, preventing
+  /// compromised JWT services from redirecting media to attacker-controlled
+  /// servers.
   ///
   /// When [livekitSfuUrl] is set (dev/test mode), this validation is optional
   /// since the URL is controlled by the application.

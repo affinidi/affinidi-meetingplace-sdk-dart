@@ -270,52 +270,53 @@ void main() {
   });
 
   group('SFU URL validation (SEC fix)', () {
-    test('accepts valid wss:// URL when allowlist is empty', () async {
-      final channel = _stubChannel();
-      final didManager = MockDidManager();
-      when(
-        () => sdk.getDidManager(_ownDid),
-      ).thenAnswer((_) async => didManager);
-      when(
-        () => sdk.resolveMatrixRoomIdForChannel(
-          didManager: didManager,
+    test(
+      'accepts explicit wss:// URL in dev mode without allowlist',
+      () async {
+        final channel = _stubChannel();
+        final didManager = MockDidManager();
+        when(() => sdk.getDidManager(_ownDid))
+            .thenAnswer((_) async => didManager);
+        when(
+          () => sdk.resolveMatrixRoomIdForChannel(
+            didManager: didManager,
+            channel: channel,
+          ),
+        ).thenAnswer((_) async => _matrixRoomId);
+        when(() => sdk.getMatrixOpenIdToken(didManager))
+            .thenAnswer((_) async => _stubOpenIdCredentials());
+        when(() => sdk.getMatrixDeviceId(didManager))
+            .thenAnswer((_) async => 'DEVICE1');
+        when(
+          () => tokenService.fetchToken(
+            roomName: _roomName,
+            openIdCredentials: any(named: 'openIdCredentials'),
+            deviceId: 'DEVICE1',
+          ),
+        ).thenAnswer(
+          (_) async => const SfuTokenResponse(
+            token: _sfuToken,
+            url: null, // server returns no URL
+          ),
+        );
+
+        // Dev mode: explicit livekitSfuUrl, empty allowlist is OK
+        final adapterDevMode = _buildAdapter(
+          sdk: sdk,
+          tokenService: tokenService,
+          livekitSfuUrl: Uri.parse('wss://dev.example.com'),
+          sfuAllowedHosts: [],
+        );
+
+        final result = await adapterDevMode.fetchCallCredentials(
           channel: channel,
-        ),
-      ).thenAnswer((_) async => _matrixRoomId);
-      when(
-        () => sdk.getMatrixOpenIdToken(didManager),
-      ).thenAnswer((_) async => _stubOpenIdCredentials());
-      when(
-        () => sdk.getMatrixDeviceId(didManager),
-      ).thenAnswer((_) async => 'DEVICE1');
-      when(
-        () => tokenService.fetchToken(
+          ownChannelDid: _ownDid,
           roomName: _roomName,
-          openIdCredentials: any(named: 'openIdCredentials'),
-          deviceId: 'DEVICE1',
-        ),
-      ).thenAnswer(
-        (_) async => const SfuTokenResponse(
-          token: _sfuToken,
-          url: 'wss://valid.example.com',
-        ),
-      );
+        );
 
-      final adapterNoAllowlist = _buildAdapter(
-        sdk: sdk,
-        tokenService: tokenService,
-        useDefaultSfuUrl: false,
-        sfuAllowedHosts: [],
-      );
-
-      final result = await adapterNoAllowlist.fetchCallCredentials(
-        channel: channel,
-        ownChannelDid: _ownDid,
-        roomName: _roomName,
-      );
-
-      expect(result.sfuUrl, 'wss://valid.example.com');
-    });
+        expect(result.sfuUrl, 'wss://dev.example.com');
+      },
+    );
 
     test('accepts wss:// URL matching exact host in allowlist', () async {
       final channel = _stubChannel();
@@ -620,5 +621,63 @@ void main() {
         ),
       );
     });
+
+    test(
+      'rejects server-supplied URL without allowlist (production security)',
+      () async {
+        final channel = _stubChannel();
+        final didManager = MockDidManager();
+        when(() => sdk.getDidManager(_ownDid))
+            .thenAnswer((_) async => didManager);
+        when(
+          () => sdk.resolveMatrixRoomIdForChannel(
+            didManager: didManager,
+            channel: channel,
+          ),
+        ).thenAnswer((_) async => _matrixRoomId);
+        when(() => sdk.getMatrixOpenIdToken(didManager))
+            .thenAnswer((_) async => _stubOpenIdCredentials());
+        when(() => sdk.getMatrixDeviceId(didManager))
+            .thenAnswer((_) async => 'DEVICE1');
+        when(
+          () => tokenService.fetchToken(
+            roomName: _roomName,
+            openIdCredentials: any(named: 'openIdCredentials'),
+            deviceId: 'DEVICE1',
+          ),
+        ).thenAnswer(
+          (_) async => const SfuTokenResponse(
+            token: _sfuToken,
+            url: 'wss://valid-server.example.com',
+          ),
+        );
+
+        // Production mode: livekitSfuUrl is null, sfuAllowedHosts is empty
+        final adapterProductionNoAllowlist = _buildAdapter(
+          sdk: sdk,
+          tokenService: tokenService,
+          useDefaultSfuUrl: false, // server-supplied URL
+          sfuAllowedHosts: [], // empty allowlist = security violation
+        );
+
+        expect(
+          () => adapterProductionNoAllowlist.fetchCallCredentials(
+            channel: channel,
+            ownChannelDid: _ownDid,
+            roomName: _roomName,
+          ),
+          throwsA(
+            isA<MeetingPlaceLiveKitCallOperationException>().having(
+              (e) => e.message,
+              'message',
+              allOf([
+                contains('Security violation'),
+                contains('sfuAllowedHosts must be configured'),
+              ]),
+            ),
+          ),
+        );
+      },
+    );
   });
 }

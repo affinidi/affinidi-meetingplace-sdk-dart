@@ -127,9 +127,12 @@ class MatrixCallAdapter {
       openIdCredentials: openIdToken,
       deviceId: deviceId,
     );
+    final rawSfuUrl = _livekitSfuUrl?.toString() ?? tokenResponse.url;
+    final isServerSupplied = _livekitSfuUrl == null;
     final sfuUrl = _validateSfuUrl(
-      _livekitSfuUrl?.toString() ?? tokenResponse.url,
+      rawSfuUrl,
       _sfuAllowedHosts,
+      isServerSupplied: isServerSupplied,
     ).toString();
     return (
       didManager: didManager,
@@ -282,10 +285,16 @@ class MatrixCallAdapter {
   /// Throws [MeetingPlaceLiveKitCallOperationException] if:
   /// - The URL is null, empty, or invalid.
   /// - The scheme is not `wss`.
+  /// - [isServerSupplied] is true and [allowedHosts] is empty (production
+  ///   mode requires allowlist).
   /// - The host is not in [allowedHosts] when the list is non-empty.
   ///
   /// Supports wildcard patterns in [allowedHosts] (e.g. `*.example.com`).
-  Uri _validateSfuUrl(String? rawUrl, List<String> allowedHosts) {
+  Uri _validateSfuUrl(
+    String? rawUrl,
+    List<String> allowedHosts, {
+    required bool isServerSupplied,
+  }) {
     if (rawUrl == null || rawUrl.isEmpty) {
       throw const MeetingPlaceLiveKitCallOperationException(
         'No LiveKit SFU URL available: set livekitSfuUrl in plugin options '
@@ -296,6 +305,15 @@ class MatrixCallAdapter {
     if (uri == null || uri.scheme != 'wss') {
       throw MeetingPlaceLiveKitCallOperationException(
         'SFU URL must use wss:// scheme, got: ${uri?.scheme ?? "null"}',
+      );
+    }
+    // Production requirement: server-supplied URLs must have allowlist
+    if (isServerSupplied && allowedHosts.isEmpty) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Security violation: sfuAllowedHosts must be configured when using '
+        'server-supplied SFU URLs (livekitSfuUrl is null). Set sfuAllowedHosts '
+        'in plugin options to prevent compromised JWT services from redirecting '
+        'media to attacker-controlled servers.',
       );
     }
     if (allowedHosts.isNotEmpty) {

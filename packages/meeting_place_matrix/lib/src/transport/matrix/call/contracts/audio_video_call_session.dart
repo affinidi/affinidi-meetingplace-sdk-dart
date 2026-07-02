@@ -1,4 +1,5 @@
 import '../models/audio_video_call_state.dart';
+import '../models/call_participant_event.dart';
 
 /// A live handle to an active or connecting audio/video call.
 ///
@@ -12,6 +13,12 @@ abstract interface class AudioVideoCallSession {
   /// Emits immediately with the current state and continues on every change.
   /// The caller is responsible for cancelling any subscription.
   Stream<AudioVideoCallState> get state;
+
+  /// Discrete events emitted when a peer participant joins or leaves the call.
+  ///
+  /// Only covers peer (non-self) participants. Self-join is not emitted.
+  /// Use this instead of diffing the participants list on every state emission.
+  Stream<CallParticipantEvent> get participantEvents;
 
   /// Enables or disables the local microphone.
   Future<void> setMicrophoneEnabled(bool enabled);

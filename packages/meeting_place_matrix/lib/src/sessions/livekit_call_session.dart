@@ -20,7 +20,10 @@ class LiveKitCallSession implements AudioVideoCallSession {
        _otherPartyChannelDid = otherPartyChannelDid,
        _logger = logger {
     _stateController = StreamController<AudioVideoCallState>.broadcast();
+    _participantEventController =
+        StreamController<CallParticipantEvent>.broadcast();
     _stateSub = service.stateStream.listen((AudioVideoCallState next) {
+      _emitParticipantEvents(_latestState.participants, next.participants);
       _latestState = next;
       if (!_stateController.isClosed) _stateController.add(next);
     });
@@ -30,6 +33,7 @@ class LiveKitCallSession implements AudioVideoCallSession {
   final String _otherPartyChannelDid;
   final MeetingPlaceMatrixSDKLogger _logger;
   late final StreamController<AudioVideoCallState> _stateController;
+  late final StreamController<CallParticipantEvent> _participantEventController;
   late final StreamSubscription<AudioVideoCallState> _stateSub;
 
   // Latest state pushed by the service. Replayed to late subscribers so a
@@ -71,6 +75,10 @@ class LiveKitCallSession implements AudioVideoCallSession {
     );
     return controller.stream;
   }
+
+  @override
+  Stream<CallParticipantEvent> get participantEvents =>
+      _participantEventController.stream;
 
   @override
   Future<void> setMicrophoneEnabled(bool enabled) {
@@ -140,6 +148,60 @@ class LiveKitCallSession implements AudioVideoCallSession {
     );
     await _stateSub.cancel();
     await _stateController.close();
+    await _participantEventController.close();
     await _service.dispose();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  /// Diffs peer participants between two states and emits join/left events.
+  void _emitParticipantEvents(
+    List<AudioVideoCallParticipant> previous,
+    List<AudioVideoCallParticipant> next,
+  ) {
+    if (_participantEventController.isClosed) {
+      _logger.warning(
+        '_emitParticipantEvents: Controller already closed, skipping',
+        name: _logKey,
+      );
+      return;
+    }
+    final previousIds = previous
+        .where((p) => !p.isSelf)
+        .map((p) => p.participantId)
+        .toSet();
+    final nextIds = next
+        .where((p) => !p.isSelf)
+        .map((p) => p.participantId)
+        .toSet();
+
+    for (final id in nextIds.difference(previousIds)) {
+      final participant = next.firstWhere((p) => p.participantId == id);
+      _logger.info(
+        '_emitParticipantEvents: Peer joined (${participant.participantId})',
+        name: _logKey,
+      );
+      _participantEventController.add(
+        CallParticipantEvent(
+          type: CallParticipantEventType.joined,
+          participant: participant,
+        ),
+      );
+    }
+    for (final id in previousIds.difference(nextIds)) {
+      final participant = previous.firstWhere((p) => p.participantId == id);
+      _logger.info(
+        '_emitParticipantEvents: Peer left (${participant.participantId})',
+        name: _logKey,
+      );
+      _participantEventController.add(
+        CallParticipantEvent(
+          type: CallParticipantEventType.left,
+          participant: participant,
+        ),
+      );
+    }
   }
 }

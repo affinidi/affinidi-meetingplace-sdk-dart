@@ -7,10 +7,19 @@ import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_matrix.dart';
+import '../call/mpx_call_event_type.dart';
 import '../constants.dart';
 import '../event/chat_event_conversion.dart';
+import '../matrix_incoming_message.dart';
+import '../matrix_media_reference.dart';
+import '../matrix_outgoing_message.dart';
+import '../matrix_room_event.dart';
+import '../matrix_room_history_query.dart';
+import '../matrix_room_subscription.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
+import 'group/group_matrix_chat_sdk.dart';
+import 'individual/individual_matrix_chat_sdk.dart';
 import 'typing_indicator_manager.dart';
 
 /// Intermediate [BaseChatSDK] that provides the Matrix transport.

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../meeting_place_matrix.dart';
 import '../logger/top_and_tail_extension.dart';
+import '../services/audio_video_call_service.dart';
 
 /// Concrete [AudioVideoCallSession] for a LiveKit-backed call.
 ///

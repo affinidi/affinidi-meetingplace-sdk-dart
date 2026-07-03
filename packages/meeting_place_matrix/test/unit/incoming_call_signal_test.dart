@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/call/call_signal.dart';
+import 'package:meeting_place_matrix/src/meeting_place_livekit_call_plugin.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 

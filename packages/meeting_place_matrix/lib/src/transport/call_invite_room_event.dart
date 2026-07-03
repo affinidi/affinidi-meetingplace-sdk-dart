@@ -1,6 +1,9 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_matrix.dart';
+import '../call/call_channel_activity_type.dart';
+import '../call/mpx_call_event_type.dart';
+import '../matrix_outgoing_message.dart';
 
 /// A [MatrixOutgoingMessage] that writes a `mpx.call.invite` timeline event
 /// to the shared Matrix room.

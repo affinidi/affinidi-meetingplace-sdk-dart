@@ -4,13 +4,23 @@ import 'dart:typed_data';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show ChannelActivity, ControlPlaneSDK;
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_matrix.dart';
-
+import 'call/call_signal.dart';
 import 'call/call_signal_mapper.dart';
+import 'exceptions/meeting_place_livekit_call_exception.dart';
+import 'matrix_incoming_message.dart';
+import 'matrix_outgoing_message.dart';
+import 'matrix_room_history_query.dart';
+import 'matrix_room_subscription.dart';
 import 'matrix_sender_did_resolver.dart';
+import 'matrix_service.dart';
+import 'matrix_transport.dart';
+import 'meeting_place_livekit_call_plugin.dart';
+import 'sessions/livekit_call_session.dart';
 
 /// A [MeetingPlaceCoreSDK] backed by a Matrix homeserver.
 ///
@@ -25,6 +35,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({
     required MeetingPlaceCoreSDK coreSDK,
     required this.matrixService,
+    required MeetingPlaceMatrixSdkOptions options,
     MeetingPlaceLiveKitCallPlugin? callPlugin,
   }) : _coreSDK = coreSDK,
        _callPlugin = callPlugin,
@@ -32,12 +43,14 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
          coreSDK: coreSDK,
          matrixService: matrixService,
        ),
-       _callSignalMapper = CallSignalMapper(coreSDK.controlPlaneEventsStream);
+       _callSignalMapper = CallSignalMapper(coreSDK.controlPlaneEventsStream),
+       _options = options;
 
   final MeetingPlaceCoreSDK _coreSDK;
   final MatrixSenderDidResolver _senderDidResolver;
   final CallSignalMapper _callSignalMapper;
   final MeetingPlaceLiveKitCallPlugin? _callPlugin;
+  final MeetingPlaceMatrixSdkOptions _options;
 
   /// The underlying [MatrixService] — exposed for matrix-specific consumers
   /// (e.g. `meeting_place_matrix`) that need VoIP or OpenID token
@@ -118,7 +131,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
     required MatrixConfig config,
-    MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
+    MeetingPlaceMatrixSdkOptions options = const MeetingPlaceMatrixSdkOptions(),
     MeetingPlaceCoreSDKLogger? logger,
     matrix.WebRTCDelegate? rtcDelegate,
     LiveKitRoomFactory? roomFactory,
@@ -148,6 +161,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     final sdk = MeetingPlaceMatrixSDK._(
       coreSDK: coreSDK,
       matrixService: matrixServiceRef!,
+      options: options,
     );
 
     final livekitUrl = config.livekitServiceUrl;
@@ -164,6 +178,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         coreSDK: coreSDK,
         matrixService: matrixServiceRef!,
         callPlugin: plugin,
+        options: options,
       );
     }
 
@@ -190,7 +205,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   VdipClient get vdip => _coreSDK.vdip;
 
   @override
-  MeetingPlaceCoreSDKOptions get options => _coreSDK.options;
+  MeetingPlaceMatrixSdkOptions get options => _options;
 
   @override
   Stream<ChannelAttachmentEvent> get channelAttachments =>

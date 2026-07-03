@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:matrix/matrix.dart';
 import 'package:meeting_place_core/meeting_place_core.dart'
     show
         Channel,
@@ -9,7 +10,9 @@ import 'package:meeting_place_core/meeting_place_core.dart'
         ContactCard,
         IndividualChannelNotification;
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/call/call_channel_activity_type.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
+import 'package:meeting_place_matrix/src/services/audio_video_call_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 

@@ -1,6 +1,6 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import '../../../../meeting_place_matrix.dart';
 
+import '../../../matrix_room_event.dart';
 import 'incoming_reaction_state_store.dart';
 import 'target_message_resolver.dart';
 

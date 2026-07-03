@@ -2,7 +2,11 @@ import 'dart:typed_data';
 
 import 'package:meeting_place_core/meeting_place_core.dart'
     show Channel, ChannelStatus, ChannelTransport, ChannelType, ContactCard;
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/matrix_media_exception.dart';
+import 'package:meeting_place_matrix/src/matrix_room_event.dart';
+import 'package:meeting_place_matrix/src/matrix_service.dart';
+import 'package:meeting_place_matrix/src/matrix_subscription_options.dart';
+import 'package:meeting_place_matrix/src/matrix_transport.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';

@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart'
-    show MatrixEventMediaReference;
+import 'package:meeting_place_matrix/src/matrix_media_reference.dart';
 import 'package:ssi/ssi.dart';
 import 'package:vodozemac/vodozemac.dart' as vod;
 

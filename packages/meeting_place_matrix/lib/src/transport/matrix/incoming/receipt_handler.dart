@@ -1,5 +1,5 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import '../../../../meeting_place_matrix.dart';
+import '../../../matrix_room_event.dart';
 
 /// Handles `m.receipt` events by marking the corresponding outgoing message
 /// as delivered.

@@ -4,6 +4,7 @@ import 'package:matrix/matrix.dart' as matrix;
 
 import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
+import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../handlers/call_e2ee_handler.dart';
 import 'matrix_call_adapter.dart';
 import 'sfu_token_service.dart';

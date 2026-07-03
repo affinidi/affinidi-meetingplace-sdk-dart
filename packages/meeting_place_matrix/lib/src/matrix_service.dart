@@ -5,7 +5,11 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_matrix.dart';
+import 'matrix_auth_exception.dart';
+import 'matrix_room_event.dart';
+import 'matrix_service_exception.dart';
 import 'matrix_session_manager.dart';
+import 'matrix_subscription_options.dart';
 import 'rtc/matrix_rtc_defaults.dart';
 import 'services/matrix_call_service.dart';
 import 'services/matrix_room_service.dart';

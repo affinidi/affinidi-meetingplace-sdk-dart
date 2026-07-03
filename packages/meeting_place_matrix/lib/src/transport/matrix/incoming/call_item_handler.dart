@@ -1,9 +1,10 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../meeting_place_matrix.dart';
 import '../../../entity/message_matrix_factory.dart';
 import '../../../event/chat_event_conversion.dart';
+import '../../../matrix_room_event.dart';
+import '../matrix_media_attachment.dart';
 
 /// Handles incoming `mpx.call.item` events by persisting the call item as a
 /// message with a single metadata-only attachment and pushing it to the chat

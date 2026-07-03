@@ -1,4 +1,6 @@
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/exceptions/meeting_place_livekit_call_exception.dart';
+import 'package:meeting_place_matrix/src/meeting_place_livekit_call_plugin.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 

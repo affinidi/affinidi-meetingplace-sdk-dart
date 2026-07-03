@@ -1,9 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/services/sfu_token_service.dart';
+import 'package:meeting_place_matrix/src/sessions/livekit_call_session.dart';
 import 'package:mocktail/mocktail.dart';
+
+import '../../meeting_place_matrix.dart';
 
 class MockDio extends Mock implements Dio {}
 
@@ -16,7 +20,7 @@ class MockMatrixService extends Mock implements MatrixService {}
 class MockMeetingPlaceMatrixSDKLogger extends Mock
     implements MeetingPlaceMatrixSDKLogger {}
 
-class MockGroupCallSession extends Mock implements GroupCallSession {}
+class MockGroupCallSession extends Mock implements matrix.GroupCallSession {}
 
 class MockChatRepository extends Mock implements ChatRepository {}
 

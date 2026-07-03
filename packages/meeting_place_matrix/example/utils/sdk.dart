@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
+import 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
@@ -73,5 +75,5 @@ Future<MeetingPlaceMatrixSDK> initMatrixSDK({required Wallet wallet}) =>
       wallet: wallet,
       repositoryConfig: getRepositoryConfig(),
       config: getMatrixConfig(),
-      logger: DefaultMeetingPlaceCoreSDKLogger(),
+      logger: DefaultMeetingPlaceMatrixSDKLogger(),
     );

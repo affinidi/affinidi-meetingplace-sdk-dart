@@ -1,18 +1,22 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 /// Logger interface for Chat SDK
 ///
 /// This interface allows consumers to provide their own logging implementation
 /// to capture and handle SDK logs according to their needs.
-abstract class MeetingPlaceMatrixSDKLogger {
+abstract class MeetingPlaceMatrixSDKLogger extends MeetingPlaceCoreSDKLogger {
   /// Logs an informational message.
   ///
   /// [message] is the log content.
   /// [name] optionally specifies additional context/identifier.
+  @override
   void info(String message, {String name = ''});
 
   /// Logs a warning message.
   ///
   /// [message] is the log content.
   /// [name] optionally specifies additional context/identifier.
+  @override
   void warning(String message, {String name = ''});
 
   /// Logs an error message with details.
@@ -21,6 +25,7 @@ abstract class MeetingPlaceMatrixSDKLogger {
   /// [error] optionally provides an error or exception.
   /// [stackTrace] optionally provides the stack trace.
   /// [name] optionally specifies additional context/identifier.
+  @override
   void error(
     String message, {
     Object? error,
@@ -32,5 +37,6 @@ abstract class MeetingPlaceMatrixSDKLogger {
   ///
   /// [message] is the log content.
   /// [name] optionally specifies additional context/identifier.
+  @override
   void debug(String message, {String name = ''});
 }

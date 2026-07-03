@@ -1,6 +1,7 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../../../meeting_place_matrix.dart';
+import '../../../matrix_room_event.dart';
 
 class ProfileRequestHandler {
   ProfileRequestHandler({

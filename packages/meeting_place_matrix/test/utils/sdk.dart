@@ -1,8 +1,13 @@
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
+import 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
+import 'package:meeting_place_chat/meeting_place_chat.dart'
+    show MeetingPlaceChatSDK, MeetingPlaceChatSDKOptions;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/chat/group/group_matrix_chat_sdk.dart';
+import 'package:meeting_place_matrix/src/chat/individual/individual_matrix_chat_sdk.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';

@@ -4,6 +4,7 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:ssi/ssi.dart';
 
 import '../../meeting_place_matrix.dart';
+import '../matrix_service_exception.dart';
 import '../rtc/matrix_rtc_call_scope.dart';
 import '../rtc/matrix_rtc_call_type.dart';
 import '../rtc/matrix_rtc_defaults.dart';

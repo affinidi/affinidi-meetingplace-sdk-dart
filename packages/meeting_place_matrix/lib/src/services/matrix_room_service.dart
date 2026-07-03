@@ -4,8 +4,11 @@ import 'dart:typed_data';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-import '../../meeting_place_matrix.dart';
+import '../matrix_room_alias.dart';
+import '../matrix_room_event.dart';
+import '../matrix_service_exception.dart';
 import '../matrix_session_manager.dart';
+import '../matrix_subscription_options.dart';
 import 'matrix_session_accessor.dart';
 
 /// Room-domain operations for Matrix: room lifecycle (create/join/leave),

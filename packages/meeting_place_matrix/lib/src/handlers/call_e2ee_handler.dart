@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import '../../meeting_place_matrix.dart';
+import '../interfaces/livekit_room.dart';
+import '../logger/meeting_place_matrix_sdk_logger.dart';
+import '../models/call_e2ee_state.dart';
 
 /// Tracks per-participant E2EE key state and manages keyframe nudges.
 ///

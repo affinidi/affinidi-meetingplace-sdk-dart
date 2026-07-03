@@ -1,4 +1,4 @@
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/matrix_user_id_binding.dart';
 import 'package:test/test.dart';
 
 const _serverName = 'matrix.example.com';

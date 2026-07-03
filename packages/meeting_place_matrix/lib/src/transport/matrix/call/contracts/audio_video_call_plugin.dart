@@ -1,4 +1,6 @@
-import '../../../../../meeting_place_matrix.dart';
+import '../../../../call/call_media_type.dart';
+import 'audio_video_call_session.dart';
+import 'incoming_audio_video_call_event.dart';
 
 /// Interface for an audio/video calling plugin.
 ///

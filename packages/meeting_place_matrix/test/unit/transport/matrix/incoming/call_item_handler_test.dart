@@ -1,8 +1,11 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/incoming/call_item_handler.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+import '../../../../meeting_place_matrix.dart';
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 

@@ -3,9 +3,8 @@ import 'dart:typed_data';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart'
-    show MatrixEventMediaReference;
 import 'package:meeting_place_matrix/src/chat/group/event_handler/group_details_update_handler.dart';
+import 'package:meeting_place_matrix/src/matrix_media_reference.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/outgoing/group_details_update_sender.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';

@@ -5,6 +5,8 @@ import 'package:matrix/matrix.dart' as matrix;
 import '../meeting_place_matrix.dart';
 import 'matrix_client.dart';
 import 'matrix_client_cache.dart';
+import 'matrix_service_exception.dart';
+import 'matrix_user_id_binding.dart';
 
 /// Manages the lifecycle of Matrix client sessions for individual DIDs.
 ///

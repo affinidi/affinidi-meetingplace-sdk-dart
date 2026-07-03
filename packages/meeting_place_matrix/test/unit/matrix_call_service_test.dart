@@ -1,6 +1,7 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/matrix_service_exception.dart';
 import 'package:meeting_place_matrix/src/services/matrix_call_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';

@@ -1,7 +1,7 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 
-import '../../../../meeting_place_matrix.dart';
 import '../../../event/chat_event_conversion.dart';
+import '../../../matrix_room_event.dart';
 
 /// Handles chat-effect events by forwarding them onto the chat stream.
 class ChatEffectHandler {

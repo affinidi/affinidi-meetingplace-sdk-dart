@@ -12,17 +12,16 @@ class TransportEvent {
     this.metadata,
   });
 
-  /// Transport-assigned event identifier (e.g. Matrix `\$eventId`).
+  /// Transport-assigned event identifier.
   final String id;
 
-  /// Event type string (e.g. `m.room.message`, `m.reaction`).
+  /// Event type string.
   final String type;
 
   /// Event payload.
   final Map<String, dynamic> content;
 
-  /// Identifier for the channel this event belongs to (e.g. room ID for
-  /// Matrix, DID for DIDComm).
+  /// Identifier for the channel this event belongs to.
   final String channelId;
 
   /// Timestamp of the event, as reported by the transport.

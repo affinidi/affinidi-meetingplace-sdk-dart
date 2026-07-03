@@ -225,8 +225,8 @@ class MeetingPlaceCoreSDK {
   ///   controlPlaneDid).
   /// - [channelTransportFactory]: Optional factory that receives the
   ///   internally-created [ControlPlaneSDK] and returns the
-  ///   [MeetingPlaceTransport] for channel operations (Matrix rooms, file
-  ///   transfer, etc.). If omitted, channel operations are no-ops.
+  ///   [MeetingPlaceTransport] for channel operations. If omitted, channel
+  ///   operations are no-ops.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
   ///
   /// **Returns:**
@@ -601,14 +601,6 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Test-only helper that drains a matrix sync cycle and forces device-key
-  /// fetches for [expectedDids] on the matrix client owned by [localDid],
-  /// returning once the room state and key catalog can support an encrypted
-  /// send all expected recipients can decrypt. Production callers do not
-  /// need this.
-  ///
-  /// Overridden by `MatrixMeetingPlaceSDK`. Throws [UnsupportedError] on
-  /// non-Matrix SDKs.
   @visibleForTesting
   Future<void> waitForRoomEncryptionReady({
     required String localDid,
@@ -1086,9 +1078,8 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Releases all resources held by the SDK: closes the control plane
-  /// events stream, aborts every cached matrix client's sync loop and
-  /// closes their databases. Safe to call multiple times. After dispose
-  /// the SDK instance must not be used further.
+  /// events stream. Safe to call multiple times. After dispose the SDK instance
+  /// must not be used further.
   Future<void> dispose() async {
     _controlPlaneEventStreamManager.dispose();
     await _messagingService.dispose();
@@ -1327,9 +1318,15 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Returns the transport event id for the outgoing message (or `null` for
-  /// matrix events that don't produce one, such as `m.read`, `m.typing`,
-  /// `m.room.redaction`). Always returns `null` for [DidCommOutgoingMessage].
+  /// Returns the transport transport id for the outgoing message. Always
+  /// returns `null` for [DidCommOutgoingMessage].
+  ///
+  /// Parameters:
+  /// - [message] - The outgoing message to send.
+  ///
+  /// Returns:
+  /// - The transport id for the outgoing message, or `null` if the message is
+  /// a [DidCommOutgoingMessage].
   Future<String?> sendMessage(OutgoingMessage message) {
     return _withSdkExceptionHandling(
       () => _messagingService.sendMessage(message),

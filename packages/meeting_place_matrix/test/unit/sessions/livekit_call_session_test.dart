@@ -35,6 +35,7 @@ AudioVideoCallService _buildService() {
     otherPartyChannelDid: 'did:peer:other-party',
     sdk: sdk,
     livekitSfuUrl: null,
+    sfuAllowedHosts: const [],
     e2eeReadyTimeout: const Duration(seconds: 10),
     outgoingCallTimeout: const Duration(seconds: 60),
     rtcDelegate: MockWebRTCDelegate(),

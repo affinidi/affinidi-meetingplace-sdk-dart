@@ -10,6 +10,7 @@ import 'mocks/mocks.dart';
 
 MeetingPlaceLiveKitCallPlugin _plugin() => MeetingPlaceLiveKitCallPlugin(
   livekitServiceUrl: Uri.parse('https://livekit.example.com'),
+  sfuAllowedHosts: const ['livekit.example.com'],
   rtcDelegate: FakeWebRTCDelegate(),
   roomFactory: fakeLiveKitRoomFactory(),
 );

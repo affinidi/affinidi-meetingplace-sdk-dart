@@ -169,18 +169,21 @@ class GroupChatFixture {
     // accept-offer and first send hides this race; tests collapse it to
     // milliseconds.
     await Future.wait([
-      fixture.aliceSDK.waitForRoomEncryptionReady(
+      waitForRoomEncryptionReady(
+        fixture.aliceSDK,
         localDid: fixture.groupOwnerDidDocument.id,
         expectedDids: [fixture.bobMemberDid, fixture.charlieMemberDid],
       ),
-      fixture.bobSDK.waitForRoomEncryptionReady(
+      waitForRoomEncryptionReady(
+        fixture.bobSDK,
         localDid: fixture.bobMemberDid,
         expectedDids: [
           fixture.groupOwnerDidDocument.id,
           fixture.charlieMemberDid,
         ],
       ),
-      fixture.charlieSDK.waitForRoomEncryptionReady(
+      waitForRoomEncryptionReady(
+        fixture.charlieSDK,
         localDid: fixture.charlieMemberDid,
         expectedDids: [fixture.groupOwnerDidDocument.id, fixture.bobMemberDid],
       ),

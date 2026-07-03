@@ -105,6 +105,29 @@ ChannelRepository initChannelRepository() {
   return ChannelRepositoryImpl(storage: InMemoryStorage());
 }
 
+/// Waits until the Matrix room is ready for encrypted messaging between
+/// [localDid] and all [expectedDids]. Test-only; production code does not
+/// need this synchronisation step because natural latency hides the race.
+Future<void> waitForRoomEncryptionReady(
+  MeetingPlaceMatrixSDK sdk, {
+  required String localDid,
+  required Iterable<String> expectedDids,
+  Duration timeout = const Duration(seconds: 15),
+}) async {
+  final channel = await sdk.findChannelByDid(localDid);
+  final didManager = await sdk.getDidManager(localDid);
+  final roomId = await sdk.matrixService.resolveRoomIdForChannel(
+    didManager: didManager,
+    channel: channel,
+  );
+  await sdk.matrixService.waitForRoomEncryptionReady(
+    roomId: roomId,
+    didManager: didManager,
+    expectedDids: expectedDids,
+    timeout: timeout,
+  );
+}
+
 Future<MeetingPlaceChatSDK> initIndividualChatSDK({
   required MeetingPlaceCoreSDK coreSDK,
   required String did,

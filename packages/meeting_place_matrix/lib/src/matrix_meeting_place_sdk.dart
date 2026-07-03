@@ -5,7 +5,6 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show ChannelActivity, ControlPlaneSDK;
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_matrix.dart';
@@ -566,26 +565,6 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       default:
         return _coreSDK.fetchHistory(query);
     }
-  }
-
-  @visibleForTesting
-  Future<void> waitForRoomEncryptionReady({
-    required String localDid,
-    required Iterable<String> expectedDids,
-    Duration timeout = const Duration(seconds: 15),
-  }) async {
-    final channel = await _coreSDK.findChannelByDid(localDid);
-    final didManager = await _coreSDK.getDidManager(localDid);
-    final roomId = await matrixService.resolveRoomIdForChannel(
-      didManager: didManager,
-      channel: channel,
-    );
-    await matrixService.waitForRoomEncryptionReady(
-      roomId: roomId,
-      didManager: didManager,
-      expectedDids: expectedDids,
-      timeout: timeout,
-    );
   }
 
   bool _isTimelineEvent(TransportEvent event) {

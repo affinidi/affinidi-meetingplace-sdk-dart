@@ -1,3 +1,17 @@
+## Unreleased
+
+### Breaking Changes
+
+- Matrix-specific APIs and exports have been extracted from `meeting_place_core` into the new `meeting_place_matrix` package.
+
+- `meeting_place_core` no longer re-exports Matrix types such as `MatrixConfig`, `MatrixService`, `MatrixRoomEvent`, `MatrixReadReceiptEvent`, `MatrixSubscriptionOptions`, `MatrixUserIdBinding`, or `MatrixSdkDatabase`.
+
+- `MeetingPlaceCoreSDK.discovery` has been renamed to `MeetingPlaceCoreSDK.controlPlaneSDK`.
+
+### Added
+
+- `MeetingPlaceTransport`, `TransportEvent`, `TransportSubscriptionOptions`, and `NopTransport` provide a transport-agnostic channel messaging abstraction for `MeetingPlaceCoreSDK`.
+
 ## 0.0.1-dev.43
 
  - **FIX**: split media capabilities into images and videos (#254).

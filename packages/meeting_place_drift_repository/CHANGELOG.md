@@ -1,3 +1,13 @@
+## Unreleased
+
+### Added
+
+- Channel schema v5 now persists transport-aware channel state through `transport` and unified `messageSyncMarker` fields.
+
+### Changed
+
+- Matrix channel history cursors now use the unified `messageSyncMarker` field instead of a Matrix-specific sync marker column.
+
 ## 0.0.1-dev.50
 
  - **FIX**: persist attachment IDs (#256).

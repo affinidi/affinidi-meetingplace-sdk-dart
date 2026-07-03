@@ -1,3 +1,19 @@
+## Unreleased
+
+### Breaking Changes
+
+- `meeting_place_chat` now supports DIDComm individual chats only. Matrix-backed chat implementations and group chat support have moved to `meeting_place_matrix`.
+
+- `MeetingPlaceChatSDK.initialiseFromChannel(...)` has been replaced by synchronous `MeetingPlaceChatSDK.initialiseChatFromChannel(...)`.
+ - Passing a group channel or a Matrix channel now throws `ArgumentError`.
+ - Matrix consumers should initialize chat sessions from `meeting_place_matrix` instead.
+
+### Added
+
+- `MeetingPlaceChatSDK.updateMessage()` updates a persisted message and re-emits it on the chat stream so clients can refresh local UI state immediately.
+
+- `ChatGroupDetailsUpdate` is now re-exported from `package:meeting_place_chat/meeting_place_chat.dart`.
+
 ## 0.0.1-dev.50
 
  - **FIX**: persist attachment IDs (#256).

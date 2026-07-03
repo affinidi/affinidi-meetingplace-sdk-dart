@@ -22,6 +22,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   MeetingPlaceLiveKitCallPlugin({
     required Uri livekitServiceUrl,
     Uri? livekitSfuUrl,
+    List<String> sfuAllowedHosts = const [],
     Duration outgoingCallTimeout = const Duration(seconds: 60),
     Duration e2eeReadyTimeout = const Duration(seconds: 10),
     required matrix.WebRTCDelegate rtcDelegate,
@@ -29,6 +30,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     MeetingPlaceMatrixSDKLogger? logger,
   }) : _livekitServiceUrl = livekitServiceUrl,
        _livekitSfuUrl = livekitSfuUrl,
+       _sfuAllowedHosts = sfuAllowedHosts,
        _outgoingCallTimeout = outgoingCallTimeout,
        _e2eeReadyTimeout = e2eeReadyTimeout,
        _rtcDelegate = rtcDelegate,
@@ -37,10 +39,18 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
            logger ?? DefaultMeetingPlaceMatrixSDKLogger(className: _logKey),
        _incomingCallsController =
            StreamController<IncomingAudioVideoCallEvent>.broadcast(),
-       _cancelledCallsController = StreamController<String>.broadcast();
+       _cancelledCallsController = StreamController<String>.broadcast() {
+    if (_livekitSfuUrl == null && _sfuAllowedHosts.isEmpty) {
+      throw const MeetingPlaceLiveKitCallMisconfiguredException(
+        'sfuAllowedHosts must be non-empty in production mode '
+        '(livekitSfuUrl is null) to prevent SFU URL hijacking',
+      );
+    }
+  }
 
   final Uri _livekitServiceUrl;
   final Uri? _livekitSfuUrl;
+  final List<String> _sfuAllowedHosts;
   final Duration _outgoingCallTimeout;
   final Duration _e2eeReadyTimeout;
   final MeetingPlaceMatrixSDKLogger _logger;
@@ -286,6 +296,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       otherPartyChannelDid: otherPartyChannelDid,
       sdk: sdk,
       livekitSfuUrl: _livekitSfuUrl,
+      sfuAllowedHosts: _sfuAllowedHosts,
       e2eeReadyTimeout: _e2eeReadyTimeout,
       outgoingCallTimeout: _outgoingCallTimeout,
       rtcDelegate: _rtcDelegate,

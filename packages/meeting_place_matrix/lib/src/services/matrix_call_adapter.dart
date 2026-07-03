@@ -24,6 +24,7 @@ class MatrixCallAdapter {
     required MeetingPlaceMatrixSDKLogger logger,
     required String otherPartyChannelDid,
     required Uri? livekitSfuUrl,
+    required List<String> sfuAllowedHosts,
     required SfuTokenService livekitTokenService,
     required matrix.WebRTCDelegate rtcDelegate,
   }) : _matrixService = matrixService,
@@ -31,6 +32,7 @@ class MatrixCallAdapter {
        _logger = logger,
        _otherPartyChannelDid = otherPartyChannelDid,
        _livekitSfuUrl = livekitSfuUrl,
+       _sfuAllowedHosts = sfuAllowedHosts,
        _livekitTokenService = livekitTokenService,
        _rtcDelegate = rtcDelegate;
 
@@ -39,6 +41,7 @@ class MatrixCallAdapter {
   final MeetingPlaceMatrixSDKLogger _logger;
   final String _otherPartyChannelDid;
   final Uri? _livekitSfuUrl;
+  final List<String> _sfuAllowedHosts;
   final SfuTokenService _livekitTokenService;
   final matrix.WebRTCDelegate _rtcDelegate;
 
@@ -127,13 +130,13 @@ class MatrixCallAdapter {
       openIdCredentials: openIdToken,
       deviceId: deviceId,
     );
-    final sfuUrl = _livekitSfuUrl?.toString() ?? tokenResponse.url;
-    if (sfuUrl == null) {
-      throw const MeetingPlaceLiveKitCallOperationException(
-        'No LiveKit SFU URL available: set livekitSfuUrl in plugin options '
-        'or ensure lk-jwt-service returns a URL in the response',
-      );
-    }
+    final rawSfuUrl = _livekitSfuUrl?.toString() ?? tokenResponse.url;
+    final isServerSupplied = _livekitSfuUrl == null;
+    final sfuUrl = _validateSfuUrl(
+      rawSfuUrl,
+      _sfuAllowedHosts,
+      isServerSupplied: isServerSupplied,
+    ).toString();
     return (
       didManager: didManager,
       matrixRoomId: matrixRoomId,
@@ -289,6 +292,88 @@ class MatrixCallAdapter {
   void clearIds() {
     _matrixRoomId = null;
     _matrixCallId = null;
+  }
+
+  /// Validates the SFU URL for security: enforces wss:// scheme and checks
+  /// against the allowlist when configured.
+  ///
+  /// Throws [MeetingPlaceLiveKitCallOperationException] if:
+  /// - The URL is null, empty, or invalid.
+  /// - The scheme is not `wss` (server-supplied URLs), or not `wss`/`ws`
+  ///   (app-supplied URLs, where [isServerSupplied] is false).
+  /// - [isServerSupplied] is true and [allowedHosts] is empty (production
+  ///   mode requires allowlist).
+  /// - The host is not in [allowedHosts] when the list is non-empty.
+  ///
+  /// Supports wildcard patterns in [allowedHosts] (e.g. `*.example.com`).
+  Uri _validateSfuUrl(
+    String? rawUrl,
+    List<String> allowedHosts, {
+    required bool isServerSupplied,
+  }) {
+    if (rawUrl == null || rawUrl.isEmpty) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'No LiveKit SFU URL available: set livekitSfuUrl in plugin options '
+        'or ensure lk-jwt-service returns a URL in the response',
+      );
+    }
+    final uri = Uri.tryParse(rawUrl);
+    // Server-supplied URLs must use wss:// (TLS). App-supplied URLs
+    // (livekitSfuUrl) may use ws:// for local development, since the
+    // application controls the value and it cannot be tampered with by a
+    // compromised JWT service.
+    final schemeIsAllowed = isServerSupplied
+        ? uri?.scheme == 'wss'
+        : uri?.scheme == 'wss' || uri?.scheme == 'ws';
+    if (uri == null || !schemeIsAllowed) {
+      final allowedSchemes = isServerSupplied ? 'wss://' : 'wss:// or ws://';
+      throw MeetingPlaceLiveKitCallOperationException(
+        'SFU URL must use $allowedSchemes scheme, '
+        'got: ${uri?.scheme ?? "null"}',
+      );
+    }
+    // Production requirement: server-supplied URLs must have allowlist. This
+    // is also enforced eagerly in the plugin constructor; kept here as a
+    // defense-in-depth check at the connection choke point.
+    if (isServerSupplied && allowedHosts.isEmpty) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Security violation: sfuAllowedHosts must be configured when using '
+        'server-supplied SFU URLs (livekitSfuUrl is null). '
+        'Set sfuAllowedHosts '
+        'in plugin options to prevent compromised JWT services from redirecting'
+        ' media to attacker-controlled servers.',
+      );
+    }
+    if (allowedHosts.isNotEmpty) {
+      final host = uri.host;
+      if (!_hostMatchesAllowlist(host, allowedHosts)) {
+        throw MeetingPlaceLiveKitCallOperationException(
+          'SFU host "$host" is not in the allowlist',
+        );
+      }
+    }
+    return uri;
+  }
+
+  /// Returns whether [host] matches any entry in [allowedHosts].
+  ///
+  /// A `*.` prefix is a single-label wildcard: `*.affinidi.io` matches
+  /// `livekit.affinidi.io` but not the apex `affinidi.io` nor deeper
+  /// subdomains such as `evil.sub.affinidi.io`. All other entries require an
+  /// exact host match.
+  bool _hostMatchesAllowlist(String host, List<String> allowedHosts) {
+    return allowedHosts.any((pattern) {
+      if (pattern.startsWith('*.')) {
+        final suffix = pattern.substring(
+          1,
+        ); // '*.affinidi.io' -> '.affinidi.io'
+        if (!host.endsWith(suffix)) return false;
+        final label = host.substring(0, host.length - suffix.length);
+        // Wildcard covers exactly one label; reject empty or dotted labels.
+        return label.isNotEmpty && !label.contains('.');
+      }
+      return host == pattern;
+    });
   }
 
   Future<String?> _resolveExistingCallId({

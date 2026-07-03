@@ -12,6 +12,7 @@ MeetingPlaceLiveKitCallPlugin _plugin({
 }) => MeetingPlaceLiveKitCallPlugin(
   livekitServiceUrl:
       livekitServiceUrl ?? Uri.parse('https://livekit.example.com'),
+  sfuAllowedHosts: const ['livekit.example.com'],
   rtcDelegate: FakeWebRTCDelegate(),
   roomFactory: roomFactory ?? fakeLiveKitRoomFactory(),
 );

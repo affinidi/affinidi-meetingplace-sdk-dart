@@ -24,6 +24,7 @@ class AudioVideoCallService {
     required this.otherPartyChannelDid,
     required MeetingPlaceMatrixSDK sdk,
     required Uri? livekitSfuUrl,
+    required List<String> sfuAllowedHosts,
     required Duration e2eeReadyTimeout,
     required Duration outgoingCallTimeout,
     required matrix.WebRTCDelegate rtcDelegate,
@@ -40,6 +41,7 @@ class AudioVideoCallService {
          logger: logger,
          otherPartyChannelDid: otherPartyChannelDid,
          livekitSfuUrl: livekitSfuUrl,
+         sfuAllowedHosts: sfuAllowedHosts,
          livekitTokenService: livekitTokenService,
          rtcDelegate: rtcDelegate,
        ) {

@@ -5,8 +5,7 @@
 ///
 /// The capability set for each kind of chat is declared by the chat SDK that
 /// owns and enforces those features, and exposed through its `capabilities`
-/// getter: `IndividualDidcommChatSDK`, `IndividualMatrixChatSDK`, and
-/// `GroupMatrixChatSDK`.
+/// getter.
 library;
 
 /// A discrete feature that a chat may or may not support.

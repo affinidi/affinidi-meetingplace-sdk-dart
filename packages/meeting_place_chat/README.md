@@ -56,8 +56,6 @@ if (chatSDK.capabilities.supports(ChatFeature.reactions)) {
 `MeetingPlaceChatSDK.initialiseChatFromChannel(...)` only supports channels
 whose transport is `ChannelTransport.didcomm`.
 
-For Matrix-based chat and group chat capabilities, use `meeting_place_matrix`.
-
 ## Requirements
 
 - Dart SDK `^3.8.0`

@@ -1,5 +1,5 @@
 /// Transport-neutral representation of an incoming chat event delivered to
-/// chat-level handlers. Transport adapters (e.g., Matrix) translate
+/// chat-level handlers. Transport adapters translate
 /// transport-specific events into this shape before dispatch.
 class IncomingChatEvent {
   IncomingChatEvent({

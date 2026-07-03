@@ -24,9 +24,7 @@ import '../logger/top_and_tail_extension.dart';
 ///
 /// All wire-level operations (sending text/reactions/edits/deliveries/presence/
 /// activity/contact-details updates, subscribing to incoming events, fetching
-/// history) are abstract and implemented by transport-flavoured subclasses
-/// such as `GroupMatrixChatSDK`, `IndividualMatrixChatSDK`, or
-/// `IndividualDidcommChatSDK`.
+/// history) are abstract and implemented by transport-flavoured subclasses.
 abstract class BaseChatSDK {
   BaseChatSDK({
     required this.coreSDK,
@@ -99,8 +97,7 @@ abstract class BaseChatSDK {
   }
 
   /// Retrieves all messages for this chat. Implementation depends on the
-  /// underlying transport — Matrix replays the timeline, DIDComm returns the
-  /// locally persisted set.
+  /// underlying transport.
   Future<List<ChatItem>> get messages;
 
   /// Retrieves a single message by ID.

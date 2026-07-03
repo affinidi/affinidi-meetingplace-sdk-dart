@@ -85,7 +85,7 @@ class ChatAttachment {
 
   /// Transport-level reference for downloading this attachment's bytes.
   ///
-  /// For Matrix hosted media, this is the event id of the `m.room.message`
+  /// For hosted media, this is the event id of the `m.room.message`
   /// event carrying the single file. For DIDComm inline attachments this is
   /// `null` because the bytes ride inside [data]. Populated by the sender
   /// after upload completes and by the receiver from the originating

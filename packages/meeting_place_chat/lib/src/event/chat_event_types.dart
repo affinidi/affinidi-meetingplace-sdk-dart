@@ -3,7 +3,7 @@ import 'chat_event_handler.dart' show ChatEventHandler;
 import 'event.dart' show ChatEventHandler;
 
 /// Transport-neutral identifiers for chat events. Used as dispatch keys for
-/// [ChatEventHandler]s. Each transport (Matrix, DIDComm, ...) is responsible
+/// [ChatEventHandler]s. Each transport is responsible
 /// for translating its native event type into one of these values before
 /// invoking a chat-layer handler.
 abstract final class ChatEventTypes {

@@ -1,11 +1,14 @@
 // ignore_for_file: invalid_use_of_protected_member
 
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/chat/group/group_matrix_chat_sdk.dart';
 import 'package:meeting_place_matrix/src/chat/group/group_room_event_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+import '../../../../meeting_place_matrix.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 

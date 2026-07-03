@@ -1,8 +1,9 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/event/chat_event_conversion.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/outgoing/effect_room_event.dart';
 import 'package:test/test.dart';
+
+import '../../meeting_place_matrix.dart';
 
 void main() {
   group('MatrixRoomEvent.toChatEvent (DIDComm-URI based mapping)', () {

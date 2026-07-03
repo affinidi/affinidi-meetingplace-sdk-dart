@@ -1,14 +1,16 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import '../../../meeting_place_matrix.dart';
 
+import '../../matrix_room_event.dart';
+import '../../matrix_user_id_binding.dart';
 import '../../transport/matrix/incoming/incoming_room_event_router.dart';
 import 'event_handler/contact_details_update_handler.dart';
 import 'event_handler/group_deletion_handler.dart';
 import 'event_handler/group_details_update_handler.dart';
 import 'event_handler/member_deregistered_handler.dart';
 import 'event_handler/member_joined_handler.dart';
+import 'group_matrix_chat_sdk.dart';
 
 /// Routes incoming Matrix room events for a [GroupMatrixChatSDK]. Extends the
 /// common [IncomingRoomEventRouter] dispatch with transport-neutral

@@ -1,3 +1,4 @@
+export 'call_item_room_event.dart';
 export 'chat_typing_notification.dart';
 export 'contact_details_update_room_event.dart';
 export 'contact_details_update_sender.dart';

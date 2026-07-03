@@ -28,7 +28,7 @@ void main() {
   late OfferFinalisedEventHandler handler;
   late MockWallet mockWallet;
   late MockIdentityService mockIdentityService;
-  late MockMeetingPlaceTransport mockMatrixService;
+  late MockMeetingPlaceTransport mockMeetingPlaceTransport;
   late MockControlPlaneSDK mockControlPlaneSDK;
   late MockDidResolver mockDidResolver;
   late MockChannelService mockChannelService;
@@ -100,7 +100,7 @@ void main() {
   setUp(() {
     mockWallet = MockWallet();
     mockIdentityService = MockIdentityService();
-    mockMatrixService = MockMeetingPlaceTransport();
+    mockMeetingPlaceTransport = MockMeetingPlaceTransport();
     mockControlPlaneSDK = MockControlPlaneSDK();
     mockDidResolver = MockDidResolver();
     mockChannelService = MockChannelService();
@@ -118,7 +118,7 @@ void main() {
       mediatorService: mockMediatorService,
       controlPlaneSDK: mockControlPlaneSDK,
       didResolver: mockDidResolver,
-      channelTransport: mockMatrixService,
+      channelTransport: mockMeetingPlaceTransport,
       identityService: mockIdentityService,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: DefaultMeetingPlaceCoreSDKLogger(),
@@ -230,7 +230,7 @@ void main() {
       final channel = createChannel(transport: ChannelTransport.matrix);
 
       when(
-        () => mockMatrixService.joinChannel(
+        () => mockMeetingPlaceTransport.joinChannel(
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
         ),
@@ -244,7 +244,7 @@ void main() {
       );
 
       verify(
-        () => mockMatrixService.joinChannel(
+        () => mockMeetingPlaceTransport.joinChannel(
           channel: any(named: 'channel'),
           didManager: mockPermanentDidManager,
         ),
@@ -262,7 +262,7 @@ void main() {
       );
 
       verifyNever(
-        () => mockMatrixService.joinChannel(
+        () => mockMeetingPlaceTransport.joinChannel(
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
         ),

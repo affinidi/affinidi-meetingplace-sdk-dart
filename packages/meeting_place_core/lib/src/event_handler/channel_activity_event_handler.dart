@@ -9,7 +9,7 @@ import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/mediator/mediator_service.dart';
 import '../transport/meeting_place_transport.dart';
-import '../vdip/channel_activity_type.dart';
+import 'channel_activity_type.dart';
 import 'channel_inauguration_event_handler.dart';
 import 'chat_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
@@ -52,7 +52,7 @@ class ChannelActivityEventHandler {
     );
 
     switch (channelActivity.type) {
-      case 'channel-inauguration':
+      case ChannelActivityType.channelInauguration:
         _logger.info('Processing channel inauguration event', name: _logKey);
         return ChannelInaugurationEventHandler(
           wallet: _wallet,
@@ -63,7 +63,7 @@ class ChannelActivityEventHandler {
           options: _options,
           logger: _logger,
         ).process(channelActivity);
-      case 'chat-activity':
+      case ChannelActivityType.chatActivity:
         _logger.info('Processing chat activity event', name: _logKey);
         return ChatActivityEventHandler(
           wallet: _wallet,
@@ -89,11 +89,14 @@ class ChannelActivityEventHandler {
           logger: _logger,
         ).process(channelActivity);
       default:
-        _logger.warning(
-          'Unsupported channel activity type: ${channelActivity.type}',
+        _logger.info(
+          '''Unhandled channel activity type: ${channelActivity.type} — forwarding to stream''',
           name: _logKey,
         );
-        return [];
+        final channel = await _channelService.findChannelByDid(
+          channelActivity.did,
+        );
+        return [channel];
     }
   }
 

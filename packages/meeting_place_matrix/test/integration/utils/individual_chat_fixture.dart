@@ -4,6 +4,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 
 import '../../utils/contact_card_fixture.dart' as fixtures;
+import '../../utils/sdk.dart';
 import '../../utils/setup_chat_sdk.dart';
 
 class IndividualChatFixture {
@@ -62,11 +63,13 @@ class IndividualChatFixture {
     // channel. otherPartyPermanentChannelDid is the peer's Matrix identity.
     if (transport == ChannelTransport.matrix) {
       await Future.wait([
-        fixture.aliceSDK.coreSDK.waitForRoomEncryptionReady(
+        waitForRoomEncryptionReady(
+          fixture.aliceSDK.coreSDK,
           localDid: aliceChannel.permanentChannelDid!,
           expectedDids: [aliceChannel.otherPartyPermanentChannelDid!],
         ),
-        fixture.bobSDK.coreSDK.waitForRoomEncryptionReady(
+        waitForRoomEncryptionReady(
+          fixture.bobSDK.coreSDK,
           localDid: bobChannel.permanentChannelDid!,
           expectedDids: [bobChannel.otherPartyPermanentChannelDid!],
         ),

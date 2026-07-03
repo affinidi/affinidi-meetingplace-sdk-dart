@@ -1,17 +1,18 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/event_handler/channel_activity_event_handler.dart';
-import 'package:meeting_place_core/src/event_handler/control_plane_event_handler_manager_options.dart';
-import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../fixtures/contact_card_fixture.dart';
 import 'mocks/mocks.dart';
 
 void main() {
   late ChannelActivityEventHandler handler;
   late MockLogger mockLogger;
   late MockConnectionOfferRepository mockConnectionOfferRepository;
+  late MockChannelService mockChannelService;
 
   final event = ChannelActivity(
     id: const Uuid().v4(),
@@ -28,6 +29,7 @@ void main() {
   setUp(() {
     mockLogger = MockLogger();
     mockConnectionOfferRepository = MockConnectionOfferRepository();
+    mockChannelService = MockChannelService();
 
     when(
       () => mockLogger.info(any(), name: any(named: 'name')),
@@ -37,7 +39,7 @@ void main() {
       wallet: MockWallet(),
       mediatorService: MockMediatorService(),
       connectionManager: MockConnectionManager(),
-      channelService: MockChannelService(),
+      channelService: mockChannelService,
       channelTransport: MockMeetingPlaceTransport(),
       connectionOfferRepository: mockConnectionOfferRepository,
       options: const ControlPlaneEventHandlerManagerOptions(),
@@ -68,5 +70,37 @@ void main() {
         isFalse,
       );
     });
+
+    test(
+      '''process returns channel for unhandled activity type (e.g. call-invite-video)''',
+      () async {
+        const channelDid = 'did:key:channel';
+        final channel = Channel(
+          offerLink: 'offer',
+          publishOfferDid: 'pubDid',
+          mediatorDid: 'medDid',
+          status: ChannelStatus.inaugurated,
+          contactCard: ContactCardFixture.getContactCardFixture(),
+          type: ChannelType.individual,
+          transport: ChannelTransport.matrix,
+          isConnectionInitiator: true,
+          permanentChannelDid: channelDid,
+        );
+
+        when(
+          () => mockChannelService.findChannelByDid(channelDid),
+        ).thenAnswer((_) async => channel);
+
+        final unknownActivity = ChannelActivity(
+          id: const Uuid().v4(),
+          did: channelDid,
+          type: 'call-invite-video',
+        );
+
+        final result = await handler.process(unknownActivity);
+
+        expect(result, [channel]);
+      },
+    );
   });
 }

@@ -12,7 +12,7 @@ const _permanentChannelDid = 'did:key:permanent-channel';
 const _channelDid = 'did:key:channel';
 const _mediatorDid = 'did:web:mediator';
 
-Channel _matrixChannel({String? matrixSyncMarker, int seqNo = 0}) {
+Channel _matrixChannel({String? messageSyncMarker, int seqNo = 0}) {
   return Channel(
     offerLink: 'offer-link',
     publishOfferDid: _channelDid,
@@ -27,7 +27,7 @@ Channel _matrixChannel({String? matrixSyncMarker, int seqNo = 0}) {
     type: ChannelType.individual,
     transport: ChannelTransport.matrix,
     permanentChannelDid: _permanentChannelDid,
-    matrixSyncMarker: matrixSyncMarker,
+    messageSyncMarker: messageSyncMarker,
     seqNo: seqNo,
   );
 }
@@ -164,7 +164,7 @@ void main() {
     ).thenAnswer((_) async => mockDidManager);
 
     when(
-      () => mockChannelService.updateMatrixSyncMarker(any(), any()),
+      () => mockChannelService.updateMessageSyncMarker(any(), any()),
     ).thenAnswer((_) async {});
 
     when(() => mockMatrixService.isNewInboundMessage(any())).thenAnswer((inv) {
@@ -179,7 +179,7 @@ void main() {
     test(
       'bumps seqNo and updates sync marker for inbound new messages',
       () async {
-        final channel = _matrixChannel(matrixSyncMarker: r'$prev');
+        final channel = _matrixChannel(messageSyncMarker: r'$prev');
         final events = [
           _inboundMessage(id: r'$evt1'),
           _inboundMessage(id: r'$evt2'),
@@ -201,14 +201,14 @@ void main() {
 
         expect(channel.seqNo, equals(2));
         verify(
-          () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt2'),
+          () => mockChannelService.updateMessageSyncMarker(channel, r'$evt2'),
         ).called(1);
       },
     );
 
-    test('passes channel matrixSyncMarker as since to fetchHistory', () async {
+    test('passes channel messageSyncMarker as since to fetchHistory', () async {
       const marker = r'$stored-marker';
-      final channel = _matrixChannel(matrixSyncMarker: marker);
+      final channel = _matrixChannel(messageSyncMarker: marker);
 
       when(
         () => mockChannelService.findChannelByDid(_channelDid),
@@ -238,7 +238,7 @@ void main() {
     test(
       'returns early without updating marker when no events are fetched',
       () async {
-        final channel = _matrixChannel(matrixSyncMarker: r'$prev');
+        final channel = _matrixChannel(messageSyncMarker: r'$prev');
 
         when(
           () => mockChannelService.findChannelByDid(_channelDid),
@@ -256,7 +256,7 @@ void main() {
 
         expect(channel.seqNo, equals(0));
         verifyNever(
-          () => mockChannelService.updateMatrixSyncMarker(any(), any()),
+          () => mockChannelService.updateMessageSyncMarker(any(), any()),
         );
       },
     );
@@ -286,7 +286,7 @@ void main() {
 
         expect(channel.seqNo, equals(0));
         verify(
-          () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt2'),
+          () => mockChannelService.updateMessageSyncMarker(channel, r'$evt2'),
         ).called(1);
       },
     );
@@ -313,7 +313,7 @@ void main() {
 
         expect(channel.seqNo, equals(0));
         verify(
-          () => mockChannelService.updateMatrixSyncMarker(channel, r'$edit1'),
+          () => mockChannelService.updateMessageSyncMarker(channel, r'$edit1'),
         ).called(1);
       },
     );
@@ -341,10 +341,11 @@ void main() {
       await handler.process(channelActivity);
 
       verify(
-        () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt-last'),
+        () => mockChannelService.updateMessageSyncMarker(channel, r'$evt-last'),
       ).called(1);
       verifyNever(
-        () => mockChannelService.updateMatrixSyncMarker(channel, r'$evt-first'),
+        () =>
+            mockChannelService.updateMessageSyncMarker(channel, r'$evt-first'),
       );
     });
   });

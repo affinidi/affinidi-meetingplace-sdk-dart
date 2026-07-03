@@ -1,8 +1,13 @@
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
+import 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
+import 'package:meeting_place_chat/meeting_place_chat.dart'
+    show MeetingPlaceChatSDK, MeetingPlaceChatSDKOptions;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/chat/group/group_matrix_chat_sdk.dart';
+import 'package:meeting_place_matrix/src/chat/individual/individual_matrix_chat_sdk.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
@@ -76,7 +81,7 @@ MatrixConfig getMatrixConfig() {
   );
 }
 
-Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
+Future<MeetingPlaceMatrixSDK> initCoreSDKInstance({
   Wallet? wallet,
   GroupRepository? groupRepository,
   ChannelRepository? channelRepository,
@@ -103,6 +108,29 @@ Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
 
 ChannelRepository initChannelRepository() {
   return ChannelRepositoryImpl(storage: InMemoryStorage());
+}
+
+/// Waits until the Matrix room is ready for encrypted messaging between
+/// [localDid] and all [expectedDids]. Test-only; production code does not
+/// need this synchronisation step because natural latency hides the race.
+Future<void> waitForRoomEncryptionReady(
+  MeetingPlaceMatrixSDK sdk, {
+  required String localDid,
+  required Iterable<String> expectedDids,
+  Duration timeout = const Duration(seconds: 15),
+}) async {
+  final channel = await sdk.findChannelByDid(localDid);
+  final didManager = await sdk.getDidManager(localDid);
+  final roomId = await sdk.matrixService.resolveRoomIdForChannel(
+    didManager: didManager,
+    channel: channel,
+  );
+  await sdk.matrixService.waitForRoomEncryptionReady(
+    roomId: roomId,
+    didManager: didManager,
+    expectedDids: expectedDids,
+    timeout: timeout,
+  );
 }
 
 Future<MeetingPlaceChatSDK> initIndividualChatSDK({

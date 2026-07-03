@@ -3,11 +3,13 @@ import 'dart:typed_data';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/chat/individual/individual_contact_details_update_handler.dart';
+import 'package:meeting_place_matrix/src/matrix_media_reference.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/outgoing/contact_details_update_sender.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+import '../../../../meeting_place_matrix.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 

@@ -1,4 +1,4 @@
-import '../../../../meeting_place_matrix.dart';
+import '../group_matrix_chat_sdk.dart';
 
 /// Common shape for all group chat side-effects that are extracted from
 /// [GroupMatrixChatSDK]. Each action wraps a single SDK-bound operation,

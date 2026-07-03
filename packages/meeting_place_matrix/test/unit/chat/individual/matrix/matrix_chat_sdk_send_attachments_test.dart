@@ -2,10 +2,15 @@ import 'dart:typed_data';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
+import 'package:meeting_place_matrix/src/chat/individual/individual_matrix_chat_sdk.dart';
+import 'package:meeting_place_matrix/src/matrix_media_reference.dart';
+import 'package:meeting_place_matrix/src/matrix_outgoing_message.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/outgoing/chat_typing_notification.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../_helpers/mocks.dart';
 
@@ -450,6 +455,40 @@ void main() {
         throwsA(isA<StateError>()),
       );
     });
+
+    test(
+      '''metadata-only attachment sends as mpx.call.item room event''',
+      () async {
+        final callMetadata = {'call_status': 'calling', 'media_kind': 'call'};
+        final attachment = ChatAttachment(
+          id: const Uuid().v4(),
+          metadata: callMetadata,
+        );
+
+        final capturedMessages = <MatrixOutgoingMessage>[];
+        when(() => core.sendMessage(any())).thenAnswer((inv) async {
+          capturedMessages.add(
+            inv.positionalArguments.first as MatrixOutgoingMessage,
+          );
+          return '\$call-event-id';
+        });
+
+        final message = await sdk.sendTextMessage(
+          '',
+          attachments: [attachment],
+        );
+
+        final callItemEvent = capturedMessages.firstWhere(
+          (m) => m.type == MpxCallEventType.callItem,
+        );
+        expect(
+          callItemEvent.content[MatrixEventField.callMetadata],
+          callMetadata,
+        );
+        expect(message.attachments, hasLength(1));
+        expect(message.attachments.first.metadata, callMetadata);
+      },
+    );
 
     test(
       'notification is passed only on the last sendMediaMessage call',

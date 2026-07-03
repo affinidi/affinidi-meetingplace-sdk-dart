@@ -446,15 +446,15 @@ void main() {
 
     test('updateChannelSequence updates seqNo and messageSyncMarker', () async {
       when(() => repository.updateChannel(any())).thenAnswer((_) async {});
-      final now = DateTime.now();
+      const marker = '2026-06-18T12:00:00.000Z';
       await service.updateChannelSequence(
         channel,
         sequenceNumber: 99,
-        messageSyncMarker: now,
+        messageSyncMarker: marker,
       );
       verify(() => repository.updateChannel(channel)).called(1);
       expect(channel.seqNo, 99);
-      expect(channel.messageSyncMarker, now);
+      expect(channel.messageSyncMarker, marker);
     });
   });
 }

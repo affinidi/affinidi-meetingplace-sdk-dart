@@ -29,6 +29,10 @@ class MatrixEventField {
   /// Stores the [ChatAttachment.format] for media events so the receiver
   /// can reconstruct the original format of each attachment.
   static const attachmentFormat = 'mp_attachment_format';
+
+  /// Embeds call item metadata in `mpx.call.item` room events so the
+  /// receiver can reconstruct the [ChatAttachment] without a file download.
+  static const callMetadata = 'mp_call_metadata';
 }
 
 /// Matrix-specific helpers for parsing and inspecting media attachments
@@ -60,7 +64,9 @@ class MatrixMediaAttachments {
   /// encrypted-file metadata are intentionally not surfaced to SDK consumers.
   static List<ChatAttachment> extractFromContent(Map<String, dynamic> content) {
     final msgtype = _stringValue(content['msgtype']);
-    if (msgtype == null || !_mediaMsgTypes.contains(msgtype)) {
+    if (msgtype == null) return const <ChatAttachment>[];
+
+    if (!_mediaMsgTypes.contains(msgtype)) {
       return const [];
     }
 

@@ -8,7 +8,7 @@ import 'transport_subscription_options.dart';
 
 /// Transport-agnostic abstraction over channel-based messaging backends.
 ///
-/// Each concrete transport (Matrix, DIDComm) implements this interface so that
+/// Each concrete transport implements this interface so that
 /// MeetingPlaceCoreSDK and its services have zero dependency on any
 /// specific messaging protocol.
 ///
@@ -22,7 +22,7 @@ abstract interface class MeetingPlaceTransport {
 
   /// Authenticates [didManager]'s identity with the transport backend.
   ///
-  /// For Matrix this performs a JWT exchange via the control plane and logs
+  /// Performs a JWT exchange via the control plane and logs
   /// in. For DIDComm this is typically a no-op.
   Future<void> authenticate(DidManager didManager);
 
@@ -32,7 +32,7 @@ abstract interface class MeetingPlaceTransport {
 
   /// Creates or initialises the underlying channel resource for [channel].
   ///
-  /// For Matrix this creates an encrypted room and invites [participantDids].
+  /// Creates an encrypted room and invites [participantDids].
   /// For DIDComm this is a no-op (the mediator access list is managed
   /// separately).
   Future<void> setupChannel({
@@ -42,8 +42,6 @@ abstract interface class MeetingPlaceTransport {
   });
 
   /// Joins [channel]'s underlying resource when it already exists.
-  ///
-  /// For Matrix this accepts an existing room invitation.
   Future<void> joinChannel({
     required Channel channel,
     required DidManager didManager,
@@ -56,9 +54,6 @@ abstract interface class MeetingPlaceTransport {
   });
 
   /// Invites [participantDid] to [channel].
-  ///
-  /// For Matrix this sends a room invitation. DIDComm is a no-op
-  /// (group membership is managed via the control plane).
   Future<void> inviteToChannel({
     required Channel channel,
     required String participantDid,
@@ -66,8 +61,6 @@ abstract interface class MeetingPlaceTransport {
   });
 
   /// Removes [participantDid] from [channel].
-  ///
-  /// For Matrix this kicks the user from the room. DIDComm is a no-op.
   Future<void> removeFromChannel({
     required Channel channel,
     required String participantDid,
@@ -81,7 +74,7 @@ abstract interface class MeetingPlaceTransport {
   /// Returns a live stream of events for [channel].
   ///
   /// [participantDids] is used by implementations that cannot natively map
-  /// transport user IDs back to DIDs (e.g. Matrix) — the implementation
+  /// transport user IDs back to DIDs — the implementation
   /// resolves [TransportEvent.senderDid] using these candidates before emitting
   /// each event.
   Stream<TransportEvent> subscribe({
@@ -110,8 +103,8 @@ abstract interface class MeetingPlaceTransport {
 
   /// Sends a typed event to [channel].
   ///
-  /// Returns the transport-assigned event id (e.g. a Matrix `\$eventId`), or
-  /// null for transports / event types that do not produce one.
+  /// Returns the transport id, or null for transports / event types that do
+  /// not produce one.
   Future<String?> sendEvent({
     required Channel channel,
     required String type,
@@ -149,7 +142,7 @@ abstract interface class MeetingPlaceTransport {
   // Misc
   // ---------------------------------------------------------------------------
 
-  /// The backend server identifier (e.g. Matrix server name, mediator DID).
+  /// The backend server identifier.
   /// Null if the transport does not have a single server identity.
   String? get serverId;
 

@@ -56,7 +56,9 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
 
   Future<void> _syncFromMediator(Channel channel) async {
     final didManager = await findDidManager(channel);
-    var messageSyncMarker = channel.messageSyncMarker;
+    var messageSyncMarker = channel.messageSyncMarker != null
+        ? DateTime.parse(channel.messageSyncMarker!)
+        : null;
 
     final messages = await mediatorService.fetchMessages(
       didManager: didManager,
@@ -89,7 +91,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
     await channelService.updateChannelSequence(
       channel,
       sequenceNumber: updatedMessageSeqNumber ?? channel.seqNo,
-      messageSyncMarker: messageSyncMarker,
+      messageSyncMarker: messageSyncMarker?.toUtc().toIso8601String(),
     );
   }
 
@@ -99,7 +101,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
     final events = await _channelTransport.fetchHistory(
       channel: channel,
       didManager: didManager,
-      since: channel.matrixSyncMarker,
+      since: channel.messageSyncMarker,
     );
 
     if (events.isEmpty) return;
@@ -111,7 +113,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       channel.seqNo += inboundChatCount;
     }
 
-    await channelService.updateMatrixSyncMarker(channel, events.last.id);
+    await channelService.updateMessageSyncMarker(channel, events.last.id);
   }
 
   @override

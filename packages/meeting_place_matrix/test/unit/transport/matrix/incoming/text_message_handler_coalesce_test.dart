@@ -1,7 +1,8 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/matrix_room_event.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/incoming/message_edit_handler.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/incoming/text_message_handler.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 

@@ -1,8 +1,9 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import '../../../../meeting_place_matrix.dart';
 
 import '../../../entity/message_matrix_factory.dart';
 import '../../../event/chat_event_conversion.dart';
+import '../../../matrix_room_event.dart';
+import '../matrix_media_attachment.dart';
 import 'message_edit_handler.dart';
 
 /// Handles incoming `m.room.message` events. Persists the message and pushes

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_core/src/entity/channel.dart';
+import 'package:meeting_place_core/src/event_handler/channel_activity_type.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
@@ -10,7 +11,6 @@ import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_stream_subscription_wrapper.dart';
 import 'package:meeting_place_core/src/service/message/message_service.dart';
-import 'package:meeting_place_core/src/vdip/channel_activity_type.dart';
 import 'package:meeting_place_core/src/vdip/vdip_client.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show MediatorStreamProcessingResult;

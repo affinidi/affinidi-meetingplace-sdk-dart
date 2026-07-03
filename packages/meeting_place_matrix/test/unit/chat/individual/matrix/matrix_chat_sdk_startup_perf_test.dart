@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/chat/individual/individual_matrix_chat_sdk.dart';
+import 'package:meeting_place_matrix/src/matrix_room_subscription.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
@@ -256,7 +257,10 @@ void main() {
         );
         await Future<void>.delayed(Duration.zero);
 
-        expect(channel.messageSyncMarker, equals(createdTime));
+        expect(
+          channel.messageSyncMarker,
+          equals(createdTime.toUtc().toIso8601String()),
+        );
         verify(() => core.updateChannel(channel)).called(1);
       },
     );
@@ -281,7 +285,7 @@ void main() {
     test(
       '''does not regress marker when incoming createdTime is older than existing''',
       () async {
-        final existingMarker = DateTime.utc(2026, 6, 18, 12);
+        const existingMarker = '2026-06-18T12:00:00.000Z';
         channel.messageSyncMarker = existingMarker;
 
         await sdk.startChatSession();

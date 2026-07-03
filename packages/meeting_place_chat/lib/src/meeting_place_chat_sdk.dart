@@ -64,8 +64,7 @@ abstract interface class MeetingPlaceChatSDK {
   TransportCapabilities get capabilities;
 
   /// All messages for this chat, ordered as the underlying transport returns
-  /// them. Matrix replays the room timeline; DIDComm returns the locally
-  /// persisted set.
+  /// them.
   Future<List<ChatItem>> get messages;
 
   /// Stream of live chat events for this session, or `null` if
@@ -98,8 +97,7 @@ abstract interface class MeetingPlaceChatSDK {
   });
 
   /// Downloads and decrypts the media bytes referenced by
-  /// [attachment]. The wire-level reference
-  /// ([ChatAttachment.transportId] for Matrix; inline base64 for DIDComm)
+  /// [attachment]. The wire-level reference ([ChatAttachment.transportId])
   /// is resolved internally so app code never sees encryption keys or
   /// transport URIs.
   Future<Uint8List> downloadMedia(ChatAttachment attachment);
@@ -114,6 +112,10 @@ abstract interface class MeetingPlaceChatSDK {
   /// broadcasts a redaction so all participants drop the message; allowed
   /// only within `deleteMessageWindow`.
   Future<void> deleteMessage(Message message, {bool localOnly = false});
+
+  /// Updates a persisted [message] in the local repository and re-emits it
+  /// to the chat stream so the UI reflects the change immediately.
+  Future<void> updateMessage(Message message);
 
   /// Maximum age at which the original sender can still delete one of their
   /// own messages for everyone. Mirrors
@@ -160,9 +162,8 @@ abstract interface class MeetingPlaceChatSDK {
 
   /// Transport-neutral escape hatch for sending an arbitrary event with the
   /// given [type] and [payload] to the other participants. The concrete
-  /// transport (Matrix room event or DIDComm plain text message) is chosen by
-  /// the implementation; the SDK does not persist a [ChatItem] for the sender
-  /// and does not push to the chat stream.
+  /// transport is chosen by the implementation; the SDK does not persist a
+  /// [ChatItem] for the sender and does not push to the chat stream.
   Future<void> sendCustomEvent({
     required String type,
     required Map<String, dynamic> payload,

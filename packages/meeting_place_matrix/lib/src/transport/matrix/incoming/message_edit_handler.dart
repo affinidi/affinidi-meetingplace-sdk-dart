@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 
-import '../../../../meeting_place_matrix.dart';
 import '../../../event/chat_event_conversion.dart';
+import '../../../matrix_room_event.dart';
 import 'target_message_resolver.dart';
 
 /// Handles incoming `m.room.message` events that carry an `m.replace`

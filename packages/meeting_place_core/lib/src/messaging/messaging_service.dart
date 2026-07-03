@@ -16,9 +16,8 @@ import 'media_reference.dart';
 import 'outgoing_message.dart';
 
 /// Transport-agnostic facade for the send / subscribe / fetchHistory message
-/// operations. Dispatches each call to the appropriate transport (Matrix or
-/// DIDComm). Exception wrapping is handled by the caller (typically the
-/// meeting place core SDK).
+/// operations. Dispatches each call to the appropriate transport. Exception
+/// wrapping is handled by the caller (typically the meeting place core SDK).
 class MessagingService {
   MessagingService({
     required MeetingPlaceTransport channelTransport,

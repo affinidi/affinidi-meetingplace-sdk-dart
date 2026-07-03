@@ -204,7 +204,7 @@ class GroupMembershipFinalisedEventHandler
       channel,
       notificationToken: notificationToken,
       otherPartyPermanentChannelDid: updatedGroup.did,
-      matrixSyncMarker: initialMatrixSyncMarker,
+      messageSyncMarker: initialMatrixSyncMarker,
       sequenceNumber: event.startSeqNo,
     );
 

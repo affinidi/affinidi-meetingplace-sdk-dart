@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:matrix/src/voip/models/voip_id.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/matrix_auth_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_client_cache.dart';
+import 'package:meeting_place_matrix/src/matrix_service.dart';
+import 'package:meeting_place_matrix/src/matrix_service_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_session_manager.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
@@ -23,9 +29,17 @@ class MockMatrixRoom extends Mock implements matrix.Room {}
 
 class MockMatrixSessionManager extends Mock implements MatrixSessionManager {}
 
+class MockVoIP extends Mock implements matrix.VoIP {}
+
+class MockGroupCallSession extends Mock implements matrix.GroupCallSession {}
+
+class MockWebRTCDelegate extends Mock implements matrix.WebRTCDelegate {}
+
 class FakeMatrixTokenCommand extends Fake implements MatrixTokenCommand {}
 
 class FakeStateEvent extends Fake implements matrix.StateEvent {}
+
+class FakeSyncUpdate extends Fake implements matrix.SyncUpdate {}
 
 /// A [MatrixClientCache] that accepts pre-seeded [matrix.Client] entries
 /// without going through `MatrixClient.init`.
@@ -736,6 +750,7 @@ void main() {
       when(() => didDocument.id).thenReturn(_testDid);
       when(didManager.getDidDocument).thenAnswer((_) async => didDocument);
       when(() => sessionManager.homeserver).thenReturn(_testHomeserver);
+      when(() => sessionManager.serverName).thenReturn(_testHomeserver.host);
 
       service = MatrixService(
         config: _fakeConfig(),
@@ -784,6 +799,7 @@ void main() {
             roomAliasName: any(named: 'roomAliasName'),
             invite: any(named: 'invite'),
             initialState: any(named: 'initialState'),
+            powerLevelContentOverride: any(named: 'powerLevelContentOverride'),
           ),
         ).thenAnswer((_) async => _testRoomId);
         when(
@@ -829,6 +845,7 @@ void main() {
             roomAliasName: any(named: 'roomAliasName'),
             invite: any(named: 'invite'),
             initialState: any(named: 'initialState'),
+            powerLevelContentOverride: any(named: 'powerLevelContentOverride'),
           ),
         ).thenAnswer((_) async => _testRoomId);
         when(
@@ -868,6 +885,7 @@ void main() {
             roomAliasName: any(named: 'roomAliasName'),
             invite: ['@bob-hash:matrix.example.com'],
             initialState: any(named: 'initialState'),
+            powerLevelContentOverride: any(named: 'powerLevelContentOverride'),
           ),
         ).thenAnswer((_) async => _testRoomId);
 
@@ -883,6 +901,7 @@ void main() {
             roomAliasName: any(named: 'roomAliasName', that: startsWith('mp_')),
             invite: ['@bob-hash:matrix.example.com'],
             initialState: any(named: 'initialState'),
+            powerLevelContentOverride: any(named: 'powerLevelContentOverride'),
           ),
         ).called(1);
       });
@@ -904,6 +923,9 @@ void main() {
               roomAliasName: any(named: 'roomAliasName'),
               invite: any(named: 'invite'),
               initialState: any(named: 'initialState'),
+              powerLevelContentOverride: any(
+                named: 'powerLevelContentOverride',
+              ),
             ),
           ).thenAnswer((_) async => _testRoomId);
 
@@ -919,6 +941,9 @@ void main() {
                       roomAliasName: any(named: 'roomAliasName'),
                       invite: any(named: 'invite'),
                       initialState: captureAny(named: 'initialState'),
+                      powerLevelContentOverride: any(
+                        named: 'powerLevelContentOverride',
+                      ),
                     ),
                   ).captured.single
                   as List<matrix.StateEvent>;
@@ -1172,7 +1197,7 @@ void main() {
         expect(result, isEmpty);
       });
 
-      test('with since: resolves context token, sets prev_batch and '
+      test('with sinceEventId: resolves context token, sets prev_batch and '
           'calls requestHistory forward', () async {
         const anchorEventId = r'$anchor-event';
         const paginationToken = 'fwd-token-123';
@@ -1201,7 +1226,7 @@ void main() {
         verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
       });
 
-      test('with since and null context.end: skips setting prev_batch '
+      test('with sinceEventId and null context.end: skips setting prev_batch '
           'but still calls requestHistory forward', () async {
         const anchorEventId = r'$anchor-event';
 
@@ -1226,7 +1251,7 @@ void main() {
         verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
       });
 
-      test('without since: calls requestHistory forward without '
+      test('without sinceEventId: calls requestHistory forward without '
           'getEventContext', () async {
         when(() => client.getRoomById(_testRoomId)).thenReturn(room);
 
@@ -1299,6 +1324,457 @@ void main() {
         expect(eventId, equals('\$eventId'));
       });
     });
+
+    // ------------------------------------------------------------------
+    // getOpenIdToken
+    // ------------------------------------------------------------------
+
+    group('getOpenIdToken', () {
+      test('returns OpenIdCredentials from the authenticated client', () async {
+        final client = _validClient();
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+
+        when(() => client.userID).thenReturn(_matrixUserId);
+
+        final credentials = matrix.OpenIdCredentials.fromJson({
+          'access_token': 'openid-token',
+          'expires_in': 3600,
+          'matrix_server_name': 'matrix.example.com',
+          'token_type': 'Bearer',
+        });
+        when(
+          () => client.requestOpenIdToken(_matrixUserId, {}),
+        ).thenAnswer((_) async => credentials);
+
+        final result = await service.getOpenIdToken(didManager);
+
+        expect(result.accessToken, equals('openid-token'));
+        expect(result.matrixServerName, equals('matrix.example.com'));
+      });
+
+      test('throws MatrixServiceException when client has no userID '
+          'after ensureSession', () async {
+        final client = _validClient();
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(null);
+
+        await expectLater(
+          () => service.getOpenIdToken(didManager),
+          throwsA(isA<MatrixServiceException>()),
+        );
+      });
+
+      test('propagates MatrixAuthException when re-login also fails', () async {
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenThrow(const MatrixAuthException());
+
+        _stubMatrixToken(controlPlane, didManager);
+
+        when(
+          () => sessionManager.loginWithJwt(
+            jwt: any(named: 'jwt'),
+            did: any(named: 'did'),
+          ),
+        ).thenAnswer((_) async => _matrixUserId);
+
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenThrow(const MatrixAuthException());
+
+        await expectLater(
+          () => service.getOpenIdToken(didManager),
+          throwsA(isA<MatrixAuthException>()),
+        );
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // VoIP / MatrixRTC
+    // ------------------------------------------------------------------
+
+    group('initializeVoIP', () {
+      test('stores the VoIP instance for subsequent call operations', () {
+        final voip = MockVoIP();
+
+        // initializeVoIP is synchronous — no error means success.
+        expect(() => service.initializeVoIP(voip), returnsNormally);
+      });
+    });
+
+    group('localMatrixIdentity', () {
+      test('returns userId:deviceId when session is active', () async {
+        final client = MockMatrixClient();
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn('@alice:localhost');
+        when(() => client.deviceID).thenReturn('DEVICEID');
+
+        final identity = await service.ownMatrixIdentity(didManager);
+
+        expect(identity, equals('@alice:localhost:DEVICEID'));
+      });
+
+      test('returns null when client has no userID', () async {
+        final client = MockMatrixClient();
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(null);
+        when(() => client.deviceID).thenReturn('DEVICEID');
+
+        final identity = await service.ownMatrixIdentity(didManager);
+
+        expect(identity, isNull);
+      });
+    });
+
+    group('startCall', () {
+      test(
+        'throws MatrixServiceException when VoIP is not initialized',
+        () async {
+          // No VoIP initialized.
+          await expectLater(
+            () => service.startCall(
+              didManager: didManager,
+              roomId: '!room:localhost',
+              livekitServiceUrl: 'wss://lk.example.com',
+              livekitAlias: 'test-alias',
+            ),
+            throwsA(
+              isA<MatrixServiceException>().having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceMatrixSDKErrorCode.matrixVoipNotInitialized,
+              ),
+            ),
+          );
+        },
+      );
+
+      test('throws MatrixServiceException when room is not found', () async {
+        final client = MockMatrixClient();
+        final voip = MockVoIP();
+        service.initializeVoIP(voip);
+
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(() => client.getRoomById(any())).thenReturn(null);
+
+        await expectLater(
+          () => service.startCall(
+            didManager: didManager,
+            roomId: '!missing:localhost',
+            livekitServiceUrl: 'wss://lk.example.com',
+            livekitAlias: 'test-alias',
+          ),
+          throwsA(
+            isA<MatrixServiceException>().having(
+              (e) => e.code,
+              'code',
+              MeetingPlaceMatrixSDKErrorCode.matrixRoomNotFound,
+            ),
+          ),
+        );
+      });
+    });
+
+    group('leaveCall', () {
+      test('returns normally when VoIP is not initialized', () async {
+        // No VoIP initialized — leaveCall should be a no-op, not throw.
+        await expectLater(
+          () => service.leaveCall(
+            roomId: '!room:localhost',
+            callId: '!room:localhost',
+          ),
+          returnsNormally,
+        );
+      });
+    });
+
+    group('hasActiveCallMembership', () {
+      test('returns false when VoIP is not initialized', () async {
+        final result = await service.hasActiveCallMembership(
+          didManager: didManager,
+          roomId: _testRoomId,
+        );
+
+        expect(result, isFalse);
+      });
+
+      test('returns false when the room is not found', () async {
+        final client = MockMatrixClient();
+        final voip = MockVoIP();
+        service.initializeVoIP(voip);
+
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(() => client.getRoomById(any())).thenReturn(null);
+
+        final result = await service.hasActiveCallMembership(
+          didManager: didManager,
+          roomId: _testRoomId,
+        );
+
+        expect(result, isFalse);
+      });
+
+      test('returns false when the room has no call memberships', () async {
+        final client = MockMatrixClient();
+        final voip = MockVoIP();
+        final room = MockMatrixRoom();
+        service.initializeVoIP(voip);
+
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(() => room.states).thenReturn({});
+
+        final result = await service.hasActiveCallMembership(
+          didManager: didManager,
+          roomId: _testRoomId,
+        );
+
+        expect(result, isFalse);
+      });
+    });
+
+    group('activeCallId', () {
+      test('returns null when VoIP is not initialized', () async {
+        final result = await service.activeCallId(
+          didManager: didManager,
+          roomId: _testRoomId,
+        );
+
+        expect(result, isNull);
+      });
+
+      test('returns null when the room is not found', () async {
+        final client = MockMatrixClient();
+        final voip = MockVoIP();
+        service.initializeVoIP(voip);
+
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(() => client.getRoomById(any())).thenReturn(null);
+
+        final result = await service.activeCallId(
+          didManager: didManager,
+          roomId: _testRoomId,
+        );
+
+        expect(result, isNull);
+      });
+
+      test('returns null when the room has no call memberships', () async {
+        final client = MockMatrixClient();
+        final voip = MockVoIP();
+        final room = MockMatrixRoom();
+        service.initializeVoIP(voip);
+
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(() => room.states).thenReturn({});
+
+        final result = await service.activeCallId(
+          didManager: didManager,
+          roomId: _testRoomId,
+        );
+
+        expect(result, isNull);
+      });
+    });
+
+    group('activateIncomingCall', () {
+      test(
+        'returns the group call already present in the room state',
+        () async {
+          final client = _validClient();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+
+          final voip = MockVoIP();
+          final session = MockGroupCallSession();
+          when(() => session.groupCallId).thenReturn('call-1');
+          when(() => voip.groupCalls).thenReturn({
+            VoipId(roomId: _testRoomId, callId: 'call-1'): session,
+          });
+          service.initializeVoIP(voip);
+
+          final result = await service.activateIncomingCall(
+            didManager: didManager,
+            delegate: MockWebRTCDelegate(),
+            roomId: _testRoomId,
+          );
+
+          expect(result, same(session));
+        },
+      );
+
+      test('resolves via onIncomingGroupCall when the group call arrives '
+          'after VoIP creation', () async {
+        final client = _validClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.getRoomById(any())).thenReturn(null);
+        when(
+          () => client.waitForRoomInSync(any(), join: any(named: 'join')),
+        ).thenAnswer((_) async => FakeSyncUpdate());
+
+        final voip = MockVoIP();
+        final session = MockGroupCallSession();
+        when(() => session.groupCallId).thenReturn('call-2');
+        when(() => voip.groupCalls).thenReturn({});
+
+        late final StreamController<matrix.GroupCallSession>
+        groupCallController;
+        groupCallController = StreamController<matrix.GroupCallSession>(
+          onListen: () {
+            when(() => voip.groupCalls).thenReturn({
+              VoipId(roomId: _testRoomId, callId: 'call-2'): session,
+            });
+            groupCallController.add(session);
+          },
+        );
+        when(() => voip.onIncomingGroupCall).thenReturn(groupCallController);
+
+        service.initializeVoIP(voip);
+
+        final result = await service.activateIncomingCall(
+          didManager: didManager,
+          delegate: MockWebRTCDelegate(),
+          roomId: _testRoomId,
+        );
+
+        expect(result, same(session));
+        await groupCallController.close();
+      });
+
+      test('activates a second incoming call on the cached VoIP without '
+          're-listening to onIncomingGroupCall', () async {
+        final client = _validClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.getRoomById(any())).thenReturn(null);
+        when(
+          () => client.waitForRoomInSync(any(), join: any(named: 'join')),
+        ).thenAnswer((_) async => FakeSyncUpdate());
+
+        final voip = MockVoIP();
+        final firstSession = MockGroupCallSession();
+        final secondSession = MockGroupCallSession();
+        when(() => firstSession.groupCallId).thenReturn('call-a');
+        when(() => secondSession.groupCallId).thenReturn('call-b');
+
+        var groupCalls = <VoipId, matrix.GroupCallSession>{};
+        when(() => voip.groupCalls).thenAnswer((_) => groupCalls);
+
+        late final StreamController<matrix.GroupCallSession>
+        groupCallController;
+        groupCallController = StreamController<matrix.GroupCallSession>(
+          onListen: () {
+            groupCalls = {
+              VoipId(roomId: _testRoomId, callId: 'call-a'): firstSession,
+            };
+            groupCallController.add(firstSession);
+          },
+        );
+        when(() => voip.onIncomingGroupCall).thenReturn(groupCallController);
+
+        service.initializeVoIP(voip);
+
+        final first = await service.activateIncomingCall(
+          didManager: didManager,
+          delegate: MockWebRTCDelegate(),
+          roomId: _testRoomId,
+        );
+        expect(first, same(firstSession));
+
+        const secondRoomId = '!second-room:matrix.test';
+        final secondFuture = service.activateIncomingCall(
+          didManager: didManager,
+          delegate: MockWebRTCDelegate(),
+          roomId: secondRoomId,
+        );
+
+        await Future<void>.delayed(Duration.zero);
+        groupCalls = {
+          ...groupCalls,
+          VoipId(roomId: secondRoomId, callId: 'call-b'): secondSession,
+        };
+        groupCallController.add(secondSession);
+
+        expect(await secondFuture, same(secondSession));
+
+        await groupCallController.close();
+      });
+
+      test('waits for the room to sync before resolving when the session '
+          'has not loaded it yet', () async {
+        final client = _validClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(() => client.getRoomById(any())).thenReturn(null);
+        when(
+          () => client.waitForRoomInSync(any(), join: any(named: 'join')),
+        ).thenAnswer((_) async => FakeSyncUpdate());
+
+        final voip = MockVoIP();
+        final session = MockGroupCallSession();
+        when(() => session.groupCallId).thenReturn('call-3');
+
+        late final StreamController<matrix.GroupCallSession>
+        groupCallController;
+        groupCallController = StreamController<matrix.GroupCallSession>(
+          onListen: () {
+            when(() => voip.groupCalls).thenReturn({
+              VoipId(roomId: _testRoomId, callId: 'call-3'): session,
+            });
+            groupCallController.add(session);
+          },
+        );
+        when(() => voip.groupCalls).thenReturn({});
+        when(() => voip.onIncomingGroupCall).thenReturn(groupCallController);
+
+        service.initializeVoIP(voip);
+
+        final result = await service.activateIncomingCall(
+          didManager: didManager,
+          delegate: MockWebRTCDelegate(),
+          roomId: _testRoomId,
+        );
+
+        expect(result, same(session));
+        verify(
+          () => client.waitForRoomInSync(_testRoomId, join: true),
+        ).called(1);
+        await groupCallController.close();
+      });
+    });
   });
 }
 
@@ -1358,7 +1834,7 @@ class _NoOpDatabaseFactory implements MatrixDatabaseFactory {
       Future.value(null);
 }
 
-class _NoOpLogger implements MeetingPlaceCoreSDKLogger {
+class _NoOpLogger implements MeetingPlaceMatrixSDKLogger {
   @override
   void info(String message, {String name = ''}) {}
 

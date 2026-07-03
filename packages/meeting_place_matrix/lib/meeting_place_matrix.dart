@@ -11,6 +11,7 @@ export 'src/matrix_config.dart';
 export 'src/meeting_place_matrix_sdk.dart';
 export 'src/meeting_place_matrix_sdk_error_code.dart';
 export 'src/meeting_place_matrix_sdk_options.dart';
+export 'src/sessions/livekit_call_session.dart';
 export 'src/transport/matrix/call/contracts/audio_video_call_session.dart';
 export 'src/transport/matrix/call/contracts/incoming_audio_video_call_event.dart';
 export 'src/transport/matrix/call/models/audio_video_call_error_code.dart';

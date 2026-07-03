@@ -3,7 +3,6 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../loggers/meeting_place_core_sdk_logger.dart';
-import '../../repository/key_repository.dart';
 import 'fetch_messages_options.dart';
 import 'mediator_message.dart';
 import 'mediator_stream_subscription_wrapper.dart';
@@ -11,14 +10,11 @@ import 'mediator_stream_subscription_wrapper.dart';
 class MediatorService {
   MediatorService({
     required MeetingPlaceMediatorSDK mediatorSDK,
-    required KeyRepository keyRepository,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _mediatorSDK = mediatorSDK,
-       _keyRepository = keyRepository,
        _logger = logger;
 
   final MeetingPlaceMediatorSDK _mediatorSDK;
-  final KeyRepository _keyRepository;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<List<MediatorMessage>> fetchMessages({
@@ -40,7 +36,6 @@ class MediatorService {
       results.map((result) async {
         return MediatorMessage.fromPlainTextMessage(
           result.message!,
-          keyRepository: _keyRepository,
           messageHash: result.messageHash,
           logger: _logger,
         );
@@ -74,7 +69,6 @@ class MediatorService {
 
     return MediatorStreamSubscriptionWrapper(
       baseSubscription: streamSubscription,
-      keyRepository: _keyRepository,
       logger: _logger,
     );
   }

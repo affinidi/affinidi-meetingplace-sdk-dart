@@ -88,7 +88,6 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
           did: did,
           dateAdded: DateTime.parse(member['date_added'] as String),
           status: GroupMemberStatus.values.byName(member['status'] as String),
-          publicKey: member['public_key'] as String,
           membershipType: GroupMembershipType.values.byName(
             member['membership_type'] as String,
           ),

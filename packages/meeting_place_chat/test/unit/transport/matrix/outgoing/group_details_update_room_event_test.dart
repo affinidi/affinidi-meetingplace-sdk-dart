@@ -18,11 +18,7 @@ void main() {
       ownerDid: 'did:test:alice',
       publicKey: 'pubkey',
       members: [
-        GroupMember.admin(
-          did: 'did:test:alice',
-          publicKey: 'pubkey',
-          contactCard: ownerCard,
-        ),
+        GroupMember.admin(did: 'did:test:alice', contactCard: ownerCard),
       ],
     );
 

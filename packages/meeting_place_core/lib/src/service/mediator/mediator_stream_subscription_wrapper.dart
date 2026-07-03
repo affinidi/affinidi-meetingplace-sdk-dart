@@ -5,7 +5,6 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 
 import '../../../meeting_place_core.dart' show PlainTextMessage;
 import '../../loggers/meeting_place_core_sdk_logger.dart';
-import '../../repository/key_repository.dart';
 import '../core_sdk_stream_subscription.dart';
 import 'mediator_message.dart';
 
@@ -49,14 +48,11 @@ class MediatorStreamSubscriptionWrapper
         > {
   MediatorStreamSubscriptionWrapper({
     required MediatorStreamSubscription baseSubscription,
-    required KeyRepository keyRepository,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _baseSubscription = baseSubscription,
-       _keyRepository = keyRepository,
        _logger = logger;
 
   final MediatorStreamSubscription _baseSubscription;
-  final KeyRepository _keyRepository;
   final MeetingPlaceCoreSDKLogger _logger;
 
   StreamController<MediatorMessage>? _controller;
@@ -280,7 +276,6 @@ class MediatorStreamSubscriptionWrapper
         try {
           final mediatorMessage = await MediatorMessage.fromPlainTextMessage(
             plainTextMessage,
-            keyRepository: _keyRepository,
             logger: _logger,
           );
 

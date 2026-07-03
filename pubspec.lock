@@ -793,14 +793,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  proxy_recrypt:
-    dependency: transitive
-    description:
-      name: proxy_recrypt
-      sha256: "83518bfcd488f161b5b967ae862454154a166ff3b6e9af532e58d79786175587"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.4"
   pub_semver:
     dependency: transitive
     description:

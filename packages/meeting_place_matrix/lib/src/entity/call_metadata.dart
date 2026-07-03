@@ -44,21 +44,21 @@ class CallMetadata {
   /// Reads call metadata from [attachment], or `null` when it is not a call.
   static CallMetadata? maybeOf(ChatAttachment attachment) {
     final metadata = attachment.metadata;
-    if (metadata == null || metadata[mediaKindKey] != callKind) return null;
-    final mediaType = _mediaTypeFromMetadata(metadata[callMediaTypeKey]);
+    if (metadata == null || metadata[_mediaKindKey] != _callKind) return null;
+    final mediaType = _mediaTypeFromMetadata(metadata[_callMediaTypeKey]);
     if (mediaType == null) return null;
-    final status = _statusFromMetadata(metadata[statusKey]);
+    final status = _statusFromMetadata(metadata[_statusKey]);
     if (status == null) return null;
     return CallMetadata(
       mediaType: mediaType,
       status: status,
-      durationMs: _durationFromMetadata(metadata[durationMsKey]),
+      durationMs: _durationFromMetadata(metadata[_durationMsKey]),
     );
   }
 
   /// Whether [attachment] is a call.
   static bool isCall(ChatAttachment attachment) =>
-      attachment.metadata?[mediaKindKey] == callKind;
+      attachment.metadata?[_mediaKindKey] == _callKind;
 
   /// Builds a call [ChatAttachment] carrying only call metadata (no bytes).
   static ChatAttachment buildAttachment({
@@ -76,19 +76,19 @@ class CallMetadata {
   }
 
   /// Metadata key marking the attachment media kind.
-  static const mediaKindKey = 'media_kind';
+  static const _mediaKindKey = 'media_kind';
 
-  /// [mediaKindKey] value identifying a call.
-  static const callKind = 'call';
+  /// Identifies an attachment as a call.
+  static const _callKind = 'call';
 
   /// Metadata key for the call media type.
-  static const callMediaTypeKey = 'call_media_type';
+  static const _callMediaTypeKey = 'call_media_type';
 
   /// Metadata key for the call status.
-  static const statusKey = 'call_status';
+  static const _statusKey = 'call_status';
 
   /// Metadata key for the local participation duration in milliseconds.
-  static const durationMsKey = 'duration_ms';
+  static const _durationMsKey = 'duration_ms';
 
   /// The call media type (audio or video).
   final CallMediaType mediaType;
@@ -102,10 +102,10 @@ class CallMetadata {
   /// Serializes this call metadata into a generic [ChatAttachment.metadata]
   /// map.
   Map<String, dynamic> toMetadata() => {
-    mediaKindKey: callKind,
-    callMediaTypeKey: mediaType.name,
-    statusKey: status.name,
-    if (durationMs != null) durationMsKey: durationMs,
+    _mediaKindKey: _callKind,
+    _callMediaTypeKey: mediaType.name,
+    _statusKey: status.name,
+    if (durationMs != null) _durationMsKey: durationMs,
   };
 
   /// Returns a copy with the given fields replaced.

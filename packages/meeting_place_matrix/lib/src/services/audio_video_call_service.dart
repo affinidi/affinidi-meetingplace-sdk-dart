@@ -143,17 +143,16 @@ class AudioVideoCallService {
           .resolveChannel();
 
       errorCode = AudioVideoCallErrorCode.tokenFetchFailed;
-      final (
-        :didManager,
-        :matrixRoomId,
-        :sfuUrl,
-        :sfuToken,
-        :participantIdToDid,
-      ) = await _coordinator.fetchCallCredentials(
+      final credentials = await _coordinator.fetchCallCredentials(
         channel: channel,
         ownChannelDid: ownChannelDid,
         roomName: roomName,
       );
+      final didManager = credentials.didManager;
+      final matrixRoomId = credentials.matrixRoomId;
+      final sfuUrl = credentials.sfuUrl;
+      final sfuToken = credentials.sfuToken;
+      final participantIdToDid = credentials.participantIdToDid;
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
       final (:callAlreadyInProgress, :callId) = await _coordinator

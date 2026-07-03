@@ -8,6 +8,26 @@ import '../logger/top_and_tail_extension.dart';
 import '../transport/call_invite_room_event.dart';
 import 'sfu_token_service.dart';
 
+/// Credentials resolved during call setup: DID manager, Matrix room id, SFU
+/// URL, SFU token, and the participant-id-to-DID map.
+///
+/// Returned by [MatrixCallAdapter.fetchCallCredentials].
+class CallCredentials {
+  const CallCredentials({
+    required this.didManager,
+    required this.matrixRoomId,
+    required this.sfuUrl,
+    required this.sfuToken,
+    required this.participantIdToDid,
+  });
+
+  final DidManager didManager;
+  final String matrixRoomId;
+  final String sfuUrl;
+  final String sfuToken;
+  final Map<String, String> participantIdToDid;
+}
+
 /// Owns all Matrix and control-plane interactions for a single call session.
 ///
 /// Handles channel/credential resolution, MatrixRTC session preparation, call
@@ -99,16 +119,7 @@ class MatrixCallAdapter {
   ///
   /// Throws [MeetingPlaceLiveKitCallOperationException] when no SFU URL is
   /// available.
-  Future<
-    ({
-      DidManager didManager,
-      String matrixRoomId,
-      String sfuUrl,
-      String sfuToken,
-      Map<String, String> participantIdToDid,
-    })
-  >
-  fetchCallCredentials({
+  Future<CallCredentials> fetchCallCredentials({
     required Channel channel,
     required String ownChannelDid,
     required String roomName,
@@ -137,7 +148,7 @@ class MatrixCallAdapter {
       _sfuAllowedHosts,
       isServerSupplied: isServerSupplied,
     ).toString();
-    return (
+    return CallCredentials(
       didManager: didManager,
       matrixRoomId: matrixRoomId,
       sfuUrl: sfuUrl,

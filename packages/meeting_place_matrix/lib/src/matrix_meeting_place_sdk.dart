@@ -469,8 +469,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.findChannelByDidOrNull(did);
 
   @override
-  Future<void> updateMatrixSyncMarker(Channel channel, String eventId) =>
-      _coreSDK.updateMatrixSyncMarker(channel, eventId);
+  Future<void> updateMessageSyncMarker(Channel channel, String eventId) =>
+      _coreSDK.updateMessageSyncMarker(channel, eventId);
 
   @override
   Future<void> notifyChannel(ChannelNotification notification) =>
@@ -554,7 +554,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         );
 
         if (q.updateChannelSyncMarker && events.isNotEmpty) {
-          await _coreSDK.updateMatrixSyncMarker(channel, events.last.id);
+          await _coreSDK.updateMessageSyncMarker(channel, events.last.id);
         }
 
         return Future.wait(
@@ -601,7 +601,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   ) async {
     final channel = await _coreSDK.findChannelByDidOrNull(receiverDid);
     if (channel == null) return;
-    await _coreSDK.updateMatrixSyncMarker(channel, eventId);
+    await _coreSDK.updateMessageSyncMarker(channel, eventId);
   }
 }
 

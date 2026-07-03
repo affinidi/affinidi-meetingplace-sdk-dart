@@ -284,7 +284,7 @@ class ChannelService {
     required String notificationToken,
     required String otherPartyPermanentChannelDid,
     required int sequenceNumber,
-    String? matrixSyncMarker,
+    String? messageSyncMarker,
   }) {
     if (!channel.isGroup) {
       throw ChannelServiceException.invalidChannelType(
@@ -302,7 +302,7 @@ class ChannelService {
 
     channel.notificationToken = notificationToken;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
-    channel.matrixSyncMarker = matrixSyncMarker;
+    channel.messageSyncMarker = messageSyncMarker;
     channel.seqNo = sequenceNumber;
     channel.status = ChannelStatus.inaugurated;
     return _channelRepository.updateChannel(channel);
@@ -310,29 +310,22 @@ class ChannelService {
 
   /// Updates the sequence number and message sync marker of a channel and
   /// persisting the changes.
-  ///
-  /// Parameters:
-  /// - [channel]: The [Channel] to update.
-  /// - [sequenceNumber]: The new [Channel.seqNo] to set.
-  /// - [messageSyncMarker]: The new [Channel.messageSyncMarker] to set.
-  ///
-  /// Returns a [Future] that completes when the update is done.
   Future<void> updateChannelSequence(
     Channel channel, {
     required int sequenceNumber,
-    required DateTime? messageSyncMarker,
+    required String? messageSyncMarker,
   }) async {
     channel.seqNo = sequenceNumber;
     channel.messageSyncMarker = messageSyncMarker;
     return _channelRepository.updateChannel(channel);
   }
 
-  /// Advances [Channel.matrixSyncMarker] to [eventId] and persists the change.
+  /// Advances [Channel.messageSyncMarker] to [marker] and persists the change.
   /// Used after a Matrix history fetch or after delivering an event from a
   /// live subscription, so that future fetches return only newer events.
-  Future<void> updateMatrixSyncMarker(Channel channel, String eventId) async {
-    if (channel.matrixSyncMarker == eventId) return;
-    channel.matrixSyncMarker = eventId;
+  Future<void> updateMessageSyncMarker(Channel channel, String marker) async {
+    if (channel.messageSyncMarker == marker) return;
+    channel.messageSyncMarker = marker;
     return _channelRepository.updateChannel(channel);
   }
 }

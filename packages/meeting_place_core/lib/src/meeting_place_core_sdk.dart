@@ -1347,8 +1347,8 @@ class MeetingPlaceCoreSDK {
   Future<Channel?> findChannelByDidOrNull(String did) =>
       _channelService.findChannelByDidOrNull(did);
 
-  Future<void> updateMatrixSyncMarker(Channel channel, String eventId) =>
-      _channelService.updateMatrixSyncMarker(channel, eventId);
+  Future<void> updateMessageSyncMarker(Channel channel, String eventId) =>
+      _channelService.updateMessageSyncMarker(channel, eventId);
 
   Future<void> notifyChannel(ChannelNotification notification) =>
       _messageService.notifyChannel(notification);

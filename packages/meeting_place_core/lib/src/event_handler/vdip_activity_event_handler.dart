@@ -59,7 +59,9 @@ class VdipActivityEventHandler {
       permanentChannelDid,
     );
 
-    var messageSyncMarker = channel.messageSyncMarker;
+    var messageSyncMarker = channel.messageSyncMarker != null
+        ? DateTime.parse(channel.messageSyncMarker!)
+        : null;
 
     final messages = await _mediatorService.fetchMessages(
       didManager: didManager,
@@ -89,7 +91,7 @@ class VdipActivityEventHandler {
       await _channelService.updateChannelSequence(
         channel,
         sequenceNumber: channel.seqNo + processedCount,
-        messageSyncMarker: messageSyncMarker,
+        messageSyncMarker: messageSyncMarker?.toUtc().toIso8601String(),
       );
     }
 

@@ -256,7 +256,10 @@ void main() {
         );
         await Future<void>.delayed(Duration.zero);
 
-        expect(channel.messageSyncMarker, equals(createdTime));
+        expect(
+          channel.messageSyncMarker,
+          equals(createdTime.toUtc().toIso8601String()),
+        );
         verify(() => core.updateChannel(channel)).called(1);
       },
     );
@@ -281,7 +284,7 @@ void main() {
     test(
       '''does not regress marker when incoming createdTime is older than existing''',
       () async {
-        final existingMarker = DateTime.utc(2026, 6, 18, 12);
+        const existingMarker = '2026-06-18T12:00:00.000Z';
         channel.messageSyncMarker = existingMarker;
 
         await sdk.startChatSession();

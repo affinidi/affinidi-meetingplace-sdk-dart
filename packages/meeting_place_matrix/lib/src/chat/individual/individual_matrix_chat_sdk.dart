@@ -135,9 +135,10 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
         .listen((message) async {
           final createdTime = message.createdTime?.toUtc();
           if (createdTime == null) return;
-          final marker = channel.messageSyncMarker;
+          final markerStr = channel.messageSyncMarker;
+          final marker = markerStr != null ? DateTime.parse(markerStr) : null;
           if (marker == null || createdTime.compareTo(marker) > 0) {
-            channel.messageSyncMarker = createdTime;
+            channel.messageSyncMarker = createdTime.toIso8601String();
             await coreSDK.updateChannel(channel);
           }
         });

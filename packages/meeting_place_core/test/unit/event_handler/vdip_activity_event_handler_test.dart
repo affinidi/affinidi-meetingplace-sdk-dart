@@ -166,7 +166,7 @@ void main() {
         () => mockChannelService.updateChannelSequence(
           channel,
           sequenceNumber: channel.seqNo + 1,
-          messageSyncMarker: createdTime,
+          messageSyncMarker: createdTime.toUtc().toIso8601String(),
         ),
       ).called(1);
 
@@ -231,7 +231,7 @@ void main() {
     test(
       '''does not count a message whose createdTime does not exceed existing marker''',
       () async {
-        final existingMarker = DateTime.utc(2026, 6, 18, 12);
+        final existingMarker = '2026-06-18T12:00:00.000Z';
         final channelWithMarker = Channel(
           offerLink: 'offer-link',
           publishOfferDid: channelDid,

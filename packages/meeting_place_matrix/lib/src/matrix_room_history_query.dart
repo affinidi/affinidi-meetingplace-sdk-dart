@@ -13,10 +13,10 @@ class MatrixRoomHistoryQuery extends HistoryQuery {
   /// Optional anchor event id. When provided, fetches events that arrived
   /// after this event (exclusive) by resolving a fresh pagination token via
   /// the `/context` endpoint. Event IDs are stable and never expire. When
-  /// null, falls back to the channel's persisted `matrixSyncMarker`.
+  /// null, falls back to the channel's persisted `messageSyncMarker`.
   final String? since;
 
-  /// Whether to update the channel's `matrixSyncMarker` to the latest
+  /// Whether to update the channel's `messageSyncMarker` to the latest
   /// delivered event. Defaults to true. Set to false when the caller wants to
   /// fetch history without advancing the channel's marker.
   final bool updateChannelSyncMarker;

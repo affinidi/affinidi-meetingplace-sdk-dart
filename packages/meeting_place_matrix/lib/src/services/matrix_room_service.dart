@@ -359,7 +359,7 @@ class MatrixRoomService {
   /// Returns the most recent event id in [roomId], or `null` if the room is
   /// not known to the client or has no events yet.
   ///
-  /// Used to anchor [Channel.matrixSyncMarker] at join time so that
+  /// Used to anchor [Channel.messageSyncMarker] at join time so that
   /// subsequent [fetchRoomHistory] calls only return events posted after the
   /// joiner became a member.
   Future<String?> getLatestEventId(

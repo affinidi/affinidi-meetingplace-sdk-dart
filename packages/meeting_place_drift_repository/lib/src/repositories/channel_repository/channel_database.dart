@@ -121,7 +121,7 @@ class ChannelDatabase extends _$ChannelDatabase {
       if (from < 4 && to >= 4) {
         await migrator.addColumn(channels, channels.transport);
         await customStatement(
-          'ALTER TABLE channels ADD COLUMN matrix_sync_marker TEXT',
+          'ALTER TABLE channels ADD COLUMN matrix_sync_marker TEXT NULL',
         );
       }
     },

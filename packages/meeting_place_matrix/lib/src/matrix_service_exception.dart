@@ -1,13 +1,11 @@
-import 'package:meeting_place_core/meeting_place_core.dart'
-    show MeetingPlaceCoreSDKErrorCode;
-
 import 'exception/matrix_sdk_exception.dart';
+import 'meeting_place_matrix_sdk_error_code.dart';
 
 class MatrixServiceException implements MatrixSDKException {
   factory MatrixServiceException.loginFailed({Object? innerException}) {
     return MatrixServiceException(
       message: 'Matrix login failed',
-      code: MeetingPlaceCoreSDKErrorCode.matrixLoginFailed,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixLoginFailed,
       innerException: innerException,
     );
   }
@@ -19,7 +17,7 @@ class MatrixServiceException implements MatrixSDKException {
       message:
           'Matrix client encryption is not enabled; cannot create encrypted '
           'room. Ensure vodozemac initialized successfully before login.',
-      code: MeetingPlaceCoreSDKErrorCode.matrixEncryptionNotEnabled,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixEncryptionNotEnabled,
       innerException: innerException,
     );
   }
@@ -33,7 +31,7 @@ class MatrixServiceException implements MatrixSDKException {
       message:
           'Matrix event $eventId in room $roomId could not be decrypted '
           '(megolm key unavailable); its attachment cannot be downloaded.',
-      code: MeetingPlaceCoreSDKErrorCode.matrixMediaDecryptionFailed,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixMediaDecryptionFailed,
       innerException: innerException,
     );
   }
@@ -43,7 +41,7 @@ class MatrixServiceException implements MatrixSDKException {
       message:
           'Matrix client has no userID after session establishment; '
           'this should not happen.',
-      code: MeetingPlaceCoreSDKErrorCode.matrixMissingUserId,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixMissingUserId,
     );
   }
 
@@ -52,21 +50,21 @@ class MatrixServiceException implements MatrixSDKException {
       message:
           'VoIP not initialized. '
           'Call initializeMatrixRTC() before starting a call.',
-      code: MeetingPlaceCoreSDKErrorCode.matrixVoipNotInitialized,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixVoipNotInitialized,
     );
   }
 
   factory MatrixServiceException.roomNotFound(String roomId) {
     return MatrixServiceException(
       message: 'Matrix room not found: $roomId',
-      code: MeetingPlaceCoreSDKErrorCode.matrixRoomNotFound,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixRoomNotFound,
     );
   }
 
   factory MatrixServiceException.incomingCallNotFound(String roomId) {
     return MatrixServiceException(
       message: 'No incoming MatrixRTC call found in room: $roomId',
-      code: MeetingPlaceCoreSDKErrorCode.matrixIncomingCallNotFound,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixIncomingCallNotFound,
     );
   }
 
@@ -80,7 +78,7 @@ class MatrixServiceException implements MatrixSDKException {
   final String message;
 
   @override
-  final MeetingPlaceCoreSDKErrorCode code;
+  final MeetingPlaceMatrixSDKErrorCode code;
 
   @override
   final Object? innerException;

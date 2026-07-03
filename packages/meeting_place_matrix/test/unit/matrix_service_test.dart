@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:matrix/src/voip/models/voip_id.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/matrix_auth_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_client_cache.dart';
@@ -1451,7 +1450,7 @@ void main() {
               isA<MatrixServiceException>().having(
                 (e) => e.code,
                 'code',
-                MeetingPlaceCoreSDKErrorCode.matrixVoipNotInitialized,
+                MeetingPlaceMatrixSDKErrorCode.matrixVoipNotInitialized,
               ),
             ),
           );
@@ -1480,7 +1479,7 @@ void main() {
             isA<MatrixServiceException>().having(
               (e) => e.code,
               'code',
-              MeetingPlaceCoreSDKErrorCode.matrixRoomNotFound,
+              MeetingPlaceMatrixSDKErrorCode.matrixRoomNotFound,
             ),
           ),
         );

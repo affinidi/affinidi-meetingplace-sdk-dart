@@ -9,6 +9,7 @@ export 'src/logger/default_meeting_place_matrix_sdk_logger.dart';
 export 'src/logger/meeting_place_matrix_sdk_logger.dart';
 export 'src/matrix_config.dart';
 export 'src/meeting_place_matrix_sdk.dart';
+export 'src/meeting_place_matrix_sdk_error_code.dart';
 export 'src/meeting_place_matrix_sdk_options.dart';
 export 'src/transport/matrix/call/contracts/audio_video_call_session.dart';
 export 'src/transport/matrix/call/contracts/incoming_audio_video_call_event.dart';

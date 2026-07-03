@@ -113,6 +113,7 @@ To enable Matrix, provide:
 | `serverName` | Optional Matrix server name override when it differs from `homeserver.host`. |
 | `livekitServiceUrl` | Optional LiveKit JWT service URL for audio/video call support. |
 | `livekitSfuUrl` | Optional LiveKit SFU URL override for local or custom deployments. |
+| `sfuAllowedHosts` | Allowlist of SFU hostnames permitted when the JWT service supplies the SFU URL (i.e. `livekitSfuUrl` is null). |
 
 ## Quick Start
 

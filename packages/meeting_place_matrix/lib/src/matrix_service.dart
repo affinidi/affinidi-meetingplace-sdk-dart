@@ -368,7 +368,7 @@ class MatrixService {
     try {
       client = await _ensureSession(didManager);
     } on MatrixServiceException catch (e) {
-      if (e.code == MeetingPlaceCoreSDKErrorCode.matrixMissingUserId) {
+      if (e.code == MeetingPlaceMatrixSDKErrorCode.matrixMissingUserId) {
         return null;
       }
       rethrow;

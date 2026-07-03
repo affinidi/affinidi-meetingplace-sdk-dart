@@ -11,7 +11,6 @@ import 'handlers/call_signal_handler.dart';
 import 'pending_call_manager.dart';
 import 'services/audio_video_call_service.dart';
 import 'services/sfu_token_service.dart';
-import 'sessions/livekit_call_session.dart';
 import 'transport/matrix/call/contracts/audio_video_call_plugin.dart';
 import 'utils/string.dart';
 

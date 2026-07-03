@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/handlers/call_e2ee_handler.dart';
-import 'package:meeting_place_matrix/src/models/call_e2ee_state.dart';
 import 'package:test/test.dart';
 
 import '../fakes/fake_livekit_service.dart';

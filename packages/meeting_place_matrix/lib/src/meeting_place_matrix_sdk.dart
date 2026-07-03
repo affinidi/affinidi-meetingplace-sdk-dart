@@ -20,7 +20,6 @@ import 'matrix_sender_did_resolver.dart';
 import 'matrix_service.dart';
 import 'matrix_transport.dart';
 import 'meeting_place_livekit_call_plugin.dart';
-import 'sessions/livekit_call_session.dart';
 
 /// A [MeetingPlaceCoreSDK] backed by a Matrix homeserver.
 ///

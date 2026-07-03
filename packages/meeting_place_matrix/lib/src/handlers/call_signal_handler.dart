@@ -4,7 +4,6 @@ import '../../meeting_place_matrix.dart';
 import '../call/call_signal.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../pending_call_manager.dart';
-import '../sessions/livekit_call_session.dart';
 import '../utils/string.dart';
 
 /// Routes incoming and declined call signals from the SDK to the plugin's

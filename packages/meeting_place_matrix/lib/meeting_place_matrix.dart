@@ -7,7 +7,6 @@ export 'package:matrix/matrix.dart'
         OpenIdCredentials,
         VoIP,
         WebRTCDelegate;
-export 'package:matrix/matrix.dart' show DatabaseApi, MatrixSdkDatabase;
 export 'package:meeting_place_chat/meeting_place_chat.dart'
     show
         Chat,

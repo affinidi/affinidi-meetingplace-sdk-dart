@@ -18,7 +18,7 @@ class SDKInstance {
     required this.contactCard,
   });
 
-  final MeetingPlaceCoreSDK coreSDK;
+  final MeetingPlaceMatrixSDK coreSDK;
   final DidManager didManager;
   final DidDocument didDocument;
   final ChannelRepository channelRepository;

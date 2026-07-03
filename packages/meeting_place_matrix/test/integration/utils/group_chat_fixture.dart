@@ -1,5 +1,5 @@
-import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../utils/contact_card_fixture.dart';
@@ -9,9 +9,9 @@ import '../../utils/sdk.dart';
 class GroupChatFixture {
   GroupChatFixture._();
 
-  late final MeetingPlaceCoreSDK aliceSDK;
-  late final MeetingPlaceCoreSDK bobSDK;
-  late final MeetingPlaceCoreSDK charlieSDK;
+  late final MeetingPlaceMatrixSDK aliceSDK;
+  late final MeetingPlaceMatrixSDK bobSDK;
+  late final MeetingPlaceMatrixSDK charlieSDK;
 
   late final MeetingPlaceChatSDK aliceChatSDK;
   late final MeetingPlaceChatSDK bobChatSDK;

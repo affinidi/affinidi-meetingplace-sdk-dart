@@ -8,7 +8,6 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
         DefaultMeetingPlaceMediatorSDKLogger,
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKOptions;
-import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_core.dart';
@@ -599,17 +598,6 @@ class MeetingPlaceCoreSDK {
     return _withSdkExceptionHandling(() {
       return _connectionManager.getDidManagerForDid(wallet, did);
     });
-  }
-
-  @visibleForTesting
-  Future<void> waitForRoomEncryptionReady({
-    required String localDid,
-    required Iterable<String> expectedDids,
-    Duration timeout = const Duration(seconds: 15),
-  }) {
-    throw UnsupportedError(
-      'waitForRoomEncryptionReady requires MatrixMeetingPlaceSDK.',
-    );
   }
 
   /// Creates an Out-Of-Band invitation for a User.

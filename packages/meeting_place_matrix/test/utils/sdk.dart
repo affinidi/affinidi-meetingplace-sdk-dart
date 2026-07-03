@@ -76,7 +76,7 @@ MatrixConfig getMatrixConfig() {
   );
 }
 
-Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
+Future<MeetingPlaceMatrixSDK> initCoreSDKInstance({
   Wallet? wallet,
   GroupRepository? groupRepository,
   ChannelRepository? channelRepository,

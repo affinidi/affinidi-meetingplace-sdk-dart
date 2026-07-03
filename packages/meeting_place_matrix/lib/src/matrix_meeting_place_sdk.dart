@@ -569,7 +569,6 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   }
 
   @visibleForTesting
-  @override
   Future<void> waitForRoomEncryptionReady({
     required String localDid,
     required Iterable<String> expectedDids,

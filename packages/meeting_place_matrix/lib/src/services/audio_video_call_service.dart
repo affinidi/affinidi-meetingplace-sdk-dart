@@ -363,14 +363,19 @@ class AudioVideoCallService {
 
   /// Called by the plugin when a `call-decline` signal arrives from the callee.
   ///
-  /// No-ops silently if the service is disposed or not in
-  /// [AudioVideoCallStatus.outgoingRinging].
+  /// No-ops silently if the service is disposed or not in a pre-answer state.
   void notifyDeclined() {
     if (_isDisposed) {
       _logger.info('notifyDeclined: Skipping, service disposed', name: _logKey);
       return;
     }
-    if (_state.status != AudioVideoCallStatus.outgoingRinging) return;
+    if (!canCancelBeforeAnswer(_state.status)) {
+      _logger.warning(
+        'notifyDeclined: Ignoring, unexpected status ${_state.status}',
+        name: _logKey,
+      );
+      return;
+    }
     _logger.info(
       'notifyDeclined: Callee declined, leaving room and emitting declined',
       name: _logKey,

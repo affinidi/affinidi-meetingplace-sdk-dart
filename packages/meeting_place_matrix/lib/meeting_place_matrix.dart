@@ -1,6 +1,7 @@
 export 'package:matrix/matrix.dart' show MatrixSdkDatabase;
 
 export 'src/call/call_media_type.dart';
+export 'src/call/call_signal.dart';
 export 'src/chat/meeting_place_matrix_chat_sdk.dart';
 export 'src/chat/meeting_place_matrix_chat_sdk_options.dart';
 export 'src/entity/call_metadata.dart';

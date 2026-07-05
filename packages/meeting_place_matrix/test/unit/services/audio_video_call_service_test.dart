@@ -310,4 +310,38 @@ void main() {
       expect(room.connectCalls, 1);
     });
   });
+
+  group('notifyDeclined', () {
+    test('transitions from outgoingRinging to declined', () async {
+      final channelCompleter = Completer<Channel?>();
+      when(
+        () => mockSdk.getChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) => channelCompleter.future);
+
+      unawaited(service.joinCall());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(service.state.status, AudioVideoCallStatus.connecting);
+
+      service.notifyDeclined();
+
+      expect(service.state.status, AudioVideoCallStatus.declined);
+    });
+
+    test('is ignored when status is not connecting or outgoingRinging', () {
+      expect(service.state.status, AudioVideoCallStatus.idle);
+
+      service.notifyDeclined();
+
+      expect(service.state.status, AudioVideoCallStatus.idle);
+    });
+
+    test('is ignored when service is disposed', () async {
+      await service.dispose();
+
+      service.notifyDeclined();
+
+      expect(service.state.status, AudioVideoCallStatus.idle);
+    });
+  });
 }

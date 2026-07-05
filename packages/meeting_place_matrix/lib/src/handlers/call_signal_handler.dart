@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_matrix.dart';
+import '../call/call_channel_activity_type.dart';
 import '../call/call_signal.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../pending_call_manager.dart';
@@ -20,12 +23,14 @@ class CallSignalHandler {
     required LiveKitCallSession? Function() getActiveSession,
     required void Function(IncomingAudioVideoCallEvent) onIncomingCall,
     required void Function(String otherPartyChannelDid) onCallCancelled,
+    required void Function(IncomingAudioVideoCallEvent) onPeerRestartedCall,
   }) : _sdk = sdk,
        _pendingCallManager = pendingCallManager,
        _logger = logger,
        _getActiveSession = getActiveSession,
        _onIncomingCall = onIncomingCall,
-       _onCallCancelled = onCallCancelled;
+       _onCallCancelled = onCallCancelled,
+       _onPeerRestartedCall = onPeerRestartedCall;
 
   final MeetingPlaceCoreSDK _sdk;
   final PendingCallManager _pendingCallManager;
@@ -33,6 +38,7 @@ class CallSignalHandler {
   final LiveKitCallSession? Function() _getActiveSession;
   final void Function(IncomingAudioVideoCallEvent) _onIncomingCall;
   final void Function(String) _onCallCancelled;
+  final void Function(IncomingAudioVideoCallEvent) _onPeerRestartedCall;
 
   static const _logKey = 'CallSignalHandler';
 
@@ -146,14 +152,34 @@ class CallSignalHandler {
   }
 
   void _emitIncomingCall(IncomingAudioVideoCallEvent event) {
+    if (_pendingCallManager.isInCallWith(event.otherPartyChannelDid)) {
+      _logger.info(
+        'Incoming call ${event.callId} from '
+        '${event.otherPartyChannelDid.topAndTail()} '
+        '— peer restarted, tearing down stale call',
+        name: _logKey,
+      );
+      _onPeerRestartedCall(event);
+      return;
+    }
     final registered = _pendingCallManager.registerIncomingCall(
       callId: event.callId,
       otherPartyChannelDid: event.otherPartyChannelDid,
     );
     if (!registered) {
       _logger.warning(
-        'Incoming call ${event.callId} auto-rejected: already in a call',
+        'Incoming call ${event.callId} from '
+        '${event.otherPartyChannelDid.topAndTail()} '
+        'auto-rejected: already in a call',
         name: _logKey,
+      );
+      unawaited(
+        _sdk.notifyChannel(
+          IndividualChannelNotification(
+            recipientDid: event.otherPartyChannelDid,
+            type: CallChannelActivityType.callDecline,
+          ),
+        ),
       );
       return;
     }

@@ -68,6 +68,11 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   // Active session; set on startCall(), cleared on dispose.
   LiveKitCallSession? _activeSession;
 
+  // Set while a stale session is tearing down so startCall() can await it
+  // before connecting a replacement LiveKit room. Keeps the old disconnect
+  // from racing the new join for the same participant identity.
+  Future<void>? _pendingSessionDispose;
+
   MeetingPlaceMatrixSDK? _sdk;
   CallSignalHandler? _signalHandler;
   StreamSubscription<CallSignal>? _signalSubscription;
@@ -101,6 +106,29 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       onCallCancelled: (otherPartyChannelDid) {
         if (!_cancelledCallsController.isClosed) {
           _cancelledCallsController.add(otherPartyChannelDid);
+        }
+      },
+      onPeerRestartedCall: (event) {
+        _logger.info(
+          'Peer restarted from ${event.otherPartyChannelDid.topAndTail()}',
+          name: _logKey,
+        );
+        final previousSession = _activeSession;
+        _activeSession = null;
+        _pendingCallManager
+          ..clearActiveCall()
+          ..registerIncomingCall(
+            callId: event.callId,
+            otherPartyChannelDid: event.otherPartyChannelDid,
+          );
+        if (!_incomingCallsController.isClosed) {
+          _incomingCallsController.add(event);
+        }
+        if (previousSession != null) {
+          _pendingSessionDispose = previousSession.dispose().catchError(
+            (Object _) {},
+          );
+          unawaited(_pendingSessionDispose);
         }
       },
     );
@@ -147,6 +175,11 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     required String otherPartyChannelDid,
     required CallMediaType mediaType,
   }) async {
+    if (_pendingSessionDispose != null) {
+      await _pendingSessionDispose;
+      _pendingSessionDispose = null;
+    }
+
     final sdk = _requireSdk();
 
     // Dispose any previous session before creating a new one.
@@ -171,6 +204,10 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     final (:isRecipient, :pendingCallId) = _pendingCallManager.resolveRole(
       otherPartyChannelDid,
     );
+
+    if (!isRecipient) {
+      _pendingCallManager.markOutboundCall(otherPartyChannelDid);
+    }
 
     _logger.info(
       'startCall: ${otherPartyChannelDid.topAndTail()} '

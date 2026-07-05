@@ -10,10 +10,19 @@
 class PendingCallManager {
   final Map<String, String> _pendingCalls = {};
   String? _activeCallId;
+  bool _outboundActive = false;
   String? _acceptedOtherPartyChannelDid;
+  String? _activePeerDid;
 
   /// True while a call is ringing or active on this device.
-  bool get isBusy => _activeCallId != null;
+  bool get isBusy => _activeCallId != null || _outboundActive;
+
+  /// True when this device is currently in a call with [otherPartyChannelDid].
+  ///
+  /// Used to recognise a re-invite from the party we are already talking to (a
+  /// reconnect) so it is ignored rather than auto-declined as a competing call.
+  bool isInCallWith(String otherPartyChannelDid) =>
+      isBusy && _activePeerDid == otherPartyChannelDid;
 
   /// True while [callId] is registered as a ringing (not yet accepted) call.
   bool isRinging(String callId) => _pendingCalls.containsKey(callId);
@@ -27,8 +36,9 @@ class PendingCallManager {
     required String callId,
     required String otherPartyChannelDid,
   }) {
-    if (_activeCallId != null) return false;
+    if (isBusy) return false;
     _activeCallId = callId;
+    _activePeerDid = otherPartyChannelDid;
     _pendingCalls[callId] = otherPartyChannelDid;
     return true;
   }
@@ -47,7 +57,10 @@ class PendingCallManager {
   /// Returns the otherPartyChannelDid so the caller can send a decline signal.
   String? declineCall(String callId) {
     final did = _pendingCalls.remove(callId);
-    if (_activeCallId == callId) _activeCallId = null;
+    if (_activeCallId == callId) {
+      _activeCallId = null;
+      _activePeerDid = null;
+    }
     return did;
   }
 
@@ -82,6 +95,18 @@ class PendingCallManager {
   /// [_pendingCalls] but does not clear [_activeCallId].
   void clearActiveCall() {
     _activeCallId = null;
+    _outboundActive = false;
+    _activePeerDid = null;
+  }
+
+  /// Marks an outbound (caller-initiated) call to [otherPartyChannelDid] as
+  /// active so the busy guard rejects concurrent incoming calls and recognises
+  /// a re-invite from that same peer. No-op if already busy.
+  void markOutboundCall(String otherPartyChannelDid) {
+    if (!isBusy) {
+      _outboundActive = true;
+      _activePeerDid = otherPartyChannelDid;
+    }
   }
 
   /// Removes the pending call for [otherPartyChannelDid], if any.
@@ -98,7 +123,10 @@ class PendingCallManager {
     }
     if (callId != null) {
       _pendingCalls.remove(callId);
-      if (_activeCallId == callId) _activeCallId = null;
+      if (_activeCallId == callId) {
+        _activeCallId = null;
+        _activePeerDid = null;
+      }
     }
     return callId;
   }

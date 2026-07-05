@@ -202,4 +202,63 @@ void main() {
       },
     );
   });
+
+  group('isInCallWith', () {
+    test('is false initially', () {
+      expect(manager.isInCallWith(_otherPartyDid), isFalse);
+    });
+
+    test('is true after registerIncomingCall with that DID', () {
+      manager.registerIncomingCall(
+        callId: _callId,
+        otherPartyChannelDid: _otherPartyDid,
+      );
+      expect(manager.isInCallWith(_otherPartyDid), isTrue);
+    });
+
+    test('is false for a different DID even when busy', () {
+      manager.registerIncomingCall(
+        callId: _callId,
+        otherPartyChannelDid: _otherPartyDid,
+      );
+      expect(manager.isInCallWith(_otherPartyDid2), isFalse);
+    });
+
+    test('is true after markOutboundCall with that DID', () {
+      manager.markOutboundCall(_otherPartyDid);
+      expect(manager.isInCallWith(_otherPartyDid), isTrue);
+    });
+
+    test('is false after clearActiveCall', () {
+      manager.markOutboundCall(_otherPartyDid);
+      manager.clearActiveCall();
+      expect(manager.isInCallWith(_otherPartyDid), isFalse);
+    });
+  });
+
+  group('markOutboundCall', () {
+    test('sets isBusy to true', () {
+      manager.markOutboundCall(_otherPartyDid);
+      expect(manager.isBusy, isTrue);
+    });
+  });
+
+  group('clearActiveCall', () {
+    test('clears busy guard set by markOutboundCall', () {
+      manager.markOutboundCall(_otherPartyDid);
+      manager.clearActiveCall();
+      expect(manager.isBusy, isFalse);
+    });
+
+    test('clears busy guard set by registerIncomingCall after accept', () {
+      manager.registerIncomingCall(
+        callId: _callId,
+        otherPartyChannelDid: _otherPartyDid,
+      );
+      manager.acceptCall(_callId);
+      manager.clearActiveCall();
+      expect(manager.isBusy, isFalse);
+      expect(manager.isInCallWith(_otherPartyDid), isFalse);
+    });
+  });
 }

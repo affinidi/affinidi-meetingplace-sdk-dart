@@ -14,6 +14,7 @@ class AudioVideoCallState {
     this.participants = const [],
     this.errorCode,
     this.ownRole,
+    this.callStartedAt,
   });
 
   final AudioVideoCallStatus status;
@@ -34,6 +35,13 @@ class AudioVideoCallState {
   /// call chat item) to the caller only.
   final CallRole? ownRole;
 
+  /// Shared call start time, derived from the callId timestamp.
+  ///
+  /// Consumers render duration as `now - callStartedAt`, so both sides show
+  /// the same elapsed time without extra signalling. `null` until the callId
+  /// is resolved.
+  final DateTime? callStartedAt;
+
   /// The default initial state: idle, no participants, no error.
   static const initial = AudioVideoCallState();
 
@@ -43,12 +51,14 @@ class AudioVideoCallState {
     AudioVideoCallErrorCode? errorCode,
     bool clearErrorCode = false,
     CallRole? ownRole,
+    DateTime? callStartedAt,
   }) {
     return AudioVideoCallState(
       status: status ?? this.status,
       participants: participants ?? this.participants,
       errorCode: clearErrorCode ? null : (errorCode ?? this.errorCode),
       ownRole: ownRole ?? this.ownRole,
+      callStartedAt: callStartedAt ?? this.callStartedAt,
     );
   }
 }

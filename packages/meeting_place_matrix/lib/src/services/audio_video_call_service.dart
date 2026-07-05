@@ -6,6 +6,7 @@ import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../handlers/call_e2ee_handler.dart';
+import 'call_state_machine.dart';
 import 'matrix_call_adapter.dart';
 import 'sfu_token_service.dart';
 
@@ -50,7 +51,7 @@ class AudioVideoCallService {
       room: room,
       logger: logger,
       isDisposed: () => _isDisposed,
-      onAllKeyed: _onAllKeyed,
+      onPeerKeyed: _onPeerKeyed,
     );
   }
 
@@ -91,9 +92,9 @@ class AudioVideoCallService {
 
   /// Releases all resources held by this service.
   ///
-  /// Cancels timers, leaves the Matrix call if in progress, and disconnects
-  /// the LiveKit room. Must be called when the session ends. The service must
-  /// not be used after [dispose] returns.
+  /// Cancels timers, leaves the Matrix call, disconnects the LiveKit room, and
+  /// closes streams. Must be called when the session ends. The service must not
+  /// be used after [dispose] returns.
   Future<void> dispose() async {
     if (_isDisposed) return;
     _isDisposed = true;
@@ -156,24 +157,13 @@ class AudioVideoCallService {
       final participantIdToDid = credentials.participantIdToDid;
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
-      final (:callAlreadyInProgress, :callId) = await _coordinator
-          .prepareCallSession(
-            didManager: didManager,
-            matrixRoomId: matrixRoomId,
-            isRecipient: isRecipient,
-          );
+      final callId = await _coordinator.prepareCallSession(
+        didManager: didManager,
+        matrixRoomId: matrixRoomId,
+        isRecipient: isRecipient,
+      );
 
       await _room.setSharedKey('mpx-call-shared-key:$matrixRoomId');
-
-      if (!isRecipient) {
-        errorCode = AudioVideoCallErrorCode.callInviteFailed;
-        await _coordinator.sendCallInvite(
-          channel: channel,
-          callAlreadyInProgress: callAlreadyInProgress,
-          matrixRoomId: matrixRoomId,
-          mediaType: mediaType,
-        );
-      }
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
       await _room.connect(
@@ -185,12 +175,8 @@ class AudioVideoCallService {
         onParticipantsChanged: _onParticipantsChanged,
       );
 
-      final isJoiningExistingCall = isRecipient || callAlreadyInProgress;
-      _setState(
-        _state.copyWith(
-          ownRole: isJoiningExistingCall ? CallRole.recipient : CallRole.caller,
-        ),
-      );
+      final ownRole = isRecipient ? CallRole.recipient : CallRole.caller;
+      _setState(_state.copyWith(ownRole: ownRole));
 
       await _enableLocalMedia(mediaType: mediaType);
       await _coordinator.registerMatrixCall(
@@ -209,14 +195,21 @@ class AudioVideoCallService {
         return;
       }
 
-      final ownRole = isJoiningExistingCall
-          ? CallRole.recipient
-          : CallRole.caller;
-      final hasPeer = _hasPeer;
-      if (ownRole == CallRole.caller && !hasPeer) {
+      if (ownRole == CallRole.caller && _isTearingDown) {
+        _logger.info('joinCall: Call declined, skipping invite', name: _logKey);
+        return;
+      }
+
+      if (ownRole == CallRole.caller) {
+        errorCode = AudioVideoCallErrorCode.callInviteFailed;
+        await _coordinator.sendCallInvite(
+          channel: channel,
+          matrixRoomId: matrixRoomId,
+          mediaType: mediaType,
+        );
         _logger.info(
-          'joinCall: Caller alone in room, starting outgoing ring timer '
-          '(${_outgoingCallTimeout.inSeconds}s)',
+          'joinCall: Caller ringing, invite sent, starting outgoing ring '
+          'timer (${_outgoingCallTimeout.inSeconds}s)',
           name: _logKey,
         );
         _setState(
@@ -231,14 +224,7 @@ class AudioVideoCallService {
           _onOutgoingCallTimeout,
         );
       } else {
-        _setState(
-          _state.copyWith(
-            status: AudioVideoCallStatus.waitingForKeys,
-            participants: _room.participants,
-            ownRole: ownRole,
-          ),
-        );
-        _e2eeReadyTimer = Timer(_e2eeReadyTimeout, _onE2EETimeout);
+        await _setupRecipientCall();
       }
       succeeded = true;
     } on MeetingPlaceLiveKitCallOperationException catch (e, stackTrace) {
@@ -294,14 +280,10 @@ class AudioVideoCallService {
     }
     _isTearingDown = true;
 
-    const preAnswerStatuses = {
-      AudioVideoCallStatus.connecting,
-      AudioVideoCallStatus.outgoingRinging,
-    };
     final cancelledBeforeAnswer =
         _state.ownRole == CallRole.caller &&
         !_hasPeer &&
-        preAnswerStatuses.contains(_state.status);
+        canCancelBeforeAnswer(_state.status);
     _setState(_state.copyWith(status: AudioVideoCallStatus.disconnecting));
     _e2eeReadyTimer?.cancel();
     _outgoingCallTimer?.cancel();
@@ -393,6 +375,7 @@ class AudioVideoCallService {
       'notifyDeclined: Callee declined, leaving room and emitting declined',
       name: _logKey,
     );
+    _isTearingDown = true;
     _outgoingCallTimer?.cancel();
     _outgoingCallTimer = null;
     unawaited(_coordinator.leaveCall());
@@ -435,6 +418,29 @@ class AudioVideoCallService {
     }
   }
 
+  Future<void> _setupRecipientCall() async {
+    final ownRole = CallRole.recipient;
+    if (_hasPeer) {
+      _setState(
+        _state.copyWith(
+          status: AudioVideoCallStatus.connected,
+          participants: _room.participants,
+          ownRole: ownRole,
+          callStartedAt: DateTime.now(),
+        ),
+      );
+    } else {
+      _setState(
+        _state.copyWith(
+          status: AudioVideoCallStatus.waitingForKeys,
+          participants: _room.participants,
+          ownRole: ownRole,
+        ),
+      );
+    }
+    _e2eeReadyTimer = Timer(_e2eeReadyTimeout, _onE2EETimeout);
+  }
+
   void _onParticipantsChanged() {
     if (_isDisposed) {
       _logger.info(
@@ -443,18 +449,20 @@ class AudioVideoCallService {
       );
       return;
     }
-    if (_state.status == AudioVideoCallStatus.outgoingRinging && _hasPeer) {
-      _logger.info(
-        '_onParticipantsChanged: Other participant joined, '
-        'outgoingRinging -> waitingForKeys',
-        name: _logKey,
-      );
+
+    if (_hasPeer && canConnectOnPeerJoin(_state.status)) {
       _outgoingCallTimer?.cancel();
       _outgoingCallTimer = null;
+      _logger.info(
+        '_onParticipantsChanged: Peer present, connecting the call',
+        name: _logKey,
+      );
+
       _setState(
         _state.copyWith(
-          status: AudioVideoCallStatus.waitingForKeys,
+          status: AudioVideoCallStatus.connected,
           participants: _room.participants,
+          callStartedAt: DateTime.now(),
         ),
       );
       _e2eeReadyTimer ??= Timer(_e2eeReadyTimeout, _onE2EETimeout);
@@ -480,17 +488,23 @@ class AudioVideoCallService {
     _setState(_state.copyWith(participants: _room.participants));
   }
 
-  void _onAllKeyed() {
+  void _onPeerKeyed(String participantId) {
+    if (_isDisposed) return;
+    if (participantId == _room.ownParticipantId) return;
     _e2eeReadyTimer?.cancel();
-    if (_state.status == AudioVideoCallStatus.waitingForKeys ||
-        _state.status == AudioVideoCallStatus.connected) {
-      _setState(
-        _state.copyWith(
-          status: AudioVideoCallStatus.active,
-          participants: _room.participants,
-        ),
-      );
-    }
+    _outgoingCallTimer?.cancel();
+    _outgoingCallTimer = null;
+    if (!canTransitionToActive(_state.status)) return;
+    _logger.info(
+      '_onPeerKeyed: Live peer $participantId keyed, promoting to active',
+      name: _logKey,
+    );
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.active,
+        participants: _room.participants,
+      ),
+    );
   }
 
   void _onOutgoingCallTimeout() {

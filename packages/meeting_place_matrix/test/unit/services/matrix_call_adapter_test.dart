@@ -177,7 +177,31 @@ void main() {
   });
 
   group('prepareCallSession', () {
-    test('uses existing call id when Matrix reports an active call', () async {
+    test('recipient discovers existing call id from Matrix', () async {
+      final didManager = MockDidManager();
+      when(
+        () => matrixService.initializeVoIPWithDelegate(
+          didManager: didManager,
+          delegate: any(named: 'delegate'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => matrixService.activeCallId(
+          didManager: didManager,
+          roomId: _matrixRoomId,
+        ),
+      ).thenAnswer((_) async => 'existing-call-id');
+
+      final result = await adapter.prepareCallSession(
+        didManager: didManager,
+        matrixRoomId: _matrixRoomId,
+        isRecipient: true,
+      );
+
+      expect(result, 'existing-call-id');
+    });
+
+    test('caller uses existing call id from Matrix when present', () async {
       final didManager = MockDidManager();
       when(
         () => matrixService.initializeVoIPWithDelegate(
@@ -198,8 +222,7 @@ void main() {
         isRecipient: false,
       );
 
-      expect(result.callAlreadyInProgress, isTrue);
-      expect(result.callId, 'existing-call-id');
+      expect(result, 'existing-call-id');
     });
 
     test('generates a new call id when no active call exists', () async {
@@ -223,8 +246,7 @@ void main() {
         isRecipient: false,
       );
 
-      expect(result.callAlreadyInProgress, isFalse);
-      expect(result.callId, startsWith('$_matrixRoomId@'));
+      expect(result, startsWith('$_matrixRoomId@'));
     });
   });
 
@@ -283,7 +305,6 @@ void main() {
 
       await adapter.sendCallInvite(
         channel: channel,
-        callAlreadyInProgress: false,
         matrixRoomId: _matrixRoomId,
         mediaType: CallMediaType.audio,
       );
@@ -296,24 +317,6 @@ void main() {
           didManager: any(named: 'didManager'),
         ),
       ).called(1);
-    });
-
-    test('does not send invite when rejoining an in-progress call', () async {
-      await adapter.sendCallInvite(
-        channel: _stubChannel(),
-        callAlreadyInProgress: true,
-        matrixRoomId: _matrixRoomId,
-      );
-
-      verifyNever(
-        () => matrixService.sendRoomEvent(
-          any(),
-          any(),
-          any(),
-          didManager: any(named: 'didManager'),
-        ),
-      );
-      verifyNever(() => coreSDK.notifyChannel(any()));
     });
   });
 

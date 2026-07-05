@@ -6,11 +6,7 @@ import 'package:meeting_place_matrix/src/services/matrix_call_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-class MockMatrixClient extends Mock implements matrix.Client {}
-
-class MockVoIP extends Mock implements matrix.VoIP {}
-
-class MockDidManager extends Mock implements DidManager {}
+import 'mocks/mocks.dart';
 
 class _NoOpLogger implements MeetingPlaceMatrixSDKLogger {
   @override
@@ -33,6 +29,29 @@ class _NoOpLogger implements MeetingPlaceMatrixSDKLogger {
 
 const _roomId = '!room123:matrix.example.com';
 const _callId = 'call-1';
+const _ownUserId = '@own:matrix.example.com';
+const _ownDeviceId = 'OWNDEVICE';
+const _peerCallId = 'call-peer-1';
+
+/// Subclass that injects memberships directly into `callMembershipsFromRoom`
+/// without requiring a fully populated Matrix room state structure. Necessary
+/// because `getCallMembershipsFromRoom` is an extension method and cannot be
+/// overridden via the `matrix.Room` interface in tests.
+class _MatrixCallServiceWithMemberships extends MatrixCallService {
+  _MatrixCallServiceWithMemberships({
+    required super.ensureSession,
+    required super.logger,
+    required Map<String, List<matrix.CallMembership>> memberships,
+  }) : _memberships = memberships;
+
+  final Map<String, List<matrix.CallMembership>> _memberships;
+
+  @override
+  Map<String, List<matrix.CallMembership>> callMembershipsFromRoom(
+    matrix.Room room,
+    matrix.VoIP voip,
+  ) => _memberships;
+}
 
 void main() {
   late MockMatrixClient client;
@@ -106,6 +125,96 @@ void main() {
         roomId: _roomId,
       );
       expect(result, isNull);
+    });
+
+    group('skip-own-membership', () {
+      late MockMatrixClient skipClient;
+      late MockDidManager skipDidManager;
+      late MockMatrixRoom mockRoom;
+
+      setUp(() {
+        skipClient = MockMatrixClient();
+        skipDidManager = MockDidManager();
+        mockRoom = MockMatrixRoom();
+        when(() => skipClient.userID).thenReturn(_ownUserId);
+        when(() => skipClient.deviceID).thenReturn(_ownDeviceId);
+        when(() => skipClient.getRoomById(_roomId)).thenReturn(mockRoom);
+      });
+
+      _MatrixCallServiceWithMemberships makeService(
+        Map<String, List<matrix.CallMembership>> memberships,
+      ) => _MatrixCallServiceWithMemberships(
+        ensureSession:
+            (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                skipClient,
+        logger: _NoOpLogger(),
+        memberships: memberships,
+      )..initializeVoIP(MockVoIP());
+
+      test('returns peer callId when own membership is present', () async {
+        final svc = makeService({
+          'call-own-1': [
+            MockCallMembership(
+              callId: 'call-own-1',
+              userId: _ownUserId,
+              deviceId: _ownDeviceId,
+            ),
+          ],
+          _peerCallId: [
+            MockCallMembership(
+              callId: _peerCallId,
+              userId: '@peer:matrix.example.com',
+              deviceId: 'PEERDEVICE',
+            ),
+          ],
+        });
+
+        final result = await svc.activeCallId(
+          didManager: skipDidManager,
+          roomId: _roomId,
+        );
+
+        expect(result, equals(_peerCallId));
+      });
+
+      test('returns null when only own membership is present', () async {
+        final svc = makeService({
+          'call-own-1': [
+            MockCallMembership(
+              callId: 'call-own-1',
+              userId: _ownUserId,
+              deviceId: _ownDeviceId,
+            ),
+          ],
+        });
+
+        final result = await svc.activeCallId(
+          didManager: skipDidManager,
+          roomId: _roomId,
+        );
+
+        expect(result, isNull);
+      });
+
+      test('skips expired peer membership before own-device check', () async {
+        final svc = makeService({
+          _peerCallId: [
+            MockCallMembership(
+              callId: _peerCallId,
+              userId: '@peer:matrix.example.com',
+              deviceId: 'PEERDEVICE',
+              isExpired: true,
+            ),
+          ],
+        });
+
+        final result = await svc.activeCallId(
+          didManager: skipDidManager,
+          roomId: _roomId,
+        );
+
+        expect(result, isNull);
+      });
     });
   });
 

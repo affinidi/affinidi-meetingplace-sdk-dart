@@ -72,12 +72,14 @@ class MatrixCallAdapter {
 
   static const _logKey = 'MatrixCallAdapter';
 
-  /// Number of times a recipient retries discovering the in-progress call's
-  /// callId before giving up, to absorb state-sync lag behind the call-invite.
-  static const _recipientCallIdDiscoveryAttempts = 5;
-
-  /// Delay between recipient callId-discovery attempts.
-  static const _recipientCallIdDiscoveryInterval = Duration(milliseconds: 300);
+  /// Recipient must discover the in-progress call's callId before the caller's
+  /// ring timeout (60s). Discovery window is 15s to outlast cold app sync, then
+  /// fall back to a fresh callId. With 500ms retry interval, this is 30
+  /// attempts.
+  static const _recipientCallIdDiscoveryWindowMs = 15000;
+  static const _recipientCallIdDiscoveryInterval = Duration(milliseconds: 500);
+  static const _recipientCallIdDiscoveryAttempts =
+      _recipientCallIdDiscoveryWindowMs ~/ 500; // 30 attempts
 
   /// Matrix room ID of the active call. Set in [registerMatrixCall], cleared in
   /// [leaveCall] to prevent double-cleanup.
@@ -388,15 +390,26 @@ class MatrixCallAdapter {
     required String roomId,
     required bool isRecipient,
   }) async {
-    final attempts = isRecipient ? _recipientCallIdDiscoveryAttempts : 1;
-    for (var attempt = 0; attempt < attempts; attempt++) {
+    if (!isRecipient) return null;
+
+    for (
+      var attempt = 0;
+      attempt < _recipientCallIdDiscoveryAttempts;
+      attempt++
+    ) {
+      if (attempt > 0) {
+        await Future<void>.delayed(_recipientCallIdDiscoveryInterval);
+      }
       final callId = await _matrixService.activeCallId(
         didManager: didManager,
         roomId: roomId,
       );
-      if (callId != null) return callId;
-      if (attempt < attempts - 1) {
-        await Future<void>.delayed(_recipientCallIdDiscoveryInterval);
+      if (callId != null) {
+        _logger.info(
+          'Discovered in-progress callId on attempt ${attempt + 1}: $callId',
+          name: _logKey,
+        );
+        return callId;
       }
     }
     return null;

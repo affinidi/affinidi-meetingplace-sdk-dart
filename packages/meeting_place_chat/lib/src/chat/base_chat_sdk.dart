@@ -34,7 +34,7 @@ abstract class BaseChatSDK {
     required this.chatRepository,
     required this.options,
     this.card,
-    MeetingPlaceChatSDKLogger? logger,
+    MeetingPlaceCoreSDKLogger? logger,
   }) : chatStream = ChatStream(),
        _logger = LoggerFormatter(className: _className, baseLogger: logger);
 

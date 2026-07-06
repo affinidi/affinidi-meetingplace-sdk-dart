@@ -27,7 +27,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     required super.chatRepository,
     required super.options,
     super.card,
-    MeetingPlaceChatSDKLogger? logger,
+    MeetingPlaceCoreSDKLogger? logger,
   }) : super(
          logger:
              logger ??

@@ -9,7 +9,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
 import '../meeting_place_matrix.dart';
-import 'call/call_signal.dart';
 import 'call/call_signal_mapper.dart';
 import 'exceptions/meeting_place_livekit_call_exception.dart';
 import 'matrix_incoming_message.dart';

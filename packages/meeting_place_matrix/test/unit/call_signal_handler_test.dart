@@ -1,6 +1,5 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
-import 'package:meeting_place_matrix/src/call/call_signal.dart';
 import 'package:meeting_place_matrix/src/handlers/call_signal_handler.dart';
 import 'package:meeting_place_matrix/src/pending_call_manager.dart';
 import 'package:mocktail/mocktail.dart';
@@ -161,7 +160,7 @@ void main() {
     });
 
     test(
-      'routes re-invite from current peer to onPeerRestartedCall, not auto-decline',
+      '''routes re-invite from current peer to onPeerRestartedCall, not auto-decline''',
       () async {
         when(
           () => sdk.getChannelByDid(_ownDid),

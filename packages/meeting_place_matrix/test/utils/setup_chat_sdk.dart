@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart'
-    show MeetingPlaceChatSDKOptions;
+    show MeetingPlaceChatSDK, MeetingPlaceChatSDKOptions;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:ssi/ssi.dart';
@@ -113,7 +113,7 @@ class SetupChatSdk {
   }
 
   /// Builds a chat SDK against an already-established [channel].
-  Future<MeetingPlaceMatrixChatSDK> createChatSdk({
+  Future<MeetingPlaceChatSDK> createChatSdk({
     required SDKInstance sdkInstance,
     required Channel channel,
     Storage? storage,

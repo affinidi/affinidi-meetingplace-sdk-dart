@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:test/test.dart';
 
 import '../../../utils/chat_test_harness.dart';
@@ -11,8 +10,8 @@ import '../../utils/individual_chat_fixture.dart';
 
 void main() {
   IndividualChatFixture? fixture;
-  late MeetingPlaceMatrixChatSDK aliceChatSDK;
-  late MeetingPlaceMatrixChatSDK bobChatSDK;
+  late MeetingPlaceChatSDK aliceChatSDK;
+  late MeetingPlaceChatSDK bobChatSDK;
 
   setUpAll(() async {
     fixture = await IndividualChatFixture.create(

@@ -65,7 +65,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
 
-  static Future<MeetingPlaceMatrixChatSDK> initialiseFromChannel(
+  static Future<MeetingPlaceChatSDK> initialiseFromChannel(
     Channel channel, {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
@@ -73,13 +73,8 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     ContactCard? card,
     MeetingPlaceMatrixSDKLogger? logger,
   }) async {
-    if (channel.transport != ChannelTransport.matrix) {
-      throw ArgumentError(
-        '''Transport ${channel.transport} is not supported by meeting_place_matrix.''',
-      );
-    }
-
-    if (channel.type == ChannelType.group) {
+    if (channel.type == ChannelType.group &&
+        channel.transport == ChannelTransport.matrix) {
       final group =
           await coreSDK.getGroupByOfferLink(channel.offerLink) ??
           (throw Exception('Group not found'));
@@ -97,15 +92,36 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       );
     }
 
-    return IndividualMatrixChatSDK(
-      coreSDK: coreSDK,
-      did: channel.permanentChannelDid!,
-      otherPartyDid: channel.otherPartyPermanentChannelDid!,
-      mediatorDid: channel.mediatorDid,
-      chatRepository: chatRepository,
-      options: options,
-      card: card,
-      logger: logger,
+    if (channel.type != ChannelType.group &&
+        channel.transport == ChannelTransport.matrix) {
+      return IndividualMatrixChatSDK(
+        coreSDK: coreSDK,
+        did: channel.permanentChannelDid!,
+        otherPartyDid: channel.otherPartyPermanentChannelDid!,
+        mediatorDid: channel.mediatorDid,
+        chatRepository: chatRepository,
+        options: options,
+        card: card,
+        logger: logger,
+      );
+    }
+
+    if (channel.type != ChannelType.group &&
+        channel.transport == ChannelTransport.didcomm) {
+      return IndividualDidcommChatSDK(
+        coreSDK: coreSDK,
+        did: channel.permanentChannelDid!,
+        otherPartyDid: channel.otherPartyPermanentChannelDid!,
+        mediatorDid: channel.mediatorDid,
+        chatRepository: chatRepository,
+        options: options,
+        card: card,
+        logger: logger,
+      );
+    }
+
+    throw ArgumentError(
+      '''Channel type ${channel.type} with transport ${channel.transport} is not supported''',
     );
   }
 

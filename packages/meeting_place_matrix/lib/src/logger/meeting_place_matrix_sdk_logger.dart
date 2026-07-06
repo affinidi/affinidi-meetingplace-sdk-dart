@@ -4,7 +4,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 ///
 /// This interface allows consumers to provide their own logging implementation
 /// to capture and handle SDK logs according to their needs.
-abstract class MeetingPlaceMatrixSDKLogger extends MeetingPlaceCoreSDKLogger {
+abstract class MeetingPlaceMatrixSDKLogger
+    implements MeetingPlaceCoreSDKLogger {
   /// Logs an informational message.
   ///
   /// [message] is the log content.

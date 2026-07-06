@@ -295,7 +295,8 @@ class MatrixCallService {
     );
   }
 
-  /// Completes any pending activations whose group calls have appeared in [voip].
+  /// Completes any pending activations whose group calls have appeared in
+  /// [voip].
   ///
   /// Completes only those activations whose group call session now exists and
   /// whose completer is not yet resolved. Safe to call multiple times.

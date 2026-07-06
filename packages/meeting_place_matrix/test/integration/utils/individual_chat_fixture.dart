@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 
 import '../../utils/contact_card_fixture.dart' as fixtures;
 import '../../utils/sdk.dart';
@@ -18,8 +18,8 @@ class IndividualChatFixture {
   late Channel aliceChannel;
   late Channel bobChannel;
 
-  late MeetingPlaceMatrixChatSDK aliceChatSDK;
-  late MeetingPlaceMatrixChatSDK bobChatSDK;
+  late MeetingPlaceChatSDK aliceChatSDK;
+  late MeetingPlaceChatSDK bobChatSDK;
 
   static Future<IndividualChatFixture> create({
     SetupChatSdk? setup,

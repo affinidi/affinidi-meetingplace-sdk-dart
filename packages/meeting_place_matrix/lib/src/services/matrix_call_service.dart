@@ -334,11 +334,14 @@ class MatrixCallService {
         );
         return;
       }
-      for (final memberships in callMembershipsFromRoom(room, voip).values) {
-        for (final membership in memberships) {
-          await voip.createGroupCallFromRoomStateEvent(membership);
-        }
-      }
+      await Future.wait(
+        callMembershipsFromRoom(room, voip).values
+            .expand((memberships) => memberships)
+            .map(
+              (membership) =>
+                  voip.createGroupCallFromRoomStateEvent(membership),
+            ),
+      );
       _resolvePendingActivations(voip);
     } catch (e, stackTrace) {
       _logger.error(

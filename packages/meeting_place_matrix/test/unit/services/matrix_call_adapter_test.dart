@@ -177,53 +177,32 @@ void main() {
   });
 
   group('prepareCallSession', () {
-    test('recipient discovers existing call id from Matrix', () async {
-      final didManager = MockDidManager();
-      when(
-        () => matrixService.initializeVoIPWithDelegate(
+    test(
+      'caller mints a fresh call id even when Matrix reports an active call',
+      () async {
+        final didManager = MockDidManager();
+        when(
+          () => matrixService.initializeVoIPWithDelegate(
+            didManager: didManager,
+            delegate: any(named: 'delegate'),
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => matrixService.activeCallId(
+            didManager: didManager,
+            roomId: _matrixRoomId,
+          ),
+        ).thenAnswer((_) async => 'existing-call-id');
+
+        final result = await adapter.prepareCallSession(
           didManager: didManager,
-          delegate: any(named: 'delegate'),
-        ),
-      ).thenAnswer((_) async {});
-      when(
-        () => matrixService.activeCallId(
-          didManager: didManager,
-          roomId: _matrixRoomId,
-        ),
-      ).thenAnswer((_) async => 'existing-call-id');
+          matrixRoomId: _matrixRoomId,
+          isRecipient: false,
+        );
 
-      final result = await adapter.prepareCallSession(
-        didManager: didManager,
-        matrixRoomId: _matrixRoomId,
-        isRecipient: true,
-      );
-
-      expect(result, 'existing-call-id');
-    });
-
-    test('caller uses existing call id from Matrix when present', () async {
-      final didManager = MockDidManager();
-      when(
-        () => matrixService.initializeVoIPWithDelegate(
-          didManager: didManager,
-          delegate: any(named: 'delegate'),
-        ),
-      ).thenAnswer((_) async {});
-      when(
-        () => matrixService.activeCallId(
-          didManager: didManager,
-          roomId: _matrixRoomId,
-        ),
-      ).thenAnswer((_) async => 'existing-call-id');
-
-      final result = await adapter.prepareCallSession(
-        didManager: didManager,
-        matrixRoomId: _matrixRoomId,
-        isRecipient: false,
-      );
-
-      expect(result, 'existing-call-id');
-    });
+        expect(result, startsWith('$_matrixRoomId@'));
+      },
+    );
 
     test('generates a new call id when no active call exists', () async {
       final didManager = MockDidManager();

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:meta/meta.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../meeting_place_matrix.dart';
@@ -140,85 +141,6 @@ class MatrixCallService {
     }
   }
 
-  /// Listens to [voip]'s single-subscription [matrix.VoIP.onIncomingGroupCall]
-  /// stream exactly once, cancelling any subscription to a previous instance.
-  ///
-  /// onIncomingGroupCall fires synchronously inside
-  /// `createGroupCallFromRoomStateEvent` right after `setGroupCallById`,
-  /// covering both the VoIP constructor backfill and the onRoomState-from-sync
-  /// path. Listening here once per instance avoids the "Stream has already
-  /// been listened to" error that re-listening per call would cause on the
-  /// cached VoIP instance.
-  void _ensureIncomingGroupCallListener(matrix.VoIP voip) {
-    if (identical(_incomingCallListenerVoip, voip)) return;
-    _incomingGroupCallSubscription?.cancel();
-    _incomingCallListenerVoip = voip;
-    _incomingGroupCallSubscription = voip.onIncomingGroupCall.stream.listen(
-      (_) => _resolvePendingActivations(voip),
-    );
-  }
-
-  void _resolvePendingActivations(matrix.VoIP voip) {
-    for (final activation in List.of(_pendingActivations)) {
-      if (activation.completer.isCompleted) continue;
-      final session = _findGroupCallForRoom(voip, activation.roomId);
-      if (session != null) activation.completer.complete(session);
-    }
-  }
-
-  /// Loads [roomId] when the session has not synced it yet, then replays every
-  /// call membership already present in its state through
-  /// [matrix.VoIP.createGroupCallFromRoomStateEvent], which is idempotent.
-  ///
-  /// This is the deterministic counterpart to the onIncomingGroupCall listener:
-  /// the listener only covers memberships that arrive in a future sync, whereas
-  /// the caller's m.call.member event is typically already in the room state by
-  /// the time the callee activates. Best-effort by design; any failure leaves
-  /// the activation to resolve via the listener or time out.
-  Future<void> _discoverExistingGroupCall(
-    matrix.VoIP voip,
-    matrix.Client client,
-    String roomId,
-  ) async {
-    try {
-      if (client.getRoomById(roomId) == null) {
-        await client.waitForRoomInSync(roomId, join: true);
-      }
-      final room = client.getRoomById(roomId);
-      if (room == null) {
-        _logger.warning(
-          'Room $roomId did not load after sync; relying on '
-          'onIncomingGroupCall for incoming call discovery',
-          name: _logKey,
-        );
-        return;
-      }
-      for (final memberships in room.getCallMembershipsFromRoom(voip).values) {
-        for (final membership in memberships) {
-          await voip.createGroupCallFromRoomStateEvent(membership);
-        }
-      }
-      _resolvePendingActivations(voip);
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Eager incoming call discovery failed for room $roomId',
-        error: e,
-        stackTrace: stackTrace,
-        name: _logKey,
-      );
-    }
-  }
-
-  matrix.GroupCallSession? _findGroupCallForRoom(
-    matrix.VoIP voip,
-    String roomId,
-  ) {
-    for (final entry in voip.groupCalls.entries) {
-      if (entry.key.roomId == roomId) return entry.value;
-    }
-    return null;
-  }
-
   /// Returns `true` when [roomId] already has at least one non-expired
   /// `m.call.member` state event, i.e. a MatrixRTC call is already in
   /// progress.
@@ -255,9 +177,18 @@ class MatrixCallService {
     final room = client.getRoomById(roomId);
     if (room == null) return null;
 
-    for (final memberships in room.getCallMembershipsFromRoom(voip).values) {
+    final ownUserId = client.userID;
+    final ownDeviceId = client.deviceID;
+
+    for (final memberships in callMembershipsFromRoom(room, voip).values) {
       for (final membership in memberships) {
-        if (!membership.isExpired) return membership.callId;
+        if (membership.isExpired) continue;
+        if (ownUserId != null &&
+            ownDeviceId != null &&
+            _isOwnDeviceMembership(membership, ownUserId, ownDeviceId)) {
+          continue;
+        }
+        return membership.callId;
       }
     }
     return null;
@@ -341,4 +272,114 @@ class MatrixCallService {
     _incomingCallListenerVoip = null;
     _pendingActivations.clear();
   }
+
+  // ------------------------------------------------------------------
+  // Private helpers
+  // ------------------------------------------------------------------
+
+  /// Listens to [voip]'s single-subscription [matrix.VoIP.onIncomingGroupCall]
+  /// stream exactly once, cancelling any subscription to a previous instance.
+  ///
+  /// onIncomingGroupCall fires synchronously inside
+  /// `createGroupCallFromRoomStateEvent` right after `setGroupCallById`,
+  /// covering both the VoIP constructor backfill and the onRoomState-from-sync
+  /// path. Listening here once per instance avoids the "Stream has already
+  /// been listened to" error that re-listening per call would cause on the
+  /// cached VoIP instance.
+  void _ensureIncomingGroupCallListener(matrix.VoIP voip) {
+    if (identical(_incomingCallListenerVoip, voip)) return;
+    _incomingGroupCallSubscription?.cancel();
+    _incomingCallListenerVoip = voip;
+    _incomingGroupCallSubscription = voip.onIncomingGroupCall.stream.listen(
+      (_) => _resolvePendingActivations(voip),
+    );
+  }
+
+  /// Completes any pending activations whose group calls have appeared in [voip].
+  ///
+  /// Completes only those activations whose group call session now exists and
+  /// whose completer is not yet resolved. Safe to call multiple times.
+  void _resolvePendingActivations(matrix.VoIP voip) {
+    for (final activation in List.of(_pendingActivations)) {
+      if (activation.completer.isCompleted) continue;
+      final session = _findGroupCallForRoom(voip, activation.roomId);
+      if (session != null) activation.completer.complete(session);
+    }
+  }
+
+  /// Loads [roomId] when the session has not synced it yet, then replays every
+  /// call membership already present in its state through
+  /// [matrix.VoIP.createGroupCallFromRoomStateEvent], which is idempotent.
+  ///
+  /// This is the deterministic counterpart to the onIncomingGroupCall listener:
+  /// the listener only covers memberships that arrive in a future sync, whereas
+  /// the caller's m.call.member event is typically already in the room state by
+  /// the time the callee activates. Best-effort by design; any failure leaves
+  /// the activation to resolve via the listener or time out.
+  Future<void> _discoverExistingGroupCall(
+    matrix.VoIP voip,
+    matrix.Client client,
+    String roomId,
+  ) async {
+    try {
+      if (client.getRoomById(roomId) == null) {
+        await client.waitForRoomInSync(roomId, join: true);
+      }
+      final room = client.getRoomById(roomId);
+      if (room == null) {
+        _logger.warning(
+          'Room $roomId did not load after sync; relying on '
+          'onIncomingGroupCall for incoming call discovery',
+          name: _logKey,
+        );
+        return;
+      }
+      await Future.wait(
+        callMembershipsFromRoom(room, voip).values
+            .expand((memberships) => memberships)
+            .map(
+              (membership) =>
+                  voip.createGroupCallFromRoomStateEvent(membership),
+            ),
+      );
+      _resolvePendingActivations(voip);
+    } catch (e, stackTrace) {
+      _logger.error(
+        'Eager incoming call discovery failed for room $roomId',
+        error: e,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+    }
+  }
+
+  /// Returns the first group call session in [voip] that belongs to [roomId],
+  /// or `null` if none exists.
+  matrix.GroupCallSession? _findGroupCallForRoom(
+    matrix.VoIP voip,
+    String roomId,
+  ) {
+    for (final entry in voip.groupCalls.entries) {
+      if (entry.key.roomId == roomId) return entry.value;
+    }
+    return null;
+  }
+
+  /// Returns `true` if [membership] belongs to this device.
+  bool _isOwnDeviceMembership(
+    matrix.CallMembership membership,
+    String ownUserId,
+    String ownDeviceId,
+  ) => membership.userId == ownUserId && membership.deviceId == ownDeviceId;
+
+  /// Returns the MatrixRTC call memberships for [room].
+  ///
+  /// Extracted to allow test subclasses to inject controlled membership data
+  /// without needing to populate the full room state event structure that
+  /// the `getCallMembershipsFromRoom` extension reads.
+  @visibleForTesting
+  Map<String, List<matrix.CallMembership>> callMembershipsFromRoom(
+    matrix.Room room,
+    matrix.VoIP voip,
+  ) => room.getCallMembershipsFromRoom(voip);
 }

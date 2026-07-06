@@ -10,6 +10,10 @@ import '../../meeting_place_matrix.dart';
 
 class MockDio extends Mock implements Dio {}
 
+class MockMatrixClient extends Mock implements matrix.Client {}
+
+class MockVoIP extends Mock implements matrix.VoIP {}
+
 class MockMeetingPlaceCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
 class MockMeetingPlaceMatrixSDK extends Mock implements MeetingPlaceMatrixSDK {}
@@ -30,3 +34,19 @@ class MockWebRTCDelegate extends Mock implements matrix.WebRTCDelegate {}
 class MockSfuTokenService extends Mock implements SfuTokenService {}
 
 class MockLiveKitCallSession extends Mock implements LiveKitCallSession {}
+
+class MockMatrixRoom extends Mock implements matrix.Room {}
+
+class MockCallMembership extends Mock implements matrix.CallMembership {
+  MockCallMembership({
+    required String callId,
+    required String userId,
+    required String deviceId,
+    bool isExpired = false,
+  }) {
+    when(() => this.callId).thenReturn(callId);
+    when(() => this.userId).thenReturn(userId);
+    when(() => this.deviceId).thenReturn(deviceId);
+    when(() => this.isExpired).thenReturn(isExpired);
+  }
+}

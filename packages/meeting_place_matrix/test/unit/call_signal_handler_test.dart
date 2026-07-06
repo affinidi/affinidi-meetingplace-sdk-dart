@@ -61,9 +61,11 @@ void main() {
     MockLiveKitCallSession? activeSession,
     List<IncomingAudioVideoCallEvent>? emittedIncoming,
     List<String>? emittedCancelled,
+    List<IncomingAudioVideoCallEvent>? emittedPeerRestarted,
   }) {
     final incoming = emittedIncoming ?? [];
     final cancelled = emittedCancelled ?? [];
+    final peerRestarted = emittedPeerRestarted ?? [];
     return CallSignalHandler(
       sdk: sdk,
       pendingCallManager: pendingCallManager,
@@ -71,6 +73,7 @@ void main() {
       getActiveSession: () => activeSession,
       onIncomingCall: incoming.add,
       onCallCancelled: cancelled.add,
+      onPeerRestartedCall: peerRestarted.add,
     );
   }
 
@@ -148,6 +151,7 @@ void main() {
         getActiveSession: () => null,
         onIncomingCall: emittedSecond.add,
         onCallCancelled: (_) {},
+        onPeerRestartedCall: (_) {},
       );
       await handlerSecond.onIncomingCallSignal(
         const IncomingCallSignal(ownChannelDid: _ownDid),
@@ -155,6 +159,33 @@ void main() {
 
       expect(emittedSecond, isEmpty);
     });
+
+    test(
+      'routes re-invite from current peer to onPeerRestartedCall, not auto-decline',
+      () async {
+        when(
+          () => sdk.getChannelByDid(_ownDid),
+        ).thenAnswer((_) async => _channel());
+
+        // Mark an outbound call so isInCallWith returns true for _callerDid.
+        pendingCallManager.markOutboundCall(_callerDid);
+
+        final emittedIncoming = <IncomingAudioVideoCallEvent>[];
+        final emittedRestarted = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(
+          emittedIncoming: emittedIncoming,
+          emittedPeerRestarted: emittedRestarted,
+        );
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        expect(emittedIncoming, isEmpty);
+        expect(emittedRestarted, hasLength(1));
+        expect(emittedRestarted.first.otherPartyChannelDid, _callerDid);
+      },
+    );
   });
 
   group('onCallDeclineSignal', () {

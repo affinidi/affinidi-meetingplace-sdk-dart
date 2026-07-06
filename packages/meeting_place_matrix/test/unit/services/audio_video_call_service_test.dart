@@ -306,7 +306,7 @@ void main() {
 
       await svc.joinCall(mediaType: CallMediaType.video);
 
-      expect(room.callOrder, containsAllInOrder(['nudge', 'connect']));
+      expect(room.callOrder, containsAllInOrder(['connect', 'nudge']));
       expect(room.connectCalls, 1);
     });
   });

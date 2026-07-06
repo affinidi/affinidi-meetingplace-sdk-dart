@@ -9,36 +9,45 @@ import '../fakes/fake_livekit_service.dart';
 void main() {
   late FakeLiveKitRoom room;
   late bool isDisposed;
-  late int allKeyedCalls;
+  late int peerKeyedCalls;
+  late String? lastKeyedParticipantId;
   late CallE2EEHandler handler;
 
   setUp(() {
     room = FakeLiveKitRoom();
     isDisposed = false;
-    allKeyedCalls = 0;
+    peerKeyedCalls = 0;
+    lastKeyedParticipantId = null;
     handler = CallE2EEHandler(
       room: room,
       logger: DefaultMeetingPlaceMatrixSDKLogger(className: 'test'),
       isDisposed: () => isDisposed,
-      onAllKeyed: () => allKeyedCalls++,
+      onPeerKeyed: (participantId) {
+        peerKeyedCalls++;
+        lastKeyedParticipantId = participantId;
+      },
     );
   });
 
   tearDown(() => handler.cancelAll());
 
   group('onE2EEStateChanged', () {
-    test('invokes onAllKeyed when participant reaches ok', () {
-      handler.onE2EEStateChanged('participant-1', CallE2EEState.ok);
+    test(
+      'invokes onPeerKeyed with participantId when participant reaches ok',
+      () {
+        handler.onE2EEStateChanged('participant-1', CallE2EEState.ok);
 
-      expect(allKeyedCalls, 1);
-    });
+        expect(peerKeyedCalls, 1);
+        expect(lastKeyedParticipantId, 'participant-1');
+      },
+    );
 
-    test('does not invoke onAllKeyed when service is disposed', () {
+    test('does not invoke onPeerKeyed when service is disposed', () {
       isDisposed = true;
 
       handler.onE2EEStateChanged('participant-1', CallE2EEState.ok);
 
-      expect(allKeyedCalls, 0);
+      expect(peerKeyedCalls, 0);
     });
 
     test(
@@ -62,7 +71,7 @@ void main() {
         room.callOrder,
         isNot(contains('forceRemoteKeyframe:participant-1')),
       );
-      expect(allKeyedCalls, 1);
+      expect(peerKeyedCalls, 1);
     });
   });
 

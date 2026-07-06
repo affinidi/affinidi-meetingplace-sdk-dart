@@ -162,15 +162,16 @@ class MatrixCallAdapter {
     );
   }
 
-  /// Initialises MatrixRTC and checks for an in-progress call.
+  /// Initialises MatrixRTC and resolves the callId to register against.
   ///
   /// This is the cheap preparation phase that must complete before the
-  /// call-invite nudge is sent, so the rejoin decision is known. It does not
-  /// connect the LiveKit room.
+  /// LiveKit room is joined. It does not connect the LiveKit room.
   ///
-  /// Returns whether a call was already in progress in the room before this
-  /// device joined (rejoin scenario), and the callId to register against.
-  Future<({bool callAlreadyInProgress, String callId})> prepareCallSession({
+  /// Both parties reuse an in-progress call generation when one is present so
+  /// their E2EE key exchange lands in the same generation: the recipient joins
+  /// the caller's call, and a caller whose peer is still in the call rejoins
+  /// it. When no generation is present a fresh callId is minted.
+  Future<String> prepareCallSession({
     required DidManager didManager,
     required String matrixRoomId,
     required bool isRecipient,
@@ -185,17 +186,15 @@ class MatrixCallAdapter {
       roomId: matrixRoomId,
       isRecipient: isRecipient,
     );
-    final callAlreadyInProgress = existingCallId != null;
     final callId =
         existingCallId ??
         '$matrixRoomId@${DateTime.now().microsecondsSinceEpoch}';
     _logger.info(
-      'Active call membership check: '
-      'callAlreadyInProgress=$callAlreadyInProgress callId=$callId'
-      ' for room $matrixRoomId',
+      'Resolved call session: callId=$callId '
+      '(existing=${existingCallId != null}) for room $matrixRoomId',
       name: _logKey,
     );
-    return (callAlreadyInProgress: callAlreadyInProgress, callId: callId);
+    return callId;
   }
 
   /// Signals the Matrix homeserver that a video call has started and stores the
@@ -220,22 +219,14 @@ class MatrixCallAdapter {
 
   /// Sends a call-invite nudge to [channel] via the control-plane pipeline.
   ///
-  /// No-ops silently when [callAlreadyInProgress] is true: this is a rejoin
-  /// (e.g. after an app restart) and a duplicate invite must not be sent.
+  /// Only sent when the caller is alone in the room after connecting, so a
+  /// caller that rejoined a still-live call (peer already present) never
+  /// re-nudges the callee.
   Future<void> sendCallInvite({
     required Channel channel,
-    required bool callAlreadyInProgress,
     required String matrixRoomId,
     CallMediaType mediaType = CallMediaType.video,
   }) async {
-    if (callAlreadyInProgress) {
-      _logger.warning(
-        'Skipping call-invite nudge to '
-        '${_otherPartyChannelDid.topAndTail()}: rejoining in-progress call',
-        name: _logKey,
-      );
-      return;
-    }
     if (channel.isGroup) {
       await _coreSDK.notifyChannel(
         GroupChannelNotification(

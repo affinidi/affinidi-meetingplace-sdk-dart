@@ -18,16 +18,16 @@ class CallE2EEHandler {
     required LiveKitRoom room,
     required MeetingPlaceMatrixSDKLogger logger,
     required bool Function() isDisposed,
-    required void Function() onAllKeyed,
+    required void Function(String participantId) onPeerKeyed,
   }) : _room = room,
        _logger = logger,
        _isDisposed = isDisposed,
-       _onAllKeyed = onAllKeyed;
+       _onPeerKeyed = onPeerKeyed;
 
   final LiveKitRoom _room;
   final MeetingPlaceMatrixSDKLogger _logger;
   final bool Function() _isDisposed;
-  final void Function() _onAllKeyed;
+  final void Function(String participantId) _onPeerKeyed;
 
   static const _logKey = 'CallE2EEHandler';
 
@@ -80,8 +80,9 @@ class CallE2EEHandler {
 
   /// Processes an E2EE state update from the LiveKit room for [participantId].
   ///
-  /// When all participants reach [CallE2EEState.ok], invokes `onAllKeyed` so
-  /// the call service can drive the `waitingForKeys → active` transition.
+  /// When a participant reaches [CallE2EEState.ok], invokes `onPeerKeyed` with
+  /// that participant id so the call service can decide whether it represents a
+  /// live peer and drive the transition to `active`.
   void onE2EEStateChanged(String participantId, CallE2EEState e2eeState) {
     if (_isDisposed()) {
       _logger.info(
@@ -98,7 +99,7 @@ class CallE2EEHandler {
       _participantsKeyed.add(participantId);
       _participantsMissingKey.remove(participantId);
       _cancelKeyframeNudge(participantId);
-      _onAllKeyed();
+      _onPeerKeyed(participantId);
     } else if (e2eeState == CallE2EEState.missingKey) {
       _participantsMissingKey.add(participantId);
       _scheduleKeyframeNudge(participantId);

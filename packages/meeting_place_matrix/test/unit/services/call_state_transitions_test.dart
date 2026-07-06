@@ -1,5 +1,5 @@
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
-import 'package:meeting_place_matrix/src/services/call_state_machine.dart';
+import 'package:meeting_place_matrix/src/services/call_state_transitions.dart';
 import 'package:test/test.dart';
 
 void main() {

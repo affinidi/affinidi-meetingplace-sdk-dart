@@ -346,12 +346,13 @@ packages:
     source: hosted
     version: "1.2.1"
   didcomm:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: didcomm
-      sha256: "8fd4c7b14dc53bc125d788db16cc8a9381820f73c7526932bfd2b9a2a48eb629"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "1ef27e70d12470f10fb84d284b5e53e95e8c6067"
+      resolved-ref: "1ef27e70d12470f10fb84d284b5e53e95e8c6067"
+      url: "https://github.com/affinidi/affinidi-didcomm-dart.git"
+    source: git
     version: "2.3.3"
   dio:
     dependency: transitive
@@ -997,10 +998,10 @@ packages:
     dependency: transitive
     description:
       name: ssi
-      sha256: ea7c7bc1a775cbe788df49079eb0d482660def1f594dedaba0d963b7df2d109d
+      sha256: "083f103dac2511cbffdabec1ea19dcdfea9272c7bca09cbe80d6fb69de2e3b6a"
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.3"
+    version: "3.9.4"
   stack_trace:
     dependency: transitive
     description:

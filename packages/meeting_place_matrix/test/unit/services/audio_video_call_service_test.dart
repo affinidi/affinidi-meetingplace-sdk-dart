@@ -344,4 +344,23 @@ void main() {
       expect(service.state.status, AudioVideoCallStatus.idle);
     });
   });
+
+  group('dispose', () {
+    test(
+      'disconnects LiveKit room and skips leaveCall when no session prepared',
+      () async {
+        await service.dispose();
+
+        expect(fakeRoom.disconnectCalls, 1);
+        expect(fakeRoom.callOrder, contains('disconnect'));
+      },
+    );
+
+    test('is idempotent when called multiple times', () async {
+      await service.dispose();
+      await service.dispose();
+
+      expect(fakeRoom.disconnectCalls, 1);
+    });
+  });
 }

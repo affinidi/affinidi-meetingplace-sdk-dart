@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../../meeting_place_matrix.dart';
+import '../handlers/call_signal_handler.dart' show CallSignalHandler;
 import '../logger/top_and_tail_extension.dart';
 import '../services/audio_video_call_service.dart';
 
@@ -126,6 +127,16 @@ class LiveKitCallSession implements AudioVideoCallSession {
   /// Exposed so Flutter consumer widgets can access the room for video
   /// rendering without going through Riverpod providers.
   LiveKitRoom get room => _service.room;
+
+  /// True while this session is still dialling [channelDid] and has not yet
+  /// connected. Used by [CallSignalHandler] to detect a simultaneous call
+  /// (both parties dialled each other at the same time).
+  bool isDiallingTo(String channelDid) =>
+      otherPartyChannelDid == channelDid &&
+      const {
+        AudioVideoCallStatus.outgoingRinging,
+        AudioVideoCallStatus.connecting,
+      }.contains(_latestState.status);
 
   /// Initiates the call connection. Plugin-internal — called by
   /// `MeetingPlaceLiveKitCallPlugin` immediately after creating the session.

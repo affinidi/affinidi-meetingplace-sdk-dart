@@ -92,24 +92,36 @@ class AudioVideoCallService {
 
   /// Releases all resources held by this service.
   ///
-  /// Cancels timers, leaves the Matrix call, disconnects the LiveKit room, and
+  /// Cancels timers, disconnects the LiveKit room, leaves the Matrix call, and
   /// closes streams. Must be called when the session ends. The service must not
   /// be used after [dispose] returns.
   Future<void> dispose() async {
     if (_isDisposed) return;
     _isDisposed = true;
+    _logger.info('dispose: Starting teardown', name: _logKey);
     _e2eeReadyTimer?.cancel();
     _outgoingCallTimer?.cancel();
     _e2eeHandler.cancelAll();
+
     final roomId = _coordinator.matrixRoomId;
     final callId = _coordinator.matrixCallId;
-    if (roomId != null && callId != null) {
-      unawaited(_coordinator.leaveCall());
+    try {
+      _logger.info('dispose: Disconnecting LiveKit room', name: _logKey);
+      await _room.disconnect();
+      _logger.info('dispose: LiveKit disconnect complete', name: _logKey);
+      if (roomId != null && callId != null) {
+        _logger.info('dispose: Leaving Matrix call', name: _logKey);
+        await _coordinator.leaveCall();
+        _logger.info('dispose: Matrix leave complete', name: _logKey);
+      }
+    } catch (e, stackTrace) {
+      _logger.warning(
+        'dispose: Error during teardown: $e\n$stackTrace',
+        name: _logKey,
+      );
     }
-    // Ensure the LiveKit room is always released, even if leaveCall() was
-    // never called (e.g. screen popped mid-call or app killed).
-    unawaited(_room.disconnect());
     await _stateController.close();
+    _logger.info('dispose: Teardown complete', name: _logKey);
   }
 
   void _setState(AudioVideoCallState value) {

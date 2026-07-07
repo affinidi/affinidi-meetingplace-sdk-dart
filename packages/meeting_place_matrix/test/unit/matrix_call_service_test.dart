@@ -71,14 +71,56 @@ class _MatrixCallServiceCapturingVoip extends MatrixCallService {
   }
 }
 
+class _MatrixCallServiceCapturingMemberships extends MatrixCallService {
+  _MatrixCallServiceCapturingMemberships({
+    required super.ensureSession,
+    required super.logger,
+  });
+
+  matrix.VoIP? lastVoip;
+  Map<String, List<matrix.CallMembership>> memberships = const {};
+
+  @override
+  Map<String, List<matrix.CallMembership>> callMembershipsFromRoom(
+    matrix.Room room,
+    matrix.VoIP voip,
+  ) {
+    lastVoip = voip;
+    return memberships;
+  }
+}
+
+class _MatrixCallServiceWithVoipFactory extends MatrixCallService {
+  _MatrixCallServiceWithVoipFactory({
+    required super.ensureSession,
+    required super.logger,
+    required this.voipFactory,
+  });
+
+  final matrix.VoIP Function(
+    matrix.Client client,
+    matrix.WebRTCDelegate delegate,
+  ) voipFactory;
+
+  @override
+  matrix.VoIP createVoip(
+    matrix.Client client,
+    matrix.WebRTCDelegate delegate,
+  ) => voipFactory(client, delegate);
+}
+
 void main() {
   late MockMatrixClient client;
+  late MockMatrixClient secondClient;
   late MockDidManager didManager;
+  late MockDidManager secondDidManager;
   late MatrixCallService service;
 
   setUp(() {
     client = MockMatrixClient();
+    secondClient = MockMatrixClient();
     didManager = MockDidManager();
+    secondDidManager = MockDidManager();
     service = MatrixCallService(
       ensureSession:
           (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
@@ -101,7 +143,9 @@ void main() {
     });
 
     test('throws when the room is not found', () async {
-      service.initializeVoIP(MockVoIP());
+      final voip = MockVoIP();
+      when(() => voip.client).thenReturn(client);
+      service.initializeVoIP(voip);
       when(() => client.getRoomById(_roomId)).thenReturn(null);
 
       await expectLater(
@@ -137,6 +181,8 @@ void main() {
         logger: _NoOpLogger(),
       );
 
+      when(() => existingVoip.client).thenReturn(client);
+      when(() => existingVoip.delegate).thenReturn(delegate);
       capturingService.initializeVoIP(existingVoip);
       when(() => client.getRoomById(_roomId)).thenReturn(mockRoom);
       when(() => client.userID).thenReturn(_ownUserId);
@@ -154,6 +200,66 @@ void main() {
 
       expect(capturingService.lastVoip, same(existingVoip));
     });
+
+    test('throws when a different delegate is used for an existing VoIP', () async {
+      final existingVoip = MockVoIP();
+      final originalDelegate = MockWebRTCDelegate();
+      final replacementDelegate = MockWebRTCDelegate();
+
+      when(() => existingVoip.client).thenReturn(client);
+      when(() => existingVoip.delegate).thenReturn(originalDelegate);
+      service.initializeVoIP(existingVoip);
+
+      await expectLater(
+        service.initializeVoIPWithDelegate(
+          didManager: didManager,
+          delegate: replacementDelegate,
+        ),
+        throwsA(isA<MatrixServiceException>()),
+      );
+    });
+
+    test('allows a different client to have its own VoIP instance', () async {
+      final firstDelegate = MockWebRTCDelegate();
+      final secondDelegate = MockWebRTCDelegate();
+      final firstVoip = MockVoIP();
+      final secondVoip = MockVoIP();
+      final multiClientService = _MatrixCallServiceWithVoipFactory(
+        ensureSession:
+            (DidManager input, {bool keepSyncActiveAfterLogin = false}) async =>
+                identical(input, didManager) ? client : secondClient,
+        logger: _NoOpLogger(),
+        voipFactory: (factoryClient, factoryDelegate) {
+          if (identical(factoryClient, client) &&
+              identical(factoryDelegate, firstDelegate)) {
+            return firstVoip;
+          }
+          if (identical(factoryClient, secondClient) &&
+              identical(factoryDelegate, secondDelegate)) {
+            return secondVoip;
+          }
+          throw StateError('Unexpected VoIP factory arguments');
+        },
+      );
+
+      when(() => firstVoip.client).thenReturn(client);
+      when(() => firstVoip.delegate).thenReturn(firstDelegate);
+      when(() => secondVoip.client).thenReturn(secondClient);
+      when(() => secondVoip.delegate).thenReturn(secondDelegate);
+
+      await multiClientService.initializeVoIPWithDelegate(
+        didManager: didManager,
+        delegate: firstDelegate,
+      );
+
+      await expectLater(
+        multiClientService.initializeVoIPWithDelegate(
+          didManager: secondDidManager,
+          delegate: secondDelegate,
+        ),
+        completes,
+      );
+    });
   });
 
   group('activeCallId', () {
@@ -166,7 +272,9 @@ void main() {
     });
 
     test('returns null when the room is not found', () async {
-      service.initializeVoIP(MockVoIP());
+      final voip = MockVoIP();
+      when(() => voip.client).thenReturn(client);
+      service.initializeVoIP(voip);
       when(() => client.getRoomById(_roomId)).thenReturn(null);
 
       final result = await service.activeCallId(
@@ -174,6 +282,35 @@ void main() {
         roomId: _roomId,
       );
       expect(result, isNull);
+    });
+
+    test('uses the VoIP bound to the requested client', () async {
+      final firstVoip = MockVoIP();
+      final secondVoip = MockVoIP();
+      final firstRoom = MockMatrixRoom();
+      final secondRoom = MockMatrixRoom();
+      final capturingService = _MatrixCallServiceCapturingMemberships(
+        ensureSession:
+            (DidManager input, {bool keepSyncActiveAfterLogin = false}) async =>
+                identical(input, didManager) ? client : secondClient,
+        logger: _NoOpLogger(),
+      );
+
+      when(() => firstVoip.client).thenReturn(client);
+      when(() => secondVoip.client).thenReturn(secondClient);
+      capturingService.initializeVoIP(firstVoip);
+      capturingService.initializeVoIP(secondVoip);
+      when(() => client.getRoomById(_roomId)).thenReturn(firstRoom);
+      when(() => secondClient.getRoomById(_roomId)).thenReturn(secondRoom);
+      when(() => secondClient.userID).thenReturn(_ownUserId);
+      when(() => secondClient.deviceID).thenReturn(_ownDeviceId);
+
+      await capturingService.activeCallId(
+        didManager: secondDidManager,
+        roomId: _roomId,
+      );
+
+      expect(capturingService.lastVoip, same(secondVoip));
     });
 
     group('skip-own-membership', () {
@@ -192,13 +329,17 @@ void main() {
 
       _MatrixCallServiceWithMemberships makeService(
         Map<String, List<matrix.CallMembership>> memberships,
-      ) => _MatrixCallServiceWithMemberships(
-        ensureSession:
-            (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
-                skipClient,
-        logger: _NoOpLogger(),
-        memberships: memberships,
-      )..initializeVoIP(MockVoIP());
+      ) {
+        final voip = MockVoIP();
+        when(() => voip.client).thenReturn(skipClient);
+        return _MatrixCallServiceWithMemberships(
+          ensureSession:
+              (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                  skipClient,
+          logger: _NoOpLogger(),
+          memberships: memberships,
+        )..initializeVoIP(voip);
+      }
 
       test('returns peer callId when own membership is present', () async {
         final svc = makeService({

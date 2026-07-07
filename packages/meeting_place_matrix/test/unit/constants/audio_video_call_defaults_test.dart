@@ -3,8 +3,8 @@ import 'package:test/test.dart';
 
 void main() {
   group('AudioVideoCallDefaults', () {
-    test('sharedKeyEncryption is enabled as a temporary measure', () {
-      expect(AudioVideoCallDefaults.sharedKeyEncryption, isTrue);
+    test('sharedKeyEncryption uses per-participant keys', () {
+      expect(AudioVideoCallDefaults.sharedKeyEncryption, isFalse);
     });
   });
 }

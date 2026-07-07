@@ -175,8 +175,6 @@ class AudioVideoCallService {
         isRecipient: isRecipient,
       );
 
-      await _room.setSharedKey('mpx-call-shared-key:$matrixRoomId');
-
       errorCode = AudioVideoCallErrorCode.connectionFailed;
       await _room.connect(
         url: sfuUrl,

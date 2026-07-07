@@ -11,10 +11,5 @@ abstract final class AudioVideoCallDefaults {
   /// model is required for key rotation on participant departure: when someone
   /// leaves, only their key needs to be rotated rather than re-keying the
   /// entire room.
-  // static const bool sharedKeyEncryption = false;
-
-  // TODO (Earl): restore per-participant keys (`false`) once the matrix
-  // to-device key exchange reliably delivers the publisher key on join. The
-  // shared key below is a temporary measure to keep calls functional.
-  static const bool sharedKeyEncryption = true;
+  static const bool sharedKeyEncryption = false;
 }

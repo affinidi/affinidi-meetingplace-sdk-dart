@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meta/meta.dart';
@@ -32,9 +33,10 @@ class MatrixCallService {
 
   static const _logKey = 'MatrixCallService';
 
-  /// VoIP instances for MatrixRTC call management, keyed by their Matrix
-  /// client identity.
-  final List<matrix.VoIP> _voips = [];
+  /// VoIP instances for MatrixRTC call management, keyed by Matrix client
+  /// identity.
+  final Map<matrix.Client, matrix.VoIP> _voips =
+      HashMap<matrix.Client, matrix.VoIP>.identity();
 
   /// Subscription to [matrix.VoIP.onIncomingGroupCall] for each tracked VoIP.
   final Map<matrix.VoIP, StreamSubscription<matrix.GroupCallSession>>
@@ -54,9 +56,9 @@ class MatrixCallService {
   /// [watchCall]. The VoIP instance must be created in the Flutter layer using
   /// a concrete [matrix.WebRTCDelegate] implementation.
   void initializeVoIP(matrix.VoIP voip) {
-    final existingVoip = _findVoipForClient(voip.client);
+    final existingVoip = _voips[voip.client];
     if (existingVoip == null) {
-      _voips.add(voip);
+      _voips[voip.client] = voip;
       return;
     }
     if (identical(existingVoip, voip)) return;
@@ -73,14 +75,14 @@ class MatrixCallService {
     required matrix.WebRTCDelegate delegate,
   }) async {
     final client = await _ensureSession(didManager);
-    final existingVoip = _findVoipForClient(client);
+    final existingVoip = _voips[client];
     if (existingVoip != null) {
       if (identical(existingVoip.delegate, delegate)) {
         return;
       }
       throw MatrixServiceException.voipAlreadyInitialized();
     }
-    _voips.add(createVoip(client, delegate));
+    _voips[client] = createVoip(client, delegate);
   }
 
   /// Lazily activates the single Matrix session for [didManager] and resolves
@@ -184,7 +186,7 @@ class MatrixCallService {
     required String roomId,
   }) async {
     final client = await _ensureSession(didManager);
-    final voip = _findVoipForClient(client);
+    final voip = _voips[client];
     if (voip == null) return null;
     final room = client.getRoomById(roomId);
     if (room == null) return null;
@@ -226,7 +228,7 @@ class MatrixCallService {
     String? callId,
   }) async {
     final client = await _ensureSession(didManager);
-    final voip = _findVoipForClient(client);
+    final voip = _voips[client];
     if (voip == null) throw MatrixServiceException.voipNotInitialized();
     final room = client.getRoomById(roomId);
     if (room == null) throw MatrixServiceException.roomNotFound(roomId);
@@ -322,7 +324,7 @@ class MatrixCallService {
     matrix.Client client,
     matrix.WebRTCDelegate delegate,
   ) {
-    final existingVoip = _findVoipForClient(client);
+    final existingVoip = _voips[client];
     if (existingVoip != null) {
       if (identical(existingVoip.delegate, delegate)) {
         return existingVoip;
@@ -330,15 +332,8 @@ class MatrixCallService {
       throw MatrixServiceException.voipAlreadyInitialized();
     }
     final voip = createVoip(client, delegate);
-    _voips.add(voip);
+    _voips[client] = voip;
     return voip;
-  }
-
-  matrix.VoIP? _findVoipForClient(matrix.Client client) {
-    for (final voip in _voips) {
-      if (identical(voip.client, client)) return voip;
-    }
-    return null;
   }
 
   /// Loads [roomId] when the session has not synced it yet, then replays every
@@ -400,7 +395,7 @@ class MatrixCallService {
   }
 
   matrix.GroupCallSession? _findGroupCallById(String roomId, String callId) {
-    for (final voip in _voips) {
+    for (final voip in _voips.values) {
       final session = voip.getGroupCallById(roomId, callId);
       if (session != null) return session;
     }

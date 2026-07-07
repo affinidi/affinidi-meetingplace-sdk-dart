@@ -124,10 +124,14 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
           _incomingCallsController.add(event);
         }
         if (previousSession != null) {
-          _pendingSessionDispose = previousSession.dispose().catchError(
-            (Object _) {},
-          );
-          unawaited(_pendingSessionDispose);
+          _pendingSessionDispose = previousSession.dispose().catchError((
+            Object e,
+          ) {
+            _logger.warning(
+              'onPeerRestartedCall: Error during previous session disposal: $e',
+              name: _logKey,
+            );
+          });
         }
       },
     );
@@ -175,22 +179,42 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     required CallMediaType mediaType,
   }) async {
     if (_pendingSessionDispose != null) {
+      _logger.info(
+        'startCall: Awaiting pending session disposal before new join',
+        name: _logKey,
+      );
       await _pendingSessionDispose;
       _pendingSessionDispose = null;
     }
 
     final sdk = _requireSdk();
 
-    // Dispose any previous session before creating a new one.
     if (_activeSession != null) {
       _logger.warning(
-        'startCall: disposing previous active session for '
+        'startCall: Disposing previous active session for '
         '${_activeSession!.otherPartyChannelDid.topAndTail()}',
         name: _logKey,
       );
-      unawaited(_activeSession!.dispose());
+      final previousSession = _activeSession!;
       _activeSession = null;
       _pendingCallManager.clearActiveCall();
+      _pendingSessionDispose = previousSession.dispose().catchError((Object e) {
+        _logger.warning(
+          'startCall: Error during previous session disposal: $e',
+          name: _logKey,
+        );
+      });
+      _logger.info(
+        'startCall: Awaiting disposal of '
+        '${previousSession.otherPartyChannelDid.topAndTail()}',
+        name: _logKey,
+      );
+      await _pendingSessionDispose;
+      _logger.info(
+        'startCall: Previous session disposal complete',
+        name: _logKey,
+      );
+      _pendingSessionDispose = null;
     }
 
     final session = _buildSession(

@@ -185,6 +185,63 @@ void main() {
         expect(emittedRestarted.first.otherPartyChannelDid, _callerDid);
       },
     );
+
+    test(
+      '''simultaneous call keeps our outgoing call when our DID is higher''',
+      () async {
+        const lowerPeerDid = 'did:key:aaa';
+        when(
+          () => sdk.getChannelByDid(_ownDid),
+        ).thenAnswer((_) async => _channel(otherPartyDid: lowerPeerDid));
+
+        pendingCallManager.markOutboundCall(lowerPeerDid);
+
+        final session = MockLiveKitCallSession();
+        when(() => session.isDiallingTo(lowerPeerDid)).thenReturn(true);
+
+        final emittedIncoming = <IncomingAudioVideoCallEvent>[];
+        final emittedRestarted = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(
+          activeSession: session,
+          emittedIncoming: emittedIncoming,
+          emittedPeerRestarted: emittedRestarted,
+        );
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        expect(emittedIncoming, isEmpty);
+        expect(emittedRestarted, isEmpty);
+      },
+    );
+
+    test(
+      '''simultaneous call tears down and rejoins when our DID is lower''',
+      () async {
+        const higherPeerDid = 'did:key:zzz';
+        when(
+          () => sdk.getChannelByDid(_ownDid),
+        ).thenAnswer((_) async => _channel(otherPartyDid: higherPeerDid));
+
+        pendingCallManager.markOutboundCall(higherPeerDid);
+
+        final session = MockLiveKitCallSession();
+        when(() => session.isDiallingTo(higherPeerDid)).thenReturn(true);
+
+        final emittedRestarted = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(
+          activeSession: session,
+          emittedPeerRestarted: emittedRestarted,
+        );
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        expect(emittedRestarted, hasLength(1));
+      },
+    );
   });
 
   group('onCallDeclineSignal', () {

@@ -77,7 +77,7 @@ class CallSignalHandler {
         otherPartyChannelDid: callerChannelDid,
         mediaType: signal.mediaType,
       );
-      _emitIncomingCall(event);
+      _emitIncomingCall(event, ownChannelDid: signal.ownChannelDid);
     } on MeetingPlaceLiveKitCallOperationException catch (e) {
       _logger.warning(
         'Dropping incoming call signal for'
@@ -150,12 +150,28 @@ class CallSignalHandler {
     _onCallCancelled(otherPartyChannelDid);
   }
 
-  void _emitIncomingCall(IncomingAudioVideoCallEvent event) {
+  void _emitIncomingCall(
+    IncomingAudioVideoCallEvent event, {
+    required String ownChannelDid,
+  }) {
     if (_pendingCallManager.isInCallWith(event.otherPartyChannelDid)) {
+      final session = _getActiveSession();
+      final simultaneousCall =
+          session != null && session.isDiallingTo(event.otherPartyChannelDid);
+      if (simultaneousCall &&
+          ownChannelDid.compareTo(event.otherPartyChannelDid) > 0) {
+        _logger.info(
+          'Incoming call ${event.callId} from '
+          '${event.otherPartyChannelDid.topAndTail()} '
+          '— simultaneous call, keeping our outgoing call (we win)',
+          name: _logKey,
+        );
+        return;
+      }
       _logger.info(
         'Incoming call ${event.callId} from '
         '${event.otherPartyChannelDid.topAndTail()} '
-        '— peer restarted, tearing down stale call',
+        '— tearing down stale call and rejoining peer',
         name: _logKey,
       );
       _onPeerRestartedCall(event);

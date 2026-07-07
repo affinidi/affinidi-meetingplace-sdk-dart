@@ -70,6 +70,7 @@ class MatrixCallService {
     required DidManager didManager,
     required matrix.WebRTCDelegate delegate,
   }) async {
+    if (_voip != null) return;
     final client = await _ensureSession(didManager);
     _voip = matrix.VoIP(client, delegate);
   }

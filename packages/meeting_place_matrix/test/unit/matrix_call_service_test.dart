@@ -53,6 +53,24 @@ class _MatrixCallServiceWithMemberships extends MatrixCallService {
   ) => _memberships;
 }
 
+class _MatrixCallServiceCapturingVoip extends MatrixCallService {
+  _MatrixCallServiceCapturingVoip({
+    required super.ensureSession,
+    required super.logger,
+  });
+
+  matrix.VoIP? lastVoip;
+
+  @override
+  Map<String, List<matrix.CallMembership>> callMembershipsFromRoom(
+    matrix.Room room,
+    matrix.VoIP voip,
+  ) {
+    lastVoip = voip;
+    return const {};
+  }
+}
+
 void main() {
   late MockMatrixClient client;
   late MockDidManager didManager;
@@ -104,6 +122,37 @@ void main() {
         service.leaveCall(roomId: _roomId, callId: _callId),
         completes,
       );
+    });
+  });
+
+  group('initializeVoIPWithDelegate', () {
+    test('reuses an existing VoIP instance instead of overwriting it', () async {
+      final mockRoom = MockMatrixRoom();
+      final existingVoip = MockVoIP();
+      final delegate = MockWebRTCDelegate();
+      final capturingService = _MatrixCallServiceCapturingVoip(
+        ensureSession:
+            (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                client,
+        logger: _NoOpLogger(),
+      );
+
+      capturingService.initializeVoIP(existingVoip);
+      when(() => client.getRoomById(_roomId)).thenReturn(mockRoom);
+      when(() => client.userID).thenReturn(_ownUserId);
+      when(() => client.deviceID).thenReturn(_ownDeviceId);
+
+      await capturingService.initializeVoIPWithDelegate(
+        didManager: didManager,
+        delegate: delegate,
+      );
+
+      await capturingService.activeCallId(
+        didManager: didManager,
+        roomId: _roomId,
+      );
+
+      expect(capturingService.lastVoip, same(existingVoip));
     });
   });
 

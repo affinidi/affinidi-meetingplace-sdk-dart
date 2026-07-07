@@ -8,6 +8,18 @@ import '../../../utils/chat_test_harness.dart';
 import '../../../utils/contact_card_fixture.dart' as fixtures;
 import '../../utils/individual_chat_fixture.dart';
 
+// DIDComm 2.3.3 race: fetchMessagesOnConnect's unawaited block calls
+// _controller.add after stop() closed it. Wrapping startChatSession() in
+// runZonedGuarded binds the DIDComm listener to that zone, so post-close
+// errors are caught here instead of escaping to the test zone.
+void _suppressStreamClosed(Object error, StackTrace stack) {
+  if (error is StateError &&
+      error.message.contains('Cannot add new events after calling close')) {
+    return;
+  }
+  Zone.root.handleUncaughtError(error, stack);
+}
+
 void main() {
   IndividualChatFixture? fixture;
   late MeetingPlaceChatSDK aliceChatSDK;
@@ -55,7 +67,10 @@ void main() {
   test(
     'Alice receives profile hash event when Bob starts chat with changed card',
     () async {
-      await aliceChatSDK.startChatSession();
+      await runZonedGuarded(
+        aliceChatSDK.startChatSession,
+        _suppressStreamClosed,
+      );
 
       final aliceProfileHash = ChatTestHarness.awaitEvent<ChatProfileHashEvent>(
         aliceChatSDK,
@@ -66,7 +81,7 @@ void main() {
       contactCard.contactInfo['changed'] = 'value';
       await fixture!.bobSDK.coreSDK.updateChannel(channel);
 
-      await bobChatSDK.startChatSession();
+      await runZonedGuarded(bobChatSDK.startChatSession, _suppressStreamClosed);
 
       final received = await aliceProfileHash;
       expect(received, isA<ChatProfileHashEvent>());
@@ -74,7 +89,7 @@ void main() {
   );
 
   test('Alice does not send profile request if profile hash matches', () async {
-    await aliceChatSDK.startChatSession();
+    await runZonedGuarded(aliceChatSDK.startChatSession, _suppressStreamClosed);
 
     final aliceProfileHash = ChatTestHarness.awaitEvent<ChatProfileHashEvent>(
       aliceChatSDK,
@@ -85,7 +100,7 @@ void main() {
     contactCard.contactInfo['changed'] = 'value';
     await fixture!.bobSDK.coreSDK.updateChannel(channel);
 
-    await bobChatSDK.startChatSession();
+    await runZonedGuarded(bobChatSDK.startChatSession, _suppressStreamClosed);
 
     final bobEvents = ChatTestHarness.collect(
       bobChatSDK,

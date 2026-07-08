@@ -99,7 +99,18 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         .where((m) => m is DidCommIncomingMessage)
         .cast<DidCommIncomingMessage>()
         .where((m) => m.payload.from == otherPartyDid)
-        .listen(_handleIncoming);
+        .listen(
+          _handleIncoming,
+          onError: (Object e, StackTrace s) {
+            logger.error(
+              'Error handling incoming message',
+              error: e,
+              stackTrace: s,
+              name: _logkey,
+            );
+          },
+          cancelOnError: false,
+        );
   }
 
   Future<void> _handleIncoming(DidCommIncomingMessage incoming) async {
@@ -389,6 +400,24 @@ class IndividualDidcommChatSDK extends BaseChatSDK
           notifyChannelType: 'chat-activity',
         ),
       );
+
+      if (channel.otherPartyAgentPermanentChannelDid != null) {
+        await coreSDK.sendMessage(
+          ChatTextMessage(
+            senderDid: did,
+            recipientDid: channel.otherPartyAgentPermanentChannelDid!,
+            mediatorDid: mediatorDid,
+            chatMessage: protocol.ChatMessage.create(
+              from: did,
+              to: [channel.otherPartyAgentPermanentChannelDid!],
+              text: text,
+              seqNo: _seqNo,
+              attachments: attachments.map((a) => a.toDIDComm()).toList(),
+            ),
+            // notifyChannelType: 'chat-activity',
+          ),
+        );
+      }
 
       if (created is Message && created.status == ChatItemStatus.queued) {
         created.status = ChatItemStatus.sent;

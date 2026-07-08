@@ -295,6 +295,8 @@ void main() {
         ),
         permanentChannelDid: 'did:example:channel-self',
         otherPartyPermanentChannelDid: 'did:example:channel-other',
+        agentPermanentChannelDid: 'did:example:agent-self',
+        otherPartyAgentPermanentChannelDid: 'did:example:agent-other',
       );
 
       await repository.createChannel(channel);
@@ -320,7 +322,71 @@ void main() {
         stored.otherPartyContactCard!.contactInfo['photo'],
         equals('mxc://server/bob-pic'),
       );
+      expect(stored.agentPermanentChannelDid, equals('did:example:agent-self'));
+      expect(
+        stored.otherPartyAgentPermanentChannelDid,
+        equals('did:example:agent-other'),
+      );
     });
+
+    test(
+      'channel repository stores and retrieves agentPermanentChannelDid',
+      () async {
+        final database = ChannelDatabase(
+          databaseName: 'channel.sqlite',
+          passphrase: 'test-passphrase',
+          directory: tempDirectory,
+          inMemory: true,
+        );
+        addTearDown(database.close);
+
+        final repository = ChannelRepositoryDrift(database: database);
+        final channel = model.Channel(
+          offerLink: 'offer-link-agent',
+          publishOfferDid: 'did:example:publisher',
+          mediatorDid: 'did:example:mediator',
+          status: model.ChannelStatus.inaugurated,
+          type: model.ChannelType.individual,
+          isConnectionInitiator: false,
+          seqNo: 0,
+          contactCard: model.ContactCard(
+            did: 'did:example:self',
+            type: 'Person',
+            contactInfo: {},
+          ),
+          permanentChannelDid: 'did:example:channel-agent-test',
+          agentPermanentChannelDid: 'did:example:my-agent',
+        );
+
+        await repository.createChannel(channel);
+        final stored = await repository.findChannelByDid(
+          channel.permanentChannelDid!,
+        );
+
+        expect(
+          stored!.agentPermanentChannelDid,
+          equals('did:example:my-agent'),
+        );
+        expect(stored.otherPartyAgentPermanentChannelDid, isNull);
+
+        // updateChannel persists changes to the agent DID fields.
+        stored.agentPermanentChannelDid = 'did:example:my-agent-updated';
+        stored.otherPartyAgentPermanentChannelDid = 'did:example:their-agent';
+        await repository.updateChannel(stored);
+
+        final updated = await repository.findChannelByDid(
+          channel.permanentChannelDid!,
+        );
+        expect(
+          updated!.agentPermanentChannelDid,
+          equals('did:example:my-agent-updated'),
+        );
+        expect(
+          updated.otherPartyAgentPermanentChannelDid,
+          equals('did:example:their-agent'),
+        );
+      },
+    );
 
     test(
       'connection offer repository round-trips arbitrary contact info',

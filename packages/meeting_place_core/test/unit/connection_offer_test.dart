@@ -114,4 +114,38 @@ void main() {
       });
     });
   });
+
+  group('Channel.individualFromAcceptedConnectionOffer', () {
+    final acceptedOffer = baseOffer.accept(
+      acceptOfferDid: 'did:example:accept',
+      permanentChannelDid: 'did:example:permanent',
+      card: contactCard,
+      createdAt: DateTime.utc(2024),
+    );
+
+    test('stores agentPermanentChannelDid when provided', () {
+      final channel = Channel.individualFromAcceptedConnectionOffer(
+        acceptedOffer,
+        permanentChannelDid: 'did:example:permanent',
+        acceptOfferDid: 'did:example:accept',
+        contactCard: contactCard,
+        externalRef: null,
+        agentPermanentChannelDid: 'did:web:my-agent',
+      );
+
+      expect(channel.agentPermanentChannelDid, equals('did:web:my-agent'));
+    });
+
+    test('agentPermanentChannelDid is null when not provided', () {
+      final channel = Channel.individualFromAcceptedConnectionOffer(
+        acceptedOffer,
+        permanentChannelDid: 'did:example:permanent',
+        acceptOfferDid: 'did:example:accept',
+        contactCard: contactCard,
+        externalRef: null,
+      );
+
+      expect(channel.agentPermanentChannelDid, isNull);
+    });
+  });
 }

@@ -124,6 +124,13 @@ class ChannelDatabase extends _$ChannelDatabase {
           'ALTER TABLE channels ADD COLUMN matrix_sync_marker TEXT NULL',
         );
       }
+      if (from < 5 && to >= 5) {
+        await migrator.addColumn(channels, channels.agentPermanentChannelDid);
+        await migrator.addColumn(
+          channels,
+          channels.otherPartyAgentPermanentChannelDid,
+        );
+      }
     },
   );
 }
@@ -176,6 +183,12 @@ class Channels extends Table {
   /// Permanent DID of the other party in the channel.
   TextColumn get otherPartyPermanentChannelDid => text().nullable()();
 
+  /// Permanent channel DID of the local party's personal AI agent.
+  TextColumn get agentPermanentChannelDid => text().nullable()();
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  TextColumn get otherPartyAgentPermanentChannelDid => text().nullable()();
+
   /// Notification token for the channel.
   TextColumn get notificationToken => text().nullable()();
 
@@ -188,6 +201,9 @@ class Channels extends Table {
   /// Sequence number for the channel that is used to order messages within the
   /// channel.
   IntColumn get seqNo => integer()();
+
+  /// Matrix sync marker used to resume Matrix event syncs.
+  TextColumn get matrixSyncMarker => text().nullable()();
 
   /// Sync marker for resuming message pagination. For DIDComm channels this
   /// is an ISO 8601 UTC timestamp; for Matrix channels this is the Matrix

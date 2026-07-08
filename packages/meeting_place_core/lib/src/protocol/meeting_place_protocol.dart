@@ -35,6 +35,18 @@ enum MeetingPlaceProtocol {
 
   outreachInvitation(
     'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/outreach-invitation',
+  ),
+
+  agentCreateChannelIdentityRequest(
+    'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/agent-create-channel-identity-request',
+  ),
+
+  agentCreateChannelIdentityResponse(
+    'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/agent-create-channel-identity-response',
+  ),
+
+  agentChannelInauguration(
+    'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/agent-channel-inauguration',
   );
 
   const MeetingPlaceProtocol(this.value);

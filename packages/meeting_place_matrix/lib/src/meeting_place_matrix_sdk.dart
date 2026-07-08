@@ -313,6 +313,26 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<DidManager> generateDid() => _coreSDK.generateDid();
 
   @override
+  Future<DidManager> generateDidWeb() => _coreSDK.generateDidWeb();
+
+  @override
+  Future<Channel> generateAgentIdentity({
+    required String agentDid,
+    required String otherPartyPermanentChannelDid,
+    required String mediatorDid,
+    required String offerLink,
+    required String publishOfferDid,
+    required ContactCard contactCard,
+  }) => _coreSDK.generateAgentIdentity(
+    agentDid: agentDid,
+    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+    mediatorDid: mediatorDid,
+    offerLink: offerLink,
+    publishOfferDid: publishOfferDid,
+    contactCard: contactCard,
+  );
+
+  @override
   Future<DidManager> getDidManager(String did) => _coreSDK.getDidManager(did);
 
   @override

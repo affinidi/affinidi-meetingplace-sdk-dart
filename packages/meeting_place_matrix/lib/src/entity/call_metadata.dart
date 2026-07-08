@@ -38,8 +38,12 @@ enum CallStatus {
 /// their own metadata view without changing the shared type, mirroring
 /// `VoiceMessageMetadata`.
 class CallMetadata {
-  CallMetadata({required this.mediaType, required this.status, int? durationMs})
-    : durationMs = _validateDurationMs(durationMs);
+  CallMetadata({
+    required this.mediaType,
+    required this.status,
+    required this.callId,
+    int? durationMs,
+  }) : durationMs = _validateDurationMs(durationMs);
 
   /// Reads call metadata from [attachment], or `null` when it is not a call.
   static CallMetadata? maybeOf(ChatAttachment attachment) {
@@ -49,9 +53,12 @@ class CallMetadata {
     if (mediaType == null) return null;
     final status = _statusFromMetadata(metadata[_statusKey]);
     if (status == null) return null;
+    final callId = metadata[_callIdKey];
+    if (callId is! String || callId.isEmpty) return null;
     return CallMetadata(
       mediaType: mediaType,
       status: status,
+      callId: callId,
       durationMs: _durationFromMetadata(metadata[_durationMsKey]),
     );
   }
@@ -65,11 +72,13 @@ class CallMetadata {
     required CallMediaType mediaType,
     required CallStatus status,
     required String id,
+    required String callId,
     int? durationMs,
   }) {
     final call = CallMetadata(
       mediaType: mediaType,
       status: status,
+      callId: callId,
       durationMs: durationMs,
     );
     return ChatAttachment(id: id, metadata: call.toMetadata());
@@ -87,6 +96,9 @@ class CallMetadata {
   /// Metadata key for the call status.
   static const _statusKey = 'call_status';
 
+  /// Metadata key for the transport call session ID.
+  static const _callIdKey = 'call_id';
+
   /// Metadata key for the local participation duration in milliseconds.
   static const _durationMsKey = 'duration_ms';
 
@@ -95,6 +107,12 @@ class CallMetadata {
 
   /// The current call status for the local party.
   final CallStatus status;
+
+  /// The transport call session ID (format: `roomId@microsecondsSinceEpoch`).
+  ///
+  /// Stable join-key linking this chat item to the call-log entry for this
+  /// session. Matches across both sides of the call.
+  final String callId;
 
   /// Local participation duration in milliseconds, when known.
   final int? durationMs;
@@ -105,6 +123,7 @@ class CallMetadata {
     _mediaKindKey: _callKind,
     _callMediaTypeKey: mediaType.name,
     _statusKey: status.name,
+    _callIdKey: callId,
     if (durationMs != null) _durationMsKey: durationMs,
   };
 
@@ -112,6 +131,7 @@ class CallMetadata {
   CallMetadata copyWith({CallStatus? status, int? durationMs}) => CallMetadata(
     mediaType: mediaType,
     status: status ?? this.status,
+    callId: callId,
     durationMs: durationMs ?? this.durationMs,
   );
 

@@ -186,7 +186,7 @@ class AudioVideoCallService {
       );
 
       final ownRole = isRecipient ? CallRole.recipient : CallRole.caller;
-      _setState(_state.copyWith(ownRole: ownRole));
+      _setState(_state.copyWith(ownRole: ownRole, callId: callId));
 
       await _enableLocalMedia(mediaType: mediaType);
       await _coordinator.registerMatrixCall(

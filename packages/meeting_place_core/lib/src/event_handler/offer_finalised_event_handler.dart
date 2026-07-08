@@ -150,6 +150,18 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       mediatorDid: channel.mediatorDid,
     );
 
+    final agentPermanentChannelDid = channel.agentPermanentChannelDid;
+    if (agentPermanentChannelDid != null) {
+      await _sendAgentChannelInaugurationMessage(
+        channel: channel,
+        permanentChannelDidManager: permanentChannelIdentity.didManager,
+        permanentChannelDid: permanentChannelIdentity.didDocument.id,
+        agentPermanentChannelDid: agentPermanentChannelDid,
+        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+        otherPartyNotificationToken: event.notificationToken,
+      );
+    }
+
     await _sendChannelInaugurationMessage(
       channel: channel,
       permanentChannelDidManager: permanentChannelIdentity.didManager,
@@ -215,6 +227,31 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       ).toPlainTextMessage(),
       senderDidManager: permanentChannelDidManager,
       recipientDidDocument: otherPartyPermanentChannelDidDocument,
+      mediatorDid: channel.mediatorDid,
+    );
+  }
+
+  Future<void> _sendAgentChannelInaugurationMessage({
+    required Channel channel,
+    required DidManager permanentChannelDidManager,
+    required String permanentChannelDid,
+    required String agentPermanentChannelDid,
+    required String otherPartyPermanentChannelDid,
+    required String otherPartyNotificationToken,
+  }) async {
+    final agentDidDocument = await _didResolver.resolveDid(
+      agentPermanentChannelDid,
+    );
+
+    return mediatorService.sendMessage(
+      protocol.AgentChannelInauguration.create(
+        from: permanentChannelDid,
+        to: [agentPermanentChannelDid],
+        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+        otherPartyNotificationToken: otherPartyNotificationToken,
+      ).toPlainTextMessage(),
+      senderDidManager: permanentChannelDidManager,
+      recipientDidDocument: agentDidDocument,
       mediatorDid: channel.mediatorDid,
     );
   }

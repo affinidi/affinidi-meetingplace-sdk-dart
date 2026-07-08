@@ -41,6 +41,8 @@ class Channel {
     this.acceptOfferDid,
     this.permanentChannelDid,
     this.otherPartyPermanentChannelDid,
+    this.agentPermanentChannelDid,
+    this.otherPartyAgentPermanentChannelDid,
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.messageSyncMarker,
@@ -59,11 +61,13 @@ class Channel {
     required String acceptOfferDid,
     required ContactCard contactCard,
     required String? externalRef,
+    String? agentPermanentChannelDid,
   }) {
     return Channel(
       offerLink: connectionOffer.offerLink,
       publishOfferDid: connectionOffer.publishOfferDid,
       permanentChannelDid: permanentChannelDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
       acceptOfferDid: acceptOfferDid,
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
@@ -146,6 +150,12 @@ class Channel {
 
   /// Permanent DID of the other party that is used for message exchange.
   String? otherPartyPermanentChannelDid;
+
+  /// Permanent channel DID of the local party's personal AI agent.
+  String? agentPermanentChannelDid;
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  String? otherPartyAgentPermanentChannelDid;
 
   /// Notification token that is used to notify the party that owns the channel.
   ///

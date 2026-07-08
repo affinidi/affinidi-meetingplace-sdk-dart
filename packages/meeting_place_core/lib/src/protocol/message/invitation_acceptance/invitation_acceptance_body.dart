@@ -7,10 +7,13 @@ class InvitationAcceptanceBody {
   factory InvitationAcceptanceBody.fromJson(Map<String, dynamic> json) =>
       _$InvitationAcceptanceBodyFromJson(json);
 
-  InvitationAcceptanceBody({required this.channelDid});
+  InvitationAcceptanceBody({required this.channelDid, this.agentDid});
 
   @JsonKey(name: 'channel_did')
   final String channelDid;
+
+  @JsonKey(name: 'agent_did')
+  final String? agentDid;
 
   Map<String, dynamic> toJson() => _$InvitationAcceptanceBodyToJson(this);
 }

@@ -106,6 +106,7 @@ class InvitationAcceptedEventHandler
       acceptOfferDid: messageFrom,
       mediatorDid: connection.mediatorDid,
       otherPartyPermanentChannelDid: invitationAcceptance.body.channelDid,
+      otherPartyAgentPermanentChannelDid: invitationAcceptance.body.agentDid,
       outboundMessageId: message.id,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,

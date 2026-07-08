@@ -1,0 +1,202 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_core/src/service/agent_identity_service.dart';
+import 'package:meeting_place_core/src/service/identity/identity_service.dart';
+import 'package:meeting_place_core/src/service/mediator/mediator_acl_service.dart';
+import 'package:meeting_place_core/src/transport/didcomm_transport.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
+import 'package:test/test.dart';
+
+import '../fixtures/contact_card_fixture.dart';
+
+class _MockIdentityService extends Mock implements IdentityService {}
+
+class _MockMediatorAclService extends Mock implements MediatorAclService {}
+
+class _MockDIDCommTransport extends Mock implements DIDCommTransport {}
+
+class _MockChannelRepository extends Mock implements ChannelRepository {}
+
+class _MockWallet extends Mock implements Wallet {}
+
+class _MockDidManager extends Mock implements DidManager {}
+
+class _MockDidDocument extends Mock implements DidDocument {}
+
+class _FakeDidManager extends Fake implements DidManager {}
+
+class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
+
+class _FakeChannel extends Fake implements Channel {}
+
+const _agentDid = 'did:test:agent';
+const _channelDid = 'did:test:channel';
+const _mediatorDid = 'did:test:mediator';
+const _newPermanentChannelDid = 'did:web:new.example.com';
+
+void main() {
+  late _MockIdentityService mockIdentityService;
+  late _MockMediatorAclService mockMediatorAclService;
+  late _MockDIDCommTransport mockDIDCommTransport;
+  late _MockChannelRepository mockChannelRepository;
+  late _MockWallet mockWallet;
+  late _MockDidManager mockDidManager;
+  late _MockDidDocument mockDidDocument;
+  late AgentIdentityService service;
+
+  setUpAll(() {
+    registerFallbackValue(_FakeDidManager());
+    registerFallbackValue(_FakePlainTextMessage());
+    registerFallbackValue(_FakeChannel());
+  });
+
+  setUp(() {
+    mockIdentityService = _MockIdentityService();
+    mockMediatorAclService = _MockMediatorAclService();
+    mockDIDCommTransport = _MockDIDCommTransport();
+    mockChannelRepository = _MockChannelRepository();
+    mockWallet = _MockWallet();
+    mockDidManager = _MockDidManager();
+    mockDidDocument = _MockDidDocument();
+
+    service = AgentIdentityService(
+      identityService: mockIdentityService,
+      mediatorAclService: mockMediatorAclService,
+      didcommTransport: mockDIDCommTransport,
+      channelRepository: mockChannelRepository,
+      wallet: mockWallet,
+    );
+
+    when(
+      () => mockIdentityService.generateDidWeb(mockWallet),
+    ).thenAnswer((_) async => mockDidManager);
+
+    when(
+      () => mockDidManager.getDidDocument(),
+    ).thenAnswer((_) async => mockDidDocument);
+
+    when(() => mockDidDocument.id).thenReturn(_newPermanentChannelDid);
+
+    when(
+      () => mockMediatorAclService.addToAcl(
+        didManager: any(named: 'didManager'),
+        mediatorDid: any(named: 'mediatorDid'),
+        granteeDids: any(named: 'granteeDids'),
+      ),
+    ).thenAnswer((_) async {});
+
+    when(
+      () => mockDIDCommTransport.sendMessage(
+        any(),
+        senderDid: any(named: 'senderDid'),
+        recipientDid: any(named: 'recipientDid'),
+        mediatorDid: any(named: 'mediatorDid'),
+      ),
+    ).thenAnswer((_) async {});
+
+    when(
+      () => mockChannelRepository.createChannel(any()),
+    ).thenAnswer((_) async {});
+  });
+
+  group('createChannelIdentity', () {
+    final contactCard = ContactCardFixture.getContactCardFixture();
+
+    Future<Channel> callService() => service.createChannelIdentity(
+      agentDid: _agentDid,
+      otherPartyPermanentChannelDid: _channelDid,
+      mediatorDid: _mediatorDid,
+      offerLink: 'https://example.com/offer',
+      publishOfferDid: 'did:test:publish',
+      contactCard: contactCard,
+    );
+
+    test('generates a new did:web via IdentityService', () async {
+      await callService();
+
+      verify(() => mockIdentityService.generateDidWeb(mockWallet)).called(1);
+    });
+
+    test('grants otherPartyPermanentChannelDid access on the mediator',
+        () async {
+      await callService();
+
+      final captured = verify(
+        () => mockMediatorAclService.addToAcl(
+          didManager: captureAny(named: 'didManager'),
+          mediatorDid: captureAny(named: 'mediatorDid'),
+          granteeDids: captureAny(named: 'granteeDids'),
+        ),
+      ).captured;
+
+      expect(captured[0], equals(mockDidManager));  // didManager
+      expect(captured[1], equals([_channelDid]));    // granteeDids (alpha order)
+      expect(captured[2], equals(_mediatorDid));     // mediatorDid
+    });
+
+    test('sends agent-create-channel-identity-response with new DID', () async {
+      await callService();
+
+      final captured = verify(
+        () => mockDIDCommTransport.sendMessage(
+          captureAny(),
+          senderDid: captureAny(named: 'senderDid'),
+          recipientDid: captureAny(named: 'recipientDid'),
+          mediatorDid: captureAny(named: 'mediatorDid'),
+        ),
+      ).captured;
+
+      final message = captured[0] as PlainTextMessage;
+      expect(
+        message.type.toString(),
+        equals(
+          'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/agent-create-channel-identity-response',
+        ),
+      );
+      expect(message.body!['did'], equals(_newPermanentChannelDid));
+      expect(captured[1], equals(_agentDid));
+      expect(captured[2], equals(_channelDid));
+      expect(captured[3], equals(_mediatorDid));
+    });
+
+    test('persists a channel linking the two permanent channel DIDs', () async {
+      await callService();
+
+      final captured = verify(
+        () => mockChannelRepository.createChannel(captureAny()),
+      ).captured;
+
+      final channel = captured.single as Channel;
+      expect(channel.permanentChannelDid, equals(_newPermanentChannelDid));
+      expect(
+        channel.otherPartyPermanentChannelDid,
+        equals(_channelDid),
+      );
+      expect(channel.mediatorDid, equals(_mediatorDid));
+      expect(channel.status, equals(ChannelStatus.inaugurated));
+      expect(channel.isConnectionInitiator, isFalse);
+      expect(channel.transport, equals(ChannelTransport.didcomm));
+    });
+
+    test('persists channel with supplied offer and contact details', () async {
+      await callService();
+
+      final captured = verify(
+        () => mockChannelRepository.createChannel(captureAny()),
+      ).captured;
+
+      final channel = captured.single as Channel;
+      expect(channel.offerLink, equals('https://example.com/offer'));
+      expect(channel.publishOfferDid, equals('did:test:publish'));
+      expect(channel.contactCard?.did, equals(contactCard.did));
+    });
+
+    test('returns the persisted channel', () async {
+      final result = await callService();
+
+      expect(result.permanentChannelDid, equals(_newPermanentChannelDid));
+      expect(result.otherPartyPermanentChannelDid, equals(_channelDid));
+      expect(result.status, equals(ChannelStatus.inaugurated));
+    });
+  });
+}

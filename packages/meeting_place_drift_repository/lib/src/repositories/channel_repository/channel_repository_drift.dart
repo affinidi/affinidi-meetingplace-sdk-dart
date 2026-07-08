@@ -51,6 +51,10 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
               otherPartyPermanentChannelDid: Value(
                 channel.otherPartyPermanentChannelDid,
               ),
+              agentPermanentChannelDid: Value(channel.agentPermanentChannelDid),
+              otherPartyAgentPermanentChannelDid: Value(
+                channel.otherPartyAgentPermanentChannelDid,
+              ),
               notificationToken: Value(channel.notificationToken),
               otherPartyNotificationToken: Value(
                 channel.otherPartyNotificationToken,
@@ -140,6 +144,10 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           permanentChannelDid: Value(channel.permanentChannelDid),
           otherPartyPermanentChannelDid: Value(
             channel.otherPartyPermanentChannelDid,
+          ),
+          agentPermanentChannelDid: Value(channel.agentPermanentChannelDid),
+          otherPartyAgentPermanentChannelDid: Value(
+            channel.otherPartyAgentPermanentChannelDid,
           ),
           notificationToken: Value(channel.notificationToken),
           otherPartyNotificationToken: Value(
@@ -322,6 +330,9 @@ class _ChannelMapper {
       acceptOfferDid: channel.acceptOfferDid,
       permanentChannelDid: channel.permanentChannelDid,
       otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
+      agentPermanentChannelDid: channel.agentPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid:
+          channel.otherPartyAgentPermanentChannelDid,
       notificationToken: channel.notificationToken,
       otherPartyNotificationToken: channel.otherPartyNotificationToken,
       seqNo: channel.seqNo,

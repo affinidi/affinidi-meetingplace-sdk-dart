@@ -310,6 +310,9 @@ class ConnectionService {
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
       transport: connectionOffer.transport,
+      offerLink: connectionOffer.offerLink,
+      publishOfferDid: connectionOffer.publishOfferDid,
+      contactCard: contactCard,
     );
 
     final result = await _controlPlaneSDK.execute(
@@ -337,6 +340,7 @@ class ConnectionService {
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: result.mediatorDid,
       acceptContactCard: contactCard,
+      agentDid: permanentIdentity.agentDid,
     );
 
     final acceptedConnectionOffer = await _acceptConnectionOffer(
@@ -350,6 +354,7 @@ class ConnectionService {
     final channel = Channel.individualFromAcceptedConnectionOffer(
       acceptedConnectionOffer,
       permanentChannelDid: permanentIdentity.didDocument.id,
+      agentPermanentChannelDid: permanentIdentity.agentDid,
       acceptOfferDid: acceptOfferIdentity.didDocument.id,
       contactCard: contactCard,
       externalRef: externalRef,
@@ -429,6 +434,7 @@ class ConnectionService {
     String? mediatorDid,
     ContactCard? acceptContactCard,
     List<Attachment>? attachments,
+    String? agentDid,
   }) async {
     final methodName = 'sendAcceptOfferToMediator';
     _logger.info('Sending accept offer to mediator', name: methodName);
@@ -448,6 +454,7 @@ class ConnectionService {
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
+      agentDid: agentDid,
       contactCard: acceptContactCard,
       attachments: attachments,
     );
@@ -568,6 +575,8 @@ class ConnectionService {
       permanentChannelDid: permanentIdentity.didManager,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyAcceptOfferDid: acceptOfferDid,
+      otherPartyAgentPermanentChannelDid:
+          channel.otherPartyAgentPermanentChannelDid,
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
@@ -621,7 +630,9 @@ class ConnectionService {
     required String otherPartyAcceptOfferDid,
     required String outboundMessageId,
     required String mediatorDid,
+    String? otherPartyAgentPermanentChannelDid,
     ContactCard? contactCard,
+
     List<Attachment>? attachments,
   }) async {
     final methodName = 'sendConnectionRequestApprovalToMediator';
@@ -638,7 +649,12 @@ class ConnectionService {
     await _mediatorAclService.addToAcl(
       didManager: permanentChannelDid,
       mediatorDid: mediatorDid,
-      granteeDids: [otherPartyPermanentChannelDid, otherPartyAcceptOfferDid],
+      granteeDids: [
+        otherPartyPermanentChannelDid,
+        otherPartyAcceptOfferDid,
+        if (otherPartyAgentPermanentChannelDid != null)
+          otherPartyAgentPermanentChannelDid,
+      ],
     );
 
     final connectionApprovalMwssage = ConnectionRequestApproval.create(

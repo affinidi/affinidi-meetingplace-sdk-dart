@@ -8,6 +8,8 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
+  meeting_place_chat:
+    path: ../../../packages/meeting_place_chat
   meeting_place_core:
     path: ../../../packages/meeting_place_core
   pretty_json: ^2.0.0
@@ -15,5 +17,6 @@ dependencies:
   ssi: ^3.3.0
   uuid: ^4.5.1
   vodozemac: ^0.5.0
+
 dev_dependencies:
   dotenv: ^4.2.0

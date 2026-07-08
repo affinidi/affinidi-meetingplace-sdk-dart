@@ -139,6 +139,28 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _agentPermanentChannelDidMeta =
+      const VerificationMeta('agentPermanentChannelDid');
+  @override
+  late final GeneratedColumn<String> agentPermanentChannelDid =
+      GeneratedColumn<String>(
+        'agent_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _otherPartyAgentPermanentChannelDidMeta =
+      const VerificationMeta('otherPartyAgentPermanentChannelDid');
+  @override
+  late final GeneratedColumn<String> otherPartyAgentPermanentChannelDid =
+      GeneratedColumn<String>(
+        'other_party_agent_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _notificationTokenMeta = const VerificationMeta(
     'notificationToken',
   );
@@ -219,6 +241,8 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
     acceptOfferDid,
     permanentChannelDid,
     otherPartyPermanentChannelDid,
+    agentPermanentChannelDid,
+    otherPartyAgentPermanentChannelDid,
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
@@ -313,6 +337,24 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         otherPartyPermanentChannelDid.isAcceptableOrUnknown(
           data['other_party_permanent_channel_did']!,
           _otherPartyPermanentChannelDidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('agent_permanent_channel_did')) {
+      context.handle(
+        _agentPermanentChannelDidMeta,
+        agentPermanentChannelDid.isAcceptableOrUnknown(
+          data['agent_permanent_channel_did']!,
+          _agentPermanentChannelDidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('other_party_agent_permanent_channel_did')) {
+      context.handle(
+        _otherPartyAgentPermanentChannelDidMeta,
+        otherPartyAgentPermanentChannelDid.isAcceptableOrUnknown(
+          data['other_party_agent_permanent_channel_did']!,
+          _otherPartyAgentPermanentChannelDidMeta,
         ),
       );
     }
@@ -432,6 +474,14 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         DriftSqlType.string,
         data['${effectivePrefix}other_party_permanent_channel_did'],
       ),
+      agentPermanentChannelDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}agent_permanent_channel_did'],
+      ),
+      otherPartyAgentPermanentChannelDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}other_party_agent_permanent_channel_did'],
+      ),
       notificationToken: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notification_token'],
@@ -514,6 +564,12 @@ class Channel extends DataClass implements Insertable<Channel> {
   /// Permanent DID of the other party in the channel.
   final String? otherPartyPermanentChannelDid;
 
+  /// Permanent channel DID of the local party's personal AI agent.
+  final String? agentPermanentChannelDid;
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  final String? otherPartyAgentPermanentChannelDid;
+
   /// Notification token for the channel.
   final String? notificationToken;
 
@@ -545,6 +601,8 @@ class Channel extends DataClass implements Insertable<Channel> {
     this.acceptOfferDid,
     this.permanentChannelDid,
     this.otherPartyPermanentChannelDid,
+    this.agentPermanentChannelDid,
+    this.otherPartyAgentPermanentChannelDid,
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.externalRef,
@@ -585,6 +643,16 @@ class Channel extends DataClass implements Insertable<Channel> {
     if (!nullToAbsent || otherPartyPermanentChannelDid != null) {
       map['other_party_permanent_channel_did'] = Variable<String>(
         otherPartyPermanentChannelDid,
+      );
+    }
+    if (!nullToAbsent || agentPermanentChannelDid != null) {
+      map['agent_permanent_channel_did'] = Variable<String>(
+        agentPermanentChannelDid,
+      );
+    }
+    if (!nullToAbsent || otherPartyAgentPermanentChannelDid != null) {
+      map['other_party_agent_permanent_channel_did'] = Variable<String>(
+        otherPartyAgentPermanentChannelDid,
       );
     }
     if (!nullToAbsent || notificationToken != null) {
@@ -631,6 +699,13 @@ class Channel extends DataClass implements Insertable<Channel> {
           otherPartyPermanentChannelDid == null && nullToAbsent
           ? const Value.absent()
           : Value(otherPartyPermanentChannelDid),
+      agentPermanentChannelDid: agentPermanentChannelDid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(agentPermanentChannelDid),
+      otherPartyAgentPermanentChannelDid:
+          otherPartyAgentPermanentChannelDid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(otherPartyAgentPermanentChannelDid),
       notificationToken: notificationToken == null && nullToAbsent
           ? const Value.absent()
           : Value(notificationToken),
@@ -677,6 +752,12 @@ class Channel extends DataClass implements Insertable<Channel> {
       otherPartyPermanentChannelDid: serializer.fromJson<String?>(
         json['otherPartyPermanentChannelDid'],
       ),
+      agentPermanentChannelDid: serializer.fromJson<String?>(
+        json['agentPermanentChannelDid'],
+      ),
+      otherPartyAgentPermanentChannelDid: serializer.fromJson<String?>(
+        json['otherPartyAgentPermanentChannelDid'],
+      ),
       notificationToken: serializer.fromJson<String?>(
         json['notificationToken'],
       ),
@@ -709,6 +790,12 @@ class Channel extends DataClass implements Insertable<Channel> {
       'otherPartyPermanentChannelDid': serializer.toJson<String?>(
         otherPartyPermanentChannelDid,
       ),
+      'agentPermanentChannelDid': serializer.toJson<String?>(
+        agentPermanentChannelDid,
+      ),
+      'otherPartyAgentPermanentChannelDid': serializer.toJson<String?>(
+        otherPartyAgentPermanentChannelDid,
+      ),
       'notificationToken': serializer.toJson<String?>(notificationToken),
       'otherPartyNotificationToken': serializer.toJson<String?>(
         otherPartyNotificationToken,
@@ -733,6 +820,8 @@ class Channel extends DataClass implements Insertable<Channel> {
     Value<String?> acceptOfferDid = const Value.absent(),
     Value<String?> permanentChannelDid = const Value.absent(),
     Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
+    Value<String?> agentPermanentChannelDid = const Value.absent(),
+    Value<String?> otherPartyAgentPermanentChannelDid = const Value.absent(),
     Value<String?> notificationToken = const Value.absent(),
     Value<String?> otherPartyNotificationToken = const Value.absent(),
     Value<String?> externalRef = const Value.absent(),
@@ -760,6 +849,13 @@ class Channel extends DataClass implements Insertable<Channel> {
     otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
         ? otherPartyPermanentChannelDid.value
         : this.otherPartyPermanentChannelDid,
+    agentPermanentChannelDid: agentPermanentChannelDid.present
+        ? agentPermanentChannelDid.value
+        : this.agentPermanentChannelDid,
+    otherPartyAgentPermanentChannelDid:
+        otherPartyAgentPermanentChannelDid.present
+        ? otherPartyAgentPermanentChannelDid.value
+        : this.otherPartyAgentPermanentChannelDid,
     notificationToken: notificationToken.present
         ? notificationToken.value
         : this.notificationToken,
@@ -803,6 +899,13 @@ class Channel extends DataClass implements Insertable<Channel> {
       otherPartyPermanentChannelDid: data.otherPartyPermanentChannelDid.present
           ? data.otherPartyPermanentChannelDid.value
           : this.otherPartyPermanentChannelDid,
+      agentPermanentChannelDid: data.agentPermanentChannelDid.present
+          ? data.agentPermanentChannelDid.value
+          : this.agentPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid:
+          data.otherPartyAgentPermanentChannelDid.present
+          ? data.otherPartyAgentPermanentChannelDid.value
+          : this.otherPartyAgentPermanentChannelDid,
       notificationToken: data.notificationToken.present
           ? data.notificationToken.value
           : this.notificationToken,
@@ -839,6 +942,10 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write(
             'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
           )
+          ..write('agentPermanentChannelDid: $agentPermanentChannelDid, ')
+          ..write(
+            'otherPartyAgentPermanentChannelDid: $otherPartyAgentPermanentChannelDid, ',
+          )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
@@ -863,6 +970,8 @@ class Channel extends DataClass implements Insertable<Channel> {
     acceptOfferDid,
     permanentChannelDid,
     otherPartyPermanentChannelDid,
+    agentPermanentChannelDid,
+    otherPartyAgentPermanentChannelDid,
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
@@ -887,6 +996,9 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.permanentChannelDid == this.permanentChannelDid &&
           other.otherPartyPermanentChannelDid ==
               this.otherPartyPermanentChannelDid &&
+          other.agentPermanentChannelDid == this.agentPermanentChannelDid &&
+          other.otherPartyAgentPermanentChannelDid ==
+              this.otherPartyAgentPermanentChannelDid &&
           other.notificationToken == this.notificationToken &&
           other.otherPartyNotificationToken ==
               this.otherPartyNotificationToken &&
@@ -909,6 +1021,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String?> acceptOfferDid;
   final Value<String?> permanentChannelDid;
   final Value<String?> otherPartyPermanentChannelDid;
+  final Value<String?> agentPermanentChannelDid;
+  final Value<String?> otherPartyAgentPermanentChannelDid;
   final Value<String?> notificationToken;
   final Value<String?> otherPartyNotificationToken;
   final Value<String?> externalRef;
@@ -929,6 +1043,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.acceptOfferDid = const Value.absent(),
     this.permanentChannelDid = const Value.absent(),
     this.otherPartyPermanentChannelDid = const Value.absent(),
+    this.agentPermanentChannelDid = const Value.absent(),
+    this.otherPartyAgentPermanentChannelDid = const Value.absent(),
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
@@ -950,6 +1066,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.acceptOfferDid = const Value.absent(),
     this.permanentChannelDid = const Value.absent(),
     this.otherPartyPermanentChannelDid = const Value.absent(),
+    this.agentPermanentChannelDid = const Value.absent(),
+    this.otherPartyAgentPermanentChannelDid = const Value.absent(),
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
@@ -976,6 +1094,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? acceptOfferDid,
     Expression<String>? permanentChannelDid,
     Expression<String>? otherPartyPermanentChannelDid,
+    Expression<String>? agentPermanentChannelDid,
+    Expression<String>? otherPartyAgentPermanentChannelDid,
     Expression<String>? notificationToken,
     Expression<String>? otherPartyNotificationToken,
     Expression<String>? externalRef,
@@ -1000,6 +1120,11 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
         'permanent_channel_did': permanentChannelDid,
       if (otherPartyPermanentChannelDid != null)
         'other_party_permanent_channel_did': otherPartyPermanentChannelDid,
+      if (agentPermanentChannelDid != null)
+        'agent_permanent_channel_did': agentPermanentChannelDid,
+      if (otherPartyAgentPermanentChannelDid != null)
+        'other_party_agent_permanent_channel_did':
+            otherPartyAgentPermanentChannelDid,
       if (notificationToken != null) 'notification_token': notificationToken,
       if (otherPartyNotificationToken != null)
         'other_party_notification_token': otherPartyNotificationToken,
@@ -1024,6 +1149,8 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Value<String?>? acceptOfferDid,
     Value<String?>? permanentChannelDid,
     Value<String?>? otherPartyPermanentChannelDid,
+    Value<String?>? agentPermanentChannelDid,
+    Value<String?>? otherPartyAgentPermanentChannelDid,
     Value<String?>? notificationToken,
     Value<String?>? otherPartyNotificationToken,
     Value<String?>? externalRef,
@@ -1047,6 +1174,11 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:
           otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
+      agentPermanentChannelDid:
+          agentPermanentChannelDid ?? this.agentPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid:
+          otherPartyAgentPermanentChannelDid ??
+          this.otherPartyAgentPermanentChannelDid,
       notificationToken: notificationToken ?? this.notificationToken,
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
@@ -1109,6 +1241,16 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
         otherPartyPermanentChannelDid.value,
       );
     }
+    if (agentPermanentChannelDid.present) {
+      map['agent_permanent_channel_did'] = Variable<String>(
+        agentPermanentChannelDid.value,
+      );
+    }
+    if (otherPartyAgentPermanentChannelDid.present) {
+      map['other_party_agent_permanent_channel_did'] = Variable<String>(
+        otherPartyAgentPermanentChannelDid.value,
+      );
+    }
     if (notificationToken.present) {
       map['notification_token'] = Variable<String>(notificationToken.value);
     }
@@ -1151,6 +1293,10 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('permanentChannelDid: $permanentChannelDid, ')
           ..write(
             'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
+          )
+          ..write('agentPermanentChannelDid: $agentPermanentChannelDid, ')
+          ..write(
+            'otherPartyAgentPermanentChannelDid: $otherPartyAgentPermanentChannelDid, ',
           )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
@@ -1690,6 +1836,8 @@ typedef $$ChannelsTableCreateCompanionBuilder =
       Value<String?> acceptOfferDid,
       Value<String?> permanentChannelDid,
       Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> agentPermanentChannelDid,
+      Value<String?> otherPartyAgentPermanentChannelDid,
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
@@ -1712,6 +1860,8 @@ typedef $$ChannelsTableUpdateCompanionBuilder =
       Value<String?> acceptOfferDid,
       Value<String?> permanentChannelDid,
       Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> agentPermanentChannelDid,
+      Value<String?> otherPartyAgentPermanentChannelDid,
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
@@ -1824,6 +1974,17 @@ class $$ChannelsTableFilterComposer
     column: $table.otherPartyPermanentChannelDid,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<String> get agentPermanentChannelDid => $composableBuilder(
+    column: $table.agentPermanentChannelDid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get otherPartyAgentPermanentChannelDid =>
+      $composableBuilder(
+        column: $table.otherPartyAgentPermanentChannelDid,
+        builder: (column) => ColumnFilters(column),
+      );
 
   ColumnFilters<String> get notificationToken => $composableBuilder(
     column: $table.notificationToken,
@@ -1951,6 +2112,17 @@ class $$ChannelsTableOrderingComposer
         builder: (column) => ColumnOrderings(column),
       );
 
+  ColumnOrderings<String> get agentPermanentChannelDid => $composableBuilder(
+    column: $table.agentPermanentChannelDid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get otherPartyAgentPermanentChannelDid =>
+      $composableBuilder(
+        column: $table.otherPartyAgentPermanentChannelDid,
+        builder: (column) => ColumnOrderings(column),
+      );
+
   ColumnOrderings<String> get notificationToken => $composableBuilder(
     column: $table.notificationToken,
     builder: (column) => ColumnOrderings(column),
@@ -2039,6 +2211,17 @@ class $$ChannelsTableAnnotationComposer
   GeneratedColumn<String> get otherPartyPermanentChannelDid =>
       $composableBuilder(
         column: $table.otherPartyPermanentChannelDid,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get agentPermanentChannelDid => $composableBuilder(
+    column: $table.agentPermanentChannelDid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get otherPartyAgentPermanentChannelDid =>
+      $composableBuilder(
+        column: $table.otherPartyAgentPermanentChannelDid,
         builder: (column) => column,
       );
 
@@ -2138,6 +2321,9 @@ class $$ChannelsTableTableManager
                 Value<String?> permanentChannelDid = const Value.absent(),
                 Value<String?> otherPartyPermanentChannelDid =
                     const Value.absent(),
+                Value<String?> agentPermanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyAgentPermanentChannelDid =
+                    const Value.absent(),
                 Value<String?> notificationToken = const Value.absent(),
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
@@ -2159,6 +2345,9 @@ class $$ChannelsTableTableManager
                 acceptOfferDid: acceptOfferDid,
                 permanentChannelDid: permanentChannelDid,
                 otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                agentPermanentChannelDid: agentPermanentChannelDid,
+                otherPartyAgentPermanentChannelDid:
+                    otherPartyAgentPermanentChannelDid,
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,
@@ -2182,6 +2371,9 @@ class $$ChannelsTableTableManager
                 Value<String?> permanentChannelDid = const Value.absent(),
                 Value<String?> otherPartyPermanentChannelDid =
                     const Value.absent(),
+                Value<String?> agentPermanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyAgentPermanentChannelDid =
+                    const Value.absent(),
                 Value<String?> notificationToken = const Value.absent(),
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
@@ -2203,6 +2395,9 @@ class $$ChannelsTableTableManager
                 acceptOfferDid: acceptOfferDid,
                 permanentChannelDid: permanentChannelDid,
                 otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                agentPermanentChannelDid: agentPermanentChannelDid,
+                otherPartyAgentPermanentChannelDid:
+                    otherPartyAgentPermanentChannelDid,
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,

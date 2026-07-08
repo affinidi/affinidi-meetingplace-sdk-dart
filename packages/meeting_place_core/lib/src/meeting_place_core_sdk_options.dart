@@ -38,6 +38,7 @@ class MeetingPlaceCoreSDKOptions {
     ],
     this.messageTypesForSequenceTracking = const [],
     this.onBuildAttachments,
+    this.agentDid,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -129,4 +130,11 @@ class MeetingPlaceCoreSDKOptions {
   /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments
   /// or onBuildInaugurationMessageAttachments
   final OnBuildAttachmentsCallback? onBuildAttachments;
+
+  /// DID of the personal AI agent to notify when a new permanent channel
+  /// identity is created. When set, MeetingPlaceCoreSDK sends a
+  /// `agent-create-channel-identity-request` DIDComm message to this DID and
+  /// waits for a `agent-create-channel-identity-response` containing the
+  /// agent's per-channel DID. When null, the agent handshake is skipped.
+  final String? agentDid;
 }

@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -122,6 +122,13 @@ class ChannelDatabase extends _$ChannelDatabase {
         await migrator.addColumn(channels, channels.transport);
         await migrator.addColumn(channels, channels.matrixSyncMarker);
       }
+      if (from < 5 && to >= 5) {
+        await migrator.addColumn(channels, channels.agentPermanentChannelDid);
+        await migrator.addColumn(
+          channels,
+          channels.otherPartyAgentPermanentChannelDid,
+        );
+      }
     },
   );
 }
@@ -173,6 +180,12 @@ class Channels extends Table {
 
   /// Permanent DID of the other party in the channel.
   TextColumn get otherPartyPermanentChannelDid => text().nullable()();
+
+  /// Permanent channel DID of the local party's personal AI agent.
+  TextColumn get agentPermanentChannelDid => text().nullable()();
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  TextColumn get otherPartyAgentPermanentChannelDid => text().nullable()();
 
   /// Notification token for the channel.
   TextColumn get notificationToken => text().nullable()();

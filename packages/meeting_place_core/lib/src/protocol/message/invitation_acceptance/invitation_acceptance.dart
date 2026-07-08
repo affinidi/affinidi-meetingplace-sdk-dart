@@ -12,6 +12,7 @@ class InvitationAcceptance {
     required List<String> to,
     required String parentThreadId,
     required String channelDid,
+    String? agentDid,
     ContactCard? contactCard,
     List<Attachment>? attachments,
   }) {
@@ -20,7 +21,10 @@ class InvitationAcceptance {
       from: from,
       to: to,
       parentThreadId: parentThreadId,
-      body: InvitationAcceptanceBody(channelDid: channelDid),
+      body: InvitationAcceptanceBody(
+        channelDid: channelDid,
+        agentDid: agentDid,
+      ),
       contactCard: contactCard,
       attachments: attachments,
     );

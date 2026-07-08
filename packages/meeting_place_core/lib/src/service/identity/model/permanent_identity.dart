@@ -8,6 +8,7 @@ class PermanentIdentity {
     required this.didManager,
     required this.didDocument,
     this.matrixUserId,
+    this.agentDid,
   });
 
   /// The [DidManager] that manages the permanent DID for this identity.
@@ -19,4 +20,7 @@ class PermanentIdentity {
   /// The Matrix user ID associated with the permanent identity.
   // TODO: Extend to its own object containing user id and homeserver?
   final String? matrixUserId;
+
+  /// The DID assigned by the personal AI agent for this channel.
+  final String? agentDid;
 }

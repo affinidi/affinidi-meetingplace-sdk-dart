@@ -123,6 +123,126 @@ void main() {
     );
   });
 
+  group('sendAcceptOfferToMediator', () {
+    late _MockDidManager mockAcceptOfferDidManager;
+    late _MockDidDocument mockAcceptOfferDidDocument;
+    late _MockDidDocument mockRecipientDidDocument;
+
+    const acceptOfferDid = 'did:test:accept';
+    const permanentDid = 'did:test:permanent';
+    const mediatorDid = 'did:test:mediator';
+    const agentDid = 'did:web:my-agent';
+
+    setUp(() {
+      mockAcceptOfferDidManager = _MockDidManager();
+      mockAcceptOfferDidDocument = _MockDidDocument();
+      mockRecipientDidDocument = _MockDidDocument();
+
+      when(() => mockAcceptOfferDidDocument.id).thenReturn(acceptOfferDid);
+      when(
+        () => mockAcceptOfferDidManager.getDidDocument(),
+      ).thenAnswer((_) async => mockAcceptOfferDidDocument);
+
+      when(
+        () => mockMediatorAclService.addToAcl(
+          didManager: any(named: 'didManager'),
+          mediatorDid: any(named: 'mediatorDid'),
+          granteeDids: any(named: 'granteeDids'),
+        ),
+      ).thenAnswer((_) async {});
+
+      when(
+        () => mockDidResolver.resolveDid(any()),
+      ).thenAnswer((_) async => mockRecipientDidDocument);
+
+      when(
+        () => mockMediatorSDK.sendMessage(
+          any(),
+          senderDidManager: any(named: 'senderDidManager'),
+          recipientDidDocument: any(named: 'recipientDidDocument'),
+          mediatorDid: any(named: 'mediatorDid'),
+          next: any(named: 'next'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    test(
+      'includes agent_did in acceptance message when agentDid provided',
+      () async {
+        final invitationMessage = PlainTextMessage(
+          id: 'invitation-id',
+          from: 'did:test:publisher',
+          to: [acceptOfferDid],
+          type: Uri.parse(
+            'https://didcomm.org/oob-invitation/1.0/oob-invitation',
+          ),
+        );
+
+        final permanentDocument = _MockDidDocument();
+        when(() => permanentDocument.id).thenReturn(permanentDid);
+
+        await service.sendAcceptOfferToMediator(
+          acceptOfferDid: mockAcceptOfferDidManager,
+          permanentChannelDidDocument: permanentDocument,
+          invitationMessage: invitationMessage,
+          mediatorDid: mediatorDid,
+          agentDid: agentDid,
+        );
+
+        final captured = verify(
+          () => mockMediatorSDK.sendMessage(
+            captureAny(),
+            senderDidManager: any(named: 'senderDidManager'),
+            recipientDidDocument: any(named: 'recipientDidDocument'),
+            mediatorDid: any(named: 'mediatorDid'),
+            next: any(named: 'next'),
+          ),
+        ).captured;
+
+        final message = captured.first as PlainTextMessage;
+        expect(message.body!['agent_did'], equals(agentDid));
+        expect(message.body!['channel_did'], equals(permanentDid));
+      },
+    );
+
+    test(
+      'omits agent_did from acceptance message when agentDid is null',
+      () async {
+        final invitationMessage = PlainTextMessage(
+          id: 'invitation-id',
+          from: 'did:test:publisher',
+          to: [acceptOfferDid],
+          type: Uri.parse(
+            'https://didcomm.org/oob-invitation/1.0/oob-invitation',
+          ),
+        );
+
+        final permanentDocument = _MockDidDocument();
+        when(() => permanentDocument.id).thenReturn(permanentDid);
+
+        await service.sendAcceptOfferToMediator(
+          acceptOfferDid: mockAcceptOfferDidManager,
+          permanentChannelDidDocument: permanentDocument,
+          invitationMessage: invitationMessage,
+          mediatorDid: mediatorDid,
+        );
+
+        final captured = verify(
+          () => mockMediatorSDK.sendMessage(
+            captureAny(),
+            senderDidManager: any(named: 'senderDidManager'),
+            recipientDidDocument: any(named: 'recipientDidDocument'),
+            mediatorDid: any(named: 'mediatorDid'),
+            next: any(named: 'next'),
+          ),
+        ).captured;
+
+        final message = captured.first as PlainTextMessage;
+        expect(message.body!.containsKey('agent_did'), isFalse);
+      },
+    );
+  });
+
   group('approveConnectionRequest', () {
     const offerLink = 'offer-link';
     const publishOfferDid = 'did:test:publish';

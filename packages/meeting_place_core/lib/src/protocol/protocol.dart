@@ -4,6 +4,7 @@ export 'attachment/contact_card_attachment.dart';
 export 'contact_card/contact_card.dart';
 export 'meeting_place_notification_protocol.dart';
 export 'meeting_place_protocol.dart';
+export 'message/agent_channel_inauguration/agent_channel_inauguration.dart';
 export 'message/channel_inauguration/channel_inauguration.dart';
 export 'message/connection_request_approval/connection_request_approval.dart';
 export 'message/group_deletion/group_deletion.dart';

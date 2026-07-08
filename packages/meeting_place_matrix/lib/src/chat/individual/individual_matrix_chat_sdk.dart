@@ -52,6 +52,7 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
     ChatFeature.messageDelete,
     ChatFeature.effects,
     ChatFeature.contactDetailsUpdate,
+    ChatFeature.audioVideoCalling,
   });
 
   @override

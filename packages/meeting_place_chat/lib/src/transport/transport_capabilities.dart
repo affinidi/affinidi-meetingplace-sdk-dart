@@ -60,6 +60,11 @@ enum ChatFeature {
 
   /// Human liveness zero-knowledge proof
   humanZkp,
+
+  /// Real-time audio and video calling. Offered only on transports with a
+  /// call backend (Matrix RTC + LiveKit); inline-only transports (DIDComm)
+  /// do not support it.
+  audioVideoCalling,
 }
 
 /// The set of [ChatFeature]s supported by a kind of chat.

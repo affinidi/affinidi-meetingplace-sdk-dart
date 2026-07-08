@@ -26,5 +26,11 @@ void main() {
       expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
       expect(capabilities.supports(ChatFeature.videoAttachments), isFalse);
     });
+
+    test('DIDComm does not support audio/video calling', () {
+      final capabilities = _buildDidcommSdk().capabilities;
+
+      expect(capabilities.supports(ChatFeature.audioVideoCalling), isFalse);
+    });
   });
 }

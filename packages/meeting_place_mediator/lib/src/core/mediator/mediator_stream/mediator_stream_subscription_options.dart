@@ -6,6 +6,7 @@ class MediatorStreamSubscriptionOptions {
     this.deleteMessageDelay = const Duration(milliseconds: 3000),
     this.expectedMessageWrappingTypes = const [
       MessageWrappingType.authcryptSignPlaintext,
+      MessageWrappingType.authcryptPlaintext,
     ],
     this.fetchMessagesOnConnect = true,
   });

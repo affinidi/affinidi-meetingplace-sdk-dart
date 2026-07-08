@@ -54,13 +54,13 @@ class MatrixServiceException implements MatrixSDKException {
     );
   }
 
-  factory MatrixServiceException.voipAlreadyInitialized() {
+  factory MatrixServiceException.voipConflictForClient() {
     return MatrixServiceException(
       message:
           'VoIP already initialized with a different Matrix client or '
           'WebRTC delegate. Reuse the existing instance or dispose it '
           'before reinitializing.',
-      code: MeetingPlaceMatrixSDKErrorCode.matrixVoipAlreadyInitialized,
+      code: MeetingPlaceMatrixSDKErrorCode.matrixVoipConflictForClient,
     );
   }
 

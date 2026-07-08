@@ -4,7 +4,7 @@ enum MeetingPlaceMatrixSDKErrorCode {
   matrixMediaDecryptionFailed('matrix_media_decryption_failed'),
   matrixMissingUserId('matrix_missing_user_id'),
   matrixVoipNotInitialized('matrix_voip_not_initialized'),
-  matrixVoipAlreadyInitialized('matrix_voip_already_initialized'),
+  matrixVoipConflictForClient('matrix_voip_already_initialized'),
   matrixRoomNotFound('matrix_room_not_found'),
   matrixIncomingCallNotFound('matrix_incoming_call_not_found');
 

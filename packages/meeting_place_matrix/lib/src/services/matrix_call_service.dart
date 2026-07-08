@@ -65,7 +65,7 @@ class MatrixCallService {
       return;
     }
     if (identical(existingVoip, voip)) return;
-    throw MatrixServiceException.voipAlreadyInitialized();
+    throw MatrixServiceException.voipConflictForClient();
   }
 
   /// Creates a [matrix.VoIP] instance from [delegate] and an authenticated
@@ -83,7 +83,7 @@ class MatrixCallService {
       if (identical(existingVoip.delegate, delegate)) {
         return;
       }
-      throw MatrixServiceException.voipAlreadyInitialized();
+      throw MatrixServiceException.voipConflictForClient();
     }
     _voips[client] = createVoip(client, delegate);
   }
@@ -329,7 +329,7 @@ class MatrixCallService {
       if (identical(existingVoip.delegate, delegate)) {
         return existingVoip;
       }
-      throw MatrixServiceException.voipAlreadyInitialized();
+      throw MatrixServiceException.voipConflictForClient();
     }
     final voip = createVoip(client, delegate);
     _voips[client] = voip;

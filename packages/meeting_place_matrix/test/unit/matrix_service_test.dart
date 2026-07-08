@@ -113,6 +113,17 @@ MockMatrixClient _unauthenticatedClient() {
   return client;
 }
 
+void _stubInjectedVoip(
+  MockVoIP voip,
+  matrix.Client client, {
+  matrix.WebRTCDelegate? delegate,
+}) {
+  when(() => voip.client).thenReturn(client);
+  if (delegate != null) {
+    when(() => voip.delegate).thenReturn(delegate);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -1400,6 +1411,7 @@ void main() {
     group('initializeVoIP', () {
       test('stores the VoIP instance for subsequent call operations', () {
         final voip = MockVoIP();
+        _stubInjectedVoip(voip, MockMatrixClient());
 
         // initializeVoIP is synchronous — no error means success.
         expect(() => service.initializeVoIP(voip), returnsNormally);
@@ -1460,6 +1472,7 @@ void main() {
       test('throws MatrixServiceException when room is not found', () async {
         final client = MockMatrixClient();
         final voip = MockVoIP();
+        _stubInjectedVoip(voip, client);
         service.initializeVoIP(voip);
 
         when(
@@ -1512,6 +1525,7 @@ void main() {
       test('returns false when the room is not found', () async {
         final client = MockMatrixClient();
         final voip = MockVoIP();
+        _stubInjectedVoip(voip, client);
         service.initializeVoIP(voip);
 
         when(
@@ -1532,6 +1546,7 @@ void main() {
         final client = MockMatrixClient();
         final voip = MockVoIP();
         final room = MockMatrixRoom();
+        _stubInjectedVoip(voip, client);
         service.initializeVoIP(voip);
 
         when(
@@ -1563,6 +1578,7 @@ void main() {
       test('returns null when the room is not found', () async {
         final client = MockMatrixClient();
         final voip = MockVoIP();
+        _stubInjectedVoip(voip, client);
         service.initializeVoIP(voip);
 
         when(
@@ -1583,6 +1599,7 @@ void main() {
         final client = MockMatrixClient();
         final voip = MockVoIP();
         final room = MockMatrixRoom();
+        _stubInjectedVoip(voip, client);
         service.initializeVoIP(voip);
 
         when(
@@ -1606,12 +1623,14 @@ void main() {
         'returns the group call already present in the room state',
         () async {
           final client = _validClient();
+          final delegate = MockWebRTCDelegate();
           when(() => client.userID).thenReturn(_matrixUserId);
           when(
             () => sessionManager.getAuthenticatedClient(_testDid),
           ).thenAnswer((_) async => client);
 
           final voip = MockVoIP();
+          _stubInjectedVoip(voip, client, delegate: delegate);
           final session = MockGroupCallSession();
           when(() => session.groupCallId).thenReturn('call-1');
           when(() => voip.groupCalls).thenReturn({
@@ -1621,7 +1640,7 @@ void main() {
 
           final result = await service.activateIncomingCall(
             didManager: didManager,
-            delegate: MockWebRTCDelegate(),
+            delegate: delegate,
             roomId: _testRoomId,
           );
 
@@ -1632,6 +1651,7 @@ void main() {
       test('resolves via onIncomingGroupCall when the group call arrives '
           'after VoIP creation', () async {
         final client = _validClient();
+        final delegate = MockWebRTCDelegate();
         when(() => client.userID).thenReturn(_matrixUserId);
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
@@ -1642,6 +1662,7 @@ void main() {
         ).thenAnswer((_) async => FakeSyncUpdate());
 
         final voip = MockVoIP();
+        _stubInjectedVoip(voip, client, delegate: delegate);
         final session = MockGroupCallSession();
         when(() => session.groupCallId).thenReturn('call-2');
         when(() => voip.groupCalls).thenReturn({});
@@ -1662,7 +1683,7 @@ void main() {
 
         final result = await service.activateIncomingCall(
           didManager: didManager,
-          delegate: MockWebRTCDelegate(),
+          delegate: delegate,
           roomId: _testRoomId,
         );
 
@@ -1673,6 +1694,7 @@ void main() {
       test('activates a second incoming call on the cached VoIP without '
           're-listening to onIncomingGroupCall', () async {
         final client = _validClient();
+        final delegate = MockWebRTCDelegate();
         when(() => client.userID).thenReturn(_matrixUserId);
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
@@ -1683,6 +1705,7 @@ void main() {
         ).thenAnswer((_) async => FakeSyncUpdate());
 
         final voip = MockVoIP();
+        _stubInjectedVoip(voip, client, delegate: delegate);
         final firstSession = MockGroupCallSession();
         final secondSession = MockGroupCallSession();
         when(() => firstSession.groupCallId).thenReturn('call-a');
@@ -1707,7 +1730,7 @@ void main() {
 
         final first = await service.activateIncomingCall(
           didManager: didManager,
-          delegate: MockWebRTCDelegate(),
+          delegate: delegate,
           roomId: _testRoomId,
         );
         expect(first, same(firstSession));
@@ -1715,7 +1738,7 @@ void main() {
         const secondRoomId = '!second-room:matrix.test';
         final secondFuture = service.activateIncomingCall(
           didManager: didManager,
-          delegate: MockWebRTCDelegate(),
+          delegate: delegate,
           roomId: secondRoomId,
         );
 
@@ -1734,6 +1757,7 @@ void main() {
       test('waits for the room to sync before resolving when the session '
           'has not loaded it yet', () async {
         final client = _validClient();
+        final delegate = MockWebRTCDelegate();
         when(() => client.userID).thenReturn(_matrixUserId);
         when(
           () => sessionManager.getAuthenticatedClient(_testDid),
@@ -1744,6 +1768,7 @@ void main() {
         ).thenAnswer((_) async => FakeSyncUpdate());
 
         final voip = MockVoIP();
+        _stubInjectedVoip(voip, client, delegate: delegate);
         final session = MockGroupCallSession();
         when(() => session.groupCallId).thenReturn('call-3');
 
@@ -1764,7 +1789,7 @@ void main() {
 
         final result = await service.activateIncomingCall(
           didManager: didManager,
-          delegate: MockWebRTCDelegate(),
+          delegate: delegate,
           roomId: _testRoomId,
         );
 

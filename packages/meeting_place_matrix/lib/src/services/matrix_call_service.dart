@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meta/meta.dart';
@@ -14,8 +15,9 @@ import 'matrix_session_accessor.dart';
 /// MatrixRTC / VoIP call lifecycle: VoIP initialisation, incoming-call
 /// activation, call membership discovery, and group-call start/leave/watch.
 ///
-/// Owns the VoIP instance and the incoming-group-call subscription so the
-/// stream lifecycle lives in one place. Obtains authenticated clients through
+/// Owns the VoIP instances and incoming-group-call subscriptions so the stream
+/// lifecycle lives in one place. Maintains at most one [matrix.VoIP] per
+/// authenticated Matrix client. Obtains authenticated clients through
 /// [EnsureMatrixSession] rather than owning any session state. Constructed and
 /// owned by `MatrixService`, which exposes these operations through its public
 /// facade.
@@ -31,25 +33,24 @@ class MatrixCallService {
 
   static const _logKey = 'MatrixCallService';
 
-  /// VoIP instance for MatrixRTC call management. Set via [initializeVoIP]
-  /// or [initializeVoIPWithDelegate] before calling [startCall].
-  matrix.VoIP? _voip;
+  /// VoIP instances for MatrixRTC call management, keyed by Matrix client
+  /// identity.
+  final Map<matrix.Client, matrix.VoIP> _voips =
+      HashMap<matrix.Client, matrix.VoIP>.identity();
 
-  /// The VoIP instance whose [matrix.VoIP.onIncomingGroupCall] stream is
-  /// currently subscribed.
-  ///
-  /// That stream is single-subscription, so the service listens to it exactly
-  /// once per VoIP instance (see [_ensureIncomingGroupCallListener]) rather
-  /// than re-listening on every [activateIncomingCall] call.
-  matrix.VoIP? _incomingCallListenerVoip;
-
-  /// Subscription to [matrix.VoIP.onIncomingGroupCall] for the VoIP instance
-  /// referenced by [_incomingCallListenerVoip].
-  StreamSubscription<matrix.GroupCallSession>? _incomingGroupCallSubscription;
+  /// Subscription to [matrix.VoIP.onIncomingGroupCall] for each tracked VoIP.
+  final Map<matrix.VoIP, StreamSubscription<matrix.GroupCallSession>>
+  _incomingGroupCallSubscriptions = {};
 
   /// In-flight [activateIncomingCall] requests waiting for their group call to
   /// surface in room state.
-  final List<({String roomId, Completer<matrix.GroupCallSession> completer})>
+  final List<
+    ({
+      matrix.VoIP voip,
+      String roomId,
+      Completer<matrix.GroupCallSession> completer,
+    })
+  >
   _pendingActivations = [];
 
   /// Injects the [matrix.VoIP] instance required for MatrixRTC call management.
@@ -58,7 +59,14 @@ class MatrixCallService {
   /// [watchCall]. The VoIP instance must be created in the Flutter layer using
   /// a concrete [matrix.WebRTCDelegate] implementation.
   void initializeVoIP(matrix.VoIP voip) {
-    _voip = voip;
+    final client = voip.client;
+    final existingVoip = _voips[client];
+    if (existingVoip == null) {
+      _voips[client] = voip;
+      return;
+    }
+    if (identical(existingVoip, voip)) return;
+    throw MatrixServiceException.voipConflictForClient();
   }
 
   /// Creates a [matrix.VoIP] instance from [delegate] and an authenticated
@@ -71,7 +79,14 @@ class MatrixCallService {
     required matrix.WebRTCDelegate delegate,
   }) async {
     final client = await _ensureSession(didManager);
-    _voip = matrix.VoIP(client, delegate);
+    final existingVoip = _voips[client];
+    if (existingVoip != null) {
+      if (identical(existingVoip.delegate, delegate)) {
+        return;
+      }
+      throw MatrixServiceException.voipConflictForClient();
+    }
+    _voips[client] = createVoip(client, delegate);
   }
 
   /// Lazily activates the single Matrix session for [didManager] and resolves
@@ -99,9 +114,9 @@ class MatrixCallService {
     _logger.info('Activating incoming call for room $roomId', name: _logKey);
 
     final client = await _ensureSession(didManager);
-    final voip = _voip ??= matrix.VoIP(client, delegate);
+    final activeVoip = _findOrCreateVoip(client, delegate);
 
-    final existing = _findGroupCallForRoom(voip, roomId);
+    final existing = _findGroupCallForRoom(activeVoip, roomId);
     if (existing != null) {
       _logger.info(
         'Found existing group call ${existing.groupCallId} in room $roomId',
@@ -111,13 +126,13 @@ class MatrixCallService {
     }
 
     final completer = Completer<matrix.GroupCallSession>();
-    final activation = (roomId: roomId, completer: completer);
+    final activation = (voip: activeVoip, roomId: roomId, completer: completer);
     _pendingActivations.add(activation);
 
     // Subscribe once per VoIP instance to its single-subscription
     // onIncomingGroupCall stream so memberships that arrive in a later sync
     // resolve the activation.
-    _ensureIncomingGroupCallListener(voip);
+    _ensureIncomingGroupCallListener(activeVoip);
 
     // Drive VoIP discovery eagerly: a freshly authenticated session resolves
     // the room only via its alias directory and has not synced the room, so
@@ -125,7 +140,7 @@ class MatrixCallService {
     // constructor backfill. Loading the room and replaying its call
     // memberships covers that gap without depending on onRoomState firing for
     // state that predates the VoIP instance.
-    unawaited(_discoverExistingGroupCall(voip, client, roomId));
+    unawaited(_discoverExistingGroupCall(activeVoip, client, roomId));
 
     try {
       return await completer.future.timeout(timeout);
@@ -153,8 +168,10 @@ class MatrixCallService {
   Future<bool> hasActiveCallMembership({
     required DidManager didManager,
     required String roomId,
-  }) async =>
-      (await activeCallId(didManager: didManager, roomId: roomId)) != null;
+  }) async {
+    if (_voips.isEmpty) return false;
+    return (await activeCallId(didManager: didManager, roomId: roomId)) != null;
+  }
 
   /// Returns the callId of the first non-expired MatrixRTC call membership in
   /// [roomId], or `null` when no call is in progress.
@@ -170,10 +187,11 @@ class MatrixCallService {
     required DidManager didManager,
     required String roomId,
   }) async {
-    final voip = _voip;
-    if (voip == null) return null;
+    if (_voips.isEmpty) return null;
 
     final client = await _ensureSession(didManager);
+    final voip = _voips[client];
+    if (voip == null) return null;
     final room = client.getRoomById(roomId);
     if (room == null) return null;
 
@@ -213,10 +231,13 @@ class MatrixCallService {
     required String livekitAlias,
     String? callId,
   }) async {
-    final voip = _voip;
-    if (voip == null) throw MatrixServiceException.voipNotInitialized();
+    if (_voips.isEmpty) {
+      throw MatrixServiceException.voipNotInitialized();
+    }
 
     final client = await _ensureSession(didManager);
+    final voip = _voips[client];
+    if (voip == null) throw MatrixServiceException.voipNotInitialized();
     final room = client.getRoomById(roomId);
     if (room == null) throw MatrixServiceException.roomNotFound(roomId);
 
@@ -247,7 +268,7 @@ class MatrixCallService {
     required String roomId,
     required String callId,
   }) async {
-    final session = _voip?.getGroupCallById(roomId, callId);
+    final session = _findGroupCallById(roomId, callId);
     if (session == null) return;
     await session.leave();
   }
@@ -260,17 +281,20 @@ class MatrixCallService {
     required String roomId,
     required String callId,
   }) {
-    return _voip?.getGroupCallById(roomId, callId)?.matrixRTCEventStream.stream;
+    return _findGroupCallById(roomId, callId)?.matrixRTCEventStream.stream;
   }
 
   /// Cancels the incoming-group-call subscription and clears pending
-  /// activations. Safe to call multiple times. Does not dispose the VoIP
-  /// instance itself, which is owned by the Flutter layer that created it.
+  /// activations. Safe to call multiple times.
   Future<void> dispose() async {
-    await _incomingGroupCallSubscription?.cancel();
-    _incomingGroupCallSubscription = null;
-    _incomingCallListenerVoip = null;
+    await Future.wait(
+      _incomingGroupCallSubscriptions.values.map(
+        (subscription) => subscription.cancel(),
+      ),
+    );
+    _incomingGroupCallSubscriptions.clear();
     _pendingActivations.clear();
+    _voips.clear();
   }
 
   // ------------------------------------------------------------------
@@ -278,21 +302,17 @@ class MatrixCallService {
   // ------------------------------------------------------------------
 
   /// Listens to [voip]'s single-subscription [matrix.VoIP.onIncomingGroupCall]
-  /// stream exactly once, cancelling any subscription to a previous instance.
+  /// stream exactly once.
   ///
   /// onIncomingGroupCall fires synchronously inside
   /// `createGroupCallFromRoomStateEvent` right after `setGroupCallById`,
   /// covering both the VoIP constructor backfill and the onRoomState-from-sync
   /// path. Listening here once per instance avoids the "Stream has already
-  /// been listened to" error that re-listening per call would cause on the
-  /// cached VoIP instance.
+  /// been listened to" error that re-listening per call would cause.
   void _ensureIncomingGroupCallListener(matrix.VoIP voip) {
-    if (identical(_incomingCallListenerVoip, voip)) return;
-    _incomingGroupCallSubscription?.cancel();
-    _incomingCallListenerVoip = voip;
-    _incomingGroupCallSubscription = voip.onIncomingGroupCall.stream.listen(
-      (_) => _resolvePendingActivations(voip),
-    );
+    if (_incomingGroupCallSubscriptions.containsKey(voip)) return;
+    _incomingGroupCallSubscriptions[voip] = voip.onIncomingGroupCall.stream
+        .listen((_) => _resolvePendingActivations(voip));
   }
 
   /// Completes any pending activations whose group calls have appeared in
@@ -302,10 +322,27 @@ class MatrixCallService {
   /// whose completer is not yet resolved. Safe to call multiple times.
   void _resolvePendingActivations(matrix.VoIP voip) {
     for (final activation in List.of(_pendingActivations)) {
+      if (!identical(activation.voip, voip)) continue;
       if (activation.completer.isCompleted) continue;
       final session = _findGroupCallForRoom(voip, activation.roomId);
       if (session != null) activation.completer.complete(session);
     }
+  }
+
+  matrix.VoIP _findOrCreateVoip(
+    matrix.Client client,
+    matrix.WebRTCDelegate delegate,
+  ) {
+    final existingVoip = _voips[client];
+    if (existingVoip != null) {
+      if (identical(existingVoip.delegate, delegate)) {
+        return existingVoip;
+      }
+      throw MatrixServiceException.voipConflictForClient();
+    }
+    final voip = createVoip(client, delegate);
+    _voips[client] = voip;
+    return voip;
   }
 
   /// Loads [roomId] when the session has not synced it yet, then replays every
@@ -366,6 +403,14 @@ class MatrixCallService {
     return null;
   }
 
+  matrix.GroupCallSession? _findGroupCallById(String roomId, String callId) {
+    for (final voip in _voips.values) {
+      final session = voip.getGroupCallById(roomId, callId);
+      if (session != null) return session;
+    }
+    return null;
+  }
+
   /// Returns `true` if [membership] belongs to this device.
   bool _isOwnDeviceMembership(
     matrix.CallMembership membership,
@@ -383,4 +428,10 @@ class MatrixCallService {
     matrix.Room room,
     matrix.VoIP voip,
   ) => room.getCallMembershipsFromRoom(voip);
+
+  @visibleForTesting
+  matrix.VoIP createVoip(
+    matrix.Client client,
+    matrix.WebRTCDelegate delegate,
+  ) => matrix.VoIP(client, delegate);
 }

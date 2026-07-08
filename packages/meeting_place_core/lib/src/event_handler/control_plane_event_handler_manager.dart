@@ -155,7 +155,8 @@ class ControlPlaneEventManager {
     final acknowledgedEvents = <ControlPlaneEvent<dynamic>>[];
     final processedEventsForDedup = <ControlPlaneEvent>[];
 
-    for (final event in events) {
+    final eventsSnapshot = events.toList(growable: false);
+    for (final event in eventsSnapshot) {
       try {
         _logger.info('Process event of type ${event.type.name}');
         final channels = await _processEvent(event, processedEventsForDedup);

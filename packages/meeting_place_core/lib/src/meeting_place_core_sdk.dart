@@ -1193,7 +1193,8 @@ class MeetingPlaceCoreSDK {
       );
 
       final updatedMnemonics = output.updatedOffers.toSet();
-      for (final offer in offers) {
+      final offersSnapshot = offers.toList(growable: false);
+      for (final offer in offersSnapshot) {
         if (updatedMnemonics.contains(offer.mnemonic)) {
           await _repositoryConfig.connectionOfferRepository
               .updateConnectionOffer(offer.copyWith(score: score));
@@ -1223,7 +1224,8 @@ class MeetingPlaceCoreSDK {
     required int score,
     required List<ConnectionOffer> offers,
   }) async {
-    for (final offer in offers) {
+    final offersSnapshot = offers.toList(growable: false);
+    for (final offer in offersSnapshot) {
       await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
         offer.copyWith(score: score),
       );

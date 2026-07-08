@@ -74,7 +74,7 @@ void main() {
       expect(result.status, CallStatus.inProgress);
     });
 
-    test('maybeOf returns null when callId is missing', () {
+    test('maybeOf deserializes with missing callId as empty string', () {
       final attachment = ChatAttachment(
         id: 'msg-1',
         metadata: {
@@ -84,10 +84,11 @@ void main() {
         },
       );
       final result = CallMetadata.maybeOf(attachment);
-      expect(result, isNull);
+      expect(result, isNotNull);
+      expect(result!.callId, '');
     });
 
-    test('maybeOf returns null when callId is empty string', () {
+    test('maybeOf deserializes with empty string callId', () {
       final attachment = ChatAttachment(
         id: 'msg-1',
         metadata: {
@@ -98,7 +99,8 @@ void main() {
         },
       );
       final result = CallMetadata.maybeOf(attachment);
-      expect(result, isNull);
+      expect(result, isNotNull);
+      expect(result!.callId, '');
     });
 
     test('maybeOf returns null when callId is not a string', () {

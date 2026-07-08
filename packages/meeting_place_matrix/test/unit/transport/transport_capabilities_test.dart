@@ -61,11 +61,23 @@ void main() {
       expect(capabilities.supports(ChatFeature.videoAttachments), isTrue);
     });
 
+    test('individual Matrix supports audio/video calling', () {
+      final capabilities = _buildMatrixSdk().capabilities;
+
+      expect(capabilities.supports(ChatFeature.audioVideoCalling), isTrue);
+    });
+
     test('group Matrix mirrors Matrix attachment capabilities', () {
       final capabilities = _buildGroupMatrixSdk().capabilities;
 
       expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
       expect(capabilities.supports(ChatFeature.videoAttachments), isTrue);
+    });
+
+    test('group Matrix supports audio/video calling', () {
+      final capabilities = _buildGroupMatrixSdk().capabilities;
+
+      expect(capabilities.supports(ChatFeature.audioVideoCalling), isTrue);
     });
   });
 }

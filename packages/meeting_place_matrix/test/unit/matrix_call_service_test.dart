@@ -100,7 +100,8 @@ class _MatrixCallServiceWithVoipFactory extends MatrixCallService {
   final matrix.VoIP Function(
     matrix.Client client,
     matrix.WebRTCDelegate delegate,
-  ) voipFactory;
+  )
+  voipFactory;
 
   @override
   matrix.VoIP createVoip(
@@ -170,54 +171,60 @@ void main() {
   });
 
   group('initializeVoIPWithDelegate', () {
-    test('reuses an existing VoIP instance instead of overwriting it', () async {
-      final mockRoom = MockMatrixRoom();
-      final existingVoip = MockVoIP();
-      final delegate = MockWebRTCDelegate();
-      final capturingService = _MatrixCallServiceCapturingVoip(
-        ensureSession:
-            (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
-                client,
-        logger: _NoOpLogger(),
-      );
+    test(
+      'reuses an existing VoIP instance instead of overwriting it',
+      () async {
+        final mockRoom = MockMatrixRoom();
+        final existingVoip = MockVoIP();
+        final delegate = MockWebRTCDelegate();
+        final capturingService = _MatrixCallServiceCapturingVoip(
+          ensureSession:
+              (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                  client,
+          logger: _NoOpLogger(),
+        );
 
-      when(() => existingVoip.client).thenReturn(client);
-      when(() => existingVoip.delegate).thenReturn(delegate);
-      capturingService.initializeVoIP(existingVoip);
-      when(() => client.getRoomById(_roomId)).thenReturn(mockRoom);
-      when(() => client.userID).thenReturn(_ownUserId);
-      when(() => client.deviceID).thenReturn(_ownDeviceId);
+        when(() => existingVoip.client).thenReturn(client);
+        when(() => existingVoip.delegate).thenReturn(delegate);
+        capturingService.initializeVoIP(existingVoip);
+        when(() => client.getRoomById(_roomId)).thenReturn(mockRoom);
+        when(() => client.userID).thenReturn(_ownUserId);
+        when(() => client.deviceID).thenReturn(_ownDeviceId);
 
-      await capturingService.initializeVoIPWithDelegate(
-        didManager: didManager,
-        delegate: delegate,
-      );
-
-      await capturingService.activeCallId(
-        didManager: didManager,
-        roomId: _roomId,
-      );
-
-      expect(capturingService.lastVoip, same(existingVoip));
-    });
-
-    test('throws when a different delegate is used for an existing VoIP', () async {
-      final existingVoip = MockVoIP();
-      final originalDelegate = MockWebRTCDelegate();
-      final replacementDelegate = MockWebRTCDelegate();
-
-      when(() => existingVoip.client).thenReturn(client);
-      when(() => existingVoip.delegate).thenReturn(originalDelegate);
-      service.initializeVoIP(existingVoip);
-
-      await expectLater(
-        service.initializeVoIPWithDelegate(
+        await capturingService.initializeVoIPWithDelegate(
           didManager: didManager,
-          delegate: replacementDelegate,
-        ),
-        throwsA(isA<MatrixServiceException>()),
-      );
-    });
+          delegate: delegate,
+        );
+
+        await capturingService.activeCallId(
+          didManager: didManager,
+          roomId: _roomId,
+        );
+
+        expect(capturingService.lastVoip, same(existingVoip));
+      },
+    );
+
+    test(
+      'throws when a different delegate is used for an existing VoIP',
+      () async {
+        final existingVoip = MockVoIP();
+        final originalDelegate = MockWebRTCDelegate();
+        final replacementDelegate = MockWebRTCDelegate();
+
+        when(() => existingVoip.client).thenReturn(client);
+        when(() => existingVoip.delegate).thenReturn(originalDelegate);
+        service.initializeVoIP(existingVoip);
+
+        await expectLater(
+          service.initializeVoIPWithDelegate(
+            didManager: didManager,
+            delegate: replacementDelegate,
+          ),
+          throwsA(isA<MatrixServiceException>()),
+        );
+      },
+    );
 
     test('allows a different client to have its own VoIP instance', () async {
       final firstDelegate = MockWebRTCDelegate();

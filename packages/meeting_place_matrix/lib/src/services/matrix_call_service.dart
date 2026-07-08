@@ -44,11 +44,14 @@ class MatrixCallService {
 
   /// In-flight [activateIncomingCall] requests waiting for their group call to
   /// surface in room state.
-  final List<({
-    matrix.VoIP voip,
-    String roomId,
-    Completer<matrix.GroupCallSession> completer,
-  })> _pendingActivations = [];
+  final List<
+    ({
+      matrix.VoIP voip,
+      String roomId,
+      Completer<matrix.GroupCallSession> completer,
+    })
+  >
+  _pendingActivations = [];
 
   /// Injects the [matrix.VoIP] instance required for MatrixRTC call management.
   ///
@@ -122,11 +125,7 @@ class MatrixCallService {
     }
 
     final completer = Completer<matrix.GroupCallSession>();
-    final activation = (
-      voip: activeVoip,
-      roomId: roomId,
-      completer: completer,
-    );
+    final activation = (voip: activeVoip, roomId: roomId, completer: completer);
     _pendingActivations.add(activation);
 
     // Subscribe once per VoIP instance to its single-subscription
@@ -280,7 +279,9 @@ class MatrixCallService {
   /// activations. Safe to call multiple times.
   Future<void> dispose() async {
     await Future.wait(
-      _incomingGroupCallSubscriptions.values.map((subscription) => subscription.cancel()),
+      _incomingGroupCallSubscriptions.values.map(
+        (subscription) => subscription.cancel(),
+      ),
     );
     _incomingGroupCallSubscriptions.clear();
     _pendingActivations.clear();
@@ -301,9 +302,8 @@ class MatrixCallService {
   /// been listened to" error that re-listening per call would cause.
   void _ensureIncomingGroupCallListener(matrix.VoIP voip) {
     if (_incomingGroupCallSubscriptions.containsKey(voip)) return;
-    _incomingGroupCallSubscriptions[voip] = voip.onIncomingGroupCall.stream.listen(
-      (_) => _resolvePendingActivations(voip),
-    );
+    _incomingGroupCallSubscriptions[voip] = voip.onIncomingGroupCall.stream
+        .listen((_) => _resolvePendingActivations(voip));
   }
 
   /// Completes any pending activations whose group calls have appeared in

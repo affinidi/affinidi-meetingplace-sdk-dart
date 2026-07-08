@@ -72,8 +72,8 @@ void main() {
       signalController.add(const IncomingCallSignal(ownChannelDid: ownDid));
 
       final event = await eventFuture.timeout(const Duration(seconds: 5));
-      expect(event.callId, callerDid);
-      expect(event.otherPartyChannelDid, callerDid);
+      expect(event.callerPermanentChannelDid, callerDid);
+      expect(event.otherPartyPermanentChannelDid, callerDid);
       expect(event.mediaType, CallMediaType.video);
     });
 

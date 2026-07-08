@@ -21,7 +21,8 @@ class CallSignalHandler {
     required MeetingPlaceMatrixSDKLogger logger,
     required LiveKitCallSession? Function() getActiveSession,
     required void Function(IncomingAudioVideoCallEvent) onIncomingCall,
-    required void Function(String otherPartyChannelDid) onCallCancelled,
+    required void Function(String otherPartyPermanentChannelDid)
+    onCallCancelled,
     required void Function(IncomingAudioVideoCallEvent) onPeerRestartedCall,
   }) : _sdk = sdk,
        _pendingCallManager = pendingCallManager,
@@ -73,8 +74,8 @@ class CallSignalHandler {
       }
 
       final event = IncomingAudioVideoCallEvent(
-        callId: callerChannelDid,
-        otherPartyChannelDid: callerChannelDid,
+        callerPermanentChannelDid: callerChannelDid,
+        otherPartyPermanentChannelDid: callerChannelDid,
         mediaType: signal.mediaType,
       );
       _emitIncomingCall(event, ownChannelDid: signal.ownChannelDid);
@@ -154,23 +155,24 @@ class CallSignalHandler {
     IncomingAudioVideoCallEvent event, {
     required String ownChannelDid,
   }) {
-    if (_pendingCallManager.isInCallWith(event.otherPartyChannelDid)) {
+    if (_pendingCallManager.isInCallWith(event.otherPartyPermanentChannelDid)) {
       final session = _getActiveSession();
       final simultaneousCall =
-          session != null && session.isDiallingTo(event.otherPartyChannelDid);
+          session != null &&
+          session.isDiallingTo(event.otherPartyPermanentChannelDid);
       if (simultaneousCall &&
-          ownChannelDid.compareTo(event.otherPartyChannelDid) > 0) {
+          ownChannelDid.compareTo(event.otherPartyPermanentChannelDid) > 0) {
         _logger.info(
-          'Incoming call ${event.callId} from '
-          '${event.otherPartyChannelDid.topAndTail()} '
+          'Incoming call ${event.callerPermanentChannelDid} from '
+          '${event.otherPartyPermanentChannelDid.topAndTail()} '
           '— simultaneous call, keeping our outgoing call (we win)',
           name: _logKey,
         );
         return;
       }
       _logger.info(
-        'Incoming call ${event.callId} from '
-        '${event.otherPartyChannelDid.topAndTail()} '
+        'Incoming call ${event.callerPermanentChannelDid} from '
+        '${event.otherPartyPermanentChannelDid.topAndTail()} '
         '— tearing down stale call and rejoining peer',
         name: _logKey,
       );
@@ -178,20 +180,20 @@ class CallSignalHandler {
       return;
     }
     final registered = _pendingCallManager.registerIncomingCall(
-      callId: event.callId,
-      otherPartyChannelDid: event.otherPartyChannelDid,
+      callId: event.callerPermanentChannelDid,
+      otherPartyChannelDid: event.otherPartyPermanentChannelDid,
     );
     if (!registered) {
       _logger.warning(
-        'Incoming call ${event.callId} from '
-        '${event.otherPartyChannelDid.topAndTail()} '
+        'Incoming call ${event.callerPermanentChannelDid} from '
+        '${event.otherPartyPermanentChannelDid.topAndTail()} '
         'auto-rejected: already in a call',
         name: _logKey,
       );
       unawaited(
         _sdk.notifyChannel(
           IndividualChannelNotification(
-            recipientDid: event.otherPartyChannelDid,
+            recipientDid: event.otherPartyPermanentChannelDid,
             type: CallChannelActivityType.callDecline,
           ),
         ),
@@ -200,8 +202,8 @@ class CallSignalHandler {
     }
     _onIncomingCall(event);
     _logger.info(
-      'Incoming call: callId=${event.callId} '
-      'from=${event.otherPartyChannelDid.topAndTail()}',
+      'Incoming call: callId=${event.callerPermanentChannelDid} '
+      'from=${event.otherPartyPermanentChannelDid.topAndTail()}',
       name: _logKey,
     );
   }

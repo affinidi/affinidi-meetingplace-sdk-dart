@@ -4,19 +4,21 @@ import '../../../../call/call_media_type.dart';
 /// calls you.
 class IncomingAudioVideoCallEvent {
   const IncomingAudioVideoCallEvent({
-    required this.callId,
-    required this.otherPartyChannelDid,
+    required this.callerPermanentChannelDid,
+    required this.otherPartyPermanentChannelDid,
     required this.mediaType,
   });
 
-  /// The MatrixRTC call session identifier.
+  /// The caller's permanent channel DID (stable identifier, not ephemeral).
   ///
-  /// Pass this to `AudioVideoCallPlugin.acceptCall` or
+  /// This identifies the remote party initiating the call, not the transport
+  /// call session. Use with `AudioVideoCallPlugin.acceptCall` or
   /// `AudioVideoCallPlugin.declineCall` to act on this specific call.
-  final String callId;
+  final String callerPermanentChannelDid;
 
-  /// The other party's channel DID.
-  final String otherPartyChannelDid;
+  /// The other party's permanent channel DID (stable identifier,
+  /// not ephemeral).
+  final String otherPartyPermanentChannelDid;
 
   /// Whether the call carries video or is audio-only.
   final CallMediaType mediaType;

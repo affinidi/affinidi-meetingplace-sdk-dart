@@ -109,7 +109,8 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       },
       onPeerRestartedCall: (event) {
         _logger.info(
-          'Peer restarted from ${event.otherPartyChannelDid.topAndTail()}',
+          'Peer restarted from '
+          '${event.otherPartyPermanentChannelDid.topAndTail()}',
           name: _logKey,
         );
         final previousSession = _activeSession;
@@ -117,8 +118,8 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         _pendingCallManager
           ..clearActiveCall()
           ..registerIncomingCall(
-            callId: event.callId,
-            otherPartyChannelDid: event.otherPartyChannelDid,
+            callId: event.callerPermanentChannelDid,
+            otherPartyChannelDid: event.otherPartyPermanentChannelDid,
           );
         if (!_incomingCallsController.isClosed) {
           _incomingCallsController.add(event);

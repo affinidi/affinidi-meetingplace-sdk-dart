@@ -92,8 +92,8 @@ void main() {
         );
 
         expect(emitted, hasLength(1));
-        expect(emitted.first.callId, _callerDid);
-        expect(emitted.first.otherPartyChannelDid, _callerDid);
+        expect(emitted.first.callerPermanentChannelDid, _callerDid);
+        expect(emitted.first.otherPartyPermanentChannelDid, _callerDid);
         expect(emitted.first.mediaType, CallMediaType.video);
       },
     );
@@ -182,7 +182,10 @@ void main() {
 
         expect(emittedIncoming, isEmpty);
         expect(emittedRestarted, hasLength(1));
-        expect(emittedRestarted.first.otherPartyChannelDid, _callerDid);
+        expect(
+          emittedRestarted.first.otherPartyPermanentChannelDid,
+          _callerDid,
+        );
       },
     );
 

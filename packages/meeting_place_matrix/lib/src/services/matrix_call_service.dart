@@ -59,9 +59,10 @@ class MatrixCallService {
   /// [watchCall]. The VoIP instance must be created in the Flutter layer using
   /// a concrete [matrix.WebRTCDelegate] implementation.
   void initializeVoIP(matrix.VoIP voip) {
-    final existingVoip = _voips[voip.client];
+    final client = voip.client;
+    final existingVoip = _voips[client];
     if (existingVoip == null) {
-      _voips[voip.client] = voip;
+      _voips[client] = voip;
       return;
     }
     if (identical(existingVoip, voip)) return;
@@ -167,8 +168,10 @@ class MatrixCallService {
   Future<bool> hasActiveCallMembership({
     required DidManager didManager,
     required String roomId,
-  }) async =>
-      (await activeCallId(didManager: didManager, roomId: roomId)) != null;
+  }) async {
+    if (_voips.isEmpty) return false;
+    return (await activeCallId(didManager: didManager, roomId: roomId)) != null;
+  }
 
   /// Returns the callId of the first non-expired MatrixRTC call membership in
   /// [roomId], or `null` when no call is in progress.
@@ -184,6 +187,8 @@ class MatrixCallService {
     required DidManager didManager,
     required String roomId,
   }) async {
+    if (_voips.isEmpty) return null;
+
     final client = await _ensureSession(didManager);
     final voip = _voips[client];
     if (voip == null) return null;
@@ -226,6 +231,10 @@ class MatrixCallService {
     required String livekitAlias,
     String? callId,
   }) async {
+    if (_voips.isEmpty) {
+      throw MatrixServiceException.voipNotInitialized();
+    }
+
     final client = await _ensureSession(didManager);
     final voip = _voips[client];
     if (voip == null) throw MatrixServiceException.voipNotInitialized();

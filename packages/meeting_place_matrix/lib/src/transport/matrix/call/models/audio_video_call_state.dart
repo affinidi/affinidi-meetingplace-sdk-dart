@@ -14,6 +14,7 @@ class AudioVideoCallState {
     this.participants = const [],
     this.errorCode,
     this.ownRole,
+    this.callId,
     this.callStartedAt,
   });
 
@@ -35,6 +36,13 @@ class AudioVideoCallState {
   /// call chat item) to the caller only.
   final CallRole? ownRole;
 
+  /// The transport call session ID (format: `roomId@microsecondsSinceEpoch`).
+  ///
+  /// Set when the call session is prepared. Use this to embed in
+  /// `CallMetadata` so call chat items can be joined to call-log entries.
+  /// `null` until the session is established.
+  final String? callId;
+
   /// Shared call start time, derived from the callId timestamp.
   ///
   /// Consumers render duration as `now - callStartedAt`, so both sides show
@@ -51,6 +59,7 @@ class AudioVideoCallState {
     AudioVideoCallErrorCode? errorCode,
     bool clearErrorCode = false,
     CallRole? ownRole,
+    String? callId,
     DateTime? callStartedAt,
   }) {
     return AudioVideoCallState(
@@ -58,6 +67,7 @@ class AudioVideoCallState {
       participants: participants ?? this.participants,
       errorCode: clearErrorCode ? null : (errorCode ?? this.errorCode),
       ownRole: ownRole ?? this.ownRole,
+      callId: callId ?? this.callId,
       callStartedAt: callStartedAt ?? this.callStartedAt,
     );
   }

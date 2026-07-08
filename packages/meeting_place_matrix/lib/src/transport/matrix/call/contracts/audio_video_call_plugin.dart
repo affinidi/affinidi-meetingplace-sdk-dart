@@ -57,13 +57,15 @@ abstract interface class AudioVideoCallPlugin {
   /// to obtain the [AudioVideoCallSession] and connect.
   ///
   /// Parameters:
-  /// * [callId] — must match [IncomingAudioVideoCallEvent.callId].
+  /// * [callId] — the transport call session ID (from Matrix RTC),
+  ///   not the caller DID.
   Future<void> acceptCall({required String callId});
 
   /// Declines an incoming call without answering.
   ///
   /// Parameters:
-  /// * [callId] — must match [IncomingAudioVideoCallEvent.callId].
+  /// * [callId] — the transport call session ID (from Matrix RTC),
+  ///   not the caller DID.
   Future<void> declineCall({required String callId});
 
   /// Leaves the currently active call, if any, and clears the busy guard.

@@ -53,12 +53,12 @@ class CallMetadata {
     if (mediaType == null) return null;
     final status = _statusFromMetadata(metadata[_statusKey]);
     if (status == null) return null;
-    final callId = metadata[_callIdKey];
-    if (callId is! String || callId.isEmpty) return null;
+    final callIdValue = metadata[_callIdKey];
+    if (callIdValue != null && callIdValue is! String) return null;
     return CallMetadata(
       mediaType: mediaType,
       status: status,
-      callId: callId,
+      callId: (callIdValue as String?) ?? '',
       durationMs: _durationFromMetadata(metadata[_durationMsKey]),
     );
   }

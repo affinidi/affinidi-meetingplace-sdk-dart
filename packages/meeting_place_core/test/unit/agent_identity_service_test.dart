@@ -1,5 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/agent_identity_service.dart';
+import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/identity/identity_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_acl_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -15,6 +16,8 @@ class _MockMediatorAclService extends Mock implements MediatorAclService {}
 class _MockDIDCommTransport extends Mock implements DIDCommTransport {}
 
 class _MockChannelRepository extends Mock implements ChannelRepository {}
+
+class _MockConnectionManager extends Mock implements ConnectionManager {}
 
 class _MockWallet extends Mock implements Wallet {}
 
@@ -38,6 +41,7 @@ void main() {
   late _MockMediatorAclService mockMediatorAclService;
   late _MockDIDCommTransport mockDIDCommTransport;
   late _MockChannelRepository mockChannelRepository;
+  late _MockConnectionManager mockConnectionManager;
   late _MockWallet mockWallet;
   late _MockDidManager mockDidManager;
   late _MockDidDocument mockDidDocument;
@@ -54,6 +58,7 @@ void main() {
     mockMediatorAclService = _MockMediatorAclService();
     mockDIDCommTransport = _MockDIDCommTransport();
     mockChannelRepository = _MockChannelRepository();
+    mockConnectionManager = _MockConnectionManager();
     mockWallet = _MockWallet();
     mockDidManager = _MockDidManager();
     mockDidDocument = _MockDidDocument();
@@ -64,6 +69,7 @@ void main() {
       didcommTransport: mockDIDCommTransport,
       channelRepository: mockChannelRepository,
       wallet: mockWallet,
+      connectionManager: mockConnectionManager,
     );
 
     when(

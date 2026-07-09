@@ -29,6 +29,18 @@ class AgentChannelInauguration {
     );
   }
 
+  factory AgentChannelInauguration.fromPlainTextMessage(
+    PlainTextMessage message,
+  ) {
+    return AgentChannelInauguration(
+      id: message.id,
+      from: message.from!,
+      to: message.to!,
+      body: AgentChannelInaugurationBody.fromJson(message.body!),
+      createdTime: message.createdTime,
+    );
+  }
+
   AgentChannelInauguration({
     required this.id,
     required this.from,

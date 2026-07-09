@@ -506,6 +506,7 @@ class MeetingPlaceCoreSDK {
       didcommTransport: didcommTransport,
       channelRepository: repositoryConfig.channelRepository,
       wallet: wallet,
+      connectionManager: connectionManager,
     );
 
     Future<DidManager> matrixTransportGetDidManager(String did) =>
@@ -647,6 +648,32 @@ class MeetingPlaceCoreSDK {
     return _agentIdentityService.createChannelIdentity(
       agentDid: agentDid,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      mediatorDid: mediatorDid,
+      offerLink: offerLink,
+      publishOfferDid: publishOfferDid,
+      contactCard: contactCard,
+    );
+  }
+
+  /// Handles an incoming `agent-channel-inauguration` message by granting
+  /// [otherPartyPermanentChannelDid] access on the mediator, persisting a
+  /// [ChannelStatus.inaugurated] [Channel], and returning it so the caller
+  /// can open a chat session on [Channel.permanentChannelDid].
+  Future<Channel> processAgentChannelInauguration({
+    required String agentDid,
+    required String agentPermanentChannelDid,
+    required String otherPartyPermanentChannelDid,
+    required String otherPartyNotificationToken,
+    required String mediatorDid,
+    required String offerLink,
+    required String publishOfferDid,
+    ContactCard? contactCard,
+  }) {
+    return _agentIdentityService.processAgentChannelInauguration(
+      agentDid: agentDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyNotificationToken: otherPartyNotificationToken,
       mediatorDid: mediatorDid,
       offerLink: offerLink,
       publishOfferDid: publishOfferDid,

@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../contact_card/contact_card.dart';
 import '../../meeting_place_protocol.dart';
 import 'agent_channel_inauguration_body.dart';
 
@@ -10,6 +11,9 @@ class AgentChannelInauguration {
     required List<String> to,
     required String otherPartyPermanentChannelDid,
     required String otherPartyNotificationToken,
+    required String offerLink,
+    required String publishOfferDid,
+    ContactCard? contactCard,
   }) {
     return AgentChannelInauguration(
       id: const Uuid().v4(),
@@ -18,6 +22,9 @@ class AgentChannelInauguration {
       body: AgentChannelInaugurationBody(
         permanentChannelDid: otherPartyPermanentChannelDid,
         notificationToken: otherPartyNotificationToken,
+        offerLink: offerLink,
+        publishOfferDid: publishOfferDid,
+        contactCard: contactCard,
       ),
     );
   }

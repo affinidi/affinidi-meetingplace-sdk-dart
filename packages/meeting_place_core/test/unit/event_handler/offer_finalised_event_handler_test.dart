@@ -272,4 +272,114 @@ void main() {
       );
     });
   });
+
+  group('agent channel inauguration message', () {
+    const agentPermanentChannelDid = 'did:test:agent';
+    final otherPartyContactCard = ContactCard(
+      did: 'did:test:other-party',
+      type: 'individual',
+      contactInfo: {'fullName': 'Other Party'},
+    );
+
+    Channel createChannelWithAgent() => Channel(
+      offerLink: offerLink,
+      publishOfferDid: 'did:test:publish',
+      mediatorDid: mediatorDid,
+      status: ChannelStatus.waitingForApproval,
+      isConnectionInitiator: false,
+      contactCard: ContactCard(
+        did: 'did:test:card',
+        type: 'individual',
+        contactInfo: const {'fullName': 'Test'},
+      ),
+      otherPartyContactCard: otherPartyContactCard,
+      type: ChannelType.individual,
+      transport: ChannelTransport.didcomm,
+      acceptOfferDid: acceptOfferDid,
+      permanentChannelDid: permanentChannelDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
+    );
+
+    test('sends agent inauguration message with channel fields', () async {
+      final channel = createChannelWithAgent();
+      expect(
+        channel.otherPartyContactCard,
+        isNotNull,
+        reason: 'test precondition: createChannelWithAgent must set otherPartyContactCard',
+      );
+
+      await handler.processMessage(
+        createApprovalMessage(),
+        event: event,
+        connection: connectionOffer,
+        channel: channel,
+      );
+
+      final captured = verify(
+        () => mockMediatorService.sendMessage(
+          captureAny(),
+          senderDidManager: any(named: 'senderDidManager'),
+          recipientDidDocument: any(named: 'recipientDidDocument'),
+          mediatorDid: any(named: 'mediatorDid'),
+        ),
+      ).captured;
+
+      final agentMsg = captured
+          .whereType<PlainTextMessage>()
+          .firstWhere(
+            (m) => m.type.toString() ==
+                MeetingPlaceProtocol.agentChannelInauguration.value,
+          );
+
+      expect(agentMsg.body?['offer_link'], equals(offerLink));
+      expect(agentMsg.body?['publish_offer_did'], equals('did:test:publish'));
+      expect(
+        agentMsg.body?['permanent_channel_did'],
+        equals(otherPartyPermanentDid),
+      );
+      expect(
+        agentMsg.body?['notification_token'],
+        equals(event.notificationToken),
+      );
+      expect(
+        agentMsg.body?['contact_card'],
+        equals(otherPartyContactCard.toJson()),
+      );
+    });
+
+    test(
+      'does not send agent inauguration message when '
+      'agentPermanentChannelDid is null',
+      () async {
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+
+        await handler.processMessage(
+          createApprovalMessage(),
+          event: event,
+          connection: connectionOffer,
+          channel: channel,
+        );
+
+        final captured = verify(
+          () => mockMediatorService.sendMessage(
+            captureAny(),
+            senderDidManager: any(named: 'senderDidManager'),
+            recipientDidDocument: any(named: 'recipientDidDocument'),
+            mediatorDid: any(named: 'mediatorDid'),
+          ),
+        ).captured;
+
+        final agentMsgs = captured
+            .whereType<PlainTextMessage>()
+            .where(
+              (m) => m.type.toString() ==
+                  MeetingPlaceProtocol.agentChannelInauguration.value,
+            )
+            .toList();
+
+        expect(agentMsgs, isEmpty);
+      },
+    );
+  });
 }

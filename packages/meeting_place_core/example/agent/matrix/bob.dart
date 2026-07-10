@@ -7,8 +7,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:vodozemac/vodozemac.dart' as vod;
 
-import '../utils/print.dart';
-import '../utils/sdk.dart';
+import '../../utils/print.dart';
+import '../../utils/sdk.dart';
 
 void main() async {
   final vodozemacLibraryPath = getVodozemacLibraryPath();
@@ -18,7 +18,7 @@ void main() async {
   }
 
   final bobAgentDid =
-      'did:key:zDnaeyLZAEbGDkCXqZFJLfJRsrkSF9feDCm8V5XBMYKe4xrLR';
+      'did:key:zDnaejme4x4njPjKnsGVRxE1vngGHo7cXXVgZ8DfzKVPafGVi';
 
   final bobSDK = await initSDK(
     wallet: PersistentWallet(InMemoryKeyStore()),

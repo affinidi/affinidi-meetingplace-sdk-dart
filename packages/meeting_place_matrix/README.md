@@ -2,7 +2,7 @@
 
 ![Affinidi Meeting Place](https://raw.githubusercontent.com/affinidi/affinidi-meetingplace-sdk-dart/main/assets/images/meetingplace-banner.png)
 
-The Affinidi Meeting Place - Matrix SDK for Dart provides the Matrix transport implementation for the Meeting Place SDK. It enables Matrix-backed individual chats, group chats, encrypted room events, media transfer, room history, and optional audio/video calling while working with Decentralised Identifiers (DIDs), DIDComm v2.1, and Matrix.
+The Affinidi Meeting Place - Matrix SDK for Dart provides the Matrix transport implementation for the Meeting Place SDK. It enables Matrix-backed individual chats, group chats, encrypted room events, media transfer, room history, and optional audio/video calling using Matrix as the underlying transport.
 
 The Matrix SDK is part of the Meeting Place SDK toolkit and enables a safe and secure method of discovering, connecting, and communicating between individuals, businesses, and AI agents.
 
@@ -10,17 +10,15 @@ The Matrix SDK is part of the Meeting Place SDK toolkit and enables a safe and s
 
 ## Core Concepts
 
-- **Decentralised Identifier (DID)** - A globally unique identifier that enables secure interactions. The DID is the cornerstone of Self-Sovereign Identity (SSI), a concept that aims to put individuals or entities in control of their digital identities.
+- **Decentralised Identifier (DID)** - A globally unique identifier used by Matrix to represent user identities in the Meeting Place. DIDs enable secure, decentralised identity management across the system.
 
-- **DIDComm Message** - is a JSON Web Message (JWM), a lightweight, secure, and standardised format for structured communication using JSON. It represents headers, message types, routing metadata, and payloads designed to enable secure and interoperable communication across different systems.
+- **Matrix** - An open standard for secure, decentralised, and interoperable real-time communication. In the Meeting Place SDK, Matrix powers richer chat features such as individual and group chats, media attachments, encrypted room events, room history, and optional audio/video calling.
 
-- **Mediator** - A service that handles and routes messages sent between participants (e.g., users, organisations, another mediator, or even AI agents).
+- **Matrix Room** - A named space where messages and events are exchanged. Rooms can be private (for individual chats) or public (for group chats), and they support end-to-end encryption.
 
-- **Matrix** - An open standard for secure, decentralised, and interoperable real-time communication. In the Meeting Place SDK, Matrix powers richer chat features such as group chat, media attachments, encrypted room events, room history, and optional audio/video calling.
+- **End-to-End Encryption** - Native Matrix encryption using the `vodozemac` library to ensure all messages are encrypted on the sender's device and can only be decrypted by the intended recipient(s).
 
-- **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
-
-- **Connection Offer (Invitation)** - An invite to connect containing description and ContactCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **LiveKit** - An open-source, scalable Selective Forwarding Unit (SFU) that handles real-time media transport for audio and video calls. In the Meeting Place SDK, LiveKit powers peer-to-peer and group calling with end-to-end encrypted signalling via Matrix.
 
 ## Key Features
 
@@ -111,8 +109,8 @@ To enable Matrix, provide:
 | `databaseFactory` | Opens the local Matrix database for sessions, sync state, and encryption data. |
 | `deviceId` | Device identifier used for Matrix device binding. |
 | `serverName` | Optional Matrix server name override when it differs from `homeserver.host`. |
-| `livekitServiceUrl` | Optional LiveKit JWT service URL for audio/video call support. |
-| `livekitSfuUrl` | Optional LiveKit SFU URL override for local or custom deployments. |
+| `livekitServiceUrl` | URL of the LiveKit JWT service for issuing call tokens. Required to enable audio/video calling; when omitted, the call plugin is not created. |
+| `livekitSfuUrl` | WebSocket URL of the LiveKit SFU. Overrides the URL from the token response, useful for local development when the container-internal hostname is not reachable from the device. |
 | `sfuAllowedHosts` | Allowlist of SFU hostnames permitted when the JWT service supplies the SFU URL (i.e. `livekitSfuUrl` is null). |
 
 ## Quick Start
@@ -168,13 +166,32 @@ whose transport is `ChannelTransport.matrix`.
 
 ## Optional Audio/Video Calls
 
-Audio/video calling is available when:
+Audio/video calling is available when you provide:
 
-- `MatrixConfig.livekitServiceUrl` is set
-- `MeetingPlaceMatrixSDK.create(...)` receives both `rtcDelegate` and `roomFactory`
+- `MatrixConfig.livekitServiceUrl` - URL of your LiveKit JWT service for obtaining call tokens
+- `MatrixConfig.livekitSfuUrl` - WebSocket URL of the LiveKit SFU (required for local development and most deployments; omit only if your JWT service provides the SFU URL)
+- `rtcDelegate` and `roomFactory` parameters to `MeetingPlaceMatrixSDK.create(...)`
 
-This uses Matrix RTC signalling together with a LiveKit SFU for media
-transport.
+This integration uses Matrix RTC signalling (via Matrix rooms) together with a LiveKit SFU for media transport.
+
+### LiveKit Setup
+
+Pass LiveKit configuration to `MatrixConfig` and RTC implementation to `.create()`:
+
+```dart
+final matrixSDK = await MeetingPlaceMatrixSDK.create(
+  // ... other params ...
+  config: MatrixConfig(
+    // ... other config ...
+    livekitServiceUrl: Uri.parse('https://livekit-jwt.example.com'),
+    livekitSfuUrl: Uri.parse('wss://livekit.example.com'),
+  ),
+  rtcDelegate: webRtcDelegate,
+  roomFactory: liveKitRoomFactory,
+);
+```
+
+Once configured, audio/video calls work seamlessly within Matrix chat rooms using the same end-to-end encryption.
 
 ## Running tests locally
 

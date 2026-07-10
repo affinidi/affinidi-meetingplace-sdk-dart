@@ -18,6 +18,8 @@ The Matrix SDK is part of the Meeting Place SDK toolkit and enables a safe and s
 
 - **End-to-End Encryption** - Native Matrix encryption using the `vodozemac` library to ensure all messages are encrypted on the sender's device and can only be decrypted by the intended recipient(s).
 
+- **LiveKit** - An open-source, scalable Selective Forwarding Unit (SFU) that handles real-time media transport for audio and video calls. In the Meeting Place SDK, LiveKit powers peer-to-peer and group calling with end-to-end encrypted signalling via Matrix.
+
 ## Key Features
 
 - Matrix-backed transport for individual and group chats in the Meeting Place SDK.
@@ -107,8 +109,8 @@ To enable Matrix, provide:
 | `databaseFactory` | Opens the local Matrix database for sessions, sync state, and encryption data. |
 | `deviceId` | Device identifier used for Matrix device binding. |
 | `serverName` | Optional Matrix server name override when it differs from `homeserver.host`. |
-| `livekitServiceUrl` | Optional LiveKit JWT service URL for audio/video call support. |
-| `livekitSfuUrl` | Optional LiveKit SFU URL override for local or custom deployments. |
+| `livekitServiceUrl` | URL of the LiveKit JWT service for issuing call tokens. Required to enable audio/video calling; when omitted, the call plugin is not created. |
+| `livekitSfuUrl` | WebSocket URL of the LiveKit SFU. Overrides the URL from the token response, useful for local development when the container-internal hostname is not reachable from the device. |
 | `sfuAllowedHosts` | Allowlist of SFU hostnames permitted when the JWT service supplies the SFU URL (i.e. `livekitSfuUrl` is null). |
 
 ## Quick Start
@@ -164,13 +166,32 @@ whose transport is `ChannelTransport.matrix`.
 
 ## Optional Audio/Video Calls
 
-Audio/video calling is available when:
+Audio/video calling is available when you provide:
 
-- `MatrixConfig.livekitServiceUrl` is set
-- `MeetingPlaceMatrixSDK.create(...)` receives both `rtcDelegate` and `roomFactory`
+- `MatrixConfig.livekitServiceUrl` - URL of your LiveKit JWT service for obtaining call tokens
+- `MatrixConfig.livekitSfuUrl` - WebSocket URL of the LiveKit SFU (required for local development and most deployments; omit only if your JWT service provides the SFU URL)
+- `rtcDelegate` and `roomFactory` parameters to `MeetingPlaceMatrixSDK.create(...)`
 
-This uses Matrix RTC signalling together with a LiveKit SFU for media
-transport.
+This integration uses Matrix RTC signalling (via Matrix rooms) together with a LiveKit SFU for media transport.
+
+### LiveKit Setup
+
+Pass LiveKit configuration to `MatrixConfig` and RTC implementation to `.create()`:
+
+```dart
+final matrixSDK = await MeetingPlaceMatrixSDK.create(
+  // ... other params ...
+  config: MatrixConfig(
+    // ... other config ...
+    livekitServiceUrl: Uri.parse('https://livekit-jwt.example.com'),
+    livekitSfuUrl: Uri.parse('wss://livekit.example.com'),
+  ),
+  rtcDelegate: webRtcDelegate,
+  roomFactory: liveKitRoomFactory,
+);
+```
+
+Once configured, audio/video calls work seamlessly within Matrix chat rooms using the same end-to-end encryption.
 
 ## Running tests locally
 

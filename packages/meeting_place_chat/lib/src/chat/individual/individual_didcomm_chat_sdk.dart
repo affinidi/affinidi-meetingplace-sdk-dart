@@ -98,7 +98,6 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     return _subscriptionHandle!.stream
         .where((m) => m is DidCommIncomingMessage)
         .cast<DidCommIncomingMessage>()
-        .where((m) => m.payload.from == otherPartyDid)
         .listen(
           _handleIncoming,
           onError: (Object e, StackTrace s) {

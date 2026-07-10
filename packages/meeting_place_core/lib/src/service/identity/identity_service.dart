@@ -220,6 +220,7 @@ class IdentityService {
         name: _logkey,
       );
 
+      await subscription.dispose();
       return agentPermanentChannelDid;
     } finally {
       await subscription.dispose();

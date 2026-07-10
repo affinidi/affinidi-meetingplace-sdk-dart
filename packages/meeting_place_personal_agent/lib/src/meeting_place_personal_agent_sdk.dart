@@ -41,4 +41,46 @@ class MeetingPlacePersonalAgentSDK {
     final response = await remote.fetchPersonalAgentOffer(setupId: normalized);
     return PersonalAgentOfferResult.fromJson(response);
   }
+
+  /// Upload the user's context file and store it as the agent's initial memory.
+  Future<PersonalAgentContextStatus> uploadPersonalAgentContext({
+    required String setupId,
+    required String content,
+  }) async {
+    final normalized = setupId.trim();
+    if (normalized.isEmpty) {
+      throw const VtaValidationException(
+        'setupId must not be empty.',
+        code: 'e.vta.personal_agent.setup_id_required',
+      );
+    }
+    if (content.trim().isEmpty) {
+      throw const VtaValidationException(
+        'content must not be empty.',
+        code: 'e.vta.personal_agent.content_required',
+      );
+    }
+    final response = await remote.uploadPersonalAgentContext(
+      setupId: normalized,
+      content: content.trim(),
+    );
+    return PersonalAgentContextStatus.fromJson(response);
+  }
+
+  /// Check whether the user's context has been uploaded and stored.
+  Future<PersonalAgentContextStatus> fetchPersonalAgentContextStatus({
+    required String setupId,
+  }) async {
+    final normalized = setupId.trim();
+    if (normalized.isEmpty) {
+      throw const VtaValidationException(
+        'setupId must not be empty.',
+        code: 'e.vta.personal_agent.setup_id_required',
+      );
+    }
+    final response = await remote.fetchPersonalAgentContextStatus(
+      setupId: normalized,
+    );
+    return PersonalAgentContextStatus.fromJson(response);
+  }
 }

@@ -272,3 +272,28 @@ bool? optionalBool(Map<String, dynamic> json, List<String> keys) {
   }
   return null;
 }
+
+/// Result of uploading a personal context file or checking its status.
+class PersonalAgentContextStatus {
+  const PersonalAgentContextStatus({
+    required this.setupId,
+    required this.provisioned,
+    required this.itemCount,
+  });
+
+  final String setupId;
+
+  /// Whether the context has been uploaded and stored.
+  final bool provisioned;
+
+  /// Number of memory items stored for this user.
+  final int itemCount;
+
+  factory PersonalAgentContextStatus.fromJson(Map<String, dynamic> json) {
+    return PersonalAgentContextStatus(
+      setupId: requiredString(json, ['setup_id', 'setupId']),
+      provisioned: requiredBool(json, ['provisioned']),
+      itemCount: (json['item_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+}

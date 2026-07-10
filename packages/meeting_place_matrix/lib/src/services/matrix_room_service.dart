@@ -187,6 +187,7 @@ class MatrixRoomService {
       );
     }
     _assertRoomEncrypted(room, roomId);
+    // TODO (earl): prefetch device keys here once confirmed reliable at join time.
     return roomId;
   }
 
@@ -262,7 +263,6 @@ class MatrixRoomService {
     Map<String, dynamic> content, {
     required DidManager didManager,
   }) async {
-    final methodName = 'sendRoomEvent';
     final client = await _ensureSession(didManager);
     final room = await _resolveEncryptedRoom(client, roomId);
 
@@ -285,27 +285,7 @@ class MatrixRoomService {
       return null;
     }
 
-    // Load device keys before creating megolm session — but only when at
-    // least one room member has missing or stale keys. This avoids an
-    // unnecessary network round-trip on every send when all keys are fresh.
-    final roomMemberIds = room.getParticipants().map((m) => m.id).toSet();
-    final hasOutdatedKeys = roomMemberIds.any((uid) {
-      final keys = client.userDeviceKeys[uid];
-      return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
-    });
-    if (hasOutdatedKeys) {
-      await client.updateUserDeviceKeys();
-      final keysLoading = client.userDeviceKeysLoading;
-      if (keysLoading != null) {
-        _logger.info(
-          '$methodName: Waiting for device-key update to complete before '
-          'sending $eventType to room $roomId',
-          name: _logKey,
-        );
-        await keysLoading;
-      }
-    }
-
+    await _prefetchDeviceKeys(client, room);
     return room.sendEvent(content, type: eventType);
   }
 
@@ -428,6 +408,7 @@ class MatrixRoomService {
     final myUserId =
         client.userID ?? _sessionManager.deriveUserId(did, _homeserver.host);
 
+    // TODO (earl): prefetch device keys here once confirmed reliable at session start.
     final controller = StreamController<MatrixRoomEvent>();
 
     final timelineSub = client.onTimelineEvent.stream
@@ -534,17 +515,7 @@ class MatrixRoomService {
     final client = await _ensureSession(didManager);
     final room = await _resolveEncryptedRoom(client, roomId);
 
-    final roomMemberIds = room.getParticipants().map((m) => m.id).toSet();
-    final hasOutdatedKeys = roomMemberIds.any((uid) {
-      final keys = client.userDeviceKeys[uid];
-      return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
-    });
-    if (hasOutdatedKeys) {
-      await client.updateUserDeviceKeys();
-      final keysLoading = client.userDeviceKeysLoading;
-      if (keysLoading != null) await keysLoading;
-    }
-
+    await _prefetchDeviceKeys(client, room);
     final file = matrix.MatrixFile.fromMimeType(
       bytes: bytes,
       name: filename ?? 'file',
@@ -643,6 +614,30 @@ class MatrixRoomService {
     if (room == null) throw StateError('Matrix room $roomId not found');
     _assertRoomEncrypted(room, roomId);
     return room;
+  }
+
+  /// Fetches device keys for all current room members in one shot.
+  /// Called once at join time so the megolm session can be created immediately
+  /// on the first send without a blocking round-trip.
+  Future<void> _prefetchDeviceKeys(
+    matrix.Client client,
+    matrix.Room room,
+  ) async {
+    final memberIds = room.getParticipants().map((m) => m.id).toSet();
+    final hasOutdatedKeys = memberIds.any((uid) {
+      final keys = client.userDeviceKeys[uid];
+      return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
+    });
+    if (!hasOutdatedKeys) return;
+    await client.updateUserDeviceKeys();
+    final inFlight = client.userDeviceKeysLoading;
+    if (inFlight != null) {
+      _logger.info(
+        'Waiting for device-key update to complete for room ${room.id}',
+        name: _logKey,
+      );
+      await inFlight;
+    }
   }
 
   static void _assertRoomEncrypted(matrix.Room room, String roomId) {

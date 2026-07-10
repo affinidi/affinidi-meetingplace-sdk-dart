@@ -165,6 +165,7 @@ void main() {
         final room = MockMatrixRoom();
         final member = MockUser('@alice:matrix.example.com');
         when(() => room.encrypted).thenReturn(true);
+        when(() => room.id).thenReturn(_roomId);
         when(room.getParticipants).thenReturn([member]);
         when(() => client.getRoomById(_roomId)).thenReturn(room);
         when(

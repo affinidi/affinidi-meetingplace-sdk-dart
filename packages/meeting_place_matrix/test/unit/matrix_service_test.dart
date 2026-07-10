@@ -35,6 +35,13 @@ class MockGroupCallSession extends Mock implements matrix.GroupCallSession {}
 
 class MockWebRTCDelegate extends Mock implements matrix.WebRTCDelegate {}
 
+class MockUser extends Mock implements matrix.User {
+  MockUser(this._id);
+  final String _id;
+  @override
+  String get id => _id;
+}
+
 class FakeMatrixTokenCommand extends Fake implements MatrixTokenCommand {}
 
 class FakeStateEvent extends Fake implements matrix.StateEvent {}
@@ -1318,6 +1325,7 @@ void main() {
         ).thenAnswer((_) async => client);
         when(() => client.getRoomById(_testRoomId)).thenReturn(room);
         when(() => room.encrypted).thenReturn(true);
+        when(room.getParticipants).thenReturn([]);
         when(client.updateUserDeviceKeys).thenAnswer((_) async {});
         when(() => client.userDeviceKeysLoading).thenReturn(null);
         when(
@@ -1348,6 +1356,10 @@ void main() {
           ).thenAnswer((_) async => client);
           when(() => client.getRoomById(_testRoomId)).thenReturn(room);
           when(() => room.encrypted).thenReturn(true);
+          when(() => room.id).thenReturn(_testRoomId);
+          final mockUser = MockUser('@alice:matrix.example.com');
+          when(room.getParticipants).thenReturn([mockUser]);
+          when(() => client.userDeviceKeys).thenReturn({});
           when(client.updateUserDeviceKeys).thenAnswer((_) async {});
           when(
             () => sessionManager.deriveUserId(any(), any()),

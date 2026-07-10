@@ -62,6 +62,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
               seqNo: Value(channel.seqNo),
               messageSyncMarker: Value(channel.messageSyncMarker),
               matrixSyncMarker: Value(channel.matrixSyncMarker),
+              matrixRoomId: Value(channel.matrixRoomId),
               mediatorDid: Value(channel.mediatorDid),
               externalRef: Value(channel.externalRef),
               isConnectionInitiator: Value(channel.isConnectionInitiator),
@@ -156,6 +157,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           seqNo: Value(channel.seqNo),
           messageSyncMarker: Value(channel.messageSyncMarker),
           matrixSyncMarker: Value(channel.matrixSyncMarker),
+          matrixRoomId: Value(channel.matrixRoomId),
           mediatorDid: Value(channel.mediatorDid),
           externalRef: Value(channel.externalRef),
           isConnectionInitiator: Value(channel.isConnectionInitiator),
@@ -338,6 +340,7 @@ class _ChannelMapper {
       seqNo: channel.seqNo,
       messageSyncMarker: channel.messageSyncMarker?.toUtc(),
       matrixSyncMarker: channel.matrixSyncMarker,
+      matrixRoomId: channel.matrixRoomId,
       externalRef: channel.externalRef,
     );
   }

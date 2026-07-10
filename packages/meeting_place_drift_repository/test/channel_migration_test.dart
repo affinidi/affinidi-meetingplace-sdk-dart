@@ -291,4 +291,55 @@ void main() {
       },
     );
   });
+
+  group('v5 → v6 schema migration', () {
+    test('produces the correct v6 schema', () async {
+      final connection = await verifier.startAt(5);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 6);
+      await db.close();
+    });
+
+    test('adds matrix_room_id column with NULL as default', () async {
+      final schema = await verifier.schemaAt(5);
+
+      schema.rawDatabase.execute('''
+        INSERT INTO channels VALUES (
+          'ch-5',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-5',
+          1,
+          1,
+          1,
+          0,
+          NULL,
+          NULL,
+          'did:example:permanent5',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          0,
+          NULL,
+          NULL
+        )
+      ''');
+
+      final db = ChannelDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 6);
+
+      final rows = await db
+          .customSelect(
+            'SELECT matrix_room_id FROM channels WHERE id = ?',
+            variables: [const Variable('ch-5')],
+          )
+          .get();
+      expect(rows.single.read<String?>('matrix_room_id'), isNull);
+
+      await db.close();
+    });
+  });
 }

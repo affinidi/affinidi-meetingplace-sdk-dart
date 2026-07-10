@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -131,6 +131,9 @@ class ChannelDatabase extends _$ChannelDatabase {
           channels.otherPartyAgentPermanentChannelDid,
         );
       }
+      if (from < 6 && to >= 6) {
+        await migrator.addColumn(channels, channels.matrixRoomId);
+      }
     },
   );
 }
@@ -160,8 +163,7 @@ class Channels extends Table {
   /// Transport used by the channel.
   ///
   /// Defaults to `didcomm` (value `1`) so existing rows have a sane value when
-  /// the column is added by the v5→v6 migration. The migration then backfills
-  /// rows with a `matrix_room_id` to `matrix` (value `2`).
+  /// the column is added by migration.
   IntColumn get transport => integer()
       .map(const _ChannelTransportConverter())
       .withDefault(const Constant(1))();
@@ -209,6 +211,9 @@ class Channels extends Table {
   /// is an ISO 8601 UTC timestamp; for Matrix channels this is the Matrix
   /// event ID of the last fetched event.
   TextColumn get messageSyncMarker => text().nullable()();
+
+  /// Matrix room ID for the channel, stored when the channel joins a room.
+  TextColumn get matrixRoomId => text().nullable()();
 
   /// Primary key for the channels table.
   @override

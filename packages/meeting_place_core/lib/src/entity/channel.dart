@@ -46,6 +46,7 @@ class Channel {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.messageSyncMarker,
+    this.matrixRoomId,
     this.seqNo = 0,
     this.externalRef,
   }) : id = id ?? const Uuid().v4();
@@ -178,6 +179,11 @@ class Channel {
   /// position. For DIDComm channels this is an ISO 8601 UTC timestamp; for
   /// Matrix channels this is the Matrix event ID of the last fetched event.
   String? messageSyncMarker;
+
+  /// The Matrix room ID for this channel, set when the channel joins a room via
+  /// `MatrixService.joinChannelRoom`. Avoids alias re-derivation for channels
+  /// where the local DID differs from the one used to create the room alias.
+  String? matrixRoomId;
 
   /// External reference that can be used to correlate the channel with external
   /// systems. This field is not used by the SDK, and can be set by the SDK

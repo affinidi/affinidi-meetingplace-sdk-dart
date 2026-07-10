@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+import '../logger/meeting_place_matrix_sdk_logger.dart';
 import '../matrix_room_alias.dart';
 import '../matrix_room_event.dart';
 import '../matrix_service_exception.dart';
@@ -22,11 +23,16 @@ class MatrixRoomService {
   MatrixRoomService({
     required EnsureMatrixSession ensureSession,
     required MatrixSessionManager sessionManager,
+    required MeetingPlaceMatrixSDKLogger logger,
   }) : _ensureSession = ensureSession,
-       _sessionManager = sessionManager;
+       _sessionManager = sessionManager,
+       _logger = logger;
 
   final EnsureMatrixSession _ensureSession;
   final MatrixSessionManager _sessionManager;
+  final MeetingPlaceMatrixSDKLogger _logger;
+
+  static const _logKey = 'MatrixRoomService';
 
   /// Power level required to enable MatrixRTC group calls via
   /// [matrix.Room.enableGroupCalls]. Both the room creator and every invited
@@ -256,6 +262,7 @@ class MatrixRoomService {
     Map<String, dynamic> content, {
     required DidManager didManager,
   }) async {
+    final methodName = 'sendRoomEvent';
     final client = await _ensureSession(didManager);
     final room = await _resolveEncryptedRoom(client, roomId);
 
@@ -276,6 +283,27 @@ class MatrixRoomService {
       final timeoutMs = content[_keyTimeoutMs] as int?;
       await room.setTyping(active, timeout: active ? timeoutMs : null);
       return null;
+    }
+
+    // Load device keys before creating megolm session — but only when at
+    // least one room member has missing or stale keys. This avoids an
+    // unnecessary network round-trip on every send when all keys are fresh.
+    final roomMemberIds = room.getParticipants().map((m) => m.id).toSet();
+    final hasOutdatedKeys = roomMemberIds.any((uid) {
+      final keys = client.userDeviceKeys[uid];
+      return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
+    });
+    if (hasOutdatedKeys) {
+      await client.updateUserDeviceKeys();
+      final keysLoading = client.userDeviceKeysLoading;
+      if (keysLoading != null) {
+        _logger.info(
+          '$methodName: Waiting for device-key update to complete before '
+          'sending $eventType to room $roomId',
+          name: _logKey,
+        );
+        await keysLoading;
+      }
     }
 
     return room.sendEvent(content, type: eventType);

@@ -1318,6 +1318,8 @@ void main() {
         ).thenAnswer((_) async => client);
         when(() => client.getRoomById(_testRoomId)).thenReturn(room);
         when(() => room.encrypted).thenReturn(true);
+        when(client.updateUserDeviceKeys).thenAnswer((_) async {});
+        when(() => client.userDeviceKeysLoading).thenReturn(null);
         when(
           () => room.sendEvent(any(), type: any(named: 'type')),
         ).thenAnswer((_) async => '\$eventId');
@@ -1334,6 +1336,49 @@ void main() {
 
         expect(eventId, equals('\$eventId'));
       });
+
+      test(
+        'awaits in-flight device-key update before calling room.sendEvent',
+        () async {
+          final client = MockMatrixClient();
+          final room = MockMatrixRoom();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+          when(() => room.encrypted).thenReturn(true);
+          when(client.updateUserDeviceKeys).thenAnswer((_) async {});
+          when(
+            () => sessionManager.deriveUserId(any(), any()),
+          ).thenReturn(_matrixUserId);
+
+          final keysCompleter = Completer<void>();
+          when(
+            () => client.userDeviceKeysLoading,
+          ).thenAnswer((_) => keysCompleter.future);
+          when(
+            () => room.sendEvent(any(), type: any(named: 'type')),
+          ).thenAnswer((_) async => '\$eventId');
+
+          final sendFuture = service.sendRoomEvent(
+            _testRoomId,
+            'com.example.message',
+            {'body': 'hello'},
+            didManager: didManager,
+          );
+
+          // Keys still loading — sendEvent must not have been called yet.
+          await Future<void>.delayed(Duration.zero);
+          verifyNever(() => room.sendEvent(any(), type: any(named: 'type')));
+
+          keysCompleter.complete();
+          expect(await sendFuture, equals('\$eventId'));
+          verify(
+            () => room.sendEvent(any(), type: any(named: 'type')),
+          ).called(1);
+        },
+      );
     });
 
     // ------------------------------------------------------------------

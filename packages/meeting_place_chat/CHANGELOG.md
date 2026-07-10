@@ -14,6 +14,8 @@
 
 - `ChatGroupDetailsUpdate` is now re-exported from `package:meeting_place_chat/meeting_place_chat.dart`.
 
+- `TransportCapabilities.audioVideoCalling` indicates whether the transport supports audio and video calls.
+
 ## 0.0.1-dev.50
 
  - **FIX**: persist attachment IDs (#256).
@@ -33,8 +35,6 @@
 ## 0.0.1-dev.46
 
  - **FIX**: add Matrix transport support alongside DIDComm.
-
-## 0.0.1-dev.46
 
 ### Breaking Changes
 

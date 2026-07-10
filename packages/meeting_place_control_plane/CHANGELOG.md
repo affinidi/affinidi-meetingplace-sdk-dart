@@ -1,3 +1,7 @@
+## 0.0.1-dev.21
+
+ - **FIX**: remove duplicate changelog headings for package releases (#274).
+
 ## Unreleased
 
 ### Breaking Changes

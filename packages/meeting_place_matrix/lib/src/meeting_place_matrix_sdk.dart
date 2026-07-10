@@ -333,6 +333,27 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   );
 
   @override
+  Future<Channel> processAgentChannelInauguration({
+    required String agentDid,
+    required String agentPermanentChannelDid,
+    required String otherPartyPermanentChannelDid,
+    required String otherPartyNotificationToken,
+    required String mediatorDid,
+    required String offerLink,
+    required String publishOfferDid,
+    ContactCard? contactCard,
+  }) => _coreSDK.processAgentChannelInauguration(
+    agentDid: agentDid,
+    agentPermanentChannelDid: agentPermanentChannelDid,
+    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+    otherPartyNotificationToken: otherPartyNotificationToken,
+    mediatorDid: mediatorDid,
+    offerLink: offerLink,
+    publishOfferDid: publishOfferDid,
+    contactCard: contactCard,
+  );
+
+  @override
   Future<DidManager> getDidManager(String did) => _coreSDK.getDidManager(did);
 
   @override

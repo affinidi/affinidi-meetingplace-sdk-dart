@@ -5,13 +5,20 @@ import 'dart:io';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
+import 'package:vodozemac/vodozemac.dart' as vod;
 
-import '../utils/print.dart';
-import '../utils/sdk.dart';
+import '../../utils/print.dart';
+import '../../utils/sdk.dart';
 
 void main() async {
+  final vodozemacLibraryPath = getVodozemacLibraryPath();
+
+  if (!vod.isInitialized()) {
+    await vod.init(libraryPath: vodozemacLibraryPath);
+  }
+
   final bobAgentDid =
-      'did:key:zDnaeyLZAEbGDkCXqZFJLfJRsrkSF9feDCm8V5XBMYKe4xrLR';
+      'did:key:zDnaejme4x4njPjKnsGVRxE1vngGHo7cXXVgZ8DfzKVPafGVi';
 
   final bobSDK = await initSDK(
     wallet: PersistentWallet(InMemoryKeyStore()),
@@ -73,7 +80,7 @@ void main() async {
   await bobNotificationSubscription.cancel();
   prettyPrintGreen('[Bob] ✓ Notification subscription cancelled');
 
-  final bobChatSDK = MeetingPlaceChatSDK.initialiseChatFromChannel(
+  final bobChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
     offerFinalisedEvent.channel,
     coreSDK: bobSDK,
     chatRepository: _InMemoryChatRepository(),
@@ -92,15 +99,15 @@ void main() async {
       }
     });
     prettyPrintYellow(
-        '''[Bob] Listening on chat stream using DID ${offerFinalisedEvent.channel.permanentChannelDid}...''');
+        '[Bob] Listening on chat stream using DID ${offerFinalisedEvent.channel.permanentChannelDid}...');
   });
 
   await bobChatSDK.sendTextMessage('Hi Alice, my name is Bob!');
   prettyPrintGreen('[Bob] ✓ Sent reply to Alice');
   prettyPrintGreen(
-      '''[Bob] ✓ My permanent channel DID: ${offerFinalisedEvent.channel.permanentChannelDid}''');
+      '[Bob] ✓ My permanent channel DID: ${offerFinalisedEvent.channel.permanentChannelDid}');
   prettyPrintGreen(
-      '''[Bob] ✓ Alice's permanent channel DID: ${offerFinalisedEvent.channel.otherPartyPermanentChannelDid}''');
+      "[Bob] ✓ Alice's permanent channel DID: ${offerFinalisedEvent.channel.otherPartyPermanentChannelDid}");
 }
 
 class _InMemoryChatRepository implements ChatRepository {

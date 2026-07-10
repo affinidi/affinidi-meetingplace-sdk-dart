@@ -3,10 +3,8 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
-import 'package:vodozemac/vodozemac.dart' as vod;
 
 import 'repository/channel_repository_impl.dart';
 import 'repository/chat_repository_impl.dart';
@@ -18,70 +16,11 @@ import 'storage/storage.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
-Uri getMatrixHomeserver() =>
-    switch (Platform.environment['MATRIX_HOMESERVER'] ??
-    env['MATRIX_HOMESERVER']) {
-      final s? => Uri.parse(s),
-      _ => throw Exception('MATRIX_HOMESERVER not set in environment'),
-    };
-
-String getVodozemacLibraryPath() {
-  final override =
-      Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
-      env['VODOZEMAC_LIBRARY_PATH'];
-  if (override != null) return override;
-  if (Platform.isMacOS) return 'test/libvodozemac_bindings_dart.dylib';
-  if (Platform.isLinux) return 'test/libvodozemac_bindings_dart.so';
-  throw Exception(
-    'No bundled vodozemac binary for ${Platform.operatingSystem}; '
-    'set VODOZEMAC_LIBRARY_PATH',
-  );
-}
-
-/// Ensures the vodozemac native library is loaded before any Matrix client is
-/// created. The CoreSDK now requires this (matrix E2EE is on by default), so
-/// every integration test that spins up an SDK must initialize it first.
-Future<void> ensureVodozemacInitialized() async {
-  if (vod.isInitialized()) return;
-  await vod.init(libraryPath: getVodozemacLibraryPath());
-}
-
-Future<DatabaseApi> _openMatrixDatabase(
-  Directory directory,
-  MatrixDatabaseContext context,
-) async {
-  sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
-  await directory.create(recursive: true);
-  return MatrixSdkDatabase.init(
-    context.databaseName,
-    database: await databaseFactoryFfi.openDatabase(
-      '${directory.path}/${context.databaseName}.sqlite',
-    ),
-  );
-}
-
-MatrixConfig getMatrixConfig() {
-  final directory = Directory.systemTemp.createTempSync(
-    'meeting_place_chat_test_matrix_',
-  );
-  return MatrixConfig(
-    mediatorDid: getMediatorDid(),
-    controlPlaneDid: getControlPlaneDid(),
-    homeserver: getMatrixHomeserver(),
-    databaseFactory: CallbackMatrixDatabaseFactory(
-      openDatabase: (context) => _openMatrixDatabase(directory, context),
-    ),
-    deviceId: const Uuid().v4(),
-  );
-}
-
 Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
   Wallet? wallet,
   GroupRepository? groupRepository,
   ChannelRepository? channelRepository,
 }) async {
-  await ensureVodozemacInitialized();
   final storage = InMemoryStorage();
   final sdk = await MeetingPlaceCoreSDK.create(
     wallet: wallet ?? PersistentWallet(InMemoryKeyStore()),
@@ -94,7 +33,10 @@ Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
       channelRepository:
           channelRepository ?? ChannelRepositoryImpl(storage: storage),
     ),
-    config: getMatrixConfig(),
+    config: Config(
+      mediatorDid: getMediatorDid(),
+      controlPlaneDid: getControlPlaneDid(),
+    ),
   );
 
   await sdk.registerForPushNotifications(const Uuid().v4());
@@ -132,7 +74,7 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
 
   await channelRepository.createChannel(channel);
 
-  return IndividualMatrixChatSDK(
+  return IndividualDidcommChatSDK(
     coreSDK: coreSDK,
     did: did,
     otherPartyDid: otherPartyDid,
@@ -144,44 +86,6 @@ Future<MeetingPlaceChatSDK> initIndividualChatSDK({
         MeetingPlaceChatSDKOptions(
           chatPresenceSendInterval: const Duration(seconds: 3),
         ),
-  );
-}
-
-Future<MeetingPlaceChatSDK> initGroupChatSDK({
-  required MeetingPlaceCoreSDK coreSDK,
-  required String did,
-  required String otherPartyDid,
-  required Group group,
-  required ChannelRepository channelRepository,
-  ContactCard? card,
-  Storage? existingStorage,
-}) async {
-  final storage = existingStorage ?? InMemoryStorage();
-  final channel = Channel(
-    offerLink: group.offerLink,
-    publishOfferDid: '',
-    mediatorDid: getMediatorDid(),
-    status: ChannelStatus.inaugurated,
-    contactCard: card,
-    type: ChannelType.group,
-    isConnectionInitiator: false,
-    permanentChannelDid: did,
-    otherPartyPermanentChannelDid: otherPartyDid,
-  );
-
-  await channelRepository.createChannel(channel);
-
-  return GroupMatrixChatSDK(
-    coreSDK: coreSDK,
-    group: group,
-    did: did,
-    otherPartyDid: otherPartyDid,
-    mediatorDid: getMediatorDid(),
-    card: card,
-    chatRepository: ChatRepositoryImpl(storage: storage),
-    options: MeetingPlaceChatSDKOptions(
-      chatPresenceSendInterval: const Duration(seconds: 3),
-    ),
   );
 }
 

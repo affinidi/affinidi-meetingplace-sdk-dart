@@ -126,7 +126,7 @@ class DIDCommTransport {
   Future<
     CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>
   >
-  subscribe(
+  subscribeToMediator(
     String did, {
     String? mediatorDid,
     MediatorStreamSubscriptionOptions? options,

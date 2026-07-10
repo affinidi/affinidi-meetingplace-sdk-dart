@@ -1,8 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../transport/didcomm/protocol/chat_message/chat_message.dart';
-import '../transport/matrix/matrix_media_attachment.dart';
 import 'chat_attachment.dart';
 import 'chat_item.dart';
 import 'message_reaction.dart';
@@ -124,49 +122,6 @@ class Message extends ChatItem {
     );
   }
 
-  factory Message.fromRoomEventSentByMe({
-    required MatrixRoomEvent event,
-    required String chatId,
-    required String senderDid,
-    List<ChatAttachment> attachments = const [],
-    String? messageId,
-  }) {
-    return Message(
-      chatId: chatId,
-      messageId: messageId ?? event.id,
-      senderDid: senderDid,
-      value: _valueFromRoomEvent(event),
-      isFromMe: true,
-      dateCreated: event.timestamp,
-      // Set status to sent since this is created for messages sent by me.
-      // The status will be updated to delivered/failed based on the delivery
-      // outcome.
-      status: ChatItemStatus.sent,
-      attachments: attachments,
-      transportId: event.id,
-    );
-  }
-
-  factory Message.fromRoomEventReceivedByMe({
-    required MatrixRoomEvent event,
-    required String chatId,
-    required String senderDid,
-    List<ChatAttachment> attachments = const [],
-    String? messageId,
-  }) {
-    return Message(
-      chatId: chatId,
-      messageId: messageId ?? event.id,
-      senderDid: senderDid,
-      value: _valueFromRoomEvent(event),
-      isFromMe: false,
-      dateCreated: event.timestamp,
-      status: ChatItemStatus.received,
-      attachments: attachments,
-      transportId: event.id,
-    );
-  }
-
   /// Creates a new [Message].
   ///
   /// **Parameters:**
@@ -200,8 +155,7 @@ class Message extends ChatItem {
     this.isDeletedLocally = false,
   }) : reactions = [...reactions];
 
-  /// The plain text content of the message. Mutated in place when the
-  /// sender edits the message via Matrix's `m.replace` relation.
+  /// The plain text content of the message.
   String value;
 
   /// Timestamp of the most recent edit, or `null` if the message has never
@@ -209,8 +163,8 @@ class Message extends ChatItem {
   /// edits, and from the local clock on outgoing optimistic updates.
   DateTime? editedAt;
 
-  /// Identifier assigned by the underlying transport (e.g. the Matrix
-  /// `event_id`) once the message has been accepted by the server.
+  /// Identifier assigned by the underlying transport once the message has been
+  /// accepted by the server.
   ///
   /// `null` for messages that have not yet been delivered (queued or failed).
   /// Required as the relation target when sending edits, reactions, or
@@ -261,12 +215,4 @@ class Message extends ChatItem {
   Map<String, dynamic> toJson() {
     return _$MessageToJson(this);
   }
-}
-
-String? _stringValue(Object? value) => value is String ? value : null;
-
-String _valueFromRoomEvent(MatrixRoomEvent event) {
-  final caption = MatrixMediaAttachments.extractCaption(event.content);
-  if (caption != null) return caption;
-  return _stringValue(event.content['body']) ?? '';
 }

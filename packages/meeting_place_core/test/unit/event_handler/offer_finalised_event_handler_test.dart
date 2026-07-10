@@ -28,7 +28,7 @@ void main() {
   late OfferFinalisedEventHandler handler;
   late MockWallet mockWallet;
   late MockIdentityService mockIdentityService;
-  late MockMatrixService mockMatrixService;
+  late MockMeetingPlaceTransport mockMeetingPlaceTransport;
   late MockControlPlaneSDK mockControlPlaneSDK;
   late MockDidResolver mockDidResolver;
   late MockChannelService mockChannelService;
@@ -100,7 +100,7 @@ void main() {
   setUp(() {
     mockWallet = MockWallet();
     mockIdentityService = MockIdentityService();
-    mockMatrixService = MockMatrixService();
+    mockMeetingPlaceTransport = MockMeetingPlaceTransport();
     mockControlPlaneSDK = MockControlPlaneSDK();
     mockDidResolver = MockDidResolver();
     mockChannelService = MockChannelService();
@@ -118,7 +118,7 @@ void main() {
       mediatorService: mockMediatorService,
       controlPlaneSDK: mockControlPlaneSDK,
       didResolver: mockDidResolver,
-      matrixService: mockMatrixService,
+      channelTransport: mockMeetingPlaceTransport,
       identityService: mockIdentityService,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: DefaultMeetingPlaceCoreSDKLogger(),
@@ -230,12 +230,11 @@ void main() {
       final channel = createChannel(transport: ChannelTransport.matrix);
 
       when(
-        () => mockMatrixService.joinChannelRoom(
+        () => mockMeetingPlaceTransport.joinChannel(
+          channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
-          channelDid: any(named: 'channelDid'),
-          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
         ),
-      ).thenAnswer((_) async => '!room:matrix.test');
+      ).thenAnswer((_) async {});
 
       await handler.processMessage(
         createApprovalMessage(),
@@ -245,10 +244,9 @@ void main() {
       );
 
       verify(
-        () => mockMatrixService.joinChannelRoom(
+        () => mockMeetingPlaceTransport.joinChannel(
+          channel: any(named: 'channel'),
           didManager: mockPermanentDidManager,
-          channelDid: permanentChannelDid,
-          otherPartyChannelDid: otherPartyPermanentDid,
         ),
       ).called(1);
     });
@@ -264,10 +262,9 @@ void main() {
       );
 
       verifyNever(
-        () => mockMatrixService.joinChannelRoom(
+        () => mockMeetingPlaceTransport.joinChannel(
+          channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
-          channelDid: any(named: 'channelDid'),
-          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
         ),
       );
     });

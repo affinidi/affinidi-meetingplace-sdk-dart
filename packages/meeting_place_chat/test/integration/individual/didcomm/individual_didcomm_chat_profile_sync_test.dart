@@ -1,13 +1,3 @@
-// Profile-sync flow is currently DIDComm-only:
-//   * `proposeProfileUpdate` on the matrix transport sends raw matrix events
-//     (`com.affinidi.chat.profile-hash` / `profile-request`) that have no
-//     translation back to `ChatProtocol.chatAlias*` URIs in the incoming
-//     router.
-//   * The matrix individual chat SDK has no concierge handler for
-//     `profile-request`, so receivers don't persist a `ConciergeMessage` (only
-//     the group flow does).
-// Until the matrix transport implements an equivalent flow, this suite pins
-// the channel transport to DIDComm.
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';

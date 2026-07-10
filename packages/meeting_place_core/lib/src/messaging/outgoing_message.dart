@@ -1,16 +1,9 @@
 import 'package:didcomm/didcomm.dart';
 
-import '../../meeting_place_core.dart' show MeetingPlaceCoreSDK;
-
 import '../meeting_place_core_sdk.dart' show MeetingPlaceCoreSDK;
 
 /// A message that can be sent through [MeetingPlaceCoreSDK.sendMessage],
 /// regardless of the underlying transport.
-///
-/// Concrete subclasses describe a specific use case (chat text, reaction,
-/// read receipt, typing notification, connection request, …) and extend one
-/// of the two transport-specific base classes [MatrixOutgoingMessage] or
-/// [DidCommOutgoingMessage]. CoreSDK routes by the transport base class.
 abstract class OutgoingMessage {
   const OutgoingMessage({required this.senderDid});
 
@@ -19,35 +12,9 @@ abstract class OutgoingMessage {
   final String senderDid;
 }
 
-/// An [OutgoingMessage] routed through the Matrix transport.
-///
-/// Carries everything `MatrixService.sendRoomEvent` needs: event [type]
-/// (e.g. a chat protocol URI, `m.read`, `m.reaction`, `m.room.redaction`,
-/// `m.typing`) and JSON [content]. The target room is resolved from the
-/// channel owned by [senderDid].
-abstract class MatrixOutgoingMessage extends OutgoingMessage {
-  const MatrixOutgoingMessage({
-    required super.senderDid,
-    required this.type,
-    required this.content,
-    this.notification,
-  });
-
-  /// Matrix event type (e.g. `m.read`, `m.reaction`, `m.room.redaction`,
-  /// `m.typing`).
-  final String type;
-
-  /// JSON content of the Matrix event. Must be serializable to `Map<String,
-  final Map<String, dynamic> content;
-
-  /// When set, the core SDK fires a fire-and-forget control-plane channel
-  /// notification after the room event is delivered to the homeserver.
-  final ChannelNotification? notification;
-}
-
-/// Parameters required to dispatch a control-plane channel notification for
-/// a [MatrixOutgoingMessage]. Either an individual peer or all members of a
-/// group are notified, depending on the concrete subtype.
+/// Parameters required to dispatch a control-plane channel notification.
+/// Either an individual peer or all members of a group are notified,
+/// depending on the concrete subtype.
 sealed class ChannelNotification {
   const ChannelNotification({required this.type});
 

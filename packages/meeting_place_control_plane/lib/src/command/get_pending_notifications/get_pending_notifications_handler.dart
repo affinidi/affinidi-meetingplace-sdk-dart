@@ -117,7 +117,7 @@ class GetPendingNotificationsHandler
     }
   }
 
-  DiscoveryEvent _parseNotification(
+  ControlPlaneEvent _parseNotification(
     GetPendingNotificationsOKNotificationsInner notification,
   ) {
     final methodName = 'GetPendingNotificationsHandler._parseNotification';
@@ -145,19 +145,21 @@ class GetPendingNotificationsHandler
       'Completed parsing notification for event Type: ${eventType.name}',
       name: methodName,
     );
-    return DiscoveryEvent(
+    return ControlPlaneEvent(
       id: notification.id!,
       type: eventType,
       data: eventData,
-      status: DiscoveryEventStatus.New,
+      status: ControlPlaneEventStatus.New,
     );
   }
 
-  List<DiscoveryEvent> _filterProcessableEvents(List<DiscoveryEvent> events) {
+  List<ControlPlaneEvent> _filterProcessableEvents(
+    List<ControlPlaneEvent> events,
+  ) {
     // process all events except chat activity
 
     final processedDids = <String>[];
-    final processableEvents = <DiscoveryEvent>[];
+    final processableEvents = <ControlPlaneEvent>[];
 
     for (final event in events) {
       final eventData = event.data;

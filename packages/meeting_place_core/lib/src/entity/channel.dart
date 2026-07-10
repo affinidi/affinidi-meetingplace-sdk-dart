@@ -44,7 +44,6 @@ class Channel {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.messageSyncMarker,
-    this.matrixSyncMarker,
     this.seqNo = 0,
     this.externalRef,
   }) : id = id ?? const Uuid().v4();
@@ -165,10 +164,10 @@ class Channel {
   /// is the token shared by the offer owner.
   String? otherPartyNotificationToken;
 
-  /// The Matrix event ID of the most recently fetched event.
-  /// Used as a cursor so that `fetchMatrixRoomHistory` can return only
-  /// events that are newer than this marker.
-  String? matrixSyncMarker;
+  /// Sync marker used to resume message pagination from the last fetched
+  /// position. For DIDComm channels this is an ISO 8601 UTC timestamp; for
+  /// Matrix channels this is the Matrix event ID of the last fetched event.
+  String? messageSyncMarker;
 
   /// External reference that can be used to correlate the channel with external
   /// systems. This field is not used by the SDK, and can be set by the SDK
@@ -178,10 +177,6 @@ class Channel {
 
   /// Sequence number to keep track of latest message in the channel.
   int seqNo = 0;
-
-  /// Message sync marker can be used to fetch messages from mediator instance
-  /// to only fetch messages that have not been fetched before.
-  DateTime? messageSyncMarker;
 
   /// Check if the channel is of type individual.
   bool get isIndividual => type == ChannelType.individual;

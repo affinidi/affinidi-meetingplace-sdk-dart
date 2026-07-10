@@ -2,7 +2,7 @@
 
 ![Affinidi Meeting Place](https://raw.githubusercontent.com/affinidi/affinidi-meetingplace-sdk-dart/main/assets/images/meetingplace-banner.png)
 
-Affinidi Meeting Place - Chat SDK for Dart provides libraries to send secure and private messages using Decentralised Identifiers (DIDs), DIDComm v2.1, and Matrix. Messages are protected with end-to-end encryption so only the intended recipient can read the content.
+Affinidi Meeting Place - Chat SDK for Dart provides libraries to send secure and private messages using Decentralised Identifiers (DIDs) and DIDComm v2.1. Messages are protected with end-to-end encryption so only the intended recipient can read the content.
 
 The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and secure method of discovering, connecting, and communicating between individuals, businesses, and AI agents.
 
@@ -23,63 +23,38 @@ The Chat SDK is part of the Meeting Place SDK toolkit and enables a safe and sec
 ## Key Features
 
 - End-to-end encryption for secure and private communication.
-- Support for individual chats over DIDComm or Matrix.
-- Support for Matrix group chats.
-- Matrix based chat features such as image attachments, video attachments, voice messages, reactions, edit messages, delete messages, typing indicators, and delivery receipts.
+- Support for individual chats over DIDComm.
 - Notifies connections for contact details update (e.g., name change).
 - Supports ContactCard in publishing a connection offer (invitation) and establishing connections with others to chat.
-- Supports DIDComm Message v2.1 and Matrix based transports for sending and receiving messages.
+- Supports DIDComm Message v2.1 transport for sending and receiving messages.
 
-## Transport Capabilities
+## Chat Capabilities
 
-Chats can run over DIDComm or Matrix based transport. Each transport supports a different set of features. Check `capabilities` before showing a feature in your app:
+`meeting_place_chat` is the DIDComm-focused chat package in the Meeting Place
+SDK. Use it when you need DIDComm-based chat features such as:
+
+- Individual DIDComm chats
+- Text messages
+- Image attachments
+- Reactions
+- Typing indicators
+- Presence indicator
+- Delivery receipts
+- Visual effects
+- Contact details update
+- Human ZKP
+
+This package exposes supported chat features through `chatSDK.capabilities`.
+Use it before showing optional actions in your app:
 
 ```dart
-if (chatSDK.capabilities.supports(ChatFeature.messageEdit)) {
-  // show the edit option
+if (chatSDK.capabilities.supports(ChatFeature.reactions)) {
+  await chatSDK.reactOnMessage(message, reaction: '+1');
 }
 ```
 
-| Feature | DIDComm based transport | Matrix based transport |
-|---------|-------------------------|------------------------|
-| Individual chat | ✅ | ✅ |
-| Group chat | ❌ | ✅ |
-| Text messages | ✅ | ✅ |
-| Image attachments | ✅<br><sub>Auto downloads</sub> | ✅ |
-| Video attachments | ❌ | ✅ |
-| File/document attachments | ❌ | ✅ |
-| Voice messages | ❌ | ✅ |
-| Message edit/delete | ❌ | ✅ |
-| Reactions | ✅ | ✅ |
-| Typing indicators | ✅ | ✅ |
-| Delivery receipts | ✅ | ✅ |
-| Visual effects | ✅ | ✅ |
-| Contact details update | ✅ | ✅ |
-| Presence Indicator | ✅ | ❌ |
-
-Each SDK declares its own set in its `capabilities` getter: `IndividualDidcommChatSDK`, `IndividualMatrixChatSDK`, and `GroupMatrixChatSDK`. See [Chat transport capabilities](doc/chat-transport-capabilities.md) for the full list.
-
-## Choose a Transport
-
-Most apps should not create a concrete chat SDK directly. Call `MeetingPlaceChatSDK.initialiseFromChannel(...)`; it reads the channel and returns the right implementation.
-
-| SDK | When it is used |
-|-----|-----------------|
-| `IndividualDidcommChatSDK` | One-to-one DIDComm chats. Use this for DIDComm-only flows and presence. |
-| `IndividualMatrixChatSDK` | One-to-one Matrix based chats. Use this for richer chat actions such as voice messages, edit, and delete. |
-| `GroupMatrixChatSDK` | Group chats. Group chat always uses Matrix and also supports group membership actions. |
-
-## Matrix Requirements
-
-Matrix-backed chats need the Core SDK to be configured for Matrix first. The chat package uses Core for Matrix login, room access, media upload/download, and end-to-end encryption.
-
-Before starting a Matrix based chat, make sure:
-
-- The Core SDK was created with `MatrixConfig`.
-- `MatrixConfig.homeserver` points to your Matrix homeserver.
-- `MatrixConfig.databaseFactory` opens a local Matrix database.
-- `MatrixConfig.deviceId` is stable for the device or app install.
-- The Matrix encryption runtime is initialized before the first Matrix login. Flutter apps use `flutter_vodozemac`; pure Dart apps use `vodozemac`.
+`MeetingPlaceChatSDK.initialiseChatFromChannel(...)` only supports channels
+whose transport is `ChannelTransport.didcomm`.
 
 ## Requirements
 
@@ -110,13 +85,13 @@ Visit the pub.dev [install page](https://pub.dev/packages/meeting_place_chat) of
 
 ## Quick Start
 
-Create a channel with the Core SDK first, then start a chat session from that channel.
+Create an individual DIDComm channel with the Core SDK first, then start a chat session from that channel.
 
 ```dart
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-final chatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
+final chatSDK = MeetingPlaceChatSDK.initialiseChatFromChannel(
   channel,
   coreSDK: coreSDK,
   chatRepository: chatRepository,
@@ -131,7 +106,7 @@ For more sample usage, go to [example folder](https://github.com/affinidi/affini
 
 ## Common Chat Actions
 
-Use `capabilities` before showing transport-specific actions.
+Use `capabilities` before showing optional actions.
 
 ```dart
 await chatSDK.sendTextMessage('Hello');

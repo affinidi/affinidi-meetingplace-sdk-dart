@@ -1,7 +1,7 @@
 import 'discovery_event_type.dart';
 
-class DiscoveryEvent<T> {
-  DiscoveryEvent({
+class ControlPlaneEvent<T> {
+  ControlPlaneEvent({
     required this.id,
     required this.type,
     required this.data,
@@ -10,5 +10,5 @@ class DiscoveryEvent<T> {
   final String id;
   final ControlPlaneEventType type;
   final T data;
-  final DiscoveryEventStatus status;
+  final ControlPlaneEventStatus status;
 }

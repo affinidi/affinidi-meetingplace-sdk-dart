@@ -4,18 +4,11 @@ import 'dart:io';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
-import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../utils/print.dart';
 import '../utils/sdk.dart';
 
 void main() async {
-  final vodozemacLibraryPath = getVodozemacLibraryPath();
-
-  if (!vod.isInitialized()) {
-    await vod.init(libraryPath: vodozemacLibraryPath);
-  }
-
   final outputDirectory = Directory('.example-output');
   final oobUrlBytes = File(
     '${outputDirectory.path}${Platform.pathSeparator}oob-url.txt',

@@ -116,9 +116,9 @@ void main() async {
     final didManager2 = await aliceSDK.generateDid();
     final didDoc2 = await didManager2.getDidDocument();
 
-    final channel = await aliceDidcomm.subscribe(didDoc.id);
+    final channel = await aliceDidcomm.subscribeToMediator(didDoc.id);
 
-    final differentChannel = await aliceDidcomm.subscribe(didDoc2.id);
+    final differentChannel = await aliceDidcomm.subscribeToMediator(didDoc2.id);
 
     expect(channel, isNot(equals(differentChannel)));
     await channel.dispose();

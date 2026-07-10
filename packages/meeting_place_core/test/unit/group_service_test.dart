@@ -40,13 +40,16 @@ class _MockControlPlaneSDK extends Mock implements cp.ControlPlaneSDK {}
 
 class _MockMediatorSDK extends Mock implements MeetingPlaceMediatorSDK {}
 
-class _MockMatrixService extends Mock implements MatrixService {}
+class _MockMeetingPlaceTransport extends Mock
+    implements MeetingPlaceTransport {}
 
 class _MockDidResolver extends Mock implements DidResolver {}
 
 class _MockDidManager extends Mock implements DidManager {}
 
 class _FakeAclBody extends Fake implements AclBody {}
+
+class _FakeChannel extends Fake implements Channel {}
 
 class _MockDidDocument extends Mock implements DidDocument {
   _MockDidDocument(this._id);
@@ -90,6 +93,7 @@ void main() {
     registerFallbackValue(_MockWallet());
     registerFallbackValue(_MockDidManager());
     registerFallbackValue(_FakeAclBody());
+    registerFallbackValue(_FakeChannel());
   });
 
   group('GroupService.removeMember validation', () {
@@ -110,7 +114,7 @@ void main() {
         identityService: _MockIdentityService(),
         controlPlaneSDK: _MockControlPlaneSDK(),
         mediatorSDK: _MockMediatorSDK(),
-        matrixService: _MockMatrixService(),
+        channelTransport: _MockMeetingPlaceTransport(),
         didResolver: _MockDidResolver(),
       );
     });
@@ -211,7 +215,7 @@ void main() {
 
   group('GroupService.leaveGroup - _leaveGroupAsMember error handling', () {
     late _MockGroupRepository groupRepository;
-    late _MockMatrixService matrixService;
+    late _MockMeetingPlaceTransport meetingPlaceTransport;
     late _MockIdentityService identityService;
     late _MockChannelService channelService;
     late _MockConnectionOfferRepository connectionOfferRepository;
@@ -223,7 +227,7 @@ void main() {
 
     setUp(() {
       groupRepository = _MockGroupRepository();
-      matrixService = _MockMatrixService();
+      meetingPlaceTransport = _MockMeetingPlaceTransport();
       identityService = _MockIdentityService();
       channelService = _MockChannelService();
       connectionOfferRepository = _MockConnectionOfferRepository();
@@ -241,7 +245,7 @@ void main() {
         identityService: identityService,
         controlPlaneSDK: _MockControlPlaneSDK(),
         mediatorSDK: mediatorSDK,
-        matrixService: matrixService,
+        channelTransport: meetingPlaceTransport,
         didResolver: _MockDidResolver(),
       );
     });
@@ -273,18 +277,11 @@ void main() {
       );
 
       when(
-        () => matrixService.resolveChannelRoomId(
-          didManager: memberDidManager,
-          channelDid: 'did:test:group',
-        ),
-      ).thenAnswer((_) async => '!room:matrix.org');
-
-      when(
-        () => matrixService.leaveRoom(
-          '!room:matrix.org',
+        () => meetingPlaceTransport.leaveChannel(
+          channel: any(named: 'channel'),
           didManager: memberDidManager,
         ),
-      ).thenThrow(Exception('Matrix server unavailable'));
+      ).thenThrow(Exception('Server unavailable'));
 
       when(
         () => connectionOfferRepository.getConnectionOfferByOfferLink(
@@ -313,8 +310,8 @@ void main() {
       await expectLater(service.leaveGroup(channel), completes);
 
       verify(
-        () => matrixService.leaveRoom(
-          '!room:matrix.org',
+        () => meetingPlaceTransport.leaveChannel(
+          channel: any(named: 'channel'),
           didManager: memberDidManager,
         ),
       ).called(1);

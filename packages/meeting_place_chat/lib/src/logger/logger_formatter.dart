@@ -1,3 +1,5 @@
+import 'package:meeting_place_core/meeting_place_core.dart';
+
 import '../constants.dart' as constants;
 import 'default_meeting_place_chat_sdk_logger.dart';
 import 'meeting_place_chat_sdk_logger.dart';
@@ -7,14 +9,14 @@ import 'meeting_place_chat_sdk_logger.dart';
 class LoggerFormatter implements MeetingPlaceChatSDKLogger {
   LoggerFormatter({
     required this.className,
-    MeetingPlaceChatSDKLogger? baseLogger,
+    MeetingPlaceCoreSDKLogger? baseLogger,
     this.sdkName = constants.sdkName,
   }) : _baseLogger =
            baseLogger ?? DefaultMeetingPlaceChatSDKLogger(className: className);
 
   final String className;
   final String sdkName;
-  final MeetingPlaceChatSDKLogger _baseLogger;
+  final MeetingPlaceCoreSDKLogger _baseLogger;
 
   String _formatName(String? methodName) {
     final method = methodName?.isNotEmpty == true ? '[$methodName]' : '';

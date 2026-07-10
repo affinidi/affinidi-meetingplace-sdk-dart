@@ -1,3 +1,11 @@
+## Unreleased
+
+### Breaking Changes
+
+- `DiscoveryEvent<T>` has been renamed to `ControlPlaneEvent<T>`.
+
+- `DiscoveryEventStatus` has been renamed to `ControlPlaneEventStatus`.
+
 ## 0.0.1-dev.20
 
  - **FIX**: add Matrix transport support alongside DIDComm.

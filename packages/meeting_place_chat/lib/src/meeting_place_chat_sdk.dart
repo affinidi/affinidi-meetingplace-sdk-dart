@@ -6,11 +6,8 @@ import '../meeting_place_chat.dart';
 
 /// Public interface for a single chat session in the Meeting Place SDK.
 ///
-/// A [MeetingPlaceChatSDK] is always scoped to one chat — either an individual
-/// chat with one peer or a group chat — and is obtained via
-/// [MeetingPlaceChatSDK.initialiseFromChannel]. The concrete implementation
-/// ([GroupMatrixChatSDK], [IndividualMatrixChatSDK], or
-/// [IndividualDidcommChatSDK]) is selected from the underlying channel.
+/// A [MeetingPlaceChatSDK] is always scoped to one chat. The concrete
+/// implementation is selected from the underlying channel.
 ///
 /// Responsibilities:
 /// - Lifecycle: start/end the chat session and expose the live event stream.
@@ -19,62 +16,41 @@ import '../meeting_place_chat.dart';
 /// - Membership: approve/reject pending connection requests (group only).
 /// - Contact details: propose, accept, or reject contact-card updates.
 abstract interface class MeetingPlaceChatSDK {
-  /// Builds the right [MeetingPlaceChatSDK] implementation for [channel].
-  ///
-  /// Groups always use Matrix. Individual channels dispatch on
-  /// [Channel.transport] between [IndividualMatrixChatSDK] and
-  /// [IndividualDidcommChatSDK].
-  static Future<MeetingPlaceChatSDK> initialiseFromChannel(
+  /// Creates a [MeetingPlaceChatSDK] instance based on [Channel].
+  static MeetingPlaceChatSDK initialiseChatFromChannel(
     Channel channel, {
     required MeetingPlaceCoreSDK coreSDK,
     required ChatRepository chatRepository,
     required MeetingPlaceChatSDKOptions options,
     ContactCard? card,
     MeetingPlaceChatSDKLogger? logger,
-  }) async {
+  }) {
     if (channel.type == ChannelType.group) {
-      final group =
-          await coreSDK.getGroupByOfferLink(channel.offerLink) ??
-          (throw Exception('Group not found'));
-
-      return GroupMatrixChatSDK(
-        coreSDK: coreSDK,
-        group: group,
-        did: channel.permanentChannelDid!,
-        otherPartyDid: channel.otherPartyPermanentChannelDid!,
-        mediatorDid: channel.mediatorDid,
-        chatRepository: chatRepository,
-        options: options,
-        card: card,
-        logger: logger,
+      throw ArgumentError(
+        'Group channels are not supported by meeting_place_chat. '
+        'Use meeting_place_matrix instead.',
       );
     }
 
-    return switch (channel.transport) {
-      ChannelTransport.matrix => IndividualMatrixChatSDK(
-        coreSDK: coreSDK,
-        did: channel.permanentChannelDid!,
-        otherPartyDid: channel.otherPartyPermanentChannelDid!,
-        mediatorDid: channel.mediatorDid,
-        chatRepository: chatRepository,
-        options: options,
-        card: card,
-        logger: logger,
-      ),
-      ChannelTransport.didcomm => IndividualDidcommChatSDK(
-        coreSDK: coreSDK,
-        did: channel.permanentChannelDid!,
-        otherPartyDid: channel.otherPartyPermanentChannelDid!,
-        mediatorDid: channel.mediatorDid,
-        chatRepository: chatRepository,
-        options: options,
-        card: card,
-        logger: logger,
-      ),
-    };
+    if (channel.transport != ChannelTransport.didcomm) {
+      throw ArgumentError(
+        'Transport ${channel.transport} is not supported by meeting_place_chat.'
+        'Use meeting_place_matrix for Matrix channels.',
+      );
+    }
+
+    return IndividualDidcommChatSDK(
+      coreSDK: coreSDK,
+      did: channel.permanentChannelDid!,
+      otherPartyDid: channel.otherPartyPermanentChannelDid!,
+      mediatorDid: channel.mediatorDid,
+      chatRepository: chatRepository,
+      options: options,
+      card: card,
+      logger: logger,
+    );
   }
 
-  /// The set of features this chat supports.
   ///
   /// Each concrete chat SDK declares its own set, so this reflects both the
   /// transport and the chat type (individual vs group). Query before exposing
@@ -88,8 +64,7 @@ abstract interface class MeetingPlaceChatSDK {
   TransportCapabilities get capabilities;
 
   /// All messages for this chat, ordered as the underlying transport returns
-  /// them. Matrix replays the room timeline; DIDComm returns the locally
-  /// persisted set.
+  /// them.
   Future<List<ChatItem>> get messages;
 
   /// Stream of live chat events for this session, or `null` if
@@ -122,8 +97,7 @@ abstract interface class MeetingPlaceChatSDK {
   });
 
   /// Downloads and decrypts the media bytes referenced by
-  /// [attachment]. The wire-level reference
-  /// ([ChatAttachment.transportId] for Matrix; inline base64 for DIDComm)
+  /// [attachment]. The wire-level reference ([ChatAttachment.transportId])
   /// is resolved internally so app code never sees encryption keys or
   /// transport URIs.
   Future<Uint8List> downloadMedia(ChatAttachment attachment);
@@ -138,6 +112,10 @@ abstract interface class MeetingPlaceChatSDK {
   /// broadcasts a redaction so all participants drop the message; allowed
   /// only within `deleteMessageWindow`.
   Future<void> deleteMessage(Message message, {bool localOnly = false});
+
+  /// Updates a persisted [message] in the local repository and re-emits it
+  /// to the chat stream so the UI reflects the change immediately.
+  Future<void> updateMessage(Message message);
 
   /// Maximum age at which the original sender can still delete one of their
   /// own messages for everyone. Mirrors
@@ -184,9 +162,8 @@ abstract interface class MeetingPlaceChatSDK {
 
   /// Transport-neutral escape hatch for sending an arbitrary event with the
   /// given [type] and [payload] to the other participants. The concrete
-  /// transport (Matrix room event or DIDComm plain text message) is chosen by
-  /// the implementation; the SDK does not persist a [ChatItem] for the sender
-  /// and does not push to the chat stream.
+  /// transport is chosen by the implementation; the SDK does not persist a
+  /// [ChatItem] for the sender and does not push to the chat stream.
   Future<void> sendCustomEvent({
     required String type,
     required Map<String, dynamic> payload,

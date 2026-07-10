@@ -5,8 +5,7 @@
 ///
 /// The capability set for each kind of chat is declared by the chat SDK that
 /// owns and enforces those features, and exposed through its `capabilities`
-/// getter: `IndividualDidcommChatSDK`, `IndividualMatrixChatSDK`, and
-/// `GroupMatrixChatSDK`.
+/// getter.
 library;
 
 /// A discrete feature that a chat may or may not support.
@@ -61,6 +60,11 @@ enum ChatFeature {
 
   /// Human liveness zero-knowledge proof
   humanZkp,
+
+  /// Real-time audio and video calling. Offered only on transports with a
+  /// call backend (Matrix RTC + LiveKit); inline-only transports (DIDComm)
+  /// do not support it.
+  audioVideoCalling,
 }
 
 /// The set of [ChatFeature]s supported by a kind of chat.

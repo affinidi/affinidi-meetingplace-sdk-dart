@@ -26,7 +26,7 @@ class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
 
 class MockIdentityService extends Mock implements IdentityService {}
 
-class MockMatrixService extends Mock implements MatrixService {}
+class MockMeetingPlaceTransport extends Mock implements MeetingPlaceTransport {}
 
 class MockDidResolver extends Mock implements DidResolver {}
 

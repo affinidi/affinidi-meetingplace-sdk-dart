@@ -24,9 +24,7 @@ import '../logger/top_and_tail_extension.dart';
 ///
 /// All wire-level operations (sending text/reactions/edits/deliveries/presence/
 /// activity/contact-details updates, subscribing to incoming events, fetching
-/// history) are abstract and implemented by transport-flavoured subclasses
-/// such as `GroupMatrixChatSDK`, `IndividualMatrixChatSDK`, or
-/// `IndividualDidcommChatSDK`.
+/// history) are abstract and implemented by transport-flavoured subclasses.
 abstract class BaseChatSDK {
   BaseChatSDK({
     required this.coreSDK,
@@ -36,7 +34,7 @@ abstract class BaseChatSDK {
     required this.chatRepository,
     required this.options,
     this.card,
-    MeetingPlaceChatSDKLogger? logger,
+    MeetingPlaceCoreSDKLogger? logger,
   }) : chatStream = ChatStream(),
        _logger = LoggerFormatter(className: _className, baseLogger: logger);
 
@@ -79,7 +77,7 @@ abstract class BaseChatSDK {
   ///
   /// Transport-specific subclasses are responsible for subscribing to the
   /// incoming stream and replaying any history. They must also assign
-  /// [transportSubscriptionFuture] so [chatStreamSubscription] can await it.
+  /// [transportSubscriptionFuture] so callers can await transport readiness.
   Future<Chat> startChatSession();
 
   /// Stream of live chat events ([StreamData]) for this session.
@@ -94,12 +92,12 @@ abstract class BaseChatSDK {
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
     if (transportSubscriptionFuture == null) return null;
+    await transportSubscriptionFuture;
     return chatStream;
   }
 
   /// Retrieves all messages for this chat. Implementation depends on the
-  /// underlying transport — Matrix replays the timeline, DIDComm returns the
-  /// locally persisted set.
+  /// underlying transport.
   Future<List<ChatItem>> get messages;
 
   /// Retrieves a single message by ID.
@@ -185,7 +183,6 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
-  @internal
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(

@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -120,7 +120,9 @@ class ChannelDatabase extends _$ChannelDatabase {
       }
       if (from < 4 && to >= 4) {
         await migrator.addColumn(channels, channels.transport);
-        await migrator.addColumn(channels, channels.matrixSyncMarker);
+        await customStatement(
+          'ALTER TABLE channels ADD COLUMN matrix_sync_marker TEXT NULL',
+        );
       }
     },
   );
@@ -187,11 +189,10 @@ class Channels extends Table {
   /// channel.
   IntColumn get seqNo => integer()();
 
-  /// Message sync marker for the channel.
-  DateTimeColumn get messageSyncMarker => dateTime().nullable()();
-
-  /// Matrix sync marker for the channel.
-  TextColumn get matrixSyncMarker => text().nullable()();
+  /// Sync marker for resuming message pagination. For DIDComm channels this
+  /// is an ISO 8601 UTC timestamp; for Matrix channels this is the Matrix
+  /// event ID of the last fetched event.
+  TextColumn get messageSyncMarker => text().nullable()();
 
   /// Primary key for the channels table.
   @override

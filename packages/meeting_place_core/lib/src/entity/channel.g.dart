@@ -32,10 +32,7 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
       json['otherPartyPermanentChannelDid'] as String?,
   notificationToken: json['notificationToken'] as String?,
   otherPartyNotificationToken: json['otherPartyNotificationToken'] as String?,
-  messageSyncMarker: json['messageSyncMarker'] == null
-      ? null
-      : DateTime.parse(json['messageSyncMarker'] as String),
-  matrixSyncMarker: json['matrixSyncMarker'] as String?,
+  messageSyncMarker: json['messageSyncMarker'] as String?,
   seqNo: (json['seqNo'] as num?)?.toInt() ?? 0,
   externalRef: json['externalRef'] as String?,
 );
@@ -57,10 +54,9 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'otherPartyPermanentChannelDid': ?instance.otherPartyPermanentChannelDid,
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
-  'matrixSyncMarker': ?instance.matrixSyncMarker,
   'externalRef': ?instance.externalRef,
   'seqNo': instance.seqNo,
-  'messageSyncMarker': ?instance.messageSyncMarker?.toIso8601String(),
+  'messageSyncMarker': ?instance.messageSyncMarker,
 };
 
 const _$ChannelStatusEnumMap = {

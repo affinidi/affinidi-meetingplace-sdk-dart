@@ -9,19 +9,19 @@ import 'model/permanent_identity.dart';
 class IdentityService {
   IdentityService({
     required ConnectionManager connectionManager,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required DidWebDocumentService didWebDocumentService,
     required Uri didWebBaseHost,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
-       _matrixService = matrixService,
+       _channelTransport = channelTransport,
        _didWebDocumentService = didWebDocumentService,
        _didWebBaseHost = didWebBaseHost,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
   final ConnectionManager _connectionManager;
-  final MatrixService _matrixService;
+  final MeetingPlaceTransport _channelTransport;
   final DidWebDocumentService _didWebDocumentService;
   final Uri _didWebBaseHost;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -44,10 +44,7 @@ class IdentityService {
     );
   }
 
-  Future<PermanentIdentity> createPermanentIdentity(
-    Wallet wallet, {
-    required ChannelTransport transport,
-  }) async {
+  Future<PermanentIdentity> createPermanentIdentity(Wallet wallet) async {
     final permanentChannelDidManager = await _connectionManager.generateDidWeb(
       wallet,
       baseHost: _didWebBaseHost,
@@ -60,22 +57,16 @@ class IdentityService {
       didDocument: didDocument,
     );
 
-    String? matrixUserId;
-    if (transport == ChannelTransport.matrix) {
-      matrixUserId = await _matrixService.loginWithDid(
-        permanentChannelDidManager,
-      );
-    }
+    await _channelTransport.authenticate(permanentChannelDidManager);
 
     _logger.info(
-      '''Created permanent identity with DID ${didDocument.id} and Matrix user ID $matrixUserId''',
+      'Created permanent identity with DID ${didDocument.id}',
       name: _logkey,
     );
 
     return PermanentIdentity(
       didManager: permanentChannelDidManager,
       didDocument: didDocument,
-      matrixUserId: matrixUserId,
     );
   }
 
@@ -86,21 +77,15 @@ class IdentityService {
     final permanentChannelDidManager = await _connectionManager
         .getDidManagerForDid(wallet, did);
 
-    final matrixUserId = await _matrixService.loginWithDid(
-      permanentChannelDidManager,
-    );
+    await _channelTransport.authenticate(permanentChannelDidManager);
 
-    _logger.info(
-      '''Restored permanent identity with DID $did and Matrix user ID $matrixUserId''',
-      name: _logkey,
-    );
+    _logger.info('Restored permanent identity with DID $did', name: _logkey);
 
     final didDocument = await permanentChannelDidManager.getDidDocument();
 
     return PermanentIdentity(
       didManager: permanentChannelDidManager,
       didDocument: didDocument,
-      matrixUserId: matrixUserId,
     );
   }
 }

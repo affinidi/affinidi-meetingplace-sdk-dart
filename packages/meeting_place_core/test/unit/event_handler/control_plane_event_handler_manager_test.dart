@@ -66,15 +66,15 @@ void main() {
     );
   }
 
-  DiscoveryEvent<ChannelActivity> channelActivityEvent({
+  ControlPlaneEvent<ChannelActivity> channelActivityEvent({
     required ChannelActivity activity,
     String? id,
   }) {
-    return DiscoveryEvent<ChannelActivity>(
+    return ControlPlaneEvent<ChannelActivity>(
       id: id ?? const Uuid().v4(),
       type: ControlPlaneEventType.ChannelActivity,
       data: activity,
-      status: DiscoveryEventStatus.New,
+      status: ControlPlaneEventStatus.New,
     );
   }
 
@@ -148,7 +148,7 @@ void main() {
       groupRepository: MockGroupRepository(),
       channelRepository: MockChannelRepository(),
       channelService: mockChannelService,
-      matrixService: MockMatrixService(),
+      channelTransport: MockMeetingPlaceTransport(),
       identityService: MockIdentityService(),
       streamManager: streamManager,
       didResolver: MockDidResolver(),

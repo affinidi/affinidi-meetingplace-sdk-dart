@@ -12,8 +12,8 @@ import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/connection_service.dart';
 import '../service/identity/identity_service.dart';
-import '../service/matrix/matrix_service.dart';
 import '../service/mediator/mediator_service.dart';
+import '../transport/meeting_place_transport.dart';
 import 'channel_activity_event_handler.dart';
 import 'control_plane_event_handler_manager_options.dart';
 import 'control_plane_event_stream_manager.dart';
@@ -27,13 +27,13 @@ import 'outreach_invitation_event_handler.dart';
 
 // Batch lists hold DiscoveryEvent (dynamic data); rebuilding typed events
 // avoids a runtime cast failure when deduping ChannelActivity in the batch.
-List<DiscoveryEvent<ChannelActivity>> _channelActivityEventsFrom(
-  Iterable<DiscoveryEvent> events,
+List<ControlPlaneEvent<ChannelActivity>> _channelActivityEventsFrom(
+  Iterable<ControlPlaneEvent> events,
 ) {
   return events
       .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
       .map(
-        (e) => DiscoveryEvent<ChannelActivity>(
+        (e) => ControlPlaneEvent<ChannelActivity>(
           id: e.id,
           type: e.type,
           data: e.data as ChannelActivity,
@@ -55,7 +55,7 @@ class ControlPlaneEventManager {
     required GroupRepository groupRepository,
     required ChannelRepository channelRepository,
     required ChannelService channelService,
-    required MatrixService matrixService,
+    required MeetingPlaceTransport channelTransport,
     required ControlPlaneEventStreamManager streamManager,
     required DidResolver didResolver,
     required IdentityService identityService,
@@ -90,7 +90,7 @@ class ControlPlaneEventManager {
       controlPlaneSDK: controlPlaneSDK,
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       connectionManager: connectionManager,
       didResolver: didResolver,
       identityService: identityService,
@@ -103,7 +103,7 @@ class ControlPlaneEventManager {
       connectionOfferRepository: connectionOfferRepository,
       channelService: channelService,
       connectionManager: connectionManager,
-      matrixService: matrixService,
+      channelTransport: channelTransport,
       options: options,
       logger: _logger,
     );
@@ -112,7 +112,7 @@ class ControlPlaneEventManager {
           wallet: wallet,
           mediatorService: mediatorService,
           controlPlaneSDK: controlPlaneSDK,
-          matrixService: matrixService,
+          channelTransport: channelTransport,
           connectionManager: connectionManager,
           connectionOfferRepository: connectionOfferRepository,
           groupRepository: groupRepository,
@@ -146,16 +146,17 @@ class ControlPlaneEventManager {
   _groupMembershipFinalisedEventHandler;
   late final OutreachInvitationEventHandler _outreachInvitationEventHandler;
 
-  Future<List<DiscoveryEvent<dynamic>>> handleEventsBatch(
-    List<DiscoveryEvent> events,
+  Future<List<ControlPlaneEvent<dynamic>>> handleEventsBatch(
+    List<ControlPlaneEvent> events,
   ) async {
     final methodName = 'handleEventsBatch';
     _logger.info('Started processing batch of events', name: methodName);
 
-    final acknowledgedEvents = <DiscoveryEvent<dynamic>>[];
-    final processedEventsForDedup = <DiscoveryEvent>[];
+    final acknowledgedEvents = <ControlPlaneEvent<dynamic>>[];
+    final processedEventsForDedup = <ControlPlaneEvent>[];
 
-    for (final event in events) {
+    final eventsSnapshot = events.toList(growable: false);
+    for (final event in eventsSnapshot) {
       try {
         _logger.info('Process event of type ${event.type.name}');
         final channels = await _processEvent(event, processedEventsForDedup);
@@ -178,7 +179,13 @@ class ControlPlaneEventManager {
           }
 
           _streamManager.pushEvent(
-            ControlPlaneStreamEvent(channel: channel, type: event.type),
+            ControlPlaneStreamEvent(
+              channel: channel,
+              type: event.type,
+              activityType: event.type == ControlPlaneEventType.ChannelActivity
+                  ? (event.data as ChannelActivity).type
+                  : null,
+            ),
           );
         }
       } on EventHandlerException catch (e, stackTrace) {
@@ -208,7 +215,7 @@ class ControlPlaneEventManager {
     return acknowledgedEvents;
   }
 
-  bool _acknowledgeEvent(DiscoveryEvent event, List<Channel> channels) {
+  bool _acknowledgeEvent(ControlPlaneEvent event, List<Channel> channels) {
     if (event.type != ControlPlaneEventType.ChannelActivity) {
       return true;
     }
@@ -236,8 +243,8 @@ class ControlPlaneEventManager {
   }
 
   Future<List<Channel>> _processEvent(
-    DiscoveryEvent event,
-    List<DiscoveryEvent> processedEvents,
+    ControlPlaneEvent event,
+    List<ControlPlaneEvent> processedEvents,
   ) async {
     switch (event.type) {
       case ControlPlaneEventType.InvitationAccept:

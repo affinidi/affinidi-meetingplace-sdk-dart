@@ -2,7 +2,7 @@
 
 ![Affinidi Meeting Place](https://raw.githubusercontent.com/affinidi/affinidi-meetingplace-sdk-dart/main/assets/images/meetingplace-banner.png)
 
-The Affinidi Meeting Place - Matrix SDK for Dart provides the Matrix transport implementation for the Meeting Place SDK. It enables Matrix-backed individual chats, group chats, encrypted room events, media transfer, room history, and optional audio/video calling while working with Decentralised Identifiers (DIDs), DIDComm v2.1, and Matrix.
+The Affinidi Meeting Place - Matrix SDK for Dart provides the Matrix transport implementation for the Meeting Place SDK. It enables Matrix-backed individual chats, group chats, encrypted room events, media transfer, room history, and optional audio/video calling using Matrix as the underlying transport.
 
 The Matrix SDK is part of the Meeting Place SDK toolkit and enables a safe and secure method of discovering, connecting, and communicating between individuals, businesses, and AI agents.
 
@@ -10,17 +10,13 @@ The Matrix SDK is part of the Meeting Place SDK toolkit and enables a safe and s
 
 ## Core Concepts
 
-- **Decentralised Identifier (DID)** - A globally unique identifier that enables secure interactions. The DID is the cornerstone of Self-Sovereign Identity (SSI), a concept that aims to put individuals or entities in control of their digital identities.
+- **Decentralised Identifier (DID)** - A globally unique identifier used by Matrix to represent user identities in the Meeting Place. DIDs enable secure, decentralised identity management across the system.
 
-- **DIDComm Message** - is a JSON Web Message (JWM), a lightweight, secure, and standardised format for structured communication using JSON. It represents headers, message types, routing metadata, and payloads designed to enable secure and interoperable communication across different systems.
+- **Matrix** - An open standard for secure, decentralised, and interoperable real-time communication. In the Meeting Place SDK, Matrix powers richer chat features such as individual and group chats, media attachments, encrypted room events, room history, and optional audio/video calling.
 
-- **Mediator** - A service that handles and routes messages sent between participants (e.g., users, organisations, another mediator, or even AI agents).
+- **Matrix Room** - A named space where messages and events are exchanged. Rooms can be private (for individual chats) or public (for group chats), and they support end-to-end encryption.
 
-- **Matrix** - An open standard for secure, decentralised, and interoperable real-time communication. In the Meeting Place SDK, Matrix powers richer chat features such as group chat, media attachments, encrypted room events, room history, and optional audio/video calling.
-
-- **Out-Of-Band** - The protocol defined in DIDComm enables sharing a DIDComm message or invitation through a transport method other than a direct, established DIDComm channel, such as via a QR code or a URL.
-
-- **Connection Offer (Invitation)** - An invite to connect containing description and ContactCard info of the publisher. Each connection offer is assigned with a unique passphrase that others can use to discover and accept the offer to connect.
+- **End-to-End Encryption** - Native Matrix encryption using the `vodozemac` library to ensure all messages are encrypted on the sender's device and can only be decrypted by the intended recipient(s).
 
 ## Key Features
 

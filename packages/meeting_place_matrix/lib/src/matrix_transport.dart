@@ -50,7 +50,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
-  Future<void> joinChannel({
+  Future<String?> joinChannel({
     required Channel channel,
     required DidManager didManager,
   }) async {
@@ -60,7 +60,7 @@ class MatrixTransport implements MeetingPlaceTransport {
     final otherPartyChannelDid = channel.isGroup
         ? null
         : channel.otherPartyPermanentChannelDid;
-    await _matrixService.joinChannelRoom(
+    return _matrixService.joinChannelRoom(
       didManager: didManager,
       channelDid: channelDid,
       otherPartyChannelDid: otherPartyChannelDid,

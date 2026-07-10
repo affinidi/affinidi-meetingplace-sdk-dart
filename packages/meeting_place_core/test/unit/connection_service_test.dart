@@ -313,7 +313,10 @@ void main() {
       ).thenAnswer((_) async => createOffer(transport: transport));
 
       when(
-        () => mockIdentityService.createPermanentIdentity(mockWallet),
+        () => mockIdentityService.createPermanentIdentity(
+          mockWallet,
+          transport: any(named: 'transport'),
+        ),
       ).thenAnswer(
         (_) async => PermanentIdentity(
           didManager: mockPermanentDidManager,

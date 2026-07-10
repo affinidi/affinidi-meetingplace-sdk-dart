@@ -20,10 +20,10 @@ class NopTransport implements MeetingPlaceTransport {
   }) async {}
 
   @override
-  Future<void> joinChannel({
+  Future<String?> joinChannel({
     required Channel channel,
     required DidManager didManager,
-  }) async {}
+  }) async => null;
 
   @override
   Future<void> leaveChannel({

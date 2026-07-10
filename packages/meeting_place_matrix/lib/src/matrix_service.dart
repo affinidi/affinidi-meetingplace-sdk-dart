@@ -170,6 +170,12 @@ class MatrixService {
     otherPartyChannelDid: otherPartyChannelDid,
   );
 
+  /// Joins a Matrix room by its room ID.
+  Future<String> joinRoomById({
+    required DidManager didManager,
+    required String roomId,
+  }) => _roomService.joinRoomById(didManager: didManager, roomId: roomId);
+
   /// Leaves [roomId]. See [MatrixRoomService.leaveRoom].
   Future<void> leaveRoom(String roomId, {required DidManager didManager}) =>
       _roomService.leaveRoom(roomId, didManager: didManager);

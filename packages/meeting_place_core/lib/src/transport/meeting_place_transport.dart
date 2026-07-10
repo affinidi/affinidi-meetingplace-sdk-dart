@@ -42,7 +42,10 @@ abstract interface class MeetingPlaceTransport {
   });
 
   /// Joins [channel]'s underlying resource when it already exists.
-  Future<void> joinChannel({
+  ///
+  /// Returns a transport-specific channel identifier when one is available,
+  /// such as a Matrix room id.
+  Future<String?> joinChannel({
     required Channel channel,
     required DidManager didManager,
   });

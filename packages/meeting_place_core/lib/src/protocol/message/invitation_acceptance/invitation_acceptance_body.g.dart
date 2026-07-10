@@ -15,10 +15,7 @@ InvitationAcceptanceBody _$InvitationAcceptanceBodyFromJson(
 
 Map<String, dynamic> _$InvitationAcceptanceBodyToJson(
   InvitationAcceptanceBody instance,
-) {
-  final val = <String, dynamic>{'channel_did': instance.channelDid};
-  if (instance.agentDid != null) {
-    val['agent_did'] = instance.agentDid;
-  }
-  return val;
-}
+) => <String, dynamic>{
+  'channel_did': instance.channelDid,
+  'agent_did': ?instance.agentDid,
+};

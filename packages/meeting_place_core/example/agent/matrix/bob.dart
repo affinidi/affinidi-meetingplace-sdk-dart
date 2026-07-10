@@ -4,19 +4,13 @@ import 'dart:io';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:ssi/ssi.dart';
-import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../../utils/print.dart';
 import '../../utils/sdk.dart';
 
 void main() async {
-  final vodozemacLibraryPath = getVodozemacLibraryPath();
-
-  if (!vod.isInitialized()) {
-    await vod.init(libraryPath: vodozemacLibraryPath);
-  }
-
   final bobAgentDid =
       'did:key:zDnaejme4x4njPjKnsGVRxE1vngGHo7cXXVgZ8DfzKVPafGVi';
 
@@ -80,7 +74,7 @@ void main() async {
   await bobNotificationSubscription.cancel();
   prettyPrintGreen('[Bob] ✓ Notification subscription cancelled');
 
-  final bobChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
+  final bobChatSDK = await MeetingPlaceMatrixChatSDK.initialiseFromChannel(
     offerFinalisedEvent.channel,
     coreSDK: bobSDK,
     chatRepository: _InMemoryChatRepository(),
@@ -99,15 +93,15 @@ void main() async {
       }
     });
     prettyPrintYellow(
-        '[Bob] Listening on chat stream using DID ${offerFinalisedEvent.channel.permanentChannelDid}...');
+        '''[Bob] Listening on chat stream using DID ${offerFinalisedEvent.channel.permanentChannelDid}...''');
   });
 
   await bobChatSDK.sendTextMessage('Hi Alice, my name is Bob!');
   prettyPrintGreen('[Bob] ✓ Sent reply to Alice');
   prettyPrintGreen(
-      '[Bob] ✓ My permanent channel DID: ${offerFinalisedEvent.channel.permanentChannelDid}');
+      '''[Bob] ✓ My permanent channel DID: ${offerFinalisedEvent.channel.permanentChannelDid}''');
   prettyPrintGreen(
-      "[Bob] ✓ Alice's permanent channel DID: ${offerFinalisedEvent.channel.otherPartyPermanentChannelDid}");
+      '''[Bob] ✓ Alice's permanent channel DID: ${offerFinalisedEvent.channel.otherPartyPermanentChannelDid}''');
 }
 
 class _InMemoryChatRepository implements ChatRepository {

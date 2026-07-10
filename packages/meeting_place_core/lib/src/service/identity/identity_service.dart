@@ -78,6 +78,7 @@ class IdentityService {
 
   Future<PermanentIdentity> createPermanentIdentity(
     Wallet wallet, {
+    required ChannelTransport transport,
     String? offerLink,
     String? publishOfferDid,
     ContactCard? contactCard,
@@ -102,6 +103,7 @@ class IdentityService {
         senderDidManager: permanentChannelDidManager,
         channelDid: didDocument.id,
         agentDid: did,
+        transport: transport,
         offerLink: offerLink,
         publishOfferDid: publishOfferDid,
         contactCard: contactCard,
@@ -144,6 +146,7 @@ class IdentityService {
     required DidManager senderDidManager,
     required String channelDid,
     required String agentDid,
+    required ChannelTransport transport,
     String? offerLink,
     String? publishOfferDid,
     ContactCard? contactCard,
@@ -175,6 +178,7 @@ class IdentityService {
         offerLink: offerLink!,
         publishOfferDid: publishOfferDid!,
         contactCard: contactCard!,
+        transport: transport,
       );
 
       await _messageService.sendMessage(

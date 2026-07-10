@@ -309,6 +309,7 @@ class ConnectionService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: connectionOffer.transport,
       offerLink: connectionOffer.offerLink,
       publishOfferDid: connectionOffer.publishOfferDid,
       contactCard: contactCard,
@@ -552,13 +553,18 @@ class ConnectionService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: channel.transport,
     );
 
     if (channel.transport != ChannelTransport.didcomm) {
       await _channelTransport.setupChannel(
         channel: channel,
         didManager: permanentIdentity.didManager,
-        participantDids: [otherPartyPermanentChannelDid],
+        participantDids: [
+          otherPartyPermanentChannelDid,
+          if (channel.otherPartyAgentPermanentChannelDid != null)
+            channel.otherPartyAgentPermanentChannelDid!,
+        ],
       );
     }
 

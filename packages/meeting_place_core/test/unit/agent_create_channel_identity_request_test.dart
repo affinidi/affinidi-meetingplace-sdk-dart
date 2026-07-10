@@ -26,6 +26,7 @@ void main() {
           offerLink: offerLink,
           publishOfferDid: publishOfferDid,
           contactCard: contactCard,
+          transport: ChannelTransport.didcomm,
         );
 
     group('.create', () {

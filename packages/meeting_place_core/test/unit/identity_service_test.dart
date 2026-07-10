@@ -160,6 +160,7 @@ void main() {
 
       final result = await service.createPermanentIdentity(
         mockWallet,
+        transport: ChannelTransport.didcomm,
         offerLink: 'https://example.com/offer',
         publishOfferDid: 'did:test:publish',
         contactCard: contactCard,
@@ -183,6 +184,7 @@ void main() {
       await expectLater(
         service.createPermanentIdentity(
           mockWallet,
+          transport: ChannelTransport.didcomm,
           offerLink: 'https://example.com/offer',
           publishOfferDid: 'did:test:publish',
           contactCard: contactCard,
@@ -198,6 +200,7 @@ void main() {
 
       await service.createPermanentIdentity(
         mockWallet,
+        transport: ChannelTransport.didcomm,
         offerLink: 'https://example.com/offer',
         publishOfferDid: 'did:test:publish',
         contactCard: contactCard,
@@ -236,6 +239,7 @@ void main() {
 
         await service.createPermanentIdentity(
           mockWallet,
+          transport: ChannelTransport.didcomm,
           offerLink: 'https://example.com/offer',
           publishOfferDid: 'did:test:publish',
           contactCard: contactCard,
@@ -276,6 +280,7 @@ void main() {
 
       final result = await serviceWithoutAgent.createPermanentIdentity(
         mockWallet,
+        transport: ChannelTransport.didcomm,
       );
 
       verifyNever(

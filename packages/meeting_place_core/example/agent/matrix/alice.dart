@@ -4,19 +4,13 @@ import 'dart:io';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:ssi/ssi.dart';
-import 'package:vodozemac/vodozemac.dart' as vod;
 
 import '../../utils/print.dart';
 import '../../utils/sdk.dart';
 
 void main() async {
-  final vodozemacLibraryPath = getVodozemacLibraryPath();
-
-  if (!vod.isInitialized()) {
-    await vod.init(libraryPath: vodozemacLibraryPath);
-  }
-
   final aliceSDK = await initSDK(
     wallet: PersistentWallet(InMemoryKeyStore()),
   );
@@ -43,7 +37,7 @@ void main() async {
     transport: ChannelTransport.matrix,
   );
   prettyPrintGreen(
-    '[Alice] ✓ Published offer mnemonic ${publishOfferResult.connectionOffer.mnemonic}',
+    '''[Alice] ✓ Published offer mnemonic ${publishOfferResult.connectionOffer.mnemonic}''',
   );
 
   // Write mnemonic to file so Bob can read it
@@ -105,7 +99,7 @@ void main() async {
   await notificationSubscription.cancel();
   prettyPrintGreen('[Alice] ✓ Notification subscription cancelled');
 
-  final aliceChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
+  final aliceChatSDK = await MeetingPlaceMatrixChatSDK.initialiseFromChannel(
     channel,
     coreSDK: aliceSDK,
     chatRepository: _InMemoryChatRepository(),
@@ -124,7 +118,7 @@ void main() async {
       }
     });
     prettyPrintYellow(
-        '[Alice] Listening on chat stream using DID ${channel.permanentChannelDid}...');
+        '''[Alice] Listening on chat stream using DID ${channel.permanentChannelDid}...''');
   });
 
   await aliceChatSDK.sendTextMessage('Hello, what is your name?');
@@ -132,9 +126,9 @@ void main() async {
   prettyPrintGreen(
       '[Alice] ✓ My permanent channel DID: ${channel.permanentChannelDid}');
   prettyPrintGreen(
-      "[Alice] ✓ Bob's permanent channel DID: ${channel.otherPartyPermanentChannelDid}");
+      '''[Alice] ✓ Bob's permanent channel DID: ${channel.otherPartyPermanentChannelDid}''');
   prettyPrintGreen(
-      "[Alice] ✓ Bob's agent permanent channel DID: ${channel.otherPartyAgentPermanentChannelDid}");
+      '''[Alice] ✓ Bob's agent permanent channel DID: ${channel.otherPartyAgentPermanentChannelDid}''');
 }
 
 class _InMemoryChatRepository implements ChatRepository {

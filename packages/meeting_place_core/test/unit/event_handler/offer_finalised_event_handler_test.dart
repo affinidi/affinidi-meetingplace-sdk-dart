@@ -44,6 +44,7 @@ void main() {
   const mediatorDid = 'did:test:mediator';
   const offerLink = 'offer-link';
   const notificationToken = 'notification-token';
+  const matrixRoomId = '!room:matrix.test';
 
   final event = cp.OfferFinalised(
     id: 'event-id',
@@ -120,7 +121,9 @@ void main() {
       didResolver: mockDidResolver,
       channelTransport: mockMeetingPlaceTransport,
       identityService: mockIdentityService,
-      options: const ControlPlaneEventHandlerManagerOptions(),
+      options: const ControlPlaneEventHandlerManagerOptions(
+        agentDid: 'did:test:agent-identity',
+      ),
       logger: DefaultMeetingPlaceCoreSDKLogger(),
     );
 
@@ -234,7 +237,7 @@ void main() {
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer((_) async => matrixRoomId);
 
       await handler.processMessage(
         createApprovalMessage(),
@@ -278,7 +281,9 @@ void main() {
       contactInfo: {'fullName': 'Other Party'},
     );
 
-    Channel createChannelWithAgent() => Channel(
+    Channel createChannelWithAgent({
+      ChannelTransport transport = ChannelTransport.didcomm,
+    }) => Channel(
       offerLink: offerLink,
       publishOfferDid: 'did:test:publish',
       mediatorDid: mediatorDid,
@@ -291,7 +296,7 @@ void main() {
       ),
       otherPartyContactCard: otherPartyContactCard,
       type: ChannelType.individual,
-      transport: ChannelTransport.didcomm,
+      transport: transport,
       acceptOfferDid: acceptOfferDid,
       permanentChannelDid: permanentChannelDid,
       otherPartyPermanentChannelDid: otherPartyPermanentDid,
@@ -316,18 +321,20 @@ void main() {
 
       final captured = verify(
         () => mockMediatorService.sendMessage(
-          captureAny(),
+          captureAny(
+            that: predicate<PlainTextMessage>(
+              (m) =>
+                  m.type.toString() ==
+                  MeetingPlaceProtocol.agentChannelInauguration.value,
+            ),
+          ),
           senderDidManager: any(named: 'senderDidManager'),
           recipientDidDocument: any(named: 'recipientDidDocument'),
           mediatorDid: any(named: 'mediatorDid'),
         ),
       ).captured;
 
-      final agentMsg = captured.whereType<PlainTextMessage>().firstWhere(
-        (m) =>
-            m.type.toString() ==
-            MeetingPlaceProtocol.agentChannelInauguration.value,
-      );
+      final agentMsg = captured.single as PlainTextMessage;
 
       expect(agentMsg.body?['offer_link'], equals(offerLink));
       expect(agentMsg.body?['publish_offer_did'], equals('did:test:publish'));
@@ -343,6 +350,46 @@ void main() {
         agentMsg.body?['contact_card'],
         equals(otherPartyContactCard.toJson()),
       );
+      expect(agentMsg.body?['matrix_room_id'], isNull);
+    });
+
+    test('includes matrix room id in agent inauguration message', () async {
+      final channel = createChannelWithAgent(
+        transport: ChannelTransport.matrix,
+      );
+
+      when(
+        () => mockMeetingPlaceTransport.joinChannel(
+          channel: any(named: 'channel'),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async => matrixRoomId);
+
+      await handler.processMessage(
+        createApprovalMessage(),
+        event: event,
+        connection: connectionOffer,
+        channel: channel,
+      );
+
+      final captured = verify(
+        () => mockMediatorService.sendMessage(
+          captureAny(
+            that: predicate<PlainTextMessage>(
+              (m) =>
+                  m.type.toString() ==
+                  MeetingPlaceProtocol.agentChannelInauguration.value,
+            ),
+          ),
+          senderDidManager: any(named: 'senderDidManager'),
+          recipientDidDocument: any(named: 'recipientDidDocument'),
+          mediatorDid: any(named: 'mediatorDid'),
+        ),
+      ).captured;
+
+      final agentMsg = captured.single as PlainTextMessage;
+
+      expect(agentMsg.body?['matrix_room_id'], equals(matrixRoomId));
     });
 
     test('does not send agent inauguration message when '

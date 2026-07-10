@@ -11,12 +11,14 @@ class AgentIdentityService {
     required IdentityService identityService,
     required MediatorAclService mediatorAclService,
     required DIDCommTransport didcommTransport,
+    required MeetingPlaceTransport channelTransport,
     required ChannelRepository channelRepository,
     required Wallet wallet,
     required ConnectionManager connectionManager,
   }) : _identityService = identityService,
        _mediatorAclService = mediatorAclService,
        _didcommTransport = didcommTransport,
+       _channelTransport = channelTransport,
        _channelRepository = channelRepository,
        _wallet = wallet,
        _connectionManager = connectionManager;
@@ -24,6 +26,7 @@ class AgentIdentityService {
   final IdentityService _identityService;
   final MediatorAclService _mediatorAclService;
   final DIDCommTransport _didcommTransport;
+  final MeetingPlaceTransport _channelTransport;
   final ChannelRepository _channelRepository;
   final Wallet _wallet;
   final ConnectionManager _connectionManager;
@@ -35,13 +38,14 @@ class AgentIdentityService {
   ///
   /// Returns the new [Channel] so the caller can subscribe to messages on
   /// [Channel.permanentChannelDid].
-  Future<Channel> createChannelIdentity({
+  Future<void> createChannelIdentity({
     required String agentDid,
     required String otherPartyPermanentChannelDid,
     required String mediatorDid,
     required String offerLink,
     required String publishOfferDid,
     required ContactCard contactCard,
+    required ChannelTransport transport,
   }) async {
     final didManager = await _identityService.generateDidWeb(_wallet);
     final didDocument = await didManager.getDidDocument();
@@ -52,6 +56,8 @@ class AgentIdentityService {
       mediatorDid: mediatorDid,
       granteeDids: [otherPartyPermanentChannelDid],
     );
+
+    await _channelTransport.authenticate(didManager);
 
     final response = AgentCreateChannelIdentityResponse.create(
       from: agentDid,
@@ -70,18 +76,15 @@ class AgentIdentityService {
       offerLink: offerLink,
       publishOfferDid: publishOfferDid,
       mediatorDid: mediatorDid,
-      status: ChannelStatus.inaugurated,
+      status: ChannelStatus.waitingForApproval,
       isConnectionInitiator: false,
       contactCard: contactCard,
       type: ChannelType.individual,
-      transport: ChannelTransport.didcomm,
+      transport: transport,
       permanentChannelDid: permanentChannelDid,
-      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
     );
 
     await _channelRepository.createChannel(channel);
-
-    return channel;
   }
 
   /// Handles an incoming `agent-channel-inauguration` message by granting
@@ -89,15 +92,22 @@ class AgentIdentityService {
   /// [ChannelStatus.inaugurated] [Channel], and returning it so the caller
   /// can open a chat session on [Channel.permanentChannelDid].
   Future<Channel> processAgentChannelInauguration({
-    required String agentDid,
-    required String agentPermanentChannelDid,
     required String otherPartyPermanentChannelDid,
     required String otherPartyNotificationToken,
-    required String mediatorDid,
-    required String offerLink,
-    required String publishOfferDid,
+    required String agentPermanentChannelDid,
     ContactCard? contactCard,
+    String? matrixRoomId,
   }) async {
+    final channel = await _channelRepository.findChannelByDid(
+      agentPermanentChannelDid,
+    );
+
+    if (channel == null) {
+      throw Exception(
+        '''Channel not found for otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid''',
+      );
+    }
+
     final didManager = await _connectionManager.getDidManagerForDid(
       _wallet,
       agentPermanentChannelDid,
@@ -105,26 +115,17 @@ class AgentIdentityService {
 
     await _mediatorAclService.addToAcl(
       didManager: didManager,
-      mediatorDid: mediatorDid,
+      mediatorDid: channel.mediatorDid,
       granteeDids: [otherPartyPermanentChannelDid],
     );
 
-    final channel = Channel(
-      offerLink: offerLink,
-      publishOfferDid: publishOfferDid,
-      mediatorDid: mediatorDid,
-      status: ChannelStatus.inaugurated,
-      isConnectionInitiator: false,
-      contactCard: contactCard,
-      type: ChannelType.individual,
-      transport: ChannelTransport.didcomm,
-      permanentChannelDid: agentPermanentChannelDid,
-      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-      otherPartyNotificationToken: otherPartyNotificationToken,
-    );
+    // TODO(SR): ContactCard required?
+    channel.status = ChannelStatus.inaugurated;
+    channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.otherPartyNotificationToken = otherPartyNotificationToken;
+    channel.matrixRoomId = matrixRoomId;
 
-    await _channelRepository.createChannel(channel);
-
+    await _channelRepository.updateChannel(channel);
     return channel;
   }
 }

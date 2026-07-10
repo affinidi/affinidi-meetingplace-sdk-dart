@@ -316,13 +316,14 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<DidManager> generateDidWeb() => _coreSDK.generateDidWeb();
 
   @override
-  Future<Channel> generateAgentIdentity({
+  Future<void> generateAgentIdentity({
     required String agentDid,
     required String otherPartyPermanentChannelDid,
     required String mediatorDid,
     required String offerLink,
     required String publishOfferDid,
     required ContactCard contactCard,
+    required ChannelTransport transport,
   }) => _coreSDK.generateAgentIdentity(
     agentDid: agentDid,
     otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
@@ -330,28 +331,34 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     offerLink: offerLink,
     publishOfferDid: publishOfferDid,
     contactCard: contactCard,
+    transport: transport,
   );
 
   @override
   Future<Channel> processAgentChannelInauguration({
-    required String agentDid,
-    required String agentPermanentChannelDid,
     required String otherPartyPermanentChannelDid,
     required String otherPartyNotificationToken,
-    required String mediatorDid,
-    required String offerLink,
-    required String publishOfferDid,
+    required String agentPermanentChannelDid,
     ContactCard? contactCard,
-  }) => _coreSDK.processAgentChannelInauguration(
-    agentDid: agentDid,
-    agentPermanentChannelDid: agentPermanentChannelDid,
-    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-    otherPartyNotificationToken: otherPartyNotificationToken,
-    mediatorDid: mediatorDid,
-    offerLink: offerLink,
-    publishOfferDid: publishOfferDid,
-    contactCard: contactCard,
-  );
+    String? matrixRoomId,
+  }) async {
+    final channel = await _coreSDK.processAgentChannelInauguration(
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyNotificationToken: otherPartyNotificationToken,
+      agentPermanentChannelDid: agentPermanentChannelDid,
+      contactCard: contactCard,
+      matrixRoomId: matrixRoomId,
+    );
+
+    if (channel.transport == ChannelTransport.matrix && matrixRoomId != null) {
+      await matrixService.joinRoomById(
+        didManager: await _coreSDK.getDidManager(agentPermanentChannelDid),
+        roomId: matrixRoomId,
+      );
+    }
+
+    return channel;
+  }
 
   @override
   Future<DidManager> getDidManager(String did) => _coreSDK.getDidManager(did);

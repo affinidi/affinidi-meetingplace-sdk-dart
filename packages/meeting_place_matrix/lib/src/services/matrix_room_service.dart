@@ -187,7 +187,8 @@ class MatrixRoomService {
       );
     }
     _assertRoomEncrypted(room, roomId);
-    // TODO (earl): prefetch device keys here once confirmed reliable at join time.
+    // TODO (earl): prefetch device keys here once confirmed reliable at
+    // join time.
     return roomId;
   }
 
@@ -408,7 +409,8 @@ class MatrixRoomService {
     final myUserId =
         client.userID ?? _sessionManager.deriveUserId(did, _homeserver.host);
 
-    // TODO (earl): prefetch device keys here once confirmed reliable at session start.
+    // TODO (earl): prefetch device keys here once confirmed reliable at
+    // session start.
     final controller = StreamController<MatrixRoomEvent>();
 
     final timelineSub = client.onTimelineEvent.stream

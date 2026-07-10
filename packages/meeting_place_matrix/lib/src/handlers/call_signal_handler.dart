@@ -198,6 +198,9 @@ class CallSignalHandler {
           ),
         ),
       );
+      // Surface busy auto-reject on the cancelled-call channel so the app
+      // can record a missed call for the caller that got the busy signal.
+      _onCallCancelled(event.otherPartyPermanentChannelDid);
       return;
     }
     _onIncomingCall(event);

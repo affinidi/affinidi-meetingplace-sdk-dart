@@ -35,6 +35,9 @@ void main() {
   setUpAll(() {
     registerFallbackValue(FakeChannel());
     registerFallbackValue(FakeOutgoingMessage());
+    registerFallbackValue(
+      const IndividualChannelNotification(recipientDid: '', type: ''),
+    );
   });
 
   setUp(() {
@@ -157,6 +160,42 @@ void main() {
       );
 
       expect(emittedSecond, isEmpty);
+    });
+
+    test('busy auto-reject surfaces on the cancelled-call channel', () async {
+      // A call from a different caller arrives while already in a call. The
+      // pending manager rejects it (busy), and the rejection is surfaced on the
+      // cancelled-call channel so the app can record a missed call.
+      const otherOwnDid = 'did:key:own-2';
+      const otherCallerDid = 'did:key:caller-2';
+      when(
+        () => sdk.getChannelByDid(_ownDid),
+      ).thenAnswer((_) async => _channel());
+      when(
+        () => sdk.getChannelByDid(otherOwnDid),
+      ).thenAnswer((_) async => _channel(otherPartyDid: otherCallerDid));
+      when(() => sdk.notifyChannel(any())).thenAnswer((_) async {});
+
+      final handler = callSignalHandler();
+      await handler.onIncomingCallSignal(
+        const IncomingCallSignal(ownChannelDid: _ownDid),
+      );
+
+      final cancelled = <String>[];
+      final handlerSecond = CallSignalHandler(
+        sdk: sdk,
+        pendingCallManager: pendingCallManager, // same manager = same state
+        logger: logger,
+        getActiveSession: () => null,
+        onIncomingCall: (_) {},
+        onCallCancelled: cancelled.add,
+        onPeerRestartedCall: (_) {},
+      );
+      await handlerSecond.onIncomingCallSignal(
+        const IncomingCallSignal(ownChannelDid: otherOwnDid),
+      );
+
+      expect(cancelled, [otherCallerDid]);
     });
 
     test(

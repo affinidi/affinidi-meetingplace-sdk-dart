@@ -17,5 +17,7 @@ class FakeOpenIdCredentials extends Fake implements matrix.OpenIdCredentials {}
 
 class FakeWebRTCDelegate extends Fake implements matrix.WebRTCDelegate {}
 
+class FakeMatrixFile extends Fake implements matrix.MatrixFile {}
+
 LiveKitRoomFactory fakeLiveKitRoomFactory() =>
     (String _) => FakeLiveKitRoom();

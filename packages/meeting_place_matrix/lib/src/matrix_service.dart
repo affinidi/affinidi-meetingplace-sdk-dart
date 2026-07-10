@@ -38,6 +38,7 @@ class MatrixService {
     _roomService = MatrixRoomService(
       ensureSession: _ensureSession,
       sessionManager: _sessionManager,
+      logger: _logger,
     );
     _callService = MatrixCallService(
       ensureSession: _ensureSession,

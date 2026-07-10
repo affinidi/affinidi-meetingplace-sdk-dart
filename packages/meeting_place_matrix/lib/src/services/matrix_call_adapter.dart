@@ -254,9 +254,17 @@ class MatrixCallAdapter {
         didManager: didManager,
       );
       unawaited(
-        _coreSDK
-            .notifyChannel(event.notification!)
-            .catchError((Object _, StackTrace _) {}),
+        _coreSDK.notifyChannel(event.notification!).catchError((
+          Object error,
+          StackTrace st,
+        ) {
+          _logger.error(
+            'Failed to send call-invite notification to control plane.',
+            error: error,
+            stackTrace: st,
+            name: _logKey,
+          );
+        }),
       );
     }
     _logger.info(

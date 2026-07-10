@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+import '../logger/meeting_place_matrix_sdk_logger.dart';
 import '../matrix_room_alias.dart';
 import '../matrix_room_event.dart';
 import '../matrix_service_exception.dart';
@@ -22,11 +23,16 @@ class MatrixRoomService {
   MatrixRoomService({
     required EnsureMatrixSession ensureSession,
     required MatrixSessionManager sessionManager,
+    required MeetingPlaceMatrixSDKLogger logger,
   }) : _ensureSession = ensureSession,
-       _sessionManager = sessionManager;
+       _sessionManager = sessionManager,
+       _logger = logger;
 
   final EnsureMatrixSession _ensureSession;
   final MatrixSessionManager _sessionManager;
+  final MeetingPlaceMatrixSDKLogger _logger;
+
+  static const _logKey = 'MatrixRoomService';
 
   /// Power level required to enable MatrixRTC group calls via
   /// [matrix.Room.enableGroupCalls]. Both the room creator and every invited
@@ -181,6 +187,7 @@ class MatrixRoomService {
       );
     }
     _assertRoomEncrypted(room, roomId);
+    // TODO (earl): prefetch device keys here once confirmed reliable at join time.
     return roomId;
   }
 
@@ -278,6 +285,7 @@ class MatrixRoomService {
       return null;
     }
 
+    await _prefetchDeviceKeys(client, room);
     return room.sendEvent(content, type: eventType);
   }
 
@@ -400,6 +408,7 @@ class MatrixRoomService {
     final myUserId =
         client.userID ?? _sessionManager.deriveUserId(did, _homeserver.host);
 
+    // TODO (earl): prefetch device keys here once confirmed reliable at session start.
     final controller = StreamController<MatrixRoomEvent>();
 
     final timelineSub = client.onTimelineEvent.stream
@@ -505,6 +514,8 @@ class MatrixRoomService {
   }) async {
     final client = await _ensureSession(didManager);
     final room = await _resolveEncryptedRoom(client, roomId);
+
+    await _prefetchDeviceKeys(client, room);
     final file = matrix.MatrixFile.fromMimeType(
       bytes: bytes,
       name: filename ?? 'file',
@@ -603,6 +614,30 @@ class MatrixRoomService {
     if (room == null) throw StateError('Matrix room $roomId not found');
     _assertRoomEncrypted(room, roomId);
     return room;
+  }
+
+  /// Fetches device keys for all current room members in one shot.
+  /// Called once at join time so the megolm session can be created immediately
+  /// on the first send without a blocking round-trip.
+  Future<void> _prefetchDeviceKeys(
+    matrix.Client client,
+    matrix.Room room,
+  ) async {
+    final memberIds = room.getParticipants().map((m) => m.id).toSet();
+    final hasOutdatedKeys = memberIds.any((uid) {
+      final keys = client.userDeviceKeys[uid];
+      return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
+    });
+    if (!hasOutdatedKeys) return;
+    await client.updateUserDeviceKeys();
+    final inFlight = client.userDeviceKeysLoading;
+    if (inFlight != null) {
+      _logger.info(
+        'Waiting for device-key update to complete for room ${room.id}',
+        name: _logKey,
+      );
+      await inFlight;
+    }
   }
 
   static void _assertRoomEncrypted(matrix.Room room, String roomId) {

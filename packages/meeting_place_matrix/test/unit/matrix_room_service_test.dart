@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_matrix/src/logger/default_meeting_place_matrix_sdk_logger.dart';
@@ -7,6 +8,8 @@ import 'package:meeting_place_matrix/src/services/matrix_room_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
+
+import 'fakes/fake_fallbacks.dart';
 
 class MockMatrixClient extends Mock implements matrix.Client {}
 
@@ -35,6 +38,10 @@ void main() {
   late MockMatrixSessionManager sessionManager;
   late MockDidManager didManager;
   late MatrixRoomService service;
+
+  setUpAll(() {
+    registerFallbackValue(FakeMatrixFile());
+  });
 
   setUp(() {
     client = MockMatrixClient();
@@ -187,6 +194,45 @@ void main() {
         keysCompleter.complete();
         expect(await sendFuture, 'event-1');
         verify(() => room.sendEvent(any(), type: any(named: 'type'))).called(1);
+      },
+    );
+  });
+
+  group('sendFileEvent', () {
+    test(
+      'fetches device keys when attachment recipients have no keys',
+      () async {
+        final room = MockMatrixRoom();
+        final member = MockUser('@alice:matrix.example.com');
+        when(() => room.encrypted).thenReturn(true);
+        when(room.getParticipants).thenReturn([member]);
+        when(() => client.getRoomById(_roomId)).thenReturn(room);
+        when(() => client.userDeviceKeys).thenReturn({});
+        when(() => client.updateUserDeviceKeys()).thenAnswer((_) async {});
+        when(() => client.userDeviceKeysLoading).thenReturn(null);
+        when(
+          () => room.sendFileEvent(
+            any(),
+            extraContent: any(named: 'extraContent'),
+          ),
+        ).thenAnswer((_) async => 'file-event-1');
+
+        final eventId = await service.sendFileEvent(
+          _roomId,
+          bytes: Uint8List.fromList([1, 2, 3]),
+          contentType: 'image/png',
+          didManager: didManager,
+          filename: 'photo.png',
+        );
+
+        expect(eventId, 'file-event-1');
+        verify(() => client.updateUserDeviceKeys()).called(1);
+        verify(
+          () => room.sendFileEvent(
+            any(),
+            extraContent: any(named: 'extraContent'),
+          ),
+        ).called(1);
       },
     );
   });

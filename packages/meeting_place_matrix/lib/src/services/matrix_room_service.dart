@@ -533,6 +533,18 @@ class MatrixRoomService {
   }) async {
     final client = await _ensureSession(didManager);
     final room = await _resolveEncryptedRoom(client, roomId);
+
+    final roomMemberIds = room.getParticipants().map((m) => m.id).toSet();
+    final hasOutdatedKeys = roomMemberIds.any((uid) {
+      final keys = client.userDeviceKeys[uid];
+      return keys == null || keys.outdated || keys.deviceKeys.isEmpty;
+    });
+    if (hasOutdatedKeys) {
+      await client.updateUserDeviceKeys();
+      final keysLoading = client.userDeviceKeysLoading;
+      if (keysLoading != null) await keysLoading;
+    }
+
     final file = matrix.MatrixFile.fromMimeType(
       bytes: bytes,
       name: filename ?? 'file',

@@ -132,8 +132,9 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
+    String? matrixRoomId;
     if (channel.transport == ChannelTransport.matrix) {
-      await _matrixService.joinChannelRoom(
+      matrixRoomId = await _matrixService.joinChannelRoom(
         didManager: permanentChannelIdentity.didManager,
         channelDid: permanentChannelIdentity.didDocument.id,
         otherPartyChannelDid: otherPartyPermanentChannelDid,
@@ -151,14 +152,17 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     );
 
     final agentPermanentChannelDid = channel.agentPermanentChannelDid;
-    if (agentPermanentChannelDid != null) {
+    final agentDid = options.agentDid;
+    if (agentPermanentChannelDid != null && agentDid != null) {
       await _sendAgentChannelInaugurationMessage(
         channel: channel,
         permanentChannelDidManager: permanentChannelIdentity.didManager,
         permanentChannelDid: permanentChannelIdentity.didDocument.id,
+        agentDid: agentDid,
         agentPermanentChannelDid: agentPermanentChannelDid,
         otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
         otherPartyNotificationToken: event.notificationToken,
+        matrixRoomId: matrixRoomId,
       );
     }
 
@@ -235,23 +239,26 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     required Channel channel,
     required DidManager permanentChannelDidManager,
     required String permanentChannelDid,
+    required String agentDid,
     required String agentPermanentChannelDid,
     required String otherPartyPermanentChannelDid,
     required String otherPartyNotificationToken,
+    String? matrixRoomId,
   }) async {
-    final agentDidDocument = await _didResolver.resolveDid(
-      agentPermanentChannelDid,
-    );
+    final agentDidDocument = await _didResolver.resolveDid(agentDid);
 
     return mediatorService.sendMessage(
       protocol.AgentChannelInauguration.create(
         from: permanentChannelDid,
-        to: [agentPermanentChannelDid],
+        to: [agentDid],
         otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
         otherPartyNotificationToken: otherPartyNotificationToken,
         offerLink: channel.offerLink,
         publishOfferDid: channel.publishOfferDid,
+        transport: channel.transport,
+        agentPermanentChannelDid: agentPermanentChannelDid,
         contactCard: channel.otherPartyContactCard,
+        matrixRoomId: matrixRoomId,
       ).toPlainTextMessage(),
       senderDidManager: permanentChannelDidManager,
       recipientDidDocument: agentDidDocument,

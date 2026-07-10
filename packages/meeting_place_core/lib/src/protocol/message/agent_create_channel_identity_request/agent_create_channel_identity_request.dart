@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../entity/channel.dart';
 import '../../../protocol/contact_card/contact_card.dart';
 import '../../meeting_place_protocol.dart';
 import 'agent_create_channel_identity_request_body.dart';
@@ -13,6 +14,7 @@ class AgentCreateChannelIdentityRequest {
     required String offerLink,
     required String publishOfferDid,
     required ContactCard contactCard,
+    required ChannelTransport transport,
   }) {
     return AgentCreateChannelIdentityRequest(
       id: const Uuid().v4(),
@@ -23,6 +25,7 @@ class AgentCreateChannelIdentityRequest {
         offerLink: offerLink,
         publishOfferDid: publishOfferDid,
         contactCard: contactCard,
+        transport: transport,
       ),
     );
   }

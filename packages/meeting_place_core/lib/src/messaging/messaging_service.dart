@@ -294,6 +294,7 @@ class MessagingService {
     if (channel == null) {
       throw StateError('No channel found for DID $did');
     }
+    if (channel.matrixRoomId != null) return channel.matrixRoomId!;
     final didManager = await _getDidManager(did);
     return _matrixService.resolveRoomIdForChannel(
       didManager: didManager,
@@ -347,9 +348,8 @@ class MessagingService {
         await _resolveSenderDid(
           receiverDid: receiverDid,
           matrixUserId: e.userId,
-        );
-
-    if (resolved == null) return null;
+        ) ??
+        e.userId;
 
     return MatrixIncomingMessage(
       senderDid: resolved,

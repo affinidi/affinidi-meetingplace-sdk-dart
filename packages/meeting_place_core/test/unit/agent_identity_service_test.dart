@@ -22,6 +22,8 @@ class _MockConnectionManager extends Mock implements ConnectionManager {}
 
 class _MockWallet extends Mock implements Wallet {}
 
+class _MockMatrixService extends Mock implements MatrixService {}
+
 class _MockDidManager extends Mock implements DidManager {}
 
 class _MockDidDocument extends Mock implements DidDocument {}
@@ -44,6 +46,7 @@ void main() {
   late _MockChannelRepository mockChannelRepository;
   late _MockConnectionManager mockConnectionManager;
   late _MockWallet mockWallet;
+  late _MockMatrixService mockMatrixService;
   late _MockDidManager mockDidManager;
   late _MockDidDocument mockDidDocument;
   late AgentIdentityService service;
@@ -63,6 +66,7 @@ void main() {
     mockWallet = _MockWallet();
     mockDidManager = _MockDidManager();
     mockDidDocument = _MockDidDocument();
+    mockMatrixService = _MockMatrixService();
 
     service = AgentIdentityService(
       identityService: mockIdentityService,
@@ -71,6 +75,7 @@ void main() {
       channelRepository: mockChannelRepository,
       wallet: mockWallet,
       connectionManager: mockConnectionManager,
+      matrixService: mockMatrixService,
     );
 
     when(
@@ -108,13 +113,14 @@ void main() {
   group('createChannelIdentity', () {
     final contactCard = ContactCardFixture.getContactCardFixture();
 
-    Future<Channel> callService() => service.createChannelIdentity(
+    Future<void> callService() => service.createChannelIdentity(
       agentDid: _agentDid,
       otherPartyPermanentChannelDid: _channelDid,
       mediatorDid: _mediatorDid,
       offerLink: 'https://example.com/offer',
       publishOfferDid: 'did:test:publish',
       contactCard: contactCard,
+      transport: ChannelTransport.didcomm,
     );
 
     test('generates a new did:web via IdentityService', () async {
@@ -174,12 +180,8 @@ void main() {
 
       final channel = captured.single as Channel;
       expect(channel.permanentChannelDid, equals(_newPermanentChannelDid));
-      expect(
-        channel.otherPartyPermanentChannelDid,
-        equals(_channelDid),
-      );
       expect(channel.mediatorDid, equals(_mediatorDid));
-      expect(channel.status, equals(ChannelStatus.inaugurated));
+      expect(channel.status, equals(ChannelStatus.waitingForApproval));
       expect(channel.isConnectionInitiator, isFalse);
       expect(channel.transport, equals(ChannelTransport.didcomm));
     });
@@ -195,14 +197,6 @@ void main() {
       expect(channel.offerLink, equals('https://example.com/offer'));
       expect(channel.publishOfferDid, equals('did:test:publish'));
       expect(channel.contactCard?.did, equals(contactCard.did));
-    });
-
-    test('returns the persisted channel', () async {
-      final result = await callService();
-
-      expect(result.permanentChannelDid, equals(_newPermanentChannelDid));
-      expect(result.otherPartyPermanentChannelDid, equals(_channelDid));
-      expect(result.status, equals(ChannelStatus.inaugurated));
     });
   });
 }

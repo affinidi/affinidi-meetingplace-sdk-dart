@@ -443,6 +443,7 @@ class MeetingPlaceCoreSDK {
                 attachments: attachments,
               ),
             ),
+        agentDid: options.agentDid,
       ),
       logger: mpxLogger,
     );
@@ -507,6 +508,7 @@ class MeetingPlaceCoreSDK {
       channelRepository: repositoryConfig.channelRepository,
       wallet: wallet,
       connectionManager: connectionManager,
+      matrixService: matrixService,
     );
 
     Future<DidManager> matrixTransportGetDidManager(String did) =>
@@ -637,13 +639,14 @@ class MeetingPlaceCoreSDK {
   ///
   /// Returns the new [DidManager] so the caller can subscribe to messages on
   /// the freshly created DID.
-  Future<Channel> generateAgentIdentity({
+  Future<void> generateAgentIdentity({
     required String agentDid,
     required String otherPartyPermanentChannelDid,
     required String mediatorDid,
     required String offerLink,
     required String publishOfferDid,
     required ContactCard contactCard,
+    required ChannelTransport transport,
   }) {
     return _agentIdentityService.createChannelIdentity(
       agentDid: agentDid,
@@ -652,6 +655,7 @@ class MeetingPlaceCoreSDK {
       offerLink: offerLink,
       publishOfferDid: publishOfferDid,
       contactCard: contactCard,
+      transport: transport,
     );
   }
 
@@ -660,24 +664,18 @@ class MeetingPlaceCoreSDK {
   /// [ChannelStatus.inaugurated] [Channel], and returning it so the caller
   /// can open a chat session on [Channel.permanentChannelDid].
   Future<Channel> processAgentChannelInauguration({
-    required String agentDid,
-    required String agentPermanentChannelDid,
     required String otherPartyPermanentChannelDid,
     required String otherPartyNotificationToken,
-    required String mediatorDid,
-    required String offerLink,
-    required String publishOfferDid,
+    required String agentPermanentChannelDid,
     ContactCard? contactCard,
+    String? matrixRoomId,
   }) {
     return _agentIdentityService.processAgentChannelInauguration(
-      agentDid: agentDid,
-      agentPermanentChannelDid: agentPermanentChannelDid,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyNotificationToken: otherPartyNotificationToken,
-      mediatorDid: mediatorDid,
-      offerLink: offerLink,
-      publishOfferDid: publishOfferDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
       contactCard: contactCard,
+      matrixRoomId: matrixRoomId,
     );
   }
 

@@ -29,4 +29,30 @@ class RestPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
     final encodedSetupId = Uri.encodeComponent(setupId);
     return client.getJson('$normalizedBase/$encodedSetupId/offer');
   }
+
+  @override
+  Future<Map<String, dynamic>> uploadPersonalAgentContext({
+    required String setupId,
+    required String content,
+  }) {
+    final normalizedBase = endpoint.endsWith('/setup')
+        ? endpoint
+        : '$endpoint/setup';
+    final encodedSetupId = Uri.encodeComponent(setupId);
+    return client.postJson(
+      '$normalizedBase/$encodedSetupId/context',
+      body: {'content': content},
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> fetchPersonalAgentContextStatus({
+    required String setupId,
+  }) {
+    final normalizedBase = endpoint.endsWith('/setup')
+        ? endpoint
+        : '$endpoint/setup';
+    final encodedSetupId = Uri.encodeComponent(setupId);
+    return client.getJson('$normalizedBase/$encodedSetupId/context/status');
+  }
 }

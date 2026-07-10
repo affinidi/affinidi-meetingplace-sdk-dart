@@ -117,4 +117,27 @@ class _StaticRemote implements PersonalAgentSetupRemote {
       'status': 'offer_created',
     };
   }
+
+  @override
+  Future<Map<String, dynamic>> uploadPersonalAgentContext({
+    required String setupId,
+    required String content,
+  }) async {
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'provisioned': true,
+      'item_count': 1,
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic>> fetchPersonalAgentContextStatus({
+    required String setupId,
+  }) async {
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'provisioned': false,
+      'item_count': 0,
+    };
+  }
 }

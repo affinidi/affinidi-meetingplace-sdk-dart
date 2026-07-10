@@ -83,6 +83,44 @@ class InMemoryPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
     };
   }
 
+  @override
+  Future<Map<String, dynamic>> uploadPersonalAgentContext({
+    required String setupId,
+    required String content,
+  }) async {
+    final entry = _entriesBySetupId[setupId];
+    if (entry == null) {
+      throw const VtaValidationException(
+        'Unknown setupId.',
+        code: 'e.vta.personal_agent.unknown_setup',
+      );
+    }
+    entry.contextProvisioned = true;
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'provisioned': true,
+      'item_count': 1,
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic>> fetchPersonalAgentContextStatus({
+    required String setupId,
+  }) async {
+    final entry = _entriesBySetupId[setupId];
+    if (entry == null) {
+      throw const VtaValidationException(
+        'Unknown setupId.',
+        code: 'e.vta.personal_agent.unknown_setup',
+      );
+    }
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'provisioned': entry.contextProvisioned,
+      'item_count': entry.contextProvisioned ? 1 : 0,
+    };
+  }
+
   String _stableSuffix(String value) {
     final input = value.trim();
     if (input.isEmpty) {
@@ -96,7 +134,7 @@ class InMemoryPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
 }
 
 class _MockEntry {
-  const _MockEntry({
+  _MockEntry({
     required this.setupId,
     required this.holderDid,
     required this.contextId,
@@ -107,4 +145,5 @@ class _MockEntry {
   final String holderDid;
   final String contextId;
   final String agentDid;
+  bool contextProvisioned = false;
 }

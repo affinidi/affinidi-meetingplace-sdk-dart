@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -15,20 +17,10 @@ void main() async {
     await vod.init(libraryPath: vodozemacLibraryPath);
   }
 
-  // Alice publishes offer
-  final bobAgentDid =
-      'did:key:zDnaeXf4xGHGwy6aj4knb3kS3DZ6aeNg3MytMxdjY7ojYQ5v1';
-
   final aliceSDK = await initSDK(
     wallet: PersistentWallet(InMemoryKeyStore()),
   );
-  prettyPrintGreen('[Alice] ✓ SDK initialized, agent DID: $bobAgentDid');
-
-  final bobSDK = await initSDK(
-    wallet: PersistentWallet(InMemoryKeyStore()),
-    agentDid: bobAgentDid,
-  );
-  prettyPrintGreen('[Bob] ✓ SDK initialized');
+  prettyPrintGreen('[Alice] ✓ SDK initialized');
 
   // Alice registers for DIDComm notifications
   final aliceNotification = await aliceSDK.registerForDIDCommNotifications();
@@ -36,12 +28,6 @@ void main() async {
       await aliceNotification.recipientDid.getDidDocument();
   prettyPrintGreen(
       '[Alice] ✓ Notification DID ${aliceNotificationDidDocument.id}');
-
-  // Bob registers for DIDComm notifications
-  final bobNotification = await bobSDK.registerForDIDCommNotifications();
-  final bobNotificationDidDocument =
-      await bobNotification.recipientDid.getDidDocument();
-  prettyPrintGreen('[Bob] ✓ Notification DID ${bobNotificationDidDocument.id}');
 
   // Alice publishes offer
   final publishOfferResult = await aliceSDK.publishOffer(
@@ -57,11 +43,21 @@ void main() async {
     transport: ChannelTransport.didcomm,
   );
   prettyPrintGreen(
-    '''[Alice] ✓ Published offer mnemonic ${publishOfferResult.connectionOffer.mnemonic}''',
+    '[Alice] ✓ Published offer mnemonic ${publishOfferResult.connectionOffer.mnemonic}',
   );
 
-  // Listen on control plane events stream to receive updates
-  // about published offer
+  // Write mnemonic to file so Bob can read it
+  final outputDirectory = Directory('.example-output')
+    ..createSync(recursive: true);
+  final mnemonicFile = File(
+    '${outputDirectory.path}${Platform.pathSeparator}mnemonic.txt',
+  );
+  mnemonicFile.writeAsBytesSync(
+    utf8.encode(publishOfferResult.connectionOffer.mnemonic),
+  );
+  prettyPrintGreen('[Alice] ✓ Mnemonic written to ${mnemonicFile.path}');
+
+  // Listen on control plane events stream
   final waitForInvitationAccept = Completer<ControlPlaneStreamEvent>();
   final waitForChannelActivity = Completer<ControlPlaneStreamEvent>();
 
@@ -69,82 +65,44 @@ void main() async {
     if (event.type == ControlPlaneEventType.InvitationAccept) {
       waitForInvitationAccept.complete(event);
     }
-
     if (event.type == ControlPlaneEventType.ChannelActivity) {
       if (!waitForChannelActivity.isCompleted) {
         waitForChannelActivity.complete(event);
       }
     }
   });
-  prettyPrintYellow('[Alice] Listen on new events...');
+  prettyPrintYellow('[Alice] Listening for events...');
 
-  // Alice listens to mediator stream using notification DID
+  // Subscribe to DIDComm notification stream
   final notificationStream = await aliceSDK.subscribe(
     DidCommSubscription(receiverDid: aliceNotificationDidDocument.id),
   );
 
-  notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription =
+      notificationStream.stream.listen((IncomingMessage message) async {
     await aliceSDK.processControlPlaneEvents();
   });
-  prettyPrintYellow('[Alice] Listen on notification stream');
+  prettyPrintYellow('[Alice] Listening on notification stream');
   prettyPrintYellow('[Alice] Waiting for Bob to accept connection offer...');
-
-  // Bob finds offer and accepts it
-  final findOfferResult = await bobSDK.findOffer(
-    mnemonic: publishOfferResult.connectionOffer.mnemonic,
-  );
-  prettyPrintGreen(
-      '[Bob] ✓ Offer found for ${publishOfferResult.connectionOffer.mnemonic}');
-
-  await bobSDK.acceptOffer(
-    connectionOffer: findOfferResult.connectionOffer!,
-    contactCard: ContactCard(
-      did: 'did:test:bob',
-      type: 'individual',
-      contactInfo: {},
-    ),
-    senderInfo: 'Bob',
-  );
-  prettyPrintGreen(
-      '''[Bob] ✓ Accepted offer for ${publishOfferResult.connectionOffer.mnemonic}''');
-
-  final waitForOfferFinalised = Completer<ControlPlaneStreamEvent>();
-
-  prettyPrintGreen('>>> Calling SDK.controlPlaneEventsStream.listen');
-  bobSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.OfferFinalised) {
-      waitForOfferFinalised.complete(event);
-    }
-  });
-
-  final bobNotificationStream = await bobSDK.subscribe(
-    DidCommSubscription(receiverDid: bobNotificationDidDocument.id),
-  );
-
-  bobNotificationStream.stream.listen((IncomingMessage message) async {
-    await bobSDK.processControlPlaneEvents();
-  });
-
-  prettyPrintYellow('[Bob] Waiting for Alice to approve connection request...');
 
   final receivedEvent = await waitForInvitationAccept.future;
   prettyPrintGreen(
-    '[Alice] ✓ Received invitation acceptance DIDComm message by Bob.',
+    '[Alice] ✓ Received invitation acceptance from Bob.',
   );
 
   await aliceSDK.approveConnectionRequest(channel: receivedEvent.channel);
   prettyPrintGreen('[Alice] ✓ Approved connection request');
 
-  await waitForOfferFinalised.future;
-  prettyPrintGreen('[Bob] ✓ Received offer finalised event from Alice.');
-
   prettyPrintYellow(
-    '[Alice] Waiting for Bob to send channel inauguraten message...',
+    '[Alice] Waiting for Bob to send channel inauguration message...',
   );
 
   final receivedChannelActivityEvent = await waitForChannelActivity.future;
   prettyPrintYellow('Event type: ${receivedChannelActivityEvent.type.name}');
   prettyJsonPrintYellow('Channel:', receivedChannelActivityEvent.channel);
+
+  await notificationSubscription.cancel();
+  prettyPrintGreen('[Alice] ✓ Notification subscription cancelled');
 
   final aliceChatSDK = await MeetingPlaceChatSDK.initialiseFromChannel(
     receivedChannelActivityEvent.channel,
@@ -152,13 +110,30 @@ void main() async {
     chatRepository: _InMemoryChatRepository(),
     options: MeetingPlaceChatSDKOptions(),
   );
+
   await aliceChatSDK.startChatSession();
   prettyPrintGreen('[Alice] ✓ Chat session started');
 
-  await aliceChatSDK.sendTextMessage('Hello Bob!');
+  await aliceChatSDK.chatStreamSubscription.then((chatStream) {
+    chatStream?.listen((data) {
+      final item = data.chatItem;
+      if (item is Message && item.isFromMe == false) {
+        prettyPrintGreen(
+            '[Alice] ✓ Received message from ${item.senderDid}: ${item.value}');
+      }
+    });
+    prettyPrintYellow(
+        '[Alice] Listening on chat stream using DID ${receivedChannelActivityEvent.channel.permanentChannelDid}...');
+  });
+
+  await aliceChatSDK.sendTextMessage('Hello, what is your name?');
   prettyPrintGreen('[Alice] ✓ Sent message to Bob');
   prettyPrintGreen(
-      '''[Alice] ✓ My permanent channel DID: ${receivedChannelActivityEvent.channel.permanentChannelDid}, Bob's permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyPermanentChannelDid}, Bob's agent permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyAgentPermanentChannelDid}''');
+      '[Alice] ✓ My permanent channel DID: ${receivedChannelActivityEvent.channel.permanentChannelDid}');
+  prettyPrintGreen(
+      "[Alice] ✓ Bob's permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyPermanentChannelDid}");
+  prettyPrintGreen(
+      "[Alice] ✓ Bob's agent permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyAgentPermanentChannelDid}");
 }
 
 class _InMemoryChatRepository implements ChatRepository {

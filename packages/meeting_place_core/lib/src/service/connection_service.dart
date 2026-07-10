@@ -561,7 +561,11 @@ class ConnectionService {
         didManager: permanentIdentity.didManager,
         channelDid: permanentIdentity.didDocument.id,
         otherPartyChannelDid: otherPartyPermanentChannelDid,
-        inviteUsers: [otherPartyPermanentChannelDid],
+        inviteUsers: [
+          otherPartyPermanentChannelDid,
+          if (channel.otherPartyAgentPermanentChannelDid != null)
+            channel.otherPartyAgentPermanentChannelDid!,
+        ],
       );
 
       _logger.info(

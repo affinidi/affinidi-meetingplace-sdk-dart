@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../../entity/channel.dart';
 import '../../../protocol/contact_card/contact_card.dart';
 
 part 'agent_create_channel_identity_request_body.g.dart';
@@ -15,6 +16,7 @@ class AgentCreateChannelIdentityRequestBody {
     required this.offerLink,
     required this.publishOfferDid,
     required this.contactCard,
+    required this.transport,
   });
 
   @JsonKey(name: 'channelDid')
@@ -28,6 +30,9 @@ class AgentCreateChannelIdentityRequestBody {
 
   @JsonKey(name: 'contactCard')
   final ContactCard contactCard;
+
+  @JsonKey(name: 'transport')
+  final ChannelTransport transport;
 
   Map<String, dynamic> toJson() =>
       _$AgentCreateChannelIdentityRequestBodyToJson(this);

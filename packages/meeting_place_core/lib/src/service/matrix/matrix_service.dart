@@ -200,6 +200,29 @@ class MatrixService {
     return roomId;
   }
 
+  /// Joins a Matrix room by its room ID (e.g. `!abc:server`).
+  /// Use when the room ID is known directly, avoiding alias resolution.
+  Future<String> joinRoomById({
+    required DidManager didManager,
+    required String roomId,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final joinedRoomId = await client.joinRoom(roomId);
+    var room = client.getRoomById(joinedRoomId);
+    if (room == null) {
+      await client.oneShotSync();
+      room = client.getRoomById(joinedRoomId);
+    }
+    if (room == null) {
+      throw StateError(
+        'Matrix room $joinedRoomId did not appear after joining; '
+        'cannot verify end-to-end encryption state.',
+      );
+    }
+    _assertRoomEncrypted(room, joinedRoomId);
+    return joinedRoomId;
+  }
+
   /// Leaves [roomId]. No-op when the local user is no longer a participant
   /// (e.g. previously kicked or already left), so callers cleaning up after a
   /// remote-initiated removal can invoke it safely.

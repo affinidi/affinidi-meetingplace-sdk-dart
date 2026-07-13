@@ -11,7 +11,7 @@ dependencies:
   collection: ^1.19.1
   crypto: ^3.0.6
   dio: ^5.8.0+1
-  matrix: ^8.0.0
+  matrix: ^8.1.0
   meeting_place_chat: ^0.0.1-dev.51
   meeting_place_control_plane: ^0.0.1-dev.21
   meeting_place_core: ^0.0.1-dev.44

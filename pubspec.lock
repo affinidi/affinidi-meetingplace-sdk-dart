@@ -997,10 +997,10 @@ packages:
     dependency: transitive
     description:
       name: ssi
-      sha256: ea7c7bc1a775cbe788df49079eb0d482660def1f594dedaba0d963b7df2d109d
+      sha256: "083f103dac2511cbffdabec1ea19dcdfea9272c7bca09cbe80d6fb69de2e3b6a"
       url: "https://pub.dev"
     source: hosted
-    version: "3.9.3"
+    version: "3.9.4"
   stack_trace:
     dependency: transitive
     description:

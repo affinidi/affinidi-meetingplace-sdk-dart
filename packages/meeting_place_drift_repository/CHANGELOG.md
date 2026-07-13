@@ -2,8 +2,6 @@
 
  - **FIX**: remove duplicate changelog headings for package releases (#274).
 
-## Unreleased
-
 ### Added
 
 - Channel schema v5 now persists transport-aware channel state through `transport` and unified `messageSyncMarker` fields.

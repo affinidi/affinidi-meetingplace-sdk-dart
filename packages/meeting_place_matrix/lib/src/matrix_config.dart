@@ -11,7 +11,7 @@ class MatrixConfig extends Config {
     String? serverName,
     this.livekitServiceUrl,
     this.livekitSfuUrl,
-    this.outgoingCallTimeout = const Duration(seconds: 10),
+    this.outgoingCallTimeout = const Duration(seconds: 60),
   }) : serverName = serverName ?? homeserver.host;
 
   final Uri homeserver;
@@ -37,7 +37,7 @@ class MatrixConfig extends Config {
   final Uri? livekitSfuUrl;
 
   /// How long the caller waits for the remote party to answer before the
-  /// call is automatically ended and reported as missed. Defaults to 10 s.
+  /// call is automatically ended and reported as missed. Defaults to 60 s.
   final Duration outgoingCallTimeout;
 }
 

@@ -15,6 +15,9 @@ enum AudioVideoCallErrorCode {
   /// The call-invite notification could not be delivered to the callee.
   callInviteFailed,
 
+  /// There was a network error
+  networkError,
+
   /// An unclassified error occurred.
   unexpected,
 }

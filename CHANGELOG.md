@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-07-14
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_matrix` - `v0.0.1-dev.2`](#meeting_place_matrix---v001-dev2)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.2`
+
+ - **FIX**: report network errors (#276).
+
+
 ## 2026-07-10
 
 ### Changes

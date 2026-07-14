@@ -1,6 +1,6 @@
 name: meeting_place_matrix
 description: Matrix transport implementation for the Meeting Place SDK. Provides MatrixTransport (implements MeetingPlaceTransport), MatrixService, and MatrixMeetingPlaceSDK factory.
-version: 0.0.1-dev.1
+version: 0.0.1-dev.2
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
 

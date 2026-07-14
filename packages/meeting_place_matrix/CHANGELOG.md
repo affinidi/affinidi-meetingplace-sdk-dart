@@ -1,3 +1,7 @@
+## 0.0.1-dev.2
+
+ - **FIX**: report network errors (#276).
+
 ## 0.0.1-dev.1
 
  - Update a dependency to the latest release.

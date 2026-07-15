@@ -2,8 +2,6 @@
 
  - **FIX**: remove duplicate changelog headings for package releases (#274).
 
-## Unreleased
-
 ### Breaking Changes
 
 - Matrix-specific APIs and exports have been extracted from `meeting_place_core` into the new `meeting_place_matrix` package.

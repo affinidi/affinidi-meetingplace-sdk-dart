@@ -16,13 +16,12 @@ import '../utils/string.dart';
 /// seams so the plugin itself becomes thin wiring.
 class CallSignalHandler {
   CallSignalHandler({
-    required MeetingPlaceCoreSDK sdk,
+    required MeetingPlaceMatrixSDK sdk,
     required PendingCallManager pendingCallManager,
     required MeetingPlaceMatrixSDKLogger logger,
     required LiveKitCallSession? Function() getActiveSession,
     required void Function(IncomingAudioVideoCallEvent) onIncomingCall,
-    required void Function(String otherPartyPermanentChannelDid)
-    onCallCancelled,
+    required void Function(IncomingAudioVideoCallEvent) onCallCancelled,
     required void Function(IncomingAudioVideoCallEvent) onPeerRestartedCall,
   }) : _sdk = sdk,
        _pendingCallManager = pendingCallManager,
@@ -32,12 +31,12 @@ class CallSignalHandler {
        _onCallCancelled = onCallCancelled,
        _onPeerRestartedCall = onPeerRestartedCall;
 
-  final MeetingPlaceCoreSDK _sdk;
+  final MeetingPlaceMatrixSDK _sdk;
   final PendingCallManager _pendingCallManager;
   final MeetingPlaceMatrixSDKLogger _logger;
   final LiveKitCallSession? Function() _getActiveSession;
   final void Function(IncomingAudioVideoCallEvent) _onIncomingCall;
-  final void Function(String) _onCallCancelled;
+  final void Function(IncomingAudioVideoCallEvent) _onCallCancelled;
   final void Function(IncomingAudioVideoCallEvent) _onPeerRestartedCall;
 
   static const _logKey = 'CallSignalHandler';
@@ -72,8 +71,14 @@ class CallSignalHandler {
           'Channel ${channel.id} has no otherPartyPermanentChannelDid',
         );
       }
+      final callId = await _resolveIncomingCallId(
+        ownChannelDid: signal.ownChannelDid,
+        channel: channel,
+        callerChannelDid: callerChannelDid,
+      );
 
       final event = IncomingAudioVideoCallEvent(
+        callId: callId,
         callerPermanentChannelDid: callerChannelDid,
         otherPartyPermanentChannelDid: callerChannelDid,
         mediaType: signal.mediaType,
@@ -142,13 +147,21 @@ class CallSignalHandler {
       return;
     }
 
-    _pendingCallManager.removePendingByDid(otherPartyChannelDid);
+    final pendingCall = _pendingCallManager.removePendingByDid(
+      otherPartyChannelDid,
+    );
+    final cancelledEvent = IncomingAudioVideoCallEvent(
+      callId: pendingCall?.callId ?? otherPartyChannelDid,
+      callerPermanentChannelDid: otherPartyChannelDid,
+      otherPartyPermanentChannelDid: signal.ownChannelDid,
+      mediaType: pendingCall?.mediaType ?? CallMediaType.video,
+    );
     _logger.info(
       'onCallDeclineSignal: Caller ${otherPartyChannelDid.topAndTail()} '
       'cancelled before answer; notifying app',
       name: _logKey,
     );
-    _onCallCancelled(otherPartyChannelDid);
+    _onCallCancelled(cancelledEvent);
   }
 
   void _emitIncomingCall(
@@ -180,8 +193,9 @@ class CallSignalHandler {
       return;
     }
     final registered = _pendingCallManager.registerIncomingCall(
-      callId: event.callerPermanentChannelDid,
+      callId: event.callId,
       otherPartyChannelDid: event.otherPartyPermanentChannelDid,
+      mediaType: event.mediaType,
     );
     if (!registered) {
       _logger.warning(
@@ -198,13 +212,68 @@ class CallSignalHandler {
           ),
         ),
       );
+      // Surface busy auto-reject on the cancelled-call channel so the app can
+      // record a missed call for the caller that got the busy signal.
+      _onCallCancelled(
+        IncomingAudioVideoCallEvent(
+          callId: event.callId,
+          callerPermanentChannelDid: event.callerPermanentChannelDid,
+          otherPartyPermanentChannelDid: ownChannelDid,
+          mediaType: event.mediaType,
+        ),
+      );
       return;
     }
     _onIncomingCall(event);
     _logger.info(
-      'Incoming call: callId=${event.callerPermanentChannelDid} '
+      'Incoming call: callId=${event.callId} '
       'from=${event.otherPartyPermanentChannelDid.topAndTail()}',
       name: _logKey,
     );
+  }
+
+  /// Resolves the incoming call ID, falling back to room ID if transport
+  /// callId is not yet visible.
+  Future<String> _resolveIncomingCallId({
+    required String ownChannelDid,
+    required Channel channel,
+    required String callerChannelDid,
+  }) async {
+    try {
+      final didManager = await _sdk.getDidManager(ownChannelDid);
+      final roomId = await _sdk.matrixService.resolveRoomIdForChannel(
+        didManager: didManager,
+        channel: channel,
+      );
+
+      final callId = await _sdk.matrixService.activeCallId(
+        didManager: didManager,
+        roomId: roomId,
+      );
+      if (callId != null) {
+        return callId;
+      }
+
+      _logger.warning(
+        'Incoming call transport callId not yet visible for '
+        '${ownChannelDid.topAndTail()}, falling back to roomId $roomId',
+        name: _logKey,
+      );
+      return roomId;
+    } catch (e, stackTrace) {
+      _logger.warning(
+        'Incoming call identifier resolution failed for '
+        '${ownChannelDid.topAndTail()}, falling back to caller DID '
+        '${callerChannelDid.topAndTail()}',
+        name: _logKey,
+      );
+      _logger.error(
+        'Incoming call identifier resolution failed',
+        error: e,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+      return callerChannelDid;
+    }
   }
 }

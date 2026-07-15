@@ -43,7 +43,8 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
            logger ?? DefaultMeetingPlaceMatrixSDKLogger(className: _logKey),
        _incomingCallsController =
            StreamController<IncomingAudioVideoCallEvent>.broadcast(),
-       _cancelledCallsController = StreamController<String>.broadcast() {
+       _cancelledCallsController =
+           StreamController<IncomingAudioVideoCallEvent>.broadcast() {
     if (_livekitSfuUrl == null && _sfuAllowedHosts.isEmpty) {
       throw const MeetingPlaceLiveKitCallMisconfiguredException(
         'sfuAllowedHosts must be non-empty in production mode '
@@ -59,7 +60,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   final Duration _e2eeReadyTimeout;
   final MeetingPlaceMatrixSDKLogger _logger;
   final StreamController<IncomingAudioVideoCallEvent> _incomingCallsController;
-  final StreamController<String> _cancelledCallsController;
+  final StreamController<IncomingAudioVideoCallEvent> _cancelledCallsController;
   final matrix.WebRTCDelegate _rtcDelegate;
   final LiveKitRoomFactory _roomFactory;
   final PendingCallManager _pendingCallManager = PendingCallManager();
@@ -102,9 +103,9 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
           _incomingCallsController.add(event);
         }
       },
-      onCallCancelled: (otherPartyChannelDid) {
+      onCallCancelled: (event) {
         if (!_cancelledCallsController.isClosed) {
-          _cancelledCallsController.add(otherPartyChannelDid);
+          _cancelledCallsController.add(event);
         }
       },
       onPeerRestartedCall: (event) {
@@ -118,8 +119,9 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         _pendingCallManager
           ..clearActiveCall()
           ..registerIncomingCall(
-            callId: event.callerPermanentChannelDid,
+            callId: event.callId,
             otherPartyChannelDid: event.otherPartyPermanentChannelDid,
+            mediaType: event.mediaType,
           );
         if (!_incomingCallsController.isClosed) {
           _incomingCallsController.add(event);
@@ -165,7 +167,8 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       _incomingCallsController.stream;
 
   @override
-  Stream<String> get cancelledCalls => _cancelledCallsController.stream;
+  Stream<IncomingAudioVideoCallEvent> get cancelledCalls =>
+      _cancelledCallsController.stream;
 
   /// The currently active [AudioVideoCallSession], or null if no call is in
   /// progress.

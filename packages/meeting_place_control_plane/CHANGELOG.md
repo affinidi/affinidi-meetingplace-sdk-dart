@@ -2,8 +2,6 @@
 
  - **FIX**: remove duplicate changelog headings for package releases (#274).
 
-## Unreleased
-
 ### Breaking Changes
 
 - `DiscoveryEvent<T>` has been renamed to `ControlPlaneEvent<T>`.

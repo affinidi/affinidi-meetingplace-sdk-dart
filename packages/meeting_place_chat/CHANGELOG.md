@@ -2,8 +2,6 @@
 
  - **FIX**: remove duplicate changelog headings for package releases (#274).
 
-## Unreleased
-
 ### Breaking Changes
 
 - `meeting_place_chat` now supports DIDComm individual chats only. Matrix-backed chat implementations and group chat support have moved to `meeting_place_matrix`.

@@ -68,6 +68,7 @@ void main() {
 
       expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
       expect(capabilities.supports(ChatFeature.videoAttachments), isFalse);
+      expect(capabilities.supports(ChatFeature.suggestionRequests), isFalse);
     });
 
     test('individual Matrix supports both image and video attachments', () {
@@ -75,6 +76,7 @@ void main() {
 
       expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
       expect(capabilities.supports(ChatFeature.videoAttachments), isTrue);
+      expect(capabilities.supports(ChatFeature.suggestionRequests), isTrue);
     });
 
     test('group Matrix mirrors Matrix attachment capabilities', () {
@@ -82,6 +84,7 @@ void main() {
 
       expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
       expect(capabilities.supports(ChatFeature.videoAttachments), isTrue);
+      expect(capabilities.supports(ChatFeature.suggestionRequests), isTrue);
     });
   });
 }

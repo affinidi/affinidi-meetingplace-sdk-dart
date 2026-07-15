@@ -59,6 +59,10 @@ enum ChatFeature {
   /// Contact-card proposal and acceptance flow.
   contactDetailsUpdate,
 
+  /// Send a DIDComm suggestion request to a specific recipient DID using a
+  /// message id and text as context.
+  suggestionRequests,
+
   /// Human liveness zero-knowledge proof
   humanZkp,
 }

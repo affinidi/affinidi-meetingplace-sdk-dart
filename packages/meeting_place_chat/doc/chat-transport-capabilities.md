@@ -25,6 +25,7 @@ The `ChatFeature` enum and the `TransportCapabilities` type live in `transport_c
 | Message delete | Delete a sent message, for everyone or just for yourself | No | Yes |
 | Effects | Visual effects such as confetti | Yes | Yes |
 | Contact details update | Propose and accept contact-card changes | Yes | Yes |
+| Suggestion requests | Send a DIDComm suggestion request to the configured personal agent DID using a message id and text as context | No | Yes |
 | Human ZKP liveness | Zero-knowledge liveness concierge exchange | Yes | No |
 
 Group chat is not in this matrix on purpose. Whether a chat is individual or
@@ -40,7 +41,7 @@ Not supported: voice messages, message edit, message delete for everyone.
 
 ## Matrix
 
-Supported: text messaging, image attachments, video attachments, document attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update.
+Supported: text messaging, image attachments, video attachments, document attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update, suggestion requests.
 
 Not supported: presence.
 
@@ -48,7 +49,7 @@ Not supported: presence.
 
 | Scope | Features |
 | --- | --- |
-| Matrix only | Video attachments, document attachments, voice messages, message edit, message delete |
+| Matrix only | Video attachments, document attachments, voice messages, message edit, message delete, suggestion requests |
 | DIDComm only | Presence |
 | Both transports | Text messaging, image attachments, reactions, typing indicators, delivery receipts, effects, contact details update |
 
@@ -76,3 +77,5 @@ On loading a chat, the app stores the channel's transport and gates the UI to ma
 - Hides the presence indicator when presence is unsupported.
 
 The chat session service also guards these operations, so an unsupported action fails fast instead of sending malformed data. Text, reactions, typing, and effects stay available on both transports.
+
+Suggestion requests are send-only in the chat SDK on this branch: Matrix-backed chats emit the DIDComm request to the configured `MeetingPlaceCoreSDKOptions.agentDid`, while individual DIDComm chats do not support the action and there is no incoming typed chat event yet. Calling the API without a configured `agentDid` fails fast.

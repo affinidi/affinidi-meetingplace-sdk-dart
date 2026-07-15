@@ -62,6 +62,7 @@ class IndividualMatrixChatSDK extends MatrixChatSDK
     ChatFeature.messageDelete,
     ChatFeature.effects,
     ChatFeature.contactDetailsUpdate,
+    ChatFeature.suggestionRequests,
   });
 
   @override

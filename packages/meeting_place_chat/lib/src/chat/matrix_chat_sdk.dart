@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../event/chat_event_conversion.dart';
+import '../transport/didcomm/outgoing/outgoing.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
@@ -471,6 +472,36 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     );
 
     logger.info('Sent custom room event of type $type', name: _matrixLogkey);
+  }
+
+  @override
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  }) async {
+    assertCanSend();
+    final recipientDid = coreSDK.options.agentDid;
+    if (recipientDid == null) {
+      throw StateError(
+        'Cannot send suggestion request: MeetingPlaceCoreSDK.options.agentDid '
+        'is not configured',
+      );
+    }
+
+    await coreSDK.sendMessage(
+      ChatSuggestionRequestMessage(
+        senderDid: did,
+        recipientDid: recipientDid,
+        mediatorDid: mediatorDid,
+        messageId: messageId,
+        text: text,
+      ),
+    );
+
+    logger.info(
+      'Sent suggestion request for message $messageId to $recipientDid',
+      name: _matrixLogkey,
+    );
   }
 
   @override

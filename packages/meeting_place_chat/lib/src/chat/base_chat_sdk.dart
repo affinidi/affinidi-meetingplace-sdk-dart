@@ -146,6 +146,13 @@ abstract class BaseChatSDK {
   /// Sends updated contact details from the current contact card.
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
 
+  /// Sends a DIDComm suggestion request to the configured personal agent DID,
+  /// using [messageId] and [text] as the suggestion context.
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  });
+
   /// Rejects a contact details update and marks message as confirmed.
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) async {
     message.status = ChatItemStatus.confirmed;

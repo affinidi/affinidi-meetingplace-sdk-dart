@@ -35,6 +35,7 @@ Channel _matrixChannel({String? messageSyncMarker, int seqNo = 0}) {
 TransportEvent _inboundMessage({
   required String id,
   Map<String, dynamic>? content,
+  DateTime? timestamp,
 }) {
   return TransportEvent(
     id: id,
@@ -42,20 +43,20 @@ TransportEvent _inboundMessage({
     senderDid: 'did:test:sender',
     channelId: _permanentChannelDid,
     content: content ?? const {'msgtype': 'm.text', 'body': 'hello'},
-    timestamp: DateTime.now().toUtc(),
+    timestamp: timestamp ?? DateTime.now().toUtc(),
     isFromMe: false,
     metadata: const {'sender_id': '@sender:matrix.local'},
   );
 }
 
-TransportEvent _outboundMessage({required String id}) {
+TransportEvent _outboundMessage({required String id, DateTime? timestamp}) {
   return TransportEvent(
     id: id,
     type: 'm.room.message',
     senderDid: 'did:test:me',
     channelId: _permanentChannelDid,
     content: const {'msgtype': 'm.text', 'body': 'hi'},
-    timestamp: DateTime.now().toUtc(),
+    timestamp: timestamp ?? DateTime.now().toUtc(),
     isFromMe: true,
     metadata: const {'sender_id': '@me:matrix.local'},
   );
@@ -181,8 +182,14 @@ void main() {
       () async {
         final channel = _matrixChannel(messageSyncMarker: r'$prev');
         final events = [
-          _inboundMessage(id: r'$evt1'),
-          _inboundMessage(id: r'$evt2'),
+          _inboundMessage(
+            id: r'$evt1',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
+          ),
+          _inboundMessage(
+            id: r'$evt2',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 2),
+          ),
         ];
 
         when(
@@ -266,8 +273,14 @@ void main() {
       () async {
         final channel = _matrixChannel();
         final events = [
-          _outboundMessage(id: r'$evt1'),
-          _outboundMessage(id: r'$evt2'),
+          _outboundMessage(
+            id: r'$evt1',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
+          ),
+          _outboundMessage(
+            id: r'$evt2',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 2),
+          ),
         ];
 
         when(
@@ -318,12 +331,26 @@ void main() {
       },
     );
 
-    test('updates sync marker to last event id (not first)', () async {
+    test('advances sync marker to the newest event by timestamp regardless of '
+        'list position (matrix history is newest-first)', () async {
       final channel = _matrixChannel();
+      // Matrix `fetchHistory` returns events newest-first, so the newest
+      // event is at the head and the oldest at the tail. Anchoring the marker
+      // by list position (events.last) would regress it to the oldest event
+      // and cause the next sync to re-count the window, inflating seqNo.
       final events = [
-        _inboundMessage(id: r'$evt-first'),
-        _inboundMessage(id: r'$evt-middle'),
-        _inboundMessage(id: r'$evt-last'),
+        _inboundMessage(
+          id: r'$evt-newest',
+          timestamp: DateTime.utc(2026, 1, 1, 0, 0, 3),
+        ),
+        _inboundMessage(
+          id: r'$evt-middle',
+          timestamp: DateTime.utc(2026, 1, 1, 0, 0, 2),
+        ),
+        _inboundMessage(
+          id: r'$evt-oldest',
+          timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
+        ),
       ];
 
       when(
@@ -341,11 +368,12 @@ void main() {
       await handler.process(channelActivity);
 
       verify(
-        () => mockChannelService.updateMessageSyncMarker(channel, r'$evt-last'),
+        () =>
+            mockChannelService.updateMessageSyncMarker(channel, r'$evt-newest'),
       ).called(1);
       verifyNever(
         () =>
-            mockChannelService.updateMessageSyncMarker(channel, r'$evt-first'),
+            mockChannelService.updateMessageSyncMarker(channel, r'$evt-oldest'),
       );
     });
   });

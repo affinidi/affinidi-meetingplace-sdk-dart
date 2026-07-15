@@ -113,7 +113,18 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       channel.seqNo += inboundChatCount;
     }
 
-    await channelService.updateMessageSyncMarker(channel, events.last.id);
+    // Advance the sync marker to the newest event by timestamp, not by list
+    // position. `fetchHistory` is not guaranteed to return events in
+    // chronological order (the matrix timeline is newest-first), so
+    // `events.last` is the oldest fetched event. Anchoring the marker there
+    // leaves newer events "unseen", so the next sync re-fetches and re-counts
+    // them — inflating `seqNo` (and the unread badge) by the size of the fetch
+    // window on every subsequent activity. Picking the max-timestamp event
+    // advances the marker past everything just counted.
+    final newestEvent = events.reduce(
+      (a, b) => b.timestamp.isAfter(a.timestamp) ? b : a,
+    );
+    await channelService.updateMessageSyncMarker(channel, newestEvent.id);
   }
 
   @override

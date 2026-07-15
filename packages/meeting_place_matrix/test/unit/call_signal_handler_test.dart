@@ -10,6 +10,8 @@ import 'mocks/mocks.dart';
 
 const _ownDid = 'did:key:own';
 const _callerDid = 'did:key:caller';
+const _roomId = '!room:example.com';
+const _transportCallId = '!room:example.com@12345';
 
 Channel _channel({String? otherPartyDid = _callerDid}) => Channel(
   offerLink: 'offer-link',
@@ -28,7 +30,9 @@ Channel _channel({String? otherPartyDid = _callerDid}) => Channel(
 );
 
 void main() {
-  late MockMeetingPlaceCoreSDK sdk;
+  late MockMeetingPlaceMatrixSDK sdk;
+  late MockMatrixService matrixService;
+  late MockDidManager didManager;
   late MockMeetingPlaceMatrixSDKLogger logger;
   late PendingCallManager pendingCallManager;
 
@@ -41,9 +45,23 @@ void main() {
   });
 
   setUp(() {
-    sdk = MockMeetingPlaceCoreSDK();
+    sdk = MockMeetingPlaceMatrixSDK();
+    matrixService = MockMatrixService();
+    didManager = MockDidManager();
     logger = MockMeetingPlaceMatrixSDKLogger();
     pendingCallManager = PendingCallManager();
+
+    when(() => sdk.matrixService).thenReturn(matrixService);
+    when(() => sdk.getDidManager(any())).thenAnswer((_) async => didManager);
+    when(
+      () => matrixService.resolveRoomIdForChannel(
+        didManager: didManager,
+        channel: any(named: 'channel'),
+      ),
+    ).thenAnswer((_) async => _roomId);
+    when(
+      () => matrixService.activeCallId(didManager: didManager, roomId: _roomId),
+    ).thenAnswer((_) async => _transportCallId);
 
     when(() => logger.info(any(), name: any(named: 'name'))).thenReturn(null);
     when(
@@ -62,7 +80,7 @@ void main() {
   CallSignalHandler callSignalHandler({
     MockLiveKitCallSession? activeSession,
     List<IncomingAudioVideoCallEvent>? emittedIncoming,
-    List<String>? emittedCancelled,
+    List<IncomingAudioVideoCallEvent>? emittedCancelled,
     List<IncomingAudioVideoCallEvent>? emittedPeerRestarted,
   }) {
     final incoming = emittedIncoming ?? [];
@@ -95,6 +113,7 @@ void main() {
         );
 
         expect(emitted, hasLength(1));
+        expect(emitted.first.callId, _transportCallId);
         expect(emitted.first.callerPermanentChannelDid, _callerDid);
         expect(emitted.first.otherPartyPermanentChannelDid, _callerDid);
         expect(emitted.first.mediaType, CallMediaType.video);
@@ -181,7 +200,7 @@ void main() {
         const IncomingCallSignal(ownChannelDid: _ownDid),
       );
 
-      final cancelled = <String>[];
+      final cancelled = <IncomingAudioVideoCallEvent>[];
       final handlerSecond = CallSignalHandler(
         sdk: sdk,
         pendingCallManager: pendingCallManager, // same manager = same state
@@ -195,7 +214,9 @@ void main() {
         const IncomingCallSignal(ownChannelDid: otherOwnDid),
       );
 
-      expect(cancelled, [otherCallerDid]);
+      expect(cancelled, hasLength(1));
+      expect(cancelled.single.callId, _transportCallId);
+      expect(cancelled.single.callerPermanentChannelDid, otherCallerDid);
     });
 
     test(
@@ -315,7 +336,7 @@ void main() {
           () => sdk.getChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
-        final cancelled = <String>[];
+        final cancelled = <IncomingAudioVideoCallEvent>[];
         final handler = callSignalHandler(emittedCancelled: cancelled);
 
         // Register a pending call so removePendingByDid has something to act on
@@ -328,7 +349,9 @@ void main() {
           const CallDeclineSignal(ownChannelDid: _ownDid),
         );
 
-        expect(cancelled, [_callerDid]);
+        expect(cancelled, hasLength(1));
+        expect(cancelled.single.callId, _callerDid);
+        expect(cancelled.single.callerPermanentChannelDid, _callerDid);
       },
     );
 
@@ -337,7 +360,7 @@ void main() {
         () => sdk.getChannelByDid(_ownDid),
       ).thenThrow(Exception('network error'));
 
-      final cancelled = <String>[];
+      final cancelled = <IncomingAudioVideoCallEvent>[];
       final handler = callSignalHandler(emittedCancelled: cancelled);
 
       await handler.onCallDeclineSignal(
@@ -346,5 +369,90 @@ void main() {
 
       expect(cancelled, isEmpty);
     });
+
+    test(
+      'sets otherPartyPermanentChannelDid to recipient (signal.ownChannelDid), '
+      'not caller',
+      () async {
+        const recipientDid = 'did:key:recipient';
+        when(
+          () => sdk.getChannelByDid(recipientDid),
+        ).thenAnswer((_) async => _channel(otherPartyDid: _callerDid));
+
+        final cancelled = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(emittedCancelled: cancelled);
+
+        pendingCallManager.registerIncomingCall(
+          callId: _callerDid,
+          otherPartyChannelDid: _callerDid,
+        );
+
+        await handler.onCallDeclineSignal(
+          const CallDeclineSignal(ownChannelDid: recipientDid),
+        );
+
+        expect(cancelled, hasLength(1));
+        expect(
+          cancelled.single.otherPartyPermanentChannelDid,
+          recipientDid,
+          reason:
+              'otherPartyPermanentChannelDid must be the recipient '
+              '(signal.ownChannelDid), not the caller',
+        );
+        expect(
+          cancelled.single.callerPermanentChannelDid,
+          _callerDid,
+          reason: 'callerPermanentChannelDid must be the caller',
+        );
+      },
+    );
+  });
+
+  group('_resolveIncomingCallId roomId fallback', () {
+    test('returns transport callId when activeCallId is available', () async {
+      when(
+        () => sdk.getChannelByDid(_ownDid),
+      ).thenAnswer((_) async => _channel());
+
+      final emitted = <IncomingAudioVideoCallEvent>[];
+      final handler = callSignalHandler(emittedIncoming: emitted);
+
+      await handler.onIncomingCallSignal(
+        const IncomingCallSignal(ownChannelDid: _ownDid),
+      );
+
+      expect(emitted.single.callId, _transportCallId);
+    });
+
+    test(
+      'falls back to roomId when transport callId not yet visible',
+      () async {
+        when(
+          () => sdk.getChannelByDid(_ownDid),
+        ).thenAnswer((_) async => _channel());
+
+        // Mock activeCallId to return null (transport not visible yet)
+        when(
+          () => matrixService.activeCallId(
+            didManager: didManager,
+            roomId: _roomId,
+          ),
+        ).thenAnswer((_) async => null);
+
+        final emitted = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(emittedIncoming: emitted);
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        expect(
+          emitted.single.callId,
+          _roomId,
+          reason:
+              'when transport callId is not yet visible, fall back to roomId',
+        );
+      },
+    );
   });
 }

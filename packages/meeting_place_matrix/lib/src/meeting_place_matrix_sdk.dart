@@ -66,8 +66,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Stream<IncomingAudioVideoCallEvent> get incomingCalls =>
       _callPlugin?.incomingCalls ?? const Stream.empty();
 
-  /// Stream of cancelled call IDs. Empty when no plugin is configured.
-  Stream<String> get cancelledCalls =>
+  /// Stream of cancelled incoming-call events. Empty when no plugin
+  /// is configured.
+  Stream<IncomingAudioVideoCallEvent> get cancelledCalls =>
       _callPlugin?.cancelledCalls ?? const Stream.empty();
 
   /// Starts an outbound call and returns a live session handle.

@@ -4,16 +4,18 @@ import '../../../../call/call_media_type.dart';
 /// calls you.
 class IncomingAudioVideoCallEvent {
   const IncomingAudioVideoCallEvent({
+    required this.callId,
     required this.callerPermanentChannelDid,
     required this.otherPartyPermanentChannelDid,
     required this.mediaType,
   });
 
+  /// The transport call session ID for this incoming call.
+  final String callId;
+
   /// The caller's permanent channel DID (stable identifier, not ephemeral).
   ///
-  /// This identifies the remote party initiating the call, not the transport
-  /// call session. Use with `AudioVideoCallPlugin.acceptCall` or
-  /// `AudioVideoCallPlugin.declineCall` to act on this specific call.
+  /// This identifies the remote party initiating the call.
   final String callerPermanentChannelDid;
 
   /// The other party's permanent channel DID (stable identifier,

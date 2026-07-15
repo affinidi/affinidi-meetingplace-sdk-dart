@@ -130,4 +130,7 @@ class PendingCallManager {
     }
     return callId;
   }
+
+  /// Returns the pending caller DID for [callId], or null when it is unknown.
+  String? otherPartyChannelDidFor(String callId) => _pendingCalls[callId];
 }

@@ -93,9 +93,6 @@ void main() {
       ),
     ).thenAnswer((_) async => mockDidManager);
     when(
-      () => mockConnectionManager.generateRootDid(mockWallet),
-    ).thenAnswer((_) async => mockDidManager);
-    when(
       () => mockDidManager.getDidDocument(),
     ).thenAnswer((_) async => mockDidDocument);
     when(
@@ -277,15 +274,15 @@ void main() {
         ).captured;
 
         final message = captured[0] as PlainTextMessage;
-        final body = message.body!;
+        final body = Map<String, dynamic>.from(message.body!);
+        final contactCardBody = Map<String, dynamic>.from(
+          body['contactCard'] as Map,
+        );
 
         expect(body['offerLink'], equals('https://example.com/offer'));
         expect(body['publishOfferDid'], equals('did:test:publish'));
         expect(body['contactCard'], isA<Map<String, dynamic>>());
-        expect(
-          (body['contactCard'] as Map<String, dynamic>)['did'],
-          equals(contactCard.did),
-        );
+        expect(contactCardBody['did'], equals(contactCard.did));
       },
     );
 

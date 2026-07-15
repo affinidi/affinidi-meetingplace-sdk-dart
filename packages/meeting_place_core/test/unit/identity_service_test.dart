@@ -5,7 +5,8 @@ import 'package:meeting_place_core/src/service/identity/identity_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_stream_subscription_wrapper.dart';
 import 'package:meeting_place_core/src/service/message/message_service.dart';
-import 'package:meeting_place_mediator/meeting_place_mediator.dart' show AclBody;
+import 'package:meeting_place_mediator/meeting_place_mediator.dart'
+    show AclBody;
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -246,39 +247,44 @@ void main() {
       expect(recipientDid, equals(_agentDid));
     });
 
-    test('includes offerLink, publishOfferDid and contactCard in request body',
-        () async {
-      when(
-        () => mockSubscription.stream,
-      ).thenAnswer((_) => Stream.value(buildAgentResponse('did:test:agent')));
+    test(
+      'includes offerLink, publishOfferDid and contactCard in request body',
+      () async {
+        when(
+          () => mockSubscription.stream,
+        ).thenAnswer((_) => Stream.value(buildAgentResponse('did:test:agent')));
 
-      final contactCard = ContactCardFixture.getContactCardFixture();
+        final contactCard = ContactCardFixture.getContactCardFixture();
 
-      await service.createPermanentIdentity(
-        mockWallet,
-        transport: ChannelTransport.didcomm,
-        offerLink: 'https://example.com/offer',
-        publishOfferDid: 'did:test:publish',
-        contactCard: contactCard,
-      );
+        await service.createPermanentIdentity(
+          mockWallet,
+          transport: ChannelTransport.didcomm,
+          offerLink: 'https://example.com/offer',
+          publishOfferDid: 'did:test:publish',
+          contactCard: contactCard,
+        );
 
-      final captured = verify(
-        () => mockMessageService.sendMessage(
-          captureAny(),
-          senderDidManager: any(named: 'senderDidManager'),
-          recipientDid: any(named: 'recipientDid'),
-          mediatorDid: any(named: 'mediatorDid'),
-        ),
-      ).captured;
+        final captured = verify(
+          () => mockMessageService.sendMessage(
+            captureAny(),
+            senderDidManager: any(named: 'senderDidManager'),
+            recipientDid: any(named: 'recipientDid'),
+            mediatorDid: any(named: 'mediatorDid'),
+          ),
+        ).captured;
 
-      final message = captured[0] as PlainTextMessage;
-      final body = message.body!;
+        final message = captured[0] as PlainTextMessage;
+        final body = message.body!;
 
-      expect(body['offerLink'], equals('https://example.com/offer'));
-      expect(body['publishOfferDid'], equals('did:test:publish'));
-      expect(body['contactCard'], isA<Map<String, dynamic>>());
-      expect(body['contactCard']['did'], equals(contactCard.did));
-    });
+        expect(body['offerLink'], equals('https://example.com/offer'));
+        expect(body['publishOfferDid'], equals('did:test:publish'));
+        expect(body['contactCard'], isA<Map<String, dynamic>>());
+        expect(
+          (body['contactCard'] as Map<String, dynamic>)['did'],
+          equals(contactCard.did),
+        );
+      },
+    );
 
     test('skips agent handshake when no agentDid is configured', () async {
       final serviceWithoutAgent = IdentityService(

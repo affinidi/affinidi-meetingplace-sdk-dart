@@ -306,7 +306,8 @@ void main() {
       expect(
         channel.otherPartyContactCard,
         isNotNull,
-        reason: 'test precondition: createChannelWithAgent must set otherPartyContactCard',
+        reason:
+            '''test precondition: createChannelWithAgent must set otherPartyContactCard''',
       );
 
       await handler.processMessage(
@@ -325,12 +326,11 @@ void main() {
         ),
       ).captured;
 
-      final agentMsg = captured
-          .whereType<PlainTextMessage>()
-          .firstWhere(
-            (m) => m.type.toString() ==
-                MeetingPlaceProtocol.agentChannelInauguration.value,
-          );
+      final agentMsg = captured.whereType<PlainTextMessage>().firstWhere(
+        (m) =>
+            m.type.toString() ==
+            MeetingPlaceProtocol.agentChannelInauguration.value,
+      );
 
       expect(agentMsg.body?['offer_link'], equals(offerLink));
       expect(agentMsg.body?['publish_offer_did'], equals('did:test:publish'));
@@ -348,38 +348,36 @@ void main() {
       );
     });
 
-    test(
-      'does not send agent inauguration message when '
-      'agentPermanentChannelDid is null',
-      () async {
-        final channel = createChannel(transport: ChannelTransport.didcomm);
+    test('does not send agent inauguration message when '
+        'agentPermanentChannelDid is null', () async {
+      final channel = createChannel(transport: ChannelTransport.didcomm);
 
-        await handler.processMessage(
-          createApprovalMessage(),
-          event: event,
-          connection: connectionOffer,
-          channel: channel,
-        );
+      await handler.processMessage(
+        createApprovalMessage(),
+        event: event,
+        connection: connectionOffer,
+        channel: channel,
+      );
 
-        final captured = verify(
-          () => mockMediatorService.sendMessage(
-            captureAny(),
-            senderDidManager: any(named: 'senderDidManager'),
-            recipientDidDocument: any(named: 'recipientDidDocument'),
-            mediatorDid: any(named: 'mediatorDid'),
-          ),
-        ).captured;
+      final captured = verify(
+        () => mockMediatorService.sendMessage(
+          captureAny(),
+          senderDidManager: any(named: 'senderDidManager'),
+          recipientDidDocument: any(named: 'recipientDidDocument'),
+          mediatorDid: any(named: 'mediatorDid'),
+        ),
+      ).captured;
 
-        final agentMsgs = captured
-            .whereType<PlainTextMessage>()
-            .where(
-              (m) => m.type.toString() ==
-                  MeetingPlaceProtocol.agentChannelInauguration.value,
-            )
-            .toList();
+      final agentMsgs = captured
+          .whereType<PlainTextMessage>()
+          .where(
+            (m) =>
+                m.type.toString() ==
+                MeetingPlaceProtocol.agentChannelInauguration.value,
+          )
+          .toList();
 
-        expect(agentMsgs, isEmpty);
-      },
-    );
+      expect(agentMsgs, isEmpty);
+    });
   });
 }

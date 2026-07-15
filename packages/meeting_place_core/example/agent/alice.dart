@@ -43,7 +43,7 @@ void main() async {
     transport: ChannelTransport.didcomm,
   );
   prettyPrintGreen(
-    '[Alice] ✓ Published offer mnemonic ${publishOfferResult.connectionOffer.mnemonic}',
+    '''[Alice] ✓ Published offer mnemonic ${publishOfferResult.connectionOffer.mnemonic}''',
   );
 
   // Write mnemonic to file so Bob can read it
@@ -123,18 +123,18 @@ void main() async {
       }
     });
     prettyPrintYellow(
-        '[Alice] Listening on chat stream using DID ${receivedChannelActivityEvent.channel.permanentChannelDid}...');
+        '''[Alice] Listening on chat stream using DID ${receivedChannelActivityEvent.channel.permanentChannelDid}...''');
   });
 
   await Future<void>.delayed(const Duration(seconds: 10));
   await aliceChatSDK.sendTextMessage('Hello, what is your name?');
   prettyPrintGreen('[Alice] ✓ Sent message to Bob');
   prettyPrintGreen(
-      '[Alice] ✓ My permanent channel DID: ${receivedChannelActivityEvent.channel.permanentChannelDid}');
+      '''[Alice] ✓ My permanent channel DID: ${receivedChannelActivityEvent.channel.permanentChannelDid}''');
   prettyPrintGreen(
-      "[Alice] ✓ Bob's permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyPermanentChannelDid}");
+      '''[Alice] ✓ Bob's permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyPermanentChannelDid}''');
   prettyPrintGreen(
-      "[Alice] ✓ Bob's agent permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyAgentPermanentChannelDid}");
+      '''[Alice] ✓ Bob's agent permanent channel DID: ${receivedChannelActivityEvent.channel.otherPartyAgentPermanentChannelDid}''');
 }
 
 class _InMemoryChatRepository implements ChatRepository {

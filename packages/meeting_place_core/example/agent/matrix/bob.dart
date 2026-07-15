@@ -99,15 +99,15 @@ void main() async {
       }
     });
     prettyPrintYellow(
-        '[Bob] Listening on chat stream using DID ${offerFinalisedEvent.channel.permanentChannelDid}...');
+        '''[Bob] Listening on chat stream using DID ${offerFinalisedEvent.channel.permanentChannelDid}...''');
   });
 
   await bobChatSDK.sendTextMessage('Hi Alice, my name is Bob!');
   prettyPrintGreen('[Bob] ✓ Sent reply to Alice');
   prettyPrintGreen(
-      '[Bob] ✓ My permanent channel DID: ${offerFinalisedEvent.channel.permanentChannelDid}');
+      '''[Bob] ✓ My permanent channel DID: ${offerFinalisedEvent.channel.permanentChannelDid}''');
   prettyPrintGreen(
-      "[Bob] ✓ Alice's permanent channel DID: ${offerFinalisedEvent.channel.otherPartyPermanentChannelDid}");
+      '''[Bob] ✓ Alice's permanent channel DID: ${offerFinalisedEvent.channel.otherPartyPermanentChannelDid}''');
 }
 
 class _InMemoryChatRepository implements ChatRepository {

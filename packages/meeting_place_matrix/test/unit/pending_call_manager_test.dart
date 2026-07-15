@@ -1,9 +1,11 @@
+import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/pending_call_manager.dart';
 import 'package:test/test.dart';
 
 const _callId = 'call-001';
 const _otherPartyDid = 'did:key:other-party';
 const _otherPartyDid2 = 'did:key:other-party-2';
+const _mediaType = CallMediaType.video;
 
 void main() {
   late PendingCallManager manager;
@@ -19,6 +21,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       expect(manager.isBusy, isTrue);
     });
@@ -27,6 +30,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       manager.declineCall(_callId);
       expect(manager.isBusy, isFalse);
@@ -42,6 +46,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       expect(manager.isRinging(_callId), isTrue);
     });
@@ -50,6 +55,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       expect(manager.isRinging('other-call'), isFalse);
     });
@@ -58,6 +64,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       manager.declineCall(_callId);
       expect(manager.isRinging(_callId), isFalse);
@@ -69,6 +76,7 @@ void main() {
       final result = manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       expect(result, isTrue);
       expect(manager.isBusy, isTrue);
@@ -78,10 +86,12 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       final result = manager.registerIncomingCall(
         callId: 'call-002',
         otherPartyChannelDid: _otherPartyDid2,
+        mediaType: CallMediaType.audio,
       );
       expect(result, isFalse);
     });
@@ -92,6 +102,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       final did = manager.acceptCall(_callId);
       expect(did, _otherPartyDid);
@@ -107,6 +118,7 @@ void main() {
         manager.registerIncomingCall(
           callId: _callId,
           otherPartyChannelDid: _otherPartyDid,
+          mediaType: _mediaType,
         );
         manager.acceptCall(_callId);
         final (:isRecipient, pendingCallId: _) = manager.resolveRole(
@@ -122,6 +134,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       final did = manager.declineCall(_callId);
       expect(did, _otherPartyDid);
@@ -146,6 +159,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       final (:isRecipient, :pendingCallId) = manager.resolveRole(
         _otherPartyDid,
@@ -158,6 +172,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       manager.resolveRole(_otherPartyDid);
       final (:isRecipient, pendingCallId: _) = manager.resolveRole(
@@ -172,9 +187,11 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
-      final callId = manager.removePendingByDid(_otherPartyDid);
-      expect(callId, _callId);
+      final pendingCall = manager.removePendingByDid(_otherPartyDid);
+      expect(pendingCall?.callId, _callId);
+      expect(pendingCall?.mediaType, _mediaType);
       expect(manager.isBusy, isFalse);
     });
 
@@ -188,16 +205,18 @@ void main() {
         manager.registerIncomingCall(
           callId: _callId,
           otherPartyChannelDid: _otherPartyDid,
+          mediaType: _mediaType,
         );
         // Decline first call so a different one can become active.
         manager.declineCall(_callId);
         manager.registerIncomingCall(
           callId: 'call-002',
           otherPartyChannelDid: _otherPartyDid2,
+          mediaType: CallMediaType.audio,
         );
         // Remove a stale entry that was already declined (no longer in pending)
-        final callId = manager.removePendingByDid(_otherPartyDid);
-        expect(callId, isNull);
+        final pendingCall = manager.removePendingByDid(_otherPartyDid);
+        expect(pendingCall, isNull);
         expect(manager.isBusy, isTrue);
       },
     );
@@ -212,6 +231,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       expect(manager.isInCallWith(_otherPartyDid), isTrue);
     });
@@ -220,6 +240,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       expect(manager.isInCallWith(_otherPartyDid2), isFalse);
     });
@@ -254,6 +275,7 @@ void main() {
       manager.registerIncomingCall(
         callId: _callId,
         otherPartyChannelDid: _otherPartyDid,
+        mediaType: _mediaType,
       );
       manager.acceptCall(_callId);
       manager.clearActiveCall();

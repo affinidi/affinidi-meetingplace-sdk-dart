@@ -26,12 +26,14 @@ abstract interface class AudioVideoCallPlugin {
   /// banner when an event arrives.
   Stream<IncomingAudioVideoCallEvent> get incomingCalls;
 
-  /// Stream of incoming-call events for calls that were cancelled by the
-  /// caller before the local user answered.
+  /// Stream of incoming-call events for calls that did not connect.
+  ///
+  /// This includes calls cancelled by the caller before the local user
+  /// answered, and calls auto-rejected as busy by this device.
   ///
   /// The app shell listens to this stream to dismiss the incoming-call banner
-  /// and mark the corresponding chat item as missed when the remote party
-  /// hangs up before the call is accepted.
+  /// and mark the corresponding chat item as missed when the call does not
+  /// connect.
   Stream<IncomingAudioVideoCallEvent> get cancelledCalls;
 
   /// Starts an outbound call and returns a live [AudioVideoCallSession] handle.

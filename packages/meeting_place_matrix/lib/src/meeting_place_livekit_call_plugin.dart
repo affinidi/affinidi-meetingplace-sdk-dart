@@ -121,6 +121,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
           ..registerIncomingCall(
             callId: event.callId,
             otherPartyChannelDid: event.otherPartyPermanentChannelDid,
+            mediaType: event.mediaType,
           );
         if (!_incomingCallsController.isClosed) {
           _incomingCallsController.add(event);

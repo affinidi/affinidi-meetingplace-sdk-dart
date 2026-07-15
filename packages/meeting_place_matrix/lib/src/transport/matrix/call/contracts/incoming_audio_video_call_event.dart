@@ -10,7 +10,10 @@ class IncomingAudioVideoCallEvent {
     required this.mediaType,
   });
 
-  /// The transport call session ID for this incoming call.
+  /// Identifier for this call.
+  ///
+  /// Uses the transport call session ID when available, but may fall back to a
+  /// Matrix room ID or caller DID when transport metadata is not yet ready.
   final String callId;
 
   /// The caller's permanent channel DID (stable identifier, not ephemeral).

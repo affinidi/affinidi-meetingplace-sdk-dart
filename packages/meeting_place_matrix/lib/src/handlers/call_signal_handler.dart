@@ -74,6 +74,7 @@ class CallSignalHandler {
       final callId = await _resolveIncomingCallId(
         ownChannelDid: signal.ownChannelDid,
         channel: channel,
+        callerChannelDid: callerChannelDid,
       );
 
       final event = IncomingAudioVideoCallEvent(
@@ -146,14 +147,14 @@ class CallSignalHandler {
       return;
     }
 
-    final pendingCallId = _pendingCallManager.removePendingByDid(
+    final pendingCall = _pendingCallManager.removePendingByDid(
       otherPartyChannelDid,
     );
     final cancelledEvent = IncomingAudioVideoCallEvent(
-      callId: pendingCallId ?? otherPartyChannelDid,
+      callId: pendingCall?.callId ?? otherPartyChannelDid,
       callerPermanentChannelDid: otherPartyChannelDid,
       otherPartyPermanentChannelDid: signal.ownChannelDid,
-      mediaType: CallMediaType.video,
+      mediaType: pendingCall?.mediaType ?? CallMediaType.video,
     );
     _logger.info(
       'onCallDeclineSignal: Caller ${otherPartyChannelDid.topAndTail()} '
@@ -194,6 +195,7 @@ class CallSignalHandler {
     final registered = _pendingCallManager.registerIncomingCall(
       callId: event.callId,
       otherPartyChannelDid: event.otherPartyPermanentChannelDid,
+      mediaType: event.mediaType,
     );
     if (!registered) {
       _logger.warning(
@@ -210,9 +212,16 @@ class CallSignalHandler {
           ),
         ),
       );
-      // Surface busy auto-reject on the cancelled-call channel so the app
-      // can record a missed call for the caller that got the busy signal.
-      _onCallCancelled(event);
+      // Surface busy auto-reject on the cancelled-call channel so the app can
+      // record a missed call for the caller that got the busy signal.
+      _onCallCancelled(
+        IncomingAudioVideoCallEvent(
+          callId: event.callId,
+          callerPermanentChannelDid: event.callerPermanentChannelDid,
+          otherPartyPermanentChannelDid: ownChannelDid,
+          mediaType: event.mediaType,
+        ),
+      );
       return;
     }
     _onIncomingCall(event);
@@ -228,26 +237,43 @@ class CallSignalHandler {
   Future<String> _resolveIncomingCallId({
     required String ownChannelDid,
     required Channel channel,
+    required String callerChannelDid,
   }) async {
-    final didManager = await _sdk.getDidManager(ownChannelDid);
-    final roomId = await _sdk.matrixService.resolveRoomIdForChannel(
-      didManager: didManager,
-      channel: channel,
-    );
+    try {
+      final didManager = await _sdk.getDidManager(ownChannelDid);
+      final roomId = await _sdk.matrixService.resolveRoomIdForChannel(
+        didManager: didManager,
+        channel: channel,
+      );
 
-    final callId = await _sdk.matrixService.activeCallId(
-      didManager: didManager,
-      roomId: roomId,
-    );
-    if (callId != null) {
-      return callId;
+      final callId = await _sdk.matrixService.activeCallId(
+        didManager: didManager,
+        roomId: roomId,
+      );
+      if (callId != null) {
+        return callId;
+      }
+
+      _logger.warning(
+        'Incoming call transport callId not yet visible for '
+        '${ownChannelDid.topAndTail()}, falling back to roomId $roomId',
+        name: _logKey,
+      );
+      return roomId;
+    } catch (e, stackTrace) {
+      _logger.warning(
+        'Incoming call identifier resolution failed for '
+        '${ownChannelDid.topAndTail()}, falling back to caller DID '
+        '${callerChannelDid.topAndTail()}',
+        name: _logKey,
+      );
+      _logger.error(
+        'Incoming call identifier resolution failed',
+        error: e,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+      return callerChannelDid;
     }
-
-    _logger.warning(
-      'Incoming call transport callId not yet visible for '
-      '${ownChannelDid.topAndTail()}, falling back to roomId $roomId',
-      name: _logKey,
-    );
-    return roomId;
   }
 }

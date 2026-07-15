@@ -343,6 +343,7 @@ void main() {
         pendingCallManager.registerIncomingCall(
           callId: _callerDid,
           otherPartyChannelDid: _callerDid,
+          mediaType: CallMediaType.audio,
         );
 
         await handler.onCallDeclineSignal(
@@ -352,6 +353,7 @@ void main() {
         expect(cancelled, hasLength(1));
         expect(cancelled.single.callId, _callerDid);
         expect(cancelled.single.callerPermanentChannelDid, _callerDid);
+        expect(cancelled.single.mediaType, CallMediaType.audio);
       },
     );
 
@@ -385,6 +387,7 @@ void main() {
         pendingCallManager.registerIncomingCall(
           callId: _callerDid,
           otherPartyChannelDid: _callerDid,
+          mediaType: CallMediaType.audio,
         );
 
         await handler.onCallDeclineSignal(
@@ -404,6 +407,7 @@ void main() {
           _callerDid,
           reason: 'callerPermanentChannelDid must be the caller',
         );
+        expect(cancelled.single.mediaType, CallMediaType.audio);
       },
     );
   });
@@ -451,6 +455,35 @@ void main() {
           _roomId,
           reason:
               'when transport callId is not yet visible, fall back to roomId',
+        );
+      },
+    );
+
+    test(
+      'falls back to caller DID when call identifier resolution throws',
+      () async {
+        when(
+          () => sdk.getChannelByDid(_ownDid),
+        ).thenAnswer((_) async => _channel());
+        when(
+          () => matrixService.resolveRoomIdForChannel(
+            didManager: didManager,
+            channel: any(named: 'channel'),
+          ),
+        ).thenThrow(Exception('room lookup failed'));
+
+        final emitted = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(emittedIncoming: emitted);
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        expect(emitted, hasLength(1));
+        expect(
+          emitted.single.callId,
+          _callerDid,
+          reason: 'when room resolution fails, fall back to caller DID',
         );
       },
     );

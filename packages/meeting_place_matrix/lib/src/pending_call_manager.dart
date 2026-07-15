@@ -1,3 +1,5 @@
+import 'call/call_media_type.dart';
+
 /// Tracks ringing calls and the busy-guard for
 /// `MeetingPlaceLiveKitCallPlugin`.
 ///
@@ -5,10 +7,15 @@
 /// 1. Pending calls (ringing, not yet accepted): callId → otherPartyChannelDid.
 /// 2. The active call id (busy guard — non-null while a call is ringing or
 ///    connected).
-/// 3. The accepted-but-not-yet-started channel DID (set by [acceptCall],
-///    consumed by [resolveRole]).
+/// 3. The accepted-but-not-yet-started channel DID set when a ringing call is
+///    accepted and consumed when the session role is resolved.
+typedef PendingCallDetails = ({
+  String otherPartyChannelDid,
+  CallMediaType mediaType,
+});
+
 class PendingCallManager {
-  final Map<String, String> _pendingCalls = {};
+  final Map<String, PendingCallDetails> _pendingCalls = {};
   String? _activeCallId;
   bool _outboundActive = false;
   String? _acceptedOtherPartyChannelDid;
@@ -35,11 +42,15 @@ class PendingCallManager {
   bool registerIncomingCall({
     required String callId,
     required String otherPartyChannelDid,
+    required CallMediaType mediaType,
   }) {
     if (isBusy) return false;
     _activeCallId = callId;
     _activePeerDid = otherPartyChannelDid;
-    _pendingCalls[callId] = otherPartyChannelDid;
+    _pendingCalls[callId] = (
+      otherPartyChannelDid: otherPartyChannelDid,
+      mediaType: mediaType,
+    );
     return true;
   }
 
@@ -47,7 +58,7 @@ class PendingCallManager {
   ///
   /// Returns the otherPartyChannelDid, or null if [callId] is not pending.
   String? acceptCall(String callId) {
-    final did = _pendingCalls.remove(callId);
+    final did = _pendingCalls.remove(callId)?.otherPartyChannelDid;
     if (did != null) _acceptedOtherPartyChannelDid = did;
     return did;
   }
@@ -56,7 +67,7 @@ class PendingCallManager {
   ///
   /// Returns the otherPartyChannelDid so the caller can send a decline signal.
   String? declineCall(String callId) {
-    final did = _pendingCalls.remove(callId);
+    final did = _pendingCalls.remove(callId)?.otherPartyChannelDid;
     if (_activeCallId == callId) {
       _activeCallId = null;
       _activePeerDid = null;
@@ -74,7 +85,7 @@ class PendingCallManager {
   ) {
     String? pendingCallId;
     for (final entry in _pendingCalls.entries) {
-      if (entry.value == otherPartyChannelDid) {
+      if (entry.value.otherPartyChannelDid == otherPartyChannelDid) {
         pendingCallId = entry.key;
         break;
       }
@@ -113,24 +124,29 @@ class PendingCallManager {
   ///
   /// Returns the callId that was removed, or null. Clears the busy guard when
   /// the removed call was the active call.
-  String? removePendingByDid(String otherPartyChannelDid) {
+  ({String callId, CallMediaType mediaType})? removePendingByDid(
+    String otherPartyChannelDid,
+  ) {
     String? callId;
     for (final entry in _pendingCalls.entries) {
-      if (entry.value == otherPartyChannelDid) {
+      if (entry.value.otherPartyChannelDid == otherPartyChannelDid) {
         callId = entry.key;
         break;
       }
     }
-    if (callId != null) {
-      _pendingCalls.remove(callId);
-      if (_activeCallId == callId) {
-        _activeCallId = null;
-        _activePeerDid = null;
-      }
+    if (callId == null) {
+      return null;
     }
-    return callId;
+
+    final details = _pendingCalls.remove(callId)!;
+    if (_activeCallId == callId) {
+      _activeCallId = null;
+      _activePeerDid = null;
+    }
+    return (callId: callId, mediaType: details.mediaType);
   }
 
   /// Returns the pending caller DID for [callId], or null when it is unknown.
-  String? otherPartyChannelDidFor(String callId) => _pendingCalls[callId];
+  String? otherPartyChannelDidFor(String callId) =>
+      _pendingCalls[callId]?.otherPartyChannelDid;
 }

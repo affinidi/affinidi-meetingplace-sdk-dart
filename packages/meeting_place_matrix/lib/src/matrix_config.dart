@@ -36,8 +36,12 @@ class MatrixConfig extends Config {
   /// hostname is not reachable from the device.
   final Uri? livekitSfuUrl;
 
-  /// How long the caller waits for the remote party to answer before the
-  /// call is automatically ended and reported as missed. Defaults to 60 s.
+  /// How long the caller waits for the remote party to answer before the call
+  /// is automatically ended and reported as missed.
+  ///
+  /// Defaults to 60 s so the timeout matches a real unanswered call instead
+  /// of reporting a missed call while the callee is still deciding whether to
+  /// answer.
   final Duration outgoingCallTimeout;
 }
 

@@ -6,6 +6,8 @@ The app reads each chat's capabilities and hides or disables any action the chat
 
 The capability matrix below covers per-chat actions that differ between transports. These are the features the `ChatFeature` enum gates in the UI. Other identity and credential features that ride on top of chat (credential exchange, R-Card sharing) are not transport-gated; see [Identity and credential features](#identity-and-credential-features).
 
+`Suggestion requests` also depend on runtime configuration: Matrix chats expose them only when `MeetingPlaceCoreSDKOptions.agentDid` is configured.
+
 The `ChatFeature` enum and the `TransportCapabilities` type live in `transport_capabilities.dart`. Each chat SDK declares its own capability set and exposes it through `capabilities`.
 
 ## Capability matrix

@@ -61,6 +61,19 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   ChannelNotification buildChannelNotification(String type) =>
       IndividualChannelNotification(recipientDid: otherPartyDid, type: type);
 
+  @protected
+  TransportCapabilities withSuggestionRequestCapability(
+    Set<ChatFeature> baseFeatures,
+  ) {
+    if (coreSDK.options.agentDid == null) {
+      return TransportCapabilities(baseFeatures);
+    }
+    return TransportCapabilities({
+      ...baseFeatures,
+      ChatFeature.suggestionRequests,
+    });
+  }
+
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();

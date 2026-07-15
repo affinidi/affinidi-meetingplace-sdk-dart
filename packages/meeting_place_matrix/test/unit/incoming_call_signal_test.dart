@@ -33,11 +33,16 @@ Channel _channel({required String ownDid, required String? otherPartyDid}) =>
       otherPartyPermanentChannelDid: otherPartyDid,
     );
 
+const _roomId = '!testRoom:matrix.org';
+const _callId = 'test-call-id';
+
 void main() {
   const callerDid = 'did:key:callerChannelDid';
   const ownDid = 'did:key:ownChannelDid';
 
   late MockMeetingPlaceMatrixSDK mockSdk;
+  late MockMatrixService mockMatrixService;
+  late MockDidManager mockDidManager;
   late StreamController<CallSignal> signalController;
   late MeetingPlaceLiveKitCallPlugin plugin;
 
@@ -49,9 +54,27 @@ void main() {
 
   setUp(() {
     mockSdk = MockMeetingPlaceMatrixSDK();
+    mockMatrixService = MockMatrixService();
+    mockDidManager = MockDidManager();
     signalController = StreamController<CallSignal>.broadcast();
 
     when(() => mockSdk.callSignals).thenAnswer((_) => signalController.stream);
+    when(() => mockSdk.matrixService).thenReturn(mockMatrixService);
+    when(
+      () => mockSdk.getDidManager(any()),
+    ).thenAnswer((_) async => mockDidManager);
+    when(
+      () => mockMatrixService.resolveRoomIdForChannel(
+        didManager: any(named: 'didManager'),
+        channel: any(named: 'channel'),
+      ),
+    ).thenAnswer((_) async => _roomId);
+    when(
+      () => mockMatrixService.activeCallId(
+        didManager: any(named: 'didManager'),
+        roomId: any(named: 'roomId'),
+      ),
+    ).thenAnswer((_) async => _callId);
 
     plugin = _plugin();
     plugin.initialize(sdk: mockSdk);

@@ -1,3 +1,7 @@
+## 0.0.1-dev.3
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
 ## 0.0.1-dev.2
 
  - **FIX**: report network errors (#276).

@@ -3,6 +3,57 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.52`](#meeting_place_chat---v001-dev52)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.22`](#meeting_place_control_plane---v001-dev22)
+ - [`meeting_place_core` - `v0.0.1-dev.45`](#meeting_place_core---v001-dev45)
+ - [`meeting_place_credentials` - `v0.0.1-dev.10`](#meeting_place_credentials---v001-dev10)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.52`](#meeting_place_drift_repository---v001-dev52)
+ - [`meeting_place_matrix` - `v0.0.1-dev.3`](#meeting_place_matrix---v001-dev3)
+ - [`meeting_place_mediator` - `v0.0.1-dev.16`](#meeting_place_mediator---v001-dev16)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.52`
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.22`
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
+#### `meeting_place_core` - `v0.0.1-dev.45`
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
+#### `meeting_place_credentials` - `v0.0.1-dev.10`
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.52`
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
+#### `meeting_place_matrix` - `v0.0.1-dev.3`
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.16`
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
+
 ## 2026-07-14
 
 ### Changes

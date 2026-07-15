@@ -1,3 +1,7 @@
+## 0.0.1-dev.16
+
+ - **FIX**: surface busy auto-reject on cancelled-call stream (#275).
+
 ## 0.0.1-dev.15
 
  - **FIX**: improvements and bug fixes (#131).

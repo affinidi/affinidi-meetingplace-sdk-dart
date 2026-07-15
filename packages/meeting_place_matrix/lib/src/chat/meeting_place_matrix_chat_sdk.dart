@@ -808,9 +808,16 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     if (events.isNotEmpty) {
       final currentMarker = await chatRepository.getSyncMarker(chatId);
       if (currentMarker == bootstrapCursor) {
+        // Advance to the newest event by timestamp, not by list position:
+        // matrix history is newest-first, so `events.last` is the oldest
+        // fetched event. Anchoring the marker there makes the next bootstrap
+        // re-fetch and re-process the same window.
+        final newestEvent = events.reduce(
+          (a, b) => b.timestamp.isAfter(a.timestamp) ? b : a,
+        );
         await chatRepository.updateSyncMarker(
           chatId: chatId,
-          eventId: events.last.id,
+          eventId: newestEvent.id,
         );
       }
     }

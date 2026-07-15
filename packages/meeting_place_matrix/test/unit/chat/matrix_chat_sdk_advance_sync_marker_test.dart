@@ -92,6 +92,7 @@ void main() {
     );
     registerFallbackValue(const MatrixRoomHistoryQuery(receiverDid: ''));
     registerFallbackValue(_FakeOutgoingMessage());
+    registerFallbackValue(_fakeChannel());
     registerFallbackValue(
       Message(
         chatId: 'chat-id',
@@ -217,6 +218,154 @@ void main() {
           eventId: eventId,
         ),
       ).called(1);
+    });
+  });
+
+  group('bootstrap sync marker — advances to newest by timestamp', () {
+    late _MockCoreSDK core;
+    late _MockVdipClient vdip;
+    late _MockVdipSubscription vdipSub;
+    late _MockChatRepository repo;
+    late IndividualMatrixChatSDK sdk;
+    late StreamController<IncomingMessage> liveEvents;
+
+    setUp(() {
+      core = _MockCoreSDK();
+      vdip = _MockVdipClient();
+      vdipSub = _MockVdipSubscription();
+      repo = _MockChatRepository();
+      sdk = _buildSdk(core: core, repo: repo);
+      liveEvents = StreamController<IncomingMessage>.broadcast();
+
+      final channel = _fakeChannel();
+      when(
+        () => core.subscribe(any()),
+      ).thenAnswer((_) async => _FakeHandle(liveEvents));
+      when(() => core.vdip).thenReturn(vdip);
+      when(
+        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+      ).thenAnswer((_) async => channel);
+      when(() => vdip.subscribe(channel)).thenAnswer((_) async => vdipSub);
+      when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
+      when(() => repo.listMessages(any())).thenAnswer((_) async => []);
+      when(() => repo.getSyncMarker(any())).thenAnswer((_) async => null);
+      when(
+        () => repo.updateSyncMarker(
+          chatId: any(named: 'chatId'),
+          eventId: any(named: 'eventId'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => repo.createMessage(any()),
+      ).thenAnswer((inv) async => inv.positionalArguments.first as ChatItem);
+      when(() => core.sendMessage(any())).thenAnswer((_) async => null);
+    });
+
+    tearDown(() async {
+      if (!liveEvents.isClosed) await liveEvents.close();
+    });
+
+    test(
+      'anchors marker to the newest event when history is newest-first',
+      () async {
+        // Matrix history is returned newest-first, so the newest event is at
+        // the head and `events.last` is the OLDEST. The marker must advance to
+        // the newest by timestamp; anchoring it to the oldest would make the
+        // next bootstrap re-fetch and re-process the same window.
+        const newestId = r'$newest_matrix_event_id';
+        const oldestId = r'$oldest_matrix_event_id';
+        when(() => core.fetchHistory(any())).thenAnswer(
+          (_) async => [
+            _incoming(
+              type: 'm.room.message',
+              id: newestId,
+              content: {'msgtype': 'm.text', 'body': 'newer'},
+              timestamp: DateTime.utc(2026, 1, 1, 12, 5),
+            ),
+            _incoming(
+              type: 'm.room.message',
+              id: oldestId,
+              content: {'msgtype': 'm.text', 'body': 'older'},
+              timestamp: DateTime.utc(2026, 1, 1, 12),
+            ),
+          ],
+        );
+
+        await sdk.startChatSession();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        verify(
+          () => repo.updateSyncMarker(
+            chatId: any(named: 'chatId'),
+            eventId: newestId,
+          ),
+        ).called(1);
+        verifyNever(
+          () => repo.updateSyncMarker(
+            chatId: any(named: 'chatId'),
+            eventId: oldestId,
+          ),
+        );
+      },
+    );
+  });
+
+  group('VDIP issued credentials — do not touch the channel sync marker', () {
+    late _MockCoreSDK core;
+    late _MockVdipClient vdip;
+    late _MockVdipSubscription vdipSub;
+    late _MockChatRepository repo;
+    late IndividualMatrixChatSDK sdk;
+    late StreamController<IncomingMessage> liveEvents;
+    late Channel channel;
+
+    setUp(() {
+      core = _MockCoreSDK();
+      vdip = _MockVdipClient();
+      vdipSub = _MockVdipSubscription();
+      repo = _MockChatRepository();
+      sdk = _buildSdk(core: core, repo: repo);
+      liveEvents = StreamController<IncomingMessage>.broadcast();
+
+      channel = _fakeChannel();
+      when(
+        () => core.subscribe(any()),
+      ).thenAnswer((_) async => _FakeHandle(liveEvents));
+      when(() => core.vdip).thenReturn(vdip);
+      when(
+        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+      ).thenAnswer((_) async => channel);
+      when(() => vdip.subscribe(channel)).thenAnswer((_) async => vdipSub);
+      when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
+      when(() => core.updateChannel(any())).thenAnswer((_) async {});
+      when(() => repo.listMessages(any())).thenAnswer((_) async => []);
+      when(() => repo.getSyncMarker(any())).thenAnswer((_) async => null);
+      when(
+        () => repo.updateSyncMarker(
+          chatId: any(named: 'chatId'),
+          eventId: any(named: 'eventId'),
+        ),
+      ).thenAnswer((_) async {});
+      when(() => core.fetchHistory(any())).thenAnswer((_) async => []);
+      when(() => core.sendMessage(any())).thenAnswer((_) async => null);
+    });
+
+    tearDown(() async {
+      if (!liveEvents.isClosed) await liveEvents.close();
+    });
+
+    test('chat session never subscribes to VDIP messages nor rewrites the '
+        'channel marker as a timestamp', () async {
+      // The matrix channel marker is a matrix event id. The removed VDIP
+      // listener wrote an ISO timestamp there, corrupting the marker so the
+      // next sync re-fetched the whole timeline and re-counted the unread
+      // badge. Guard against reintroducing it.
+      await sdk.startChatSession();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      verifyNever(() => vdip.incomingMessages);
+      verifyNever(() => core.updateChannel(any()));
+      expect(channel.messageSyncMarker, isNull);
     });
   });
 }

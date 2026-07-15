@@ -567,7 +567,15 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         );
 
         if (q.updateChannelSyncMarker && events.isNotEmpty) {
-          await _coreSDK.updateMessageSyncMarker(channel, events.last.id);
+          // Advance the marker to the newest event by timestamp, not by list
+          // position. Matrix history is returned newest-first, so `events.last`
+          // is the oldest fetched event. Anchoring the marker there leaves
+          // newer events "unseen", so the next sync re-fetches and re-counts
+          // them, inflating `seqNo` and the unread badge.
+          final newestEvent = events.reduce(
+            (a, b) => b.timestamp.isAfter(a.timestamp) ? b : a,
+          );
+          await _coreSDK.updateMessageSyncMarker(channel, newestEvent.id);
         }
 
         return Future.wait(

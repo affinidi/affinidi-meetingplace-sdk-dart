@@ -1,3 +1,7 @@
+## 0.0.1-dev.11
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.10
 
  - **FIX**: surface busy auto-reject on cancelled-call stream (#275).

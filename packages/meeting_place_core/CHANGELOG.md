@@ -1,3 +1,7 @@
+## 0.0.1-dev.46
+
+ - **FIX**: advance chat sync marker to newest event to stop unread recount (#277).
+
 ## 0.0.1-dev.45
 
  - **FIX**: surface busy auto-reject on cancelled-call stream (#275).

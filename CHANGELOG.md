@@ -15,6 +15,40 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_core` - `v0.0.1-dev.46`](#meeting_place_core---v001-dev46)
+ - [`meeting_place_chat` - `v0.0.1-dev.53`](#meeting_place_chat---v001-dev53)
+ - [`meeting_place_credentials` - `v0.0.1-dev.11`](#meeting_place_credentials---v001-dev11)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.53`](#meeting_place_drift_repository---v001-dev53)
+ - [`meeting_place_matrix` - `v0.0.1-dev.4`](#meeting_place_matrix---v001-dev4)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.53`
+ - `meeting_place_credentials` - `v0.0.1-dev.11`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.53`
+ - `meeting_place_matrix` - `v0.0.1-dev.4`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.46`
+
+ - **FIX**: advance chat sync marker to newest event to stop unread recount (#277).
+
+
+## 2026-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_chat` - `v0.0.1-dev.52`](#meeting_place_chat---v001-dev52)
  - [`meeting_place_control_plane` - `v0.0.1-dev.22`](#meeting_place_control_plane---v001-dev22)
  - [`meeting_place_core` - `v0.0.1-dev.45`](#meeting_place_core---v001-dev45)

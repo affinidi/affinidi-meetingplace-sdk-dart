@@ -36,6 +36,7 @@ class _FakeChannel extends Fake implements Channel {}
 const _agentDid = 'did:test:agent';
 const _channelDid = 'did:test:channel';
 const _mediatorDid = 'did:test:mediator';
+const _agentControllerDid = 'did:test:controller';
 const _newPermanentChannelDid = 'did:web:new.example.com';
 
 void main() {
@@ -116,6 +117,7 @@ void main() {
       agentDid: _agentDid,
       otherPartyPermanentChannelDid: _channelDid,
       mediatorDid: _mediatorDid,
+      agentControllerDid: _agentControllerDid,
       offerLink: 'https://example.com/offer',
       publishOfferDid: 'did:test:publish',
       contactCard: contactCard,
@@ -142,7 +144,7 @@ void main() {
         ).captured;
 
         expect(captured[0], equals(mockDidManager)); // didManager
-        expect(captured[1], equals([_channelDid])); // granteeDids (alpha order)
+        expect(captured[1], equals([_channelDid, _agentControllerDid])); // granteeDids (alpha order)
         expect(captured[2], equals(_mediatorDid)); // mediatorDid
       },
     );

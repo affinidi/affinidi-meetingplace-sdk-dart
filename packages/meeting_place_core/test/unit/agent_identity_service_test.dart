@@ -122,11 +122,11 @@ void main() {
       agentDid: _agentDid,
       otherPartyPermanentChannelDid: _channelDid,
       mediatorDid: _mediatorDid,
+      agentControllerDid: _agentControllerDid,
       offerLink: 'https://example.com/offer',
       publishOfferDid: 'did:test:publish',
       contactCard: contactCard,
       transport: ChannelTransport.didcomm,
-      agentControllerDid: _agentControllerDid,
     );
 
     test('generates a new did:web via IdentityService', () async {

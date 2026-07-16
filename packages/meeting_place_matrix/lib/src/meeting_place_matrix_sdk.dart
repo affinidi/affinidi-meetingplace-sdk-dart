@@ -317,6 +317,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
 
   @override
   Future<void> generateAgentIdentity({
+    required String agentControllerDid,
     required String agentDid,
     required String otherPartyPermanentChannelDid,
     required String mediatorDid,
@@ -325,6 +326,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required ContactCard contactCard,
     required ChannelTransport transport,
   }) => _coreSDK.generateAgentIdentity(
+    agentControllerDid: agentControllerDid,
     agentDid: agentDid,
     otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
     mediatorDid: mediatorDid,

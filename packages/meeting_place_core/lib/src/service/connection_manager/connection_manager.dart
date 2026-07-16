@@ -35,10 +35,7 @@ class ConnectionManager {
 
     await _keyRepository.saveKeyIdForDid(keyId: keyId, did: didDoc.id);
 
-    _logger.info(
-      'Generated root DID: ${didDoc.id.topAndTail()}',
-      name: methodName,
-    );
+    _logger.info('Generated root DID: ${didDoc.id}', name: methodName);
     return didManager;
   }
 

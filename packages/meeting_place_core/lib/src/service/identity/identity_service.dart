@@ -82,6 +82,7 @@ class IdentityService {
     String? offerLink,
     String? publishOfferDid,
     ContactCard? contactCard,
+    bool? skipAgentIdentity = false,
   }) async {
     final permanentChannelDidManager = await _connectionManager.generateDidWeb(
       wallet,
@@ -98,11 +99,12 @@ class IdentityService {
     await _channelTransport.authenticate(permanentChannelDidManager);
 
     String? personalAgentPermanentChannelDid;
-    if (agentDid case final did?) {
+    if (skipAgentIdentity == false && agentDid != null) {
       personalAgentPermanentChannelDid = await _requestAgentChannelIdentity(
+        wallet: wallet,
         senderDidManager: permanentChannelDidManager,
         channelDid: didDocument.id,
-        agentDid: did,
+        agentDid: agentDid!,
         transport: transport,
         offerLink: offerLink,
         publishOfferDid: publishOfferDid,
@@ -143,6 +145,7 @@ class IdentityService {
   }
 
   Future<String> _requestAgentChannelIdentity({
+    required Wallet wallet,
     required DidManager senderDidManager,
     required String channelDid,
     required String agentDid,
@@ -151,7 +154,6 @@ class IdentityService {
     String? publishOfferDid,
     ContactCard? contactCard,
   }) async {
-    // Update ACL first
     await _mediatorService.updateAcl(
       ownerDidManager: senderDidManager,
       mediatorDid: _mediatorDid,
@@ -171,8 +173,10 @@ class IdentityService {
     }
 
     try {
+      final rootDidManager = await _connectionManager.generateRootDid(wallet);
+      final rootDidDoc = await rootDidManager.getDidDocument();
       final request = AgentCreateChannelIdentityRequest.create(
-        from: channelDid,
+        from: rootDidDoc.id,
         to: [agentDid],
         channelDid: channelDid,
         offerLink: offerLink!,

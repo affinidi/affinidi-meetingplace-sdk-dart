@@ -35,6 +35,7 @@ class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
 class _FakeChannel extends Fake implements Channel {}
 
 const _agentDid = 'did:test:agent';
+const _agentControllerDid = 'did:test:agent-controller';
 const _channelDid = 'did:test:channel';
 const _mediatorDid = 'did:test:mediator';
 const _newPermanentChannelDid = 'did:web:new.example.com';
@@ -125,6 +126,7 @@ void main() {
       publishOfferDid: 'did:test:publish',
       contactCard: contactCard,
       transport: ChannelTransport.didcomm,
+      agentControllerDid: _agentControllerDid,
     );
 
     test('generates a new did:web via IdentityService', () async {
@@ -147,7 +149,10 @@ void main() {
         ).captured;
 
         expect(captured[0], equals(mockDidManager)); // didManager
-        expect(captured[1], equals([_channelDid])); // granteeDids (alpha order)
+        expect(
+          captured[1],
+          equals([_channelDid, _agentControllerDid]),
+        ); // granteeDids
         expect(captured[2], equals(_mediatorDid)); // mediatorDid
       },
     );

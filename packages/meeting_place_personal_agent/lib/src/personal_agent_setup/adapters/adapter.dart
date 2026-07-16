@@ -17,4 +17,8 @@ abstract class PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> fetchPersonalAgentContextStatus({
     required String setupId,
   });
+
+  Future<Map<String, dynamic>> fetchPersonalAgentAuthorizationSnapshot({
+    required String setupId,
+  });
 }

@@ -83,4 +83,21 @@ class MeetingPlacePersonalAgentSDK {
     );
     return PersonalAgentContextStatus.fromJson(response);
   }
+
+  Future<PersonalAgentAuthorizationSnapshot>
+  fetchPersonalAgentAuthorizationSnapshot({
+    required String setupId,
+  }) async {
+    final normalized = setupId.trim();
+    if (normalized.isEmpty) {
+      throw const VtaValidationException(
+        'setupId must not be empty.',
+        code: 'e.vta.personal_agent.setup_id_required',
+      );
+    }
+    final response = await remote.fetchPersonalAgentAuthorizationSnapshot(
+      setupId: normalized,
+    );
+    return PersonalAgentAuthorizationSnapshot.fromJson(response);
+  }
 }

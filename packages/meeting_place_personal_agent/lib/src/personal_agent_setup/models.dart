@@ -297,3 +297,79 @@ class PersonalAgentContextStatus {
     );
   }
 }
+
+class PersonalAgentAuthorizationSnapshot {
+  const PersonalAgentAuthorizationSnapshot({
+    required this.setupId,
+    required this.agentDid,
+    required this.aclRole,
+    required this.capabilities,
+    required this.contextScope,
+    required this.domainId,
+    this.provision,
+  });
+
+  final String setupId;
+  final String agentDid;
+  final String aclRole;
+  final List<String> capabilities;
+  final String contextScope;
+  final String domainId;
+  final Map<String, dynamic>? provision;
+
+  factory PersonalAgentAuthorizationSnapshot.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return PersonalAgentAuthorizationSnapshot(
+      setupId: requiredString(json, ['setup_id', 'setupId']),
+      agentDid: requiredString(json, ['agent_did', 'agentDid']),
+      aclRole: requiredString(json, ['acl_role', 'aclRole']),
+      capabilities: _parseStringList(json, ['capabilities']),
+      contextScope: requiredString(json, ['context_scope', 'contextScope']),
+      domainId: requiredString(json, ['domain_id', 'domainId']),
+      provision: _optionalObject(json, ['provision']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'agent_did': agentDid,
+      'acl_role': aclRole,
+      'capabilities': capabilities,
+      'context_scope': contextScope,
+      'domain_id': domainId,
+      if (provision != null) 'provision': provision,
+    };
+  }
+}
+
+List<String> _parseStringList(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value is List) {
+      return value
+          .whereType<String>()
+          .map((entry) => entry.trim())
+          .where((entry) => entry.isNotEmpty)
+          .toList();
+    }
+  }
+  return const [];
+}
+
+Map<String, dynamic>? _optionalObject(
+  Map<String, dynamic> json,
+  List<String> keys,
+) {
+  for (final key in keys) {
+    final value = json[key];
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return value.map((k, v) => MapEntry(k.toString(), v));
+    }
+  }
+  return null;
+}

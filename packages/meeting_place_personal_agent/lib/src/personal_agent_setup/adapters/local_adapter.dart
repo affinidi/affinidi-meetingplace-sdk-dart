@@ -121,6 +121,31 @@ class InMemoryPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
     };
   }
 
+  @override
+  Future<Map<String, dynamic>> fetchPersonalAgentAuthorizationSnapshot({
+    required String setupId,
+  }) async {
+    final entry = _entriesBySetupId[setupId];
+    if (entry == null) {
+      throw const VtaValidationException(
+        'Unknown setupId.',
+        code: 'e.vta.personal_agent.unknown_setup',
+      );
+    }
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'agent_did': entry.agentDid,
+      'acl_role': 'application',
+      'capabilities': <String>['reply', 'sign'],
+      'context_scope': 'ctx-1',
+      'domain_id': 'personal',
+      'provision': <String, dynamic>{
+        'status': 'ready',
+        'share_metadata': <String, dynamic>{},
+      },
+    };
+  }
+
   String _stableSuffix(String value) {
     final input = value.trim();
     if (input.isEmpty) {

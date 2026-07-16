@@ -120,7 +120,9 @@ void main() {
       didResolver: mockDidResolver,
       matrixService: mockMatrixService,
       identityService: mockIdentityService,
-      options: const ControlPlaneEventHandlerManagerOptions(),
+      options: const ControlPlaneEventHandlerManagerOptions(
+        agentDid: 'did:test:agent-subscriber',
+      ),
       logger: DefaultMeetingPlaceCoreSDKLogger(),
     );
 
@@ -306,8 +308,8 @@ void main() {
       expect(
         channel.otherPartyContactCard,
         isNotNull,
-        reason:
-            '''test precondition: createChannelWithAgent must set otherPartyContactCard''',
+        reason: 'test precondition: createChannelWithAgent must set '
+            'otherPartyContactCard',
       );
 
       await handler.processMessage(

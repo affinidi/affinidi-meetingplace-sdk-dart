@@ -137,6 +137,19 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   ChannelNotification buildChannelNotification(String type) =>
       IndividualChannelNotification(recipientDid: otherPartyDid, type: type);
 
+  @protected
+  TransportCapabilities withSuggestionRequestCapability(
+    Set<ChatFeature> baseFeatures,
+  ) {
+    if (coreSDK.options.agentDid == null) {
+      return TransportCapabilities(baseFeatures);
+    }
+    return TransportCapabilities({
+      ...baseFeatures,
+      ChatFeature.suggestionRequests,
+    });
+  }
+
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
@@ -604,6 +617,36 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     );
 
     logger.info('Sent custom room event of type $type', name: _matrixLogkey);
+  }
+
+  @override
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  }) async {
+    assertCanSend();
+    final recipientDid = coreSDK.options.agentDid;
+    if (recipientDid == null) {
+      throw StateError(
+        'Cannot send suggestion request: MeetingPlaceCoreSDK.options.agentDid '
+        'is not configured',
+      );
+    }
+
+    await coreSDK.sendMessage(
+      ChatSuggestionRequestMessage(
+        senderDid: did,
+        recipientDid: recipientDid,
+        mediatorDid: mediatorDid,
+        messageId: messageId,
+        text: text,
+      ),
+    );
+
+    logger.info(
+      'Sent suggestion request for message $messageId to $recipientDid',
+      name: _matrixLogkey,
+    );
   }
 
   @override

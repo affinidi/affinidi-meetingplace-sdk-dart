@@ -138,6 +138,18 @@ abstract interface class MeetingPlaceChatSDK {
   /// the SDK decide whether that change should produce a profile-update flow.
   Future<void> refreshCurrentContactCard(ContactCard? card);
 
+  /// Sends a DIDComm suggestion request to the personal agent DID configured
+  /// on [MeetingPlaceCoreSDK.options], using [messageId] and [text] as the
+  /// context to suggest against.
+  ///
+  /// This is transport-gated through [ChatFeature.suggestionRequests]. Matrix
+  /// chats support it; individual DIDComm chats reject it. Throws
+  /// [StateError] when the core SDK has no configured `agentDid`.
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  });
+
   /// Toggles [reaction] on [message]. Adds the reaction if absent and removes
   /// it if already present.
   Future<void> reactOnMessage(Message message, {required String reaction});

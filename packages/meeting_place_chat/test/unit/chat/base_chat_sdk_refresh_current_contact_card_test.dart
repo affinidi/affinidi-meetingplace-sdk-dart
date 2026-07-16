@@ -118,6 +118,12 @@ class _TestBaseChatSdk extends BaseChatSDK {
   Future<void> sendEffect(Effect effect) async {}
 
   @override
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  }) async {}
+
+  @override
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],

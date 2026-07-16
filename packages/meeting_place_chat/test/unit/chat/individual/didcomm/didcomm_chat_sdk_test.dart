@@ -108,6 +108,18 @@ void main() {
     });
   });
 
+  group('sendSuggestionRequest', () {
+    test('throws UnsupportedError', () {
+      expect(
+        () => sdk.sendSuggestionRequest(
+          messageId: 'msg-1',
+          text: 'Please suggest a reply',
+        ),
+        throwsA(isA<UnsupportedError>()),
+      );
+    });
+  });
+
   group('sendTextMessage', () {
     test('returns sent status even when notification fails', () async {
       when(

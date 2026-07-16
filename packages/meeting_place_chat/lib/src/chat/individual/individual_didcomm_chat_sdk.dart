@@ -592,6 +592,16 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  }) {
+    throw UnsupportedError(
+      'Suggestion requests are not supported over DIDComm transport.',
+    );
+  }
+
+  @override
   Future<void> proposeProfileUpdate() async {
     if (card == null) {
       logger.info(

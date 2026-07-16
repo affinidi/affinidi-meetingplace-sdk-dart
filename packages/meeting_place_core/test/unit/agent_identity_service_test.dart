@@ -3,7 +3,6 @@ import 'package:meeting_place_core/src/service/agent_identity_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/identity/identity_service.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_acl_service.dart';
-import 'package:meeting_place_core/src/transport/didcomm_transport.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -129,22 +128,24 @@ void main() {
       verify(() => mockIdentityService.generateDidWeb(mockWallet)).called(1);
     });
 
-    test('grants otherPartyPermanentChannelDid access on the mediator',
-        () async {
-      await callService();
+    test(
+      'grants otherPartyPermanentChannelDid access on the mediator',
+      () async {
+        await callService();
 
-      final captured = verify(
-        () => mockMediatorAclService.addToAcl(
-          didManager: captureAny(named: 'didManager'),
-          mediatorDid: captureAny(named: 'mediatorDid'),
-          granteeDids: captureAny(named: 'granteeDids'),
-        ),
-      ).captured;
+        final captured = verify(
+          () => mockMediatorAclService.addToAcl(
+            didManager: captureAny(named: 'didManager'),
+            mediatorDid: captureAny(named: 'mediatorDid'),
+            granteeDids: captureAny(named: 'granteeDids'),
+          ),
+        ).captured;
 
-      expect(captured[0], equals(mockDidManager));  // didManager
-      expect(captured[1], equals([_channelDid]));    // granteeDids (alpha order)
-      expect(captured[2], equals(_mediatorDid));     // mediatorDid
-    });
+        expect(captured[0], equals(mockDidManager)); // didManager
+        expect(captured[1], equals([_channelDid])); // granteeDids (alpha order)
+        expect(captured[2], equals(_mediatorDid)); // mediatorDid
+      },
+    );
 
     test('sends agent-create-channel-identity-response with new DID', () async {
       await callService();

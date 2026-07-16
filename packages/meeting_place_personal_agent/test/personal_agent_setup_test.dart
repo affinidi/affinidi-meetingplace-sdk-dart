@@ -68,7 +68,7 @@ void main() {
     });
 
     test('parses auto-reply mode from remote response', () async {
-      final sdk = MeetingPlacePersonalAgentSDK(
+      final sdk = const MeetingPlacePersonalAgentSDK(
         remote: _StaticRemote(
           response: <String, dynamic>{
             'holder_did': 'did:key:zHolderC',
@@ -86,9 +86,7 @@ void main() {
       );
 
       final result = await sdk.ensurePersonalAgentSetup(
-        request: const PersonalAgentSetupRequest(
-          holderDid: 'did:key:zHolderC',
-        ),
+        request: const PersonalAgentSetupRequest(holderDid: 'did:key:zHolderC'),
       );
 
       expect(result.profile.mode, PersonalAgentMode.autoReply);
@@ -112,10 +110,7 @@ class _StaticRemote implements PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> fetchPersonalAgentOffer({
     required String setupId,
   }) async {
-    return <String, dynamic>{
-      'setup_id': setupId,
-      'status': 'offer_created',
-    };
+    return <String, dynamic>{'setup_id': setupId, 'status': 'offer_created'};
   }
 
   @override

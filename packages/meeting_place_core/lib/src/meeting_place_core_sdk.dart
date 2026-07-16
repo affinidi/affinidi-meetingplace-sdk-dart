@@ -341,6 +341,15 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    if (options.agentDid case final agentDid?) {
+      final rootDidDoc = await didManager.getDidDocument();
+      await mediatorService.updateAcl(
+        ownerDidManager: didManager,
+        mediatorDid: mediatorDid,
+        acl: AccessListAdd(ownerDid: rootDidDoc.id, granteeDids: [agentDid]),
+      );
+    }
+
     final messageService = MessageService(
       connectionManager: connectionManager,
       didResolver: didResolver,
@@ -647,6 +656,7 @@ class MeetingPlaceCoreSDK {
     required String publishOfferDid,
     required ContactCard contactCard,
     required ChannelTransport transport,
+    required String agentControllerDid,
   }) {
     return _agentIdentityService.createChannelIdentity(
       agentDid: agentDid,
@@ -656,6 +666,7 @@ class MeetingPlaceCoreSDK {
       publishOfferDid: publishOfferDid,
       contactCard: contactCard,
       transport: transport,
+      agentControllerDid: agentControllerDid,
     );
   }
 

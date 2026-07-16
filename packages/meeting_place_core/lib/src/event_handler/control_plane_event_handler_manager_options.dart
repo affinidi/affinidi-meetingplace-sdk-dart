@@ -40,7 +40,7 @@ class ControlPlaneEventHandlerManagerOptions {
   final void Function(Channel, List<Attachment>)? onAttachmentsReceived;
 
   /// The raw agent DID (e.g. `did:key:…`) that the personal agent subscribes
-  /// with. When set, [OfferFinalisedEventHandler] routes the
+  /// with. When set, OfferFinalisedEventHandler routes the
   /// `agent-channel-inauguration` message to this DID rather than to the
   /// agent's channel-specific `did:web`.
   final String? agentDid;

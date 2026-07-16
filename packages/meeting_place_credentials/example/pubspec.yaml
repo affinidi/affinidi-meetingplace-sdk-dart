@@ -13,5 +13,5 @@ dependencies:
   meeting_place_credentials:
     path: ../
   pretty_json: ^2.0.0
-  ssi: ^3.3.0
+  ssi: ^3.9.4
   uuid: ^4.5.1

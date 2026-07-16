@@ -122,7 +122,7 @@ void main() {
       channelTransport: mockMeetingPlaceTransport,
       identityService: mockIdentityService,
       options: const ControlPlaneEventHandlerManagerOptions(
-        agentDid: 'did:test:agent-identity',
+        agentDid: 'did:test:agent-subscriber',
       ),
       logger: DefaultMeetingPlaceCoreSDKLogger(),
     );

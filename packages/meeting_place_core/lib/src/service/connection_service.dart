@@ -313,6 +313,7 @@ class ConnectionService {
       offerLink: connectionOffer.offerLink,
       publishOfferDid: connectionOffer.publishOfferDid,
       contactCard: contactCard,
+      skipAgentIdentity: connectionOffer.contactCard.type == 'ai-agent',
     );
 
     final result = await _controlPlaneSDK.execute(

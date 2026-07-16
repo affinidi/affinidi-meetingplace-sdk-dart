@@ -93,6 +93,9 @@ void main() {
       ),
     ).thenAnswer((_) async => mockDidManager);
     when(
+      () => mockConnectionManager.generateRootDid(mockWallet),
+    ).thenAnswer((_) async => mockDidManager);
+    when(
       () => mockDidManager.getDidDocument(),
     ).thenAnswer((_) async => mockDidDocument);
     when(

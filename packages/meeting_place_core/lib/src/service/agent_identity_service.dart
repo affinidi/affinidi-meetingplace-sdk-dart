@@ -46,6 +46,7 @@ class AgentIdentityService {
     required String publishOfferDid,
     required ContactCard contactCard,
     required ChannelTransport transport,
+    required String agentControllerDid,
   }) async {
     final didManager = await _identityService.generateDidWeb(_wallet);
     final didDocument = await didManager.getDidDocument();
@@ -54,7 +55,7 @@ class AgentIdentityService {
     await _mediatorAclService.addToAcl(
       didManager: didManager,
       mediatorDid: mediatorDid,
-      granteeDids: [otherPartyPermanentChannelDid],
+      granteeDids: [otherPartyPermanentChannelDid, agentControllerDid],
     );
 
     if (transport == ChannelTransport.matrix) {

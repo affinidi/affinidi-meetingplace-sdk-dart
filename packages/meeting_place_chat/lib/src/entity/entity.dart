@@ -2,6 +2,7 @@ export 'chat.dart';
 export 'chat_attachment.dart';
 export 'chat_attachment_data.dart';
 export 'chat_item.dart';
+export 'cierge_sign_document_request.dart';
 export 'cierge_signature_proof.dart';
 export 'concierge_message.dart';
 export 'custom_message.dart';

@@ -82,7 +82,7 @@ void main() {
   );
 
   test(
-    'startChatSession proposes profile update from current card resolver',
+    'contact-card refresh event proposes profile update from current card',
     () async {
       final staleCard = ContactCardFixture.getContactCardFixture(
         did: fixture.bobMemberDid,
@@ -90,10 +90,10 @@ void main() {
           'n': {'given': 'Bob', 'surname': 'Stale'},
         },
       );
-      var currentCard = ContactCardFixture.getContactCardFixture(
+      final currentCard = ContactCardFixture.getContactCardFixture(
         did: fixture.bobMemberDid,
         contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'Initial'},
+          'n': {'given': 'Bob', 'surname': 'Fresh'},
         },
       );
 
@@ -106,27 +106,21 @@ void main() {
         card: staleCard,
         options: MeetingPlaceChatSDKOptions(
           chatPresenceSendInterval: const Duration(seconds: 3),
-          resolveCurrentContactCard: () => currentCard,
         ),
       );
 
-      currentCard = ContactCardFixture.getContactCardFixture(
-        did: fixture.bobMemberDid,
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'Fresh'},
-        },
+      final bobChat = await refreshedChatSdk.startChatSession();
+      final conciergeFuture = ChatTestHarness.awaitItem(
+        refreshedChatSdk,
+        where: (ChatItem item) =>
+            item is ConciergeMessage &&
+            item.conciergeType ==
+                ConciergeMessageType.permissionToUpdateProfile,
       );
 
-      final bobChat = await refreshedChatSdk.startChatSession();
-      final concierge =
-          await ChatTestHarness.awaitItem(
-                refreshedChatSdk,
-                where: (ChatItem item) =>
-                    item is ConciergeMessage &&
-                    item.conciergeType ==
-                        ConciergeMessageType.permissionToUpdateProfile,
-              )
-              as ConciergeMessage;
+      await refreshedChatSdk.refreshCurrentContactCard(currentCard);
+
+      final concierge = await conciergeFuture as ConciergeMessage;
 
       expect(concierge.chatId, bobChat.id);
       expect(concierge.data['profileDetails'], equals(currentCard.toJson()));

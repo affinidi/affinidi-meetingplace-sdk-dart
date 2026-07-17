@@ -10,6 +10,7 @@ part 'chat_effect_event.dart';
 part 'chat_contact_details_update_event.dart';
 part 'chat_profile_request_event.dart';
 part 'chat_profile_hash_event.dart';
+part 'chat_current_contact_card_updated_event.dart';
 part 'chat_group_deleted_event.dart';
 part 'chat_group_details_update_event.dart';
 part 'chat_member_deregistered_event.dart';

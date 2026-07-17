@@ -140,6 +140,8 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
+    transportSubscriptionFuture = Future<void>.value();
+    await attachLocalChatEventListener();
     _incomingRouter = buildRoomEventRouter();
 
     // Snapshot the sync cursor before the live subscription starts.
@@ -155,9 +157,8 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     // DIDComm SDK semantics and the BaseChatSDK.chatStreamSubscription
     // contract.
     final subscriptionFuture = subscribeToMatrixRoom();
-    transportSubscriptionFuture = subscriptionFuture;
 
-    unawaited(proposeProfileUpdate());
+    onChatSessionStarted();
 
     // Return the locally persisted snapshot so the UI can render immediately.
     // Matrix auth, history fetch, and the read receipt run in the background;
@@ -180,6 +181,12 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     );
 
     return chat;
+  }
+
+  /// Runs transport-specific work after the chat stream is available.
+  @protected
+  void onChatSessionStarted() {
+    unawaited(proposeProfileUpdate());
   }
 
   Future<void> _bootstrapTransportInBackground(

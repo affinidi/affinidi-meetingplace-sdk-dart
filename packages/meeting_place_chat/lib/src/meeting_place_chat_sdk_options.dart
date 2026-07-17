@@ -1,5 +1,3 @@
-import 'package:meeting_place_core/meeting_place_core.dart';
-
 import '../meeting_place_chat.dart';
 
 /// [MeetingPlaceChatSDKOptions] defines configurable options for the
@@ -22,8 +20,6 @@ class MeetingPlaceChatSDKOptions {
   ///  (default: `[ChatProtocol.chatMessage]`).
   /// - [memberJoinedIndicator]: List of [ChatProtocol] message types
   ///   that indicate that new group member opened chat screen the first time.
-  /// - [resolveCurrentContactCard]: Returns the current contact card for the
-  ///   signed-in identity when session-start logic needs fresh profile data.
   MeetingPlaceChatSDKOptions({
     this.chatPresenceSendInterval = const Duration(seconds: 10),
     this.chatPresenceExpiry = const Duration(seconds: 15),
@@ -41,7 +37,6 @@ class MeetingPlaceChatSDKOptions {
       ChatProtocol.chatMessage,
       ChatProtocol.chatReaction,
     ],
-    this.resolveCurrentContactCard,
   });
 
   /// The list of message types that require delivery acknowledgement.
@@ -89,9 +84,4 @@ class MeetingPlaceChatSDKOptions {
   /// - ChatProtocol.chatMessage,
   /// - ChatProtocol.chatReaction,
   final List<ChatProtocol> memberJoinedIndicator;
-
-  /// Resolves the current signed-in contact card at the moment chat session
-  /// logic needs it. Falls back to the SDK's construction-time card when not
-  /// provided.
-  final ContactCard? Function()? resolveCurrentContactCard;
 }

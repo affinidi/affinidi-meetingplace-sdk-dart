@@ -44,7 +44,12 @@ class ProposeProfileUpdateAction implements GroupAction<void> {
     channel.contactCard = card;
     await _chatSDK.coreSDK.updateChannel(channel);
 
-    if (existing != null) return;
+    if (existing != null) {
+      existing.data['profileDetails'] = card.toJson();
+      await _chatSDK.chatRepository.updateMesssage(existing);
+      _chatSDK.chatStream.pushData(StreamData(chatItem: existing));
+      return;
+    }
 
     final conciergeMessage = await ProfileUpdateConciergeFactory(
       chatRepository: _chatSDK.chatRepository,

@@ -131,8 +131,12 @@ abstract interface class MeetingPlaceChatSDK {
   Future<void> sendEffect(Effect effect);
 
   /// Accepts the contact-details update prompted by [message] and broadcasts
-  /// the local contact card to the other participants.
+  /// the signing identity's contact card to the other participants.
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
+
+  /// Refreshes the local contact card snapshot for this chat session and lets
+  /// the SDK decide whether that change should produce a profile-update flow.
+  Future<void> refreshCurrentContactCard(ContactCard? card);
 
   /// Toggles [reaction] on [message]. Adds the reaction if absent and removes
   /// it if already present.

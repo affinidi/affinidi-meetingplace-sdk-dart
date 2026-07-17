@@ -14,6 +14,7 @@ String _describe(ChatEvent event) => switch (event) {
   ChatPresenceEvent() => 'ChatPresenceEvent',
   ChatActivityEvent() => 'ChatActivityEvent',
   ChatEffectEvent() => 'ChatEffectEvent',
+  ChatCurrentContactCardUpdatedEvent() => 'ChatCurrentContactCardUpdatedEvent',
   ChatContactDetailsUpdateEvent() => 'ChatContactDetailsUpdateEvent',
   ChatProfileRequestEvent() => 'ChatProfileRequestEvent',
   ChatProfileHashEvent() => 'ChatProfileHashEvent',
@@ -45,6 +46,7 @@ void main() {
         createdTime: now,
       ),
       const ChatEffectEvent(effectName: 'confetti'),
+      ChatCurrentContactCardUpdatedEvent(contactCard: contactCard),
       ChatContactDetailsUpdateEvent(
         senderDid: 'did:test:alice',
         contactCard: contactCard,

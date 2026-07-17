@@ -118,13 +118,15 @@ void main() {
       );
 
       final bobChat = await refreshedChatSdk.startChatSession();
-      final concierge = (await refreshedChatSdk.messages)
-          .whereType<ConciergeMessage>()
-          .firstWhere(
-            (ConciergeMessage message) =>
-                message.conciergeType ==
-                ConciergeMessageType.permissionToUpdateProfile,
-          );
+      final concierge =
+          await ChatTestHarness.awaitItem(
+                refreshedChatSdk,
+                where: (ChatItem item) =>
+                    item is ConciergeMessage &&
+                    item.conciergeType ==
+                        ConciergeMessageType.permissionToUpdateProfile,
+              )
+              as ConciergeMessage;
 
       expect(concierge.chatId, bobChat.id);
       expect(concierge.data['profileDetails'], equals(currentCard.toJson()));

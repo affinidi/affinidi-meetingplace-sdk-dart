@@ -135,4 +135,18 @@ class _StaticRemote implements PersonalAgentSetupRemote {
       'item_count': 0,
     };
   }
+
+  @override
+  Future<Map<String, dynamic>> fetchPersonalAgentAuthorizationSnapshot({
+    required String setupId,
+  }) async {
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'agent_did': 'did:key:zAgent',
+      'acl_role': 'application',
+      'capabilities': <String>['reply', 'sign'],
+      'context_scope': 'ctx-1',
+      'domain_id': 'personal',
+    };
+  }
 }

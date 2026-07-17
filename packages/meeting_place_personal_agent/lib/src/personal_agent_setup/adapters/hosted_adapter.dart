@@ -12,6 +12,15 @@ class RestPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
   final VtaClient client;
   final String endpoint;
 
+  String get _setupBase => endpoint.endsWith('/setup')
+      ? endpoint
+      : '$endpoint/setup';
+
+  String _setupResourcePath(String setupId, String suffix) {
+    final encodedSetupId = Uri.encodeComponent(setupId);
+    return '$_setupBase/$encodedSetupId$suffix';
+  }
+
   @override
   Future<Map<String, dynamic>> ensurePersonalAgentSetup({
     required PersonalAgentSetupRequest request,
@@ -23,11 +32,7 @@ class RestPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> fetchPersonalAgentOffer({
     required String setupId,
   }) {
-    final normalizedBase = endpoint.endsWith('/setup')
-        ? endpoint
-        : '$endpoint/setup';
-    final encodedSetupId = Uri.encodeComponent(setupId);
-    return client.getJson('$normalizedBase/$encodedSetupId/offer');
+    return client.getJson(_setupResourcePath(setupId, '/offer'));
   }
 
   @override
@@ -35,12 +40,8 @@ class RestPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
     required String setupId,
     required String content,
   }) {
-    final normalizedBase = endpoint.endsWith('/setup')
-        ? endpoint
-        : '$endpoint/setup';
-    final encodedSetupId = Uri.encodeComponent(setupId);
     return client.postJson(
-      '$normalizedBase/$encodedSetupId/context',
+      _setupResourcePath(setupId, '/context'),
       body: {'content': content},
     );
   }
@@ -49,10 +50,13 @@ class RestPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> fetchPersonalAgentContextStatus({
     required String setupId,
   }) {
-    final normalizedBase = endpoint.endsWith('/setup')
-        ? endpoint
-        : '$endpoint/setup';
-    final encodedSetupId = Uri.encodeComponent(setupId);
-    return client.getJson('$normalizedBase/$encodedSetupId/context/status');
+    return client.getJson(_setupResourcePath(setupId, '/context/status'));
+  }
+
+  @override
+  Future<Map<String, dynamic>> fetchPersonalAgentAuthorizationSnapshot({
+    required String setupId,
+  }) {
+    return client.getJson(_setupResourcePath(setupId, '/authorization'));
   }
 }

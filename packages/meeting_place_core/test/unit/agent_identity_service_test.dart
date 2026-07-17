@@ -151,7 +151,7 @@ void main() {
 
         // First call: permanent channel DID grants access to user + controller
         expect(captured[0], equals(mockDidManager)); // didManager
-        expect(captured[1], equals([_channelDid, _agentControllerDid])); // granteeDids
+        expect(captured[1], equals([_channelDid, _agentControllerDid]));
         expect(captured[2], equals(_mediatorDid)); // mediatorDid
         // Second call: agent DID grants access to user's permanent channel DID
         expect(captured[3], equals(mockAgentDidManager)); // agent didManager

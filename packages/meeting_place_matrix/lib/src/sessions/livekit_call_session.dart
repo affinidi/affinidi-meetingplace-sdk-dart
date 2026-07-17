@@ -119,7 +119,7 @@ class LiveKitCallSession implements AudioVideoCallSession {
   // Plugin-internal accessors
   // ---------------------------------------------------------------------------
 
-  /// The other party's channel DID used to key this call session.
+  /// The peer channel DID used to key this call session.
   String get otherPartyChannelDid => _otherPartyChannelDid;
 
   /// The LiveKit room backing this session.
@@ -145,7 +145,7 @@ class LiveKitCallSession implements AudioVideoCallSession {
     CallMediaType mediaType = CallMediaType.video,
   }) => _service.joinCall(isRecipient: isRecipient, mediaType: mediaType);
 
-  /// Notifies the service that the callee declined. Plugin-internal — called
+  /// Notifies the service that the recipient declined. Plugin-internal — called
   /// by `MeetingPlaceLiveKitCallPlugin` when a decline signal is received.
   void notifyDeclined() => _service.notifyDeclined();
 

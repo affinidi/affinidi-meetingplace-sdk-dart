@@ -372,8 +372,7 @@ class MatrixCallService {
   /// the listener only covers memberships that arrive in a future sync, whereas
   /// the caller's m.call.member event is typically already in the
   /// room state by the time the recipient activates. Best-effort by design;
-  /// any failure leaves
-  /// the activation to resolve via the listener or time out.
+  /// any failure leaves the activation to resolve via the listener or time out.
   Future<void> _discoverExistingGroupCall(
     matrix.VoIP voip,
     matrix.Client client,

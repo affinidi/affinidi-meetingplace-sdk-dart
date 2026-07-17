@@ -13,6 +13,6 @@ abstract final class CallChannelActivityType {
   /// Signals that the sender has initiated an audio-only call on this channel.
   static const String callInviteAudio = 'call-invite-audio';
 
-  /// Signals that the recipient (callee) has declined a call before answering.
+  /// Signals that the recipient has declined a call before answering.
   static const String callDecline = 'call-decline';
 }

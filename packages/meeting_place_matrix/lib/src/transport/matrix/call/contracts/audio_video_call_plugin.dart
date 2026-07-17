@@ -4,7 +4,7 @@ import 'incoming_audio_video_call_event.dart';
 
 /// Interface for an audio/video calling plugin.
 ///
-/// Provides audio and video calling capability between you and another party
+/// Provides audio and video calling capability between you and a peer
 /// identified by their channel DID. The implementation resolves all
 /// transport-specific details (Matrix room, LiveKit token, etc.) internally —
 /// transport identifiers never appear in the consumer.
@@ -20,7 +20,7 @@ abstract interface class AudioVideoCallPlugin {
   /// Whether this plugin can operate in the current context.
   bool get isSupported;
 
-  /// Stream of incoming call events emitted when the other party calls you.
+  /// Stream of incoming call events emitted when a peer calls you.
   ///
   /// The app shell listens to this stream and presents the incoming-call
   /// banner when an event arrives.
@@ -28,7 +28,7 @@ abstract interface class AudioVideoCallPlugin {
 
   /// Stream of incoming-call events for calls that did not connect.
   ///
-  /// This includes calls cancelled by the caller before the local user
+  /// This includes calls cancelled by the caller before the self user
   /// answered, and calls auto-rejected as busy by this device.
   ///
   /// The app shell listens to this stream to dismiss the incoming-call banner
@@ -38,12 +38,12 @@ abstract interface class AudioVideoCallPlugin {
 
   /// Starts an outbound call and returns a live [AudioVideoCallSession] handle.
   ///
-  /// Also used by the callee after [acceptCall]: the plugin detects internally
-  /// that the call was already accepted and joins as callee rather than
+  /// Also used by the recipient after [acceptCall]: the plugin detects internally
+  /// that the call was already accepted and joins as recipient rather than
   /// initiating a new outbound call.
   ///
   /// Parameters:
-  /// * [otherPartyChannelDid] — the other party's channel DID (distinct from
+  /// * [otherPartyChannelDid] — the peer channel DID (distinct from
   ///   their permanent identity DID).
   ///
   /// Returns an [AudioVideoCallSession] to monitor state and control the call.
@@ -52,7 +52,7 @@ abstract interface class AudioVideoCallPlugin {
     required CallMediaType mediaType,
   });
 
-  /// Marks an incoming call as accepted so [startCall] joins as callee.
+  /// Marks an incoming call as accepted so [startCall] joins as recipient.
   ///
   /// Call this when the user taps Accept in the incoming-call banner, then
   /// navigate to the call screen. The screen's controller calls [startCall]
@@ -73,7 +73,7 @@ abstract interface class AudioVideoCallPlugin {
   /// Leaves the currently active call, if any, and clears the busy guard.
   ///
   /// Safe to call when no call is active. Must be called after every call ends
-  /// (whether by local hangup, remote hangup, or timeout) so a subsequent
+  /// (whether by self hangup, peer hangup, or timeout) so a subsequent
   /// incoming call is not auto-rejected.
   Future<void> leaveCurrentCall();
 }

@@ -24,6 +24,10 @@ class _MockDidManager extends Mock implements DidManager {}
 
 class _MockDidDocument extends Mock implements DidDocument {}
 
+class _MockRootDidManager extends Mock implements DidManager {}
+
+class _MockRootDidDocument extends Mock implements DidDocument {}
+
 class _FakeDidManager extends Fake implements DidManager {}
 
 class _FakeDidDocument extends Fake implements DidDocument {}
@@ -43,6 +47,7 @@ class _MockMediatorStreamSubscriptionWrapper extends Mock
 class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
 
 const _agentDid = 'did:web:personal-ai-agent.affinidi.com';
+const _rootDid = 'did:test:root';
 
 void main() {
   late _MockConnectionManager mockConnectionManager;
@@ -50,6 +55,8 @@ void main() {
   late _MockWallet mockWallet;
   late _MockDidManager mockDidManager;
   late _MockDidDocument mockDidDocument;
+  late _MockRootDidManager mockRootDidManager;
+  late _MockRootDidDocument mockRootDidDocument;
   late _MockDidWebDocumentService mockDidDocumentService;
   late _MockMessageService mockMessageService;
   late _MockMediatorService mockMediatorService;
@@ -70,6 +77,8 @@ void main() {
     mockWallet = _MockWallet();
     mockDidManager = _MockDidManager();
     mockDidDocument = _MockDidDocument();
+    mockRootDidManager = _MockRootDidManager();
+    mockRootDidDocument = _MockRootDidDocument();
     mockDidDocumentService = _MockDidWebDocumentService();
     mockMessageService = _MockMessageService();
     mockMediatorService = _MockMediatorService();
@@ -96,6 +105,13 @@ void main() {
     when(
       () => mockDidManager.getDidDocument(),
     ).thenAnswer((_) async => mockDidDocument);
+    when(
+      () => mockConnectionManager.generateRootDid(mockWallet),
+    ).thenAnswer((_) async => mockRootDidManager);
+    when(
+      () => mockRootDidManager.getDidDocument(),
+    ).thenAnswer((_) async => mockRootDidDocument);
+    when(() => mockRootDidDocument.id).thenReturn(_rootDid);
     when(
       () => mockDidDocumentService.register(
         didManager: any(named: 'didManager'),
@@ -209,14 +225,15 @@ void main() {
       final captured = verify(
         () => mockMessageService.sendMessage(
           captureAny(),
-          senderDidManager: any(named: 'senderDidManager'),
+          senderDidManager: captureAny(named: 'senderDidManager'),
           recipientDid: captureAny(named: 'recipientDid'),
           mediatorDid: any(named: 'mediatorDid'),
         ),
       ).captured;
 
       final message = captured[0] as PlainTextMessage;
-      final recipientDid = captured[1] as String;
+      final senderDidManager = captured[1];
+      final recipientDid = captured[2] as String;
 
       expect(
         message.type.toString(),
@@ -224,7 +241,9 @@ void main() {
           'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/agent-create-channel-identity-request',
         ),
       );
+      expect(message.from, equals(_rootDid));
       expect(message.body!['channelDid'], equals('did:test:permanent'));
+      expect(senderDidManager, equals(mockRootDidManager));
       expect(recipientDid, equals(_agentDid));
     });
 

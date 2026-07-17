@@ -187,7 +187,7 @@ class IdentityService {
 
       await _messageService.sendMessage(
         request.toPlainTextMessage(),
-        senderDidManager: senderDidManager,
+        senderDidManager: rootDidManager,
         recipientDid: agentDid,
         mediatorDid: _mediatorDid,
       );

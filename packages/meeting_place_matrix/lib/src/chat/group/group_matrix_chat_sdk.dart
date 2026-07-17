@@ -205,7 +205,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   @override
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
     assertCanSend();
-    final c = card;
+    final c = currentContactCard;
     if (c == null) {
       throw StateError('ContactCard missing for contact details update');
     }

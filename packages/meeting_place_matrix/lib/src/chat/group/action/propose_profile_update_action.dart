@@ -21,7 +21,7 @@ class ProposeProfileUpdateAction implements GroupAction<void> {
 
   @override
   Future<void> execute() async {
-    final card = _chatSDK.card;
+    final card = _chatSDK.currentContactCard;
     if (card == null) {
       _chatSDK.logger.warning(
         'ContactCard is null. Skipping profile update proposal.',

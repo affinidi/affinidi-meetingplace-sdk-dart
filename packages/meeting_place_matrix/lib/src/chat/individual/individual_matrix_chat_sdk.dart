@@ -147,6 +147,7 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
 
   @override
   Future<void> proposeProfileUpdate() async {
+    final card = currentContactCard;
     if (card == null) {
       logger.info(
         'ContactCard is null, skipping profile hash update',
@@ -156,9 +157,9 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
     }
 
     final channel = await getChannel();
-    if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
+    if (channel.contactCard != null && !card.equals(channel.contactCard!)) {
       await coreSDK.sendMessage(
-        ProfileHashRoomEvent(senderDid: did, profileHash: card!.profileHash),
+        ProfileHashRoomEvent(senderDid: did, profileHash: card.profileHash),
       );
 
       channel.contactCard = card;

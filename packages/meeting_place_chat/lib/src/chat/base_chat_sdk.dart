@@ -50,6 +50,14 @@ abstract class BaseChatSDK {
   final ContactCard? card;
   final MeetingPlaceChatSDKLogger _logger;
 
+  /// The freshest contact card available for the signed-in identity.
+  ///
+  /// Retained chat sessions may outlive profile edits, so profile-update
+  /// decisions should read this getter instead of the construction-time
+  /// snapshot in [card].
+  ContactCard? get currentContactCard =>
+      options.resolveCurrentContactCard?.call() ?? card;
+
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;

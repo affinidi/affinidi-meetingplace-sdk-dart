@@ -38,7 +38,8 @@ abstract interface class AudioVideoCallPlugin {
 
   /// Starts an outbound call and returns a live [AudioVideoCallSession] handle.
   ///
-  /// Also used by the recipient after [acceptCall]: the plugin detects internally
+  /// Also used by the recipient after [acceptCall]: the plugin
+  /// detects internally
   /// that the call was already accepted and joins as recipient rather than
   /// initiating a new outbound call.
   ///

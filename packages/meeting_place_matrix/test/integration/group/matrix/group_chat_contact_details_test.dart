@@ -80,4 +80,56 @@ void main() {
       await newBobChatSDK.endChatSession();
     },
   );
+
+  test(
+    'startChatSession proposes profile update from current card resolver',
+    () async {
+      final staleCard = ContactCardFixture.getContactCardFixture(
+        did: fixture.bobMemberDid,
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'Stale'},
+        },
+      );
+      var currentCard = ContactCardFixture.getContactCardFixture(
+        did: fixture.bobMemberDid,
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'Initial'},
+        },
+      );
+
+      final refreshedChatSdk = await initGroupChatSDK(
+        coreSDK: fixture.bobSDK,
+        did: fixture.bobMemberDid,
+        otherPartyDid: fixture.publishOfferResult.connectionOffer.groupDid!,
+        group: fixture.bobGroup,
+        channelRepository: fixture.bobChannelRepository,
+        card: staleCard,
+        options: MeetingPlaceChatSDKOptions(
+          chatPresenceSendInterval: const Duration(seconds: 3),
+          resolveCurrentContactCard: () => currentCard,
+        ),
+      );
+
+      currentCard = ContactCardFixture.getContactCardFixture(
+        did: fixture.bobMemberDid,
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'Fresh'},
+        },
+      );
+
+      final bobChat = await refreshedChatSdk.startChatSession();
+      final concierge = (await refreshedChatSdk.messages)
+          .whereType<ConciergeMessage>()
+          .firstWhere(
+            (ConciergeMessage message) =>
+                message.conciergeType ==
+                ConciergeMessageType.permissionToUpdateProfile,
+          );
+
+      expect(concierge.chatId, bobChat.id);
+      expect(concierge.data['profileDetails'], equals(currentCard.toJson()));
+
+      await refreshedChatSdk.endChatSession();
+    },
+  );
 }

@@ -58,6 +58,16 @@ class AgentIdentityService {
       granteeDids: [otherPartyPermanentChannelDid, agentControllerDid],
     );
 
+    final agentDidManager = await _connectionManager.getDidManagerForDid(
+      _wallet,
+      agentDid,
+    );
+    await _mediatorAclService.addToAcl(
+      didManager: agentDidManager,
+      mediatorDid: mediatorDid,
+      granteeDids: [otherPartyPermanentChannelDid],
+    );
+
     if (transport == ChannelTransport.matrix) {
       await _matrixService.loginWithDid(didManager);
     }

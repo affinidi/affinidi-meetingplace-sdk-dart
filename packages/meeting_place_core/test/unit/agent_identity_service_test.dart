@@ -48,6 +48,7 @@ void main() {
   late _MockWallet mockWallet;
   late _MockMatrixService mockMatrixService;
   late _MockDidManager mockDidManager;
+  late _MockDidManager mockAgentDidManager;
   late _MockDidDocument mockDidDocument;
   late AgentIdentityService service;
 
@@ -65,6 +66,7 @@ void main() {
     mockConnectionManager = _MockConnectionManager();
     mockWallet = _MockWallet();
     mockDidManager = _MockDidManager();
+    mockAgentDidManager = _MockDidManager();
     mockDidDocument = _MockDidDocument();
     mockMatrixService = _MockMatrixService();
 
@@ -81,6 +83,10 @@ void main() {
     when(
       () => mockIdentityService.generateDidWeb(mockWallet),
     ).thenAnswer((_) async => mockDidManager);
+
+    when(
+      () => mockConnectionManager.getDidManagerForDid(mockWallet, _agentDid),
+    ).thenAnswer((_) async => mockAgentDidManager);
 
     when(
       () => mockDidManager.getDidDocument(),
@@ -143,9 +149,14 @@ void main() {
           ),
         ).captured;
 
+        // First call: permanent channel DID grants access to user + controller
         expect(captured[0], equals(mockDidManager)); // didManager
-        expect(captured[1], equals([_channelDid, _agentControllerDid])); // granteeDids (alpha order)
+        expect(captured[1], equals([_channelDid, _agentControllerDid])); // granteeDids
         expect(captured[2], equals(_mediatorDid)); // mediatorDid
+        // Second call: agent DID grants access to user's permanent channel DID
+        expect(captured[3], equals(mockAgentDidManager)); // agent didManager
+        expect(captured[4], equals([_channelDid])); // granteeDids
+        expect(captured[5], equals(_mediatorDid)); // mediatorDid
       },
     );
 

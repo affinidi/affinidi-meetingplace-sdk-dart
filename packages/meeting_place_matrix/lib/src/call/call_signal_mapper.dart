@@ -21,7 +21,11 @@ class CallSignalMapper {
         IncomingCallSignal(ownChannelDid: did, mediaType: CallMediaType.audio),
       ],
       CallChannelActivityType.callDecline => [
-        CallDeclineSignal(ownChannelDid: did),
+        CallDeclineSignal(
+          ownChannelDid: did,
+          otherPartyPermanentChannelDid:
+              e.channel.otherPartyPermanentChannelDid,
+        ),
       ],
       _ => const <CallSignal>[],
     };

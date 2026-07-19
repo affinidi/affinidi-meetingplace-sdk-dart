@@ -419,6 +419,11 @@ class MatrixService {
     required String callId,
   }) => _callService.watchCall(roomId: roomId, callId: callId);
 
+  /// Returns a stream that completes when the pending incoming group call in
+  /// [roomId] disappears before it is answered.
+  Stream<void>? watchIncomingCall({required String roomId}) =>
+      _callService.watchIncomingCall(roomId: roomId);
+
   /// Returns an authenticated client, transparently re-authenticating via
   /// [loginWithDid] when the session has expired or the refresh token is
   /// exhausted.

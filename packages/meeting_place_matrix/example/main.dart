@@ -68,10 +68,12 @@ Future<void> main() async {
     prettyPrintYellow('Wrote offer mnemonic to ${mnemonicFile.path}');
     prettyPrintYellow('Next steps:');
     prettyPrintYellow(
-      '1. Open the generated mnemonic file and accept it from another example actor.',
+      '1. Open the generated mnemonic file and accept it from'
+      ' another example actor.',
     );
     prettyPrintYellow(
-      '2. For calls, run example/calls/setup_calls.dart for LiveKit-specific config.',
+      '2. For calls, run example/calls/setup_calls.dart for'
+      ' LiveKit-specific config.',
     );
     prettyPrintYellow(
       '3. For chat/media/group flows, run the alice.dart / bob.dart examples in those folders.',

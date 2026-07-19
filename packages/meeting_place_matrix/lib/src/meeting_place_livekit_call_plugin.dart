@@ -7,7 +7,9 @@ import '../meeting_place_matrix.dart';
 import 'call/call_channel_activity_type.dart';
 import 'exceptions/meeting_place_livekit_call_exception.dart';
 import 'handlers/call_signal_handler.dart';
-import 'pending_call_manager.dart';
+import 'managers/active_call_session_manager.dart';
+import 'managers/pending_call_manager.dart';
+import 'managers/pending_incoming_call_watch_manager.dart';
 import 'services/audio_video_call_service.dart';
 import 'services/sfu_token_service.dart';
 import 'transport/matrix/call/contracts/audio_video_call_plugin.dart';
@@ -45,6 +47,19 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
            StreamController<IncomingAudioVideoCallEvent>.broadcast(),
        _cancelledCallsController =
            StreamController<IncomingAudioVideoCallEvent>.broadcast() {
+    _activeCallSessionManager = ActiveCallSessionManager(
+      pendingCallManager: _pendingCallManager,
+      logger: _logger,
+    );
+    _pendingIncomingCallWatchManager = PendingIncomingCallWatchManager(
+      pendingCallManager: _pendingCallManager,
+      logger: _logger,
+      onCallCancelled: (event) {
+        if (!_cancelledCallsController.isClosed) {
+          _cancelledCallsController.add(event);
+        }
+      },
+    );
     if (_livekitSfuUrl == null && _sfuAllowedHosts.isEmpty) {
       throw const MeetingPlaceLiveKitCallMisconfiguredException(
         'sfuAllowedHosts must be non-empty in production mode '
@@ -64,14 +79,8 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   final matrix.WebRTCDelegate _rtcDelegate;
   final LiveKitRoomFactory _roomFactory;
   final PendingCallManager _pendingCallManager = PendingCallManager();
-
-  // Active session; set on startCall(), cleared on dispose.
-  LiveKitCallSession? _activeSession;
-
-  // Set while a stale session is tearing down so startCall() can await it
-  // before connecting a replacement LiveKit room. Keeps the old disconnect
-  // from racing the new join for the same participant identity.
-  Future<void>? _pendingSessionDispose;
+  late final ActiveCallSessionManager _activeCallSessionManager;
+  late final PendingIncomingCallWatchManager _pendingIncomingCallWatchManager;
 
   MeetingPlaceMatrixSDK? _sdk;
   CallSignalHandler? _signalHandler;
@@ -97,13 +106,15 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       sdk: sdk,
       pendingCallManager: _pendingCallManager,
       logger: _logger,
-      getActiveSession: () => _activeSession,
+      getActiveSession: () => _activeCallSessionManager.activeSession,
       onIncomingCall: (event) {
+        _pendingIncomingCallWatchManager.watchPendingCall(_sdk, event);
         if (!_incomingCallsController.isClosed) {
           _incomingCallsController.add(event);
         }
       },
       onCallCancelled: (event) {
+        _pendingIncomingCallWatchManager.cancelPendingCallWatcher(event.callId);
         if (!_cancelledCallsController.isClosed) {
           _cancelledCallsController.add(event);
         }
@@ -114,27 +125,21 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
           '${event.otherPartyPermanentChannelDid.topAndTail()}',
           name: _logKey,
         );
-        final previousSession = _activeSession;
-        _activeSession = null;
-        _pendingCallManager
-          ..clearActiveCall()
-          ..registerIncomingCall(
-            callId: event.callId,
-            otherPartyChannelDid: event.otherPartyPermanentChannelDid,
-            mediaType: event.mediaType,
-          );
+        final previousSession = _activeCallSessionManager.activeSession;
+        _activeCallSessionManager.clearActiveSession();
+        _pendingCallManager.registerIncomingCall(
+          callId: event.callId,
+          otherPartyChannelDid: event.otherPartyPermanentChannelDid,
+          mediaType: event.mediaType,
+        );
+        _pendingIncomingCallWatchManager.watchPendingCall(_sdk, event);
         if (!_incomingCallsController.isClosed) {
           _incomingCallsController.add(event);
         }
         if (previousSession != null) {
-          _pendingSessionDispose = previousSession.dispose().catchError((
-            Object e,
-          ) {
-            _logger.warning(
-              'onPeerRestartedCall: Error during previous session disposal: $e',
-              name: _logKey,
-            );
-          });
+          _activeCallSessionManager.disposeSessionAfterPeerRestart(
+            previousSession,
+          );
         }
       },
     );
@@ -147,11 +152,10 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     await _signalSubscription?.cancel();
     _signalSubscription = null;
     _signalHandler = null;
+    await _pendingIncomingCallWatchManager.dispose();
     await _incomingCallsController.close();
     await _cancelledCallsController.close();
-    await _activeSession?.dispose();
-    _activeSession = null;
-    _pendingCallManager.clearActiveCall();
+    await _activeCallSessionManager.dispose();
     _logger.info('Plugin disposed', name: _logKey);
   }
 
@@ -175,58 +179,25 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   ///
   /// Used by the video-rendering widget (`AudioVideoCallView`) to resolve the
   /// LiveKit session. Null between calls or after `leaveCurrentCall`.
-  LiveKitCallSession? get activeSession => _activeSession;
+  LiveKitCallSession? get activeSession =>
+      _activeCallSessionManager.activeSession;
 
   @override
   Future<AudioVideoCallSession> startCall({
     required String otherPartyChannelDid,
     required CallMediaType mediaType,
   }) async {
-    if (_pendingSessionDispose != null) {
-      _logger.info(
-        'startCall: Awaiting pending session disposal before new join',
-        name: _logKey,
-      );
-      await _pendingSessionDispose;
-      _pendingSessionDispose = null;
-    }
+    await _activeCallSessionManager.awaitPendingDisposal();
 
     final sdk = _requireSdk();
 
-    if (_activeSession != null) {
-      _logger.warning(
-        'startCall: Disposing previous active session for '
-        '${_activeSession!.otherPartyChannelDid.topAndTail()}',
-        name: _logKey,
-      );
-      final previousSession = _activeSession!;
-      _activeSession = null;
-      _pendingCallManager.clearActiveCall();
-      _pendingSessionDispose = previousSession.dispose().catchError((Object e) {
-        _logger.warning(
-          'startCall: Error during previous session disposal: $e',
-          name: _logKey,
-        );
-      });
-      _logger.info(
-        'startCall: Awaiting disposal of '
-        '${previousSession.otherPartyChannelDid.topAndTail()}',
-        name: _logKey,
-      );
-      await _pendingSessionDispose;
-      _logger.info(
-        'startCall: Previous session disposal complete',
-        name: _logKey,
-      );
-      _pendingSessionDispose = null;
-    }
+    await _activeCallSessionManager.disposeCurrentSessionForReplacement();
 
     final session = _buildSession(
       sdk: sdk,
       otherPartyChannelDid: otherPartyChannelDid,
     );
-    _activeSession = session;
-    _watchForSessionEnd(session);
+    _activeCallSessionManager.setActiveSession(session);
 
     final (:isRecipient, :pendingCallId) = _pendingCallManager.resolveRole(
       otherPartyChannelDid,
@@ -242,8 +213,6 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       name: _logKey,
     );
 
-    // Trigger the LiveKit connection + (for outbound calls) the call-invite
-    // nudge. The session's state stream reflects the connection progress.
     unawaited(session.joinCall(isRecipient: isRecipient, mediaType: mediaType));
 
     return session;
@@ -252,6 +221,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   @override
   Future<void> acceptCall({required String callId}) async {
     final otherPartyChannelDid = _pendingCallManager.acceptCall(callId);
+    _pendingIncomingCallWatchManager.cancelPendingCallWatcher(callId);
     if (otherPartyChannelDid == null) {
       throw MeetingPlaceLiveKitCallOperationException(
         'acceptCall: unknown callId $callId — no pending call found',
@@ -267,6 +237,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   Future<void> declineCall({required String callId}) async {
     _logger.info('declineCall: $callId', name: _logKey);
     final callerChannelDid = _pendingCallManager.declineCall(callId);
+    _pendingIncomingCallWatchManager.cancelPendingCallWatcher(callId);
     final sdk = _sdk;
     if (sdk != null && callerChannelDid != null) {
       unawaited(
@@ -286,22 +257,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
   /// when the app exits.
   @override
   Future<void> leaveCurrentCall() async {
-    final session = _activeSession;
-    if (session == null) {
-      _logger.info(
-        'leaveCurrentCall: no active session to leave',
-        name: _logKey,
-      );
-      return;
-    }
-    _logger.info(
-      'Leaving current call for ${session.otherPartyChannelDid.topAndTail()}',
-      name: _logKey,
-    );
-    await session.hangUp();
-    await _activeSession?.dispose();
-    _activeSession = null;
-    _pendingCallManager.clearActiveCall();
+    await _activeCallSessionManager.leaveCurrentCall();
   }
 
   MeetingPlaceMatrixSDK _requireSdk() {
@@ -313,43 +269,6 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       );
     }
     return sdk;
-  }
-
-  // Subscribes to [session]'s state stream and auto-clears [_activeSession]
-  // and [_pendingCallManager] when a call-end status is emitted.
-  //
-  // This ensures the busy guard is released regardless of whether the call ends
-  // via the user hanging up, a remote hang-up, or a timeout — without requiring
-  // the app to call [leaveCurrentCall] on every code path.
-  void _watchForSessionEnd(LiveKitCallSession session) {
-    const endedStatuses = {
-      AudioVideoCallStatus.ended,
-      AudioVideoCallStatus.declined,
-      AudioVideoCallStatus.missed,
-      AudioVideoCallStatus.disconnected,
-      AudioVideoCallStatus.error,
-    };
-
-    void release(String reason) {
-      if (_activeSession == session) {
-        _logger.info(
-          'watchForSessionEnd: $reason — releasing busy guard for '
-          '${session.otherPartyChannelDid.topAndTail()}',
-          name: _logKey,
-        );
-        _activeSession = null;
-        _pendingCallManager.clearActiveCall();
-      }
-    }
-
-    session.state
-        .where((s) => endedStatuses.contains(s.status))
-        .listen(
-          (_) => release('call ended'),
-          onDone: () => release('session stream closed'),
-          onError: (_) => release('session stream error'),
-          cancelOnError: true,
-        );
   }
 
   LiveKitCallSession _buildSession({

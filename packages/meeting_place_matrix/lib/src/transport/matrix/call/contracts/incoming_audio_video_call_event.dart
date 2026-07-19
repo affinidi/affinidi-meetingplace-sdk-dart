@@ -1,6 +1,6 @@
 import '../../../../call/call_media_type.dart';
 
-/// Emitted on `AudioVideoCallPlugin.incomingCalls` when the other party
+/// Emitted on `AudioVideoCallPlugin.incomingCalls` when a peer
 /// calls you.
 class IncomingAudioVideoCallEvent {
   const IncomingAudioVideoCallEvent({
@@ -8,6 +8,9 @@ class IncomingAudioVideoCallEvent {
     required this.callerPermanentChannelDid,
     required this.otherPartyPermanentChannelDid,
     required this.mediaType,
+    required this.invitedAt,
+    this.ownPermanentChannelDid,
+    this.roomId,
   });
 
   /// Identifier for this call.
@@ -18,13 +21,22 @@ class IncomingAudioVideoCallEvent {
 
   /// The caller's permanent channel DID (stable identifier, not ephemeral).
   ///
-  /// This identifies the remote party initiating the call.
+  /// Identifies the peer initiating the call.
   final String callerPermanentChannelDid;
 
-  /// The other party's permanent channel DID (stable identifier,
-  /// not ephemeral).
+  /// The peer's permanent channel DID (stable identifier, not ephemeral).
   final String otherPartyPermanentChannelDid;
 
   /// Whether the call carries video or is audio-only.
   final CallMediaType mediaType;
+
+  /// Time the incoming call signal was surfaced locally.
+  final DateTime invitedAt;
+
+  /// The recipient's channel DID that received the call signal when known.
+  final String? ownPermanentChannelDid;
+
+  /// Matrix room ID when known; enables lifecycle observation in group calls
+  /// before full transport metadata is stable.
+  final String? roomId;
 }

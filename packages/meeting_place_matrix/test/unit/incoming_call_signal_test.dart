@@ -98,6 +98,7 @@ void main() {
       expect(event.callerPermanentChannelDid, callerDid);
       expect(event.otherPartyPermanentChannelDid, callerDid);
       expect(event.mediaType, CallMediaType.video);
+      expect(event.roomId, _roomId);
     });
 
     test(

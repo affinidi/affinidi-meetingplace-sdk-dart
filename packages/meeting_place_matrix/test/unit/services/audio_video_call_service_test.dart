@@ -214,7 +214,7 @@ void main() {
       expect(fakeRoom.disconnectCalls, 1);
     });
 
-    test('sends call-invite nudge before connecting to LiveKit', () async {
+    test('sends call-invite room event after connecting to LiveKit', () async {
       final mockTokenService = MockSfuTokenService();
       final mockDidManager = MockDidManager();
       final mockGroupCallSession = MockGroupCallSession();
@@ -229,6 +229,9 @@ void main() {
       when(
         () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => _stubChannel());
+      when(
+        () => mockSdk.getGroupByOfferLink(any()),
+      ).thenAnswer((_) async => null);
 
       when(
         () => mockSdk.getDidManager(any()),

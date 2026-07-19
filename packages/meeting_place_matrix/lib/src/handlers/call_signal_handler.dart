@@ -4,8 +4,9 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_matrix.dart';
 import '../call/call_channel_activity_type.dart';
+import '../call/incoming_call_identity.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
-import '../pending_call_manager.dart';
+import '../managers/pending_call_manager.dart';
 import '../utils/string.dart';
 
 /// Routes incoming and declined call signals from the SDK to the plugin's
@@ -71,17 +72,40 @@ class CallSignalHandler {
           'Channel ${channel.id} has no otherPartyPermanentChannelDid',
         );
       }
-      final callId = await _resolveIncomingCallId(
+      final reserved = _pendingCallManager.reserveIncomingCall(
+        callerChannelDid,
+      );
+      if (!reserved) {
+        _logger.warning(
+          'Incoming call ${callerChannelDid.topAndTail()} auto-rejected: '
+          'already in a call',
+          name: _logKey,
+        );
+        return;
+      }
+      final identity = await _resolveIncomingCallIdentity(
         ownChannelDid: signal.ownChannelDid,
         channel: channel,
         callerChannelDid: callerChannelDid,
       );
 
+      if (!_pendingCallManager.hasIncomingReservation(callerChannelDid)) {
+        _logger.info(
+          'Incoming call ${callerChannelDid.topAndTail()} was cancelled '
+          'before banner emission',
+          name: _logKey,
+        );
+        return;
+      }
+
       final event = IncomingAudioVideoCallEvent(
-        callId: callId,
+        callId: identity.callId,
         callerPermanentChannelDid: callerChannelDid,
         otherPartyPermanentChannelDid: callerChannelDid,
         mediaType: signal.mediaType,
+        invitedAt: DateTime.now().toUtc(),
+        ownPermanentChannelDid: signal.ownChannelDid,
+        roomId: identity.roomId,
       );
       _emitIncomingCall(event, ownChannelDid: signal.ownChannelDid);
     } on MeetingPlaceLiveKitCallOperationException catch (e) {
@@ -114,17 +138,19 @@ class CallSignalHandler {
       name: _logKey,
     );
 
-    String? otherPartyChannelDid;
-    try {
-      final channel = await _sdk.getChannelByDid(signal.ownChannelDid);
-      otherPartyChannelDid = channel?.otherPartyPermanentChannelDid;
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to resolve channel for call-decline signal',
-        error: e,
-        stackTrace: stackTrace,
-        name: _logKey,
-      );
+    var otherPartyChannelDid = signal.otherPartyPermanentChannelDid;
+    if (otherPartyChannelDid == null) {
+      try {
+        final channel = await _sdk.getChannelByDid(signal.ownChannelDid);
+        otherPartyChannelDid = channel?.otherPartyPermanentChannelDid;
+      } catch (e, stackTrace) {
+        _logger.error(
+          'Failed to resolve channel for call-decline signal',
+          error: e,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
+      }
     }
 
     if (otherPartyChannelDid == null) {
@@ -150,11 +176,15 @@ class CallSignalHandler {
     final pendingCall = _pendingCallManager.removePendingByDid(
       otherPartyChannelDid,
     );
+    if (pendingCall == null) {
+      _pendingCallManager.cancelReservedIncomingCall(otherPartyChannelDid);
+    }
     final cancelledEvent = IncomingAudioVideoCallEvent(
       callId: pendingCall?.callId ?? otherPartyChannelDid,
       callerPermanentChannelDid: otherPartyChannelDid,
       otherPartyPermanentChannelDid: signal.ownChannelDid,
       mediaType: pendingCall?.mediaType ?? CallMediaType.video,
+      invitedAt: DateTime.now().toUtc(),
     );
     _logger.info(
       'onCallDeclineSignal: Caller ${otherPartyChannelDid.topAndTail()} '
@@ -197,6 +227,9 @@ class CallSignalHandler {
       otherPartyChannelDid: event.otherPartyPermanentChannelDid,
       mediaType: event.mediaType,
     );
+    _pendingCallManager.releaseIncomingReservation(
+      event.otherPartyPermanentChannelDid,
+    );
     if (!registered) {
       _logger.warning(
         'Incoming call ${event.callerPermanentChannelDid} from '
@@ -220,6 +253,7 @@ class CallSignalHandler {
           callerPermanentChannelDid: event.callerPermanentChannelDid,
           otherPartyPermanentChannelDid: ownChannelDid,
           mediaType: event.mediaType,
+          invitedAt: event.invitedAt,
         ),
       );
       return;
@@ -234,7 +268,7 @@ class CallSignalHandler {
 
   /// Resolves the incoming call ID, falling back to room ID if transport
   /// callId is not yet visible.
-  Future<String> _resolveIncomingCallId({
+  Future<IncomingCallIdentity> _resolveIncomingCallIdentity({
     required String ownChannelDid,
     required Channel channel,
     required String callerChannelDid,
@@ -251,15 +285,15 @@ class CallSignalHandler {
         roomId: roomId,
       );
       if (callId != null) {
-        return callId;
+        return IncomingCallIdentity(callId: callId, roomId: roomId);
       }
 
-      _logger.warning(
+      _logger.info(
         'Incoming call transport callId not yet visible for '
         '${ownChannelDid.topAndTail()}, falling back to roomId $roomId',
         name: _logKey,
       );
-      return roomId;
+      return IncomingCallIdentity(callId: roomId, roomId: roomId);
     } catch (e, stackTrace) {
       _logger.warning(
         'Incoming call identifier resolution failed for '
@@ -273,7 +307,10 @@ class CallSignalHandler {
         stackTrace: stackTrace,
         name: _logKey,
       );
-      return callerChannelDid;
+      return IncomingCallIdentity(
+        callId: callerChannelDid,
+        roomId: callerChannelDid,
+      );
     }
   }
 }

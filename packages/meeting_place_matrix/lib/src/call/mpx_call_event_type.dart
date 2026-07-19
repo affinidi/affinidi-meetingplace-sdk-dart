@@ -8,6 +8,10 @@ abstract final class MpxCallEventType {
   /// parameters, including the call's media type.
   static const String callInvite = 'mpx.call.invite';
 
+  /// Timeline event written by the caller when a pending call is cancelled
+  /// before the recipient answers.
+  static const String callCancel = 'mpx.call.cancel';
+
   /// Timeline event written after a call ends that carries call item metadata
   /// (e.g. duration, media type) for display in the chat history.
   static const String callItem = 'mpx.call.item';

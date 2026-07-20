@@ -1,3 +1,7 @@
+## 0.0.1-dev.5
+
+ - **FIX**: use matrix room watcher for reliable group call cancel (#284).
+
 ## 0.0.1-dev.4
 
  - Update a dependency to the latest release.

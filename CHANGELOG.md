@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-07-20
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_matrix` - `v0.0.1-dev.5`](#meeting_place_matrix---v001-dev5)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.5`
+
+ - **FIX**: use matrix room watcher for reliable group call cancel (#284).
+
+
 ## 2026-07-15
 
 ### Changes

@@ -48,10 +48,18 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   int _seqNo = 0;
 
   @override
-  TransportCapabilities get capabilities => _capabilities;
+  TransportCapabilities get capabilities {
+    if (coreSDK.options.agentDid == null) {
+      return const TransportCapabilities(_capabilityBaseFeatures);
+    }
+    return const TransportCapabilities({
+      ..._capabilityBaseFeatures,
+      ChatFeature.suggestionRequests,
+    });
+  }
 
   /// Features supported by an individual chat over the DIDComm transport.
-  static const _capabilities = TransportCapabilities({
+  static const _capabilityBaseFeatures = {
     ChatFeature.textMessaging,
     ChatFeature.imageAttachments,
     ChatFeature.reactions,
@@ -61,7 +69,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     ChatFeature.effects,
     ChatFeature.contactDetailsUpdate,
     ChatFeature.humanZkp,
-  });
+  };
 
   @override
   Future<Chat> startChatSession() async {
@@ -595,9 +603,29 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   Future<void> sendSuggestionRequest({
     required String messageId,
     required String text,
-  }) {
-    throw UnsupportedError(
-      'Suggestion requests are not supported over DIDComm transport.',
+  }) async {
+    assertCanSend();
+    final recipientDid = coreSDK.options.agentDid;
+    if (recipientDid == null) {
+      throw StateError(
+        'Cannot send suggestion request: MeetingPlaceCoreSDK.options.agentDid '
+        'is not configured',
+      );
+    }
+
+    await coreSDK.sendMessage(
+      ChatSuggestionRequestMessage(
+        senderDid: did,
+        recipientDid: recipientDid,
+        mediatorDid: mediatorDid,
+        messageId: messageId,
+        text: text,
+      ),
+    );
+
+    logger.info(
+      'Sent suggestion request for message $messageId to $recipientDid',
+      name: _logkey,
     );
   }
 

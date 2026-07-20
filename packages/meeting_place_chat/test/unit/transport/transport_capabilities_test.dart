@@ -27,16 +27,17 @@ Group _group() => Group(
   ],
 );
 
-IndividualDidcommChatSDK _buildDidcommSdk() => IndividualDidcommChatSDK(
-  coreSDK: _MockCoreSDK(),
-  did: 'did:test:alice',
-  otherPartyDid: 'did:test:bob',
-  mediatorDid: 'did:test:mediator',
-  chatRepository: _MockChatRepository(),
-  options: MeetingPlaceChatSDKOptions(
-    chatPresenceSendInterval: const Duration(hours: 1),
-  ),
-);
+IndividualDidcommChatSDK _buildDidcommSdk(_MockCoreSDK core) =>
+    IndividualDidcommChatSDK(
+      coreSDK: core,
+      did: 'did:test:alice',
+      otherPartyDid: 'did:test:bob',
+      mediatorDid: 'did:test:mediator',
+      chatRepository: _MockChatRepository(),
+      options: MeetingPlaceChatSDKOptions(
+        chatPresenceSendInterval: const Duration(hours: 1),
+      ),
+    );
 
 IndividualMatrixChatSDK _buildMatrixSdk(_MockCoreSDK core) =>
     IndividualMatrixChatSDK(
@@ -65,13 +66,33 @@ GroupMatrixChatSDK _buildGroupMatrixSdk(_MockCoreSDK core) =>
 
 void main() {
   group('Chat transport capabilities', () {
-    test('DIDComm supports images but not video attachments', () {
-      final capabilities = _buildDidcommSdk().capabilities;
+    test(
+      'individual DIDComm exposes suggestion requests when agentDid exists',
+      () {
+        final core = _MockCoreSDK();
+        when(() => core.options).thenReturn(
+          const MeetingPlaceCoreSDKOptions(agentDid: 'did:test:agent'),
+        );
+        final capabilities = _buildDidcommSdk(core).capabilities;
 
-      expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
-      expect(capabilities.supports(ChatFeature.videoAttachments), isFalse);
-      expect(capabilities.supports(ChatFeature.suggestionRequests), isFalse);
-    });
+        expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
+        expect(capabilities.supports(ChatFeature.videoAttachments), isFalse);
+        expect(capabilities.supports(ChatFeature.suggestionRequests), isTrue);
+      },
+    );
+
+    test(
+      'individual DIDComm hides suggestion requests when agentDid is absent',
+      () {
+        final core = _MockCoreSDK();
+        when(() => core.options).thenReturn(const MeetingPlaceCoreSDKOptions());
+        final capabilities = _buildDidcommSdk(core).capabilities;
+
+        expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
+        expect(capabilities.supports(ChatFeature.videoAttachments), isFalse);
+        expect(capabilities.supports(ChatFeature.suggestionRequests), isFalse);
+      },
+    );
 
     test(
       'individual Matrix exposes suggestion requests when agentDid exists',

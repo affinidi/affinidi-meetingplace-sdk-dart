@@ -50,6 +50,7 @@ class Channel {
     this.matrixRoomId,
     this.seqNo = 0,
     this.externalRef,
+    this.contextKey,
   }) : id = id ?? const Uuid().v4();
 
   factory Channel.fromJson(Map<String, dynamic> json) {
@@ -78,6 +79,7 @@ class Channel {
       contactCard: contactCard,
       otherPartyContactCard: connectionOffer.contactCard,
       externalRef: externalRef,
+      contextKey: connectionOffer.contextKey,
     );
   }
 
@@ -191,6 +193,10 @@ class Channel {
   /// consumer to store any relevant information that can be used to correlate
   /// the channel with external systems or data.
   String? externalRef;
+
+  /// Semantic or local context key selected for the channel owner side.
+  /// Personal-agent connectors use this to route ghost-agent traffic.
+  String? contextKey;
 
   /// Sequence number to keep track of latest message in the channel.
   int seqNo = 0;

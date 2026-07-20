@@ -278,6 +278,17 @@ class $ConnectionOffersTable extends ConnectionOffers
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _contextKeyMeta = const VerificationMeta(
+    'contextKey',
+  );
+  @override
+  late final GeneratedColumn<String> contextKey = GeneratedColumn<String>(
+    'context_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -304,6 +315,7 @@ class $ConnectionOffersTable extends ConnectionOffers
     externalRef,
     transport,
     score,
+    contextKey,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -490,6 +502,12 @@ class $ConnectionOffersTable extends ConnectionOffers
         score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
       );
     }
+    if (data.containsKey('context_key')) {
+      context.handle(
+        _contextKeyMeta,
+        contextKey.isAcceptableOrUnknown(data['context_key']!, _contextKeyMeta),
+      );
+    }
     return context;
   }
 
@@ -601,6 +619,10 @@ class $ConnectionOffersTable extends ConnectionOffers
         DriftSqlType.int,
         data['${effectivePrefix}score'],
       ),
+      contextKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}context_key'],
+      ),
     );
   }
 
@@ -691,6 +713,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
 
   /// VRC score of the offer owner.
   final int? score;
+
+  /// Personal AI context selected for this offer, e.g. `work` or `personal`.
+  final String? contextKey;
   const ConnectionOffer({
     required this.id,
     required this.offerName,
@@ -716,6 +741,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     this.externalRef,
     required this.transport,
     this.score,
+    this.contextKey,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -784,6 +810,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     if (!nullToAbsent || score != null) {
       map['score'] = Variable<int>(score);
     }
+    if (!nullToAbsent || contextKey != null) {
+      map['context_key'] = Variable<String>(contextKey);
+    }
     return map;
   }
 
@@ -839,6 +868,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       score: score == null && nullToAbsent
           ? const Value.absent()
           : Value(score),
+      contextKey: contextKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contextKey),
     );
   }
 
@@ -884,6 +916,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       externalRef: serializer.fromJson<String?>(json['externalRef']),
       transport: serializer.fromJson<ChannelTransport>(json['transport']),
       score: serializer.fromJson<int?>(json['score']),
+      contextKey: serializer.fromJson<String?>(json['contextKey']),
     );
   }
   @override
@@ -918,6 +951,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
       'externalRef': serializer.toJson<String?>(externalRef),
       'transport': serializer.toJson<ChannelTransport>(transport),
       'score': serializer.toJson<int?>(score),
+      'contextKey': serializer.toJson<String?>(contextKey),
     };
   }
 
@@ -946,6 +980,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     Value<String?> externalRef = const Value.absent(),
     ChannelTransport? transport,
     Value<int?> score = const Value.absent(),
+    Value<String?> contextKey = const Value.absent(),
   }) => ConnectionOffer(
     id: id ?? this.id,
     offerName: offerName ?? this.offerName,
@@ -985,6 +1020,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     externalRef: externalRef.present ? externalRef.value : this.externalRef,
     transport: transport ?? this.transport,
     score: score.present ? score.value : this.score,
+    contextKey: contextKey.present ? contextKey.value : this.contextKey,
   );
   ConnectionOffer copyWithCompanion(ConnectionOffersCompanion data) {
     return ConnectionOffer(
@@ -1036,6 +1072,9 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           : this.externalRef,
       transport: data.transport.present ? data.transport.value : this.transport,
       score: data.score.present ? data.score.value : this.score,
+      contextKey: data.contextKey.present
+          ? data.contextKey.value
+          : this.contextKey,
     );
   }
 
@@ -1067,7 +1106,8 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
           ..write('transport: $transport, ')
-          ..write('score: $score')
+          ..write('score: $score, ')
+          ..write('contextKey: $contextKey')
           ..write(')'))
         .toString();
   }
@@ -1098,6 +1138,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
     externalRef,
     transport,
     score,
+    contextKey,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -1128,7 +1169,8 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
               this.otherPartyNotificationToken &&
           other.externalRef == this.externalRef &&
           other.transport == this.transport &&
-          other.score == this.score);
+          other.score == this.score &&
+          other.contextKey == this.contextKey);
 }
 
 class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
@@ -1156,6 +1198,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
   final Value<String?> externalRef;
   final Value<ChannelTransport> transport;
   final Value<int?> score;
+  final Value<String?> contextKey;
   final Value<int> rowid;
   const ConnectionOffersCompanion({
     this.id = const Value.absent(),
@@ -1182,6 +1225,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.externalRef = const Value.absent(),
     this.transport = const Value.absent(),
     this.score = const Value.absent(),
+    this.contextKey = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ConnectionOffersCompanion.insert({
@@ -1209,6 +1253,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     this.externalRef = const Value.absent(),
     this.transport = const Value.absent(),
     this.score = const Value.absent(),
+    this.contextKey = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : offerName = Value(offerName),
        offerLink = Value(offerLink),
@@ -1244,6 +1289,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     Expression<String>? externalRef,
     Expression<int>? transport,
     Expression<int>? score,
+    Expression<String>? contextKey,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1275,6 +1321,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       if (externalRef != null) 'external_ref': externalRef,
       if (transport != null) 'transport': transport,
       if (score != null) 'score': score,
+      if (contextKey != null) 'context_key': contextKey,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1304,6 +1351,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     Value<String?>? externalRef,
     Value<ChannelTransport>? transport,
     Value<int?>? score,
+    Value<String?>? contextKey,
     Value<int>? rowid,
   }) {
     return ConnectionOffersCompanion(
@@ -1333,6 +1381,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
       externalRef: externalRef ?? this.externalRef,
       transport: transport ?? this.transport,
       score: score ?? this.score,
+      contextKey: contextKey ?? this.contextKey,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1426,6 +1475,9 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
     if (score.present) {
       map['score'] = Variable<int>(score.value);
     }
+    if (contextKey.present) {
+      map['context_key'] = Variable<String>(contextKey.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1461,6 +1513,7 @@ class ConnectionOffersCompanion extends UpdateCompanion<ConnectionOffer> {
           ..write('externalRef: $externalRef, ')
           ..write('transport: $transport, ')
           ..write('score: $score, ')
+          ..write('contextKey: $contextKey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2421,6 +2474,7 @@ typedef $$ConnectionOffersTableCreateCompanionBuilder =
       Value<String?> externalRef,
       Value<ChannelTransport> transport,
       Value<int?> score,
+      Value<String?> contextKey,
       Value<int> rowid,
     });
 typedef $$ConnectionOffersTableUpdateCompanionBuilder =
@@ -2449,6 +2503,7 @@ typedef $$ConnectionOffersTableUpdateCompanionBuilder =
       Value<String?> externalRef,
       Value<ChannelTransport> transport,
       Value<int?> score,
+      Value<String?> contextKey,
       Value<int> rowid,
     });
 
@@ -2664,6 +2719,11 @@ class $$ConnectionOffersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> connectionContactCardsRefs(
     Expression<bool> Function($$ConnectionContactCardsTableFilterComposer f) f,
   ) {
@@ -2846,6 +2906,11 @@ class $$ConnectionOffersTableOrderingComposer
     column: $table.score,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ConnectionOffersTableAnnotationComposer
@@ -2953,6 +3018,11 @@ class $$ConnectionOffersTableAnnotationComposer
 
   GeneratedColumn<int> get score =>
       $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
+    builder: (column) => column,
+  );
 
   Expression<T> connectionContactCardsRefs<T extends Object>(
     Expression<T> Function($$ConnectionContactCardsTableAnnotationComposer a) f,
@@ -3066,6 +3136,7 @@ class $$ConnectionOffersTableTableManager
                 Value<String?> externalRef = const Value.absent(),
                 Value<ChannelTransport> transport = const Value.absent(),
                 Value<int?> score = const Value.absent(),
+                Value<String?> contextKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionOffersCompanion(
                 id: id,
@@ -3092,6 +3163,7 @@ class $$ConnectionOffersTableTableManager
                 externalRef: externalRef,
                 transport: transport,
                 score: score,
+                contextKey: contextKey,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3122,6 +3194,7 @@ class $$ConnectionOffersTableTableManager
                 Value<String?> externalRef = const Value.absent(),
                 Value<ChannelTransport> transport = const Value.absent(),
                 Value<int?> score = const Value.absent(),
+                Value<String?> contextKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionOffersCompanion.insert(
                 id: id,
@@ -3148,6 +3221,7 @@ class $$ConnectionOffersTableTableManager
                 externalRef: externalRef,
                 transport: transport,
                 score: score,
+                contextKey: contextKey,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

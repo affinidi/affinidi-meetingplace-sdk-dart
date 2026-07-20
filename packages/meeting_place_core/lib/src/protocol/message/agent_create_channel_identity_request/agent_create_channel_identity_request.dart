@@ -15,6 +15,7 @@ class AgentCreateChannelIdentityRequest {
     required String publishOfferDid,
     required ContactCard contactCard,
     required ChannelTransport transport,
+    String? contextKey,
   }) {
     return AgentCreateChannelIdentityRequest(
       id: const Uuid().v4(),
@@ -26,6 +27,7 @@ class AgentCreateChannelIdentityRequest {
         publishOfferDid: publishOfferDid,
         contactCard: contactCard,
         transport: transport,
+        contextKey: contextKey,
       ),
     );
   }

@@ -297,6 +297,7 @@ void main() {
         otherPartyPermanentChannelDid: 'did:example:channel-other',
         agentPermanentChannelDid: 'did:example:agent-self',
         otherPartyAgentPermanentChannelDid: 'did:example:agent-other',
+        contextKey: 'work',
       );
 
       await repository.createChannel(channel);
@@ -327,6 +328,7 @@ void main() {
         stored.otherPartyAgentPermanentChannelDid,
         equals('did:example:agent-other'),
       );
+      expect(stored.contextKey, equals('work'));
     });
 
     test(
@@ -356,6 +358,7 @@ void main() {
           ),
           permanentChannelDid: 'did:example:channel-agent-test',
           agentPermanentChannelDid: 'did:example:my-agent',
+          contextKey: 'personal',
         );
 
         await repository.createChannel(channel);
@@ -368,10 +371,12 @@ void main() {
           equals('did:example:my-agent'),
         );
         expect(stored.otherPartyAgentPermanentChannelDid, isNull);
+        expect(stored.contextKey, equals('personal'));
 
         // updateChannel persists changes to the agent DID fields.
         stored.agentPermanentChannelDid = 'did:example:my-agent-updated';
         stored.otherPartyAgentPermanentChannelDid = 'did:example:their-agent';
+        stored.contextKey = 'work';
         await repository.updateChannel(stored);
 
         final updated = await repository.findChannelByDid(
@@ -385,6 +390,7 @@ void main() {
           updated.otherPartyAgentPermanentChannelDid,
           equals('did:example:their-agent'),
         );
+        expect(updated.contextKey, equals('work'));
       },
     );
 
@@ -421,6 +427,7 @@ void main() {
           ownedByMe: true,
           createdAt: DateTime.utc(2026, 1, 1),
           transport: model.ChannelTransport.didcomm,
+          contextKey: 'work',
         );
 
         await repository.createConnectionOffer(connectionOffer);
@@ -438,6 +445,7 @@ void main() {
           stored.contactCard.contactInfo['photo'],
           equals('mxc://server/photo'),
         );
+        expect(stored.contextKey, equals('work'));
       },
     );
 

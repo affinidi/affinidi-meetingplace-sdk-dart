@@ -181,6 +181,7 @@ class ConnectionOfferRepositoryDrift
               externalRef: Value(connectionOffer.externalRef),
               transport: Value(connectionOffer.transport),
               score: Value(connectionOffer.score),
+              contextKey: Value(connectionOffer.contextKey),
             ),
           );
 
@@ -270,6 +271,7 @@ class ConnectionOfferRepositoryDrift
           externalRef: Value(connectionOffer.externalRef),
           transport: Value(connectionOffer.transport),
           score: Value(connectionOffer.score),
+          contextKey: Value(connectionOffer.contextKey),
         ),
       );
 
@@ -414,6 +416,7 @@ class _ConnectionOfferMapper {
         externalRef: connectionOffer.externalRef,
         transport: connectionOffer.transport,
         score: connectionOffer.score,
+        contextKey: connectionOffer.contextKey,
       );
     }
 
@@ -442,6 +445,7 @@ class _ConnectionOfferMapper {
       externalRef: connectionOffer.externalRef,
       transport: connectionOffer.transport,
       score: connectionOffer.score,
+      contextKey: connectionOffer.contextKey,
     );
   }
 }

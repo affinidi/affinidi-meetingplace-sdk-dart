@@ -41,6 +41,7 @@ void main() {
   const acceptOfferDid = 'did:test:accept';
   const permanentChannelDid = 'did:test:permanent';
   const otherPartyPermanentDid = 'did:test:other-permanent';
+  const otherPartyAgentPermanentDid = 'did:test:other-agent-permanent';
   const mediatorDid = 'did:test:mediator';
   const offerLink = 'offer-link';
   const notificationToken = 'notification-token';
@@ -51,12 +52,16 @@ void main() {
     notificationToken: 'other-party-notification-token',
   );
 
-  PlainTextMessage createApprovalMessage() => PlainTextMessage(
+  PlainTextMessage createApprovalMessage({String? agentDid}) =>
+      PlainTextMessage(
     id: 'msg-id',
     from: 'did:test:sender',
     to: [acceptOfferDid],
     type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
-    body: {'channel_did': otherPartyPermanentDid},
+    body: {
+      'channel_did': otherPartyPermanentDid,
+      if (agentDid != null) 'agent_did': agentDid,
+    },
     parentThreadId: 'thread-id',
   );
 
@@ -210,6 +215,9 @@ void main() {
         otherPartyNotificationToken: any(named: 'otherPartyNotificationToken'),
         otherPartyPermanentChannelDid: any(
           named: 'otherPartyPermanentChannelDid',
+        ),
+        otherPartyAgentPermanentChannelDid: any(
+          named: 'otherPartyAgentPermanentChannelDid',
         ),
         outboundMessageId: any(named: 'outboundMessageId'),
         otherPartyContactCard: any(named: 'otherPartyContactCard'),
@@ -380,6 +388,43 @@ void main() {
           .toList();
 
       expect(agentMsgs, isEmpty);
+    });
+  });
+
+  group('other party agent DID propagation', () {
+    test('stores publisher agent DID from approval message on local channel',
+        () async {
+      final channel = createChannel(transport: ChannelTransport.didcomm);
+
+      await handler.processMessage(
+        createApprovalMessage(agentDid: otherPartyAgentPermanentDid),
+        event: event,
+        connection: connectionOffer,
+        channel: channel,
+      );
+
+      verify(
+        () => mockChannelService
+          .markChannelInauguratedForNonConnectionInitiator(
+          channel,
+          notificationToken: notificationToken,
+          otherPartyNotificationToken: event.notificationToken,
+          otherPartyPermanentChannelDid: otherPartyPermanentDid,
+          otherPartyAgentPermanentChannelDid: otherPartyAgentPermanentDid,
+          outboundMessageId: 'msg-id',
+          otherPartyContactCard: any(named: 'otherPartyContactCard'),
+        ),
+      ).called(1);
+
+      final permanentChannelAcl = verify(
+        () => mockMediatorService.updateAcl(
+          ownerDidManager: mockPermanentDidManager,
+          mediatorDid: mediatorDid,
+          acl: captureAny(named: 'acl'),
+        ),
+      ).captured.single as AccessListAdd;
+
+      expect(permanentChannelAcl.granteeDids, hasLength(2));
     });
   });
 }

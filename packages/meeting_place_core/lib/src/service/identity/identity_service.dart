@@ -62,7 +62,9 @@ class IdentityService {
   }
 
   Future<EphemeralIdentity> createEphemeralIdentity(Wallet wallet) async {
-    final ephemeralDidManager = await _connectionManager.generateDid(wallet);
+    final ephemeralDidManager = await _connectionManager.generateEphemeralDid(
+      wallet,
+    );
     final didDocument = await ephemeralDidManager.getDidDocument();
 
     _logger.info(

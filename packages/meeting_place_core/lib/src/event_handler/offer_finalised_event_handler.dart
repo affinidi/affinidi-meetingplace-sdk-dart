@@ -123,6 +123,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
 
     final otherPartyPermanentChannelDid =
         connectionRequestApprovalMessage.body.channelDid;
+    final otherPartyAgentPermanentChannelDid =
+      connectionRequestApprovalMessage.body.agentDid;
 
     logger.info('''Found ConnectionRequestApproval. Their channel
       is $otherPartyPermanentChannelDid''', name: 'processMessage');
@@ -147,6 +149,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       acceptOfferDidManager: acceptOfferDidManager,
       acceptOfferDid: acceptOfferDid,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid: otherPartyAgentPermanentChannelDid,
       messageFrom: messageFrom,
       mediatorDid: channel.mediatorDid,
     );
@@ -179,6 +182,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       notificationToken: notificationToken,
       otherPartyNotificationToken: event.notificationToken,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid: otherPartyAgentPermanentChannelDid,
       outboundMessageId: message.id,
       otherPartyContactCard: connectionRequestApprovalMessage.contactCard,
     );
@@ -272,16 +276,23 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     required DidManager acceptOfferDidManager,
     required String acceptOfferDid,
     required String otherPartyPermanentChannelDid,
+    String? otherPartyAgentPermanentChannelDid,
     required String messageFrom,
     required String mediatorDid,
   }) {
+    final permanentChannelGranteeDids = [
+      otherPartyPermanentChannelDid,
+      if (otherPartyAgentPermanentChannelDid != null)
+        otherPartyAgentPermanentChannelDid,
+    ];
+
     return Future.wait([
       mediatorService.updateAcl(
         ownerDidManager: permanentChannelDidManager,
         mediatorDid: mediatorDid,
         acl: AccessListAdd(
           ownerDid: permanentChannelDid,
-          granteeDids: [otherPartyPermanentChannelDid],
+          granteeDids: permanentChannelGranteeDids,
         ),
       ),
       mediatorService.updateAcl(

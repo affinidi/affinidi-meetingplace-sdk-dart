@@ -648,7 +648,7 @@ class MeetingPlaceCoreSDK {
   ///
   /// Returns the new [DidManager] so the caller can subscribe to messages on
   /// the freshly created DID.
-  Future<void> generateAgentIdentity({
+  Future<Channel> generateAgentIdentity({
     required String agentDid,
     required String otherPartyPermanentChannelDid,
     required String mediatorDid,

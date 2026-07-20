@@ -9,6 +9,7 @@ import 'package:meeting_place_core/src/loggers/default_meeting_place_core_sdk_lo
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
 import 'package:meeting_place_core/src/protocol/message/channel_inauguration/channel_inauguration.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
@@ -17,10 +18,22 @@ import 'mocks/mocks.dart';
 void main() {
   setUpAll(() {
     registerFallbackValue(_FakeChannel());
+    registerFallbackValue(
+      PlainTextMessage(
+        id: 'fallback-message',
+        type: Uri.parse('https://example.com/fallback'),
+        body: const {},
+      ),
+    );
+    registerFallbackValue(MockDidManager(did: 'did:key:fallback'));
+    registerFallbackValue(MockWallet());
+    registerFallbackValue(DidDocument.create(id: 'did:key:fallback'));
   });
 
   const otherPartyDid = 'did:key:other-party';
   const myChannelDid = 'did:key:my-channel';
+  const agentDid = 'did:key:stable-agent';
+  const agentChannelDid = 'did:key:agent-channel';
   const mediatorDid = 'did:web:mediator';
 
   final channel = Channel(
@@ -55,6 +68,10 @@ void main() {
 
   ChannelInaugurationEventHandler buildHandler({
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
+    MockConnectionManager? connectionManager,
+    MockMediatorService? mediatorService,
+    MockDidResolver? didResolver,
+    ControlPlaneEventHandlerManagerOptions? options,
   }) {
     final channelService = MockChannelService();
     when(
@@ -68,12 +85,15 @@ void main() {
       wallet: MockWallet(),
       connectionOfferRepository: MockConnectionOfferRepository(),
       channelService: channelService,
-      connectionManager: MockConnectionManager(),
-      mediatorService: MockMediatorService(),
+      connectionManager: connectionManager ?? MockConnectionManager(),
+      mediatorService: mediatorService ?? MockMediatorService(),
+      didResolver: didResolver ?? MockDidResolver(),
       logger: DefaultMeetingPlaceCoreSDKLogger(),
-      options: ControlPlaneEventHandlerManagerOptions(
-        onAttachmentsReceived: onAttachmentsReceived,
-      ),
+      options:
+          options ??
+          ControlPlaneEventHandlerManagerOptions(
+            onAttachmentsReceived: onAttachmentsReceived,
+          ),
     );
   }
 
@@ -121,6 +141,77 @@ void main() {
         );
 
         expect(received, isEmpty);
+      });
+    });
+
+    group('agent channel inauguration', () {
+      test('sends to the per-channel agent DID', () async {
+        final connectionManager = MockConnectionManager();
+        final mediatorService = MockMediatorService();
+        final didResolver = MockDidResolver();
+        final didManager = MockDidManager(did: myChannelDid);
+        final agentChannelDidDocument = DidDocument.create(id: agentChannelDid);
+        final channelWithAgent = Channel(
+          offerLink: 'offer-link',
+          publishOfferDid: myChannelDid,
+          mediatorDid: mediatorDid,
+          status: ChannelStatus.approved,
+          isConnectionInitiator: false,
+          contactCard: ContactCard(
+            did: otherPartyDid,
+            type: 'individual',
+            contactInfo: const {'fullName': 'Alice'},
+          ),
+          type: ChannelType.individual,
+          permanentChannelDid: myChannelDid,
+          otherPartyPermanentChannelDid: otherPartyDid,
+          agentPermanentChannelDid: agentChannelDid,
+        );
+
+        when(
+          () => connectionManager.getDidManagerForDid(
+            any(),
+            myChannelDid,
+          ),
+        ).thenAnswer((_) async => didManager);
+        when(
+          () => didResolver.resolveDid(agentChannelDid),
+        ).thenAnswer((_) async => agentChannelDidDocument);
+        when(
+          () => mediatorService.sendMessage(
+            any(),
+            senderDidManager: didManager,
+            recipientDidDocument: agentChannelDidDocument,
+            mediatorDid: mediatorDid,
+          ),
+        ).thenAnswer((_) async {});
+
+        final handler = buildHandler(
+          connectionManager: connectionManager,
+          mediatorService: mediatorService,
+          didResolver: didResolver,
+          options: const ControlPlaneEventHandlerManagerOptions(
+            agentDid: agentDid,
+          ),
+        );
+
+        await handler.processMessage(
+          buildMessage(),
+          event: event,
+          channel: channelWithAgent,
+        );
+
+        final message = verify(
+          () => mediatorService.sendMessage(
+            captureAny(),
+            senderDidManager: didManager,
+            recipientDidDocument: agentChannelDidDocument,
+            mediatorDid: mediatorDid,
+          ),
+        ).captured.single as PlainTextMessage;
+
+        expect(message.to, [agentChannelDid]);
+        verifyNever(() => didResolver.resolveDid(agentDid));
       });
     });
   });

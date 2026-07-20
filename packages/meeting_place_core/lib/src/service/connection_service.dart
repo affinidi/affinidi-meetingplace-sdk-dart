@@ -308,7 +308,8 @@ class ConnectionService {
       wallet,
     );
 
-    final skipAgentIdentity = connectionOffer.contactCard.type == 'ai-agent' ||
+    final skipAgentIdentity =
+        connectionOffer.contactCard.type == 'ai-agent' ||
         _identityService.agentDid == null;
 
     final permanentIdentity = skipAgentIdentity
@@ -519,6 +520,19 @@ class ConnectionService {
       rethrow;
     }
 
+    await _mediatorAclService.addToAcl(
+      didManager: acceptOfferDid,
+      mediatorDid: mediatorDid,
+      granteeDids: granteeDids.toList(),
+    );
+
+    _logger.info(
+      'Accept ACL confirmed after send: '
+      'acceptOfferDid=${acceptOfferDidDocument.id}, '
+      'grantees=${granteeDids.toList()}',
+      name: methodName,
+    );
+
     _logger.info('Accept offer sent to mediator', name: methodName);
   }
 
@@ -696,8 +710,9 @@ class ConnectionService {
     );
     await _connectionOfferRepository.updateConnectionOffer(finalisedConnection);
 
-    channel.agentPermanentChannelDid =
-        attachGhostAgent ? permanentIdentity.agentDid : null;
+    channel.agentPermanentChannelDid = attachGhostAgent
+        ? permanentIdentity.agentDid
+        : null;
     await _channelService.markChannelApprovedForConnectionInitiator(
       channel,
       permanentChannelDid: permanentIdentity.didDocument.id,
@@ -768,6 +783,7 @@ class ConnectionService {
       to: [otherPartyAcceptOfferDid],
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
+      agentDid: agentDid,
       contactCard: contactCard,
       attachments: attachments,
     );

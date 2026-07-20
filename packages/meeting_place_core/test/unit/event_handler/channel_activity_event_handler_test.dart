@@ -39,6 +39,7 @@ void main() {
       connectionManager: MockConnectionManager(),
       channelService: MockChannelService(),
       matrixService: MockMatrixService(),
+      didResolver: MockDidResolver(),
       connectionOfferRepository: mockConnectionOfferRepository,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: mockLogger,

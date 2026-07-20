@@ -23,6 +23,7 @@ class ChannelActivityEventHandler {
     required ChannelService channelService,
     required ConnectionOfferRepository connectionOfferRepository,
     required MatrixService matrixService,
+    required DidResolver didResolver,
     required ControlPlaneEventHandlerManagerOptions options,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _wallet = wallet,
@@ -31,6 +32,7 @@ class ChannelActivityEventHandler {
        _connectionOfferRepository = connectionOfferRepository,
        _mediatorService = mediatorService,
        _matrixService = matrixService,
+       _didResolver = didResolver,
        _options = options,
        _logger = logger;
 
@@ -40,6 +42,7 @@ class ChannelActivityEventHandler {
   final ChannelService _channelService;
   final ConnectionManager _connectionManager;
   final MatrixService _matrixService;
+  final DidResolver _didResolver;
   final ControlPlaneEventHandlerManagerOptions _options;
   final MeetingPlaceCoreSDKLogger _logger;
 
@@ -60,6 +63,7 @@ class ChannelActivityEventHandler {
           connectionOfferRepository: _connectionOfferRepository,
           channelService: _channelService,
           connectionManager: _connectionManager,
+          didResolver: _didResolver,
           options: _options,
           logger: _logger,
         ).process(channelActivity);

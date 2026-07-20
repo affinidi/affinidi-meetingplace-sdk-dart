@@ -104,6 +104,7 @@ class ControlPlaneEventManager {
       channelService: channelService,
       connectionManager: connectionManager,
       matrixService: matrixService,
+      didResolver: didResolver,
       options: options,
       logger: _logger,
     );

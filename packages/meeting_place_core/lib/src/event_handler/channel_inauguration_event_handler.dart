@@ -1,5 +1,6 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:ssi/ssi.dart';
 import '../entity/channel.dart';
 import '../entity/connection_offer.dart';
 import '../protocol/protocol.dart';
@@ -14,9 +15,12 @@ class ChannelInaugurationEventHandler
     required super.channelService,
     required super.connectionManager,
     required super.mediatorService,
+    required DidResolver didResolver,
     required super.logger,
     required super.options,
-  });
+  }) : _didResolver = didResolver;
+
+  final DidResolver _didResolver;
 
   static final String _logKey = 'ChannelInaugurationEventHandler';
 
@@ -61,11 +65,62 @@ class ChannelInaugurationEventHandler
           channelInaugurationMessage.body.notificationToken,
     );
 
+    await _sendAgentChannelInaugurationIfNeeded(
+      channel,
+      otherPartyNotificationToken: channelInaugurationMessage.body
+          .notificationToken,
+    );
+
     final attachments = channelInaugurationMessage.attachments;
     if (attachments != null && attachments.isNotEmpty) {
       options.onAttachmentsReceived?.call(channel, attachments);
     }
 
     return channel;
+  }
+
+  Future<void> _sendAgentChannelInaugurationIfNeeded(
+    Channel channel, {
+    required String otherPartyNotificationToken,
+  }) async {
+    final configuredAgentDid = options.agentDid;
+    final permanentChannelDid = channel.permanentChannelDid;
+    final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
+    final agentPermanentChannelDid = channel.agentPermanentChannelDid;
+
+    if (configuredAgentDid == null ||
+        configuredAgentDid.isEmpty ||
+        permanentChannelDid == null ||
+        otherPartyPermanentChannelDid == null ||
+        agentPermanentChannelDid == null ||
+        agentPermanentChannelDid.isEmpty) {
+      return;
+    }
+
+    final senderDidManager = await connectionManager.getDidManagerForDid(
+      wallet,
+      permanentChannelDid,
+    );
+    final recipientDidDocument = await _didResolver.resolveDid(
+      configuredAgentDid,
+    );
+
+    await mediatorService.sendMessage(
+      AgentChannelInauguration.create(
+        from: permanentChannelDid,
+        to: [configuredAgentDid],
+        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+        otherPartyNotificationToken: otherPartyNotificationToken,
+        offerLink: channel.offerLink,
+        publishOfferDid: channel.publishOfferDid,
+        transport: channel.transport,
+        agentPermanentChannelDid: agentPermanentChannelDid,
+        contactCard: channel.otherPartyContactCard,
+        matrixRoomId: channel.matrixRoomId,
+      ).toPlainTextMessage(),
+      senderDidManager: senderDidManager,
+      recipientDidDocument: recipientDidDocument,
+      mediatorDid: channel.mediatorDid,
+    );
   }
 }

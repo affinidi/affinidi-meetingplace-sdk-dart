@@ -103,7 +103,7 @@ class InvitationAcceptedEventHandler
     final channel = Channel(
       offerLink: connection.offerLink,
       publishOfferDid: connection.publishOfferDid,
-      acceptOfferDid: messageFrom,
+      acceptOfferDid: event.acceptOfferAsDid,
       mediatorDid: connection.mediatorDid,
       otherPartyPermanentChannelDid: invitationAcceptance.body.channelDid,
       otherPartyAgentPermanentChannelDid: invitationAcceptance.body.agentDid,

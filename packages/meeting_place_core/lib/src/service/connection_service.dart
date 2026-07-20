@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
@@ -75,6 +77,11 @@ class ConnectionService {
   final DidResolver _didResolver;
   final MatrixService _matrixService;
   final MeetingPlaceCoreSDKLogger _logger;
+
+  void _emitAclDebug(String methodName, String message) {
+    _logger.info(message, name: methodName);
+    stderr.writeln('[meeting_place_core][$methodName] $message');
+  }
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
   findOffer({required String mnemonic}) async {
@@ -292,6 +299,7 @@ class ConnectionService {
     required ContactCard contactCard,
     required String senderInfo,
     String? externalRef,
+    String? contextKey,
   }) async {
     final methodName = 'acceptOffer';
     _logger.info(
@@ -307,14 +315,23 @@ class ConnectionService {
       wallet,
     );
 
-    final permanentIdentity = await _identityService.createPermanentIdentity(
-      wallet,
-      transport: connectionOffer.transport,
-      offerLink: connectionOffer.offerLink,
-      publishOfferDid: connectionOffer.publishOfferDid,
-      contactCard: contactCard,
-      skipAgentIdentity: connectionOffer.contactCard.type == 'ai-agent',
-    );
+    final skipAgentIdentity = connectionOffer.contactCard.type == 'ai-agent' ||
+        _identityService.agentDid == null;
+
+    final permanentIdentity = skipAgentIdentity
+        ? await _identityService.createPermanentIdentity(
+            wallet,
+            transport: connectionOffer.transport,
+            skipAgentIdentity: true,
+          )
+        : await _identityService.createPermanentIdentity(
+            wallet,
+            transport: connectionOffer.transport,
+            offerLink: connectionOffer.offerLink,
+            publishOfferDid: connectionOffer.publishOfferDid,
+            contactCard: contactCard,
+            skipAgentIdentity: false,
+          );
 
     final result = await _controlPlaneSDK.execute(
       AcceptOfferCommand(
@@ -339,6 +356,7 @@ class ConnectionService {
       acceptOfferDid: acceptOfferIdentity.didManager,
       permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
+      publishOfferDid: connectionOffer.publishOfferDid,
       mediatorDid: result.mediatorDid,
       acceptContactCard: contactCard,
       agentDid: permanentIdentity.agentDid,
@@ -432,6 +450,7 @@ class ConnectionService {
     required DidManager acceptOfferDid,
     required DidDocument permanentChannelDidDocument,
     required PlainTextMessage invitationMessage,
+    String? publishOfferDid,
     String? mediatorDid,
     ContactCard? acceptContactCard,
     List<Attachment>? attachments,
@@ -443,11 +462,26 @@ class ConnectionService {
     final recipientDid = invitationMessage.from!;
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
     final acceptOfferDidDocument = await acceptOfferDid.getDidDocument();
+    final granteeDids = <String>{recipientDid};
+    if (publishOfferDid != null && publishOfferDid.isNotEmpty) {
+      granteeDids.add(publishOfferDid);
+    }
+
+    _emitAclDebug(
+      methodName,
+      'Accept ACL debug: '
+      'acceptOfferDid=${acceptOfferDidDocument.id}, '
+      'invitationSenderDid=$recipientDid, '
+      'publishOfferDid=${publishOfferDid ?? '(null)'}, '
+      'permanentChannelDid=${permanentChannelDidDocument.id}, '
+      'agentDid=${agentDid ?? '(null)'}, '
+      'grantees=${granteeDids.toList()}',
+    );
 
     await _mediatorAclService.addToAcl(
       didManager: acceptOfferDid,
       mediatorDid: mediatorDid,
-      granteeDids: [recipientDid],
+      granteeDids: granteeDids.toList(),
     );
 
     final invitationAcceptanceMessage = InvitationAcceptance.create(
@@ -460,13 +494,45 @@ class ConnectionService {
       attachments: attachments,
     );
 
-    await _mediatorSDK.sendMessage(
-      invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: acceptOfferDid,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: recipientDid,
+    _emitAclDebug(
+      methodName,
+      'Accept send debug: '
+      'messageFrom=${invitationAcceptanceMessage.from}, '
+      'messageTo=${invitationAcceptanceMessage.to}, '
+      'mediatorDid=$mediatorDid, '
+      'next=$recipientDid, '
+      'threadId=${invitationAcceptanceMessage.parentThreadId}',
     );
+
+    try {
+      await _mediatorSDK.sendMessage(
+        invitationAcceptanceMessage.toPlainTextMessage(),
+        senderDidManager: acceptOfferDid,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: recipientDid,
+      );
+    } catch (e, stackTrace) {
+      stderr.writeln(
+        '[meeting_place_core][$methodName] '
+        'Accept send failed with ACL context: '
+        'acceptOfferDid=${acceptOfferDidDocument.id}, '
+        'invitationSenderDid=$recipientDid, '
+        'publishOfferDid=${publishOfferDid ?? '(null)'}, '
+        'grantees=${granteeDids.toList()}',
+      );
+      _logger.error(
+        'Accept send failed with ACL context: '
+        'acceptOfferDid=${acceptOfferDidDocument.id}, '
+        'invitationSenderDid=$recipientDid, '
+        'publishOfferDid=${publishOfferDid ?? '(null)'}, '
+        'grantees=${granteeDids.toList()}',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      rethrow;
+    }
 
     _logger.info('Accept offer sent to mediator', name: methodName);
   }
@@ -505,6 +571,7 @@ class ConnectionService {
     required Wallet wallet,
     required Channel channel,
     List<Attachment>? attachments,
+    String? contextKey,
   }) async {
     final methodName = 'approveConnectionRequest';
     _logger.info(
@@ -551,11 +618,39 @@ class ConnectionService {
       wallet,
       channel.publishOfferDid,
     );
+    final publishOfferDidDocument = await publishOfferDid.getDidDocument();
 
-    final permanentIdentity = await _identityService.createPermanentIdentity(
-      wallet,
-      transport: channel.transport,
+    // Ghost agents are only for human↔human channels when this SDK has an
+    // agentDid configured. Never nest a ghost on Personal AI (`ai-agent`)
+    // offers — that path must match the pre-ghost approve behaviour exactly.
+    final attachGhostAgent = _shouldAttachGhostAgent(channel.contactCard);
+
+    _emitAclDebug(
+      methodName,
+      'Approve debug: '
+      'offerLink=${channel.offerLink}, '
+      'contactType=${channel.contactCard?.type ?? '(null)'}, '
+      'attachGhostAgent=$attachGhostAgent, '
+      'publishOfferDid=${publishOfferDidDocument.id}, '
+      'acceptOfferDid=$acceptOfferDid, '
+      'otherPartyPermanentChannelDid=$otherPartyPermanentChannelDid, '
+      'otherPartyAgentPermanentChannelDid='
+      '${channel.otherPartyAgentPermanentChannelDid ?? '(null)'}',
     );
+
+    final permanentIdentity = attachGhostAgent
+        ? await _identityService.createPermanentIdentity(
+            wallet,
+            transport: channel.transport,
+            offerLink: channel.offerLink,
+            publishOfferDid: channel.publishOfferDid,
+            contactCard: channel.contactCard,
+            skipAgentIdentity: false,
+          )
+        : await _identityService.createPermanentIdentity(
+            wallet,
+            transport: channel.transport,
+          );
 
     if (channel.transport == ChannelTransport.matrix) {
       final roomId = await _matrixService.createRoom(
@@ -566,8 +661,10 @@ class ConnectionService {
           otherPartyPermanentChannelDid,
           if (channel.otherPartyAgentPermanentChannelDid != null)
             channel.otherPartyAgentPermanentChannelDid!,
+          if (permanentIdentity.agentDid != null) permanentIdentity.agentDid!,
         ],
       );
+      channel.matrixRoomId = roomId;
 
       _logger.info(
         'Matrix room created with ID: ${roomId.topAndTail()}',
@@ -582,6 +679,7 @@ class ConnectionService {
       otherPartyAcceptOfferDid: acceptOfferDid,
       otherPartyAgentPermanentChannelDid:
           channel.otherPartyAgentPermanentChannelDid,
+      agentDid: attachGhostAgent ? permanentIdentity.agentDid : null,
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
@@ -613,6 +711,8 @@ class ConnectionService {
     );
     await _connectionOfferRepository.updateConnectionOffer(finalisedConnection);
 
+    channel.agentPermanentChannelDid =
+        attachGhostAgent ? permanentIdentity.agentDid : null;
     await _channelService.markChannelApprovedForConnectionInitiator(
       channel,
       permanentChannelDid: permanentIdentity.didDocument.id,
@@ -636,6 +736,7 @@ class ConnectionService {
     required String outboundMessageId,
     required String mediatorDid,
     String? otherPartyAgentPermanentChannelDid,
+    String? agentDid,
     ContactCard? contactCard,
 
     List<Attachment>? attachments,
@@ -650,16 +751,31 @@ class ConnectionService {
         .getDidDocument();
 
     final offerPublishedDidDocument = await offerPublishedDid.getDidDocument();
+    final approvalGranteeDids = [
+      otherPartyPermanentChannelDid,
+      otherPartyAcceptOfferDid,
+      if (otherPartyAgentPermanentChannelDid != null)
+        otherPartyAgentPermanentChannelDid,
+      if (agentDid != null) agentDid,
+    ];
+
+    _emitAclDebug(
+      methodName,
+      'Approval ACL debug: '
+      'senderDid=${offerPublishedDidDocument.id}, '
+      'recipientAcceptOfferDid=$otherPartyAcceptOfferDid, '
+      'recipientPermanentChannelDid=$otherPartyPermanentChannelDid, '
+      'generatedPermanentChannelDid=${permanentChannelDidDocument.id}, '
+      'otherPartyAgentPermanentChannelDid='
+      '${otherPartyAgentPermanentChannelDid ?? '(null)'}, '
+      'agentDid=${agentDid ?? '(null)'}, '
+      'grantees=$approvalGranteeDids',
+    );
 
     await _mediatorAclService.addToAcl(
       didManager: permanentChannelDid,
       mediatorDid: mediatorDid,
-      granteeDids: [
-        otherPartyPermanentChannelDid,
-        otherPartyAcceptOfferDid,
-        if (otherPartyAgentPermanentChannelDid != null)
-          otherPartyAgentPermanentChannelDid,
-      ],
+      granteeDids: approvalGranteeDids,
     );
 
     final connectionApprovalMwssage = ConnectionRequestApproval.create(
@@ -675,18 +791,63 @@ class ConnectionService {
       otherPartyAcceptOfferDid,
     );
 
-    await _mediatorSDK.sendMessage(
-      connectionApprovalMwssage.toPlainTextMessage(),
-      senderDidManager: offerPublishedDid,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: otherPartyAcceptOfferDid,
+    _emitAclDebug(
+      methodName,
+      'Approval send debug: '
+      'messageFrom=${connectionApprovalMwssage.from}, '
+      'messageTo=${connectionApprovalMwssage.to}, '
+      'mediatorDid=$mediatorDid, '
+      'next=$otherPartyAcceptOfferDid, '
+      'threadId=${connectionApprovalMwssage.parentThreadId}',
     );
+
+    try {
+      await _mediatorSDK.sendMessage(
+        connectionApprovalMwssage.toPlainTextMessage(),
+        senderDidManager: offerPublishedDid,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: otherPartyAcceptOfferDid,
+      );
+    } catch (e, stackTrace) {
+      stderr.writeln(
+        '[meeting_place_core][$methodName] '
+        'Approval send failed with ACL context: '
+        'senderDid=${offerPublishedDidDocument.id}, '
+        'recipientAcceptOfferDid=$otherPartyAcceptOfferDid, '
+        'recipientPermanentChannelDid=$otherPartyPermanentChannelDid, '
+        'generatedPermanentChannelDid=${permanentChannelDidDocument.id}, '
+        'grantees=$approvalGranteeDids',
+      );
+      _logger.error(
+        'Approval send failed with ACL context: '
+        'senderDid=${offerPublishedDidDocument.id}, '
+        'recipientAcceptOfferDid=$otherPartyAcceptOfferDid, '
+        'recipientPermanentChannelDid=$otherPartyPermanentChannelDid, '
+        'generatedPermanentChannelDid=${permanentChannelDidDocument.id}, '
+        'grantees=$approvalGranteeDids',
+        error: e,
+        stackTrace: stackTrace,
+        name: methodName,
+      );
+      rethrow;
+    }
 
     _logger.info(
       'Connection request approval sent to mediator',
       name: methodName,
     );
+  }
+
+  /// Whether this party should create and exchange a ghost-agent channel DID.
+  ///
+  /// False when:
+  /// - no `agentDid` is configured on the SDK, or
+  /// - the channel is a direct Personal AI (`ai-agent`) connection
+  bool _shouldAttachGhostAgent(ContactCard? contactCard) {
+    if (_identityService.agentDid == null) return false;
+    final type = contactCard?.type.trim().toLowerCase();
+    return type != 'ai-agent';
   }
 
   Future<void> unlink({

@@ -185,6 +185,7 @@ void main() {
           acceptOfferDid: mockAcceptOfferDidManager,
           permanentChannelDidDocument: permanentDocument,
           invitationMessage: invitationMessage,
+          publishOfferDid: 'did:test:publisher',
           mediatorDid: mediatorDid,
           agentDid: agentDid,
         );
@@ -204,6 +205,39 @@ void main() {
         expect(message.body!['channel_did'], equals(permanentDid));
       },
     );
+
+    test('grants ACL to both invitation sender and canonical publish DID', () async {
+      final invitationMessage = PlainTextMessage(
+        id: 'invitation-id',
+        from: 'did:test:invitation-sender',
+        to: [acceptOfferDid],
+        type: Uri.parse(
+          'https://didcomm.org/oob-invitation/1.0/oob-invitation',
+        ),
+      );
+
+      final permanentDocument = _MockDidDocument();
+      when(() => permanentDocument.id).thenReturn(permanentDid);
+
+      await service.sendAcceptOfferToMediator(
+        acceptOfferDid: mockAcceptOfferDidManager,
+        permanentChannelDidDocument: permanentDocument,
+        invitationMessage: invitationMessage,
+        publishOfferDid: 'did:test:canonical-publisher',
+        mediatorDid: mediatorDid,
+      );
+
+      verify(
+        () => mockMediatorAclService.addToAcl(
+          didManager: mockAcceptOfferDidManager,
+          mediatorDid: mediatorDid,
+          granteeDids: [
+            'did:test:invitation-sender',
+            'did:test:canonical-publisher',
+          ],
+        ),
+      ).called(1);
+    });
 
     test(
       'omits agent_did from acceptance message when agentDid is null',

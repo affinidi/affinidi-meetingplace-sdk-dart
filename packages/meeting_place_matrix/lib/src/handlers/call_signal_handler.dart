@@ -72,16 +72,19 @@ class CallSignalHandler {
           'Channel ${channel.id} has no otherPartyPermanentChannelDid',
         );
       }
-      final reserved = _pendingCallManager.reserveIncomingCall(
-        callerChannelDid,
-      );
-      if (!reserved) {
-        _logger.warning(
-          'Incoming call ${callerChannelDid.topAndTail()} auto-rejected: '
-          'already in a call',
-          name: _logKey,
+      final shouldReserve = !_pendingCallManager.isBusy;
+      if (shouldReserve) {
+        final reserved = _pendingCallManager.reserveIncomingCall(
+          callerChannelDid,
         );
-        return;
+        if (!reserved) {
+          _logger.warning(
+            'Incoming call ${callerChannelDid.topAndTail()} auto-rejected: '
+            'already in a call',
+            name: _logKey,
+          );
+          return;
+        }
       }
       final identity = await _resolveIncomingCallIdentity(
         ownChannelDid: signal.ownChannelDid,
@@ -89,7 +92,8 @@ class CallSignalHandler {
         callerChannelDid: callerChannelDid,
       );
 
-      if (!_pendingCallManager.hasIncomingReservation(callerChannelDid)) {
+      if (shouldReserve &&
+          !_pendingCallManager.hasIncomingReservation(callerChannelDid)) {
         _logger.info(
           'Incoming call ${callerChannelDid.topAndTail()} was cancelled '
           'before banner emission',
@@ -307,10 +311,7 @@ class CallSignalHandler {
         stackTrace: stackTrace,
         name: _logKey,
       );
-      return IncomingCallIdentity(
-        callId: callerChannelDid,
-        roomId: callerChannelDid,
-      );
+      return IncomingCallIdentity(callId: callerChannelDid, roomId: null);
     }
   }
 }

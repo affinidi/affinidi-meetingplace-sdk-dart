@@ -348,21 +348,6 @@ class MatrixCallAdapter {
       }
       return;
     }
-    if (!_isGroupCall && _offerLink.isEmpty) {
-      try {
-        await _cancelTargetResolution!;
-        await sendCallCancelToRecipient();
-      } catch (error, stackTrace) {
-        _logger.error(
-          'Failed to resolve call-cancel target for '
-          '${_otherPartyChannelDid.topAndTail()}',
-          error: error,
-          stackTrace: stackTrace,
-          name: _logKey,
-        );
-      }
-      return;
-    }
     if (_isGroupCall && _matrixRoomId != null) {
       final matrixRoomId = _matrixRoomId!;
       try {

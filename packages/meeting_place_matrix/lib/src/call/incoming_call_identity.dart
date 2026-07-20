@@ -4,5 +4,5 @@ class IncomingCallIdentity {
   IncomingCallIdentity({required this.callId, required this.roomId});
 
   final String callId;
-  final String roomId;
+  final String? roomId;
 }

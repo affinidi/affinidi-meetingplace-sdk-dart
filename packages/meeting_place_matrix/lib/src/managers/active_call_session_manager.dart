@@ -122,7 +122,7 @@ class ActiveCallSessionManager {
       name: _logKey,
     );
     await session.hangUp();
-    await _activeSession?.dispose();
+    await session.dispose();
     _activeSession = null;
     _pendingCallManager.clearActiveCall();
   }

@@ -140,7 +140,6 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
-    transportSubscriptionFuture = Future<void>.value();
     await attachLocalChatEventListener();
     _incomingRouter = buildRoomEventRouter();
 
@@ -157,6 +156,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     // DIDComm SDK semantics and the BaseChatSDK.chatStreamSubscription
     // contract.
     final subscriptionFuture = subscribeToMatrixRoom();
+    transportSubscriptionFuture = subscriptionFuture;
 
     onChatSessionStarted();
 

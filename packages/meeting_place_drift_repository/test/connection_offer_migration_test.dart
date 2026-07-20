@@ -166,4 +166,64 @@ void main() {
       await db.close();
     });
   });
+
+  group('v4 → v5 schema migration', () {
+    test('produces the correct v5 schema', () async {
+      final connection = await verifier.startAt(4);
+      final db = ConnectionOfferDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 5);
+      await db.close();
+    });
+
+    test(
+      'adds nullable context_key column, existing rows default to null',
+      () async {
+        final schema = await verifier.schemaAt(4);
+
+        schema.rawDatabase.execute("""
+        INSERT INTO connection_offers (
+          id,
+          offer_name,
+          offer_link,
+          oob_invitation_message,
+          mnemonic,
+          created_at,
+          publish_offer_did,
+          type,
+          status,
+          owned_by_me,
+          mediator_did,
+          transport
+        ) VALUES (
+          'offer-v4',
+          'Offer Name',
+          'https://example.com/offer-v4',
+          'oob-msg',
+          'mnemonic words',
+          '2026-01-01T00:00:00.000',
+          'did:example:publisher',
+          1,
+          1,
+          0,
+          'did:example:mediator',
+          1
+        )
+      """);
+
+        final db = ConnectionOfferDatabase.forTesting(schema.newConnection());
+        await verifier.migrateAndValidate(db, 5);
+
+        final rows = await db
+            .customSelect(
+              'SELECT context_key FROM connection_offers WHERE id = ?',
+              variables: [const Variable('offer-v4')],
+            )
+            .get();
+        expect(rows, hasLength(1));
+        expect(rows.first.read<String?>('context_key'), isNull);
+
+        await db.close();
+      },
+    );
+  });
 }

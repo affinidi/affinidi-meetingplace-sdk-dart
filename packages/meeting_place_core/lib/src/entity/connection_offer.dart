@@ -43,6 +43,7 @@ class ConnectionOffer {
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.externalRef,
+    this.contextKey,
     this.score,
   });
 
@@ -82,6 +83,10 @@ class ConnectionOffer {
 
   final String? externalRef;
 
+  /// Semantic or connector-local context key selected when the offer was
+  /// published. Used by personal-agent connectors to route ghost-agent traffic.
+  final String? contextKey;
+
   /// Transport selected by the publisher for this offer. Determines which
   /// transport ([ChannelTransport]) for messaging the resulting [Channel]
   /// will use.
@@ -113,6 +118,7 @@ class ConnectionOffer {
     String? otherPartyNotificationToken,
     int? maximumUsage,
     String? externalRef,
+    String? contextKey,
     DateTime? createdAt,
     ChannelTransport? transport,
     int? score,
@@ -139,6 +145,7 @@ class ConnectionOffer {
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef ?? this.externalRef,
+        contextKey: contextKey ?? this.contextKey,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
       transport: transport ?? this.transport,

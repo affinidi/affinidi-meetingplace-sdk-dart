@@ -36,6 +36,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     super.notificationToken,
     super.otherPartyNotificationToken,
     super.externalRef,
+    super.contextKey,
     super.score,
   });
 
@@ -66,6 +67,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     int? maximumUsage,
     DateTime? createdAt,
     String? externalRef,
+    String? contextKey,
     ChannelTransport? transport,
     int? score,
   }) {
@@ -96,6 +98,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef,
+        contextKey: contextKey ?? this.contextKey,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
       transport: transport ?? this.transport,

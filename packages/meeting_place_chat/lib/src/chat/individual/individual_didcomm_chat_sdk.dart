@@ -64,10 +64,11 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
-    transportSubscriptionFuture = Future<void>.value();
-    await attachLocalChatEventListener();
 
     final subscribeFuture = _subscribe();
+    transportSubscriptionFuture = subscribeFuture;
+
+    await attachLocalChatEventListener();
 
     unawaited(proposeProfileUpdate());
 

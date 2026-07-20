@@ -1,7 +1,7 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/handlers/call_signal_handler.dart';
-import 'package:meeting_place_matrix/src/pending_call_manager.dart';
+import 'package:meeting_place_matrix/src/managers/pending_call_manager.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -354,6 +354,37 @@ void main() {
         expect(cancelled.single.callId, _callerDid);
         expect(cancelled.single.callerPermanentChannelDid, _callerDid);
         expect(cancelled.single.mediaType, CallMediaType.audio);
+      },
+    );
+
+    test(
+      'uses caller DID from the decline signal for group cancel events',
+      () async {
+        const groupDid = 'did:key:group';
+        when(
+          () => sdk.getChannelByDid(groupDid),
+        ).thenAnswer((_) async => _channel());
+
+        final cancelled = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(emittedCancelled: cancelled);
+
+        pendingCallManager.registerIncomingCall(
+          callId: 'group-call-id',
+          otherPartyChannelDid: _callerDid,
+          mediaType: CallMediaType.audio,
+        );
+
+        await handler.onCallDeclineSignal(
+          const CallDeclineSignal(
+            ownChannelDid: groupDid,
+            otherPartyPermanentChannelDid: _callerDid,
+          ),
+        );
+
+        expect(cancelled, hasLength(1));
+        expect(cancelled.single.callId, 'group-call-id');
+        expect(cancelled.single.callerPermanentChannelDid, _callerDid);
+        expect(cancelled.single.otherPartyPermanentChannelDid, groupDid);
       },
     );
 

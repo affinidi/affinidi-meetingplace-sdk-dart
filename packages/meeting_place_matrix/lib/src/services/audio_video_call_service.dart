@@ -143,6 +143,9 @@ class AudioVideoCallService {
       return;
     }
     _e2eeHandler.reset();
+    if (!isRecipient) {
+      unawaited(_coordinator.primeCancelTarget());
+    }
     _setState(
       _state.copyWith(
         status: AudioVideoCallStatus.connecting,
@@ -302,7 +305,9 @@ class AudioVideoCallService {
     _outgoingCallTimer?.cancel();
     _e2eeHandler.cancelAll();
 
-    if (cancelledBeforeAnswer) _coordinator.sendCallCancelToRecipient();
+    if (cancelledBeforeAnswer) {
+      await _coordinator.sendCallCancelToRecipient();
+    }
 
     try {
       await _coordinator.leaveCall();
@@ -325,7 +330,7 @@ class AudioVideoCallService {
     }
   }
 
-  /// Enables or disables the local microphone.
+  /// Enables or disables the self microphone.
   Future<void> setMicrophoneEnabled(bool enabled) async {
     if (_isDisposed) {
       _logger.info(
@@ -338,7 +343,7 @@ class AudioVideoCallService {
     _setState(_state.copyWith(participants: _room.participants));
   }
 
-  /// Enables or disables the local camera.
+  /// Enables or disables the self camera.
   Future<void> setCameraEnabled(bool enabled) async {
     if (_isDisposed) {
       _logger.info(
@@ -374,7 +379,8 @@ class AudioVideoCallService {
     await _room.setSpeakerphoneEnabled(enabled);
   }
 
-  /// Called by the plugin when a `call-decline` signal arrives from the callee.
+  /// Called by the plugin when a `call-decline` signal arrives
+  /// from the recipient.
   ///
   /// No-ops silently if the service is disposed or not in a pre-answer state.
   void notifyDeclined() {
@@ -390,7 +396,7 @@ class AudioVideoCallService {
       return;
     }
     _logger.info(
-      'notifyDeclined: Callee declined, leaving room and emitting declined',
+      'notifyDeclined: recipient declined, leaving room and emitting declined',
       name: _logKey,
     );
     _isTearingDown = true;
@@ -542,7 +548,7 @@ class AudioVideoCallService {
     );
     unawaited(_coordinator.leaveCall());
     unawaited(_room.disconnect());
-    _coordinator.sendCallCancelToRecipient();
+    unawaited(_coordinator.sendCallCancelToRecipient());
     _setState(
       _state.copyWith(
         status: AudioVideoCallStatus.missed,

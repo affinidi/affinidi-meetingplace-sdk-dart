@@ -1,5 +1,5 @@
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
-import 'package:meeting_place_matrix/src/pending_call_manager.dart';
+import 'package:meeting_place_matrix/src/managers/pending_call_manager.dart';
 import 'package:test/test.dart';
 
 const _callId = 'call-001';

@@ -5,6 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../../meeting_place_matrix.dart';
 import '../call/call_channel_activity_type.dart';
+import '../call/mpx_call_event_type.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../logger/top_and_tail_extension.dart';
 import '../matrix_room_alias.dart';
@@ -24,6 +25,7 @@ class CallCredentials {
     required this.sfuUrl,
     required this.sfuToken,
     required this.participantIdToDid,
+    required this.participantContactCardsByDid,
   });
 
   final DidManager didManager;
@@ -31,6 +33,18 @@ class CallCredentials {
   final String sfuUrl;
   final String sfuToken;
   final Map<String, String> participantIdToDid;
+  final Map<String, ContactCard> participantContactCardsByDid;
+}
+
+/// Participant identity and contact-card lookups resolved for a call.
+class ParticipantDirectory {
+  const ParticipantDirectory({
+    required this.participantIdToDid,
+    required this.participantContactCardsByDid,
+  });
+
+  final Map<String, String> participantIdToDid;
+  final Map<String, ContactCard> participantContactCardsByDid;
 }
 
 /// Owns all Matrix and control-plane interactions for a single call session.
@@ -86,6 +100,13 @@ class MatrixCallAdapter {
   String? get matrixRoomId => _matrixRoomId;
   String? _matrixRoomId;
 
+  /// Group flag and offer link for the resolved call target, cached in
+  /// [resolveChannel] so invite/cancel routing stays consistent even when the
+  /// resolved channel record is not itself typed as a group channel.
+  bool _isGroupCall = false;
+  String _offerLink = '';
+  Future<void>? _cancelTargetResolution;
+
   /// MatrixRTC call ID of the active call.
   String? get matrixCallId => _matrixCallId;
   String? _matrixCallId;
@@ -93,10 +114,18 @@ class MatrixCallAdapter {
   /// Resolves the channel for `_otherPartyChannelDid` and derives the LiveKit
   /// room name.
   ///
+  /// Caches the group flag and offer link for consistent invite/cancel routing
+  /// via [primeCancelTarget], so cancel messages route correctly even if the
+  /// resolved channel record is not explicitly typed as a group channel.
+  ///
   /// Throws [MeetingPlaceLiveKitCallOperationException] when the channel or its
   /// permanentChannelDid cannot be resolved.
   Future<({Channel channel, String ownChannelDid, String roomName})>
   resolveChannel() async {
+    final existingResolution = _cancelTargetResolution;
+    if (existingResolution != null) {
+      await existingResolution;
+    }
     final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
       _otherPartyChannelDid,
     );
@@ -111,7 +140,10 @@ class MatrixCallAdapter {
         'Channel for contact $_otherPartyChannelDid has no permanentChannelDid',
       );
     }
-    final roomName = channel.isGroup
+    _cancelTargetResolution ??= _resolveCancelTarget(channel);
+    await _cancelTargetResolution;
+    final isGroupCall = _isGroupCall;
+    final roomName = isGroupCall
         ? deriveRoomAliasLocalpart(channelDid: _otherPartyChannelDid)
         : deriveRoomAliasLocalpart(
             channelDid: ownChannelDid,
@@ -120,12 +152,26 @@ class MatrixCallAdapter {
     return (channel: channel, ownChannelDid: ownChannelDid, roomName: roomName);
   }
 
+  /// Prepares the call-cancel routing by resolving the channel group status
+  /// and caching the offer link and group flag.
+  ///
+  /// Allows [sendCallCancelToRecipient] to route cancel messages without
+  /// awaiting a fresh channel lookup during teardown. Can be called earlier
+  /// than [resolveChannel] (before credential resolution) to reduce cancel
+  /// latency.
+  Future<void> primeCancelTarget() {
+    return _cancelTargetResolution ??= _primeCancelTarget();
+  }
+
   /// Fetches all credentials needed to join the LiveKit room: the DID manager,
-  /// Matrix room id, OpenID token, device id, participant-id-to-DID map, SFU
-  /// JWT, and the resolved SFU URL.
+  /// Matrix room ID, OpenID token, device ID, participant DID lookup,
+  /// participant contact cards, SFU JWT, and the resolved SFU URL.
+  ///
+  /// Called after [resolveChannel] to fetch credentials for the resolved
+  /// channel and room name. Validates the SFU URL against the allowlist.
   ///
   /// Throws [MeetingPlaceLiveKitCallOperationException] when no SFU URL is
-  /// available.
+  /// available or the URL fails security validation.
   Future<CallCredentials> fetchCallCredentials({
     required Channel channel,
     required String ownChannelDid,
@@ -138,7 +184,7 @@ class MatrixCallAdapter {
     );
     final openIdToken = await _matrixService.getOpenIdToken(didManager);
     final deviceId = await _matrixService.getDeviceId(didManager);
-    final participantIdToDid = await _buildParticipantIdToDidMap(
+    final participantDirectory = await _buildParticipantDirectory(
       channel: channel,
       ownChannelDid: ownChannelDid,
       serverName: openIdToken.matrixServerName,
@@ -160,19 +206,19 @@ class MatrixCallAdapter {
       matrixRoomId: matrixRoomId,
       sfuUrl: sfuUrl,
       sfuToken: tokenResponse.token,
-      participantIdToDid: participantIdToDid,
+      participantIdToDid: participantDirectory.participantIdToDid,
+      participantContactCardsByDid:
+          participantDirectory.participantContactCardsByDid,
     );
   }
 
-  /// Initialises MatrixRTC and resolves the callId to register against.
+  /// Initialises MatrixRTC and resolves the callId.
   ///
-  /// This is the cheap preparation phase that must complete before the
-  /// LiveKit room is joined. It does not connect the LiveKit room.
+  /// Stores identifiers here (not in [registerMatrixCall]) so they're
+  /// available for [sendCallCancelToRecipient] before registration completes,
+  /// preventing race conditions during early hangups.
   ///
-  /// Both parties reuse an in-progress call generation when one is present so
-  /// their E2EE key exchange lands in the same generation: the recipient joins
-  /// the caller's call, and a caller whose peer is still in the call rejoins
-  /// it. When no generation is present a fresh callId is minted.
+  /// Reuses in-progress calls when present; otherwise generates a fresh callId.
   Future<String> prepareCallSession({
     required DidManager didManager,
     required String matrixRoomId,
@@ -191,6 +237,8 @@ class MatrixCallAdapter {
     final callId =
         existingCallId ??
         '$matrixRoomId@${DateTime.now().microsecondsSinceEpoch}';
+    _matrixRoomId = matrixRoomId;
+    _matrixCallId = callId;
     _logger.info(
       'Resolved call session: callId=$callId '
       '(existing=${existingCallId != null}) for room $matrixRoomId',
@@ -199,8 +247,11 @@ class MatrixCallAdapter {
     return callId;
   }
 
-  /// Signals the Matrix homeserver that a video call has started and stores the
-  /// room/call identifiers for cleanup via [leaveCall].
+  /// Signals the Matrix homeserver that a video call has started.
+  ///
+  /// Called after [prepareCallSession] once the LiveKit room is connected.
+  /// The matrix room ID and call ID are already stored in [prepareCallSession],
+  /// so this method only notifies the homeserver of the active call.
   Future<void> registerMatrixCall({
     required DidManager didManager,
     required String matrixRoomId,
@@ -215,15 +266,13 @@ class MatrixCallAdapter {
       livekitServiceUrl: sfuUrl,
       livekitAlias: roomName,
     );
-    _matrixRoomId = matrixRoomId;
-    _matrixCallId = callId;
   }
 
-  /// Sends a call-invite nudge to [channel] via the control-plane pipeline.
+  /// Sends a call-invite nudge via the control-plane pipeline.
   ///
-  /// Only sent when the caller is alone in the room after connecting, so a
-  /// caller that rejoined a still-live call (peer already present) never
-  /// re-nudges the callee.
+  /// Only sent when the caller is alone; skipped if rejoining an existing call.
+  /// Routes to group channel notification or (for individual calls) room event
+  /// plus channel notification.
   Future<void> sendCallInvite({
     required Channel channel,
     required String matrixRoomId,
@@ -273,27 +322,73 @@ class MatrixCallAdapter {
     );
   }
 
-  /// Sends a `call-decline` nudge to the other party. Used when the caller
-  /// hangs up or times out before the call is answered. Individual calls only.
-  void sendCallCancelToRecipient() {
+  /// Sends a `call-decline` nudge when hanging up pre-answer.
+  ///
+  /// Routes via cached group flag/offer-link; does not await channel lookup
+  /// (call session disposes immediately after). Falls back to preparing cancel
+  /// target if not yet resolved. Routes to room event (group) or channel
+  /// notification (individual).
+  Future<void> sendCallCancelToRecipient() async {
     _logger.info(
       'Sending call-cancel nudge to ${_otherPartyChannelDid.topAndTail()}',
       name: _logKey,
     );
-    unawaited(
-      _coreSDK.notifyChannel(
-        IndividualChannelNotification(
-          recipientDid: _otherPartyChannelDid,
-          type: CallChannelActivityType.callDecline,
-        ),
-      ),
-    );
+    if (_cancelTargetResolution == null) {
+      try {
+        await primeCancelTarget();
+        await sendCallCancelToRecipient();
+      } catch (error, stackTrace) {
+        _logger.error(
+          'Failed to resolve call-cancel target for '
+          '${_otherPartyChannelDid.topAndTail()}',
+          error: error,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
+      }
+      return;
+    }
+    if (_isGroupCall && _matrixRoomId != null) {
+      final matrixRoomId = _matrixRoomId!;
+      try {
+        await _sendGroupCallCancelRoomEvent(matrixRoomId);
+      } catch (error, stackTrace) {
+        _logger.error(
+          'Failed to send group call cancel room event.',
+          error: error,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
+      }
+      return;
+    }
+    final notification = _isGroupCall
+        ? GroupChannelNotification(
+            offerLink: _offerLink,
+            groupDid: _otherPartyChannelDid,
+            type: CallChannelActivityType.callDecline,
+          )
+        : IndividualChannelNotification(
+            recipientDid: _otherPartyChannelDid,
+            type: CallChannelActivityType.callDecline,
+          );
+    try {
+      await _coreSDK.notifyChannel(notification);
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Failed to send call-cancel nudge to '
+        '${_otherPartyChannelDid.topAndTail()}',
+        error: error,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+    }
   }
 
-  /// Leaves the active Matrix call and clears the stored identifiers.
+  /// Signals the Matrix homeserver that the call has ended and clears
+  /// identifiers.
   ///
-  /// Idempotent: no-op when no call is registered or identifiers have already
-  /// been cleared.
+  /// Idempotent: safe to call multiple times.
   Future<void> leaveCall() async {
     final roomId = _matrixRoomId;
     final callId = _matrixCallId;
@@ -304,11 +399,54 @@ class MatrixCallAdapter {
     }
   }
 
-  /// Clears the stored identifiers without sending a leave signal. Use when
-  /// the Matrix leave is handled elsewhere (e.g. `dispose` via unawaited).
+  /// Clears the stored identifiers without sending a leave signal.
+  ///
+  /// Use when the Matrix leave is handled elsewhere (e.g., `dispose` via
+  /// unawaited). Prevents [leaveCall] from attempting a duplicate signal.
   void clearIds() {
     _matrixRoomId = null;
     _matrixCallId = null;
+  }
+
+  /// Sends a call-cancel room event to the Matrix room for group calls.
+  Future<void> _sendGroupCallCancelRoomEvent(String matrixRoomId) async {
+    final ownChannelDid = await _resolveOwnChannelDidForCancel();
+    if (ownChannelDid == null) return;
+    final didManager = await _coreSDK.getDidManager(ownChannelDid);
+    await _matrixService
+        .sendRoomEvent(matrixRoomId, MpxCallEventType.callCancel, {
+          'callerPermanentChannelDid': ownChannelDid,
+          if (_matrixCallId != null) 'callId': _matrixCallId,
+        }, didManager: didManager);
+  }
+
+  /// Resolves the caller's channel DID for sending cancel notifications.
+  Future<String?> _resolveOwnChannelDidForCancel() async {
+    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+      _otherPartyChannelDid,
+    );
+    return channel?.permanentChannelDid;
+  }
+
+  /// Resolves whether the call target is a group and caches the group flag.
+  Future<void> _resolveCancelTarget(Channel channel) async {
+    _offerLink = channel.offerLink;
+    if (channel.isGroup) {
+      _isGroupCall = true;
+      return;
+    }
+    final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
+    _isGroupCall = group != null;
+  }
+
+  /// Prepares the cancel target by looking up the channel if not already
+  /// resolved.
+  Future<void> _primeCancelTarget() async {
+    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+      _otherPartyChannelDid,
+    );
+    if (channel == null) return;
+    await _resolveCancelTarget(channel);
   }
 
   /// Validates the SFU URL for security: enforces wss:// scheme and checks
@@ -393,6 +531,8 @@ class MatrixCallAdapter {
     });
   }
 
+  /// Discovers an in-progress call ID on the recipient side within a time
+  /// window.
   Future<String?> _resolveExistingCallId({
     required DidManager didManager,
     required String roomId,
@@ -423,20 +563,38 @@ class MatrixCallAdapter {
     return null;
   }
 
-  Future<Map<String, String>> _buildParticipantIdToDidMap({
+  /// Builds the participant directory with Matrix user IDs and contact cards
+  /// for the call.
+  Future<ParticipantDirectory> _buildParticipantDirectory({
     required Channel channel,
     required String ownChannelDid,
     required String serverName,
   }) async {
-    final dids = <String>{ownChannelDid};
+    final participantIdToDid = <String, String>{};
+    final participantContactCardsByDid = <String, ContactCard>{};
+
+    void addParticipant(String did, ContactCard? card) {
+      participantIdToDid[deriveMatrixUserId(did, serverName)] = did;
+      if (card != null) {
+        participantContactCardsByDid[did] = card;
+      }
+    }
+
+    addParticipant(ownChannelDid, channel.contactCard);
+
     if (channel.isGroup) {
       final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
       if (group != null) {
-        dids.addAll(group.members.map((member) => member.did));
+        for (final member in group.members) {
+          addParticipant(member.did, member.contactCard);
+        }
       }
     } else {
-      dids.add(_otherPartyChannelDid);
+      addParticipant(_otherPartyChannelDid, channel.otherPartyContactCard);
     }
-    return {for (final did in dids) deriveMatrixUserId(did, serverName): did};
+    return ParticipantDirectory(
+      participantIdToDid: participantIdToDid,
+      participantContactCardsByDid: participantContactCardsByDid,
+    );
   }
 }

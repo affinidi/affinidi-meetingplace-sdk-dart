@@ -97,7 +97,7 @@ class MatrixCallService {
   /// out-of-band signal (a call push or mediator message) reports an incoming
   /// call for a specific channel. It logs in that one DID's Matrix session,
   /// initialises VoIP with [delegate] when needed, and returns the
-  /// [matrix.GroupCallSession] the remote party created in [roomId].
+  /// [matrix.GroupCallSession] the peer created in [roomId].
   ///
   /// The membership is usually already present in room state, in which case
   /// this returns immediately. Otherwise it waits for the next sync to deliver
@@ -215,11 +215,11 @@ class MatrixCallService {
   /// Creates or joins a MatrixRTC group call in [roomId] using the LiveKit
   /// SFU backend.
   ///
-  /// Publishes an `m.call.member` state event so the remote party can
+  /// Publishes an `m.call.member` state event so the peer can
   /// discover the LiveKit room. Call [initializeVoIP] before invoking this.
   ///
   /// Parameters:
-  /// - [didManager]: The DID manager for the local participant.
+  /// - [didManager]: The DID manager for the self participant.
   /// - [roomId]: Matrix room ID for the call.
   /// - [livekitServiceUrl]: WebSocket URL of the LiveKit server.
   /// - [livekitAlias]: Unique call identifier within the LiveKit server.
@@ -282,6 +282,25 @@ class MatrixCallService {
     required String callId,
   }) {
     return _findGroupCallById(roomId, callId)?.matrixRTCEventStream.stream;
+  }
+
+  /// Returns a stream that completes when the pending incoming group call in
+  /// [roomId] disappears before the local user answers.
+  ///
+  /// This is intended for the incoming-call banner lifecycle. It subscribes to
+  /// the actual [matrix.GroupCallSession] discovered by
+  /// [activateIncomingCall], so callers do not need to infer state from a
+  /// partially-known callId before a local session exists.
+  Stream<void>? watchIncomingCall({required String roomId}) {
+    for (final voip in _voips.values) {
+      final session = _findGroupCallForRoom(voip, roomId);
+      if (session != null) {
+        return session.matrixRTCEventStream.stream
+            .map((_) {})
+            .asBroadcastStream();
+      }
+    }
+    return null;
   }
 
   /// Cancels the incoming-group-call subscription and clears pending
@@ -351,8 +370,9 @@ class MatrixCallService {
   ///
   /// This is the deterministic counterpart to the onIncomingGroupCall listener:
   /// the listener only covers memberships that arrive in a future sync, whereas
-  /// the caller's m.call.member event is typically already in the room state by
-  /// the time the callee activates. Best-effort by design; any failure leaves
+  /// the caller's m.call.member event is typically already in the
+  /// room state by the time the recipient activates. Best-effort by design;
+  /// any failure leaves
   /// the activation to resolve via the listener or time out.
   Future<void> _discoverExistingGroupCall(
     matrix.VoIP voip,

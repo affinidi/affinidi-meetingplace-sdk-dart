@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:matrix/matrix.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_core/src/entity/group.dart' as core_group;
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/call/call_channel_activity_type.dart';
+import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
 import 'package:meeting_place_matrix/src/exceptions/meeting_place_livekit_call_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_room_alias.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
@@ -19,6 +23,15 @@ const _roomName = 'livekit-room';
 const _sfuToken = 'livekit-jwt';
 const _sfuUrl = 'wss://livekit.test';
 
+core_group.Group _stubGroup() => core_group.Group(
+  id: 'group-id',
+  did: 'did:key:group',
+  offerLink: 'offer://test',
+  status: core_group.GroupStatus.created,
+  created: DateTime(2024),
+  members: const [],
+);
+
 Channel _stubChannel({bool isGroup = false, String? permanentChannelDid}) =>
     Channel(
       offerLink: 'offer://test',
@@ -35,6 +48,11 @@ Channel _stubChannel({bool isGroup = false, String? permanentChannelDid}) =>
       isConnectionInitiator: true,
       permanentChannelDid: permanentChannelDid ?? _ownDid,
       otherPartyPermanentChannelDid: _otherPartyDid,
+      otherPartyContactCard: ContactCard(
+        did: _otherPartyDid,
+        type: 'individual',
+        contactInfo: {'name': 'Other User'},
+      ),
     );
 
 OpenIdCredentials _stubOpenIdCredentials() => OpenIdCredentials(
@@ -77,6 +95,13 @@ void main() {
         type: CallChannelActivityType.callDecline,
       ),
     );
+    registerFallbackValue(
+      const GroupChannelNotification(
+        offerLink: 'offer://fallback',
+        groupDid: 'did:key:fallback-group',
+        type: CallChannelActivityType.callDecline,
+      ),
+    );
   });
 
   late MockMatrixService matrixService;
@@ -88,6 +113,9 @@ void main() {
     matrixService = MockMatrixService();
     coreSDK = MockMeetingPlaceCoreSDK();
     tokenService = MockSfuTokenService();
+    when(
+      () => coreSDK.getGroupByOfferLink(any()),
+    ).thenAnswer((_) async => null);
     adapter = _buildAdapter(
       matrixService: matrixService,
       coreSDK: coreSDK,
@@ -128,6 +156,26 @@ void main() {
         throwsA(isA<MeetingPlaceLiveKitCallOperationException>()),
       );
     });
+
+    test(
+      'treats the call as group when the offer link belongs to a group',
+      () async {
+        final channel = _stubChannel(isGroup: false);
+        when(
+          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        ).thenAnswer((_) async => channel);
+        when(
+          () => coreSDK.getGroupByOfferLink(channel.offerLink),
+        ).thenAnswer((_) async => _stubGroup());
+
+        final result = await adapter.resolveChannel();
+
+        expect(
+          result.roomName,
+          deriveRoomAliasLocalpart(channelDid: _otherPartyDid),
+        );
+      },
+    );
   });
 
   group('fetchCallCredentials', () {
@@ -172,6 +220,14 @@ void main() {
       expect(
         result.participantIdToDid.values,
         containsAll([_ownDid, _otherPartyDid]),
+      );
+      expect(
+        result.participantContactCardsByDid.keys,
+        containsAll([_ownDid, _otherPartyDid]),
+      );
+      expect(
+        result.participantContactCardsByDid[_otherPartyDid],
+        same(channel.otherPartyContactCard),
       );
     });
   });
@@ -234,6 +290,18 @@ void main() {
       final didManager = MockDidManager();
       final groupCallSession = MockGroupCallSession();
       when(
+        () => matrixService.initializeVoIPWithDelegate(
+          didManager: didManager,
+          delegate: any(named: 'delegate'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => matrixService.activeCallId(
+          didManager: didManager,
+          roomId: _matrixRoomId,
+        ),
+      ).thenAnswer((_) async => null);
+      when(
         () => matrixService.startCall(
           didManager: didManager,
           roomId: _matrixRoomId,
@@ -243,9 +311,17 @@ void main() {
         ),
       ).thenAnswer((_) async => groupCallSession);
       when(
-        () => matrixService.leaveCall(roomId: _matrixRoomId, callId: 'call-id'),
+        () => matrixService.leaveCall(
+          roomId: _matrixRoomId,
+          callId: any(named: 'callId'),
+        ),
       ).thenAnswer((_) async {});
 
+      await adapter.prepareCallSession(
+        didManager: didManager,
+        matrixRoomId: _matrixRoomId,
+        isRecipient: false,
+      );
       await adapter.registerMatrixCall(
         didManager: didManager,
         matrixRoomId: _matrixRoomId,
@@ -257,11 +333,54 @@ void main() {
       await adapter.leaveCall();
 
       verify(
-        () => matrixService.leaveCall(roomId: _matrixRoomId, callId: 'call-id'),
+        () => matrixService.leaveCall(
+          roomId: _matrixRoomId,
+          callId: any(named: 'callId'),
+        ),
       ).called(1);
       expect(adapter.matrixRoomId, isNull);
       expect(adapter.matrixCallId, isNull);
     });
+  });
+
+  group('sendCallCancelToRecipient', () {
+    test(
+      'sends group decline when the resolved call target is group-backed',
+      () async {
+        final channel = _stubChannel(isGroup: false);
+        when(
+          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        ).thenAnswer((_) async => channel);
+        when(
+          () => coreSDK.getGroupByOfferLink(channel.offerLink),
+        ).thenAnswer((_) async => _stubGroup());
+        when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
+
+        await adapter.resolveChannel();
+        unawaited(adapter.sendCallCancelToRecipient());
+        await Future<void>.delayed(Duration.zero);
+
+        verify(
+          () => coreSDK.notifyChannel(
+            any(
+              that: isA<GroupChannelNotification>()
+                  .having((n) => n.offerLink, 'offerLink', channel.offerLink)
+                  .having((n) => n.groupDid, 'groupDid', _otherPartyDid)
+                  .having(
+                    (n) => n.type,
+                    'type',
+                    CallChannelActivityType.callDecline,
+                  ),
+            ),
+          ),
+        ).called(1);
+        verifyNever(
+          () => coreSDK.notifyChannel(
+            any(that: isA<IndividualChannelNotification>()),
+          ),
+        );
+      },
+    );
   });
 
   group('sendCallInvite', () {
@@ -831,6 +950,178 @@ void main() {
             ),
           ),
         );
+      },
+    );
+  });
+
+  group('sendCallCancelToRecipient', () {
+    test('sends individual decline notification for direct calls', () async {
+      final channel = _stubChannel();
+      when(
+        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+      ).thenAnswer((_) async => channel);
+      when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
+
+      await adapter.resolveChannel();
+      await adapter.sendCallCancelToRecipient();
+
+      verify(
+        () => coreSDK.notifyChannel(
+          any(
+            that: isA<IndividualChannelNotification>()
+                .having(
+                  (notification) => notification.recipientDid,
+                  'recipientDid',
+                  _otherPartyDid,
+                )
+                .having(
+                  (notification) => notification.type,
+                  'type',
+                  CallChannelActivityType.callDecline,
+                ),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('sends group decline notification for group calls', () async {
+      final channel = _stubChannel(isGroup: true);
+      when(
+        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+      ).thenAnswer((_) async => channel);
+      when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
+
+      await adapter.resolveChannel();
+      await adapter.sendCallCancelToRecipient();
+
+      verify(
+        () => coreSDK.notifyChannel(
+          any(
+            that: isA<GroupChannelNotification>()
+                .having(
+                  (notification) => notification.offerLink,
+                  'offerLink',
+                  'offer://test',
+                )
+                .having(
+                  (notification) => notification.groupDid,
+                  'groupDid',
+                  _otherPartyDid,
+                )
+                .having(
+                  (notification) => notification.type,
+                  'type',
+                  CallChannelActivityType.callDecline,
+                ),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('sends active group cancel through the Matrix room event', () async {
+      final channel = _stubChannel(isGroup: true);
+      final didManager = MockDidManager();
+      final groupCallSession = MockGroupCallSession();
+      when(
+        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+      ).thenAnswer((_) async => channel);
+      when(
+        () => coreSDK.getDidManager(_ownDid),
+      ).thenAnswer((_) async => didManager);
+      when(
+        () => matrixService.initializeVoIPWithDelegate(
+          didManager: didManager,
+          delegate: any(named: 'delegate'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => matrixService.activeCallId(
+          didManager: didManager,
+          roomId: _matrixRoomId,
+        ),
+      ).thenAnswer((_) async => null);
+      when(
+        () => matrixService.startCall(
+          didManager: didManager,
+          roomId: _matrixRoomId,
+          callId: 'call-id',
+          livekitServiceUrl: _sfuUrl,
+          livekitAlias: _roomName,
+        ),
+      ).thenAnswer((_) async => groupCallSession);
+      when(
+        () => matrixService.sendRoomEvent(
+          _matrixRoomId,
+          MpxCallEventType.callCancel,
+          any(),
+          didManager: didManager,
+        ),
+      ).thenAnswer((_) async => 'cancel-event-id');
+      when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
+
+      await adapter.resolveChannel();
+      await adapter.prepareCallSession(
+        didManager: didManager,
+        matrixRoomId: _matrixRoomId,
+        isRecipient: false,
+      );
+      await adapter.registerMatrixCall(
+        didManager: didManager,
+        matrixRoomId: _matrixRoomId,
+        callId: 'call-id',
+        sfuUrl: _sfuUrl,
+        roomName: _roomName,
+      );
+      await adapter.sendCallCancelToRecipient();
+
+      verify(
+        () => matrixService.sendRoomEvent(
+          _matrixRoomId,
+          MpxCallEventType.callCancel,
+          any(),
+          didManager: didManager,
+        ),
+      ).called(1);
+      verifyNever(() => coreSDK.notifyChannel(any()));
+    });
+
+    test(
+      'skip extra channel lookup after resolveChannel primed cancel',
+      () async {
+        final channel = _stubChannel(isGroup: true);
+        when(
+          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        ).thenAnswer((_) async => channel);
+        when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
+
+        await adapter.resolveChannel();
+        clearInteractions(coreSDK);
+
+        await adapter.sendCallCancelToRecipient();
+
+        verify(() => coreSDK.notifyChannel(any())).called(1);
+        verifyNever(() => coreSDK.getChannelByOtherPartyPermanentDid(any()));
+      },
+    );
+
+    test(
+      'resolves group decline target before resolveChannel completes',
+      () async {
+        final channel = _stubChannel(isGroup: false);
+        when(
+          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        ).thenAnswer((_) async => channel);
+        when(
+          () => coreSDK.getGroupByOfferLink(channel.offerLink),
+        ).thenAnswer((_) async => _stubGroup());
+        when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
+
+        await adapter.sendCallCancelToRecipient();
+
+        verify(
+          () =>
+              coreSDK.notifyChannel(any(that: isA<GroupChannelNotification>())),
+        ).called(1);
       },
     );
   });

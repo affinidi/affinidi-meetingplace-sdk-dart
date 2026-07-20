@@ -1,4 +1,4 @@
-import 'call/call_media_type.dart';
+import '../call/call_media_type.dart';
 
 /// Tracks ringing calls and the busy-guard for
 /// `MeetingPlaceLiveKitCallPlugin`.
@@ -16,6 +16,7 @@ typedef PendingCallDetails = ({
 
 class PendingCallManager {
   final Map<String, PendingCallDetails> _pendingCalls = {};
+  final Set<String> _pendingIncomingReservations = {};
   String? _activeCallId;
   bool _outboundActive = false;
   String? _acceptedOtherPartyChannelDid;
@@ -30,6 +31,11 @@ class PendingCallManager {
   /// reconnect) so it is ignored rather than auto-declined as a competing call.
   bool isInCallWith(String otherPartyChannelDid) =>
       isBusy && _activePeerDid == otherPartyChannelDid;
+
+  /// Returns true while an incoming call from [otherPartyChannelDid] is being
+  /// resolved before it is fully registered.
+  bool hasIncomingReservation(String otherPartyChannelDid) =>
+      _pendingIncomingReservations.contains(otherPartyChannelDid);
 
   /// True while [callId] is registered as a ringing (not yet accepted) call.
   bool isRinging(String callId) => _pendingCalls.containsKey(callId);
@@ -54,6 +60,23 @@ class PendingCallManager {
     return true;
   }
 
+  /// Reserves an incoming call slot for [otherPartyChannelDid] before async
+  /// identity resolution finishes.
+  bool reserveIncomingCall(String otherPartyChannelDid) {
+    if (isBusy) return false;
+    _pendingIncomingReservations.add(otherPartyChannelDid);
+    _activePeerDid = otherPartyChannelDid;
+    return true;
+  }
+
+  /// Releases a previously reserved incoming call slot.
+  void releaseIncomingReservation(String otherPartyChannelDid) {
+    _pendingIncomingReservations.remove(otherPartyChannelDid);
+    if (_pendingIncomingReservations.isEmpty && _pendingCalls.isEmpty) {
+      _activePeerDid = null;
+    }
+  }
+
   /// Accepts [callId] and marks it as accepted-not-yet-started.
   ///
   /// Returns the otherPartyChannelDid, or null if [callId] is not pending.
@@ -73,6 +96,11 @@ class PendingCallManager {
       _activePeerDid = null;
     }
     return did;
+  }
+
+  /// Clears a reserved incoming call for [otherPartyChannelDid], if present.
+  void cancelReservedIncomingCall(String otherPartyChannelDid) {
+    releaseIncomingReservation(otherPartyChannelDid);
   }
 
   /// Resolves whether [otherPartyChannelDid] is a recipient scenario and
@@ -107,6 +135,7 @@ class PendingCallManager {
   void clearActiveCall() {
     _activeCallId = null;
     _outboundActive = false;
+    _pendingIncomingReservations.clear();
     _activePeerDid = null;
   }
 

@@ -343,6 +343,30 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       return;
     }
 
+    final stepUpRequest = CiergeStepUpApproveRequest.fromMessageText(
+      chatMessage.body.text,
+    );
+    if (stepUpRequest != null) {
+      final concierge = ConciergeMessage(
+        chatId: chatId,
+        messageId: chatMessage.id,
+        senderDid: chatMessage.from,
+        isFromMe: false,
+        dateCreated: chatMessage.createdTime,
+        status: ChatItemStatus.userInput,
+        conciergeType: ConciergeMessageType.fromJson(
+          CiergeStepUpApproveRequest.conciergeTypeName,
+        ),
+        data: {'approveRequest': stepUpRequest.approveRequest},
+      );
+      final created = await chatRepository.createMessage(concierge);
+      chatStream.pushData(
+        StreamData(event: const ChatMessageEvent(), chatItem: created),
+      );
+      unawaited(sendChatDeliveredMessage(chatMessage.id));
+      return;
+    }
+
     final message = Message.fromReceivedMessage(
       message: chatMessage,
       chatId: chatId,

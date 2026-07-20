@@ -99,6 +99,28 @@ class TextMessageHandler {
           return;
         }
 
+        final stepUpRequest =
+            CiergeStepUpApproveRequest.fromMessageText(textBody);
+        if (stepUpRequest != null) {
+          final concierge = ConciergeMessage(
+            chatId: _chatId,
+            messageId: event.id,
+            senderDid: senderDid,
+            isFromMe: false,
+            dateCreated: event.timestamp,
+            status: ChatItemStatus.userInput,
+            conciergeType: ConciergeMessageType.fromJson(
+              CiergeStepUpApproveRequest.conciergeTypeName,
+            ),
+            data: {'approveRequest': stepUpRequest.approveRequest},
+          );
+          final chatItem = await _chatRepository.createMessage(concierge);
+          _chatStream.pushData(
+            StreamData(event: event.toChatEvent(), chatItem: chatItem),
+          );
+          return;
+        }
+
         final message = Message.fromRoomEventReceivedByMe(
           event: event,
           chatId: _chatId,

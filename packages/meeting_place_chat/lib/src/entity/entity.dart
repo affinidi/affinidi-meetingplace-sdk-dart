@@ -4,6 +4,7 @@ export 'chat_attachment_data.dart';
 export 'chat_item.dart';
 export 'cierge_sign_document_request.dart';
 export 'cierge_signature_proof.dart';
+export 'cierge_step_up_approve_request.dart';
 export 'concierge_message.dart';
 export 'custom_message.dart';
 export 'effect.dart';

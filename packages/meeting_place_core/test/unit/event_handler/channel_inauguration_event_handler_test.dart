@@ -57,6 +57,7 @@ void main() {
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
   }) {
     final channelService = MockChannelService();
+    final didResolver = MockDidResolver();
     when(
       () => channelService.markChannelInauguratedForConnectionInitiator(
         any(),
@@ -70,6 +71,7 @@ void main() {
       channelService: channelService,
       connectionManager: MockConnectionManager(),
       mediatorService: MockMediatorService(),
+      didResolver: didResolver,
       logger: DefaultMeetingPlaceCoreSDKLogger(),
       options: ControlPlaneEventHandlerManagerOptions(
         onAttachmentsReceived: onAttachmentsReceived,

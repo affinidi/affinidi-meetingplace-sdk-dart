@@ -13,6 +13,7 @@ void main() {
   late MockLogger mockLogger;
   late MockConnectionOfferRepository mockConnectionOfferRepository;
   late MockChannelService mockChannelService;
+  late MockDidResolver mockDidResolver;
 
   final event = ChannelActivity(
     id: const Uuid().v4(),
@@ -30,6 +31,7 @@ void main() {
     mockLogger = MockLogger();
     mockConnectionOfferRepository = MockConnectionOfferRepository();
     mockChannelService = MockChannelService();
+    mockDidResolver = MockDidResolver();
 
     when(
       () => mockLogger.info(any(), name: any(named: 'name')),
@@ -41,6 +43,7 @@ void main() {
       connectionManager: MockConnectionManager(),
       channelService: mockChannelService,
       channelTransport: MockMeetingPlaceTransport(),
+      didResolver: mockDidResolver,
       connectionOfferRepository: mockConnectionOfferRepository,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: mockLogger,

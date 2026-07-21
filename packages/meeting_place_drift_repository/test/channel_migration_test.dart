@@ -342,4 +342,56 @@ void main() {
       await db.close();
     });
   });
+
+  group('v6 → v7 schema migration', () {
+    test('produces the correct v7 schema', () async {
+      final connection = await verifier.startAt(6);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 7);
+      await db.close();
+    });
+
+    test('adds context_key column with NULL as default', () async {
+      final schema = await verifier.schemaAt(6);
+
+      schema.rawDatabase.execute('''
+        INSERT INTO channels (
+          id,
+          publish_offer_did,
+          mediator_did,
+          offer_link,
+          status,
+          type,
+          transport,
+          is_connection_initiator,
+          permanent_channel_did,
+          seq_no
+        ) VALUES (
+          'ch-6',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-6',
+          1,
+          1,
+          1,
+          0,
+          'did:example:permanent6',
+          0
+        )
+      ''');
+
+      final db = ChannelDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 7);
+
+      final rows = await db
+          .customSelect(
+            'SELECT context_key FROM channels WHERE id = ?',
+            variables: [const Variable('ch-6')],
+          )
+          .get();
+      expect(rows.single.read<String?>('context_key'), isNull);
+
+      await db.close();
+    });
+  });
 }

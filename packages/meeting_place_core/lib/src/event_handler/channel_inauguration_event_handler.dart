@@ -102,13 +102,13 @@ class ChannelInaugurationEventHandler
       permanentChannelDid,
     );
     final recipientDidDocument = await _didResolver.resolveDid(
-      configuredAgentDid,
+      agentPermanentChannelDid,
     );
 
     await mediatorService.sendMessage(
       AgentChannelInauguration.create(
         from: permanentChannelDid,
-        to: [configuredAgentDid],
+        to: [agentPermanentChannelDid],
         otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
         otherPartyNotificationToken: otherPartyNotificationToken,
         offerLink: channel.offerLink,

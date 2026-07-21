@@ -238,6 +238,17 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _contextKeyMeta = const VerificationMeta(
+    'contextKey',
+  );
+  @override
+  late final GeneratedColumn<String> contextKey = GeneratedColumn<String>(
+    'context_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -261,6 +272,7 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
     matrixSyncMarker,
     messageSyncMarker,
     matrixRoomId,
+    contextKey,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -432,6 +444,12 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         ),
       );
     }
+    if (data.containsKey('context_key')) {
+      context.handle(
+        _contextKeyMeta,
+        contextKey.isAcceptableOrUnknown(data['context_key']!, _contextKeyMeta),
+      );
+    }
     return context;
   }
 
@@ -531,6 +549,10 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         DriftSqlType.string,
         data['${effectivePrefix}matrix_room_id'],
       ),
+      contextKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}context_key'],
+      ),
     );
   }
 
@@ -617,6 +639,9 @@ class Channel extends DataClass implements Insertable<Channel> {
 
   /// Matrix room ID for the channel, stored when the channel joins a room.
   final String? matrixRoomId;
+
+  /// Personal AI context selected for this channel, e.g. `work` or `personal`.
+  final String? contextKey;
   const Channel({
     required this.id,
     required this.publishOfferDid,
@@ -639,6 +664,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     this.matrixSyncMarker,
     this.messageSyncMarker,
     this.matrixRoomId,
+    this.contextKey,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -706,6 +732,9 @@ class Channel extends DataClass implements Insertable<Channel> {
     if (!nullToAbsent || matrixRoomId != null) {
       map['matrix_room_id'] = Variable<String>(matrixRoomId);
     }
+    if (!nullToAbsent || contextKey != null) {
+      map['context_key'] = Variable<String>(contextKey);
+    }
     return map;
   }
 
@@ -759,6 +788,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       matrixRoomId: matrixRoomId == null && nullToAbsent
           ? const Value.absent()
           : Value(matrixRoomId),
+      contextKey: contextKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contextKey),
     );
   }
 
@@ -807,6 +839,7 @@ class Channel extends DataClass implements Insertable<Channel> {
         json['messageSyncMarker'],
       ),
       matrixRoomId: serializer.fromJson<String?>(json['matrixRoomId']),
+      contextKey: serializer.fromJson<String?>(json['contextKey']),
     );
   }
   @override
@@ -842,6 +875,7 @@ class Channel extends DataClass implements Insertable<Channel> {
       'matrixSyncMarker': serializer.toJson<String?>(matrixSyncMarker),
       'messageSyncMarker': serializer.toJson<String?>(messageSyncMarker),
       'matrixRoomId': serializer.toJson<String?>(matrixRoomId),
+      'contextKey': serializer.toJson<String?>(contextKey),
     };
   }
 
@@ -867,6 +901,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     Value<String?> matrixSyncMarker = const Value.absent(),
     Value<String?> messageSyncMarker = const Value.absent(),
     Value<String?> matrixRoomId = const Value.absent(),
+    Value<String?> contextKey = const Value.absent(),
   }) => Channel(
     id: id ?? this.id,
     publishOfferDid: publishOfferDid ?? this.publishOfferDid,
@@ -910,6 +945,7 @@ class Channel extends DataClass implements Insertable<Channel> {
         ? messageSyncMarker.value
         : this.messageSyncMarker,
     matrixRoomId: matrixRoomId.present ? matrixRoomId.value : this.matrixRoomId,
+    contextKey: contextKey.present ? contextKey.value : this.contextKey,
   );
   Channel copyWithCompanion(ChannelsCompanion data) {
     return Channel(
@@ -965,6 +1001,9 @@ class Channel extends DataClass implements Insertable<Channel> {
       matrixRoomId: data.matrixRoomId.present
           ? data.matrixRoomId.value
           : this.matrixRoomId,
+      contextKey: data.contextKey.present
+          ? data.contextKey.value
+          : this.contextKey,
     );
   }
 
@@ -994,8 +1033,13 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
           ..write('matrixSyncMarker: $matrixSyncMarker, ')
+<<<<<<< HEAD
           ..write('messageSyncMarker: $messageSyncMarker, ')
           ..write('matrixRoomId: $matrixRoomId')
+=======
+          ..write('matrixRoomId: $matrixRoomId, ')
+          ..write('contextKey: $contextKey')
+>>>>>>> 38cdd9ba (fix: multi agent support (#285))
           ..write(')'))
         .toString();
   }
@@ -1023,6 +1067,7 @@ class Channel extends DataClass implements Insertable<Channel> {
     matrixSyncMarker,
     messageSyncMarker,
     matrixRoomId,
+    contextKey,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -1050,8 +1095,13 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.externalRef == this.externalRef &&
           other.seqNo == this.seqNo &&
           other.matrixSyncMarker == this.matrixSyncMarker &&
+<<<<<<< HEAD
           other.messageSyncMarker == this.messageSyncMarker &&
           other.matrixRoomId == this.matrixRoomId);
+=======
+          other.matrixRoomId == this.matrixRoomId &&
+          other.contextKey == this.contextKey);
+>>>>>>> 38cdd9ba (fix: multi agent support (#285))
 }
 
 class ChannelsCompanion extends UpdateCompanion<Channel> {
@@ -1076,6 +1126,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String?> matrixSyncMarker;
   final Value<String?> messageSyncMarker;
   final Value<String?> matrixRoomId;
+  final Value<String?> contextKey;
   final Value<int> rowid;
   const ChannelsCompanion({
     this.id = const Value.absent(),
@@ -1099,6 +1150,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.matrixSyncMarker = const Value.absent(),
     this.messageSyncMarker = const Value.absent(),
     this.matrixRoomId = const Value.absent(),
+    this.contextKey = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChannelsCompanion.insert({
@@ -1123,6 +1175,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.matrixSyncMarker = const Value.absent(),
     this.messageSyncMarker = const Value.absent(),
     this.matrixRoomId = const Value.absent(),
+    this.contextKey = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : publishOfferDid = Value(publishOfferDid),
        mediatorDid = Value(mediatorDid),
@@ -1152,6 +1205,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? matrixSyncMarker,
     Expression<String>? messageSyncMarker,
     Expression<String>? matrixRoomId,
+    Expression<String>? contextKey,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1183,6 +1237,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       if (matrixSyncMarker != null) 'matrix_sync_marker': matrixSyncMarker,
       if (messageSyncMarker != null) 'message_sync_marker': messageSyncMarker,
       if (matrixRoomId != null) 'matrix_room_id': matrixRoomId,
+      if (contextKey != null) 'context_key': contextKey,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1209,6 +1264,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Value<String?>? matrixSyncMarker,
     Value<String?>? messageSyncMarker,
     Value<String?>? matrixRoomId,
+    Value<String?>? contextKey,
     Value<int>? rowid,
   }) {
     return ChannelsCompanion(
@@ -1239,6 +1295,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       matrixSyncMarker: matrixSyncMarker ?? this.matrixSyncMarker,
       messageSyncMarker: messageSyncMarker ?? this.messageSyncMarker,
       matrixRoomId: matrixRoomId ?? this.matrixRoomId,
+      contextKey: contextKey ?? this.contextKey,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1327,6 +1384,9 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     if (matrixRoomId.present) {
       map['matrix_room_id'] = Variable<String>(matrixRoomId.value);
     }
+    if (contextKey.present) {
+      map['context_key'] = Variable<String>(contextKey.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1361,6 +1421,7 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write('matrixSyncMarker: $matrixSyncMarker, ')
           ..write('messageSyncMarker: $messageSyncMarker, ')
           ..write('matrixRoomId: $matrixRoomId, ')
+          ..write('contextKey: $contextKey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1902,6 +1963,7 @@ typedef $$ChannelsTableCreateCompanionBuilder =
       Value<String?> matrixSyncMarker,
       Value<String?> messageSyncMarker,
       Value<String?> matrixRoomId,
+      Value<String?> contextKey,
       Value<int> rowid,
     });
 typedef $$ChannelsTableUpdateCompanionBuilder =
@@ -1927,6 +1989,7 @@ typedef $$ChannelsTableUpdateCompanionBuilder =
       Value<String?> matrixSyncMarker,
       Value<String?> messageSyncMarker,
       Value<String?> matrixRoomId,
+      Value<String?> contextKey,
       Value<int> rowid,
     });
 
@@ -2080,6 +2143,11 @@ class $$ChannelsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> channelContactCardsRefs(
     Expression<bool> Function($$ChannelContactCardsTableFilterComposer f) f,
   ) {
@@ -2221,6 +2289,11 @@ class $$ChannelsTableOrderingComposer
     column: $table.matrixRoomId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChannelsTableAnnotationComposer
@@ -2327,6 +2400,11 @@ class $$ChannelsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
+    builder: (column) => column,
+  );
+
   Expression<T> channelContactCardsRefs<T extends Object>(
     Expression<T> Function($$ChannelContactCardsTableAnnotationComposer a) f,
   ) {
@@ -2406,6 +2484,7 @@ class $$ChannelsTableTableManager
                 Value<String?> matrixSyncMarker = const Value.absent(),
                 Value<String?> messageSyncMarker = const Value.absent(),
                 Value<String?> matrixRoomId = const Value.absent(),
+                Value<String?> contextKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChannelsCompanion(
                 id: id,
@@ -2430,6 +2509,7 @@ class $$ChannelsTableTableManager
                 matrixSyncMarker: matrixSyncMarker,
                 messageSyncMarker: messageSyncMarker,
                 matrixRoomId: matrixRoomId,
+                contextKey: contextKey,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2458,6 +2538,7 @@ class $$ChannelsTableTableManager
                 Value<String?> matrixSyncMarker = const Value.absent(),
                 Value<String?> messageSyncMarker = const Value.absent(),
                 Value<String?> matrixRoomId = const Value.absent(),
+                Value<String?> contextKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChannelsCompanion.insert(
                 id: id,
@@ -2482,6 +2563,7 @@ class $$ChannelsTableTableManager
                 matrixSyncMarker: matrixSyncMarker,
                 messageSyncMarker: messageSyncMarker,
                 matrixRoomId: matrixRoomId,
+                contextKey: contextKey,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

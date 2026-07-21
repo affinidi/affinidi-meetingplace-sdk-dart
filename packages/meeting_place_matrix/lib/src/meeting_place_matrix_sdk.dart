@@ -316,7 +316,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<DidManager> generateDidWeb() => _coreSDK.generateDidWeb();
 
   @override
-  Future<void> generateAgentIdentity({
+  Future<Channel> generateAgentIdentity({
     required String agentControllerDid,
     required String agentDid,
     required String otherPartyPermanentChannelDid,
@@ -427,6 +427,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     String? mediatorDid,
     String? metadata,
     String? externalRef,
+    String? contextKey,
     ChannelTransport transport = ChannelTransport.didcomm,
     int? score,
   }) => _coreSDK.publishOffer(
@@ -440,6 +441,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     mediatorDid: mediatorDid,
     metadata: metadata,
     externalRef: externalRef,
+    contextKey: contextKey,
     transport: transport,
     score: score,
   );
@@ -454,20 +456,24 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required ContactCard contactCard,
     required String senderInfo,
     String? externalRef,
+    String? contextKey,
   }) => _coreSDK.acceptOffer(
     connectionOffer: connectionOffer,
     contactCard: contactCard,
     senderInfo: senderInfo,
     externalRef: externalRef,
+    contextKey: contextKey,
   );
 
   @override
   Future<Channel> approveConnectionRequest({
     required Channel channel,
     List<Attachment>? attachments,
+    String? contextKey,
   }) => _coreSDK.approveConnectionRequest(
     channel: channel,
     attachments: attachments,
+    contextKey: contextKey,
   );
 
   @override

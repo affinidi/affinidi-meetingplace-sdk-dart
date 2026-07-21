@@ -115,6 +115,7 @@ class InvitationAcceptedEventHandler
       contactCard: connection.contactCard,
       otherPartyContactCard: invitationAcceptance.contactCard,
       externalRef: connection.externalRef,
+      contextKey: connection.contextKey,
     );
 
     await channelService.persistChannel(channel);

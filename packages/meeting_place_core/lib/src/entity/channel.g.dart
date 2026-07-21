@@ -39,6 +39,7 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
   matrixRoomId: json['matrixRoomId'] as String?,
   seqNo: (json['seqNo'] as num?)?.toInt() ?? 0,
   externalRef: json['externalRef'] as String?,
+  contextKey: json['contextKey'] as String?,
 );
 
 Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
@@ -63,6 +64,7 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
   'matrixRoomId': ?instance.matrixRoomId,
   'externalRef': ?instance.externalRef,
+  'contextKey': ?instance.contextKey,
   'seqNo': instance.seqNo,
   'messageSyncMarker': ?instance.messageSyncMarker,
 };

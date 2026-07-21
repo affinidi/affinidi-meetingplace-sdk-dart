@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
@@ -22,6 +24,7 @@ class ConnectionManager {
 
   final KeyRepository _keyRepository;
   final String _rootKeyId = "m/44'/60'/0'/0'/0'";
+  final math.Random _secureRandom = math.Random.secure();
   final Mutex _mutex = Mutex();
   final MeetingPlaceCoreSDKLogger _logger;
 
@@ -47,6 +50,21 @@ class ConnectionManager {
     );
   }
 
+  Future<DidManager> generateEphemeralDid(Wallet wallet) async {
+    return _generateDidWithFactory(
+      wallet: wallet,
+      methodName: 'generateEphemeralDid',
+      nextIndex: (lastIndex) {
+        const firstEphemeralIndex = 1000000;
+        final randomIndex =
+            firstEphemeralIndex +
+            _secureRandom.nextInt(0x3fffffff - firstEphemeralIndex);
+        return randomIndex > lastIndex ? randomIndex : lastIndex + 1;
+      },
+      factory: (keyId) => _initDidManager(wallet: wallet, keyId: keyId),
+    );
+  }
+
   Future<DidManager> generateDidWeb(
     Wallet wallet, {
     required Uri baseHost,
@@ -66,6 +84,7 @@ class ConnectionManager {
     required Wallet wallet,
     required String methodName,
     required Future<DidManager> Function(String keyId) factory,
+    int Function(int lastIndex)? nextIndex,
   }) async {
     _logger.info('Generating new DID...', name: methodName);
 
@@ -73,7 +92,7 @@ class ConnectionManager {
 
     try {
       final lastIndex = await _keyRepository.getLastAccountIndex();
-      final currentIndex = lastIndex + 1;
+      final currentIndex = nextIndex?.call(lastIndex) ?? lastIndex + 1;
 
       final keyId = _buildKeyId(currentIndex);
       final didManager = await factory(keyId);

@@ -189,6 +189,7 @@ class ChannelService {
     required String notificationToken,
     required String otherPartyNotificationToken,
     required String otherPartyPermanentChannelDid,
+    String? otherPartyAgentPermanentChannelDid,
     required String outboundMessageId,
     required ContactCard? otherPartyContactCard,
   }) {
@@ -208,6 +209,8 @@ class ChannelService {
     channel.notificationToken = notificationToken;
     channel.otherPartyNotificationToken = otherPartyNotificationToken;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
+    channel.otherPartyAgentPermanentChannelDid =
+      otherPartyAgentPermanentChannelDid;
     channel.outboundMessageId = outboundMessageId;
     channel.otherPartyContactCard = otherPartyContactCard;
     channel.status = ChannelStatus.inaugurated;

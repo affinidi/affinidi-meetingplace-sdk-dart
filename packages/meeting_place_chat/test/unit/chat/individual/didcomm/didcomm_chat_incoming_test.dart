@@ -220,6 +220,51 @@ void main() {
       expect((messages.first as Message).status, ChatItemStatus.delivered);
     });
 
+    test('delivery receipt failure does not block incoming message', () async {
+      when(() => core.sendMessage(any())).thenAnswer((invocation) async {
+        final outgoing = invocation.positionalArguments.single
+            as DidCommOutgoingMessage;
+        if (outgoing.payload.type.toString() ==
+            ChatProtocol.chatDelivered.value) {
+          throw Exception('access_list denied');
+        }
+        return 'ok';
+      });
+
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatMessageEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'msg-incoming-delivery-fails',
+            type: Uri.parse(ChatProtocol.chatMessage.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'text': 'Hello despite receipt failure',
+              'seq_no': 1,
+              'timestamp': DateTime.utc(2026).toIso8601String(),
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      expect((streamData.chatItem! as Message).value,
+          'Hello despite receipt failure');
+
+      await Future<void>.delayed(Duration.zero);
+      final messages = await sdk.messages;
+      expect(messages.length, 1);
+    });
+
     test('incoming message with higher seqNo updates channel', () async {
       when(
         () => core.getChannelByOtherPartyPermanentDid(any()),

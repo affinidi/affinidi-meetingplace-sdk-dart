@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -131,6 +131,9 @@ class ChannelDatabase extends _$ChannelDatabase {
       }
       if (from < 6 && to >= 6) {
         await migrator.addColumn(channels, channels.matrixRoomId);
+      }
+      if (from < 7 && to >= 7) {
+        await migrator.addColumn(channels, channels.contextKey);
       }
     },
   );
@@ -210,6 +213,9 @@ class Channels extends Table {
 
   /// Matrix room ID for the channel, stored when the channel joins a room.
   TextColumn get matrixRoomId => text().nullable()();
+
+  /// Personal AI context selected for this channel, e.g. `work` or `personal`.
+  TextColumn get contextKey => text().nullable()();
 
   /// Primary key for the channels table.
   @override

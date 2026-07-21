@@ -38,7 +38,7 @@ class AgentIdentityService {
   ///
   /// Returns the new [Channel] so the caller can subscribe to messages on
   /// [Channel.permanentChannelDid].
-  Future<void> createChannelIdentity({
+  Future<Channel> createChannelIdentity({
     required String agentDid,
     required String otherPartyPermanentChannelDid,
     required String mediatorDid,
@@ -98,6 +98,7 @@ class AgentIdentityService {
     );
 
     await _channelRepository.createChannel(channel);
+    return channel;
   }
 
   /// Handles an incoming `agent-channel-inauguration` message by granting

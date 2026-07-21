@@ -62,7 +62,9 @@ class IdentityService {
   }
 
   Future<EphemeralIdentity> createEphemeralIdentity(Wallet wallet) async {
-    final ephemeralDidManager = await _connectionManager.generateDid(wallet);
+    final ephemeralDidManager = await _connectionManager.generateEphemeralDid(
+      wallet,
+    );
     final didDocument = await ephemeralDidManager.getDidDocument();
 
     _logger.info(
@@ -83,6 +85,7 @@ class IdentityService {
     String? publishOfferDid,
     ContactCard? contactCard,
     bool? skipAgentIdentity = false,
+    String? contextKey,
   }) async {
     final permanentChannelDidManager = await _connectionManager.generateDidWeb(
       wallet,
@@ -114,6 +117,7 @@ class IdentityService {
         offerLink: offerLink,
         publishOfferDid: publishOfferDid,
         contactCard: contactCard,
+        contextKey: contextKey,
       );
     }
 
@@ -166,6 +170,7 @@ class IdentityService {
     String? offerLink,
     String? publishOfferDid,
     ContactCard? contactCard,
+    String? contextKey,
   }) async {
     await _mediatorService.updateAcl(
       ownerDidManager: senderDidManager,
@@ -188,6 +193,12 @@ class IdentityService {
     try {
       final rootDidManager = await _connectionManager.generateRootDid(wallet);
       final rootDidDoc = await rootDidManager.getDidDocument();
+      _logger.info(
+        'Requesting agent channel identity: '
+        'channelDid=$channelDid, agentDid=$agentDid, '
+        'offerLink=$offerLink, contextKey=${contextKey ?? '(null)'}',
+        name: _logkey,
+      );
       final request = AgentCreateChannelIdentityRequest.create(
         from: rootDidDoc.id,
         to: [agentDid],
@@ -196,6 +207,7 @@ class IdentityService {
         publishOfferDid: publishOfferDid!,
         contactCard: contactCard!,
         transport: transport,
+        contextKey: contextKey,
       );
 
       await _messageService.sendMessage(

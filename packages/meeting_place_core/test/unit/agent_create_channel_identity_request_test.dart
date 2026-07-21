@@ -27,6 +27,7 @@ void main() {
           publishOfferDid: publishOfferDid,
           contactCard: contactCard,
           transport: ChannelTransport.didcomm,
+          contextKey: 'work',
         );
 
     group('.create', () {
@@ -44,6 +45,7 @@ void main() {
         expect(msg.body.offerLink, equals(offerLink));
         expect(msg.body.publishOfferDid, equals(publishOfferDid));
         expect(msg.body.contactCard, equals(contactCard));
+        expect(msg.body.contextKey, equals('work'));
       });
     });
 
@@ -63,6 +65,7 @@ void main() {
         expect(body['channelDid'], equals(channelDid));
         expect(body['offerLink'], equals(offerLink));
         expect(body['publishOfferDid'], equals(publishOfferDid));
+        expect(body['context_key'], equals('work'));
         expect(body['contactCard'], isA<Map<String, dynamic>>());
         expect(
           (body['contactCard'] as Map<String, dynamic>)['did'],
@@ -86,6 +89,7 @@ void main() {
         expect(restored.body.offerLink, equals(offerLink));
         expect(restored.body.publishOfferDid, equals(publishOfferDid));
         expect(restored.body.contactCard.did, equals(contactCard.did));
+        expect(restored.body.contextKey, equals('work'));
       });
     });
   });

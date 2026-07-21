@@ -17,6 +17,7 @@ class AgentCreateChannelIdentityRequestBody {
     required this.publishOfferDid,
     required this.contactCard,
     required this.transport,
+    this.contextKey,
   });
 
   @JsonKey(name: 'channelDid')
@@ -33,6 +34,9 @@ class AgentCreateChannelIdentityRequestBody {
 
   @JsonKey(name: 'transport')
   final ChannelTransport transport;
+
+  @JsonKey(name: 'context_key')
+  final String? contextKey;
 
   Map<String, dynamic> toJson() =>
       _$AgentCreateChannelIdentityRequestBodyToJson(this);

@@ -648,7 +648,7 @@ class MeetingPlaceCoreSDK {
   ///
   /// Returns the new [DidManager] so the caller can subscribe to messages on
   /// the freshly created DID.
-  Future<void> generateAgentIdentity({
+  Future<Channel> generateAgentIdentity({
     required String agentDid,
     required String otherPartyPermanentChannelDid,
     required String mediatorDid,
@@ -925,6 +925,7 @@ class MeetingPlaceCoreSDK {
     String? mediatorDid,
     String? metadata,
     String? externalRef,
+    String? contextKey,
     ChannelTransport transport = ChannelTransport.didcomm,
     int? score,
   }) async {
@@ -961,6 +962,7 @@ class MeetingPlaceCoreSDK {
           maximumUsage: maximumUsage,
           mediatorDid: mediatorDid,
           externalRef: externalRef,
+          contextKey: contextKey,
           contactCard: contactCard,
           transport: transport,
           score: score,
@@ -1017,6 +1019,7 @@ class MeetingPlaceCoreSDK {
     required ContactCard contactCard,
     required String senderInfo,
     String? externalRef,
+    String? contextKey,
   }) async {
     return _withSdkExceptionHandling(() async {
       if (connectionOffer is GroupConnectionOffer) {
@@ -1041,6 +1044,7 @@ class MeetingPlaceCoreSDK {
         contactCard: contactCard,
         senderInfo: senderInfo,
         externalRef: externalRef,
+        contextKey: contextKey,
       );
 
       return sdk.AcceptOfferResult(
@@ -1076,6 +1080,7 @@ class MeetingPlaceCoreSDK {
   Future<Channel> approveConnectionRequest({
     required Channel channel,
     List<Attachment>? attachments,
+    String? contextKey,
   }) async {
     return _withSdkExceptionHandling(() async {
       return channel.isGroup
@@ -1084,6 +1089,7 @@ class MeetingPlaceCoreSDK {
               wallet: wallet,
               channel: channel,
               attachments: attachments,
+              contextKey: contextKey,
             );
     });
   }

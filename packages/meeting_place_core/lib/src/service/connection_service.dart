@@ -201,6 +201,7 @@ class ConnectionService {
     int? maximumUsage,
     String? mediatorDid,
     String? externalRef,
+    String? contextKey,
     ChannelTransport transport = ChannelTransport.didcomm,
     int? score,
   }) async {
@@ -258,6 +259,7 @@ class ConnectionService {
         status: ConnectionOfferStatus.published,
         ownedByMe: true,
         externalRef: externalRef,
+        contextKey: contextKey,
         createdAt: DateTime.now().toUtc(),
         transport: transport,
         score: registerOfferOutput.score,
@@ -308,8 +310,10 @@ class ConnectionService {
       wallet,
     );
 
-    final skipAgentIdentity = connectionOffer.contactCard.type == 'ai-agent' ||
+    final skipAgentIdentity =
+        connectionOffer.contactCard.type == 'ai-agent' ||
         _identityService.agentDid == null;
+    final effectiveContextKey = contextKey ?? connectionOffer.contextKey;
 
     final permanentIdentity = skipAgentIdentity
         ? await _identityService.createPermanentIdentity(
@@ -323,6 +327,7 @@ class ConnectionService {
             offerLink: connectionOffer.offerLink,
             publishOfferDid: connectionOffer.publishOfferDid,
             contactCard: contactCard,
+            contextKey: effectiveContextKey,
             skipAgentIdentity: false,
           );
 
@@ -519,6 +524,19 @@ class ConnectionService {
       rethrow;
     }
 
+    await _mediatorAclService.addToAcl(
+      didManager: acceptOfferDid,
+      mediatorDid: mediatorDid,
+      granteeDids: granteeDids.toList(),
+    );
+
+    _logger.info(
+      'Accept ACL confirmed after send: '
+      'acceptOfferDid=${acceptOfferDidDocument.id}, '
+      'grantees=${granteeDids.toList()}',
+      name: methodName,
+    );
+
     _logger.info('Accept offer sent to mediator', name: methodName);
   }
 
@@ -609,6 +627,8 @@ class ConnectionService {
     // agentDid configured. Never nest a ghost on Personal AI (`ai-agent`)
     // offers — that path must match the pre-ghost approve behaviour exactly.
     final attachGhostAgent = _shouldAttachGhostAgent(channel.contactCard);
+    final effectiveContextKey =
+        contextKey ?? channel.contextKey ?? connectionOffer.contextKey;
 
     _logger.info(
       'Approve debug: '
@@ -619,7 +639,11 @@ class ConnectionService {
       'acceptOfferDid=$acceptOfferDid, '
       'otherPartyPermanentChannelDid=$otherPartyPermanentChannelDid, '
       'otherPartyAgentPermanentChannelDid='
-      '${channel.otherPartyAgentPermanentChannelDid ?? '(null)'}',
+      '${channel.otherPartyAgentPermanentChannelDid ?? '(null)'}, '
+      'explicitContextKey=${contextKey ?? '(null)'}, '
+      'channelContextKey=${channel.contextKey ?? '(null)'}, '
+      'offerContextKey=${connectionOffer.contextKey ?? '(null)'}, '
+      'effectiveContextKey=${effectiveContextKey ?? '(null)'}',
       name: methodName,
     );
 
@@ -630,6 +654,7 @@ class ConnectionService {
             offerLink: channel.offerLink,
             publishOfferDid: channel.publishOfferDid,
             contactCard: channel.contactCard,
+            contextKey: effectiveContextKey,
             skipAgentIdentity: false,
           )
         : await _identityService.createPermanentIdentity(
@@ -696,8 +721,9 @@ class ConnectionService {
     );
     await _connectionOfferRepository.updateConnectionOffer(finalisedConnection);
 
-    channel.agentPermanentChannelDid =
-        attachGhostAgent ? permanentIdentity.agentDid : null;
+    channel.agentPermanentChannelDid = attachGhostAgent
+        ? permanentIdentity.agentDid
+        : null;
     await _channelService.markChannelApprovedForConnectionInitiator(
       channel,
       permanentChannelDid: permanentIdentity.didDocument.id,
@@ -768,6 +794,7 @@ class ConnectionService {
       to: [otherPartyAcceptOfferDid],
       parentThreadId: outboundMessageId,
       channelDid: permanentChannelDidDocument.id,
+      agentDid: agentDid,
       contactCard: contactCard,
       attachments: attachments,
     );

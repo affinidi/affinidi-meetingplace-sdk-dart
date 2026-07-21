@@ -7,10 +7,13 @@ class ConnectionRequestApprovalBody {
   factory ConnectionRequestApprovalBody.fromJson(Map<String, dynamic> json) =>
       _$ConnectionRequestApprovalBodyFromJson(json);
 
-  ConnectionRequestApprovalBody({required this.channelDid});
+  ConnectionRequestApprovalBody({required this.channelDid, this.agentDid});
 
   @JsonKey(name: 'channel_did')
   final String channelDid;
+
+  @JsonKey(name: 'agent_did')
+  final String? agentDid;
 
   Map<String, dynamic> toJson() => _$ConnectionRequestApprovalBodyToJson(this);
 }

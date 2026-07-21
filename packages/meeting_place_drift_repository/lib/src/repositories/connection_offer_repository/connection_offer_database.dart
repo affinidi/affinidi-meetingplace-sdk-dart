@@ -66,7 +66,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
 
   /// Current schema version of the database.
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Migration strategy applied before opening the database.
   /// Ensures foreign key constraints are enforced.
@@ -131,6 +131,12 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
           'UPDATE connection_offers SET transport = 1 '
           'WHERE transport IS NULL',
         );
+      }
+      if (from == 4 && to >= 5) {
+        await migrator.addColumn(connectionOffers, connectionOffers.score);
+      }
+      if (from < 5 && to >= 5) {
+        await migrator.addColumn(connectionOffers, connectionOffers.contextKey);
       }
     },
   );
@@ -215,6 +221,9 @@ class ConnectionOffers extends Table {
 
   /// VRC score of the offer owner.
   IntColumn get score => integer().nullable()();
+
+  /// Personal AI context selected for this offer, e.g. `work` or `personal`.
+  TextColumn get contextKey => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

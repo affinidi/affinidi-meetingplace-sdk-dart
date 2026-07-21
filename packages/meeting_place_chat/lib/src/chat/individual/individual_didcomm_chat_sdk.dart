@@ -332,7 +332,18 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       StreamData(event: const ChatMessageEvent(), chatItem: created),
     );
 
-    unawaited(sendChatDeliveredMessage(message.messageId));
+    unawaited(
+      sendChatDeliveredMessage(message.messageId).catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        logger.warning(
+          'Failed to send chat delivered receipt for ${message.messageId}: '
+          '$error',
+          name: _logkey,
+        );
+      }),
+    );
   }
 
   Future<void> _handleIncomingReaction(didcomm.PlainTextMessage p) async {

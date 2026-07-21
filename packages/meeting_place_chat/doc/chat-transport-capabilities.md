@@ -84,4 +84,4 @@ On loading a chat, the app stores the channel's transport and gates the UI to ma
 
 The chat session service also guards these operations, so an unsupported action fails fast instead of sending malformed data. Text, reactions, typing, and effects stay available on both transports.
 
-Suggestion requests are send-only in the chat SDK on this branch: both Matrix-backed and individual DIDComm chats emit the DIDComm request to the configured `MeetingPlaceCoreSDKOptions.agentDid`, and there is no incoming typed chat event yet. Calling the API without a configured `agentDid` fails fast.
+Suggestion requests are send-only in the chat SDK on this branch: both Matrix-backed and individual DIDComm chats emit the DIDComm request to the configured `MeetingPlaceCoreSDKOptions.agentDid`. Individual DIDComm chats also surface incoming suggestion payloads as a typed chat event. Calling the API without a configured `agentDid` fails fast.

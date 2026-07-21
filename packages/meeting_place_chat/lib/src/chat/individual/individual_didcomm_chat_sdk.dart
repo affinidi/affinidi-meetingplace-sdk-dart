@@ -172,6 +172,21 @@ class IndividualDidcommChatSDK extends BaseChatSDK
           ),
         );
         break;
+      case protocol.ChatProtocol.suggestion:
+        final suggestion = protocol.ChatSuggestion.fromPlainTextMessage(
+          payload,
+        );
+        chatStream.pushData(
+          StreamData(
+            event: ChatSuggestionEvent(
+              senderDid: suggestion.from,
+              relatedMessageId: suggestion.body.relatedMessageId,
+              text: suggestion.body.text,
+              createdTime: suggestion.createdTime,
+            ),
+          ),
+        );
+        break;
       case final String vdipType
           when vdipType == VdipClient.requestIssuanceMessageType:
         coreSDK.vdip.dispatch(incoming.payload);

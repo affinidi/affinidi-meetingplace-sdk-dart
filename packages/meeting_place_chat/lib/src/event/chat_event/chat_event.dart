@@ -15,6 +15,7 @@ part 'chat_group_details_update_event.dart';
 part 'chat_member_deregistered_event.dart';
 part 'chat_request_issuance_event.dart';
 part 'chat_issued_credential_event.dart';
+part 'chat_suggestion_event.dart';
 part 'unhandled_chat_event.dart';
 
 /// Base class for all events emitted on the chat stream.

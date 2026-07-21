@@ -1,3 +1,7 @@
+## 0.0.1-dev.6
+
+ - **FIX**: enable participant name and avatar lookup during active calls (#283).
+
 ## 0.0.1-dev.5
 
  - **FIX**: use matrix room watcher for reliable group call cancel (#284).

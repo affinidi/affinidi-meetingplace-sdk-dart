@@ -9,9 +9,9 @@ environment:
 
 dependencies:
   matrix: ^8.1.0
-  meeting_place_chat: ^0.0.1-dev.53
+  meeting_place_chat: ^0.0.1-dev.54
   meeting_place_core: ^0.0.1-dev.46
-  meeting_place_matrix: ^0.0.1-dev.5
+  meeting_place_matrix: ^0.0.1-dev.6
   pretty_json: ^2.0.0
   sqflite_common_ffi: ">=2.3.4+4 <2.4.0"
   ssi: ^3.9.4

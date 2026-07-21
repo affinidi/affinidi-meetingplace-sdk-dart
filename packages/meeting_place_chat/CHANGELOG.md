@@ -1,3 +1,7 @@
+## 0.0.1-dev.54
+
+ - **FIX**: enable participant name and avatar lookup during active calls (#283).
+
 ## 0.0.1-dev.53
 
  - Update a dependency to the latest release.

@@ -67,8 +67,8 @@ class ChannelInaugurationEventHandler
 
     await _sendAgentChannelInaugurationIfNeeded(
       channel,
-      otherPartyNotificationToken: channelInaugurationMessage.body
-          .notificationToken,
+      otherPartyNotificationToken:
+          channelInaugurationMessage.body.notificationToken,
     );
 
     final attachments = channelInaugurationMessage.attachments;

@@ -85,9 +85,7 @@ class MeetingPlacePersonalAgentSDK {
   }
 
   Future<PersonalAgentAuthorizationSnapshot>
-  fetchPersonalAgentAuthorizationSnapshot({
-    required String setupId,
-  }) async {
+  fetchPersonalAgentAuthorizationSnapshot({required String setupId}) async {
     final normalized = setupId.trim();
     if (normalized.isEmpty) {
       throw const VtaValidationException(

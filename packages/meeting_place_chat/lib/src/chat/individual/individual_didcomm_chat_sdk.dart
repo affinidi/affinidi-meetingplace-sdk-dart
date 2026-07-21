@@ -330,10 +330,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         conciergeType: ConciergeMessageType.fromJson(
           CiergeSignDocumentRequest.conciergeTypeName,
         ),
-        data: {
-          'document': signRequest.document,
-          'taskId': signRequest.taskId,
-        },
+        data: {'document': signRequest.document, 'taskId': signRequest.taskId},
       );
       final created = await chatRepository.createMessage(concierge);
       chatStream.pushData(

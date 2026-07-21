@@ -124,7 +124,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     final otherPartyPermanentChannelDid =
         connectionRequestApprovalMessage.body.channelDid;
     final otherPartyAgentPermanentChannelDid =
-      connectionRequestApprovalMessage.body.agentDid;
+        connectionRequestApprovalMessage.body.agentDid;
 
     logger.info('''Found ConnectionRequestApproval. Their channel
       is $otherPartyPermanentChannelDid''', name: 'processMessage');

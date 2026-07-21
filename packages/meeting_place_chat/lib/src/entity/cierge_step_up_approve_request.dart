@@ -27,8 +27,7 @@ class CiergeStepUpApproveRequest {
       final decoded = jsonDecode(text);
       if (decoded is! Map<String, dynamic>) return null;
       if (decoded['type'] != messageType) return null;
-      final approveRequest =
-          decoded['approveRequest'] as Map<String, dynamic>?;
+      final approveRequest = decoded['approveRequest'] as Map<String, dynamic>?;
       if (approveRequest == null) return null;
       return CiergeStepUpApproveRequest(approveRequest: approveRequest);
     } catch (_) {

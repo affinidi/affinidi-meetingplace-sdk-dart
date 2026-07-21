@@ -145,7 +145,7 @@ class ConnectionOffer {
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef ?? this.externalRef,
-        contextKey: contextKey ?? this.contextKey,
+      contextKey: contextKey ?? this.contextKey,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
       transport: transport ?? this.transport,

@@ -324,6 +324,40 @@ void main() {
         verify(() => vdip.dispatch(any())).called(1);
       },
     );
+
+    test('incoming suggestion emits ChatSuggestionEvent', () async {
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatSuggestionEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: 'did:test:agent',
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'suggestion-1',
+            type: Uri.parse(ChatProtocol.suggestion.value),
+            from: 'did:test:agent',
+            to: [_aliceDid],
+            body: {
+              'related_message_id': 'msg-incoming-1',
+              'text': 'Suggested reply',
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      final event = streamData.event as ChatSuggestionEvent;
+      expect(event.senderDid, 'did:test:agent');
+      expect(event.relatedMessageId, 'msg-incoming-1');
+      expect(event.text, 'Suggested reply');
+      expect(event.createdTime, DateTime.utc(2026));
+      expect(streamData.chatItem, isNull);
+    });
   });
 
   group('incoming reaction handling', () {

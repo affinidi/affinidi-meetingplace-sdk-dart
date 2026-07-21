@@ -6,6 +6,7 @@ export 'src/meeting_place_chat_sdk.dart';
 export 'src/meeting_place_chat_sdk_options.dart';
 export 'src/repository/chat_repository.dart';
 export 'src/transport/didcomm/chat_protocol.dart';
+export 'src/transport/didcomm/outgoing/chat_suggestion_message.dart';
 export 'src/transport/transport_capabilities.dart';
 export 'src/zkp/liveness_zkp_concierge_chat_mapper.dart';
 export 'src/zkp/liveness_zkp_concierge_deriver.dart';

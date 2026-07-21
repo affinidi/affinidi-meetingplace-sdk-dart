@@ -21,6 +21,7 @@ String _describe(ChatEvent event) => switch (event) {
   ChatMemberDeregisteredEvent() => 'ChatMemberDeregisteredEvent',
   ChatRequestIssuanceEvent() => 'ChatRequestIssuanceEvent',
   ChatIssuedCredentialEvent() => 'ChatIssuedCredentialEvent',
+  ChatSuggestionEvent() => 'ChatSuggestionEvent',
   UnhandledChatEvent() => 'UnhandledChatEvent',
 };
 
@@ -72,6 +73,12 @@ void main() {
         body: const {},
         createdTime: now,
         attachments: const [],
+      ),
+      ChatSuggestionEvent(
+        senderDid: 'did:test:agent',
+        relatedMessageId: 'm1',
+        text: 'Suggested reply',
+        createdTime: now,
       ),
       const UnhandledChatEvent(type: 'unknown'),
     ];

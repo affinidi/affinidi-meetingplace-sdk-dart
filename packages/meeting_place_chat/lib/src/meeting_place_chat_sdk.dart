@@ -160,8 +160,9 @@ abstract interface class MeetingPlaceChatSDK {
   /// on [MeetingPlaceCoreSDK.options], using [messageId] and [text] as the
   /// context to suggest against.
   ///
-  /// This is transport-gated through [ChatFeature.suggestionRequests]. Matrix
-  /// chats support it; individual DIDComm chats reject it. Throws
+  /// This is transport-gated through [ChatFeature.suggestionRequests].
+  /// Transports expose it when the core SDK has a configured `agentDid`.
+  /// Throws
   /// [StateError] when the core SDK has no configured `agentDid`.
   Future<void> sendSuggestionRequest({
     required String messageId,

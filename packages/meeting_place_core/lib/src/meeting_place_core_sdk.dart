@@ -135,6 +135,7 @@ class MeetingPlaceCoreSDK {
   ///   directly using `this`.
   MeetingPlaceCoreSDK._({
     required this.wallet,
+    required this.rootDid,
     required RepositoryConfig repositoryConfig,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required ControlPlaneSDK controlPlaneSDK,
@@ -191,6 +192,10 @@ class MeetingPlaceCoreSDK {
        _vdipClient = vdipClient;
 
   final Wallet wallet;
+
+  /// The root DID derived from the wallet mnemonic.
+  final String rootDid;
+
   final RepositoryConfig _repositoryConfig;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;
@@ -293,6 +298,8 @@ class MeetingPlaceCoreSDK {
     );
 
     final didManager = await connectionManager.generateRootDid(wallet);
+    final rootDidDoc = await didManager.getDidDocument();
+    final rootDid = rootDidDoc.id;
 
     final controlPlaneSDK = ControlPlaneSDK(
       didManager: didManager,
@@ -331,11 +338,10 @@ class MeetingPlaceCoreSDK {
     );
 
     if (options.agentDid case final agentDid?) {
-      final rootDidDoc = await didManager.getDidDocument();
       await mediatorService.updateAcl(
         ownerDidManager: didManager,
         mediatorDid: mediatorDid,
-        acl: AccessListAdd(ownerDid: rootDidDoc.id, granteeDids: [agentDid]),
+        acl: AccessListAdd(ownerDid: rootDid, granteeDids: [agentDid]),
       );
     }
 
@@ -514,6 +520,7 @@ class MeetingPlaceCoreSDK {
 
     final init = MeetingPlaceCoreSDK._(
       wallet: wallet,
+      rootDid: rootDid,
       repositoryConfig: repositoryConfig,
       mediatorSDK: mediatorSDK,
       controlPlaneSDK: controlPlaneSDK,

@@ -281,6 +281,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Wallet get wallet => _coreSDK.wallet;
 
   @override
+  String get rootDid => _coreSDK.rootDid;
+
+  @override
   VdipClient get vdip => _coreSDK.vdip;
 
   @override

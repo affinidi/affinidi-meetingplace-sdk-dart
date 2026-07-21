@@ -51,6 +51,20 @@ MatrixRoomEvent _imageEvent({
   timestamp: timestamp ?? DateTime.utc(2026, 1, 1, 12),
 );
 
+MatrixRoomEvent _textEvent({
+  required String id,
+  required String body,
+  String senderDid = _aliceDid,
+  DateTime? timestamp,
+}) => MatrixRoomEvent(
+  id: id,
+  type: 'm.room.message',
+  senderDid: senderDid,
+  roomId: '!room:server',
+  content: {'msgtype': 'm.text', 'body': body},
+  timestamp: timestamp ?? DateTime.utc(2026, 1, 1, 12),
+);
+
 void main() {
   late _MockChatRepository repo;
   late ChatStream stream;
@@ -120,6 +134,41 @@ void main() {
   });
 
   group('TextMessageHandler coalescing', () {
+    test('creates a concierge message for sign document requests', () async {
+      await handler.handle(
+        _textEvent(
+          id: r'$evt-sign',
+          body:
+              '{"type":"cierge/sign-document-request","document":{"title":"doc-123"},"taskId":"task-456"}',
+        ),
+      );
+
+      verify(() => repo.createMessage(any())).called(1);
+      final stored = store[r'$evt-sign']! as ConciergeMessage;
+      expect(stored.conciergeType.value, 'signDocumentRequest');
+      expect(stored.data, {
+        'document': {'title': 'doc-123'},
+        'taskId': 'task-456',
+      });
+    });
+
+    test('creates a concierge message for step-up approve requests', () async {
+      await handler.handle(
+        _textEvent(
+          id: r'$evt-stepup',
+          body:
+              '{"type":"cierge/stepUpApproveRequest","approveRequest":{"purpose":"login"}}',
+        ),
+      );
+
+      verify(() => repo.createMessage(any())).called(1);
+      final stored = store[r'$evt-stepup']! as ConciergeMessage;
+      expect(stored.conciergeType.value, 'stepUpApproveRequest');
+      expect(stored.data, {
+        'approveRequest': {'purpose': 'login'},
+      });
+    });
+
     test(
       'absent correlationId: legacy one-event-one-Message, keyed on event id',
       () async {

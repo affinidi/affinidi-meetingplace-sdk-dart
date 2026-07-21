@@ -26,7 +26,12 @@ class ChatStream {
         _hasAttachedConsumer = true;
         _flushBuffer();
       },
+      onCancel: _resumeBufferingWhenNoListeners,
     );
+  }
+
+  void _resumeBufferingWhenNoListeners() {
+    _hasAttachedConsumer = _streamController?.hasListener ?? false;
   }
 
   void _flushBuffer() {

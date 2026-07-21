@@ -47,10 +47,16 @@ void main() {
         );
 
         final unchanged = participant.copyWith(isSpeaking: true);
-        final updated = participant.copyWith(hasAudio: false);
+        final updated = participant.copyWith(
+          hasAudio: (hasValue: true, value: false),
+        );
+        final cleared = participant.copyWith(
+          hasAudio: (hasValue: true, value: null),
+        );
 
         expect(unchanged.hasAudio, isTrue);
         expect(updated.hasAudio, isFalse);
+        expect(cleared.hasAudio, isNull);
       },
     );
   });

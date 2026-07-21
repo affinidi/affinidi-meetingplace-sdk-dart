@@ -37,7 +37,6 @@ class MatrixTransport implements MeetingPlaceTransport {
     final channelDid = channel.isGroup
         ? channel.otherPartyPermanentChannelDid!
         : (await didManager.getDidDocument()).id;
-    final inviteUsers = channel.isGroup ? participantDids : participantDids;
 
     await _matrixService.createRoom(
       didManager: didManager,
@@ -45,7 +44,7 @@ class MatrixTransport implements MeetingPlaceTransport {
       otherPartyChannelDid: channel.isGroup
           ? null
           : (participantDids.isNotEmpty ? participantDids.first : null),
-      inviteUsers: inviteUsers,
+      inviteUsers: participantDids,
     );
   }
 

@@ -140,8 +140,7 @@ void main() async {
   );
   prettyPrintGreen(
     "[Alice] ✓ Bob's agent permanent channel DID: "
-    '${receivedChannelActivityEvent.channel.otherPartyAgentPermanentChannelDid}'
-    ,
+    '${receivedChannelActivityEvent.channel.otherPartyAgentPermanentChannelDid}',
   );
 }
 

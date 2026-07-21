@@ -1,8 +1,8 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
+import 'package:meeting_place_core/meeting_place_core.dart' hide ContactCard;
 import 'package:meeting_place_core/meeting_place_core.dart'
-    hide ContactCard;
-import 'package:meeting_place_core/meeting_place_core.dart' as core
+    as core
     show ContactCard;
 import 'package:meeting_place_core/src/service/matrix/matrix_auth_exception.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_client_cache.dart';
@@ -1283,53 +1283,52 @@ void main() {
 
         expect(roomId, equals(knownRoomId));
         // Must NOT call getAuthenticatedClient — no alias resolution needed.
-        verifyNever(
-          () => sessionManager.getAuthenticatedClient(any()),
-        );
+        verifyNever(() => sessionManager.getAuthenticatedClient(any()));
       });
 
-      test('falls back to alias resolution when matrixRoomId is null', () async {
-        final client = MockMatrixClient();
-        when(() => client.userID).thenReturn(_matrixUserId);
-        when(
-          () => sessionManager.getAuthenticatedClient(_testDid),
-        ).thenAnswer((_) async => client);
-        when(
-          () => client.getRoomIdByAlias(any()),
-        ).thenAnswer(
-          (_) async => matrix.GetRoomIdByAliasResponse(
-            roomId: _testRoomId,
-            servers: [],
-          ),
-        );
+      test(
+        'falls back to alias resolution when matrixRoomId is null',
+        () async {
+          final client = MockMatrixClient();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(() => client.getRoomIdByAlias(any())).thenAnswer(
+            (_) async => matrix.GetRoomIdByAliasResponse(
+              roomId: _testRoomId,
+              servers: [],
+            ),
+          );
 
-        final channel = Channel(
-          offerLink: 'offer',
-          publishOfferDid: 'pubDid',
-          mediatorDid: 'medDid',
-          status: ChannelStatus.inaugurated,
-          contactCard: core.ContactCard(
-            did: 'did:test:contact',
-            type: 'individual',
-            contactInfo: {'fullName': 'Test'},
-          ),
-          type: ChannelType.individual,
-          transport: ChannelTransport.matrix,
-          isConnectionInitiator: true,
-          permanentChannelDid: _testDid,
-          otherPartyPermanentChannelDid: 'did:test:bob',
-        );
+          final channel = Channel(
+            offerLink: 'offer',
+            publishOfferDid: 'pubDid',
+            mediatorDid: 'medDid',
+            status: ChannelStatus.inaugurated,
+            contactCard: core.ContactCard(
+              did: 'did:test:contact',
+              type: 'individual',
+              contactInfo: {'fullName': 'Test'},
+            ),
+            type: ChannelType.individual,
+            transport: ChannelTransport.matrix,
+            isConnectionInitiator: true,
+            permanentChannelDid: _testDid,
+            otherPartyPermanentChannelDid: 'did:test:bob',
+          );
 
-        final roomId = await service.resolveRoomIdForChannel(
-          didManager: didManager,
-          channel: channel,
-        );
+          final roomId = await service.resolveRoomIdForChannel(
+            didManager: didManager,
+            channel: channel,
+          );
 
-        expect(roomId, equals(_testRoomId));
-        verify(
-          () => client.getRoomIdByAlias(any(that: startsWith('#mp_'))),
-        ).called(1);
-      });
+          expect(roomId, equals(_testRoomId));
+          verify(
+            () => client.getRoomIdByAlias(any(that: startsWith('#mp_'))),
+          ).called(1);
+        },
+      );
 
       test('returns matrixRoomId for group channels when set', () async {
         const knownRoomId = '!group-room:matrix.example.com';
@@ -1357,9 +1356,7 @@ void main() {
         );
 
         expect(roomId, equals(knownRoomId));
-        verifyNever(
-          () => sessionManager.getAuthenticatedClient(any()),
-        );
+        verifyNever(() => sessionManager.getAuthenticatedClient(any()));
       });
     });
 

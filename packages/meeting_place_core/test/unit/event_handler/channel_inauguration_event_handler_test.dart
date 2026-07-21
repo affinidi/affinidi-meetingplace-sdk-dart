@@ -169,10 +169,7 @@ void main() {
         );
 
         when(
-          () => connectionManager.getDidManagerForDid(
-            any(),
-            myChannelDid,
-          ),
+          () => connectionManager.getDidManagerForDid(any(), myChannelDid),
         ).thenAnswer((_) async => didManager);
         when(
           () => didResolver.resolveDid(agentChannelDid),
@@ -201,14 +198,16 @@ void main() {
           channel: channelWithAgent,
         );
 
-        final message = verify(
-          () => mediatorService.sendMessage(
-            captureAny(),
-            senderDidManager: didManager,
-            recipientDidDocument: agentChannelDidDocument,
-            mediatorDid: mediatorDid,
-          ),
-        ).captured.single as PlainTextMessage;
+        final message =
+            verify(
+                  () => mediatorService.sendMessage(
+                    captureAny(),
+                    senderDidManager: didManager,
+                    recipientDidDocument: agentChannelDidDocument,
+                    mediatorDid: mediatorDid,
+                  ),
+                ).captured.single
+                as PlainTextMessage;
 
         expect(message.to, [agentChannelDid]);
         verifyNever(() => didResolver.resolveDid(agentDid));

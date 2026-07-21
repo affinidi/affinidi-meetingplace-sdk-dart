@@ -98,7 +98,7 @@ class GroupConnectionOffer extends ConnectionOffer {
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef,
-        contextKey: contextKey ?? this.contextKey,
+      contextKey: contextKey ?? this.contextKey,
       createdAt: createdAt ?? this.createdAt,
       ownedByMe: ownedByMe,
       transport: transport ?? this.transport,

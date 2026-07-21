@@ -17,10 +17,7 @@ class ChatSuggestion {
       id: const Uuid().v4(),
       from: from,
       to: to,
-      body: ChatSuggestionBody(
-        relatedMessageId: relatedMessageId,
-        text: text,
-      ),
+      body: ChatSuggestionBody(relatedMessageId: relatedMessageId, text: text),
     );
   }
 

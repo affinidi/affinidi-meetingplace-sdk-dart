@@ -222,8 +222,8 @@ void main() {
 
     test('delivery receipt failure does not block incoming message', () async {
       when(() => core.sendMessage(any())).thenAnswer((invocation) async {
-        final outgoing = invocation.positionalArguments.single
-            as DidCommOutgoingMessage;
+        final outgoing =
+            invocation.positionalArguments.single as DidCommOutgoingMessage;
         if (outgoing.payload.type.toString() ==
             ChatProtocol.chatDelivered.value) {
           throw Exception('access_list denied');
@@ -257,8 +257,10 @@ void main() {
       );
 
       final streamData = await eventFuture;
-      expect((streamData.chatItem! as Message).value,
-          'Hello despite receipt failure');
+      expect(
+        (streamData.chatItem! as Message).value,
+        'Hello despite receipt failure',
+      );
 
       await Future<void>.delayed(Duration.zero);
       final messages = await sdk.messages;

@@ -74,8 +74,7 @@ class TextMessageHandler {
       // matrix event id.
       if (correlationId == null) {
         final textBody = event.content['body'] as String? ?? '';
-        final signRequest =
-            CiergeSignDocumentRequest.fromMessageText(textBody);
+        final signRequest = CiergeSignDocumentRequest.fromMessageText(textBody);
         if (signRequest != null) {
           final concierge = ConciergeMessage(
             chatId: _chatId,
@@ -99,8 +98,9 @@ class TextMessageHandler {
           return;
         }
 
-        final stepUpRequest =
-            CiergeStepUpApproveRequest.fromMessageText(textBody);
+        final stepUpRequest = CiergeStepUpApproveRequest.fromMessageText(
+          textBody,
+        );
         if (stepUpRequest != null) {
           final concierge = ConciergeMessage(
             chatId: _chatId,

@@ -43,7 +43,9 @@ void main() {
     });
 
     test('returns null for JSON without type field', () {
-      final text = jsonEncode({'document': {'title': 'Test'}});
+      final text = jsonEncode({
+        'document': {'title': 'Test'},
+      });
       expect(CiergeSignDocumentRequest.fromMessageText(text), isNull);
     });
 

@@ -12,9 +12,8 @@ class RestPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
   final VtaClient client;
   final String endpoint;
 
-  String get _setupBase => endpoint.endsWith('/setup')
-      ? endpoint
-      : '$endpoint/setup';
+  String get _setupBase =>
+      endpoint.endsWith('/setup') ? endpoint : '$endpoint/setup';
 
   String _setupResourcePath(String setupId, String suffix) {
     final encodedSetupId = Uri.encodeComponent(setupId);

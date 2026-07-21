@@ -210,7 +210,7 @@ class ChannelService {
     channel.otherPartyNotificationToken = otherPartyNotificationToken;
     channel.otherPartyPermanentChannelDid = otherPartyPermanentChannelDid;
     channel.otherPartyAgentPermanentChannelDid =
-      otherPartyAgentPermanentChannelDid;
+        otherPartyAgentPermanentChannelDid;
     channel.outboundMessageId = outboundMessageId;
     channel.otherPartyContactCard = otherPartyContactCard;
     channel.status = ChannelStatus.inaugurated;

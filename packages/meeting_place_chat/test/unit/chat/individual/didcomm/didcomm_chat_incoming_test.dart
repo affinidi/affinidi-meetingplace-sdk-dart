@@ -114,6 +114,19 @@ void main() {
     }
   });
 
+  group('session startup', () {
+    test(
+      'chatStreamSubscription is ready immediately after startChatSession',
+      () async {
+        await sdk.startChatSession();
+
+        final subscription = await sdk.chatStreamSubscription;
+
+        expect(subscription, isNotNull);
+      },
+    );
+  });
+
   group('sendCustomEvent', () {
     test('calls core.sendMessage with correct type and payload', () async {
       await sdk.startChatSession();

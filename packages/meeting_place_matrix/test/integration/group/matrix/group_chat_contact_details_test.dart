@@ -80,4 +80,52 @@ void main() {
       await newBobChatSDK.endChatSession();
     },
   );
+
+  test(
+    'contact-card refresh event proposes profile update from current card',
+    () async {
+      final staleCard = ContactCardFixture.getContactCardFixture(
+        did: fixture.bobMemberDid,
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'Stale'},
+        },
+      );
+      final currentCard = ContactCardFixture.getContactCardFixture(
+        did: fixture.bobMemberDid,
+        contactInfo: {
+          'n': {'given': 'Bob', 'surname': 'Fresh'},
+        },
+      );
+
+      final refreshedChatSdk = await initGroupChatSDK(
+        coreSDK: fixture.bobSDK,
+        did: fixture.bobMemberDid,
+        otherPartyDid: fixture.publishOfferResult.connectionOffer.groupDid!,
+        group: fixture.bobGroup,
+        channelRepository: fixture.bobChannelRepository,
+        card: staleCard,
+        options: MeetingPlaceChatSDKOptions(
+          chatPresenceSendInterval: const Duration(seconds: 3),
+        ),
+      );
+
+      final bobChat = await refreshedChatSdk.startChatSession();
+      final conciergeFuture = ChatTestHarness.awaitItem(
+        refreshedChatSdk,
+        where: (ChatItem item) =>
+            item is ConciergeMessage &&
+            item.conciergeType ==
+                ConciergeMessageType.permissionToUpdateProfile,
+      );
+
+      await refreshedChatSdk.refreshCurrentContactCard(currentCard);
+
+      final concierge = await conciergeFuture as ConciergeMessage;
+
+      expect(concierge.chatId, bobChat.id);
+      expect(concierge.data['profileDetails'], equals(currentCard.toJson()));
+
+      await refreshedChatSdk.endChatSession();
+    },
+  );
 }

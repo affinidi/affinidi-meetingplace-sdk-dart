@@ -1,3 +1,4 @@
+import 'package:meeting_place_core/meeting_place_core.dart' show ContactCard;
 import 'package:meeting_place_matrix/src/transport/matrix/call/models/audio_video_call_error_code.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/call/models/audio_video_call_participant.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/call/models/audio_video_call_state.dart';
@@ -18,6 +19,7 @@ void main() {
       expect(state.ownRole, isNull);
       expect(state.callId, isNull);
       expect(state.callStartedAt, isNull);
+      expect(state.participantContactCardsByDid, isEmpty);
     });
 
     test('construction with callId', () {
@@ -152,6 +154,19 @@ void main() {
       const state = AudioVideoCallState(participants: []);
       final copied = state.copyWith(participants: [participant1, participant2]);
       expect(copied.participants, [participant1, participant2]);
+    });
+
+    test('copyWith updates participant contact cards', () {
+      final card = ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: {'name': 'Alice'},
+      );
+      const state = AudioVideoCallState();
+      final copied = state.copyWith(
+        participantContactCardsByDid: {'did:test:alice': card},
+      );
+      expect(copied.participantContactCardsByDid['did:test:alice'], same(card));
     });
 
     test('copyWith preserves participants when not specified', () {

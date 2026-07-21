@@ -49,6 +49,9 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   @override
   TransportCapabilities get capabilities => _capabilities;
 
+  @override
+  void onChatSessionStarted() {}
+
   /// Per-chat features supported by a group chat. Group chats always use the
   /// Matrix transport and share the individual Matrix feature set. Group
   /// membership itself is a property of the channel, not a gated chat feature.
@@ -205,7 +208,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   @override
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
     assertCanSend();
-    final c = card;
+    final c = currentContactCard;
     if (c == null) {
       throw StateError('ContactCard missing for contact details update');
     }

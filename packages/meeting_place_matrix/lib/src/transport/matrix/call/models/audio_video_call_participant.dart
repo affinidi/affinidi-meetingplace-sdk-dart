@@ -36,7 +36,7 @@ class AudioVideoCallParticipant {
   /// Whether the participant is currently speaking.
   final bool isSpeaking;
 
-  /// Whether this participant represents the local user.
+  /// Whether this participant represents the self user.
   final bool isSelf;
 
   AudioVideoCallParticipant copyWith({

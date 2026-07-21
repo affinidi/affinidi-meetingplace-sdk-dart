@@ -171,6 +171,14 @@ class AudioVideoCallService {
       final sfuUrl = credentials.sfuUrl;
       final sfuToken = credentials.sfuToken;
       final participantIdToDid = credentials.participantIdToDid;
+      final participantContactCardsByDid =
+          credentials.participantContactCardsByDid;
+
+      _setState(
+        _state.copyWith(
+          participantContactCardsByDid: participantContactCardsByDid,
+        ),
+      );
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
       final callId = await _coordinator.prepareCallSession(

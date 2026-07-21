@@ -3,6 +3,7 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/chat/group/group_matrix_chat_sdk.dart';
 import 'package:meeting_place_matrix/src/services/sfu_token_service.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -26,6 +27,11 @@ class MockMeetingPlaceMatrixSDKLogger extends Mock
 class MockGroupCallSession extends Mock implements matrix.GroupCallSession {}
 
 class MockChatRepository extends Mock implements ChatRepository {}
+
+class MockGroupMatrixChatSDK extends Mock implements GroupMatrixChatSDK {}
+
+class MockMeetingPlaceChatSDKLogger extends Mock
+    implements MeetingPlaceChatSDKLogger {}
 
 class MockDidManager extends Mock implements DidManager {}
 

@@ -68,6 +68,8 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     final subscribeFuture = _subscribe();
     transportSubscriptionFuture = subscribeFuture;
 
+    await attachLocalChatEventListener();
+
     unawaited(proposeProfileUpdate());
 
     final channel = await getChannel();
@@ -547,7 +549,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
     assertCanSend();
-    final c = card;
+    final c = currentContactCard;
     if (c == null) {
       throw StateError('ContactCard missing for contact details update');
     }
@@ -570,6 +572,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
 
   @override
   Future<void> proposeProfileUpdate() async {
+    final card = currentContactCard;
     if (card == null) {
       logger.info(
         'ContactCard is null, skipping profile hash update',
@@ -579,13 +582,13 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     }
 
     final channel = await getChannel();
-    if (channel.contactCard != null && !card!.equals(channel.contactCard!)) {
+    if (channel.contactCard != null && !card.equals(channel.contactCard!)) {
       await coreSDK.sendMessage(
         ChatAliasProfileHashMessage(
           senderDid: did,
           recipientDid: otherPartyDid,
           mediatorDid: mediatorDid,
-          profileHash: card!.profileHash,
+          profileHash: card.profileHash,
         ),
       );
 

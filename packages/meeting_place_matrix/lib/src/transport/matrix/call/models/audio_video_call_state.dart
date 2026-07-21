@@ -1,3 +1,5 @@
+import 'package:meeting_place_core/meeting_place_core.dart' show ContactCard;
+
 import './audio_video_call_error_code.dart';
 import './audio_video_call_participant.dart';
 import './audio_video_call_status.dart';
@@ -12,6 +14,7 @@ class AudioVideoCallState {
   const AudioVideoCallState({
     this.status = AudioVideoCallStatus.idle,
     this.participants = const [],
+    this.participantContactCardsByDid = const {},
     this.errorCode,
     this.ownRole,
     this.callId,
@@ -20,6 +23,7 @@ class AudioVideoCallState {
 
   final AudioVideoCallStatus status;
   final List<AudioVideoCallParticipant> participants;
+  final Map<String, ContactCard> participantContactCardsByDid;
 
   /// Non-null only when [status] is [AudioVideoCallStatus.error].
   final AudioVideoCallErrorCode? errorCode;
@@ -56,6 +60,7 @@ class AudioVideoCallState {
   AudioVideoCallState copyWith({
     AudioVideoCallStatus? status,
     List<AudioVideoCallParticipant>? participants,
+    Map<String, ContactCard>? participantContactCardsByDid,
     AudioVideoCallErrorCode? errorCode,
     bool clearErrorCode = false,
     CallRole? ownRole,
@@ -65,6 +70,8 @@ class AudioVideoCallState {
     return AudioVideoCallState(
       status: status ?? this.status,
       participants: participants ?? this.participants,
+      participantContactCardsByDid:
+          participantContactCardsByDid ?? this.participantContactCardsByDid,
       errorCode: clearErrorCode ? null : (errorCode ?? this.errorCode),
       ownRole: ownRole ?? this.ownRole,
       callId: callId ?? this.callId,

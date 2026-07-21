@@ -20,10 +20,10 @@ abstract interface class AudioVideoCallSession {
   /// Use this instead of diffing the participants list on every state emission.
   Stream<CallParticipantEvent> get participantEvents;
 
-  /// Enables or disables the local microphone.
+  /// Enables or disables the self microphone.
   Future<void> setMicrophoneEnabled(bool enabled);
 
-  /// Enables or disables the local camera.
+  /// Enables or disables the self camera.
   Future<void> setCameraEnabled(bool enabled);
 
   /// Switches between front and rear camera.

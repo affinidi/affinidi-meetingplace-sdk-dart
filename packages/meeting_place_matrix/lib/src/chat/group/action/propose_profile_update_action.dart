@@ -21,7 +21,7 @@ class ProposeProfileUpdateAction implements GroupAction<void> {
 
   @override
   Future<void> execute() async {
-    final card = _chatSDK.card;
+    final card = _chatSDK.currentContactCard;
     if (card == null) {
       _chatSDK.logger.warning(
         'ContactCard is null. Skipping profile update proposal.',
@@ -44,7 +44,12 @@ class ProposeProfileUpdateAction implements GroupAction<void> {
     channel.contactCard = card;
     await _chatSDK.coreSDK.updateChannel(channel);
 
-    if (existing != null) return;
+    if (existing != null) {
+      existing.data['profileDetails'] = card.toJson();
+      await _chatSDK.chatRepository.updateMesssage(existing);
+      _chatSDK.chatStream.pushData(StreamData(chatItem: existing));
+      return;
+    }
 
     final conciergeMessage = await ProfileUpdateConciergeFactory(
       chatRepository: _chatSDK.chatRepository,

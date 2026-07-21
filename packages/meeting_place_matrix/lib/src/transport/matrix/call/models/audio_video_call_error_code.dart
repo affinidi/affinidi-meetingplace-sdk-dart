@@ -12,7 +12,7 @@ enum AudioVideoCallErrorCode {
   /// The transport connection attempt failed.
   connectionFailed,
 
-  /// The call-invite notification could not be delivered to the callee.
+  /// The call-invite notification could not be delivered to the recipient.
   callInviteFailed,
 
   /// There was a network error

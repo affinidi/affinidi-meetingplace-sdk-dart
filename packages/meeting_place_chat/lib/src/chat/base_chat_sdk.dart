@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -36,6 +37,7 @@ abstract class BaseChatSDK {
     this.card,
     MeetingPlaceCoreSDKLogger? logger,
   }) : chatStream = ChatStream(),
+       _currentContactCard = card,
        _logger = LoggerFormatter(className: _className, baseLogger: logger);
 
   static const String _className = 'BaseChatSDK';
@@ -48,11 +50,60 @@ abstract class BaseChatSDK {
   final ChatRepository chatRepository;
   final MeetingPlaceChatSDKOptions options;
   final ContactCard? card;
+  ContactCard? _currentContactCard;
   final MeetingPlaceChatSDKLogger _logger;
+  final StreamController<ChatEvent> _localChatEventController =
+      StreamController<ChatEvent>.broadcast();
+
+  /// The freshest contact card available for the signed-in identity.
+  ContactCard? get currentContactCard => _currentContactCard;
 
   MeetingPlaceChatSDKLogger get logger => _logger;
 
   ChatStream chatStream;
+  StreamSubscription<ChatEvent>? localChatEventSubscription;
+
+  /// Applies local chat stream events that mutate the in-memory session state.
+  @protected
+  Future<void> onLocalChatEvent(ChatEvent event) async {
+    switch (event) {
+      case ChatCurrentContactCardUpdatedEvent(:final contactCard):
+        _currentContactCard = contactCard;
+        await proposeProfileUpdate();
+      default:
+        return;
+    }
+  }
+
+  /// Refreshes the current local contact card through the SDK-owned local
+  /// event pipeline so app code stays transport-agnostic.
+  Future<void> refreshCurrentContactCard(ContactCard? card) async {
+    await onLocalChatEvent(
+      ChatCurrentContactCardUpdatedEvent(contactCard: card),
+    );
+    chatStream.pushData(
+      StreamData(event: ChatCurrentContactCardUpdatedEvent(contactCard: card)),
+    );
+  }
+
+  /// Emits a local chat event through the session stream.
+  @protected
+  void emitLocalChatEvent(ChatEvent event) {
+    _localChatEventController.add(event);
+    chatStream.pushData(StreamData(event: event));
+  }
+
+  /// Subscribes the SDK to local-only events without attaching to the public
+  /// chat stream before app listeners do.
+  @protected
+  Future<void> attachLocalChatEventListener() async {
+    await localChatEventSubscription?.cancel();
+    localChatEventSubscription = _localChatEventController.stream.listen((
+      event,
+    ) {
+      unawaited(onLocalChatEvent(event));
+    });
+  }
 
   /// Future that completes when the transport subscription is ready.
   /// Subclasses set this from [startChatSession].
@@ -81,11 +132,6 @@ abstract class BaseChatSDK {
   Future<Chat> startChatSession();
 
   /// Stream of live chat events ([StreamData]) for this session.
-  ///
-  /// Resolves as soon as [startChatSession] has been called — the underlying
-  /// [ChatStream] buffers any events pushed before a listener attaches and
-  /// flushes them on first subscription, so callers do not need to wait for
-  /// the transport subscription to be ready.
   ///
   /// **Returns:**
   /// - A [ChatStream] or `null` if the chat session has not yet started
@@ -180,6 +226,8 @@ abstract class BaseChatSDK {
   /// Ends the chat session, disposing of the stream manager.
   Future<void> end() async {
     transportSubscriptionFuture = null;
+    await localChatEventSubscription?.cancel();
+    localChatEventSubscription = null;
     chatStream.dispose();
   }
 

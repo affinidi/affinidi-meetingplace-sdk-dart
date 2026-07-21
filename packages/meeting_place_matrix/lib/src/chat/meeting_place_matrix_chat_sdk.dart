@@ -140,6 +140,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
+    await attachLocalChatEventListener();
     _incomingRouter = buildRoomEventRouter();
 
     // Snapshot the sync cursor before the live subscription starts.
@@ -157,7 +158,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     final subscriptionFuture = subscribeToMatrixRoom();
     transportSubscriptionFuture = subscriptionFuture;
 
-    unawaited(proposeProfileUpdate());
+    onChatSessionStarted();
 
     // Return the locally persisted snapshot so the UI can render immediately.
     // Matrix auth, history fetch, and the read receipt run in the background;
@@ -180,6 +181,12 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     );
 
     return chat;
+  }
+
+  /// Runs transport-specific work after the chat stream is available.
+  @protected
+  void onChatSessionStarted() {
+    unawaited(proposeProfileUpdate());
   }
 
   Future<void> _bootstrapTransportInBackground(
@@ -623,7 +630,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @override
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
     assertCanSend();
-    final c = card;
+    final c = currentContactCard;
     if (c == null) {
       throw StateError('ContactCard missing for contact details update');
     }

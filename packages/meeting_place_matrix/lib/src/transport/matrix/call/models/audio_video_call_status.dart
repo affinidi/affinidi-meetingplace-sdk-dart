@@ -3,10 +3,10 @@ enum AudioVideoCallStatus {
   /// No active call.
   idle,
 
-  /// Caller side: waiting for the remote party to answer.
+  /// Caller side: waiting for the peer to answer.
   outgoingRinging,
 
-  /// Callee side: incoming call awaiting accept or decline.
+  /// Recipient side: incoming call awaiting accept or decline.
   incoming,
 
   /// Connecting to the call transport layer.
@@ -15,7 +15,7 @@ enum AudioVideoCallStatus {
   /// Connected to the call transport (media may not be flowing yet).
   connected,
 
-  /// Waiting for end-to-end encryption keys from remote participants.
+  /// Waiting for end-to-end encryption keys from peer participants.
   waitingForKeys,
 
   /// Call is live and media is flowing.
@@ -27,7 +27,7 @@ enum AudioVideoCallStatus {
   /// Transport disconnected.
   disconnected,
 
-  /// Remote party declined the call.
+  /// Peer declined the call.
   declined,
 
   /// No answer within the timeout window.

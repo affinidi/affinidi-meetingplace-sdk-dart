@@ -1,6 +1,9 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_core/meeting_place_core.dart'
+    hide ContactCard;
+import 'package:meeting_place_core/meeting_place_core.dart' as core
+    show ContactCard;
 import 'package:meeting_place_core/src/service/matrix/matrix_auth_exception.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_client_cache.dart';
 import 'package:meeting_place_core/src/service/matrix/matrix_service_exception.dart';
@@ -1245,6 +1248,118 @@ void main() {
           ),
         ).called(1);
         verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
+    });
+
+    // ------------------------------------------------------------------
+    // resolveRoomIdForChannel
+    // ------------------------------------------------------------------
+
+    group('resolveRoomIdForChannel', () {
+      test('returns matrixRoomId directly when set on the channel', () async {
+        const knownRoomId = '!known-room:matrix.example.com';
+        final channel = Channel(
+          offerLink: 'offer',
+          publishOfferDid: 'pubDid',
+          mediatorDid: 'medDid',
+          status: ChannelStatus.inaugurated,
+          contactCard: core.ContactCard(
+            did: 'did:test:contact',
+            type: 'individual',
+            contactInfo: {'fullName': 'Test'},
+          ),
+          type: ChannelType.individual,
+          transport: ChannelTransport.matrix,
+          isConnectionInitiator: true,
+          permanentChannelDid: 'did:test:alice',
+          otherPartyPermanentChannelDid: 'did:test:bob',
+          matrixRoomId: knownRoomId,
+        );
+
+        final roomId = await service.resolveRoomIdForChannel(
+          didManager: didManager,
+          channel: channel,
+        );
+
+        expect(roomId, equals(knownRoomId));
+        // Must NOT call getAuthenticatedClient — no alias resolution needed.
+        verifyNever(
+          () => sessionManager.getAuthenticatedClient(any()),
+        );
+      });
+
+      test('falls back to alias resolution when matrixRoomId is null', () async {
+        final client = MockMatrixClient();
+        when(() => client.userID).thenReturn(_matrixUserId);
+        when(
+          () => sessionManager.getAuthenticatedClient(_testDid),
+        ).thenAnswer((_) async => client);
+        when(
+          () => client.getRoomIdByAlias(any()),
+        ).thenAnswer(
+          (_) async => matrix.GetRoomIdByAliasResponse(
+            roomId: _testRoomId,
+            servers: [],
+          ),
+        );
+
+        final channel = Channel(
+          offerLink: 'offer',
+          publishOfferDid: 'pubDid',
+          mediatorDid: 'medDid',
+          status: ChannelStatus.inaugurated,
+          contactCard: core.ContactCard(
+            did: 'did:test:contact',
+            type: 'individual',
+            contactInfo: {'fullName': 'Test'},
+          ),
+          type: ChannelType.individual,
+          transport: ChannelTransport.matrix,
+          isConnectionInitiator: true,
+          permanentChannelDid: _testDid,
+          otherPartyPermanentChannelDid: 'did:test:bob',
+        );
+
+        final roomId = await service.resolveRoomIdForChannel(
+          didManager: didManager,
+          channel: channel,
+        );
+
+        expect(roomId, equals(_testRoomId));
+        verify(
+          () => client.getRoomIdByAlias(any(that: startsWith('#mp_'))),
+        ).called(1);
+      });
+
+      test('returns matrixRoomId for group channels when set', () async {
+        const knownRoomId = '!group-room:matrix.example.com';
+        final channel = Channel(
+          offerLink: 'offer',
+          publishOfferDid: 'pubDid',
+          mediatorDid: 'medDid',
+          status: ChannelStatus.inaugurated,
+          contactCard: core.ContactCard(
+            did: 'did:test:contact',
+            type: 'individual',
+            contactInfo: {'fullName': 'Test'},
+          ),
+          type: ChannelType.group,
+          transport: ChannelTransport.matrix,
+          isConnectionInitiator: true,
+          permanentChannelDid: 'did:test:alice',
+          otherPartyPermanentChannelDid: 'did:test:group',
+          matrixRoomId: knownRoomId,
+        );
+
+        final roomId = await service.resolveRoomIdForChannel(
+          didManager: didManager,
+          channel: channel,
+        );
+
+        expect(roomId, equals(knownRoomId));
+        verifyNever(
+          () => sessionManager.getAuthenticatedClient(any()),
+        );
       });
     });
 

@@ -36,6 +36,22 @@ Channel _matrixChannel() => Channel(
   otherPartyPermanentChannelDid: 'did:test:bob',
 );
 
+Channel _groupMatrixChannel() => Channel(
+  offerLink: 'offer',
+  publishOfferDid: 'pubDid',
+  mediatorDid: 'medDid',
+  status: ChannelStatus.inaugurated,
+  contactCard: ContactCard(
+    did: 'did:test:group',
+    type: 'group',
+    contactInfo: const {},
+  ),
+  type: ChannelType.group,
+  transport: ChannelTransport.matrix,
+  isConnectionInitiator: true,
+  otherPartyPermanentChannelDid: 'did:test:group',
+);
+
 void main() {
   late _MockMatrixService matrixService;
   late _MockDidManager didManager;
@@ -143,6 +159,42 @@ void main() {
         expect(events, isEmpty);
       },
     );
+  });
+
+  group('setupChannel', () {
+    test('passes group participant DIDs into createRoom inviteUsers', () async {
+      when(
+        () => matrixService.createRoom(
+          didManager: any(named: 'didManager'),
+          channelDid: any(named: 'channelDid'),
+          otherPartyChannelDid: any(named: 'otherPartyChannelDid'),
+          inviteUsers: any(named: 'inviteUsers'),
+        ),
+      ).thenAnswer((_) async => '!room:matrix.example.com');
+
+      await transport.setupChannel(
+        channel: _groupMatrixChannel(),
+        didManager: didManager,
+        participantDids: const [
+          'did:test:member1',
+          'did:test:member2',
+          'did:test:member3',
+        ],
+      );
+
+      verify(
+        () => matrixService.createRoom(
+          didManager: didManager,
+          channelDid: 'did:test:group',
+          otherPartyChannelDid: null,
+          inviteUsers: const [
+            'did:test:member1',
+            'did:test:member2',
+            'did:test:member3',
+          ],
+        ),
+      ).called(1);
+    });
   });
 
   group('sendFile', () {

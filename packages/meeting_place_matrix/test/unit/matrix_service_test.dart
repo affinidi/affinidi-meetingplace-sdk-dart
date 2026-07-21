@@ -925,6 +925,63 @@ void main() {
       });
 
       test(
+        'grants group-call power to creator and all invited users',
+        () async {
+          final client = MockMatrixClient();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(() => client.encryptionEnabled).thenReturn(true);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(() => sessionManager.deriveUserId(any(), any())).thenAnswer((
+            invocation,
+          ) {
+            final did = invocation.positionalArguments[0] as String;
+            return '@${did.split(':').last}:matrix.example.com';
+          });
+          when(
+            () => client.createRoom(
+              roomAliasName: any(named: 'roomAliasName'),
+              invite: any(named: 'invite'),
+              initialState: any(named: 'initialState'),
+              powerLevelContentOverride: any(
+                named: 'powerLevelContentOverride',
+              ),
+            ),
+          ).thenAnswer((_) async => _testRoomId);
+
+          await service.createRoom(
+            didManager: didManager,
+            channelDid: 'did:test:group',
+            inviteUsers: const [
+              'did:test:member1',
+              'did:test:member2',
+              'did:test:member3',
+            ],
+          );
+
+          final captured =
+              verify(
+                    () => client.createRoom(
+                      roomAliasName: any(named: 'roomAliasName'),
+                      invite: any(named: 'invite'),
+                      initialState: any(named: 'initialState'),
+                      powerLevelContentOverride: captureAny(
+                        named: 'powerLevelContentOverride',
+                      ),
+                    ),
+                  ).captured.single
+                  as Map<String, Object?>;
+          final users = captured['users'] as Map<String, Object?>;
+
+          expect(users[_matrixUserId], 100);
+          expect(users['@member1:matrix.example.com'], 100);
+          expect(users['@member2:matrix.example.com'], 100);
+          expect(users['@member3:matrix.example.com'], 100);
+        },
+      );
+
+      test(
         'requests E2EE on new rooms via m.room.encryption initial state',
         () async {
           final client = MockMatrixClient();

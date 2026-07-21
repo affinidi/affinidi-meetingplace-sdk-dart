@@ -7,7 +7,7 @@ class AudioVideoCallParticipant {
     required this.participantId,
     this.did,
     this.hasVideo = false,
-    this.hasAudio = false,
+    this.hasAudio,
     this.isSpeaking = false,
     this.isSelf = false,
   });
@@ -31,7 +31,7 @@ class AudioVideoCallParticipant {
   final bool hasVideo;
 
   /// Whether the participant's audio track is currently active.
-  final bool hasAudio;
+  final bool? hasAudio;
 
   /// Whether the participant is currently speaking.
   final bool isSpeaking;

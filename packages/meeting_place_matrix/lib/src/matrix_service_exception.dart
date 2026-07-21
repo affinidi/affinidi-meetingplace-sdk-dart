@@ -71,6 +71,20 @@ class MatrixServiceException implements MatrixSDKException {
     );
   }
 
+  factory MatrixServiceException.groupCallPermissionDenied({
+    required String roomId,
+    required bool canJoinGroupCall,
+    required bool groupCallsEnabledForEveryone,
+  }) {
+    return MatrixServiceException(
+      message:
+          'Matrix denied group call join for room $roomId '
+          '(canJoinGroupCall=$canJoinGroupCall, '
+          'groupCallsEnabledForEveryone=$groupCallsEnabledForEveryone).',
+      code: MeetingPlaceMatrixSDKErrorCode.matrixGroupCallPermissionDenied,
+    );
+  }
+
   factory MatrixServiceException.incomingCallNotFound(String roomId) {
     return MatrixServiceException(
       message: 'No incoming MatrixRTC call found in room: $roomId',

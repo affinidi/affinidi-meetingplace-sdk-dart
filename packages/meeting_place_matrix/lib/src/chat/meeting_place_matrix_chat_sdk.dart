@@ -156,7 +156,6 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     // DIDComm SDK semantics and the BaseChatSDK.chatStreamSubscription
     // contract.
     final subscriptionFuture = subscribeToMatrixRoom();
-    transportSubscriptionFuture = subscriptionFuture;
 
     onChatSessionStarted();
 

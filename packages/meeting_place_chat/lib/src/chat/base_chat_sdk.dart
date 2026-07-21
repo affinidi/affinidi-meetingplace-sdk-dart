@@ -138,7 +138,6 @@ abstract class BaseChatSDK {
   ///   or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
     if (transportSubscriptionFuture == null) return null;
-    await transportSubscriptionFuture;
     return chatStream;
   }
 

@@ -6,6 +6,7 @@ import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
 import '../exception/matrix_sdk_exception.dart';
 import '../exceptions/meeting_place_livekit_call_exception.dart';
+import '../matrix_service_exception.dart';
 import '../handlers/call_e2ee_handler.dart';
 import 'call_state_transitions.dart';
 import 'matrix_call_adapter.dart';
@@ -286,9 +287,7 @@ class AudioVideoCallService {
       _setState(
         _state.copyWith(
           status: AudioVideoCallStatus.error,
-          errorCode: e is Exception && e.isNetworkError
-              ? AudioVideoCallErrorCode.networkError
-              : AudioVideoCallErrorCode.unexpected,
+          errorCode: _resolveUnexpectedJoinErrorCode(e),
         ),
       );
     } finally {
@@ -423,6 +422,21 @@ class AudioVideoCallService {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  /// Maps unknown join failures to the best available user-facing error code.
+  AudioVideoCallErrorCode _resolveUnexpectedJoinErrorCode(Object error) {
+    if (error is Exception && error.isNetworkError) {
+      return AudioVideoCallErrorCode.networkError;
+    }
+
+    if (error is MatrixServiceException &&
+        error.code ==
+            MeetingPlaceMatrixSDKErrorCode.matrixGroupCallPermissionDenied) {
+      return AudioVideoCallErrorCode.groupCallPermissionDenied;
+    }
+
+    return AudioVideoCallErrorCode.unexpected;
+  }
 
   bool get _hasPeer => _room.participants.any((p) => !p.isSelf);
 

@@ -17,11 +17,15 @@ class ChatStream {
   static const String _className = 'ChatStream';
   final List<StreamData> _eventBuffer = <StreamData>[];
   final MeetingPlaceChatSDKLogger _logger;
+  bool _hasAttachedConsumer = false;
 
   StreamController<StreamData>? _streamController;
   StreamController<StreamData> get _controller {
     return _streamController ??= StreamController<StreamData>.broadcast(
-      onListen: _flushBuffer,
+      onListen: () {
+        _hasAttachedConsumer = true;
+        _flushBuffer();
+      },
     );
   }
 
@@ -66,7 +70,7 @@ class ChatStream {
       return;
     }
 
-    if (!_controller.hasListener) {
+    if (!_hasAttachedConsumer) {
       _logger.info('No listener detected. Event stored in buffer');
       _eventBuffer.add(data);
       return;

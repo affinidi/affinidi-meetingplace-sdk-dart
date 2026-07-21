@@ -5,6 +5,8 @@ export 'src/call/call_signal.dart';
 export 'src/chat/meeting_place_matrix_chat_sdk.dart';
 export 'src/chat/meeting_place_matrix_chat_sdk_options.dart';
 export 'src/entity/call_metadata.dart';
+export 'src/exception/matrix_sdk_exception.dart';
+export 'src/exceptions/meeting_place_livekit_call_exception.dart';
 export 'src/interfaces/livekit_room.dart';
 export 'src/logger/default_meeting_place_matrix_sdk_logger.dart';
 export 'src/logger/meeting_place_matrix_sdk_logger.dart';

@@ -11,6 +11,7 @@ import 'package:meeting_place_core/meeting_place_core.dart'
         IndividualChannelNotification;
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/call/call_channel_activity_type.dart';
+import 'package:meeting_place_matrix/src/matrix_service_exception.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/audio_video_call_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -312,6 +313,86 @@ void main() {
       expect(room.callOrder, containsAllInOrder(['connect', 'nudge']));
       expect(room.connectCalls, 1);
     });
+
+    test(
+      'maps group call power-level join failure to permission denied',
+      () async {
+        final mockTokenService = MockSfuTokenService();
+        final mockDidManager = MockDidManager();
+        final svc = _buildService(
+          sdk: mockSdk,
+          room: fakeRoom,
+          tokenService: mockTokenService,
+        );
+        addTearDown(svc.dispose);
+
+        when(
+          () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        ).thenAnswer((_) async => _stubChannel());
+        when(
+          () => mockSdk.getGroupByOfferLink(any()),
+        ).thenAnswer((_) async => null);
+        when(
+          () => mockSdk.getDidManager(any()),
+        ).thenAnswer((_) async => mockDidManager);
+        when(
+          () => mockMatrixService.resolveRoomIdForChannel(
+            didManager: any(named: 'didManager'),
+            channel: any(named: 'channel'),
+          ),
+        ).thenAnswer((_) async => _matrixRoomId);
+        when(
+          () => mockMatrixService.getOpenIdToken(any()),
+        ).thenAnswer((_) async => _stubOpenIdCredentials());
+        when(
+          () => mockMatrixService.getDeviceId(any()),
+        ).thenAnswer((_) async => 'DEVICE1');
+        when(
+          () => mockTokenService.fetchToken(
+            roomName: any(named: 'roomName'),
+            openIdCredentials: any(named: 'openIdCredentials'),
+            deviceId: any(named: 'deviceId'),
+          ),
+        ).thenAnswer(
+          (_) async => const SfuTokenResponse(token: _sfuToken, url: _sfuUrl),
+        );
+        when(
+          () => mockMatrixService.initializeVoIPWithDelegate(
+            didManager: any(named: 'didManager'),
+            delegate: any(named: 'delegate'),
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockMatrixService.activeCallId(
+            didManager: any(named: 'didManager'),
+            roomId: any(named: 'roomId'),
+          ),
+        ).thenAnswer((_) async => null);
+        when(
+          () => mockMatrixService.startCall(
+            didManager: any(named: 'didManager'),
+            roomId: any(named: 'roomId'),
+            callId: any(named: 'callId'),
+            livekitServiceUrl: any(named: 'livekitServiceUrl'),
+            livekitAlias: any(named: 'livekitAlias'),
+          ),
+        ).thenThrow(
+          MatrixServiceException.groupCallPermissionDenied(
+            roomId: _matrixRoomId,
+            canJoinGroupCall: false,
+            groupCallsEnabledForEveryone: false,
+          ),
+        );
+
+        await svc.joinCall(mediaType: CallMediaType.video);
+
+        expect(svc.state.status, AudioVideoCallStatus.error);
+        expect(
+          svc.state.errorCode,
+          AudioVideoCallErrorCode.groupCallPermissionDenied,
+        );
+      },
+    );
   });
 
   group('notifyDeclined', () {

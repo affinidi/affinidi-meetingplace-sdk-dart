@@ -5,7 +5,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../meeting_place_matrix.dart';
 import 'call/call_channel_activity_type.dart';
-import 'exceptions/meeting_place_livekit_call_exception.dart';
 import 'handlers/call_signal_handler.dart';
 import 'managers/active_call_session_manager.dart';
 import 'managers/pending_call_manager.dart';

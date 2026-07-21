@@ -6,7 +6,6 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import '../../meeting_place_matrix.dart';
 import '../call/call_channel_activity_type.dart';
 import '../call/mpx_call_event_type.dart';
-import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../logger/top_and_tail_extension.dart';
 import '../matrix_room_alias.dart';
 import '../matrix_service.dart';

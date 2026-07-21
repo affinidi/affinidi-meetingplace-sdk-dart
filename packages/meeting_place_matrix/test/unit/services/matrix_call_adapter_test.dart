@@ -6,7 +6,6 @@ import 'package:meeting_place_core/src/entity/group.dart' as core_group;
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/call/call_channel_activity_type.dart';
 import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
-import 'package:meeting_place_matrix/src/exceptions/meeting_place_livekit_call_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_room_alias.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/matrix_call_adapter.dart';

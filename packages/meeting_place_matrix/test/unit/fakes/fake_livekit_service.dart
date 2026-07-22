@@ -11,8 +11,12 @@ class FakeLiveKitRoom implements LiveKitRoom {
   int disconnectCalls = 0;
   int connectCalls = 0;
   final List<String> sharedKeysCalled = [];
+  final List<({String participantId, int keyIndex})> ratchetKeyCalls = [];
   List<AudioVideoCallParticipant> fakeParticipants = [];
   String? fakeOwnParticipantId;
+
+  /// Captured on [connect] so tests can simulate a peer leaving.
+  OnParticipantDisconnected? onParticipantDisconnected;
 
   /// Records the name of each operation as it completes, in call order.
   /// Tests can append to this list from SDK stubs to verify ordering.
@@ -35,6 +39,7 @@ class FakeLiveKitRoom implements LiveKitRoom {
 
   @override
   Future<void> ratchetKey(String participantId, int keyIndex) async {
+    ratchetKeyCalls.add((participantId: participantId, keyIndex: keyIndex));
     callOrder.add('ratchetKey');
   }
 
@@ -47,6 +52,7 @@ class FakeLiveKitRoom implements LiveKitRoom {
     OnParticipantDisconnected? onParticipantDisconnected,
     void Function()? onParticipantsChanged,
   }) async {
+    this.onParticipantDisconnected = onParticipantDisconnected;
     connectCalls++;
     callOrder.add('connect');
   }

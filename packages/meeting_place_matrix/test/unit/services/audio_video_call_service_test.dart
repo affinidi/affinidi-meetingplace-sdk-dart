@@ -395,6 +395,186 @@ void main() {
     );
   });
 
+  group('joinCall rejoin', () {
+    late MockSfuTokenService tokenService;
+
+    setUp(() {
+      tokenService = MockSfuTokenService();
+    });
+
+    void stubJoinableCall({
+      required MockSfuTokenService tokenService,
+      required MockDidManager didManager,
+      required MockGroupCallSession groupCallSession,
+      required FakeLiveKitRoom room,
+      required String? activeCallId,
+    }) {
+      when(
+        () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+      ).thenAnswer((_) async => _stubChannel());
+      when(
+        () => mockSdk.getGroupByOfferLink(any()),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockSdk.getDidManager(any()),
+      ).thenAnswer((_) async => didManager);
+      when(
+        () => mockMatrixService.resolveRoomIdForChannel(
+          didManager: any(named: 'didManager'),
+          channel: any(named: 'channel'),
+        ),
+      ).thenAnswer((_) async => _matrixRoomId);
+      when(
+        () => mockMatrixService.getOpenIdToken(any()),
+      ).thenAnswer((_) async => _stubOpenIdCredentials());
+      when(
+        () => mockMatrixService.getDeviceId(any()),
+      ).thenAnswer((_) async => 'DEVICE1');
+      when(
+        () => tokenService.fetchToken(
+          roomName: any(named: 'roomName'),
+          openIdCredentials: any(named: 'openIdCredentials'),
+          deviceId: any(named: 'deviceId'),
+        ),
+      ).thenAnswer(
+        (_) async => const SfuTokenResponse(token: _sfuToken, url: _sfuUrl),
+      );
+      when(
+        () => mockMatrixService.initializeVoIPWithDelegate(
+          didManager: any(named: 'didManager'),
+          delegate: any(named: 'delegate'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockMatrixService.activeCallId(
+          didManager: any(named: 'didManager'),
+          roomId: any(named: 'roomId'),
+        ),
+      ).thenAnswer((_) async => activeCallId);
+      when(
+        () => mockMatrixService.startCall(
+          didManager: any(named: 'didManager'),
+          roomId: any(named: 'roomId'),
+          callId: any(named: 'callId'),
+          livekitServiceUrl: any(named: 'livekitServiceUrl'),
+          livekitAlias: any(named: 'livekitAlias'),
+        ),
+      ).thenAnswer((_) async => groupCallSession);
+      when(
+        () => mockMatrixService.sendRoomEvent(
+          any(),
+          any(),
+          any(),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async {
+        room.callOrder.add('nudge');
+        return null;
+      });
+      when(() => mockSdk.notifyChannel(any())).thenAnswer((_) async {
+        room.callOrder.add('nudge');
+      });
+      when(
+        () => mockMatrixService.leaveCall(
+          roomId: any(named: 'roomId'),
+          callId: any(named: 'callId'),
+        ),
+      ).thenAnswer((_) async {});
+    }
+
+    test(
+      'rejoin skips the invite and lands connected without ringing',
+      () async {
+        final room = FakeLiveKitRoom();
+        room.fakeOwnParticipantId = 'self';
+        room.fakeParticipants = const [
+          AudioVideoCallParticipant(
+            participantId: 'self',
+            isSelf: true,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+          AudioVideoCallParticipant(
+            participantId: 'peer',
+            isSelf: false,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+        ];
+        final svc = _buildService(
+          sdk: mockSdk,
+          room: room,
+          tokenService: tokenService,
+        );
+        addTearDown(svc.dispose);
+        stubJoinableCall(
+          tokenService: tokenService,
+          didManager: MockDidManager(),
+          groupCallSession: MockGroupCallSession(),
+          room: room,
+          activeCallId: 'in-progress-call',
+        );
+
+        await svc.joinCall(mediaType: CallMediaType.video);
+
+        expect(room.callOrder, isNot(contains('nudge')));
+        expect(svc.state.status, AudioVideoCallStatus.connected);
+        expect(svc.state.ownRole, CallRole.caller);
+      },
+    );
+
+    test('fresh call still sends the invite and rings', () async {
+      final room = FakeLiveKitRoom();
+      final svc = _buildService(
+        sdk: mockSdk,
+        room: room,
+        tokenService: tokenService,
+      );
+      addTearDown(svc.dispose);
+      stubJoinableCall(
+        tokenService: tokenService,
+        didManager: MockDidManager(),
+        groupCallSession: MockGroupCallSession(),
+        room: room,
+        activeCallId: null,
+      );
+
+      await svc.joinCall(mediaType: CallMediaType.video);
+
+      expect(room.callOrder, contains('nudge'));
+      expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
+    });
+
+    test('ratchets own key when a participant leaves so the departed member '
+        'cannot decrypt future frames', () async {
+      final room = FakeLiveKitRoom();
+      room.fakeOwnParticipantId = 'self';
+      final svc = _buildService(
+        sdk: mockSdk,
+        room: room,
+        tokenService: tokenService,
+      );
+      addTearDown(svc.dispose);
+      stubJoinableCall(
+        tokenService: tokenService,
+        didManager: MockDidManager(),
+        groupCallSession: MockGroupCallSession(),
+        room: room,
+        activeCallId: null,
+      );
+
+      await svc.joinCall(mediaType: CallMediaType.video);
+      room.onParticipantDisconnected?.call('peer');
+
+      expect(
+        room.ratchetKeyCalls,
+        contains((participantId: 'self', keyIndex: 0)),
+      );
+    });
+  });
+
   group('notifyDeclined', () {
     test('transitions from outgoingRinging to declined', () async {
       final channelCompleter = Completer<Channel?>();

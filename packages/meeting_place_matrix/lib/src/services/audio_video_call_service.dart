@@ -180,11 +180,13 @@ class AudioVideoCallService {
       );
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
-      final callId = await _coordinator.prepareCallSession(
+      final sessionPreparation = await _coordinator.prepareCallSession(
         didManager: didManager,
         matrixRoomId: matrixRoomId,
         isRecipient: isRecipient,
       );
+      final callId = sessionPreparation.callId;
+      final isRejoin = sessionPreparation.isRejoin;
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
       await _room.connect(
@@ -221,7 +223,13 @@ class AudioVideoCallService {
         return;
       }
 
-      if (ownRole == CallRole.caller) {
+      if (ownRole == CallRole.caller && isRejoin) {
+        _logger.info(
+          'joinCall: Rejoining in-progress call, skipping invite and ring',
+          name: _logKey,
+        );
+        await _setupRecipientCall(ownRole: ownRole);
+      } else if (ownRole == CallRole.caller) {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
         await _coordinator.sendCallInvite(
           channel: channel,
@@ -462,8 +470,9 @@ class AudioVideoCallService {
     }
   }
 
-  Future<void> _setupRecipientCall() async {
-    final ownRole = CallRole.recipient;
+  Future<void> _setupRecipientCall({
+    CallRole ownRole = CallRole.recipient,
+  }) async {
     if (_hasPeer) {
       _setState(
         _state.copyWith(

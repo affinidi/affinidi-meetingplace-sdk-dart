@@ -10,41 +10,12 @@ import '../logger/top_and_tail_extension.dart';
 import '../matrix_room_alias.dart';
 import '../matrix_service.dart';
 import '../matrix_user_id_binding.dart';
+import '../models/call_credentials.dart';
+import '../models/call_session_preparation.dart';
+import '../models/participant_directory.dart';
 import '../transport/call_invite_room_event.dart';
 import 'sfu_token_service.dart';
-
-/// Credentials resolved during call setup: DID manager, Matrix room id, SFU
-/// URL, SFU token, and the participant-id-to-DID map.
-///
-/// Returned by [MatrixCallAdapter.fetchCallCredentials].
-class CallCredentials {
-  const CallCredentials({
-    required this.didManager,
-    required this.matrixRoomId,
-    required this.sfuUrl,
-    required this.sfuToken,
-    required this.participantIdToDid,
-    required this.participantContactCardsByDid,
-  });
-
-  final DidManager didManager;
-  final String matrixRoomId;
-  final String sfuUrl;
-  final String sfuToken;
-  final Map<String, String> participantIdToDid;
-  final Map<String, ContactCard> participantContactCardsByDid;
-}
-
-/// Participant identity and contact-card lookups resolved for a call.
-class ParticipantDirectory {
-  const ParticipantDirectory({
-    required this.participantIdToDid,
-    required this.participantContactCardsByDid,
-  });
-
-  final Map<String, String> participantIdToDid;
-  final Map<String, ContactCard> participantContactCardsByDid;
-}
+import 'sfu_url_validator.dart';
 
 /// Owns all Matrix and control-plane interactions for a single call session.
 ///
@@ -73,6 +44,7 @@ class MatrixCallAdapter {
        _sfuAllowedHosts = sfuAllowedHosts,
        _livekitTokenService = livekitTokenService,
        _rtcDelegate = rtcDelegate;
+  static const _sfuUrlValidator = SfuUrlValidator();
 
   final MatrixService _matrixService;
   final MeetingPlaceCoreSDK _coreSDK;
@@ -195,11 +167,13 @@ class MatrixCallAdapter {
     );
     final rawSfuUrl = _livekitSfuUrl?.toString() ?? tokenResponse.url;
     final isServerSupplied = _livekitSfuUrl == null;
-    final sfuUrl = _validateSfuUrl(
-      rawSfuUrl,
-      _sfuAllowedHosts,
-      isServerSupplied: isServerSupplied,
-    ).toString();
+    final sfuUrl = _sfuUrlValidator
+        .validate(
+          rawSfuUrl,
+          _sfuAllowedHosts,
+          isServerSupplied: isServerSupplied,
+        )
+        .toString();
     return CallCredentials(
       didManager: didManager,
       matrixRoomId: matrixRoomId,
@@ -218,7 +192,7 @@ class MatrixCallAdapter {
   /// preventing race conditions during early hangups.
   ///
   /// Reuses in-progress calls when present; otherwise generates a fresh callId.
-  Future<String> prepareCallSession({
+  Future<CallSessionPreparation> prepareCallSession({
     required DidManager didManager,
     required String matrixRoomId,
     required bool isRecipient,
@@ -233,6 +207,7 @@ class MatrixCallAdapter {
       roomId: matrixRoomId,
       isRecipient: isRecipient,
     );
+    final isRejoin = existingCallId != null;
     final callId =
         existingCallId ??
         '$matrixRoomId@${DateTime.now().microsecondsSinceEpoch}';
@@ -240,10 +215,10 @@ class MatrixCallAdapter {
     _matrixCallId = callId;
     _logger.info(
       'Resolved call session: callId=$callId '
-      '(existing=${existingCallId != null}) for room $matrixRoomId',
+      '(existing=$isRejoin) for room $matrixRoomId',
       name: _logKey,
     );
-    return callId;
+    return CallSessionPreparation(callId: callId, isRejoin: isRejoin);
   }
 
   /// Signals the Matrix homeserver that a video call has started.
@@ -448,102 +423,20 @@ class MatrixCallAdapter {
     await _resolveCancelTarget(channel);
   }
 
-  /// Validates the SFU URL for security: enforces wss:// scheme and checks
-  /// against the allowlist when configured.
+  /// Discovers an in-progress call ID for the room.
   ///
-  /// Throws [MeetingPlaceLiveKitCallOperationException] if:
-  /// - The URL is null, empty, or invalid.
-  /// - The scheme is not `wss` (server-supplied URLs), or not `wss`/`ws`
-  ///   (app-supplied URLs, where [isServerSupplied] is false).
-  /// - [isServerSupplied] is true and [allowedHosts] is empty (production
-  ///   mode requires allowlist).
-  /// - The host is not in [allowedHosts] when the list is non-empty.
-  ///
-  /// Supports wildcard patterns in [allowedHosts] (e.g. `*.example.com`).
-  Uri _validateSfuUrl(
-    String? rawUrl,
-    List<String> allowedHosts, {
-    required bool isServerSupplied,
-  }) {
-    if (rawUrl == null || rawUrl.isEmpty) {
-      throw const MeetingPlaceLiveKitCallOperationException(
-        'No LiveKit SFU URL available: set livekitSfuUrl in plugin options '
-        'or ensure lk-jwt-service returns a URL in the response',
-      );
-    }
-    final uri = Uri.tryParse(rawUrl);
-    // Server-supplied URLs must use wss:// (TLS). App-supplied URLs
-    // (livekitSfuUrl) may use ws:// for local development, since the
-    // application controls the value and it cannot be tampered with by a
-    // compromised JWT service.
-    final schemeIsAllowed = isServerSupplied
-        ? uri?.scheme == 'wss'
-        : uri?.scheme == 'wss' || uri?.scheme == 'ws';
-    if (uri == null || !schemeIsAllowed) {
-      final allowedSchemes = isServerSupplied ? 'wss://' : 'wss:// or ws://';
-      throw MeetingPlaceLiveKitCallOperationException(
-        'SFU URL must use $allowedSchemes scheme, '
-        'got: ${uri?.scheme ?? "null"}',
-      );
-    }
-    // Production requirement: server-supplied URLs must have allowlist. This
-    // is also enforced eagerly in the plugin constructor; kept here as a
-    // defense-in-depth check at the connection choke point.
-    if (isServerSupplied && allowedHosts.isEmpty) {
-      throw const MeetingPlaceLiveKitCallOperationException(
-        'Security violation: sfuAllowedHosts must be configured when using '
-        'server-supplied SFU URLs (livekitSfuUrl is null). '
-        'Set sfuAllowedHosts '
-        'in plugin options to prevent compromised JWT services from redirecting'
-        ' media to attacker-controlled servers.',
-      );
-    }
-    if (allowedHosts.isNotEmpty) {
-      final host = uri.host;
-      if (!_hostMatchesAllowlist(host, allowedHosts)) {
-        throw MeetingPlaceLiveKitCallOperationException(
-          'SFU host "$host" is not in the allowlist',
-        );
-      }
-    }
-    return uri;
-  }
-
-  /// Returns whether [host] matches any entry in [allowedHosts].
-  ///
-  /// A `*.` prefix is a single-label wildcard: `*.affinidi.io` matches
-  /// `livekit.affinidi.io` but not the apex `affinidi.io` nor deeper
-  /// subdomains such as `evil.sub.affinidi.io`. All other entries require an
-  /// exact host match.
-  bool _hostMatchesAllowlist(String host, List<String> allowedHosts) {
-    return allowedHosts.any((pattern) {
-      if (pattern.startsWith('*.')) {
-        final suffix = pattern.substring(
-          1,
-        ); // '*.affinidi.io' -> '.affinidi.io'
-        if (!host.endsWith(suffix)) return false;
-        final label = host.substring(0, host.length - suffix.length);
-        // Wildcard covers exactly one label; reject empty or dotted labels.
-        return label.isNotEmpty && !label.contains('.');
-      }
-      return host == pattern;
-    });
-  }
-
-  /// Discovers an in-progress call ID on the recipient side within a time
-  /// window.
+  /// Recipients poll across a time window waiting for the caller's call to
+  /// become discoverable. Callers do a single immediate check so a rejoin into
+  /// an ongoing call reuses the existing call ID without adding latency to a
+  /// genuinely fresh call.
   Future<String?> _resolveExistingCallId({
     required DidManager didManager,
     required String roomId,
     required bool isRecipient,
   }) async {
-    if (!isRecipient) return null;
+    final attempts = isRecipient ? _recipientCallIdDiscoveryAttempts : 1;
 
-    for (
-      var attempt = 0;
-      attempt < _recipientCallIdDiscoveryAttempts;
-      attempt++
-    ) {
+    for (var attempt = 0; attempt < attempts; attempt++) {
       if (attempt > 0) {
         await Future<void>.delayed(_recipientCallIdDiscoveryInterval);
       }

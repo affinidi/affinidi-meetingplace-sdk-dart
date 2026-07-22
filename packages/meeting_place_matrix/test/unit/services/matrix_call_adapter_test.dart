@@ -232,32 +232,30 @@ void main() {
   });
 
   group('prepareCallSession', () {
-    test(
-      'caller mints a fresh call id even when Matrix reports an active call',
-      () async {
-        final didManager = MockDidManager();
-        when(
-          () => matrixService.initializeVoIPWithDelegate(
-            didManager: didManager,
-            delegate: any(named: 'delegate'),
-          ),
-        ).thenAnswer((_) async {});
-        when(
-          () => matrixService.activeCallId(
-            didManager: didManager,
-            roomId: _matrixRoomId,
-          ),
-        ).thenAnswer((_) async => 'existing-call-id');
-
-        final result = await adapter.prepareCallSession(
+    test('caller reuses the in-progress call id and flags a rejoin', () async {
+      final didManager = MockDidManager();
+      when(
+        () => matrixService.initializeVoIPWithDelegate(
           didManager: didManager,
-          matrixRoomId: _matrixRoomId,
-          isRecipient: false,
-        );
+          delegate: any(named: 'delegate'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => matrixService.activeCallId(
+          didManager: didManager,
+          roomId: _matrixRoomId,
+        ),
+      ).thenAnswer((_) async => 'existing-call-id');
 
-        expect(result, startsWith('$_matrixRoomId@'));
-      },
-    );
+      final result = await adapter.prepareCallSession(
+        didManager: didManager,
+        matrixRoomId: _matrixRoomId,
+        isRecipient: false,
+      );
+
+      expect(result.callId, 'existing-call-id');
+      expect(result.isRejoin, isTrue);
+    });
 
     test('generates a new call id when no active call exists', () async {
       final didManager = MockDidManager();
@@ -280,7 +278,8 @@ void main() {
         isRecipient: false,
       );
 
-      expect(result, startsWith('$_matrixRoomId@'));
+      expect(result.callId, startsWith('$_matrixRoomId@'));
+      expect(result.isRejoin, isFalse);
     });
   });
 

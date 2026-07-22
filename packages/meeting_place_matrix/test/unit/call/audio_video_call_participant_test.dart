@@ -37,5 +37,27 @@ void main() {
       expect(updated.did, 'did:peer:alice');
       expect(updated.isSpeaking, isTrue);
     });
+
+    test(
+      'copyWith preserves hasAudio when omitted and updates it when set',
+      () {
+        const participant = AudioVideoCallParticipant(
+          participantId: '@alice:server',
+          hasAudio: true,
+        );
+
+        final unchanged = participant.copyWith(isSpeaking: true);
+        final updated = participant.copyWith(
+          hasAudio: (hasValue: true, value: false),
+        );
+        final cleared = participant.copyWith(
+          hasAudio: (hasValue: true, value: null),
+        );
+
+        expect(unchanged.hasAudio, isTrue);
+        expect(updated.hasAudio, isFalse);
+        expect(cleared.hasAudio, isNull);
+      },
+    );
   });
 }

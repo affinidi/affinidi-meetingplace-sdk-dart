@@ -44,7 +44,7 @@ class MatrixTransport implements MeetingPlaceTransport {
       otherPartyChannelDid: channel.isGroup
           ? null
           : (participantDids.isNotEmpty ? participantDids.first : null),
-      inviteUsers: channel.isGroup ? [] : participantDids,
+      inviteUsers: participantDids,
     );
   }
 

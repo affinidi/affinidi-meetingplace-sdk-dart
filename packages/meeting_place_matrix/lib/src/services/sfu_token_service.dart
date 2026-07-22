@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:matrix/matrix.dart';
 
 import '../../meeting_place_matrix.dart';
-import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../models/sfu_token_response.dart';
 
 /// Exchanges a Matrix OpenID token for a LiveKit JWT via the lk-jwt-service

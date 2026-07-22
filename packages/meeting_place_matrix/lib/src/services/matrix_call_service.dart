@@ -241,6 +241,14 @@ class MatrixCallService {
     final room = client.getRoomById(roomId);
     if (room == null) throw MatrixServiceException.roomNotFound(roomId);
 
+    if (!room.canJoinGroupCall) {
+      throw MatrixServiceException.groupCallPermissionDenied(
+        roomId: roomId,
+        canJoinGroupCall: room.canJoinGroupCall,
+        groupCallsEnabledForEveryone: room.groupCallsEnabledForEveryone,
+      );
+    }
+
     final backend = matrix.LiveKitBackend(
       livekitServiceUrl: livekitServiceUrl,
       livekitAlias: livekitAlias,

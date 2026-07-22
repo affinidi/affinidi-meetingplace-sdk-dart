@@ -4,9 +4,8 @@ import 'package:matrix/matrix.dart' as matrix;
 
 import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
-import '../exception/matrix_sdk_exception.dart';
-import '../exceptions/meeting_place_livekit_call_exception.dart';
 import '../handlers/call_e2ee_handler.dart';
+import '../matrix_service_exception.dart';
 import 'call_state_transitions.dart';
 import 'matrix_call_adapter.dart';
 import 'sfu_token_service.dart';
@@ -181,11 +180,13 @@ class AudioVideoCallService {
       );
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
-      final callId = await _coordinator.prepareCallSession(
+      final sessionPreparation = await _coordinator.prepareCallSession(
         didManager: didManager,
         matrixRoomId: matrixRoomId,
         isRecipient: isRecipient,
       );
+      final callId = sessionPreparation.callId;
+      final isRejoin = sessionPreparation.isRejoin;
 
       errorCode = AudioVideoCallErrorCode.connectionFailed;
       await _room.connect(
@@ -222,7 +223,13 @@ class AudioVideoCallService {
         return;
       }
 
-      if (ownRole == CallRole.caller) {
+      if (ownRole == CallRole.caller && isRejoin) {
+        _logger.info(
+          'joinCall: Rejoining in-progress call, skipping invite and ring',
+          name: _logKey,
+        );
+        await _setupRecipientCall(ownRole: ownRole);
+      } else if (ownRole == CallRole.caller) {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
         await _coordinator.sendCallInvite(
           channel: channel,
@@ -286,9 +293,7 @@ class AudioVideoCallService {
       _setState(
         _state.copyWith(
           status: AudioVideoCallStatus.error,
-          errorCode: e is Exception && e.isNetworkError
-              ? AudioVideoCallErrorCode.networkError
-              : AudioVideoCallErrorCode.unexpected,
+          errorCode: _resolveUnexpectedJoinErrorCode(e),
         ),
       );
     } finally {
@@ -424,6 +429,21 @@ class AudioVideoCallService {
   // Private helpers
   // ---------------------------------------------------------------------------
 
+  /// Maps unknown join failures to the best available user-facing error code.
+  AudioVideoCallErrorCode _resolveUnexpectedJoinErrorCode(Object error) {
+    if (error is Exception && error.isNetworkError) {
+      return AudioVideoCallErrorCode.networkError;
+    }
+
+    if (error is MatrixServiceException &&
+        error.code ==
+            MeetingPlaceMatrixSDKErrorCode.matrixGroupCallPermissionDenied) {
+      return AudioVideoCallErrorCode.groupCallPermissionDenied;
+    }
+
+    return AudioVideoCallErrorCode.unexpected;
+  }
+
   bool get _hasPeer => _room.participants.any((p) => !p.isSelf);
 
   Future<void> _enableLocalMedia({
@@ -450,8 +470,9 @@ class AudioVideoCallService {
     }
   }
 
-  Future<void> _setupRecipientCall() async {
-    final ownRole = CallRole.recipient;
+  Future<void> _setupRecipientCall({
+    CallRole ownRole = CallRole.recipient,
+  }) async {
     if (_hasPeer) {
       _setState(
         _state.copyWith(

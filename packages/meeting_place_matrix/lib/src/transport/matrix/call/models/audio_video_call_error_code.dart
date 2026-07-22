@@ -12,6 +12,10 @@ enum AudioVideoCallErrorCode {
   /// The transport connection attempt failed.
   connectionFailed,
 
+  /// Matrix denied joining the group call because the room power level or
+  /// group-call permission does not allow this user to enter.
+  groupCallPermissionDenied,
+
   /// The call-invite notification could not be delivered to the recipient.
   callInviteFailed,
 

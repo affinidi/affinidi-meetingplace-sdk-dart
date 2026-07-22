@@ -2,12 +2,14 @@
 ///
 /// Wraps only the fields the presentation layer needs. Transport-specific
 /// types (e.g. LiveKit `Participant`) stay inside the plugin implementation.
+typedef AudioVideoCallParticipantHasAudio = ({bool hasValue, bool? value});
+
 class AudioVideoCallParticipant {
   const AudioVideoCallParticipant({
     required this.participantId,
     this.did,
     this.hasVideo = false,
-    this.hasAudio = false,
+    this.hasAudio,
     this.isSpeaking = false,
     this.isSelf = false,
   });
@@ -31,7 +33,7 @@ class AudioVideoCallParticipant {
   final bool hasVideo;
 
   /// Whether the participant's audio track is currently active.
-  final bool hasAudio;
+  final bool? hasAudio;
 
   /// Whether the participant is currently speaking.
   final bool isSpeaking;
@@ -43,7 +45,7 @@ class AudioVideoCallParticipant {
     String? participantId,
     String? did,
     bool? hasVideo,
-    bool? hasAudio,
+    AudioVideoCallParticipantHasAudio? hasAudio,
     bool? isSpeaking,
     bool? isSelf,
   }) {
@@ -51,7 +53,7 @@ class AudioVideoCallParticipant {
       participantId: participantId ?? this.participantId,
       did: did ?? this.did,
       hasVideo: hasVideo ?? this.hasVideo,
-      hasAudio: hasAudio ?? this.hasAudio,
+      hasAudio: hasAudio?.hasValue == true ? hasAudio?.value : this.hasAudio,
       isSpeaking: isSpeaking ?? this.isSpeaking,
       isSelf: isSelf ?? this.isSelf,
     );

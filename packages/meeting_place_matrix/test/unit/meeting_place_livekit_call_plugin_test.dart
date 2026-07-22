@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
-import 'package:meeting_place_matrix/src/exceptions/meeting_place_livekit_call_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_room_event.dart';
 import 'package:meeting_place_matrix/src/matrix_subscription_options.dart';
 import 'package:meeting_place_matrix/src/meeting_place_livekit_call_plugin.dart';

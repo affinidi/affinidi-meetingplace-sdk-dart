@@ -13,6 +13,7 @@ import '../../logger/default_meeting_place_chat_sdk_logger.dart';
 import '../../transport/didcomm/outgoing/outgoing.dart';
 import '../../transport/didcomm/protocol.dart' as protocol;
 import '../base_chat_sdk.dart';
+import '../didcomm_incoming_message_handler.dart';
 
 /// DIDComm-backed implementation of [MeetingPlaceChatSDK] for one-to-one chats.
 ///
@@ -44,6 +45,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
 
   StreamSubscription<IncomingMessage>? _subscription;
   IncomingMessageHandle? _subscriptionHandle;
+  DidcommIncomingMessageHandler? _incomingMessageHandler;
   bool _isSendingChatPresence = false;
   int _seqNo = 0;
 
@@ -74,6 +76,18 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
+    _incomingMessageHandler = DidcommIncomingMessageHandler(
+      coreSDK: coreSDK,
+      chatRepository: chatRepository,
+      chatStream: chatStream,
+      chatId: chatId,
+      did: did,
+      otherPartyDid: otherPartyDid,
+      mediatorDid: mediatorDid,
+      logger: logger,
+      getChannel: getChannel,
+      onSeqNoObserved: _observeIncomingSeqNo,
+    );
 
     final subscribeFuture = _subscribe();
     transportSubscriptionFuture = subscribeFuture;
@@ -121,325 +135,16 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   Future<void> _handleIncoming(DidCommIncomingMessage incoming) async {
-    final payload = incoming.payload;
-    final type = payload.type.toString();
-    final chatProtocol = protocol.ChatProtocol.byValue(type) ?? type;
-
-    switch (chatProtocol) {
-      case protocol.ChatProtocol.chatMessage:
-        await _handleIncomingChatMessage(payload);
-        break;
-      case protocol.ChatProtocol.chatReaction:
-        await _handleIncomingReaction(payload);
-        break;
-      case protocol.ChatProtocol.chatDelivered:
-        await _handleIncomingDelivered(payload);
-        break;
-      case protocol.ChatProtocol.chatAliasProfileHash:
-        await _handleIncomingProfileHash(payload);
-        break;
-      case protocol.ChatProtocol.chatAliasProfileRequest:
-        await _handleIncomingProfileRequest(payload);
-        break;
-      case protocol.ChatProtocol.chatContactDetailsUpdate:
-        await _handleIncomingContactDetailsUpdate(payload);
-        break;
-      case protocol.ChatProtocol.chatEffect:
-        chatStream.pushData(
-          StreamData(
-            event: ChatEffectEvent(
-              effectName: (payload.body?['effect'] as String?) ?? '',
-            ),
-          ),
-        );
-        break;
-      case protocol.ChatProtocol.chatActivity:
-        final now = DateTime.now().toUtc();
-        chatStream.pushData(
-          StreamData(
-            event: ChatActivityEvent(
-              senderDid: payload.from ?? otherPartyDid,
-              timestamp: now,
-              createdTime: payload.createdTime,
-            ),
-          ),
-        );
-        break;
-      case protocol.ChatProtocol.chatPresence:
-        chatStream.pushData(
-          StreamData(
-            event: ChatPresenceEvent(timestamp: DateTime.now().toUtc()),
-          ),
-        );
-        break;
-      case protocol.ChatProtocol.suggestion:
-        final suggestion = protocol.ChatSuggestion.fromPlainTextMessage(
-          payload,
-        );
-        chatStream.pushData(
-          StreamData(
-            event: ChatSuggestionEvent(
-              senderDid: suggestion.from,
-              relatedMessageId: suggestion.body.relatedMessageId,
-              text: suggestion.body.text,
-              createdTime: suggestion.createdTime,
-            ),
-          ),
-        );
-        break;
-      case final String vdipType
-          when vdipType == VdipClient.requestIssuanceMessageType:
-        coreSDK.vdip.dispatch(incoming.payload);
-
-        chatStream.pushData(
-          StreamData(
-            event: ChatRequestIssuanceEvent(
-              senderDid: payload.from,
-              body: payload.body ?? const {},
-              createdTime: payload.createdTime ?? DateTime.now().toUtc(),
-              attachments: payload.attachments ?? const [],
-            ),
-          ),
-        );
-        break;
-      case final String vdipType
-          when vdipType == VdipClient.issuedCredentialMessageType:
-        coreSDK.vdip.dispatch(incoming.payload);
-
-        chatStream.pushData(
-          StreamData(
-            event: ChatIssuedCredentialEvent(
-              senderDid: payload.from,
-              body: payload.body ?? const {},
-              createdTime: payload.createdTime ?? DateTime.now().toUtc(),
-              attachments: payload.attachments ?? const [],
-            ),
-          ),
-        );
-        break;
-      default:
-        chatStream.pushData(
-          StreamData(
-            event: UnhandledChatEvent(
-              type: type,
-              senderDid: payload.from,
-              body: payload.body ?? const {},
-              createdTime: payload.createdTime ?? DateTime.now().toUtc(),
-            ),
-          ),
-        );
-    }
+    await _incomingMessageHandler!.handle(incoming);
   }
 
-  Future<void> _handleIncomingProfileHash(didcomm.PlainTextMessage p) async {
-    final profileHashMessage =
-        protocol.ChatAliasProfileHash.fromPlainTextMessage(p);
-    final incomingHash = profileHashMessage.body.profileHash;
-
-    final channel = await getChannel();
-    final storedHash = channel.otherPartyContactCard?.profileHash;
-
-    if (storedHash != incomingHash) {
-      await coreSDK.sendMessage(
-        ChatAliasProfileRequestMessage(
-          senderDid: did,
-          recipientDid: otherPartyDid,
-          mediatorDid: mediatorDid,
-          profileHash: incomingHash,
-        ),
-      );
-    }
-
-    chatStream.pushData(
-      StreamData(
-        event: ChatProfileHashEvent(
-          senderDid: p.from ?? otherPartyDid,
-          profileHash: incomingHash,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleIncomingProfileRequest(didcomm.PlainTextMessage p) async {
-    final profileRequest =
-        protocol.ChatAliasProfileRequest.fromPlainTextMessage(p);
-
-    final channel = await getChannel();
-    final replyTo = channel.otherPartyContactCard?.did ?? profileRequest.from;
-
-    final conciergeMessage = ConciergeMessage(
-      chatId: chatId,
-      messageId: p.id,
-      senderDid: profileRequest.from,
-      isFromMe: false,
-      dateCreated: p.createdTime ?? DateTime.now().toUtc(),
-      status: ChatItemStatus.userInput,
-      conciergeType: ConciergeMessageType.permissionToUpdateProfile,
-      data: {
-        'profileHash': profileRequest.body.profileHash,
-        'replyTo': replyTo,
-      },
-    );
-
-    final created = await chatRepository.createMessage(conciergeMessage);
-    chatStream.pushData(
-      StreamData(
-        event: ChatProfileRequestEvent(
-          senderDid: profileRequest.from,
-          profileHash: profileRequest.body.profileHash,
-        ),
-        chatItem: created,
-      ),
-    );
-  }
-
-  Future<void> _handleIncomingContactDetailsUpdate(
-    didcomm.PlainTextMessage p,
-  ) async {
-    final update = protocol.ChatContactDetailsUpdate.fromPlainTextMessage(p);
-    final updatedCard = ContactCard.fromJson(update.profileDetails);
-
-    final channel = await getChannel();
-    channel.otherPartyContactCard = updatedCard;
-    await coreSDK.updateChannel(channel);
-
-    chatStream.pushData(
-      StreamData(
-        event: ChatContactDetailsUpdateEvent(
-          senderDid: p.from ?? otherPartyDid,
-          contactCard: updatedCard,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleIncomingChatMessage(didcomm.PlainTextMessage p) async {
-    final chatMessage = protocol.ChatMessage.fromPlainTextMessage(p);
-
-    final signRequest = CiergeSignDocumentRequest.fromMessageText(
-      chatMessage.body.text,
-    );
-    if (signRequest != null) {
-      final concierge = ConciergeMessage(
-        chatId: chatId,
-        messageId: chatMessage.id,
-        senderDid: chatMessage.from,
-        isFromMe: false,
-        dateCreated: chatMessage.createdTime,
-        status: ChatItemStatus.userInput,
-        conciergeType: ConciergeMessageType.fromJson(
-          CiergeSignDocumentRequest.conciergeTypeName,
-        ),
-        data: {'document': signRequest.document, 'taskId': signRequest.taskId},
-      );
-      final created = await chatRepository.createMessage(concierge);
-      chatStream.pushData(
-        StreamData(event: const ChatMessageEvent(), chatItem: created),
-      );
-      unawaited(sendChatDeliveredMessage(chatMessage.id));
-      return;
-    }
-
-    final stepUpRequest = CiergeStepUpApproveRequest.fromMessageText(
-      chatMessage.body.text,
-    );
-    if (stepUpRequest != null) {
-      final concierge = ConciergeMessage(
-        chatId: chatId,
-        messageId: chatMessage.id,
-        senderDid: chatMessage.from,
-        isFromMe: false,
-        dateCreated: chatMessage.createdTime,
-        status: ChatItemStatus.userInput,
-        conciergeType: ConciergeMessageType.fromJson(
-          CiergeStepUpApproveRequest.conciergeTypeName,
-        ),
-        data: {'approveRequest': stepUpRequest.approveRequest},
-      );
-      final created = await chatRepository.createMessage(concierge);
-      chatStream.pushData(
-        StreamData(event: const ChatMessageEvent(), chatItem: created),
-      );
-      unawaited(sendChatDeliveredMessage(chatMessage.id));
-      return;
-    }
-
-    final message = Message.fromReceivedMessage(
-      message: chatMessage,
-      chatId: chatId,
-    );
-    final created = await chatRepository.createMessage(message);
-
-    _seqNo = chatMessage.body.seqNo;
+  Future<void> _observeIncomingSeqNo(int seqNo) async {
+    _seqNo = seqNo;
     final channel = await getChannel();
     if (channel.seqNo < _seqNo) {
       channel.seqNo = _seqNo;
       await coreSDK.updateChannel(channel);
     }
-
-    chatStream.pushData(
-      StreamData(event: const ChatMessageEvent(), chatItem: created),
-    );
-
-    unawaited(
-      sendChatDeliveredMessage(message.messageId).catchError((
-        Object error,
-        StackTrace stackTrace,
-      ) {
-        logger.warning(
-          'Failed to send chat delivered receipt for ${message.messageId}: '
-          '$error',
-          name: _logkey,
-        );
-      }),
-    );
-  }
-
-  Future<void> _handleIncomingReaction(didcomm.PlainTextMessage p) async {
-    final reaction = protocol.ChatReaction.fromPlainTextMessage(p);
-    final target = await chatRepository.getMessage(
-      chatId: chatId,
-      messageId: reaction.body.messageId,
-    );
-    if (target == null) return;
-    if (target is Message) {
-      // The DIDComm reaction protocol carries a per-sender snapshot: the
-      // emoji set currently applied by [reaction.from]. Replace only that
-      // sender's reactions, preserving reactions owned by anyone else
-      // (e.g. the local user's own).
-      final from = reaction.from;
-      target.reactions
-        ..removeWhere((r) => r.senderDid == from)
-        ..addAll(
-          reaction.body.reactions.map(
-            (emoji) => MessageReaction(emoji: emoji, senderDid: from),
-          ),
-        );
-      await chatRepository.updateMesssage(target);
-      chatStream.pushData(StreamData(chatItem: target));
-    }
-  }
-
-  Future<void> _handleIncomingDelivered(didcomm.PlainTextMessage p) async {
-    final delivered = protocol.ChatDelivered.fromPlainTextMessage(p);
-    for (final messageId in delivered.body.messages) {
-      final target = await chatRepository.getMessage(
-        chatId: chatId,
-        messageId: messageId,
-      );
-      if (target is Message) {
-        target.status = ChatItemStatus.delivered;
-        await chatRepository.updateMesssage(target);
-        chatStream.pushData(StreamData(chatItem: target));
-      }
-    }
-    chatStream.pushData(
-      StreamData(
-        event: ChatMessageDeliveredEvent(
-          messageIds: List<String>.unmodifiable(delivered.body.messages),
-        ),
-      ),
-    );
   }
 
   @override

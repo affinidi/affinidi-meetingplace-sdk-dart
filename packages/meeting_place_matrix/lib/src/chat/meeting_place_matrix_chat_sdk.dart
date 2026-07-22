@@ -52,7 +52,10 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   final Map<String, String> _reactionServerEventIds = {};
   final MeetingPlaceMatrixSDKLogger _logger;
   StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
+  StreamSubscription<IncomingMessage>? _didcommSubscription;
   IncomingMessageHandle? _matrixSubscriptionHandle;
+  IncomingMessageHandle? _didcommSubscriptionHandle;
+  DidcommIncomingMessageHandler? _didcommIncomingMessageHandler;
 
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
 
@@ -155,6 +158,17 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     chatStream = ChatStream();
     await attachLocalChatEventListener();
     _incomingRouter = buildRoomEventRouter();
+    _didcommIncomingMessageHandler = DidcommIncomingMessageHandler(
+      coreSDK: coreSDK,
+      chatRepository: chatRepository,
+      chatStream: chatStream,
+      chatId: chatId,
+      did: did,
+      otherPartyDid: otherPartyDid,
+      mediatorDid: mediatorDid,
+      logger: logger,
+      getChannel: getChannel,
+    );
 
     // Snapshot the sync cursor before the live subscription starts.
     // Once subscribeToMatrixRoom() is awaited, newly-arriving Matrix events
@@ -281,6 +295,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       ),
     );
     _matrixSubscriptionHandle = handle;
+    await _subscribeToMediatorDidcomm();
     return handle.stream
         .where((m) => m is MatrixIncomingMessage)
         .cast<MatrixIncomingMessage>()
@@ -292,6 +307,51 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
             await sendChatDeliveredMessage(event.id);
           }
         });
+  }
+
+  Future<void> _subscribeToMediatorDidcomm() async {
+    final handle = await coreSDK.subscribe(
+      DidCommSubscription(receiverDid: did, mediatorDid: mediatorDid),
+    );
+    _didcommSubscriptionHandle = handle;
+    _didcommSubscription = handle.stream
+        .where((m) => m is DidCommIncomingMessage)
+        .cast<DidCommIncomingMessage>()
+        .listen(
+          _handleMediatorDidcommIncoming,
+          onError: (Object error, StackTrace stackTrace) {
+            logger.error(
+              'Error handling mediator DIDComm message',
+              error: error,
+              stackTrace: stackTrace,
+              name: _matrixLogkey,
+            );
+          },
+          cancelOnError: false,
+        );
+  }
+
+  Future<void> _handleMediatorDidcommIncoming(
+    DidCommIncomingMessage incoming,
+  ) async {
+    final messageType = incoming.payload.type.toString();
+    final protocol = ChatProtocol.byValue(messageType);
+    if (protocol == ChatProtocol.chatMessage) {
+      final existing = await chatRepository.getMessage(
+        chatId: chatId,
+        messageId: incoming.payload.id,
+      );
+      if (existing is Message && existing.transportId != existing.messageId) {
+        logger.info(
+          'Skipping mediator DIDComm message ${incoming.payload.id} because '
+          'a Matrix-backed message already exists',
+          name: _matrixLogkey,
+        );
+        return;
+      }
+    }
+
+    await _didcommIncomingMessageHandler!.handle(incoming);
   }
 
   Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
@@ -721,13 +781,23 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @override
   Future<void> end() async {
     _typingManager.stop();
+    await _didcommSubscription?.cancel();
+    _didcommSubscription = null;
     await _matrixSubscriptionHandle?.dispose();
     _matrixSubscriptionHandle = null;
+    await _didcommSubscriptionHandle?.dispose();
+    _didcommSubscriptionHandle = null;
     // cancel() propagates to the Matrix long-poll and may never resolve if
     // the SDK waits for the in-flight HTTP request to complete. Fire and
     // forget: the subscription stops delivering events immediately.
     unawaited(_matrixRoomSubscription?.cancel());
     _matrixRoomSubscription = null;
+    await _didcommSubscription?.cancel();
+    _didcommSubscription = null;
+    await _matrixSubscriptionHandle?.dispose();
+    _matrixSubscriptionHandle = null;
+    await _didcommSubscriptionHandle?.dispose();
+    _didcommSubscriptionHandle = null;
     await super.end();
   }
 

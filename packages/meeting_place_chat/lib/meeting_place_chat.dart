@@ -1,4 +1,5 @@
 export 'src/chat/chat.dart';
+export 'src/chat/didcomm_incoming_message_handler.dart';
 export 'src/entity/entity.dart';
 export 'src/event/event.dart';
 export 'src/logger/meeting_place_chat_sdk_logger.dart';

@@ -44,7 +44,7 @@ class ActiveCallSessionManager {
     _pendingSessionDispose = null;
   }
 
-  /// Registers [session] as active and releases the busy guard on terminal
+  /// Registers [session] as active and releases the busy guard on ended
   /// states.
   void setActiveSession(LiveKitCallSession session) {
     _activeSession = session;
@@ -136,7 +136,7 @@ class ActiveCallSessionManager {
     _pendingCallManager.clearActiveCall();
   }
 
-  /// Watches terminal session states and releases the busy guard.
+  /// Watches ended session states and releases the busy guard.
   void _watchForSessionEnd(LiveKitCallSession session) {
     final methodName = 'watchForSessionEnd';
 

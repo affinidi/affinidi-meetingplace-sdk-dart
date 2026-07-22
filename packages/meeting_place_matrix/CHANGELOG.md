@@ -1,3 +1,7 @@
+## 0.0.1-dev.7
+
+ - **FIX**: allow invited members to join Matrix group calls (#289).
+
 ## 0.0.1-dev.6
 
  - **FIX**: enable participant name and avatar lookup during active calls (#283).

@@ -8,6 +8,14 @@ abstract interface class ChatRepository {
     required String chatId,
     required String messageId,
   });
+
+  /// Returns the call chat item whose [callId] matches, or `null` if none
+  /// exists. Uses a targeted DB lookup — never scans all messages.
+  Future<ChatItem?> getCallChatItemByCallId({
+    required String chatId,
+    required String callId,
+  });
+
   Future<String?> getSyncMarker(String chatId);
   Future<void> updateSyncMarker({
     required String chatId,

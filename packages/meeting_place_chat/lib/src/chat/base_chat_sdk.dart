@@ -159,6 +159,16 @@ abstract class BaseChatSDK {
     return chatRepository.getMessage(chatId: chatId, messageId: messageId);
   }
 
+  /// Returns the call chat item whose transport [callId] matches, or `null`
+  /// if none exists. Uses the targeted indexed lookup.
+  Future<ChatItem?> getCallChatItemByCallId(String callId) {
+    _logger.info('Retrieving call item for callId: $callId', name: _logkey);
+    return chatRepository.getCallChatItemByCallId(
+      chatId: chatId,
+      callId: callId,
+    );
+  }
+
   /// Stream of live chat events ([StreamData]) for this session.
   Stream<StreamData> get stream => chatStream.stream;
 
@@ -184,7 +194,7 @@ abstract class BaseChatSDK {
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}
 
-  /// Sends a chat presence signal to the other party.
+  /// Sends a chat presence signal to the peer.
   Future<void> sendChatPresence();
 
   /// Triggers a profile update proposal if the local contact card differs from
@@ -241,7 +251,7 @@ abstract class BaseChatSDK {
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
-          'Channel with other party DID ${otherPartyDid.topAndTail()} not '
+          'Channel with peer DID ${otherPartyDid.topAndTail()} not '
           'found',
         ));
   }

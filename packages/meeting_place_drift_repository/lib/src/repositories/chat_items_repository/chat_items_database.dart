@@ -76,7 +76,7 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -237,6 +237,23 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
           'ALTER TABLE attachments_temp RENAME TO attachments',
         );
       }
+      if (from < 5 && to >= 5) {
+        await customStatement(
+          'ALTER TABLE attachments ADD COLUMN call_id TEXT NULL',
+        );
+        // Backfill callId from existing call attachment metadata JSON so old
+        // chat histories gain the targeted lookup without requiring a rewrite.
+        await customStatement(
+          'UPDATE attachments '
+          "SET call_id = json_extract(metadata, '\$.call_id') "
+          "WHERE json_extract(metadata, '\$.media_kind') = 'call' "
+          'AND metadata IS NOT NULL',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS idx_attachments_call_id '
+          'ON attachments(call_id) WHERE call_id IS NOT NULL',
+        );
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -375,6 +392,12 @@ class Attachments extends Table {
   /// and waveform). `null` for attachments without extra metadata. Distinct
   /// from [json], which carries the attachment's own data payload.
   TextColumn get metadata => text().nullable()();
+
+  /// Extracted call session ID for call attachments, denormalized from
+  /// [metadata] for efficient per-call lookups. `null` for non-call
+  /// attachments. Indexed; populated at write time and backfilled by the
+  /// v4→v5 migration for existing rows.
+  TextColumn get callId => text().nullable()();
 }
 
 /// Stores external links tied to an [Attachment].

@@ -84,6 +84,11 @@ abstract interface class MeetingPlaceChatSDK {
   /// if no such message exists in this chat.
   Future<ChatItem?> getMessageById(String messageId);
 
+  /// Returns the call chat item whose transport [callId] matches, or `null`
+  /// if none exists in this chat. Uses a targeted DB index — never loads all
+  /// messages.
+  Future<ChatItem?> getCallChatItemByCallId(String callId);
+
   /// Sends a plain text message with optional [attachments].
   ///
   /// Text and media travel together: each attachment is sent as a single

@@ -21,6 +21,12 @@ class FakeChatRepository implements ChatRepository {
   Future<ChatItem> updateMesssage(ChatItem message) async => message;
 
   @override
+  Future<ChatItem?> getCallChatItemByCallId({
+    required String chatId,
+    required String callId,
+  }) async => null;
+
+  @override
   Future<String?> getSyncMarker(String chatId) async => null;
 
   @override

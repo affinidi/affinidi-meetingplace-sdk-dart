@@ -1351,6 +1351,15 @@ class $AttachmentsTable extends Attachments
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _callIdMeta = const VerificationMeta('callId');
+  @override
+  late final GeneratedColumn<String> callId = GeneratedColumn<String>(
+    'call_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     messageId,
@@ -1368,6 +1377,7 @@ class $AttachmentsTable extends Attachments
     json,
     transportId,
     metadata,
+    callId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1484,6 +1494,12 @@ class $AttachmentsTable extends Attachments
         metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
       );
     }
+    if (data.containsKey('call_id')) {
+      context.handle(
+        _callIdMeta,
+        callId.isAcceptableOrUnknown(data['call_id']!, _callIdMeta),
+      );
+    }
     return context;
   }
 
@@ -1553,6 +1569,10 @@ class $AttachmentsTable extends Attachments
         DriftSqlType.string,
         data['${effectivePrefix}metadata'],
       ),
+      callId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}call_id'],
+      ),
     );
   }
 
@@ -1610,6 +1630,12 @@ class Attachment extends DataClass implements Insertable<Attachment> {
   /// and waveform). `null` for attachments without extra metadata. Distinct
   /// from [json], which carries the attachment's own data payload.
   final String? metadata;
+
+  /// Extracted call session ID for call attachments, denormalized from
+  /// [metadata] for efficient per-call lookups. `null` for non-call
+  /// attachments. Indexed; populated at write time and backfilled by the
+  /// v4→v5 migration for existing rows.
+  final String? callId;
   const Attachment({
     required this.messageId,
     required this.attachmentId,
@@ -1626,6 +1652,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     this.json,
     this.transportId,
     this.metadata,
+    this.callId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1669,6 +1696,9 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     if (!nullToAbsent || metadata != null) {
       map['metadata'] = Variable<String>(metadata);
     }
+    if (!nullToAbsent || callId != null) {
+      map['call_id'] = Variable<String>(callId);
+    }
     return map;
   }
 
@@ -1707,6 +1737,9 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       metadata: metadata == null && nullToAbsent
           ? const Value.absent()
           : Value(metadata),
+      callId: callId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(callId),
     );
   }
 
@@ -1733,6 +1766,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       json: serializer.fromJson<String?>(json['json']),
       transportId: serializer.fromJson<String?>(json['transportId']),
       metadata: serializer.fromJson<String?>(json['metadata']),
+      callId: serializer.fromJson<String?>(json['callId']),
     );
   }
   @override
@@ -1754,6 +1788,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
       'json': serializer.toJson<String?>(json),
       'transportId': serializer.toJson<String?>(transportId),
       'metadata': serializer.toJson<String?>(metadata),
+      'callId': serializer.toJson<String?>(callId),
     };
   }
 
@@ -1773,6 +1808,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     Value<String?> json = const Value.absent(),
     Value<String?> transportId = const Value.absent(),
     Value<String?> metadata = const Value.absent(),
+    Value<String?> callId = const Value.absent(),
   }) => Attachment(
     messageId: messageId ?? this.messageId,
     attachmentId: attachmentId ?? this.attachmentId,
@@ -1791,6 +1827,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     json: json.present ? json.value : this.json,
     transportId: transportId.present ? transportId.value : this.transportId,
     metadata: metadata.present ? metadata.value : this.metadata,
+    callId: callId.present ? callId.value : this.callId,
   );
   Attachment copyWithCompanion(AttachmentsCompanion data) {
     return Attachment(
@@ -1817,6 +1854,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           ? data.transportId.value
           : this.transportId,
       metadata: data.metadata.present ? data.metadata.value : this.metadata,
+      callId: data.callId.present ? data.callId.value : this.callId,
     );
   }
 
@@ -1837,7 +1875,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           ..write('base64: $base64, ')
           ..write('json: $json, ')
           ..write('transportId: $transportId, ')
-          ..write('metadata: $metadata')
+          ..write('metadata: $metadata, ')
+          ..write('callId: $callId')
           ..write(')'))
         .toString();
   }
@@ -1859,6 +1898,7 @@ class Attachment extends DataClass implements Insertable<Attachment> {
     json,
     transportId,
     metadata,
+    callId,
   );
   @override
   bool operator ==(Object other) =>
@@ -1878,7 +1918,8 @@ class Attachment extends DataClass implements Insertable<Attachment> {
           other.base64 == this.base64 &&
           other.json == this.json &&
           other.transportId == this.transportId &&
-          other.metadata == this.metadata);
+          other.metadata == this.metadata &&
+          other.callId == this.callId);
 }
 
 class AttachmentsCompanion extends UpdateCompanion<Attachment> {
@@ -1897,6 +1938,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
   final Value<String?> json;
   final Value<String?> transportId;
   final Value<String?> metadata;
+  final Value<String?> callId;
   const AttachmentsCompanion({
     this.messageId = const Value.absent(),
     this.attachmentId = const Value.absent(),
@@ -1913,6 +1955,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     this.json = const Value.absent(),
     this.transportId = const Value.absent(),
     this.metadata = const Value.absent(),
+    this.callId = const Value.absent(),
   });
   AttachmentsCompanion.insert({
     required String messageId,
@@ -1930,6 +1973,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     this.json = const Value.absent(),
     this.transportId = const Value.absent(),
     this.metadata = const Value.absent(),
+    this.callId = const Value.absent(),
   }) : messageId = Value(messageId),
        id = Value(id);
   static Insertable<Attachment> custom({
@@ -1948,6 +1992,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     Expression<String>? json,
     Expression<String>? transportId,
     Expression<String>? metadata,
+    Expression<String>? callId,
   }) {
     return RawValuesInsertable({
       if (messageId != null) 'message_id': messageId,
@@ -1965,6 +2010,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
       if (json != null) 'json': json,
       if (transportId != null) 'transport_id': transportId,
       if (metadata != null) 'metadata': metadata,
+      if (callId != null) 'call_id': callId,
     });
   }
 
@@ -1984,6 +2030,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     Value<String?>? json,
     Value<String?>? transportId,
     Value<String?>? metadata,
+    Value<String?>? callId,
   }) {
     return AttachmentsCompanion(
       messageId: messageId ?? this.messageId,
@@ -2001,6 +2048,7 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
       json: json ?? this.json,
       transportId: transportId ?? this.transportId,
       metadata: metadata ?? this.metadata,
+      callId: callId ?? this.callId,
     );
   }
 
@@ -2052,6 +2100,9 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
     if (metadata.present) {
       map['metadata'] = Variable<String>(metadata.value);
     }
+    if (callId.present) {
+      map['call_id'] = Variable<String>(callId.value);
+    }
     return map;
   }
 
@@ -2072,7 +2123,8 @@ class AttachmentsCompanion extends UpdateCompanion<Attachment> {
           ..write('base64: $base64, ')
           ..write('json: $json, ')
           ..write('transportId: $transportId, ')
-          ..write('metadata: $metadata')
+          ..write('metadata: $metadata, ')
+          ..write('callId: $callId')
           ..write(')'))
         .toString();
   }
@@ -3480,6 +3532,7 @@ typedef $$AttachmentsTableCreateCompanionBuilder =
       Value<String?> json,
       Value<String?> transportId,
       Value<String?> metadata,
+      Value<String?> callId,
     });
 typedef $$AttachmentsTableUpdateCompanionBuilder =
     AttachmentsCompanion Function({
@@ -3498,6 +3551,7 @@ typedef $$AttachmentsTableUpdateCompanionBuilder =
       Value<String?> json,
       Value<String?> transportId,
       Value<String?> metadata,
+      Value<String?> callId,
     });
 
 final class $$AttachmentsTableReferences
@@ -3629,6 +3683,11 @@ class $$AttachmentsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get callId => $composableBuilder(
+    column: $table.callId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$ChatItemsTableFilterComposer get messageId {
     final $$ChatItemsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -3757,6 +3816,11 @@ class $$AttachmentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get callId => $composableBuilder(
+    column: $table.callId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$ChatItemsTableOrderingComposer get messageId {
     final $$ChatItemsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3839,6 +3903,9 @@ class $$AttachmentsTableAnnotationComposer
 
   GeneratedColumn<String> get metadata =>
       $composableBuilder(column: $table.metadata, builder: (column) => column);
+
+  GeneratedColumn<String> get callId =>
+      $composableBuilder(column: $table.callId, builder: (column) => column);
 
   $$ChatItemsTableAnnotationComposer get messageId {
     final $$ChatItemsTableAnnotationComposer composer = $composerBuilder(
@@ -3934,6 +4001,7 @@ class $$AttachmentsTableTableManager
                 Value<String?> json = const Value.absent(),
                 Value<String?> transportId = const Value.absent(),
                 Value<String?> metadata = const Value.absent(),
+                Value<String?> callId = const Value.absent(),
               }) => AttachmentsCompanion(
                 messageId: messageId,
                 attachmentId: attachmentId,
@@ -3950,6 +4018,7 @@ class $$AttachmentsTableTableManager
                 json: json,
                 transportId: transportId,
                 metadata: metadata,
+                callId: callId,
               ),
           createCompanionCallback:
               ({
@@ -3968,6 +4037,7 @@ class $$AttachmentsTableTableManager
                 Value<String?> json = const Value.absent(),
                 Value<String?> transportId = const Value.absent(),
                 Value<String?> metadata = const Value.absent(),
+                Value<String?> callId = const Value.absent(),
               }) => AttachmentsCompanion.insert(
                 messageId: messageId,
                 attachmentId: attachmentId,
@@ -3984,6 +4054,7 @@ class $$AttachmentsTableTableManager
                 json: json,
                 transportId: transportId,
                 metadata: metadata,
+                callId: callId,
               ),
           withReferenceMapper: (p0) => p0
               .map(

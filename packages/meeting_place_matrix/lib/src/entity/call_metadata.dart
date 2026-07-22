@@ -2,13 +2,65 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 
 import '../call/call_media_type.dart';
 
+/// The canonical wire-level outcome of a call session.
+///
+/// Shared by both sides of the call. Each device maps this into a local
+/// [CallStatus] using its own role (caller vs recipient) so the chat item
+/// wording can remain asymmetric while the underlying fact stays shared.
+enum CallOutcome {
+  /// Call invite is live or the call is in progress.
+  ongoing,
+
+  /// Caller cancelled before the recipient answered.
+  cancelled,
+
+  /// Recipient explicitly rejected before answering.
+  declined,
+
+  /// No answer before the ring timeout.
+  timedOut,
+
+  /// At least one recipient answered and the call ended normally.
+  ended,
+}
+
+/// Minimal canonical record of a call session's terminal state.
+///
+/// Both sides of a call read from the same [CallOutcomeRecord] before mapping
+/// the outcome into their local [CallStatus] for the chat item. The local
+/// caller/recipient display asymmetry lives in the render mapping, not here.
+class CallOutcomeRecord {
+  const CallOutcomeRecord({
+    required this.callId,
+    required this.outcome,
+    required this.answered,
+    this.startedAt,
+    this.endedAt,
+  });
+
+  /// Transport call session ID. Matches [CallMetadata.callId] on both sides.
+  final String callId;
+
+  /// The canonical terminal outcome.
+  final CallOutcome outcome;
+
+  /// Whether the call was answered by at least one participant.
+  final bool answered;
+
+  /// When the call started. `null` if the call was never answered.
+  final DateTime? startedAt;
+
+  /// When the call ended or was terminated.
+  final DateTime? endedAt;
+}
+
 /// The lifecycle state of a call chat item, as rendered to the local party.
 ///
 /// The same call produces one chat item per side. The status is updated in
 /// place (via a message edit) as the call progresses, so a single item moves
 /// through these states rather than emitting a new item per transition.
 enum CallStatus {
-  /// Outgoing call, waiting for the other party to answer (caller side).
+  /// Outgoing call, waiting for the peer to answer (caller side).
   calling,
 
   /// Caller side: the remote device is ringing. Transitions from [calling].
@@ -20,11 +72,11 @@ enum CallStatus {
   /// The local party left the call; shows the local participation duration.
   ended,
 
-  /// The other party started and ended the call before it was answered.
-  /// Shown on the receiver side.
+  /// The peer started and ended the call before it was answered.
+  /// Shown on the recipient side.
   missed,
 
-  /// Caller side: call ended without answer — either the receiver timed out
+  /// Caller side: call ended without answer — either the recipient timed out
   /// or actively declined. Both cases show "Not answered" in the UI.
   declined,
 }

@@ -132,16 +132,33 @@ class InMemoryPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
         code: 'e.vta.personal_agent.unknown_setup',
       );
     }
+    final now = DateTime.now().toUtc().toIso8601String();
     return <String, dynamic>{
       'setup_id': setupId,
-      'agent_did': entry.agentDid,
-      'acl_role': 'application',
-      'capabilities': <String>['reply', 'sign'],
-      'context_scope': 'ctx-1',
-      'domain_id': 'personal',
-      'provision': <String, dynamic>{
-        'status': 'ready',
-        'share_metadata': <String, dynamic>{},
+      'domain_map': <String, dynamic>{
+        'source': 'vta_trust_task',
+        'task_type': 'https://openvtc.org/cierge/domain-map/personal-agent/0.1',
+        'setup_id': setupId,
+        'domain_id': 'personal',
+        'context_id': entry.contextId,
+        'context_scope': 'ctx-1',
+        'agent_did': entry.agentDid,
+        'entries': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'operation':
+                'https://trusttasks.org/spec/vault/sign-trust-task/0.1',
+            'actor': entry.agentDid,
+            'outcome': 'domain_map_task_created',
+            'vault_entry': 'cierge-agent-signing',
+            'channel': 'pending',
+            'timestamp': now,
+            'trust_task': <String, dynamic>{
+              'type': 'https://trusttasks.org/spec/vault/sign-trust-task/0.1',
+              'issuer': entry.agentDid,
+              'issuedAt': now,
+            },
+          },
+        ],
       },
     };
   }

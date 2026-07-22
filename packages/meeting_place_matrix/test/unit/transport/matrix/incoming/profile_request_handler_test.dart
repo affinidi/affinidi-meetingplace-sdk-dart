@@ -65,9 +65,9 @@ void main() {
       otherPartyDid: _otherPartyDid,
     );
 
-    when(() => repo.listMessages(_chatId)).thenAnswer(
-      (_) async => store.values.toList(),
-    );
+    when(
+      () => repo.listMessages(_chatId),
+    ).thenAnswer((_) async => store.values.toList());
     when(() => repo.createMessage(any())).thenAnswer((inv) async {
       final item = inv.positionalArguments.first as ChatItem;
       store[item.messageId] = item;
@@ -104,7 +104,7 @@ void main() {
     });
 
     test(
-      'reuses the pending concierge when a repeated request arrives',
+      'creates a distinct concierge for each profile request event',
       () async {
         await handler.handle(
           _profileRequestEvent(id: r'$evt-1', profileHash: 'hash-1'),
@@ -114,12 +114,8 @@ void main() {
         );
         await Future<void>.delayed(Duration.zero);
 
-        verify(() => repo.createMessage(any())).called(1);
-        verify(() => repo.updateMesssage(any())).called(1);
-        expect(store, hasLength(1));
-
-        final concierge = store.values.single as ConciergeMessage;
-        expect(concierge.data['profileHash'], 'hash-2');
+        verify(() => repo.createMessage(any())).called(2);
+        expect(store, hasLength(2));
         expect(emitted, hasLength(2));
       },
     );

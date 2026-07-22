@@ -68,6 +68,13 @@ abstract class BaseChatSDK {
   Future<void> onLocalChatEvent(ChatEvent event) async {
     switch (event) {
       case ChatCurrentContactCardUpdatedEvent(:final contactCard):
+        if (contactCard == _currentContactCard) {
+          _logger.info(
+            'refreshCurrentContactCard: skipping unchanged card (idempotent)',
+            name: _logkey,
+          );
+          return;
+        }
         _currentContactCard = contactCard;
         await proposeProfileUpdate();
       default:

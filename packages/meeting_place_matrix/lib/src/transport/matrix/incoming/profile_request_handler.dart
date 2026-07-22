@@ -31,23 +31,6 @@ class ProfileRequestHandler {
     );
     final replyTo = channel?.otherPartyContactCard?.did ?? event.senderDid;
 
-    final existing = await _findPendingProfileUpdateConcierge();
-    if (existing != null) {
-      existing.data['profileHash'] = profileHash;
-      existing.data['replyTo'] = replyTo;
-      final updated = await _chatRepository.updateMesssage(existing);
-      _chatStream.pushData(
-        StreamData(
-          event: ChatProfileRequestEvent(
-            senderDid: event.senderDid ?? _otherPartyDid,
-            profileHash: profileHash,
-          ),
-          chatItem: updated,
-        ),
-      );
-      return;
-    }
-
     final conciergeMessage = ConciergeMessage(
       chatId: _chatId,
       messageId: event.id,
@@ -69,21 +52,5 @@ class ProfileRequestHandler {
         chatItem: created,
       ),
     );
-  }
-
-  /// Returns the outstanding profile-update concierge still awaiting the
-  /// user's decision, so a repeated profile request collapses onto it instead
-  /// of stacking a second prompt.
-  Future<ConciergeMessage?> _findPendingProfileUpdateConcierge() async {
-    final messages = await _chatRepository.listMessages(_chatId);
-    for (final item in messages) {
-      if (item is ConciergeMessage &&
-          item.conciergeType ==
-              ConciergeMessageType.permissionToUpdateProfile &&
-          item.status == ChatItemStatus.userInput) {
-        return item;
-      }
-    }
-    return null;
   }
 }

@@ -37,6 +37,25 @@ void main() {
       expect(sdk.proposeProfileUpdateCallCount, equals(1));
     },
   );
+
+  test(
+    'refreshCurrentContactCard is a no-op when the card is unchanged',
+    () async {
+      final card = ContactCard(
+        did: 'did:test:alice',
+        type: 'human',
+        contactInfo: const {
+          'n': {'given': 'Alice', 'surname': 'Same'},
+        },
+      );
+
+      final sdk = _TestBaseChatSdk(card: card);
+
+      await sdk.refreshCurrentContactCard(card);
+
+      expect(sdk.proposeProfileUpdateCallCount, equals(0));
+    },
+  );
 }
 
 class _TestBaseChatSdk extends BaseChatSDK {

@@ -71,9 +71,10 @@ MatrixIncomingMessage _incoming({
   required String type,
   required String id,
   Map<String, dynamic>? content,
+  DateTime? timestamp,
 }) => MatrixIncomingMessage(
   senderDid: _bobDid,
-  timestamp: DateTime.utc(2026, 1, 1, 12),
+  timestamp: timestamp ?? DateTime.utc(2026, 1, 1, 12),
   roomId: _roomId,
   eventId: id,
   type: type,

@@ -24,6 +24,12 @@ dev_dependencies:
   melos: ^7.1.0
   test: ^1.24.0
 
+dependency_overrides: 
+  didcomm:
+    git:
+      url: https://github.com/affinidi/affinidi-didcomm-dart.git
+      ref: f4ea28667e84f5b142d8df8abbf22bb35ddf03dd
+
 melos:
   scripts:
     pubget:

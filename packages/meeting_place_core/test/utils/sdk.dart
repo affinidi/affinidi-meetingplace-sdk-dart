@@ -104,6 +104,12 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
       channelRepository: effectiveChannelRepository,
     ),
     config: config,
+    options: const MeetingPlaceCoreSDKOptions(
+      expectedMessageWrappingTypes: [
+        MessageWrappingType.authcryptSignPlaintext,
+        MessageWrappingType.authcryptPlaintext,
+      ],
+    ),
   );
 
   if (!withoutDevice) {

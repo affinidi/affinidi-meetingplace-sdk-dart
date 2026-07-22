@@ -58,12 +58,16 @@ void main() {
 
     final aliceCompleter = Completer<Channel>();
     createOobFlowResult.stream.listen((data) {
-      aliceCompleter.complete(data.channel);
+      if (!aliceCompleter.isCompleted) {
+        aliceCompleter.complete(data.channel);
+      }
     });
 
     final bobCompleter = Completer<Channel>();
     acceptOobFlowResult.stream.listen((data) {
-      bobCompleter.complete(data.channel);
+      if (!bobCompleter.isCompleted) {
+        bobCompleter.complete(data.channel);
+      }
     });
 
     final aliceChannel = await aliceCompleter.future;

@@ -346,12 +346,13 @@ packages:
     source: hosted
     version: "1.2.1"
   didcomm:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: didcomm
-      sha256: "8fd4c7b14dc53bc125d788db16cc8a9381820f73c7526932bfd2b9a2a48eb629"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: f4ea28667e84f5b142d8df8abbf22bb35ddf03dd
+      resolved-ref: f4ea28667e84f5b142d8df8abbf22bb35ddf03dd
+      url: "https://github.com/affinidi/affinidi-didcomm-dart.git"
+    source: git
     version: "2.3.3"
   dio:
     dependency: transitive

@@ -87,6 +87,7 @@ class InMemoryPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> uploadPersonalAgentContext({
     required String setupId,
     required String content,
+    String? contextKey,
   }) async {
     final entry = _entriesBySetupId[setupId];
     if (entry == null) {

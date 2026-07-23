@@ -12,6 +12,7 @@ abstract class PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> uploadPersonalAgentContext({
     required String setupId,
     required String content,
+    String? contextKey,
   });
 
   Future<Map<String, dynamic>> fetchPersonalAgentContextStatus({

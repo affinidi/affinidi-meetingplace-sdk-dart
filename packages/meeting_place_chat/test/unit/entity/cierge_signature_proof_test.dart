@@ -14,7 +14,7 @@ void main() {
           json:
               '{"messageId":"urn:uuid:1","signerDid":"did:key:zabc",'
               '"timestamp":"2026-07-14T13:23:31.000Z","tokenId":"tok-1",'
-              '"signature":"abc","context":"ctx-a",'
+              '"signature":"abc","context":"ctx-0",'
               '"memory":"local-file","model":"gpt-4o"}',
         ),
       );
@@ -23,7 +23,7 @@ void main() {
 
       expect(parsed, isNotNull);
       expect(parsed!.signature, 'abc');
-      expect(parsed.context, 'ctx-a');
+      expect(parsed.context, 'ctx-0');
       expect(parsed.memory, 'local-file');
       expect(parsed.model, 'gpt-4o');
     });
@@ -42,14 +42,14 @@ void main() {
       final attachment = ChatAttachment(
         id: 'sig-2',
         format: CiergeSignatureProof.attachmentFormat,
-        data: ChatAttachmentData(json: '{"context":"ctx-a"}'),
+        data: ChatAttachmentData(json: '{"context":"ctx-0"}'),
       );
 
       expect(CiergeSignatureProof.fromAttachment(attachment), isNull);
     });
 
     test('parses payload from base64 when json field is absent', () {
-      final raw = '{"signature":"abc","context":"ctx-a","memory":"local-file"}';
+      final raw = '{"signature":"abc","context":"ctx-0","memory":"local-file"}';
       final attachment = ChatAttachment(
         id: 'sig-3',
         format: CiergeSignatureProof.attachmentFormat,
@@ -60,7 +60,7 @@ void main() {
 
       expect(parsed, isNotNull);
       expect(parsed!.signature, 'abc');
-      expect(parsed.context, 'ctx-a');
+      expect(parsed.context, 'ctx-0');
       expect(parsed.memory, 'local-file');
     });
 

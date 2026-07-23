@@ -38,10 +38,16 @@ class RestPersonalAgentSetupRemote implements PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> uploadPersonalAgentContext({
     required String setupId,
     required String content,
+    String? contextKey,
   }) {
+    final normalizedContextKey = contextKey?.trim();
     return client.postJson(
       _setupResourcePath(setupId, '/context'),
-      body: {'content': content},
+      body: {
+        'content': content,
+        if (normalizedContextKey != null && normalizedContextKey.isNotEmpty)
+          'context_key': normalizedContextKey,
+      },
     );
   }
 

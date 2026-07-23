@@ -118,6 +118,7 @@ class ControlPlaneEventManager {
           connectionOfferRepository: connectionOfferRepository,
           groupRepository: groupRepository,
           channelService: channelService,
+          didResolver: didResolver,
           options: options,
           logger: _logger,
         );

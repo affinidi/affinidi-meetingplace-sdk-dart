@@ -87,25 +87,39 @@ class IdentityService {
     bool? skipAgentIdentity = false,
     String? contextKey,
   }) async {
-    final permanentChannelDidManager = await _connectionManager.generateDidWeb(
+    final permanentChannelDidManager = await generateDidWeb(wallet);
+
+    return completePermanentIdentity(
       wallet,
-      baseHost: _didWebBaseHost,
-    );
-
-    final didDocument = await permanentChannelDidManager.getDidDocument();
-
-    await _didWebDocumentService.register(
       didManager: permanentChannelDidManager,
-      didDocument: didDocument,
+      transport: transport,
+      offerLink: offerLink,
+      publishOfferDid: publishOfferDid,
+      contactCard: contactCard,
+      skipAgentIdentity: skipAgentIdentity,
+      contextKey: contextKey,
     );
+  }
 
-    await _channelTransport.authenticate(permanentChannelDidManager);
+  Future<PermanentIdentity> completePermanentIdentity(
+    Wallet wallet, {
+    required DidManager didManager,
+    required ChannelTransport transport,
+    String? offerLink,
+    String? publishOfferDid,
+    ContactCard? contactCard,
+    bool? skipAgentIdentity = false,
+    String? contextKey,
+  }) async {
+    final didDocument = await didManager.getDidDocument();
+
+    await _channelTransport.authenticate(didManager);
 
     String? personalAgentPermanentChannelDid;
     if (skipAgentIdentity == false && agentDid != null) {
       personalAgentPermanentChannelDid = await _requestAgentChannelIdentity(
         wallet: wallet,
-        senderDidManager: permanentChannelDidManager,
+        senderDidManager: didManager,
         channelDid: didDocument.id,
         agentDid: agentDid!,
         transport: transport,
@@ -123,7 +137,7 @@ class IdentityService {
     );
 
     return PermanentIdentity(
-      didManager: permanentChannelDidManager,
+      didManager: didManager,
       didDocument: didDocument,
       agentDid: personalAgentPermanentChannelDid,
     );

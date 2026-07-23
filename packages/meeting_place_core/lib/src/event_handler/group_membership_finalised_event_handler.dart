@@ -11,6 +11,7 @@ import '../entity/group_connection_offer.dart';
 import '../entity/group_member.dart';
 import '../protocol/contact_card/contact_card.dart';
 import '../protocol/meeting_place_protocol.dart';
+import '../protocol/message/agent_channel_inauguration/agent_channel_inauguration.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration.dart';
 import '../repository/repository.dart';
 import '../service/group/group_exception.dart';
@@ -35,13 +36,16 @@ class GroupMembershipFinalisedEventHandler
     required ControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceTransport channelTransport,
     required GroupRepository groupRepository,
+    required DidResolver didResolver,
   }) : _groupRepository = groupRepository,
        _controlPlaneSDK = controlPlaneSDK,
-       _channelTransport = channelTransport;
+       _channelTransport = channelTransport,
+       _didResolver = didResolver;
 
   final ControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
   final MeetingPlaceTransport _channelTransport;
+  final DidResolver _didResolver;
 
   Future<List<Channel>> process(GroupMembershipFinalised event) async {
     logger.info('''Starting processing event of type
@@ -162,7 +166,7 @@ class GroupMembershipFinalisedEventHandler
     channel.otherPartyPermanentChannelDid ??=
         groupMemberInaugurationMessage.body.groupDid;
 
-    await _channelTransport.joinChannel(
+    final roomId = await _channelTransport.joinChannel(
       channel: channel,
       didManager: didManager,
     );
@@ -171,6 +175,23 @@ class GroupMembershipFinalisedEventHandler
       channel: channel,
       didManager: didManager,
     );
+
+    final agentPermanentChannelDid = channel.agentPermanentChannelDid;
+    final agentDid = options.agentDid;
+    if (roomId != null &&
+        agentPermanentChannelDid != null &&
+        agentDid != null) {
+      await _sendAgentGroupChannelInaugurationMessage(
+        channel: channel,
+        permanentChannelDidManager: didManager,
+        permanentChannelDid: permanentChannelDid,
+        agentDid: agentDid,
+        agentPermanentChannelDid: agentPermanentChannelDid,
+        groupDid: groupMemberInaugurationMessage.body.groupDid,
+        notificationToken: notificationToken,
+        matrixRoomId: roomId,
+      );
+    }
 
     await _updateMediatorAcls(
       didManager: didManager,
@@ -209,6 +230,37 @@ class GroupMembershipFinalisedEventHandler
     );
 
     return channel;
+  }
+
+  Future<void> _sendAgentGroupChannelInaugurationMessage({
+    required Channel channel,
+    required DidManager permanentChannelDidManager,
+    required String permanentChannelDid,
+    required String agentDid,
+    required String agentPermanentChannelDid,
+    required String groupDid,
+    required String notificationToken,
+    required String matrixRoomId,
+  }) async {
+    final agentDidDocument = await _didResolver.resolveDid(agentDid);
+
+    await mediatorService.sendMessage(
+      AgentChannelInauguration.create(
+        from: permanentChannelDid,
+        to: [agentDid],
+        otherPartyPermanentChannelDid: groupDid,
+        otherPartyNotificationToken: notificationToken,
+        offerLink: channel.offerLink,
+        publishOfferDid: channel.publishOfferDid,
+        transport: ChannelTransport.matrix,
+        agentPermanentChannelDid: agentPermanentChannelDid,
+        contactCard: channel.otherPartyContactCard,
+        matrixRoomId: matrixRoomId,
+      ).toPlainTextMessage(),
+      senderDidManager: permanentChannelDidManager,
+      recipientDidDocument: agentDidDocument,
+      mediatorDid: channel.mediatorDid,
+    );
   }
 
   Future<String> _registerNotificationToken(

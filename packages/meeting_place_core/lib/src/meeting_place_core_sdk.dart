@@ -917,6 +917,7 @@ class MeetingPlaceCoreSDK {
             mediatorDid: mediatorDid ?? _mediatorDid,
             externalRef: externalRef,
             metadata: metadata,
+            contextKey: contextKey,
             card: contactCard,
           );
       return sdk.PublishOfferResult(

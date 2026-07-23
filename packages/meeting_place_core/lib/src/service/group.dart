@@ -101,6 +101,7 @@ class GroupService {
     int? maximumUsage,
     String? metadata,
     String? externalRef,
+    String? contextKey,
   }) async {
     final methodName = 'createGroup';
     _logger.info(
@@ -108,12 +109,8 @@ class GroupService {
       name: methodName,
     );
 
-    final ownerIdentity = await _identityService.createPermanentIdentity(
-      _wallet,
-      transport: ChannelTransport.matrix,
-    );
-    final ownerDid = ownerIdentity.didManager;
-    final ownerDidDocument = ownerIdentity.didDocument;
+    final ownerDid = await _identityService.generateDidWeb(_wallet);
+    final ownerDidDocument = await ownerDid.getDidDocument();
 
     final groupKeyPair = _recrypt.generateKeyPair();
     final recryptKeyPair = await generateRecryptKeyPair(ownerDidDocument.id);
@@ -156,31 +153,41 @@ class GroupService {
       ),
     );
 
-    final group = Group(
-      id: result.groupId,
-      did: result.groupDid,
-      offerLink: result.offerLink,
-      publicKey: groupKeyPair.publicKeyToBase64(),
-      ownerDid: ownerDidDocument.id,
-      created: DateTime.now().toUtc(),
-      externalRef: externalRef,
-      members: [
-        GroupMember.admin(
-          did: ownerDidDocument.id,
-          publicKey: recryptKeyPair.publicKeyToBase64(),
-          contactCard: card,
-        ),
-      ],
-    );
-
-    await _keyRepository.saveKeyPair(
-      privateKeyBytes: groupKeyPair.privateKey.toBytes(),
-      publicKeyBytes: groupKeyPair.publicKey.point.toBytes(),
-      did: result.groupDid,
-    );
-    await _groupRepository.createGroup(group);
-
     try {
+      final ownerIdentity = await _identityService.completePermanentIdentity(
+        _wallet,
+        didManager: ownerDid,
+        transport: ChannelTransport.matrix,
+        offerLink: result.offerLink,
+        publishOfferDid: oobDidDoc.id,
+        contactCard: card,
+        contextKey: contextKey,
+      );
+
+      final group = Group(
+        id: result.groupId,
+        did: result.groupDid,
+        offerLink: result.offerLink,
+        publicKey: groupKeyPair.publicKeyToBase64(),
+        ownerDid: ownerDidDocument.id,
+        created: DateTime.now().toUtc(),
+        externalRef: externalRef,
+        members: [
+          GroupMember.admin(
+            did: ownerDidDocument.id,
+            publicKey: recryptKeyPair.publicKeyToBase64(),
+            contactCard: card,
+          ),
+        ],
+      );
+
+      await _keyRepository.saveKeyPair(
+        privateKeyBytes: groupKeyPair.privateKey.toBytes(),
+        publicKeyBytes: groupKeyPair.publicKey.point.toBytes(),
+        did: result.groupDid,
+      );
+      await _groupRepository.createGroup(group);
+
       final channel = Channel(
         offerLink: result.offerLink,
         publishOfferDid: oobDidDoc.id,
@@ -188,21 +195,47 @@ class GroupService {
         status: ChannelStatus.inaugurated,
         contactCard: card,
         type: ChannelType.group,
+        transport: ChannelTransport.matrix,
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
         otherPartyPermanentChannelDid: result.groupDid,
+        agentPermanentChannelDid: ownerIdentity.agentDid,
         externalRef: externalRef,
-        transport: ChannelTransport.matrix,
+        contextKey: contextKey,
       );
 
-      await (
-        _channelTransport.setupChannel(channel: channel, didManager: ownerDid),
-        _allowGroupToMessageGroupOwner(
-          groupOwnerDid: ownerDid,
-          mediatorDid: result.mediatorDid,
+      await _channelTransport.setupChannel(
+        channel: channel,
+        didManager: ownerDid,
+        participantDids: [
+          if (ownerIdentity.agentDid != null) ownerIdentity.agentDid!,
+        ],
+      );
+
+      final roomId = await _channelTransport.joinChannel(
+        channel: channel,
+        didManager: ownerDid,
+      );
+
+      await _allowGroupToMessageGroupOwner(
+        groupOwnerDid: ownerDid,
+        mediatorDid: result.mediatorDid,
+        groupDid: result.groupDid,
+      );
+
+      if (roomId != null && ownerIdentity.agentDid != null) {
+        await _sendAgentGroupChannelInauguration(
+          senderDid: ownerDid,
+          senderDidDocument: ownerDidDocument,
+          agentPermanentChannelDid: ownerIdentity.agentDid!,
           groupDid: result.groupDid,
-        ),
-      ).wait;
+          offerLink: result.offerLink,
+          publishOfferDid: oobDidDoc.id,
+          mediatorDid: result.mediatorDid,
+          contactCard: card,
+          matrixRoomId: roomId,
+        );
+      }
 
       final connectionOffer = GroupConnectionOffer(
         groupId: result.groupId,
@@ -225,6 +258,7 @@ class GroupService {
         externalRef: externalRef,
         createdAt: DateTime.now().toUtc(),
         transport: ChannelTransport.matrix,
+        contextKey: contextKey,
       );
 
       await _connectionOfferRepository.createConnectionOffer(connectionOffer);
@@ -295,9 +329,18 @@ class GroupService {
       name: methodName,
     );
 
+    final skipAgentIdentity =
+        connectionOffer.contactCard.type == 'ai-agent' ||
+        _identityService.agentDid == null;
+
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
       transport: ChannelTransport.matrix,
+      offerLink: connectionOffer.offerLink,
+      publishOfferDid: connectionOffer.publishOfferDid,
+      contactCard: card,
+      contextKey: connectionOffer.contextKey,
+      skipAgentIdentity: skipAgentIdentity,
     );
     final permanentChannelDidManager = permanentIdentity.didManager;
     final permanentChannelDidDocument = permanentIdentity.didDocument;
@@ -355,6 +398,7 @@ class GroupService {
         invitationMessage: invitationMessage,
         groupMemberPublicKey: memberPublicKeyBase64,
         contactCard: card,
+        agentDid: permanentIdentity.agentDid,
       );
 
       final channel = Channel.groupFromAcceptedConnectionOffer(
@@ -363,6 +407,7 @@ class GroupService {
         acceptOfferDid: acceptOfferDidDocument.id,
         card: card,
         externalRef: externalRef,
+        agentPermanentChannelDid: permanentIdentity.agentDid,
       );
 
       await _channelService.persistChannel(channel);
@@ -517,6 +562,7 @@ class GroupService {
     required String mediatorDid,
     required String groupMemberPublicKey,
     ContactCard? contactCard,
+    String? agentDid,
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
     _logger.info(
@@ -549,6 +595,7 @@ class GroupService {
       channelDid: permanentChannelDidDocument.id,
       publicKey: groupMemberPublicKey,
       contactCard: contactCard,
+      agentDid: agentDid,
     );
 
     await _mediatorSDK.sendMessage(
@@ -667,6 +714,13 @@ class GroupService {
       participantDid: member.did,
       didManager: ownerIdentity.didManager,
     );
+    if (channel.otherPartyAgentPermanentChannelDid != null) {
+      await _channelTransport.inviteToChannel(
+        channel: groupChannel,
+        participantDid: channel.otherPartyAgentPermanentChannelDid!,
+        didManager: ownerIdentity.didManager,
+      );
+    }
 
     final senderDid = await _connectionManager.getDidManagerForDid(
       _wallet,
@@ -948,6 +1002,41 @@ class GroupService {
         ownerDid: groupOwnerDidDocument.id,
         granteeDids: [groupDid],
       ),
+    );
+  }
+
+  Future<void> _sendAgentGroupChannelInauguration({
+    required DidManager senderDid,
+    required DidDocument senderDidDocument,
+    required String agentPermanentChannelDid,
+    required String groupDid,
+    required String offerLink,
+    required String publishOfferDid,
+    required String mediatorDid,
+    required ContactCard contactCard,
+    required String matrixRoomId,
+    String otherPartyNotificationToken = '',
+  }) async {
+    final agentDidDocument = await _didResolver.resolveDid(
+      agentPermanentChannelDid,
+    );
+
+    await _mediatorSDK.sendMessage(
+      AgentChannelInauguration.create(
+        from: senderDidDocument.id,
+        to: [agentPermanentChannelDid],
+        otherPartyPermanentChannelDid: groupDid,
+        otherPartyNotificationToken: otherPartyNotificationToken,
+        offerLink: offerLink,
+        publishOfferDid: publishOfferDid,
+        transport: ChannelTransport.matrix,
+        agentPermanentChannelDid: agentPermanentChannelDid,
+        contactCard: contactCard,
+        matrixRoomId: matrixRoomId,
+      ).toPlainTextMessage(),
+      senderDidManager: senderDid,
+      recipientDidDocument: agentDidDocument,
+      mediatorDid: mediatorDid,
     );
   }
 

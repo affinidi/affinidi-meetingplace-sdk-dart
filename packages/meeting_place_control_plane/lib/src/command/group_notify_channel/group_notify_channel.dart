@@ -10,6 +10,7 @@ class GroupNotifyChannelCommand
     required this.offerLink,
     required this.groupDid,
     required this.type,
+    this.memberDid,
   });
 
   /// The Offer link associated with the group chat.
@@ -20,4 +21,7 @@ class GroupNotifyChannelCommand
 
   /// The notification type to send to group members.
   final String type;
+
+  /// When set, notify only this single group member instead of all members.
+  final String? memberDid;
 }

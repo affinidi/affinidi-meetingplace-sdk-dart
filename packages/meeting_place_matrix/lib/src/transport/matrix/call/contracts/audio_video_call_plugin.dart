@@ -77,4 +77,15 @@ abstract interface class AudioVideoCallPlugin {
   /// (whether by self hangup, peer hangup, or timeout) so a subsequent
   /// incoming call is not auto-rejected.
   Future<void> leaveCurrentCall();
+
+  /// Rings a single group member to invite them into a group call.
+  ///
+  /// Sends a targeted call-invite notification to [memberDid] only, leaving the
+  /// other group members undisturbed. [groupChannelDid] is the group channel
+  /// DID (the same value passed to [startCall] for the group call).
+  Future<void> ringGroupMember({
+    required String groupChannelDid,
+    required String memberDid,
+    required CallMediaType mediaType,
+  });
 }

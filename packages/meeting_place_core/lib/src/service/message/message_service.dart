@@ -74,7 +74,8 @@ class MessageService {
   /// [NotifyChannelCommand] using the stored
   /// `Channel.otherPartyNotificationToken` (no-op if missing).
   /// For a [GroupChannelNotification] this dispatches a
-  /// [GroupNotifyChannelCommand] which fans out to all group members.
+  /// [GroupNotifyChannelCommand] which fans out to all group members, or to a
+  /// single member when `memberDid` is set.
   Future<void> notifyChannel(ChannelNotification notification) async {
     try {
       switch (notification) {
@@ -97,12 +98,14 @@ class MessageService {
           :final offerLink,
           :final groupDid,
           :final type,
+          :final memberDid,
         ):
           await _controlPlaneSDK.execute(
             GroupNotifyChannelCommand(
               offerLink: offerLink,
               groupDid: groupDid,
               type: type,
+              memberDid: memberDid,
             ),
           );
       }

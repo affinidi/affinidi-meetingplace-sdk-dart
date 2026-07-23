@@ -322,6 +322,21 @@ class AudioVideoCallService {
       await _coordinator.sendCallCancelToRecipient();
     }
 
+    final callId = _state.callId;
+    final callStartedAt = _state.callStartedAt;
+    final isLastParticipant = !_hasPeer;
+    final shouldSendCallOutcome =
+        !cancelledBeforeAnswer &&
+        isLastParticipant &&
+        callId != null &&
+        callStartedAt != null;
+    if (shouldSendCallOutcome) {
+      await _coordinator.sendCallOutcome(
+        callId: callId,
+        startedAt: callStartedAt,
+      );
+    }
+
     try {
       await _coordinator.leaveCall();
       await _room.disconnect();

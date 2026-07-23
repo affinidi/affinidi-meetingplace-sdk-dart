@@ -14,6 +14,7 @@ import '../models/call_credentials.dart';
 import '../models/call_session_preparation.dart';
 import '../models/participant_directory.dart';
 import '../transport/call_invite_room_event.dart';
+import '../transport/matrix/outgoing/call_outcome_room_event.dart';
 import 'sfu_token_service.dart';
 import 'sfu_url_validator.dart';
 
@@ -380,6 +381,50 @@ class MatrixCallAdapter {
   void clearIds() {
     _matrixRoomId = null;
     _matrixCallId = null;
+  }
+
+  /// Posts the shared call outcome to the Matrix room so peers converge their
+  /// call chat item on the final duration.
+  ///
+  /// Sent once by the last participant to leave, whose departure ends the call
+  /// for everyone. Emits an `mpx.call.outcome` room event carrying [callId] and
+  /// [startedAt]; peers read the authoritative end time from the event's
+  /// homeserver timestamp, so this device does not send its own end clock.
+  /// Fire-and-forget during teardown: failures are logged and swallowed. Must
+  /// be called before [leaveCall] clears the room identifier.
+  Future<void> sendCallOutcome({
+    required String callId,
+    DateTime? startedAt,
+  }) async {
+    final roomId = _matrixRoomId;
+    if (roomId == null) return;
+    try {
+      final ownChannelDid = await _resolveOwnChannelDidForCancel();
+      if (ownChannelDid == null) return;
+      final didManager = await _coreSDK.getDidManager(ownChannelDid);
+      final event = CallOutcomeRoomEvent(
+        senderDid: ownChannelDid,
+        outcome: CallOutcomeRecord(
+          callId: callId,
+          outcome: CallOutcome.ended,
+          answered: true,
+          startedAt: startedAt,
+        ).toMap(),
+      );
+      await _matrixService.sendRoomEvent(
+        roomId,
+        event.type,
+        event.content,
+        didManager: didManager,
+      );
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Failed to send call outcome for callId $callId',
+        error: error,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+    }
   }
 
   /// Sends a call-cancel room event to the Matrix room for group calls.

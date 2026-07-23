@@ -33,6 +33,10 @@ class MatrixEventField {
   /// Embeds call item metadata in `mpx.call.item` room events so the
   /// receiver can reconstruct the [ChatAttachment] without a file download.
   static const callMetadata = 'mp_call_metadata';
+
+  /// Embeds the canonical `CallOutcomeRecord` in `mpx.call.outcome` room
+  /// events so peers can converge on the same call outcome and duration.
+  static const callOutcome = 'mp_call_outcome';
 }
 
 /// Matrix-specific helpers for parsing and inspecting media attachments

@@ -7,6 +7,7 @@ import '../../../chat/meeting_place_matrix_chat_sdk.dart';
 import '../../../matrix_room_event.dart';
 import '../matrix_chat_event_type.dart';
 import 'call_item_handler.dart';
+import 'call_outcome_handler.dart';
 import 'chat_effect_handler.dart';
 import 'incoming_reaction_state_store.dart';
 import 'message_edit_handler.dart';
@@ -83,6 +84,10 @@ class IncomingRoomEventRouter {
         chatStream: chatSDK.chatStream,
         chatId: chatSDK.chatId,
         serverEventIdToMessageId: chatSDK.serverEventIdToMessageId,
+        logger: chatSDK.logger,
+      ).handle,
+      MpxCallEventType.callOutcome: CallOutcomeHandler(
+        chatStream: chatSDK.chatStream,
         logger: chatSDK.logger,
       ).handle,
       matrix.EventTypes.Message: TextMessageHandler(

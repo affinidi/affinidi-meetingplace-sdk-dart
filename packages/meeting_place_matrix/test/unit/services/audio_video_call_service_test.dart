@@ -11,6 +11,7 @@ import 'package:meeting_place_core/meeting_place_core.dart'
         IndividualChannelNotification;
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/call/call_channel_activity_type.dart';
+import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
 import 'package:meeting_place_matrix/src/matrix_service_exception.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/audio_video_call_service.dart';
@@ -573,6 +574,113 @@ void main() {
         contains((participantId: 'self', keyIndex: 0)),
       );
     });
+
+    test(
+      'does not emit the call outcome while a peer is still in the call',
+      () async {
+        final room = FakeLiveKitRoom();
+        room.fakeOwnParticipantId = 'self';
+        room.fakeParticipants = const [
+          AudioVideoCallParticipant(
+            participantId: 'self',
+            isSelf: true,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+          AudioVideoCallParticipant(
+            participantId: 'peer',
+            isSelf: false,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+        ];
+        final svc = _buildService(
+          sdk: mockSdk,
+          room: room,
+          tokenService: tokenService,
+        );
+        addTearDown(svc.dispose);
+        stubJoinableCall(
+          tokenService: tokenService,
+          didManager: MockDidManager(),
+          groupCallSession: MockGroupCallSession(),
+          room: room,
+          activeCallId: 'in-progress-call',
+        );
+
+        await svc.joinCall(mediaType: CallMediaType.video);
+        await svc.leaveCall();
+
+        verifyNever(
+          () => mockMatrixService.sendRoomEvent(
+            any(),
+            MpxCallEventType.callOutcome,
+            any(),
+            didManager: any(named: 'didManager'),
+          ),
+        );
+      },
+    );
+
+    test(
+      'emits the call outcome once it is the last participant to leave',
+      () async {
+        final room = FakeLiveKitRoom();
+        room.fakeOwnParticipantId = 'self';
+        room.fakeParticipants = const [
+          AudioVideoCallParticipant(
+            participantId: 'self',
+            isSelf: true,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+          AudioVideoCallParticipant(
+            participantId: 'peer',
+            isSelf: false,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+        ];
+        final svc = _buildService(
+          sdk: mockSdk,
+          room: room,
+          tokenService: tokenService,
+        );
+        addTearDown(svc.dispose);
+        stubJoinableCall(
+          tokenService: tokenService,
+          didManager: MockDidManager(),
+          groupCallSession: MockGroupCallSession(),
+          room: room,
+          activeCallId: 'in-progress-call',
+        );
+
+        await svc.joinCall(mediaType: CallMediaType.video);
+        room.fakeParticipants = const [
+          AudioVideoCallParticipant(
+            participantId: 'self',
+            isSelf: true,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+        ];
+        await svc.leaveCall();
+
+        verify(
+          () => mockMatrixService.sendRoomEvent(
+            _matrixRoomId,
+            MpxCallEventType.callOutcome,
+            any(),
+            didManager: any(named: 'didManager'),
+          ),
+        ).called(1);
+      },
+    );
   });
 
   group('notifyDeclined', () {

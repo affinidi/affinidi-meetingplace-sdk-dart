@@ -1,85 +1,8 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 
 import '../call/call_media_type.dart';
-
-/// The canonical wire-level outcome of a call session.
-///
-/// Shared by both sides of the call. Each device maps this into a local
-/// [CallStatus] using its own role (caller vs recipient) so the chat item
-/// wording can remain asymmetric while the underlying fact stays shared.
-enum CallOutcome {
-  /// Call invite is live or the call is in progress.
-  ongoing,
-
-  /// Caller cancelled before the recipient answered.
-  cancelled,
-
-  /// Recipient explicitly rejected before answering.
-  declined,
-
-  /// No answer before the ring timeout.
-  timedOut,
-
-  /// At least one recipient answered and the call ended normally.
-  ended,
-}
-
-/// Minimal canonical record of a call session's terminal state.
-///
-/// Both sides of a call read from the same [CallOutcomeRecord] before mapping
-/// the outcome into their local [CallStatus] for the chat item. The local
-/// caller/recipient display asymmetry lives in the render mapping, not here.
-class CallOutcomeRecord {
-  const CallOutcomeRecord({
-    required this.callId,
-    required this.outcome,
-    required this.answered,
-    this.startedAt,
-    this.endedAt,
-  });
-
-  /// Transport call session ID. Matches [CallMetadata.callId] on both sides.
-  final String callId;
-
-  /// The canonical terminal outcome.
-  final CallOutcome outcome;
-
-  /// Whether the call was answered by at least one participant.
-  final bool answered;
-
-  /// When the call started. `null` if the call was never answered.
-  final DateTime? startedAt;
-
-  /// When the call ended or was terminated.
-  final DateTime? endedAt;
-}
-
-/// The lifecycle state of a call chat item, as rendered to the local party.
-///
-/// The same call produces one chat item per side. The status is updated in
-/// place (via a message edit) as the call progresses, so a single item moves
-/// through these states rather than emitting a new item per transition.
-enum CallStatus {
-  /// Outgoing call, waiting for the peer to answer (caller side).
-  calling,
-
-  /// Caller side: the remote device is ringing. Transitions from [calling].
-  ringing,
-
-  /// A participant has joined; the call is active.
-  inProgress,
-
-  /// The local party left the call; shows the local participation duration.
-  ended,
-
-  /// The peer started and ended the call before it was answered.
-  /// Shown on the recipient side.
-  missed,
-
-  /// Caller side: call ended without answer — either the recipient timed out
-  /// or actively declined. Both cases show "Not answered" in the UI.
-  declined,
-}
+import 'call_participation.dart';
+import 'call_status.dart';
 
 /// Call metadata layered on top of a generic [ChatAttachment].
 ///
@@ -89,11 +12,15 @@ enum CallStatus {
 /// [ChatAttachment] keeps the attachment a general type and lets call items add
 /// their own metadata view without changing the shared type, mirroring
 /// `VoiceMessageMetadata`.
+///
+/// Group calls additionally carry a [CallParticipation] block; a `null`
+/// participation means a 1:1 call.
 class CallMetadata {
   CallMetadata({
     required this.mediaType,
     required this.status,
     required this.callId,
+    this.participation,
     int? durationMs,
   }) : durationMs = _validateDurationMs(durationMs);
 
@@ -111,6 +38,7 @@ class CallMetadata {
       mediaType: mediaType,
       status: status,
       callId: (callIdValue as String?) ?? '',
+      participation: CallParticipation.fromMap(metadata[_participationKey]),
       durationMs: _durationFromMetadata(metadata[_durationMsKey]),
     );
   }
@@ -125,12 +53,14 @@ class CallMetadata {
     required CallStatus status,
     required String id,
     required String callId,
+    CallParticipation? participation,
     int? durationMs,
   }) {
     final call = CallMetadata(
       mediaType: mediaType,
       status: status,
       callId: callId,
+      participation: participation,
       durationMs: durationMs,
     );
     return ChatAttachment(id: id, metadata: call.toMetadata());
@@ -154,6 +84,9 @@ class CallMetadata {
   /// Metadata key for the local participation duration in milliseconds.
   static const _durationMsKey = 'duration_ms';
 
+  /// Metadata key for the group participation block.
+  static const _participationKey = 'call_participation';
+
   /// The call media type (audio or video).
   final CallMediaType mediaType;
 
@@ -169,6 +102,9 @@ class CallMetadata {
   /// Local participation duration in milliseconds, when known.
   final int? durationMs;
 
+  /// Group participation summary. `null` for a 1:1 call.
+  final CallParticipation? participation;
+
   /// Serializes this call metadata into a generic [ChatAttachment.metadata]
   /// map.
   Map<String, dynamic> toMetadata() => {
@@ -177,13 +113,19 @@ class CallMetadata {
     _statusKey: status.name,
     _callIdKey: callId,
     if (durationMs != null) _durationMsKey: durationMs,
+    if (participation != null) _participationKey: participation!.toMap(),
   };
 
   /// Returns a copy with the given fields replaced.
-  CallMetadata copyWith({CallStatus? status, int? durationMs}) => CallMetadata(
+  CallMetadata copyWith({
+    CallStatus? status,
+    int? durationMs,
+    CallParticipation? participation,
+  }) => CallMetadata(
     mediaType: mediaType,
     status: status ?? this.status,
     callId: callId,
+    participation: participation ?? this.participation,
     durationMs: durationMs ?? this.durationMs,
   );
 

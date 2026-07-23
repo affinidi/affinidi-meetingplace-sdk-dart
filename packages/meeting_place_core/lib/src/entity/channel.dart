@@ -89,11 +89,13 @@ class Channel {
     required String acceptOfferDid,
     required ContactCard card,
     required String? externalRef,
+    String? agentPermanentChannelDid,
   }) {
     return Channel(
       offerLink: connectionOffer.offerLink,
       publishOfferDid: connectionOffer.publishOfferDid,
       permanentChannelDid: permanentChannelDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
       acceptOfferDid: acceptOfferDid,
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,

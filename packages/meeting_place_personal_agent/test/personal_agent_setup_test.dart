@@ -91,7 +91,60 @@ void main() {
 
       expect(result.profile.mode, PersonalAgentMode.autoReply);
     });
+
+    test('forwards context key when uploading context', () async {
+      final remote = _CapturingUploadRemote();
+      final sdk = MeetingPlacePersonalAgentSDK(remote: remote);
+
+      await sdk.uploadPersonalAgentContext(
+        setupId: 'setup-1',
+        content: 'Jane Doe personal context',
+        contextKey: 'ctx-1',
+      );
+
+      expect(remote.uploadedSetupId, 'setup-1');
+      expect(remote.uploadedContent, 'Jane Doe personal context');
+      expect(remote.uploadedContextKey, 'ctx-1');
+    });
   });
+}
+
+class _CapturingUploadRemote extends _StaticRemote {
+  _CapturingUploadRemote()
+    : super(
+        response: const <String, dynamic>{
+          'holder_did': 'did:key:zHolder',
+          'context_id': 'ctx-1',
+          'context_created': true,
+          'agent_did': 'did:key:zAgent',
+          'agent_created': true,
+          'profile': <String, dynamic>{
+            'agent_did': 'did:key:zAgent',
+            'display_name': 'Personal AI',
+            'mode': 'auto_reply',
+          },
+        },
+      );
+
+  String? uploadedSetupId;
+  String? uploadedContent;
+  String? uploadedContextKey;
+
+  @override
+  Future<Map<String, dynamic>> uploadPersonalAgentContext({
+    required String setupId,
+    required String content,
+    String? contextKey,
+  }) async {
+    uploadedSetupId = setupId;
+    uploadedContent = content;
+    uploadedContextKey = contextKey;
+    return <String, dynamic>{
+      'setup_id': setupId,
+      'provisioned': true,
+      'item_count': 1,
+    };
+  }
 }
 
 class _StaticRemote implements PersonalAgentSetupRemote {
@@ -117,6 +170,7 @@ class _StaticRemote implements PersonalAgentSetupRemote {
   Future<Map<String, dynamic>> uploadPersonalAgentContext({
     required String setupId,
     required String content,
+    String? contextKey,
   }) async {
     return <String, dynamic>{
       'setup_id': setupId,

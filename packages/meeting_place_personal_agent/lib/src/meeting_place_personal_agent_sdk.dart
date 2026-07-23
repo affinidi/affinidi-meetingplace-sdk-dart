@@ -46,6 +46,7 @@ class MeetingPlacePersonalAgentSDK {
   Future<PersonalAgentContextStatus> uploadPersonalAgentContext({
     required String setupId,
     required String content,
+    String? contextKey,
   }) async {
     final normalized = setupId.trim();
     if (normalized.isEmpty) {
@@ -63,6 +64,7 @@ class MeetingPlacePersonalAgentSDK {
     final response = await remote.uploadPersonalAgentContext(
       setupId: normalized,
       content: content.trim(),
+      contextKey: contextKey?.trim(),
     );
     return PersonalAgentContextStatus.fromJson(response);
   }

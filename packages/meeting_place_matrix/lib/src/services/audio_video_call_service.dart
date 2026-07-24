@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:meeting_place_core/meeting_place_core.dart' show Channel;
 
 import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
@@ -255,13 +256,52 @@ class AudioVideoCallService {
             name: _logKey,
           );
           await _coordinator.leaveCall();
-          await _room.disconnect();
-          succeeded = true;
-          await _joinCall(
+          final freshSessionPreparation = await _coordinator.prepareCallSession(
+            didManager: didManager,
+            matrixRoomId: matrixRoomId,
             isRecipient: isRecipient,
-            mediaType: mediaType,
             allowRejoin: false,
           );
+          _setState(_state.copyWith(callId: freshSessionPreparation.callId));
+          if (_isDisposed || _isTearingDown) {
+            _logger.info(
+              'joinCall: Fresh stale-rejoin retry cancelled before register',
+              name: _logKey,
+            );
+            await _coordinator.leaveCall();
+            return;
+          }
+          await _coordinator.registerMatrixCall(
+            didManager: didManager,
+            matrixRoomId: matrixRoomId,
+            callId: freshSessionPreparation.callId,
+            sfuUrl: sfuUrl,
+            roomName: roomName,
+          );
+          if (_isDisposed) {
+            _logger.info(
+              'joinCall: Skipping fresh invite, service disposed',
+              name: _logKey,
+            );
+            await _coordinator.leaveCall();
+            return;
+          }
+          if (_isTearingDown) {
+            _logger.info(
+              'joinCall: Call declined before fresh invite, skipping',
+              name: _logKey,
+            );
+            await _coordinator.leaveCall();
+            return;
+          }
+          errorCode = AudioVideoCallErrorCode.callInviteFailed;
+          await _startOutgoingRinging(
+            channel: channel,
+            matrixRoomId: matrixRoomId,
+            mediaType: mediaType,
+            ownRole: ownRole,
+          );
+          succeeded = true;
           return;
         }
         _logger.info(
@@ -271,26 +311,11 @@ class AudioVideoCallService {
         await _setupRecipientCall(ownRole: ownRole);
       } else if (ownRole == CallRole.caller) {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
-        await _coordinator.sendCallInvite(
+        await _startOutgoingRinging(
           channel: channel,
           matrixRoomId: matrixRoomId,
           mediaType: mediaType,
-        );
-        _logger.info(
-          'joinCall: Caller ringing, invite sent, starting outgoing ring '
-          'timer (${_outgoingCallTimeout.inSeconds}s)',
-          name: _logKey,
-        );
-        _setState(
-          _state.copyWith(
-            status: AudioVideoCallStatus.outgoingRinging,
-            participants: _room.participants,
-            ownRole: ownRole,
-          ),
-        );
-        _outgoingCallTimer = Timer(
-          _outgoingCallTimeout,
-          _onOutgoingCallTimeout,
+          ownRole: ownRole,
         );
       } else {
         await _setupRecipientCall();
@@ -485,6 +510,32 @@ class AudioVideoCallService {
   }
 
   bool get _hasPeer => _room.participants.any((p) => !p.isSelf);
+
+  Future<void> _startOutgoingRinging({
+    required Channel channel,
+    required String matrixRoomId,
+    required CallMediaType mediaType,
+    required CallRole ownRole,
+  }) async {
+    await _coordinator.sendCallInvite(
+      channel: channel,
+      matrixRoomId: matrixRoomId,
+      mediaType: mediaType,
+    );
+    _logger.info(
+      'joinCall: Caller ringing, invite sent, starting outgoing ring '
+      'timer (${_outgoingCallTimeout.inSeconds}s)',
+      name: _logKey,
+    );
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.outgoingRinging,
+        participants: _room.participants,
+        ownRole: ownRole,
+      ),
+    );
+    _outgoingCallTimer = Timer(_outgoingCallTimeout, _onOutgoingCallTimeout);
+  }
 
   Future<void> _enableLocalMedia({
     CallMediaType mediaType = CallMediaType.video,

@@ -578,10 +578,22 @@ void main() {
 
         await svc.joinCall(mediaType: CallMediaType.video);
 
-        expect(room.callOrder, containsAllInOrder(['connect', 'disconnect']));
-        expect(room.connectCalls, 2);
-        expect(room.disconnectCalls, 1);
+        expect(room.callOrder, containsAllInOrder(['connect', 'nudge']));
+        expect(room.connectCalls, 1);
+        expect(room.disconnectCalls, 0);
         expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
+        final startCallIds = verify(
+          () => mockMatrixService.startCall(
+            didManager: any(named: 'didManager'),
+            roomId: any(named: 'roomId'),
+            callId: captureAny(named: 'callId'),
+            livekitServiceUrl: any(named: 'livekitServiceUrl'),
+            livekitAlias: any(named: 'livekitAlias'),
+          ),
+        ).captured.cast<String>();
+        expect(startCallIds, hasLength(2));
+        expect(startCallIds.first, 'stale-call');
+        expect(startCallIds.last, isNot('stale-call'));
         verify(
           () => mockMatrixService.leaveCall(
             roomId: _matrixRoomId,

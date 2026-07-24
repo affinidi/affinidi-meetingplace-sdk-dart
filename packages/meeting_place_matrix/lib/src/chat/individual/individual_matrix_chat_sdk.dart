@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
-import 'package:meeting_place_core/meeting_place_core.dart'
-    show Channel, PlainTextMessage, VdipClient;
 
 import '../../transport/matrix/incoming/incoming_room_event_router.dart';
 import '../../transport/matrix/outgoing/profile_hash_room_event.dart';
@@ -29,7 +27,6 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   static const String _logkey = 'IndividualMatrixChatSDK';
 
   bool _isSendingChatPresence = false;
-  StreamSubscription<PlainTextMessage>? _vdipMessageSubscription;
 
   @override
   IncomingRoomEventRouter buildRoomEventRouter() =>
@@ -62,18 +59,13 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
 
     unawaited(
       // ignore: body_might_complete_normally_catch_error
-      coreSDK.vdip
-          .subscribe(channel)
-          .then((_) {
-            _subscribeToIssuedCredentials(channel);
-          })
-          .catchError((Object e, StackTrace _) {
-            logger.error(
-              'Error subscribing to VDIP channel: $e',
-              error: e,
-              name: 'sendMessage',
-            );
-          }),
+      coreSDK.vdip.subscribe(channel).catchError((Object e, StackTrace _) {
+        logger.error(
+          'Error subscribing to VDIP channel: $e',
+          error: e,
+          name: 'sendMessage',
+        );
+      }),
     );
 
     unawaited(startChatPresenceUpdates());
@@ -83,8 +75,6 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   @override
   Future<void> endChatSession() async {
     stopChatPresenceInterval();
-    await _vdipMessageSubscription?.cancel();
-    _vdipMessageSubscription = null;
     await coreSDK.vdip.unsubscribe();
     await super.end();
   }
@@ -125,24 +115,6 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
 
   void stopChatPresenceInterval() {
     _isSendingChatPresence = false;
-  }
-
-  void _subscribeToIssuedCredentials(Channel channel) {
-    _vdipMessageSubscription = coreSDK.vdip.incomingMessages
-        .where(
-          (msg) =>
-              msg.type.toString() == VdipClient.issuedCredentialMessageType,
-        )
-        .listen((message) async {
-          final createdTime = message.createdTime?.toUtc();
-          if (createdTime == null) return;
-          final markerStr = channel.messageSyncMarker;
-          final marker = markerStr != null ? DateTime.parse(markerStr) : null;
-          if (marker == null || createdTime.compareTo(marker) > 0) {
-            channel.messageSyncMarker = createdTime.toIso8601String();
-            await coreSDK.updateChannel(channel);
-          }
-        });
   }
 
   @override

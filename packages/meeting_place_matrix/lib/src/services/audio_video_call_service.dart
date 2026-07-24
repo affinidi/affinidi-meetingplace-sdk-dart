@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:meeting_place_core/meeting_place_core.dart' show Channel;
 
 import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
@@ -56,6 +57,7 @@ class AudioVideoCallService {
   }
 
   static const _logKey = 'AudioVideoCallService';
+  static const _callerRejoinPeerGrace = Duration(seconds: 1);
 
   final String otherPartyChannelDid;
   final MeetingPlaceMatrixSDKLogger _logger;
@@ -136,6 +138,14 @@ class AudioVideoCallService {
   Future<void> joinCall({
     bool isRecipient = false,
     CallMediaType mediaType = CallMediaType.video,
+  }) {
+    return _joinCall(isRecipient: isRecipient, mediaType: mediaType);
+  }
+
+  Future<void> _joinCall({
+    bool isRecipient = false,
+    CallMediaType mediaType = CallMediaType.video,
+    bool allowRejoin = true,
   }) async {
     if (_isDisposed) {
       _logger.info('joinCall: Skipping, service disposed', name: _logKey);
@@ -184,6 +194,7 @@ class AudioVideoCallService {
         didManager: didManager,
         matrixRoomId: matrixRoomId,
         isRecipient: isRecipient,
+        allowRejoin: allowRejoin,
       );
       final callId = sessionPreparation.callId;
       final isRejoin = sessionPreparation.isRejoin;
@@ -224,6 +235,75 @@ class AudioVideoCallService {
       }
 
       if (ownRole == CallRole.caller && isRejoin) {
+        final staleRejoin = await _callerRejoinLooksStale();
+        if (_isDisposed) {
+          _logger.info(
+            'joinCall: Skipping rejoin state, service disposed',
+            name: _logKey,
+          );
+          return;
+        }
+        if (_isTearingDown) {
+          _logger.info(
+            'joinCall: Call declined during rejoin, skipping invite',
+            name: _logKey,
+          );
+          return;
+        }
+        if (staleRejoin) {
+          _logger.info(
+            'joinCall: Stale in-progress call detected, retrying as fresh',
+            name: _logKey,
+          );
+          await _coordinator.leaveCall();
+          final freshSessionPreparation = await _coordinator.prepareCallSession(
+            didManager: didManager,
+            matrixRoomId: matrixRoomId,
+            isRecipient: isRecipient,
+            allowRejoin: false,
+          );
+          _setState(_state.copyWith(callId: freshSessionPreparation.callId));
+          if (_isDisposed || _isTearingDown) {
+            _logger.info(
+              'joinCall: Fresh stale-rejoin retry cancelled before register',
+              name: _logKey,
+            );
+            await _coordinator.leaveCall();
+            return;
+          }
+          await _coordinator.registerMatrixCall(
+            didManager: didManager,
+            matrixRoomId: matrixRoomId,
+            callId: freshSessionPreparation.callId,
+            sfuUrl: sfuUrl,
+            roomName: roomName,
+          );
+          if (_isDisposed) {
+            _logger.info(
+              'joinCall: Skipping fresh invite, service disposed',
+              name: _logKey,
+            );
+            await _coordinator.leaveCall();
+            return;
+          }
+          if (_isTearingDown) {
+            _logger.info(
+              'joinCall: Call declined before fresh invite, skipping',
+              name: _logKey,
+            );
+            await _coordinator.leaveCall();
+            return;
+          }
+          errorCode = AudioVideoCallErrorCode.callInviteFailed;
+          await _startOutgoingRinging(
+            channel: channel,
+            matrixRoomId: matrixRoomId,
+            mediaType: mediaType,
+            ownRole: ownRole,
+          );
+          succeeded = true;
+          return;
+        }
         _logger.info(
           'joinCall: Rejoining in-progress call, skipping invite and ring',
           name: _logKey,
@@ -231,26 +311,11 @@ class AudioVideoCallService {
         await _setupRecipientCall(ownRole: ownRole);
       } else if (ownRole == CallRole.caller) {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
-        await _coordinator.sendCallInvite(
+        await _startOutgoingRinging(
           channel: channel,
           matrixRoomId: matrixRoomId,
           mediaType: mediaType,
-        );
-        _logger.info(
-          'joinCall: Caller ringing, invite sent, starting outgoing ring '
-          'timer (${_outgoingCallTimeout.inSeconds}s)',
-          name: _logKey,
-        );
-        _setState(
-          _state.copyWith(
-            status: AudioVideoCallStatus.outgoingRinging,
-            participants: _room.participants,
-            ownRole: ownRole,
-          ),
-        );
-        _outgoingCallTimer = Timer(
-          _outgoingCallTimeout,
-          _onOutgoingCallTimeout,
+          ownRole: ownRole,
         );
       } else {
         await _setupRecipientCall();
@@ -446,6 +511,32 @@ class AudioVideoCallService {
 
   bool get _hasPeer => _room.participants.any((p) => !p.isSelf);
 
+  Future<void> _startOutgoingRinging({
+    required Channel channel,
+    required String matrixRoomId,
+    required CallMediaType mediaType,
+    required CallRole ownRole,
+  }) async {
+    await _coordinator.sendCallInvite(
+      channel: channel,
+      matrixRoomId: matrixRoomId,
+      mediaType: mediaType,
+    );
+    _logger.info(
+      'joinCall: Caller ringing, invite sent, starting outgoing ring '
+      'timer (${_outgoingCallTimeout.inSeconds}s)',
+      name: _logKey,
+    );
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.outgoingRinging,
+        participants: _room.participants,
+        ownRole: ownRole,
+      ),
+    );
+    _outgoingCallTimer = Timer(_outgoingCallTimeout, _onOutgoingCallTimeout);
+  }
+
   Future<void> _enableLocalMedia({
     CallMediaType mediaType = CallMediaType.video,
   }) async {
@@ -468,6 +559,12 @@ class AudioVideoCallService {
         name: _logKey,
       );
     }
+  }
+
+  Future<bool> _callerRejoinLooksStale() async {
+    if (_hasPeer) return false;
+    await Future<void>.delayed(_callerRejoinPeerGrace);
+    return !_isDisposed && !_isTearingDown && !_hasPeer;
   }
 
   Future<void> _setupRecipientCall({

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:meeting_place_core/meeting_place_core.dart' show Channel;
 
 import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
@@ -178,14 +179,6 @@ class AudioVideoCallService {
   Future<void> joinCall({
     bool isRecipient = false,
     CallMediaType mediaType = CallMediaType.video,
-  }) {
-    return _joinCall(isRecipient: isRecipient, mediaType: mediaType);
-  }
-
-  Future<void> _joinCall({
-    bool isRecipient = false,
-    CallMediaType mediaType = CallMediaType.video,
-    bool allowRejoin = true,
   }) async {
     if (_isDisposed) {
       _logger.info('joinCall: Skipping, service disposed', name: _logKey);
@@ -234,7 +227,6 @@ class AudioVideoCallService {
         didManager: didManager,
         matrixRoomId: matrixRoomId,
         isRecipient: isRecipient,
-        allowRejoin: allowRejoin,
       );
       final callId = sessionPreparation.callId;
       final isRejoin = sessionPreparation.isRejoin;
@@ -296,25 +288,10 @@ class AudioVideoCallService {
         await _setupRecipientCall(ownRole: ownRole);
       } else if (ownRole == CallRole.caller) {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
-        await _coordinator.sendCallInvite(
+        await _startOutgoingRinging(
           channel: channel,
           mediaType: mediaType,
-        );
-        _logger.info(
-          'joinCall: Caller ringing, invite sent, starting outgoing ring '
-          'timer (${_outgoingCallTimeout.inSeconds}s)',
-          name: _logKey,
-        );
-        _setState(
-          _state.copyWith(
-            status: AudioVideoCallStatus.outgoingRinging,
-            participants: _room.participants,
-            ownRole: ownRole,
-          ),
-        );
-        _outgoingCallTimer = Timer(
-          _outgoingCallTimeout,
-          _onOutgoingCallTimeout,
+          ownRole: ownRole,
         );
       } else {
         await _setupRecipientCall();
@@ -508,6 +485,27 @@ class AudioVideoCallService {
   }
 
   bool get _hasPeer => _room.participants.any((p) => !p.isSelf);
+
+  Future<void> _startOutgoingRinging({
+    required Channel channel,
+    required CallMediaType mediaType,
+    required CallRole ownRole,
+  }) async {
+    await _coordinator.sendCallInvite(channel: channel, mediaType: mediaType);
+    _logger.info(
+      'joinCall: Caller ringing, invite sent, starting outgoing ring '
+      'timer (${_outgoingCallTimeout.inSeconds}s)',
+      name: _logKey,
+    );
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.outgoingRinging,
+        participants: _room.participants,
+        ownRole: ownRole,
+      ),
+    );
+    _outgoingCallTimer = Timer(_outgoingCallTimeout, _onOutgoingCallTimeout);
+  }
 
   Future<void> _enableLocalMedia({
     CallMediaType mediaType = CallMediaType.video,

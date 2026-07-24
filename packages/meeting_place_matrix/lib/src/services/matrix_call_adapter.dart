@@ -197,20 +197,17 @@ class MatrixCallAdapter {
     required DidManager didManager,
     required String matrixRoomId,
     required bool isRecipient,
-    bool allowRejoin = true,
   }) async {
     await _matrixService.initializeVoIPWithDelegate(
       didManager: didManager,
       delegate: _rtcDelegate,
     );
 
-    final existingCallId = allowRejoin
-        ? await _resolveExistingCallId(
-            didManager: didManager,
-            roomId: matrixRoomId,
-            isRecipient: isRecipient,
-          )
-        : null;
+    final existingCallId = await _resolveExistingCallId(
+      didManager: didManager,
+      roomId: matrixRoomId,
+      isRecipient: isRecipient,
+    );
     final isRejoin = existingCallId != null;
     final callId = existingCallId ?? _createCallId(matrixRoomId);
     _matrixRoomId = matrixRoomId;

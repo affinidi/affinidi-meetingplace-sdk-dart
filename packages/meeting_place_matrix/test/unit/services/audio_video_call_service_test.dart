@@ -674,6 +674,17 @@ void main() {
       expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
       expect(svc.state.callId, isNot('ghost-membership-call'));
       expect(svc.state.callId, startsWith(_matrixRoomId));
+      final startCallIds = verify(
+        () => mockMatrixService.startCall(
+          didManager: any(named: 'didManager'),
+          roomId: any(named: 'roomId'),
+          callId: captureAny(named: 'callId'),
+          livekitServiceUrl: any(named: 'livekitServiceUrl'),
+          livekitAlias: any(named: 'livekitAlias'),
+        ),
+      ).captured.cast<String>();
+      expect(startCallIds, hasLength(1));
+      expect(startCallIds.single, isNot('ghost-membership-call'));
       verify(
         () => mockMatrixService.leaveCall(
           roomId: _matrixRoomId,

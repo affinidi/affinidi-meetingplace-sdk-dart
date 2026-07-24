@@ -153,7 +153,34 @@ void main() {
         expect(captured.offerLink, 'offer://group');
         expect(captured.groupDid, 'did:group');
         expect(captured.type, 'chat-activity');
+        expect(captured.memberDid, isNull);
         verifyNever(() => channelService.findChannelByDidOrNull(any()));
+      });
+
+      test('threads memberDid to GroupNotifyChannelCommand when set', () async {
+        when(
+          () => controlPlaneSDK.execute<GroupNotifyChannelCommandOutput>(any()),
+        ).thenAnswer(
+          (_) async => GroupNotifyChannelCommandOutput(success: true),
+        );
+
+        await service.notifyChannel(
+          const GroupChannelNotification(
+            offerLink: 'offer://group',
+            groupDid: 'did:group',
+            type: 'call-invite-video',
+            memberDid: 'did:bob',
+          ),
+        );
+
+        final captured =
+            verify(
+                  () => controlPlaneSDK
+                      .execute<GroupNotifyChannelCommandOutput>(captureAny()),
+                ).captured.single
+                as GroupNotifyChannelCommand;
+        expect(captured.memberDid, 'did:bob');
+        expect(captured.type, 'call-invite-video');
       });
 
       test('wraps failure in MessageServiceException', () async {

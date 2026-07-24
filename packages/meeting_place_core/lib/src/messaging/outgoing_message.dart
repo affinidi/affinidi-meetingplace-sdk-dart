@@ -42,6 +42,7 @@ class GroupChannelNotification extends ChannelNotification {
     required this.offerLink,
     required this.groupDid,
     required super.type,
+    this.memberDid,
   });
 
   /// The Offer link associated with the group chat.
@@ -49,6 +50,9 @@ class GroupChannelNotification extends ChannelNotification {
 
   /// The channel DID for the group chat.
   final String groupDid;
+
+  /// When set, notify only this single group member instead of all members.
+  final String? memberDid;
 }
 
 /// An [OutgoingMessage] routed through the DIDComm transport.

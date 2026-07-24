@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
+import 'package:meeting_place_matrix/src/call/call_channel_activity_type.dart';
 import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
 import 'package:meeting_place_matrix/src/matrix_room_event.dart';
 import 'package:meeting_place_matrix/src/matrix_subscription_options.dart';
@@ -39,6 +40,9 @@ void main() {
     registerFallbackValue(FakeDidManager());
     registerFallbackValue(FakeChannel());
     registerFallbackValue(const MatrixSubscriptionOptions());
+    registerFallbackValue(
+      const GroupChannelNotification(offerLink: '', groupDid: '', type: ''),
+    );
   });
 
   group('isSupported', () {
@@ -84,6 +88,74 @@ void main() {
     test('completes without throwing for an unknown callId', () async {
       final plugin = _plugin();
       await expectLater(plugin.declineCall(callId: 'unknown-call'), completes);
+    });
+  });
+
+  group('ringGroupMember', () {
+    test('sends a targeted group call-invite notification', () async {
+      final plugin = _plugin();
+      final sdk = MockMeetingPlaceMatrixSDK();
+      when(() => sdk.matrixService).thenReturn(MockMatrixService());
+      when(() => sdk.callSignals).thenAnswer((_) => const Stream.empty());
+      when(
+        () => sdk.getChannelByOtherPartyPermanentDid('did:group'),
+      ).thenAnswer(
+        (_) async => Channel(
+          offerLink: 'offer://group',
+          publishOfferDid: 'did:key:publishOffer',
+          mediatorDid: 'did:key:mediator',
+          status: ChannelStatus.inaugurated,
+          contactCard: ContactCard(
+            did: 'did:key:contact',
+            type: 'group',
+            contactInfo: const {},
+          ),
+          type: ChannelType.group,
+          isConnectionInitiator: false,
+          permanentChannelDid: 'did:group',
+          otherPartyPermanentChannelDid: 'did:group',
+        ),
+      );
+      when(() => sdk.notifyChannel(any())).thenAnswer((_) async {});
+      plugin.initialize(sdk: sdk);
+      addTearDown(plugin.dispose);
+
+      await plugin.ringGroupMember(
+        groupChannelDid: 'did:group',
+        memberDid: 'did:bob',
+        mediaType: CallMediaType.video,
+      );
+
+      final captured = verify(
+        () => sdk.notifyChannel(captureAny()),
+      ).captured.single;
+      expect(captured, isA<GroupChannelNotification>());
+      final notification = captured as GroupChannelNotification;
+      expect(notification.memberDid, 'did:bob');
+      expect(notification.groupDid, 'did:group');
+      expect(notification.offerLink, 'offer://group');
+      expect(notification.type, CallChannelActivityType.callInviteVideo);
+    });
+
+    test('throws when the channel is not a group', () async {
+      final plugin = _plugin();
+      final sdk = MockMeetingPlaceMatrixSDK();
+      when(() => sdk.matrixService).thenReturn(MockMatrixService());
+      when(() => sdk.callSignals).thenAnswer((_) => const Stream.empty());
+      when(
+        () => sdk.getChannelByOtherPartyPermanentDid('did:group'),
+      ).thenAnswer((_) async => null);
+      plugin.initialize(sdk: sdk);
+      addTearDown(plugin.dispose);
+
+      await expectLater(
+        plugin.ringGroupMember(
+          groupChannelDid: 'did:group',
+          memberDid: 'did:bob',
+          mediaType: CallMediaType.video,
+        ),
+        throwsA(isA<MeetingPlaceLiveKitCallMisconfiguredException>()),
+      );
     });
   });
 

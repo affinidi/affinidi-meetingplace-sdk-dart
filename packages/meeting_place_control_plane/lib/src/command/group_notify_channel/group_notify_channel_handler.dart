@@ -67,7 +67,8 @@ class GroupNotifyChannelHandler
     final builder = GroupNotifyChannelInputBuilder()
       ..offerLink = command.offerLink
       ..groupDid = command.groupDid
-      ..type = command.type;
+      ..type = command.type
+      ..memberDid = command.memberDid;
 
     try {
       _logger.info(

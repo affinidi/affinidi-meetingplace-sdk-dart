@@ -13,6 +13,8 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
   final String groupDid;
   @override
   final String type;
+  @override
+  final String? memberDid;
 
   factory _$GroupNotifyChannelInput([
     void Function(GroupNotifyChannelInputBuilder)? updates,
@@ -22,6 +24,7 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
     required this.offerLink,
     required this.groupDid,
     required this.type,
+    this.memberDid,
   }) : super._();
   @override
   GroupNotifyChannelInput rebuild(
@@ -38,7 +41,8 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
     return other is GroupNotifyChannelInput &&
         offerLink == other.offerLink &&
         groupDid == other.groupDid &&
-        type == other.type;
+        type == other.type &&
+        memberDid == other.memberDid;
   }
 
   @override
@@ -47,6 +51,7 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
     _$hash = $jc(_$hash, offerLink.hashCode);
     _$hash = $jc(_$hash, groupDid.hashCode);
     _$hash = $jc(_$hash, type.hashCode);
+    _$hash = $jc(_$hash, memberDid.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -56,7 +61,8 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
     return (newBuiltValueToStringHelper(r'GroupNotifyChannelInput')
           ..add('offerLink', offerLink)
           ..add('groupDid', groupDid)
-          ..add('type', type))
+          ..add('type', type)
+          ..add('memberDid', memberDid))
         .toString();
   }
 }
@@ -78,6 +84,10 @@ class GroupNotifyChannelInputBuilder
   String? get type => _$this._type;
   set type(String? type) => _$this._type = type;
 
+  String? _memberDid;
+  String? get memberDid => _$this._memberDid;
+  set memberDid(String? memberDid) => _$this._memberDid = memberDid;
+
   GroupNotifyChannelInputBuilder() {
     GroupNotifyChannelInput._defaults(this);
   }
@@ -88,6 +98,7 @@ class GroupNotifyChannelInputBuilder
       _offerLink = $v.offerLink;
       _groupDid = $v.groupDid;
       _type = $v.type;
+      _memberDid = $v.memberDid;
       _$v = null;
     }
     return this;
@@ -125,6 +136,7 @@ class GroupNotifyChannelInputBuilder
             r'GroupNotifyChannelInput',
             'type',
           ),
+          memberDid: memberDid,
         );
     replace(_$result);
     return _$result;

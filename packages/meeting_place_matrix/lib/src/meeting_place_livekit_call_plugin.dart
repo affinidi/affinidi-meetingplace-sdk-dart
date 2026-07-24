@@ -259,6 +259,39 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
     await _activeCallSessionManager.leaveCurrentCall();
   }
 
+  @override
+  Future<void> ringGroupMember({
+    required String groupChannelDid,
+    required String memberDid,
+    required CallMediaType mediaType,
+  }) async {
+    _logger.info(
+      'ringGroupMember: ${memberDid.topAndTail()} in group '
+      '${groupChannelDid.topAndTail()}',
+      name: _logKey,
+    );
+    final sdk = _requireSdk();
+    final channel = await sdk.getChannelByOtherPartyPermanentDid(
+      groupChannelDid,
+    );
+    if (channel == null || !channel.isGroup) {
+      throw MeetingPlaceLiveKitCallMisconfiguredException(
+        'ringGroupMember requires an existing group channel for '
+        '${groupChannelDid.topAndTail()}.',
+      );
+    }
+    await sdk.notifyChannel(
+      GroupChannelNotification(
+        offerLink: channel.offerLink,
+        groupDid: groupChannelDid,
+        type: mediaType == CallMediaType.audio
+            ? CallChannelActivityType.callInviteAudio
+            : CallChannelActivityType.callInviteVideo,
+        memberDid: memberDid,
+      ),
+    );
+  }
+
   MeetingPlaceMatrixSDK _requireSdk() {
     final sdk = _sdk;
     if (sdk == null) {

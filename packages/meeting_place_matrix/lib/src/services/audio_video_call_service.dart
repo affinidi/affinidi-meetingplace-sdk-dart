@@ -178,6 +178,14 @@ class AudioVideoCallService {
   Future<void> joinCall({
     bool isRecipient = false,
     CallMediaType mediaType = CallMediaType.video,
+  }) {
+    return _joinCall(isRecipient: isRecipient, mediaType: mediaType);
+  }
+
+  Future<void> _joinCall({
+    bool isRecipient = false,
+    CallMediaType mediaType = CallMediaType.video,
+    bool allowRejoin = true,
   }) async {
     if (_isDisposed) {
       _logger.info('joinCall: Skipping, service disposed', name: _logKey);
@@ -226,6 +234,7 @@ class AudioVideoCallService {
         didManager: didManager,
         matrixRoomId: matrixRoomId,
         isRecipient: isRecipient,
+        allowRejoin: allowRejoin,
       );
       final callId = sessionPreparation.callId;
       final isRejoin = sessionPreparation.isRejoin;
@@ -243,15 +252,15 @@ class AudioVideoCallService {
       final ownRole = isRecipient ? CallRole.recipient : CallRole.caller;
 
       final isGhostRejoin = ownRole == CallRole.caller && isRejoin && !_hasPeer;
-      final effectiveCallId = isGhostRejoin
-          ? _coordinator.assignFreshCallId(matrixRoomId)
-          : callId;
+      var effectiveCallId = callId;
       if (isGhostRejoin) {
         _logger.info(
           'joinCall: Discovered a stale call membership with no live peer, '
           'minting a fresh callId',
           name: _logKey,
         );
+        await _coordinator.leaveCall();
+        effectiveCallId = _coordinator.assignFreshCallId(matrixRoomId);
       }
 
       _setState(_state.copyWith(ownRole: ownRole, callId: effectiveCallId));

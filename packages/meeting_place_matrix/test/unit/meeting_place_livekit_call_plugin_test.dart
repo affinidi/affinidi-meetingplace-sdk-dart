@@ -118,6 +118,7 @@ void main() {
       );
       when(() => sdk.notifyChannel(any())).thenAnswer((_) async {});
       plugin.initialize(sdk: sdk);
+      addTearDown(plugin.dispose);
 
       await plugin.ringGroupMember(
         groupChannelDid: 'did:group',
@@ -145,6 +146,7 @@ void main() {
         () => sdk.getChannelByOtherPartyPermanentDid('did:group'),
       ).thenAnswer((_) async => null);
       plugin.initialize(sdk: sdk);
+      addTearDown(plugin.dispose);
 
       await expectLater(
         plugin.ringGroupMember(

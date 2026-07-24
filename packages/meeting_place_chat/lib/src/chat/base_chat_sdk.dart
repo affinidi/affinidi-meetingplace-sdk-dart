@@ -159,16 +159,6 @@ abstract class BaseChatSDK {
     return chatRepository.getMessage(chatId: chatId, messageId: messageId);
   }
 
-  /// Returns the call chat item whose transport [callId] matches, or `null`
-  /// if none exists. Uses the targeted indexed lookup.
-  Future<ChatItem?> getCallChatItemByCallId(String callId) {
-    _logger.info('Retrieving call item for callId: $callId', name: _logkey);
-    return chatRepository.getCallChatItemByCallId(
-      chatId: chatId,
-      callId: callId,
-    );
-  }
-
   /// Stream of live chat events ([StreamData]) for this session.
   Stream<StreamData> get stream => chatStream.stream;
 

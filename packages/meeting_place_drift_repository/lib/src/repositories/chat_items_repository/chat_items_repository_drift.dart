@@ -105,7 +105,6 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                   json: Value(attachment.data?.json),
                   transportId: Value(attachment.transportId),
                   metadata: Value(_encodeMetadata(attachment.metadata)),
-                  callId: Value(_extractCallId(attachment.metadata)),
                 ),
               );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -401,7 +400,6 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
                   json: Value(attachment.data?.json),
                   transportId: Value(attachment.transportId),
                   metadata: Value(_encodeMetadata(attachment.metadata)),
-                  callId: Value(_extractCallId(attachment.metadata)),
                 ),
               );
           for (final link in (attachment.data?.links ?? <Uri>[])) {
@@ -556,32 +554,6 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   }
 
   @override
-  Future<model.ChatItem?> getCallChatItemByCallId({
-    required String chatId,
-    required String callId,
-  }) async {
-    final join =
-        await (_database.select(_database.chatItems).join([
-                innerJoin(
-                  _database.attachments,
-                  _database.attachments.messageId.equalsExp(
-                    _database.chatItems.messageId,
-                  ),
-                ),
-              ])
-              ..where(
-                _database.chatItems.chatId.equals(chatId) &
-                    _database.attachments.callId.equals(callId),
-              )
-              ..limit(1))
-            .getSingleOrNull();
-
-    if (join == null) return null;
-    final messageId = join.readTable(_database.chatItems).messageId;
-    return getMessage(chatId: chatId, messageId: messageId);
-  }
-
-  @override
   Future<String?> getSyncMarker(String chatId) async {
     final row = await (_database.select(
       _database.chatSyncMarkers,
@@ -733,14 +705,6 @@ class _ChatItemMapper {
       code: MeetingPlaceCoreRepositoryErrorCode.unsupportedMessageType,
     );
   }
-}
-
-/// Extracts the `call_id` from call attachment [metadata], or `null` for
-/// non-call attachments and attachments with no call ID.
-String? _extractCallId(Map<String, dynamic>? metadata) {
-  if (metadata?['media_kind'] != 'call') return null;
-  final id = metadata?['call_id'];
-  return (id is String && id.isNotEmpty) ? id : null;
 }
 
 /// Encodes extensible attachment [metadata] to a JSON string for persistence,

@@ -129,20 +129,6 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Future<ChatItem?> getCallChatItemByCallId({
-    required String chatId,
-    required String callId,
-  }) async {
-    final messages = await listMessages(chatId);
-    return messages.whereType<Message>().cast<ChatItem?>().firstWhere(
-      (m) => (m as Message).attachments.any(
-        (a) => a.metadata?['call_id'] == callId,
-      ),
-      orElse: () => null,
-    );
-  }
-
-  @override
   Future<String?> getSyncMarker(String chatId) async {
     return _syncMarkers[chatId];
   }

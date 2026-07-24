@@ -485,6 +485,7 @@ void main() {
           callItemEvent.content[MatrixEventField.callMetadata],
           callMetadata,
         );
+        expect(callItemEvent.notification, isNull);
         expect(message.attachments, hasLength(1));
         expect(message.attachments.first.metadata, callMetadata);
       },

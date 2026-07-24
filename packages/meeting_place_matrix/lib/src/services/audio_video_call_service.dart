@@ -109,14 +109,14 @@ class AudioVideoCallService {
     final roomId = _coordinator.matrixRoomId;
     final callId = _coordinator.matrixCallId;
     try {
-      _logger.info('dispose: Disconnecting LiveKit room', name: _logKey);
-      await _room.disconnect();
-      _logger.info('dispose: LiveKit disconnect complete', name: _logKey);
       if (roomId != null && callId != null) {
         _logger.info('dispose: Leaving Matrix call', name: _logKey);
         await _coordinator.leaveCall();
         _logger.info('dispose: Matrix leave complete', name: _logKey);
       }
+      _logger.info('dispose: Disconnecting LiveKit room', name: _logKey);
+      await _room.disconnect();
+      _logger.info('dispose: LiveKit disconnect complete', name: _logKey);
     } catch (e, stackTrace) {
       _logger.warning(
         'dispose: Error during teardown: $e\n$stackTrace',
@@ -158,9 +158,9 @@ class AudioVideoCallService {
         _e2eeReadyTimer?.cancel();
         _e2eeReadyTimer = null;
       case LeaveMatrixCall():
-        unawaited(_coordinator.leaveCall());
+        await _coordinator.leaveCall();
       case DisconnectRoom():
-        unawaited(_room.disconnect());
+        await _room.disconnect();
       case SendCallCancel():
         unawaited(_coordinator.sendCallCancelToRecipient());
       case SendCallOutcome(:final callId, :final startedAt):
@@ -185,7 +185,7 @@ class AudioVideoCallService {
     }
     _e2eeHandler.reset();
     if (!isRecipient) {
-      unawaited(_coordinator.primeCancelTarget());
+      unawaited(_coordinator.prepareCancelTarget());
     }
     _setState(
       _state.copyWith(
@@ -241,13 +241,26 @@ class AudioVideoCallService {
       );
 
       final ownRole = isRecipient ? CallRole.recipient : CallRole.caller;
-      _setState(_state.copyWith(ownRole: ownRole, callId: callId));
+
+      final isGhostRejoin = ownRole == CallRole.caller && isRejoin && !_hasPeer;
+      final effectiveCallId = isGhostRejoin
+          ? _coordinator.assignFreshCallId(matrixRoomId)
+          : callId;
+      if (isGhostRejoin) {
+        _logger.info(
+          'joinCall: Discovered a stale call membership with no live peer, '
+          'minting a fresh callId',
+          name: _logKey,
+        );
+      }
+
+      _setState(_state.copyWith(ownRole: ownRole, callId: effectiveCallId));
 
       await _enableLocalMedia(mediaType: mediaType);
       await _coordinator.registerMatrixCall(
         didManager: didManager,
         matrixRoomId: matrixRoomId,
-        callId: callId,
+        callId: effectiveCallId,
         sfuUrl: sfuUrl,
         roomName: roomName,
       );
@@ -265,9 +278,10 @@ class AudioVideoCallService {
         return;
       }
 
-      if (ownRole == CallRole.caller && isRejoin) {
+      if (ownRole == CallRole.caller && isRejoin && _hasPeer) {
         _logger.info(
-          'joinCall: Rejoining in-progress call, skipping invite and ring',
+          'joinCall: Joining in-progress call with a live peer, skipping '
+          'invite and ring',
           name: _logKey,
         );
         await _setupRecipientCall(ownRole: ownRole);
@@ -275,7 +289,6 @@ class AudioVideoCallService {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
         await _coordinator.sendCallInvite(
           channel: channel,
-          matrixRoomId: matrixRoomId,
           mediaType: mediaType,
         );
         _logger.info(

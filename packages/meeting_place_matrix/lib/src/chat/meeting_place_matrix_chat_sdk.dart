@@ -313,7 +313,6 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       final outgoing = CallItemRoomEvent(
         senderDid: did,
         metadata: attachments.first.metadata ?? {},
-        notification: notification,
       );
       message = await _sendRoomEventMessage(outgoing, attachments: attachments);
       logger.info(

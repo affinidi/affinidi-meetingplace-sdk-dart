@@ -1,13 +1,8 @@
 /// Matrix room event type constants for MPX call signalling.
 ///
 /// The caller writes these events to the shared Matrix room so the recipient
-/// can read the call parameters (e.g. media type) when processing a
-/// control-plane `call-invite` nudge.
+/// can reconcile call state (e.g. cancellation, outcome) from the timeline.
 abstract final class MpxCallEventType {
-  /// Timeline event written by the caller that carries the call invite
-  /// parameters, including the call's media type.
-  static const String callInvite = 'mpx.call.invite';
-
   /// Timeline event written by the caller when a pending call is cancelled
   /// before the recipient answers.
   static const String callCancel = 'mpx.call.cancel';

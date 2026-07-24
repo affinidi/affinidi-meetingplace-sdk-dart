@@ -441,6 +441,71 @@ void main() {
         expect(cancelled.single.mediaType, CallMediaType.audio);
       },
     );
+
+    test(
+      'drops a buffered invite that arrives after a pre-emptive decline',
+      () async {
+        when(
+          () => sdk.getChannelByDid(_ownDid),
+        ).thenAnswer((_) async => _channel());
+
+        final incoming = <IncomingAudioVideoCallEvent>[];
+        final cancelled = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(
+          emittedIncoming: incoming,
+          emittedCancelled: cancelled,
+        );
+
+        await handler.onCallDeclineSignal(
+          const CallDeclineSignal(
+            ownChannelDid: _ownDid,
+            otherPartyPermanentChannelDid: _callerDid,
+          ),
+        );
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        expect(cancelled, hasLength(1));
+        expect(incoming, isEmpty);
+      },
+    );
+
+    test(
+      'allows the next fresh invite after a buffered invite was dropped',
+      () async {
+        when(
+          () => sdk.getChannelByDid(_ownDid),
+        ).thenAnswer((_) async => _channel());
+
+        final incoming = <IncomingAudioVideoCallEvent>[];
+        final cancelled = <IncomingAudioVideoCallEvent>[];
+        final handler = callSignalHandler(
+          emittedIncoming: incoming,
+          emittedCancelled: cancelled,
+        );
+
+        await handler.onCallDeclineSignal(
+          const CallDeclineSignal(
+            ownChannelDid: _ownDid,
+            otherPartyPermanentChannelDid: _callerDid,
+          ),
+        );
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        await handler.onIncomingCallSignal(
+          const IncomingCallSignal(ownChannelDid: _ownDid),
+        );
+
+        expect(cancelled, hasLength(1));
+        expect(incoming, hasLength(1));
+        expect(incoming.single.callerPermanentChannelDid, _callerDid);
+      },
+    );
   });
 
   group('_resolveIncomingCallId roomId fallback', () {

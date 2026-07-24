@@ -130,7 +130,7 @@ class LiveKitCallSession implements AudioVideoCallSession {
 
   /// True while this session is still dialling [channelDid] and has not yet
   /// connected. Used by [CallSignalHandler] to detect a simultaneous call
-  /// (both parties dialled each other at the same time).
+  /// (both peers dialled simultaneously).
   bool isDiallingTo(String channelDid) =>
       otherPartyChannelDid == channelDid &&
       const {

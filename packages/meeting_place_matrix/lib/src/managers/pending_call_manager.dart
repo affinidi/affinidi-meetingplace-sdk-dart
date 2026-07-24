@@ -15,8 +15,17 @@ typedef PendingCallDetails = ({
 });
 
 class PendingCallManager {
+  PendingCallManager({
+    Duration preemptiveDeclineWindow = const Duration(seconds: 2),
+    DateTime Function() now = DateTime.now,
+  }) : _preemptiveDeclineWindow = preemptiveDeclineWindow,
+       _now = now;
+
   final Map<String, PendingCallDetails> _pendingCalls = {};
   final Set<String> _pendingIncomingReservations = {};
+  final Map<String, DateTime> _preemptiveDeclines = {};
+  final Duration _preemptiveDeclineWindow;
+  final DateTime Function() _now;
   String? _activeCallId;
   bool _outboundActive = false;
   String? _acceptedOtherPartyChannelDid;
@@ -101,6 +110,26 @@ class PendingCallManager {
   /// Clears a reserved incoming call for [otherPartyChannelDid], if present.
   void cancelReservedIncomingCall(String otherPartyChannelDid) {
     releaseIncomingReservation(otherPartyChannelDid);
+  }
+
+  /// Records a decline that arrived before its incoming call was registered.
+  ///
+  /// A pending-notification replay can deliver a caller's cancel ahead of the
+  /// buffered invite. Recording it lets the invite that follows from the same
+  /// peer be dropped via [consumePreemptiveDecline] instead of ringing anew.
+  void recordPreemptiveDecline(String otherPartyChannelDid) {
+    _preemptiveDeclines[otherPartyChannelDid] = _now();
+  }
+
+  /// Consumes a pre-emptive decline for [otherPartyChannelDid].
+  ///
+  /// Returns true when a decline was recorded within the decline window, in
+  /// which case the incoming call should be dropped. The record is removed
+  /// whether or not it was still within the window.
+  bool consumePreemptiveDecline(String otherPartyChannelDid) {
+    final declinedAt = _preemptiveDeclines.remove(otherPartyChannelDid);
+    if (declinedAt == null) return false;
+    return _now().difference(declinedAt) <= _preemptiveDeclineWindow;
   }
 
   /// Resolves whether [otherPartyChannelDid] is a recipient scenario and

@@ -283,4 +283,32 @@ void main() {
       expect(manager.isInCallWith(_otherPartyDid), isFalse);
     });
   });
+
+  group('preemptive decline', () {
+    test('consume returns false when nothing was recorded', () {
+      expect(manager.consumePreemptiveDecline(_otherPartyDid), isFalse);
+    });
+
+    test('consume returns true within the window then clears the record', () {
+      manager.recordPreemptiveDecline(_otherPartyDid);
+      expect(manager.consumePreemptiveDecline(_otherPartyDid), isTrue);
+      expect(manager.consumePreemptiveDecline(_otherPartyDid), isFalse);
+    });
+
+    test('consume returns false for a different peer', () {
+      manager.recordPreemptiveDecline(_otherPartyDid);
+      expect(manager.consumePreemptiveDecline(_otherPartyDid2), isFalse);
+    });
+
+    test('consume returns false once the window has elapsed', () {
+      var now = DateTime(2026);
+      final windowed = PendingCallManager(
+        preemptiveDeclineWindow: const Duration(seconds: 2),
+        now: () => now,
+      );
+      windowed.recordPreemptiveDecline(_otherPartyDid);
+      now = now.add(const Duration(seconds: 3));
+      expect(windowed.consumePreemptiveDecline(_otherPartyDid), isFalse);
+    });
+  });
 }

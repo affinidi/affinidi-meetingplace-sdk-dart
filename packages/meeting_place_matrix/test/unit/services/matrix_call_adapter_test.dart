@@ -9,6 +9,7 @@ import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
 import 'package:meeting_place_matrix/src/matrix_room_alias.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/matrix_call_adapter.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -283,6 +284,38 @@ void main() {
     });
   });
 
+  group('assignFreshCallId', () {
+    test('mints a fresh call id and replaces the reused identifier', () async {
+      final didManager = MockDidManager();
+      when(
+        () => matrixService.initializeVoIPWithDelegate(
+          didManager: didManager,
+          delegate: any(named: 'delegate'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => matrixService.activeCallId(
+          didManager: didManager,
+          roomId: _matrixRoomId,
+        ),
+      ).thenAnswer((_) async => 'ghost-call-id');
+
+      final prepared = await adapter.prepareCallSession(
+        didManager: didManager,
+        matrixRoomId: _matrixRoomId,
+        isRecipient: false,
+      );
+      expect(prepared.callId, 'ghost-call-id');
+
+      final fresh = adapter.assignFreshCallId(_matrixRoomId);
+
+      expect(fresh, isNot('ghost-call-id'));
+      expect(fresh, startsWith('$_matrixRoomId@'));
+      expect(adapter.matrixCallId, fresh);
+      expect(adapter.matrixRoomId, _matrixRoomId);
+    });
+  });
+
   group('registerMatrixCall and leaveCall', () {
     test('stores identifiers and leaves Matrix call once', () async {
       final didManager = MockDidManager();
@@ -384,8 +417,67 @@ void main() {
   group('sendCallInvite', () {
     test('sends individual call invite with requested media type', () async {
       final channel = _stubChannel();
-      final didManager = MockDidManager();
 
+      when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
+
+      await adapter.sendCallInvite(
+        channel: channel,
+        mediaType: CallMediaType.audio,
+      );
+
+      verify(
+        () => coreSDK.notifyChannel(
+          any(
+            that: isA<IndividualChannelNotification>().having(
+              (n) => n.type,
+              'type',
+              CallChannelActivityType.callInviteAudio,
+            ),
+          ),
+        ),
+      ).called(1);
+      verifyNever(
+        () => matrixService.sendRoomEvent(
+          any(),
+          any(),
+          any(),
+          didManager: any(named: 'didManager'),
+        ),
+      );
+    });
+  });
+
+  group('sendCallOutcome', () {
+    Future<void> primeRoom() async {
+      final didManager = MockDidManager();
+      when(
+        () => matrixService.initializeVoIPWithDelegate(
+          didManager: didManager,
+          delegate: any(named: 'delegate'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => matrixService.activeCallId(
+          didManager: didManager,
+          roomId: _matrixRoomId,
+        ),
+      ).thenAnswer((_) async => null);
+      await adapter.prepareCallSession(
+        didManager: didManager,
+        matrixRoomId: _matrixRoomId,
+        isRecipient: false,
+      );
+    }
+
+    test('posts an ended outcome room event carrying the callId', () async {
+      await primeRoom();
+      final channel = _stubChannel();
+      final didManager = MockDidManager();
+      final startedAt = DateTime.utc(2026, 1, 1, 12);
+
+      when(
+        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+      ).thenAnswer((_) async => channel);
       when(
         () => coreSDK.getDidManager(_ownDid),
       ).thenAnswer((_) async => didManager);
@@ -397,22 +489,35 @@ void main() {
           didManager: any(named: 'didManager'),
         ),
       ).thenAnswer((_) async => 'event-id');
-      when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
-      await adapter.sendCallInvite(
-        channel: channel,
-        matrixRoomId: _matrixRoomId,
-        mediaType: CallMediaType.audio,
-      );
+      await adapter.sendCallOutcome(callId: 'call-42', startedAt: startedAt);
 
-      verify(
+      final captured = verify(
         () => matrixService.sendRoomEvent(
           _matrixRoomId,
+          captureAny(),
+          captureAny(),
+          didManager: any(named: 'didManager'),
+        ),
+      ).captured;
+      expect(captured[0], MpxCallEventType.callOutcome);
+      final content = captured[1] as Map<String, dynamic>;
+      final record = content[MatrixEventField.callOutcome] as Map;
+      expect(record['call_id'], 'call-42');
+      expect(record['outcome'], CallOutcome.ended.name);
+    });
+
+    test('does nothing when no active room is set', () async {
+      await adapter.sendCallOutcome(callId: 'call-42');
+
+      verifyNever(
+        () => matrixService.sendRoomEvent(
+          any(),
           any(),
           any(),
           didManager: any(named: 'didManager'),
         ),
-      ).called(1);
+      );
     });
   });
 
@@ -1080,7 +1185,17 @@ void main() {
           didManager: didManager,
         ),
       ).called(1);
-      verifyNever(() => coreSDK.notifyChannel(any()));
+      verify(
+        () => coreSDK.notifyChannel(
+          any(
+            that: isA<GroupChannelNotification>().having(
+              (notification) => notification.type,
+              'type',
+              CallChannelActivityType.callDecline,
+            ),
+          ),
+        ),
+      ).called(1);
     });
 
     test(

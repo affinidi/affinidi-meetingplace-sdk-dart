@@ -232,6 +232,33 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     return chatRepository.listMessages(chatId);
   }
 
+  /// Returns this device's call chat item for [callId], or `null` when no
+  /// stored item carries it.
+  ///
+  /// Matches the exact [callId] across direction and status, including
+  /// already-settled items. Prefers the device's own outgoing item over an
+  /// incoming one so a caller that already ended its item can still be
+  /// resolved. Scans persisted messages; per-chat call history is bounded.
+  Future<ChatItem?> getCallChatItemByCallId(String callId) async {
+    if (callId.isEmpty) return null;
+    final items = await messages;
+    Message? outgoing;
+    Message? incoming;
+    for (final message in items.whereType<Message>()) {
+      final matches = message.attachments.any(
+        (a) =>
+            CallMetadata.isCall(a) && CallMetadata.maybeOf(a)?.callId == callId,
+      );
+      if (!matches) continue;
+      if (message.isFromMe) {
+        outgoing = message;
+      } else {
+        incoming = message;
+      }
+    }
+    return outgoing ?? incoming;
+  }
+
   @internal
   Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
     final handle = await coreSDK.subscribe(
@@ -313,7 +340,6 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       final outgoing = CallItemRoomEvent(
         senderDid: did,
         metadata: attachments.first.metadata ?? {},
-        notification: notification,
       );
       message = await _sendRoomEventMessage(outgoing, attachments: attachments);
       logger.info(

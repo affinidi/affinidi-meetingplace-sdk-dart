@@ -1326,6 +1326,39 @@ void main() {
         verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
       });
 
+      test('with sinceEventId and M_NOT_FOUND: ignores stale anchor and still '
+          'calls requestHistory forward', () async {
+        const anchorEventId = r'$anchor-event';
+
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).thenThrow(
+          matrix.MatrixException.fromJson(<String, Object?>{
+            'errcode': 'M_NOT_FOUND',
+            'error': 'Event not found.',
+          }),
+        );
+
+        await service.fetchRoomHistory(
+          _testRoomId,
+          didManager: didManager,
+          since: anchorEventId,
+        );
+
+        verify(
+          () => client.getEventContext(_testRoomId, anchorEventId, limit: 0),
+        ).called(1);
+        verifyNever(() => room.prev_batch = any());
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
+
       test('without sinceEventId: calls requestHistory forward without '
           'getEventContext', () async {
         when(() => client.getRoomById(_testRoomId)).thenReturn(room);

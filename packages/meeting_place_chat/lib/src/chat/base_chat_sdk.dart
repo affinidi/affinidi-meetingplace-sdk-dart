@@ -184,7 +184,7 @@ abstract class BaseChatSDK {
   /// Starts periodic chat presence updates.
   Future<void> startChatPresenceUpdates() async {}
 
-  /// Sends a chat presence signal to the other party.
+  /// Sends a chat presence signal to the peer.
   Future<void> sendChatPresence();
 
   /// Triggers a profile update proposal if the local contact card differs from
@@ -241,7 +241,7 @@ abstract class BaseChatSDK {
   Future<Channel> getChannel() async {
     return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
-          'Channel with other party DID ${otherPartyDid.topAndTail()} not '
+          'Channel with peer DID ${otherPartyDid.topAndTail()} not '
           'found',
         ));
   }

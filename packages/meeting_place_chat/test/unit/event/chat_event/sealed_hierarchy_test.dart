@@ -23,6 +23,7 @@ String _describe(ChatEvent event) => switch (event) {
   ChatMemberDeregisteredEvent() => 'ChatMemberDeregisteredEvent',
   ChatRequestIssuanceEvent() => 'ChatRequestIssuanceEvent',
   ChatIssuedCredentialEvent() => 'ChatIssuedCredentialEvent',
+  CallOutcomeChatEvent() => 'CallOutcomeChatEvent',
   UnhandledChatEvent() => 'UnhandledChatEvent',
 };
 
@@ -77,6 +78,7 @@ void main() {
         createdTime: now,
         attachments: const [],
       ),
+      CallOutcomeChatEvent(callId: 'room123@1', outcome: 'ended', endedAt: now),
       const UnhandledChatEvent(type: 'unknown'),
     ];
 

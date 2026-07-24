@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_matrix.dart';
 import '../call/call_channel_activity_type.dart';
@@ -13,7 +14,6 @@ import '../matrix_user_id_binding.dart';
 import '../models/call_credentials.dart';
 import '../models/call_session_preparation.dart';
 import '../models/participant_directory.dart';
-import '../transport/call_invite_room_event.dart';
 import '../transport/matrix/outgoing/call_outcome_room_event.dart';
 import 'sfu_token_service.dart';
 import 'sfu_url_validator.dart';
@@ -87,7 +87,7 @@ class MatrixCallAdapter {
   /// room name.
   ///
   /// Caches the group flag and offer link for consistent invite/cancel routing
-  /// via [primeCancelTarget], so cancel messages route correctly even if the
+  /// via [prepareCancelTarget], so cancel messages route correctly even if the
   /// resolved channel record is not explicitly typed as a group channel.
   ///
   /// Throws [MeetingPlaceLiveKitCallOperationException] when the channel or its
@@ -131,8 +131,8 @@ class MatrixCallAdapter {
   /// awaiting a fresh channel lookup during teardown. Can be called earlier
   /// than [resolveChannel] (before credential resolution) to reduce cancel
   /// latency.
-  Future<void> primeCancelTarget() {
-    return _cancelTargetResolution ??= _primeCancelTarget();
+  Future<void> prepareCancelTarget() {
+    return _cancelTargetResolution ??= _prepareCancelTarget();
   }
 
   /// Fetches all credentials needed to join the LiveKit room: the DID manager,
@@ -209,9 +209,7 @@ class MatrixCallAdapter {
       isRecipient: isRecipient,
     );
     final isRejoin = existingCallId != null;
-    final callId =
-        existingCallId ??
-        '$matrixRoomId@${DateTime.now().microsecondsSinceEpoch}';
+    final callId = existingCallId ?? _createCallId(matrixRoomId);
     _matrixRoomId = matrixRoomId;
     _matrixCallId = callId;
     _logger.info(
@@ -220,6 +218,23 @@ class MatrixCallAdapter {
       name: _logKey,
     );
     return CallSessionPreparation(callId: callId, isRejoin: isRejoin);
+  }
+
+  /// Generates a fresh callId for [matrixRoomId] and stores it as the
+  /// active call.
+  ///
+  /// Used when a caller discovered a stale in-progress membership but no live
+  /// peer is present, so the call must not reuse the ghost call's id. Replaces
+  /// the identifiers set by [prepareCallSession].
+  String assignFreshCallId(String matrixRoomId) {
+    final callId = _createCallId(matrixRoomId);
+    _matrixRoomId = matrixRoomId;
+    _matrixCallId = callId;
+    _logger.info(
+      'Assigned fresh call session: callId=$callId for room $matrixRoomId',
+      name: _logKey,
+    );
+    return callId;
   }
 
   /// Signals the Matrix homeserver that a video call has started.
@@ -246,11 +261,11 @@ class MatrixCallAdapter {
   /// Sends a call-invite nudge via the control-plane pipeline.
   ///
   /// Only sent when the caller is alone; skipped if rejoining an existing call.
-  /// Routes to group channel notification or (for individual calls) room event
-  /// plus channel notification.
+  /// Routes to the group or individual channel notification carrying the media
+  /// type, which the recipient maps to an incoming-call signal. The media type
+  /// is encoded in the notification type, so no timeline event is needed.
   Future<void> sendCallInvite({
     required Channel channel,
-    required String matrixRoomId,
     CallMediaType mediaType = CallMediaType.video,
   }) async {
     if (channel.isGroup) {
@@ -264,31 +279,13 @@ class MatrixCallAdapter {
         ),
       );
     } else {
-      final senderDid = channel.permanentChannelDid!;
-      final event = CallInviteRoomEvent(
-        senderDid: senderDid,
-        mediaType: mediaType,
-        recipientDid: _otherPartyChannelDid,
-      );
-      final didManager = await _coreSDK.getDidManager(senderDid);
-      await _matrixService.sendRoomEvent(
-        matrixRoomId,
-        event.type,
-        event.content,
-        didManager: didManager,
-      );
-      unawaited(
-        _coreSDK.notifyChannel(event.notification!).catchError((
-          Object error,
-          StackTrace st,
-        ) {
-          _logger.error(
-            'Failed to send call-invite notification to control plane.',
-            error: error,
-            stackTrace: st,
-            name: _logKey,
-          );
-        }),
+      await _coreSDK.notifyChannel(
+        IndividualChannelNotification(
+          recipientDid: _otherPartyChannelDid,
+          type: mediaType == CallMediaType.audio
+              ? CallChannelActivityType.callInviteAudio
+              : CallChannelActivityType.callInviteVideo,
+        ),
       );
     }
     _logger.info(
@@ -301,8 +298,13 @@ class MatrixCallAdapter {
   ///
   /// Routes via cached group flag/offer-link; does not await channel lookup
   /// (call session disposes immediately after). Falls back to preparing cancel
-  /// target if not yet resolved. Routes to room event (group) or channel
-  /// notification (individual).
+  /// target if not yet resolved.
+  ///
+  /// Individual calls send the control-plane `call-decline` notification.
+  /// Group calls send the Matrix room event for live foreground correlation
+  /// and also the control-plane `call-decline` notification so members that
+  /// were backgrounded during the call receive it on reopen via the
+  /// pending-notification replay.
   Future<void> sendCallCancelToRecipient() async {
     _logger.info(
       'Sending call-cancel nudge to ${_otherPartyChannelDid.topAndTail()}',
@@ -310,7 +312,7 @@ class MatrixCallAdapter {
     );
     if (_cancelTargetResolution == null) {
       try {
-        await primeCancelTarget();
+        await prepareCancelTarget();
         await sendCallCancelToRecipient();
       } catch (error, stackTrace) {
         _logger.error(
@@ -335,7 +337,6 @@ class MatrixCallAdapter {
           name: _logKey,
         );
       }
-      return;
     }
     final notification = _isGroupCall
         ? GroupChannelNotification(
@@ -447,7 +448,7 @@ class MatrixCallAdapter {
     return channel?.permanentChannelDid;
   }
 
-  /// Resolves whether the call target is a group and caches the group flag.
+  /// Prepares whether the call target is a group and caches the group flag.
   Future<void> _resolveCancelTarget(Channel channel) async {
     _offerLink = channel.offerLink;
     if (channel.isGroup) {
@@ -460,12 +461,17 @@ class MatrixCallAdapter {
 
   /// Prepares the cancel target by looking up the channel if not already
   /// resolved.
-  Future<void> _primeCancelTarget() async {
+  Future<void> _prepareCancelTarget() async {
     final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
       _otherPartyChannelDid,
     );
     if (channel == null) return;
     await _resolveCancelTarget(channel);
+  }
+
+  /// Creates a new callId while preserving the room-scoped prefix contract.
+  String _createCallId(String matrixRoomId) {
+    return '$matrixRoomId@${const Uuid().v4()}';
   }
 
   /// Discovers an in-progress call ID for the room.

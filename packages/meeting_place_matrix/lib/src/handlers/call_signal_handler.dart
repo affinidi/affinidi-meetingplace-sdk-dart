@@ -71,6 +71,14 @@ class CallSignalHandler {
           'Channel ${channel.id} has no otherPartyPermanentChannelDid',
         );
       }
+      if (_pendingCallManager.consumePreemptiveDecline(callerChannelDid)) {
+        _logger.info(
+          'Incoming call from ${callerChannelDid.topAndTail()} was declined '
+          'before it arrived; dropping stale invite',
+          name: _logKey,
+        );
+        return;
+      }
       final shouldReserve = !_pendingCallManager.isBusy;
       if (shouldReserve) {
         final reserved = _pendingCallManager.reserveIncomingCall(
@@ -181,6 +189,7 @@ class CallSignalHandler {
     );
     if (pendingCall == null) {
       _pendingCallManager.cancelReservedIncomingCall(otherPartyChannelDid);
+      _pendingCallManager.recordPreemptiveDecline(otherPartyChannelDid);
     }
     final cancelledEvent = IncomingAudioVideoCallEvent(
       callId: pendingCall?.callId ?? otherPartyChannelDid,

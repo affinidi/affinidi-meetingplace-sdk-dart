@@ -19,6 +19,8 @@ class CallOutcomeHandler {
   }) : _chatStream = chatStream,
        _logger = logger;
 
+  static const _maxRememberedCallOutcomes = 1000;
+
   static const _logKey = 'CallOutcomeHandler';
 
   final ChatStream _chatStream;
@@ -60,6 +62,9 @@ class CallOutcomeHandler {
       return;
     }
     _latestEndedAtByCallId[record.callId] = endedAt;
+    if (_latestEndedAtByCallId.length > _maxRememberedCallOutcomes) {
+      _latestEndedAtByCallId.remove(_latestEndedAtByCallId.keys.first);
+    }
 
     _chatStream.pushData(
       StreamData(

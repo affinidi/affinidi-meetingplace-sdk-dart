@@ -112,10 +112,7 @@ CallTransitionResult _onJoinCompleted(
   if (ownRole == CallRole.recipient) {
     if (hasPeer) {
       return CallTransitionResult(
-        state: nextState.copyWith(
-          status: AudioVideoCallStatus.connected,
-          callStartedAt: DateTime.now(),
-        ),
+        state: nextState.copyWith(status: AudioVideoCallStatus.connected),
         commands: [StartE2eeTimeout()],
       );
     }

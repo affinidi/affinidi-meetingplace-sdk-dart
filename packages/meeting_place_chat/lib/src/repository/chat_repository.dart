@@ -10,7 +10,8 @@ abstract interface class ChatRepository {
   });
 
   /// Returns the call chat item whose [callId] matches, or `null` if none
-  /// exists. Uses a targeted DB lookup — never scans all messages.
+  /// exists. Repository implementations should prefer an indexed or targeted
+  /// lookup when available.
   Future<ChatItem?> getCallChatItemByCallId({
     required String chatId,
     required String callId,

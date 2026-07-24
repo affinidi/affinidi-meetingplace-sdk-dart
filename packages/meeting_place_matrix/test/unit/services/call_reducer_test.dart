@@ -53,7 +53,6 @@ void main() {
           ),
         );
         expect(result.state.status, AudioVideoCallStatus.connected);
-        expect(result.state.callStartedAt, isNotNull);
         expect(result.commands, contains(isA<StartE2eeTimeout>()));
       });
     });
@@ -94,20 +93,15 @@ void main() {
         expect(result.state.status, AudioVideoCallStatus.connected);
       });
 
-      test(
-        'from connected (already connected) → still connected, no status change',
-        () {
-          final result = callTransition(
-            _stateWith(AudioVideoCallStatus.connected),
-            CallPeerJoined(
-              participants: const [],
-              callStartedAt: DateTime(2024),
-            ),
-          );
-          expect(result.state.status, AudioVideoCallStatus.connected);
-          expect(result.commands, isNot(contains(isA<StartE2eeTimeout>())));
-        },
-      );
+      test('from connected (already connected) → still connected, no status '
+          'change', () {
+        final result = callTransition(
+          _stateWith(AudioVideoCallStatus.connected),
+          CallPeerJoined(participants: const [], callStartedAt: DateTime(2024)),
+        );
+        expect(result.state.status, AudioVideoCallStatus.connected);
+        expect(result.commands, isNot(contains(isA<StartE2eeTimeout>())));
+      });
     });
 
     group('CallPeerKeyed', () {

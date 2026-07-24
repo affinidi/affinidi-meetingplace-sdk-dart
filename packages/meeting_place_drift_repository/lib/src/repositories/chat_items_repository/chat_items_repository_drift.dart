@@ -562,16 +562,18 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   }) async {
     final join =
         await (_database.select(_database.chatItems).join([
-              innerJoin(
-                _database.attachments,
-                _database.attachments.messageId.equalsExp(
-                  _database.chatItems.messageId,
+                innerJoin(
+                  _database.attachments,
+                  _database.attachments.messageId.equalsExp(
+                    _database.chatItems.messageId,
+                  ),
                 ),
-              ),
-            ])..where(
-              _database.chatItems.chatId.equals(chatId) &
-                  _database.attachments.callId.equals(callId),
-            ))
+              ])
+              ..where(
+                _database.chatItems.chatId.equals(chatId) &
+                    _database.attachments.callId.equals(callId),
+              )
+              ..limit(1))
             .getSingleOrNull();
 
     if (join == null) return null;

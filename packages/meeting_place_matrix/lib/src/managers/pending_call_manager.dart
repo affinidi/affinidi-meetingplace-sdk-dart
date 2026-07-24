@@ -16,7 +16,7 @@ typedef PendingCallDetails = ({
 
 class PendingCallManager {
   PendingCallManager({
-    Duration preemptiveDeclineWindow = const Duration(seconds: 60),
+    Duration preemptiveDeclineWindow = const Duration(seconds: 2),
     DateTime Function() now = DateTime.now,
   }) : _preemptiveDeclineWindow = preemptiveDeclineWindow,
        _now = now;

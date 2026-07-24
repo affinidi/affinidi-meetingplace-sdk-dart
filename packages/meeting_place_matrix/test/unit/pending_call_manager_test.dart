@@ -303,11 +303,11 @@ void main() {
     test('consume returns false once the window has elapsed', () {
       var now = DateTime(2026);
       final windowed = PendingCallManager(
-        preemptiveDeclineWindow: const Duration(seconds: 60),
+        preemptiveDeclineWindow: const Duration(seconds: 2),
         now: () => now,
       );
       windowed.recordPreemptiveDecline(_otherPartyDid);
-      now = now.add(const Duration(seconds: 61));
+      now = now.add(const Duration(seconds: 3));
       expect(windowed.consumePreemptiveDecline(_otherPartyDid), isFalse);
     });
   });

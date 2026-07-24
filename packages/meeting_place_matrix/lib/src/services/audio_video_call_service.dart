@@ -56,6 +56,7 @@ class AudioVideoCallService {
   }
 
   static const _logKey = 'AudioVideoCallService';
+  static const _callerRejoinPeerGrace = Duration(seconds: 1);
 
   final String otherPartyChannelDid;
   final MeetingPlaceMatrixSDKLogger _logger;
@@ -136,6 +137,14 @@ class AudioVideoCallService {
   Future<void> joinCall({
     bool isRecipient = false,
     CallMediaType mediaType = CallMediaType.video,
+  }) {
+    return _joinCall(isRecipient: isRecipient, mediaType: mediaType);
+  }
+
+  Future<void> _joinCall({
+    bool isRecipient = false,
+    CallMediaType mediaType = CallMediaType.video,
+    bool allowRejoin = true,
   }) async {
     if (_isDisposed) {
       _logger.info('joinCall: Skipping, service disposed', name: _logKey);
@@ -184,6 +193,7 @@ class AudioVideoCallService {
         didManager: didManager,
         matrixRoomId: matrixRoomId,
         isRecipient: isRecipient,
+        allowRejoin: allowRejoin,
       );
       final callId = sessionPreparation.callId;
       final isRejoin = sessionPreparation.isRejoin;
@@ -224,6 +234,36 @@ class AudioVideoCallService {
       }
 
       if (ownRole == CallRole.caller && isRejoin) {
+        final staleRejoin = await _callerRejoinLooksStale();
+        if (_isDisposed) {
+          _logger.info(
+            'joinCall: Skipping rejoin state, service disposed',
+            name: _logKey,
+          );
+          return;
+        }
+        if (_isTearingDown) {
+          _logger.info(
+            'joinCall: Call declined during rejoin, skipping invite',
+            name: _logKey,
+          );
+          return;
+        }
+        if (staleRejoin) {
+          _logger.info(
+            'joinCall: Stale in-progress call detected, retrying as fresh',
+            name: _logKey,
+          );
+          await _coordinator.leaveCall();
+          await _room.disconnect();
+          succeeded = true;
+          await _joinCall(
+            isRecipient: isRecipient,
+            mediaType: mediaType,
+            allowRejoin: false,
+          );
+          return;
+        }
         _logger.info(
           'joinCall: Rejoining in-progress call, skipping invite and ring',
           name: _logKey,
@@ -468,6 +508,12 @@ class AudioVideoCallService {
         name: _logKey,
       );
     }
+  }
+
+  Future<bool> _callerRejoinLooksStale() async {
+    if (_hasPeer) return false;
+    await Future<void>.delayed(_callerRejoinPeerGrace);
+    return !_isDisposed && !_isTearingDown && !_hasPeer;
   }
 
   Future<void> _setupRecipientCall({

@@ -547,6 +547,64 @@ void main() {
       expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
     });
 
+    test(
+      'stale rejoin without a peer retries as a fresh ringing call',
+      () async {
+        final room = FakeLiveKitRoom();
+        room.fakeOwnParticipantId = 'self';
+        room.fakeParticipants = const [
+          AudioVideoCallParticipant(
+            participantId: 'self',
+            isSelf: true,
+            hasVideo: true,
+            hasAudio: true,
+            isSpeaking: false,
+          ),
+        ];
+        final svc = _buildService(
+          sdk: mockSdk,
+          room: room,
+          tokenService: tokenService,
+        );
+        addTearDown(svc.dispose);
+        stubJoinableCall(
+          tokenService: tokenService,
+          didManager: MockDidManager(),
+          groupCallSession: MockGroupCallSession(),
+          room: room,
+          activeCallId: 'stale-call',
+        );
+        when(() => mockSdk.notifyChannel(any())).thenAnswer((_) async {});
+
+        await svc.joinCall(mediaType: CallMediaType.video);
+
+        expect(room.callOrder, containsAllInOrder(['connect', 'disconnect']));
+        expect(room.connectCalls, 2);
+        expect(room.disconnectCalls, 1);
+        expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
+        verify(
+          () => mockMatrixService.leaveCall(
+            roomId: _matrixRoomId,
+            callId: 'stale-call',
+          ),
+        ).called(1);
+        verify(
+          () => mockMatrixService.sendRoomEvent(
+            _matrixRoomId,
+            any(),
+            any(),
+            didManager: any(named: 'didManager'),
+          ),
+        ).called(1);
+        verify(
+          () => mockMatrixService.activeCallId(
+            didManager: any(named: 'didManager'),
+            roomId: _matrixRoomId,
+          ),
+        ).called(1);
+      },
+    );
+
     test('ratchets own key when a participant leaves so the departed member '
         'cannot decrypt future frames', () async {
       final room = FakeLiveKitRoom();

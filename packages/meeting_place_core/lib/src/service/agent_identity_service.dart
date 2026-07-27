@@ -85,6 +85,10 @@ class AgentIdentityService {
       mediatorDid: mediatorDid,
     );
 
+    final channelType = transport == ChannelTransport.matrix
+        ? ChannelType.group
+        : ChannelType.individual;
+
     final channel = Channel(
       offerLink: offerLink,
       publishOfferDid: publishOfferDid,
@@ -92,7 +96,7 @@ class AgentIdentityService {
       status: ChannelStatus.waitingForApproval,
       isConnectionInitiator: false,
       contactCard: contactCard,
-      type: ChannelType.individual,
+      type: channelType,
       transport: transport,
       permanentChannelDid: permanentChannelDid,
     );

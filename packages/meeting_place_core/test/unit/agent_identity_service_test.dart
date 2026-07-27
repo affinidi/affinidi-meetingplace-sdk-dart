@@ -112,6 +112,10 @@ void main() {
     ).thenAnswer((_) async {});
 
     when(
+      () => mockMatrixService.loginWithDid(any()),
+    ).thenAnswer((_) async => '@agent:test');
+
+    when(
       () => mockChannelRepository.createChannel(any()),
     ).thenAnswer((_) async {});
   });
@@ -211,6 +215,28 @@ void main() {
       expect(channel.offerLink, equals('https://example.com/offer'));
       expect(channel.publishOfferDid, equals('did:test:publish'));
       expect(channel.contactCard?.did, equals(contactCard.did));
+    });
+
+    test('persists matrix agent identities as group channels', () async {
+      await service.createChannelIdentity(
+        agentDid: _agentDid,
+        otherPartyPermanentChannelDid: _channelDid,
+        mediatorDid: _mediatorDid,
+        agentControllerDid: _agentControllerDid,
+        offerLink: 'https://example.com/group-offer',
+        publishOfferDid: 'did:test:group-publish',
+        contactCard: contactCard,
+        transport: ChannelTransport.matrix,
+      );
+
+      final captured = verify(
+        () => mockChannelRepository.createChannel(captureAny()),
+      ).captured;
+
+      final channel = captured.single as Channel;
+      expect(channel.type, equals(ChannelType.group));
+      expect(channel.isGroup, isTrue);
+      expect(channel.transport, equals(ChannelTransport.matrix));
     });
   });
 }

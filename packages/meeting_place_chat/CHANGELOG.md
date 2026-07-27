@@ -1,3 +1,7 @@
+## 0.0.1-dev.56
+
+ - **FIX**: stop old cancelled calls from showing up again (#294).
+
 ## 0.0.1-dev.55
 
  - **FIX**: allow invited members to join Matrix group calls (#289).

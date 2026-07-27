@@ -170,6 +170,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       text: text,
       seqNo: _seqNo,
       attachments: attachments.map((a) => a.toDIDComm()).toList(),
+      mentions: mentions,
     );
 
     final created = await chatRepository.createMessage(
@@ -201,6 +202,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
               text: text,
               seqNo: _seqNo,
               attachments: attachments.map((a) => a.toDIDComm()).toList(),
+              mentions: mentions,
             ),
             // notifyChannelType: 'chat-activity',
           ),

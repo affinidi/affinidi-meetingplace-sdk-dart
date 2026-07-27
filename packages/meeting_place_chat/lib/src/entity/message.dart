@@ -118,7 +118,7 @@ class Message extends ChatItem {
       messageId: message.id,
       senderDid: senderDid,
       value: message.body.text,
-      mentions: const [],
+      mentions: [...message.body.mentions],
       isFromMe: createdByMe,
       dateCreated: message.body.timestamp,
       status: status,

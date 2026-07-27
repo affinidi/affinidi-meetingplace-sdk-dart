@@ -24,6 +24,7 @@ class PendingCallManager {
   final Map<String, PendingCallDetails> _pendingCalls = {};
   final Set<String> _pendingIncomingReservations = {};
   final Map<String, DateTime> _preemptiveDeclines = {};
+  final Map<String, DateTime> _handledCancels = {};
   final Duration _preemptiveDeclineWindow;
   final DateTime Function() _now;
   String? _activeCallId;
@@ -108,8 +109,12 @@ class PendingCallManager {
   }
 
   /// Clears a reserved incoming call for [otherPartyChannelDid], if present.
-  void cancelReservedIncomingCall(String otherPartyChannelDid) {
-    releaseIncomingReservation(otherPartyChannelDid);
+  bool cancelReservedIncomingCall(String otherPartyChannelDid) {
+    final removed = _pendingIncomingReservations.remove(otherPartyChannelDid);
+    if (_pendingIncomingReservations.isEmpty && _pendingCalls.isEmpty) {
+      _activePeerDid = null;
+    }
+    return removed;
   }
 
   /// Records a decline that arrived before its incoming call was registered.
@@ -130,6 +135,20 @@ class PendingCallManager {
     final declinedAt = _preemptiveDeclines.remove(otherPartyChannelDid);
     if (declinedAt == null) return false;
     return _now().difference(declinedAt) <= _preemptiveDeclineWindow;
+  }
+
+  /// Records a cancel already delivered through a stronger source, such as a
+  /// Matrix room event, so a later control-plane replay does not emit a second
+  /// cancelled-call event for the same peer.
+  void recordHandledCancel(String otherPartyChannelDid) {
+    _handledCancels[otherPartyChannelDid] = _now();
+  }
+
+  /// Consumes a recently handled cancel for [otherPartyChannelDid].
+  bool consumeHandledCancel(String otherPartyChannelDid) {
+    final handledAt = _handledCancels.remove(otherPartyChannelDid);
+    if (handledAt == null) return false;
+    return _now().difference(handledAt) <= _preemptiveDeclineWindow;
   }
 
   /// Resolves whether [otherPartyChannelDid] is a recipient scenario and

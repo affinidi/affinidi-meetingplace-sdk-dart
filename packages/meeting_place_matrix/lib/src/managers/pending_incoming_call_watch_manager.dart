@@ -163,6 +163,9 @@ class PendingIncomingCallWatchManager {
           name: _logKey,
         );
         cancelPendingCallWatcher(event.callId);
+        _pendingCallManager.recordHandledCancel(
+          event.otherPartyPermanentChannelDid,
+        );
         _onCallCancelled(
           IncomingAudioVideoCallEvent(
             callId: removed.callId,
@@ -218,6 +221,9 @@ class PendingIncomingCallWatchManager {
             );
             if (removed == null) return;
             cancelPendingCallWatcher(event.callId);
+            _pendingCallManager.recordHandledCancel(
+              event.otherPartyPermanentChannelDid,
+            );
             _onCallCancelled(
               IncomingAudioVideoCallEvent(
                 callId: removed.callId,

@@ -322,6 +322,20 @@ void main() {
         expect(cancelled.callerPermanentChannelDid, callerDid);
         expect(cancelled.otherPartyPermanentChannelDid, callerDid);
         expect(cancelled.mediaType, CallMediaType.audio);
+
+        final duplicateCancelledFuture = plugin.cancelledCalls.first.timeout(
+          const Duration(milliseconds: 100),
+        );
+        signalController.add(
+          const CallDeclineSignal(
+            ownChannelDid: ownDid,
+            otherPartyPermanentChannelDid: callerDid,
+          ),
+        );
+        await expectLater(
+          duplicateCancelledFuture,
+          throwsA(isA<TimeoutException>()),
+        );
       },
     );
 

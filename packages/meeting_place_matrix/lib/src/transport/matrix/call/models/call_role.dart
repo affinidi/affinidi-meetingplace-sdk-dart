@@ -1,4 +1,4 @@
-/// The self user's role in an audio/video call.
+/// The own user's role in an audio/video call.
 ///
 /// Resolved from the Matrix room's call membership at join time: the first
 /// device to publish a call membership is the [caller]; a device that joins

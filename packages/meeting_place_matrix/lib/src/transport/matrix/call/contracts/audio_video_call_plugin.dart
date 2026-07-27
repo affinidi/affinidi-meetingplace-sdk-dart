@@ -28,7 +28,7 @@ abstract interface class AudioVideoCallPlugin {
 
   /// Stream of incoming-call events for calls that did not connect.
   ///
-  /// This includes calls cancelled by the caller before the self user
+  /// This includes calls cancelled by the caller before own user
   /// answered, and calls auto-rejected as busy by this device.
   ///
   /// The app shell listens to this stream to dismiss the incoming-call banner

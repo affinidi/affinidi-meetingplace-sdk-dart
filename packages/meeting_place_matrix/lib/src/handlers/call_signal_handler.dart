@@ -71,6 +71,14 @@ class CallSignalHandler {
           'Channel ${channel.id} has no otherPartyPermanentChannelDid',
         );
       }
+      if (_pendingCallManager.consumePreemptiveDecline(callerChannelDid)) {
+        _logger.info(
+          'Incoming call from ${callerChannelDid.topAndTail()} was declined '
+          'before it arrived; dropping stale invite',
+          name: _logKey,
+        );
+        return;
+      }
       final shouldReserve = !_pendingCallManager.isBusy;
       if (shouldReserve) {
         final reserved = _pendingCallManager.reserveIncomingCall(
@@ -130,10 +138,10 @@ class CallSignalHandler {
 
   /// Handles a call-decline signal from the SDK.
   ///
-  /// Resolves the other party's DID from `signal.ownChannelDid`. If the active
+  /// Resolves the peer DID from `signal.ownChannelDid`. If the active
   /// session matches, notifies it directly (callee declined an outgoing call).
   /// Otherwise removes the pending call entry and notifies the app via the
-  /// `onCallCancelled` callback (caller cancelled before the local user
+  /// `onCallCancelled` callback (caller cancelled before recipient
   /// answered).
   Future<void> onCallDeclineSignal(CallDeclineSignal signal) async {
     _logger.info(
@@ -158,7 +166,7 @@ class CallSignalHandler {
 
     if (otherPartyChannelDid == null) {
       _logger.warning(
-        'onCallDeclineSignal: could not resolve other party DID, ignoring',
+        'onCallDeclineSignal: could not resolve peer DID, ignoring',
         name: _logKey,
       );
       return;
@@ -181,6 +189,7 @@ class CallSignalHandler {
     );
     if (pendingCall == null) {
       _pendingCallManager.cancelReservedIncomingCall(otherPartyChannelDid);
+      _pendingCallManager.recordPreemptiveDecline(otherPartyChannelDid);
     }
     final cancelledEvent = IncomingAudioVideoCallEvent(
       callId: pendingCall?.callId ?? otherPartyChannelDid,

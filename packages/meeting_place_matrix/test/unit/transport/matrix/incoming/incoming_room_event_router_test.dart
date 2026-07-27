@@ -1,12 +1,20 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
+import 'package:meeting_place_matrix/src/chat/meeting_place_matrix_chat_sdk.dart';
+import 'package:meeting_place_matrix/src/entity/call_outcome_record.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/incoming/incoming_room_event_router.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 import '../../../../meeting_place_matrix.dart';
+import '../../../mocks/mocks.dart';
 
 class _MockChatEventHandler extends Mock implements ChatEventHandler {}
+
+class _MockMeetingPlaceMatrixChatSDK extends Mock
+    implements MeetingPlaceMatrixChatSDK {}
 
 class _TestRouter extends IncomingRoomEventRouter {
   _TestRouter({
@@ -247,6 +255,57 @@ void main() {
           verify(() => memberLeftHandler.handle(captureAny())).captured.single
               as IncomingChatEvent;
       expect(captured.targetDid, isNull);
+    });
+  });
+
+  group('IncomingRoomEventRouter base handlers', () {
+    test('routes mpx.call.outcome into CallOutcomeHandler', () async {
+      final stream = ChatStream();
+      final emitted = <StreamData>[];
+      stream.listen(emitted.add);
+
+      final chatSdk = _MockMeetingPlaceMatrixChatSDK();
+      final repo = MockChatRepository();
+      final logger = MockMeetingPlaceChatSDKLogger();
+
+      when(() => chatSdk.chatRepository).thenReturn(repo);
+      when(() => chatSdk.chatStream).thenReturn(stream);
+      when(() => chatSdk.chatId).thenReturn('chat-1');
+      when(() => chatSdk.did).thenReturn('did:test:self');
+      when(
+        () => chatSdk.serverEventIdToMessageId,
+      ).thenReturn(<String, String>{});
+      when(() => chatSdk.logger).thenReturn(logger);
+
+      final router = IncomingRoomEventRouter(chatSDK: chatSdk);
+      final startedAt = DateTime.utc(2026, 1, 1, 12);
+      final endedAt = DateTime.utc(2026, 1, 1, 12, 5);
+
+      await router.route(
+        MatrixRoomEvent(
+          id: 'evt-outcome-1',
+          type: MpxCallEventType.callOutcome,
+          senderDid: 'did:test:alice',
+          roomId: '!room:server',
+          content: {
+            MatrixEventField.callOutcome: CallOutcomeRecord(
+              callId: 'room123@1',
+              outcome: CallOutcome.ended,
+              answered: true,
+              startedAt: startedAt,
+            ).toMap(),
+          },
+          timestamp: endedAt,
+        ),
+      );
+
+      expect(emitted, hasLength(1));
+      expect(emitted.single.event, isA<CallOutcomeChatEvent>());
+      final event = emitted.single.event as CallOutcomeChatEvent;
+      expect(event.callId, 'room123@1');
+      expect(event.outcome, CallOutcome.ended.name);
+      expect(event.startedAt!.isAtSameMomentAs(startedAt), isTrue);
+      expect(event.endedAt, endedAt);
     });
   });
 }

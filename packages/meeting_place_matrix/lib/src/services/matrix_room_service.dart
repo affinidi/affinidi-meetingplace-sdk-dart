@@ -330,14 +330,24 @@ class MatrixRoomService {
     if (room == null) return [];
 
     if (sinceEventId != null) {
-      final context = await client.getEventContext(
-        roomId,
-        sinceEventId,
-        limit: 0,
-      );
-      final token = context.end;
-      if (token != null) {
-        room.prev_batch = token;
+      try {
+        final context = await client.getEventContext(
+          roomId,
+          sinceEventId,
+          limit: 0,
+        );
+        final token = context.end;
+        if (token != null) {
+          room.prev_batch = token;
+        }
+      } on matrix.MatrixException catch (error) {
+        if (error.errcode != 'M_NOT_FOUND') {
+          rethrow;
+        }
+        _logger.warning(
+          'Ignoring stale sync marker for room $roomId: $sinceEventId',
+          name: _logKey,
+        );
       }
     }
 

@@ -5,7 +5,7 @@ import '../transport/matrix/call/call.dart';
 typedef OnCallE2EEStateChanged =
     void Function(String participantId, CallE2EEState state);
 
-/// Callback invoked when a remote participant disconnects.
+/// Callback invoked when a peer participant disconnects.
 typedef OnParticipantDisconnected = void Function(String participantId);
 
 /// Abstracts all LiveKit room operations required by `AudioVideoCallService`.
@@ -43,10 +43,10 @@ abstract interface class LiveKitRoom {
   /// Disconnects from the room and releases all resources.
   Future<void> disconnect();
 
-  /// Enables or disables the local microphone.
+  /// Enables or disables own microphone.
   Future<void> setMicrophoneEnabled(bool enabled);
 
-  /// Enables or disables the local camera.
+  /// Enables or disables own camera.
   Future<void> setCameraEnabled(bool enabled);
 
   /// Switches between front and rear camera.

@@ -17,6 +17,11 @@ Message _$MessageFromJson(Map<String, dynamic> json) => Message(
       $enumDecodeNullable(_$ChatItemTypeEnumMap, json['type']) ??
       ChatItemType.message,
   value: json['value'] as String,
+  mentions:
+      (json['mentions'] as List<dynamic>?)
+          ?.map((e) => ChatMention.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   attachments:
       (json['attachments'] as List<dynamic>?)
           ?.map((e) => ChatAttachment.fromJson(e as Map<String, dynamic>))
@@ -44,6 +49,7 @@ Map<String, dynamic> _$MessageToJson(Message instance) => <String, dynamic>{
   'type': _$ChatItemTypeEnumMap[instance.type]!,
   'status': _$ChatItemStatusEnumMap[instance.status]!,
   'value': instance.value,
+  'mentions': instance.mentions.map((e) => e.toJson()).toList(),
   'editedAt': ?instance.editedAt?.toIso8601String(),
   'transportId': ?instance.transportId,
   'attachments': instance.attachments.map((e) => e.toJson()).toList(),

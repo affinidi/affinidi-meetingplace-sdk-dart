@@ -3,7 +3,9 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../meeting_place_chat.dart';
 import '../../../entity/chat_attachment_bytes.dart';
+import '../../../entity/chat_mention.dart';
 import '../matrix_media_attachment.dart';
+import '../matrix_mentions.dart';
 
 /// Sends `text` + N media `attachments` as a single logical [Message].
 ///
@@ -44,6 +46,7 @@ class MediaTextMessageSender {
   Future<Message> send({
     required String text,
     required List<ChatAttachment> attachments,
+    List<ChatMention> mentions = const [],
     ChannelNotification? notification,
   }) async {
     // Decode bytes up-front so a malformed attachment fails before any
@@ -83,6 +86,7 @@ class MediaTextMessageSender {
       messageId: messageId,
       senderDid: _did,
       value: text,
+      mentions: mentions,
       isFromMe: true,
       dateCreated: timestamp,
       status: ChatItemStatus.queued,
@@ -108,6 +112,9 @@ class MediaTextMessageSender {
             contentType: contentTypes[i],
             sizeBytes: attachmentBytes[i].length,
             correlationId: messageId,
+            textContent: caption == null
+                ? null
+                : buildMatrixTextContent(text: caption, mentions: mentions),
           ),
           notification: isLast ? notification : null,
         );
@@ -164,8 +171,10 @@ class MediaTextMessageSender {
     required String contentType,
     required int sizeBytes,
     required String correlationId,
+    Map<String, dynamic>? textContent,
   }) {
     return {
+      ...?textContent,
       MatrixEventField.correlationId: correlationId,
       MatrixEventField.attachmentId: attachmentId,
       if (attachment.format != null)

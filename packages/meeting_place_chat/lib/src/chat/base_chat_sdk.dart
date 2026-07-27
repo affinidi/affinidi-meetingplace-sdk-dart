@@ -121,6 +121,7 @@ abstract class BaseChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   });
 
   /// Downloads and decrypts the media bytes referenced by
@@ -166,7 +167,11 @@ abstract class BaseChatSDK {
   Future<void> reactOnMessage(Message message, {required String reaction});
 
   /// Edits a previously sent text message.
-  Future<void> editTextMessage(Message message, String newText);
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  });
 
   /// Deletes a chat message.
   ///

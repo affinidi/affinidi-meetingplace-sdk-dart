@@ -243,5 +243,47 @@ void main() {
 
       verifyNever(() => repo.updateMesssage(any()));
     });
+
+    test(
+      'updates mentions from m.new_content when edit carries them',
+      () async {
+        final stored = _message(value: 'hello @alice');
+        storedItems = [stored];
+
+        final edit = MatrixRoomEvent(
+          id: r'$edit-mentions',
+          type: 'm.room.message',
+          senderDid: _aliceDid,
+          roomId: '!room:server',
+          content: {
+            'msgtype': 'm.text',
+            'body': '* hello @alice',
+            'm.new_content': {
+              'msgtype': 'm.text',
+              'body': 'hello @alice',
+              'm.mentions': {
+                'user_ids': ['@alice:example.org'],
+              },
+            },
+            'm.relates_to': {
+              'rel_type': 'm.replace',
+              'event_id': stored.transportId,
+            },
+          },
+          timestamp: DateTime.utc(2026, 1, 1, 13),
+        );
+
+        await handler.handle(edit);
+
+        expect(stored.mentions, const [
+          ChatMention(
+            target: '@alice:example.org',
+            start: 6,
+            length: 6,
+            display: '@alice',
+          ),
+        ]);
+      },
+    );
   });
 }

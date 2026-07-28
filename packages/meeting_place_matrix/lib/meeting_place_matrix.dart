@@ -8,6 +8,7 @@ export 'src/entity/call_metadata.dart';
 export 'src/entity/call_outcome_record.dart';
 export 'src/entity/call_participation.dart';
 export 'src/entity/call_status.dart';
+export 'src/entity/ongoing_group_call.dart';
 export 'src/exception/matrix_sdk_exception.dart';
 export 'src/exceptions/meeting_place_livekit_call_exception.dart';
 export 'src/interfaces/livekit_room.dart';

@@ -356,6 +356,16 @@ class MatrixService {
     required String roomId,
   }) => _callService.activeCallId(didManager: didManager, roomId: roomId);
 
+  /// Emits the non-expired MatrixRTC call memberships in [roomId], re-derived
+  /// on every Matrix sync. See [MatrixCallService.watchActiveCallMemberships].
+  Stream<List<matrix.CallMembership>> watchActiveCallMemberships({
+    required DidManager didManager,
+    required String roomId,
+  }) => _callService.watchActiveCallMemberships(
+    didManager: didManager,
+    roomId: roomId,
+  );
+
   /// Returns the Matrix participant identity string for the local device.
   ///
   /// The format is `userId:deviceId` (e.g. `@abc:localhost:9000:DEVICEID`).

@@ -212,6 +212,48 @@ class MatrixCallService {
     return null;
   }
 
+  /// Emits the non-expired MatrixRTC call memberships currently published in
+  /// [roomId], re-derived on every Matrix sync.
+  ///
+  /// Unlike [activeCallId], the local user's own device memberships are
+  /// retained so callers can distinguish "someone else is in a call" from
+  /// "I am in this call". The stream emits an initial snapshot immediately and
+  /// then a fresh snapshot after each sync; consumers that only care about
+  /// changes should de-duplicate. Emits an empty list when VoIP is not
+  /// initialised or the room has not synced.
+  Stream<List<matrix.CallMembership>> watchActiveCallMemberships({
+    required DidManager didManager,
+    required String roomId,
+  }) async* {
+    if (_voips.isEmpty) {
+      yield const [];
+      return;
+    }
+
+    final client = await _ensureSession(didManager);
+    final voip = _voips[client];
+    if (voip == null) {
+      yield const [];
+      return;
+    }
+
+    List<matrix.CallMembership> snapshot() {
+      final room = client.getRoomById(roomId);
+      if (room == null) return const [];
+      final active = <matrix.CallMembership>[];
+      for (final memberships in callMembershipsFromRoom(room, voip).values) {
+        for (final membership in memberships) {
+          if (membership.isExpired) continue;
+          active.add(membership);
+        }
+      }
+      return active;
+    }
+
+    yield snapshot();
+    yield* client.onSync.stream.map((_) => snapshot());
+  }
+
   /// Creates or joins a MatrixRTC group call in [roomId] using the LiveKit
   /// SFU backend.
   ///

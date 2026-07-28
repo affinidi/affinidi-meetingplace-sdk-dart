@@ -1,4 +1,4 @@
-import 'package:vta_dart_client/vta_dart_client.dart';
+import 'package:meeting_place_vta_client/meeting_place_vta_client.dart';
 
 String requiredString(Map<String, dynamic> json, List<String> keys) {
   for (final key in keys) {

@@ -1,4 +1,4 @@
-import 'package:vta_dart_client/vta_dart_client.dart';
+import 'package:meeting_place_vta_client/meeting_place_vta_client.dart';
 
 import 'personal_agent_setup/adapters/adapter.dart';
 import 'personal_agent_setup/adapters/hosted_adapter.dart';

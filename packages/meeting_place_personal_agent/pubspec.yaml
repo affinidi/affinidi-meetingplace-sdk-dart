@@ -1,5 +1,5 @@
 name: meeting_place_personal_agent
-description: Personal agent setup capability for Meeting Place apps, layered on top of vta_dart_client.
+description: Personal agent setup capability for Meeting Place apps, layered on top of meeting_place_vta_client.
 version: 0.0.1-dev.1
 repository: https://github.com/affinidi/affinidi-meetingplace-sdk-dart.git
 resolution: workspace
@@ -9,8 +9,7 @@ environment:
   sdk: ^3.10.0
 
 dependencies:
-  vta_dart_client:
-    path: ../../../vta-dart-client
+  meeting_place_vta_client: any
 
 dev_dependencies:
   dart_flutter_team_lints: ^3.2.1

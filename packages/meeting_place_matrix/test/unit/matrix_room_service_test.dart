@@ -15,6 +15,10 @@ class MockMatrixClient extends Mock implements matrix.Client {}
 
 class MockMatrixRoom extends Mock implements matrix.Room {}
 
+class MockTimeline extends Mock implements matrix.Timeline {}
+
+class MockEvent extends Mock implements matrix.Event {}
+
 class MockMatrixSessionManager extends Mock implements MatrixSessionManager {}
 
 class MockDidManager extends Mock implements DidManager {}
@@ -264,6 +268,7 @@ void main() {
 
   group('getLatestEventId', () {
     test('returns null when the room is unknown to the client', () async {
+      when(client.oneShotSync).thenAnswer((_) async {});
       when(() => client.getRoomById(_roomId)).thenReturn(null);
 
       final eventId = await service.getLatestEventId(
@@ -273,6 +278,30 @@ void main() {
 
       expect(eventId, isNull);
     });
+
+    test(
+      'syncs the just-joined room before reading its latest event id',
+      () async {
+        final room = MockMatrixRoom();
+        final timeline = MockTimeline();
+        final event = MockEvent();
+        when(client.oneShotSync).thenAnswer((_) async {});
+        when(() => client.getRoomById(_roomId)).thenReturn(room);
+        when(() => event.eventId).thenReturn('latest-event');
+        when(() => timeline.events).thenReturn([event]);
+        when(
+          () => room.getTimeline(limit: any(named: 'limit')),
+        ).thenAnswer((_) async => timeline);
+
+        final eventId = await service.getLatestEventId(
+          _roomId,
+          didManager: didManager,
+        );
+
+        expect(eventId, 'latest-event');
+        verify(client.oneShotSync).called(1);
+      },
+    );
   });
 }
 

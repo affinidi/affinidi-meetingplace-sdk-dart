@@ -29,6 +29,10 @@ abstract class GroupNotifyChannelInput
   @BuiltValueField(wireName: r'type')
   String get type;
 
+  /// When set, notify only this single group member instead of all members.
+  @BuiltValueField(wireName: r'memberDid')
+  String? get memberDid;
+
   GroupNotifyChannelInput._();
 
   factory GroupNotifyChannelInput([
@@ -74,6 +78,13 @@ class _$GroupNotifyChannelInputSerializer
       object.type,
       specifiedType: const FullType(String),
     );
+    if (object.memberDid != null) {
+      yield r'memberDid';
+      yield serializers.serialize(
+        object.memberDid,
+        specifiedType: const FullType(String),
+      );
+    }
   }
 
   @override
@@ -127,6 +138,15 @@ class _$GroupNotifyChannelInputSerializer
                   )
                   as String;
           result.type = valueDes;
+          break;
+        case r'memberDid':
+          final valueDes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String;
+          result.memberDid = valueDes;
           break;
         default:
           unhandled.add(key);

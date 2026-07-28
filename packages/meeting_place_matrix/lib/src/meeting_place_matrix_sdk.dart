@@ -122,6 +122,30 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<void> leaveCurrentCall() =>
       _callPlugin?.leaveCurrentCall() ?? Future.value();
 
+  /// Rings a single group member to invite them into a group call.
+  ///
+  /// Sends a targeted call-invite notification to [memberDid] only, leaving the
+  /// other group members undisturbed. Throws
+  /// [MeetingPlaceLiveKitCallOperationException] when no call plugin is
+  /// configured.
+  Future<void> ringGroupMember({
+    required String groupChannelDid,
+    required String memberDid,
+    required CallMediaType mediaType,
+  }) {
+    final plugin = _callPlugin;
+    if (plugin == null) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Call plugin not configured',
+      );
+    }
+    return plugin.ringGroupMember(
+      groupChannelDid: groupChannelDid,
+      memberDid: memberDid,
+      mediaType: mediaType,
+    );
+  }
+
   /// The active call session, or `null` when no call is in progress.
   LiveKitCallSession? get activeCallSession => _callPlugin?.activeSession;
 

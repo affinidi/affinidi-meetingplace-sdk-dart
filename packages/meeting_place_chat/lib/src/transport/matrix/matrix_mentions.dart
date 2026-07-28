@@ -27,6 +27,7 @@ List<ChatMention> extractMatrixMentions(
     for (final rawUserId in mentionedUserIds) {
       if (rawUserId is! String) continue;
       final span = _findMentionSpan(body, rawUserId);
+      if (span.$2 == 0) continue;
       mentions.add(
         ChatMention(
           target: rawUserId,
@@ -40,11 +41,12 @@ List<ChatMention> extractMatrixMentions(
 
   if (rawMentions['room'] == true) {
     final index = body.indexOf('@room');
+    if (index < 0) return mentions;
     mentions.add(
       ChatMention(
         target: '@room',
-        start: index >= 0 ? index : 0,
-        length: index >= 0 ? '@room'.length : 0,
+        start: index,
+        length: '@room'.length,
         display: '@room',
         isRoomMention: true,
       ),

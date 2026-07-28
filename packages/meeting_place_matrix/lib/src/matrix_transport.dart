@@ -197,6 +197,7 @@ class MatrixTransport implements MeetingPlaceTransport {
       didManager: didManager,
       limit: limit ?? 50,
       since: since,
+      forceSync: true,
     );
     return events
         .map(

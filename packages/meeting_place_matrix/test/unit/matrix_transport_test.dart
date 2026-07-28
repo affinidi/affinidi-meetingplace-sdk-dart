@@ -384,4 +384,41 @@ void main() {
       expect(result, isFalse);
     });
   });
+
+  group('fetchHistory', () {
+    test('forces a Matrix sync before reading room history', () async {
+      when(
+        () => matrixService.resolveRoomIdForChannel(
+          didManager: any(named: 'didManager'),
+          channel: any(named: 'channel'),
+        ),
+      ).thenAnswer((_) async => '!room:server');
+      when(
+        () => matrixService.fetchRoomHistory(
+          any(),
+          didManager: any(named: 'didManager'),
+          limit: any(named: 'limit'),
+          since: any(named: 'since'),
+          forceSync: any(named: 'forceSync'),
+        ),
+      ).thenAnswer((_) async => const <MatrixRoomEvent>[]);
+
+      await transport.fetchHistory(
+        channel: _groupMatrixChannel(),
+        didManager: didManager,
+        since: r'$prev',
+      );
+
+      final verification = verify(
+        () => matrixService.fetchRoomHistory(
+          '!room:server',
+          didManager: didManager,
+          limit: 50,
+          since: r'$prev',
+          forceSync: captureAny(named: 'forceSync'),
+        ),
+      )..called(1);
+      expect(verification.captured.single, isTrue);
+    });
+  });
 }

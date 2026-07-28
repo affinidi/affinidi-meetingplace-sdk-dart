@@ -13,6 +13,8 @@ class AgentIdentityService {
     required DIDCommTransport didcommTransport,
     required MeetingPlaceTransport channelTransport,
     required ChannelRepository channelRepository,
+    required ConnectionOfferRepository connectionOfferRepository,
+    required GroupRepository groupRepository,
     required Wallet wallet,
     required ConnectionManager connectionManager,
   }) : _identityService = identityService,
@@ -20,6 +22,8 @@ class AgentIdentityService {
        _didcommTransport = didcommTransport,
        _channelTransport = channelTransport,
        _channelRepository = channelRepository,
+       _connectionOfferRepository = connectionOfferRepository,
+       _groupRepository = groupRepository,
        _wallet = wallet,
        _connectionManager = connectionManager;
 
@@ -28,6 +32,8 @@ class AgentIdentityService {
   final DIDCommTransport _didcommTransport;
   final MeetingPlaceTransport _channelTransport;
   final ChannelRepository _channelRepository;
+  final ConnectionOfferRepository _connectionOfferRepository;
+  final GroupRepository _groupRepository;
   final Wallet _wallet;
   final ConnectionManager _connectionManager;
 
@@ -83,6 +89,11 @@ class AgentIdentityService {
       mediatorDid: mediatorDid,
     );
 
+    final channelType = await _deriveChannelType(
+      offerLink: offerLink,
+      transport: transport,
+    );
+
     final channel = Channel(
       offerLink: offerLink,
       publishOfferDid: publishOfferDid,
@@ -90,13 +101,31 @@ class AgentIdentityService {
       status: ChannelStatus.waitingForApproval,
       isConnectionInitiator: false,
       contactCard: contactCard,
-      type: ChannelType.individual,
+      type: channelType,
       transport: transport,
       permanentChannelDid: permanentChannelDid,
     );
 
     await _channelRepository.createChannel(channel);
     return channel;
+  }
+
+  Future<ChannelType> _deriveChannelType({
+    required String offerLink,
+    required ChannelTransport transport,
+  }) async {
+    if (transport != ChannelTransport.matrix) {
+      return ChannelType.individual;
+    }
+
+    final connectionOffer = await _connectionOfferRepository
+        .getConnectionOfferByOfferLink(offerLink);
+    if (connectionOffer is GroupConnectionOffer) {
+      return ChannelType.group;
+    }
+
+    final group = await _groupRepository.getGroupByOfferLink(offerLink);
+    return group == null ? ChannelType.individual : ChannelType.group;
   }
 
   /// Handles an incoming `agent-channel-inauguration` message by granting

@@ -16,6 +16,9 @@ enum ChatFeature {
   /// Plain text message sending and receiving.
   textMessaging,
 
+  /// Structured user or room mentions carried alongside plain text.
+  mentions,
+
   /// Image attachments. Offered on transports with a media server that can
   /// host and serve images content.
   imageAttachments,

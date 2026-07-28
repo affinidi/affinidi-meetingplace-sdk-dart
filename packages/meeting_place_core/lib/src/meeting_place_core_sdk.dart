@@ -511,6 +511,8 @@ class MeetingPlaceCoreSDK {
       didcommTransport: didcommTransport,
       channelTransport: channelTransport,
       channelRepository: repositoryConfig.channelRepository,
+      connectionOfferRepository: repositoryConfig.connectionOfferRepository,
+      groupRepository: repositoryConfig.groupRepository,
       wallet: wallet,
       connectionManager: connectionManager,
     );

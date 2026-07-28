@@ -83,7 +83,11 @@ class _TestBaseChatSdk extends BaseChatSDK {
       Uint8List(0);
 
   @override
-  Future<void> editTextMessage(Message message, String newText) async {}
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  }) async {}
 
   @override
   Future<List<ChatItem>> get messages async => const [];
@@ -127,6 +131,7 @@ class _TestBaseChatSdk extends BaseChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   }) async {
     throw UnimplementedError();
   }

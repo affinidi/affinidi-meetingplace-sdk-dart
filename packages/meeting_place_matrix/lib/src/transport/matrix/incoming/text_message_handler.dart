@@ -161,6 +161,23 @@ class TextMessageHandler {
             attachmentsToAdd.add(attachment);
           }
         }
+        final caption = MatrixMediaAttachments.extractCaption(event.content);
+        if ((existing.value.isEmpty || existing.mentions.isEmpty) &&
+            caption != null &&
+            caption.isNotEmpty) {
+          final updated = event.toMessage(
+            chatId: _chatId,
+            senderDid: senderDid,
+            isFromMe: false,
+            status: ChatItemStatus.received,
+          );
+          if (existing.value.isEmpty) {
+            existing.value = updated.value;
+          }
+          if (existing.mentions.isEmpty) {
+            existing.mentions = updated.mentions;
+          }
+        }
         existing.attachments = [...existing.attachments, ...attachmentsToAdd];
         await _chatRepository.updateMesssage(existing);
         _chatStream.pushData(

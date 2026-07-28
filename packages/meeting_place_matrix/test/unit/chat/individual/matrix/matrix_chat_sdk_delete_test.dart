@@ -1,6 +1,7 @@
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/src/chat/individual/individual_matrix_chat_sdk.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/outgoing/message_edit_room_event.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/outgoing/redaction_room_event.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -57,6 +58,9 @@ Message _otherMessage() => Message(
   transportId: r'$server-2',
 );
 
+ChatMention _mention({String target = _bobDid, String display = 'Bob'}) =>
+    ChatMention(target: target, start: 0, length: 3, display: display);
+
 void main() {
   late _MockCoreSDK core;
   late _MockChatRepository repo;
@@ -75,6 +79,14 @@ void main() {
       ),
     );
     registerFallbackValue(RedactionRoomEvent(senderDid: '', targetEventId: ''));
+    registerFallbackValue(
+      MessageEditRoomEvent(
+        senderDid: '',
+        targetEventId: '',
+        newText: '',
+        mentions: const [],
+      ),
+    );
   });
 
   setUp(() {
@@ -233,6 +245,28 @@ void main() {
 
       verifyNever(() => core.sendMessage(any()));
       verifyNever(() => repo.updateMesssage(any()));
+    });
+  });
+
+  group('MatrixChatSDK.editTextMessage', () {
+    test('preserves existing mentions when mentions is omitted', () async {
+      final mentions = [_mention()];
+      final msg = _ownMessage()..mentions = mentions;
+
+      await sdk.editTextMessage(msg, 'updated');
+
+      expect(msg.value, 'updated');
+      expect(msg.mentions, mentions);
+
+      final captured = verify(() => core.sendMessage(captureAny())).captured;
+      expect(captured.single, isA<MessageEditRoomEvent>());
+
+      final event = captured.single as MessageEditRoomEvent;
+      expect(event.content['m.new_content'], isA<Map<String, dynamic>>());
+      final newContent = event.content['m.new_content'] as Map<String, dynamic>;
+      expect(newContent['m.mentions'], {
+        'user_ids': [_bobDid],
+      });
     });
   });
 }

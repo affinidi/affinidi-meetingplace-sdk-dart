@@ -4,6 +4,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 
 import '../../../event/chat_event_conversion.dart';
 import '../../../matrix_room_event.dart';
+import '../matrix_mentions.dart';
 import 'target_message_resolver.dart';
 
 /// Handles incoming `m.room.message` events that carry an `m.replace`
@@ -63,6 +64,7 @@ class MessageEditHandler {
     }
 
     stored.value = newBody;
+    stored.mentions = extractMatrixMentions(newContent!, text: newBody);
     stored.editedAt = event.timestamp;
     await _chatRepository.updateMesssage(stored);
     _chatStream.pushData(

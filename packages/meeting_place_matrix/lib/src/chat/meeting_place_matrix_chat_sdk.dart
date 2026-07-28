@@ -17,6 +17,7 @@ import '../matrix_room_event.dart';
 import '../matrix_room_history_query.dart';
 import '../matrix_room_subscription.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_mentions.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'group/group_matrix_chat_sdk.dart';
 import 'individual/individual_matrix_chat_sdk.dart';
@@ -393,6 +394,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   }) async {
     assertCanSend();
 
@@ -402,6 +404,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       final outgoing = TextMessageRoomEvent(
         senderDid: did,
         text: text,
+        mentions: mentions,
         notification: notification,
       );
       message = await _sendRoomEventMessage(outgoing);
@@ -420,16 +423,22 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         name: _matrixLogkey,
       );
     } else {
-      message = await MediaTextMessageSender(
-        coreSDK: coreSDK,
-        did: did,
-        chatId: chatId,
-        chatRepository: chatRepository,
-        chatStream: chatStream,
-        serverEventIdToMessageId: _serverEventIdToMessageId,
-        getChannel: getChannel,
-        logger: logger,
-      ).send(text: text, attachments: attachments, notification: notification);
+      message =
+          await MediaTextMessageSender(
+            coreSDK: coreSDK,
+            did: did,
+            chatId: chatId,
+            chatRepository: chatRepository,
+            chatStream: chatStream,
+            serverEventIdToMessageId: _serverEventIdToMessageId,
+            getChannel: getChannel,
+            logger: logger,
+          ).send(
+            text: text,
+            attachments: attachments,
+            mentions: mentions,
+            notification: notification,
+          );
     }
 
     await coreSDK.sendMessage(
@@ -531,7 +540,11 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<void> editTextMessage(Message message, String newText) async {
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  }) async {
     assertCanSend();
     final methodName = 'editTextMessage';
 
@@ -551,9 +564,12 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     }
 
     final previousValue = message.value;
+    final previousMentions = List<ChatMention>.from(message.mentions);
     final previousEditedAt = message.editedAt;
+    final nextMentions = mentions ?? previousMentions;
 
     message.value = trimmed;
+    message.mentions = nextMentions;
     message.editedAt = DateTime.now().toUtc();
     await chatRepository.updateMesssage(message);
     chatStream.pushData(StreamData(chatItem: message));
@@ -564,6 +580,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
           senderDid: did,
           targetEventId: transportId,
           newText: trimmed,
+          mentions: message.mentions,
         ),
       );
     } catch (e, stackTrace) {
@@ -574,6 +591,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         name: methodName,
       );
       message.value = previousValue;
+      message.mentions = previousMentions;
       message.editedAt = previousEditedAt;
       await chatRepository.updateMesssage(message);
       chatStream.pushData(StreamData(chatItem: message));
@@ -817,6 +835,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         messageId: messageId,
         senderDid: did,
         value: outgoing.content['body'] as String? ?? '',
+        mentions: extractMatrixMentions(outgoing.content),
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,

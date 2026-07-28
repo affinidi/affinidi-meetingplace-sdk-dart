@@ -17,6 +17,11 @@ class _MockDIDCommTransport extends Mock implements DIDCommTransport {}
 
 class _MockChannelRepository extends Mock implements ChannelRepository {}
 
+class _MockConnectionOfferRepository extends Mock
+    implements ConnectionOfferRepository {}
+
+class _MockGroupRepository extends Mock implements GroupRepository {}
+
 class _MockConnectionManager extends Mock implements ConnectionManager {}
 
 class _MockWallet extends Mock implements Wallet {}
@@ -34,6 +39,8 @@ class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
 
 class _FakeChannel extends Fake implements Channel {}
 
+class _FakeGroup extends Fake implements Group {}
+
 const _agentDid = 'did:test:agent';
 const _agentControllerDid = 'did:test:agent-controller';
 const _channelDid = 'did:test:channel';
@@ -45,6 +52,8 @@ void main() {
   late _MockMediatorAclService mockMediatorAclService;
   late _MockDIDCommTransport mockDIDCommTransport;
   late _MockChannelRepository mockChannelRepository;
+  late _MockConnectionOfferRepository mockConnectionOfferRepository;
+  late _MockGroupRepository mockGroupRepository;
   late _MockConnectionManager mockConnectionManager;
   late _MockWallet mockWallet;
   late _MockMeetingPlaceTransport mockMeetingPlaceTransport;
@@ -57,6 +66,7 @@ void main() {
     registerFallbackValue(_FakeDidManager());
     registerFallbackValue(_FakePlainTextMessage());
     registerFallbackValue(_FakeChannel());
+    registerFallbackValue(_FakeGroup());
   });
 
   setUp(() {
@@ -64,6 +74,8 @@ void main() {
     mockMediatorAclService = _MockMediatorAclService();
     mockDIDCommTransport = _MockDIDCommTransport();
     mockChannelRepository = _MockChannelRepository();
+    mockConnectionOfferRepository = _MockConnectionOfferRepository();
+    mockGroupRepository = _MockGroupRepository();
     mockConnectionManager = _MockConnectionManager();
     mockWallet = _MockWallet();
     mockDidManager = _MockDidManager();
@@ -77,6 +89,8 @@ void main() {
       didcommTransport: mockDIDCommTransport,
       channelTransport: mockMeetingPlaceTransport,
       channelRepository: mockChannelRepository,
+      connectionOfferRepository: mockConnectionOfferRepository,
+      groupRepository: mockGroupRepository,
       wallet: mockWallet,
       connectionManager: mockConnectionManager,
     );
@@ -119,6 +133,14 @@ void main() {
     when(
       () => mockChannelRepository.createChannel(any()),
     ).thenAnswer((_) async {});
+
+    when(
+      () => mockConnectionOfferRepository.getConnectionOfferByOfferLink(any()),
+    ).thenAnswer((_) async => null);
+
+    when(
+      () => mockGroupRepository.getGroupByOfferLink(any()),
+    ).thenAnswer((_) async => null);
   });
 
   group('createChannelIdentity', () {
@@ -220,5 +242,78 @@ void main() {
       expect(channel.publishOfferDid, equals('did:test:publish'));
       expect(channel.contactCard?.did, equals(contactCard.did));
     });
+
+    test(
+      'persists matrix agent identities as individual channels by default',
+      () async {
+        await service.createChannelIdentity(
+          agentDid: _agentDid,
+          otherPartyPermanentChannelDid: _channelDid,
+          mediatorDid: _mediatorDid,
+          agentControllerDid: _agentControllerDid,
+          offerLink: 'https://example.com/group-offer',
+          publishOfferDid: 'did:test:group-publish',
+          contactCard: contactCard,
+          transport: ChannelTransport.matrix,
+        );
+
+        final captured = verify(
+          () => mockChannelRepository.createChannel(captureAny()),
+        ).captured;
+
+        final channel = captured.single as Channel;
+        expect(channel.type, equals(ChannelType.individual));
+        expect(channel.isIndividual, isTrue);
+        expect(channel.transport, equals(ChannelTransport.matrix));
+      },
+    );
+
+    test(
+      'persists matrix agent identities as group channels for group offers',
+      () async {
+        when(
+          () => mockConnectionOfferRepository.getConnectionOfferByOfferLink(
+            'https://example.com/group-offer',
+          ),
+        ).thenAnswer(
+          (_) async => GroupConnectionOffer(
+            groupId: 'group-id',
+            offerName: 'Group offer',
+            offerLink: 'https://example.com/group-offer',
+            mnemonic: 'mnemonic',
+            publishOfferDid: 'did:test:group-publish',
+            mediatorDid: _mediatorDid,
+            offerDescription: 'desc',
+            oobInvitationMessage: 'oob',
+            type: ConnectionOfferType.meetingPlaceInvitation,
+            status: ConnectionOfferStatus.published,
+            contactCard: contactCard,
+            ownedByMe: true,
+            createdAt: DateTime.utc(2026),
+            transport: ChannelTransport.matrix,
+          ),
+        );
+
+        await service.createChannelIdentity(
+          agentDid: _agentDid,
+          otherPartyPermanentChannelDid: _channelDid,
+          mediatorDid: _mediatorDid,
+          agentControllerDid: _agentControllerDid,
+          offerLink: 'https://example.com/group-offer',
+          publishOfferDid: 'did:test:group-publish',
+          contactCard: contactCard,
+          transport: ChannelTransport.matrix,
+        );
+
+        final captured = verify(
+          () => mockChannelRepository.createChannel(captureAny()),
+        ).captured;
+
+        final channel = captured.single as Channel;
+        expect(channel.type, equals(ChannelType.group));
+        expect(channel.isGroup, isTrue);
+        expect(channel.transport, equals(ChannelTransport.matrix));
+      },
+    );
   });
 }

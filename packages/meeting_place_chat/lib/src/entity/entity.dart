@@ -3,6 +3,7 @@ export 'chat_attachment.dart';
 export 'chat_attachment_bytes.dart';
 export 'chat_attachment_data.dart';
 export 'chat_item.dart';
+export 'chat_mention.dart';
 export 'cierge_sign_document_request.dart';
 export 'cierge_signature_proof.dart';
 export 'cierge_step_up_approve_request.dart';

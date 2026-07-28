@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../entity/chat_mention.dart';
 import '../../chat_protocol.dart';
 import 'chat_message_body.dart';
 
@@ -31,6 +32,7 @@ class ChatMessage {
     required String text,
     required int seqNo,
     List<Attachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   }) {
     return ChatMessage(
       id: const Uuid().v4(),
@@ -40,6 +42,7 @@ class ChatMessage {
         text: text,
         seqNo: seqNo,
         timestamp: DateTime.now().toUtc(),
+        mentions: mentions,
       ),
       attachments: attachments,
     );

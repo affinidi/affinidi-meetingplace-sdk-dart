@@ -1,3 +1,7 @@
+## 0.0.1-dev.47
+
+ - **FEAT**: ring a single group member via targeted group-notify (#292).
+
 ## 0.0.1-dev.46
 
  - **FIX**: advance chat sync marker to newest event to stop unread recount (#277).

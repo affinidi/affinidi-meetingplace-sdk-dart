@@ -1,3 +1,7 @@
+## 0.0.1-dev.9
+
+ - **FEAT**: ring a single group member via targeted group-notify (#292).
+
 ## 0.0.1-dev.8
 
  - **FIX**: stop old cancelled calls from showing up again (#294).

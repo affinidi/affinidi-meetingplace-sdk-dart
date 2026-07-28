@@ -1,3 +1,7 @@
+## 0.0.1-dev.23
+
+ - **FEAT**: ring a single group member via targeted group-notify (#292).
+
 ## 0.0.1-dev.22
 
  - **FIX**: surface busy auto-reject on cancelled-call stream (#275).

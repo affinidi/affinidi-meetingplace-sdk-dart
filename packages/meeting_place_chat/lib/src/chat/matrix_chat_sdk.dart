@@ -441,9 +441,10 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     final previousValue = message.value;
     final previousMentions = List<ChatMention>.from(message.mentions);
     final previousEditedAt = message.editedAt;
+    final nextMentions = mentions ?? previousMentions;
 
     message.value = trimmed;
-    message.mentions = mentions ?? const [];
+    message.mentions = nextMentions;
     message.editedAt = DateTime.now().toUtc();
     await chatRepository.updateMesssage(message);
     chatStream.pushData(StreamData(chatItem: message));

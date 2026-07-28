@@ -130,7 +130,8 @@ abstract interface class MeetingPlaceChatSDK {
   Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Edits a previously sent text [message] to [newText]. Only the original
-  /// sender can edit a message; the message must have been delivered.
+  /// sender can edit a message; the message must have been delivered. When
+  /// [mentions] is `null`, the existing mentions are preserved.
   Future<void> editTextMessage(
     Message message,
     String newText, {

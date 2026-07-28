@@ -167,6 +167,8 @@ abstract class BaseChatSDK {
   Future<void> reactOnMessage(Message message, {required String reaction});
 
   /// Edits a previously sent text message.
+  ///
+  /// When [mentions] is `null`, the existing mentions are preserved.
   Future<void> editTextMessage(
     Message message,
     String newText, {

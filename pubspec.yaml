@@ -11,6 +11,7 @@ workspace:
   - packages/meeting_place_mediator
   - packages/meeting_place_drift_repository
   - packages/meeting_place_personal_agent
+  - packages/meeting_place_vta_client
   - packages/meeting_place_credentials
   - packages/meeting_place_credentials/example
 

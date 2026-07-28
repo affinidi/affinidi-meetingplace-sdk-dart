@@ -184,6 +184,49 @@ void main() {
       expect(result.status, ChatItemStatus.sent);
     });
 
+    test(
+      'preserves mentions in persisted message and DIDComm payload',
+      () async {
+        when(
+          () => core.getChannelByOtherPartyPermanentDid(any()),
+        ).thenAnswer((_) async => _fakeChannel());
+
+        when(() => core.sendMessage(any())).thenAnswer((_) async => 'ok');
+        when(() => core.updateChannel(any())).thenAnswer((_) async {});
+
+        when(() => repo.createMessage(any())).thenAnswer((inv) async {
+          return inv.positionalArguments.first as ChatItem;
+        });
+
+        when(() => repo.updateMesssage(any())).thenAnswer((inv) async {
+          return inv.positionalArguments.first as ChatItem;
+        });
+
+        const mentions = [
+          ChatMention(target: _bobDid, start: 6, length: 4, display: 'Bob'),
+        ];
+
+        final result = await sdk.sendTextMessage(
+          'Hello Bob',
+          mentions: mentions,
+        );
+
+        expect(result.mentions, mentions);
+
+        final captured =
+            verify(() => core.sendMessage(captureAny())).captured.first
+                as DidCommOutgoingMessage;
+        expect(captured.payload.body?['mentions'], isA<List<dynamic>>());
+        expect((captured.payload.body?['mentions'] as List<dynamic>).single, {
+          'target': _bobDid,
+          'start': 6,
+          'length': 4,
+          'display': 'Bob',
+          'isRoomMention': false,
+        });
+      },
+    );
+
     test('persists message in repository', () async {
       when(
         () => core.getChannelByOtherPartyPermanentDid(any()),

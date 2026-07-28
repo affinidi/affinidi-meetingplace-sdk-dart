@@ -157,6 +157,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   }) async {
     assertCanSend();
     final channel = await getChannel();
@@ -169,6 +170,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       text: text,
       seqNo: _seqNo,
       attachments: attachments.map((a) => a.toDIDComm()).toList(),
+      mentions: mentions,
     );
 
     final created = await chatRepository.createMessage(
@@ -200,6 +202,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
               text: text,
               seqNo: _seqNo,
               attachments: attachments.map((a) => a.toDIDComm()).toList(),
+              mentions: mentions,
             ),
             // notifyChannelType: 'chat-activity',
           ),
@@ -299,7 +302,11 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<void> editTextMessage(Message message, String newText) {
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  }) {
     throw UnimplementedError(
       'editTextMessage is not yet supported on the DIDComm individual chat '
       'SDK.',

@@ -10,6 +10,7 @@ import '../event/chat_event_conversion.dart';
 import '../transport/didcomm/outgoing/outgoing.dart';
 import '../transport/didcomm/protocol.dart' as didcomm_protocol;
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_mentions.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'base_chat_sdk.dart';
 import 'didcomm_incoming_message_handler.dart';
@@ -279,6 +280,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   }) async {
     assertCanSend();
 
@@ -287,6 +289,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
       final outgoing = TextMessageRoomEvent(
         senderDid: did,
         text: text,
+        mentions: mentions,
         notification: buildChannelNotification('chat-activity'),
       );
       message = await _sendRoomEventMessage(outgoing);
@@ -308,6 +311,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
           ).send(
             text: text,
             attachments: attachments,
+            mentions: mentions,
             notification: buildChannelNotification('chat-activity'),
           );
     }
@@ -411,7 +415,11 @@ abstract class MatrixChatSDK extends BaseChatSDK {
   }
 
   @override
-  Future<void> editTextMessage(Message message, String newText) async {
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  }) async {
     assertCanSend();
     final methodName = 'editTextMessage';
 
@@ -431,9 +439,12 @@ abstract class MatrixChatSDK extends BaseChatSDK {
     }
 
     final previousValue = message.value;
+    final previousMentions = List<ChatMention>.from(message.mentions);
     final previousEditedAt = message.editedAt;
+    final nextMentions = mentions ?? previousMentions;
 
     message.value = trimmed;
+    message.mentions = nextMentions;
     message.editedAt = DateTime.now().toUtc();
     await chatRepository.updateMesssage(message);
     chatStream.pushData(StreamData(chatItem: message));
@@ -444,6 +455,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
           senderDid: did,
           targetEventId: transportId,
           newText: trimmed,
+          mentions: message.mentions,
         ),
       );
     } catch (e, stackTrace) {
@@ -454,6 +466,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         name: methodName,
       );
       message.value = previousValue;
+      message.mentions = previousMentions;
       message.editedAt = previousEditedAt;
       await chatRepository.updateMesssage(message);
       chatStream.pushData(StreamData(chatItem: message));
@@ -675,6 +688,7 @@ abstract class MatrixChatSDK extends BaseChatSDK {
         messageId: messageId,
         senderDid: did,
         value: outgoing.content['body'] as String? ?? '',
+        mentions: extractMatrixMentions(outgoing.content),
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,

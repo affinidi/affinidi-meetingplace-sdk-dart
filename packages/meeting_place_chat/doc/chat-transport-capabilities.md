@@ -15,6 +15,7 @@ The `ChatFeature` enum and the `TransportCapabilities` type live in `transport_c
 | Feature | Description | DIDComm | Matrix |
 | --- | --- | :---: | :---: |
 | Text messaging | Send and receive plain text messages | Yes | Yes |
+| Mentions | Structured user or room mentions carried alongside plain text | No | Yes |
 | Image attachments | Send and receive images (hosted media on Matrix, inline on DIDComm) | Yes | Yes |
 | Video attachments | Send and receive video files | No | Yes |
 | Document attachments | Send and receive non-media files such as PDF and office documents | No | Yes |
@@ -41,11 +42,11 @@ Supported: text messaging, image attachments, reactions, typing indicators, pres
 
 Conditionally supported: suggestion requests, when `MeetingPlaceCoreSDKOptions.agentDid` is configured.
 
-Not supported: voice messages, message edit, message delete for everyone.
+Not supported: mentions, voice messages, message edit, message delete for everyone.
 
 ## Matrix
 
-Supported: text messaging, image attachments, video attachments, document attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update.
+Supported: text messaging, mentions, image attachments, video attachments, document attachments, voice messages, reactions, typing indicators, delivery receipts, message edit, message delete for everyone, effects, contact details update.
 
 Conditionally supported: suggestion requests, when `MeetingPlaceCoreSDKOptions.agentDid` is configured.
 
@@ -55,7 +56,7 @@ Not supported: presence.
 
 | Scope | Features |
 | --- | --- |
-| Matrix only | Video attachments, document attachments, voice messages, message edit, message delete |
+| Matrix only | Mentions, video attachments, document attachments, voice messages, message edit, message delete |
 | DIDComm only | Presence |
 | Both transports | Text messaging, image attachments, reactions, typing indicators, delivery receipts, effects, contact details update |
 

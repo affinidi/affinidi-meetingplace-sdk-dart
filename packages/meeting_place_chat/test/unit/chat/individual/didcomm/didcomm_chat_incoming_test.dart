@@ -175,6 +175,53 @@ void main() {
       expect((messages.first as Message).status, ChatItemStatus.received);
     });
 
+    test('incoming chat message preserves mentions on emitted item', () async {
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatMessageEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'msg-incoming-mentions',
+            type: Uri.parse(ChatProtocol.chatMessage.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'text': 'Hello Alice',
+              'seq_no': 1,
+              'timestamp': DateTime.utc(2026).toIso8601String(),
+              'mentions': [
+                {
+                  'target': _aliceDid,
+                  'start': 6,
+                  'length': 5,
+                  'display': 'Alice',
+                },
+              ],
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      final message = streamData.chatItem! as Message;
+
+      expect(message.mentions, const [
+        ChatMention(target: _aliceDid, start: 6, length: 5, display: 'Alice'),
+      ]);
+
+      final messages = await sdk.messages;
+      expect((messages.first as Message).mentions, const [
+        ChatMention(target: _aliceDid, start: 6, length: 5, display: 'Alice'),
+      ]);
+    });
+
     test('delivery notification updates message status to delivered', () async {
       final chatId = Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid);
       await repo.createMessage(

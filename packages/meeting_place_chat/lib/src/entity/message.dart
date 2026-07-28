@@ -3,8 +3,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../transport/didcomm/protocol/chat_message/chat_message.dart';
 import '../transport/matrix/matrix_media_attachment.dart';
+import '../transport/matrix/matrix_mentions.dart';
 import 'chat_attachment.dart';
 import 'chat_item.dart';
+import 'chat_mention.dart';
 import 'message_reaction.dart';
 
 part 'message.g.dart';
@@ -116,6 +118,7 @@ class Message extends ChatItem {
       messageId: message.id,
       senderDid: senderDid,
       value: message.body.text,
+      mentions: [...message.body.mentions],
       isFromMe: createdByMe,
       dateCreated: message.body.timestamp,
       status: status,
@@ -136,6 +139,7 @@ class Message extends ChatItem {
       messageId: messageId ?? event.id,
       senderDid: senderDid,
       value: _valueFromRoomEvent(event),
+      mentions: _mentionsFromRoomEvent(event),
       isFromMe: true,
       dateCreated: event.timestamp,
       // Set status to sent since this is created for messages sent by me.
@@ -159,6 +163,7 @@ class Message extends ChatItem {
       messageId: messageId ?? event.id,
       senderDid: senderDid,
       value: _valueFromRoomEvent(event),
+      mentions: _mentionsFromRoomEvent(event),
       isFromMe: false,
       dateCreated: event.timestamp,
       status: ChatItemStatus.received,
@@ -192,6 +197,7 @@ class Message extends ChatItem {
     required super.status,
     super.type = ChatItemType.message,
     required this.value,
+    this.mentions = const [],
     this.attachments = const [],
     List<MessageReaction> reactions = const [],
     this.editedAt,
@@ -203,6 +209,11 @@ class Message extends ChatItem {
   /// The plain text content of the message. Mutated in place when the
   /// sender edits the message via Matrix's `m.replace` relation.
   String value;
+
+  /// Structured mentions embedded in [value]. Stored separately so transport
+  /// adapters can preserve machine-readable mention targets without exposing
+  /// transport-specific rich-text payloads to SDK consumers.
+  List<ChatMention> mentions;
 
   /// Timestamp of the most recent edit, or `null` if the message has never
   /// been edited. Set from the edit event's server timestamp on incoming
@@ -248,6 +259,7 @@ class Message extends ChatItem {
   /// backup or forensic recovery of "deleted" content.
   void clearContent() {
     value = '';
+    mentions = [];
     attachments = [];
     reactions = [];
     editedAt = null;
@@ -269,4 +281,9 @@ String _valueFromRoomEvent(MatrixRoomEvent event) {
   final caption = MatrixMediaAttachments.extractCaption(event.content);
   if (caption != null) return caption;
   return _stringValue(event.content['body']) ?? '';
+}
+
+List<ChatMention> _mentionsFromRoomEvent(MatrixRoomEvent event) {
+  final text = _valueFromRoomEvent(event);
+  return extractMatrixMentions(event.content, text: text);
 }

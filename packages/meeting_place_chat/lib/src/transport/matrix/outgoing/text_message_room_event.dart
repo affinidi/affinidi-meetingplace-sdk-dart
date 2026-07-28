@@ -1,6 +1,9 @@
 import 'package:matrix/matrix.dart' show EventTypes;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+import '../../../entity/chat_mention.dart';
+import '../matrix_mentions.dart';
+
 /// A [MatrixOutgoingMessage] specialised for plain-text chat messages.
 ///
 /// Fixes the Matrix event type to [EventTypes.Message] and builds the
@@ -9,9 +12,10 @@ class TextMessageRoomEvent extends MatrixOutgoingMessage {
   TextMessageRoomEvent({
     required super.senderDid,
     required String text,
+    List<ChatMention> mentions = const [],
     super.notification,
   }) : super(
          type: EventTypes.Message,
-         content: {'body': text, 'msgtype': 'm.text'},
+         content: buildMatrixTextContent(text: text, mentions: mentions),
        );
 }

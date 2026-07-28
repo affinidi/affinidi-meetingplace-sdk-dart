@@ -521,6 +521,8 @@ class MeetingPlaceCoreSDK {
       mediatorAclService: mediatorAclService,
       didcommTransport: didcommTransport,
       channelRepository: repositoryConfig.channelRepository,
+      connectionOfferRepository: repositoryConfig.connectionOfferRepository,
+      groupRepository: repositoryConfig.groupRepository,
       wallet: wallet,
       connectionManager: connectionManager,
       matrixService: matrixService,

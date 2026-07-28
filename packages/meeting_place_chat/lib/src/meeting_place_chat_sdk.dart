@@ -119,6 +119,7 @@ abstract interface class MeetingPlaceChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   });
 
   /// Downloads and decrypts the media bytes referenced by
@@ -129,8 +130,13 @@ abstract interface class MeetingPlaceChatSDK {
   Future<Uint8List> downloadMedia(ChatAttachment attachment);
 
   /// Edits a previously sent text [message] to [newText]. Only the original
-  /// sender can edit a message; the message must have been delivered.
-  Future<void> editTextMessage(Message message, String newText);
+  /// sender can edit a message; the message must have been delivered. When
+  /// [mentions] is `null`, the existing mentions are preserved.
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  });
 
   /// Deletes [message]. Only the original sender may delete a message. When
   /// [localOnly] is `true`, hides the message for the local user without

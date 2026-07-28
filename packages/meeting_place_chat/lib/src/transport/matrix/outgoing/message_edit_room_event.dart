@@ -1,6 +1,9 @@
 import 'package:matrix/matrix.dart' show EventTypes;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+import '../../../entity/chat_mention.dart';
+import '../matrix_mentions.dart';
+
 /// A [MatrixOutgoingMessage] that replaces the body of a previously sent
 /// `m.room.message` using the Matrix `m.replace` relation.
 ///
@@ -13,14 +16,33 @@ class MessageEditRoomEvent extends MatrixOutgoingMessage {
     required super.senderDid,
     required String targetEventId,
     required String newText,
+    List<ChatMention> mentions = const [],
     super.notification,
   }) : super(
          type: EventTypes.Message,
          content: {
-           'msgtype': 'm.text',
-           'body': '* $newText',
-           'm.new_content': {'msgtype': 'm.text', 'body': newText},
+           ...buildMatrixTextContent(
+             text: '* $newText',
+             mentions: _offsetMentions(mentions, 2),
+           ),
+           'm.new_content': buildMatrixTextContent(
+             text: newText,
+             mentions: mentions,
+           ),
            'm.relates_to': {'rel_type': 'm.replace', 'event_id': targetEventId},
          },
        );
+}
+
+List<ChatMention> _offsetMentions(List<ChatMention> mentions, int delta) {
+  return [
+    for (final mention in mentions)
+      ChatMention(
+        target: mention.target,
+        start: mention.start + delta,
+        length: mention.length,
+        display: mention.display,
+        isRoomMention: mention.isRoomMention,
+      ),
+  ];
 }

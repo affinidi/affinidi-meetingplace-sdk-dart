@@ -1,3 +1,7 @@
+## 0.0.1-dev.48
+
+ - **FIX**: advance matrix sync markers to newest event to stop unread badge recount (#279).
+
 ## 0.0.1-dev.47
 
  - **FEAT**: ring a single group member via targeted group-notify (#292).

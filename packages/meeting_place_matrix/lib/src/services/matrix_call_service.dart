@@ -289,6 +289,25 @@ class MatrixCallService {
       return active;
     }
 
+    // On a cold observation login the group room may not be in the client's
+    // sync yet, so the first snapshot would see no room and miss a call that is
+    // already in progress. Mirror the recipient discovery path and best-effort
+    // wait for the room before the first snapshot; a failure just falls back to
+    // the onSync-driven snapshots below.
+    if (client.getRoomById(roomId) == null) {
+      try {
+        await client.waitForRoomInSync(roomId, join: true);
+      } catch (e, stackTrace) {
+        _logger.error(
+          'Room $roomId not in sync for ongoing-call observation; '
+          'relying on later syncs',
+          error: e,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
+      }
+    }
+
     yield snapshot();
     yield* client.onSync.stream.map((_) => snapshot());
   }

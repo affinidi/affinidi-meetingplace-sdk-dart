@@ -186,6 +186,9 @@ void main() {
 
     test('emits empty list when the room is not synced yet', () async {
       when(() => client.getRoomById(_roomId)).thenReturn(null);
+      when(
+        () => client.waitForRoomInSync(any(), join: any(named: 'join')),
+      ).thenAnswer((_) async => matrix.SyncUpdate(nextBatch: ''));
       final service = makeService(const {});
 
       final first = await service
@@ -193,6 +196,37 @@ void main() {
           .first;
 
       expect(first, isEmpty);
+    });
+
+    test('waits for the room to sync before the first snapshot', () async {
+      var roomSynced = false;
+      when(
+        () => client.getRoomById(_roomId),
+      ).thenAnswer((_) => roomSynced ? room : null);
+      when(
+        () => client.waitForRoomInSync(any(), join: any(named: 'join')),
+      ).thenAnswer((_) async {
+        roomSynced = true;
+        return matrix.SyncUpdate(nextBatch: '');
+      });
+      final service = makeService({
+        'call-1': [
+          MockCallMembership(
+            callId: 'call-1',
+            userId: '@peer:matrix.example.com',
+            deviceId: 'DEV_PEER',
+          ),
+        ],
+      });
+
+      final first = await service
+          .watchActiveCallMemberships(didManager: didManager, roomId: _roomId)
+          .first;
+
+      verify(
+        () => client.waitForRoomInSync(_roomId, join: any(named: 'join')),
+      ).called(1);
+      expect(first.map((m) => m.userId), ['@peer:matrix.example.com']);
     });
   });
 }

@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('extractMatrixMentions', () {
-    test('skips user mentions that are not present in the body text', () {
+    test('keeps user mentions that are not present in the body text', () {
       final mentions = extractMatrixMentions({
         'body': 'hello there',
         'm.mentions': {
@@ -12,7 +12,32 @@ void main() {
         },
       });
 
-      expect(mentions, isEmpty);
+      expect(mentions, const [
+        ChatMention(
+          target: '@alice:example.org',
+          start: 0,
+          length: 0,
+          display: '@alice',
+        ),
+      ]);
+    });
+
+    test('keeps did-targeted mentions rendered as a display name', () {
+      final mentions = extractMatrixMentions({
+        'body': '@Earl what do you know?',
+        'm.mentions': {
+          'user_ids': ['did:web:example.affinidi.io:user:1e378f28'],
+        },
+      });
+
+      expect(mentions, const [
+        ChatMention(
+          target: 'did:web:example.affinidi.io:user:1e378f28',
+          start: 0,
+          length: 0,
+          display: 'did:web:example.affinidi.io:user:1e378f28',
+        ),
+      ]);
     });
 
     test('skips room mentions that are not present in the body text', () {

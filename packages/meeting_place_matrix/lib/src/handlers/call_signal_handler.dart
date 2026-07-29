@@ -188,7 +188,17 @@ class CallSignalHandler {
       otherPartyChannelDid,
     );
     if (pendingCall == null) {
-      _pendingCallManager.cancelReservedIncomingCall(otherPartyChannelDid);
+      final cancelledReservation = _pendingCallManager
+          .cancelReservedIncomingCall(otherPartyChannelDid);
+      if (!cancelledReservation &&
+          _pendingCallManager.consumeHandledCancel(otherPartyChannelDid)) {
+        _logger.info(
+          'onCallDeclineSignal: duplicate cancel for '
+          '${otherPartyChannelDid.topAndTail()} already handled; ignoring',
+          name: _logKey,
+        );
+        return;
+      }
       _pendingCallManager.recordPreemptiveDecline(otherPartyChannelDid);
     }
     final cancelledEvent = IncomingAudioVideoCallEvent(

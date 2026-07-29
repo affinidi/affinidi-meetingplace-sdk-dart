@@ -834,9 +834,12 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     if (events.isNotEmpty) {
       final currentMarker = await chatRepository.getSyncMarker(chatId);
       if (currentMarker == bootstrapCursor) {
+        // Matrix history is returned newest-first by DAG position. This marker
+        // is later used as an event-id anchor, so it must follow that order.
+        final newestEvent = events.first;
         await chatRepository.updateSyncMarker(
           chatId: chatId,
-          eventId: events.last.id,
+          eventId: newestEvent.id,
         );
       }
     }

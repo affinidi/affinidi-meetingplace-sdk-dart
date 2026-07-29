@@ -102,6 +102,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       channel: channel,
       didManager: didManager,
       since: channel.messageSyncMarker,
+      forceSync: true,
     );
 
     if (events.isEmpty) return;
@@ -113,17 +114,17 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       channel.seqNo += inboundChatCount;
     }
 
-    // Advance the sync marker to the newest event by timestamp, not by list
-    // position. `fetchHistory` is not guaranteed to return events in
-    // chronological order (the matrix timeline is newest-first), so
-    // `events.last` is the oldest fetched event. Anchoring the marker there
-    // leaves newer events "unseen", so the next sync re-fetches and re-counts
-    // them — inflating `seqNo` (and the unread badge) by the size of the fetch
-    // window on every subsequent activity. Picking the max-timestamp event
-    // advances the marker past everything just counted.
-    final newestEvent = events.reduce(
-      (a, b) => b.timestamp.isAfter(a.timestamp) ? b : a,
-    );
+    // Advance the sync marker to the DAG-newest finalized event. The next sync
+    // resumes from this marker by DAG position, so the marker MUST be the
+    // DAG-newest event that is fully processed.
+    //
+    // Anchoring by max timestamp is wrong: group-call events (member/cancel/
+    // rtc) can carry timestamps out of DAG order, so the max-timestamp event
+    // may sit behind the DAG frontier. That leaves DAG-newer events unmarked,
+    // so the next sync either re-fetches and re-counts them (over-count) or,
+    // when the stranded frontier event is an inbound message, skips it forever
+    // (permanent under-count — the frozen group badge).
+    final newestEvent = events.first;
     await channelService.updateMessageSyncMarker(channel, newestEvent.id);
   }
 

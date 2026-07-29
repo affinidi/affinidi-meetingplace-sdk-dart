@@ -384,11 +384,20 @@ class MatrixRoomService {
   /// Used to anchor [Channel.messageSyncMarker] at join time so that
   /// subsequent [fetchRoomHistory] calls only return events posted after the
   /// joiner became a member.
+  ///
+  /// Performs a `oneShotSync` first: the room may have just been joined and its
+  /// timeline not yet pulled into the local database, in which case
+  /// `getTimeline` would return an empty (or stale) window and this method
+  /// would anchor the marker to `null`/an old event. A `null` marker makes the
+  /// first [fetchRoomHistory] return the entire pre-join room history and count
+  /// it all as unread, inflating the unread badge. Syncing first anchors the
+  /// marker to the true latest event at join.
   Future<String?> getLatestEventId(
     String roomId, {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
+    await client.oneShotSync();
     final room = client.getRoomById(roomId);
     if (room == null) return null;
     final timeline = await room.getTimeline(limit: 1);

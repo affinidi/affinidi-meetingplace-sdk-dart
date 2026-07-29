@@ -6,6 +6,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import '../../../matrix_outgoing_message.dart';
 
 import '../matrix_chat_event_type.dart';
+import '../matrix_media_attachment.dart';
 
 /// Sends a group-details-update event with contact cards uploaded as
 /// downloadable media files.
@@ -22,7 +23,7 @@ class GroupDetailsUpdateSender {
   final MeetingPlaceCoreSDK _coreSDK;
 
   static const contactCardEventIdsKey = 'contact_card_event_ids';
-  static const memberDidKey = 'mp_member_did';
+  static const memberDidKey = MatrixEventField.memberDid;
 
   Future<void> send({
     required Channel channel,

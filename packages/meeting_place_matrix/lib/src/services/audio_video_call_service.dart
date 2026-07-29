@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:matrix/matrix.dart' as matrix;
+import 'package:meeting_place_core/meeting_place_core.dart' show Channel;
 
 import '../../meeting_place_matrix.dart';
 import '../constants/audio_video_call_defaults.dart';
@@ -243,15 +244,15 @@ class AudioVideoCallService {
       final ownRole = isRecipient ? CallRole.recipient : CallRole.caller;
 
       final isGhostRejoin = ownRole == CallRole.caller && isRejoin && !_hasPeer;
-      final effectiveCallId = isGhostRejoin
-          ? _coordinator.assignFreshCallId(matrixRoomId)
-          : callId;
+      var effectiveCallId = callId;
       if (isGhostRejoin) {
         _logger.info(
           'joinCall: Discovered a stale call membership with no live peer, '
           'minting a fresh callId',
           name: _logKey,
         );
+        await _coordinator.leaveCall();
+        effectiveCallId = _coordinator.assignFreshCallId(matrixRoomId);
       }
 
       _setState(_state.copyWith(ownRole: ownRole, callId: effectiveCallId));
@@ -287,25 +288,10 @@ class AudioVideoCallService {
         await _setupRecipientCall(ownRole: ownRole);
       } else if (ownRole == CallRole.caller) {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
-        await _coordinator.sendCallInvite(
+        await _startOutgoingRinging(
           channel: channel,
           mediaType: mediaType,
-        );
-        _logger.info(
-          'joinCall: Caller ringing, invite sent, starting outgoing ring '
-          'timer (${_outgoingCallTimeout.inSeconds}s)',
-          name: _logKey,
-        );
-        _setState(
-          _state.copyWith(
-            status: AudioVideoCallStatus.outgoingRinging,
-            participants: _room.participants,
-            ownRole: ownRole,
-          ),
-        );
-        _outgoingCallTimer = Timer(
-          _outgoingCallTimeout,
-          _onOutgoingCallTimeout,
+          ownRole: ownRole,
         );
       } else {
         await _setupRecipientCall();
@@ -499,6 +485,27 @@ class AudioVideoCallService {
   }
 
   bool get _hasPeer => _room.participants.any((p) => !p.isSelf);
+
+  Future<void> _startOutgoingRinging({
+    required Channel channel,
+    required CallMediaType mediaType,
+    required CallRole ownRole,
+  }) async {
+    await _coordinator.sendCallInvite(channel: channel, mediaType: mediaType);
+    _logger.info(
+      'joinCall: Caller ringing, invite sent, starting outgoing ring '
+      'timer (${_outgoingCallTimeout.inSeconds}s)',
+      name: _logKey,
+    );
+    _setState(
+      _state.copyWith(
+        status: AudioVideoCallStatus.outgoingRinging,
+        participants: _room.participants,
+        ownRole: ownRole,
+      ),
+    );
+    _outgoingCallTimer = Timer(_outgoingCallTimeout, _onOutgoingCallTimeout);
+  }
 
   Future<void> _enableLocalMedia({
     CallMediaType mediaType = CallMediaType.video,

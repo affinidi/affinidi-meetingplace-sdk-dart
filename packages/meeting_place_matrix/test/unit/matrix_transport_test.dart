@@ -1,12 +1,19 @@
 import 'dart:typed_data';
 
 import 'package:meeting_place_core/meeting_place_core.dart'
-    show Channel, ChannelStatus, ChannelTransport, ChannelType, ContactCard;
+    show
+        Channel,
+        ChannelStatus,
+        ChannelTransport,
+        ChannelType,
+        ContactCard,
+        TransportEvent;
 import 'package:meeting_place_matrix/src/matrix_media_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_room_event.dart';
 import 'package:meeting_place_matrix/src/matrix_service.dart';
 import 'package:meeting_place_matrix/src/matrix_subscription_options.dart';
 import 'package:meeting_place_matrix/src/matrix_transport.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -298,6 +305,156 @@ void main() {
       );
 
       expect(eventId, '\$evt-1');
+    });
+  });
+
+  group('isNewInboundMessage', () {
+    TransportEvent event({
+      required String type,
+      required Map<String, dynamic> content,
+      bool isFromMe = false,
+    }) => TransportEvent(
+      id: '\$evt',
+      type: type,
+      content: content,
+      channelId: 'did:test:group',
+      timestamp: DateTime.now().toUtc(),
+      isFromMe: isFromMe,
+    );
+
+    test('counts an inbound m.room.message text', () {
+      final result = transport.isNewInboundMessage(
+        event(
+          type: 'm.room.message',
+          content: const {'msgtype': 'm.text', 'body': 'hello'},
+        ),
+      );
+
+      expect(result, isTrue);
+    });
+
+    test('does NOT count a per-member contact-card sync (mp_member_did). Each '
+        'group member broadcast uploads one such m.room.message media event; '
+        'the renderer skips them, so the unread counter must too or the group '
+        'badge over-counts by member count on first sync.', () {
+      final result = transport.isNewInboundMessage(
+        event(
+          type: 'm.room.message',
+          content: {
+            'msgtype': 'm.file',
+            MatrixEventField.memberDid: 'did:test:member',
+          },
+        ),
+      );
+
+      expect(result, isFalse);
+    });
+
+    test('does NOT count an m.replace edit', () {
+      final result = transport.isNewInboundMessage(
+        event(
+          type: 'm.room.message',
+          content: const {
+            'msgtype': 'm.text',
+            'm.relates_to': {'rel_type': 'm.replace'},
+          },
+        ),
+      );
+
+      expect(result, isFalse);
+    });
+
+    test('does NOT count own outbound message', () {
+      final result = transport.isNewInboundMessage(
+        event(
+          type: 'm.room.message',
+          content: const {'msgtype': 'm.text', 'body': 'mine'},
+          isFromMe: true,
+        ),
+      );
+
+      expect(result, isFalse);
+    });
+
+    test('does NOT count a non-message room event', () {
+      final result = transport.isNewInboundMessage(
+        event(type: 'mpx.call.item', content: const {}),
+      );
+
+      expect(result, isFalse);
+    });
+  });
+
+  group('fetchHistory', () {
+    test('does not force a Matrix sync by default', () async {
+      when(
+        () => matrixService.resolveRoomIdForChannel(
+          didManager: any(named: 'didManager'),
+          channel: any(named: 'channel'),
+        ),
+      ).thenAnswer((_) async => '!room:server');
+      when(
+        () => matrixService.fetchRoomHistory(
+          any(),
+          didManager: any(named: 'didManager'),
+          limit: any(named: 'limit'),
+          since: any(named: 'since'),
+          forceSync: any(named: 'forceSync'),
+        ),
+      ).thenAnswer((_) async => const <MatrixRoomEvent>[]);
+
+      await transport.fetchHistory(
+        channel: _groupMatrixChannel(),
+        didManager: didManager,
+        since: r'$prev',
+      );
+
+      final verification = verify(
+        () => matrixService.fetchRoomHistory(
+          '!room:server',
+          didManager: didManager,
+          limit: 50,
+          since: r'$prev',
+          forceSync: captureAny(named: 'forceSync'),
+        ),
+      )..called(1);
+      expect(verification.captured.single, isFalse);
+    });
+
+    test('forwards caller-requested forceSync to room history', () async {
+      when(
+        () => matrixService.resolveRoomIdForChannel(
+          didManager: any(named: 'didManager'),
+          channel: any(named: 'channel'),
+        ),
+      ).thenAnswer((_) async => '!room:server');
+      when(
+        () => matrixService.fetchRoomHistory(
+          any(),
+          didManager: any(named: 'didManager'),
+          limit: any(named: 'limit'),
+          since: any(named: 'since'),
+          forceSync: any(named: 'forceSync'),
+        ),
+      ).thenAnswer((_) async => const <MatrixRoomEvent>[]);
+
+      await transport.fetchHistory(
+        channel: _groupMatrixChannel(),
+        didManager: didManager,
+        since: r'$prev',
+        forceSync: true,
+      );
+
+      final verification = verify(
+        () => matrixService.fetchRoomHistory(
+          '!room:server',
+          didManager: didManager,
+          limit: 50,
+          since: r'$prev',
+          forceSync: captureAny(named: 'forceSync'),
+        ),
+      )..called(1);
+      expect(verification.captured.single, isTrue);
     });
   });
 }

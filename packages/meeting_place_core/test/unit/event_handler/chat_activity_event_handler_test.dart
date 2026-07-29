@@ -79,6 +79,19 @@ TransportEvent _editMessage({required String id, required String replacesId}) {
   );
 }
 
+TransportEvent _encryptedEvent({required String id, DateTime? timestamp}) {
+  return TransportEvent(
+    id: id,
+    type: 'm.room.encrypted',
+    senderDid: null,
+    channelId: _permanentChannelDid,
+    content: const {'algorithm': 'm.megolm.v1.aes-sha2'},
+    timestamp: timestamp ?? DateTime.now().toUtc(),
+    isFromMe: false,
+    metadata: const {'sender_id': '@sender:matrix.local'},
+  );
+}
+
 void main() {
   late ChatActivityEventHandler handler;
   late MockLogger mockLogger;
@@ -172,7 +185,7 @@ void main() {
       final event = inv.positionalArguments.first as TransportEvent;
       final isEdit =
           (event.content['m.relates_to'] as Map?)?['rel_type'] == 'm.replace';
-      return !event.isFromMe && !isEdit;
+      return !event.isFromMe && event.type == 'm.room.message' && !isEdit;
     });
   });
 
@@ -181,14 +194,16 @@ void main() {
       'bumps seqNo and updates sync marker for inbound new messages',
       () async {
         final channel = _matrixChannel(messageSyncMarker: r'$prev');
+        // `fetchHistory` returns events newest-first (DAG/stream order), so the
+        // newest event is at the head.
         final events = [
-          _inboundMessage(
-            id: r'$evt1',
-            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
-          ),
           _inboundMessage(
             id: r'$evt2',
             timestamp: DateTime.utc(2026, 1, 1, 0, 0, 2),
+          ),
+          _inboundMessage(
+            id: r'$evt1',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
           ),
         ];
 
@@ -201,6 +216,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => events);
 
@@ -226,6 +242,7 @@ void main() {
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
           limit: any(named: 'limit'),
+          forceSync: any(named: 'forceSync'),
         ),
       ).thenAnswer((_) async => []);
 
@@ -237,6 +254,7 @@ void main() {
           didManager: any(named: 'didManager'),
           since: captureAny(named: 'since'),
           limit: any(named: 'limit'),
+          forceSync: true,
         ),
       )..called(1);
       expect(verification.captured.single, equals(marker));
@@ -256,6 +274,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => []);
 
@@ -272,14 +291,15 @@ void main() {
       'does not bump seqNo for outbound messages (isFromMe = true)',
       () async {
         final channel = _matrixChannel();
+        // `fetchHistory` returns events newest-first (DAG/stream order).
         final events = [
-          _outboundMessage(
-            id: r'$evt1',
-            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
-          ),
           _outboundMessage(
             id: r'$evt2',
             timestamp: DateTime.utc(2026, 1, 1, 0, 0, 2),
+          ),
+          _outboundMessage(
+            id: r'$evt1',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
           ),
         ];
 
@@ -292,6 +312,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => events);
 
@@ -319,6 +340,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => events);
 
@@ -331,25 +353,30 @@ void main() {
       },
     );
 
-    test('advances sync marker to the newest event by timestamp regardless of '
-        'list position (matrix history is newest-first)', () async {
+    test('anchors sync marker at the DAG-newest event (list head), not the '
+        'max-timestamp event (matrix history is newest-first)', () async {
       final channel = _matrixChannel();
-      // Matrix `fetchHistory` returns events newest-first, so the newest
-      // event is at the head and the oldest at the tail. Anchoring the marker
-      // by list position (events.last) would regress it to the oldest event
-      // and cause the next sync to re-count the window, inflating seqNo.
+      // `fetchHistory` returns events newest-first in Matrix DAG (stream)
+      // order, so the head is the DAG-newest event. The next sync resumes from
+      // the marker by DAG position (getEventContext + forward pagination), so
+      // the marker MUST be the DAG-newest (head) event. Timestamps can be out
+      // of DAG order around group-call events, so the head is NOT always the
+      // max-timestamp event: here `$evt-mid` carries the latest timestamp but
+      // sits behind the DAG frontier. Anchoring by timestamp (the old bug)
+      // would strand the head event and either re-count it (over-count) or,
+      // when it is an inbound message, skip it forever (frozen group badge).
       final events = [
         _inboundMessage(
-          id: r'$evt-newest',
+          id: r'$evt-dag-newest',
+          timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
+        ),
+        _inboundMessage(
+          id: r'$evt-mid',
           timestamp: DateTime.utc(2026, 1, 1, 0, 0, 3),
         ),
         _inboundMessage(
-          id: r'$evt-middle',
+          id: r'$evt-dag-oldest',
           timestamp: DateTime.utc(2026, 1, 1, 0, 0, 2),
-        ),
-        _inboundMessage(
-          id: r'$evt-oldest',
-          timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
         ),
       ];
 
@@ -362,19 +389,91 @@ void main() {
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
           limit: any(named: 'limit'),
+          forceSync: any(named: 'forceSync'),
         ),
       ).thenAnswer((_) async => events);
 
       await handler.process(channelActivity);
 
       verify(
-        () =>
-            mockChannelService.updateMessageSyncMarker(channel, r'$evt-newest'),
+        () => mockChannelService.updateMessageSyncMarker(
+          channel,
+          r'$evt-dag-newest',
+        ),
       ).called(1);
       verifyNever(
-        () =>
-            mockChannelService.updateMessageSyncMarker(channel, r'$evt-oldest'),
+        () => mockChannelService.updateMessageSyncMarker(channel, r'$evt-mid'),
       );
     });
+
+    test('does not count encrypted events', () async {
+      final channel = _matrixChannel(messageSyncMarker: r'$prev', seqNo: 4);
+      final events = [_encryptedEvent(id: r'$enc-newest')];
+
+      when(
+        () => mockChannelService.findChannelByDid(_channelDid),
+      ).thenAnswer((_) async => channel);
+      when(
+        () => mockMatrixService.fetchHistory(
+          channel: any(named: 'channel'),
+          didManager: any(named: 'didManager'),
+          since: any(named: 'since'),
+          limit: any(named: 'limit'),
+          forceSync: any(named: 'forceSync'),
+        ),
+      ).thenAnswer((_) async => events);
+
+      await handler.process(channelActivity);
+
+      expect(channel.seqNo, equals(4));
+      verify(
+        () =>
+            mockChannelService.updateMessageSyncMarker(channel, r'$enc-newest'),
+      ).called(1);
+    });
+
+    test(
+      'counts newer decrypted messages when older encrypted events remain',
+      () async {
+        final channel = _matrixChannel(messageSyncMarker: r'$prev', seqNo: 4);
+        final events = [
+          _inboundMessage(
+            id: r'$msg-newest',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 3),
+          ),
+          _encryptedEvent(
+            id: r'$enc-mid',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 2),
+          ),
+          _inboundMessage(
+            id: r'$msg-oldest',
+            timestamp: DateTime.utc(2026, 1, 1, 0, 0, 1),
+          ),
+        ];
+
+        when(
+          () => mockChannelService.findChannelByDid(_channelDid),
+        ).thenAnswer((_) async => channel);
+        when(
+          () => mockMatrixService.fetchHistory(
+            channel: any(named: 'channel'),
+            didManager: any(named: 'didManager'),
+            since: any(named: 'since'),
+            limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
+          ),
+        ).thenAnswer((_) async => events);
+
+        await handler.process(channelActivity);
+
+        expect(channel.seqNo, equals(6));
+        verify(
+          () => mockChannelService.updateMessageSyncMarker(
+            channel,
+            r'$msg-newest',
+          ),
+        ).called(1);
+      },
+    );
   });
 }

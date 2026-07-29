@@ -1377,6 +1377,26 @@ void main() {
         ).called(1);
         verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
       });
+
+      test('forceSync runs oneShotSync before reading room history', () async {
+        when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+        when(client.oneShotSync).thenAnswer((_) async {});
+
+        await service.fetchRoomHistory(
+          _testRoomId,
+          didManager: didManager,
+          forceSync: true,
+        );
+
+        verify(client.oneShotSync).called(1);
+        verify(
+          () => room.requestHistory(
+            historyCount: any(named: 'historyCount'),
+            direction: matrix.Direction.f,
+          ),
+        ).called(1);
+        verify(() => room.getTimeline(limit: any(named: 'limit'))).called(1);
+      });
     });
 
     // ------------------------------------------------------------------

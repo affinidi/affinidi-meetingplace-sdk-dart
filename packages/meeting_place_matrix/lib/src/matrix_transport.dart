@@ -13,6 +13,7 @@ import 'matrix_media_exception.dart';
 import 'matrix_service.dart';
 import 'matrix_subscription_options.dart';
 import 'matrix_user_id_binding.dart';
+import 'transport/matrix/matrix_media_attachment.dart';
 
 /// [MeetingPlaceTransport] implementation backed by [MatrixService].
 ///
@@ -186,6 +187,7 @@ class MatrixTransport implements MeetingPlaceTransport {
     required DidManager didManager,
     int? limit,
     String? since,
+    bool forceSync = false,
   }) async {
     final roomId = await _matrixService.resolveRoomIdForChannel(
       didManager: didManager,
@@ -196,6 +198,7 @@ class MatrixTransport implements MeetingPlaceTransport {
       didManager: didManager,
       limit: limit ?? 50,
       since: since,
+      forceSync: forceSync,
     );
     return events
         .map(
@@ -303,6 +306,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   bool isNewInboundMessage(TransportEvent event) {
     if (event.isFromMe) return false;
     if (event.type != 'm.room.message') return false;
+    if (event.content.containsKey(MatrixEventField.memberDid)) return false;
     final relatesTo = event.content['m.relates_to'];
     if (relatesTo is Map && relatesTo['rel_type'] == 'm.replace') return false;
     return true;

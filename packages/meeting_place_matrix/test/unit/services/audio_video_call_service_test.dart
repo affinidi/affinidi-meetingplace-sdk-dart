@@ -669,9 +669,35 @@ void main() {
       await svc.joinCall(mediaType: CallMediaType.video);
 
       expect(room.callOrder, contains('nudge'));
+      expect(room.connectCalls, 1);
+      expect(room.disconnectCalls, 0);
       expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
       expect(svc.state.callId, isNot('ghost-membership-call'));
       expect(svc.state.callId, startsWith(_matrixRoomId));
+      final startCallIds = verify(
+        () => mockMatrixService.startCall(
+          didManager: any(named: 'didManager'),
+          roomId: any(named: 'roomId'),
+          callId: captureAny(named: 'callId'),
+          livekitServiceUrl: any(named: 'livekitServiceUrl'),
+          livekitAlias: any(named: 'livekitAlias'),
+        ),
+      ).captured.cast<String>();
+      expect(startCallIds, hasLength(1));
+      expect(startCallIds.single, isNot('ghost-membership-call'));
+      verify(
+        () => mockMatrixService.leaveCall(
+          roomId: _matrixRoomId,
+          callId: 'ghost-membership-call',
+        ),
+      ).called(1);
+      verify(() => mockSdk.notifyChannel(any())).called(1);
+      verify(
+        () => mockMatrixService.activeCallId(
+          didManager: any(named: 'didManager'),
+          roomId: _matrixRoomId,
+        ),
+      ).called(1);
     });
 
     test('ratchets own key when a participant leaves so the departed member '

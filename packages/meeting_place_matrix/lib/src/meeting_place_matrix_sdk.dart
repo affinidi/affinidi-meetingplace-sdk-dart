@@ -591,7 +591,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         );
 
         if (q.updateChannelSyncMarker && events.isNotEmpty) {
-          await _coreSDK.updateMessageSyncMarker(channel, events.last.id);
+          // Matrix history is newest-first by DAG position. The marker is used
+          // as an event-id anchor, so it must follow DAG order.
+          final newestEvent = events.first;
+          await _coreSDK.updateMessageSyncMarker(channel, newestEvent.id);
         }
 
         return Future.wait(

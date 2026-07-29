@@ -311,4 +311,23 @@ void main() {
       expect(windowed.consumePreemptiveDecline(_otherPartyDid), isFalse);
     });
   });
+
+  group('handled cancel', () {
+    test('consume returns true within the window then clears the record', () {
+      manager.recordHandledCancel(_otherPartyDid);
+      expect(manager.consumeHandledCancel(_otherPartyDid), isTrue);
+      expect(manager.consumeHandledCancel(_otherPartyDid), isFalse);
+    });
+
+    test('consume returns false once the window has elapsed', () {
+      var now = DateTime(2026);
+      final windowed = PendingCallManager(
+        preemptiveDeclineWindow: const Duration(seconds: 2),
+        now: () => now,
+      );
+      windowed.recordHandledCancel(_otherPartyDid);
+      now = now.add(const Duration(seconds: 3));
+      expect(windowed.consumeHandledCancel(_otherPartyDid), isFalse);
+    });
+  });
 }

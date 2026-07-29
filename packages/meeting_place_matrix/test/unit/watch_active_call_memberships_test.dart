@@ -43,6 +43,26 @@ class _ServiceWithMemberships extends MatrixCallService {
   ) => _memberships;
 }
 
+/// Like [_ServiceWithMemberships] but also stubs [createVoip] so the
+/// observation path can lazily build a VoIP without a real WebRTC delegate.
+class _ObserverService extends _ServiceWithMemberships {
+  _ObserverService({
+    required super.ensureSession,
+    required super.logger,
+    required super.memberships,
+    required this.voip,
+  });
+
+  final matrix.VoIP voip;
+  int createVoipCalls = 0;
+
+  @override
+  matrix.VoIP createVoip(matrix.Client client, matrix.WebRTCDelegate delegate) {
+    createVoipCalls++;
+    return voip;
+  }
+}
+
 void main() {
   late MockMatrixClient client;
   late MockDidManager didManager;
@@ -83,6 +103,35 @@ void main() {
           .first;
 
       expect(first, isEmpty);
+    });
+
+    test('creates an observation VoIP from the registered delegate when none '
+        'exists', () async {
+      final voip = MockVoIP();
+      when(() => voip.client).thenReturn(client);
+      final service = _ObserverService(
+        ensureSession:
+            (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                client,
+        logger: _NoOpLogger(),
+        voip: voip,
+        memberships: {
+          'call-1': [
+            MockCallMembership(
+              callId: 'call-1',
+              userId: '@peer:matrix.example.com',
+              deviceId: 'DEV_PEER',
+            ),
+          ],
+        },
+      )..observerDelegate = MockWebRTCDelegate();
+
+      final first = await service
+          .watchActiveCallMemberships(didManager: didManager, roomId: _roomId)
+          .first;
+
+      expect(service.createVoipCalls, 1);
+      expect(first.map((m) => m.userId), ['@peer:matrix.example.com']);
     });
 
     test('initial snapshot returns all non-expired memberships', () async {

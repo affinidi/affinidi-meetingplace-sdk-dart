@@ -101,6 +101,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       return;
     }
     _sdk = sdk;
+    sdk.matrixService.enableCallObservation(_rtcDelegate);
     _signalHandler = CallSignalHandler(
       sdk: sdk,
       pendingCallManager: _pendingCallManager,

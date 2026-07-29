@@ -38,6 +38,18 @@ class MatrixCallService {
   final Map<matrix.Client, matrix.VoIP> _voips =
       HashMap<matrix.Client, matrix.VoIP>.identity();
 
+  /// Delegate used to lazily create a [matrix.VoIP] instance when the ongoing
+  /// group-call observer runs on a device that has not started or answered a
+  /// call this session (so no VoIP exists yet). Registered once by the call
+  /// plugin via `MatrixService.enableCallObservation`. Reuses the same delegate
+  /// instance the call paths use, so a later call reuses the same VoIP.
+  matrix.WebRTCDelegate? _observerDelegate;
+
+  /// Registers the delegate used to create an observation-only VoIP instance in
+  /// [watchActiveCallMemberships]. See [_observerDelegate].
+  set observerDelegate(matrix.WebRTCDelegate delegate) =>
+      _observerDelegate = delegate;
+
   /// Subscription to [matrix.VoIP.onIncomingGroupCall] for each tracked VoIP.
   final Map<matrix.VoIP, StreamSubscription<matrix.GroupCallSession>>
   _incomingGroupCallSubscriptions = {};
@@ -227,23 +239,34 @@ class MatrixCallService {
   /// Keeps background sync active after any login this triggers, so the stream
   /// keeps receiving `onSync` updates instead of stalling after the login sync
   /// grace period.
+  ///
+  /// On a device that is only observing (it has not started or answered a call
+  /// this session) no VoIP exists yet. When an observer delegate has been
+  /// registered via [observerDelegate], one is created here so the banner works
+  /// without first joining a call; otherwise an empty list is emitted. The
+  /// session is established with sync kept active *before* the VoIP is created
+  /// so the observation login, not a later default-grace login, decides sync
+  /// lifetime.
   Stream<List<matrix.CallMembership>> watchActiveCallMemberships({
     required DidManager didManager,
     required String roomId,
   }) async* {
-    if (_voips.isEmpty) {
-      yield const [];
-      return;
-    }
-
     final client = await _ensureSession(
       didManager,
       keepSyncActiveAfterLogin: true,
     );
-    final voip = _voips[client];
-    if (voip == null) {
-      yield const [];
-      return;
+    final matrix.VoIP voip;
+    final existingVoip = _voips[client];
+    if (existingVoip != null) {
+      voip = existingVoip;
+    } else {
+      final delegate = _observerDelegate;
+      if (delegate == null) {
+        yield const [];
+        return;
+      }
+      voip = createVoip(client, delegate);
+      _voips[client] = voip;
     }
 
     List<matrix.CallMembership> snapshot() {

@@ -309,6 +309,14 @@ class MatrixService {
   /// See [MatrixCallService.initializeVoIP].
   void initializeVoIP(matrix.VoIP voip) => _callService.initializeVoIP(voip);
 
+  /// Registers the [matrix.WebRTCDelegate] used to create an observation-only
+  /// VoIP instance so [watchActiveCallMemberships] surfaces an ongoing group
+  /// call on a device that has not started or answered a call this session.
+  ///
+  /// See [MatrixCallService.observerDelegate].
+  void enableCallObservation(matrix.WebRTCDelegate delegate) =>
+      _callService.observerDelegate = delegate;
+
   /// Creates a [matrix.VoIP] instance from [delegate] and an authenticated
   /// client for [didManager].
   /// See [MatrixCallService.initializeVoIPWithDelegate].

@@ -27,7 +27,6 @@ List<ChatMention> extractMatrixMentions(
     for (final rawUserId in mentionedUserIds) {
       if (rawUserId is! String) continue;
       final span = _findMentionSpan(body, rawUserId);
-      if (span.$2 == 0) continue;
       mentions.add(
         ChatMention(
           target: rawUserId,

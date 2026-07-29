@@ -38,6 +38,18 @@ class MatrixCallService {
   final Map<matrix.Client, matrix.VoIP> _voips =
       HashMap<matrix.Client, matrix.VoIP>.identity();
 
+  /// Delegate used to lazily create a [matrix.VoIP] instance when the ongoing
+  /// group-call observer runs on a device that has not started or answered a
+  /// call this session (so no VoIP exists yet). Registered once by the call
+  /// plugin via `MatrixService.enableCallObservation`. Reuses the same delegate
+  /// instance the call paths use, so a later call reuses the same VoIP.
+  matrix.WebRTCDelegate? _observerDelegate;
+
+  /// Registers the delegate used to create an observation-only VoIP instance in
+  /// [watchActiveCallMemberships]. See [_observerDelegate].
+  set observerDelegate(matrix.WebRTCDelegate delegate) =>
+      _observerDelegate = delegate;
+
   /// Subscription to [matrix.VoIP.onIncomingGroupCall] for each tracked VoIP.
   final Map<matrix.VoIP, StreamSubscription<matrix.GroupCallSession>>
   _incomingGroupCallSubscriptions = {};
@@ -210,6 +222,94 @@ class MatrixCallService {
       }
     }
     return null;
+  }
+
+  /// Emits the non-expired MatrixRTC call memberships currently published in
+  /// [roomId], re-derived on every Matrix sync.
+  ///
+  /// Unlike [activeCallId], the local user's own device memberships are
+  /// retained so callers can distinguish "someone else is in a call" from
+  /// "I am in this call". The stream emits an initial snapshot immediately and
+  /// then a fresh snapshot after each sync; consumers that only care about
+  /// changes should de-duplicate. Each snapshot is ordered deterministically
+  /// (by callId, then userId, then deviceId) so repeated syncs of the same
+  /// membership set compare equal. Emits an empty list when VoIP is not
+  /// initialised or the room has not synced.
+  ///
+  /// Keeps background sync active after any login this triggers, so the stream
+  /// keeps receiving `onSync` updates instead of stalling after the login sync
+  /// grace period.
+  ///
+  /// On a device that is only observing (it has not started or answered a call
+  /// this session) no VoIP exists yet. When an observer delegate has been
+  /// registered via [observerDelegate], one is created here so the banner works
+  /// without first joining a call; otherwise an empty list is emitted. The
+  /// session is established with sync kept active *before* the VoIP is created
+  /// so the observation login, not a later default-grace login, decides sync
+  /// lifetime.
+  Stream<List<matrix.CallMembership>> watchActiveCallMemberships({
+    required DidManager didManager,
+    required String roomId,
+  }) async* {
+    final client = await _ensureSession(
+      didManager,
+      keepSyncActiveAfterLogin: true,
+    );
+    final matrix.VoIP voip;
+    final existingVoip = _voips[client];
+    if (existingVoip != null) {
+      voip = existingVoip;
+    } else {
+      final delegate = _observerDelegate;
+      if (delegate == null) {
+        yield const [];
+        return;
+      }
+      voip = createVoip(client, delegate);
+      _voips[client] = voip;
+    }
+
+    List<matrix.CallMembership> snapshot() {
+      final room = client.getRoomById(roomId);
+      if (room == null) return const [];
+      final active = <matrix.CallMembership>[];
+      for (final memberships in callMembershipsFromRoom(room, voip).values) {
+        for (final membership in memberships) {
+          if (membership.isExpired) continue;
+          active.add(membership);
+        }
+      }
+      active.sort((a, b) {
+        final byCall = a.callId.compareTo(b.callId);
+        if (byCall != 0) return byCall;
+        final byUser = a.userId.compareTo(b.userId);
+        if (byUser != 0) return byUser;
+        return a.deviceId.compareTo(b.deviceId);
+      });
+      return active;
+    }
+
+    // On a cold observation login the group room may not be in the client's
+    // sync yet, so the first snapshot would see no room and miss a call that is
+    // already in progress. Mirror the recipient discovery path and best-effort
+    // wait for the room before the first snapshot; a failure just falls back to
+    // the onSync-driven snapshots below.
+    if (client.getRoomById(roomId) == null) {
+      try {
+        await client.waitForRoomInSync(roomId, join: true);
+      } catch (e, stackTrace) {
+        _logger.error(
+          'Room $roomId not in sync for ongoing-call observation; '
+          'relying on later syncs',
+          error: e,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
+      }
+    }
+
+    yield snapshot();
+    yield* client.onSync.stream.map((_) => snapshot());
   }
 
   /// Creates or joins a MatrixRTC group call in [roomId] using the LiveKit

@@ -10,6 +10,7 @@ import 'package:ssi/ssi.dart';
 
 import '../meeting_place_matrix.dart';
 import 'call/call_signal_mapper.dart';
+import 'call/ongoing_group_call_mapper.dart';
 import 'matrix_incoming_message.dart';
 import 'matrix_outgoing_message.dart';
 import 'matrix_room_history_query.dart';
@@ -148,6 +149,62 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
 
   /// The active call session, or `null` when no call is in progress.
   LiveKitCallSession? get activeCallSession => _callPlugin?.activeSession;
+
+  /// Observes the in-progress group call in [groupChannelDid]'s Matrix room,
+  /// re-emitting whenever the room's MatrixRTC call membership changes.
+  ///
+  /// [groupChannelDid] is the group's permanent channel DID (the
+  /// `otherPartyPermanentChannelDid` of the local group channel). Emits an
+  /// [OngoingGroupCall] describing the participants currently present, or
+  /// `null` when no call is in progress.
+  ///
+  /// Intended for an "ongoing call" affordance shown to a member who has not
+  /// joined the call, so the local user's own device memberships are reported
+  /// with [OngoingGroupCallParticipant.isSelf] set rather than filtered out.
+  /// Emits `null` when calling is unsupported, the channel is unknown or not a
+  /// group, or the room has no non-expired call memberships.
+  Stream<OngoingGroupCall?> watchOngoingGroupCall({
+    required String groupChannelDid,
+  }) async* {
+    if (!isCallSupported) {
+      yield null;
+      return;
+    }
+
+    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+      groupChannelDid,
+    );
+    if (channel == null || !channel.isGroup) {
+      yield null;
+      return;
+    }
+
+    final ownChannelDid = channel.permanentChannelDid;
+    if (ownChannelDid == null) {
+      yield null;
+      return;
+    }
+
+    final didManager = await _coreSDK.getDidManager(ownChannelDid);
+    final roomId = await matrixService.resolveRoomIdForChannel(
+      didManager: didManager,
+      channel: channel,
+    );
+    final serverName = matrixService.serverName;
+    final memberDids = await _senderDidResolver.fetchParticipantDids(channel);
+    final candidateDids = <String>{ownChannelDid, ...memberDids};
+
+    yield* matrixService
+        .watchActiveCallMemberships(didManager: didManager, roomId: roomId)
+        .map(
+          (memberships) => buildOngoingGroupCall(
+            memberships: memberships,
+            ownChannelDid: ownChannelDid,
+            serverName: serverName,
+            candidateDids: candidateDids,
+          ),
+        );
+  }
 
   static Future<MeetingPlaceMatrixSDK> create({
     required Wallet wallet,

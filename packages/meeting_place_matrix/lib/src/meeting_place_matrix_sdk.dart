@@ -10,6 +10,7 @@ import 'package:ssi/ssi.dart';
 
 import '../meeting_place_matrix.dart';
 import 'call/call_signal_mapper.dart';
+import 'call/ongoing_group_call_mapper.dart';
 import 'matrix_incoming_message.dart';
 import 'matrix_outgoing_message.dart';
 import 'matrix_room_history_query.dart';
@@ -17,7 +18,6 @@ import 'matrix_room_subscription.dart';
 import 'matrix_sender_did_resolver.dart';
 import 'matrix_service.dart';
 import 'matrix_transport.dart';
-import 'matrix_user_id_binding.dart';
 import 'meeting_place_livekit_call_plugin.dart';
 
 /// A [MeetingPlaceCoreSDK] backed by a Matrix homeserver.
@@ -190,50 +190,20 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       didManager: didManager,
       channel: channel,
     );
-    final serverName = matrixService.homeserver.host;
+    final serverName = matrixService.serverName;
     final memberDids = await _senderDidResolver.fetchParticipantDids(channel);
     final candidateDids = <String>{ownChannelDid, ...memberDids};
 
     yield* matrixService
         .watchActiveCallMemberships(didManager: didManager, roomId: roomId)
         .map(
-          (memberships) => _toOngoingGroupCall(
+          (memberships) => buildOngoingGroupCall(
             memberships: memberships,
             ownChannelDid: ownChannelDid,
             serverName: serverName,
             candidateDids: candidateDids,
           ),
         );
-  }
-
-  OngoingGroupCall? _toOngoingGroupCall({
-    required List<matrix.CallMembership> memberships,
-    required String ownChannelDid,
-    required String serverName,
-    required Set<String> candidateDids,
-  }) {
-    if (memberships.isEmpty) return null;
-
-    final participants = memberships
-        .map((membership) {
-          final did = resolveSenderDidFromCandidates(
-            matrixUserId: membership.userId,
-            serverName: serverName,
-            candidateDids: candidateDids,
-          );
-          return OngoingGroupCallParticipant(
-            matrixUserId: membership.userId,
-            deviceId: membership.deviceId,
-            isSelf: did != null && did == ownChannelDid,
-            did: did,
-          );
-        })
-        .toList(growable: false);
-
-    return OngoingGroupCall(
-      callId: memberships.first.callId,
-      participants: participants,
-    );
   }
 
   static Future<MeetingPlaceMatrixSDK> create({

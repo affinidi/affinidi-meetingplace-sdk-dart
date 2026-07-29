@@ -219,8 +219,14 @@ class MatrixCallService {
   /// retained so callers can distinguish "someone else is in a call" from
   /// "I am in this call". The stream emits an initial snapshot immediately and
   /// then a fresh snapshot after each sync; consumers that only care about
-  /// changes should de-duplicate. Emits an empty list when VoIP is not
+  /// changes should de-duplicate. Each snapshot is ordered deterministically
+  /// (by callId, then userId, then deviceId) so repeated syncs of the same
+  /// membership set compare equal. Emits an empty list when VoIP is not
   /// initialised or the room has not synced.
+  ///
+  /// Keeps background sync active after any login this triggers, so the stream
+  /// keeps receiving `onSync` updates instead of stalling after the login sync
+  /// grace period.
   Stream<List<matrix.CallMembership>> watchActiveCallMemberships({
     required DidManager didManager,
     required String roomId,
@@ -230,7 +236,10 @@ class MatrixCallService {
       return;
     }
 
-    final client = await _ensureSession(didManager);
+    final client = await _ensureSession(
+      didManager,
+      keepSyncActiveAfterLogin: true,
+    );
     final voip = _voips[client];
     if (voip == null) {
       yield const [];
@@ -247,6 +256,13 @@ class MatrixCallService {
           active.add(membership);
         }
       }
+      active.sort((a, b) {
+        final byCall = a.callId.compareTo(b.callId);
+        if (byCall != 0) return byCall;
+        final byUser = a.userId.compareTo(b.userId);
+        if (byUser != 0) return byUser;
+        return a.deviceId.compareTo(b.deviceId);
+      });
       return active;
     }
 

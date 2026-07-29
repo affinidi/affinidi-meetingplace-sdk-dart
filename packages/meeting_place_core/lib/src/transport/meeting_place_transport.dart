@@ -87,11 +87,14 @@ abstract interface class MeetingPlaceTransport {
   /// Returns historical events for [channel].
   ///
   /// [since] is a cursor; if null, the most recent events are returned.
+  /// [forceSync] asks transports that support remote sync to process pending
+  /// state before reading history.
   Future<List<TransportEvent>> fetchHistory({
     required Channel channel,
     required DidManager didManager,
     int? limit,
     String? since,
+    bool forceSync = false,
   });
 
   /// Returns the id of the most recent event in [channel], or null if

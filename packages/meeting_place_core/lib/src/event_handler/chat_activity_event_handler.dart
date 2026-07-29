@@ -102,6 +102,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
       channel: channel,
       didManager: didManager,
       since: channel.messageSyncMarker,
+      forceSync: true,
     );
 
     if (events.isEmpty) return;

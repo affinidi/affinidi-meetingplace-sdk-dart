@@ -187,6 +187,7 @@ class MatrixTransport implements MeetingPlaceTransport {
     required DidManager didManager,
     int? limit,
     String? since,
+    bool forceSync = false,
   }) async {
     final roomId = await _matrixService.resolveRoomIdForChannel(
       didManager: didManager,
@@ -197,7 +198,7 @@ class MatrixTransport implements MeetingPlaceTransport {
       didManager: didManager,
       limit: limit ?? 50,
       since: since,
-      forceSync: true,
+      forceSync: forceSync,
     );
     return events
         .map(

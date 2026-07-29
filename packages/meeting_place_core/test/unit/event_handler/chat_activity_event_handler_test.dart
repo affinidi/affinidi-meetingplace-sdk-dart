@@ -216,6 +216,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => events);
 
@@ -241,6 +242,7 @@ void main() {
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
           limit: any(named: 'limit'),
+          forceSync: any(named: 'forceSync'),
         ),
       ).thenAnswer((_) async => []);
 
@@ -252,6 +254,7 @@ void main() {
           didManager: any(named: 'didManager'),
           since: captureAny(named: 'since'),
           limit: any(named: 'limit'),
+          forceSync: true,
         ),
       )..called(1);
       expect(verification.captured.single, equals(marker));
@@ -271,6 +274,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => []);
 
@@ -308,6 +312,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => events);
 
@@ -335,6 +340,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => events);
 
@@ -383,6 +389,7 @@ void main() {
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
           limit: any(named: 'limit'),
+          forceSync: any(named: 'forceSync'),
         ),
       ).thenAnswer((_) async => events);
 
@@ -412,6 +419,7 @@ void main() {
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
           limit: any(named: 'limit'),
+          forceSync: any(named: 'forceSync'),
         ),
       ).thenAnswer((_) async => events);
 
@@ -452,6 +460,7 @@ void main() {
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
             limit: any(named: 'limit'),
+            forceSync: any(named: 'forceSync'),
           ),
         ).thenAnswer((_) async => events);
 

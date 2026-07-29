@@ -221,7 +221,7 @@ void main() {
     });
   });
 
-  group('bootstrap sync marker — advances to newest by timestamp', () {
+  group('bootstrap sync marker — advances to DAG-newest event', () {
     late _MockCoreSDK core;
     late _MockVdipClient vdip;
     late _MockVdipSubscription vdipSub;
@@ -266,13 +266,13 @@ void main() {
     });
 
     test(
-      'anchors marker to the newest event when history is newest-first',
+      'anchors marker to the list head when timestamps are out of order',
       () async {
-        // Matrix history is returned newest-first, so the newest event is at
-        // the head and `events.last` is the OLDEST. The marker must advance to
-        // the newest by timestamp; anchoring it to the oldest would make the
-        // next bootstrap re-fetch and re-process the same window.
+        // Matrix history is returned newest-first by DAG position. The marker
+        // is used as an event-id anchor, so it must follow DAG order, not
+        // timestamp order.
         const newestId = r'$newest_matrix_event_id';
+        const maxTimestampId = r'$max_timestamp_matrix_event_id';
         const oldestId = r'$oldest_matrix_event_id';
         when(() => core.fetchHistory(any())).thenAnswer(
           (_) async => [
@@ -280,6 +280,12 @@ void main() {
               type: 'm.room.message',
               id: newestId,
               content: {'msgtype': 'm.text', 'body': 'newer'},
+              timestamp: DateTime.utc(2026, 1, 1, 12, 1),
+            ),
+            _incoming(
+              type: 'm.room.message',
+              id: maxTimestampId,
+              content: {'msgtype': 'm.text', 'body': 'max timestamp'},
               timestamp: DateTime.utc(2026, 1, 1, 12, 5),
             ),
             _incoming(
@@ -304,6 +310,12 @@ void main() {
           () => repo.updateSyncMarker(
             chatId: any(named: 'chatId'),
             eventId: oldestId,
+          ),
+        );
+        verifyNever(
+          () => repo.updateSyncMarker(
+            chatId: any(named: 'chatId'),
+            eventId: maxTimestampId,
           ),
         );
       },

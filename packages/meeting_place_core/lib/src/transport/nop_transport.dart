@@ -59,6 +59,7 @@ class NopTransport implements MeetingPlaceTransport {
     required DidManager didManager,
     int? limit,
     String? since,
+    bool forceSync = false,
   }) async => [];
 
   @override

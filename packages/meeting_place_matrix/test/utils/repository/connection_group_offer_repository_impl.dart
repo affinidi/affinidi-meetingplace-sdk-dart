@@ -50,6 +50,33 @@ class GroupRepositoryImpl implements GroupRepository {
     return _storage.remove('$groupPrefix${group.id}');
   }
 
+  @override
+  Future<void> addMemberIfAbsent(String groupId, GroupMember member) async {
+    final group = await getGroupById(groupId);
+    if (group == null) return;
+    final alreadyPresent = group.members.any((m) => m.did == member.did);
+    if (alreadyPresent) return;
+    group.members.add(member);
+    await updateGroup(group);
+  }
+
+  @override
+  Future<void> updateMemberStatus(
+    String groupId,
+    String memberDid,
+    GroupMemberStatus status,
+  ) async {
+    final group = await getGroupById(groupId);
+    if (group == null) return;
+    for (final m in group.members) {
+      if (m.did == memberDid) {
+        m.status = status;
+        break;
+      }
+    }
+    await updateGroup(group);
+  }
+
   Future<void> _saveGroupToOfferLink(
     String groupId,
     String groupDid,

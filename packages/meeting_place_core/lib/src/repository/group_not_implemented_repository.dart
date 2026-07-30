@@ -27,4 +27,18 @@ class GroupNotImplementedRepository implements GroupRepository {
   Future<void> updateGroup(Group group) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> addMemberIfAbsent(String groupId, GroupMember member) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateMemberStatus(
+    String groupId,
+    String memberDid,
+    GroupMemberStatus status,
+  ) {
+    throw UnimplementedError();
+  }
 }

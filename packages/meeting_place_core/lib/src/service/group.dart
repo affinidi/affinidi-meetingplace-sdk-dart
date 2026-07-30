@@ -676,18 +676,34 @@ class GroupService {
       member: member,
     );
 
-    group.approveMember(member);
-    await _groupRepository.updateGroup(group);
+    // Atomic single-row status update: only the targeted member row is written,
+    // so no other member additions or status changes made by concurrent
+    // InvitationGroupAcceptedEventHandler or approveMembershipRequest calls can
+    // be lost. The old read-modify-write (freshGroup.approveMember +
+    // updateGroup) replaced the entire member list and was the root cause of
+    // the lost-update.
+    await _groupRepository.updateMemberStatus(
+      group.id,
+      memberDid,
+      GroupMemberStatus.approved,
+    );
+
+    // Re-read after the atomic update so the GroupMemberInauguration message
+    // carries the freshest member list (including any members added by
+    // concurrent InvitationGroupAcceptedEventHandler calls between the initial
+    // read above and the status update just performed).
+    final freshGroup =
+        await _groupRepository.getGroupByOfferLink(channel.offerLink) ?? group;
 
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
       to: [memberDid],
       memberDid: memberDid,
-      groupDid: group.did,
-      groupId: group.id,
-      adminDids: [group.ownerDid!],
-      groupPublicKey: group.publicKey!,
-      members: group.members
+      groupDid: freshGroup.did,
+      groupId: freshGroup.id,
+      adminDids: [freshGroup.ownerDid!],
+      groupPublicKey: freshGroup.publicKey!,
+      members: freshGroup.members
           .where((member) => member.status == GroupMemberStatus.approved)
           .map(
             (member) => GroupMemberInaugurationMember(

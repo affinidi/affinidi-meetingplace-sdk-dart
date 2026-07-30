@@ -6,6 +6,7 @@ import '../repository/group_repository.dart';
 
 import '../service/group/group_exception.dart';
 import '../service/mediator/fetch_messages_options.dart';
+import '../utils/string.dart';
 import 'base_event_handler.dart';
 import 'exceptions/invitation_accepted_group_exception.dart';
 
@@ -100,15 +101,28 @@ class InvitationGroupAcceptedEventHandler
       throw InvitationAcceptedGroupException.contactCardNotPresent();
     }
 
-    group.members.add(
+    // Atomic add-if-absent: the repository inserts the new pendingApproval row
+    // only when no row for (group.id, otherPartyPermanentChannelDid) already
+    // exists. This eliminates two races in a single operation:
+    //   1. Duplicate InvitationGroupAccept deliveries (re-delivery / two
+    //      devices) — the second call is silently a no-op.
+    //   2. Concurrent approve writes: because only the specific new row is
+    //      written (no full member-list replace), a concurrent
+    //      updateMemberStatus call for a different member is never overwritten.
+    await _groupRepository.addMemberIfAbsent(
+      group.id,
       GroupMember.pendingMember(
         did: otherPartyPermanentChannelDid,
         publicKey: invitationAcceptance.body.publicKey,
         contactCard: otherPartyContactCard,
       ),
     );
-
-    await _groupRepository.updateGroup(group);
+    logger.info(
+      'Persisted pendingApproval entry for '
+      '${otherPartyPermanentChannelDid.topAndTail()} '
+      '(no-op if already present).',
+      name: 'processMessage',
+    );
 
     final channel = Channel(
       offerLink: connection.offerLink,

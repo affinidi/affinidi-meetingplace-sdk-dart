@@ -247,6 +247,9 @@ class DidcommIncomingMessageHandler {
       chatMessage.body.text,
     );
     if (signRequest != null) {
+      final attachments = chatMessage.attachments
+          .map((attachment) => attachment.toChatAttachment())
+          .toList();
       final concierge = ConciergeMessage(
         chatId: chatId,
         messageId: chatMessage.id,
@@ -258,6 +261,7 @@ class DidcommIncomingMessageHandler {
           CiergeSignDocumentRequest.conciergeTypeName,
         ),
         data: {'document': signRequest.document, 'taskId': signRequest.taskId},
+        attachments: attachments.isEmpty ? null : attachments,
       );
       final existing = await chatRepository.getMessage(
         chatId: chatId,

@@ -15,6 +15,9 @@ ConciergeMessage _$ConciergeMessageFromJson(Map<String, dynamic> json) =>
       dateCreated: DateTime.parse(json['dateCreated'] as String),
       status: $enumDecode(_$ChatItemStatusEnumMap, json['status']),
       data: json['data'] as Map<String, dynamic>,
+      attachments: (json['attachments'] as List<dynamic>?)
+          ?.map((e) => ChatAttachment.fromJson(e as Map<String, dynamic>))
+          .toList(),
       conciergeType: const _ConciergeMessageTypeConverter().fromJson(
         json['conciergeType'] as String,
       ),
@@ -33,6 +36,8 @@ Map<String, dynamic> _$ConciergeMessageToJson(ConciergeMessage instance) =>
       'type': _$ChatItemTypeEnumMap[instance.type]!,
       'status': _$ChatItemStatusEnumMap[instance.status]!,
       'data': instance.data,
+      if (instance.attachments case final attachments?)
+        'attachments': attachments.map((e) => e.toJson()).toList(),
       'conciergeType': const _ConciergeMessageTypeConverter().toJson(
         instance.conciergeType,
       ),

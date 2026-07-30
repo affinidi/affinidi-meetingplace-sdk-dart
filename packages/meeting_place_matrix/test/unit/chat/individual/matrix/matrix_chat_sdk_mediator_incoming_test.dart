@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -143,6 +144,97 @@ void main() {
       final messages = await sdk.messages;
       expect(messages, hasLength(1));
       expect((messages.single as Message).messageId, 'mediator-msg-1');
+
+      await sdk.endChatSession();
+      if (!incomingController.isClosed) {
+        await incomingController.close();
+      }
+    },
+  );
+
+  test(
+    '''IndividualMatrixChatSDK preserves attachments on mediator sign-document concierge messages''',
+    () async {
+      final core = _MockCoreSDK();
+      final vdip = _MockVdipClient();
+      final vdipSubscription = _MockCoreSDKStreamSubscription();
+      final incomingController = StreamController<IncomingMessage>.broadcast();
+      final repo = ChatRepositoryImpl(storage: InMemoryStorage());
+
+      when(
+        () => core.subscribe(any()),
+      ).thenAnswer((_) async => _FakeIncomingMessageHandle(incomingController));
+      when(() => core.vdip).thenReturn(vdip);
+      when(
+        () => vdip.subscribe(any()),
+      ).thenAnswer((_) async => vdipSubscription);
+      when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
+      when(vdip.unsubscribe).thenAnswer((_) async {});
+      when(
+        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+      ).thenAnswer((_) async => _channel());
+      when(() => core.sendMessage(any())).thenAnswer((_) async => 'ok');
+      when(() => core.updateChannel(any())).thenAnswer((_) async {});
+
+      final sdk = IndividualMatrixChatSDK(
+        coreSDK: core,
+        did: _aliceDid,
+        otherPartyDid: _bobDid,
+        mediatorDid: _mediatorDid,
+        chatRepository: repo,
+        options: MeetingPlaceChatSDKOptions(
+          chatPresenceSendInterval: const Duration(hours: 1),
+        ),
+      );
+
+      final chat = await sdk.startChatSession();
+      await Future<void>.delayed(Duration.zero);
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatMessageEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'mediator-sign-1',
+            type: Uri.parse(ChatProtocol.chatMessage.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'text': jsonEncode({
+                'type': 'cierge/sign-document-request',
+                'document': {
+                  'title': 'Contract.pdf',
+                  'mediaType': 'application/pdf',
+                  'byteCount': 5,
+                },
+              }),
+              'seq_no': 1,
+              'timestamp': DateTime.utc(2026).toIso8601String(),
+            },
+            attachments: [
+              Attachment(
+                id: 'att-sign-1',
+                filename: 'Contract.pdf',
+                mediaType: 'application/pdf',
+                format: 'cierge/sign-document',
+                byteCount: 5,
+                data: AttachmentData(base64: 'aGVsbG8='),
+              ),
+            ],
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      final concierge = streamData.chatItem! as ConciergeMessage;
+      expect(concierge.conciergeType.value, 'signDocumentRequest');
+      expect(concierge.attachments, hasLength(1));
+      expect(concierge.attachments!.single.id, 'att-sign-1');
+      expect(concierge.attachments!.single.data?.base64, 'aGVsbG8=');
 
       await sdk.endChatSession();
       if (!incomingController.isClosed) {

@@ -91,6 +91,7 @@ class TextMessageHandler {
               'document': signRequest.document,
               'taskId': signRequest.taskId,
             },
+            attachments: attachments.isEmpty ? null : attachments,
           );
           final chatItem = await _chatRepository.createMessage(concierge);
           _chatStream.pushData(

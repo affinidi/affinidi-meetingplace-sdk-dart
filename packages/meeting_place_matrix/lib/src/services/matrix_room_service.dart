@@ -44,10 +44,22 @@ class MatrixRoomService {
   /// string literal next to the numeric power level.
   static const _powerLevelUsersKey = 'users';
 
+  /// Key for the per-event-type power level map in the Matrix
+  /// `m.room.power_levels` content. Entries here override the room-wide
+  /// `state_default` for individual state event types.
+  static const _powerLevelEventsKey = 'events';
+
+  /// Power level required to send the protected room-management state events
+  /// (power levels, tombstone, encryption, history visibility, server ACL).
+  /// The homeserver defaults these to 100, but a partial `events` override
+  /// replaces the whole default map, so they are re-asserted explicitly.
+  static const _protectedStatePowerLevel = 100;
+
   // Matrix event type strings not covered by matrix.EventTypes.
   static const _eventTypeRead = 'm.read';
   static const _eventTypeTyping = 'm.typing';
   static const _eventTypeReceipt = 'm.receipt';
+  static const _eventTypeServerAcl = 'm.room.server_acl';
 
   // Content key strings for Matrix event payloads.
   static const _keyEventId = 'event_id';
@@ -71,11 +83,16 @@ class MatrixRoomService {
   ///
   /// Both the creator and every invited user are granted power level 100 so
   /// either party can start or join a MatrixRTC group call regardless of who
-  /// created the room. The group-call member state event requires power 50 by
-  /// default, but only a power-100 user can enable group calls for the room
-  /// (`Room.enableGroupCalls`), so a non-creator party would otherwise be
-  /// unable to join. Co-owning the room is the expected model for a
-  /// peer-to-peer channel and keeps the default per-event protections intact.
+  /// created the room. In addition, the `com.famedly.call.member` state event
+  /// (GroupCallMember) is set to require power level 0, so any member of the
+  /// room can join group calls without needing elevated permissions.
+  ///
+  /// The homeserver applies `power_level_content_override` as a shallow
+  /// top-level merge, so supplying an `events` map replaces the server's
+  /// default `events` map entirely. The protected room-management events
+  /// (power levels, tombstone, encryption, history visibility, server ACL)
+  /// are therefore re-asserted at power level 100 to keep their default
+  /// protections intact; only GroupCallMember is lowered.
   ///
   /// Returns: The ID of the newly created Matrix room.
   Future<String> createRoom({
@@ -106,6 +123,14 @@ class MatrixRoomService {
           creatorUserId: _groupCallPowerLevel,
           for (final userId in invitedUserIds ?? const <String>[])
             userId: _groupCallPowerLevel,
+        },
+        _powerLevelEventsKey: {
+          matrix.EventTypes.RoomPowerLevels: _protectedStatePowerLevel,
+          matrix.EventTypes.RoomTombstone: _protectedStatePowerLevel,
+          matrix.EventTypes.Encryption: _protectedStatePowerLevel,
+          matrix.EventTypes.HistoryVisibility: _protectedStatePowerLevel,
+          _eventTypeServerAcl: _protectedStatePowerLevel,
+          matrix.EventTypes.GroupCallMember: 0,
         },
       },
       initialState: [

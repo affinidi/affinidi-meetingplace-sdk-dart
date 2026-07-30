@@ -978,6 +978,22 @@ void main() {
           expect(users['@member1:matrix.example.com'], 100);
           expect(users['@member2:matrix.example.com'], 100);
           expect(users['@member3:matrix.example.com'], 100);
+
+          final events = captured['events'] as Map<String, Object?>;
+          expect(
+            events[matrix.EventTypes.GroupCallMember],
+            equals(0),
+            reason:
+                'GroupCallMember state event must require PL 0 so every '
+                'room member can join group calls without elevated permissions',
+          );
+          // The events override replaces the homeserver's default events map,
+          // so protected room-management events must be re-asserted at PL 100.
+          expect(events[matrix.EventTypes.RoomPowerLevels], 100);
+          expect(events[matrix.EventTypes.RoomTombstone], 100);
+          expect(events[matrix.EventTypes.Encryption], 100);
+          expect(events[matrix.EventTypes.HistoryVisibility], 100);
+          expect(events['m.room.server_acl'], 100);
         },
       );
 

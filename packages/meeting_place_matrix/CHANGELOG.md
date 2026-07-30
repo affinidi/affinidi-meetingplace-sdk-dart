@@ -1,3 +1,7 @@
+## 0.0.1-dev.11
+
+ - **FIX**: correct ongoing-call observation membership stream docs (#299).
+
 ## 0.0.1-dev.10
 
  - **FIX**: advance matrix sync markers to newest event to stop unread badge recount (#279).

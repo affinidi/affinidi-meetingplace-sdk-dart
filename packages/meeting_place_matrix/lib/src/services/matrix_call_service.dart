@@ -233,8 +233,8 @@ class MatrixCallService {
   /// then a fresh snapshot after each sync; consumers that only care about
   /// changes should de-duplicate. Each snapshot is ordered deterministically
   /// (by callId, then userId, then deviceId) so repeated syncs of the same
-  /// membership set compare equal. Emits an empty list when VoIP is not
-  /// initialised or the room has not synced.
+  /// membership set compare equal. Emits an empty list when no VoIP exists and
+  /// no observer delegate is registered, or the room has not synced.
   ///
   /// Keeps background sync active after any login this triggers, so the stream
   /// keeps receiving `onSync` updates instead of stalling after the login sync

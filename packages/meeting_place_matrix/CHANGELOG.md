@@ -1,3 +1,7 @@
+## 0.0.1-dev.12
+
+ - **FIX**: allow any room member to start and join calls (#302).
+
 ## 0.0.1-dev.11
 
  - **FIX**: correct ongoing-call observation membership stream docs (#299).

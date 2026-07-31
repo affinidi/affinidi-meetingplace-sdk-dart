@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-07-31
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_matrix` - `v0.0.1-dev.12`](#meeting_place_matrix---v001-dev12)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.12`
+
+ - **FIX**: allow any room member to start and join calls (#302).
+
+
 ## 2026-07-30
 
 ### Changes

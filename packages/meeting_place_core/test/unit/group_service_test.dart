@@ -56,6 +56,9 @@ class _FakeChannel extends Fake implements Channel {}
 
 class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
 
+class _FakeGroupAddMemberCommandOutput extends Fake
+    implements cp.GroupAddMemberCommandOutput {}
+
 class _FakeDidDocument extends Fake implements DidDocument {
   @override
   String get id => 'did:fake';
@@ -582,16 +585,14 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      // Note: `controlPlaneSDK.execute` is a generic method. Mocktail's `any()`
-      // type inference for generics makes the stub match unreliable in this
-      // version. Since `execute` is called AFTER `updateMemberStatus` and the
-      // fresh-read, we catch any error from the mock to still assert the
-      // pre-execute behaviour — which is the focus of this test.
-      try {
-        await service.approveMembershipRequest(channel: channel);
-      } catch (_) {
-        // execute mock type mismatch — expected; pre-execute assertions follow.
-      }
+      when(
+        () => controlPlaneSDK.execute<cp.GroupAddMemberCommandOutput>(any()),
+      ).thenAnswer((_) async => _FakeGroupAddMemberCommandOutput());
+
+      final result = await service.approveMembershipRequest(channel: channel);
+
+      // The method completes and returns the channel it was given.
+      expect(result, same(channel));
 
       // KEY ASSERTION: atomic single-row update — no full member-list replace.
       verify(

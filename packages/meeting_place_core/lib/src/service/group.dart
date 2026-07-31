@@ -676,22 +676,17 @@ class GroupService {
       member: member,
     );
 
-    // Atomic single-row status update: only the targeted member row is written,
-    // so no other member additions or status changes made by concurrent
-    // InvitationGroupAcceptedEventHandler or approveMembershipRequest calls can
-    // be lost. The old read-modify-write (freshGroup.approveMember +
-    // updateGroup) replaced the entire member list and was the root cause of
-    // the lost-update.
+    // Approve by updating only this member's row. A full-list updateGroup here
+    // could drop members that a concurrent InvitationGroupAccept added between
+    // the read above and this write — the lost-update that caused the bug.
     await _groupRepository.updateMemberStatus(
       group.id,
       memberDid,
       GroupMemberStatus.approved,
     );
 
-    // Re-read after the atomic update so the GroupMemberInauguration message
-    // carries the freshest member list (including any members added by
-    // concurrent InvitationGroupAcceptedEventHandler calls between the initial
-    // read above and the status update just performed).
+    // Re-read so the inauguration payload reflects the just-approved status and
+    // any members added concurrently since the initial read.
     final freshGroup =
         await _groupRepository.getGroupByOfferLink(channel.offerLink) ?? group;
 

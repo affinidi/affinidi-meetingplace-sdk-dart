@@ -269,11 +269,19 @@ void main() {
 
         await handler.process(event);
 
-        // addMemberIfAbsent must be called — the repository is the authority on
-        // whether the row already exists, not the in-memory snapshot.
-        verify(
-          () => mockGroupRepository.addMemberIfAbsent('group-1', any()),
-        ).called(1);
+        // addMemberIfAbsent must be called with the joiner as a pendingApproval
+        // member — the repository is the authority on whether the row already
+        // exists, not the in-memory snapshot.
+        final captured =
+            verify(
+                  () => mockGroupRepository.addMemberIfAbsent(
+                    'group-1',
+                    captureAny(),
+                  ),
+                ).captured.single
+                as GroupMember;
+        expect(captured.did, joinerDid);
+        expect(captured.status, GroupMemberStatus.pendingApproval);
         // updateGroup must never be called from the handler — it would clobber
         // concurrent approve status changes.
         verifyNever(() => mockGroupRepository.updateGroup(any()));
@@ -309,10 +317,17 @@ void main() {
 
       await handler.process(event);
 
-      // addMemberIfAbsent must be called exactly once.
-      verify(
-        () => mockGroupRepository.addMemberIfAbsent('group-1', any()),
-      ).called(1);
+      // addMemberIfAbsent must be called exactly once with the new joiner.
+      final captured =
+          verify(
+                () => mockGroupRepository.addMemberIfAbsent(
+                  'group-1',
+                  captureAny(),
+                ),
+              ).captured.single
+              as GroupMember;
+      expect(captured.did, joinerDid);
+      expect(captured.status, GroupMemberStatus.pendingApproval);
       verifyNever(() => mockGroupRepository.updateGroup(any()));
     });
   });

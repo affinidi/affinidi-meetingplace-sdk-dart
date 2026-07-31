@@ -101,14 +101,10 @@ class InvitationGroupAcceptedEventHandler
       throw InvitationAcceptedGroupException.contactCardNotPresent();
     }
 
-    // Atomic add-if-absent: the repository inserts the new pendingApproval row
-    // only when no row for (group.id, otherPartyPermanentChannelDid) already
-    // exists. This eliminates two races in a single operation:
-    //   1. Duplicate InvitationGroupAccept deliveries (re-delivery / two
-    //      devices) — the second call is silently a no-op.
-    //   2. Concurrent approve writes: because only the specific new row is
-    //      written (no full member-list replace), a concurrent
-    //      updateMemberStatus call for a different member is never overwritten.
+    // Insert the new pendingApproval member atomically, only when no row for
+    // this DID already exists. Writing just this one row (never a full
+    // member-list replace) means a concurrent approve's status change is never
+    // lost, and a re-delivered accept event is a no-op.
     await _groupRepository.addMemberIfAbsent(
       group.id,
       GroupMember.pendingMember(

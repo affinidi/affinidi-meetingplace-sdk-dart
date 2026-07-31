@@ -424,6 +424,118 @@ void main() {
         equals('mxc://server/casey-pic'),
       );
     });
+
+    test('addMemberIfAbsent inserts a new member and is a no-op when the '
+        'member DID already exists', () async {
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [
+          model.GroupMember.admin(
+            did: 'did:example:owner',
+            publicKey: 'pk-owner',
+            contactCard: model.ContactCard(
+              did: 'did:example:owner',
+              type: 'Person',
+              contactInfo: const {},
+            ),
+          ),
+        ],
+      );
+      await repository.createGroup(group);
+
+      final joiner = model.GroupMember.pendingMember(
+        did: 'did:example:joiner',
+        publicKey: 'pk-joiner',
+        contactCard: model.ContactCard(
+          did: 'did:example:joiner',
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+
+      await repository.addMemberIfAbsent(group.id, joiner);
+
+      final afterFirst = await repository.getGroupById(group.id);
+      expect(afterFirst!.members.length, 2);
+      final storedJoiner = afterFirst.members.firstWhere(
+        (m) => m.did == 'did:example:joiner',
+      );
+      expect(storedJoiner.status, model.GroupMemberStatus.pendingApproval);
+
+      // Second call with the same DID must not insert a duplicate row, even
+      // when the incoming member carries a different status.
+      await repository.addMemberIfAbsent(
+        group.id,
+        joiner.copyWith(status: model.GroupMemberStatus.approved),
+      );
+
+      final afterSecond = await repository.getGroupById(group.id);
+      expect(afterSecond!.members.length, 2);
+      expect(
+        afterSecond.members
+            .firstWhere((m) => m.did == 'did:example:joiner')
+            .status,
+        model.GroupMemberStatus.pendingApproval,
+      );
+    });
+
+    test('updateMemberStatus changes only the targeted member row', () async {
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+      model.GroupMember pending(String did) => model.GroupMember.pendingMember(
+        did: did,
+        publicKey: 'pk-$did',
+        contactCard: model.ContactCard(
+          did: did,
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [pending('did:example:alice'), pending('did:example:bob')],
+      );
+      await repository.createGroup(group);
+
+      await repository.updateMemberStatus(
+        group.id,
+        'did:example:alice',
+        model.GroupMemberStatus.approved,
+      );
+
+      final stored = await repository.getGroupById(group.id);
+      expect(
+        stored!.members.firstWhere((m) => m.did == 'did:example:alice').status,
+        model.GroupMemberStatus.approved,
+      );
+      // The other member is untouched.
+      expect(
+        stored.members.firstWhere((m) => m.did == 'did:example:bob').status,
+        model.GroupMemberStatus.pendingApproval,
+      );
+    });
   });
 
   group('RCardRepositoryDrift', () {

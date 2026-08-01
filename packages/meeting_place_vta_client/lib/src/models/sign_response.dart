@@ -4,11 +4,7 @@ part 'sign_response.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class SignResponse {
-  const SignResponse({
-    required this.signature,
-    this.algorithm,
-    this.keyId,
-  });
+  const SignResponse({required this.signature, this.algorithm, this.keyId});
 
   final String signature;
   final String? algorithm;

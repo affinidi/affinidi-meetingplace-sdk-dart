@@ -22,10 +22,10 @@ class VtaChallengeResponse {
       challenge: _getRequiredString(json, ['challenge']),
       sessionId: _getRequiredString(json, ['sessionId', 'session_id']),
       expiresAt: _getRequiredDateTime(json, ['expiresAt', 'expires_at']),
-      teeAttestation: _getOptionalObject(
-        json,
-        ['teeAttestation', 'tee_attestation'],
-      ),
+      teeAttestation: _getOptionalObject(json, [
+        'teeAttestation',
+        'tee_attestation',
+      ]),
     );
   }
 

@@ -190,10 +190,9 @@ class VtaStartupCapability {
     required this.secureStore,
     String? snapshotKey,
     DateTime Function()? clock,
-  }) : _snapshotKey =
-           (snapshotKey == null || snapshotKey.trim().isEmpty)
-               ? _defaultSnapshotKey
-               : snapshotKey,
+  }) : _snapshotKey = (snapshotKey == null || snapshotKey.trim().isEmpty)
+           ? _defaultSnapshotKey
+           : snapshotKey,
        _clock = clock ?? _defaultClock;
 
   final VtaSecureStore secureStore;

@@ -52,10 +52,7 @@ class VtaClientException extends VtaException {
     super.body,
     super.code,
     super.originalMessage,
-  }) : super(
-         message: message,
-         type: VtaErrorType.protocol,
-       );
+  }) : super(message: message, type: VtaErrorType.protocol);
 }
 
 class VtaTransportException extends VtaException {
@@ -63,10 +60,7 @@ class VtaTransportException extends VtaException {
     String message, {
     super.code,
     super.originalMessage,
-  }) : super(
-         message: message,
-         type: VtaErrorType.transport,
-       );
+  }) : super(message: message, type: VtaErrorType.transport);
 }
 
 class VtaAuthException extends VtaException {
@@ -75,10 +69,7 @@ class VtaAuthException extends VtaException {
     super.statusCode,
     super.body,
     super.code,
-  }) : super(
-         message: message,
-         type: VtaErrorType.auth,
-       );
+  }) : super(message: message, type: VtaErrorType.auth);
 }
 
 class VtaAclException extends VtaException {
@@ -87,43 +78,22 @@ class VtaAclException extends VtaException {
     super.statusCode,
     super.body,
     super.code,
-  }) : super(
-         message: message,
-         type: VtaErrorType.acl,
-       );
+  }) : super(message: message, type: VtaErrorType.acl);
 }
 
 class VtaParseException extends VtaException {
-  const VtaParseException(
-    String message, {
-    super.code,
-    super.originalMessage,
-  }) : super(
-         message: message,
-         type: VtaErrorType.parse,
-       );
+  const VtaParseException(String message, {super.code, super.originalMessage})
+    : super(message: message, type: VtaErrorType.parse);
 }
 
 class VtaProofException extends VtaException {
-  const VtaProofException(
-    String message, {
-    super.code,
-    super.originalMessage,
-  }) : super(
-         message: message,
-         type: VtaErrorType.proof,
-       );
+  const VtaProofException(String message, {super.code, super.originalMessage})
+    : super(message: message, type: VtaErrorType.proof);
 }
 
 class VtaCacheException extends VtaException {
-  const VtaCacheException(
-    String message, {
-    super.code,
-    super.originalMessage,
-  }) : super(
-         message: message,
-         type: VtaErrorType.cache,
-       );
+  const VtaCacheException(String message, {super.code, super.originalMessage})
+    : super(message: message, type: VtaErrorType.cache);
 }
 
 class VtaProtocolException extends VtaException {
@@ -133,10 +103,7 @@ class VtaProtocolException extends VtaException {
     super.body,
     super.code,
     super.originalMessage,
-  }) : super(
-         message: message,
-         type: VtaErrorType.protocol,
-       );
+  }) : super(message: message, type: VtaErrorType.protocol);
 }
 
 class VtaValidationException extends VtaException {
@@ -144,8 +111,5 @@ class VtaValidationException extends VtaException {
     String message, {
     super.code,
     super.originalMessage,
-  }) : super(
-         message: message,
-         type: VtaErrorType.validation,
-       );
+  }) : super(message: message, type: VtaErrorType.validation);
 }

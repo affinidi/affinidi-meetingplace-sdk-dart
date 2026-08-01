@@ -1162,6 +1162,37 @@ void main() {
         },
       );
 
+      test(
+        'retries sync until delayed encryption state becomes visible',
+        () async {
+          final client = MockMatrixClient();
+          final room = MockMatrixRoom();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(
+            () => client.joinRoom(any()),
+          ).thenAnswer((_) async => _testRoomId);
+
+          var syncCalls = 0;
+          when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+          when(() => room.encrypted).thenAnswer((_) => syncCalls >= 3);
+          when(client.oneShotSync).thenAnswer((_) async {
+            syncCalls++;
+          });
+
+          final roomId = await service.joinChannelRoom(
+            didManager: didManager,
+            channelDid: 'did:test:alice',
+            otherPartyChannelDid: 'did:test:bob',
+          );
+
+          expect(roomId, equals(_testRoomId));
+          verify(client.oneShotSync).called(3);
+        },
+      );
+
       test('throws StateError when joined room is not encrypted', () async {
         final client = MockMatrixClient();
         final room = MockMatrixRoom();
@@ -1172,6 +1203,7 @@ void main() {
         when(() => client.joinRoom(any())).thenAnswer((_) async => _testRoomId);
         when(() => client.getRoomById(_testRoomId)).thenReturn(room);
         when(() => room.encrypted).thenReturn(false);
+        when(client.oneShotSync).thenAnswer((_) async {});
 
         expect(
           () => service.joinChannelRoom(
@@ -1250,6 +1282,38 @@ void main() {
           ),
         ).called(1);
       });
+    });
+
+    group('joinRoomById', () {
+      test(
+        'retries sync until delayed encryption state becomes visible',
+        () async {
+          final client = MockMatrixClient();
+          final room = MockMatrixRoom();
+          when(() => client.userID).thenReturn(_matrixUserId);
+          when(
+            () => sessionManager.getAuthenticatedClient(_testDid),
+          ).thenAnswer((_) async => client);
+          when(
+            () => client.joinRoom(_testRoomId),
+          ).thenAnswer((_) async => _testRoomId);
+
+          var syncCalls = 0;
+          when(() => client.getRoomById(_testRoomId)).thenReturn(room);
+          when(() => room.encrypted).thenAnswer((_) => syncCalls >= 2);
+          when(client.oneShotSync).thenAnswer((_) async {
+            syncCalls++;
+          });
+
+          final roomId = await service.joinRoomById(
+            didManager: didManager,
+            roomId: _testRoomId,
+          );
+
+          expect(roomId, equals(_testRoomId));
+          verify(client.oneShotSync).called(2);
+        },
+      );
     });
 
     // ------------------------------------------------------------------

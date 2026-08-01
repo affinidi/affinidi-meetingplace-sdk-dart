@@ -33,6 +33,7 @@ class MatrixRoomService {
   final MeetingPlaceMatrixSDKLogger _logger;
 
   static const _logKey = 'MatrixRoomService';
+  static const _encryptedRoomResolutionMaxSyncAttempts = 5;
 
   /// Power level required to enable MatrixRTC group calls via
   /// [matrix.Room.enableGroupCalls]. Both the room creator and every invited
@@ -203,18 +204,7 @@ class MatrixRoomService {
         homeserverHost: _serverName,
       ),
     );
-    var room = client.getRoomById(roomId);
-    if (room == null) {
-      await client.oneShotSync();
-      room = client.getRoomById(roomId);
-    }
-    if (room == null) {
-      throw StateError(
-        'Matrix room $roomId did not appear after joining; '
-        'cannot verify end-to-end encryption state.',
-      );
-    }
-    _assertRoomEncrypted(room, roomId);
+    await _resolveEncryptedRoom(client, roomId);
     // TODO (earl): prefetch device keys here once confirmed reliable at
     // join time.
     return roomId;
@@ -228,18 +218,7 @@ class MatrixRoomService {
   }) async {
     final client = await _ensureSession(didManager);
     final joinedRoomId = await client.joinRoom(roomId);
-    var room = client.getRoomById(joinedRoomId);
-    if (room == null) {
-      await client.oneShotSync();
-      room = client.getRoomById(joinedRoomId);
-    }
-    if (room == null) {
-      throw StateError(
-        'Matrix room $joinedRoomId did not appear after joining; '
-        'cannot verify end-to-end encryption state.',
-      );
-    }
-    _assertRoomEncrypted(room, joinedRoomId);
+    await _resolveEncryptedRoom(client, joinedRoomId);
     return joinedRoomId;
   }
 
@@ -679,10 +658,18 @@ class MatrixRoomService {
     String roomId,
   ) async {
     var room = client.getRoomById(roomId);
-    if (room == null || !room.encrypted) {
+    if (room != null && room.encrypted) return room;
+
+    for (
+      var attempt = 0;
+      attempt < _encryptedRoomResolutionMaxSyncAttempts;
+      attempt++
+    ) {
       await client.oneShotSync();
       room = client.getRoomById(roomId);
+      if (room != null && room.encrypted) return room;
     }
+
     if (room == null) throw StateError('Matrix room $roomId not found');
     _assertRoomEncrypted(room, roomId);
     return room;

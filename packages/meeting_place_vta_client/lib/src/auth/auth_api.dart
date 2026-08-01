@@ -74,7 +74,8 @@ class VtaDeferredClientAuthTransport implements VtaAuthTransport {
 }
 
 class VtaDidCommAuthTransport implements VtaAuthTransport {
-  const VtaDidCommAuthTransport({required this._transport});
+  const VtaDidCommAuthTransport({required VtaDidCommTransport transport})
+    : _transport = transport;
 
   final VtaDidCommTransport _transport;
 
@@ -212,7 +213,7 @@ class VtaDidCommFirstAuthTransport implements VtaAuthTransport {
 }
 
 class VtaAuthApi {
-  VtaAuthApi({required this._transport});
+  VtaAuthApi({required VtaAuthTransport transport}) : _transport = transport;
 
   final VtaAuthTransport _transport;
 

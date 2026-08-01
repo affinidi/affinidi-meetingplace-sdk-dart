@@ -1,7 +1,7 @@
 import 'vta_client.dart';
 
 class VtaAuditApi {
-  VtaAuditApi({required this._client});
+  VtaAuditApi({required VtaClient client}) : _client = client;
 
   final VtaClient _client;
 

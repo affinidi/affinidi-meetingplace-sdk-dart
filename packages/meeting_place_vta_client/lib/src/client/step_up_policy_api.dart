@@ -1,7 +1,7 @@
 import 'vta_client.dart';
 
 class VtaStepUpPolicyApi {
-  VtaStepUpPolicyApi({required this._client});
+  VtaStepUpPolicyApi({required VtaClient client}) : _client = client;
 
   final VtaClient _client;
 

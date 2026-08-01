@@ -113,10 +113,11 @@ class VtaMediatorProtocolConfig {
 
 class VtaMediatorWireTransportAdapter implements VtaMediatorWireTransport {
   VtaMediatorWireTransportAdapter({
-    required this._channel,
-    required this._packer,
+    required VtaDidCommChannel channel,
+    required VtaDidCommPacker packer,
     this.protocolConfig = const VtaMediatorProtocolConfig(),
-  });
+  }) : _channel = channel,
+       _packer = packer;
 
   final VtaDidCommChannel _channel;
   final VtaDidCommPacker _packer;
@@ -218,9 +219,9 @@ class VtaMediatorWireTransportAdapter implements VtaMediatorWireTransport {
 
 class VtaMediatorSession {
   VtaMediatorSession({
-    required this._transport,
+    required VtaMediatorWireTransport transport,
     this.expectedSenderDid,
-  });
+  }) : _transport = transport;
 
   final VtaMediatorWireTransport _transport;
   final String? expectedSenderDid;

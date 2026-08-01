@@ -1,6 +1,6 @@
 import 'package:meeting_place_personal_agent/meeting_place_personal_agent.dart';
-import 'package:test/test.dart';
 import 'package:meeting_place_vta_client/meeting_place_vta_client.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('MeetingPlacePersonalAgentSDK', () {

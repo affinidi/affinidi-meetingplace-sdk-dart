@@ -174,7 +174,7 @@ void main() {
     });
 
     test(
-      'legacy sign-document request preserves extracted attachments on ConciergeMessage',
+      '''legacy sign-document request preserves extracted attachments on ConciergeMessage''',
       () async {
         final signRequest = jsonEncode({
           'type': 'cierge/sign-document-request',

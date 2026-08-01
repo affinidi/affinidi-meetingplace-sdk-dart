@@ -20,21 +20,19 @@ class VtaCredentialBundle {
   final Map<String, dynamic> raw;
 
   factory VtaCredentialBundle.fromJson(Map<String, dynamic> json) {
-    final did = _firstRequiredString(
-      json,
-      ['did', 'holder_did'],
-      fieldName: 'did',
-    );
-    final vtaUrl = _firstRequiredString(
-      json,
-      ['vta_url', 'url', 'base_url'],
-      fieldName: 'vta_url',
-    );
-    final privateKey = _firstRequiredString(
-      json,
-      ['private_key_multibase', 'privateKeyMultibase'],
-      fieldName: 'private_key_multibase',
-    );
+    final did = _firstRequiredString(json, [
+      'did',
+      'holder_did',
+    ], fieldName: 'did');
+    final vtaUrl = _firstRequiredString(json, [
+      'vta_url',
+      'url',
+      'base_url',
+    ], fieldName: 'vta_url');
+    final privateKey = _firstRequiredString(json, [
+      'private_key_multibase',
+      'privateKeyMultibase',
+    ], fieldName: 'private_key_multibase');
 
     return VtaCredentialBundle(
       did: did,

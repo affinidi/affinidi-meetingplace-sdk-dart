@@ -54,8 +54,10 @@ class GeneratedProofSigner implements VtaAuthSigner {
   }
 
   static List<int> _parseHex(String raw) {
-    final normalized =
-        raw.replaceAll(RegExp(r'\s+'), '').replaceAll('0x', '').trim();
+    final normalized = raw
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll('0x', '')
+        .trim();
     if (normalized.length.isOdd) {
       throw const FormatException('HOLDER_SEED_HEX must have even length');
     }

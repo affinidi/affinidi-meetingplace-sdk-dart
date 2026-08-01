@@ -277,10 +277,11 @@ class VtaWebSocketMediatorChannel implements VtaDidCommChannel {
 
 class VtaDidCommTransportAdapter implements VtaDidCommTransport {
   VtaDidCommTransportAdapter({
-    required this._channel,
-    required this._packer,
+    required VtaDidCommChannel channel,
+    required VtaDidCommPacker packer,
     this.responseTimeout = const Duration(seconds: 20),
-  });
+  }) : _channel = channel,
+       _packer = packer;
 
   final VtaDidCommChannel _channel;
   final VtaDidCommPacker _packer;

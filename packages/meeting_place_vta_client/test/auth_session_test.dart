@@ -475,7 +475,9 @@ class _NoopAuthTransport implements VtaAuthTransport {
   }
 
   @override
-  Future<Map<String, dynamic>> postChallenge(VtaChallengeRequest request) async {
+  Future<Map<String, dynamic>> postChallenge(
+    VtaChallengeRequest request,
+  ) async {
     _fail();
   }
 

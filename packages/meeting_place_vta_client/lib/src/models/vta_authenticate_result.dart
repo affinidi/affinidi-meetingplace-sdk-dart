@@ -35,7 +35,10 @@ class VtaAuthenticateResult {
   }
 }
 
-Map<String, dynamic> _getRequiredObject(Map<String, dynamic> json, List<String> keys) {
+Map<String, dynamic> _getRequiredObject(
+  Map<String, dynamic> json,
+  List<String> keys,
+) {
   final object = _getOptionalObject(json, keys);
   if (object != null) {
     return object;

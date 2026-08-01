@@ -11,18 +11,18 @@ void main() {
     fixture = await GroupChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.disposeSessions();
+  tearDown(() async {
+    await fixture.disposeSessions();
   });
 
-  tearDownAll(() {
-    fixture.disposeSessions();
+  tearDownAll(() async {
+    await fixture.disposeSessions();
   });
 
   test('group owner sends message to members', () async {
-    await fixture.aliceChatSDK.startChatSession();
-    await fixture.bobChatSDK.startChatSession();
-    await fixture.charlieChatSDK.startChatSession();
+    await fixture.startAliceChatSession();
+    await fixture.startBobChatSession();
+    await fixture.startCharlieChatSession();
 
     final bobMessage = ChatTestHarness.awaitItem(
       fixture.bobChatSDK,
@@ -41,9 +41,9 @@ void main() {
   });
 
   test('send activity message', () async {
-    await fixture.aliceChatSDK.startChatSession();
-    await fixture.bobChatSDK.startChatSession();
-    await fixture.charlieChatSDK.startChatSession();
+    await fixture.startAliceChatSession();
+    await fixture.startBobChatSession();
+    await fixture.startCharlieChatSession();
 
     final charlieActivity = ChatTestHarness.awaitEvent<ChatActivityEvent>(
       fixture.charlieChatSDK,
@@ -54,9 +54,9 @@ void main() {
   });
 
   test('group member sendCustomEvent delivers message to group', () async {
-    await fixture.aliceChatSDK.startChatSession();
-    await fixture.bobChatSDK.startChatSession();
-    await fixture.charlieChatSDK.startChatSession();
+    await fixture.startAliceChatSession();
+    await fixture.startBobChatSession();
+    await fixture.startCharlieChatSession();
 
     final bobMessage = ChatTestHarness.awaitItem(
       fixture.bobChatSDK,
@@ -88,8 +88,8 @@ void main() {
   });
 
   test('group sendCustomEvent delivers message', () async {
-    await fixture.aliceChatSDK.startChatSession();
-    await fixture.bobChatSDK.startChatSession();
+    await fixture.startAliceChatSession();
+    await fixture.startBobChatSession();
 
     final bobMessage = ChatTestHarness.awaitItem(
       fixture.bobChatSDK,
@@ -109,8 +109,8 @@ void main() {
   test(
     'replayed group history rolls all buffered outbound messages to delivered',
     () async {
-      await fixture.aliceChatSDK.startChatSession();
-      await fixture.charlieChatSDK.startChatSession();
+      await fixture.startAliceChatSession();
+      await fixture.startCharlieChatSession();
 
       final aliceSentIds = <String>[
         (await fixture.aliceChatSDK.sendTextMessage(
@@ -129,7 +129,7 @@ void main() {
             item.status == ChatItemStatus.delivered,
       );
 
-      await fixture.bobChatSDK.startChatSession();
+      await fixture.startBobChatSession();
       await aliceLatestDelivered;
 
       final aliceMessages = await fixture.aliceChatSDK.messages;

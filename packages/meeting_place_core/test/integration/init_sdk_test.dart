@@ -2,6 +2,7 @@
 library;
 
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:meeting_place_core/src/exception/sdk_exception.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
@@ -80,8 +81,8 @@ void main() async {
 
     await minimumSDK.registerForPushNotifications(const Uuid().v4());
 
-    expect(
-      () => minimumSDK.publishOffer(
+    await expectLater(
+      minimumSDK.publishOffer(
         offerName: 'Test offer',
         offerDescription: 'Sample offer description',
         contactCard: ContactCardFixture.getContactCardFixture(
@@ -90,7 +91,19 @@ void main() async {
         ),
         type: SDKConnectionOfferType.groupInvitation,
       ),
-      throwsA(isA<UnimplementedError>()),
+      throwsA(
+        isA<SDKException>()
+            .having(
+              (error) => error.code,
+              'code',
+              MeetingPlaceCoreSDKErrorCode.connectionOfferPublishError,
+            )
+            .having(
+              (error) => error.innerException,
+              'innerException',
+              isA<UnimplementedError>(),
+            ),
+      ),
     );
   });
 

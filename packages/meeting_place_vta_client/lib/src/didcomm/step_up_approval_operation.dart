@@ -22,10 +22,12 @@ class VtaStepUpApprovalOperation {
   VtaStepUpApprovalOperation({
     required this.holderDid,
     required this.vtaDid,
-    required this._signer,
-    required this._submit,
+    required VtaAuthSigner signer,
+    required VtaStepUpSubmitDocument submit,
     DateTime Function()? clock,
-  }) : _clock = clock ?? _defaultClock;
+  }) : _signer = signer,
+       _submit = submit,
+       _clock = clock ?? _defaultClock;
 
   factory VtaStepUpApprovalOperation.forClient({
     required VtaClient client,

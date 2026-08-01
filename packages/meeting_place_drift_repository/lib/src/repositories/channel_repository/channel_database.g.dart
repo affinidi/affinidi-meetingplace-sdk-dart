@@ -1033,13 +1033,9 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
           ..write('matrixSyncMarker: $matrixSyncMarker, ')
-<<<<<<< HEAD
           ..write('messageSyncMarker: $messageSyncMarker, ')
-          ..write('matrixRoomId: $matrixRoomId')
-=======
           ..write('matrixRoomId: $matrixRoomId, ')
           ..write('contextKey: $contextKey')
->>>>>>> 38cdd9ba (fix: multi agent support (#285))
           ..write(')'))
         .toString();
   }
@@ -1095,13 +1091,9 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.externalRef == this.externalRef &&
           other.seqNo == this.seqNo &&
           other.matrixSyncMarker == this.matrixSyncMarker &&
-<<<<<<< HEAD
           other.messageSyncMarker == this.messageSyncMarker &&
-          other.matrixRoomId == this.matrixRoomId);
-=======
           other.matrixRoomId == this.matrixRoomId &&
           other.contextKey == this.contextKey);
->>>>>>> 38cdd9ba (fix: multi agent support (#285))
 }
 
 class ChannelsCompanion extends UpdateCompanion<Channel> {

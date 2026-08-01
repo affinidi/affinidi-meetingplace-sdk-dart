@@ -37,10 +37,12 @@ typedef VtaStepUpApproveRequestHandler =
 
 class VtaStepUpApprovalCoordinator {
   VtaStepUpApprovalCoordinator({
-    required this._mediatorSession,
-    required this._onApproveRequest,
-    this._approvalOperation,
-  });
+    required VtaMediatorSession mediatorSession,
+    required VtaStepUpApproveRequestHandler onApproveRequest,
+    VtaStepUpApprovalOperation? approvalOperation,
+  }) : _mediatorSession = mediatorSession,
+       _onApproveRequest = onApproveRequest,
+       _approvalOperation = approvalOperation;
 
   final VtaMediatorSession _mediatorSession;
   final VtaStepUpApproveRequestHandler _onApproveRequest;

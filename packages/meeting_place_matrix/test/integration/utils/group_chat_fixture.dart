@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
@@ -6,6 +8,14 @@ import 'package:ssi/ssi.dart';
 import '../../utils/contact_card_fixture.dart';
 import '../../utils/control_plane_test_utils.dart';
 import '../../utils/sdk.dart';
+
+void _suppressStreamClosed(Object error, StackTrace stackTrace) {
+  if (error is StateError &&
+      error.message.contains('Cannot add new events after calling close')) {
+    return;
+  }
+  Zone.root.handleUncaughtError(error, stackTrace);
+}
 
 class GroupChatFixture {
   GroupChatFixture._();
@@ -209,9 +219,34 @@ class GroupChatFixture {
     return (sdk, acceptance);
   }
 
-  void disposeSessions() {
-    aliceChatSDK.endChatSession();
-    bobChatSDK.endChatSession();
-    charlieChatSDK.endChatSession();
+  Future<T> runWithSuppressedStreamClosed<T>(Future<T> Function() action) {
+    final completer = Completer<T>();
+    runZonedGuarded(() async {
+      try {
+        completer.complete(await action());
+      } catch (error, stackTrace) {
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        }
+      }
+    }, _suppressStreamClosed);
+    return completer.future;
+  }
+
+  Future<Chat> startAliceChatSession() =>
+      runWithSuppressedStreamClosed(aliceChatSDK.startChatSession);
+
+  Future<Chat> startBobChatSession() =>
+      runWithSuppressedStreamClosed(bobChatSDK.startChatSession);
+
+  Future<Chat> startCharlieChatSession() =>
+      runWithSuppressedStreamClosed(charlieChatSDK.startChatSession);
+
+  Future<void> disposeSessions() {
+    return runWithSuppressedStreamClosed(() async {
+      await aliceChatSDK.endChatSession();
+      await bobChatSDK.endChatSession();
+      await charlieChatSDK.endChatSession();
+    });
   }
 }

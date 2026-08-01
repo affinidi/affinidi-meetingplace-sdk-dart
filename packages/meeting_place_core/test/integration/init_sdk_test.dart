@@ -81,8 +81,8 @@ void main() async {
 
     await minimumSDK.registerForPushNotifications(const Uuid().v4());
 
-    expect(
-      () => minimumSDK.publishOffer(
+    await expectLater(
+      minimumSDK.publishOffer(
         offerName: 'Test offer',
         offerDescription: 'Sample offer description',
         contactCard: ContactCardFixture.getContactCardFixture(

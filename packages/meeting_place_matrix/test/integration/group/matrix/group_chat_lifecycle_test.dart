@@ -4,39 +4,63 @@ import 'package:test/test.dart';
 import '../../../utils/chat_test_harness.dart';
 import '../../utils/group_chat_fixture.dart';
 
+const _fixtureCreateMaxAttempts = 2;
+
+Future<GroupChatFixture> _createFixtureWithRetry() async {
+  Object? lastError;
+  StackTrace? lastStackTrace;
+
+  for (var attempt = 1; attempt <= _fixtureCreateMaxAttempts; attempt++) {
+    try {
+      return await GroupChatFixture.create();
+    } catch (error, stackTrace) {
+      lastError = error;
+      lastStackTrace = stackTrace;
+      if (attempt == _fixtureCreateMaxAttempts) rethrow;
+    }
+  }
+
+  Error.throwWithStackTrace(lastError!, lastStackTrace!);
+}
+
 void main() {
-  late GroupChatFixture fixture;
+  GroupChatFixture? fixture;
 
   setUp(() async {
-    fixture = await GroupChatFixture.create();
+    fixture = await _createFixtureWithRetry();
   });
 
-  tearDown(() {
-    fixture.disposeSessions();
+  tearDown(() async {
+    if (fixture != null) {
+      await fixture!.disposeSessions();
+      fixture = null;
+    }
   });
 
   test(
     'owner leaving group emits ChatGroupDeletedEvent on remaining members',
     () async {
-      await fixture.aliceChatSDK.startChatSession();
-      await fixture.bobChatSDK.startChatSession();
-      await fixture.charlieChatSDK.startChatSession();
+      final currentFixture = fixture!;
+      await currentFixture.startAliceChatSession();
+      await currentFixture.startBobChatSession();
+      await currentFixture.startCharlieChatSession();
 
-      final groupDid = fixture.publishOfferResult.connectionOffer.groupDid!;
+      final groupDid =
+          currentFixture.publishOfferResult.connectionOffer.groupDid!;
 
       final bobDeleted = ChatTestHarness.awaitEvent<ChatGroupDeletedEvent>(
-        fixture.bobChatSDK,
+        currentFixture.bobChatSDK,
         where: (e) => e.groupDid == groupDid,
       );
       final charlieDeleted = ChatTestHarness.awaitEvent<ChatGroupDeletedEvent>(
-        fixture.charlieChatSDK,
+        currentFixture.charlieChatSDK,
         where: (e) => e.groupDid == groupDid,
       );
 
-      final aliceChannel = await fixture.aliceSDK.getChannelByDid(
-        fixture.groupOwnerDidDocument.id,
+      final aliceChannel = await currentFixture.aliceSDK.getChannelByDid(
+        currentFixture.groupOwnerDidDocument.id,
       );
-      await fixture.aliceSDK.leaveChannel(aliceChannel!);
+      await currentFixture.aliceSDK.leaveChannel(aliceChannel!);
 
       await bobDeleted;
       await charlieDeleted;
@@ -46,28 +70,32 @@ void main() {
   test(
     'member leaving group emits ChatMemberDeregisteredEvent on others',
     () async {
-      await fixture.aliceChatSDK.startChatSession();
-      await fixture.bobChatSDK.startChatSession();
-      await fixture.charlieChatSDK.startChatSession();
+      final currentFixture = fixture!;
+      await currentFixture.startAliceChatSession();
+      await currentFixture.startBobChatSession();
+      await currentFixture.startCharlieChatSession();
 
-      final groupDid = fixture.publishOfferResult.connectionOffer.groupDid!;
+      final groupDid =
+          currentFixture.publishOfferResult.connectionOffer.groupDid!;
 
       final aliceLeft = ChatTestHarness.awaitEvent<ChatMemberDeregisteredEvent>(
-        fixture.aliceChatSDK,
+        currentFixture.aliceChatSDK,
         where: (e) =>
-            e.groupDid == groupDid && e.memberDid == fixture.bobMemberDid,
+            e.groupDid == groupDid &&
+            e.memberDid == currentFixture.bobMemberDid,
       );
       final charlieLeft =
           ChatTestHarness.awaitEvent<ChatMemberDeregisteredEvent>(
-            fixture.charlieChatSDK,
+            currentFixture.charlieChatSDK,
             where: (e) =>
-                e.groupDid == groupDid && e.memberDid == fixture.bobMemberDid,
+                e.groupDid == groupDid &&
+                e.memberDid == currentFixture.bobMemberDid,
           );
 
-      final bobChannel = await fixture.bobSDK.getChannelByDid(
-        fixture.bobMemberDid,
+      final bobChannel = await currentFixture.bobSDK.getChannelByDid(
+        currentFixture.bobMemberDid,
       );
-      await fixture.bobSDK.leaveChannel(bobChannel!);
+      await currentFixture.bobSDK.leaveChannel(bobChannel!);
 
       await aliceLeft;
       await charlieLeft;

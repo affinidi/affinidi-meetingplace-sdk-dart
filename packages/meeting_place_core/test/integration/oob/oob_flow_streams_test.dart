@@ -24,10 +24,11 @@ void main() {
     });
 
     test('uses separate stream for each acceptOobFlow call', () async {
-      final createOobFlowResult = await fixture.createOobFlow();
+      final createOobFlowResultA = await fixture.createOobFlow();
+      final createOobFlowResultB = await fixture.createOobFlow();
 
-      final resultA = await fixture.acceptOobFlow(createOobFlowResult.oobUrl);
-      final resultB = await fixture.acceptOobFlow(createOobFlowResult.oobUrl);
+      final resultA = await fixture.acceptOobFlow(createOobFlowResultA.oobUrl);
+      final resultB = await fixture.acceptOobFlow(createOobFlowResultB.oobUrl);
 
       expect(resultA.stream, isNot(equals(resultB.stream)));
     });

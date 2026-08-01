@@ -255,6 +255,10 @@ void main() {
       ).thenAnswer((_) async => []);
     });
 
+    setUp(() {
+      clearInteractions(mockMediatorService);
+    });
+
     test('respect maximum number of retries', () async {
       await handler.process(event);
       verify(

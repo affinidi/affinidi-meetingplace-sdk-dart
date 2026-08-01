@@ -14,8 +14,8 @@ void main() {
     fixture = await GroupChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.disposeSessions();
+  tearDown(() async {
+    await fixture.disposeSessions();
   });
 
   test(
@@ -37,9 +37,11 @@ void main() {
         card: updatedCard,
       );
 
-      await fixture.aliceChatSDK.startChatSession();
-      await fixture.charlieChatSDK.startChatSession();
-      final bobChat = await newBobChatSDK.startChatSession();
+      await fixture.startAliceChatSession();
+      await fixture.startCharlieChatSession();
+      final bobChat = await fixture.runWithSuppressedStreamClosed(
+        newBobChatSDK.startChatSession,
+      );
 
       final aliceUpdate =
           ChatTestHarness.awaitEvent<ChatContactDetailsUpdateEvent>(
@@ -109,7 +111,9 @@ void main() {
         ),
       );
 
-      final bobChat = await refreshedChatSdk.startChatSession();
+      final bobChat = await fixture.runWithSuppressedStreamClosed(
+        refreshedChatSdk.startChatSession,
+      );
       final conciergeFuture = ChatTestHarness.awaitItem(
         refreshedChatSdk,
         where: (ChatItem item) =>

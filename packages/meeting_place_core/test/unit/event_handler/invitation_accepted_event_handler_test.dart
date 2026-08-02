@@ -244,6 +244,10 @@ void main() {
   });
 
   group('retry behavior for exceeded retries', () {
+    setUp(() {
+      clearInteractions(mockMediatorService);
+    });
+
     setUpAll(() {
       // Mediator returns no messages
       when(

@@ -7,6 +7,14 @@ class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 
+_MockCoreSDK _buildCore({
+  MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
+}) {
+  final core = _MockCoreSDK();
+  when(() => core.options).thenReturn(options);
+  return core;
+}
+
 IndividualDidcommChatSDK _buildDidcommSdk(_MockCoreSDK core) =>
     IndividualDidcommChatSDK(
       coreSDK: core,
@@ -22,7 +30,7 @@ IndividualDidcommChatSDK _buildDidcommSdk(_MockCoreSDK core) =>
 void main() {
   group('Chat transport capabilities', () {
     test('DIDComm supports images but not video attachments', () {
-      final core = _MockCoreSDK();
+      final core = _buildCore();
       final capabilities = _buildDidcommSdk(core).capabilities;
 
       expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
@@ -30,7 +38,7 @@ void main() {
     });
 
     test('DIDComm does not support audio/video calling', () {
-      final core = _MockCoreSDK();
+      final core = _buildCore();
       final capabilities = _buildDidcommSdk(core).capabilities;
 
       expect(capabilities.supports(ChatFeature.audioVideoCalling), isFalse);
@@ -39,9 +47,8 @@ void main() {
     test(
       'individual DIDComm exposes suggestion requests when agentDid exists',
       () {
-        final core = _MockCoreSDK();
-        when(() => core.options).thenReturn(
-          const MeetingPlaceCoreSDKOptions(agentDid: 'did:test:agent'),
+        final core = _buildCore(
+          options: const MeetingPlaceCoreSDKOptions(agentDid: 'did:test:agent'),
         );
         final capabilities = _buildDidcommSdk(core).capabilities;
 
@@ -52,8 +59,7 @@ void main() {
     test(
       'individual DIDComm hides suggestion requests when agentDid is absent',
       () {
-        final core = _MockCoreSDK();
-        when(() => core.options).thenReturn(const MeetingPlaceCoreSDKOptions());
+        final core = _buildCore();
         final capabilities = _buildDidcommSdk(core).capabilities;
 
         expect(capabilities.supports(ChatFeature.suggestionRequests), isFalse);
